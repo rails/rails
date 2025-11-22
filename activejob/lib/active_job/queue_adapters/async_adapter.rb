@@ -86,7 +86,11 @@ module ActiveJob
         def initialize(**options)
           self.immediate = false
           @immediate_executor = Concurrent::ImmediateExecutor.new
-          @async_executor = Concurrent::ThreadPoolExecutor.new(DEFAULT_EXECUTOR_OPTIONS.merge(options))
+          @async_executor = Concurrent::ThreadPoolExecutor.new(
+            name: "ActiveJob-async-scheduler",
+            **DEFAULT_EXECUTOR_OPTIONS,
+            **options
+          )
         end
 
         def enqueue(job, queue_name:)

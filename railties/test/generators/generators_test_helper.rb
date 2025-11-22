@@ -135,6 +135,9 @@ module GeneratorsTestHelper
   def assert_devcontainer_json_file
     assert_file ".devcontainer/devcontainer.json" do |content|
       yield JSON.load(content)
+    rescue JSON::ParserError
+      puts "Failed to parse JSON: #{content}"
+      raise
     end
   end
 
@@ -144,7 +147,7 @@ module GeneratorsTestHelper
       gemfile_contents.sub!(/^(gem "rails").*/, "\\1, path: #{File.expand_path("../../..", __dir__).inspect}")
       File.write("Gemfile", gemfile_contents)
 
-      quietly { system({ "BUNDLE_GEMFILE" => "Gemfile" }, "bin/rails app:update #{flags}", exception: true) }
+      silence_stream($stdout) { system({ "BUNDLE_GEMFILE" => "Gemfile" }, "bin/rails app:update #{flags}", exception: true) }
     end
   end
 
@@ -156,7 +159,6 @@ module GeneratorsTestHelper
         depend_on_bootsnap: false,
         depends_on_system_test: false,
         options: ActiveSupport::OrderedOptions.new,
-        bundler_windows_platforms: "windows",
       }
     end
 end

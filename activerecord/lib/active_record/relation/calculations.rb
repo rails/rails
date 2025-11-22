@@ -60,37 +60,37 @@ module ActiveRecord
     #   Person.distinct.count(:age)
     #   # => counts the number of different age values
     #
-    # If #count is used with {Relation#group}[rdoc-ref:QueryMethods#group],
+    # If +count+ is used with {Relation#group}[rdoc-ref:QueryMethods#group],
     # it returns a Hash whose keys represent the aggregated column,
     # and the values are the respective amounts:
     #
     #   Person.group(:city).count
     #   # => { 'Rome' => 5, 'Paris' => 3 }
     #
-    # If #count is used with {Relation#group}[rdoc-ref:QueryMethods#group] for multiple columns, it returns a Hash whose
+    # If +count+ is used with {Relation#group}[rdoc-ref:QueryMethods#group] for multiple columns, it returns a Hash whose
     # keys are an array containing the individual values of each column and the value
-    # of each key would be the #count.
+    # of each key would be the count.
     #
     #   Article.group(:status, :category).count
     #   # =>  {["draft", "business"]=>10, ["draft", "technology"]=>4, ["published", "technology"]=>2}
     #
-    # If #count is used with {Relation#select}[rdoc-ref:QueryMethods#select], it will count the selected columns:
+    # If +count+ is used with {Relation#select}[rdoc-ref:QueryMethods#select], it will count the selected columns:
     #
     #   Person.select(:age).count
     #   # => counts the number of different age values
     #
-    # Note: not all valid {Relation#select}[rdoc-ref:QueryMethods#select] expressions are valid #count expressions. The specifics differ
+    # Note: not all valid {Relation#select}[rdoc-ref:QueryMethods#select] expressions are valid +count+ expressions. The specifics differ
     # between databases. In invalid cases, an error from the database is thrown.
     #
-    # When given a block, loads all records in the relation, if the relation
-    # hasn't been loaded yet. Calls the block with each record in the relation.
-    # Returns the number of records for which the block returns a truthy value.
+    # When given a block, calls the block with each record in the relation and
+    # returns the number of records for which the block returns a truthy value.
     #
     #   Person.count { |person| person.age > 21 }
     #   # => counts the number of people older that 21
     #
-    # Note: If there are a lot of records in the relation, loading all records
-    # could result in performance issues.
+    # If the relation hasn't been loaded yet, calling +count+ with a block will
+    # load all records in the relation. If there are a lot of records in the
+    # relation, loading all records could result in performance issues.
     def count(column_name = nil)
       if block_given?
         unless column_name.nil?
@@ -159,16 +159,15 @@ module ActiveRecord
     #
     #   Person.sum(:age) # => 4562
     #
-    # When given a block, loads all records in the relation, if the relation
-    # hasn't been loaded yet. Calls the block with each record in the relation.
-    # Returns the sum of +initial_value_or_column+ and the block return
-    # values:
+    # When given a block, calls the block with each record in the relation and
+    # returns the sum of +initial_value_or_column+ plus the block return values:
     #
     #   Person.sum { |person| person.age } # => 4562
     #   Person.sum(1000) { |person| person.age } # => 5562
     #
-    # Note: If there are a lot of records in the relation, loading all records
-    # could result in performance issues.
+    # If the relation hasn't been loaded yet, calling +sum+ with a block will
+    # load all records in the relation. If there are a lot of records in the
+    # relation, loading all records could result in performance issues.
     def sum(initial_value_or_column = 0, &block)
       if block_given?
         map(&block).sum(initial_value_or_column)
@@ -287,6 +286,11 @@ module ActiveRecord
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
     #
+    # Be aware that #pluck ignores any previous select clauses
+    #
+    #   Person.select(:name).pluck(:id)
+    #   # SELECT people.id FROM people
+    #
     # See also #ids.
     def pluck(*column_names)
       if @none
@@ -315,7 +319,7 @@ module ActiveRecord
         columns = relation.arel_columns(column_names)
         relation.select_values = columns
         result = skip_query_cache_if_necessary do
-          if where_clause.contradiction?
+          if where_clause.contradiction? && !possible_aggregation?(column_names)
             ActiveRecord::Result.empty(async: @async)
           else
             model.with_connection do |c|
@@ -410,6 +414,18 @@ module ActiveRecord
       async.ids
     end
 
+    protected
+      def aggregate_column(column_name)
+        case column_name
+        when Arel::Expressions
+          column_name
+        when :all
+          Arel.star
+        else
+          arel_column(column_name.to_s)
+        end
+      end
+
     private
       def all_attributes?(column_names)
         (column_names.map(&:to_s) - model.attribute_names - model.attribute_aliases.keys).empty?
@@ -450,14 +466,13 @@ module ActiveRecord
         column_name.is_a?(::String) && /\bDISTINCT[\s(]/i.match?(column_name)
       end
 
-      def aggregate_column(column_name)
-        case column_name
-        when Arel::Expressions
-          column_name
-        when :all
-          Arel.star
-        else
-          arel_column(column_name)
+      def possible_aggregation?(column_names)
+        column_names.all? do |column_name|
+          if column_name.is_a?(String)
+            column_name.include?("(")
+          else
+            Arel.arel_node?(column_name)
+          end
         end
       end
 
@@ -476,7 +491,7 @@ module ActiveRecord
           # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
           relation = unscope(:order).distinct!(false)
 
-          column = aggregate_column(column_name)
+          column = relation.aggregate_column(column_name)
           select_value = operation_over_aggregate_column(column, operation, distinct)
           select_value.distinct = true if operation == "sum" && distinct
 
@@ -486,7 +501,11 @@ module ActiveRecord
         end
 
         query_result = if relation.where_clause.contradiction?
-          ActiveRecord::Result.empty
+          if @async
+            FutureResult.wrap(ActiveRecord::Result.empty)
+          else
+            ActiveRecord::Result.empty
+          end
         else
           skip_query_cache_if_necessary do
             model.with_connection do |c|
@@ -508,14 +527,15 @@ module ActiveRecord
 
       def execute_grouped_calculation(operation, column_name, distinct) # :nodoc:
         group_fields = group_values
-        group_fields = group_fields.uniq if group_fields.size > 1
 
         if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)
           association  = model._reflect_on_association(group_fields.first)
           associated   = association && association.belongs_to? # only count belongs_to associations
           group_fields = Array(association.foreign_key) if associated
         end
-        group_fields = arel_columns(group_fields)
+
+        relation = except(:group).distinct!(false)
+        group_fields = relation.arel_columns(group_fields)
 
         model.with_connection do |connection|
           column_alias_tracker = ColumnAliasTracker.new(connection)
@@ -526,10 +546,10 @@ module ActiveRecord
           }
           group_columns = group_aliases.zip(group_fields)
 
-          column = aggregate_column(column_name)
+          column = relation.aggregate_column(column_name)
           column_alias = column_alias_tracker.alias_for("#{operation} #{column_name.to_s.downcase}")
           select_value = operation_over_aggregate_column(column, operation, distinct)
-          select_value.as(model.adapter_class.quote_column_name(column_alias))
+          select_value = select_value.as(model.adapter_class.quote_column_name(column_alias))
 
           select_values = [select_value]
           select_values += self.select_values unless having_clause.empty?
@@ -543,7 +563,6 @@ module ActiveRecord
             end
           }
 
-          relation = except(:group).distinct!(false)
           relation.group_values  = group_fields
           relation.select_values = select_values
 
@@ -657,19 +676,16 @@ module ActiveRecord
         if column_name == :all
           column_alias = Arel.star
           relation.select_values = [ Arel.sql(FinderMethods::ONE_AS_ONE) ] unless distinct
+          relation.unscope!(:order)
         else
           column_alias = Arel.sql("count_column")
-          relation.select_values = [ aggregate_column(column_name).as(column_alias) ]
+          relation.select_values = [ relation.aggregate_column(column_name).as(column_alias) ]
         end
 
         subquery_alias = Arel.sql("subquery_for_count", retryable: true)
         select_value = operation_over_aggregate_column(column_alias, "count", false)
 
-        if column_name == :all
-          relation.unscope(:order).build_subquery(subquery_alias, select_value)
-        else
-          relation.build_subquery(subquery_alias, select_value)
-        end
+        relation.build_subquery(subquery_alias, select_value)
       end
   end
 end

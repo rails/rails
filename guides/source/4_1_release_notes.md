@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Ruby on Rails 4.1 Release Notes
 ===============================
@@ -338,7 +338,7 @@ for detailed changes.
   array. ([Pull Request](https://github.com/rails/rails/pull/9599))
 
 * Added `session#fetch` method fetch behaves similarly to
-  [Hash#fetch](https://www.ruby-doc.org/core-1.9.3/Hash.html#method-i-fetch),
+  [Hash#fetch](https://docs.ruby-lang.org/en/master/Hash.html#method-i-fetch),
   with the exception that the returned value is always saved into the
   session. ([Pull Request](https://github.com/rails/rails/pull/12692))
 

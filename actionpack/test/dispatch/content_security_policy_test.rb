@@ -23,6 +23,33 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     assert_equal copied.build, @policy.build
   end
 
+  def test_whitespace_validation
+    @policy.base_uri "https://some.url https://other.url"
+
+    error = assert_raises(ActionDispatch::ContentSecurityPolicy::InvalidDirectiveError) do
+      @policy.build
+    end
+    assert_equal(<<~MSG.squish, error.message)
+      Invalid Content Security Policy base-uri: "https://some.url https://other.url".
+      Directive values must not contain whitespace or semicolons.
+      Please use multiple arguments or other directive methods instead.
+    MSG
+  end
+
+
+  def test_semicolon_validation
+    @policy.base_uri "https://some.url; script-src https://other.url"
+
+    error = assert_raises(ActionDispatch::ContentSecurityPolicy::InvalidDirectiveError) do
+      @policy.build
+    end
+    assert_equal(<<~MSG.squish, error.message)
+      Invalid Content Security Policy base-uri: "https://some.url; script-src https://other.url".
+      Directive values must not contain whitespace or semicolons.
+      Please use multiple arguments or other directive methods instead.
+    MSG
+  end
+
   def test_mappings
     @policy.script_src :data
     assert_equal "script-src data:", @policy.build
@@ -240,6 +267,11 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
 
     @policy.upgrade_insecure_requests false
     assert_no_match %r{upgrade-insecure-requests}, @policy.build
+  end
+
+  def test_hash_sources
+    @policy.script_src "sha256-hash", "sha384-hash", "sha512-hash", "invalid-hash", "sha256hash"
+    assert_equal "script-src 'sha256-hash' 'sha384-hash' 'sha512-hash' invalid-hash sha256hash", @policy.build
   end
 
   def test_multiple_sources

@@ -4,6 +4,7 @@ require "active_support/concern"
 require "active_support/descendants_tracker"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/class/attribute"
+require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/object/blank"
 
@@ -230,7 +231,7 @@ module ActiveSupport
       class Callback # :nodoc:
         def self.build(chain, filter, kind, options)
           if filter.is_a?(String)
-            raise ArgumentError, <<-MSG.squish
+            raise ArgumentError, <<~MSG.squish
               Passing string to define a callback is not supported. See the `.set_callback`
               documentation to see supported values.
             MSG
@@ -313,7 +314,7 @@ module ActiveSupport
 
             conditionals = Array(conditionals)
             if conditionals.any?(String)
-              raise ArgumentError, <<-MSG.squish
+              raise ArgumentError, <<~MSG.squish
                 Passing string to be evaluated in :if and :unless conditional
                 options is not supported. Pass a symbol for an instance method,
                 or a lambda, proc or block, instead.
@@ -498,9 +499,10 @@ module ActiveSupport
           when Conditionals::Value
             ProcCall.new(filter)
           when ::Proc
-            if filter.arity > 1
+            case filter.arity
+            when 2
               InstanceExec2.new(filter)
-            elsif filter.arity > 0
+            when 1, -2
               InstanceExec1.new(filter)
             else
               InstanceExec0.new(filter)
@@ -572,7 +574,7 @@ module ActiveSupport
           @name = name
           @config = {
             scope: [:kind],
-            terminator: default_terminator
+            terminator: DEFAULT_TERMINATOR
           }.merge!(config)
           @chain = []
           @all_callbacks = nil
@@ -660,8 +662,8 @@ module ActiveSupport
             @chain.delete_if { |c| callback.duplicates?(c) }
           end
 
-          def default_terminator
-            Proc.new do |target, result_lambda|
+          class DefaultTerminator # :nodoc:
+            def call(target, result_lambda)
               terminate = true
               catch(:abort) do
                 result_lambda.call
@@ -670,6 +672,7 @@ module ActiveSupport
               terminate
             end
           end
+          DEFAULT_TERMINATOR = DefaultTerminator.new.freeze
       end
 
       module ClassMethods
@@ -903,12 +906,13 @@ module ActiveSupport
           names.each do |name|
             name = name.to_sym
 
-            ([self] + self.descendants).each do |target|
-              target.set_callbacks name, CallbackChain.new(name, options)
-            end
+            module_eval <<~RUBY, __FILE__, __LINE__ + 1
+              def _run_#{name}_callbacks
+                yield if block_given?
+              end
+              silence_redefinition_of_method(:_run_#{name}_callbacks)
 
-            module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def _run_#{name}_callbacks(&block)
+              def _run_#{name}_callbacks!(&block)
                 run_callbacks #{name.inspect}, &block
               end
 
@@ -924,6 +928,10 @@ module ActiveSupport
                 __callbacks[#{name.inspect}]
               end
             RUBY
+
+            ([self] + self.descendants).each do |target|
+              target.set_callbacks name, CallbackChain.new(name, options)
+            end
           end
         end
 
@@ -933,8 +941,16 @@ module ActiveSupport
           end
 
           def set_callbacks(name, callbacks) # :nodoc:
-            unless singleton_class.method_defined?(:__callbacks, false)
+            # HACK: We're making assumption on how `class_attribute` is implemented
+            # to save constantly duping the callback hash. If this desync with class_attribute
+            # we'll lose the optimization, but won't cause an actual behavior bug.
+            unless singleton_class.private_method_defined?(:__class_attr__callbacks, false)
               self.__callbacks = __callbacks.dup
+            end
+            name = name.to_sym
+            callbacks_was = self.__callbacks[name.to_sym]
+            if (callbacks_was.nil? || callbacks_was.empty?) && !callbacks.empty?
+              alias_method("_run_#{name}_callbacks", "_run_#{name}_callbacks!")
             end
             self.__callbacks[name.to_sym] = callbacks
             self.__callbacks

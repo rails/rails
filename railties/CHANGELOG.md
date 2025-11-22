@@ -1,185 +1,41 @@
-## Rails 8.0.0.beta1 (September 26, 2024) ##
+*   Update the `.node-version` file conditionally generated for new applications to 22.21.1
 
-*   Exit `rails g` with code 1 if generator could not be found.
+    *Taketo Takashima*
 
-    Previously `rails g` returned 0, which would make it harder to catch typos in scripts calling `rails g`.
+*   Do not assume and force SSL in production by default when using Kamal, to allow for out of the box Kamal deployments.
 
-    *Christopher Özbek*
+    It is still recommended to assume and force SSL in production as soon as you can.
 
-*   Remove `require_*` statements from application.css to align with the transition from Sprockets to Propshaft.
+    *Jerome Dalbert*
 
-    With Propshaft as the default asset pipeline in Rails 8, the require_tree and require_self clauses in application.css are no longer necessary, as they were specific to Sprockets. Additionally, the comment has been updated to clarify that CSS precedence now follows standard cascading order without automatic prioritization by the asset pipeline.
+*   Add environment config file existence check
 
-    *Eduardo Alencar*
+    `Rails::Application` will raise an error if unable to load any environment file.
 
-*   Do not include redis by default in generated Dev Containers.
+    *Daniel Niknam*
 
-    Now that applications use the Solid Queue and Solid Cache gems by default, we do not need to include redis
-    in the Dev Container. We will only include redis if `--skip-solid` is used when generating an app that uses
-    Active Job or Action Cable.
+*   `Rails::Application::RoutesReloader` uses the configured `Rails.application.config.file_watcher`
 
-    When generating a Dev Container for an existing app, we will not include redis if either of the solid gems
-    are in use.
+    *Jan Grodowski*
 
-    *Andrew Novoselac*
+*   Add structured event for Rails deprecations, when `config.active_support.deprecation` is set to `:notify`.
 
-*   Use [Solid Cable](https://github.com/rails/solid_cable) as the default Action Cable adapter in production, configured as a separate queue database in config/database.yml. It keeps messages in a table and continuously polls for updates. This makes it possible to drop the common dependency on Redis, if it isn't needed for any other purpose. Despite polling, the performance of Solid Cable is comparable to Redis in most situations. And in all circumstances, it makes it easier to deploy Rails when Redis is no longer a required dependency for Action Cable functionality.
+    *zzak*
 
-    *DHH*
+*   Report unhandled exceptions to the Error Reporter when running rake tasks via Rails command.
 
-*   Use [Solid Queue](https://github.com/rails/solid_queue) as the default Active Job backend in production, configured as a separate queue database in config/database.yml. In a single-server deployment, it'll run as a Puma plugin. This is configured in `config/deploy.yml` and can easily be changed to use a dedicated jobs machine.
+    *Akimichi Tanei*
 
-    *DHH*
-
-*   Use [Solid Cache](https://github.com/rails/solid_cache) as the default Rails.cache backend in production, configured as a separate cache database in config/database.yml.
-
-    *DHH*
-
-*   Add Rails::Rack::SilenceRequest middleware and use it via `config.silence_healthcheck_path = path`
-    to silence requests to "/up". This prevents the Kamal-required health checks from clogging up
-    the production logs.
-
-    *DHH*
-
-*   Introduce `mariadb-mysql` and `mariadb-trilogy` database options for `rails new`
-
-    When used with the `--devcontainer` flag, these options will use `mariadb` as the database for the
-    Dev Container. The original `mysql` and `trilogy` options will use `mysql`. Users who are not
-    generating a Dev Container do not need to use the new options.
-
-    *Andrew Novoselac*
-
-*   Deprecate `::STATS_DIRECTORIES`.
-
-    The global constant `STATS_DIRECTORIES` has been deprecated in favor of
-    `Rails::CodeStatistics.register_directory`.
-
-    Add extra directories with `Rails::CodeStatistics.register_directory(label, path)`:
-
-    ```ruby
-    require "rails/code_statistics"
-    Rails::CodeStatistics.register_directory('My Directory', 'path/to/dir')
-    ```
+*   Show help hint when starting `bin/rails console`
 
     *Petrik de Heus*
 
-*   Enable query log tags by default on development env
+*   Persist `/rails/info/routes` search query and results between page reloads.
 
-    This can be used to trace troublesome SQL statements back to the application
-    code that generated these statements. It is also useful when using multiple
-    databases because the query logs can identify which database is being used.
+    *Ryan Kulp*
 
-    *Matheus Richard*
+*   Add `--update` option to the `bin/bundler-audit` script.
 
-*   Defer route drawing to the first request, or when url_helpers are called
+    *Julien ANNE*
 
-    Executes the first routes reload in middleware, or when a route set's
-    url_helpers receives a route call / asked if it responds to a route.
-    Previously, this was executed unconditionally on boot, which can
-    slow down boot time unnecessarily for larger apps with lots of routes.
-
-    Environments like production that have `config.eager_load = true` will
-    continue to eagerly load routes on boot.
-
-    *Gannon McGibbon*
-
-*   Generate form helpers to use `textarea*` methods instead of `text_area*` methods
-
-    *Sean Doyle*
-
-*   Add authentication generator to give a basic start to an authentication system using database-tracked sessions and password reset.
-
-    Generate with...
-
-    ```
-    bin/rails generate authentication
-    ```
-
-    Generated files:
-
-    ```
-    app/models/current.rb
-    app/models/user.rb
-    app/models/session.rb
-    app/controllers/sessions_controller.rb
-    app/controllers/passwords_controller.rb
-    app/mailers/passwords_mailer.rb
-    app/views/sessions/new.html.erb
-    app/views/passwords/new.html.erb
-    app/views/passwords/edit.html.erb
-    app/views/passwords_mailer/reset.html.erb
-    app/views/passwords_mailer/reset.text.erb
-    db/migrate/xxxxxxx_create_users.rb
-    db/migrate/xxxxxxx_create_sessions.rb
-    test/mailers/previews/passwords_mailer_preview.rb
-    ```
-
-    *DHH*
-
-
-*   Add not-null type modifier to migration attributes.
-
-    Generating with...
-
-    ```
-    bin/rails generate migration CreateUsers email_address:string!:uniq password_digest:string!
-    ```
-
-    Produces:
-
-    ```ruby
-    class CreateUsers < ActiveRecord::Migration[8.0]
-      def change
-        create_table :users do |t|
-          t.string :email_address, null: false
-          t.string :password_digest, null: false
-
-          t.timestamps
-        end
-        add_index :users, :email_address, unique: true
-      end
-    end
-    ```
-
-    *DHH*
-
-*   Add a `script` folder to applications, and a scripts generator.
-
-    The new `script` folder is meant to hold one-off or general purpose scripts,
-    such as data migration scripts, cleanup scripts, etc.
-
-    A new script generator allows you to create such scripts:
-
-    ```
-    bin/rails generate script my_script
-    bin/rails generate script data/backfill
-    ```
-
-    You can run the generated script using:
-
-    ```
-    bundle exec ruby script/my_script.rb
-    bundle exec ruby script/data/backfill.rb
-    ```
-
-    *Jerome Dalbert*, *Haroon Ahmed*
-
-*   Deprecate `bin/rake stats` in favor of `bin/rails stats`.
-
-    *Juan Vásquez*
-
-*   Add internal page `/rails/info/notes`, that displays the same information as `bin/rails notes`.
-
-    *Deepak Mahakale*
-
-*   Add Rubocop and GitHub Actions to plugin generator.
-    This can be skipped using --skip-rubocop and --skip-ci.
-
-    *Chris Oliver*
-
-*   Use Kamal for deployment by default, which includes generating a Rails-specific config/deploy.yml.
-    This can be skipped using --skip-kamal. See more: https://kamal-deploy.org/
-
-    *DHH*
-
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/railties/CHANGELOG.md) for previous changes.
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/railties/CHANGELOG.md) for previous changes.

@@ -98,7 +98,7 @@ module ActionView
       #   render "maintenance_tasks/runs/info/#{run.status}"
       #
       # Because the value passed to render ends in interpolation, Action View
-      # will mark all partials within the "maintenace_tasks/runs/info" folder as
+      # will mark all partials within the "maintenance_tasks/runs/info" folder as
       # dependencies.
       #
       # === Explicit dependencies
@@ -197,7 +197,7 @@ module ActionView
         CachingRegistry.caching?
       end
 
-      # Raises +UncacheableFragmentError+ when called from within a +cache+ block.
+      # Raises UncacheableFragmentError when called from within a +cache+ block.
       #
       # Useful to denote helper methods that can't participate in fragment caching:
       #
@@ -206,7 +206,7 @@ module ActionView
       #     "#{project.name} - #{Time.now}"
       #   end
       #
-      #   # Which will then raise if used within a +cache+ block:
+      #   # Which will then raise if used within a `cache` block:
       #   <% cache project do %>
       #     <%= project_name_with_time(project) %>
       #   <% end %>

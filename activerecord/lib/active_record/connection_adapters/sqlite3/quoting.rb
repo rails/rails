@@ -50,6 +50,19 @@ module ActiveRecord
           end
         end
 
+        def quote(value) # :nodoc:
+          case value
+          when Numeric
+            if value.finite?
+              super
+            else
+              "'#{value}'"
+            end
+          else
+            super
+          end
+        end
+
         def quote_string(s)
           ::SQLite3::Database.quote(s)
         end
@@ -67,16 +80,8 @@ module ActiveRecord
           "x'#{value.hex}'"
         end
 
-        def quoted_true
-          "1"
-        end
-
         def unquoted_true
           1
-        end
-
-        def quoted_false
-          "0"
         end
 
         def unquoted_false

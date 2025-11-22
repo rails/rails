@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionController
-  class LogSubscriber < ActiveSupport::LogSubscriber
+  class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
     INTERNAL_PARAMS = %w(controller action format _method only_path)
 
-    def start_processing(event)
-      return unless logger.info?
+    class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 
-      payload = event.payload
+    self.namespace = "action_controller"
+
+    def request_started(event)
+      payload = event[:payload]
       params = {}
       payload[:params].each_pair do |k, v|
         params[k] = v unless INTERNAL_PARAMS.include?(k)
@@ -21,11 +21,11 @@ module ActionController
       info "Processing by #{payload[:controller]}##{payload[:action]} as #{format}"
       info "  Parameters: #{params.inspect}" unless params.empty?
     end
-    subscribe_log_level :start_processing, :info
+    event_log_level :request_started, :info
 
-    def process_action(event)
+    def request_completed(event)
       info do
-        payload = event.payload
+        payload = event[:payload]
         additions = ActionController::Base.log_process_action(payload)
         status = payload[:status]
 
@@ -33,64 +33,81 @@ module ActionController
           status = ActionDispatch::ExceptionWrapper.status_code_for_exception(exception_class_name)
         end
 
-        additions << "GC: #{event.gc_time.round(1)}ms"
+        additions << "GC: #{payload[:gc_time_ms].round(1)}ms"
 
-        message = +"Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms" \
+        message = +"Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{payload[:duration_ms].round(0)}ms" \
                    " (#{additions.join(" | ")})"
         message << "\n\n" if defined?(Rails.env) && Rails.env.development?
 
         message
       end
     end
-    subscribe_log_level :process_action, :info
+    event_log_level :request_completed, :info
 
-    def halted_callback(event)
-      info { "Filter chain halted as #{event.payload[:filter].inspect} rendered or redirected" }
+    def callback_halted(event)
+      info { "Filter chain halted as #{event[:payload][:filter].inspect} rendered or redirected" }
     end
-    subscribe_log_level :halted_callback, :info
+    event_log_level :callback_halted, :info
 
-    def send_file(event)
-      info { "Sent file #{event.payload[:path]} (#{event.duration.round(1)}ms)" }
+    # Manually subscribed below
+    def rescue_from_handled(event)
+      exception_class = event[:payload][:exception_class]
+      exception_message = event[:payload][:exception_message]
+      exception_backtrace = event[:payload][:exception_backtrace]
+      info { "rescue_from handled #{exception_class} (#{exception_message}) - #{exception_backtrace}" }
     end
-    subscribe_log_level :send_file, :info
+    event_log_level :rescue_from_handled, :info
 
-    def redirect_to(event)
-      info { "Redirected to #{event.payload[:location]}" }
+    def file_sent(event)
+      info { "Sent file #{event[:payload][:path]} (#{event[:payload][:duration_ms].round(1)}ms)" }
     end
-    subscribe_log_level :redirect_to, :info
+    event_log_level :file_sent, :info
 
-    def send_data(event)
-      info { "Sent data #{event.payload[:filename]} (#{event.duration.round(1)}ms)" }
+    def redirected(event)
+      info { "Redirected to #{event[:payload][:location]}" }
+
+      if ActionDispatch.verbose_redirect_logs && (source = redirect_source_location)
+        info { "↳ #{source}" }
+      end
     end
-    subscribe_log_level :send_data, :info
+    event_log_level :redirected, :info
+
+    def data_sent(event)
+      info { "Sent data #{event[:payload][:filename]} (#{event[:payload][:duration_ms].round(1)}ms)" }
+    end
+    event_log_level :data_sent, :info
 
     def unpermitted_parameters(event)
       debug do
-        unpermitted_keys = event.payload[:keys]
+        unpermitted_keys = event[:payload][:unpermitted_keys]
         display_unpermitted_keys = unpermitted_keys.map { |e| ":#{e}" }.join(", ")
-        context = event.payload[:context].map { |k, v| "#{k}: #{v}" }.join(", ")
+        context = event[:payload][:context].map { |k, v| "#{k}: #{v}" }.join(", ")
         color("Unpermitted parameter#{'s' if unpermitted_keys.size > 1}: #{display_unpermitted_keys}. Context: { #{context} }", RED)
       end
     end
-    subscribe_log_level :unpermitted_parameters, :debug
+    event_log_level :unpermitted_parameters, :debug
 
-    %w(write_fragment read_fragment exist_fragment? expire_fragment).each do |method|
-      class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        # frozen_string_literal: true
-        def #{method}(event)
-          return unless ActionController::Base.enable_fragment_cache_logging
-          key         = ActiveSupport::Cache.expand_cache_key(event.payload[:key] || event.payload[:path])
-          human_name  = #{method.to_s.humanize.inspect}
-          info("\#{human_name} \#{key} (\#{event.duration.round(1)}ms)")
-        end
-        subscribe_log_level :#{method}, :info
-      METHOD
+    def fragment_cache(event)
+      return unless ActionController::Base.enable_fragment_cache_logging
+
+      key        = event[:payload][:key]
+      human_name = event[:payload][:method].to_s.humanize
+
+      info("#{human_name} #{key} (#{event[:payload][:duration_ms]}ms)")
     end
+    event_log_level :fragment_cache, :info
 
-    def logger
+    def self.default_logger
       ActionController::Base.logger
     end
+
+    private
+      def redirect_source_location
+        backtrace_cleaner.first_clean_frame
+      end
   end
 end
 
-ActionController::LogSubscriber.attach_to :action_controller
+ActiveSupport.event_reporter.subscribe(
+  ActionController::LogSubscriber.new, &ActionController::LogSubscriber.subscription_filter
+)

@@ -9,10 +9,10 @@ require "active_job/execution"
 require "active_job/callbacks"
 require "active_job/exceptions"
 require "active_job/log_subscriber"
+require "active_job/structured_event_subscriber"
 require "active_job/logging"
 require "active_job/instrumentation"
-require "active_job/timezones"
-require "active_job/translation"
+require "active_job/execution_state"
 
 module ActiveJob # :nodoc:
   # = Active Job \Base
@@ -40,7 +40,7 @@ module ActiveJob # :nodoc:
   #   end
   #
   # Records that are passed in are serialized/deserialized using Global
-  # ID. More information can be found in Arguments.
+  # ID. More information can be found in ActiveJob::Arguments.
   #
   # To enqueue a job to be performed as soon as the queuing system is free:
   #
@@ -50,7 +50,7 @@ module ActiveJob # :nodoc:
   #
   #   ProcessPhotoJob.set(wait_until: Date.tomorrow.noon).perform_later(photo)
   #
-  # More information can be found in ActiveJob::Core::ClassMethods#set
+  # More information can be found in ActiveJob::Core::ClassMethods#set.
   #
   # A job can also be processed immediately without sending to the queue:
   #
@@ -71,8 +71,7 @@ module ActiveJob # :nodoc:
     include Exceptions
     include Instrumentation
     include Logging
-    include Timezones
-    include Translation
+    include ExecutionState
 
     ActiveSupport.run_load_hooks(:active_job, self)
   end

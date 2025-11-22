@@ -20,7 +20,7 @@ module ARTest
 
   def self.connect
     ActiveRecord.async_query_executor = :global_thread_pool
-    puts "Using #{connection_name}"
+    puts "Using #{connection_name}#{ " with prepared statements" if ENV["MYSQL_PREPARED_STATEMENTS"]}"
 
     if ENV["BUILDKITE"]
       ActiveRecord::Base.logger = nil

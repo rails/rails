@@ -16,8 +16,8 @@ module ActiveRecord
             @subtype = subtype
             @delimiter = delimiter
 
-            @pg_encoder = PG::TextEncoder::Array.new name: "#{type}[]", delimiter: delimiter
-            @pg_decoder = PG::TextDecoder::Array.new name: "#{type}[]", delimiter: delimiter
+            @pg_encoder = PG::TextEncoder::Array.new(name: "#{type}[]".freeze, delimiter: delimiter).freeze
+            @pg_decoder = PG::TextDecoder::Array.new(name: "#{type}[]".freeze, delimiter: delimiter).freeze
           end
 
           def deserialize(value)
@@ -65,7 +65,7 @@ module ActiveRecord
           end
 
           def map(value, &block)
-            value.map { |v| subtype.map(v, &block) }
+            value.is_a?(::Array) ? value.map(&block) : subtype.map(value, &block)
           end
 
           def changed_in_place?(raw_old_value, new_value)

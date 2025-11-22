@@ -11,8 +11,8 @@ module ActiveRecord
         end
 
         # Queries the database and returns the results in an Array-like object
-        def query(sql, name = nil) # :nodoc:
-          result = internal_execute(sql, name)
+        def query(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
+          result = internal_execute(sql, name, allow_retry:, materialize_transactions:)
           result.map_types!(@type_map_for_results).values
         end
 
@@ -42,13 +42,13 @@ module ActiveRecord
           @notice_receiver_sql_warnings = []
         end
 
-        def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil) # :nodoc:
+        def _exec_insert(intent, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
           if use_insert_returning? || pk == false
             super
           else
-            result = internal_exec_query(sql, name, binds)
+            result = raw_exec_query(intent)
             unless sequence_name
-              table_ref = extract_table_ref_from_insert_sql(sql)
+              table_ref = extract_table_ref_from_insert_sql(intent.raw_sql)
               if table_ref
                 pk = primary_key(table_ref) if pk.nil?
                 pk = suppress_composite_primary_key(pk)
@@ -96,6 +96,10 @@ module ActiveRecord
         def build_explain_clause(options = [])
           return "EXPLAIN" if options.empty?
 
+          options = options.flat_map do |option|
+            option.is_a?(Hash) ? option.to_a.map { |nested| nested.join(" ") } : option
+          end
+
           "EXPLAIN (#{options.join(", ").upcase})"
         end
 
@@ -127,18 +131,25 @@ module ActiveRecord
           def cancel_any_running_query
             return if @raw_connection.nil? || IDLE_TRANSACTION_STATUSES.include?(@raw_connection.transaction_status)
 
-            @raw_connection.cancel
+            # Skip @raw_connection.cancel (PG::Connection#cancel) when using libpq >= 18 with pg < 1.6.0,
+            # because the pg gem cannot obtain the backend_key in that case.
+            # This method is only called from exec_rollback_db_transaction and exec_restart_db_transaction.
+            # Even without cancel, rollback will still run. However, since any running
+            # query must finish first, the rollback may take longer.
+            if !(PG.library_version >= 18_00_00 && Gem::Version.new(PG::VERSION) < Gem::Version.new("1.6.0"))
+              @raw_connection.cancel
+            end
             @raw_connection.block
           rescue PG::Error
           end
 
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
+          def perform_query(raw_connection, intent)
             update_typemap_for_default_timezone
-            result = if prepare
+            result = if intent.prepare
               begin
-                stmt_key = prepare_statement(sql, binds, raw_connection)
-                notification_payload[:statement_name] = stmt_key
-                raw_connection.exec_prepared(stmt_key, type_casted_binds)
+                stmt_key = prepare_statement(intent.processed_sql, intent.binds, raw_connection)
+                intent.notification_payload[:statement_name] = stmt_key
+                raw_connection.exec_prepared(stmt_key, intent.type_casted_binds)
               rescue PG::FeatureNotSupported => error
                 if is_cached_plan_failure?(error)
                   # Nothing we can do if we are in a transaction because all commands
@@ -148,7 +159,7 @@ module ActiveRecord
                   else
                     @lock.synchronize do
                       # outside of transactions we can simply flush this query and retry
-                      @statements.delete sql_key(sql)
+                      @statements.delete sql_key(intent.processed_sql)
                     end
                     retry
                   end
@@ -156,32 +167,34 @@ module ActiveRecord
 
                 raise
               end
-            elsif binds.nil? || binds.empty?
-              raw_connection.async_exec(sql)
+            elsif intent.binds.nil? || intent.binds.empty?
+              raw_connection.async_exec(intent.processed_sql)
             else
-              raw_connection.exec_params(sql, type_casted_binds)
+              raw_connection.exec_params(intent.processed_sql, intent.type_casted_binds)
             end
 
             verified!
-            handle_warnings(result)
-            notification_payload[:row_count] = result.count
+
+            intent.notification_payload[:affected_rows] = result.cmd_tuples
+            intent.notification_payload[:row_count] = result.ntuples
             result
           end
 
           def cast_result(result)
-            if result.fields.empty?
-              result.clear
-              return ActiveRecord::Result.empty
+            ar_result = if result.fields.empty?
+              ActiveRecord::Result.empty(affected_rows: result.cmd_tuples)
+            else
+              fields = result.fields
+              types = Array.new(fields.size)
+              fields.size.times do |index|
+                ftype = result.ftype(index)
+                fmod  = result.fmod(index)
+                types[index] = get_oid_type(ftype, fmod, fields[index])
+              end
+
+              ActiveRecord::Result.new(fields, result.values, types.freeze, affected_rows: result.cmd_tuples)
             end
 
-            types = {}
-            fields = result.fields
-            fields.each_with_index do |fname, i|
-              ftype = result.ftype i
-              fmod  = result.fmod i
-              types[fname] = types[i] = get_oid_type(ftype, fmod, fname)
-            end
-            ar_result = ActiveRecord::Result.new(fields, result.values, types.freeze)
             result.clear
             ar_result
           end
@@ -193,7 +206,17 @@ module ActiveRecord
           end
 
           def execute_batch(statements, name = nil, **kwargs)
-            raw_execute(combine_multi_statements(statements), name, batch: true, **kwargs)
+            intent = QueryIntent.new(
+              processed_sql: combine_multi_statements(statements),
+              name: name,
+              batch: true,
+              binds: kwargs[:binds] || [],
+              prepare: kwargs[:prepare] || false,
+              async: kwargs[:async] || false,
+              allow_retry: kwargs[:allow_retry] || false,
+              materialize_transactions: kwargs[:materialize_transactions] != false
+            )
+            raw_execute(intent)
           end
 
           def build_truncate_statements(table_names)
@@ -213,7 +236,7 @@ module ActiveRecord
             pk unless pk.is_a?(Array)
           end
 
-          def handle_warnings(sql)
+          def handle_warnings(result, sql)
             @notice_receiver_sql_warnings.each do |warning|
               next if warning_ignored?(warning)
 

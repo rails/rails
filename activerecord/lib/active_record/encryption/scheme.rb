@@ -59,7 +59,7 @@ module ActiveRecord
       end
 
       def merge(other_scheme)
-        self.class.new(**to_h.merge(other_scheme.to_h))
+        self.class.new(**to_h, **other_scheme.to_h)
       end
 
       def to_h

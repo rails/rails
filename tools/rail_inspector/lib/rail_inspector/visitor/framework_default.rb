@@ -1,26 +1,12 @@
 # frozen_string_literal: true
 
-require "syntax_tree"
+require "prism"
 
 require_relative "./hash_to_string"
-require_relative "./multiline_to_string"
 
 module RailInspector
   module Visitor
     class FrameworkDefault
-      TargetVersionCaseFinder =
-        SyntaxTree::Search.new(
-          ->(node) do
-            node in SyntaxTree::Case[
-              value: SyntaxTree::CallNode[
-                receiver: SyntaxTree::VarRef[
-                  value: SyntaxTree::Ident[value: "target_version"]
-                ]
-              ]
-            ]
-          end
-        )
-
       attr_reader :config_map
 
       def initialize
@@ -28,22 +14,23 @@ module RailInspector
       end
 
       def visit(node)
-        case_node, *others = TargetVersionCaseFinder.scan(node).to_a
-        raise "#{others.length} other cases?" unless others.empty?
+        target_version_case = node.breadth_first_search do |n|
+          n in Prism::CaseNode[
+            predicate: Prism::CallNode[receiver: Prism::LocalVariableReadNode[name: :target_version]]
+          ]
+        end
 
-        visit_when(case_node.consequent)
+        target_version_case.conditions.each { |cond| visit_when(cond) }
       end
 
       private
         def visit_when(node)
-          version = node.arguments.parts[0].parts[0].value
+          version = node.conditions[0].unescaped
 
-          config_map[version] = VersionedConfig.new.config_for(node.statements)
-
-          visit_when(node.consequent) if node.consequent.is_a? SyntaxTree::When
+          config_map[version] = VersionedConfig.new.tap { |v| v.visit(node.statements) }.configs
         end
 
-        class VersionedConfig < SyntaxTree::Visitor
+        class VersionedConfig < Prism::Visitor
           attr_reader :configs
 
           def initialize
@@ -51,78 +38,92 @@ module RailInspector
             @framework_stack = []
           end
 
-          def config_for(node)
-            visit(node)
-            @configs
+          def visit_if_node(node)
+            unless new_framework = respond_to_framework?(node.predicate)
+              return visit_child_nodes(node)
+            end
+
+            if ENV["STRICT"] && current_framework
+              raise "Potentially nested framework? Current: '#{current_framework}', found: '#{new_framework}'"
+            end
+
+            @framework_stack << new_framework
+            visit_child_nodes(node)
+            @framework_stack.pop
           end
 
-          visit_methods do
-            def visit_if(node)
-              unless new_framework = respond_to_framework?(node.predicate)
-                return super
-              end
+          def visit_call_node(node)
+            name = node.name.to_s
 
-              if ENV["STRICT"] && current_framework
-                raise "Potentially nested framework? Current: '#{current_framework}', found: '#{new_framework}'"
-              end
-
-              @framework_stack << new_framework
-              super
-              @framework_stack.pop
+            unless name.end_with? "="
+              return super
             end
 
-            def visit_assign(node)
-              assert_framework(node)
+            handle_assignment(node, name[...-1], node.arguments.arguments[0])
+          end
 
-              target = SyntaxTree::Formatter.format(nil, node.target)
-              value =
-                case node.value
-                when SyntaxTree::HashLiteral
-                  HashToString.new.tap { |v| v.visit(node.value) }.to_s
-                when SyntaxTree::StringConcat
-                  MultilineToString.new.tap { |v| v.visit(node.value) }.to_s
-                else
-                  SyntaxTree::Formatter.format(nil, node.value)
-                end
-              @configs[target] = value
+          def visit_call_or_write_node(node)
+            name = node.write_name.to_s
+
+            unless name.end_with? "="
+              return super
             end
+
+            handle_assignment(node, node.read_name.to_s, node.value)
+          end
+
+          def handle_assignment(node, name, value)
+            prefix = case node.receiver
+            in Prism::ConstantReadNode[name: constant_name]
+              constant_name
+            in Prism::SelfNode
+              "self"
+            in Prism::CallNode[receiver: nil, name: framework]
+              framework_string = framework.to_s
+
+              unless current_framework == framework_string
+                raise "expected: #{current_framework}, actual: #{framework_string}"
+              end
+
+              framework_string
+            else
+              node.receiver.location.slice
+            end
+
+            target = "#{prefix}.#{name}"
+
+            string_value = case value
+            in Prism::ConstantPathNode
+              value.full_name
+            in Prism::HashNode
+              HashToString.new.tap { |v| v.visit(value) }.to_s
+            in Prism::InterpolatedStringNode
+              "\"#{value.parts.map(&:content).join("")}\""
+            in Prism::FalseNode
+              "false"
+            in Prism::TrueNode
+              "true"
+            else
+              value.location.slice
+            end
+
+            @configs[target] = string_value
           end
 
           private
-            def assert_framework(node)
-              framework =
-                case node.target.parent
-                in { value: SyntaxTree::Const } |
-                     { value: SyntaxTree::Kw[value: "self"] }
-                  nil
-                in receiver: { value: { value: framework } }
-                  framework
-                in value: { value: framework }
-                  framework
-                end
-
-              return if current_framework == framework
-
-              raise "Expected #{current_framework} to match #{framework}"
-            end
-
             def current_framework
               @framework_stack.last
             end
 
             def respond_to_framework?(node)
-              if node in SyntaxTree::CallNode[
-                   message: SyntaxTree::Ident[value: "respond_to?"],
-                   arguments: SyntaxTree::ArgParen[
-                     arguments: SyntaxTree::Args[
-                       parts: [
-                         SyntaxTree::SymbolLiteral[
-                           value: SyntaxTree::Ident[value: new_framework]
-                         ]
-                       ]
-                     ]
-                   ]
-                 ]
+              if node in Prism::CallNode[
+                name: :respond_to?,
+                arguments: Prism::ArgumentsNode[
+                  arguments: [
+                    Prism::SymbolNode[unescaped: new_framework]
+                  ]
+                ]
+              ]
                 new_framework
               end
             end

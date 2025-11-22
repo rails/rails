@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
@@ -26,6 +26,9 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
     - name: Configure trusted publishing credentials
       uses: rubygems/configure-rubygems-credentials@v1.0.0
+    # Ensure npm 11.5.1 or later is installed
+    - name: Update npm
+      run: npm install -g npm@latest
     - name: Bundle install
       run: bundle install
       working-directory: tools/releaser
@@ -33,8 +36,6 @@ jobs:
       run: bundle exec rake push
       shell: bash
       working-directory: tools/releaser
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     - name: Wait for release to propagate
       run: gem exec rubygems-await pkg/*.gem
       shell: bash

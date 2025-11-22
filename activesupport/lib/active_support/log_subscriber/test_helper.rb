@@ -39,7 +39,7 @@ module ActiveSupport
         @logger   = MockLogger.new
         @notifier = ActiveSupport::Notifications::Fanout.new
 
-        ActiveSupport::LogSubscriber.colorize_logging = false
+        ActiveSupport.colorize_logging = false
 
         @old_notifier = ActiveSupport::Notifications.notifier
         set_logger(@logger)
@@ -80,11 +80,11 @@ module ActiveSupport
         end
 
         ActiveSupport::Logger::Severity.constants.each do |severity|
-          class_eval <<-EOT, __FILE__, __LINE__ + 1
+          class_eval <<~RUBY, __FILE__, __LINE__ + 1
             def #{severity.downcase}?
               #{severity} >= @level
             end
-          EOT
+          RUBY
         end
       end
 

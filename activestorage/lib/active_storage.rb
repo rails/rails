@@ -49,6 +49,8 @@ module ActiveStorage
   mattr_accessor :verifier
   mattr_accessor :variant_processor, default: :mini_magick
 
+  mattr_accessor :variant_transformer
+
   mattr_accessor :queues, default: {}
 
   mattr_accessor :previewers, default: []
@@ -72,7 +74,6 @@ module ActiveStorage
     "annotate",
     "antialias",
     "append",
-    "apply",
     "attenuate",
     "authenticate",
     "auto_gamma",
@@ -213,7 +214,6 @@ module ActiveStorage
     "linewidth",
     "liquid_rescale",
     "list",
-    "loader",
     "log",
     "loop",
     "lowlight_color",
@@ -276,7 +276,6 @@ module ActiveStorage
     "rotate",
     "sample",
     "sampling_factor",
-    "saver",
     "scale",
     "scene",
     "screen",
@@ -369,6 +368,9 @@ module ActiveStorage
     extend ActiveSupport::Autoload
 
     autoload :Transformer
+    autoload :NullTransformer
     autoload :ImageProcessingTransformer
+    autoload :Vips
+    autoload :ImageMagick
   end
 end

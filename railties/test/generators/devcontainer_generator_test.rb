@@ -49,13 +49,29 @@ module Rails
       def test_app_name_option
         run_generator ["--app-name", "my-TestApp_name"]
 
-        test_common_config
+        test_common_config_with_folder("my-TestApp_name")
         assert_devcontainer_json_file do |devcontainer_json|
           assert_equal "my-TestApp_name", devcontainer_json["name"]
         end
 
         assert_compose_file do |compose|
           assert_equal "my-TestApp_name", compose["name"]
+        end
+      end
+
+      def test_app_folder_option
+        run_generator ["--app-name", "sample_app", "--app-folder", "my_folder"]
+
+        test_common_config_with_folder("my_folder")
+        assert_devcontainer_json_file do |devcontainer_json|
+          assert_equal "sample_app", devcontainer_json["name"]
+        end
+
+        assert_compose_file do |compose|
+          assert_equal "sample_app", compose["name"]
+          # Verify the volume mount uses app_folder, not app_name
+          expected_volume = "../../my_folder:/workspaces/my_folder:cached"
+          assert_equal expected_volume, compose["services"]["rails-app"]["volumes"].first
         end
       end
 
@@ -162,10 +178,10 @@ module Rails
 
         assert_compose_file do |compose|
           expected_postgres_config = {
-            "image" => "postgres:16.1",
+            "image" => "postgres:18",
             "restart" => "unless-stopped",
             "networks" => ["default"],
-            "volumes" => ["postgres-data:/var/lib/postgresql/data"],
+            "volumes" => ["postgres-data:/var/lib/postgresql"],
             "environment" => {
               "POSTGRES_USER" => "postgres",
               "POSTGRES_PASSWORD" => "postgres"
@@ -254,7 +270,7 @@ module Rails
         assert_compose_file do |compose|
           assert_includes compose["services"]["rails-app"]["depends_on"], "redis"
           expected_redis_config = {
-            "image" => "redis:7.2",
+            "image" => "valkey/valkey:8",
             "restart" => "unless-stopped",
             "volumes" => ["redis-data:/data"]
           }
@@ -280,6 +296,24 @@ module Rails
 
         assert_devcontainer_json_file do |devcontainer_json|
           assert_not_includes devcontainer_json["forwardPorts"], 6379
+        end
+      end
+
+      def test_kamal_option_default
+        run_generator
+
+        assert_devcontainer_json_file do |devcontainer_json|
+          assert_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
+          assert_equal "$KAMAL_REGISTRY_PASSWORD", devcontainer_json["containerEnv"]["KAMAL_REGISTRY_PASSWORD"]
+        end
+      end
+
+      def test_kamal_option_skip
+        run_generator ["--skip-kamal"]
+
+        assert_devcontainer_json_file do |devcontainer_json|
+          assert_not_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
+          assert_not_includes devcontainer_json["containerEnv"].keys, "KAMAL_REGISTRY_PASSWORD"
         end
       end
 
@@ -326,8 +360,13 @@ module Rails
 
       private
         def test_common_config
+          test_common_config_with_folder("rails_app")
+        end
+
+        def test_common_config_with_folder(folder_name)
           assert_file(".devcontainer/Dockerfile") do |dockerfile|
             assert_match(/ARG RUBY_VERSION=#{RUBY_VERSION}/, dockerfile)
+            assert_match(/ENV BINDING="0.0.0.0"/, dockerfile)
           end
 
           assert_devcontainer_json_file do |devcontainer_json|
@@ -341,7 +380,7 @@ module Rails
                 "context" => "..",
                 "dockerfile" => ".devcontainer/Dockerfile"
               },
-              "volumes" => ["../..:/workspaces:cached"],
+              "volumes" => ["../../#{folder_name}:/workspaces/#{folder_name}:cached"],
               "command" => "sleep infinity"
             }
             actual_independent_config = compose["services"]["rails-app"].except("depends_on")

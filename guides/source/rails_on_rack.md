@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Rails on Rack
 =============
@@ -56,28 +56,6 @@ class Server < ::Rack::Server
     super
   end
 end
-```
-
-### `rackup`
-
-To use `rackup` instead of Rails' `bin/rails server`, you can put the following inside `config.ru` of your Rails application's root directory:
-
-```ruby
-# Rails.root/config.ru
-require_relative "config/environment"
-run Rails.application
-```
-
-And start the server:
-
-```bash
-$ rackup config.ru
-```
-
-To find out more about different `rackup` options, you can run:
-
-```bash
-$ rackup --help
 ```
 
 ### Development and Auto-reloading

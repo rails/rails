@@ -41,6 +41,32 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_async_equal 318, Account.async_sum(Account.arel_table[:credit_limit])
   end
 
+  def test_should_sum_with_qualified_name_on_loaded
+    accounts = Account.all
+
+    assert_not_predicate accounts, :loaded?
+    assert_equal 318, accounts.sum("accounts.credit_limit")
+
+    accounts.load
+
+    assert_predicate accounts, :loaded?
+    assert_equal 318, accounts.sum("accounts.credit_limit")
+  end
+
+  def test_should_count_with_group_by_qualified_name_on_loaded
+    accounts = Account.group("accounts.id")
+
+    expected = { 1 => 1, 2 => 1, 3 => 1, 4 => 1, 5 => 1, 6 => 1 }
+
+    assert_not_predicate accounts, :loaded?
+    assert_equal expected, accounts.count
+
+    accounts.load
+
+    assert_predicate accounts, :loaded?
+    assert_equal expected, accounts.count
+  end
+
   def test_should_average_field
     assert_equal 53.0, Account.average(:credit_limit)
     assert_async_equal 53.0, Account.async_average(:credit_limit)
@@ -729,6 +755,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 4, Account.count { |account| account.credit_limit.modulo(10).zero? }
   end
 
+  def test_count_with_empty_in
+    assert_queries_count(0) do
+      assert_equal 0, Topic.where(id: []).count
+      assert_async_equal 0, Topic.where(id: []).async_count
+    end
+  end
+
   def test_should_sum_expression
     assert_equal 636, Account.sum("2 * credit_limit")
   end
@@ -815,6 +848,12 @@ class CalculationsTest < ActiveRecord::TestCase
     Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
 
     assert_equal 7, Company.includes(:contracts).sum(:developer_id)
+  end
+
+  def test_sum_with_grouped_calculation
+    expected = { 0 => 0, 1 => 0, 3 => 0 }
+
+    assert_equal(expected, Post.group(:tags_count).sum)
   end
 
   def test_from_option_with_specified_index

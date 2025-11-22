@@ -60,7 +60,7 @@ module ActiveRecord
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
 
     CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :with, :with_recursive]
+    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
@@ -76,7 +76,7 @@ module ActiveRecord
 
     def initialize(model, table: nil, predicate_builder: nil, values: {})
       if table
-        predicate_builder ||= PredicateBuilder.new(TableMetadata.new(model, table))
+        predicate_builder ||= model.predicate_builder.with(TableMetadata.new(model, table))
       else
         table = model.arel_table
         predicate_builder ||= model.predicate_builder
@@ -272,7 +272,12 @@ module ActiveRecord
     # such situation.
     def create_or_find_by(attributes, &block)
       with_connection do |connection|
-        transaction(requires_new: true) { create(attributes, &block) }
+        record = nil
+        transaction(requires_new: true) do
+          record = create(attributes, &block)
+          record._last_transaction_return_status || raise(ActiveRecord::Rollback)
+        end
+        record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
           where(attributes).lock.find_by!(attributes)
@@ -287,7 +292,12 @@ module ActiveRecord
     # is raised if the created record is invalid.
     def create_or_find_by!(attributes, &block)
       with_connection do |connection|
-        transaction(requires_new: true) { create!(attributes, &block) }
+        record = nil
+        transaction(requires_new: true) do
+          record = create!(attributes, &block)
+          record._last_transaction_return_status || raise(ActiveRecord::Rollback)
+        end
+        record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
           where(attributes).lock.find_by!(attributes)
@@ -297,7 +307,7 @@ module ActiveRecord
       end
     end
 
-    # Like #find_or_create_by, but calls {new}[rdoc-ref:Core#new]
+    # Like #find_or_create_by, but calls {new}[rdoc-ref:Core.new]
     # instead of {create}[rdoc-ref:Persistence::ClassMethods#create].
     def find_or_initialize_by(attributes, &block)
       find_by(attributes) || new(attributes, &block)
@@ -590,6 +600,18 @@ module ActiveRecord
 
       return 0 if @none
 
+      invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
+        value = @values[method]
+        method == :distinct ? value : value&.any?
+      end
+      if invalid_methods.any?
+        ActiveRecord.deprecator.warn <<~MESSAGE
+          `#{invalid_methods.join(', ')}` is not supported by `update_all` and was never included in the generated query.
+
+          Calling `#{invalid_methods.join(', ')}` with `update_all` will raise an error in Rails 8.2.
+        MESSAGE
+      end
+
       if updates.is_a?(Hash)
         if model.locking_enabled? &&
             !updates.key?(model.locking_column) &&
@@ -603,17 +625,15 @@ module ActiveRecord
       end
 
       model.with_connection do |c|
-        arel = eager_loading? ? apply_join_dependency.arel : build_arel(c)
+        arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
-        group_values_arel_columns = arel_columns(group_values.uniq)
-        having_clause_ast = having_clause.ast unless having_clause.empty?
         key = if model.composite_primary_key?
           primary_key.map { |pk| table[pk] }
         else
           table[primary_key]
         end
-        stmt = arel.compile_update(values, key, having_clause_ast, group_values_arel_columns)
+        stmt = arel.compile_update(values, key)
         c.update(stmt, "#{model} Update All").tap { reset }
       end
     end
@@ -820,7 +840,7 @@ module ActiveRecord
     #
     # [:returning]
     #   (PostgreSQL, SQLite3, and MariaDB only) An array of attributes to return for all successfully
-    #   inserted records, which by default is the primary key.
+    #   upserted records, which by default is the primary key.
     #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
     #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
     #   clause entirely.
@@ -849,7 +869,9 @@ module ActiveRecord
     # Active Record's schema_cache.
     #
     # [:on_duplicate]
-    #   Configure the SQL update sentence that will be used in case of conflict.
+    #   Configure the behavior that will be used in case of conflict. Use `:skip`
+    #   to ignore any conflicts or provide a safe SQL fragment wrapped with
+    #   `Arel.sql`.
     #
     #   NOTE: If you use this option you must provide all the columns you want to update
     #   by yourself.
@@ -949,7 +971,7 @@ module ActiveRecord
     # If attribute names are passed, they are updated along with +updated_at+/+updated_on+ attributes.
     # If no time argument is passed, the current time is used as default.
     #
-    # === Examples
+    # ==== Examples
     #
     #   # Touch all records
     #   Person.all.touch_all
@@ -1000,7 +1022,7 @@ module ActiveRecord
     #
     #   Post.where(person_id: 5).where(category: ['Something', 'Else']).delete_all
     #
-    # Both calls delete the affected posts all at once with a single DELETE statement.
+    # This call deletes the affected posts all at once with a single DELETE statement.
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
     # +after_destroy+ callbacks, use the #destroy_all method instead.
     #
@@ -1011,7 +1033,7 @@ module ActiveRecord
     def delete_all
       return 0 if @none
 
-      invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
+      invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
         value = @values[method]
         method == :distinct ? value : value&.any?
       end
@@ -1020,17 +1042,15 @@ module ActiveRecord
       end
 
       model.with_connection do |c|
-        arel = eager_loading? ? apply_join_dependency.arel : build_arel(c)
+        arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
-        group_values_arel_columns = arel_columns(group_values.uniq)
-        having_clause_ast = having_clause.ast unless having_clause.empty?
         key = if model.composite_primary_key?
           primary_key.map { |pk| table[pk] }
         else
           table[primary_key]
         end
-        stmt = arel.compile_delete(key, having_clause_ast, group_values_arel_columns)
+        stmt = arel.compile_delete(key)
 
         c.delete(stmt, "#{model} Delete All").tap { reset }
       end
@@ -1395,12 +1415,16 @@ module ActiveRecord
 
       def _increment_attribute(attribute, value = 1)
         bind = predicate_builder.build_bind_attribute(attribute.name, value.abs)
-        expr = table.coalesce(Arel::Nodes::UnqualifiedColumn.new(attribute), 0)
+        expr = table.coalesce(attribute, 0)
         expr = value < 0 ? expr - bind : expr + bind
         expr.expr
       end
 
       def exec_queries(&block)
+        if lock_value && model.current_preventing_writes
+          raise ActiveRecord::ReadOnlyError, "Lock query attempted while in readonly mode"
+        end
+
         skip_query_cache_if_necessary do
           rows = if scheduled?
             future = @future_result
@@ -1440,7 +1464,7 @@ module ActiveRecord
                 else
                   relation = join_dependency.apply_column_aliases(relation)
                   @_join_dependency = join_dependency
-                  c.select_all(relation.arel, "SQL", async: async)
+                  c.select_all(relation.arel, "#{model.name} Eager Load", async: async)
                 end
               end
             end

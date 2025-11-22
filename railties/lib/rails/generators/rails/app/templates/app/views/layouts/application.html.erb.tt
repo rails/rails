@@ -4,6 +4,7 @@
     <title><%%= content_for(:title) || "<%= app_name.titleize %>" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="<%= app_name.titleize %>">
     <meta name="mobile-web-app-capable" content="yes">
     <%%= csrf_meta_tags %>
     <%%= csp_meta_tag %>
@@ -17,12 +18,12 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%- style_link_target = options[:skip_asset_pipeline] ? "\"application\"" : ":app" -%>
+    <%- style_link_target = using_css_bundling? ? "\"application\"" : ":app" -%>
     <%- if options[:skip_hotwire] || options[:skip_javascript] -%>
-    <%%# Includes all stylesheet files in app/views/stylesheets %>
+    <%%# Includes all stylesheet files in app/assets/stylesheets %>
     <%%= stylesheet_link_tag <%= style_link_target %> %>
     <%- else -%>
-    <%%# Includes all stylesheet files in app/views/stylesheets %>
+    <%%# Includes all stylesheet files in app/assets/stylesheets %>
     <%%= stylesheet_link_tag <%= style_link_target %>, "data-turbo-track": "reload" %>
     <%- end -%>
   </head>

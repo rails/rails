@@ -56,13 +56,6 @@ module ApplicationTests
       end
     end
 
-    def with_env(env)
-      env.each { |k, v| ENV[k.to_s] = v }
-      yield
-    ensure
-      env.each_key { |k| ENV.delete k.to_s }
-    end
-
     def clean_assets!
       quietly do
         rails ["assets:clobber"]
@@ -355,7 +348,7 @@ module ApplicationTests
       # Load app env
       app "development"
 
-      get "/assets/#{URI::DEFAULT_PARSER.escape(asset_path)}"
+      get "/assets/#{URI::RFC2396_PARSER.escape(asset_path)}"
       assert_match "not an image really", last_response.body
       assert_file_exists("#{app_path}/public/assets/#{asset_path}")
     end

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Ruby on Rails 7.1 Release Notes
 ===============================
@@ -213,7 +213,7 @@ development:
 Alternatively, integration can be achieved using the `DATABASE_URL` environment variable:
 
 ```ruby
-ENV['DATABASE_URL'] # => "trilogy://localhost/blog_development?pool=5"
+ENV["DATABASE_URL"] # => "trilogy://localhost/blog_development?pool=5"
 ```
 
 ### Add `ActiveSupport::MessagePack`
@@ -729,6 +729,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Add validation option for `enum`.
 
+*   The default hash digest for `ActiveRecord::Encryption`, used for attributes defined with `encrypts`, is now `SHA256`, changed from `SHA1` in the default configuration. These defaults also include `support_sha1_for_non_deterministic_encryption = false` which can lead to apps being unable to decrypt data encrypted with the old default hash digest if data is not re-encrypted.
+
 Active Storage
 --------------
 
@@ -864,7 +866,7 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 *   Add `after_discard` method to `ActiveJob::Base` to run a callback when a job is about to be discarded.
 
-*   Add support for logging background job enqueue callers.
+*   Add support for logging background job enqueue callers via `config.active_job.verbose_enqueue_logs`.
 
 Action Text
 ----------

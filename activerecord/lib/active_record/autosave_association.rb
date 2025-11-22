@@ -372,19 +372,29 @@ module ActiveRecord
         return true if record.destroyed? || (association.options[:autosave] && record.marked_for_destruction?)
 
         context = validation_context if custom_validation_context?
+        return true if record.valid?(context)
 
-        unless valid = record.valid?(context)
-          if association.options[:autosave]
-            record.errors.each { |error|
-              self.errors.objects.append(
-                Associations::NestedError.new(association, error)
-              )
-            }
-          else
-            errors.add(association.reflection.name)
-          end
+        if context || record.changed_for_autosave?
+          associated_errors = record.errors.objects
+        else
+          # If there are existing invalid records in the DB, we should still be able to reference them.
+          # Unless a record (no matter where in the association chain) is invalid and is being changed.
+          associated_errors = record.errors.objects.select { |error| error.is_a?(Associations::NestedError) }
         end
-        valid
+
+        if association.options[:autosave]
+          return if equal?(record)
+
+          associated_errors.each { |error|
+            errors.objects.append(
+              Associations::NestedError.new(association, error)
+            )
+          }
+        elsif associated_errors.any?
+          errors.add(association.reflection.name)
+        end
+
+        errors.any?
       end
 
       # Is used as an around_save callback to check while saving a collection
@@ -517,7 +527,7 @@ module ActiveRecord
         return false unless reflection.inverse_of&.polymorphic?
 
         class_name = record._read_attribute(reflection.inverse_of.foreign_type)
-        reflection.active_record != record.class.polymorphic_class_for(class_name)
+        reflection.active_record.polymorphic_name != class_name
       end
 
       # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.

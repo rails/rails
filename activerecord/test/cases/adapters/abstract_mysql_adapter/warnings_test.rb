@@ -101,7 +101,7 @@ class WarningsTest < ActiveRecord::AbstractMysqlTestCase
           @connection.execute('SELECT "x"')
         end
 
-        expected = "Query had warning_count=1 but ‘SHOW WARNINGS’ did not return the warnings. Check MySQL logs or database configuration."
+        expected = "Query had warning_count=1 but `SHOW WARNINGS` did not return the warnings. Check MySQL logs or database configuration."
         assert_equal expected, error.message
       end
     end

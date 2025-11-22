@@ -40,7 +40,7 @@ module ActionController
       # rendered by this controller and its subclasses.
       #
       # #### Parameters
-      # *   `builder` - Default form builder, an instance of
+      # *   `builder` - Default form builder. Accepts a subclass of
       #     ActionView::Helpers::FormBuilder
       def default_form_builder(builder)
         self._default_form_builder = builder

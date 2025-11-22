@@ -54,19 +54,22 @@ module ActiveRecord
     # about the model. The model needs to pass a connection specification name to the handler,
     # in order to look up the correct connection pool.
     class ConnectionHandler
-      class StringConnectionName # :nodoc:
-        attr_reader :name
-
-        def initialize(name)
+      class ConnectionDescriptor # :nodoc:
+        def initialize(name, primary = false)
           @name = name
+          @primary = primary
+        end
+
+        def name
+          primary_class? ? "ActiveRecord::Base" : @name
         end
 
         def primary_class?
-          false
+          @primary
         end
 
         def current_preventing_writes
-          false
+          ActiveRecord::Base.preventing_writes?(@name)
         end
       end
 
@@ -115,7 +118,7 @@ module ActiveRecord
         pool_config = resolve_pool_config(config, owner_name, role, shard)
         db_config = pool_config.db_config
 
-        pool_manager = set_pool_manager(pool_config.connection_name)
+        pool_manager = set_pool_manager(pool_config.connection_descriptor)
 
         # If there is an existing pool with the same values as the pool_config
         # don't remove the connection. Connections should only be removed if we are
@@ -127,8 +130,8 @@ module ActiveRecord
           # Update the pool_config's connection class if it differs. This is used
           # for ensuring that ActiveRecord::Base and the primary_abstract_class use
           # the same pool. Without this granular swapping will not work correctly.
-          if owner_name.primary_class? && (existing_pool_config.connection_class != owner_name)
-            existing_pool_config.connection_class = owner_name
+          if owner_name.primary_class? && (existing_pool_config.connection_descriptor != owner_name)
+            existing_pool_config.connection_descriptor = owner_name
           end
 
           existing_pool_config.pool
@@ -137,7 +140,7 @@ module ActiveRecord
           pool_manager.set_pool_config(role, shard, pool_config)
 
           payload = {
-            connection_name: pool_config.connection_name,
+            connection_name: pool_config.connection_descriptor.name,
             role: role,
             shard: shard,
             config: db_config.configuration_hash
@@ -155,9 +158,7 @@ module ActiveRecord
         each_connection_pool(role).any?(&:active_connection?)
       end
 
-      # Returns any connections in use by the current thread back to the pool,
-      # and also returns connections to the pool cached by threads that are no
-      # longer alive.
+      # Returns any connections in use by the current thread back to the pool.
       def clear_active_connections!(role = nil)
         each_connection_pool(role).each do |pool|
           pool.release_connection
@@ -165,7 +166,7 @@ module ActiveRecord
         end
       end
 
-      # Clears the cache which maps classes.
+      # Clears reloadable connection caches in all connection pools.
       #
       # See ConnectionPool#clear_reloadable_connections! for details.
       def clear_reloadable_connections!(role = nil)
@@ -242,8 +243,8 @@ module ActiveRecord
         end
 
         # Get the existing pool manager or initialize and assign a new one.
-        def set_pool_manager(connection_name)
-          connection_name_to_pool_manager[connection_name] ||= PoolManager.new
+        def set_pool_manager(connection_descriptor)
+          connection_name_to_pool_manager[connection_descriptor.name] ||= PoolManager.new
         end
 
         def pool_managers
@@ -278,9 +279,9 @@ module ActiveRecord
 
         def determine_owner_name(owner_name, config)
           if owner_name.is_a?(String) || owner_name.is_a?(Symbol)
-            StringConnectionName.new(owner_name.to_s)
+            ConnectionDescriptor.new(owner_name.to_s)
           elsif config.is_a?(Symbol)
-            StringConnectionName.new(config.to_s)
+            ConnectionDescriptor.new(config.to_s)
           else
             owner_name
           end

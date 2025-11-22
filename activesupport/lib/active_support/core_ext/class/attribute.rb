@@ -84,8 +84,8 @@ class Class
   #
   #   class_attribute :settings, default: {}
   def class_attribute(*attrs, instance_accessor: true,
-    instance_reader: instance_accessor, instance_writer: instance_accessor, instance_predicate: true, default: nil)
-
+    instance_reader: instance_accessor, instance_writer: instance_accessor, instance_predicate: true, default: nil
+  )
     class_methods, methods = [], []
     attrs.each do |name|
       unless name.is_a?(Symbol) || name.is_a?(String)
@@ -93,12 +93,27 @@ class Class
       end
 
       name = name.to_sym
-      ::ActiveSupport::ClassAttribute.redefine(self, name, default)
+      namespaced_name = :"__class_attr_#{name}"
+      ::ActiveSupport::ClassAttribute.redefine(self, name, namespaced_name, default)
 
-      unless singleton_class?
+      class_methods << "def #{name}; #{namespaced_name}; end"
+      class_methods << "def #{name}=(value); self.#{namespaced_name} = value; end"
+
+      if singleton_class?
+        methods << <<~RUBY if instance_reader
+          silence_redefinition_of_method(:#{name})
+          def #{name}
+            self.singleton_class.#{name}
+          end
+        RUBY
+      else
         methods << <<~RUBY if instance_reader
           silence_redefinition_of_method def #{name}
-            defined?(@#{name}) ? @#{name} : self.class.#{name}
+            if defined?(@#{name})
+              @#{name}
+            else
+              self.class.#{name}
+            end
           end
         RUBY
       end

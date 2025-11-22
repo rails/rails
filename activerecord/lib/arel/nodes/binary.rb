@@ -30,7 +30,7 @@ module Arel # :nodoc: all
     end
 
     module FetchAttribute
-      def fetch_attribute
+      def fetch_attribute(&)
         if left.is_a?(Arel::Attributes::Attribute)
           yield left
         elsif right.is_a?(Arel::Attributes::Attribute)

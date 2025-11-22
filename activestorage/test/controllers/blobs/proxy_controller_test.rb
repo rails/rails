@@ -131,6 +131,23 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     request = ActionController::TestRequest.create({})
     assert_instance_of ActionController::Live::Response, ActiveStorage::Blobs::ProxyController.make_response!(request)
   end
+
+  test "sessions are disabled" do
+    get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"))
+    assert request.session_options[:skip],
+      "Expected request.session_options[:skip] to be true"
+  end
+
+  test "rails_storage_proxy include Content-Length header" do
+    Rails.application.config.active_storage.resolve_model_to_route = :rails_storage_proxy
+    blob = create_file_blob(filename: "racecar.jpg")
+
+    get rails_storage_proxy_url(blob)
+
+    assert_response :success
+    assert_not_nil response.headers["Content-Length"], "Content-Length header should be included in proxy mode"
+    assert_equal blob.byte_size.to_s, response.headers["Content-Length"], "Content-Length header should match blob size"
+  end
 end
 
 class ActiveStorage::Blobs::ExpiringProxyControllerTest < ActionDispatch::IntegrationTest

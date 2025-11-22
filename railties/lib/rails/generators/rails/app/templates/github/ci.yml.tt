@@ -3,39 +3,44 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [ <%= user_default_branch %> ]
 
 jobs:
-<%- unless skip_brakeman? -%>
+<%- unless skip_brakeman? && skip_bundler_audit? -%>
   scan_ruby:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: .ruby-version
           bundler-cache: true
+      <%- unless skip_brakeman? -%>
 
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
+      <% end -%>
+      <%- unless skip_bundler_audit? -%>
+
+      - name: Scan for known security vulnerabilities in gems used
+        run: bin/bundler-audit
+      <% end -%>
 
 <% end -%>
-<%- if options[:javascript] == "importmap"  && !options[:api] -%>
+<%- if using_importmap? -%>
   scan_js:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: .ruby-version
           bundler-cache: true
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
@@ -45,15 +50,26 @@ jobs:
 <%- unless skip_rubocop? -%>
   lint:
     runs-on: ubuntu-latest
+    env:
+      RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: .ruby-version
           bundler-cache: true
+
+      - name: Prepare RuboCop cache
+        uses: actions/cache@v4
+        env:
+          DEPENDENCIES_HASH: ${{ hashFiles('.ruby-version', '**/.rubocop.yml', '**/.rubocop_todo.yml', 'Gemfile.lock') }}
+        with:
+          path: ${{ env.RUBOCOP_CACHE_ROOT }}
+          key: rubocop-${{ runner.os }}-${{ env.DEPENDENCIES_HASH }}-${{ github.ref_name == github.event.repository.default_branch && github.run_id || 'default' }}
+          restore-keys: |
+            rubocop-${{ runner.os }}-${{ env.DEPENDENCIES_HASH }}-
 
       - name: Lint code for consistent style
         run: bin/rubocop -f github
@@ -66,7 +82,7 @@ jobs:
     <%- if options[:database] == "sqlite3" -%>
     # services:
     #  redis:
-    #    image: redis
+    #    image: valkey/valkey:8
     #    ports:
     #      - 6379:6379
     #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
@@ -92,27 +108,28 @@ jobs:
       <%- end -%>
 
       # redis:
-      #   image: redis
+      #   image: valkey/valkey:8
       #   ports:
       #     - 6379:6379
       #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
 
     <%- end -%>
     steps:
+      <%- unless ci_packages.empty? -%>
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable <%= dockerfile_base_packages.join(" ") %>
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y <%= ci_packages.join(" ") %>
 
+      <%- end -%>
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: .ruby-version
           bundler-cache: true
       <%- if using_bun? -%>
 
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: <%= dockerfile_bun_version %>
       <%- end -%>
@@ -120,23 +137,96 @@ jobs:
       - name: Run tests
         env:
           RAILS_ENV: test
-          <%- if options[:database] == "mysql" || options[:database] == "trilogy" -%>
+          <%- if options[:database] == "mysql" -%>
           DATABASE_URL: mysql2://127.0.0.1:3306
+          <%- elsif options[:database] == "trilogy" -%>
+          DATABASE_URL: trilogy://127.0.0.1:3306
           <%- elsif options[:database] == "postgresql" -%>
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           <%- end -%>
+          # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        <%- if options[:api] -%>
-        run: bin/rails db:test:prepare test
-        <%- else -%>
-        run: bin/rails db:test:prepare test test:system
-        <%- end -%>
+        run: bin/rails <%= "db:test:prepare " unless skip_active_record? %>test
+  <%- unless options[:api] || options[:skip_system_test] -%>
+
+  system-test:
+    runs-on: ubuntu-latest
+
+    <%- if options[:database] == "sqlite3" -%>
+    # services:
+    #  redis:
+    #    image: valkey/valkey:8
+    #    ports:
+    #      - 6379:6379
+    #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    <%- else -%>
+    services:
+      <%- if options[:database] == "mysql" || options[:database] == "trilogy" -%>
+      mysql:
+        image: mysql
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      <%- elsif options[:database] == "postgresql" -%>
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
+      <%- end -%>
+
+      # redis:
+      #   image: valkey/valkey:8
+      #   ports:
+      #     - 6379:6379
+      #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    <%- end -%>
+    steps:
+      <%- unless ci_packages.empty? -%>
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y <%= ci_packages.join(" ") %>
+
+      <%- end -%>
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      <%- if using_bun? -%>
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: <%= dockerfile_bun_version %>
+      <%- end -%>
+
+      - name: Run System Tests
+        env:
+          RAILS_ENV: test
+          <%- if options[:database] == "mysql" -%>
+          DATABASE_URL: mysql2://127.0.0.1:3306
+          <%- elsif options[:database] == "trilogy" -%>
+          DATABASE_URL: trilogy://127.0.0.1:3306
+          <%- elsif options[:database] == "postgresql" -%>
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432
+          <%- end -%>
+          # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+          # REDIS_URL: redis://localhost:6379/0
+        run: bin/rails <%= "db:test:prepare " unless skip_active_record? %>test:system
 
       - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
-<% end -%>
+  <%- end -%>
+<%- end -%>

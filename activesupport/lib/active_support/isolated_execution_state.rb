@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 module ActiveSupport
   module IsolatedExecutionState # :nodoc:
     @isolation_level = nil
@@ -29,45 +28,42 @@ module ActiveSupport
         @isolation_level = level
       end
 
-      def unique_id
-        self[:__id__] ||= Object.new
-      end
-
       def [](key)
-        state[key]
+        if state = @scope.current.active_support_execution_state
+          state[key]
+        end
       end
 
       def []=(key, value)
+        state = (@scope.current.active_support_execution_state ||= {})
         state[key] = value
       end
 
       def key?(key)
-        state.key?(key)
+        @scope.current.active_support_execution_state&.key?(key)
       end
 
       def delete(key)
-        state.delete(key)
+        @scope.current.active_support_execution_state&.delete(key)
       end
 
       def clear
-        state.clear
+        @scope.current.active_support_execution_state&.clear
       end
 
       def context
         scope.current
       end
 
-      def share_with(other)
+      def share_with(other, &block)
         # Action Controller streaming spawns a new thread and copy thread locals.
         # We do the same here for backward compatibility, but this is very much a hack
         # and streaming should be rethought.
-        context.active_support_execution_state = other.active_support_execution_state.dup
+        old_state, context.active_support_execution_state = context.active_support_execution_state, other.active_support_execution_state.dup
+        block.call
+      ensure
+        context.active_support_execution_state = old_state
       end
-
-      private
-        def state
-          context.active_support_execution_state ||= {}
-        end
     end
 
     self.isolation_level = :thread

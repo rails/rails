@@ -10,7 +10,7 @@ module ActiveModel
     TYPE_1 = MyType.new(precision: 1)
     TYPE_2 = MyType.new(precision: 2)
 
-    MyDecorator = DelegateClass(Type::Value) do
+    MyDecorator = ActiveSupport::Delegation::DelegateClass(Type::Value) do
       attr_reader :name
       alias :cast_type :__getobj__
 

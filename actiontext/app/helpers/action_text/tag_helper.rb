@@ -27,7 +27,14 @@ module ActionText
     #     rich_textarea_tag "content", message.content
     #     # <input type="hidden" name="content" id="trix_input_post_1">
     #     # <trix-editor id="content" input="trix_input_post_1" class="trix-content" ...></trix-editor>
-    def rich_textarea_tag(name, value = nil, options = {})
+    #
+    #     rich_textarea_tag "content", nil do
+    #       "<h1>Default content</h1>"
+    #     end
+    #     # <input type="hidden" name="content" id="trix_input_post_1" value="&lt;h1&gt;Default content&lt;/h1&gt;">
+    #     # <trix-editor id="content" input="trix_input_post_1" class="trix-content" ...></trix-editor>
+    def rich_textarea_tag(name, value = nil, options = {}, &block)
+      value = capture(&block) if value.nil? && block_given?
       options = options.symbolize_keys
       form = options.delete(:form)
 
@@ -53,11 +60,11 @@ module ActionView::Helpers
 
     delegate :dom_id, to: ActionView::RecordIdentifier
 
-    def render
+    def render(&block)
       options = @options.stringify_keys
-      add_default_name_and_id(options)
+      add_default_name_and_field(options)
       options["input"] ||= dom_id(object, [options["id"], :trix_input].compact.join("_")) if object
-      html_tag = @template_object.rich_textarea_tag(options.delete("name"), options.fetch("value") { value }, options.except("value"))
+      html_tag = @template_object.rich_textarea_tag(options.delete("name"), options.fetch("value") { value }, options.except("value"), &block)
       error_wrapping(html_tag)
     end
   end
@@ -82,10 +89,16 @@ module ActionView::Helpers
     #     # <trix-editor id="content" input="message_content_trix_input_message_1" class="trix-content" ...></trix-editor>
     #
     #     rich_textarea :message, :content, value: "<h1>Default message</h1>"
-    #     # <input type="hidden" name="message[content]" id="message_content_trix_input_message_1" value="<h1>Default message</h1>">
+    #     # <input type="hidden" name="message[content]" id="message_content_trix_input_message_1" value="&lt;h1&gt;Default message&lt;/h1&gt;">
     #     # <trix-editor id="content" input="message_content_trix_input_message_1" class="trix-content" ...></trix-editor>
-    def rich_textarea(object_name, method, options = {})
-      Tags::ActionText.new(object_name, method, self, options).render
+    #
+    #     rich_textarea :message, :content do
+    #       "<h1>Default message</h1>"
+    #     end
+    #     # <input type="hidden" name="message[content]" id="message_content_trix_input_message_1" value="&lt;h1&gt;Default message&lt;/h1&gt;">
+    #     # <trix-editor id="content" input="message_content_trix_input_message_1" class="trix-content" ...></trix-editor>
+    def rich_textarea(object_name, method, options = {}, &block)
+      Tags::ActionText.new(object_name, method, self, options).render(&block)
     end
     alias_method :rich_text_area, :rich_textarea
   end
@@ -98,8 +111,8 @@ module ActionView::Helpers
     #     <% end %>
     #
     # Please refer to the documentation of the base helper for details.
-    def rich_textarea(method, options = {})
-      @template.rich_textarea(@object_name, method, objectify_options(options))
+    def rich_textarea(method, options = {}, &block)
+      @template.rich_textarea(@object_name, method, objectify_options(options), &block)
     end
     alias_method :rich_text_area, :rich_textarea
   end

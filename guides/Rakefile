@@ -1,5 +1,14 @@
 # frozen_string_literal: true
 
+require "rake/testtask"
+
+Rake::TestTask.new do |t|
+  t.libs << "test"
+  t.test_files = FileList["test/**/*_test.rb"]
+  t.verbose = true
+  t.options = "--profile" if ENV["CI"]
+end
+
 namespace :guides do
   desc 'Generate guides (for authors), use ONLY=foo to process just "foo.md"'
   task generate: "generate:html"
@@ -7,7 +16,7 @@ namespace :guides do
   namespace :generate do
     desc "Generate HTML guides"
     task :html do
-      ruby "-Eutf-8:utf-8", "rails_guides.rb"
+      generate_guides
     end
 
     desc "Generate .mobi file"
@@ -30,7 +39,7 @@ namespace :guides do
     desc "Check links in generated HTML guides"
     task :check_links do
       ENV["GUIDES_LINT"] = "1"
-      ruby "-Eutf-8:utf-8", "rails_guides.rb"
+      generate_guides
     end
 
     desc "Run mdl to check Markdown files for style guide violations and lint errors"
@@ -45,7 +54,8 @@ namespace :guides do
   # Validate guides -------------------------------------------------------------------------
   desc 'Validate guides, use ONLY=foo to process just "foo.html"'
   task :validate do
-    ruby "w3c_validator.rb"
+    require_relative "w3c_validator.rb"
+    RailsGuides::Validator.new.validate
   end
 
   task :vendor_javascript do
@@ -105,15 +115,24 @@ HELP
   end
 end
 
-task :test do
-  templates = Dir.glob("bug_report_templates/*.rb")
-  counter = templates.count do |file|
-    puts "--- Running #{file}"
-    Bundler.unbundled_system(Gem.ruby, "-w", file) ||
-      puts("+++ 💥 FAILED (exit #{$?.exitstatus})")
-  end
-  puts "+++ #{counter} / #{templates.size} templates executed successfully"
-  exit 1 if counter < templates.size
-end
-
 task default: "guides:help"
+
+def generate_guides
+  require_relative "rails_guides"
+  env_value = ->(name) { ENV[name].presence }
+  env_flag  = ->(name) { "1" == env_value[name] }
+
+  version = env_value["RAILS_VERSION"]
+  edge    = `git rev-parse HEAD`.strip unless version
+
+  RailsGuides::Generator.new(
+    edge:      edge,
+    version:   version,
+    all:       env_flag["ALL"],
+    only:      env_value["ONLY"],
+    epub:      env_flag["EPUB"],
+    language:  env_value["GUIDES_LANGUAGE"],
+    direction: env_value["DIRECTION"],
+    lint:      env_flag["GUIDES_LINT"]
+  ).generate
+end

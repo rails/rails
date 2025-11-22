@@ -5,6 +5,7 @@ require "models/post"
 require "models/category"
 require "models/comment"
 require "models/other_dog"
+require "concurrent/atomic/count_down_latch"
 
 module ActiveRecord
   class LoadAsyncTest < ActiveRecord::TestCase
@@ -51,8 +52,8 @@ module ActiveRecord
       def test_load_async_has_many_association
         post = Post.first
 
-        defered_comments = post.comments.load_async
-        assert_predicate defered_comments, :scheduled?
+        deferred_comments = post.comments.load_async
+        assert_predicate deferred_comments, :scheduled?
 
         events = []
         callback = -> (event) do
@@ -61,7 +62,7 @@ module ActiveRecord
 
         wait_for_async_query
         ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
-          defered_comments.to_a
+          deferred_comments.to_a
         end
 
         assert_equal [["Comment Load", true]], events.map { |e| [e.payload[:name], e.payload[:async]] }
@@ -71,8 +72,8 @@ module ActiveRecord
       def test_load_async_has_many_through_association
         post = Post.first
 
-        defered_categories = post.scategories.load_async
-        assert_predicate defered_categories, :scheduled?
+        deferred_categories = post.scategories.load_async
+        assert_predicate deferred_categories, :scheduled?
 
         events = []
         callback = -> (event) do
@@ -81,7 +82,7 @@ module ActiveRecord
 
         wait_for_async_query
         ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
-          defered_categories.to_a
+          deferred_categories.to_a
         end
 
         assert_equal [["Category Load", true]], events.map { |e| [e.payload[:name], e.payload[:async]] }
@@ -157,13 +158,49 @@ module ActiveRecord
       assert_equal ["In Transaction"], posts.map(&:title).uniq
     end
 
+    def test_load_async_instrumentation_is_thread_safe
+      skip unless ActiveRecord::Base.connection.async_enabled?
+
+      begin
+        latch1 = Concurrent::CountDownLatch.new
+        latch2 = Concurrent::CountDownLatch.new
+
+        old_log = ActiveRecord::Base.connection.method(:log)
+        ActiveRecord::Base.connection.singleton_class.undef_method(:log)
+
+        ActiveRecord::Base.connection.singleton_class.define_method(:log) do |intent, *args, **kwargs, &block|
+          unless intent.async
+            return old_log.call(intent, *args, **kwargs, &block)
+          end
+
+          latch1.count_down
+          latch2.wait
+          old_log.call(intent, *args, **kwargs, &block)
+        end
+
+        Post.async_count
+        latch1.wait
+
+        notification_called = false
+        ActiveSupport::Notifications.subscribed(->(*) { notification_called = true }, "sql.active_record") do
+          Post.count
+        end
+
+        assert(notification_called)
+      ensure
+        latch2.count_down
+        ActiveRecord::Base.connection.singleton_class.undef_method(:log)
+        ActiveRecord::Base.connection.singleton_class.define_method(:log, old_log)
+      end
+    end
+
     def test_eager_loading_query
       expected_records = Post.where(author_id: 1).eager_load(:comments).to_a
 
       status = {}
 
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-        if event.payload[:name] == "SQL"
+        if event.payload[:name] == "Post Eager Load"
           status[:executed] = true
           status[:async] = event.payload[:async]
         end
@@ -444,7 +481,7 @@ module ActiveRecord
 
         status = {}
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-          if event.payload[:name] == "SQL"
+          if event.payload[:name] == "Post Eager Load"
             status[:executed] = true
             status[:async] = event.payload[:async]
           end

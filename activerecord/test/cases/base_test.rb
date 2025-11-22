@@ -116,6 +116,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Post::GeneratedRelationMethods", mod.inspect
   end
 
+  def test_no_anonymous_modules
+    assert_empty Photo.ancestors.select { |m| m.name.nil? }
+  end
+
   def test_arel_attribute_normalization
     assert_equal Post.arel_table["body"], Post.arel_table[:body]
     assert_equal Post.arel_table["body"], Post.arel_table[:text]
@@ -188,19 +192,19 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_invalid_limit
     assert_raises(ArgumentError) do
-      Topic.limit("asdfadf").to_a
+      Topic.limit("asdfadf")
     end
   end
 
   def test_limit_should_sanitize_sql_injection_for_limit_without_commas
     assert_raises(ArgumentError) do
-      Topic.limit("1 select * from schema").to_a
+      Topic.limit("1 select * from schema")
     end
   end
 
   def test_limit_should_sanitize_sql_injection_for_limit_with_commas
     assert_raises(ArgumentError) do
-      Topic.limit("1, 7 procedure help()").to_a
+      Topic.limit("1, 7 procedure help()")
     end
   end
 
@@ -1117,14 +1121,16 @@ class BasicsTest < ActiveRecord::TestCase
     end
 
     def test_default_in_local_time
-      with_timezone_config default: :local do
-        default = Default.new
+      with_env_tz do
+        with_timezone_config default: :local do
+          default = Default.new
 
-        assert_equal Date.new(2004, 1, 1), default.fixed_date
-        assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
+          assert_equal Date.new(2004, 1, 1), default.fixed_date
+          assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
 
-        if current_adapter?(:PostgreSQLAdapter)
-          assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
+          if current_adapter?(:PostgreSQLAdapter)
+            assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
+          end
         end
       end
     end
@@ -1153,6 +1159,29 @@ class BasicsTest < ActiveRecord::TestCase
           if current_adapter?(:PostgreSQLAdapter)
             assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time_with_time_zone
           end
+        end
+      end
+    end
+
+    def test_switching_default_time_zone
+      with_env_tz do
+        2.times do
+          with_timezone_config default: :local do
+            assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
+          end
+          with_timezone_config default: :utc do
+            assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
+          end
+        end
+      end
+    end
+
+    def test_mutating_time_objects
+      with_env_tz do
+        with_timezone_config default: :local do
+          assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
+          assert_equal Time.utc(2004, 1, 1, 5, 0, 0, 0), Default.new.fixed_time.utc
+          assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
         end
       end
     end
@@ -1499,7 +1528,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_predicate post, :new_record?, "should be a new record"
   end
 
-  def test_marshalling_with_associations
+  def test_marshalling_with_associations_6_1
     post = Post.new
     post.comments.build
 
@@ -1507,6 +1536,21 @@ class BasicsTest < ActiveRecord::TestCase
     post       = Marshal.load(marshalled)
 
     assert_equal 1, post.comments.length
+  end
+
+  def test_marshalling_with_associations_7_1
+    previous_format_version = ActiveRecord::Marshalling.format_version
+    ActiveRecord::Marshalling.format_version = 7.1
+
+    post = Post.new
+    post.comments.build
+
+    marshalled = Marshal.dump(post)
+    post       = Marshal.load(marshalled)
+
+    assert_equal 1, post.comments.length
+  ensure
+    ActiveRecord::Marshalling.format_version = previous_format_version
   end
 
   if Process.respond_to?(:fork) && !in_memory_db?
@@ -1644,6 +1688,18 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  if current_adapter?(:SQLite3Adapter)
+    def test_column_types_on_queries_on_sqlite
+      result = ActiveRecord::Base.lease_connection.exec_query("SELECT id, last_read, created_at FROM topics")
+      assert_equal ActiveRecord::ConnectionAdapters::SQLite3Adapter::SQLite3Integer, result.column_types["id"].class
+      assert_equal ActiveRecord::Type::Date, result.column_types["last_read"].class
+      assert_equal ActiveRecord::Type::DateTime, result.column_types["created_at"].class
+      assert_equal result.column_types[0], result.column_types["id"]
+      assert_equal result.column_types[1], result.column_types["last_read"]
+      assert_equal result.column_types[2], result.column_types["created_at"]
+    end
+  end
+
   def test_typecasting_aliases
     assert_equal 10, Topic.select("10 as tenderlove").first.tenderlove
   end
@@ -1775,6 +1831,31 @@ class BasicsTest < ActiveRecord::TestCase
     assert_respond_to SymbolIgnoredDeveloper.new, :last_name
     assert_respond_to SymbolIgnoredDeveloper.new, :last_name=
     assert_respond_to SymbolIgnoredDeveloper.new, :last_name?
+  end
+
+  test "permitted columns have attribute methods" do
+    assert_respond_to OnlyColumnsDeveloper.new, OnlyColumnsDeveloper.primary_key
+    assert_respond_to OnlyColumnsDeveloper.new, :name
+    assert_respond_to OnlyColumnsDeveloper.new, :name=
+    assert_respond_to OnlyColumnsDeveloper.new, :name?
+    assert_respond_to OnlyColumnsDeveloper.new, :salary
+    assert_respond_to OnlyColumnsDeveloper.new, :salary=
+    assert_respond_to OnlyColumnsDeveloper.new, :salary?
+    assert_respond_to OnlyColumnsDeveloper.new, :firm_id
+    assert_respond_to OnlyColumnsDeveloper.new, :firm_id=
+    assert_respond_to OnlyColumnsDeveloper.new, :firm_id?
+    assert_respond_to OnlyColumnsDeveloper.new, :mentor_id
+    assert_respond_to OnlyColumnsDeveloper.new, :mentor_id=
+    assert_respond_to OnlyColumnsDeveloper.new, :mentor_id?
+  end
+
+  test "not permitted columns have not attribute methods" do
+    assert_not_respond_to OnlyColumnsDeveloper.new, :first_name
+    assert_not_respond_to OnlyColumnsDeveloper.new, :first_name=
+    assert_not_respond_to OnlyColumnsDeveloper.new, :first_name?
+    assert_not_respond_to OnlyColumnsDeveloper.new, :legacy_created_at
+    assert_not_respond_to OnlyColumnsDeveloper.new, :legacy_created_at=
+    assert_not_respond_to OnlyColumnsDeveloper.new, :legacy_created_at?
   end
 
   test "ignored columns are stored as an array of string" do
@@ -1942,4 +2023,12 @@ class BasicsTest < ActiveRecord::TestCase
       assert_not ActiveRecord::Base.current_preventing_writes
     end
   end
+
+  private
+    def with_timezone_config(cfg, &block)
+      super(cfg) do
+        Default.reset_column_information
+        block.call
+      end
+    end
 end

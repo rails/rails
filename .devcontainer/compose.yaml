@@ -12,9 +12,12 @@ services:
 
     depends_on:
       - postgres
-      - mariadb
+      - mysql
       - redis
       - memcached
+
+    environment:
+      MYSQL_CODESPACES: "1"
 
     # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
     # (Adding the "ports" property to this file will not forward from a Codespace.)
@@ -23,22 +26,22 @@ services:
     image: postgres:latest
     restart: unless-stopped
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD: postgres
 
-  mariadb:
-    image: mariadb:latest
+  mysql:
+    image: mysql:latest
     restart: unless-stopped
     volumes:
-      - mariadb-data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
     environment:
-      MARIADB_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
 
   redis:
-    image: redis:latest
+    image: valkey/valkey:8
     restart: unless-stopped
     volumes:
       - redis-data:/data
@@ -50,5 +53,5 @@ services:
 
 volumes:
   postgres-data:
-  mariadb-data:
+  mysql-data:
   redis-data:

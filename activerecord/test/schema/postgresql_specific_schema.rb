@@ -41,6 +41,7 @@ ActiveRecord::Schema.define do
     t.string :char2, limit: 50, default: "a varchar field"
     t.text :char3, default: "a text field"
     t.bigint :bigint_default, default: -> { "0::bigint" }
+    t.binary :binary_default_function, default: -> { "convert_to('A', 'UTF8')" }
     t.text :multiline_default, default: "--- []
 
 "
@@ -175,24 +176,33 @@ _SQL
     t.integer :position_1
     t.integer :position_2
     t.integer :position_3
+    t.integer :position_4
 
     t.unique_constraint :position_1, name: "test_unique_constraints_position_deferrable_false"
     t.unique_constraint :position_2, name: "test_unique_constraints_position_deferrable_immediate", deferrable: :immediate
     t.unique_constraint :position_3, name: "test_unique_constraints_position_deferrable_deferred", deferrable: :deferred
+    t.unique_constraint :position_4, name: "test_unique_constraints_position_nulls_not_distinct", nulls_not_distinct: true
   end
 
   if supports_partitioned_indexes?
-    create_table(:measurements, id: false, force: true, options: "PARTITION BY LIST (city_id)") do |t|
-      t.string :city_id, null: false
-      t.date :logdate, null: false
-      t.integer :peaktemp
-      t.integer :unitsales
-      t.index [:logdate, :city_id], unique: true
+    begin
+      previous_unlogged_tables = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
+      ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = false
+
+      create_table(:measurements, id: false, force: true, options: "PARTITION BY LIST (city_id)") do |t|
+        t.string :city_id, null: false
+        t.date :logdate, null: false
+        t.integer :peaktemp
+        t.integer :unitsales
+        t.index [:logdate, :city_id], unique: true
+      end
+      create_table(:measurements_toronto, id: false, force: true,
+                                          options: "PARTITION OF measurements FOR VALUES IN (1)")
+      create_table(:measurements_concepcion, id: false, force: true,
+                                            options: "PARTITION OF measurements FOR VALUES IN (2)")
+    ensure
+      ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = previous_unlogged_tables
     end
-    create_table(:measurements_toronto, id: false, force: true,
-                                        options: "PARTITION OF measurements FOR VALUES IN (1)")
-    create_table(:measurements_concepcion, id: false, force: true,
-                                           options: "PARTITION OF measurements FOR VALUES IN (2)")
   end
 
   add_index(:companies, [:firm_id, :type], name: "company_include_index", include: [:name, :account_id])

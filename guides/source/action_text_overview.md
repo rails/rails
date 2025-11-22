@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Action Text Overview
 ====================
@@ -181,8 +181,8 @@ content as follows:
 
 `ActionText::RichText#to_s` safely transforms RichText into an HTML String. On
 the other hand `ActionText::RichText#to_plain_text` returns a string that is not
-HTML safe and should not be rendered in browsers. You can learn more about
-Action Text's sanitization process in the [`ActionText::RichText`
+HTML safe and should not be rendered in browsers without additional sanitization.
+You can learn more about Action Text's sanitization process in the [`ActionText::RichText`
 documentation](https://api.rubyonrails.org/classes/ActionText/RichText.html).
 
 NOTE: If there's an attached resource within `content` field, it might not show
@@ -262,12 +262,26 @@ not being installed.
 
 #### Attachment Direct Upload JavaScript Events
 
+Action Text dispatches [Active Storage Direct Upload
+Events](active_storage_overview.html#direct-upload-javascript-events) during the
+File attachment lifecycle.
+
+In addition to the typical `event.detail` properties, Action Text also
+dispatches events with an
+[`event.detail.attachment`](https://github.com/basecamp/trix/?tab=readme-ov-file#inserting-a-file)
+property.
+
 | Event name | Event target | Event data (`event.detail`) | Description |
 | --- | --- | --- | --- |
 | `direct-upload:start` | `<input>` | `{id, file}` | A direct upload is starting. |
 | `direct-upload:progress` | `<input>` | `{id, file, progress}` | As requests to store files progress. |
 | `direct-upload:error` | `<input>` | `{id, file, error}` | An error occurred. An `alert` will display unless this event is canceled. |
 | `direct-upload:end` | `<input>` | `{id, file}` | A direct upload has ended. |
+
+NOTE: It is possible for files uploaded by Action Text through [Active Storage
+Direct Uploads](active_storage_overview.html#direct-uploads) to never be
+embedded within rich text content. Consider [purging unattached
+uploads](active_storage_overview.html#purging-unattached-uploads) regularly.
 
 ### Signed GlobalID
 

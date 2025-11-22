@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Contributing to Ruby on Rails
 =============================
@@ -39,15 +39,15 @@ Once you open an issue, it may or may not see activity right away unless it is a
 
 Having a way to reproduce your issue will help people confirm, investigate, and ultimately fix your issue. You can do this by providing an executable test case. To make this process easier, we have prepared several bug report templates for you to use as a starting point:
 
-* Template for Active Record (models, database) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record.rb)
-* Template for testing Active Record (migration) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_migrations.rb)
-* Template for Action Pack (controllers, routing) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller.rb)
-* Template for Action View (views, helpers) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_view.rb)
-* Template for Active Job issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_job.rb)
-* Template for Active Storage issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_storage.rb)
-* Template for Action Mailer issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailer.rb)
-* Template for Action Mailbox issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailbox.rb)
-* Generic template for other issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic.rb)
+* [Template for Active Record (models, encryption, database) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record.rb)
+* [Template for testing Active Record (migration) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_migrations.rb)
+* [Template for Action Pack (controllers, routing) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller.rb)
+* [Template for Action View (views, helpers) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_view.rb)
+* [Template for Active Job issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_job.rb)
+* [Template for Active Storage issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_storage.rb)
+* [Template for Action Mailer issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailer.rb)
+* [Template for Action Mailbox issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailbox.rb)
+* [Generic template for other issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic.rb)
 
 These templates include the boilerplate code to set up a test case. Copy the content of the appropriate template into a `.rb` file and make the necessary changes to demonstrate the issue. You can execute it by running `ruby the_file.rb` in your terminal. If all goes well, you should see your test case failing.
 
@@ -192,13 +192,30 @@ If you have [Visual Studio Code](https://code.visualstudio.com) and [Docker](htt
 
 #### Using Dev Container CLI
 
-Alternatively, with [Docker](https://www.docker.com) and [npm](https://github.com/npm/cli) installed, you can run [Dev Container CLI](https://github.com/devcontainers/cli) to utilize the [`.devcontainer`](https://github.com/rails/rails/tree/main/.devcontainer) configuration from the command line.
+With [npm](https://github.com/npm/cli) and [Docker](https://www.docker.com) installed, you can run [Dev Container CLI](https://github.com/devcontainers/cli) to utilize the [`.devcontainer`](https://github.com/rails/rails/tree/main/.devcontainer) configuration from the command line.
 
 ```bash
 $ npm install -g @devcontainers/cli
 $ cd rails
 $ devcontainer up --workspace-folder .
 $ devcontainer exec --workspace-folder . bash
+```
+
+#### Using Dev Container with Podman
+
+You can use the [`.devcontainer`](https://github.com/rails/rails/tree/main/.devcontainer) configuration with [Podman](https://podman.io/). This method does not require any other tools besides Podman.
+
+```bash
+$ podman machine init
+$ podman machine start
+$ tools/devcontainer up
+```
+
+Then in a separate terminal:
+
+```bash
+$ tools/devcontainer run-user-commands
+$ tools/devcontainer sh
 ```
 
 #### Using rails-dev-box
@@ -347,6 +364,37 @@ $ cd actionmailer
 $ bin/test
 ```
 
+#### Running Component Tests from the Repository Root
+
+You can also run component test suites from the repository root using rake tasks:
+
+```bash
+$ bundle exec rake actionpack:test
+$ bundle exec rake actionpack:isolated
+
+# Active Record adapters (from the repo root)
+$ bundle exec rake activerecord:sqlite3:test
+$ bundle exec rake activerecord:sqlite3:isolated
+$ bundle exec rake activerecord:mysql2:test
+$ bundle exec rake activerecord:trilogy:test
+$ bundle exec rake activerecord:postgresql:test
+
+# Active Record integration tests (Active Job integration across adapters)
+$ bundle exec rake activerecord:integration
+
+# Active Job adapters
+$ bundle exec rake activejob:sidekiq:test
+$ bundle exec rake activejob:sidekiq:isolated
+$ bundle exec rake activejob:sidekiq:integration
+
+# All Active Job integration tests
+$ bundle exec rake activejob:integration
+```
+
+Notes:
+
+- Not all frameworks define an isolated test task. For example, `activestorage:isolated` is not supported and will exit with an error.
+
 #### For a Specific Directory
 
 You can run tests only for a specific directory of a particular component
@@ -444,11 +492,40 @@ $ bundle exec rake db:postgresql:build
 
 This is not necessary for SQLite3.
 
+From the repository root, equivalent database management tasks are available under the `activerecord:db` namespace:
+
+```bash
+# Create both MySQL and PostgreSQL test databases
+$ bundle exec rake activerecord:db:create
+
+# Drop both MySQL and PostgreSQL test databases
+$ bundle exec rake activerecord:db:drop
+
+# Rebuild both MySQL and PostgreSQL test databases
+$ bundle exec rake activerecord:db:rebuild
+
+# Manage MySQL databases only
+$ bundle exec rake activerecord:db:mysql:build
+$ bundle exec rake activerecord:db:mysql:drop
+$ bundle exec rake activerecord:db:mysql:rebuild
+
+# Manage PostgreSQL databases only
+$ bundle exec rake activerecord:db:postgresql:build
+$ bundle exec rake activerecord:db:postgresql:drop
+$ bundle exec rake activerecord:db:postgresql:rebuild
+```
+
 This is how you run the Active Record test suite only for SQLite3:
 
 ```bash
 $ cd activerecord
 $ bundle exec rake test:sqlite3
+```
+
+From the repository root, the equivalent commands are available:
+
+```bash
+$ bundle exec rake activerecord:sqlite3:test
 ```
 
 You can now run the tests as you did for `sqlite3`. The tasks are respectively:
@@ -459,6 +536,14 @@ $ bundle exec rake test:trilogy
 $ bundle exec rake test:postgresql
 ```
 
+Or:
+
+```bash
+$ bundle exec rake activerecord:mysql2:test
+$ bundle exec rake activerecord:trilogy:test
+$ bundle exec rake activerecord:postgresql:test
+```
+
 Finally,
 
 ```bash
@@ -466,6 +551,18 @@ $ bundle exec rake test
 ```
 
 will now run the three of them in turn.
+
+You can run adapter-specific isolated tests, or all Active Job integration tests for Active Record, with:
+
+```bash
+# From inside activerecord
+$ bundle exec rake test:isolated:sqlite3
+$ bundle exec rake test:integration:active_job
+
+# Or repository root
+$ bundle exec rake activerecord:sqlite3:isolated
+$ bundle exec rake activerecord:integration   # runs Active Job integration across all adapters
+```
 
 You can also run any single test separately:
 
@@ -607,7 +704,7 @@ To ease the upgrade it's required to add the new default to the
 value:
 
 ```ruby
-# new_framework_defaults_8_0.rb.tt
+# new_framework_defaults_8_1.rb.tt
 
 # Rails.application.config.active_job.existing_behavior = false
 ```

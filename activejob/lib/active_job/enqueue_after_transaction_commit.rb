@@ -4,16 +4,7 @@ module ActiveJob
   module EnqueueAfterTransactionCommit # :nodoc:
     private
       def raw_enqueue
-        after_transaction = case self.class.enqueue_after_transaction_commit
-        when :always
-          true
-        when :never
-          false
-        else # :default
-          queue_adapter.enqueue_after_transaction_commit?
-        end
-
-        if after_transaction
+        if self.class.enqueue_after_transaction_commit
           self.successfully_enqueued = true
           ActiveRecord.after_all_transactions_commit do
             self.successfully_enqueued = false

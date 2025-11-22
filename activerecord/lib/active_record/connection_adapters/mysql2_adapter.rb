@@ -13,6 +13,7 @@ module ActiveRecord
       ER_BAD_DB_ERROR           = 1049
       ER_DBACCESS_DENIED_ERROR  = 1044
       ER_ACCESS_DENIED_ERROR    = 1045
+      ER_UNKNOWN_STMT_HANDLER   = 1243
       ER_CONN_HOST_ERROR        = 2003
       ER_UNKNOWN_HOST_ERROR     = 2005
 
@@ -91,8 +92,6 @@ module ActiveRecord
         true
       end
 
-      # HELPER METHODS ===========================================
-
       def error_number(exception)
         exception.error_number if exception.respond_to?(:error_number)
       end
@@ -106,7 +105,14 @@ module ActiveRecord
       end
 
       def active?
-        connected? && @lock.synchronize { @raw_connection&.ping } || false
+        if connected?
+          @lock.synchronize do
+            if @raw_connection&.ping
+              verified!
+              true
+            end
+          end
+        end || false
       end
 
       alias :reset! :reconnect!

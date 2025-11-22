@@ -86,8 +86,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise ActionController::UnknownHttpMethod
       when "/not_implemented"
         raise ActionController::NotImplemented
-      when "/unprocessable_entity"
-        raise ActionController::InvalidAuthenticityToken
       when "/invalid_mimetype"
         raise ActionDispatch::Http::MimeNegotiation::InvalidType
       when "/not_found_original_exception"
@@ -181,6 +179,15 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       get "/pass", headers: { "action_dispatch.show_exceptions" => :all }
     end
     assert boomer.closed, "Expected to close the response body"
+  end
+
+  test "returns empty body on HEAD cascade pass" do
+    @app = DevelopmentApp
+
+    head "/pass"
+
+    assert_response 404
+    assert_equal "", body
   end
 
   test "displays routes in a table when a RoutingError occurs" do
@@ -290,6 +297,47 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/ActionController::ParameterMissing/, body)
   end
 
+  test "rescue with text error and markdown format when text/markdown is preferred" do
+    @app = DevelopmentApp
+
+    get "/", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 500
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/RuntimeError/, body)
+    assert_match(/puke/, body)
+
+    get "/not_found", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 404
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/#{AbstractController::ActionNotFound.name}/, body)
+
+    get "/method_not_allowed", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::MethodNotAllowed/, body)
+
+    get "/unknown_http_method", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::UnknownHttpMethod/, body)
+
+    get "/bad_request", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::BadRequest/, body)
+
+    get "/parameter_missing", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::ParameterMissing/, body)
+  end
+
   test "rescue with JSON error for JSON API request" do
     @app = ApiApp
 
@@ -395,7 +443,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       "action_dispatch.parameter_filter" => [:foo] }
     assert_response 500
 
-    assert_match(CGI.escape_html({ "foo" => "[FILTERED]" }.inspect[1..-2]), body)
+    assert_match(ERB::Util.html_escape({ "foo" => "[FILTERED]" }.inspect[1..-2]), body)
   end
 
   test "show registered original exception if the last exception is TemplateError" do
@@ -459,7 +507,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     })
     assert_response 500
 
-    assert_includes(body, CGI.escapeHTML(PP.pp(params, +"", 200)))
+    assert_includes(body, ERB::Util.html_escape(PP.pp(params, +"", 200)))
   end
 
   test "sets the HTTP charset parameter" do
@@ -859,6 +907,16 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "shows the link to edit the file in the editor" do
+    @app = DevelopmentApp
+    ActiveSupport::Editor.stub(:current, ActiveSupport::Editor.find("atom")) do
+      get "/actionable_error"
+
+      assert_select "code a.edit-icon"
+      assert_includes body, "atom://core/open"
+    end
+  end
+
   test "shows a buttons for every action in an actionable error" do
     @app = DevelopmentApp
     Rails.stub :root, Pathname.new(".") do
@@ -906,5 +964,38 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_response 500
     assert_select "#container p", /Showing #{__FILE__} where line #\d+ raised/
     assert_select "#container code", /undefined local variable or method ['`]string”'/
+  end
+
+  test "includes copy button in error pages" do
+    @app = DevelopmentApp
+
+    get "/", headers: { "action_dispatch.show_exceptions" => :all }
+    assert_response 500
+
+    assert_match %r{<button onclick="copyAsText\.bind\(this\)\(\)">Copy as text</button>}, body
+    assert_match %r{<script type="text/plain" id="exception-message-for-copy">.*RuntimeError \(puke}m, body
+  end
+
+  test "copy button not shown for XHR requests" do
+    @app = DevelopmentApp
+
+    get "/", headers: {
+      "action_dispatch.show_exceptions" => :all,
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
+    }
+
+    assert_response 500
+    assert_no_match %r{<button}, body
+    assert_no_match %r{<script}, body
+  end
+
+  test "exception message includes causes for nested exceptions" do
+    @app = DevelopmentApp
+
+    get "/nested_exceptions", headers: { "action_dispatch.show_exceptions" => :all }
+
+    script_content = body[%r{<script type="text/plain" id="exception-message-for-copy">(.*?)</script>}m, 1]
+    assert_match %r{Third error}, script_content
+    assert_match %r{Caused by:.*Second error}m, script_content
   end
 end

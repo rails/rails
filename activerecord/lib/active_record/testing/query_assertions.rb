@@ -11,21 +11,27 @@ module ActiveRecord
       #   # Check for any number of queries
       #   assert_queries_count { Post.first }
       #
-      # If the +:include_schema+ option is provided, any queries (including schema related) are counted.
+      # Any unmaterialized transactions will be materialized to ensure only
+      # queries attempted intside the block are counted.
+      #
+      # If the +:include_schema+ option is provided, any queries (including
+      # schema related) are counted. Setting this option also skips leasing a
+      # connection to materialize pending transactions since we want to count
+      # queries executed at connection open (e.g., type map).
       #
       #   assert_queries_count(1, include_schema: true) { Post.columns }
       #
       def assert_queries_count(count = nil, include_schema: false, &block)
-        ActiveRecord::Base.lease_connection.materialize_transactions
+        ActiveRecord::Base.lease_connection.materialize_transactions unless include_schema
 
         counter = SQLCounter.new
         ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
           result = _assert_nothing_raised_or_warn("assert_queries_count", &block)
           queries = include_schema ? counter.log_all : counter.log
           if count
-            assert_equal count, queries.size, "#{queries.size} instead of #{count} queries were executed. Queries: #{queries.join("\n\n")}"
+            assert_equal count, queries.size, "#{queries.size} instead of #{count} queries were executed#{queries.empty? ? '' : ". Queries:\n\n#{queries.join("\n\n")}"}"
           else
-            assert_operator queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
+            assert_operator queries.size, :>=, 1, "1 or more queries expected, but none were executed"
           end
           result
         end
@@ -66,9 +72,9 @@ module ActiveRecord
           matched_queries = queries.select { |query| match === query }
 
           if count
-            assert_equal count, matched_queries.size, "#{matched_queries.size} instead of #{count} queries were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
+            assert_equal count, matched_queries.size, "#{matched_queries.size} instead of #{count} matching queries were executed#{queries.empty? ? '' : ". Queries:\n\n#{queries.join("\n\n")}"}"
           else
-            assert_operator matched_queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
+            assert_operator matched_queries.size, :>=, 1, "1 or more matching queries expected, but none were executed#{queries.empty? ? '' : ". Queries:\n\n#{queries.join("\n\n")}"}"
           end
 
           result

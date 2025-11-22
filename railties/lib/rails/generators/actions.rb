@@ -445,18 +445,17 @@ module Rails
 
       private
         # Define log for backwards compatibility. If just one argument is sent,
-        # invoke say, otherwise invoke say_status. Differently from say and
-        # similarly to say_status, this method respects the quiet? option given.
+        # invoke +say+, otherwise invoke +say_status+.
         def log(*args) # :doc:
           if args.size == 1
-            say args.first.to_s unless options.quiet?
+            say args.first.to_s
           else
             args << (behavior == :invoke ? :green : :red)
             say_status(*args)
           end
         end
 
-        # Runs the supplied command using either "rake ..." or "rails ..."
+        # Runs the supplied command using either +rake+ or +rails+
         # based on the executor parameter provided.
         def execute_command(executor, command, options = {}) # :doc:
           log executor, command
@@ -490,12 +489,16 @@ module Rails
         end
         alias rebase_indentation optimize_indentation
 
-        # Indent the +Gemfile+ to the depth of @indentation
+        # Returns a string corresponding to the current indentation level
+        # (i.e. 2 * <code>@indentation</code> spaces). See also
+        # #with_indentation, which can be used to manage the indentation level.
         def indentation # :doc:
           "  " * @indentation
         end
 
-        # Manage +Gemfile+ indentation for a DSL action block
+        # Increases the current indentation indentation level for the duration
+        # of the given block, and decreases it after the block ends. Call
+        # #indentation to get an indentation string.
         def with_indentation(&block) # :doc:
           @indentation += 1
           instance_eval(&block)
@@ -516,9 +519,9 @@ module Rails
 
         def route_namespace_pattern(namespace)
           namespace.each_with_index.reverse_each.reduce(nil) do |pattern, (name, i)|
-            cummulative_margin = "\\#{i + 1}[ ]{2}"
-            blank_or_indented_line = "^[ ]*\n|^#{cummulative_margin}.*\n"
-            "(?:(?:#{blank_or_indented_line})*?^(#{cummulative_margin})namespace :#{name} do\n#{pattern})?"
+            cumulative_margin = "\\#{i + 1}[ ]{2}"
+            blank_or_indented_line = "^[ ]*\n|^#{cumulative_margin}.*\n"
+            "(?:(?:#{blank_or_indented_line})*?^(#{cumulative_margin})namespace :#{name} do\n#{pattern})?"
           end.then do |pattern|
             /^([ ]*).+\.routes\.draw do[ ]*\n#{pattern}/
           end

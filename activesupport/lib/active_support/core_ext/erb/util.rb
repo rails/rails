@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "strscan"
 require "erb"
 
 module ActiveSupport
@@ -12,7 +13,7 @@ module ActiveSupport
         if s.html_safe?
           s
         else
-          super(ActiveSupport::Multibyte::Unicode.tidy_bytes(s))
+          super(s)
         end
       end
       alias :unwrapped_html_escape :html_escape # :nodoc:
@@ -61,7 +62,7 @@ class ERB
     #   html_escape_once('&lt;&lt; Accept & Checkout')
     #   # => "&lt;&lt; Accept &amp; Checkout"
     def html_escape_once(s)
-      ActiveSupport::Multibyte::Unicode.tidy_bytes(s.to_s).gsub(HTML_ESCAPE_ONCE_REGEXP, HTML_ESCAPE).html_safe
+      s.to_s.gsub(HTML_ESCAPE_ONCE_REGEXP, HTML_ESCAPE).html_safe
     end
 
     module_function :html_escape_once
@@ -159,7 +160,6 @@ class ERB
     # Tokenizes a line of ERB.  This is really just for error reporting and
     # nobody should use it.
     def self.tokenize(source) # :nodoc:
-      require "strscan"
       source = StringScanner.new(source.chomp)
       tokens = []
 
@@ -169,12 +169,12 @@ class ERB
       while !source.eos?
         pos = source.pos
         source.scan_until(/(?:#{start_re}|#{finish_re})/)
-        raise NotImplementedError if source.matched.nil?
+        return [[:PLAIN, source.string]] unless source.matched?
         len = source.pos - source.matched.bytesize - pos
 
         case source.matched
         when start_re
-          tokens << [:TEXT, source.string[pos, len]] if len > 0
+          tokens << [:TEXT, source.string.byteslice(pos, len)] if len > 0
           tokens << [:OPEN, source.matched]
           if source.scan(/(.*?)(?=#{finish_re}|\z)/m)
             tokens << [:CODE, source.matched] unless source.matched.empty?
@@ -183,7 +183,7 @@ class ERB
             raise NotImplementedError
           end
         when finish_re
-          tokens << [:CODE, source.string[pos, len]] if len > 0
+          tokens << [:CODE, source.string.byteslice(pos, len)] if len > 0
           tokens << [:CLOSE, source.matched]
         else
           raise NotImplementedError, source.matched

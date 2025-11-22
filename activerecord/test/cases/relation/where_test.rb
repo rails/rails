@@ -149,6 +149,15 @@ module ActiveRecord
       end
     end
 
+    def test_where_with_nil_cpk_association
+      order = Cpk::Order.create!(id: [1, 2])
+      book = order.books.create!(id: [3, 4])
+      assert_includes Cpk::Book.where(order: order), book
+
+      book.update!(order: nil)
+      assert_includes Cpk::Book.where(order: nil), book
+    end
+
     def test_belongs_to_shallow_where
       author = Author.new
       author.id = 1

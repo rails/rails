@@ -55,13 +55,13 @@ module ActiveRecord
         add_column "test_models", "salary", :integer, default: 70000
 
         default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
-        assert_equal "70000", default_before
+        assert_equal 70000, default_before
 
         rename_column "test_models", "salary", "annual_salary"
 
         assert_includes TestModel.column_names, "annual_salary"
         default_after = connection.columns("test_models").find { |c| c.name == "annual_salary" }.default
-        assert_equal "70000", default_after
+        assert_equal 70000, default_after
       end
 
       if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
@@ -195,7 +195,7 @@ module ActiveRecord
 
         old_columns = connection.columns(TestModel.table_name)
         assert old_columns.find { |c|
-          default = connection.lookup_cast_type_from_column(c).deserialize(c.default)
+          default = c.fetch_cast_type(connection).deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == true
         }
 
@@ -203,11 +203,11 @@ module ActiveRecord
         new_columns = connection.columns(TestModel.table_name)
 
         assert_not new_columns.find { |c|
-          default = connection.lookup_cast_type_from_column(c).deserialize(c.default)
+          default = c.fetch_cast_type(connection).deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == true
         }
         assert new_columns.find { |c|
-          default = connection.lookup_cast_type_from_column(c).deserialize(c.default)
+          default = c.fetch_cast_type(connection).deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == false
         }
         change_column :test_models, :approved, :boolean, default: true
@@ -240,6 +240,15 @@ module ActiveRecord
         change_column "test_models", "administrator", :boolean, default: false
         TestModel.reset_column_information
         assert_not_predicate TestModel.new, :administrator?
+      end
+
+      def test_change_column_preserves_old_attributes
+        add_column "test_models", "user_id", :integer, default: 0, null: false
+        change_column "test_models", "user_id", :bigint
+
+        new_column = connection.columns("test_models").find { |c| c.name == "user_id" }
+        assert_equal 0, new_column.default
+        assert_equal false, new_column.null
       end
 
       def test_change_column_with_custom_index_name
@@ -346,6 +355,20 @@ module ActiveRecord
         assert_equal "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: #{{ from: true, to: false }}", e.message
       end
 
+      def test_change_column_null_does_not_change_default_functions
+        skip unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && supports_default_expression?
+
+        function = connection.mariadb? ? "current_timestamp(6)" : "(now())"
+
+        connection.change_column_default "test_models", "created_at", -> { function }
+        TestModel.reset_column_information
+        assert_equal function, TestModel.columns_hash["created_at"].default_function
+
+        connection.change_column_null "test_models", "created_at", true
+        TestModel.reset_column_information
+        assert_equal function, TestModel.columns_hash["created_at"].default_function
+      end
+
       def test_remove_column_no_second_parameter_raises_exception
         assert_raise(ArgumentError) { connection.remove_column("funny") }
       end
@@ -372,6 +395,19 @@ module ActiveRecord
         assert connection.index_exists?("my_table", :item_number, name: :index_my_table_on_item_number)
       ensure
         connection.drop_table(:my_table) rescue nil
+      end
+
+      if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
+        def test_column_with_disabled_index
+          connection.create_table "my_table", force: true do |t|
+            t.column "col_one", :bigint
+            t.column "col_two", :bigint, index: { enabled: false }
+          end
+
+          assert connection.index_exists?("my_table", :col_two, enabled: false)
+        ensure
+          connection.drop_table(:my_table) rescue nil
+        end
       end
 
       def test_add_column_without_column_name

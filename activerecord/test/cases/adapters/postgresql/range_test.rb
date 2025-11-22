@@ -196,14 +196,14 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
       time_string = Time.current.to_s
       time = Time.zone.parse(time_string)
 
-      record = PostgresqlRange.new(tstz_range: time_string...)
-      assert_equal time..., record.tstz_range
+      record = PostgresqlRange.new(tstz_range: time_string..)
+      assert_equal time.., record.tstz_range
       assert_equal ActiveSupport::TimeZone[tz], record.tstz_range.begin.time_zone
 
       record.save!
       record.reload
 
-      assert_equal time..., record.tstz_range
+      assert_equal time.., record.tstz_range
       assert_equal ActiveSupport::TimeZone[tz], record.tstz_range.begin.time_zone
     end
   end
@@ -302,9 +302,37 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_unbounded_tsrange
-    tz = ::ActiveRecord.default_timezone
-    assert_equal_round_trip @first_range, :ts_range, Time.public_send(tz, 2010, 1, 1, 14, 30, 0)...nil
-    assert_equal_round_trip @first_range, :ts_range, nil..Time.public_send(tz, 2010, 1, 1, 14, 30, 0)
+    time = Time.public_send(::ActiveRecord.default_timezone, 2010, 1, 1, 14, 30, 0)
+
+    assert_equal_round_trip @first_range, :ts_range, time..nil
+    assert_equal_round_trip @first_range, :ts_range, time...nil
+    assert_equal_round_trip @first_range, :ts_range, nil..time
+    assert_equal_round_trip @first_range, :ts_range, nil...time
+  end
+
+  def test_unbounded_tsrange_sql_values
+    time = Time.public_send(::ActiveRecord.default_timezone, 2010, 1, 1, 14, 30, 0)
+
+    @first_range.update(ts_range: time...nil)
+    @second_range.update(ts_range: time..nil)
+    @third_range.update(ts_range: nil...time)
+    @fourth_range.update(ts_range: nil..time)
+
+    result = @connection.execute(<<~SQL)
+      SELECT lower(ts_range) AS lower, upper(ts_range) AS upper
+      FROM postgresql_ranges
+      WHERE id IN (101, 102, 103, 104)
+      ORDER BY id
+    SQL
+
+    expected = [
+      { "lower" => time, "upper" => "infinity" },
+      { "lower" => time, "upper" => "infinity" },
+      { "lower" => "-infinity", "upper" => time },
+      { "lower" => "-infinity", "upper" => time }
+    ]
+
+    assert_equal expected, result.to_a
   end
 
   def test_timezone_awareness_tsrange

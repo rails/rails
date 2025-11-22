@@ -17,7 +17,10 @@ module ApplicationTests
     end
 
     test "show exceptions middleware filter backtrace before logging" do
-      controller :foo, <<-RUBY
+      routes <<~'RUBY'
+        get "/foo" => "foo#index"
+      RUBY
+      controller :foo, <<~'RUBY'
         class FooController < ActionController::Base
           def index
             raise 'oops'
@@ -35,7 +38,10 @@ module ApplicationTests
     end
 
     test "renders active record exceptions as 404" do
-      controller :foo, <<-RUBY
+      routes <<~'RUBY'
+        get "/foo" => "foo#index"
+      RUBY
+      controller :foo, <<~'RUBY'
         class FooController < ActionController::Base
           def index
             raise ActiveRecord::RecordNotFound
@@ -53,10 +59,7 @@ module ApplicationTests
     end
 
     test "renders unknown http methods as 405 when routes are used as the custom exceptions app" do
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-        end
-      RUBY
+      routes ""
 
       add_to_config "config.exceptions_app = self.routes"
 
@@ -67,7 +70,7 @@ module ApplicationTests
     end
 
     test "renders unknown http formats as 406 when routes are used as the custom exceptions app" do
-      controller :foo, <<-RUBY
+      controller :foo, <<~'RUBY'
         class FooController < ActionController::Base
           def index
             render plain: "rendering index!"
@@ -79,12 +82,10 @@ module ApplicationTests
         end
       RUBY
 
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          get "/foo", to: "foo#index"
-          post "/foo", to: "foo#index"
-          match "/406", to: "foo#not_acceptable", via: :all
-        end
+      routes <<~'RUBY'
+        get "/foo", to: "foo#index"
+        post "/foo", to: "foo#index"
+        match "/406", to: "foo#not_acceptable", via: :all
       RUBY
 
       add_to_config "config.exceptions_app = self.routes"
@@ -109,7 +110,7 @@ module ApplicationTests
     end
 
     test "uses custom exceptions app" do
-      add_to_config <<-RUBY
+      add_to_config <<~'RUBY'
         config.exceptions_app = lambda do |env|
           [404, { "Content-Type" => "text/plain" }, ["YOU FAILED"]]
         end
@@ -123,7 +124,10 @@ module ApplicationTests
     end
 
     test "URL generation error when action_dispatch.show_exceptions is set raises an exception" do
-      controller :foo, <<-RUBY
+      routes <<~'RUBY'
+        get "/foo" => "foo#index"
+      RUBY
+      controller :foo, <<~'RUBY'
         class FooController < ActionController::Base
           def index
             raise ActionController::UrlGenerationError
@@ -141,7 +145,7 @@ module ApplicationTests
       app.config.action_dispatch.show_exceptions = :none
 
       assert_raise(ActionController::RoutingError) do
-        get("/foo", {}, "HTTPS" => "on")
+        get("/does-not-exist", {}, "HTTPS" => "on")
       end
     end
 
@@ -150,7 +154,7 @@ module ApplicationTests
 
       assert_nothing_raised do
         get("/foo", {}, "HTTPS" => "on")
-        assert_match "The page you were looking for doesn’t exist.", last_response.body
+        assert_match "The page you were looking for doesn't exist.", last_response.body
       end
     end
 
@@ -165,10 +169,8 @@ module ApplicationTests
     end
 
     test "routing to a nonexistent controller when action_dispatch.show_exceptions and consider_all_requests_local are set shows diagnostics" do
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          resources :articles
-        end
+      routes <<~'RUBY'
+        resources :articles
       RUBY
 
       app.config.action_dispatch.show_exceptions = :all
@@ -179,7 +181,10 @@ module ApplicationTests
     end
 
     test "displays diagnostics message when exception raised in template that contains UTF-8" do
-      controller :foo, <<-RUBY
+      routes <<~'RUBY'
+        get "/foo" => "foo#index"
+      RUBY
+      controller :foo, <<~'RUBY'
         class FooController < ActionController::Base
           def index
           end
@@ -200,7 +205,11 @@ module ApplicationTests
     end
 
     test "displays diagnostics message when malformed query parameters are provided" do
-      controller :foo, <<-RUBY
+      routes <<~'RUBY'
+        get "/foo" => "foo#index"
+      RUBY
+
+      controller :foo, <<~'RUBY'
         class FooController < ActionController::Base
           def index
           end
@@ -216,7 +225,10 @@ module ApplicationTests
     end
 
     test "displays diagnostics message when too deep query parameters are provided" do
-      controller :foo, <<-RUBY
+      routes <<~'RUBY'
+        get "/foo" => "foo#index"
+      RUBY
+      controller :foo, <<~'RUBY'
         class FooController < ActionController::Base
           def index
           end
@@ -226,7 +238,7 @@ module ApplicationTests
       app.config.action_dispatch.show_exceptions = :all
       app.config.consider_all_requests_local = true
 
-      limit = Rack::Utils.param_depth_limit + 1
+      limit = ActionDispatch::ParamBuilder.default.param_depth_limit + 1
       malicious_url = "/foo?#{'[test]' * limit}=test"
 
       get(malicious_url, {}, "HTTPS" => "on")
@@ -235,7 +247,10 @@ module ApplicationTests
     end
 
     test "displays statement invalid template correctly" do
-      controller :foo, <<-RUBY
+      routes <<~'RUBY'
+        get "/foo" => "foo#index"
+      RUBY
+      controller :foo, <<~'RUBY'
         class FooController < ActionController::Base
           def index
             raise ActiveRecord::StatementInvalid
@@ -257,8 +272,11 @@ module ApplicationTests
       assert_match "ActiveRecord::StatementInvalid", last_response.body
     end
 
-    test "show_exceptions :rescubale with a rescuable error" do
-      controller :foo, <<-RUBY
+    test "show_exceptions :rescuable with a rescuable error" do
+      routes <<~'RUBY'
+        get "/foo" => "foo#index"
+      RUBY
+      controller :foo, <<~'RUBY'
         class FooController < ActionController::Base
           def index
             raise AbstractController::ActionNotFound
@@ -272,8 +290,11 @@ module ApplicationTests
       assert_equal 404, last_response.status
     end
 
-    test "show_exceptions :rescubale with a non-rescuable error" do
-      controller :foo, <<-RUBY
+    test "show_exceptions :rescuable with a non-rescuable error" do
+      routes <<~'RUBY'
+        get "/foo" => "foo#index"
+      RUBY
+      controller :foo, <<~'RUBY'
         class FooController < ActionController::Base
           def index
             raise 'oops'

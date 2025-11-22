@@ -102,9 +102,9 @@ module ActiveRecord
     end
 
     def test_select_with_hash_argument_without_aliases
-      post = Post.select(posts: [:title, :id]).take
-      assert_not_nil post.title
-      assert_not_nil post.id
+      post = Post.select(posts: [:title, "title as post_title"]).first
+      assert_equal "Welcome to the weblog", post.title
+      assert_equal "Welcome to the weblog", post.post_title
     end
 
     def test_select_with_hash_argument_with_few_tables

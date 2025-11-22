@@ -136,8 +136,15 @@ module ActionView
             from_year += 1 if from_time.month >= 3
             to_year = to_time.year
             to_year -= 1 if to_time.month < 3
-            leap_years = (from_year > to_year) ? 0 : (from_year..to_year).count { |x| Date.leap?(x) }
+
+            leap_years = if from_year > to_year
+              0
+            else
+              fyear = from_year - 1
+              (to_year / 4 - to_year / 100 + to_year / 400) - (fyear / 4 - fyear / 100 + fyear / 400)
+            end
             minute_offset_for_leap_year = leap_years * 1440
+
             # Discount the leap year days when calculating year distance.
             # e.g. if there are 20 leap year days between 2 dates having the same day
             # and month then based on 365 days calculation
@@ -178,6 +185,23 @@ module ActionView
       end
 
       alias_method :distance_of_time_in_words_to_now, :time_ago_in_words
+
+      # Like <tt>time_ago_in_words</tt>, but adds a prefix/suffix depending on whether the time is in the past or future.
+      # You can use the <tt>scope</tt> option to customize the translation scope. All other options
+      # are forwarded to <tt>time_ago_in_words</tt>.
+      #
+      #   relative_time_in_words(3.minutes.from_now) # => "in 3 minutes"
+      #   relative_time_in_words(3.minutes.ago) # => "3 minutes ago"
+      #   relative_time_in_words(10.seconds.ago, include_seconds: true) # => "less than 10 seconds ago"
+      #
+      # See also #time_ago_in_words
+      def relative_time_in_words(from_time, options = {})
+        now = Time.now
+        time = distance_of_time_in_words(from_time, now, options.except(:scope))
+        key = from_time > now ? :future : :past
+
+        I18n.t(key, time: time, scope: options.fetch(:scope, :'datetime.relative'), locale: options[:locale])
+      end
 
       # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based
       # attribute (identified by +method+) on an object assigned to the template (identified by +object+).

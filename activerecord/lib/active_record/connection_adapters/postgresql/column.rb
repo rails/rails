@@ -30,6 +30,10 @@ module ActiveRecord
           @generated.present?
         end
 
+        def virtual_stored?
+          @generated == "s"
+        end
+
         def has_default?
           super && !virtual?
         end

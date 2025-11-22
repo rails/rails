@@ -1,51 +1,42 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  class LogSubscriber < ActiveSupport::LogSubscriber
+  class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
+
+    self.namespace = "active_record"
 
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 
     def strict_loading_violation(event)
       debug do
-        owner = event.payload[:owner]
-        reflection = event.payload[:reflection]
-        color(reflection.strict_loading_violation_message(owner), RED)
+        owner = event[:payload][:owner]
+        klass = event[:payload][:class]
+        name = event[:payload][:name]
+        message = +"`#{owner}` is marked for strict_loading."
+        message << " The #{klass ? "#{klass} association" : "polymorphic association"}"
+        message << " named `:#{name}` cannot be lazily loaded."
+
+        color(message, RED)
       end
     end
-    subscribe_log_level :strict_loading_violation, :debug
+    event_log_level :strict_loading_violation, :debug
 
     def sql(event)
-      payload = event.payload
+      payload = event[:payload]
 
       return if IGNORE_PAYLOAD_NAMES.include?(payload[:name])
 
       name = if payload[:async]
-        "ASYNC #{payload[:name]} (#{payload[:lock_wait].round(1)}ms) (db time #{event.duration.round(1)}ms)"
+        "ASYNC #{payload[:name]} (#{payload[:lock_wait].round(1)}ms) (db time #{payload[:duration_ms].round(1)}ms)"
       else
-        "#{payload[:name]} (#{event.duration.round(1)}ms)"
+        "#{payload[:name]} (#{payload[:duration_ms].round(1)}ms)"
       end
       name  = "CACHE #{name}" if payload[:cached]
       sql   = payload[:sql]
-      binds = nil
+      binds = payload[:binds]
 
       if payload[:binds]&.any?
-        casted_params = type_casted_binds(payload[:type_casted_binds])
-
-        binds = []
-        payload[:binds].each_with_index do |attr, i|
-          attribute_name = if attr.respond_to?(:name)
-            attr.name
-          elsif attr.respond_to?(:[]) && attr[i].respond_to?(:name)
-            attr[i].name
-          else
-            nil
-          end
-
-          filtered_params = filter(attribute_name, casted_params[i])
-
-          binds << render_bind(attr, filtered_params)
-        end
         binds = binds.inspect
         binds.prepend("  ")
       end
@@ -55,7 +46,11 @@ module ActiveRecord
 
       debug "  #{name}  #{sql}#{binds}"
     end
-    subscribe_log_level :sql, :debug
+    event_log_level :sql, :debug
+
+    def self.default_logger
+      ActiveRecord::Base.logger
+    end
 
     private
       def type_casted_binds(casted_binds)
@@ -106,10 +101,6 @@ module ActiveRecord
         end
       end
 
-      def logger
-        ActiveRecord::Base.logger
-      end
-
       def debug(progname = nil, &block)
         return unless super
 
@@ -127,11 +118,7 @@ module ActiveRecord
       end
 
       def query_source_location
-        Thread.each_caller_location do |location|
-          frame = backtrace_cleaner.clean_frame(location)
-          return frame if frame
-        end
-        nil
+        backtrace_cleaner.first_clean_frame
       end
 
       def filter(name, value)
@@ -140,4 +127,6 @@ module ActiveRecord
   end
 end
 
-ActiveRecord::LogSubscriber.attach_to :active_record
+ActiveSupport.event_reporter.subscribe(
+  ActiveRecord::LogSubscriber.new, &ActiveRecord::LogSubscriber.subscription_filter
+)

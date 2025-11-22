@@ -65,6 +65,14 @@ Rails.application.configure do
   config.active_job.verbose_enqueue_logs = true
 
   <%- end -%>
+  # Highlight code that triggered redirect in logs.
+  config.action_dispatch.verbose_redirect_logs = true
+
+  <%- unless options[:skip_asset_pipeline] -%>
+  # Suppress logger output for asset requests.
+  config.assets.quiet = true
+
+  <%- end -%>
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
 

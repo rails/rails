@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Active Storage Overview
 =======================
@@ -23,7 +23,7 @@ What is Active Storage?
 -----------------------
 
 Active Storage facilitates uploading files to a cloud storage service like
-Amazon S3, Google Cloud Storage, or Microsoft Azure Storage and attaching those
+Amazon S3, or Google Cloud Storage and attaching those
 files to Active Record objects. It comes with a local disk-based service for
 development and testing and supports mirroring files to subordinate services for
 backups and migrations.
@@ -40,12 +40,6 @@ will not install, and must be installed separately:
 * [libvips](https://github.com/libvips/libvips) v8.6+ or [ImageMagick](https://imagemagick.org/index.php) for image analysis and transformations
 * [ffmpeg](http://ffmpeg.org/) v3.4+ for video previews and ffprobe for video/audio analysis
 * [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) for PDF previews
-
-Image analysis and transformations also require the `image_processing` gem. Uncomment it in your `Gemfile`, or add it if necessary:
-
-```ruby
-gem "image_processing", ">= 1.2"
-```
 
 TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance).
 
@@ -103,7 +97,7 @@ development environment, you would add the following to
 config.active_storage.service = :local
 ```
 
-To use the S3 service in production, you add the following to
+To use the S3 service in production, you would add the following to
 `config/environments/production.rb`:
 
 ```ruby
@@ -111,7 +105,7 @@ To use the S3 service in production, you add the following to
 config.active_storage.service = :amazon
 ```
 
-To use the test service when testing, you add the following to
+To use the test service when testing, you would add the following to
 `config/environments/test.rb`:
 
 ```ruby
@@ -135,11 +129,6 @@ google:
   service: GCS
   # ...
   bucket: your_own_bucket-<%= Rails.env %>
-
-azure:
-  service: AzureStorage
-  # ...
-  container: your_container_name-<%= Rails.env %>
 ```
 
 Continue reading for more information on the built-in service adapters (e.g.
@@ -214,25 +203,6 @@ digitalocean:
 ```
 
 There are many other options available. You can check them in [AWS S3 Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Client.html#initialize-instance_method) documentation.
-
-### Microsoft Azure Storage Service
-
-Declare an Azure Storage service in `config/storage.yml`:
-
-```yaml
-# Use bin/rails credentials:edit to set the Azure Storage secret (as azure_storage:storage_access_key)
-azure:
-  service: AzureStorage
-  storage_account_name: your_account_name
-  storage_access_key: <%= Rails.application.credentials.dig(:azure_storage, :storage_access_key) %>
-  container: your_container_name-<%= Rails.env %>
-```
-
-Add the [`azure-storage-blob`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
-
-```ruby
-gem "azure-storage-blob", "~> 2.0", require: false
-```
 
 ### Google Cloud Storage Service
 
@@ -369,7 +339,7 @@ public_gcs:
   public: true
 ```
 
-Make sure your buckets are properly configured for public access. See docs on how to enable public read permissions for [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access-bucket.html), [Google Cloud Storage](https://cloud.google.com/storage/docs/access-control/making-data-public#buckets), and [Microsoft Azure](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-manage-access-to-resources#set-container-public-access-level-in-the-azure-portal) storage services. Amazon S3 additionally requires that you have the `s3:PutObjectAcl` permission.
+Make sure your buckets are properly configured for public access. See docs on how to enable public read permissions for [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access-bucket.html) and [Google Cloud Storage](https://cloud.google.com/storage/docs/access-control/making-data-public#buckets) storage services. Amazon S3 additionally requires that you have the `s3:PutObjectAcl` permission.
 
 When converting an existing application to use `public: true`, make sure to update every individual file in the bucket to be publicly-readable before switching over.
 
@@ -568,7 +538,7 @@ model test. To do that, provide a Hash containing at least an open IO object
 and a filename:
 
 ```ruby
-@message.images.attach(io: File.open('/path/to/file'), filename: 'file.pdf')
+@message.images.attach(io: File.open("/path/to/file"), filename: "file.pdf")
 ```
 
 When possible, provide a content type as well. Active Storage attempts to
@@ -576,7 +546,7 @@ determine a file’s content type from its data. It falls back to the content
 type you provide if it can’t do that.
 
 ```ruby
-@message.images.attach(io: File.open('/path/to/file'), filename: 'file.pdf', content_type: 'application/pdf')
+@message.images.attach(io: File.open("/path/to/file"), filename: "file.pdf", content_type: "application/pdf")
 ```
 
 You can bypass the content type inference from the data by passing in
@@ -584,9 +554,9 @@ You can bypass the content type inference from the data by passing in
 
 ```ruby
 @message.images.attach(
-  io: File.open('/path/to/file'),
-  filename: 'file.pdf',
-  content_type: 'application/pdf',
+  io: File.open("/path/to/file"),
+  filename: "file.pdf",
+  content_type: "application/pdf",
   identify: false
 )
 ```
@@ -600,9 +570,9 @@ approach is helpful if you want to organize your S3 Bucket files better.
 
 ```ruby
 @message.images.attach(
-  io: File.open('/path/to/file'),
-  filename: 'file.pdf',
-  content_type: 'application/pdf',
+  io: File.open("/path/to/file"),
+  filename: "file.pdf",
+  content_type: "application/pdf",
   key: "#{Rails.env}/blog_content/intuitive_filename.pdf",
   identify: false
 )
@@ -621,9 +591,9 @@ end
 
 ```ruby
 @message.images.attach(
-  io: File.open('/path/to/file'),
-  filename: 'file.pdf',
-  content_type: 'application/pdf',
+  io: File.open("/path/to/file"),
+  filename: "file.pdf",
+  content_type: "application/pdf",
   key: s3_file_key,
   identify: false
 )
@@ -662,6 +632,31 @@ are stored before the form is submitted, they can be used to retain uploads when
 <%= form.file_field :avatar, direct_upload: true %>
 ```
 
+## Querying
+
+Active Storage attachments are Active Record associations behind the scenes, so you can use the usual [query methods](active_record_querying.html) to look up records for attachments that meet specific criteria.
+
+### `has_one_attached`
+
+[`has_one_attached`](https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached) creates a `has_one` association named `"<name>_attachment"` and a `has_one :through` association named `"<name>_blob"`.
+To select every user where the avatar is a PNG, run the following:
+
+```ruby
+User.joins(:avatar_blob).where(active_storage_blobs: { content_type: "image/png" })
+```
+
+### `has_many_attached`
+
+[`has_many_attached`](https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_many_attached) creates a `has_many` association called `"<name>_attachments"` and a `has_many :through` association called `"<name>_blobs"` (note the plural).
+To select all messages where images are videos rather than photos you can do the following:
+
+```ruby
+Message.joins(:images_blobs).where(active_storage_blobs: { content_type: "video/mp4" })
+```
+
+The query will filter on the [**`ActiveStorage::Blob`**](https://api.rubyonrails.org/classes/ActiveStorage/Blob.html), not the [attachment record](https://api.rubyonrails.org/classes/ActiveStorage/Attachment.html) because these are plain SQL joins. You can combine the blob predicates above with any other scope conditions, just as you would with any other Active Record query.
+
+
 Removing Files
 --------------
 
@@ -693,8 +688,8 @@ require a higher level of protection consider implementing
 
 ### Redirect Mode
 
-To generate a permanent URL for a blob, you can pass the blob to the
-[`url_for`][ActionView::RoutingUrlFor#url_for] view helper. This generates a
+To generate a permanent URL for a blob, you can pass the attachment or the blob to
+the [`url_for`][ActionView::RoutingUrlFor#url_for] view helper. This generates a
 URL with the blob's [`signed_id`][ActiveStorage::Blob#signed_id]
 that is routed to the blob's [`RedirectController`][`ActiveStorage::Blobs::RedirectController`]
 
@@ -762,7 +757,7 @@ direct :cdn_image do |model, options|
       :rails_service_blob_proxy,
       model.signed_id(expires_in: expires_in),
       model.filename,
-      options.merge(host: ENV['CDN_HOST'])
+      options.merge(host: ENV["CDN_HOST"])
     )
   else
     signed_blob_id = model.blob.signed_id(expires_in: expires_in)
@@ -774,7 +769,7 @@ direct :cdn_image do |model, options|
       signed_blob_id,
       variation_key,
       filename,
-      options.merge(host: ENV['CDN_HOST'])
+      options.merge(host: ENV["CDN_HOST"])
     )
   end
 end
@@ -854,7 +849,7 @@ a virus scanner or media transcoder) can operate on it. Use the attachment's
 
 ```ruby
 message.video.open do |file|
-  system '/path/to/virus/scanner', file.path
+  system "/path/to/virus/scanner", file.path
   # ...
 end
 ```
@@ -967,6 +962,12 @@ location.
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
+WARNING: It should be considered unsafe to provide arbitrary user supplied
+transformations or parameters to variant processors. This can potentially
+enable command injection vulnerabilities in your app. It is also recommended
+to implement a strict [ImageMagick security policy](https://imagemagick.org/script/security-policy.php)
+when MiniMagick is the variant processor of choice.
+
 If a variant is requested, Active Storage will automatically apply
 transformations depending on the image's format:
 
@@ -980,49 +981,11 @@ Active Storage can use either [Vips][] or MiniMagick as the variant processor.
 The default depends on your `config.load_defaults` target version, and the
 processor can be changed by setting [`config.active_storage.variant_processor`][].
 
-The parameters available are defined by the [`image_processing`][] gem and depend on the
-variant processor that you are using, but both support the following parameters:
-
-| Parameter      | Example | Description |
-| ------------------- | ---------------- | ----- |
-| `resize_to_limit` | `resize_to_limit: [100, 100]` | Downsizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will only resize the image if it's larger than the specified dimensions. |
-| `resize_to_fit` | `resize_to_fit: [100, 100]` | Resizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will downsize the image if it's larger than the specified dimensions or upsize if it's smaller. |
-| `resize_to_fill` | `resize_to_fill: [100, 100]` | Resizes the image to fill the specified dimensions while retaining the original aspect ratio. If necessary, will crop the image in the larger dimension. |
-| `resize_and_pad` | `resize_and_pad: [100, 100]` | Resizes the image to fit within the specified dimensions while retaining the original aspect ratio. If necessary, will pad the remaining area with transparent color if source image has alpha channel, black otherwise. |
-| `crop` | `crop: [20, 50, 300, 300]` | Extracts an area from an image. The first two arguments are the left and top edges of area to extract, while the last two arguments are the width and height of the area to extract. |
-| `rotate` | `rotate: 90` | Rotates the image by the specified angle. |
-
-[`image_processing`][] has all parameters available in it's own documentation
-for both the
-[Vips](https://github.com/janko/image_processing/blob/master/doc/vips.md) and
-[MiniMagick](https://github.com/janko/image_processing/blob/master/doc/minimagick.md)
-processors.
-
-Some parameters, including those listed above, accept additional processor
-specific options which can be passed as `key: value` pairs inside a hash:
-
-```erb
-<!-- Vips supports configuring `crop` for many of its transformations -->
-<%= image_tag user.avatar.variant(resize_to_fill: [100, 100, { crop: :centre }]) %>
-```
-
-If migrating an existing application between MiniMagick and Vips, processor
-specific options will need to be updated:
-
-```erb
-<!-- MiniMagick -->
-<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, sampling_factor: "4:2:0", strip: true, interlace: "JPEG", colorspace: "sRGB", quality: 80) %>
-
-<!-- Vips -->
-<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 }) %>
-```
-
 [`config.active_storage.variable_content_types`]: configuring.html#config-active-storage-variable-content-types
 [`config.active_storage.variant_processor`]: configuring.html#config-active-storage-variant-processor
 [`config.active_storage.web_image_content_types`]: configuring.html#config-active-storage-web-image-content-types
 [`variant`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-variant
 [Vips]: https://www.rubydoc.info/gems/ruby-vips/Vips/Image
-[`image_processing`]: https://github.com/janko/image_processing
 
 ### Previewing Files
 
@@ -1049,7 +1012,30 @@ directly from the client to the cloud.
 
 ### Usage
 
-1. Include `activestorage.js` in your application's JavaScript bundle.
+1. Include the Active Storage JavaScript in your application's JavaScript
+bundle or reference it directly.
+
+    Requiring it directly in the application HTML with autostart, instead of
+    bundling it through the asset pipeline:
+
+    ```erb
+    <%= javascript_include_tag "activestorage" %>
+    ```
+
+    Requiring via importmap-rails as an ESM in the application HTML, instead of
+    bundling it through the asset pipeline and using autostart:
+
+    ```ruby
+    # config/importmap.rb
+    pin "@rails/activestorage", to: "activestorage.esm.js"
+    ```
+
+    ```html
+    <script type="module-shim">
+      import * as ActiveStorage from "@rails/activestorage"
+      ActiveStorage.start()
+    </script>
+    ```
 
     Using the asset pipeline:
 
@@ -1064,7 +1050,9 @@ directly from the client to the cloud.
     ActiveStorage.start()
     ```
 
-2. Add `direct_upload: true` to your [file field](form_helpers.html#uploading-files):
+2. Add `direct_upload: true` option to your [`file_field`
+helper](form_helpers.html#uploading-files) to automatically annotate the
+input field with the direct upload URL via `data-direct-upload-url` attribute.
 
     ```erb
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>
@@ -1086,7 +1074,6 @@ To make direct uploads to a third-party service work, you’ll need to configure
 
 * [S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/enabling-cors-examples.html)
 * [Google Cloud Storage](https://cloud.google.com/storage/docs/configuring-cors)
-* [Azure Storage](https://docs.microsoft.com/en-us/rest/api/storageservices/cross-origin-resource-sharing--cors--support-for-the-azure-storage-services)
 
 Take care to allow:
 
@@ -1095,9 +1082,7 @@ Take care to allow:
 * The following headers:
   * `Content-Type`
   * `Content-MD5`
-  * `Content-Disposition` (except for Azure Storage)
-  * `x-ms-blob-content-disposition` (for Azure Storage only)
-  * `x-ms-blob-type` (for Azure Storage only)
+  * `Content-Disposition`
   * `Cache-Control` (for GCS, only if `cache_control` is set)
 
 No CORS configuration is required for the Disk service since it shares your app’s origin.
@@ -1134,19 +1119,6 @@ No CORS configuration is required for the Disk service since it shares your app�
     "maxAgeSeconds": 3600
   }
 ]
-```
-
-#### Example: Azure Storage CORS Configuration
-
-```xml
-<Cors>
-  <CorsRule>
-    <AllowedOrigins>https://www.example.com</AllowedOrigins>
-    <AllowedMethods>PUT</AllowedMethods>
-    <AllowedHeaders>Content-Type, Content-MD5, x-ms-blob-content-disposition, x-ms-blob-type</AllowedHeaders>
-    <MaxAgeInSeconds>3600</MaxAgeInSeconds>
-  </CorsRule>
-</Cors>
 ```
 
 ### Direct Upload JavaScript Events
@@ -1391,7 +1363,7 @@ class DirectUploadsController < ActiveStorage::DirectUploadsController
   before_action :authenticate!
 
   def authenticate!
-    @token = request.headers['Authorization']&.split&.last
+    @token = request.headers["Authorization"]&.split&.last
 
     head :unauthorized unless valid_token?(@token)
   end
@@ -1516,7 +1488,7 @@ test.
 Next, create fixture files for the Active Storage classes:
 
 ```yml
-# active_storage/attachments.yml
+# test/fixtures/active_storage/attachments.yml
 david_avatar:
   name: avatar
   record: david (User)
@@ -1524,7 +1496,7 @@ david_avatar:
 ```
 
 ```yml
-# active_storage/blobs.yml
+# test/fixtures/active_storage/blobs.yml
 david_avatar_blob: <%= ActiveStorage::FixtureSet.blob filename: "david.png", service_name: "test_fixtures" %>
 ```
 
@@ -1573,7 +1545,7 @@ Minitest.after_run do
 end
 ```
 
-[fixtures]: testing.html#the-low-down-on-fixtures
+[fixtures]: testing.html#fixtures
 [`ActiveStorage::FixtureSet`]: https://api.rubyonrails.org/classes/ActiveStorage/FixtureSet.html
 
 ### Configuring services

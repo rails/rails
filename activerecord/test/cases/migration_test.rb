@@ -61,12 +61,14 @@ class MigrationTest < ActiveRecord::TestCase
       Thing.lease_connection.drop_table(table) rescue nil
     end
     Thing.reset_column_information
+    clear_statement_cache(Thing)
 
     %w(reminders people_reminders prefix_reminders_suffix).each do |table|
       Reminder.lease_connection.drop_table(table) rescue nil
     end
     Reminder.reset_table_name
     Reminder.reset_column_information
+    clear_statement_cache(Reminder)
 
     %w(last_name key bio age height wealth birthday favorite_day
        moment_of_truth male administrator funny).each do |column|
@@ -76,6 +78,7 @@ class MigrationTest < ActiveRecord::TestCase
     Person.lease_connection.remove_column("people", "middle_name") rescue nil
     Person.lease_connection.add_column("people", "first_name", :string)
     Person.reset_column_information
+    clear_statement_cache(Person)
 
     ActiveRecord::Migration.verbose = @verbose_was
   end
@@ -191,7 +194,7 @@ class MigrationTest < ActiveRecord::TestCase
     error = assert_raises(ArgumentError) do
       connection.create_table(long_name)
     end
-    assert_equal "Table name '#{long_name}' is too long; the limit is #{name_limit} characters", error.message
+    assert_equal "Table name '#{long_name}' is too long \(#{long_name.length} characters\); the limit is #{name_limit} characters", error.message
 
     connection.create_table(short_name)
     assert connection.table_exists?(short_name)
@@ -451,11 +454,28 @@ class MigrationTest < ActiveRecord::TestCase
       def connection
         Class.new {
           def create_table; "hi mom!"; end
+          def migration_strategy; nil; end
         }.new
       end
     }.new
 
     assert_equal "hi mom!", migration.method_missing(:create_table)
+  end
+
+  def test_respond_to_for_migration_method
+    migration_class = Class.new(ActiveRecord::Migration::Current) {
+      def connection
+        Class.new {
+          def create_table; end
+          def migration_strategy; nil; end
+        }.new
+      end
+    }
+
+    migration_class.class_eval { undef_method :create_table }
+    # create_table is handled by method_missing, so respond_to? returns true.
+    assert migration_class.new.respond_to?(:create_table)
+    assert migration_class.respond_to?(:create_table)
   end
 
   def test_add_table_with_decimals
@@ -1131,6 +1151,12 @@ class MigrationTest < ActiveRecord::TestCase
       }
     end
 
+    def clear_statement_cache(model)
+      model.connection_handler.each_connection_pool do |pool|
+        pool.connections.each(&:clear_cache!)
+      end
+    end
+
     def with_another_process_holding_lock(lock_id)
       thread_lock = Concurrent::CountDownLatch.new
       test_terminated = Concurrent::CountDownLatch.new
@@ -1245,7 +1271,7 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
 
       assert_equal 8, columns.size
       [:name, :qualification, :experience].each { |s| assert_equal :string, column(s).type }
-      assert_equal "0", column(:age).default
+      assert_equal 0, column(:age).default
       assert_equal "This is a comment", column(:birthdate).comment
     end
 
@@ -1922,5 +1948,82 @@ class CopyMigrationsTest < ActiveRecord::TestCase
         paths.each { |path| File.delete(path) if File.exist?(path) }
         Dir.rmdir(migrations_dir) if Dir.exist?(migrations_dir)
       end
+  end
+
+  class MigrationStrategyTest < ActiveRecord::TestCase
+    class TestStrategy < ActiveRecord::Migration::DefaultStrategy
+      attr_reader :called
+
+      def initialize(migration)
+        super
+        @called = false
+      end
+
+      def create_table(*)
+        super
+        @called = true
+      end
+    end
+
+    class AlternateStrategy < TestStrategy; end
+
+    class TestMigration < ActiveRecord::Migration::Current
+      def change
+        create_table :test_strategy_table do |t|
+          t.string :name
+        end
+      end
+    end
+
+    def setup
+      @original_global_strategy = ActiveRecord.migration_strategy
+      @connection = ActiveRecord::Base.lease_connection
+      @original_connection_strategy = @connection.migration_strategy
+      @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
+    end
+
+    def teardown
+      ActiveRecord.migration_strategy = @original_global_strategy
+      ActiveRecord::Migration.verbose = @verbose_was
+      @connection.class.migration_strategy = @original_connection_strategy
+      @connection.drop_table(:test_strategy_table) rescue nil
+    end
+
+    test "migration uses global migration strategy when set" do
+      ActiveRecord.migration_strategy = TestStrategy
+      migration = TestMigration.new("TestMigration", 1)
+      strategy = migration.execution_strategy
+
+      assert_instance_of TestStrategy, strategy
+
+      migration.migrate(:up)
+
+      assert strategy.called
+    end
+
+    test "migration uses adapter-specific strategy when set" do
+      @connection.class.migration_strategy = TestStrategy
+      migration = TestMigration.new("TestMigration", 1)
+      strategy = migration.execution_strategy
+
+      assert_instance_of TestStrategy, strategy
+
+      migration.migrate(:up)
+
+      assert strategy.called
+    end
+
+    test "migration uses adapter-specific stategy over global strategy" do
+      ActiveRecord.migration_strategy = TestStrategy
+      @connection.class.migration_strategy = AlternateStrategy
+      migration = TestMigration.new("TestMigration", 1)
+      strategy = migration.execution_strategy
+
+      assert_instance_of AlternateStrategy, strategy
+
+      migration.migrate(:up)
+
+      assert strategy.called
+    end
   end
 end

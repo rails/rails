@@ -36,6 +36,10 @@ module ActiveRecord
         def build_explain_clause(options = [])
           return "EXPLAIN" if options.empty?
 
+          options = options.flat_map do |option|
+            option.is_a?(Hash) ? option.to_a.map { |nested| nested.join("=") } : option
+          end
+
           explain_clause = "EXPLAIN #{options.join(" ").upcase}"
 
           if analyze_without_explain? && explain_clause.include?("ANALYZE")
@@ -45,14 +49,14 @@ module ActiveRecord
           end
         end
 
+        def default_insert_value(column) # :nodoc:
+          super unless column.auto_increment?
+        end
+
         private
           # https://mariadb.com/kb/en/analyze-statement/
           def analyze_without_explain?
             mariadb? && database_version >= "10.1.0"
-          end
-
-          def default_insert_value(column)
-            super unless column.auto_increment?
           end
 
           def returning_column_values(result)

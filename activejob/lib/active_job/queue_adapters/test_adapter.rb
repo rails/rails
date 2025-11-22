@@ -12,16 +12,8 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :test
     class TestAdapter < AbstractAdapter
-      attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter, :reject, :queue, :at, :enqueue_after_transaction_commit)
+      attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter, :reject, :queue, :at, :stopping)
       attr_writer(:enqueued_jobs, :performed_jobs)
-
-      def initialize(enqueue_after_transaction_commit: true)
-        @enqueue_after_transaction_commit = enqueue_after_transaction_commit
-      end
-
-      def enqueue_after_transaction_commit? # :nodoc:
-        @enqueue_after_transaction_commit
-      end
 
       # Provides a store of all the enqueued jobs with the TestAdapter so you can check them.
       def enqueued_jobs
@@ -41,6 +33,10 @@ module ActiveJob
       def enqueue_at(job, timestamp) # :nodoc:
         job_data = job_to_hash(job, at: timestamp)
         perform_or_enqueue(perform_enqueued_at_jobs && !filtered?(job), job, job_data)
+      end
+
+      def stopping?
+        @stopping.is_a?(Proc) ? @stopping.call : @stopping
       end
 
       private

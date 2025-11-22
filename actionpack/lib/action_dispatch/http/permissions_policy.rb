@@ -186,4 +186,8 @@ module ActionDispatch # :nodoc:
         end
       end
   end
+
+  ActiveSupport.on_load(:action_dispatch_request) do
+    include ActionDispatch::PermissionsPolicy::Request
+  end
 end

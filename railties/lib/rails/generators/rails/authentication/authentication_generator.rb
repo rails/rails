@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
+require "rails/generators/bundle_helper"
+
 module Rails
   module Generators
     class AuthenticationGenerator < Base # :nodoc:
+      include BundleHelper
+
       class_option :api, type: :boolean,
         desc: "Generate API-only controllers and models, with no view templates"
 
@@ -19,12 +23,14 @@ module Rails
         template "app/controllers/concerns/authentication.rb"
         template "app/controllers/passwords_controller.rb"
 
-        template "app/mailers/passwords_mailer.rb"
+        template "app/channels/application_cable/connection.rb" if defined?(ActionCable::Engine)
 
-        template "app/views/passwords_mailer/reset.html.erb"
-        template "app/views/passwords_mailer/reset.text.erb"
+        if defined?(ActionMailer::Railtie)
+          template "app/mailers/passwords_mailer.rb"
 
-        template "test/mailers/previews/passwords_mailer_preview.rb"
+          template "app/views/passwords_mailer/reset.html.erb"
+          template "app/views/passwords_mailer/reset.text.erb"
+        end
       end
 
       def configure_application_controller
@@ -37,17 +43,17 @@ module Rails
       end
 
       def enable_bcrypt
-        if File.read("Gemfile").include?('gem "bcrypt"')
+        if File.read(File.expand_path("Gemfile", destination_root)).include?('gem "bcrypt"')
           uncomment_lines "Gemfile", /gem "bcrypt"/
-          Bundler.with_original_env { execute_command :bundle, "install --quiet" }
+          bundle_command("install --quiet")
         else
-          Bundler.with_original_env { execute_command :bundle, "add bcrypt", capture: true }
+          bundle_command("add bcrypt", {}, quiet: true)
         end
       end
 
       def add_migrations
-        generate "migration CreateUsers email_address:string!:uniq password_digest:string! --force"
-        generate "migration CreateSessions user:references ip_address:string user_agent:string --force"
+        generate "migration", "CreateUsers", "email_address:string!:uniq password_digest:string!", "--force"
+        generate "migration", "CreateSessions", "user:references ip_address:string user_agent:string", "--force"
       end
 
       hook_for :test_framework

@@ -13,13 +13,20 @@ Rake::TestTask.new { |t|
   t.pattern = "test/**/*_test.rb"
   t.warning = true
   t.verbose = true
+  t.options = "--profile" if ENV["CI"]
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
 }
 
 namespace :test do
-  task :isolated do
+  task isolated: :railties do
     Dir.glob("test/**/*_test.rb").all? do |file|
       sh(Gem.ruby, "-w", "-Ilib:test", file)
+    end || raise("Failures")
+  end
+
+  task :railties do
+    ["action_mailer/railtie"].all? do |railtie|
+      sh(Gem.ruby, "-r", railtie, "-e", "'OK'")
     end || raise("Failures")
   end
 end

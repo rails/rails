@@ -29,7 +29,7 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
   end
 
   class EnqueueAfterCommitJob < ActiveJob::Base
-    self.enqueue_after_transaction_commit = :always
+    self.enqueue_after_transaction_commit = true
 
     def perform
       # noop
@@ -38,10 +38,6 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
 
   class ErrorEnqueueAfterCommitJob < EnqueueErrorJob
     class EnqueueErrorAdapter
-      def enqueue_after_transaction_commit?
-        true
-      end
-
       def enqueue(...)
         raise ActiveJob::EnqueueError, "There was an error enqueuing the job"
       end
@@ -52,7 +48,22 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
     end
 
     self.queue_adapter = EnqueueErrorAdapter.new
-    self.enqueue_after_transaction_commit = :always
+    self.enqueue_after_transaction_commit = true
+
+    def perform
+      # noop
+    end
+  end
+
+  class EnqueueAfterCommitCallbackJob < ActiveJob::Base
+    self.enqueue_after_transaction_commit = true
+
+    attr_reader :around_enqueue_called
+
+    around_enqueue do |job, block|
+      job.instance_variable_set(:@around_enqueue_called, true)
+      block.call
+    end
 
     def perform
       # noop
@@ -100,6 +111,16 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
 
       fake_active_record.run_after_commit_callbacks
       assert_not_predicate job, :successfully_enqueued?
+    end
+  end
+
+  test "#perform_later defers enqueue callbacks until after commit" do
+    fake_active_record = FakeActiveRecord.new(false)
+    stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+      job = EnqueueAfterCommitCallbackJob.perform_later
+      assert_not_predicate job, :around_enqueue_called
+      fake_active_record.run_after_commit_callbacks
+      assert_predicate job, :around_enqueue_called
     end
   end
 end

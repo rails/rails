@@ -180,7 +180,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     def failed_test
       ft = Minitest::Result.from(ExampleTest.new(:woot))
       ft.failures << begin
-                       raise Minitest::Assertion, "boo"
+                       flunk("boo")
                      rescue Minitest::Assertion => e
                        e
                      end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
+require "rack/test"
 
 module Rails
   class Engine
@@ -49,6 +50,26 @@ module Rails
         assert_not_operator(:root_path, :in?, app_url_helpers.methods)
         response = get("/")
         assert_equal(200, response.first)
+      end
+
+      test "app lazily loads routes when polymorphic_url is called" do
+        app_file "test/integration/my_test.rb", <<~RUBY
+          require "test_helper"
+
+          class MyTest < ActionDispatch::IntegrationTest
+            test "polymorphic_url works" do
+              puts polymorphic_url(Comment.new)
+            end
+          end
+        RUBY
+
+        app_file "app/models/comment.rb", <<~RUBY
+          class Comment
+          end
+        RUBY
+
+        output = rails("test", "test/integration/my_test.rb")
+        assert_match("https://example.org", output)
       end
 
       test "engine lazily loads routes when making a request" do
@@ -109,6 +130,18 @@ module Rails
         )
       end
 
+      test "reloads routes when recognize_path_with_request is called" do
+        require "#{app_path}/config/environment"
+
+        path = "/users"
+        req = ActionDispatch::Request.new(::Rack::MockRequest.env_for(path))
+
+        assert_equal(
+          { controller: "rails/engine/lazy_route_set_test/users", action: "index" },
+          Rails.application.routes.recognize_path_with_request(req, path, {})
+        )
+      end
+
       private
         def build_app
           super
@@ -124,6 +157,7 @@ module Rails
 
               resources :products
               resources :users, module: "rails/engine/lazy_route_set_test"
+              resolve("Comment") { "https://example.org" }
 
               mount Plugin::Engine, at: "/plugin"
             end

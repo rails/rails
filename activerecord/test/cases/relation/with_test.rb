@@ -28,12 +28,19 @@ module ActiveRecord
       def test_with_when_hash_with_multiple_elements_of_different_type_is_passed_as_an_argument
         cte_options = {
           posts_with_tags: Post.arel_table.project(Arel.star).where(Post.arel_table[:tags_count].gt(0)),
-          posts_with_tags_and_comments: Arel.sql("SELECT * FROM posts_with_tags WHERE legacy_comments_count > 0"),
+          posts_with_tags_and_truthy: Arel.sql("SELECT * FROM posts_with_tags WHERE 1=1"),
+          posts_with_tags_and_comments: Arel.sql("SELECT * FROM posts_with_tags_and_truthy WHERE legacy_comments_count > ?", 0),
           "posts_with_tags_and_multiple_comments" => Post.where("legacy_comments_count > 1").from("posts_with_tags_and_comments AS posts")
         }
         relation = Post.with(cte_options).from("posts_with_tags_and_multiple_comments AS posts")
 
         assert_equal POSTS_WITH_TAGS_AND_MULTIPLE_COMMENTS, relation.order(:id).pluck(:id)
+      end
+
+      def test_with_when_invalid_argument_is_passed
+        assert_raises ArgumentError, match: /\AUnsupported argument type: #<Post:0x[0-9a-f]+> Post\z/ do
+          Post.with(Post.where(type: "Post"))
+        end
       end
 
       def test_multiple_with_calls
@@ -43,6 +50,16 @@ module ActiveRecord
           .with(posts_with_tags_and_comments: Arel.sql("SELECT * FROM posts_with_tags WHERE legacy_comments_count > 0"))
 
         assert_equal POSTS_WITH_TAGS_AND_COMMENTS, relation.order(:id).pluck(:id)
+      end
+
+      def test_multiple_duplicate_with_calls
+        posts_with_tags = Post.where("tags_count > 0")
+        relation = Post
+          .with(posts_with_tags: posts_with_tags, one_more_posts_with_tags: posts_with_tags)
+          .with(posts_with_tags: posts_with_tags)
+          .from("posts_with_tags AS posts")
+
+        assert_equal POSTS_WITH_TAGS, relation.order(:id).pluck(:id)
       end
 
       def test_count_after_with_call

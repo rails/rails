@@ -37,7 +37,7 @@ module ActiveRecord
 
     # Define how a class is converted to Arel nodes when passed to +where+.
     # The handler can be any object that responds to +call+, and will be used
-    # for any value that +===+ the class given. For example:
+    # for any value that <tt>===</tt> the class given. For example:
     #
     #     MyCustomDateRange = Struct.new(:start, :end)
     #     handler = proc do |column, range|
@@ -72,9 +72,17 @@ module ActiveRecord
       table.associated_table(table_name, &block).arel_table[column_name]
     end
 
+    def with(table)
+      other = dup
+      other.table = table
+      other
+    end
+
     protected
+      attr_writer :table
+
       def expand_from_hash(attributes, &block)
-        return ["1=0"] if attributes.empty?
+        return [Arel.sql("1=0", retryable: true)] if attributes.empty?
 
         attributes.flat_map do |key, value|
           if key.is_a?(Array) && key.size == 1
@@ -91,24 +99,26 @@ module ActiveRecord
           elsif value.is_a?(Hash) && !table.has_column?(key)
             table.associated_table(key, &block)
               .predicate_builder.expand_from_hash(value.stringify_keys)
-          elsif table.associated_with?(key)
+          elsif (associated_reflection = table.associated_with(key))
             # Find the foreign key when using queries such as:
             # Post.where(author: author)
             #
             # For polymorphic relationships, find the foreign key and type:
             # PriceEstimate.where(estimate_of: treasure)
-            associated_table = table.associated_table(key)
-            if associated_table.polymorphic_association?
+
+            if associated_reflection.polymorphic?
               value = [value] unless value.is_a?(Array)
               klass = PolymorphicArrayValue
-            elsif associated_table.through_association?
+            elsif associated_reflection.through_reflection?
+              associated_table = table.associated_table(key)
+
               next associated_table.predicate_builder.expand_from_hash(
                 associated_table.primary_key => value
               )
             end
 
             klass ||= AssociationQueryValue
-            queries = klass.new(associated_table, value).queries.map! do |query|
+            queries = klass.new(associated_reflection, value).queries.map! do |query|
               # If the query produced is identical to attributes don't go any deeper.
               # Prevents stack level too deep errors when association and foreign_key are identical.
               query == attributes ? self[key, value] : expand_from_hash(query)

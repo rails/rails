@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
 require "fileutils"
 require "nokogiri"
 require "securerandom"
@@ -187,13 +186,14 @@ module RailsGuides
 
         view = ActionView::Base.with_empty_template_cache.with_view_paths(
           [@source_dir],
-          edge:         @edge,
-          version:      @version,
-          epub:         "epub/#{epub_filename}",
-          language:     @language,
-          direction:    @direction,
-          uuid:         SecureRandom.uuid,
-          digest_paths: @digest_paths
+          edge:          @edge,
+          version:       @version,
+          path:          output_file,
+          epub:          "epub/#{epub_filename}",
+          language:      @language,
+          direction:     @direction,
+          uuid:          SecureRandom.uuid,
+          digest_paths:  @digest_paths
         )
         view.extend(Helpers)
 
@@ -250,7 +250,8 @@ module RailsGuides
         broken_links = []
 
         html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
-          next if fragment_identifier == "mainCol" # in layout, jumps to some DIV
+          next if fragment_identifier == "column-main" # in layout
+          next if fragment_identifier == "main-skip-link" # in layout
           unless anchors.member?(CGI.unescape(fragment_identifier))
             guess = DidYouMean::SpellChecker.new(dictionary: anchors).correct(fragment_identifier).first
             puts "*** BROKEN LINK: ##{fragment_identifier}, perhaps you meant ##{guess}."

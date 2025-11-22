@@ -1,13 +1,6 @@
-## Rails 8.0.0.beta1 (September 26, 2024) ##
+*   Fix using custom serializers with `ActiveJob::Arguments.serialize` when
+    `ActiveJob::Base` hasn't been loaded.
 
-*   Deprecate `sucker_punch` as an adapter option.
+    *Hartley McGuire*
 
-    If you're using this adapter, change to `adapter: async` for the same functionality.
-
-    *Dino Maric, zzak*
-
-*   Use `RAILS_MAX_THREADS` in `ActiveJob::AsyncAdapter`. If it is not set, use 5 as default.
-
-    *heka1024*
-
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activejob/CHANGELOG.md) for previous changes.
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activejob/CHANGELOG.md) for previous changes.

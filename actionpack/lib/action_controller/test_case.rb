@@ -29,6 +29,14 @@ module ActionController
       yield
     end
 
+    # Because of the above, we need to prevent the clearing of thread locals, since
+    # no new thread is actually spawned in the test environment.
+    alias_method :original_clean_up_thread_locals, :clean_up_thread_locals
+
+    silence_redefinition_of_method :clean_up_thread_locals
+    def clean_up_thread_locals(*args) # :nodoc:
+    end
+
     # Avoid a deadlock from the queue filling up
     Buffer.queue_size = nil
   end
@@ -108,7 +116,7 @@ module ActionController
             set_header k, "application/x-www-form-urlencoded"
           end
 
-          case content_mime_type.to_sym
+          case content_mime_type&.to_sym
           when nil
             raise "Unknown Content-Type: #{content_type}"
           when :json
@@ -123,7 +131,7 @@ module ActionController
           end
         end
 
-        data_stream = StringIO.new(data)
+        data_stream = StringIO.new(data.b)
         set_header "CONTENT_LENGTH", data_stream.length.to_s
         set_header "rack.input", data_stream
       end

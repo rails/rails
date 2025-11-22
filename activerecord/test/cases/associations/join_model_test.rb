@@ -772,6 +772,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", includes_and_eager_load_error.message)
   end
 
+  def test_eager_association_with_scope_with_string_joins
+    assert_nothing_raised do
+      Post.joins(:very_special_comment_with_string_joins).first
+    end
+  end
+
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)

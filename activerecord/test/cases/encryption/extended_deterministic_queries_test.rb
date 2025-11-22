@@ -2,6 +2,7 @@
 
 require "cases/encryption/helper"
 require "models/book_encrypted"
+require "active_support/core_ext/object/with"
 
 class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord::EncryptionTestCase
   setup do
@@ -77,5 +78,21 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord:
     EncryptedBook.create! name: "Dune"
     assert EncryptedBookWithUnencryptedDataOptedIn.find_by(name: "Dune") # core
     assert EncryptedBookWithUnencryptedDataOptedIn.where("id > 0").find_by(name: "Dune") # relation
+  end
+
+  test "if support_unencrypted_data config is disabled, but support_unencrypted_data is opted in at an attribute level, can find unencrypted data" do
+    ActiveRecord::Encryption.config.with(support_unencrypted_data: false) do
+      UnencryptedBook.create! name: "Dune"
+      assert EncryptedBookWithUnencryptedDataOptedIn.find_by(name: "Dune") # core
+      assert EncryptedBookWithUnencryptedDataOptedIn.where("id > 0").find_by(name: "Dune") # relation
+    end
+  end
+
+  test "if support_unencrypted_data config is disabled, but support_unencrypted_data is opted in at an attribute level, can find encrypted data" do
+    ActiveRecord::Encryption.config.with(support_unencrypted_data: false) do
+      EncryptedBook.create! name: "Dune"
+      assert EncryptedBookWithUnencryptedDataOptedIn.find_by(name: "Dune") # core
+      assert EncryptedBookWithUnencryptedDataOptedIn.where("id > 0").find_by(name: "Dune") # relation
+    end
   end
 end

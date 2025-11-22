@@ -5,6 +5,21 @@ require "rouge"
 # Add more common shell commands
 Rouge::Lexers::Shell::BUILTINS << "|bin/rails|brew|bundle|gem|git|node|rails|rake|ruby|sqlite3|yarn"
 
+# Register an IRB lexer for Rails 7.2+ console prompts like "store(dev)>"
+class Rouge::Lexers::GuidesIRBLexer < Rouge::Lexers::IRBLexer
+  tag "irb"
+
+  def prompt_regex
+    %r(
+      ^.*?
+      (
+        (irb|pry|\w+\(\w+\)).*?[>"*] |
+        [>"*]>
+      )
+    )x
+  end
+end
+
 module RailsGuides
   class Markdown
     class Renderer < Redcarpet::Render::HTML  # :nodoc:
@@ -15,8 +30,9 @@ module RailsGuides
       cattr_accessor :edge, :version
 
       def block_code(code, language)
-        formatter = Rouge::Formatters::HTML.new
-        lexer = ::Rouge::Lexer.find_fancy(lexer_language(language))
+        language, lines = split_language_highlights(language)
+        formatter = Rouge::Formatters::HTMLLineHighlighter.new(Rouge::Formatters::HTML.new, highlight_lines: lines)
+        lexer = ::Rouge::Lexer.find_fancy(lexer_language_with_options(language))
         formatted_code = formatter.format(lexer.lex(code))
         <<~HTML
           <div class="interstitial code">
@@ -81,6 +97,16 @@ module RailsGuides
           end
         end
 
+        def lexer_language_with_options(code_type)
+          language = lexer_language(code_type)
+          case language
+          when "console"
+            "#{language}?comments=true"
+          else
+            language
+          end
+        end
+
         def clipboard_content(code, language)
           # Remove prompt and results of commands.
           prompt_regexp =
@@ -88,7 +114,7 @@ module RailsGuides
             when "bash"
               /^\$ /
             when "irb"
-              /^irb.*?> /
+              /^(irb.*?|\w+\(\w+\))> /
             end
 
           if prompt_regexp
@@ -159,6 +185,21 @@ module RailsGuides
           else
             url.sub(/(?<=\.org)/, "/#{version}")
           end
+        end
+
+        # Parses "ruby#3,5-6,10" into ["ruby", [3,5,6,10]] for highlighting line numbers in code blocks
+        def split_language_highlights(language)
+          return [nil, []] unless language
+
+          language, lines = language.split("#", 2)
+          lines = lines.to_s.split(",").flat_map { parse_range(_1) }
+
+          [language, lines]
+        end
+
+        def parse_range(range)
+          first, last = range.split("-", 2).map(&:to_i)
+          Range.new(first, last || first).to_a
         end
     end
   end

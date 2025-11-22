@@ -95,6 +95,8 @@ module ActionController
   # *   `permit` to filter params for mass assignment.
   # *   `require` to require a parameter or raise an error.
   #
+  # Examples:
+  #
   #     params = ActionController::Parameters.new({
   #       person: {
   #         name: "Francesco",
@@ -109,7 +111,7 @@ module ActionController
   #     Person.first.update!(permitted)
   #     # => #<Person id: 1, name: "Francesco", age: 22, role: "user">
   #
-  # Paramaters provides two options that control the top-level behavior of new
+  # Parameters provides two options that control the top-level behavior of new
   # instances:
   #
   # *   `permit_all_parameters` - If it's `true`, all the parameters will be
@@ -261,20 +263,6 @@ module ActionController
     cattr_accessor :always_permitted_parameters, default: %w( controller action )
 
     class << self
-      def allow_deprecated_parameters_hash_equality
-        ActionController.deprecator.warn <<-WARNING.squish
-          `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality` is
-          deprecated and will be removed in Rails 8.0.
-        WARNING
-      end
-
-      def allow_deprecated_parameters_hash_equality=(value)
-        ActionController.deprecator.warn <<-WARNING.squish
-          `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`
-          is deprecated and will be removed in Rails 8.0.
-        WARNING
-      end
-
       def nested_attribute?(key, value) # :nodoc:
         /\A-?\d+\z/.match?(key) && (value.is_a?(Hash) || value.is_a?(Parameters))
       end
@@ -326,6 +314,10 @@ module ActionController
 
     def hash
       [self.class, @parameters, @permitted].hash
+    end
+
+    def deconstruct_keys(keys)
+      slice(*keys).each.with_object({}) { |(key, value), hash| hash.merge!(key.to_sym => value) }
     end
 
     # Returns a safe ActiveSupport::HashWithIndifferentAccess representation of the
@@ -525,7 +517,7 @@ module ActionController
     # It is recommended to use `expect` instead:
     #
     #     def person_params
-    #       # params.expect(person: :name).require(:name)
+    #       params.expect(person: :name).require(:name)
     #     end
     #
     def require(key)
@@ -633,7 +625,7 @@ module ActionController
     #     })
     #
     #     params.permit(person: :contact).require(:person)
-    #     # => #<ActionController::Parameters {} permitted: true>
+    #     # => ActionController::ParameterMissing: param is missing or the value is empty or invalid: person
     #
     #     params.permit(person: { contact: :phone }).require(:person)
     #     # => #<ActionController::Parameters {"contact"=>#<ActionController::Parameters {"phone"=>"555-1234"} permitted: true>} permitted: true>
@@ -738,19 +730,19 @@ module ActionController
     # similar to the `.require.permit` pattern. If multiple root keys are
     # expected, they will all be required.
     #
-    #    params = ActionController::Parameters.new(name: "Martin", pies: [{ type: "dessert", flavor: "pumpkin"}])
-    #    name, pies = params.expect(:name, pies: [[:type, :flavor]])
-    #    name # => "Martin"
-    #    pies # => [#<ActionController::Parameters {"type"=>"dessert", "flavor"=>"pumpkin"} permitted: true>]
+    #     params = ActionController::Parameters.new(name: "Martin", pies: [{ type: "dessert", flavor: "pumpkin"}])
+    #     name, pies = params.expect(:name, pies: [[:type, :flavor]])
+    #     name # => "Martin"
+    #     pies # => [#<ActionController::Parameters {"type"=>"dessert", "flavor"=>"pumpkin"} permitted: true>]
     #
     # When called with a hash with multiple keys, `expect` will permit the
     # parameters and require the keys in the order they are given in the hash,
     # returning an array of the permitted parameters.
     #
-    #    params = ActionController::Parameters.new(subject: { name: "Martin" }, object: { pie: "pumpkin" })
-    #    subject, object = params.expect(subject: [:name], object: [:pie])
-    #    subject # => #<ActionController::Parameters {"name"=>"Martin"} permitted: true>
-    #    object  # => #<ActionController::Parameters {"pie"=>"pumpkin"} permitted: true>
+    #     params = ActionController::Parameters.new(subject: { name: "Martin" }, object: { pie: "pumpkin" })
+    #     subject, object = params.expect(subject: [:name], object: [:pie])
+    #     subject # => #<ActionController::Parameters {"name"=>"Martin"} permitted: true>
+    #     object  # => #<ActionController::Parameters {"pie"=>"pumpkin"} permitted: true>
     #
     # Besides being more strict about array vs hash params, `expect` uses permit
     # internally, so it will behave similarly.
@@ -777,7 +769,7 @@ module ActionController
     #
     #     params = ActionController::Parameters.new(tags: ["rails", "parameters"])
     #     permitted = params.expect(tags: [])
-    #     permitted.permitted?      # => true
+    #     permitted                 # => ["rails", "parameters"]
     #     permitted.is_a?(Array)    # => true
     #     permitted.size            # => 2
     #
@@ -1299,9 +1291,6 @@ module ActionController
         keys - params.keys - always_permitted_parameters
       end
 
-      #
-      # --- Filtering ----------------------------------------------------------
-      #
       # This is a list of permitted scalar types that includes the ones supported in
       # XML and JSON requests.
       #

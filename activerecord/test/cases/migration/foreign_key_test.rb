@@ -235,13 +235,45 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
         end
 
         def test_add_foreign_key_with_if_not_exists_to_already_referenced_table
-          @connection.add_foreign_key :astronauts, :rockets
-          @connection.add_foreign_key :astronauts, :rockets, column: "favorite_rocket_id", if_not_exists: true
+          @connection.add_foreign_key :astronauts, :rockets, column: "favorite_rocket_id"
+          @connection.add_foreign_key :astronauts, :rockets, if_not_exists: true
 
           foreign_keys = @connection.foreign_keys("astronauts")
           assert_equal 2, foreign_keys.size
           assert foreign_keys.all? { |fk| fk.to_table == "rockets" }
           assert_equal ["favorite_rocket_id", "rocket_id"], foreign_keys.map(&:column).sort
+        end
+
+        def test_add_foreign_key_with_if_not_exists_considers_primary_key_option
+          @connection.add_column :rockets, :id_for_type_change, :bigint
+
+          # Is needed to be able to reference by foreign key
+          @connection.add_index :rockets, :id_for_type_change, unique: true
+
+          @connection.add_foreign_key :astronauts, :rockets
+          @connection.add_foreign_key(:astronauts, :rockets, primary_key: :id_for_type_change,
+            name: "custom_pk",  if_not_exists: true)
+
+          foreign_keys = @connection.foreign_keys("astronauts")
+          assert_equal 2, foreign_keys.size
+          assert foreign_keys.all? { |fk| fk.to_table == "rockets" }
+          assert_equal ["id", "id_for_type_change"], foreign_keys.map(&:primary_key).sort
+        end
+
+        def test_remove_foreign_key_with_multiple_keys_between_tables
+          @connection.add_column :astronauts, :backup_rocket_id, :bigint
+
+          @connection.add_foreign_key :astronauts, :rockets, column: :rocket_id
+          @connection.add_foreign_key :astronauts, :rockets, column: :backup_rocket_id
+
+          @connection.remove_foreign_key :astronauts, :rockets
+
+          foreign_keys = @connection.foreign_keys(:astronauts)
+          assert_equal 1, foreign_keys.size
+          assert_equal "backup_rocket_id", foreign_keys.first.column
+
+          @connection.remove_foreign_key :astronauts, :rockets, column: :backup_rocket_id
+          assert_empty @connection.foreign_keys(:astronauts)
         end
 
         def test_add_foreign_key_with_non_standard_primary_key
@@ -424,6 +456,15 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           assert_equal [], @connection.foreign_keys("astronauts")
         end
 
+        def test_remove_foreign_key_if_exists_and_custom_column
+          @connection.add_column :astronauts, :myrocket_id, :bigint
+          @connection.add_foreign_key :astronauts, :rockets
+          assert_equal 1, @connection.foreign_keys("astronauts").size
+
+          @connection.remove_foreign_key :astronauts, :rockets, column: :myrocket_id, if_exists: true
+          assert_equal 1, @connection.foreign_keys("astronauts").size
+        end
+
         def test_remove_foreign_non_existing_foreign_key_raises
           e = assert_raises ArgumentError do
             @connection.remove_foreign_key :astronauts, :rockets
@@ -441,6 +482,13 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
 
           assert_equal [["astronauts", "rockets", "rocket_id"]],
             @connection.foreign_keys("astronauts").map { |fk| [fk.from_table, fk.to_table, fk.column] }
+        end
+
+        def test_remove_foreign_key_with_restrict_action
+          @connection.add_foreign_key :astronauts, :rockets, on_delete: :restrict
+          assert_equal 1, @connection.foreign_keys("astronauts").size
+          @connection.remove_foreign_key :astronauts, :rockets, on_delete: :restrict
+          assert_empty @connection.foreign_keys("astronauts")
         end
 
         if ActiveRecord::Base.lease_connection.supports_validate_constraints?
@@ -601,6 +649,14 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
 
             assert_match %r{\s+add_foreign_key "astronauts", "rockets", deferrable: :immediate$}, output
           end
+
+          def test_schema_dumping_with_special_chars_deferrable
+            @connection.add_reference :astronauts, :røcket, foreign_key: { to_table: :rockets, deferrable: :deferred }
+
+            output = dump_table_schema "astronauts"
+
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets", column: "røcket_id", deferrable: :deferred$}, output
+          end
         end
 
         def test_does_not_create_foreign_keys_when_bypassed_by_config
@@ -731,6 +787,38 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           ActiveRecord::Base.table_name_suffix = nil
         end
 
+        def test_remove_foreign_key_with_prefix
+          ActiveRecord::Base.table_name_prefix = "p_"
+
+          migration = CreateSchoolsAndClassesMigration.new
+          silence_stream($stdout) { migration.migrate(:up) }
+          assert_equal 1, @connection.foreign_keys("p_classes").size
+
+          @connection.remove_foreign_key :p_classes
+
+          assert_empty @connection.foreign_keys("p_classes")
+        ensure
+          @connection.drop_table :p_classes
+          @connection.drop_table :p_schools
+          ActiveRecord::Base.table_name_prefix = nil
+        end
+
+        def test_remove_foreign_key_with_suffix
+          ActiveRecord::Base.table_name_suffix = "_s"
+
+          migration = CreateSchoolsAndClassesMigration.new
+          silence_stream($stdout) { migration.migrate(:up) }
+          assert_equal 1, @connection.foreign_keys("classes_s").size
+
+          @connection.remove_foreign_key :classes_s
+
+          assert_empty @connection.foreign_keys("classes_s")
+        ensure
+          @connection.drop_table :classes_s
+          @connection.drop_table :schools_s
+          ActiveRecord::Base.table_name_suffix = nil
+        end
+
         def test_remove_foreign_key_with_if_exists_not_set
           @connection.add_foreign_key :astronauts, :rockets
           assert_equal 1, @connection.foreign_keys("astronauts").size
@@ -772,7 +860,7 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
 
             if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
               if ActiveRecord::Base.lease_connection.mariadb?
-                assert_match(/Duplicate key on write or update/, error.message)
+                assert_match(/Duplicate key on write or update|Duplicate FOREIGN KEY/, error.message)
               elsif ActiveRecord::Base.lease_connection.database_version < "8.0"
                 assert_match(/Can't write; duplicate key in table/, error.message)
               else

@@ -51,6 +51,16 @@ module ActiveRecord
         #     ActiveRecord::SerializationTypeMismatch error.
         #   * If the column is +NULL+ or starting from a new record, the default value
         #     will set to +type.new+
+        # * +comparable+ - Specify whether the deserialized object is safely comparable
+        #   for the purpose of detecting changes. Defaults to +false+
+        #   When set to +false+ the old and new values will be compared by their serialized
+        #   representation (e.g. JSON or YAML), which can sometimes cause two objects that are
+        #   semantically equal to be considered different.
+        #   For instance two hashes with the same keys and values but a different order have a
+        #   different serialized representation, but are semantically equal once deserialized.
+        #   If set to +true+ the comparison will be done on the deserialized object.
+        #   This options should only be enabled if the +type+ is known to have
+        #   a proper <tt>==</tt> method that deeply compare the objects.
         # * +yaml+ - Optional. Yaml specific options. The allowed config is:
         #   * +:permitted_classes+ - +Array+ with the permitted classes.
         #   * +:unsafe_load+ - Unsafely load YAML blobs, allow YAML to load any class.
@@ -130,7 +140,7 @@ module ActiveRecord
         # silently cast unsupported types to +String+:
         #
         #   >> JSON.parse(JSON.dump(Struct.new(:foo)))
-        #   => "#<Class:0x000000013090b4c0>"
+        #   # => "#<Class:0x000000013090b4c0>"
         #
         # ==== Examples
         #
@@ -180,7 +190,7 @@ module ActiveRecord
         #     serialize :preferences, coder: Rot13JSON
         #   end
         #
-        def serialize(attr_name, coder: nil, type: Object, yaml: {}, **options)
+        def serialize(attr_name, coder: nil, type: Object, comparable: false, yaml: {}, **options)
           coder ||= default_column_serializer
           unless coder
             raise ArgumentError, <<~MSG.squish
@@ -200,7 +210,7 @@ module ActiveRecord
             end
 
             cast_type = cast_type.subtype if Type::Serialized === cast_type
-            Type::Serialized.new(cast_type, column_serializer)
+            Type::Serialized.new(cast_type, column_serializer, comparable: comparable)
           end
         end
 
@@ -209,7 +219,10 @@ module ActiveRecord
             # When ::JSON is used, force it to go through the Active Support JSON encoder
             # to ensure special objects (e.g. Active Record models) are dumped correctly
             # using the #as_json hook.
-            coder = Coders::JSON if coder == ::JSON
+
+            if coder == ::JSON || coder == Coders::JSON
+              coder = Coders::JSON.new
+            end
 
             if coder == ::YAML || coder == Coders::YAMLColumn
               Coders::YAMLColumn.new(attr_name, type, **(yaml || {}))

@@ -14,26 +14,7 @@ require "jobs/retry_job"
 require "jobs/inherited_job"
 require "jobs/multiple_kwargs_job"
 require "models/person"
-
-module DoNotPerformEnqueuedJobs
-  extend ActiveSupport::Concern
-
-  included do
-    setup do
-      # /rails/activejob/test/adapters/test.rb sets these configs to true, but
-      # in this specific case we want to test enqueueing behaviour.
-      @perform_enqueued_jobs = queue_adapter.perform_enqueued_jobs
-      @perform_enqueued_at_jobs = queue_adapter.perform_enqueued_at_jobs
-      queue_adapter.perform_enqueued_jobs = queue_adapter.perform_enqueued_at_jobs = false
-    end
-
-    teardown do
-      queue_adapter.perform_enqueued_jobs = @perform_enqueued_jobs
-      queue_adapter.perform_enqueued_at_jobs = @perform_enqueued_at_jobs
-    end
-  end
-end
-
+require "support/do_not_perform_enqueued_jobs"
 
 class EnqueuedJobsTest < ActiveJob::TestCase
   if adapter_is?(:test)
@@ -2053,7 +2034,7 @@ class PerformedJobsTest < ActiveJob::TestCase
       assert_match(/No jobs were performed/, error.message)
     end
 
-    def test_assert_performed_when_not_matching_the_class_shows_alteratives
+    def test_assert_performed_when_not_matching_the_class_shows_alternatives
       ricardo = Person.new(9)
       wilma = Person.new(11)
       HelloJob.perform_later(ricardo)

@@ -10,10 +10,13 @@ module Rails
     # This is useful for preventing recurring requests like health checks from clogging the logging.
     # This middleware is used to do just that against the path /up in production by default.
     #
-    # Example:
+    # Examples:
     #
     #   config.middleware.insert_before \
     #     Rails::Rack::Logger, Rails::Rack::SilenceRequest, path: "/up"
+    #
+    #   config.middleware.insert_before \
+    #     Rails::Rack::Logger, Rails::Rack::SilenceRequest, path: /test$/
     #
     # This middleware can also be configured using `config.silence_healthcheck_path = "/up"` in Rails.
     class SilenceRequest
@@ -22,7 +25,7 @@ module Rails
       end
 
       def call(env)
-        if env["PATH_INFO"] == @path
+        if @path === env["PATH_INFO"]
           Rails.logger.silence { @app.call(env) }
         else
           @app.call(env)

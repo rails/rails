@@ -314,6 +314,31 @@ module ApplicationTests
       assert_equal "WIN", last_response.body
     end
 
+    test "routes appending blocks after reload" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get ':controller/:action'
+        end
+      RUBY
+
+      add_to_config <<-R
+        config.before_eager_load do |app|
+          app.reload_routes!
+        end
+
+        config.after_initialize do |app|
+          app.routes.append do
+            get '/win' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, ['WIN']] }
+          end
+        end
+      R
+
+      app "production"
+
+      get "/win"
+      assert_equal "WIN", last_response.body
+    end
+
     test "routes drawing from config/routes" do
       app_file "config/routes.rb", <<-RUBY
         AppTemplate::Application.routes.draw do
@@ -789,6 +814,16 @@ module ApplicationTests
 
       get "/"
       assert_equal 200, last_response.status
+    end
+
+    test "routes reloader uses configured file_watcher" do
+      add_to_config <<-RUBY
+        config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+      RUBY
+
+      app "development"
+
+      assert_instance_of ActiveSupport::EventedFileUpdateChecker, Rails.application.routes_reloader.send(:updater)
     end
   end
 end

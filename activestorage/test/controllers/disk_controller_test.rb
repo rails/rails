@@ -86,7 +86,7 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     blob = create_blob_before_direct_upload byte_size: data.size, checksum: OpenSSL::Digest::MD5.base64digest("bad data")
 
     put blob.service_url_for_direct_upload, params: data
-    assert_response :unprocessable_entity
+    assert_response ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     assert_not blob.service.exist?(blob.key)
   end
 
@@ -95,7 +95,7 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     blob = create_blob_before_direct_upload byte_size: data.size, checksum: OpenSSL::Digest::MD5.base64digest(data)
 
     put blob.service_url_for_direct_upload, params: data, headers: { "Content-Type" => "application/octet-stream" }
-    assert_response :unprocessable_entity
+    assert_response ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     assert_not blob.service.exist?(blob.key)
   end
 
@@ -114,7 +114,7 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     blob = create_blob_before_direct_upload byte_size: data.size - 1, checksum: OpenSSL::Digest::MD5.base64digest(data)
 
     put blob.service_url_for_direct_upload, params: data, headers: { "Content-Type" => "text/plain" }
-    assert_response :unprocessable_entity
+    assert_response ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     assert_not blob.service.exist?(blob.key)
   end
 

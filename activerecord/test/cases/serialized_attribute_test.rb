@@ -149,6 +149,23 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_nil t.content
   end
 
+  def test_json_type_hash_default_value
+    Topic.serialize :content, coder: JSON, type: Hash
+    t = Topic.new
+    assert_equal({}, t.content)
+  end
+
+  def test_json_symbolize_names_returns_symbolized_names
+    Topic.serialize :content, coder: ActiveRecord::Coders::JSON.new(symbolize_names: true)
+    my_post = posts(:welcome)
+
+    t = Topic.new(content: my_post)
+    t.save!
+    t.reload
+
+    assert_equal(t.content.deep_symbolize_keys, t.content)
+  end
+
   def test_serialized_attribute_declared_in_subclass
     hash = { "important1" => "value1", "important2" => "value2" }
     important_topic = ImportantTopic.create("important" => hash)
@@ -696,5 +713,30 @@ class SerializedAttributeTestWithYamlSafeLoad < SerializedAttributeTest
     Topic.serialize(:content, yaml: { permitted_classes: [Time] })
     topic = Topic.new(content: Time.now)
     assert topic.save
+  end
+
+  def test_changed_in_place_compare_serialized_representation
+    Topic.serialize :content, type: Hash
+    topic = Topic.create!(content: { "a" => 1, "b" => 2 })
+
+    topic.content = { "a" => 1, "b" => 2 }
+    assert_not_predicate topic, :content_changed?
+
+    topic.content = { "b" => 2, "a" => 1 }
+    assert_predicate topic, :content_changed?
+  end
+
+  def test_changed_in_place_compare_deserialized_representation_when_comparable_is_set
+    Topic.serialize :content, type: Hash, comparable: true
+    topic = Topic.create!(content: { "a" => 1, "b" => 2 })
+
+    topic.content = { "a" => 1, "b" => 2 }
+    assert_not_predicate topic, :content_changed?
+
+    topic.content = { "b" => 2, "a" => 1 }
+    assert_not_predicate topic, :content_changed?
+
+    topic.content = {}
+    assert_predicate topic, :content_changed?
   end
 end

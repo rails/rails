@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/testing/strict_warnings"
+require_relative "../../tools/strict_warnings"
 
 $:.unshift File.expand_path("lib", __dir__)
 
@@ -25,6 +25,8 @@ require "action_dispatch"
 require "active_support/dependencies"
 require "active_model"
 require "zeitwerk"
+
+require_relative "support/rack_parsing_override"
 
 ActiveSupport::Cache.format_version = 7.1
 
@@ -312,7 +314,7 @@ module RoutingTestHelpers
   end
 
   class TestSet < ActionDispatch::Routing::RouteSet
-    class Request < DelegateClass(ActionDispatch::Request)
+    class Request < ActiveSupport::Delegation::DelegateClass(ActionDispatch::Request)
       def initialize(target, helpers, block, strict)
         super(target)
         @helpers = helpers
@@ -511,22 +513,6 @@ module HeadersAssertions
     header = normalized_join_header(header)
     assert_equal header, expected
   end
-end
-
-class DrivenByRackTest < ActionDispatch::SystemTestCase
-  driven_by :rack_test
-end
-
-class DrivenBySeleniumWithChrome < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :chrome
-end
-
-class DrivenBySeleniumWithHeadlessChrome < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_chrome
-end
-
-class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_firefox
 end
 
 require_relative "../../tools/test_common"

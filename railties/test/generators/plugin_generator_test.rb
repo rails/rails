@@ -39,6 +39,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/app/views/layouts/mailer.text.erb
   test/dummy/app/views/pwa/manifest.json.erb
   test/dummy/app/views/pwa/service-worker.js
+  test/dummy/bin/ci
   test/dummy/bin/dev
   test/dummy/bin/rails
   test/dummy/bin/rake
@@ -47,6 +48,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config/application.rb
   test/dummy/config/boot.rb
   test/dummy/config/cable.yml
+  test/dummy/config/ci.rb
   test/dummy/config/database.yml
   test/dummy/config/environment.rb
   test/dummy/config/environments/development.rb
@@ -141,6 +143,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     run_generator
     assert_file ".git/HEAD", /main/
+    assert_file ".github/workflows/ci.yml", /branches: \[ main \]/
   ensure
     if !current_default_branch.strip.empty?
       `git config --global init.defaultBranch #{current_default_branch}`
@@ -156,6 +159,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     run_generator
     assert_file ".git/HEAD", /master/
+    assert_file ".github/workflows/ci.yml", /branches: \[ master \]/
   ensure
     if current_default_branch && current_default_branch.strip.empty?
       `git config --global --unset init.defaultBranch`
@@ -395,7 +399,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bin/test"
   end
 
-  def test_create_mountable_application_with_mountable_option_and_hypenated_name
+  def test_create_mountable_application_with_mountable_option_and_hyphenated_name
     run_generator [File.join(destination_root, "hyphenated-name"), "--mountable"]
     assert_no_file "hyphenated-name/app/assets/javascripts/hyphenated/name"
     assert_file "hyphenated-name/app/assets/stylesheets/hyphenated/name"
@@ -417,7 +421,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_create_mountable_application_with_mountable_option_and_hypenated_and_underscored_name
+  def test_create_mountable_application_with_mountable_option_and_hyphenated_and_underscored_name
     run_generator [File.join(destination_root, "my_hyphenated-name"), "--mountable"]
     assert_no_file "my_hyphenated-name/app/assets/javascripts/my_hyphenated/name"
     assert_file "my_hyphenated-name/app/assets/stylesheets/my_hyphenated/name"
@@ -439,7 +443,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_create_mountable_application_with_mountable_option_and_multiple_hypenates_in_name
+  def test_create_mountable_application_with_mountable_option_and_multiple_hyphenates_in_name
     run_generator [File.join(destination_root, "deep-hyphenated-name"), "--mountable"]
     assert_no_file "deep-hyphenated-name/app/assets/javascripts/deep/hyphenated/name"
     assert_file "deep-hyphenated-name/app/assets/stylesheets/deep/hyphenated/name"
@@ -659,9 +663,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
     assert_gem "propshaft"
     assert_file "test/dummy/config/initializers/assets.rb"
-    assert_file "test/dummy/config/environments/development.rb" do |content|
-      assert_no_match "config.assets", content
-    end
+    assert_file "test/dummy/config/environments/development.rb"
   end
 
   def test_dummy_application_skips_asset_pipeline_when_flag_skip_asset_pipeline

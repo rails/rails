@@ -2,91 +2,121 @@
 
     *Andrew Kaspick*
 
-*   Add `:except_on` option for validations. Grants the ability to _skip_ validations in specified contexts.
+*   Changes `ActiveModel::Validations#read_attribute_for_validation` to return `nil` if the record doesn't
+    respond to the attribute instead of raising an error.
+
+    This change allows adding errors to custom attributes with symbol messages.
 
     ```ruby
-    class User < ApplicationRecord
-        #...
-        validates :birthday, presence: { except_on: :admin }
-        #...
+    user = User.new # User model has no `address` attribute
+
+    user.errors.add(:address, :invalid)
+
+    user.errors.messages
+    ```
+
+    Previously, calling `messages` would raise an error because `address` attribute can't be read.
+    Now it returns the localized error message.
+
+    *Lovro Bikić*
+
+*   Add built-in Argon2 support for `has_secure_password`.
+
+    `has_secure_password` now supports Argon2 as a built-in algorithm:
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_secure_password algorithm: :argon2
     end
-
-    user = User.new(attributes except birthday)
-    user.save(context: :admin)
     ```
 
-    *Drew Bragg*
+    To use Argon2, add `gem "argon2", "~> 2.3"` to your Gemfile.
 
-## Rails 8.0.0.beta1 (September 26, 2024) ##
+    Argon2 has no password length limit, unlike BCrypt's 72-byte restriction.
 
-*   Make `ActiveModel::Serialization#read_attribute_for_serialization` public
+    *Justin Bull*, *Guillermo Iguaran*
 
-    *Sean Doyle*
+*   Add ActiveModel::SecurePassword.register_algorithm to register new algorithms for `has_secure_password` by symbol:
 
-*   Add a default token generator for password reset tokens when using `has_secure_password`.
+    `ActiveModel::SecurePassword.register_algorithm` can be used to register new algorithms:
 
     ```ruby
-    class User < ApplicationRecord
-      has_secure_password
+    ActiveModel::SecurePassword.register_algorithm :custom_password, CustomPassword
+    ```
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_secure_password algorithm: :custom_password
     end
-
-    user = User.create!(name: "david", password: "123", password_confirmation: "123")
-    token = user.password_reset_token
-    User.find_by_password_reset_token(token) # returns user
-
-    # 16 minutes later...
-    User.find_by_password_reset_token(token) # returns nil
-
-    # raises ActiveSupport::MessageVerifier::InvalidSignature since the token is expired
-    User.find_by_password_reset_token!(token)
     ```
 
-    *DHH*
+    BCrypt is pre-registered as `:bcrypt` in the algorithms registry.
 
-*   Add a load hook `active_model_translation` for `ActiveModel::Translation`.
+    *Justin Bull*, *Guillermo Iguaran*
 
-    *Shouichi Kamiya*
-
-*   Add `raise_on_missing_translations` option to `ActiveModel::Translation`.
-    When the option is set, `human_attribute_name` raises an error if a translation of the given attribute is missing.
+*   `has_secure_password` can support different password hashing algorithms (if defined) using the `:algorithm` option:
 
     ```ruby
-    # ActiveModel::Translation.raise_on_missing_translations = false
-    Post.human_attribute_name("title")
-    => "Title"
+    class CustomPassword
+      def hash_password(unencrypted_password)
+        CustomHashingLibrary.create(unencrypted_password)
+      end
 
-    # ActiveModel::Translation.raise_on_missing_translations = true
-    Post.human_attribute_name("title")
-    => Translation missing. Options considered were: (I18n::MissingTranslationData)
-        - en.activerecord.attributes.post.title
-        - en.attributes.title
+      def verify_password(password, digest)
+        CustomHashingLibrary.verify(password, digest)
+      end
 
-                raise exception.respond_to?(:to_exception) ? exception.to_exception : exception
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    ```
+      def password_salt(digest)
+        CustomHashingLibrary.salt(digest)
+      end
 
-    *Shouichi Kamiya*
+      def validate(record, attribute)
+        # ...
+      end
 
-*   Introduce `ActiveModel::AttributeAssignment#attribute_writer_missing`
-
-    Provide instances with an opportunity to gracefully handle assigning to an
-    unknown attribute:
-
-    ```ruby
-    class Rectangle
-      include ActiveModel::AttributeAssignment
-
-      attr_accessor :length, :width
-
-      def attribute_writer_missing(name, value)
-        Rails.logger.warn "Tried to assign to unknown attribute #{name}"
+      def algorithm_name
+        :custom
       end
     end
-
-    rectangle = Rectangle.new
-    rectangle.assign_attributes(height: 10) # => Logs "Tried to assign to unknown attribute 'height'"
     ```
 
-    *Sean Doyle*
+    ```ruby
+    class User < ActiveRecord::Base
+      has_secure_password algorithm: CustomPassword.new
+    end
+    ```
 
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activemodel/CHANGELOG.md) for previous changes.
+    *Justin Bull*, *Lucas Mazza*
+
+*   Allow passing method name or proc to `allow_nil` and `allow_blank`
+
+    ```ruby
+    class EnrollmentForm
+      include ActiveModel::Validations
+
+      attr_accessor :course
+
+      validates :course,
+                inclusion: { in: :open_courses },
+                allow_nil: :saving_progress?
+    end
+    ```
+
+    *Richard Lynch*
+
+*   Add error type support arguments to `ActiveModel::Errors#messages_for` and `ActiveModel::Errors#full_messages_for`
+
+    ```ruby
+    person = Person.create()
+    person.errors.full_messages_for(:name, :invalid)
+    # => ["Name is invalid"]
+
+    person.errors.messages_for(:name, :invalid)
+    # => ["is invalid"]
+    ```
+
+    *Eugene Bezludny*
+
+*   Make `ActiveModel::Serializers::JSON#from_json` compatible with `#assign_attributes`
+
+    *Sean Doyle*

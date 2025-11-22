@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -8,23 +9,53 @@ module ActiveRecord
       self.use_transactional_tests = false
 
       def setup
+        @deduplicable_registries_were = deduplicable_classes.index_with do |klass|
+          klass.registry.dup
+        end
         @pool = ARUnit2Model.connection_pool
         @connection = ARUnit2Model.lease_connection
         @cache = new_bound_reflection
-        @check_schema_cache_dump_version_was = SchemaReflection.check_schema_cache_dump_version
       end
 
       def teardown
-        SchemaReflection.check_schema_cache_dump_version = @check_schema_cache_dump_version_was
+        @deduplicable_registries_were.each do |klass, registry|
+          klass.registry.clear
+          klass.registry.merge!(registry)
+        end
       end
 
-      def new_bound_reflection(pool = @pool)
-        BoundSchemaReflection.new(SchemaReflection.new(nil), pool)
+      def new_bound_reflection(filename = nil)
+        BoundSchemaReflection.new(SchemaReflection.new(filename), @pool)
       end
 
-      def load_bound_reflection(filename, pool = @pool)
-        BoundSchemaReflection.new(SchemaReflection.new(filename), pool).tap do |cache|
+      def load_bound_reflection(filename)
+        reset_deduplicable!
+        new_bound_reflection(filename).tap do |cache|
           cache.load!
+        end
+      end
+
+      def deduplicable_classes
+        klasses = [
+          ActiveRecord::ConnectionAdapters::SqlTypeMetadata,
+          ActiveRecord::ConnectionAdapters::Column,
+        ]
+
+        if defined?(ActiveRecord::ConnectionAdapters::PostgreSQL)
+          klasses << ActiveRecord::ConnectionAdapters::PostgreSQL::TypeMetadata
+        end
+        if defined?(ActiveRecord::ConnectionAdapters::MySQL::TypeMetadata)
+          klasses << ActiveRecord::ConnectionAdapters::MySQL::TypeMetadata
+        end
+
+        klasses.flat_map do |klass|
+          [klass] + klass.descendants
+        end.uniq
+      end
+
+      def reset_deduplicable!
+        deduplicable_classes.each do |klass|
+          klass.registry.clear
         end
       end
 
@@ -35,43 +66,25 @@ module ActiveRecord
         cache.columns("courses").size
         assert cache.cached?("courses")
 
-        tempfile = Tempfile.new(["schema_cache-", ".yml"])
-        cache.dump_to(tempfile.path)
+        Tempfile.create(["schema_cache-", ".yml"]) do |tempfile|
+          cache.dump_to(tempfile.path)
 
-        reflection = SchemaReflection.new(tempfile.path)
+          reset_deduplicable!
 
-        # `check_schema_cache_dump_version` forces us to have an active connection
-        # to load the cache.
-        assert_not reflection.cached?("courses")
+          reflection = SchemaReflection.new(tempfile.path)
 
-        # If we disable it we can load the cache
-        SchemaReflection.check_schema_cache_dump_version = false
-        assert reflection.cached?("courses")
+          # `check_schema_cache_dump_version` forces us to have an active connection
+          # to load the cache.
+          assert_not reflection.cached?("courses")
 
-        cache = BoundSchemaReflection.new(reflection, :__unused_pool__)
-        assert cache.cached?("courses")
-      end
+          # If we disable it we can load the cache
+          SchemaReflection.with(check_schema_cache_dump_version: false) do
+            assert reflection.cached?("courses")
 
-      def test_yaml_dump_and_load
-        # Create an empty cache.
-        cache = new_bound_reflection
-
-        tempfile = Tempfile.new(["schema_cache-", ".yml"])
-        # Dump it. It should get populated before dumping.
-        cache.dump_to(tempfile.path)
-
-        # Load the cache.
-        cache = load_bound_reflection(tempfile.path)
-
-        assert_no_queries do
-          assert_equal 3, cache.columns("courses").size
-          assert_equal 3, cache.columns_hash("courses").size
-          assert cache.data_source_exists?("courses")
-          assert_equal "id", cache.primary_keys("courses")
-          assert_equal 1, cache.indexes("courses").size
+            cache = BoundSchemaReflection.new(reflection, :__unused_pool__)
+            assert cache.cached?("courses")
+          end
         end
-      ensure
-        tempfile.unlink
       end
 
       def test_cache_path_can_be_in_directory
@@ -86,43 +99,8 @@ module ActiveRecord
         FileUtils.rm_r(tmp_dir)
       end
 
-      def test_yaml_dump_and_load_with_gzip
-        # Create an empty cache.
-        cache = new_bound_reflection
-
-        tempfile = Tempfile.new(["schema_cache-", ".yml.gz"])
-        # Dump it. It should get populated before dumping.
-        cache.dump_to(tempfile.path)
-
-        # Unzip and load manually.
-        cache = Zlib::GzipReader.open(tempfile.path) do |gz|
-          YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(gz.read) : YAML.load(gz.read)
-        end
-
-        assert_no_queries do
-          assert_equal 3, cache.columns(@connection, "courses").size
-          assert_equal 3, cache.columns_hash(@connection, "courses").size
-          assert cache.data_source_exists?(@connection, "courses")
-          assert_equal "id", cache.primary_keys(@connection, "courses")
-          assert_equal 1, cache.indexes(@connection, "courses").size
-        end
-
-        # Load the cache the usual way.
-        cache = load_bound_reflection(tempfile.path)
-
-        assert_no_queries do
-          assert_equal 3, cache.columns("courses").size
-          assert_equal 3, cache.columns_hash("courses").size
-          assert cache.data_source_exists?("courses")
-          assert_equal "id", cache.primary_keys("courses")
-          assert_equal 1, cache.indexes("courses").size
-        end
-      ensure
-        tempfile.unlink
-      end
-
       def test_yaml_loads_5_1_dump
-        cache = load_bound_reflection(schema_dump_path)
+        cache = load_bound_reflection(schema_dump_5_1_path)
 
         assert_no_queries do
           assert_equal 11, cache.columns("posts").size
@@ -133,10 +111,32 @@ module ActiveRecord
       end
 
       def test_yaml_loads_5_1_dump_without_indexes_still_queries_for_indexes
-        cache = load_bound_reflection(schema_dump_path)
+        cache = load_bound_reflection(schema_dump_5_1_path)
 
         assert_queries_count(include_schema: true) do
           assert_equal 1, cache.indexes("courses").size
+        end
+      end
+
+      def test_yaml_load_8_0_dump_without_cast_type_still_get_the_right_one
+        cache = load_bound_reflection(schema_dump_8_0_path)
+
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_queries_count(include_schema: true) do
+            columns = cache.columns_hash("courses")
+            assert_equal 3, columns.size
+            cast_type = columns["name"].fetch_cast_type(@connection)
+            assert_not_nil cast_type, "expected cast_type to be present"
+            assert_equal :string, cast_type.type
+          end
+        else
+          assert_no_queries do
+            columns = cache.columns_hash("courses")
+            assert_equal 3, columns.size
+            cast_type = columns["name"].fetch_cast_type(@connection)
+            assert_not_nil cast_type, "expected cast_type to be present"
+            assert_equal :string, cast_type.type
+          end
         end
       end
 
@@ -188,137 +188,63 @@ module ActiveRecord
         assert_equal 0, @cache.size
       end
 
-      def test_marshal_dump_and_load
-        # Create an empty cache.
-        cache = new_bound_reflection
-
-        # Populate it.
-        cache.add("courses")
-
-        # Create a new cache by marshal dumping / loading.
-        cache = Marshal.load(Marshal.dump(cache.instance_variable_get(:@schema_reflection).instance_variable_get(:@cache)))
-
-        assert_no_queries do
-          assert_equal 3, cache.columns(@connection, "courses").size
-          assert_equal 3, cache.columns_hash(@connection, "courses").size
-          assert cache.data_source_exists?(@connection, "courses")
-          assert_equal "id", cache.primary_keys(@connection, "courses")
-          assert_equal 1, cache.indexes(@connection, "courses").size
-        end
-      end
-
-      def test_marshal_dump_and_load_via_disk
-        # Create an empty cache.
-        cache = new_bound_reflection
-
-        tempfile = Tempfile.new(["schema_cache-", ".dump"])
-        # Dump it. It should get populated before dumping.
-        cache.dump_to(tempfile.path)
-
-        # Load a new cache.
-        cache = load_bound_reflection(tempfile.path)
-
-        assert_no_queries do
-          assert_equal 3, cache.columns("courses").size
-          assert_equal 3, cache.columns_hash("courses").size
-          assert cache.data_source_exists?("courses")
-          assert_equal "id", cache.primary_keys("courses")
-          assert_equal 1, cache.indexes("courses").size
-        end
-      ensure
-        tempfile.unlink
-      end
-
       def test_marshal_dump_and_load_with_ignored_tables
-        old_ignore = ActiveRecord.schema_cache_ignored_tables
         assert_not ActiveRecord.schema_cache_ignored_table?("professors")
-        ActiveRecord.schema_cache_ignored_tables = ["professors"]
-        assert ActiveRecord.schema_cache_ignored_table?("professors")
-        # Create an empty cache.
-        cache = new_bound_reflection
 
-        tempfile = Tempfile.new(["schema_cache-", ".dump"])
-        # Dump it. It should get populated before dumping.
-        cache.dump_to(tempfile.path)
+        ActiveRecord.with(schema_cache_ignored_tables: ["professors"]) do
+          assert ActiveRecord.schema_cache_ignored_table?("professors")
+          # Create an empty cache.
+          cache = new_bound_reflection
 
-        # Load a new cache.
-        cache = load_bound_reflection(tempfile.path)
+          Tempfile.create(["schema_cache-", ".dump"]) do |tempfile|
+            # Dump it. It should get populated before dumping.
+            cache.dump_to(tempfile.path)
 
-        # Assert a table in the cache
-        assert cache.data_source_exists?("courses"), "expected posts to be in the cached data_sources"
-        assert_equal 3, cache.columns("courses").size
-        assert_equal 3, cache.columns_hash("courses").size
-        assert cache.data_source_exists?("courses")
-        assert_equal "id", cache.primary_keys("courses")
-        assert_equal 1, cache.indexes("courses").size
+            # Load a new cache.
+            cache = load_bound_reflection(tempfile.path)
 
-        # Assert ignored table. Behavior should match non-existent table.
-        assert_nil cache.data_source_exists?("professors"), "expected comments to not be in the cached data_sources"
-        assert_raises ActiveRecord::StatementInvalid do
-          cache.columns("professors")
+            # Assert a table in the cache
+            assert cache.data_source_exists?("courses"), "expected posts to be in the cached data_sources"
+            assert_equal 3, cache.columns("courses").size
+            assert_equal 3, cache.columns_hash("courses").size
+            assert cache.data_source_exists?("courses")
+            assert_equal "id", cache.primary_keys("courses")
+            assert_equal 1, cache.indexes("courses").size
+
+            # Assert ignored table. Behavior should match non-existent table.
+            assert_nil cache.data_source_exists?("professors"), "expected comments to not be in the cached data_sources"
+            assert_raises ActiveRecord::StatementInvalid do
+              cache.columns("professors")
+            end
+            assert_raises ActiveRecord::StatementInvalid do
+              cache.columns_hash("professors").size
+            end
+            assert_nil cache.primary_keys("professors")
+            assert_equal [], cache.indexes("professors")
+          end
         end
-        assert_raises ActiveRecord::StatementInvalid do
-          cache.columns_hash("professors").size
-        end
-        assert_nil cache.primary_keys("professors")
-        assert_equal [], cache.indexes("professors")
-      ensure
-        tempfile.unlink
-        ActiveRecord.schema_cache_ignored_tables = old_ignore
-      end
-
-      def test_marshal_dump_and_load_with_gzip
-        # Create an empty cache.
-        cache = new_bound_reflection
-
-        tempfile = Tempfile.new(["schema_cache-", ".dump.gz"])
-        # Dump it. It should get populated before dumping.
-        cache.dump_to(tempfile.path)
-
-        # Load a new cache manually.
-        cache = Zlib::GzipReader.open(tempfile.path) { |gz| Marshal.load(gz.read) }
-
-        assert_no_queries do
-          assert_equal 3, cache.columns(@connection, "courses").size
-          assert_equal 3, cache.columns_hash(@connection, "courses").size
-          assert cache.data_source_exists?(@connection, "courses")
-          assert_equal "id", cache.primary_keys(@connection, "courses")
-          assert_equal 1, cache.indexes(@connection, "courses").size
-        end
-
-        # Load a new cache.
-        cache = load_bound_reflection(tempfile.path)
-
-        assert_no_queries do
-          assert_equal 3, cache.columns("courses").size
-          assert_equal 3, cache.columns_hash("courses").size
-          assert cache.data_source_exists?("courses")
-          assert_equal "id", cache.primary_keys("courses")
-          assert_equal 1, cache.indexes("courses").size
-        end
-      ensure
-        tempfile.unlink
       end
 
       def test_gzip_dumps_identical
         # Create an empty cache.
         cache = new_bound_reflection
 
-        tempfile_a = Tempfile.new(["schema_cache-", ".yml.gz"])
-        # Dump it. It should get populated before dumping.
-        cache.dump_to(tempfile_a.path)
-        digest_a = Digest::MD5.file(tempfile_a).hexdigest
-        sleep(1) # ensure timestamp changes
-        tempfile_b = Tempfile.new(["schema_cache-", ".yml.gz"])
-        # Dump it. It should get populated before dumping.
-        cache.dump_to(tempfile_b.path)
-        digest_b = Digest::MD5.file(tempfile_b).hexdigest
+        Tempfile.create(["schema_cache-", ".yml.gz"]) do |tempfile_a|
+          # Dump it. It should get populated before dumping.
+          cache.dump_to(tempfile_a.path)
+          digest_a = Digest::MD5.file(tempfile_a).hexdigest
+
+          sleep(1) # ensure timestamp changes
+
+          Tempfile.create(["schema_cache-", ".yml.gz"]) do |tempfile_b|
+            # Dump it. It should get populated before dumping.
+            cache.dump_to(tempfile_b.path)
+            digest_b = Digest::MD5.file(tempfile_b).hexdigest
 
 
-        assert_equal digest_a, digest_b
-      ensure
-        tempfile_a.unlink
-        tempfile_b.unlink
+            assert_equal digest_a, digest_b
+          end
+        end
       end
 
       def test_data_source_exist
@@ -354,38 +280,38 @@ module ActiveRecord
 
       unless in_memory_db?
         def test_when_lazily_load_schema_cache_is_set_cache_is_lazily_populated_when_est_connection
-          tempfile = Tempfile.new(["schema_cache-", ".yml"])
-          original_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit2", name: "primary")
-          new_config = original_config.configuration_hash.merge(schema_cache_path: tempfile.path)
+          Tempfile.create(["schema_cache-", ".yml"]) do |tempfile|
+            original_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit2", name: "primary")
+            new_config = original_config.configuration_hash.merge(schema_cache_path: tempfile.path)
 
-          ActiveRecord::Base.establish_connection(new_config)
+            ActiveRecord::Base.establish_connection(new_config)
 
-          # cache starts empty
-          assert_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
+            # cache starts empty
+            assert_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
 
-          # now we access the cache, causing it to load
-          assert_not_nil ActiveRecord::Base.schema_cache.version
+            # now we access the cache, causing it to load
+            assert_not_nil ActiveRecord::Base.schema_cache.version
 
-          assert File.exist?(tempfile)
-          assert_not_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
+            assert File.exist?(tempfile)
+            assert_not_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
 
-          # assert cache is still empty on new connection (precondition for the
-          # following to show it is loading because of the config change)
-          ActiveRecord::Base.establish_connection(new_config)
+            # assert cache is still empty on new connection (precondition for the
+            # following to show it is loading because of the config change)
+            ActiveRecord::Base.establish_connection(new_config)
 
-          assert File.exist?(tempfile)
-          assert_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
+            assert File.exist?(tempfile)
+            assert_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
 
-          # cache is loaded upon connection when lazily loading is on
-          old_config = ActiveRecord.lazily_load_schema_cache
-          ActiveRecord.lazily_load_schema_cache = true
-          ActiveRecord::Base.establish_connection(new_config)
-          ActiveRecord::Base.connection_pool.lease_connection.verify!
+            # cache is loaded upon connection when lazily loading is on
+            ActiveRecord.with(lazily_load_schema_cache: true) do
+              ActiveRecord::Base.establish_connection(new_config)
+              ActiveRecord::Base.connection_pool.lease_connection.verify!
 
-          assert File.exist?(tempfile)
-          assert_not_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
+              assert File.exist?(tempfile)
+              assert_not_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
+            end
+          end
         ensure
-          ActiveRecord.lazily_load_schema_cache = old_config
           ActiveRecord::Base.establish_connection(:arunit)
         end
       end
@@ -405,11 +331,15 @@ module ActiveRecord
         values = [["z", nil], ["y", nil], ["x", nil]]
         expected = values.sort.to_h
 
+        named = Struct.new(:name)
+        named_values = [["z", [named.new("c"), named.new("b")]], ["y", [named.new("c"), named.new("b")]], ["x", [named.new("c"), named.new("b")]]]
+        named_expected = named_values.sort.to_h.transform_values { _1.sort_by(&:name) }
+
         coder = {
-          "columns" => values,
+          "columns" => named_values,
           "primary_keys" => values,
           "data_sources" => values,
-          "indexes" => values,
+          "indexes" => named_values,
           "deduplicated" => true
         }
 
@@ -417,16 +347,158 @@ module ActiveRecord
         schema_cache.init_with(coder)
         schema_cache.encode_with(coder)
 
-        assert_equal expected, coder["columns"]
+        assert_equal named_expected, coder["columns"]
         assert_equal expected, coder["primary_keys"]
         assert_equal expected, coder["data_sources"]
-        assert_equal expected, coder["indexes"]
+        assert_equal named_expected, coder["indexes"]
         assert coder.key?("version")
       end
 
       private
-        def schema_dump_path
+        def schema_dump_5_1_path
           "#{ASSETS_ROOT}/schema_dump_5_1.yml"
+        end
+
+        def schema_dump_8_0_path
+          "#{ASSETS_ROOT}/schema_dump_8_0.yml"
+        end
+    end
+
+    module DumpAndLoadTests
+      def setup
+        @pool = ARUnit2Model.connection_pool
+
+        @deduplicable_registries_were = deduplicable_classes.index_with do |klass|
+          klass.registry.dup
+        end
+      end
+
+      def teardown
+        @deduplicable_registries_were.each do |klass, registry|
+          klass.registry.clear
+          klass.registry.merge!(registry)
+        end
+      end
+
+      def test_dump_and_load_via_disk
+        # Create an empty cache.
+        cache = new_bound_reflection
+
+        Tempfile.create(["schema_cache-", format_extension]) do |tempfile|
+          # Dump it. It should get populated before dumping.
+          cache.dump_to(tempfile.path)
+
+          # Load a new cache.
+          cache = load_bound_reflection(tempfile.path)
+
+          assert_no_queries(include_schema: true) do
+            assert_equal 3, cache.columns("courses").size
+            assert_equal 3, cache.columns("courses").map { |column| column.fetch_cast_type(@pool.lease_connection) }.compact.size
+            assert_equal 3, cache.columns_hash("courses").size
+            assert cache.data_source_exists?("courses")
+            assert_equal "id", cache.primary_keys("courses")
+            assert_equal 1, cache.indexes("courses").size
+          end
+        end
+      end
+
+      def test_dump_and_load_with_gzip
+        # Create an empty cache.
+        cache = new_bound_reflection
+
+        Tempfile.create(["schema_cache-", "#{format_extension}.gz"]) do |tempfile|
+          # Dump it. It should get populated before dumping.
+          cache.dump_to(tempfile.path)
+
+          reset_deduplicable!
+
+          # Unzip and load manually.
+          cache = Zlib::GzipReader.open(tempfile.path) { |gz| load(gz.read) }
+
+          assert_no_queries(include_schema: true) do
+            assert_equal 3, cache.columns(@pool, "courses").size
+            assert_equal 3, cache.columns(@pool, "courses").map { |column| column.fetch_cast_type(@pool.lease_connection) }.compact.size
+            assert_equal 3, cache.columns_hash(@pool, "courses").size
+            assert cache.data_source_exists?(@pool, "courses")
+            assert_equal "id", cache.primary_keys(@pool, "courses")
+            assert_equal 1, cache.indexes(@pool, "courses").size
+          end
+
+          # Load the cache the usual way.
+          cache = load_bound_reflection(tempfile.path)
+
+          assert_no_queries(include_schema: true) do
+            assert_equal 3, cache.columns("courses").size
+            assert_equal 3, cache.columns("courses").map { |column| column.fetch_cast_type(@pool.lease_connection) }.compact.size
+            assert_equal 3, cache.columns_hash("courses").size
+            assert cache.data_source_exists?("courses")
+            assert_equal "id", cache.primary_keys("courses")
+            assert_equal 1, cache.indexes("courses").size
+          end
+        end
+      end
+
+      private
+        def new_bound_reflection(filename = nil)
+          BoundSchemaReflection.new(SchemaReflection.new(filename), @pool)
+        end
+
+        def load_bound_reflection(filename)
+          reset_deduplicable!
+
+          new_bound_reflection(filename).tap do |cache|
+            cache.load!
+          end
+        end
+
+        def deduplicable_classes
+          klasses = [
+            ActiveRecord::ConnectionAdapters::SqlTypeMetadata,
+            ActiveRecord::ConnectionAdapters::Column,
+          ]
+
+          if defined?(ActiveRecord::ConnectionAdapters::PostgreSQL)
+            klasses << ActiveRecord::ConnectionAdapters::PostgreSQL::TypeMetadata
+          end
+          if defined?(ActiveRecord::ConnectionAdapters::MySQL::TypeMetadata)
+            klasses << ActiveRecord::ConnectionAdapters::MySQL::TypeMetadata
+          end
+
+          klasses.flat_map do |klass|
+            [klass] + klass.descendants
+          end.uniq
+        end
+
+        def reset_deduplicable!
+          deduplicable_classes.each do |klass|
+            klass.registry.clear
+          end
+        end
+    end
+
+    class MarshalFormatTest < ActiveRecord::TestCase
+      include DumpAndLoadTests
+
+      private
+        def format_extension
+          ".dump"
+        end
+
+        def load(data)
+          Marshal.load(data)
+        end
+    end
+
+    class YamlFormatTest < ActiveRecord::TestCase
+      include DumpAndLoadTests
+
+      private
+        def format_extension
+          ".yml"
+        end
+
+        def load(data)
+          YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(data) : YAML.load(data)
         end
     end
   end

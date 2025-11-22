@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Using Rails for API-only Applications
 =====================================
@@ -387,7 +387,7 @@ environment's configuration file.
 
 You can learn more about how to use `Rack::Sendfile` with popular
 front-ends in [the Rack::Sendfile
-documentation](https://www.rubydoc.info/gems/rack/Rack/Sendfile).
+documentation](https://rack.github.io/rack/main/Rack/Sendfile.html).
 
 Here are some values for this header for some popular servers, once these servers are configured to support
 accelerated file sending:
@@ -448,7 +448,7 @@ built (like `config/application.rb`) and pass them to your preferred middleware,
 
 ```ruby
 # This also configures session_options for use below
-config.session_store :cookie_store, key: '_your_app_session'
+config.session_store :cookie_store, key: "_your_app_session"
 
 # Required for all session management (regardless of session_store)
 config.middleware.use ActionDispatch::Cookies

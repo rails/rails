@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
+require "digest"
 require "rake/tasklib"
 
 class Releaser < Rake::TaskLib
@@ -66,7 +67,7 @@ class Releaser < Rake::TaskLib
 
         task push: :build do
           Dir.chdir(root) do
-            sh "gem push #{gem_path(framework)}#{gem_otp}"
+            sh "gem push #{gem_path(framework)}#{gem_otp(gem_path(framework))}"
 
             if File.exist?("#{framework}/package.json")
               Dir.chdir("#{framework}") do
@@ -108,8 +109,23 @@ class Releaser < Rake::TaskLib
       end
     end
 
+    desc "Update version of the frameworks"
+    task update_versions: FRAMEWORKS.map { |f| "#{f}:update_versions" } + ["rails:update_versions"]
+
     desc "Build gem files for all projects"
     task build: FRAMEWORKS.map { |f| "#{f}:build" } + ["rails:build"]
+
+    task checksums: :build do
+      Dir.chdir(root) do
+        puts
+        [*FRAMEWORKS, "rails"].each do |fw|
+          path = gem_path(fw)
+          sha = ::Digest::SHA256.file(path)
+          puts "#{sha}  #{path}"
+        end
+        puts
+      end
+    end
 
     task :bundle do
       sh "bundle check"
@@ -123,6 +139,10 @@ class Releaser < Rake::TaskLib
         unless ok
           raise "GitHub CLI is not logged in. Please run `gh auth login` to log in."
         end
+      end
+      default_repo = `git config --local --get-regexp '\.gh-resolved$'`.strip
+      if !$?.success? || default_repo.empty?
+        raise "GitHub CLI does not have a default repo configured. Please run `gh repo set-default rails/rails`"
       end
     end
 
@@ -152,15 +172,17 @@ class Releaser < Rake::TaskLib
       Dir.chdir(root) do
         File.write("pkg/#{version}.md", release_notes)
 
-        sh "gh release create #{tag} -t #{version} -F pkg/#{version}.md --draft#{pre_release? ? " --prerelease" : ""}"
+        sh "gh release create --verify-tag #{tag} -t #{version} -F pkg/#{version}.md --draft#{pre_release? ? " --prerelease" : ""}"
       end
     end
 
     desc "Release all gems and create a tag"
     task release: %w(check_gh_client prep_release commit tag create_release)
 
+    task pre_push: [:build, :checksums]
+
     desc "Push the gem to rubygems.org and the npm package to npmjs.com"
-    task push: FRAMEWORKS.map { |f| "#{f}:push" } + ["rails:push"]
+    task push: [:pre_push] + FRAMEWORKS.map { |f| "#{f}:push" } + ["rails:push"]
   end
 
   def pre_release?
@@ -276,6 +298,7 @@ class Releaser < Rake::TaskLib
       gem_version.rb
       tasks/release.rb
       releaser.rb
+      yarn.lock
     )
     def tree_dirty?
       !`git status -s | grep -v '#{FILES_TO_IGNORE.join("\\|")}'`.strip.empty?
@@ -288,11 +311,18 @@ class Releaser < Rake::TaskLib
     def npm_otp
       " --otp " + ykman("npmjs.com")
     rescue
-      " --provenance --access public"
+      " --access public"
     end
 
-    def gem_otp
+    def gem_otp(gem_path)
       " --otp " + ykman("rubygems.org")
+    rescue
+      attestation(gem_path)
+    end
+
+    def attestation(gem_path)
+      sh "sigstore-cli sign #{gem_path} --bundle #{gem_path}.sigstore.json"
+      " --attestation #{gem_path}.sigstore.json"
     rescue
       ""
     end

@@ -340,7 +340,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_when_given_nil_model_argument
-    assert_deprecated(ActionView.deprecator) do
+    assert_raises(ArgumentError) do
       form_with(model: nil) do
       end
     end
@@ -1046,6 +1046,20 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     expected = whole_form("/posts") do
       %(<label for="post_title"><span class="new_record">Title</span></label>)
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_form_with_label_namespace
+    form_with(model: Post.new, namespace: "namespace") do |f|
+      concat f.label(:title, for: "my_title")
+      concat f.text_field(:title, id: "my_title")
+    end
+
+    expected = whole_form("/posts") do
+      "<label for='namespace_my_title'>Title</label>" \
+      "<input id='namespace_my_title' name='post[title]' type='text' />"
     end
 
     assert_dom_equal expected, @rendered

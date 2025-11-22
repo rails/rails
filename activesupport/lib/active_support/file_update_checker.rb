@@ -46,8 +46,11 @@ module ActiveSupport
         raise ArgumentError, "A block is required to initialize a FileUpdateChecker"
       end
 
-      @files = files.freeze
-      @glob  = compile_glob(dirs)
+      gem_paths = Gem.path
+      @files = files.reject { |file| File.expand_path(file).start_with?(*gem_paths) }.freeze
+
+      @globs = compile_glob(dirs)&.reject { |dir| dir.start_with?(*gem_paths) }
+
       @block = block
 
       @watched    = nil
@@ -103,7 +106,7 @@ module ActiveSupport
       def watched
         @watched || begin
           all = @files.select { |f| File.exist?(f) }
-          all.concat(Dir[@glob]) if @glob
+          all.concat(Dir[*@globs]) if @globs
           all.tap(&:uniq!)
         end
       end
@@ -120,7 +123,7 @@ module ActiveSupport
       # healthy to consider this edge case because with mtimes in the future
       # reloading is not triggered.
       def max_mtime(paths)
-        time_now = Time.now
+        time_now = Time.at(0, Process.clock_gettime(Process::CLOCK_REALTIME, :nanosecond), :nanosecond)
         max_mtime = nil
 
         # Time comparisons are performed with #compare_without_coercion because
@@ -145,10 +148,9 @@ module ActiveSupport
         hash.freeze # Freeze so changes aren't accidentally pushed
         return if hash.empty?
 
-        globs = hash.map do |key, value|
+        hash.map do |key, value|
           "#{escape(key)}/**/*#{compile_ext(value)}"
         end
-        "{#{globs.join(",")}}"
       end
 
       def escape(key)

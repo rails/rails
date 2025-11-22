@@ -331,7 +331,7 @@ class BaseTest < ActiveSupport::TestCase
         mail body: "yay", from: "welcome@example.com", to: "to@example.com"
 
         unless attachments.map(&:filename) == ["invoice.pdf"]
-          raise Minitest::Assertion, "Should allow access to attachments"
+          flunk("Should allow access to attachments")
         end
       end
     end
@@ -903,6 +903,8 @@ class BaseTest < ActiveSupport::TestCase
       # This triggers action_methods.
       respond_to?(:foo)
 
+      after_deliver :foo
+
       def notify
       end
     end
@@ -963,31 +965,23 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "notification for process" do
-    events = []
-    ActiveSupport::Notifications.subscribe("process.action_mailer") { |event| events << event }
+    expected_payload = { mailer: "BaseMailer", action: :welcome, args: [{ body: "Hello there" }] }
 
-    BaseMailer.welcome(body: "Hello there").deliver_now
-
-    assert_equal 1, events.length
-    assert_equal "process.action_mailer", events[0].name
-    assert_equal "BaseMailer", events[0].payload[:mailer]
-    assert_equal :welcome, events[0].payload[:action]
-    assert_equal [{ body: "Hello there" }], events[0].payload[:args]
-  ensure
-    ActiveSupport::Notifications.unsubscribe "process.action_mailer"
+    assert_notifications_count("process.action_mailer", 1) do
+      assert_notification("process.action_mailer", expected_payload) do
+        BaseMailer.welcome(body: "Hello there").deliver_now
+      end
+    end
   end
 
   test "notification for deliver" do
-    events = []
-    ActiveSupport::Notifications.subscribe("deliver.action_mailer") { |event| events << event }
+    assert_notifications_count("deliver.action_mailer", 1) do
+      notification = assert_notification("deliver.action_mailer") do
+        BaseMailer.welcome(body: "Hello there").deliver_now
+      end
 
-    BaseMailer.welcome(body: "Hello there").deliver_now
-
-    assert_equal 1, events.length
-    assert_equal "deliver.action_mailer", events[0].name
-    assert_not_nil events[0].payload[:message_id]
-  ensure
-    ActiveSupport::Notifications.unsubscribe "deliver.action_mailer"
+      assert_not_nil notification.payload[:message_id]
+    end
   end
 
   private

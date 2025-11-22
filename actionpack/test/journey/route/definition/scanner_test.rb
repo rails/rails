@@ -60,6 +60,12 @@ module ActionDispatch
                           :SYMBOL,
                           :RPAREN,
                         ]],
+          ["/sort::sort", [
+                           :SLASH,
+                           :LITERAL,
+                           :LITERAL,
+                           :SYMBOL
+                         ]],
         ]
 
         CASES.each do |pattern, expected_tokens|

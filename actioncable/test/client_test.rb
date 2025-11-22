@@ -8,24 +8,6 @@ require "json"
 
 require "active_support/hash_with_indifferent_access"
 
-####
-# 😷 Warning suppression 😷
-WebSocket::Frame::Handler::Handler03.prepend Module.new {
-  def initialize(*)
-    @application_data_buffer = nil
-    super
-  end
-}
-
-WebSocket::Frame::Data.prepend Module.new {
-  def initialize(*)
-    @masking_key = nil
-    super
-  end
-}
-#
-####
-
 class ClientTest < ActionCable::TestCase
   WAIT_WHEN_EXPECTING_EVENT = 2
   WAIT_WHEN_NOT_EXPECTING_EVENT = 0.5

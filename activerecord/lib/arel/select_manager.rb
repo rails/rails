@@ -74,8 +74,13 @@ module Arel # :nodoc: all
     def group(*columns)
       columns.each do |column|
         # FIXME: backwards compat
-        column = Nodes::SqlLiteral.new(column) if String === column
-        column = Nodes::SqlLiteral.new(column.to_s) if Symbol === column
+        case column
+        when Nodes::SqlLiteral
+        when String
+          column = Nodes::SqlLiteral.new(column)
+        when Symbol
+          column = Nodes::SqlLiteral.new(column.name)
+        end
 
         @ctx.groups.push Nodes::Group.new column
       end
@@ -250,8 +255,12 @@ module Arel # :nodoc: all
     end
 
     def comment(*values)
-      @ctx.comment = Nodes::Comment.new(values)
-      self
+      if values.any?
+        @ctx.comment = Nodes::Comment.new(values)
+        self
+      else
+        @ctx.comment
+      end
     end
 
     private

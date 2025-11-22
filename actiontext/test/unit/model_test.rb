@@ -18,7 +18,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
   test "without content" do
     assert_difference("ActionText::RichText.count" => 0) do
       message = Message.create!(subject: "Greetings")
-      assert_predicate message.content, :nil?
+      assert_nil message.content
       assert_predicate message.content, :blank?
       assert_predicate message.content, :empty?
       assert_not message.content?
@@ -59,6 +59,21 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_nothing_raised do
       Message.create!(subject: "Greetings", content: content)
     end
+  end
+
+  test "embed extraction occurs before validation" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    content = ActionText::Content.new.append_attachables(blob)
+    message = Message.build(subject: "Greetings", content: content)
+
+    assert_changes -> { message.content.embeds.empty? }, from: true, to: false do
+      message.content.validate
+    end
+
+    embeds = message.content.embeds
+    assert_kind_of ActiveStorage::Attached::Many, embeds
+    assert_kind_of ActiveStorage::Attachment, embeds.first
+    assert_equal blob, embeds.first.blob
   end
 
   test "saving content" do
@@ -131,7 +146,7 @@ class ActionText::ModelTest < ActiveSupport::TestCase
   test "with blank content and store_if_blank: false" do
     assert_difference("ActionText::RichText.count" => 0) do
       message = MessageWithoutBlanks.create!(subject: "Greetings", content: "")
-      assert_predicate message.content, :nil?
+      assert_nil message.content
       assert_predicate message.content, :blank?
       assert_predicate message.content, :empty?
       assert_not message.content?

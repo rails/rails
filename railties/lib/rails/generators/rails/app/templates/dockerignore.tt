@@ -47,6 +47,12 @@
 /.github
 <% end -%>
 
+<% unless options.skip_kamal? -%>
+# Ignore Kamal files.
+/config/deploy*.yml
+/.kamal
+
+<% end -%>
 # Ignore development files
 /.devcontainer
 

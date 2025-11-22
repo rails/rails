@@ -400,13 +400,6 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal [0, 0, 19, 31, 12, -8001], (twz - 10_000.years).to_a[0, 6]
   end
 
-  def test_plus_two_time_instances_raises_deprecation_warning
-    twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), @time_zone)
-    assert_deprecated(ActiveSupport.deprecator) do
-      twz + 10.days.ago
-    end
-  end
-
   def test_plus_with_invalid_argument
     twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), @time_zone)
     assert_not_deprecated(ActiveSupport.deprecator) do
@@ -451,13 +444,11 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_minus_with_time_with_zone_without_preserve_configured
-    with_preserve_timezone(nil) do
-      twz1 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone["UTC"])
-      twz2 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"])
+    twz1 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone["UTC"])
+    twz2 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"])
 
-      difference = assert_not_deprecated(ActiveSupport.deprecator) { twz2 - twz1 }
-      assert_equal 86_400.0, difference
-    end
+    difference = assert_not_deprecated(ActiveSupport.deprecator) { twz2 - twz1 }
+    assert_equal 86_400.0, difference
   end
 
   def test_minus_with_time_with_zone_precision
@@ -544,75 +535,15 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal time, Time.at(time)
   end
 
-  def test_to_time_with_preserve_timezone_using_zone
-    with_preserve_timezone(:zone) do
-      time = @twz.to_time
-      local_time = with_env_tz("US/Eastern") { Time.local(1999, 12, 31, 19) }
+  def test_to_time_preserve_timezone
+    time = @twz.to_time
+    local_time = with_env_tz("US/Eastern") { Time.local(1999, 12, 31, 19) }
 
-      assert_equal Time, time.class
-      assert_equal time.object_id, @twz.to_time.object_id
-      assert_equal local_time, time
-      assert_equal local_time.utc_offset, time.utc_offset
-      assert_equal @time_zone, time.zone
-    end
-  end
-
-  def test_to_time_with_preserve_timezone_using_offset
-    with_preserve_timezone(:offset) do
-      with_env_tz "US/Eastern" do
-        time = @twz.to_time
-
-        assert_equal Time, time.class
-        assert_equal time.object_id, @twz.to_time.object_id
-        assert_equal Time.local(1999, 12, 31, 19), time
-        assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
-        assert_nil time.zone
-      end
-    end
-  end
-
-  def test_to_time_with_preserve_timezone_using_true
-    with_preserve_timezone(true) do
-      with_env_tz "US/Eastern" do
-        time = @twz.to_time
-
-        assert_equal Time, time.class
-        assert_equal time.object_id, @twz.to_time.object_id
-        assert_equal Time.local(1999, 12, 31, 19), time
-        assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
-        assert_nil time.zone
-      end
-    end
-  end
-
-  def test_to_time_without_preserve_timezone
-    with_preserve_timezone(false) do
-      with_env_tz "US/Eastern" do
-        time = @twz.to_time
-
-        assert_equal Time, time.class
-        assert_equal time.object_id, @twz.to_time.object_id
-        assert_equal Time.local(1999, 12, 31, 19), time
-        assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
-        assert_equal Time.local(1999, 12, 31, 19).zone, time.zone
-      end
-    end
-  end
-
-  def test_to_time_without_preserve_timezone_configured
-    with_preserve_timezone(nil) do
-      with_env_tz "US/Eastern" do
-        time = assert_deprecated(ActiveSupport.deprecator) { @twz.to_time }
-
-        assert_equal Time, time.class
-        assert_equal time.object_id, @twz.to_time.object_id
-        assert_equal Time.local(1999, 12, 31, 19), time
-        assert_equal Time.local(1999, 12, 31, 19).utc_offset, time.utc_offset
-        assert_equal Time.local(1999, 12, 31, 19).zone, time.zone
-
-        assert_equal false, ActiveSupport.to_time_preserves_timezone
-      end
-    end
+    assert_equal Time, time.class
+    assert_equal time.object_id, @twz.to_time.object_id
+    assert_equal local_time, time
+    assert_equal local_time.utc_offset, time.utc_offset
+    assert_equal @time_zone, time.zone
   end
 
   def test_to_date
@@ -736,12 +667,6 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal 500000000, twz.nsec
   end
 
-  def test_utc_to_local_conversion_saves_period_in_instance_variable
-    assert_nil @twz.instance_variable_get("@period")
-    @twz.time
-    assert_kind_of TZInfo::TimezonePeriod, @twz.instance_variable_get("@period")
-  end
-
   def test_instance_created_with_local_time_returns_correct_utc_time
     twz = ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 19))
     assert_equal Time.utc(2000), twz.utc
@@ -861,7 +786,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     utc = Time.utc(2000, 1, 1, 0, 30, 10)
     twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
     assert_equal "1999-12-31 19:30:10.000000000 EST -05:00", twz.inspect
-    assert_equal "1999-12-31 19:00:00.000000000 EST -05:00", twz.beginning_of_hour.inspect
+    assert_equal "1999-12-31 19:30:00.000000000 EST -05:00", twz.beginning_of_minute.inspect
   end
 
   def test_end_of_minute

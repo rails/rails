@@ -5,14 +5,13 @@ require "models/topic"
 require "models/task"
 require "models/category"
 require "models/post"
-require "rack"
 
 class QueryCacheTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
-  class ShouldNotHaveExceptionsLogger < ActiveRecord::LogSubscriber
+  class ShouldNotHaveExceptionsLogger < ActiveRecord::StructuredEventSubscriber
     attr_reader :logger, :events
 
     def initialize
@@ -135,6 +134,78 @@ class QueryCacheTest < ActiveRecord::TestCase
         assert_predicate pool.lease_connection, :query_cache_enabled
       end
     }
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  def test_cache_is_not_applied_when_config_is_false
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: false))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :off
+        assert_nil ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  def test_cache_is_applied_when_config_is_string
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: "unlimited"))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_nil ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  def test_cache_is_applied_when_config_is_integer
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: 42))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_equal 42, ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  def test_cache_is_applied_when_config_is_nil
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: nil))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_equal ActiveRecord::ConnectionAdapters::QueryCache::DEFAULT_SIZE, ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
 
     mw.call({})
   ensure
@@ -268,8 +339,6 @@ class QueryCacheTest < ActiveRecord::TestCase
       ActiveRecord::Base.connection_pool.connections.each do |conn|
         assert_cache :off, conn
       end
-    ensure
-      ActiveRecord::Base.connection_pool.disconnect!
     end
   end
 
@@ -660,16 +729,28 @@ class QueryCacheTest < ActiveRecord::TestCase
       ActiveRecord::Base.lease_connection.enable_query_cache!
       assert_cache :clean
 
+      main_thread_cache = ActiveRecord::Base.lease_connection.query_cache
+      assert_same main_thread_cache, ActiveRecord::Base.lease_connection.query_cache
+
       thread_a = Thread.new do
         middleware { |env|
           assert_cache :clean
+
+          # In a background thread, the cache instance must stay consistent but be different from the main
+          # thread.
+          background_thread_cache = ActiveRecord::Base.lease_connection.query_cache
+          assert_same background_thread_cache, ActiveRecord::Base.lease_connection.query_cache
+          assert_not_same main_thread_cache, ActiveRecord::Base.lease_connection.query_cache
           [200, {}, nil]
         }.call({})
       end
 
       thread_a.join
+
+      assert_same main_thread_cache, ActiveRecord::Base.lease_connection.query_cache
     ensure
       ActiveRecord::Base.connection_pool.unpin_connection!
+      assert_same main_thread_cache, ActiveRecord::Base.lease_connection.query_cache
     end
   end
 
@@ -686,7 +767,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
       thread_a = Thread.new do
         middleware { |env|
-          assert_cache :dirty # The cache is shared with the main thread
+          assert_cache :clean
 
           Post.first
           assert_cache :dirty
@@ -759,13 +840,6 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   private
-    def with_temporary_connection_pool(&block)
-      pool_config = ActiveRecord::Base.lease_connection.pool.pool_config
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
-
-      pool_config.stub(:pool, new_pool, &block)
-    end
-
     def middleware(&app)
       executor = Class.new(ActiveSupport::Executor)
       ActiveRecord::QueryCache.install_executor_hooks executor
@@ -783,10 +857,12 @@ class QueryCacheTest < ActiveRecord::TestCase
         end
       when :clean
         assert connection.query_cache_enabled, "cache should be on"
+        assert_not_nil connection.query_cache
         assert_predicate connection.query_cache, :empty?, "cache should be empty"
       when :dirty
         assert connection.query_cache_enabled, "cache should be on"
-        assert_not connection.query_cache.empty?, "cache should be dirty"
+        assert_not_nil connection.query_cache
+        assert_not_predicate connection.query_cache, :empty?, "cache should be dirty"
       else
         raise "unknown state"
       end

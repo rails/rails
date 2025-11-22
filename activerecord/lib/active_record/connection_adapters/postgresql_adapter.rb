@@ -25,7 +25,7 @@ module ActiveRecord
     #
     # The PostgreSQL adapter works with the native C (https://github.com/ged/ruby-pg) driver.
     #
-    # Options:
+    # ==== Options
     #
     # * <tt>:host</tt> - Defaults to a Unix-domain socket in /tmp. On machines without Unix-domain sockets,
     #   the default is to connect to localhost.
@@ -288,6 +288,16 @@ module ActiveRecord
         database_version >= 10_00_00 # >= 10.0
       end
 
+      if PG::Connection.method_defined?(:close_prepared) # pg 1.6.0 & libpq 17
+        def supports_close_prepared? # :nodoc:
+          database_version >= 17_00_00
+        end
+      else
+        def supports_close_prepared? # :nodoc:
+          false
+        end
+      end
+
       def index_algorithms
         { concurrently: "CONCURRENTLY" }
       end
@@ -309,8 +319,12 @@ module ActiveRecord
             # accessed while holding the connection's lock. (And we
             # don't need the complication of with_raw_connection because
             # a reconnect would invalidate the entire statement pool.)
-            if conn = @connection.instance_variable_get(:@raw_connection)
-              conn.query "DEALLOCATE #{key}" if conn.status == PG::CONNECTION_OK
+            if (conn = @connection.instance_variable_get(:@raw_connection)) && conn.status == PG::CONNECTION_OK
+              if @connection.supports_close_prepared?
+                conn.close_prepared key
+              else
+                conn.query "DEALLOCATE #{key}"
+              end
             end
           rescue PG::Error
           end
@@ -349,6 +363,7 @@ module ActiveRecord
         @lock.synchronize do
           return false unless @raw_connection
           @raw_connection.query ";"
+          verified!
         end
         true
       rescue PG::Error
@@ -394,10 +409,6 @@ module ActiveRecord
         super
         @raw_connection&.socket_io&.reopen(IO::NULL) rescue nil
         @raw_connection = nil
-      end
-
-      def native_database_types # :nodoc:
-        self.class.native_database_types
       end
 
       def self.native_database_types # :nodoc:
@@ -453,6 +464,10 @@ module ActiveRecord
 
       def supports_lazy_transactions?
         true
+      end
+
+      def supports_force_drop_database? # :nodoc:
+        database_version >= 13_00_00 # >= 13.0
       end
 
       def get_advisory_lock(lock_id) # :nodoc:
@@ -520,7 +535,7 @@ module ActiveRecord
             type.typname AS name,
             type.OID AS oid,
             n.nspname AS schema,
-            string_agg(enum.enumlabel, ',' ORDER BY enum.enumsortorder) AS value
+            array_agg(enum.enumlabel ORDER BY enum.enumsortorder) AS value
           FROM pg_enum AS enum
           JOIN pg_type AS type ON (type.oid = enum.enumtypid)
           JOIN pg_namespace n ON type.typnamespace = n.oid
@@ -575,8 +590,10 @@ module ActiveRecord
       end
 
       # Rename an existing enum type to something else.
-      def rename_enum(name, **options)
-        new_name = options.fetch(:to) { raise ArgumentError, ":to is required" }
+      def rename_enum(name, new_name = nil, **options)
+        new_name ||= options.fetch(:to) do
+          raise ArgumentError, "rename_enum requires two from/to name positional arguments."
+        end
 
         exec_query("ALTER TYPE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}").tap { reload_type_map }
       end
@@ -613,7 +630,7 @@ module ActiveRecord
         }
       end
 
-      # Returns the configured supported identifier length supported by PostgreSQL
+      # Returns the configured maximum supported identifier length supported by PostgreSQL
       def max_identifier_length
         @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
       end
@@ -631,7 +648,11 @@ module ActiveRecord
       # Returns the version of the connected PostgreSQL server.
       def get_database_version # :nodoc:
         with_raw_connection do |conn|
-          conn.server_version
+          version = conn.server_version
+          if version == 0
+            raise ActiveRecord::ConnectionNotEstablished, "Could not determine PostgreSQL version"
+          end
+          version
         end
       end
       alias :postgresql_version :database_version
@@ -785,6 +806,8 @@ module ActiveRecord
         NOT_NULL_VIOLATION    = "23502"
         FOREIGN_KEY_VIOLATION = "23503"
         UNIQUE_VIOLATION      = "23505"
+        CHECK_VIOLATION       = "23514"
+        EXCLUSION_VIOLATION   = "23P01"
         SERIALIZATION_FAILURE = "40001"
         DEADLOCK_DETECTED     = "40P01"
         DUPLICATE_DATABASE    = "42P04"
@@ -796,7 +819,7 @@ module ActiveRecord
 
           case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
           when nil
-            if exception.message.match?(/connection is closed/i)
+            if exception.message.match?(/connection is closed/i) || exception.message.match?(/no connection to the server/i)
               ConnectionNotEstablished.new(exception, connection_pool: @pool)
             elsif exception.is_a?(PG::ConnectionBad)
               # libpq message style always ends with a newline; the pg gem's internal
@@ -816,6 +839,10 @@ module ActiveRecord
             RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when FOREIGN_KEY_VIOLATION
             InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          when CHECK_VIOLATION
+            CheckViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          when EXCLUSION_VIOLATION
+            ExclusionViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when VALUE_LIMIT_VIOLATION
             ValueTooLong.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when NUMERIC_VALUE_OUT_OF_RANGE
@@ -1000,9 +1027,11 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection
           # to return TIMESTAMP WITH ZONE types in UTC.
           if default_timezone == :utc
-            raw_execute("SET SESSION timezone TO 'UTC'", "SCHEMA")
+            intent = QueryIntent.new(processed_sql: "SET SESSION timezone TO 'UTC'", name: "SCHEMA")
+            raw_execute(intent)
           else
-            raw_execute("SET SESSION timezone TO DEFAULT", "SCHEMA")
+            intent = QueryIntent.new(processed_sql: "SET SESSION timezone TO DEFAULT", name: "SCHEMA")
+            raw_execute(intent)
           end
         end
 

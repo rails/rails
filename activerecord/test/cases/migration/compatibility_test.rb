@@ -664,6 +664,80 @@ module ActiveRecord
         end
       end
 
+      def test_remove_foreign_key_on_8_1
+        connection.create_table(:sub_testings) do |t|
+          t.references :testing, foreign_key: true, type: :bigint
+          t.references :experiment, foreign_key: { to_table: :testings }, type: :bigint
+        end
+
+        migration = Class.new(ActiveRecord::Migration[8.1]) do
+          def up
+            change_table(:sub_testings) do |t|
+              t.remove_foreign_key :testings
+              t.remove_foreign_key :testings, column: :experiment_id
+            end
+          end
+        end
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+
+        foreign_keys = @connection.foreign_keys("sub_testings")
+        assert_equal 0, foreign_keys.size
+      ensure
+        connection.drop_table(:sub_testings, if_exists: true)
+        ActiveRecord::Base.clear_cache!
+      end
+
+      def test_remove_foreign_key_on_8_0
+        connection.create_table(:sub_testings) do |t|
+          t.references :testing, foreign_key: true, type: :bigint
+          t.references :experiment, foreign_key: { to_table: :testings }, type: :bigint
+        end
+
+        migration = Class.new(ActiveRecord::Migration[8.0]) do
+          def up
+            change_table(:sub_testings) do |t|
+              t.remove_foreign_key :testings
+              t.remove_foreign_key :testings, column: :experiment_id
+            end
+          end
+        end
+
+        assert_raise(StandardError, match: /Table 'sub_testings' has no foreign key for testings$/) {
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        }
+
+        foreign_keys = @connection.foreign_keys("sub_testings")
+        if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
+          assert_equal 2, foreign_keys.size
+        else
+          assert_equal 1, foreign_keys.size
+        end
+      ensure
+        connection.drop_table(:sub_testings, if_exists: true)
+        ActiveRecord::Base.clear_cache!
+      end
+
+      def test_remove_foreign_key_on_7_0
+        connection.create_table(:sub_testings) do |t|
+          t.references :testing, foreign_key: true, type: :bigint
+        end
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) do
+          def up
+            remove_foreign_key :sub_testings, column: "testing_id"
+          end
+        end
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+
+        foreign_keys = @connection.foreign_keys("sub_testings")
+        assert_equal 0, foreign_keys.size
+      ensure
+        connection.drop_table(:sub_testings, if_exists: true)
+        ActiveRecord::Base.clear_cache!
+      end
+
       private
         def precision_implicit_default
           if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)

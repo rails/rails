@@ -54,7 +54,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
             :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors,
             :pirates, :mateys, :sharded_blogs, :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags,
-            :sharded_tags
+            :sharded_tags, :cpk_orders, :cpk_order_agreements
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
     member = Member.all.merge!(includes: :favorite_club).find(members(:some_other_guy).id)
@@ -1026,11 +1026,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_multiple_associations_with_same_table_has_many_and_habtm
-    # Eager includes of has many and habtm associations aren't necessarily sorted in the same way
-    def assert_equal_after_sort(item1, item2, item3 = nil)
-      assert_equal(item1.sort { |a, b| a.id <=> b.id }, item2.sort { |a, b| a.id <=> b.id })
-      assert_equal(item3.sort { |a, b| a.id <=> b.id }, item2.sort { |a, b| a.id <=> b.id }) if item3
-    end
     # Test regular association, association with conditions, association with
     # STI, and association with conditions assured not to be true
     post_types = [:posts, :other_posts, :special_posts]
@@ -1141,39 +1136,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_association_loading_notification
-    notifications = messages_for("instantiation.active_record") do
+    notification = assert_notification("instantiation.active_record", class_name: Developer.name) do
       Developer.all.merge!(includes: "projects", where: { "developers_projects.access_level" => 1 }, limit: 5).to_a.size
     end
 
-    message = notifications.first
-    payload = message.last
     count = Developer.all.merge!(includes: "projects", where: { "developers_projects.access_level" => 1 }, limit: 5).to_a.size
 
     # eagerloaded row count should be greater than just developer count
-    assert_operator payload[:record_count], :>, count
-    assert_equal Developer.name, payload[:class_name]
+    assert_operator notification.payload[:record_count], :>, count
   end
 
   def test_base_messages
-    notifications = messages_for("instantiation.active_record") do
-      Developer.all.to_a
-    end
-    message = notifications.first
-    payload = message.last
-
-    assert_equal Developer.all.to_a.count, payload[:record_count]
-    assert_equal Developer.name, payload[:class_name]
-  end
-
-  def messages_for(name)
-    notifications = []
-    ActiveSupport::Notifications.subscribe(name) do |*args|
-      notifications << args
-    end
-    yield
-    notifications
-  ensure
-    ActiveSupport::Notifications.unsubscribe(name)
+    expected_payload = { record_count: Developer.all.to_a.count, class_name: Developer.name }
+    assert_notification("instantiation.active_record", expected_payload) { Developer.all.to_a }
   end
 
   def test_load_with_sti_sharing_association
@@ -1755,9 +1730,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   test "preloading has_many with cpk" do
-    order = Cpk::Order.create!(shop_id: 2)
-    order_agreement = Cpk::OrderAgreement.create!(order: order)
-    assert_equal [order_agreement], Cpk::Order.eager_load(:order_agreements).find_by(id: order.id).order_agreements
+    order_1 = Cpk::Order.create!(shop_id: 200)
+    order_2 = Cpk::Order.create!(shop_id: 300)
+    agreement_1 = order_1.order_agreements.create!(signature: "A")
+    agreement_2 = order_1.order_agreements.create!(signature: "Z")
+    agreement_3 = order_2.order_agreements.create!(signature: "A")
+    agreement_4 = order_2.order_agreements.create!(signature: "Z")
+
+    relation = Cpk::Order.where(shop_id: [200, 300]).eager_load(:order_agreements)
+    results = relation.to_a.sort_by(&:shop_id)
+
+    assert_equal [order_1, order_2], results
+    assert_equal [agreement_1, agreement_2], results.first.order_agreements.sort_by(&:signature)
+    assert_equal [agreement_3, agreement_4], results.last.order_agreements.sort_by(&:signature)
   end
 
   test "preloading has_one with cpk" do
@@ -1769,5 +1754,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
   private
     def find_all_ordered(klass, include = nil)
       klass.order("#{klass.table_name}.#{klass.primary_key}").includes(include).to_a
+    end
+
+    # Eager includes of has many and habtm associations aren't necessarily sorted in the same way
+    def assert_equal_after_sort(item1, item2, item3 = nil)
+      assert_equal(item1.sort { |a, b| a.id <=> b.id }, item2.sort { |a, b| a.id <=> b.id })
+      assert_equal(item3.sort { |a, b| a.id <=> b.id }, item2.sort { |a, b| a.id <=> b.id }) if item3
     end
 end

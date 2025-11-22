@@ -60,7 +60,7 @@ module RenderTestCases
 
   def test_explicit_js_format_adds_html_fallback
     rendered_templates = @controller_view.render(template: "test/js_html_fallback", formats: :js)
-    assert_equal(%Q(document.write("<b>Hello from a HTML partial!<\\/b>")\n), rendered_templates)
+    assert_equal(%Q(document.write("<b>Hello from an HTML partial!<\\/b>")\n), rendered_templates)
   end
 
   def test_render_without_options
@@ -209,6 +209,12 @@ module RenderTestCases
     end
   end
 
+  def test_render_template_with_syntax_error
+    e = assert_raises(ActionView::Template::Error) { silence_warnings { @view.render(template: "test/syntax_error") } }
+    assert_match %r!syntax!, e.message
+    assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
+  end
+
   def test_render_runtime_error
     ex = assert_raises(ActionView::Template::Error) {
       @view.render(template: "test/runtime_error")
@@ -346,12 +352,6 @@ module RenderTestCases
       "and is followed by any combination of letters, numbers and underscores.", e.message
   end
 
-  def test_render_template_with_syntax_error
-    e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/syntax_error") }
-    assert_match %r!syntax!, e.message
-    assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
-  end
-
   def test_render_partial_with_errors
     e = assert_raises(ActionView::Template::Error) { @view.render(partial: "test/raise") }
     assert_match %r!method.*doesnt_exist!, e.message
@@ -428,6 +428,11 @@ module RenderTestCases
   def test_render_partial_collection_without_as
     assert_equal "local_inspector,local_inspector_counter,local_inspector_iteration",
       @view.render(partial: "test/local_inspector", collection: [ Customer.new("mary") ])
+  end
+
+  def test_render_partial_collection_with_block
+    assert_equal "Before\narg2,arg1\nAfterBefore\narg2,arg1\nAfter",
+      @view.render(layout: "test/layout_for_block_with_args", collection: [ Customer.new, Customer.new ], as: :customer) { |a, b| "#{b},#{a}" }
   end
 
   def test_render_partial_collection_with_different_partials_still_provides_partial_iteration
@@ -910,6 +915,17 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     assert_nil ActionView::PartialRenderer.collection_cache.read(key)
     @view.render(partial: "test/customer", collection: [customer], cached: true)
     assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
+  end
+
+  test "template body written to cache with expiration when expires_in set" do
+    customer = Customer.new("jarrett", 2)
+    key = cache_key(customer, "test/_customer")
+    @view.render(partial: "test/customer", collection: [customer], cached: { expires_in: 1.hour })
+    assert_equal "Hello: jarrett", ActionView::PartialRenderer.collection_cache.read(key)
+
+    travel 2.hours
+
+    assert_nil ActionView::PartialRenderer.collection_cache.read(key)
   end
 
   test "collection caching does not cache by default" do

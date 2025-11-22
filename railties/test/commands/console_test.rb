@@ -46,6 +46,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
     assert_predicate app.console, :started?
     assert_match(/Loading \w+ environment \(Rails/, output)
+    assert_match(/Type 'help' for help/, output)
   end
 
   def test_start_with_sandbox
@@ -54,6 +55,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_predicate app.console, :started?
     assert app.sandbox
     assert_match(/Loading \w+ environment in sandbox \(Rails/, output)
+    assert_match(/Type 'help' for help/, output)
   end
 
   def test_console_with_environment
@@ -71,6 +73,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     irb_console = Rails::Console.new(app).console
     red = "\e[31m"
     blue = "\e[34m"
+    magenta = "\e[35m"
     clear = "\e[0m"
 
     Rails.env = "development"
@@ -83,7 +86,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_equal("#{red}prod#{clear}", irb_console.colorized_env)
 
     Rails.env = "custom_env"
-    assert_equal("custom_env", irb_console.colorized_env)
+    assert_equal("#{magenta}custom_env#{clear}", irb_console.colorized_env)
   end
 
   def test_default_environment_with_no_rails_env
@@ -167,7 +170,6 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
         end
 
         def load_console
-          require "rails/console/methods"
         end
       end
       mocked_app.new(console)

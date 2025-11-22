@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Active Record Basics
 ====================
@@ -205,6 +205,8 @@ SQL. A migration for the `books` table above can be generated like this:
 $ bin/rails generate migration CreateBooks title:string author:string
 ```
 
+NOTE: If you don't specify a type for a field (e.g., `title` instead of `title:string`), Rails will default to type `string`.
+
 and results in this:
 
 ```ruby
@@ -213,7 +215,7 @@ and results in this:
 # Columns `created_at` and `updated_at` are added by `t.timestamps`.
 
 # db/migrate/20240220143807_create_books.rb
-class CreateBooks < ActiveRecord::Migration[8.0]
+class CreateBooks < ActiveRecord::Migration[8.2]
   def change
     create_table :books do |t|
       t.string :title
@@ -425,9 +427,7 @@ book.id # => 107
 # Now the `book` record is committed to the database and has an `id`.
 ```
 
-Finally, if a block is provided, both `create` and `new` will yield the new
-object to that block for initialization, while only `create` will persist the
-resulting object to the database:
+If a block is provided, both `create` and `new` will yield the new object to that block for initialization, while only `create` will persist the resulting object to the database:
 
 ```ruby
 book = Book.new do |b|
@@ -445,6 +445,14 @@ something like this:
 /* Note that `created_at` and `updated_at` are automatically set. */
 
 INSERT INTO "books" ("title", "author", "created_at", "updated_at") VALUES (?, ?, ?, ?) RETURNING "id"  [["title", "Metaprogramming Ruby 2"], ["author", "Paolo Perrotta"], ["created_at", "2024-02-22 20:01:18.469952"], ["updated_at", "2024-02-22 20:01:18.469952"]]
+```
+
+Finally, if you'd like to insert several records **without callbacks or
+validations**, you can directly insert records into the database using `insert` or `insert_all` methods:
+
+```ruby
+Book.insert(title: "The Lord of the Rings", author: "J.R.R. Tolkien")
+Book.insert_all([{ title: "The Lord of the Rings", author: "J.R.R. Tolkien" }])
 ```
 
 ### Read
@@ -501,7 +509,7 @@ SELECT "books".* FROM "books" WHERE "books"."id" = ? LIMIT ?  [["id", 42], ["LIM
 ```
 
 ```ruby
-# Find all books with a given an author, sort by created_at in reverse chronological order.
+# Find all books by a given author, sort by created_at in reverse chronological order.
 Book.where(author: "Douglas Adams").order(created_at: :desc)
 ```
 
@@ -576,6 +584,14 @@ Book.destroy_by(author: "Douglas Adams")
 
 # Delete all books.
 Book.destroy_all
+```
+
+Additionally, if you'd like to delete several records **without callbacks or
+validations**, you can delete records directly from the database using `delete` and `delete_all` methods:
+
+```ruby
+Book.find_by(title: "The Lord of the Rings").delete
+Book.delete_all
 ```
 
 Validations
@@ -659,7 +675,7 @@ files which are executed against any database that Active Record supports.
 Here's a migration that creates a new table called `publications`:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration[8.0]
+class CreatePublications < ActiveRecord::Migration[8.2]
   def change
     create_table :publications do |t|
       t.string :title

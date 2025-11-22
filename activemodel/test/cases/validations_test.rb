@@ -101,6 +101,22 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 2, r.errors.count
   end
 
+  def test_errors_on_custom_attribute
+    r = Reply.new
+
+    r.errors.add(:foo_bar, "is invalid")
+
+    assert_equal ["Foo bar is invalid"], r.errors.full_messages
+  end
+
+  def test_errors_on_custom_attribute_with_symbol_message
+    r = Reply.new
+
+    r.errors.add(:foo_bar, :invalid)
+
+    assert_equal ["Foo bar is invalid"], r.errors.full_messages
+  end
+
   def test_errors_empty_after_errors_on_check
     t = Topic.new
     assert_empty t.errors[:id]
@@ -252,7 +268,7 @@ class ValidationsTest < ActiveModel::TestCase
 
     # If block should not fire
     assert_predicate t, :valid?
-    assert_predicate t.author_name, :nil?
+    assert_nil t.author_name
 
     # If block should fire
     assert t.invalid?(:update)

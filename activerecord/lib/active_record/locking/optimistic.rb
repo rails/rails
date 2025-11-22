@@ -101,6 +101,13 @@ module ActiveRecord
             attribute_names = attribute_names.dup if attribute_names.frozen?
             attribute_names << locking_column
 
+            if self[locking_column].nil?
+              raise(<<-MSG.squish)
+                For optimistic locking, locking_column ('#{locking_column}') can't be nil.
+                Are you missing a default value or validation on '#{locking_column}'?
+              MSG
+            end
+
             self[locking_column] += 1
 
             affected_rows = self.class._update_record(
@@ -203,7 +210,7 @@ module ActiveRecord
     # In de/serialize we change `nil` to 0, so that we can allow passing
     # `nil` values to `lock_version`, and not result in `ActiveRecord::StaleObjectError`
     # during update record.
-    class LockingType < DelegateClass(Type::Value) # :nodoc:
+    class LockingType < ActiveSupport::Delegation::DelegateClass(Type::Value) # :nodoc:
       def self.new(subtype)
         self === subtype ? subtype : super
       end

@@ -253,10 +253,18 @@ class RangeTest < ActiveSupport::TestCase
     end
   end
 
-  def test_step_on_time_with_zone
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
-    assert_raises TypeError do
-      ((twz - 1.hour)..twz).step(1) { }
+  if RUBY_VERSION < "3.4"
+    def test_step_on_time_with_zone
+      twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
+      assert_raises TypeError do
+        ((twz - 1.hour)..twz).step(1) { }
+      end
+    end
+  else
+    def test_step_on_time_with_zone
+      twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
+
+      assert_equal [twz, twz + 15.minutes, twz + 30.minutes], (twz..).step(15.minutes).first(3)
     end
   end
 
@@ -278,5 +286,17 @@ class RangeTest < ActiveSupport::TestCase
   def test_date_time_with_step
     datetime = DateTime.now
     assert(((datetime - 1.hour)..datetime).step(1) { })
+  end
+
+  def test_sole
+    assert_equal 1, (1..1).sole
+
+    assert_raises(Enumerable::SoleItemExpectedError, match: "no item found") do
+      (2..1).sole
+    end
+
+    assert_raises(Enumerable::SoleItemExpectedError, match: "infinite range '..1' cannot represent a sole item") do
+      (..1).sole
+    end
   end
 end

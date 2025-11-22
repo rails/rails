@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Action Cable Overview
 =====================
@@ -136,7 +136,7 @@ session, your session cookie is named `_session` and the user ID key is `user_id
 can use this approach:
 
 ```ruby
-verified_user = User.find_by(id: cookies.encrypted['_session']['user_id'])
+verified_user = User.find_by(id: cookies.encrypted["_session"]["user_id"])
 ```
 
 [`ActionCable::Connection::Base`]: https://api.rubyonrails.org/classes/ActionCable/Connection/Base.html
@@ -238,7 +238,7 @@ specific channel to handle raised exceptions:
 ```ruby
 # app/channels/chat_channel.rb
 class ChatChannel < ApplicationCable::Channel
-  rescue_from 'MyError', with: :deliver_error_message
+  rescue_from "MyError", with: :deliver_error_message
 
   private
     def deliver_error_message(e)
@@ -479,8 +479,8 @@ consumer.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
 ActionCable.server.broadcast(
   "chat_#{room}",
   {
-    sent_by: 'Paul',
-    body: 'This is a cool chat app.'
+    sent_by: "Paul",
+    body: "This is a cool chat app."
   }
 )
 ```
@@ -548,7 +548,7 @@ class AppearanceChannel < ApplicationCable::Channel
   end
 
   def appear(data)
-    current_user.appear(on: data['appearing_on'])
+    current_user.appear(on: data["appearing_on"])
   end
 
   def away
@@ -697,8 +697,8 @@ application:
 # Somewhere in your app this is called, perhaps from a NewCommentJob
 WebNotificationsChannel.broadcast_to(
   current_user,
-  title: 'New things!',
-  body: 'All the news fit to print'
+  title: "New things!",
+  body: "All the news fit to print"
 )
 ```
 
@@ -749,6 +749,12 @@ Below is a list of the subscription adapters available for end-users.
 
 The async adapter is intended for development/testing and should not be used in production.
 
+NOTE: The async adapter only works within the same process, so for manually triggering cable updates from a console and seeing results in the browser, you must do so from the web console (running inside the dev process), not a terminal started via `bin/rails console`! Add `console` to any action or any ERB template view to make the web console appear.
+
+##### Solid Cable Adapter
+
+The Solid Cable adapter is a database-backed solution that uses Active Record. It has been tested with MySQL, SQLite, and PostgreSQL. Running `bin/rails solid_cable:install` will automatically set up `config/cable.yml` and create `db/cable_schema.rb`. After that, you must manually update `config/database.yml`, adjusting it based on your database. See [Solid Cable Installation](https://github.com/rails/solid_cable?tab=readme-ov-file#installation).
+
 ##### Redis Adapter
 
 The Redis adapter requires users to provide a URL pointing to the Redis server.
@@ -788,7 +794,7 @@ passed to the server config as an array. The origins can be instances of
 strings or regular expressions, against which a check for the match will be performed.
 
 ```ruby
-config.action_cable.allowed_request_origins = ['https://rubyonrails.com', %r{http://ruby.*}]
+config.action_cable.allowed_request_origins = ["https://rubyonrails.com", %r{http://ruby.*}]
 ```
 
 To disable and allow requests from any origin:
@@ -842,7 +848,7 @@ the user account id if available, else "no-account" while tagging:
 
 ```ruby
 config.action_cable.log_tags = [
-  -> request { request.env['user_account_id'] || "no-account" },
+  -> request { request.env["user_account_id"] || "no-account" },
   :action_cable,
   -> request { request.uuid }
 ]
@@ -866,7 +872,7 @@ listen for WebSocket requests on `/websocket`, specify that path to
 ```ruby
 # config/application.rb
 class Application < Rails::Application
-  config.action_cable.mount_path = '/websocket'
+  config.action_cable.mount_path = "/websocket"
 end
 ```
 

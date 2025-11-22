@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
 require "models/developer"
 require "models/computer"
 require "models/project"
@@ -33,6 +34,7 @@ require "models/vertex"
 require "models/publisher"
 require "models/publisher/article"
 require "models/publisher/magazine"
+require "models/dats"
 require "active_support/core_ext/string/conversions"
 
 class ProjectWithAfterCreateHook < ActiveRecord::Base
@@ -993,5 +995,62 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_has_and_belongs_to_many_with_belongs_to
     sink = Sink.create! kitchen: Kitchen.new, sources: [Source.new]
     assert_equal 1, sink.sources.count
+  end
+end
+
+class DeprecatedHasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :categories
+
+  setup do
+    @model = DATS::Category
+    @category = @model.first
+  end
+
+  test "<association>" do
+    assert_not_deprecated_association(:posts) do
+      @category.posts
+    end
+
+    assert_deprecated_association(:deprecated_posts, context: context_for_method(:deprecated_posts)) do
+      assert_equal @category.posts.order(:id), @category.deprecated_posts.order(:id)
+    end
+  end
+
+  test "<association>=" do
+    post = DATS::Post.new(title: "Title", body: "Body")
+
+    assert_not_deprecated_association(:posts) do
+      @category.posts = [post]
+    end
+
+    assert_deprecated_association(:deprecated_posts, context: context_for_method(:deprecated_posts=)) do
+      @category.deprecated_posts = [post]
+    end
+    assert_equal [post], @category.deprecated_posts
+  end
+
+  test "<singular_association>_ids" do
+    assert_not_deprecated_association(:posts) do
+      @category.post_ids
+    end
+
+    assert_deprecated_association(:deprecated_posts, context: context_for_method(:deprecated_post_ids)) do
+      assert_equal @category.post_ids, @category.deprecated_post_ids
+    end
+  end
+
+  test "<singular_association>_ids=" do
+    post = DATS::Post.create!(title: "Title", body: "Body")
+
+    assert_not_deprecated_association(:posts) do
+      @category.post_ids = [post.id]
+    end
+
+    assert_deprecated_association(:deprecated_posts, context: context_for_method(:deprecated_post_ids=)) do
+      @category.deprecated_post_ids = [post.id]
+    end
+    assert_equal [post.id], @category.deprecated_post_ids
   end
 end

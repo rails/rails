@@ -20,6 +20,10 @@ module ActionView # :nodoc:
       def render(*args)
         ::File.read(@filename)
       end
+
+      def supports_streaming?
+        false
+      end
     end
   end
 end

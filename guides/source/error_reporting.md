@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Error Reporting in Rails Applications
 ========================
@@ -45,6 +45,14 @@ requests,
 [jobs](active_job_basics.html), and [rails runner](command_line.html#bin-rails-runner) invocations) in the error reporter,
 so any unhandled errors raised in your app will automatically be reported to
 your error-reporting service via their subscribers.
+
+Rails automatically injects 2 keys into context of a report:
+
+* `:controller` - which value is an instance of controller for request based reports
+* `:job` - which value is an instance of job for Active Job based reports
+
+NOTE: For HTTP requests, errors present in `ActionDispatch::ExceptionWrapper.rescue_responses`
+are not reported as they do not result in server errors (500) and generally aren't bugs that need to be addressed.
 
 This means that third-party error-reporting libraries no longer need to insert a
 [Rack](rails_on_rack.html) middleware or do any monkey-patching to capture
@@ -126,7 +134,7 @@ the error, and the rest of your code outside the block will continue as normal.
 
 ```ruby
 result = Rails.error.handle do
-  1 + '1' # raises TypeError
+  1 + "1" # raises TypeError
 end
 result # => nil
 1 + 1 # This will be executed
@@ -151,7 +159,7 @@ the error, meaning that the rest of your code won't execute.
 
 ```ruby
 Rails.error.record do
-  1 + '1' # raises TypeError
+  1 + "1" # raises TypeError
 end
 1 + 1 # This won't be executed
 ```
@@ -182,7 +190,7 @@ You can report any unexpected error by calling
 When called in production, this method will return nil after the error is
 reported and the execution of your code will continue.
 
-When called in development, the error will be wrapped in a new error class (to
+When called in development or test, the error will be wrapped in a new error class (to
 ensure it's not being rescued higher in the stack) and surfaced to the developer
 for debugging.
 
@@ -252,7 +260,7 @@ report errors of certain classes. For example:
 
 ```ruby
 Rails.error.handle(IOError) do
-  1 + '1' # raises TypeError
+  1 + "1" # raises TypeError
 end
 1 + 1 # TypeErrors are not IOErrors, so this will *not* be executed
 ```
@@ -271,7 +279,7 @@ subscriber itself, or its class.
 
 ```ruby
 Rails.error.disable(ErrorSubscriber) do
-  1 + '1' # TypeError will not be reported via the ErrorSubscriber
+  1 + "1" # TypeError will not be reported via the ErrorSubscriber
 end
 ```
 

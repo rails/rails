@@ -6,6 +6,7 @@ require "models/admin"
 require "models/admin/account"
 require "models/admin/randomly_named_c1"
 require "models/admin/user"
+require "models/aircraft"
 require "models/author"
 require "models/binary"
 require "models/book"
@@ -112,8 +113,6 @@ class FixturesTest < ActiveRecord::TestCase
     end
 
     def test_bulk_insert_with_a_multi_statement_query_raises_an_exception_when_any_insert_fails
-      require "models/aircraft"
-
       assert_equal false, Aircraft.columns_hash["wheels_count"].null
       fixtures = {
         "aircraft" => [
@@ -476,6 +475,20 @@ class FixturesTest < ActiveRecord::TestCase
     create_fixtures("tasks")
     first = Task.find(1)
     assert first
+  end
+
+  def test_insert_with_default_function
+    create_fixtures("aircrafts")
+
+    aircraft = Aircraft.find_by(name: "boeing-with-no-manufactured-at")
+    assert_in_delta Time.now, aircraft.manufactured_at, 1.1
+  end
+
+  def test_insert_with_default_value
+    create_fixtures("aircrafts")
+
+    aircraft = Aircraft.find_by(name: "boeing-with-no-wheels")
+    assert_equal 0, aircraft.wheels_count
   end
 
   def test_logger_level_invariant
@@ -1080,12 +1093,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     pool = connection.pool = Class.new do
+      attr_accessor :db_config
+
       def initialize(connection); @connection = connection; end
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
       def unpin_connection!; @connection.rollback_transaction; true; end
     end.new(connection)
+
+    connection.pool.db_config = Class.new do
+      attr_accessor :name
+      def initialize(name); @name = name; end
+    end.new("database_name")
 
     assert_called_with(pool, :pin_connection!, [true]) do
       fire_connection_notification(connection.pool)
@@ -1107,12 +1127,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     connection.pool = Class.new do
+      attr_accessor :db_config
+
       def initialize(connection); @connection = connection; end
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
       def unpin_connection!; @connection.rollback_transaction; true; end
     end.new(connection)
+
+    connection.pool.db_config = Class.new do
+      attr_accessor :name
+      def initialize(name); @name = name; end
+    end.new("database_name")
 
     fire_connection_notification(connection.pool)
     teardown_fixtures
@@ -1131,12 +1158,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     connection.pool = Class.new do
+      attr_accessor :db_config
+
       def initialize(connection); @connection = connection; end
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
       def unpin_connection!; @connection.rollback_transaction; true; end
     end.new(connection)
+
+    connection.pool.db_config = Class.new do
+      attr_accessor :name
+      def initialize(name); @name = name; end
+    end.new("database_name")
 
     assert_called_with(connection.pool, :pin_connection!, [true]) do
       fire_connection_notification(connection.pool, shard: :shard_two)
@@ -1433,7 +1467,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
 
   def test_only_generates_a_pk_if_necessary
     assert_nothing_raised do
-      m = Matey.first
+      m = Matey.take
       m.pirate = pirates(:blackbeard)
       m.target = pirates(:redbeard)
     end
@@ -1743,7 +1777,15 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
   end
 
   class CompositePkFixturesTest < ActiveRecord::TestCase
-    fixtures :cpk_orders, :cpk_books, :cpk_authors, :cpk_reviews, :cpk_order_agreements
+    fixtures :cpk_orders, :cpk_books, :cpk_posts, :cpk_tags, :cpk_authors, :cpk_reviews, :cpk_order_agreements
+
+    def test_supports_inline_habtm
+      assert_includes cpk_posts(:welcome).tags, cpk_tags(:cpk_tag_ruby_on_rails)
+      assert_includes cpk_posts(:welcome).tags, cpk_tags(:cpk_tag_digital_product)
+      assert_not_includes cpk_posts(:welcome).tags, cpk_tags(:cpk_tag_loyal_customer)
+
+      assert_equal [cpk_tags(:cpk_tag_digital_product)], cpk_posts(:thinking).tags
+    end
 
     def test_generates_composite_primary_key_for_partially_filled_fixtures
       alice = cpk_authors(:cpk_great_author)

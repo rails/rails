@@ -9,25 +9,40 @@ module ActiveRecord
     # shard to switch to and allows for applications to write custom strategies
     # for swapping if needed.
     #
-    # The ShardSelector takes a set of options (currently only +lock+ is supported)
-    # that can be used by the middleware to alter behavior. +lock+ is
-    # true by default and will prohibit the request from switching shards once
-    # inside the block. If +lock+ is false, then shard swapping will be allowed.
-    # For tenant based sharding, +lock+ should always be true to prevent application
-    # code from mistakenly switching between tenants.
+    # == Setup
     #
-    # Options can be set in the config:
+    # Applications must provide a resolver that will provide application-specific logic for
+    # selecting the appropriate shard. Setting +config.active_record.shard_resolver+ will cause
+    # Rails to add ShardSelector to the default middleware stack.
     #
-    #   config.active_record.shard_selector = { lock: true }
+    # The resolver, along with any configuration options, can be set in the application
+    # configuration using an initializer like so:
     #
-    # Applications must also provide the code for the resolver as it depends on application
-    # specific models. An example resolver would look like this:
+    #   Rails.application.configure do
+    #     config.active_record.shard_selector = { lock: false, class_name: "AnimalsRecord" }
+    #     config.active_record.shard_resolver = ->(request) {
+    #       subdomain = request.subdomain
+    #       tenant = Tenant.find_by_subdomain!(subdomain)
+    #       tenant.shard
+    #     }
+    #   end
     #
-    #   config.active_record.shard_resolver = ->(request) {
-    #     subdomain = request.subdomain
-    #     tenant = Tenant.find_by_subdomain!(subdomain)
-    #     tenant.shard
-    #   }
+    # == Configuration
+    #
+    # The behavior of ShardSelector can be altered through some configuration options.
+    #
+    # [+lock:+]
+    #   +lock+ is true by default and will prohibit the request from switching shards once inside
+    #   the block. If +lock+ is false, then shard switching will be allowed. For tenant based
+    #   sharding, +lock+ should always be true to prevent application code from mistakenly switching
+    #   between tenants.
+    #
+    # [+class_name:+]
+    #   +class_name+ is the name of the abstract connection class to switch. By
+    #   default, the ShardSelector will use ActiveRecord::Base, but if the
+    #   application has multiple databases, then this option should be set to
+    #   the name of the sharded database's abstract connection class.
+    #
     class ShardSelector
       def initialize(app, resolver, options = {})
         @app = app
@@ -53,8 +68,10 @@ module ActiveRecord
         end
 
         def set_shard(shard, &block)
-          ActiveRecord::Base.connected_to(shard: shard.to_sym) do
-            ActiveRecord::Base.prohibit_shard_swapping(options.fetch(:lock, true), &block)
+          klass = options[:class_name]&.constantize || ActiveRecord::Base
+
+          klass.connected_to(shard: shard.to_sym) do
+            klass.prohibit_shard_swapping(options.fetch(:lock, true), &block)
           end
         end
     end

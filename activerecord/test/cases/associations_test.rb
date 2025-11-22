@@ -59,6 +59,10 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal 1, liquids[0].molecules.length
   end
 
+  def test_allocated_record_can_see_assocations
+    assert_not_nil Ship.allocate.association(:parts)
+  end
+
   def test_subselect
     author = authors :david
     favs = author.author_favorites
@@ -464,21 +468,21 @@ class AssociationsTest < ActiveRecord::TestCase
 
   def test_using_query_constraints_warns_about_changing_behavior
     has_many_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Sharded::BlogPost.has_many :qc_deprecated_comments` is deprecated.
-      To maintain current behavior, use the `foreign_key` option instead.
+      Setting `query_constraints:` option on `Sharded::BlogPost.has_many :qc_deprecated_comments` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
     MSG
 
-    assert_deprecated(has_many_expected_message, ActiveRecord.deprecator) do
+    assert_raises(ActiveRecord::ConfigurationError, match: has_many_expected_message) do
       Sharded::BlogPost.has_many :qc_deprecated_comments,
         class_name: "Sharded::Comment", query_constraints: [:blog_id, :blog_post_id]
     end
 
     belongs_to_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Sharded::Comment.belongs_to :qc_deprecated_blog_post` is deprecated.
-      To maintain current behavior, use the `foreign_key` option instead.
+      Setting `query_constraints:` option on `Sharded::Comment.belongs_to :qc_deprecated_blog_post` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
     MSG
 
-    assert_deprecated(belongs_to_expected_message, ActiveRecord.deprecator) do
+    assert_raises(ActiveRecord::ConfigurationError, match: belongs_to_expected_message) do
       Sharded::Comment.belongs_to :qc_deprecated_blog_post,
         class_name: "Sharded::Blog", query_constraints: [:blog_id, :blog_post_id]
     end

@@ -193,23 +193,22 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   end
 
   test "instruments the execution of middlewares" do
-    events = []
+    notification_name = "process_middleware.action_dispatch"
 
-    subscriber = proc { |event| events << event }
+    assert_notifications_count(notification_name, 2) do
+      assert_notification(notification_name, { middleware: "MiddlewareStackTest::BarMiddleware" }) do
+        assert_notification(notification_name, { middleware: "MiddlewareStackTest::FooMiddleware" }) do
+          app = Rack::Lint.new(
+            @stack.build(Rack::Lint.new(proc { |env| [200, {}, []] }))
+          )
 
-    ActiveSupport::Notifications.subscribed(subscriber, "process_middleware.action_dispatch") do
-      app = Rack::Lint.new(
-        @stack.build(Rack::Lint.new(proc { |env| [200, {}, []] }))
-      )
-
-      env = Rack::MockRequest.env_for("", {})
-      assert_nothing_raised do
-        app.call(env)
+          env = Rack::MockRequest.env_for("", {})
+          assert_nothing_raised do
+            app.call(env)
+          end
+        end
       end
     end
-
-    assert_equal 2, events.count
-    assert_equal ["MiddlewareStackTest::BarMiddleware", "MiddlewareStackTest::FooMiddleware"], events.map { |e| e.payload[:middleware] }
   end
 
   test "includes a middleware" do

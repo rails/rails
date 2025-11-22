@@ -198,7 +198,7 @@ module ActiveRecord
       end
 
       def join_scope(table, foreign_table, foreign_klass)
-        predicate_builder = PredicateBuilder.new(TableMetadata.new(klass, table))
+        predicate_builder = klass.predicate_builder.with(TableMetadata.new(klass, table))
         scope_chain_items = join_scopes(table, predicate_builder)
         klass_scope       = klass_join_scope(table, predicate_builder)
 
@@ -425,7 +425,11 @@ module ActiveRecord
 
       def _klass(class_name) # :nodoc:
         if active_record.name.demodulize == class_name
-          return compute_class("::#{class_name}") rescue NameError
+          begin
+            return compute_class("::#{class_name}")
+          rescue
+            # Ignored
+          end
         end
 
         compute_class(class_name)
@@ -516,6 +520,8 @@ module ActiveRecord
 
       def initialize(name, scope, options, active_record)
         super
+
+        @validated = false
         @type = -(options[:foreign_type]&.to_s || "#{options[:as]}_type") if options[:as]
         @foreign_type = -(options[:foreign_type]&.to_s || "#{name}_type") if options[:polymorphic]
         @join_table = nil
@@ -523,9 +529,9 @@ module ActiveRecord
         @association_foreign_key = nil
         @association_primary_key = nil
         if options[:query_constraints]
-          ActiveRecord.deprecator.warn <<~MSG.squish
-            Setting `query_constraints:` option on `#{active_record}.#{macro} :#{name}` is deprecated.
-            To maintain current behavior, use the `foreign_key` option instead.
+          raise ConfigurationError, <<~MSG.squish
+            Setting `query_constraints:` option on `#{active_record}.#{macro} :#{name}` is not allowed.
+            To get the same behavior, use the `foreign_key` option instead.
           MSG
         end
 
@@ -533,6 +539,8 @@ module ActiveRecord
         if options[:foreign_key].is_a?(Array)
           options[:query_constraints] = options.delete(:foreign_key)
         end
+
+        @deprecated = !!options[:deprecated]
 
         ensure_option_not_given_as_class!(:class_name)
       end
@@ -616,6 +624,8 @@ module ActiveRecord
       end
 
       def check_validity!
+        return if @validated
+
         check_validity_of_inverse!
 
         if !polymorphic? && (klass.composite_primary_key? || active_record.composite_primary_key?)
@@ -625,6 +635,8 @@ module ActiveRecord
             raise CompositePrimaryKeyMismatchError.new(self)
           end
         end
+
+        @validated = true
       end
 
       def check_eager_loadable!
@@ -740,6 +752,10 @@ module ActiveRecord
 
       def extensions
         Array(options[:extend])
+      end
+
+      def deprecated?
+        @deprecated
       end
 
       private
@@ -975,6 +991,8 @@ module ActiveRecord
 
       def initialize(delegate_reflection)
         super()
+
+        @validated = false
         @delegate_reflection = delegate_reflection
         @klass = delegate_reflection.options[:anonymous_class]
         @source_reflection_name = delegate_reflection.options[:source]
@@ -1138,6 +1156,8 @@ module ActiveRecord
       end
 
       def check_validity!
+        return if @validated
+
         if through_reflection.nil?
           raise HasManyThroughAssociationNotFoundError.new(active_record, self)
         end
@@ -1175,6 +1195,8 @@ module ActiveRecord
         end
 
         check_validity_of_inverse!
+
+        @validated = true
       end
 
       def constraints
@@ -1193,6 +1215,10 @@ module ActiveRecord
 
       def add_as_through(seed)
         collect_join_reflections(seed + [self])
+      end
+
+      def deprecated_nested_reflections
+        @deprecated_nested_reflections ||= collect_deprecated_nested_reflections
       end
 
       protected
@@ -1217,6 +1243,19 @@ module ActiveRecord
         def derive_class_name
           # get the class_name of the belongs_to association of the through reflection
           options[:source_type] || source_reflection.class_name
+        end
+
+        def collect_deprecated_nested_reflections
+          result = []
+          [through_reflection, source_reflection].each do |reflection|
+            result << reflection if reflection.deprecated?
+            # Both the through and the source reflections could be through
+            # themselves. Nesting can go an arbitrary number of levels down.
+            if reflection.through_reflection?
+              result.concat(reflection.deprecated_nested_reflections)
+            end
+          end
+          result
         end
 
         delegate_methods = AssociationReflection.public_instance_methods -

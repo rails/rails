@@ -6,6 +6,7 @@ require "models/book_destroy_async"
 require "models/essay_destroy_async"
 require "models/tag"
 require "models/tagging"
+require "models/author"
 require "models/essay"
 require "models/category"
 require "models/post"
@@ -207,6 +208,20 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   ensure
     DlKeyedBelongsTo.delete_all
     DestroyAsyncParent.delete_all
+  end
+
+  test "polymorphic belongs_to" do
+    writer = Author.create(name: "David")
+    essay = EssayDestroyAsync.create!(name: "Der be treasure", writer: writer)
+
+    essay.destroy
+
+    assert_difference -> { Author.count }, -1 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+  ensure
+    EssayDestroyAsync.delete_all
+    Author.delete_all
   end
 
   test "has_one" do

@@ -11,7 +11,7 @@ module ActionView
               html_options[prop.to_s] = options.delete(prop) if options.key?(prop) && !html_options.key?(prop.to_s)
             end
 
-            add_default_name_and_id(html_options)
+            add_default_name_and_field(html_options)
 
             if placeholder_required?(html_options)
               raise ArgumentError, "include_blank cannot be false for a required field." if options[:include_blank] == false
@@ -22,7 +22,9 @@ module ActionView
             select = content_tag("select", add_options(option_tags, options, value), html_options)
 
             if html_options["multiple"] && options.fetch(:include_hidden, true)
-              tag("input", disabled: html_options["disabled"], name: html_options["name"], type: "hidden", value: "", autocomplete: "off") + select
+              tag_options = { disabled: html_options["disabled"], name: html_options["name"], type: "hidden", value: "" }
+              tag_options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
+              tag("input", tag_options) + select
             else
               select
             end
@@ -37,7 +39,7 @@ module ActionView
             if options[:include_blank]
               content = (options[:include_blank] if options[:include_blank].is_a?(String))
               label = (" " unless content)
-              option_tags = tag_builder.content_tag_string("option", content, value: "", label: label) + "\n" + option_tags
+              option_tags = tag_builder.option(content, value: "", label: label) + "\n" + option_tags
             end
 
             if value.blank? && options[:prompt]
@@ -45,7 +47,7 @@ module ActionView
                 prompt_opts[:disabled] = true if options[:disabled] == ""
                 prompt_opts[:selected] = true if options[:selected] == ""
               end
-              option_tags = tag_builder.content_tag_string("option", prompt_text(options[:prompt]), tag_options) + "\n" + option_tags
+              option_tags = tag_builder.option(prompt_text(options[:prompt]), **tag_options) + "\n" + option_tags
             end
 
             option_tags

@@ -39,27 +39,18 @@ module ActiveJob
   autoload :Arguments
   autoload :DeserializationError, "active_job/arguments"
   autoload :SerializationError, "active_job/arguments"
+  autoload :UnknownJobClassError, "active_job/core"
   autoload :EnqueueAfterTransactionCommit
 
   eager_autoload do
+    autoload :Continuable
+    autoload :Continuation
     autoload :Serializers
     autoload :ConfiguredJob
   end
 
   autoload :TestCase
   autoload :TestHelper
-
-  def self.use_big_decimal_serializer
-    ActiveJob.deprecator.warn <<-WARNING.squish
-      Rails.application.config.active_job.use_big_decimal_serializer is deprecated and will be removed in Rails 8.0.
-    WARNING
-  end
-
-  def self.use_big_decimal_serializer=(value)
-    ActiveJob.deprecator.warn <<-WARNING.squish
-      Rails.application.config.active_job.use_big_decimal_serializer is deprecated and will be removed in Rails 8.0.
-    WARNING
-  end
 
   ##
   # :singleton-method: verbose_enqueue_logs

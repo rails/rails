@@ -62,11 +62,10 @@ module ActiveSupport
       "yaml"     => Proc.new { |yaml| yaml.to_yaml }
     } unless defined?(FORMATTING)
 
-    # TODO use regexp instead of Date.parse
     unless defined?(PARSING)
       PARSING = {
         "symbol"       => Proc.new { |symbol|  symbol.to_s.to_sym },
-        "date"         => Proc.new { |date|    ::Date.parse(date) },
+        "date"         => Proc.new { |date|    ::Date.strptime(date, "%Y-%m-%d") },
         "datetime"     => Proc.new { |time|    Time.xmlschema(time).utc rescue ::DateTime.parse(time).utc },
         "duration"     => Proc.new { |duration| Duration.parse(duration) },
         "integer"      => Proc.new { |integer| integer.to_i },
@@ -74,6 +73,8 @@ module ActiveSupport
         "decimal"      => Proc.new do |number|
           if String === number
             number.to_d
+          elsif Float === number
+            BigDecimal(number, 0)
           else
             BigDecimal(number)
           end

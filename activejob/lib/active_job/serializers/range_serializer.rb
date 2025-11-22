@@ -3,21 +3,21 @@
 module ActiveJob
   module Serializers
     class RangeSerializer < ObjectSerializer
-      KEYS = %w[begin end exclude_end].freeze
-
       def serialize(range)
-        args = Arguments.serialize([range.begin, range.end, range.exclude_end?])
-        super(KEYS.zip(args).to_h)
+        super(
+          "begin" => Arguments.serialize_argument(range.begin),
+          "end" => Arguments.serialize_argument(range.end),
+          "exclude_end" => range.exclude_end?, # Always boolean, no need to serialize
+        )
       end
 
       def deserialize(hash)
-        klass.new(*Arguments.deserialize(hash.values_at(*KEYS)))
+        Range.new(*Arguments.deserialize([hash["begin"], hash["end"]]), hash["exclude_end"])
       end
 
-      private
-        def klass
-          ::Range
-        end
+      def klass
+        ::Range
+      end
     end
   end
 end

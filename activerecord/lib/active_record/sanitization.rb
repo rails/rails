@@ -161,6 +161,8 @@ module ActiveRecord
       #
       #   sanitize_sql_array(["role = ?", 0])
       #   # => "role = '0'"
+      #
+      #   Before using this method, please consider if Arel.sql would be better for your use-case
       def sanitize_sql_array(ary)
         statement, *values = ary
         if values.first.is_a?(Hash) && /:\w+/.match?(statement)

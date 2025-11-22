@@ -57,20 +57,13 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
           if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             begin
               @connection.add_check_constraint(:constraint_test, <<~SQL,
-                json_contains('
-                  {
-                    "a": 1,
-                    "b": 2,
-                    "c": {
-                      "d": 4
-                    }
-                  }
-                ', options)
+                json_schema_valid(_utf8mb4'\n        {\n          "oneOf": [\n            {\n              "type": "null"\n            },\n            {\n              "type": "array",\n              "minItems": 1,\n              "items": {\n                "type": "integer",\n                "minimum": 0\n              }\n            }\n          ]\n        }',`options`)
               SQL
               name: "non_empty_test_array")
 
               constraint = @connection.check_constraints("constraint_test").find { |c| c.name == "non_empty_test_array" }
-              assert_includes constraint.expression, "json_contains"
+              assert_includes constraint.expression, "json_schema_valid"
+              assert_equal(%q[json_schema_valid(_utf8mb4' { "oneOf": [ { "type": "null" }, { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 0 } } ] }',`options`)], constraint.expression)
             ensure
               @connection.remove_check_constraint(:constraint_test, name: "non_empty_test_array", if_exists: true)
             end
@@ -203,7 +196,7 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
 
             output = dump_table_schema "trades"
 
-            assert_match %r{\s+t.check_constraint "quantity > 0", name: "quantity_check", validate: false$}, output
+            assert_match %r{\s+add_check_constraint "trades", "quantity > 0", name: "quantity_check", validate: false$}, output
           end
 
           def test_schema_dumping_with_validate_true
@@ -317,6 +310,40 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
 
           assert_equal 0, @connection.check_constraints("trades").size
         end
+      end
+    end
+  end
+
+  class CheckConstraintViolationTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    class Trade < ActiveRecord::Base
+    end
+
+    setup do
+      @connection = ActiveRecord::Base.lease_connection
+      @connection.create_table "trades", force: true do |t|
+        t.integer :price
+        t.integer :quantity
+        t.check_constraint "price > 0", name: "price_check"
+      end
+    end
+
+    teardown do
+      @connection.drop_table "trades", if_exists: true
+    end
+
+    def test_check_constraint_violation_on_insert
+      assert_raises(ActiveRecord::CheckViolation) do
+        Trade.create(price: -10, quantity: 5)
+      end
+    end
+
+    def test_check_constraint_violation_on_update
+      trade = Trade.create(price: 100, quantity: 5)
+
+      assert_raises(ActiveRecord::CheckViolation) do
+        trade.update(price: -10)
       end
     end
   end

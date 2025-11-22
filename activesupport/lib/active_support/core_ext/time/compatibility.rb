@@ -8,25 +8,8 @@ class Time
 
   silence_redefinition_of_method :to_time
 
-  # Either return +self+ or the time in the local system timezone depending
-  # on the setting of +ActiveSupport.to_time_preserves_timezone+.
+  # Return +self+.
   def to_time
-    preserve_timezone ? self : getlocal
+    self
   end
-
-  def preserve_timezone # :nodoc:
-    active_support_local_zone == zone || super
-  end
-
-  private
-    @@active_support_local_tz = nil
-
-    def active_support_local_zone
-      @@active_support_local_zone = nil if @@active_support_local_tz != ENV["TZ"]
-      @@active_support_local_zone ||=
-        begin
-          @@active_support_local_tz = ENV["TZ"]
-          Time.new.zone
-        end
-    end
 end

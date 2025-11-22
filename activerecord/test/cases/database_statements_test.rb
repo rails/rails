@@ -8,7 +8,9 @@ class DatabaseStatementsTest < ActiveRecord::TestCase
   end
 
   def test_exec_insert
-    result = @connection.exec_insert("INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)", nil, [])
+    result = assert_deprecated(ActiveRecord.deprecator) do
+      @connection.exec_insert("INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)", nil, [])
+    end
     assert_not_nil @connection.send(:last_inserted_id, result)
   end
 

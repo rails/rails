@@ -28,5 +28,10 @@ module Arel # :nodoc: all
       @ast.havings << expr
       self
     end
+
+    def comment(value)
+      @ast.comment = value
+      self
+    end
   end
 end

@@ -1,373 +1,152 @@
-*   Fix incorrect SQL query when passing an empty hash to `ActiveRecord::Base.insert`.
+*   Add support for configuring migration strategy on a per-adapter basis.
 
-    *David Stosik*
-
-*   Allow to save records with polymorphic join tables that have inverse of specified.
-
-    *Markus Doits*
-
-*   Fix association scopes applying on the incorrect join when using a polymorphic `has_many through:`.
-
-    *Joshua Young*
-
-*   Allow `ActiveRecord::Base#pluck` to accept hash arguments with symbol and string values.
+    `migration_strategy` can now be set on individual adapter classes, overriding
+    the global `ActiveRecord.migration_strategy`. This allows individual databases to
+    customize migration execution logic:
 
     ```ruby
-    Post.joins(:comments).pluck(:id, comments: :id)
-    Post.joins(:comments).pluck("id", "comments" => "id")
+    class CustomPostgresStrategy < ActiveRecord::Migration::DefaultStrategy
+      def drop_table(*)
+        # Custom logic specific to PostgreSQL
+      end
+    end
+
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy = CustomPostgresStrategy
     ```
 
-    *Joshua Young*
+    *Adrianna Chang*
 
-*   Make Float distinguish between `float4` and `float8` in PostgreSQL.
+*   Allow either explain format syntax for EXPLAIN queries.
 
-    Fixes #52742
+    MySQL uses FORMAT=JSON whereas Postgres uses FORMAT JSON. We should be
+    able to accept both formats as options.
 
-    *Ryota Kitazawa*, *Takayuki Nagatomi*
+    *Gannon McGibbon*
 
-## Rails 8.0.0.beta1 (September 26, 2024) ##
+*   On MySQL parallel test database table reset to use `DELETE` instead of `TRUNCATE`.
 
-*   Allow `drop_table` to accept an array of table names.
+    Truncating on MySQL is very slow even on empty or nearly empty tables.
 
-    This will let you to drop multiple tables in a single call.
-
-    ```ruby
-    ActiveRecord::Base.lease_connection.drop_table(:users, :posts)
-    ```
-
-    *Gabriel Sobrinho*
-
-*   Add support for PostgreSQL `IF NOT EXISTS` via the `:if_not_exists` option
-    on the `add_enum_value` method.
-
-    *Ariel Rzezak*
-
-*   When running `db:migrate` on a fresh database, load the database schema before running migrations.
-
-    *Andrew Novoselac*
-
-*   Fix an issue where `.left_outer_joins` used with multiple associations that have
-    the same child association but different parents does not join all parents.
-
-    Previously, using `.left_outer_joins` with the same child association would only join one of the parents.
-
-    Now it will correctly join both parents.
-
-    Fixes #41498.
-
-    *Garrett Blehm*
-
-*   Deprecate `unsigned_float` and `unsigned_decimal` short-hand column methods.
-
-    As of MySQL 8.0.17, the UNSIGNED attribute is deprecated for columns of type FLOAT, DOUBLE,
-    and DECIMAL. Consider using a simple CHECK constraint instead for such columns.
-
-    https://dev.mysql.com/doc/refman/8.0/en/numeric-type-syntax.html
-
-    *Ryuta Kamizono*
-
-*   Drop MySQL 5.5 support.
-
-    MySQL 5.5 is the only version that does not support datetime with precision,
-    which we have supported in the core. Now we support MySQL 5.6.4 or later, which
-    is the first version to support datetime with precision.
-
-    *Ryuta Kamizono*
-
-*   Make Active Record asynchronous queries compatible with transactional fixtures.
-
-    Previously transactional fixtures would disable asynchronous queries, because transactional
-    fixtures impose all queries use the same connection.
-
-    Now asynchronous queries will use the connection pinned by transactional fixtures, and behave
-    much closer to production.
-
-    *Jean Boussier*
-
-*   Deserialize binary data before decrypting
-
-    This ensures that we call `PG::Connection.unescape_bytea` on PostgreSQL before decryption.
+    As a result of this change auto increment counters are now no longer reset between test
+    runs on MySQL and the `SKIP_TEST_DATABASE_TRUNCATE` environment variable no longer has
+    any effect.
 
     *Donal McBreen*
 
-*   Ensure `ActiveRecord::Encryption.config` is always ready before access.
+*   Fix inconsistency in PostgreSQL handling of unbounded time range types
 
-    Previously, `ActiveRecord::Encryption` configuration was deferred until `ActiveRecord::Base`
-    was loaded. Therefore, accessing `ActiveRecord::Encryption.config` properties before
-    `ActiveRecord::Base` was loaded would give incorrect results.
-
-    `ActiveRecord::Encryption` now has its own loading hook so that its configuration is set as
-    soon as needed.
-
-    When `ActiveRecord::Base` is loaded, even lazily, it in turn triggers the loading of
-    `ActiveRecord::Encryption`, thus preserving the original behavior of having its config ready
-    before any use of `ActiveRecord::Base`.
-
-    *Maxime Réty*
-
-*   Add `TimeZoneConverter#==` method, so objects will be properly compared by
-    their type, scale, limit & precision.
-
-    Address #52699.
-
-    *Ruy Rocha*
-
-*   Add support for SQLite3 full-text-search and other virtual tables.
-
-    Previously, adding sqlite3 virtual tables messed up `schema.rb`.
-
-    Now, virtual tables can safely be added using `create_virtual_table`.
-
-    *Zacharias Knudsen*
-
-*   Support use of alternative database interfaces via the `database_cli` ActiveRecord configuration option.
+    Use `-infinity` rather than `NULL` for the lower value of PostgreSQL time
+    ranges when saving records with a Ruby range that begins with `nil`.
 
     ```ruby
-    Rails.application.configure do
-      config.active_record.database_cli = { postgresql: "pgcli" }
+    create_table :products do |t|
+      t.tsrange :period
     end
+    class Product < ActiveRecord::Base; end
+
+    t = Time.utc(2000)
+
+    Product.create(period: t...nil)
+    Product.create(period: nil...t)
     ```
 
-    *T S Vallender*
+    Previously this would create two records using different values to represent
+    lower-unbounded and upper-unbounded ranges.
 
-*   Add support for dumping table inheritance and native partitioning table definitions for PostgeSQL adapter
-
-    *Justin Talbott*
-
-*   Add support for `ActiveRecord::Point` type casts using `Hash` values
-
-    This allows `ActiveRecord::Point` to be cast or serialized from a hash
-    with `:x` and `:y` keys of numeric values, mirroring the functionality of
-    existing casts for string and array values. Both string and symbol keys are
-    supported.
-
-    ```ruby
-    class PostgresqlPoint < ActiveRecord::Base
-      attribute :x, :point
-      attribute :y, :point
-      attribute :z, :point
-    end
-
-    val = PostgresqlPoint.new({
-      x: '(12.34, -43.21)',
-      y: [12.34, '-43.21'],
-      z: {x: '12.34', y: -43.21}
-    })
-    ActiveRecord::Point.new(12.32, -43.21) == val.x == val.y == val.z
+    ```
+    ["2000-01-01 00:00:00",infinity)
+    (NULL,"2000-01-01 00:00:00")
     ```
 
-    *Stephen Drew*
+    Now both will use `-infinity`/`infinity` which are handled differently than
+    `NULL` by some PostgreSQL range operators (e.g., `lower_inf`) and support
+    both exclusive and inclusive bounds.
 
-*   Replace `SQLite3::Database#busy_timeout` with `#busy_handler_timeout=`.
-
-    Provides a non-GVL-blocking, fair retry interval busy handler implementation.
-
-    *Stephen Margheim*
-
-*   SQLite3Adapter: Translate `SQLite3::BusyException` into `ActiveRecord::StatementTimeout`.
-
-    *Matthew Nguyen*
-
-*   Include schema name in `enable_extension` statements in `db/schema.rb`.
-
-    The schema dumper will now include the schema name in generated
-    `enable_extension` statements if they differ from the current schema.
-
-    For example, if you have a migration:
-
-    ```ruby
-    enable_extension "heroku_ext.pgcrypto"
-    enable_extension "pg_stat_statements"
+    ```
+    ["2000-01-01 00:00:00",infinity)
+    [-infinity,"2000-01-01 00:00:00")
     ```
 
-    then the generated schema dump will also contain:
+    *Martin-Alexander*
 
-    ```ruby
-    enable_extension "heroku_ext.pgcrypto"
-    enable_extension "pg_stat_statements"
-    ```
+*   Database-specific shard swap prohibition
 
-    *Tony Novak*
+    In #43485 (v7.0.0), shard swapping prohibition was introduced as a global
+    switch that applied to all databases.
 
-*   Fix `ActiveRecord::Encryption::EncryptedAttributeType#type` to return
-    actual cast type.
-
-    *Vasiliy Ermolovich*
-
-*   SQLite3Adapter: Bulk insert fixtures.
-
-    Previously one insert command was executed for each fixture, now they are
-    aggregated in a single bulk insert command.
-
-    *Lázaro Nixon*
-
-*   PostgreSQLAdapter: Allow `disable_extension` to be called with schema-qualified name.
-
-    For parity with `enable_extension`, the `disable_extension` method can be called with a schema-qualified
-    name (e.g. `disable_extension "myschema.pgcrypto"`). Note that PostgreSQL's `DROP EXTENSION` does not
-    actually take a schema name (unlike `CREATE EXTENSION`), so the resulting SQL statement will only name
-    the extension, e.g. `DROP EXTENSION IF EXISTS "pgcrypto"`.
-
-    *Tony Novak*
-
-*   Make `create_schema` / `drop_schema` reversible in migrations.
-
-    Previously, `create_schema` and `drop_schema` were irreversible migration operations.
-
-    *Tony Novak*
-
-*   Support batching using custom columns.
-
-    ```ruby
-    Product.in_batches(cursor: [:shop_id, :id]) do |relation|
-      # do something with relation
-    end
-    ```
-
-    *fatkodima*
-
-*   Use SQLite `IMMEDIATE` transactions when possible.
-
-    Transactions run against the SQLite3 adapter default to IMMEDIATE mode to improve concurrency support and avoid busy exceptions.
-
-    *Stephen Margheim*
-
-*   Raise specific exception when a connection is not defined.
-
-    The new `ConnectionNotDefined` exception provides connection name, shard and role accessors indicating the details of the connection that was requested.
-
-    *Hana Harencarova*, *Matthew Draper*
-
-*   Delete the deprecated constant `ActiveRecord::ImmutableRelation`.
-
-    *Xavier Noria*
-
-*   Fix duplicate callback execution when child autosaves parent with `has_one` and `belongs_to`.
-
-    Before, persisting a new child record with a new associated parent record would run `before_validation`,
-    `after_validation`, `before_save` and `after_save` callbacks twice.
-
-    Now, these callbacks are only executed once as expected.
-
-    *Joshua Young*
-
-*   `ActiveRecord::Encryption::Encryptor` now supports a `:compressor` option to customize the compression algorithm used.
-
-    ```ruby
-    module ZstdCompressor
-      def self.deflate(data)
-        Zstd.compress(data)
-      end
-
-      def self.inflate(data)
-        Zstd.decompress(data)
-      end
-    end
-
-    class User
-      encrypts :name, compressor: ZstdCompressor
-    end
-    ```
-
-    You disable compression by passing `compress: false`.
-
-    ```ruby
-    class User
-      encrypts :name, compress: false
-    end
-    ```
-
-    *heka1024*
-
-*   Add condensed `#inspect` for `ConnectionPool`, `AbstractAdapter`, and
-    `DatabaseConfig`.
-
-    *Hartley McGuire*
-
-*   Add `.shard_keys`, `.sharded?`, & `.connected_to_all_shards` methods.
-
-    ```ruby
-    class ShardedBase < ActiveRecord::Base
-        self.abstract_class = true
-
-        connects_to shards: {
-          shard_one: { writing: :shard_one },
-          shard_two: { writing: :shard_two }
-        }
-    end
-
-    class ShardedModel < ShardedBase
-    end
-
-    ShardedModel.shard_keys => [:shard_one, :shard_two]
-    ShardedModel.sharded? => true
-    ShardedBase.connected_to_all_shards { ShardedModel.current_shard } => [:shard_one, :shard_two]
-    ```
-
-    *Nony Dutton*
-
-*   Add a `filter` option to `in_order_of` to prioritize certain values in the sorting without filtering the results
-    by these values.
-
-    *Igor Depolli*
-
-*   Fix an issue where the IDs reader method did not return expected results
-    for preloaded associations in models using composite primary keys.
-
-    *Jay Ang*
-
-*   Allow to configure `strict_loading_mode` globally or within a model.
-
-    Defaults to `:all`, can be changed to `:n_plus_one_only`.
-
-    *Garen Torikian*
-
-*   Add `ActiveRecord::Relation#readonly?`.
-
-    Reflects if the relation has been marked as readonly.
-
-    *Theodor Tonum*
-
-*   Improve `ActiveRecord::Store` to raise a descriptive exception if the column is not either
-    structured (e.g., PostgreSQL +hstore+/+json+, or MySQL +json+) or declared serializable via
-    `ActiveRecord.store`.
-
-    Previously, a `NoMethodError` would be raised when the accessor was read or written:
-
-        NoMethodError: undefined method `accessor' for an instance of ActiveRecord::Type::Text
-
-    Now, a descriptive `ConfigurationError` is raised:
-
-        ActiveRecord::ConfigurationError: the column 'metadata' has not been configured as a store.
-          Please make sure the column is declared serializable via 'ActiveRecord.store' or, if your
-          database supports it, use a structured column type like hstore or json.
+    For the use case of a multi-database application, the global prohibition is
+    overly broad, and so with this change the method `prohibit_shard_swapping`
+    will scope the prohibition to the same connection class (i.e.,
+    `connection_specification_name`). This allows an application to prohibit
+    shard swapping on a specific database while allowing it on all others.
 
     *Mike Dalessio*
 
-*   Fix inference of association model on nested models with the same demodularized name.
+*   Fix upsert_all when using repeated timestamp attributes.
 
-    E.g. with the following setup:
+    *Gannon McGibbon*
 
-    ```ruby
-    class Nested::Post < ApplicationRecord
-      has_one :post, through: :other
-    end
-    ```
+*   PostgreSQL enable drop database FORCE option.
 
-    Before, `#post` would infer the model as `Nested::Post`, but now it correctly infers `Post`.
+    One of the benefits of developing with MySQL is that it allows dropping the
+    current database without first disconnecting clients. As a result developers
+    can use `bin/rails db:reset` and similar, without first shutting down
+    instances of the app, Rails consoles, background workers, etc. By default
+    PostgreSQL fails to drop a database when clients are connected and displays
+    the following error:
 
-    *Joshua Young*
+      > PG::ObjectInUse: ERROR:  database "xyz" is being accessed by other users (PG::ObjectInUse)
 
-*   Add public method for checking if a table is ignored by the schema cache.
+    This is frustrating when working in development where the database may be
+    dropped frequently.
 
-    Previously, an application would need to reimplement `ignored_table?` from the schema cache class to check if a table was set to be ignored. This adds a public method to support this and updates the schema cache to use that directly.
+    PostgreSQL 13 added the `FORCE` option to the `DROP DATABASE` statement
+    ([PostgreSQL docs](https://www.postgresql.org/docs/current/sql-dropdatabase.html))
+    which automatically disconnects clients before dropping the database.
+    This option is automatically enabled for supported PostgreSQL versions.
 
-    ```ruby
-    ActiveRecord.schema_cache_ignored_tables = ["developers"]
-    ActiveRecord.schema_cache_ignored_table?("developers")
-    => true
-    ```
+    *Steven Webb*
 
-    *Eileen M. Uchitelle*
+*   Raise specific exception when a prohibited shard change is attempted.
 
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activerecord/CHANGELOG.md) for previous changes.
+    The new `ShardSwapProhibitedError` exception allows applications and
+    connection-related libraries to more easily recover from this specific
+    scenario. Previously an `ArgumentError` was raised, so the new exception
+    subclasses `ArgumentError` for backwards compatibility.
+
+    *Mike Dalessio*
+
+*   Fix SQLite3 data loss during table alterations with CASCADE foreign keys.
+
+    When altering a table in SQLite3 that is referenced by child tables with
+    `ON DELETE CASCADE` foreign keys, ActiveRecord would silently delete all
+    data from the child tables. This occurred because SQLite requires table
+    recreation for schema changes, and during this process the original table
+    is temporarily dropped, triggering CASCADE deletes on child tables.
+
+    The root cause was incorrect ordering of operations. The original code
+    wrapped `disable_referential_integrity` inside a transaction, but
+    `PRAGMA foreign_keys` cannot be modified inside a transaction in SQLite -
+    attempting to do so simply has no effect. This meant foreign keys remained
+    enabled during table recreation, causing CASCADE deletes to fire.
+
+    The fix reverses the order to follow the official SQLite 12-step ALTER TABLE
+    procedure: `disable_referential_integrity` now wraps the transaction instead
+    of being wrapped by it. This ensures foreign keys are properly disabled
+    before the transaction starts and re-enabled after it commits, preventing
+    CASCADE deletes while maintaining data integrity through atomic transactions.
+
+    *Ruy Rocha*
+
+*   Fix negative scopes for enums to include records with `nil` values.
+
+    *fatkodima*
+
+*   Improve support for SQLite database URIs.
+
+    The `db:create` and `db:drop` tasks now correctly handle SQLite database URIs, and the
+    SQLite3Adapter will create the parent directory if it does not exist.
+
+    *Mike Dalessio*
+
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activerecord/CHANGELOG.md) for previous changes.
