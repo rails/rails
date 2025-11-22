@@ -1,3 +1,7 @@
+*   Better error message when assigning a non-model to a polymorphic association.
+
+    *Christian Schmidt*
+
 *   Add support for configuring migration strategy on a per-adapter basis.
 
     `migration_strategy` can now be set on individual adapter classes, overriding
