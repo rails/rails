@@ -157,4 +157,23 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
       end
     end
   end
+
+  test "default value is true when ActiveRecord is available" do
+    fake_active_record = FakeActiveRecord.new
+    stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+      job_class = Class.new do
+        include ActiveJob::Enqueuing
+      end
+
+      assert_equal true, job_class.enqueue_after_transaction_commit
+    end
+  end
+
+  test "default value is false when ActiveRecord is not available" do
+    job_class = Class.new do
+      include ActiveJob::Enqueuing
+    end
+
+    assert_equal false, job_class.enqueue_after_transaction_commit
+  end
 end
