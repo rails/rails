@@ -39,19 +39,31 @@ Hooks help us observe behavior within the Rails framework; these hooks are
 predefined points in the framework where an event is emitted. By subscribing to
 an event from a hook, you can run your own code whenever that event occurs.
 
-For example, there is [a hook](#sql-active-record) that is called every time
-Active Record executes a SQL query on a database. This hook can be subscribed
-to, and used to track the number of queries during a certain action. There's
-[another hook](#process-action-action-controller) which is called when
-processing an action of a controller. This hook can be subscribed to, and used
-to track how long a specific action has taken. You can read more about hooks in
-the [Rails framework hooks section](#rails-framework-hooks) later in this guide.
+For example, there is a [`sql.active_record` hook](#sql-active-record) that is called every time
+Active Record executes a SQL query on a database. When subscribed to, it can be used to track the number of queries during a certain action.
+
+```ruby
+sql_counter = 0
+ActiveSupport::Notifications.subscribe "sql.active_record" do |event|
+   sql_counter += 1
+end
+```
+
+A [`process_action.action_controller` hook](#process-action-action-controller) is called when
+processing an action of a controller. When subscribed to, it can be used
+to track how long a specific action has taken.
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
+   Rails.logger.info "Duration: #{event.duration}"
+end
+```
+
+You can read more about hooks in the [Rails framework hooks section](#rails-framework-hooks) later in this guide.
 
 ### Events
 
-An event is generated when a hook is triggered or when you've [instrumented your
-own event](#instrumenting-custom-events). It is a record of something that has
-happened. You can use events to track changes in your application.
+An event is a record of something that has happened, and is emitted when a instrumented block of code is called.
 
 For example, when the
 [`process_action.action_controller`](#process-action-action-controller) hook is
@@ -76,32 +88,24 @@ is emitted, such as logging the duration of the action.
 A single event can have multiple subscribers. You can read more about
 subscribers in the [Subscribing to an Event section](#subscribing-to-an-event).
 
-Instrumenting Custom Events
----------------------------
+Instrumenting Events
+--------------------
 
-You can instrument your own events, by calling
+Rails provides built-in events which you can read more about more in the [Rails Framework Hooks section](#rails-framework-hooks). However, there may be instances where you might want to instrument your own event.
+
+To instrument a custom event, you can call
 [`ActiveSupport::Notifications.instrument`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-instrument)
 with the `name` of your custom event, a `payload` which is a hash containing
 information about the event, and an optional block.
 
-```ruby
-ActiveSupport::Notifications.instrument "my.custom.event", this: "payload" do
-  # do your custom stuff here
-end
-```
-
-TIP: You should follow Rails conventions when defining your own events. The
-format is: `event.library`. For a blogging application, pick an emitter name
-like posts (or blog if that’s your domain), then instrument names like
-`publish.posts`.
-
-Example:
 
 ```ruby
 ActiveSupport::Notifications.instrument "publish.posts", {title: "My Post", author: "John Doe" } do
   # Publish the post here
 end
 ```
+
+TIP: When defining your own event names, follow Rails conventions. The format for [Rails Framework Hooks](#rails-framework-hooks) is: `<action>.<component>`, where `<action>` describes what happened (e.g., `service_delete`, `start_transaction`) and `<component>` is the framework or library name (e.g., `active_record`, `active_storage`). Hence, if you want to instrument an event when a post is published in a blogging application, you could use the event name `publish.posts`.
 
 When given a block (like the example above), Active Support measures the block's
 execution, i.e. the start time, end time, and duration, and then emits the event
