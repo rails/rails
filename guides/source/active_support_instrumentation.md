@@ -33,6 +33,8 @@ subscribers.
 NOTE: The Instrumentation API is intended for framework code, not application code. For application-level event reporting, use [Active Support Structured Events](active_support_structured_events.html) instead.
 
 
+<!-- TODO I'm wondering if "Hook" is basically the same as "Instrumentation" and using Hook only adds confusion.
+The Notifications API documentation doesn't mention "Hook" at all. -->
 ### Hooks
 
 Hooks help us observe behavior within the Rails framework; these hooks are
@@ -130,7 +132,7 @@ Subscribing to an Event
 As mentioned [in the introduction](#introduction-to-instrumentation), an event
 is generated when a hook is triggered [within the Rails
 framework](#rails-framework-hooks) or when [you've instrumented your own
-event](#instrumenting-custom-events). You can subscribe to these events by using
+event](#instrumenting-events). You can subscribe to these events by using
 the
 [`ActiveSupport::Notifications.subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-subscribe)
 method.
@@ -278,8 +280,8 @@ class ChatChannel < ApplicationCable::Channel
 end
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+<!-- TODO If we rename the column header to "Example Value" (we also have "Payload Key"), the sentence can be simplified somewhat: -->
+The event payload (`event.payload`) includes the following keys.
 
 | Payload Key      | Description               | Example               |
 | ---------------- | ------------------------- | --------------------- |
@@ -317,7 +319,11 @@ The event is emitted when a subscription confirmation is sent to a client.
 For example:
 
 ```ruby
-# Successful subscription auto-confirms -> event fires
+class ChatChannel < ApplicationCable::Channel
+  def subscribed
+    confirm
+  end
+end
 ```
 
 The event payload (`event.payload`) includes the following keys (with typical
@@ -334,8 +340,10 @@ The event is emitted when a subscription rejection is sent to a client.
 For example:
 
 ```ruby
-def subscribed
-  reject
+class ChatChannel < ApplicationCable::Channel
+  def subscribed
+    reject
+  end
 end
 ```
 
@@ -359,11 +367,11 @@ ActionCable.server.broadcast("chat_room_1", text: "Hello")
 The event payload (`event.payload`) includes the following keys (with typical
 example values).
 
-| Payload Key     | Description        | Example                 |
-| --------------- | ------------------ | ----------------------- |
-| `:broadcasting` | Named broadcasting | `"chat_room_1"`         |
-| `:message`      | A hash of message  | `{ "text"=>"Hello" }`   |
-| `:coder`        | The coder          | `"ActiveSupport::JSON"` |
+| Payload Key     | Description                     | Example                 |
+| --------------- | ------------------              | ----------------------- |
+| `:broadcasting` | Named broadcasting              | `"chat_room_1"`         |
+| `:message`      | A hash containing message data  | `{ "text"=>"Hello" }`   |
+| `:coder`        | The coder                       | `"ActiveSupport::JSON"` |
 
 ### Action Controller
 
@@ -438,9 +446,13 @@ The event is emitted when a controller streams or sends a file with `send_file`.
 For example:
 
 ```ruby
-send_file "/var/app/exports/report.csv",
-  filename: "report.csv",
-  disposition: "attachment"
+class ReportsController < ApplicationController
+  def download
+    send_file "/var/app/exports/report.csv",
+      filename: "report.csv",
+      disposition: "attachment"
+  end
+end
 ```
 
 The event payload (`event.payload`) includes the file path plus any options you
@@ -461,10 +473,14 @@ The event is emitted when a controller sends raw data with `send_data`.
 For example:
 
 ```ruby
-send_data "Hello, world!",
-  filename: "report.txt",
-  type: "text/plain",
-  disposition: "attachment"
+class ReportsController < ApplicationController
+  def download
+    send_data "Hello, world!",
+      filename: "report.txt",
+      type: "text/plain",
+      disposition: "attachment"
+  end
+end
 ```
 
 `ActionController` does not add any specific information to the payload. All
@@ -513,7 +529,7 @@ example values).
 
 | Payload Key | Description                   | Example            |
 | ----------- | ----------------------------- | ------------------ |
-| `:filter`   | Filter that halted the action | `":require_login"` |
+| `:filter`   | Callback that halted the action | `":require_login"` |
 
 #### `unpermitted_parameters.action_controller`
 
@@ -547,8 +563,12 @@ The event is emitted when a controller streams data with `send_stream`.
 For example:
 
 ```ruby
-send_stream(filename: "subscribers.csv") do |stream|
-  # ...
+class SubscribersController < ApplicationController
+  def download
+    send_stream(filename: "subscribers.csv") do |stream|
+      # ...
+    end
+  end
 end
 ```
 
@@ -789,18 +809,18 @@ UserMailer.welcome(current_user).deliver_now
 The event payload (`event.payload`) includes the following keys (with typical
 example values).
 
-| Payload Key           | Description                   | Example                |
-| --------------------- | ----------------------------- | ---------------------- |
-| `:mailer`             | Name of the mailer class      | `"Notification"`       |
-| `:message_id`         | ID of the message (Mail gem)  | `"<abc@host>"`         |
-| `:subject`            | Subject of the mail           | `"Rails Guides"`       |
-| `:to`                 | To address(es)                | `["users@rails.com"]`  |
-| `:from`               | From address                  | `["me@rails.com"]`     |
-| `:bcc`                | BCC addresses                 | `[]`                   |
-| `:cc`                 | CC addresses                  | `[]`                   |
-| `:date`               | Date of the mail              | `Sat, 10 Mar 2012 ...` |
-| `:mail`               | Encoded form of the mail      | `"(omitted)"`          |
-| `:perform_deliveries` | Whether delivery is performed | `true`                 |
+| Payload Key           | Description                   | Example                       |
+| --------------------- | ----------------------------- | ------------------------------|
+| `:mailer`             | Name of the mailer class      | `"Notification"`              |
+| `:message_id`         | ID of the message (Mail gem)  | `"<abc@host>"`                |
+| `:subject`            | Subject of the mail           | `"Welcome to the community!"` |
+| `:to`                 | To address(es)                | `["users@example.com"]`       |
+| `:from`               | From address                  | `["me@example.com"]`          |
+| `:bcc`                | BCC addresses                 | `["bcc@example.com"]`         |
+| `:cc`                 | CC addresses                  | `["cc@example.com"]`          |
+| `:date`               | Date of the mail              | `Fri, 21 Nov 2025 ...`        |
+| `:mail`               | Encoded form of the mail      | Omitted...                    |
+| `:perform_deliveries` | Whether delivery is performed | `true`                        |
 
 #### `process.action_mailer`
 
@@ -819,7 +839,7 @@ example values).
 | ----------- | ------------------------ | ----------------- |
 | `:mailer`   | Name of the mailer class | `"Notification"`  |
 | `:action`   | The action               | `"welcome_email"` |
-| `:args`     | The arguments            | `[]`              |
+| `:args`     | The arguments            | `[#<User ...>]`   |
 
 ### Action View
 
@@ -830,7 +850,7 @@ The event is emitted when a full template (with optional layout) is rendered.
 For example:
 
 ```ruby
-render :index, layout: "application"
+render :index, layout: "application", locals: { post: @post }
 ```
 
 The event payload (`event.payload`) includes the following keys (with typical
@@ -840,7 +860,7 @@ example values).
 | ------------- | ---------------------------------- | -------------------------------------- |
 | `:identifier` | Full path to template              | `".../app/views/posts/index.html.erb"` |
 | `:layout`     | Applicable layout                  | `"layouts/application"`                |
-| `:locals`     | Local variables passed to template | `{ foo: "bar" }`                       |
+| `:locals`     | Local variables passed to template | `{ post: @post }`                       |
 
 #### `render_partial.action_view`
 
@@ -858,7 +878,7 @@ example values).
 | Payload Key   | Description                        | Example                                |
 | ------------- | ---------------------------------- | -------------------------------------- |
 | `:identifier` | Full path to template              | `".../app/views/posts/_form.html.erb"` |
-| `:locals`     | Local variables passed to template | `{ foo: "bar" }`                       |
+| `:locals`     | Local variables passed to template | `{ post: @post }`                       |
 
 #### `render_collection.action_view`
 
@@ -999,7 +1019,7 @@ The event is emitted when job execution starts (on the worker).
 For example:
 
 ```ruby
-# Fired on the worker right before perform begins
+MyJob.perform_now # Fired on the worker right before perform begins
 ```
 
 The event payload (`event.payload`) includes the following keys (with typical
@@ -1017,7 +1037,7 @@ The event is emitted when job execution finishes (on the worker).
 For example:
 
 ```ruby
-# Fired after perform finishes (success or handled failure)
+MyJob.perform_now # Fired after perform finishes (success or handled failure)
 ```
 
 The event payload (`event.payload`) includes the following keys (with typical
@@ -1097,7 +1117,7 @@ adapters/services may add more keys to the payload.
 | `:transaction`       | Current transaction, if any                      | `#<ActiveRecord::ConnectionAdapters::...>` or `nil` |
 | `:affected_rows`     | Number of rows affected by the query             | `0`                                                 |
 | `:row_count`         | Number of rows returned by the query             | `5`                                                 |
-| `:cached`            | `true` when result comes from the query cache    | `true`/`false`                                      |
+| `:cached`            | `true` when result comes from the query cache    | `false`                                             |
 | `:statement_name`    | SQL statement name (Postgres only)               | `nil`                                               |
 
 #### `strict_loading_violation.active_record`
@@ -1148,9 +1168,6 @@ example values).
 The event is emitted when Active Record starts a database transaction (on first
 DB interaction inside a `transaction` block).
 
-NOTE:  Active Record does not create the actual database transaction until
-needed.
-
 For example:
 
 ```ruby
@@ -1158,7 +1175,7 @@ ActiveRecord::Base.transaction do
   # We are inside the block, but no event has been triggered yet.
 
   # The following line makes Active Record start the transaction.
-  User.count  # Event fired here.
+  User.count # Event fired here
 end
 ```
 
@@ -1175,8 +1192,7 @@ ActiveRecord::Base.transaction do |t1|
 end
 ```
 
-However, if `requires_new: true` is passed, you get an event for the nested
-transaction too.
+However, if `requires_new: true` is passed, an event is emitted for the nested transaction too.
 
 ```ruby
 ActiveRecord::Base.transaction do |t1|
@@ -1186,6 +1202,8 @@ ActiveRecord::Base.transaction do |t1|
   end
 end
 ```
+NOTE:  Active Record does not create the actual database transaction until needed.
+
 
 The event payload (`event.payload`) includes the following keys (with typical
 example values).
@@ -1270,9 +1288,9 @@ blob.preview(resize_to_limit: [200, 200]).processed
 The event payload (`event.payload`) includes the following keys (with typical
 example values).
 
-| Payload Key | Description  | Example    |
-| ----------- | ------------ | ---------- |
-| `:key`      | Secure token | `"abc123"` |
+| Payload Key | Description     | Example          |
+| ----------- | --------------- | ---------------- |
+| `:key`      | Key of the blob | `"secure_token"` |
 
 #### `transform.active_storage`
 
@@ -1281,7 +1299,7 @@ The event is emitted when a variant/representation transformation is performed.
 For example:
 
 ```ruby
-image = current_user.avatar.variant(resize_to_limit: [300, 300]).processed
+current_user.avatar.variant(resize_to_limit: [300, 300]).processed
 ```
 
 The event payload (`event.payload`) has no additional standard keys documented.
@@ -1319,11 +1337,11 @@ current_user.avatar.attach(io: File.open("/path/pic.jpg"), filename: "pic.jpg")
 The event payload (`event.payload`) includes the following keys (with typical
 example values).
 
-| Payload Key | Description            | Example     |
-| ----------- | ---------------------- | ----------- |
-| `:key`      | Secure token           | `"abc123"`  |
-| `:service`  | Name of the service    | `"S3"`      |
-| `:checksum` | Checksum for integrity | `"md5:..."` |
+| Payload Key | Description            | Example           |
+| ----------- | ---------------------- | ----------------- |
+| `:key`      | Key of the blob        | `"secure_token"`  |
+| `:service`  | Name of the service    | `"S3"`            |
+| `:checksum` | Checksum for integrity | `"md5:..."`       |
 
 #### `service_streaming_download.active_storage`
 
@@ -1338,10 +1356,10 @@ send_data current_user.avatar.download, disposition: :inline
 The event payload (`event.payload`) includes the following keys (with typical
 example values).
 
-| Payload Key | Description         | Example    |
-| ----------- | ------------------- | ---------- |
-| `:key`      | Secure token        | `"abc123"` |
-| `:service`  | Name of the service | `"S3"`     |
+| Payload Key | Description         | Example          |
+| ----------- | ------------------- | ---------------- |
+| `:key`      | Key of the blob     | `"secure_token"` |
+| `:service`  | Name of the service | `"S3"`           |
 
 #### `service_download_chunk.active_storage`
 
@@ -1357,11 +1375,11 @@ current_user.avatar.service.download_chunk(current_user.avatar.key, 0..1_048_575
 The event payload (`event.payload`) includes the following keys (with typical
 example values).
 
-| Payload Key | Description          | Example       |
-| ----------- | -------------------- | ------------- |
-| `:key`      | Secure token         | `"abc123"`    |
-| `:service`  | Name of the service  | `"S3"`        |
-| `:range`    | Byte range attempted | `"0-1048575"` |
+| Payload Key | Description          | Example          |
+| ----------- | -------------------- | ---------------- |
+| `:key`      | Key of the blob      | `"secure_token"` |
+| `:service`  | Name of the service  | `"S3"`           |
+| `:range`    | Byte range attempted | `"0-1048575"`    |
 
 #### `service_download.active_storage`
 
@@ -1376,10 +1394,10 @@ current_user.avatar.download
 The event payload (`event.payload`) includes the following keys (with typical
 example values).
 
-| Payload Key | Description         | Example    |
-| ----------- | ------------------- | ---------- |
-| `:key`      | Secure token        | `"abc123"` |
-| `:service`  | Name of the service | `"S3"`     |
+| Payload Key | Description         | Example          |
+| ----------- | ------------------- | ---------------- |
+| `:key`      | Key of the blob     | `"secure_token"` |
+| `:service`  | Name of the service | `"S3"`           |
 
 #### `service_delete.active_storage`
 
@@ -1394,10 +1412,10 @@ current_user.avatar.purge
 The event payload (`event.payload`) includes the following keys (with typical
 example values).
 
-| Payload Key | Description         | Example    |
-| ----------- | ------------------- | ---------- |
-| `:key`      | Secure token        | `"abc123"` |
-| `:service`  | Name of the service | `"S3"`     |
+| Payload Key | Description         | Example          |
+| ----------- | ------------------- | ---------------- |
+| `:key`      | Key of the blob     | `"secure_token"` |
+| `:service`  | Name of the service | `"S3"`           |
 
 #### `service_delete_prefixed.active_storage`
 
@@ -1430,11 +1448,11 @@ ActiveStorage::Blob.service.exist?(blob.key)
 The event payload (`event.payload`) includes the following keys (with typical
 example values).
 
-| Payload Key | Description             | Example    |
-| ----------- | ----------------------- | ---------- |
-| `:key`      | Secure token            | `"abc123"` |
-| `:service`  | Name of the service     | `"S3"`     |
-| `:exist`    | File/blob exists or not | `true`     |
+| Payload Key | Description             | Example          |
+| ----------- | ----------------------- | ---------------- |
+| `:key`      | Key of the blob         | `"secure_token"` |
+| `:service`  | Name of the service     | `"S3"`           |
+| `:exist`    | File/blob exists or not | `true`           |
 
 #### `service_url.active_storage`
 
@@ -1451,7 +1469,7 @@ example values).
 
 | Payload Key | Description         | Example                  |
 | ----------- | ------------------- | ------------------------ |
-| `:key`      | Secure token        | `"abc123"`               |
+| `:key`      | Key of the blob     | `"secure_token"`         |
 | `:service`  | Name of the service | `"S3"`                   |
 | `:url`      | Generated URL       | `"https://s3.../abc123"` |
 
@@ -1471,12 +1489,12 @@ ActiveStorage::Blob.service.update_metadata(
 The event payload (`event.payload`) includes the following keys (with typical
 example values).
 
-| Payload Key     | Description                | Example       |
-| --------------- | -------------------------- | ------------- |
-| `:key`          | Secure token               | `"abc123"`    |
-| `:service`      | Name of the service        | `"GCS"`       |
-| `:content_type` | HTTP `Content-Type`        | `"image/png"` |
-| `:disposition`  | HTTP `Content-Disposition` | `"inline"`    |
+| Payload Key     | Description                | Example           |
+| --------------- | -------------------------- | ----------------- |
+| `:key`          | Key of the blob             | `"secure_token"` |
+| `:service`      | Name of the service        | `"GCS"`           |
+| `:content_type` | HTTP `Content-Type`        | `"image/png"`     |
+| `:disposition`  | HTTP `Content-Disposition` | `"inline"`        |
 
 ### Active Support: Caching
 
@@ -1605,7 +1623,7 @@ The event is emitted when a counter is incremented in the cache.
 For example:
 
 ```ruby
-Rails.cache.increment("counter", 5)
+Rails.cache.increment("bottles-of-beer", 5)
 ```
 
 The event payload (`event.payload`) includes the following keys (with typical
@@ -1624,7 +1642,7 @@ The event is emitted when a counter is decremented in the cache.
 For example:
 
 ```ruby
-Rails.cache.decrement("counter", 1)
+Rails.cache.decrement("bottles-of-beer", 1)
 ```
 
 The event payload (`event.payload`) includes the following keys (with typical
@@ -1770,9 +1788,8 @@ For example:
 
 ```ruby
 ActiveSupport::MessageEncryptor.default_message_serializer = :json_allow_marshal
-enc = ActiveSupport::MessageEncryptor.new(
-  ActiveSupport::KeyGenerator.new("secret").generate_key("salt", 32)
-)
+key = ActiveSupport::KeyGenerator.new("secret").generate_key("salt", 32)
+enc = ActiveSupport::MessageEncryptor.new(key)
 enc.encrypt_and_sign(Object.new) # not JSON-serializable -> falls back
 ```
 
