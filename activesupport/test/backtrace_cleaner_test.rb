@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
+require "rails/test_unit/line_filtering"
 
 class BacktraceCleanerFilterTest < ActiveSupport::TestCase
   def setup

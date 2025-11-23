@@ -1188,6 +1188,23 @@ end
 config.active_record.migration_strategy = CustomMigrationStrategy
 ```
 
+You can also configure migration strategies on a per-adapter basis by setting the `migration_strategy` class on the adapter itself.
+This is useful when you want to customize migration behavior for a specific database type.
+
+For example, to use a custom migration strategy for PostgreSQL:
+
+```ruby
+class CustomPostgresStrategy < ActiveRecord::Migration::DefaultStrategy
+  def drop_table(*)
+    # Custom logic specific to PostgreSQL
+  end
+end
+
+ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy = CustomPostgresStrategy
+```
+
+By assigning to the adapter class, all migrations run through connections using that adapter will use the specified strategy.
+
 #### `config.active_record.schema_versions_formatter`
 
 Controls the formatter class used by schema dumper to format versions information. Custom class can be provided

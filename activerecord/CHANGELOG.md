@@ -1,3 +1,28 @@
+*   Add support for configuring migration strategy on a per-adapter basis.
+
+    `migration_strategy` can now be set on individual adapter classes, overriding
+    the global `ActiveRecord.migration_strategy`. This allows individual databases to
+    customize migration execution logic:
+
+    ```ruby
+    class CustomPostgresStrategy < ActiveRecord::Migration::DefaultStrategy
+      def drop_table(*)
+        # Custom logic specific to PostgreSQL
+      end
+    end
+
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy = CustomPostgresStrategy
+    ```
+
+    *Adrianna Chang*
+
+*   Allow either explain format syntax for EXPLAIN queries.
+
+    MySQL uses FORMAT=JSON whereas Postgres uses FORMAT JSON. We should be
+    able to accept both formats as options.
+
+    *Gannon McGibbon*
+
 *   On MySQL parallel test database table reset to use `DELETE` instead of `TRUNCATE`.
 
     Truncating on MySQL is very slow even on empty or nearly empty tables.

@@ -810,7 +810,7 @@ module ActiveRecord
     end
 
     def execution_strategy
-      @execution_strategy ||= ActiveRecord.migration_strategy.new(self)
+      @execution_strategy ||= (connection.migration_strategy || ActiveRecord.migration_strategy).new(self)
     end
 
     self.verbose = true
