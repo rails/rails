@@ -224,7 +224,7 @@ also log the event.
 Rails Framework Hooks
 ---------------------
 
-Within the Ruby on Rails framework, there are a number of hooks provided for
+Within the Ruby on Rails framework, there are a number of hooks already provided for
 common events.
 
 Each heading below lists the event name you can subscribe to, explains how the
