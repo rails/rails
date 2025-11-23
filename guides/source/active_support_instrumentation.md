@@ -225,8 +225,8 @@ Rails Framework Hooks
 Within the Ruby on Rails framework, there are a number of hooks provided for
 common events.
 
-Each event below lists the event name you can subscribe to, explains how the
-event is triggered, and the corresponding example `event.payload` from the
+Each heading below lists the event name you can subscribe to, explains how the
+event is triggered, and displays a corresponding example `event.payload` from the
 subscribed event.
 
 To subscribe to a specific event, use
@@ -240,7 +240,7 @@ ActiveSupport::Notifications.subscribe "process_action.action_controller" do |ev
   Rails.logger.info event.duration     # 10 (in milliseconds)
   Rails.logger.info event.allocations  # 1826
   Rails.logger.info event.payload
-  #   {
+  # {
   #   controller: "PostsController",
   #   action: "index",
   #   params: {"action" => "index", "controller" => "posts"},
