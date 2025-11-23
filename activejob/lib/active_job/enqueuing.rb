@@ -50,7 +50,7 @@ module ActiveJob
       # It can be set on a per job basis:
       #  - true forces the job to be deferred.
       #  - false forces the job to be queued immediately.
-      class_attribute :enqueue_after_transaction_commit, instance_accessor: false, instance_predicate: false, default: false
+      class_attribute :enqueue_after_transaction_commit, instance_accessor: false, instance_predicate: false, default: !!defined?(ActiveRecord)
     end
 
     # Includes the +perform_later+ method for job initialization.
