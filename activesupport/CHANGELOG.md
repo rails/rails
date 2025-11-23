@@ -1,3 +1,9 @@
+*   Fix `TimeWithZone#xmlschema` when wrapping a `DateTime` instance in local time.
+
+    Previously it would return an invalid time.
+
+    *Dmytro Rymar*
+
 *   Implement LocalCache strategy on `ActiveSupport::Cache::MemoryStore`. The memory store
     needs to respond to the same interface as other cache stores (e.g. `ActiveSupport::NullStore`).
 
