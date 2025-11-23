@@ -180,11 +180,11 @@ body.guide {
   }
 
   // Headlines
-  // TODO: media queries to increase font size, current sizes are for desktop, so drop base to mobile appropriate and MQ up twice (min width 60/120 em, minheight 30/60em)
+  // Mobile-first sizes with step-ups for wider/taller viewports.
   h1 {
     color: $rf-brand;
     font-family: "Calibre", sans-serif;
-    font-size: 3rem; /* 48px */
+    font-size: 2.25rem; /* 36px */
     font-weight: 700; /* Light */
     line-height: 1em;
     margin-top: 0;
@@ -196,7 +196,7 @@ body.guide {
 
   h2 {
     font-family: "Calibre", sans-serif;
-    font-size: 2.25rem; // Calibre is smaller than inter at the same size
+    font-size: 1.875rem; // Calibre is smaller than inter at the same size
     font-weight: 700; /* Bold */
 
     a,
@@ -206,13 +206,13 @@ body.guide {
     } // a, a:link, a:visited
 
     code {
-      font-size: 2rem;
+      font-size: 1.625rem;
       font-weight: 400;
     }
   } // h2
 
   h3, h2.chapter {
-    font-size: 1.5rem; /* 24px */
+    font-size: 1.375rem; /* 22px */
     font-weight: 600; /* Semibold */
 
     a,
@@ -222,16 +222,16 @@ body.guide {
     } // a, a:link, a:visited
 
     code {
-      font-size: 1.5rem;
+      font-size: 1.375rem;
       font-weight: 400;
     }
   } // h3
 
   h4 {
-    font-size: 1.125rem;
+    font-size: 1.0625rem;
 
     code {
-      font-size: 1.125rem;
+      font-size: 1.0625rem;
       font-weight: 400;
     }
   }
@@ -242,6 +242,68 @@ body.guide {
     code {
       font-size: 0.9375rem;
       font-weight: 400;
+    }
+  }
+
+  @include media(">=60em", "height>=30em") {
+    h1 {
+      font-size: 3rem; /* 48px */
+    }
+
+    h2 {
+      font-size: 2.25rem;
+
+      code {
+        font-size: 2rem;
+      }
+    }
+
+    h3,
+    h2.chapter {
+      font-size: 1.5rem; /* 24px */
+
+      code {
+        font-size: 1.5rem;
+      }
+    }
+
+    h4 {
+      font-size: 1.125rem;
+
+      code {
+        font-size: 1.125rem;
+      }
+    }
+  }
+
+  @include media(">=120em", "height>=60em") {
+    h1 {
+      font-size: 3.5rem;
+    }
+
+    h2 {
+      font-size: 2.75rem;
+
+      code {
+        font-size: 2.5rem;
+      }
+    }
+
+    h3,
+    h2.chapter {
+      font-size: 1.75rem;
+
+      code {
+        font-size: 1.75rem;
+      }
+    }
+
+    h4 {
+      font-size: 1.25rem;
+
+      code {
+        font-size: 1.25rem;
+      }
     }
   }
 
