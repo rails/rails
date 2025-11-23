@@ -98,7 +98,6 @@ To instrument a custom event, you can call
 with the `name` of your custom event, a `payload` which is a hash containing
 information about the event, and an optional block.
 
-
 ```ruby
 ActiveSupport::Notifications.instrument "publish.posts", {title: "My Post", author: "John Doe" } do
   # Publish the post here
