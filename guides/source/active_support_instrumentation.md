@@ -30,6 +30,9 @@ in your own code, or even in standalone Ruby scripts. There are a few parts that
 are vital to understanding the Instrumentation API: hooks, events, and
 subscribers.
 
+NOTE: The Instrumentation API is intended for framework code, not application code. For application-level event reporting, use [Active Support Structured Events](active_support_structured_events.html) instead.
+
+
 ### Hooks
 
 Hooks help us observe behavior within the Rails framework; these hooks are
