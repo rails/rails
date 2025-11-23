@@ -152,11 +152,15 @@ module ActiveSupport
     #
     #   Time.zone.now.xmlschema  # => "2014-12-04T11:02:37-05:00"
     def xmlschema(fraction_digits = 0)
+      precision = fraction_digits || 0
+
       if @is_utc
-        utc.iso8601(fraction_digits || 0)
+        utc.iso8601(precision)
       else
-        str = time.iso8601(fraction_digits || 0)
-        str[-1] = formatted_offset(true, "Z")
+        str = time.iso8601(precision)
+        offset = formatted_offset(true, "Z")
+
+        str.sub!(/(Z|[+-]\d{2}:\d{2})\z/, offset)
         str
       end
     end
