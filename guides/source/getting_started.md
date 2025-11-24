@@ -72,23 +72,38 @@ TIP: Any commands prefaced with a dollar sign `$` should be run in the terminal.
 
 For this project, you will need:
 
-* Ruby 3.2 or newer
-* Rails 8.2.0 or newer
-* A code editor
+- **Ruby 3.2 or newer**
+- **Rails 8.2.0 or newer**
+- **SQLite3** (or another supported database)
+- A code editor
 
 Follow the [Install Ruby on Rails Guide](install_ruby_on_rails.html) if you need
 to install Ruby and/or Rails.
 
-Let's verify the correct version of Rails is installed. To display the current
+Let's verify the correct version of Ruby and Rails is installed. To display the current
 version, open a terminal and run the following. You should see a version number
 printed out:
 
+```bash
+$ ruby --version
+ruby 3.3.3
+```
 ```bash
 $ rails --version
 Rails 8.2.0
 ```
 
-The version shown should be Rails 8.2.0 or higher.
+The versions shown should be **Ruby 3.2 or higher** and **Rails 8.2.0 or higher**.
+
+#### Installing SQLite3
+
+Rails uses **SQLite3** by default for development. Most UNIX-like operating systems come with SQLite3 preinstalled. If not, installation instructions are available on the [SQLite website](https://www.sqlite.org/download.html).
+
+Verify that SQLite3 is installed and accessible through your system’s PATH:
+
+```bash
+$ sqlite3 --version
+```
 
 ### Creating Your First Rails App
 
