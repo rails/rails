@@ -574,9 +574,9 @@ module ActiveRecord
           if active_record.has_query_constraints?
             derived_fk = derive_fk_query_constraints(derived_fk)
           end
-
+          Logger.new($stdout).info("Derived foreign key for #{active_record}.#{name} is #{derived_fk.inspect}")
           if derived_fk.is_a?(Array)
-            derived_fk.map! { |fk| -fk.freeze }
+            derived_fk.map! { |fk| -fk.to_s.freeze }
             derived_fk.freeze
           else
             -derived_fk.freeze
@@ -875,13 +875,13 @@ module ActiveRecord
           end
 
           return foreign_key if primary_query_constraints.include?(foreign_key)
-
+          Logger.new($stdout).info("Deriving foreign key query constraints for #{active_record}.#{name} with primary_query_constraints=#{primary_query_constraints.inspect} and foreign_key=#{foreign_key.inspect}")
           first_key, last_key = primary_query_constraints
 
           if first_key == owner_pk
-            [foreign_key, last_key.to_s]
+            [foreign_key, last_key.to_s].flatten
           elsif last_key == owner_pk
-            [first_key.to_s, foreign_key]
+            [first_key.to_s, foreign_key].flatten
           else
             raise ArgumentError, <<~MSG.squish
               Active Record couldn't correctly interpret the query constraints

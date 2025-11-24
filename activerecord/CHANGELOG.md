@@ -1,3 +1,9 @@
+*   Add support for inverse_of association with query_constraints, fixes #56192
+
+    Fixes `NoMethodError` when using query_constraints macro with sharded inverse_of association
+
+    *Tahsin Hasan*
+
 *   Add support for configuring migration strategy on a per-adapter basis.
 
     `migration_strategy` can now be set on individual adapter classes, overriding

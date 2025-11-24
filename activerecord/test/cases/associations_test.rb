@@ -710,6 +710,59 @@ class AssociationProxyTest < ActiveRecord::TestCase
   end
 end
 
+class TestShardedQueryConstraintAssociationWithInverse < ActiveRecord::TestCase
+  setup do
+    @connection = ActiveRecord::Base.lease_connection
+    @connection.create_table :shard_companies, force: true do |t|
+      t.string(:name)
+    end
+
+    @connection.create_table :shard_posts, force: true do |t|
+      t.references(:shard_company, foreign_key: true)
+      t.index(%i[shard_company_id id])
+    end
+
+    @connection.create_table :shard_comments, force: true do |t|
+      t.references(:shard_post, foreign_key: true)
+      t.references(:shard_company, foreign_key: true)
+      t.index(%i[shard_company_id id])
+    end
+  end
+
+  class ShardCompany < ActiveRecord::Base
+    has_many :shard_posts
+    has_many :shard_comments
+  end
+
+  class ShardPost < ActiveRecord::Base
+    query_constraints :shard_company_id, :id
+    belongs_to :shard_company, inverse_of: :shard_posts
+    has_many :shard_comments, inverse_of: :shard_post
+  end
+
+  class ShardComment < ActiveRecord::Base
+    query_constraints :shard_company_id, :id
+
+    belongs_to :shard_company, inverse_of: :shard_comments
+    belongs_to :shard_post, inverse_of: :shard_comments
+  end
+
+  def teardown
+    @connection.remove_reference :shard_posts, :shard_company, if_exists: true
+    @connection.remove_reference :shard_comments, :shard_post, if_exists: true
+    @connection.remove_reference :shard_comments, :shard_company, if_exists: true
+    @connection.drop_table :shard_companies, if_exists: true
+    @connection.drop_table :shard_posts, if_exists: true
+    @connection.drop_table :shard_comments, if_exists: true
+  end
+
+  def test_sharded_query_constraints_on_associated_with_inverse
+    organization = ShardCompany.create!(name: "Example Inc.")
+    post = organization.shard_posts.create!
+    assert_empty post.shard_comments
+  end
+end
+
 class OverridingAssociationsTest < ActiveRecord::TestCase
   class DifferentPerson < ActiveRecord::Base; end
 
