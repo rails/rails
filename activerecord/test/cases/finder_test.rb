@@ -1942,12 +1942,26 @@ class FinderTest < ActiveRecord::TestCase
     assert_queries_match(/^((?!ORDER).)*$/) { Post.find_by!(id: posts(:eager_other).id) }
   end
 
-  test "find_by! raises RecordNotFound if the record is missing" do
+  test "find_by! with literal SQL raises RecordNotFound if the record is missing" do
     error = assert_raises(ActiveRecord::RecordNotFound) do
       Post.find_by!("1 = 0")
     end
 
     assert_equal "Couldn't find Post with [WHERE (1 = 0)]", error.message
+  end
+
+  test "find_by! with hash raises RecordNotFound if the record is missing" do
+    error = assert_raises(ActiveRecord::RecordNotFound) do
+      Post.find_by!(title: "Does not exist!", body: "Blah Blah Blah")
+    end
+
+    conditions = if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
+      %q("posts"."title" = 'Does not exist!' AND "posts"."body" = 'Blah Blah Blah')
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      "`posts`.`title` = 'Does not exist!' AND `posts`.`body` = 'Blah Blah Blah'"
+    end
+
+    assert_equal %(Couldn't find Post with [WHERE #{conditions}]), error.message
   end
 
   test "find on a scope does not perform statement caching" do
