@@ -1387,14 +1387,19 @@ module ActiveRecord
 
           checks = []
 
-          if !options.key?(:name) && column_name.is_a?(String) && /\W/.match?(column_name)
+          # If a name is provided and column_name is a complex expression (contains non-word chars),
+          # skip column-based matching as the generated name won't match the actual index name
+          if options.key?(:name) && column_name.is_a?(String) && /\W/.match?(column_name)
+            checks << lambda { |i| i.name == options[:name].to_s }
+            column_names = []
+          elsif !options.key?(:name) && column_name.is_a?(String) && /\W/.match?(column_name)
             options[:name] = index_name(table_name, column_name)
             column_names = []
           else
             column_names = index_column_names(column_name || options[:column])
           end
 
-          checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name)
+          checks << lambda { |i| i.name == options[:name].to_s } if options.key?(:name) && checks.none?
 
           if column_names.present?
             checks << lambda { |i| index_name(table_name, i.columns) == index_name(table_name, column_names) }

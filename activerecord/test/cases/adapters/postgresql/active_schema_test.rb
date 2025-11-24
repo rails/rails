@@ -73,6 +73,16 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     expected = %(CREATE INDEX IF NOT EXISTS "index_people_on_last_name" ON "people" ("last_name"))
     assert_equal expected, add_index(:people, :last_name, if_not_exists: true)
 
+    # Test JSONB expression with custom name (metadata is a hypothetical JSONB column for testing)
+    expected = %(CREATE INDEX "index_people_on_endpoint" ON "people" ((metadata->>'endpoint')))
+    assert_equal expected, add_index(:people, "(metadata->>'endpoint')", name: 'index_people_on_endpoint')
+
+    expected = %(CREATE INDEX CONCURRENTLY "index_people_on_endpoint" ON "people" ((metadata->>'endpoint')))
+    assert_equal expected, add_index(:people, "(metadata->>'endpoint')", name: 'index_people_on_endpoint', algorithm: :concurrently)
+
+    expected = %(CREATE INDEX CONCURRENTLY "index_people_on_endpoint" ON "people" USING btree ((metadata->>'endpoint')))
+    assert_equal expected, add_index(:people, "(metadata->>'endpoint')", name: 'index_people_on_endpoint', using: :btree, algorithm: :concurrently)
+
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :copy)
     end
@@ -97,6 +107,50 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
   def test_remove_index_when_name_is_specified
     expected = %(DROP INDEX CONCURRENTLY "index_people_on_last_name")
     assert_equal expected, remove_index(:people, name: "index_people_on_last_name", algorithm: :concurrently)
+  end
+
+  def test_remove_index_with_jsonb_expression_and_custom_name
+    # Test removing index with JSONB expression and custom name (metadata is a hypothetical JSONB column for testing)
+    # remove_index calls index_name_for_remove which can't work since execute is stubbed
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.define_method(:index_name_for_remove) do |*|
+      "index_people_on_endpoint"
+    end
+
+    expected = %(DROP INDEX CONCURRENTLY "index_people_on_endpoint")
+    assert_equal expected, remove_index(:people, "(metadata->>'endpoint')", name: 'index_people_on_endpoint', algorithm: :concurrently)
+
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.remove_method :index_name_for_remove
+  end
+
+  def test_index_name_for_remove_with_jsonb_expression_and_custom_name
+    # Test that index_name_for_remove correctly finds index by name when both name and complex expression are provided
+    # This tests the actual fix logic: skipping column-based matching for complex expressions with custom names
+    mock_index = ActiveRecord::ConnectionAdapters::IndexDefinition.new(
+      "people",
+      "index_people_on_endpoint",
+      false,
+      "(metadata->>'endpoint')",
+      using: :btree
+    )
+
+    connection = ActiveRecord::Base.connection
+    connection.singleton_class.class_eval do
+      alias_method :indexes_without_stub, :indexes
+      define_method(:indexes) do |table_name|
+        table_name.to_s == "people" ? [mock_index] : []
+      end
+    end
+
+    # Test that index_name_for_remove correctly finds the index by name only (not by column matching)
+    # index_name_for_remove is a private method, so we use send to call it
+    index_name = connection.send(:index_name_for_remove, "people", "(metadata->>'endpoint')", name: 'index_people_on_endpoint')
+    assert_equal "index_people_on_endpoint", index_name
+
+    connection.singleton_class.class_eval do
+      remove_method :indexes
+      alias_method :indexes, :indexes_without_stub
+      remove_method :indexes_without_stub
+    end
   end
 
   def test_remove_index_with_wrong_option

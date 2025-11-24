@@ -1,6 +1,10 @@
 ## Rails 6.1.7.10 (October 23, 2024) ##
 
-*   No changes.
+*   Fix `remove_index` to handle custom name with JSONB expression.
+
+    When removing an index created with a JSONB expression (like `(metadata->>'endpoint')`) and a custom name, `remove_index` would fail with `ArgumentError: No indexes found` because the column-based matching logic couldn't match the generated index name with the custom name.
+
+    The fix skips column-based matching when both a custom name and a complex expression are provided, using only name-based matching instead.
 
 
 ## Rails 6.1.7.9 (October 15, 2024) ##
