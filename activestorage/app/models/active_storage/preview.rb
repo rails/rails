@@ -109,7 +109,7 @@ class ActiveStorage::Preview
     end
 
     def variant
-      image.variant(variation)
+      @variant ||= image.variant(variation)
     end
 
     def variant?
