@@ -20,7 +20,7 @@ repository on GitHub.
 Upgrading to Rails 3.2
 ----------------------
 
-If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3.1 in case you haven't and make sure your application still runs as expected before attempting an update to Rails 3.2. Then take heed of the following changes:
+If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3.1 in case you haven't and make sure your application still runs as expected before attempting an update to Rails 3.2. A list of things to watch out for when upgrading is available in the [Upgrading from Rails 3.1 to Rails 3.2](upgrading_from_rails_3.1_to_3.2.html) guide.
 
 ### Rails 3.2 requires at least Ruby 1.8.7
 

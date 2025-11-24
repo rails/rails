@@ -20,7 +20,7 @@ repository on GitHub.
 Upgrading to Rails 4.0
 ----------------------
 
-If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3.2 in case you haven't and make sure your application still runs as expected before attempting an update to Rails 4.0. A list of things to watch out for when upgrading is available in the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-3-2-to-rails-4-0) guide.
+If you're upgrading an existing application, it's a great idea to have good test coverage before going in. You should also first upgrade to Rails 3.2 in case you haven't and make sure your application still runs as expected before attempting an update to Rails 4.0. A list of things to watch out for when upgrading is available in the [Upgrading from Rails 3.2 to Rails 4.0](upgrading_from_rails_3.2_to_4.0.html) guide.
 
 
 Creating a Rails 4.0 application

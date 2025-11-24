@@ -29,7 +29,7 @@ coverage before going in. You should also first upgrade to Rails 5.0 in case you
 haven't and make sure your application still runs as expected before attempting
 an update to Rails 5.1. A list of things to watch out for when upgrading is
 available in the
-[Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-5-0-to-rails-5-1)
+[Upgrading from Rails 5.0 to Rails 5.1](upgrading_from_rails_5.0_to_5.1.html)
 guide.
 
 
