@@ -88,6 +88,7 @@ printed out:
 $ ruby --version
 ruby 3.3.3
 ```
+
 ```bash
 $ rails --version
 Rails 8.2.0
