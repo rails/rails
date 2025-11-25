@@ -713,37 +713,36 @@ module ActiveRecord
         deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
 
         @lock.synchronize do
-          @allow_preconnect = false
+          attempt_configure_connection do
+            @allow_preconnect = false
 
-          reconnect
+            reconnect
 
-          enable_lazy_transactions!
-          @raw_connection_dirty = false
-          @last_activity = @connected_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          @verified = true
-          @allow_preconnect = true
+            enable_lazy_transactions!
+            @raw_connection_dirty = false
+            @last_activity = @connected_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+            @verified = true
+            @allow_preconnect = true
 
-          reset_transaction(restore: restore_transactions) do
-            clear_cache!(new_connection: true)
-            attempt_configure_connection
-          end
-        rescue => original_exception
-          translated_exception = translate_exception_class(original_exception, nil, nil)
-          retry_deadline_exceeded = deadline && deadline < Process.clock_gettime(Process::CLOCK_MONOTONIC)
-
-          if !retry_deadline_exceeded && retries_available > 0
-            retries_available -= 1
-
-            if retryable_connection_error?(translated_exception)
-              backoff(connection_retries - retries_available)
-              retry
+            reset_transaction(restore: restore_transactions) do
+              clear_cache!(new_connection: true)
+              configure_connection
             end
+          rescue => original_exception
+            translated_exception = translate_exception_class(original_exception, nil, nil)
+            retry_deadline_exceeded = deadline && deadline < Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+            if !retry_deadline_exceeded && retries_available > 0
+              retries_available -= 1
+
+              if retryable_connection_error?(translated_exception)
+                backoff(connection_retries - retries_available)
+                retry
+              end
+            end
+
+            raise translated_exception
           end
-
-          @last_activity = nil
-          @verified = false
-
-          raise translated_exception
         end
       end
 
@@ -755,6 +754,8 @@ module ActiveRecord
           reset_transaction
           @raw_connection_dirty = false
           @connected_since = nil
+          @last_activity = nil
+          @verified = false
         end
       end
 
@@ -777,9 +778,11 @@ module ActiveRecord
       # should call super immediately after resetting the connection (and while
       # still holding @lock).
       def reset!
-        clear_cache!(new_connection: true)
-        reset_transaction
-        attempt_configure_connection
+        attempt_configure_connection do
+          clear_cache!(new_connection: true)
+          reset_transaction
+          configure_connection
+        end
       end
 
       # Removes the connection from the pool and disconnect it.
@@ -813,12 +816,14 @@ module ActiveRecord
         unless active?
           @lock.synchronize do
             if @unconfigured_connection
-              @raw_connection = @unconfigured_connection
-              @unconfigured_connection = nil
-              attempt_configure_connection
-              @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-              @verified = true
-              @allow_preconnect = true
+              attempt_configure_connection do
+                @raw_connection = @unconfigured_connection
+                @unconfigured_connection = nil
+                configure_connection
+                @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+                @verified = true
+                @allow_preconnect = true
+              end
               return
             end
 
@@ -1282,7 +1287,7 @@ module ActiveRecord
         end
 
         def attempt_configure_connection
-          configure_connection
+          yield
         rescue Exception # Need to handle things such as Timeout::ExitException
           disconnect!
           raise

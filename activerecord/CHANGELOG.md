@@ -1,3 +1,17 @@
+*   Improve PostgreSQLAdapter resilience to Timeout.timeout.
+
+    Better handle asynchronous exceptions being thrown inside
+    the `reconnect!` method.
+
+    This may fixes some deep errors such as:
+
+    ```
+    undefined method `key?' for nil:NilClass (NoMethodError)
+              if !type_map.key?(oid)
+    ```
+
+    *Jean Boussier*
+
 *   Fix structured events for Active Record was not being emitted.
 
     *Yuji Yaginuma*
