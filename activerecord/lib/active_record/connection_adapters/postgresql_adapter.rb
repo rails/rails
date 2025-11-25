@@ -362,6 +362,14 @@ module ActiveRecord
       def active?
         @lock.synchronize do
           return false unless @raw_connection
+
+          # Defensive programing: some users may interupt the configuration
+          # process with Timeout.timeout and cause connections to be broken
+          # beyond repair.
+          # This cheap check tries to catch this case.
+          # Ref: https://github.com/rails/rails/issues/51780
+          return false unless @type_map && @type_map_for_results
+
           @raw_connection.query ";"
           verified!
         end
@@ -401,14 +409,14 @@ module ActiveRecord
         @lock.synchronize do
           super
           @raw_connection&.close rescue nil
-          @raw_connection = nil
+          unconfigure_connection
         end
       end
 
       def discard! # :nodoc:
         super
         @raw_connection&.socket_io&.reopen(IO::NULL) rescue nil
-        @raw_connection = nil
+        unconfigure_connection
       end
 
       def self.native_database_types # :nodoc:
@@ -753,6 +761,17 @@ module ActiveRecord
       end
 
       private
+        def unconfigure_connection
+          # PostgreSQLAdapter has a lot of internal state that need to be initialized in
+          # `configure_connection`. If that process is interupted we can easily end up in
+          # a half-configured state which we may not be able to recover from.
+          # Hence on disconnect we reset as much of that state as possible.
+          @raw_connection = nil
+          @type_map = nil
+          @type_map_for_results = nil
+          @timestamp_decoder = nil
+        end
+
         attr_reader :type_map
 
         def initialize_type_map(m = type_map)
@@ -962,13 +981,12 @@ module ActiveRecord
         end
 
         def reconnect
-          begin
-            @raw_connection&.reset
-          rescue PG::ConnectionBad
-            @raw_connection = nil
-          end
-
-          connect unless @raw_connection
+          # We fully disconnect because PostgreSQLAdapter has lots of state such as `@type_map`
+          # that can easily go out of sync if the configuration process is interupted.
+          # So to ensure we'll be back to a clean state, we restart from scratch.
+          @raw_connection&.close rescue nil
+          unconfigure_connection
+          connect
         end
 
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
