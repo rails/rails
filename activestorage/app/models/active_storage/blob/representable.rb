@@ -168,6 +168,18 @@ module ActiveStorage::Blob::Representable
     previewable? && !preview_image.attached?
   end
 
+  def transform_variants_later(variations) # :nodoc:
+    if preview_image_needed_before_processing_variants?
+      create_preview_image_later(variations)
+    else
+      create_variants_later(variations)
+    end
+  end
+
+  def create_variants_later(variations) # :nodoc:
+    ActiveStorage::VariantsJob.perform_later(self, variations) if representable?
+  end
+
   def create_preview_image_later(variations) # :nodoc:
     ActiveStorage::PreviewImageJob.perform_later(self, variations) if representable?
   end

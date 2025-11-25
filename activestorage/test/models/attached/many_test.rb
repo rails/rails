@@ -919,33 +919,33 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   test "transforms variants later" do
     blob = create_file_blob(filename: "racecar.jpg")
 
-    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [1, 1]] do
+    assert_enqueued_with job: ActiveStorage::VariantsJob, args: [blob, [{ resize_to_limit: [1, 1] }]] do
       @user.highlights_with_preprocessed.attach blob
     end
   end
 
   test "transforms variants later conditionally via proc" do
-    assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob, ActiveStorage::PreviewImageJob ] do
+    assert_no_enqueued_jobs only: [ ActiveStorage::VariantsJob, ActiveStorage::PreviewImageJob ] do
       @user.highlights_with_conditional_preprocessed.attach create_file_blob(filename: "racecar.jpg")
     end
 
     blob = create_file_blob(filename: "racecar.jpg")
     @user.update(name: "transform via proc")
 
-    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [2, 2]] do
+    assert_enqueued_with job: ActiveStorage::VariantsJob, args: [blob, [{ resize_to_limit: [2, 2] }]] do
       @user.highlights_with_conditional_preprocessed.attach blob
     end
   end
 
   test "transforms variants later conditionally via method" do
-    assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob, ActiveStorage::PreviewImageJob ] do
+    assert_no_enqueued_jobs only: [ ActiveStorage::VariantsJob, ActiveStorage::PreviewImageJob ] do
       @user.highlights_with_conditional_preprocessed.attach create_file_blob(filename: "racecar.jpg")
     end
 
     blob = create_file_blob(filename: "racecar.jpg")
     @user.update(name: "transform via method")
 
-    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [3, 3]] do
+    assert_enqueued_with job: ActiveStorage::VariantsJob, args: [blob, [{ resize_to_limit: [3, 3] }]] do
       assert_no_enqueued_jobs only: ActiveStorage::PreviewImageJob do
         @user.highlights_with_conditional_preprocessed.attach blob
       end
