@@ -1,3 +1,17 @@
+*   Improve PostgreSQLAdapter resilience to Timeout.timeout.
+
+    Better handle asynchronous exceptions being thrown inside
+    the `reconnect!` method.
+
+    This may fixes some deep errors such as:
+
+    ```
+    undefined method `key?' for nil:NilClass (NoMethodError)
+              if !type_map.key?(oid)
+    ```
+
+    *Jean Boussier*
+
 *   Fix `eager_load` when loading `has_many` assocations with composite primary keys.
 
     This would result in some records being loaded multiple times.
