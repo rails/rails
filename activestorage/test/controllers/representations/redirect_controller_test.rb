@@ -93,7 +93,6 @@ class ActiveStorage::Representations::RedirectControllerWithPreviewsTest < Actio
     variant_record_loaded_count = 0
 
     query_subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      sql = event.payload[:sql]
       if event.payload[:name] == "ActiveStorage::VariantRecord Create"
         variant_record_created = true
       elsif event.payload[:name] == "ActiveStorage::VariantRecord Load" && variant_record_created
