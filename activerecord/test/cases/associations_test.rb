@@ -711,6 +711,8 @@ class AssociationProxyTest < ActiveRecord::TestCase
 end
 
 class TestShardedQueryConstraintAssociationWithInverse < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
   setup do
     @connection = ActiveRecord::Base.lease_connection
     @connection.create_table :shard_companies, force: true do |t|
