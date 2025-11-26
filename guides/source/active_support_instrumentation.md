@@ -29,13 +29,20 @@ action. This makes it possible to observe behavior within the Rails framework,
 in your own code, or even in standalone Ruby scripts. There are a few parts that
 are vital to understanding the Instrumentation API: events and subscribers.
 
-NOTE: The Instrumentation API is intended for framework code, not application code. For application-level event reporting, use [Active Support Structured Events](active_support_structured_events.html) instead.
+NOTE: The Instrumentation API is intended for framework code, not application
+code. For application-level event reporting, use [Active Support Structured
+Events](active_support_structured_events.html) instead.
 
 ### Events
 
-An event is a record of something that has happened, and is emitted when an instrumented block of code is called. Events have a name and optional data (called the payload).
+An event is a record of something that has happened, and is emitted when an
+instrumented block of code is called. Events have a name and optional data
+(called the payload).
 
-For example, when Active Record executes a SQL query, it instruments the `sql.active_record` event. This event has the name `sql.active_record` and includes data such as the SQL statement, bind parameters, and connection information in its payload.
+For example, when Active Record executes a SQL query, it instruments the
+`sql.active_record` event. This event has the name `sql.active_record` and
+includes data such as the SQL statement, bind parameters, and connection
+information in its payload.
 
 
 ```ruby
@@ -45,7 +52,9 @@ ActiveSupport::Notifications.subscribe "sql.active_record" do |event|
 end
 ```
 
-Similarly, when a controller action finishes processing, it instruments the `process_action.action_controller` event. This event includes data such as the controller name, action name, and request information in its payload.
+Similarly, when a controller action finishes processing, it instruments the
+`process_action.action_controller` event. This event includes data such as the
+controller name, action name, and request information in its payload.
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
@@ -54,8 +63,8 @@ end
 ```
 
 You can read more about creating your own events and subscribing to events in
-the [Instrumenting Events section](#instrumenting-events) and
-[Subscribing to an Event section](#subscribing-to-an-event) respectively.
+the [Instrumenting Events section](#instrumenting-events) and [Subscribing to an
+Event section](#subscribing-to-an-event) respectively.
 
 ### Subscribers
 
@@ -73,7 +82,9 @@ subscribers in the [Subscribing to an Event section](#subscribing-to-an-event).
 Instrumenting Events
 --------------------
 
-Rails provides built-in events which you can read more about in the [Rails Framework Instrumentation section](#rails-framework-instrumentation). However, there may be instances where you might want to instrument your own event.
+Rails provides built-in events which you can read more about in the [Rails
+Framework Instrumentation section](#rails-framework-instrumentation). However,
+there may be instances where you might want to instrument your own event.
 
 To instrument a custom event, you can call
 [`ActiveSupport::Notifications.instrument`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-instrument)
@@ -86,7 +97,14 @@ ActiveSupport::Notifications.instrument "publish.posts", {title: "My Post", auth
 end
 ```
 
-TIP: When defining your own event names, follow Rails conventions. The recommended format used for [Rails Framework Instrumentation](#rails-framework-instrumentation) is: `<action>.<component>`, where `<action>` describes what happened (e.g., `service_delete`, `start_transaction`) and `<component>` is the framework or library name (e.g., `active_record`, `active_storage`). Hence, if you want to instrument an event when a post is published in a blogging application, you could use the event name `publish.posts`.
+TIP: When defining your own event names, follow Rails conventions. The
+recommended format used for [Rails Framework
+Instrumentation](#rails-framework-instrumentation) is: `<action>.<component>`,
+where `<action>` describes what happened (e.g., `service_delete`,
+`start_transaction`) and `<component>` is the framework or library name (e.g.,
+`active_record`, `active_storage`). Hence, if you want to instrument an event
+when a post is published in a blogging application, you could use the event name
+`publish.posts`.
 
 When given a block (like the example above), Active Support measures the block's
 execution, i.e. the start time, end time, and duration, and then emits the event
@@ -110,9 +128,9 @@ Subscribing to an Event
 -----------------------
 
 As mentioned [in the introduction](#introduction-to-instrumentation), an event
-is generated when code within the Rails framework instruments an event or when [you've instrumented your own
-event](#instrumenting-events). You can subscribe to these events by using
-the
+is generated when code within the Rails framework instruments an event or when
+[you've instrumented your own event](#instrumenting-events). You can subscribe
+to these events by using the
 [`ActiveSupport::Notifications.subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-subscribe)
 method.
 
@@ -203,12 +221,12 @@ also log the event.
 Rails Framework Instrumentation
 ----------------------------------
 
-Within the Ruby on Rails framework, there are a number of built-in instrumentation points for
-common operations.
+Within the Ruby on Rails framework, there are a number of built-in
+instrumentation points for common operations.
 
 Each heading below lists the event name you can subscribe to, explains how the
-event is triggered, and displays a corresponding example `event.payload` from the
-subscribed event.
+event is triggered, and displays a corresponding example `event.payload` from
+the subscribed event.
 
 To subscribe to a specific event, use
 [`ActiveSupport::Notifications.subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-subscribe).
@@ -341,11 +359,11 @@ ActionCable.server.broadcast("chat_room_1", text: "Hello")
 
 The event payload (`event.payload`) includes the following keys:
 
-| Payload Key     | Description                     | Example Value           |
-| --------------- | ------------------              | ----------------------- |
-| `:broadcasting` | Named broadcasting              | `"chat_room_1"`         |
-| `:message`      | A hash containing message data  | `{ "text"=>"Hello" }`   |
-| `:coder`        | The coder                       | `"ActiveSupport::JSON"` |
+| Payload Key     | Description                    | Example Value           |
+| --------------- | ------------------------------ | ----------------------- |
+| `:broadcasting` | Named broadcasting             | `"chat_room_1"`         |
+| `:message`      | A hash containing message data | `{ "text"=>"Hello" }`   |
+| `:coder`        | The coder                      | `"ActiveSupport::JSON"` |
 
 ### Action Controller
 
@@ -498,7 +516,7 @@ end
 The event payload (`event.payload`) includes the following keys:
 
 | Payload Key | Description                     | Example Value      |
-| ----------- | --------------------------------| ------------------ |
+| ----------- | ------------------------------- | ------------------ |
 | `:filter`   | Callback that halted the action | `":require_login"` |
 
 #### `unpermitted_parameters.action_controller`
@@ -693,7 +711,7 @@ end
 The event payload (`event.payload`) includes the following keys:
 
 | Payload Key        | Description                              | Example Value                    |
-| ------------------ | ---------------------------------------- | ---------------------------------|
+| ------------------ | ---------------------------------------- | -------------------------------- |
 | `:status`          | HTTP response code                       | `302`                            |
 | `:location`        | URL to redirect to                       | `"https://example.com/sign_in"`  |
 | `:request`         | The [`ActionDispatch::Request`][] object | `#<ActionDispatch::Request ...>` |
@@ -768,7 +786,7 @@ UserMailer.welcome(current_user).deliver_now
 The event payload (`event.payload`) includes the following keys:
 
 | Payload Key           | Description                   | Example Value                 |
-| --------------------- | ----------------------------- | ------------------------------|
+| --------------------- | ----------------------------- | ----------------------------- |
 | `:mailer`             | Name of the mailer class      | `"Notification"`              |
 | `:message_id`         | ID of the message (Mail gem)  | `"<abc@host>"`                |
 | `:subject`            | Subject of the mail           | `"Welcome to the community!"` |
@@ -1136,7 +1154,8 @@ ActiveRecord::Base.transaction do |t1|
 end
 ```
 
-However, if `requires_new: true` is passed, an event is emitted for the nested transaction too.
+However, if `requires_new: true` is passed, an event is emitted for the nested
+transaction too.
 
 ```ruby
 ActiveRecord::Base.transaction do |t1|
@@ -1146,7 +1165,8 @@ ActiveRecord::Base.transaction do |t1|
   end
 end
 ```
-NOTE:  Active Record does not create the actual database transaction until needed.
+NOTE:  Active Record does not create the actual database transaction until
+needed.
 
 
 The event payload (`event.payload`) includes the following keys:
@@ -1275,11 +1295,11 @@ current_user.avatar.attach(io: File.open("/path/pic.jpg"), filename: "pic.jpg")
 
 The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description            | Example Value     |
-| ----------- | ---------------------- | ----------------- |
-| `:key`      | Key of the blob        | `"secure_token"`  |
-| `:service`  | Name of the service    | `"S3"`            |
-| `:checksum` | Checksum for integrity | `"md5:..."`       |
+| Payload Key | Description            | Example Value    |
+| ----------- | ---------------------- | ---------------- |
+| `:key`      | Key of the blob        | `"secure_token"` |
+| `:service`  | Name of the service    | `"S3"`           |
+| `:checksum` | Checksum for integrity | `"md5:..."`      |
 
 #### `service_streaming_download.active_storage`
 
@@ -1419,12 +1439,12 @@ ActiveStorage::Blob.service.update_metadata(
 
 The event payload (`event.payload`) includes the following keys:
 
-| Payload Key     | Description                | Example Value     |
-| --------------- | -------------------------- | ----------------- |
-| `:key`          | Key of the blob             | `"secure_token"` |
-| `:service`      | Name of the service        | `"GCS"`           |
-| `:content_type` | HTTP `Content-Type`        | `"image/png"`     |
-| `:disposition`  | HTTP `Content-Disposition` | `"inline"`        |
+| Payload Key     | Description                | Example Value    |
+| --------------- | -------------------------- | ---------------- |
+| `:key`          | Key of the blob            | `"secure_token"` |
+| `:service`      | Name of the service        | `"GCS"`          |
+| `:content_type` | HTTP `Content-Type`        | `"image/png"`    |
+| `:disposition`  | HTTP `Content-Disposition` | `"inline"`       |
 
 ### Active Support: Caching
 
