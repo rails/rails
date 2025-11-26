@@ -543,7 +543,7 @@ module ActiveRecord
           result = assert_deprecated(ActiveRecord.deprecator) do
             @conn.exec_insert("insert into ex (number) VALUES ('foo')", nil, [], "id")
           end
-          expect = @conn.query("select max(id) from ex").first.first
+          expect = @conn.select_value("select max(id) from ex")
           assert_equal expect.to_i, result.rows.first.first
         end
         @conn = original_conn
@@ -560,7 +560,7 @@ module ActiveRecord
           result = assert_deprecated(ActiveRecord.deprecator) do
             @conn.exec_insert("insert into ex DEFAULT VALUES", nil, [], "id")
           end
-          expect = @conn.query("select max(id) from ex").first.first
+          expect = @conn.select_value("select max(id) from ex")
           assert_equal expect.to_i, result.rows.first.first
         end
         @conn = original_conn

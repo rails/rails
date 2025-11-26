@@ -49,16 +49,6 @@ module ActiveRecord
           [arel_or_sql_string, binds, preparable, allow_retry]
         end
       end
-      private :to_sql_and_binds
-
-      # Compiles Arel in the given QueryIntent if needed
-      def compile_arel_in_intent(intent) # :nodoc:
-        return unless intent.needs_arel_compilation?
-
-        sql, binds, preparable, allow_retry = to_sql_and_binds(intent.arel, intent.binds, intent.prepare, intent.allow_retry)
-        intent.set_compiled_result(raw_sql: sql, binds: binds, prepare: preparable, allow_retry: allow_retry)
-      end
-      private :compile_arel_in_intent
 
       # This is used in the StatementCache object. It returns an object that
       # can be used to query the database repeatedly.
@@ -81,6 +71,7 @@ module ActiveRecord
       def select_all(arel, name = nil, binds = [], preparable: nil, async: false, allow_retry: false)
         arel = arel_from_relation(arel)
         intent = QueryIntent.new(
+          adapter: self,
           arel: arel,
           name: name,
           binds: binds,
@@ -88,9 +79,28 @@ module ActiveRecord
           allow_retry: allow_retry
         )
 
-        select(intent, async: async && FutureResult::SelectAll)
-      rescue ::RangeError
-        ActiveRecord::Result.empty(async: async)
+        if async && async_enabled?
+          if current_transaction.joinable?
+            raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
+          end
+
+          future_result = FutureResult::SelectAll.new(pool, intent)
+          future_result.schedule!(ActiveRecord::Base.asynchronous_queries_session)
+          future_result
+        else
+          begin
+            intent.execute!
+            result = intent.cast_result
+          rescue ::RangeError
+            result = ActiveRecord::Result.empty
+          end
+
+          if async
+            FutureResult.wrap(result)
+          else
+            result
+          end
+        end
       end
 
       # Returns a record hash with the column names as keys and column values
@@ -117,15 +127,31 @@ module ActiveRecord
       end
 
       def query_value(...) # :nodoc:
-        single_value_from_rows(query(...))
+        single_value_from_rows(query_rows(...))
       end
 
       def query_values(...) # :nodoc:
-        query(...).map(&:first)
+        query_rows(...).map(&:first)
       end
 
-      def query(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
-        internal_exec_query(sql, name, allow_retry:, materialize_transactions:).rows
+      def query_one(...) # :nodoc:
+        query_all(...).first
+      end
+
+      def query_rows(...) # :nodoc:
+        query_all(...).rows
+      end
+
+      def query_all(sql, name = "SCHEMA", allow_retry: true, materialize_transactions: false) # :nodoc:
+        intent = internal_build_intent(sql, name, allow_retry:, materialize_transactions:)
+        intent.execute!
+        intent.cast_result
+      end
+
+      def query_command(sql, name = nil, allow_retry: false, materialize_transactions: true) # :nodoc:
+        intent = internal_build_intent(sql, name, allow_retry: allow_retry, materialize_transactions: materialize_transactions)
+        intent.execute!
+        intent.finish
       end
 
       # Determines whether the SQL statement is a write query.
@@ -148,7 +174,9 @@ module ActiveRecord
       # method may be manually memory managed. Consider using #exec_query
       # wrapper instead.
       def execute(sql, name = nil, allow_retry: false)
-        internal_execute(sql, name, allow_retry: allow_retry)
+        intent = internal_build_intent(sql, name, allow_retry: allow_retry)
+        intent.execute!
+        intent.raw_result
       end
 
       # Executes +sql+ statement in the context of this connection using
@@ -159,7 +187,9 @@ module ActiveRecord
       # will be cleared. If the query is read-only, consider using #select_all
       # instead.
       def exec_query(sql, name = "SQL", binds = [], prepare: false)
-        internal_exec_query(sql, name, binds, prepare: prepare)
+        intent = internal_build_intent(sql, name, binds, prepare: prepare)
+        intent.execute!
+        intent.cast_result
       end
 
       # Executes insert +sql+ statement in the context of this connection using
@@ -169,7 +199,7 @@ module ActiveRecord
       # `nil` is the default value and maintains default behavior. If an array of column names is passed -
       # the result will contain values of the specified columns from the inserted row.
       def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil)
-        intent = QueryIntent.new(raw_sql: sql, name: name, binds: binds)
+        intent = QueryIntent.new(adapter: self, raw_sql: sql, name: name, binds: binds)
 
         _exec_insert(intent, pk, sequence_name, returning: returning)
       end
@@ -179,27 +209,34 @@ module ActiveRecord
         intent.raw_sql = sql
         intent.binds = binds
 
-        raw_exec_query(intent)
+        intent.execute!
+        intent.cast_result
       end
 
       # Executes delete +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_delete(sql, name = nil, binds = [])
-        affected_rows(internal_execute(sql, name, binds))
+        intent = internal_build_intent(sql, name, binds)
+        intent.execute!
+        intent.affected_rows
       end
 
       # Executes update +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       def exec_update(sql, name = nil, binds = [])
-        affected_rows(internal_execute(sql, name, binds))
+        intent = internal_build_intent(sql, name, binds)
+        intent.execute!
+        intent.affected_rows
       end
 
       deprecate :exec_insert, :exec_delete, :exec_update, deprecator: ActiveRecord.deprecator
 
       def exec_insert_all(sql, name) # :nodoc:
-        internal_exec_query(sql, name)
+        intent = internal_build_intent(sql, name)
+        intent.execute!
+        intent.cast_result
       end
 
       def explain(arel, binds = [], options = []) # :nodoc:
@@ -218,10 +255,7 @@ module ActiveRecord
       # `nil` is the default value and maintains default behavior. If an array of column names is passed -
       # an array of is returned from the method representing values of the specified columns from the inserted row.
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil)
-        intent = QueryIntent.new(arel: arel, name: name, binds: binds)
-
-        # Compile Arel before calling exec_insert
-        compile_arel_in_intent(intent)
+        intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
 
         value = _exec_insert(intent, pk, sequence_name, returning: returning)
 
@@ -233,22 +267,18 @@ module ActiveRecord
 
       # Executes the update statement and returns the number of rows affected.
       def update(arel, name = nil, binds = [])
-        intent = QueryIntent.new(arel: arel, name: name, binds: binds)
+        intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
 
-        # Compile Arel to get SQL
-        compile_arel_in_intent(intent)
-
-        affected_rows(raw_execute(intent))
+        intent.execute!
+        intent.affected_rows
       end
 
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel, name = nil, binds = [])
-        intent = QueryIntent.new(arel: arel, name: name, binds: binds)
+        intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
 
-        # Compile Arel to get SQL
-        compile_arel_in_intent(intent)
-
-        affected_rows(raw_execute(intent))
+        intent.execute!
+        intent.affected_rows
       end
 
       # Executes the truncate statement.
@@ -422,13 +452,6 @@ module ActiveRecord
                :disable_lazy_transactions!, :enable_lazy_transactions!, :dirty_current_transaction,
                to: :transaction_manager
 
-      def mark_transaction_written # :nodoc:
-        transaction = current_transaction
-        if transaction.open?
-          transaction.written ||= true
-        end
-      end
-
       def transaction_open?
         current_transaction.open?
       end
@@ -583,41 +606,27 @@ module ActiveRecord
         HIGH_PRECISION_CURRENT_TIMESTAMP
       end
 
-      # Same as raw_execute but returns an ActiveRecord::Result object.
-      def raw_exec_query(intent) # :nodoc:
-        cast_result(raw_execute(intent))
-      end
-
-      # Execute a query and returns an ActiveRecord::Result
-      def internal_exec_query(...) # :nodoc:
-        cast_result(internal_execute(...))
-      end
-
       def default_insert_value(column) # :nodoc:
         DEFAULT_INSERT_VALUE
+      end
+
+      # Lowest-level abstract execution of a query, called only from the intent itself.
+      # Final wrapper around the subclass-specific +perform_query+. Populates the calling
+      # intent's raw_result.
+      def execute_intent(intent) # :nodoc:
+        log(intent) do |notification_payload|
+          intent.notification_payload = notification_payload
+          with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: intent.materialize_transactions) do |conn|
+            result = perform_query(conn, intent)
+            intent.raw_result = result
+            handle_warnings(result, intent.processed_sql)
+          end
+        end
       end
 
       private
         DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
         private_constant :DEFAULT_INSERT_VALUE
-
-        # Lowest level way to execute a query. Doesn't check for illegal writes, doesn't annotate queries, yields a native result object.
-        def raw_execute(intent)
-          # Handle Arel compilation if needed
-          compile_arel_in_intent(intent)
-
-          # Handle SQL preprocessing if needed
-          intent.processed_sql ||= preprocess_query(intent.raw_sql) if intent.raw_sql
-          intent.type_casted_binds = type_casted_binds(intent.binds)
-          log(intent) do |notification_payload|
-            intent.notification_payload = notification_payload
-            with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: intent.materialize_transactions) do |conn|
-              result = perform_query(conn, intent)
-              handle_warnings(result, intent.processed_sql)
-              result
-            end
-          end
-        end
 
         def perform_query(raw_connection, intent)
           raise NotImplementedError
@@ -635,49 +644,32 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        def preprocess_query(sql)
-          if write_query?(sql)
-            ensure_writes_are_allowed(sql)
-            mark_transaction_written
-          end
-
-          # We call tranformers after the write checks so we don't add extra parsing work.
-          # This means we assume no transformer whille change a read for a write
-          # but it would be insane to do such a thing.
-          ActiveRecord.query_transformers.each do |transformer|
-            sql = transformer.call(sql, self)
-          end
-
-          sql
-        end
-
-        # Same as #internal_exec_query, but yields a native adapter result
-        def internal_execute(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, &block)
-          intent = QueryIntent.new(
+        def internal_build_intent(sql, name = "SQL", binds = [], prepare: false, allow_retry: false, materialize_transactions: true, &block)
+          QueryIntent.new(
+            adapter: self,
             raw_sql: sql,
             name: name,
             binds: binds,
             prepare: prepare,
-            async: async,
             allow_retry: allow_retry,
             materialize_transactions: materialize_transactions
           )
-          raw_execute(intent, &block)
         end
 
         def execute_batch(statements, name = nil, **kwargs)
           statements.each do |statement|
             intent = QueryIntent.new(
+              adapter: self,
               processed_sql: statement,
               name: name,
               binds: kwargs[:binds] || [],
               prepare: kwargs[:prepare] || false,
-              async: kwargs[:async] || false,
               allow_retry: kwargs[:allow_retry] || false,
               materialize_transactions: kwargs[:materialize_transactions] != false,
               batch: kwargs[:batch] || false
             )
-            raw_execute(intent)
+            intent.execute!
+            intent.finish
           end
         end
 
@@ -748,34 +740,6 @@ module ActiveRecord
 
         def combine_multi_statements(total_sql)
           total_sql.join(";\n")
-        end
-
-        # Returns an ActiveRecord::Result instance.
-        def select(intent, async: false)
-          if async && async_enabled?
-            if current_transaction.joinable?
-              raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
-            end
-
-            # Compile Arel and preprocess SQL on original thread for async execution
-            compile_arel_in_intent(intent)
-            intent.processed_sql ||= preprocess_query(intent.raw_sql) if intent.raw_sql
-
-            future_result = async.new(pool, intent)
-            if supports_concurrent_connections? && !current_transaction.joinable?
-              future_result.schedule!(ActiveRecord::Base.asynchronous_queries_session)
-            else
-              future_result.execute!(self)
-            end
-            future_result
-          else
-            result = raw_exec_query(intent)
-            if async
-              FutureResult.wrap(result)
-            else
-              result
-            end
-          end
         end
 
         def sql_for_insert(sql, pk, binds, returning) # :nodoc:

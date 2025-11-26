@@ -420,7 +420,7 @@ module ActiveRecord
       end
 
       def set_standard_conforming_strings
-        internal_execute("SET standard_conforming_strings = on", "SCHEMA")
+        query_command("SET standard_conforming_strings = on", "SCHEMA")
       end
 
       def supports_ddl_transactions?
@@ -474,14 +474,14 @@ module ActiveRecord
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")
         end
-        query_value("SELECT pg_try_advisory_lock(#{lock_id})")
+        query_value("SELECT pg_try_advisory_lock(#{lock_id})", nil, materialize_transactions: true)
       end
 
       def release_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")
         end
-        query_value("SELECT pg_advisory_unlock(#{lock_id})")
+        query_value("SELECT pg_advisory_unlock(#{lock_id})", nil, materialize_transactions: true)
       end
 
       def enable_extension(name, **)
@@ -489,7 +489,8 @@ module ActiveRecord
         sql = +"CREATE EXTENSION IF NOT EXISTS \"#{name}\""
         sql << " SCHEMA #{schema}" if schema
 
-        internal_exec_query(sql).tap { reload_type_map }
+        query_command(sql)
+        reload_type_map
       end
 
       # Removes an extension from the database.
@@ -499,17 +500,16 @@ module ActiveRecord
       #   Defaults to false.
       def disable_extension(name, force: false)
         _schema, name = name.to_s.split(".").values_at(-2, -1)
-        internal_exec_query("DROP EXTENSION IF EXISTS \"#{name}\"#{' CASCADE' if force == :cascade}").tap {
-          reload_type_map
-        }
+        query_command("DROP EXTENSION IF EXISTS \"#{name}\"#{' CASCADE' if force == :cascade}")
+        reload_type_map
       end
 
       def extension_available?(name)
-        query_value("SELECT true FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA")
+        query_value("SELECT true FROM pg_available_extensions WHERE name = #{quote(name)}")
       end
 
       def extension_enabled?(name)
-        query_value("SELECT installed_version IS NOT NULL FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA")
+        query_value("SELECT installed_version IS NOT NULL FROM pg_available_extensions WHERE name = #{quote(name)}")
       end
 
       def extensions
@@ -521,7 +521,7 @@ module ActiveRecord
           JOIN pg_namespace n ON pg_extension.extnamespace = n.oid
         SQL
 
-        internal_exec_query(query, "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values.map do |row|
+        query_all(query).cast_values.map do |row|
           name, schema = row[0], row[1]
           schema = nil if schema == current_schema
           [schema, name].compact.join(".")
@@ -543,7 +543,7 @@ module ActiveRecord
           GROUP BY type.OID, n.nspname, type.typname;
         SQL
 
-        internal_exec_query(query, "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values.each_with_object({}) do |row, memo|
+        query_all(query).cast_values.each_with_object({}) do |row, memo|
           name, schema = row[0], row[2]
           schema = nil if schema == current_schema
           full_name = [schema, name].compact.join(".")
@@ -570,7 +570,8 @@ module ActiveRecord
           END
           $$;
         SQL
-        internal_exec_query(query).tap { reload_type_map }
+        query_command(query)
+        reload_type_map
       end
 
       # Drops an enum type.
@@ -586,7 +587,8 @@ module ActiveRecord
         query = <<~SQL
           DROP TYPE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(name)};
         SQL
-        internal_exec_query(query).tap { reload_type_map }
+        query_command(query)
+        reload_type_map
       end
 
       # Rename an existing enum type to something else.
@@ -632,13 +634,13 @@ module ActiveRecord
 
       # Returns the configured maximum supported identifier length supported by PostgreSQL
       def max_identifier_length
-        @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
+        @max_identifier_length ||= query_value("SHOW max_identifier_length").to_i
       end
 
       # Set the authorized user for this session
       def session_auth=(user)
         clear_cache!
-        internal_execute("SET SESSION AUTHORIZATION #{user}", nil, materialize_transactions: true)
+        query_command("SET SESSION AUTHORIZATION #{user}", nil, materialize_transactions: true)
       end
 
       def use_insert_returning?
@@ -887,7 +889,9 @@ module ActiveRecord
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
           load_types_queries(initializer, oids) do |query|
-            records = internal_execute(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+            intent = internal_build_intent(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+            intent.execute!
+            records = intent.raw_result
             initializer.run(records)
           end
         end
@@ -997,16 +1001,16 @@ module ActiveRecord
           variables = @config.fetch(:variables, {}).stringify_keys
 
           # Set interval output format to ISO 8601 for ease of parsing by ActiveSupport::Duration.parse
-          internal_execute("SET intervalstyle = iso_8601", "SCHEMA")
+          query_command("SET intervalstyle = iso_8601", "SCHEMA")
 
           # SET statements from :variables config hash
           # https://www.postgresql.org/docs/current/static/sql-set.html
           variables.map do |k, v|
             if v == ":default" || v == :default
               # Sets the value to the global or compile default
-              internal_execute("SET SESSION #{k} TO DEFAULT", "SCHEMA")
+              query_command("SET SESSION #{k} TO DEFAULT", "SCHEMA")
             elsif !v.nil?
-              internal_execute("SET SESSION #{k} TO #{quote(v)}", "SCHEMA")
+              query_command("SET SESSION #{k} TO #{quote(v)}", "SCHEMA")
             end
           end
 
@@ -1027,11 +1031,13 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection
           # to return TIMESTAMP WITH ZONE types in UTC.
           if default_timezone == :utc
-            intent = QueryIntent.new(processed_sql: "SET SESSION timezone TO 'UTC'", name: "SCHEMA")
-            raw_execute(intent)
+            intent = QueryIntent.new(adapter: self, processed_sql: "SET SESSION timezone TO 'UTC'", name: "SCHEMA")
+            intent.execute!
+            intent.finish
           else
-            intent = QueryIntent.new(processed_sql: "SET SESSION timezone TO DEFAULT", name: "SCHEMA")
-            raw_execute(intent)
+            intent = QueryIntent.new(adapter: self, processed_sql: "SET SESSION timezone TO DEFAULT", name: "SCHEMA")
+            intent.execute!
+            intent.finish
           end
         end
 
@@ -1054,7 +1060,7 @@ module ActiveRecord
         #  - format_type includes the column size constraint, e.g. varchar(50)
         #  - ::regclass is a function that gives the id for a table name
         def column_definitions(table_name)
-          query(<<~SQL, "SCHEMA")
+          query_rows(<<~SQL)
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment,
@@ -1098,8 +1104,7 @@ module ActiveRecord
                     AND castsource = #{quote column.sql_type}::regtype
                 )
               SQL
-              result = internal_execute(sql, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
-              result.getvalue(0, 0)
+              query_value(sql)
             end
           end
         end
@@ -1155,7 +1160,9 @@ module ActiveRecord
             FROM pg_type as t
             WHERE t.typname IN (%s)
           SQL
-          result = internal_execute(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+          intent = internal_build_intent(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+          intent.execute!
+          result = intent.raw_result
           coders = result.filter_map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
 
           map = PG::TypeMapByOid.new
