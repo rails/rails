@@ -13,7 +13,7 @@ further detail in this guide. You will learn:
 * About Instrumentation
 * How to instrument your own events.
 * How to subscribe to events.
-* The instrumentation hooks available inside Rails.
+* The built-in instrumentation events available inside Rails.
 
 --------------------------------------------------------------------------------
 
@@ -27,22 +27,16 @@ payload. Any subscribers listening for that event will then be notified and can
 react, for example, they can log information, benchmark, or perform some other
 action. This makes it possible to observe behavior within the Rails framework,
 in your own code, or even in standalone Ruby scripts. There are a few parts that
-are vital to understanding the Instrumentation API: hooks, events, and
-subscribers.
+are vital to understanding the Instrumentation API: events and subscribers.
 
 NOTE: The Instrumentation API is intended for framework code, not application code. For application-level event reporting, use [Active Support Structured Events](active_support_structured_events.html) instead.
 
+### Events
 
-<!-- TODO I'm wondering if "Hook" is basically the same as "Instrumentation" and using Hook only adds confusion.
-The Notifications API documentation doesn't mention "Hook" at all. -->
-### Hooks
+An event is a record of something that has happened, and is emitted when an instrumented block of code is called. Events have a name and optional data (called the payload).
 
-Hooks help us observe behavior within the Rails framework; these hooks are
-predefined points in the framework where an event is emitted. By subscribing to
-an event from a hook, you can run your own code whenever that event occurs.
+For example, when Active Record executes a SQL query, it instruments the `sql.active_record` event. This event has the name `sql.active_record` and includes data such as the SQL statement, bind parameters, and connection information in its payload.
 
-For example, there is a [`sql.active_record` hook](#sql-active-record) that is called every time
-Active Record executes a SQL query on a database. When subscribed to, it can be used to track the number of queries during a certain action.
 
 ```ruby
 sql_counter = 0
@@ -51,9 +45,7 @@ ActiveSupport::Notifications.subscribe "sql.active_record" do |event|
 end
 ```
 
-A [`process_action.action_controller` hook](#process-action-action-controller) is called when
-processing an action of a controller. When subscribed to, it can be used
-to track how long a specific action has taken.
+Similarly, when a controller action finishes processing, it instruments the `process_action.action_controller` event. This event includes data such as the controller name, action name, and request information in its payload.
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
@@ -61,20 +53,8 @@ ActiveSupport::Notifications.subscribe "process_action.action_controller" do |ev
 end
 ```
 
-You can read more about hooks in the [Rails framework hooks section](#rails-framework-hooks) later in this guide.
-
-### Events
-
-An event is a record of something that has happened, and is emitted when a instrumented block of code is called.
-
-For example, when the
-[`process_action.action_controller`](#process-action-action-controller) hook is
-triggered, then an event is generated. This event has a name and optional data.
-The name is `process_action.action_controller` and the data includes the
-controller name, action name, and other information about the request.
-
 You can read more about creating your own events and subscribing to events in
-the  [Instrumenting Custom Events section](#instrumenting-custom-events) and
+the [Instrumenting Events section](#instrumenting-events) and
 [Subscribing to an Event section](#subscribing-to-an-event) respectively.
 
 ### Subscribers
@@ -93,7 +73,7 @@ subscribers in the [Subscribing to an Event section](#subscribing-to-an-event).
 Instrumenting Events
 --------------------
 
-Rails provides built-in events which you can read more about more in the [Rails Framework Hooks section](#rails-framework-hooks). However, there may be instances where you might want to instrument your own event.
+Rails provides built-in events which you can read more about in the [Rails Framework Instrumentation section](#rails-framework-instrumentation). However, there may be instances where you might want to instrument your own event.
 
 To instrument a custom event, you can call
 [`ActiveSupport::Notifications.instrument`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-instrument)
@@ -106,7 +86,7 @@ ActiveSupport::Notifications.instrument "publish.posts", {title: "My Post", auth
 end
 ```
 
-TIP: When defining your own event names, follow Rails conventions. The format for [Rails Framework Hooks](#rails-framework-hooks) is: `<action>.<component>`, where `<action>` describes what happened (e.g., `service_delete`, `start_transaction`) and `<component>` is the framework or library name (e.g., `active_record`, `active_storage`). Hence, if you want to instrument an event when a post is published in a blogging application, you could use the event name `publish.posts`.
+TIP: When defining your own event names, follow Rails conventions. The recommended format used for [Rails Framework Instrumentation](#rails-framework-instrumentation) is: `<action>.<component>`, where `<action>` describes what happened (e.g., `service_delete`, `start_transaction`) and `<component>` is the framework or library name (e.g., `active_record`, `active_storage`). Hence, if you want to instrument an event when a post is published in a blogging application, you could use the event name `publish.posts`.
 
 When given a block (like the example above), Active Support measures the block's
 execution, i.e. the start time, end time, and duration, and then emits the event
@@ -130,8 +110,7 @@ Subscribing to an Event
 -----------------------
 
 As mentioned [in the introduction](#introduction-to-instrumentation), an event
-is generated when a hook is triggered [within the Rails
-framework](#rails-framework-hooks) or when [you've instrumented your own
+is generated when code within the Rails framework instruments an event or when [you've instrumented your own
 event](#instrumenting-events). You can subscribe to these events by using
 the
 [`ActiveSupport::Notifications.subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-subscribe)
@@ -221,11 +200,11 @@ sources to kick off a background job to send an email to the post author, and to
 also log the event.
 
 
-Rails Framework Hooks
----------------------
+Rails Framework Instrumentation
+----------------------------------
 
-Within the Ruby on Rails framework, there are a number of hooks already provided for
-common events.
+Within the Ruby on Rails framework, there are a number of built-in instrumentation points for
+common operations.
 
 Each heading below lists the event name you can subscribe to, explains how the
 event is triggered, and displays a corresponding example `event.payload` from the
