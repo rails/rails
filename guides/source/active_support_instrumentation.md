@@ -259,10 +259,9 @@ class ChatChannel < ApplicationCable::Channel
 end
 ```
 
-<!-- TODO If we rename the column header to "Example Value" (we also have "Payload Key"), the sentence can be simplified somewhat: -->
-The event payload (`event.payload`) includes the following keys.
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key      | Description               | Example               |
+| Payload Key      | Description               | Example Value         |
 | ---------------- | ------------------------- | --------------------- |
 | `:channel_class` | Name of the channel class | `"ChatChannel"`       |
 | `:action`        | The action                | `"speak"`             |
@@ -282,10 +281,9 @@ class ChatChannel < ApplicationCable::Channel
 end
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key      | Description               | Example          |
+| Payload Key      | Description               | Example Value    |
 | ---------------- | ------------------------- | ---------------- |
 | `:channel_class` | Name of the channel class | `"ChatChannel"`  |
 | `:data`          | A hash of data            | `{ "ok"=>true }` |
@@ -305,10 +303,9 @@ class ChatChannel < ApplicationCable::Channel
 end
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key      | Description               | Example         |
+| Payload Key      | Description               | Example Value   |
 | ---------------- | ------------------------- | --------------- |
 | `:channel_class` | Name of the channel class | `"ChatChannel"` |
 
@@ -326,10 +323,9 @@ class ChatChannel < ApplicationCable::Channel
 end
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key      | Description               | Example         |
+| Payload Key      | Description               | Example Value   |
 | ---------------- | ------------------------- | --------------- |
 | `:channel_class` | Name of the channel class | `"ChatChannel"` |
 
@@ -343,10 +339,9 @@ For example:
 ActionCable.server.broadcast("chat_room_1", text: "Hello")
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key     | Description                     | Example                 |
+| Payload Key     | Description                     | Example Value           |
 | --------------- | ------------------              | ----------------------- |
 | `:broadcasting` | Named broadcasting              | `"chat_room_1"`         |
 | `:message`      | A hash containing message data  | `{ "text"=>"Hello" }`   |
@@ -370,10 +365,9 @@ class PostsController < ApplicationController
 end
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key   | Description                                               | Example                                   |
+| Payload Key   | Description                                               | Example Value                             |
 | ------------- | --------------------------------------------------------- | ----------------------------------------- |
 | `:controller` | The controller name                                       | `"PostsController"`                       |
 | `:action`     | The action                                                | `"new"`                                   |
@@ -400,10 +394,9 @@ class PostsController < ApplicationController
 end
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key     | Description                                               | Example                                     |
+| Payload Key     | Description                                               | Example Value                               |
 | --------------- | --------------------------------------------------------- | ------------------------------------------- |
 | `:controller`   | The controller name                                       | `"PostsController"`                         |
 | `:action`       | The action                                                | `"index"`                                   |
@@ -437,7 +430,7 @@ end
 The event payload (`event.payload`) includes the file path plus any options you
 pass to send_file.
 
-| Payload Key | Description               | Example                         |
+| Payload Key | Description               | Example Value                   |
 | ----------- | ------------------------- | ------------------------------- |
 | `:path`     | Complete path to the file | `"/var/app/exports/report.csv"` |
 
@@ -482,10 +475,9 @@ class PostsController < ApplicationController
 end
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description                       | Example                             |
+| Payload Key | Description                       | Example Value                       |
 | ----------- | --------------------------------- | ----------------------------------- |
 | `:status`   | HTTP response code                | `302`                               |
 | `:location` | URL to redirect to                | `"http://localhost:3000/posts/new"` |
@@ -503,11 +495,10 @@ class PostsController < ApplicationController
 end
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description                   | Example            |
-| ----------- | ----------------------------- | ------------------ |
+| Payload Key | Description                     | Example Value      |
+| ----------- | --------------------------------| ------------------ |
 | `:filter`   | Callback that halted the action | `":require_login"` |
 
 #### `unpermitted_parameters.action_controller`
@@ -527,10 +518,9 @@ end
 # => triggers unpermitted_parameters.action_controller
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description                                               | Example                                  |
+| Payload Key | Description                                               | Example Value                            |
 | ----------- | --------------------------------------------------------- | ---------------------------------------- |
 | `:keys`     | The unpermitted keys                                      | `["admin"]`                              |
 | `:context`  | Hash with `:controller`, `:action`, `:params`, `:request` | `{ controller: "UsersController", ... }` |
@@ -551,10 +541,9 @@ class SubscribersController < ApplicationController
 end
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key    | Description              | Example             |
+| Payload Key    | Description              | Example Value       |
 | -------------- | ------------------------ | ------------------- |
 | `:filename`    | The filename             | `"subscribers.csv"` |
 | `:type`        | HTTP content type        | `"text/csv"`        |
@@ -573,10 +562,9 @@ class PostsController < ApplicationController
 end
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key  | Description                              | Example                          |
+| Payload Key  | Description                              | Example Value                    |
 | ------------ | ---------------------------------------- | -------------------------------- |
 | `:request`   | The [`ActionDispatch::Request`][] object | `#<ActionDispatch::Request ...>` |
 | `:count`     | Number of requests made                  | `101`                            |
@@ -603,10 +591,9 @@ class DashboardsController < ApplicationController
 end
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description      | Example                    |
+| Payload Key | Description      | Example Value              |
 | ----------- | ---------------- | -------------------------- |
 | `:key`      | The complete key | `"posts/1-dashboard-view"` |
 
@@ -627,10 +614,9 @@ class DashboardsController < ApplicationController
 end
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description      | Example                    |
+| Payload Key | Description      | Example Value              |
 | ----------- | ---------------- | -------------------------- |
 | `:key`      | The complete key | `"posts/1-dashboard-view"` |
 
@@ -644,10 +630,9 @@ For example:
 expire_fragment("dashboards/#{params[:id]}")
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description      | Example                    |
+| Payload Key | Description      | Example Value              |
 | ----------- | ---------------- | -------------------------- |
 | `:key`      | The complete key | `"posts/1-dashboard-view"` |
 
@@ -661,10 +646,9 @@ For example:
 fragment_exist?("dashboards/#{params[:id]}")
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description      | Example                    |
+| Payload Key | Description      | Example Value              |
 | ----------- | ---------------- | -------------------------- |
 | `:key`      | The complete key | `"posts/1-dashboard-view"` |
 
@@ -687,10 +671,9 @@ config.middleware.use Class.new {
 }
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key   | Description            | Example           |
+| Payload Key   | Description            | Example Value     |
 | ------------- | ---------------------- | ----------------- |
 | `:middleware` | Name of the middleware | `"Rack::Runtime"` |
 
@@ -707,10 +690,9 @@ Rails.application.routes.draw do
 end
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key        | Description                              | Example                          |
+| Payload Key        | Description                              | Example Value                    |
 | ------------------ | ---------------------------------------- | ---------------------------------|
 | `:status`          | HTTP response code                       | `302`                            |
 | `:location`        | URL to redirect to                       | `"https://example.com/sign_in"`  |
@@ -735,10 +717,9 @@ end
 Rails.application.config.middleware.use PeekRequest
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description                       | Example                          |
+| Payload Key | Description                       | Example Value                    |
 | ----------- | --------------------------------- | -------------------------------- |
 | `:request`  | The [`ActionDispatch::Request`][] | `#<ActionDispatch::Request ...>` |
 
@@ -761,10 +742,9 @@ end
 # An inbound email routed to RepliesMailbox -> triggers process.action_mailbox
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key      | Description                                                     | Example                                              |
+| Payload Key      | Description                                                     | Example Value                                        |
 | ---------------- | --------------------------------------------------------------- | ---------------------------------------------------- |
 | `:mailbox`       | Instance of a Mailbox inheriting from [`ActionMailbox::Base`][] | `#<RepliesMailbox ...>`                              |
 | `:inbound_email` | Hash describing the inbound email being processed               | `{ id: 1, message_id: "...", status: "processing" }` |
@@ -785,10 +765,9 @@ For example:
 UserMailer.welcome(current_user).deliver_now
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key           | Description                   | Example                       |
+| Payload Key           | Description                   | Example Value                 |
 | --------------------- | ----------------------------- | ------------------------------|
 | `:mailer`             | Name of the mailer class      | `"Notification"`              |
 | `:message_id`         | ID of the message (Mail gem)  | `"<abc@host>"`                |
@@ -811,10 +790,9 @@ For example:
 UserMailer.welcome(current_user) # building the message triggers process.action_mailer
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description              | Example           |
+| Payload Key | Description              | Example Value     |
 | ----------- | ------------------------ | ----------------- |
 | `:mailer`   | Name of the mailer class | `"Notification"`  |
 | `:action`   | The action               | `"welcome_email"` |
@@ -832,14 +810,13 @@ For example:
 render :index, layout: "application", locals: { post: @post }
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key   | Description                        | Example                                |
+| Payload Key   | Description                        | Example Value                          |
 | ------------- | ---------------------------------- | -------------------------------------- |
 | `:identifier` | Full path to template              | `".../app/views/posts/index.html.erb"` |
 | `:layout`     | Applicable layout                  | `"layouts/application"`                |
-| `:locals`     | Local variables passed to template | `{ post: @post }`                       |
+| `:locals`     | Local variables passed to template | `{ post: @post }`                      |
 
 #### `render_partial.action_view`
 
@@ -851,13 +828,12 @@ For example:
 <%= render "form", post: @post %>
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key   | Description                        | Example                                |
+| Payload Key   | Description                        | Example Value                          |
 | ------------- | ---------------------------------- | -------------------------------------- |
 | `:identifier` | Full path to template              | `".../app/views/posts/_form.html.erb"` |
-| `:locals`     | Local variables passed to template | `{ post: @post }`                       |
+| `:locals`     | Local variables passed to template | `{ post: @post }`                      |
 
 #### `render_collection.action_view`
 
@@ -872,7 +848,7 @@ For example:
 The event payload (`event.payload`) includes the keys below; some appear only in
 certain conditions (noted).
 
-| Payload Key   | Description                           | Example                                |
+| Payload Key   | Description                           | Example Value                          |
 | ------------- | ------------------------------------- | -------------------------------------- |
 | `:identifier` | Full path to template                 | `".../app/views/posts/_post.html.erb"` |
 | `:count`      | Size of collection                    | `3`                                    |
@@ -890,10 +866,9 @@ For example:
 render inline: "<p>Hello</p>", layout: "marketing"
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key   | Description           | Example                                        |
+| Payload Key   | Description           | Example Value                                  |
 | ------------- | --------------------- | ---------------------------------------------- |
 | `:identifier` | Full path to template | `".../app/views/layouts/application.html.erb"` |
 
@@ -925,10 +900,9 @@ For example:
 MyJob.set(wait_until: 1.hour.from_now).perform_later("hello")
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description                     | Example                            |
+| Payload Key | Description                     | Example Value                      |
 | ----------- | ------------------------------- | ---------------------------------- |
 | `:adapter`  | QueueAdapter processing the job | `#<ActiveJob::QueueAdapters::...>` |
 | `:job`      | Job object                      | `#<MyJob ...>`                     |
@@ -943,10 +917,9 @@ For example:
 MyJob.perform_later("now")
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description                     | Example        |
+| Payload Key | Description                     | Example Value  |
 | ----------- | ------------------------------- | -------------- |
 | `:adapter`  | QueueAdapter processing the job | `#<...>`       |
 | `:job`      | Job object                      | `#<MyJob ...>` |
@@ -962,10 +935,9 @@ MyJob.perform_later("fail to retry")
 # inside perform, raise Timeout::Error => Active Job schedules retry
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description                     | Example                 |
+| Payload Key | Description                     | Example Value           |
 | ----------- | ------------------------------- | ----------------------- |
 | `:job`      | Job object                      | `#<MyJob ...>`          |
 | `:adapter`  | QueueAdapter processing the job | `#<...>`                |
@@ -983,10 +955,9 @@ jobs = [ MyJob.new, MyJob.new ]
 ActiveJob::Base.enqueue_all(jobs) # when supported by the adapter
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description                     | Example                 |
+| Payload Key | Description                     | Example Value           |
 | ----------- | ------------------------------- | ----------------------- |
 | `:adapter`  | QueueAdapter processing the job | `#<...>`                |
 | `:jobs`     | An array of Job objects         | `[ #<MyJob ...>, ... ]` |
@@ -1001,10 +972,9 @@ For example:
 MyJob.perform_now # Fired on the worker right before perform begins
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description                     | Example        |
+| Payload Key | Description                     | Example Value  |
 | ----------- | ------------------------------- | -------------- |
 | `:adapter`  | QueueAdapter processing the job | `#<...>`       |
 | `:job`      | Job object                      | `#<MyJob ...>` |
@@ -1019,10 +989,9 @@ For example:
 MyJob.perform_now # Fired after perform finishes (success or handled failure)
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key   | Description                             | Example        |
+| Payload Key   | Description                             | Example Value  |
 | ------------- | --------------------------------------- | -------------- |
 | `:adapter`    | QueueAdapter processing the job         | `#<...>`       |
 | `:job`        | Job object                              | `#<MyJob ...>` |
@@ -1038,10 +1007,9 @@ For example:
 # After exhausting retries (per retry_on), the job stops retrying
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description                     | Example                 |
+| Payload Key | Description                     | Example Value           |
 | ----------- | ------------------------------- | ----------------------- |
 | `:adapter`  | QueueAdapter processing the job | `#<...>`                |
 | `:job`      | Job object                      | `#<MyJob ...>`          |
@@ -1060,10 +1028,9 @@ end
 MyJob.perform_later("oops") # error -> discarded
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description                       | Example                |
+| Payload Key | Description                       | Example Value          |
 | ----------- | --------------------------------- | ---------------------- |
 | `:adapter`  | QueueAdapter processing the job   | `#<...>`               |
 | `:job`      | Job object                        | `#<MyJob ...>`         |
@@ -1084,7 +1051,7 @@ Post.where(published: true).limit(5).to_a
 The event payload (`event.payload`) typically includes the keys below, but
 adapters/services may add more keys to the payload.
 
-| Payload Key          | Description                                      | Example                                             |
+| Payload Key          | Description                                      | Example Value                                       |
 | -------------------- | ------------------------------------------------ | --------------------------------------------------- |
 | `:sql`               | SQL statement                                    | `"SELECT \"posts\".* FROM \"posts\""`               |
 | `:name`              | Name of the operation                            | `"Post Load"`                                       |
@@ -1112,10 +1079,9 @@ user = User.strict_loading.first
 user.posts.to_a  # lazy load => triggers strict_loading_violation (when config logs)
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key   | Description                                      | Example                           |
+| Payload Key   | Description                                      | Example Value                     |
 | ------------- | ------------------------------------------------ | --------------------------------- |
 | `:owner`      | Model with `strict_loading` enabled              | `#<User id: 1 ...>`               |
 | `:reflection` | Reflection of the association that tried to load | `#<ActiveRecord::Reflection ...>` |
@@ -1134,13 +1100,12 @@ For example:
 User.all.to_a
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key     | Description                    | Example  |
-| --------------- | ------------------------------ | -------- |
-| `:record_count` | Number of records instantiated | `1`      |
-| `:class_name`   | Record’s class                 | `"User"` |
+| Payload Key     | Description                    | Example Value |
+| --------------- | ------------------------------ | ------------- |
+| `:record_count` | Number of records instantiated | `1`           |
+| `:class_name`   | Record's class                 | `"User"`      |
 
 #### `start_transaction.active_record`
 
@@ -1184,10 +1149,9 @@ end
 NOTE:  Active Record does not create the actual database transaction until needed.
 
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key    | Description        | Example                                    |
+| Payload Key    | Description        | Example Value                              |
 | -------------- | ------------------ | ------------------------------------------ |
 | `:transaction` | Transaction object | `#<ActiveRecord::ConnectionAdapters::...>` |
 | `:connection`  | Connection object  | `#<ActiveRecord::ConnectionAdapters::...>` |
@@ -1205,10 +1169,9 @@ ActiveRecord::Base.transaction do
 end # commit/rollback => triggers transaction.active_record with :outcome
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key    | Description                                          | Example                |
+| Payload Key    | Description                                          | Example Value          |
 | -------------- | ---------------------------------------------------- | ---------------------- |
 | `:transaction` | Transaction object                                   | `#<ActiveRecord::...>` |
 | `:outcome`     | `:commit`, `:rollback`, `:restart`, or `:incomplete` | `:commit`              |
@@ -1238,10 +1201,9 @@ end
 Book.first.authors # triggers deprecated_association.active_record
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key   | Description                                | Example                                  |
+| Payload Key   | Description                                | Example Value                            |
 | ------------- | ------------------------------------------ | ---------------------------------------- |
 | `:reflection` | The reflection of the association          | `#<ActiveRecord::Reflection ...>`        |
 | `:message`    | Descriptive message about the access       | `"authors is deprecated"`                |
@@ -1264,10 +1226,9 @@ blob = ActiveStorage::Blob.find(params[:id])
 blob.preview(resize_to_limit: [200, 200]).processed
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description     | Example          |
+| Payload Key | Description     | Example Value    |
 | ----------- | --------------- | ---------------- |
 | `:key`      | Key of the blob | `"secure_token"` |
 
@@ -1294,12 +1255,11 @@ blob = ActiveStorage::Blob.find(params[:id])
 blob.analyze
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description                     | Example     |
-| ----------- | ------------------------------- | ----------- |
-| `:analyzer` | Name of analyzer (e.g. ffprobe) | `"ffprobe"` |
+| Payload Key | Description                     | Example Value |
+| ----------- | ------------------------------- | ------------- |
+| `:analyzer` | Name of analyzer (e.g. ffprobe) | `"ffprobe"`   |
 
 ### Active Storage: Storage Service
 
@@ -1313,10 +1273,9 @@ For example:
 current_user.avatar.attach(io: File.open("/path/pic.jpg"), filename: "pic.jpg")
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description            | Example           |
+| Payload Key | Description            | Example Value     |
 | ----------- | ---------------------- | ----------------- |
 | `:key`      | Key of the blob        | `"secure_token"`  |
 | `:service`  | Name of the service    | `"S3"`            |
@@ -1332,10 +1291,9 @@ For example:
 send_data current_user.avatar.download, disposition: :inline
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description         | Example          |
+| Payload Key | Description         | Example Value    |
 | ----------- | ------------------- | ---------------- |
 | `:key`      | Key of the blob     | `"secure_token"` |
 | `:service`  | Name of the service | `"S3"`           |
@@ -1351,10 +1309,9 @@ For example:
 current_user.avatar.service.download_chunk(current_user.avatar.key, 0..1_048_575)
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description          | Example          |
+| Payload Key | Description          | Example Value    |
 | ----------- | -------------------- | ---------------- |
 | `:key`      | Key of the blob      | `"secure_token"` |
 | `:service`  | Name of the service  | `"S3"`           |
@@ -1370,10 +1327,9 @@ For example:
 current_user.avatar.download
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description         | Example          |
+| Payload Key | Description         | Example Value    |
 | ----------- | ------------------- | ---------------- |
 | `:key`      | Key of the blob     | `"secure_token"` |
 | `:service`  | Name of the service | `"S3"`           |
@@ -1388,10 +1344,9 @@ For example:
 current_user.avatar.purge
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description         | Example          |
+| Payload Key | Description         | Example Value    |
 | ----------- | ------------------- | ---------------- |
 | `:key`      | Key of the blob     | `"secure_token"` |
 | `:service`  | Name of the service | `"S3"`           |
@@ -1406,13 +1361,12 @@ For example:
 ActiveStorage::Blob.service.delete_prefixed("tmp/")
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description     | Example  |
-| ----------- | --------------- | -------- |
-| `:prefix`   | Key prefix      | `"tmp/"` |
-| `:service`  | Name of service | `"S3"`   |
+| Payload Key | Description     | Example Value |
+| ----------- | --------------- | ------------- |
+| `:prefix`   | Key prefix      | `"tmp/"`      |
+| `:service`  | Name of service | `"S3"`        |
 
 #### `service_exist.active_storage`
 
@@ -1424,10 +1378,9 @@ For example:
 ActiveStorage::Blob.service.exist?(blob.key)
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description             | Example          |
+| Payload Key | Description             | Example Value    |
 | ----------- | ----------------------- | ---------------- |
 | `:key`      | Key of the blob         | `"secure_token"` |
 | `:service`  | Name of the service     | `"S3"`           |
@@ -1443,10 +1396,9 @@ For example:
 ActiveStorage::Blob.service.url(blob.key)
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description         | Example                  |
+| Payload Key | Description         | Example Value            |
 | ----------- | ------------------- | ------------------------ |
 | `:key`      | Key of the blob     | `"secure_token"`         |
 | `:service`  | Name of the service | `"S3"`                   |
@@ -1465,10 +1417,9 @@ ActiveStorage::Blob.service.update_metadata(
 )
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key     | Description                | Example           |
+| Payload Key     | Description                | Example Value     |
 | --------------- | -------------------------- | ----------------- |
 | `:key`          | Key of the blob             | `"secure_token"` |
 | `:service`      | Name of the service        | `"GCS"`           |
@@ -1487,10 +1438,9 @@ For example:
 Rails.cache.read("user:1:settings")
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key        | Description                         | Example                       |
+| Payload Key        | Description                         | Example Value                 |
 | ------------------ | ----------------------------------- | ----------------------------- |
 | `:key`             | Key used in the store               | `"user:1:settings"`           |
 | `:store`           | Name of the store class             | `"ActiveSupport::Cache::..."` |
@@ -1507,10 +1457,9 @@ For example:
 Rails.cache.read_multi("u:1", "u:2")
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key        | Description                                                                    | Example                       |
+| Payload Key        | Description                                                                    | Example Value                 |
 | ------------------ | ------------------------------------------------------------------------------ | ----------------------------- |
 | `:key`             | Keys used in the store                                                         | `["u:1","u:2"]`               |
 | `:store`           | Name of the store class                                                        | `"ActiveSupport::Cache::..."` |
@@ -1528,10 +1477,9 @@ For example:
 Rails.cache.fetch("expensive:calc") { do_expensive_work }
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description             | Example                                 |
+| Payload Key | Description             | Example Value                           |
 | ----------- | ----------------------- | --------------------------------------- |
 | `:key`      | Key used in the store   | `"expensive:calc"`                      |
 | `:store`    | Name of the store class | `"ActiveSupport::Cache::MemCacheStore"` |
@@ -1549,10 +1497,9 @@ For example:
 Rails.cache.fetch("expensive:calc") { do_expensive_work } # cache hit
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description             | Example                                 |
+| Payload Key | Description             | Example Value                           |
 | ----------- | ----------------------- | --------------------------------------- |
 | `:key`      | Key used in the store   | `"expensive:calc"`                      |
 | `:store`    | Name of the store class | `"ActiveSupport::Cache::MemCacheStore"` |
@@ -1567,10 +1514,9 @@ For example:
 Rails.cache.write("expensive:calc", 42)
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description             | Example                                 |
+| Payload Key | Description             | Example Value                           |
 | ----------- | ----------------------- | --------------------------------------- |
 | `:key`      | Key used in the store   | `"expensive:calc"`                      |
 | `:store`    | Name of the store class | `"ActiveSupport::Cache::MemCacheStore"` |
@@ -1587,10 +1533,9 @@ For example:
 Rails.cache.write_multi("a" => 1, "b" => 2)
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description                          | Example                       |
+| Payload Key | Description                          | Example Value                 |
 | ----------- | ------------------------------------ | ----------------------------- |
 | `:key`      | Keys and values written to the store | `{ "a"=>1, "b"=>2 }`          |
 | `:store`    | Name of the store class              | `"ActiveSupport::Cache::..."` |
@@ -1605,10 +1550,9 @@ For example:
 Rails.cache.increment("bottles-of-beer", 5)
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description             | Example                                   |
+| Payload Key | Description             | Example Value                             |
 | ----------- | ----------------------- | ----------------------------------------- |
 | `:key`      | Key used in the store   | `"bottles-of-beer"`                       |
 | `:store`    | Name of the store class | `"ActiveSupport::Cache::RedisCacheStore"` |
@@ -1624,10 +1568,9 @@ For example:
 Rails.cache.decrement("bottles-of-beer", 1)
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description             | Example                                   |
+| Payload Key | Description             | Example Value                             |
 | ----------- | ----------------------- | ----------------------------------------- |
 | `:key`      | Key used in the store   | `"bottles-of-beer"`                       |
 | `:store`    | Name of the store class | `"ActiveSupport::Cache::RedisCacheStore"` |
@@ -1643,10 +1586,9 @@ For example:
 Rails.cache.delete("expensive:calc")
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description             | Example                                 |
+| Payload Key | Description             | Example Value                           |
 | ----------- | ----------------------- | --------------------------------------- |
 | `:key`      | Key used in the store   | `"expensive:calc"`                      |
 | `:store`    | Name of the store class | `"ActiveSupport::Cache::MemCacheStore"` |
@@ -1661,10 +1603,9 @@ For example:
 Rails.cache.delete_multi("a", "b", "c")
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description        | Example                       |
+| Payload Key | Description        | Example Value                 |
 | ----------- | ------------------ | ----------------------------- |
 | `:key`      | Keys used in store | `["a","b","c"]`               |
 | `:store`    | Name of the store  | `"ActiveSupport::Cache::..."` |
@@ -1680,10 +1621,9 @@ For example:
 Rails.cache.delete_matched("posts/*")
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description       | Example                                   |
+| Payload Key | Description       | Example Value                             |
 | ----------- | ----------------- | ----------------------------------------- |
 | `:key`      | Key pattern       | `"posts/*"`                               |
 | `:store`    | Name of the store | `"ActiveSupport::Cache::RedisCacheStore"` |
@@ -1698,10 +1638,9 @@ For example:
 Rails.cache.cleanup
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description                      | Example                               |
+| Payload Key | Description                      | Example Value                         |
 | ----------- | -------------------------------- | ------------------------------------- |
 | `:store`    | Name of the store class          | `"ActiveSupport::Cache::MemoryStore"` |
 | `:size`     | Number of entries before cleanup | `9001`                                |
@@ -1716,10 +1655,9 @@ For example:
 Rails.cache.prune(5.megabytes)
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description             | Example                               |
+| Payload Key | Description             | Example Value                         |
 | ----------- | ----------------------- | ------------------------------------- |
 | `:store`    | Name of the store class | `"ActiveSupport::Cache::MemoryStore"` |
 | `:key`      | Target size (in bytes)  | `5000`                                |
@@ -1735,10 +1673,9 @@ For example:
 Rails.cache.exist?("expensive:calc")
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key | Description             | Example                                 |
+| Payload Key | Description             | Example Value                           |
 | ----------- | ----------------------- | --------------------------------------- |
 | `:key`      | Key used in the store   | `"expensive:calc"`                      |
 | `:store`    | Name of the store class | `"ActiveSupport::Cache::MemCacheStore"` |
@@ -1772,10 +1709,9 @@ enc = ActiveSupport::MessageEncryptor.new(key)
 enc.encrypt_and_sign(Object.new) # not JSON-serializable -> falls back
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key     | Description        | Example                                                |
+| Payload Key     | Description        | Example Value                                          |
 | --------------- | ------------------ | ------------------------------------------------------ |
 | `:serializer`   | Primary (intended) | `:json_allow_marshal`                                  |
 | `:fallback`     | Fallback (actual)  | `:marshal`                                             |
@@ -1794,10 +1730,9 @@ For example:
 ActiveSupport::Deprecation.warn("X is deprecated")
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key            | Description                                      | Example                     |
+| Payload Key            | Description                                      | Example Value               |
 | ---------------------- | ------------------------------------------------ | --------------------------- |
 | `:message`             | The deprecation warning                          | `"X is deprecated..."`      |
 | `:callstack`           | Where the deprecation came from                  | `[ ".../file.rb:42", ... ]` |
@@ -1819,10 +1754,9 @@ Rails.application.config.time_zone = "Pretoria"
 # Loaded during boot -> triggers load_config_initializer.railties
 ```
 
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
+The event payload (`event.payload`) includes the following keys:
 
-| Payload Key    | Description                    | Example                             |
+| Payload Key    | Description                    | Example Value                       |
 | -------------- | ------------------------------ | ----------------------------------- |
 | `:initializer` | Path of the loaded initializer | `"config/initializers/timezone.rb"` |
 
@@ -1833,7 +1767,7 @@ Exceptions
 If an exception happens during any instrumentation, the payload will include
 information about it.
 
-| Key                 | Description                                                          |
+| Key                 | Description                                                    |
 | ------------------- | -------------------------------------------------------------- |
 | `:exception`        | An array of two elements. Exception class name and the message |
 | `:exception_object` | The exception object                                           |
