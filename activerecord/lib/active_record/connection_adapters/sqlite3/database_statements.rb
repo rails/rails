@@ -21,6 +21,10 @@ module ActiveRecord
           SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
+        def explain_json_format?(options)
+          false
+        end
+
         def begin_deferred_transaction(isolation = nil) # :nodoc:
           internal_begin_transaction(:deferred, isolation)
         end

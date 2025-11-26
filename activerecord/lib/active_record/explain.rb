@@ -15,8 +15,12 @@ module ActiveRecord
     end
 
     # Makes the adapter execute EXPLAIN for the tuples of queries and bindings.
-    # Returns a formatted string ready to be logged.
+    # Returns a formatted string ready to be logged or a hash if the json format is specified.
     def exec_explain(queries, options = []) # :nodoc:
+      with_connection do |c|
+        return queries.map { |sql, binds| c.explain(sql, binds, options) } if c.explain_json_format?(options)
+      end
+
       str = with_connection do |c|
         queries.map do |sql, binds|
           msg = +"#{build_explain_clause(c, options)} #{sql}"
@@ -37,6 +41,10 @@ module ActiveRecord
     end
 
     private
+      def explain_json_format?(options)
+        options.any? { |opt| opt.is_a?(Hash) && opt[:format] == :json }
+      end
+
       def render_bind(connection, attr)
         if ActiveModel::Attribute === attr
           value = if attr.type.binary? && attr.value
