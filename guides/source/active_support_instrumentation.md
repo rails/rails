@@ -1165,6 +1165,7 @@ ActiveRecord::Base.transaction do |t1|
   end
 end
 ```
+
 NOTE:  Active Record does not create the actual database transaction until
 needed.
 
