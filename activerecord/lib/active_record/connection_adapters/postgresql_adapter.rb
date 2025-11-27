@@ -869,8 +869,12 @@ module ActiveRecord
         def retryable_query_error?(exception)
           # We cannot retry anything if we're inside a broken transaction; we need to at
           # least raise until the innermost savepoint is rolled back
-          @raw_connection&.transaction_status != ::PG::PQTRANS_INERROR &&
-            super
+          in_transaction = begin
+            @raw_connection&.transaction_status == ::PG::PQTRANS_INERROR
+          rescue PG::ConnectionBad
+            false
+          end
+          !in_transaction && super
         end
 
         def get_oid_type(oid, fmod, column_name, sql_type = "")

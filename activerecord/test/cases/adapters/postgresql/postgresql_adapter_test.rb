@@ -539,6 +539,14 @@ module ActiveRecord
         end
       end
 
+      def test_retryable_query_error_handles_closed_connection
+        @connection.raw_connection.close
+
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          @connection.execute("SELECT 1")
+        end
+      end
+
       def test_translate_no_connection_exception_to_not_established
         pid = @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
         @connection.pool.checkout.execute("SELECT pg_terminate_backend(#{pid})")
