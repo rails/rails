@@ -1,3 +1,12 @@
+*   Fix `ActiveSupport::TimeWithZone#as_json` to consistently return UTF-8 strings.
+
+    Previously the returned string would sometime be encoded in US-ASCII, which in
+    some cases may be problematic.
+
+    Now the method consistently always return UTF-8 strings.
+
+    *Jean Boussier*
+
 *   Fix `TimeWithZone#xmlschema` when wrapping a `DateTime` instance in local time.
 
     Previously it would return an invalid time.
