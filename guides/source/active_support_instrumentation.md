@@ -1567,14 +1567,14 @@ The event is emitted when a counter is incremented in the cache.
 For example:
 
 ```ruby
-Rails.cache.increment("bottles-of-beer", 5)
+Rails.cache.increment("bottles-of-water", 5)
 ```
 
 The event payload includes the following keys:
 
 | Payload Key | Description             | Example Value                             |
 | ----------- | ----------------------- | ----------------------------------------- |
-| `:key`      | Key used in the store   | `"bottles-of-beer"`                       |
+| `:key`      | Key used in the store   | `"bottles-of-water"`                      |
 | `:store`    | Name of the store class | `"ActiveSupport::Cache::RedisCacheStore"` |
 | `:amount`   | Increment amount        | `99`                                      |
 
@@ -1585,14 +1585,14 @@ The event is emitted when a counter is decremented in the cache.
 For example:
 
 ```ruby
-Rails.cache.decrement("bottles-of-beer", 1)
+Rails.cache.decrement("bottles-of-water", 1)
 ```
 
 The event payload includes the following keys:
 
 | Payload Key | Description             | Example Value                             |
 | ----------- | ----------------------- | ----------------------------------------- |
-| `:key`      | Key used in the store   | `"bottles-of-beer"`                       |
+| `:key`      | Key used in the store   | `"bottles-of-water"`                      |
 | `:store`    | Name of the store class | `"ActiveSupport::Cache::RedisCacheStore"` |
 | `:amount`   | Decrement amount        | `1`                                       |
 
