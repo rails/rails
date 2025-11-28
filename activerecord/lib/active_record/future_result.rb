@@ -47,14 +47,6 @@ module ActiveRecord
       Promise.new(self, block)
     end
 
-    def schedule!(session)
-      @intent.async_schedule!(session)
-    end
-
-    def execute_or_skip
-      @intent.execute_or_skip
-    end
-
     def cancel
       @intent.cancel
     end

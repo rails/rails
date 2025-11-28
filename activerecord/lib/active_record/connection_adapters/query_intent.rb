@@ -90,25 +90,6 @@ module ActiveRecord
         "#<#{self.class.name} name=#{name.inspect} allow_retry=#{allow_retry} materialize_transactions=#{materialize_transactions}>"
       end
 
-      # Schedule this intent for async execution via thread pool
-      def async_schedule!(session)
-        # Upgrade to real mutex now that we'll have concurrent access
-        @mutex = Mutex.new
-        @session = session
-
-        # Force preprocessing on original thread before queuing
-        processed_sql
-
-        # Detach from original adapter while in queue
-        @adapter = nil
-
-        # Mark as executed (dispatched) before scheduling
-        @executed = true
-
-        # Schedule on the pool's async queue
-        @pool.schedule_query(self)
-      end
-
       # Called by background thread to execute if not already done
       def execute_or_skip
         return unless pending?
@@ -123,8 +104,12 @@ module ActiveRecord
                 @event_buffer = EventBuffer.new(self, ActiveSupport::Notifications.instrumenter)
                 ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = @event_buffer
 
-                perform!(connection, async: true)
+                @adapter = connection
+                @async = true
+                run_query!
               end
+            rescue => error
+              @error = error
             ensure
               @mutex.unlock
             end
@@ -175,11 +160,11 @@ module ActiveRecord
       end
 
       def execute!
-        adapter.execute_intent(self) # sets our raw_result
-      rescue ::RangeError
-        # Parameter out of range - store empty result directly
-        @cast_result = ActiveRecord::Result.empty
-        @raw_result_available = true
+        if @async && can_run_async?
+          async_schedule!(ActiveRecord::Base.asynchronous_queries_session)
+        else
+          run_query!
+        end
       ensure
         @executed = true
       end
@@ -236,6 +221,21 @@ module ActiveRecord
       end
 
       private
+        def async_schedule!(session)
+          # Upgrade to real mutex now that we'll have concurrent access
+          @mutex = Mutex.new
+          @session = session
+
+          # Force preprocessing on original thread before queuing
+          processed_sql
+
+          # Detach from original adapter while in queue
+          @adapter = nil
+
+          # Schedule on the pool's async queue
+          @pool.schedule_query(self)
+        end
+
         # Heuristically guesses whether this is a write query by examining the outermost
         # SQL operation. Subqueries, function calls, etc are not considered.
         def write_query?
@@ -283,23 +283,34 @@ module ActiveRecord
           @mutex.synchronize do
             if pending?
               @pool.with_connection do |connection|
-                perform!(connection)
+                @adapter = connection
+                @async = false  # Foreground fallback, not actually async
+                run_query!
               end
             else
               # Result was computed by background thread while we waited for mutex
               @lock_wait = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_millisecond) - start
             end
+          rescue => error
+            @error = error
           end
         end
 
-        # Execute the query on the given connection
-        def perform!(connection, async: false)
-          @adapter = connection
-          @async = async
+        def can_run_async?
+          return false unless adapter.async_enabled?
 
-          execute!
-        rescue => error
-          @error = error
+          if adapter.current_transaction.joinable?
+            raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
+          end
+
+          true
+        end
+
+        def run_query!
+          adapter.execute_intent(self)
+        rescue ::RangeError
+          @cast_result = ActiveRecord::Result.empty
+          @raw_result_available = true
         end
     end
   end
