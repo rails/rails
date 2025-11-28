@@ -169,6 +169,14 @@ module ActiveRecord
         @executed = true
       end
 
+      def future_result
+        if pending? || can_run_async?
+          FutureResult.new(self)
+        else
+          FutureResult.wrap(cast_result)
+        end
+      end
+
       def finish
         affected_rows # just to consume/close the result
         nil
@@ -222,6 +230,10 @@ module ActiveRecord
 
       private
         def async_schedule!(session)
+          if adapter.current_transaction.joinable?
+            raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
+          end
+
           # Upgrade to real mutex now that we'll have concurrent access
           @mutex = Mutex.new
           @session = session
@@ -297,13 +309,7 @@ module ActiveRecord
         end
 
         def can_run_async?
-          return false unless adapter.async_enabled?
-
-          if adapter.current_transaction.joinable?
-            raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
-          end
-
-          true
+          @async && adapter.async_enabled?
         end
 
         def run_query!

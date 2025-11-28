@@ -83,11 +83,7 @@ module ActiveRecord
         intent.execute!
 
         if async
-          if async_enabled?
-            FutureResult.new(intent)
-          else
-            FutureResult.wrap(intent.cast_result)
-          end
+          intent.future_result
         else
           intent.cast_result
         end
