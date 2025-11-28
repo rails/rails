@@ -273,7 +273,7 @@ module ActiveRecord
 
           sql = raw_sql
 
-          # We call tranformers after the write checks so we don't need to parse the
+          # We call transformers after the write checks so we don't need to parse the
           # transformed result (which probably just adds comments we'd need to ignore).
           # This means we assume no transformer will change a read into a write.
           ActiveRecord.query_transformers&.each do |transformer|
