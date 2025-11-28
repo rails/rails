@@ -198,7 +198,10 @@ module Enumerable
     if filter
       group_by(&key).values_at(*series).flatten(1).compact
     else
-      sort_by { |v| series.index(v.public_send(key)) || series.size }.compact
+      sort_by do |v|
+        value = key.respond_to?(:call) ? key.call(v) : v.public_send(key)
+        series.index(value) || series.size
+      end.compact
     end
   end
 
