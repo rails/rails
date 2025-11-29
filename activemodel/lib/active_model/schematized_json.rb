@@ -10,9 +10,8 @@ module ActiveModel
     module ClassMethods
       def has_json(attr, schema:, delegate: false)
         define_method(attr) do
-          attribute_name = attr.to_s
-          _write_attribute(attribute_name, {}) if attribute(attribute_name).nil?
-          ActiveModel::SchematizedJson::DataAccessor.new(schema, data: attribute(attribute_name))
+          _write_attribute(attr.to_s, {}) if attribute(attr.to_s).nil?
+          ActiveModel::SchematizedJson::DataAccessor.new(schema, data: attribute(attr.to_s))
         end
 
         define_method("#{attr}=") { |data| public_send(attr).assign_data_with_type_casting(data) }
