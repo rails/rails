@@ -973,6 +973,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_response 500
 
     assert_match %r{<button onclick="copyAsText\.bind\(this\)\(\)">Copy as text</button>}, body
+    assert_match %r{<button onclick="copyAsXml\.bind\(this\)\(\)"\s+style="margin-right:\s*8px;">Copy as XML</button>}, body
     assert_match %r{<script type="text/plain" id="exception-message-for-copy">.*RuntimeError \(puke}m, body
   end
 

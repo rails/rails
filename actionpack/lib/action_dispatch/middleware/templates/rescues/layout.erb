@@ -323,6 +323,16 @@
         setTimeout(() => this.innerText = beforeText, 1000)
       })
     }
+    var copyAsXml = function() {
+      const text = document.getElementById("exception-message-for-copy").textContent;
+      const xmlText = `<error_message>\n${text}\n</error_message>`;
+
+      navigator.clipboard.writeText(xmlText).then(() => {
+        const beforeText = this.innerText;
+        this.innerText = "Copied!"
+        setTimeout(() => this.innerText = beforeText, 1000)
+      })
+    }
   </script>
 </head>
 <body>
