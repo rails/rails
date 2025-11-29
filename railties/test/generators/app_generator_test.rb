@@ -496,7 +496,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
-    assert_gem "puma", /"\W+ \d/
+    assert_gem "puma", '">= 7.1"'
   end
 
   def test_action_cable_redis_gems
