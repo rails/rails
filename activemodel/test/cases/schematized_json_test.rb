@@ -58,4 +58,11 @@ class SchematizedJsonTest < ActiveModel::TestCase
     @account.staff = false
     assert_not @account.staff?
   end
+
+  test "mass assignment" do
+    @account.settings = { "restricts_access" => "false", "max_invites" => "5", "greeting" => "goodbye" }
+    assert_not @account.settings.restricts_access?
+    assert_equal 5, @account.settings.max_invites
+    assert_equal "goodbye", @account.settings.greeting
+  end
 end
