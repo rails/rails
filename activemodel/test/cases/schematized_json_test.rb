@@ -11,6 +11,9 @@ class Account
 
   attribute :settings
   has_json :settings, schema: { restricts_access: true, max_invites: 10, greeting: "Hello!", beta: :boolean }
+
+  attribute :flags
+  has_json :flags, schema: { staff: true, early_adopter: false }, delegate: true
 end
 
 class SchematizedJsonTest < ActiveModel::TestCase
@@ -47,5 +50,12 @@ class SchematizedJsonTest < ActiveModel::TestCase
     assert_equal "Hello!", @account.settings.greeting
     @account.settings.greeting = 100
     assert_equal "100", @account.settings.greeting
+  end
+
+  test "delegated methods" do
+    assert @account.staff?
+    assert_equal true, @account.staff
+    @account.staff = false
+    assert_not @account.staff?
   end
 end
