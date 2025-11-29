@@ -65,13 +65,13 @@ module ActiveModel
 
           case type_or_default_value
           when :boolean, :integer, :string
-            ActiveModel::Type.lookup(type_or_default_value)
+            ActiveModel::Type.lookup type_or_default_value
           when TrueClass, FalseClass
-            ActiveModel::Type.lookup(:boolean)
+            ActiveModel::Type.lookup :boolean
           when Integer
-            ActiveModel::Type.lookup(:integer)
+            ActiveModel::Type.lookup :integer
           when String
-            ActiveModel::Type.lookup(:string)
+            ActiveModel::Type.lookup :string
           else
             raise "Only boolean, integer, or strings are allowed as JSON schema types"
           end
