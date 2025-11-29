@@ -77,7 +77,7 @@ module ActiveModel
         end
 
         def update_data_with_schema_defaults
-          @data.reverse_merge!(@schema.to_h { |k, v| [ k.to_s, v.is_a?(Symbol) ? nil : v ] })
+          @data.reverse_merge!(@schema.to_h { |attr, type| [ attr.to_s, type.is_a?(Symbol) ? nil : type ] })
         end
     end
   end
