@@ -153,8 +153,8 @@ GEM
     brakeman (7.0.0)
       racc
     builder (3.3.0)
-    bundler-audit (0.9.2)
-      bundler (>= 1.2.0, < 3)
+    bundler-audit (0.9.3)
+      bundler (>= 1.2.0)
       thor (~> 1.0)
     bunny (2.23.0)
       amq-protocol (~> 2.3, >= 2.3.1)
