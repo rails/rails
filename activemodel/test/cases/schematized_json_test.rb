@@ -14,6 +14,9 @@ class Account
 
   attribute :flags
   has_json :flags, schema: { staff: true, early_adopter: false }, delegate: true
+
+  attribute :flags_with_defaults, default: { "staff" => false, "early_adopter" => true }
+  has_json :flags_with_defaults, schema: { staff: true, early_adopter: false }
 end
 
 class SchematizedJsonTest < ActiveModel::TestCase
@@ -64,5 +67,11 @@ class SchematizedJsonTest < ActiveModel::TestCase
     assert_not @account.settings.restricts_access?
     assert_equal 5, @account.settings.max_invites
     assert_equal "goodbye", @account.settings.greeting
+  end
+
+  test "schema defaults will not overwrite attribute defaults" do
+    a = Account.new
+    assert_not @account.flags_with_defaults.staff?
+    assert @account.flags_with_defaults.early_adopter?
   end
 end
