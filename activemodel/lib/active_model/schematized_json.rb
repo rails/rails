@@ -8,6 +8,8 @@ module ActiveModel
     extend ActiveSupport::Concern
 
     module ClassMethods
+      # Provides a schema-enforced access layer for a JSON attribute. This allows you to assign values
+      # directly from the UI as strings, and still have them set with the correct JSON type in the database.
       def has_json(attr, schema:, delegate: false)
         define_method(attr) do
           _write_attribute(attr.to_s, {}) if attribute(attr.to_s).nil?
