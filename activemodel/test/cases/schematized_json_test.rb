@@ -10,13 +10,10 @@ class Account
   define_model_callbacks :save
 
   attribute :settings
-  has_json :settings, schema: { restricts_access: true, max_invites: 10, greeting: "Hello!", beta: :boolean }
-
-  attribute :flags
-  has_json :flags, schema: { staff: true, early_adopter: false }, delegate: true
+  has_json :settings, restricts_access: true, max_invites: 10, greeting: "Hello!", beta: :boolean
 
   attribute :flags_with_defaults, default: { "staff" => false, "early_adopter" => true }
-  has_json :flags_with_defaults, schema: { staff: true, early_adopter: false }
+  has_json :flags_with_defaults, staff: true, early_adopter: false
 end
 
 class SchematizedJsonTest < ActiveModel::TestCase
@@ -53,13 +50,6 @@ class SchematizedJsonTest < ActiveModel::TestCase
     assert_equal "Hello!", @account.settings.greeting
     @account.settings.greeting = 100
     assert_equal "100", @account.settings.greeting
-  end
-
-  test "delegated methods" do
-    assert @account.staff?
-    assert_equal true, @account.staff
-    @account.staff = false
-    assert_not @account.staff?
   end
 
   test "mass assignment" do

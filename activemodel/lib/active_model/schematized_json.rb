@@ -10,19 +10,13 @@ module ActiveModel
     module ClassMethods
       # Provides a schema-enforced access layer for a JSON attribute. This allows you to assign values
       # directly from the UI as strings, and still have them set with the correct JSON type in the database.
-      def has_json(attr, schema:, delegate: false)
+      def has_json(attr, **schema)
         define_method(attr) do
           _write_attribute(attr.to_s, {}) if attribute(attr.to_s).nil?
           ActiveModel::SchematizedJson::DataAccessor.new(schema, data: attribute(attr.to_s))
         end
 
         define_method("#{attr}=") { |data| public_send(attr).assign_data_with_type_casting(data) }
-
-        schema.keys.each do |schema_key|
-          define_method(schema_key)       { public_send(attr).public_send(schema_key) }
-          define_method("#{schema_key}?") { public_send(attr).public_send("#{schema_key}?") }
-          define_method("#{schema_key}=") { |value| send(attr).public_send("#{schema_key}=", value) }
-        end if delegate
 
         # Ensure default values are set before saving
         before_save -> { send(attr) } if respond_to?(:before_save)
