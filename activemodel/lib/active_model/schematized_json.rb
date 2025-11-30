@@ -8,8 +8,27 @@ module ActiveModel
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Provides a schema-enforced access layer for a JSON attribute. This allows you to assign values
+      # Provides a schema-enforced access object for a JSON attribute. This allows you to assign values
       # directly from the UI as strings, and still have them set with the correct JSON type in the database.
+      #
+      # Only the three basic JSON types are supported: boolean, integer, and string. No nesting either.
+      # These types can either be set by referring to them by their symbol or by setting a default value.
+      # Default values are set when a new model is instantiated and on +before_save+ (if defined).
+      #
+      # Examples:
+      #
+      #   class Account < ApplicationRecord
+      #     has_json :settings, restrict_creation_to_admins: true, max_invites: 10, greeting: "Hello!"
+      #     has_json :flags, beta: false, staff: :boolean
+      #   end
+      #
+      #   a = Account.new
+      #   a.settings.restrict_creation_to_admins? # => true
+      #   a.max_invites = "100" # => Set to integer 100
+      #   a.settings = { "restrict_creation_to_admins" => "false", "max_invites" => "500", "greeting" => "goodbye" }
+      #   a.settings.greeting # => "goodbye"
+      #   a.flags.staff # => nil
+      #   a.flags.staff? # => false
       def has_json(attr, **schema)
         define_method(attr) do
           # Ensure the attribute is set if nil, so we can pass the reference to the accessor for defaults.
@@ -46,6 +65,7 @@ module ActiveModel
       end
     end
 
+    # :nodoc:
     class DataAccessor
       def initialize(schema, data:)
         @schema, @data = schema, data
