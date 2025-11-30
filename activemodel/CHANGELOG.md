@@ -5,7 +5,7 @@
       has_json :settings, restrict_creation_to_admins: true, max_invites: 10, greeting: "Hello!"
       has_delegated_json :flags, beta: false, staff: :boolean
     end
-    
+
     a = Account.new
     a.settings.restrict_creation_to_admins? # => true
     a.max_invites = "100" # => Set to integer 100
