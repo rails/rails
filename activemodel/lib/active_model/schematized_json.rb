@@ -41,8 +41,7 @@ module ActiveModel
             if method_name.ends_with?("?")
               @data[key].present?
             elsif method_name.ends_with?("=")
-              value = args.first
-              @data[key] = lookup_schema_type_for(key).cast(value)
+              @data[key] = lookup_schema_type_for(key).cast(args.first)
             else
               @data[key]
             end
