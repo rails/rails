@@ -60,7 +60,6 @@ class SchematizedJsonTest < ActiveModel::TestCase
   end
 
   test "schema defaults will not overwrite attribute defaults" do
-    a = Account.new
     assert_not @account.flags_with_defaults.staff?
     assert @account.flags_with_defaults.early_adopter?
   end
