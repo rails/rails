@@ -12,6 +12,9 @@ class Account
   attribute :settings
   has_json :settings, restricts_access: true, max_invites: 10, greeting: "Hello!", beta: :boolean
 
+  attribute :flags
+  has_delegated_json :flags, premium: false
+
   attribute :flags_with_defaults, default: { "staff" => false, "early_adopter" => true }
   has_json :flags_with_defaults, staff: true, early_adopter: false
 
@@ -53,6 +56,12 @@ class SchematizedJsonTest < ActiveModel::TestCase
     assert_equal "Hello!", @account.settings.greeting
     @account.settings.greeting = 100
     assert_equal "100", @account.settings.greeting
+  end
+
+  test "delegated accessors" do
+    assert_not @account.premium?
+    @account.premium = true
+    assert @account.premium?
   end
 
   test "mass assignment" do

@@ -24,6 +24,26 @@ module ActiveModel
         # Ensure default values are set before saving by relying on DataAccessor instantiation to do it.
         before_save -> { send(attr) } if respond_to?(:before_save)
       end
+
+      # Like +has_json+ but each schema key also becomes its own set of accessor methods.
+      #
+      #   class Account < ApplicationRecord
+      #     has_delegated_json :flags, beta: false, staff: :boolean
+      #   end
+      #
+      #   a = Account.new
+      #   a.beta? # => false
+      #   a.beta = true
+      #   a.beta # => true
+      def has_delegated_json(attr, **schema)
+        has_json attr, **schema
+
+        schema.keys.each do |schema_key|
+          define_method(schema_key)       { public_send(attr).public_send(schema_key) }
+          define_method("#{schema_key}?") { public_send(attr).public_send("#{schema_key}?") }
+          define_method("#{schema_key}=") { |value| send(attr).public_send("#{schema_key}=", value) }
+        end
+      end
     end
 
     class DataAccessor
