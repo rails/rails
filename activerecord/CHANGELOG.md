@@ -1,3 +1,12 @@
+*   Fix `establish_connection` to preserve environment and database name when using configuration hash.
+
+    `ActiveRecord::DatabaseConfigurations::DatabaseConfig#configuration_hash` now includes
+    `env_name` and `name`, and `ActiveRecord::Base.establish_connection` respects these
+    values from the hash before defaulting to the Rails environment and "primary". This
+    allows programmatic database switching using configuration hashes.
+
+    *Joshua Young*
+
 *   Add support for configuring migration strategy on a per-adapter basis.
 
     `migration_strategy` can now be set on individual adapter classes, overriding

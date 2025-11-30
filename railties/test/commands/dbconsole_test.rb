@@ -23,6 +23,8 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_config_with_db_config_only
     config_sample = {
       "test" => {
+        "env_name" => "test",
+        "name" => "primary",
         "adapter" => "sqlite3",
         "host" => "localhost",
         "port" => "9000",
@@ -49,6 +51,8 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   def test_config_with_database_url_only
     ENV["DATABASE_URL"] = "postgresql://foo:bar@localhost:9000/foo_test?max_connections=5&timeout=3000"
     expected = {
+      env_name:        "test",
+      name:            "primary",
       adapter:         "postgresql",
       host:            "localhost",
       port:            9000,

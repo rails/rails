@@ -181,7 +181,7 @@ module ActiveRecord
           assert_equal handler, ActiveRecord::Base.connection_handler
 
           assert_not_nil pool = handler.retrieve_connection_pool("ActiveRecord::Base")
-          assert_equal({ adapter: "postgresql", database: "bar", host: "localhost" }, pool.db_config.configuration_hash)
+          assert_equal({ env_name: "default_env", name: "primary", adapter: "postgresql", database: "bar", host: "localhost" }, pool.db_config.configuration_hash)
         ensure
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
@@ -200,7 +200,7 @@ module ActiveRecord
           assert_equal handler, ActiveRecord::Base.connection_handler
 
           assert_not_nil pool = handler.retrieve_connection_pool("ActiveRecord::Base")
-          assert_equal(config, pool.db_config.configuration_hash)
+          assert_equal(config.merge(env_name: "default_env", name: "primary"), pool.db_config.configuration_hash)
         ensure
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
@@ -232,7 +232,7 @@ module ActiveRecord
           assert_equal handler, ActiveRecord::Base.connection_handler
 
           assert_not_nil pool = handler.retrieve_connection_pool("ActiveRecord::Base")
-          assert_equal(config["default_env"]["animals"], pool.db_config.configuration_hash)
+          assert_equal(config["default_env"]["animals"].merge(env_name: "default_env", name: "animals"), pool.db_config.configuration_hash)
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
@@ -258,7 +258,7 @@ module ActiveRecord
           assert_equal handler, ActiveRecord::Base.connection_handler
 
           assert_not_nil pool = handler.retrieve_connection_pool("ActiveRecord::Base")
-          assert_equal(config["default_env"]["primary"], pool.db_config.configuration_hash)
+          assert_equal(config["default_env"]["primary"].merge(env_name: "default_env", name: "primary"), pool.db_config.configuration_hash)
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)

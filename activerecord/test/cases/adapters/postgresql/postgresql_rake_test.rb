@@ -23,7 +23,7 @@ module ActiveRecord
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
       mock = Minitest::Mock.new
-      mock.expect(:call, nil, [{ adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
+      mock.expect(:call, nil, [{ env_name: "default_env", name: "primary", adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
       mock.expect(:call, nil, [db_config])
 
       ActiveRecord::Base.stub(:lease_connection, @connection) do
@@ -40,7 +40,7 @@ module ActiveRecord
         assert_called_with(
           @connection,
           :create_database,
-          ["my-app-db", @configuration.symbolize_keys.merge(encoding: "utf8")]
+          ["my-app-db", @configuration.symbolize_keys.merge(env_name: "test", name: "primary", encoding: "utf8")]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.create @configuration
         end
@@ -52,7 +52,7 @@ module ActiveRecord
         assert_called_with(
           @connection,
           :create_database,
-          ["my-app-db", @configuration.symbolize_keys.merge(encoding: "latin")]
+          ["my-app-db", @configuration.symbolize_keys.merge(env_name: "test", name: "primary", encoding: "latin")]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.create @configuration.
             merge("encoding" => "latin")
@@ -68,6 +68,8 @@ module ActiveRecord
           [
             "my-app-db",
             @configuration.symbolize_keys.merge(
+              env_name: "test",
+              name: "primary",
               encoding: "utf8",
               collation: "ja_JP.UTF8",
               ctype: "ja_JP.UTF8"
@@ -84,7 +86,7 @@ module ActiveRecord
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
       mock = Minitest::Mock.new
-      mock.expect(:call, nil, [{ adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
+      mock.expect(:call, nil, [{ env_name: "default_env", name: "primary", adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
       mock.expect(:call, nil, [db_config])
 
       ActiveRecord::Base.stub(:lease_connection, @connection) do
@@ -155,6 +157,8 @@ module ActiveRecord
           ActiveRecord::Base,
           :establish_connection,
           [
+            env_name: "test",
+            name: "primary",
             adapter: "postgresql",
             database: "postgres",
             schema_search_path: "public"
@@ -219,7 +223,7 @@ module ActiveRecord
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
       mock = Minitest::Mock.new
-      mock.expect(:call, nil, [{ adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
+      mock.expect(:call, nil, [{ env_name: "default_env", name: "primary", adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
       mock.expect(:call, nil, [db_config])
 
       with_stubbed_connection do
@@ -247,7 +251,7 @@ module ActiveRecord
           assert_called_with(
             @connection,
             :create_database,
-            ["my-app-db", @configuration.symbolize_keys.merge(encoding: "utf8")]
+            ["my-app-db", @configuration.symbolize_keys.merge(env_name: "test", name: "primary", encoding: "utf8")]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.purge @configuration
           end
@@ -259,7 +263,7 @@ module ActiveRecord
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
       mock = Minitest::Mock.new
-      mock.expect(:call, nil, [{ adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
+      mock.expect(:call, nil, [{ env_name: "default_env", name: "primary", adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
       mock.expect(:call, nil, [db_config])
 
       with_stubbed_connection do

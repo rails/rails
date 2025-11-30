@@ -60,7 +60,7 @@ module ActiveRecord
         ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
       end
 
-      assert_equal [@configuration.symbolize_keys], calls.map { |c| c.first.configuration_hash }
+      assert_equal [@configuration.symbolize_keys.merge(env_name: "test", name: "primary")], calls.map { |c| c.first.configuration_hash }
     end
 
     def test_db_create_with_error_prints_message

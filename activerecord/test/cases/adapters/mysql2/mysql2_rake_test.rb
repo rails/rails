@@ -26,7 +26,7 @@ module ActiveRecord
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
       mock = Minitest::Mock.new
-      mock.expect(:call, nil, [adapter: "mysql2", database: nil])
+      mock.expect(:call, nil, [env_name: "default_env", name: "primary", adapter: "mysql2", database: nil])
       mock.expect(:call, nil, [db_config])
 
       ActiveRecord::Base.stub(:lease_connection, @connection) do
