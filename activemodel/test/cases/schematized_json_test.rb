@@ -14,6 +14,9 @@ class Account
 
   attribute :flags_with_defaults, default: { "staff" => false, "early_adopter" => true }
   has_json :flags_with_defaults, staff: true, early_adopter: false
+
+  attribute :broken
+  has_json :broken, creation: :datetime, nesting: {}
 end
 
 class SchematizedJsonTest < ActiveModel::TestCase
@@ -62,5 +65,15 @@ class SchematizedJsonTest < ActiveModel::TestCase
   test "schema defaults will not overwrite attribute defaults" do
     assert_not @account.flags_with_defaults.staff?
     assert @account.flags_with_defaults.early_adopter?
+  end
+
+  test "only standard json types are acceptable schema types" do
+    assert_raises(ArgumentError) do
+      @account.broken.creation = DateTime.now
+    end
+
+    assert_raises(ArgumentError) do
+      @account.broken.nesting = { not: :valid }
+    end
   end
 end

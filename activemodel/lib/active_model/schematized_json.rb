@@ -70,7 +70,7 @@ module ActiveModel
           when String
             ActiveModel::Type.lookup :string
           else
-            raise "Only boolean, integer, or strings are allowed as JSON schema types"
+            raise ArgumentError, "Only boolean, integer, or strings are allowed as JSON schema types"
           end
         end
 
