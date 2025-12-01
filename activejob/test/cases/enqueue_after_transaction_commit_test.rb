@@ -28,6 +28,14 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
     end
   end
 
+  class ImmediateJob < ActiveJob::Base
+    self.enqueue_after_transaction_commit = false
+
+    def perform
+      # noop
+    end
+  end
+
   class EnqueueAfterCommitJob < ActiveJob::Base
     self.enqueue_after_transaction_commit = true
 
@@ -121,6 +129,32 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
       assert_not_predicate job, :around_enqueue_called
       fake_active_record.run_after_commit_callbacks
       assert_predicate job, :around_enqueue_called
+    end
+  end
+
+  test "ActiveJob.perform_all_later waits for transactions to complete before enqueuing jobs with `enqueue_after_transaction_commit`" do
+    fake_active_record = FakeActiveRecord.new
+    stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+      assert_difference -> { fake_active_record.calls }, +1 do
+        ActiveJob.perform_all_later(EnqueueAfterCommitJob.new, EnqueueAfterCommitJob.new)
+      end
+    end
+  end
+
+  test "ActiveJob.perform_all_later handles mixed jobs with and without `enqueue_after_transaction_commit`" do
+    fake_active_record = FakeActiveRecord.new(false)
+    stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+      # Mix of jobs with and without enqueue_after_transaction_commit
+      immediate_job = ImmediateJob.new
+      deferred_job = EnqueueAfterCommitJob.new
+
+      assert_notification("enqueue_all.active_job", jobs: [immediate_job], enqueued_count: 1) do
+        ActiveJob.perform_all_later([immediate_job, deferred_job])
+      end
+
+      assert_notification("enqueue_all.active_job", jobs: [deferred_job], enqueued_count: 1) do
+        fake_active_record.run_after_commit_callbacks
+      end
     end
   end
 end
