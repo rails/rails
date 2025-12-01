@@ -12,7 +12,6 @@ After reading this guide, you will know:
 * How to configure and use Solid Queue.
 * How to run jobs in the background.
 * How to send emails from your application asynchronously.
-* How to halt a job's lifecycle callback execution.
 
 --------------------------------------------------------------------------------
 
@@ -748,23 +747,6 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-A callback that `throws :abort` will [halt the callback chain](https://api.rubyonrails.org/classes/ActiveSupport/Callbacks.html)
-and skip the execution of any subsquent before, around and after callbacks:
-
-```ruby
-class GuestsCleanupJob < ApplicationJob
-  queue_as :default
-
-  before_enqueue do
-    throw :abort if ENV.fetch("DISABLE_GUESTS_CLEANUP_JOB", false)
-  end
-
-  def perform
-    # Do something later
-  end
-end
-```
-
 The macro-style class methods can also receive a block. Consider using this
 style if the code inside your block is so short that it fits in a single line.
 For example, you could send metrics for every job enqueued:
@@ -803,6 +785,25 @@ end
 Please note that when enqueuing jobs in bulk using `perform_all_later`,
 callbacks such as `around_enqueue` will not be triggered on the individual jobs.
 See [Bulk Enqueuing Callbacks](#bulk-enqueue-callbacks).
+
+### Halting Callbacks
+
+A callback that `throws :abort` will [halt the callback chain](https://api.rubyonrails.org/classes/ActiveSupport/Callbacks.html)
+and skip the execution of any subsequent before, around and after callbacks:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_as :default
+
+  before_enqueue do
+    throw :abort if ENV.fetch("DISABLE_GUESTS_CLEANUP_JOB", false)
+  end
+
+  def perform
+    # Do something later
+  end
+end
+```
 
 Bulk Enqueuing
 --------------
