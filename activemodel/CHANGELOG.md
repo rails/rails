@@ -1,4 +1,4 @@
-*   Add +has_json+ and +has_delegated_json+ to provide schema-enforced access to JSON attributes.
+*   Add `has_json` and `has_delegated_json` to provide schema-enforced access to JSON attributes.
 
     ```ruby
     class Account < ApplicationRecord
