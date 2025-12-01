@@ -85,4 +85,25 @@ class SchematizedJsonTest < ActiveModel::TestCase
       @account.broken.nesting = { not: :valid }
     end
   end
+
+  test "to_h returns the underlying hash" do
+    assert_equal({ "restricts_access" => true, "max_invites" => 10, "greeting" => "Hello!", "beta" => nil }, @account.settings.to_h)
+  end
+
+  test "to_h does not compact nil values" do
+    hash = @account.settings.to_h
+
+    assert_includes hash, "beta"
+    assert_nil hash["beta"]
+  end
+
+  test "to_h reflects changes made to the data" do
+    @account.settings.max_invites = 20
+    @account.settings.greeting = "Hi there!"
+
+    hash = @account.settings.to_h
+
+    assert_equal 20, hash["max_invites"]
+    assert_equal "Hi there!", hash["greeting"]
+  end
 end
