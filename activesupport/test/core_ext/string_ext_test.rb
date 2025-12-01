@@ -56,16 +56,20 @@ class StringInflectionsTest < ActiveSupport::TestCase
     EOS
   end
 
-  def test_pluralize
-    SingularToPlural.each do |singular, plural|
-      assert_equal(plural, singular.pluralize)
-    end
+  test "pluralize", each: SingularToPlural do |singular, plural|
+    assert_equal(plural, singular.pluralize)
+  end
 
+  test "pluralize already pluralized word" do
     assert_equal("plurals", "plurals".pluralize)
+  end
 
-    assert_equal("blargles", "blargle".pluralize(0))
-    assert_equal("blargle", "blargle".pluralize(1))
-    assert_equal("blargles", "blargle".pluralize(2))
+  test "pluralize with count", each: [
+    ["blargle", 0, "blargles"],
+    ["blargle", 1, "blargle"],
+    ["blargle", 2, "blargles"]
+  ] do |singular, count, plural|
+    assert_equal plural, singular.pluralize(count)
   end
 
   test "pluralize with count = 1 still returns new string" do
@@ -73,22 +77,16 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_not_same name.pluralize(1), name
   end
 
-  def test_singularize
-    SingularToPlural.each do |singular, plural|
-      assert_equal(singular, plural.singularize)
-    end
+  test "singularize", each: SingularToPlural do |singular, plural|
+    assert_equal(singular, plural.singularize)
   end
 
-  def test_titleize
-    MixtureToTitleCase.each do |before, titleized|
-      assert_equal(titleized, before.titleize)
-    end
+  test "titleize", each: MixtureToTitleCase do |before, titleized|
+    assert_equal(titleized, before.titleize)
   end
 
-  def test_titleize_with_keep_id_suffix
-    MixtureToTitleCaseWithKeepIdSuffix.each do |before, titleized|
-      assert_equal(titleized, before.titleize(keep_id_suffix: true))
-    end
+  test "titleize with keep_id_suffix", each: MixtureToTitleCaseWithKeepIdSuffix do |before, titleized|
+    assert_equal(titleized, before.titleize(keep_id_suffix: true))
   end
 
   def test_downcase_first
@@ -117,10 +115,8 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_not_predicate "".upcase_first, :frozen?
   end
 
-  def test_camelize
-    CamelToUnderscore.each do |camel, underscore|
-      assert_equal(camel, underscore.camelize)
-    end
+  test "camelize", each: CamelToUnderscore do |camel, underscore|
+    assert_equal(camel, underscore.camelize)
   end
 
   def test_camelize_lower
@@ -138,25 +134,23 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal("Invalid option, use either :upper or :lower.", e.message)
   end
 
-  def test_dasherize
-    UnderscoresToDashes.each do |underscored, dasherized|
-      assert_equal(dasherized, underscored.dasherize)
-    end
+  test "dasherize", each: UnderscoresToDashes do |underscored, dasherized|
+    assert_equal(dasherized, underscored.dasherize)
   end
 
-  def test_underscore
-    CamelToUnderscore.each do |camel, underscore|
-      assert_equal(underscore, camel.underscore)
-    end
-
-    assert_equal "html_tidy", "HTMLTidy".underscore
-    assert_equal "html_tidy_generator", "HTMLTidyGenerator".underscore
+  test "underscore", each: CamelToUnderscore do |camel, underscore|
+    assert_equal(underscore, camel.underscore)
   end
 
-  def test_underscore_to_lower_camel
-    UnderscoreToLowerCamel.each do |underscored, lower_camel|
-      assert_equal(lower_camel, underscored.camelize(:lower))
-    end
+  test "underscore acronyms", each: [
+    ["HTMLTidy", "html_tidy"],
+    ["HTMLTidyGenerator", "html_tidy_generator"]
+  ] do |acronym, underscored|
+    assert_equal underscored, acronym.underscore
+  end
+
+  test "underscore to lower camel", each: UnderscoreToLowerCamel do |underscored, lower_camel|
+    assert_equal(lower_camel, underscored.camelize(:lower))
   end
 
   def test_demodulize
@@ -167,62 +161,44 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "MyApplication::Billing", "MyApplication::Billing::Account".deconstantize
   end
 
-  def test_foreign_key
-    ClassNameToForeignKeyWithUnderscore.each do |klass, foreign_key|
-      assert_equal(foreign_key, klass.foreign_key)
-    end
-
-    ClassNameToForeignKeyWithoutUnderscore.each do |klass, foreign_key|
-      assert_equal(foreign_key, klass.foreign_key(false))
-    end
+  test "foreign_key", each: ClassNameToForeignKeyWithUnderscore do |klass, foreign_key|
+    assert_equal(foreign_key, klass.foreign_key)
   end
 
-  def test_tableize
-    ClassNameToTableName.each do |class_name, table_name|
-      assert_equal(table_name, class_name.tableize)
-    end
+  test "foreign_key", each: ClassNameToForeignKeyWithoutUnderscore do |klass, foreign_key|
+    assert_equal(foreign_key, klass.foreign_key(false))
   end
 
-  def test_classify
-    ClassNameToTableName.each do |class_name, table_name|
-      assert_equal(class_name, table_name.classify)
-    end
+  test "tableize", each: ClassNameToTableName do |class_name, table_name|
+    assert_equal(table_name, class_name.tableize)
   end
 
-  def test_string_parameterized_normal
-    StringToParameterized.each do |normal, slugged|
-      assert_equal(slugged, normal.parameterize)
-    end
+  test "classify", each: ClassNameToTableName do |class_name, table_name|
+    assert_equal(class_name, table_name.classify)
   end
 
-  def test_string_parameterized_normal_preserve_case
-    StringToParameterizedPreserveCase.each do |normal, slugged|
-      assert_equal(slugged, normal.parameterize(preserve_case: true))
-    end
+  test "string parameterized normal", each: StringToParameterized do |normal, slugged|
+    assert_equal(slugged, normal.parameterize)
   end
 
-  def test_string_parameterized_no_separator
-    StringToParameterizeWithNoSeparator.each do |normal, slugged|
-      assert_equal(slugged, normal.parameterize(separator: ""))
-    end
+  test "string parameterized normal preserve_case", each: StringToParameterizedPreserveCase do |normal, slugged|
+    assert_equal(slugged, normal.parameterize(preserve_case: true))
   end
 
-  def test_string_parameterized_no_separator_preserve_case
-    StringToParameterizePreserveCaseWithNoSeparator.each do |normal, slugged|
-      assert_equal(slugged, normal.parameterize(separator: "", preserve_case: true))
-    end
+  test "string parameterized no separator", each: StringToParameterizeWithNoSeparator do |normal, slugged|
+    assert_equal(slugged, normal.parameterize(separator: ""))
   end
 
-  def test_string_parameterized_underscore
-    StringToParameterizeWithUnderscore.each do |normal, slugged|
-      assert_equal(slugged, normal.parameterize(separator: "_"))
-    end
+  test "string parameterized no separator preserve_case", each: StringToParameterizePreserveCaseWithNoSeparator do |normal, slugged|
+    assert_equal(slugged, normal.parameterize(separator: "", preserve_case: true))
   end
 
-  def test_string_parameterized_underscore_preserve_case
-    StringToParameterizePreserveCaseWithUnderscore.each do |normal, slugged|
-      assert_equal(slugged, normal.parameterize(separator: "_", preserve_case: true))
-    end
+  test "string parameterized underscore", each: StringToParameterizeWithUnderscore do |normal, slugged|
+    assert_equal(slugged, normal.parameterize(separator: "_"))
+  end
+
+  test "string parameterized underscore preserve_case", each: StringToParameterizePreserveCaseWithUnderscore do |normal, slugged|
+    assert_equal(slugged, normal.parameterize(separator: "_", preserve_case: true))
   end
 
   def test_parameterize_with_locale
@@ -231,31 +207,24 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal("fuenf-autos", word.parameterize(locale: :de))
   end
 
-  def test_humanize
-    UnderscoreToHuman.each do |underscore, human|
-      assert_equal(human, underscore.humanize)
-    end
+  test "humanize", each: UnderscoreToHuman do |underscore, human|
+    assert_equal(human, underscore.humanize)
   end
 
-  def test_humanize_without_capitalize
-    UnderscoreToHumanWithoutCapitalize.each do |underscore, human|
-      assert_equal(human, underscore.humanize(capitalize: false))
-    end
+  test "humanize without capitalize", each: UnderscoreToHumanWithoutCapitalize do |underscore, human|
+    assert_equal(human, underscore.humanize(capitalize: false))
   end
 
-  def test_humanize_with_keep_id_suffix
-    UnderscoreToHumanWithKeepIdSuffix.each do |underscore, human|
-      assert_equal(human, underscore.humanize(keep_id_suffix: true))
-    end
+  test "humanize with keep_id_suffix", each: UnderscoreToHumanWithKeepIdSuffix do |underscore, human|
+    assert_equal(human, underscore.humanize(keep_id_suffix: true))
   end
 
   def test_humanize_with_html_escape
     assert_equal "Hello", ERB::Util.html_escape("hello").humanize
   end
 
-  def test_ord
-    assert_equal 97, "a".ord
-    assert_equal 97, "abc".ord
+  test "ord", each: ["a", "abc"] do |str|
+    assert_equal 97, str.ord
   end
 
   def test_starts_ends_with_alias
@@ -1146,13 +1115,11 @@ class StringExcludeTest < ActiveSupport::TestCase
 end
 
 class StringIndentTest < ActiveSupport::TestCase
-  test "does not indent strings that only contain newlines (edge cases)" do
-    ["", "\n", "\n" * 7].each do |string|
-      str = string.dup
-      assert_nil str.indent!(8)
-      assert_equal str, str.indent(8)
-      assert_equal str, str.indent(1, "\t")
-    end
+  test "does not indent strings that only contain newlines (edge case)", each: ["", "\n", "\n" * 7] do |string|
+    str = string.dup
+    assert_nil str.indent!(8)
+    assert_equal str, str.indent(8)
+    assert_equal str, str.indent(1, "\t")
   end
 
   test "by default, indents with spaces if the existing indentation uses them" do

@@ -79,12 +79,10 @@ class InflectorTest < ActiveSupport::TestCase
     ActiveSupport::Inflector.inflections.uncountables.pop
   end
 
-  ActiveSupport::Inflector.inflections.uncountable.each do |word|
-    define_method "test_uncountability_of_#{word}" do
-      assert_equal word, ActiveSupport::Inflector.singularize(word)
-      assert_equal word, ActiveSupport::Inflector.pluralize(word)
-      assert_equal ActiveSupport::Inflector.pluralize(word), ActiveSupport::Inflector.singularize(word)
-    end
+  test "uncountability of", each: ActiveSupport::Inflector.inflections.uncountable do |word|
+    assert_equal word, ActiveSupport::Inflector.singularize(word)
+    assert_equal word, ActiveSupport::Inflector.pluralize(word)
+    assert_equal ActiveSupport::Inflector.pluralize(word), ActiveSupport::Inflector.singularize(word)
   end
 
   def test_uncountable_word_is_not_greedy
@@ -102,30 +100,24 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal "sponsor", ActiveSupport::Inflector.singularize(ActiveSupport::Inflector.pluralize(countable_word))
   end
 
-  SingularToPlural.each do |singular, plural|
-    define_method "test_pluralize_singular_#{singular}" do
-      assert_equal(plural, ActiveSupport::Inflector.pluralize(singular))
-      assert_equal(plural.capitalize, ActiveSupport::Inflector.pluralize(singular.capitalize))
-    end
+  test "pluralize singular", each: SingularToPlural do |singular, plural|
+    assert_equal(plural, ActiveSupport::Inflector.pluralize(singular))
+    assert_equal(plural.capitalize, ActiveSupport::Inflector.pluralize(singular.capitalize))
   end
 
-  SingularToPlural.each do |singular, plural|
-    define_method "test_singularize_plural_#{plural}" do
-      assert_equal(singular, ActiveSupport::Inflector.singularize(plural))
-      assert_equal(singular.capitalize, ActiveSupport::Inflector.singularize(plural.capitalize))
-    end
+  test "singularize plural", each: SingularToPlural do |singular, plural|
+    assert_equal(singular, ActiveSupport::Inflector.singularize(plural))
+    assert_equal(singular.capitalize, ActiveSupport::Inflector.singularize(plural.capitalize))
   end
 
-  SingularToPlural.each do |singular, plural|
-    define_method "test_pluralize_plural_#{plural}" do
-      assert_equal(plural, ActiveSupport::Inflector.pluralize(plural))
-      assert_equal(plural.capitalize, ActiveSupport::Inflector.pluralize(plural.capitalize))
-    end
+  test "pluralize plural", each: SingularToPlural do |singular, plural|
+    assert_equal(plural, ActiveSupport::Inflector.pluralize(plural))
+    assert_equal(plural.capitalize, ActiveSupport::Inflector.pluralize(plural.capitalize))
+  end
 
-    define_method "test_singularize_singular_#{singular}" do
-      assert_equal(singular, ActiveSupport::Inflector.singularize(singular))
-      assert_equal(singular.capitalize, ActiveSupport::Inflector.singularize(singular.capitalize))
-    end
+  test "singularize singular", each: SingularToPlural do |singular, plural|
+    assert_equal(singular, ActiveSupport::Inflector.singularize(singular))
+    assert_equal(singular.capitalize, ActiveSupport::Inflector.singularize(singular.capitalize))
   end
 
   def test_overwrite_previous_inflectors
@@ -134,49 +126,38 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("serie", ActiveSupport::Inflector.singularize("series"))
   end
 
-  MixtureToTitleCase.each_with_index do |(before, titleized), index|
-    define_method "test_titleize_mixture_to_title_case_#{index}" do
-      assert_equal(titleized, ActiveSupport::Inflector.titleize(before), "mixture \
-        to TitleCase failed for #{before}")
-    end
+  test "titleize mixture to title case", each: MixtureToTitleCase do |before, titleized|
+    assert_equal(titleized, ActiveSupport::Inflector.titleize(before), "mixture \
+      to TitleCase failed for #{before}")
   end
 
-  MixtureToTitleCaseWithKeepIdSuffix.each_with_index do |(before, titleized), index|
-    define_method "test_titleize_with_keep_id_suffix_mixture_to_title_case_#{index}" do
-      assert_equal(titleized, ActiveSupport::Inflector.titleize(before, keep_id_suffix: true),
-        "mixture to TitleCase with keep_id_suffix failed for #{before}")
-    end
+  test "titleize with keep_id_suffix mixture to title case", each: MixtureToTitleCaseWithKeepIdSuffix do |before, titleized|
+    assert_equal(titleized, ActiveSupport::Inflector.titleize(before, keep_id_suffix: true),
+      "mixture to TitleCase with keep_id_suffix failed for #{before}")
   end
 
-  def test_camelize
-    CamelToUnderscore.each do |camel, underscore|
-      assert_equal(camel, ActiveSupport::Inflector.camelize(underscore))
-    end
+  test "camelize", each: CamelToUnderscore do |camel, underscore|
+    assert_equal(camel, ActiveSupport::Inflector.camelize(underscore))
   end
 
-  def test_camelize_with_true_upcases_the_first_letter
-    assert_equal("Capital", ActiveSupport::Inflector.camelize("Capital", true))
-    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", true))
+  test "camelize with true upcases the first letter", each: ["Capital", "capital"] do |input|
+    assert_equal("Capital", ActiveSupport::Inflector.camelize(input, true))
   end
 
-  def test_camelize_with_upper_upcases_the_first_letter
-    assert_equal("Capital", ActiveSupport::Inflector.camelize("Capital", :upper))
-    assert_equal("Capital", ActiveSupport::Inflector.camelize("capital", :upper))
+  test "camelize with upper upcases the first letter", each: ["Capital", "capital"] do |input|
+    assert_equal("Capital", ActiveSupport::Inflector.camelize(input, :upper))
   end
 
-  def test_camelize_with_false_downcases_the_first_letter
-    assert_equal("capital", ActiveSupport::Inflector.camelize("Capital", false))
-    assert_equal("capital", ActiveSupport::Inflector.camelize("capital", false))
+  test "camelize with false downcases the first letter", each: ["Capital", "capital"] do |input|
+    assert_equal("capital", ActiveSupport::Inflector.camelize(input, false))
   end
 
-  def test_camelize_with_nil_downcases_the_first_letter
-    assert_equal("capital", ActiveSupport::Inflector.camelize("Capital", nil))
-    assert_equal("capital", ActiveSupport::Inflector.camelize("capital", nil))
+  test "camelize with nil downcases the first letter", each: ["Capital", "capital"] do |input|
+    assert_equal("capital", ActiveSupport::Inflector.camelize(input, nil))
   end
 
-  def test_camelize_with_lower_downcases_the_first_letter
-    assert_equal("capital", ActiveSupport::Inflector.camelize("Capital", :lower))
-    assert_equal("capital", ActiveSupport::Inflector.camelize("capital", :lower))
+  test "camelize with lower downcases the first letter", each: ["Capital", "capital"] do |input|
+    assert_equal("capital", ActiveSupport::Inflector.camelize(input, :lower))
   end
 
   def test_camelize_with_any_other_arg_upcases_the_first_letter
@@ -285,25 +266,20 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("json_html_api", ActiveSupport::Inflector.underscore("JSONHTMLAPI"))
   end
 
-  def test_underscore
-    CamelToUnderscore.each do |camel, underscore|
-      assert_equal(underscore, ActiveSupport::Inflector.underscore(camel))
-    end
-    CamelToUnderscoreWithoutReverse.each do |camel, underscore|
-      assert_equal(underscore, ActiveSupport::Inflector.underscore(camel))
-    end
+  test "underscore", each: CamelToUnderscore do |camel, underscore|
+    assert_equal(underscore, ActiveSupport::Inflector.underscore(camel))
   end
 
-  def test_camelize_with_module
-    CamelWithModuleToUnderscoreWithSlash.each do |camel, underscore|
-      assert_equal(camel, ActiveSupport::Inflector.camelize(underscore))
-    end
+  test "underscore", each: CamelToUnderscoreWithoutReverse do |camel, underscore|
+    assert_equal(underscore, ActiveSupport::Inflector.underscore(camel))
   end
 
-  def test_underscore_with_slashes
-    CamelWithModuleToUnderscoreWithSlash.each do |camel, underscore|
-      assert_equal(underscore, ActiveSupport::Inflector.underscore(camel))
-    end
+  test "camelize with module", each: CamelWithModuleToUnderscoreWithSlash do |camel, underscore|
+    assert_equal(camel, ActiveSupport::Inflector.camelize(underscore))
+  end
+
+  test "underscore with slashes", each: CamelWithModuleToUnderscoreWithSlash do |camel, underscore|
+    assert_equal(underscore, ActiveSupport::Inflector.underscore(camel))
   end
 
   def test_demodulize
@@ -325,44 +301,32 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal "", ActiveSupport::Inflector.deconstantize("")
   end
 
-  def test_foreign_key
-    ClassNameToForeignKeyWithUnderscore.each do |klass, foreign_key|
-      assert_equal(foreign_key, ActiveSupport::Inflector.foreign_key(klass))
-    end
-
-    ClassNameToForeignKeyWithoutUnderscore.each do |klass, foreign_key|
-      assert_equal(foreign_key, ActiveSupport::Inflector.foreign_key(klass, false))
-    end
+  test "foreign_key", each: ClassNameToForeignKeyWithUnderscore do |klass, foreign_key|
+    assert_equal(foreign_key, ActiveSupport::Inflector.foreign_key(klass))
   end
 
-  def test_tableize
-    ClassNameToTableName.each do |class_name, table_name|
-      assert_equal(table_name, ActiveSupport::Inflector.tableize(class_name))
-    end
+  test "foreign_key", each: ClassNameToForeignKeyWithoutUnderscore do |klass, foreign_key|
+    assert_equal(foreign_key, ActiveSupport::Inflector.foreign_key(klass, false))
   end
 
-  def test_parameterize
-    StringToParameterized.each do |some_string, parameterized_string|
-      assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string))
-    end
+  test "tableize", each: ClassNameToTableName do |class_name, table_name|
+    assert_equal(table_name, ActiveSupport::Inflector.tableize(class_name))
   end
 
-  def test_parameterize_and_normalize
-    StringToParameterizedAndNormalized.each do |some_string, parameterized_string|
-      assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string))
-    end
+  test "parameterize", each: StringToParameterized do |some_string, parameterized_string|
+    assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string))
   end
 
-  def test_parameterize_with_custom_separator
-    StringToParameterizeWithUnderscore.each do |some_string, parameterized_string|
-      assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string, separator: "_"))
-    end
+  test "parameterize and normalize", each: StringToParameterizedAndNormalized do |some_string, parameterized_string|
+    assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string))
   end
 
-  def test_parameterize_with_multi_character_separator
-    StringToParameterized.each do |some_string, parameterized_string|
-      assert_equal(parameterized_string.gsub("-", "__sep__"), ActiveSupport::Inflector.parameterize(some_string, separator: "__sep__"))
-    end
+  test "parameterize with custom separator", each: StringToParameterizeWithUnderscore do |some_string, parameterized_string|
+    assert_equal(parameterized_string, ActiveSupport::Inflector.parameterize(some_string, separator: "_"))
+  end
+
+  test "parameterize with multi-character separator", each: StringToParameterized do |some_string, parameterized_string|
+    assert_equal(parameterized_string.gsub("-", "__sep__"), ActiveSupport::Inflector.parameterize(some_string, separator: "__sep__"))
   end
 
   def test_parameterize_with_locale
@@ -371,11 +335,9 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("fuenf-autos", ActiveSupport::Inflector.parameterize(word, locale: :de))
   end
 
-  def test_classify
-    ClassNameToTableName.each do |class_name, table_name|
-      assert_equal(class_name, ActiveSupport::Inflector.classify(table_name))
-      assert_equal(class_name, ActiveSupport::Inflector.classify("table_prefix." + table_name))
-    end
+  test "classify", each: ClassNameToTableName do |class_name, table_name|
+    assert_equal(class_name, ActiveSupport::Inflector.classify(table_name))
+    assert_equal(class_name, ActiveSupport::Inflector.classify("table_prefix." + table_name))
   end
 
   def test_classify_with_symbol
@@ -388,26 +350,20 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal "FooBar", ActiveSupport::Inflector.classify("schema.foo_bar")
   end
 
-  def test_humanize
-    UnderscoreToHuman.each do |underscore, human|
-      assert_equal(human, ActiveSupport::Inflector.humanize(underscore))
-    end
+  test "humanize", each: UnderscoreToHuman do |underscore, human|
+    assert_equal(human, ActiveSupport::Inflector.humanize(underscore))
   end
 
   def test_humanize_nil
     assert_equal("", ActiveSupport::Inflector.humanize(nil))
   end
 
-  def test_humanize_without_capitalize
-    UnderscoreToHumanWithoutCapitalize.each do |underscore, human|
-      assert_equal(human, ActiveSupport::Inflector.humanize(underscore, capitalize: false))
-    end
+  test "humanize without capitalize", each: UnderscoreToHumanWithoutCapitalize do |underscore, human|
+    assert_equal(human, ActiveSupport::Inflector.humanize(underscore, capitalize: false))
   end
 
-  def test_humanize_with_keep_id_suffix
-    UnderscoreToHumanWithKeepIdSuffix.each do |underscore, human|
-      assert_equal(human, ActiveSupport::Inflector.humanize(underscore, keep_id_suffix: true))
-    end
+  test "humanize with keep id suffix", each: UnderscoreToHumanWithKeepIdSuffix do |underscore, human|
+    assert_equal(human, ActiveSupport::Inflector.humanize(underscore, keep_id_suffix: true))
   end
 
   def test_humanize_by_rule
@@ -457,52 +413,51 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-  def test_ordinal
-    OrdinalNumbers.each do |number, ordinalized|
-      assert_equal(ordinalized, number + ActiveSupport::Inflector.ordinal(number))
-    end
+  test "ordinal", each: OrdinalNumbers do |number, ordinalized|
+    assert_equal(ordinalized, number + ActiveSupport::Inflector.ordinal(number))
   end
 
-  def test_ordinalize
-    OrdinalNumbers.each do |number, ordinalized|
-      assert_equal(ordinalized, ActiveSupport::Inflector.ordinalize(number))
-    end
+  test "ordinalize", each: OrdinalNumbers do |number, ordinalized|
+    assert_equal(ordinalized, ActiveSupport::Inflector.ordinalize(number))
   end
 
-  def test_dasherize
-    UnderscoresToDashes.each do |underscored, dasherized|
-      assert_equal(dasherized, ActiveSupport::Inflector.dasherize(underscored))
-    end
+  test "dasherize", each: UnderscoresToDashes do |underscored, dasherized|
+    assert_equal(dasherized, ActiveSupport::Inflector.dasherize(underscored))
   end
 
-  def test_underscore_as_reverse_of_dasherize
-    UnderscoresToDashes.each_key do |underscored|
-      assert_equal(underscored, ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.dasherize(underscored)))
-    end
+  test "underscore as reverse of dasherize", each: UnderscoresToDashes do |underscored, dasherized|
+    assert_equal(underscored, ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.dasherize(underscored)))
   end
 
-  def test_underscore_to_lower_camel
-    UnderscoreToLowerCamel.each do |underscored, lower_camel|
-      assert_equal(lower_camel, ActiveSupport::Inflector.camelize(underscored, false))
-    end
+  test "underscore to lower camel", each: UnderscoreToLowerCamel do |underscored, lower_camel|
+    assert_equal(lower_camel, ActiveSupport::Inflector.camelize(underscored, false))
   end
 
-  def test_symbol_to_lower_camel
-    SymbolToLowerCamel.each do |symbol, lower_camel|
-      assert_equal(lower_camel, ActiveSupport::Inflector.camelize(symbol, false))
-    end
+  test "symbol to lower camel", each: SymbolToLowerCamel do |symbol, lower_camel|
+    assert_equal(lower_camel, ActiveSupport::Inflector.camelize(symbol, false))
   end
 
-  %w{plurals singulars uncountables humans}.each do |inflection_type|
-    class_eval <<-RUBY, __FILE__, __LINE__ + 1
-      def test_clear_#{inflection_type}
-        ActiveSupport::Inflector.inflections.clear :#{inflection_type}
-        assert ActiveSupport::Inflector.inflections.#{inflection_type}.empty?, \"#{inflection_type} inflections should be empty after clear :#{inflection_type}\"
-      end
-    RUBY
+  test "clear plurals" do
+    ActiveSupport::Inflector.inflections.clear :plurals
+    assert ActiveSupport::Inflector.inflections.plurals.empty?
   end
 
-  def test_clear_acronyms_resets_to_reusable_state
+  test "clear singulars" do
+    ActiveSupport::Inflector.inflections.clear :singulars
+    assert ActiveSupport::Inflector.inflections.singulars.empty?
+  end
+
+  test "clear uncountables" do
+    ActiveSupport::Inflector.inflections.clear :uncountables
+    assert ActiveSupport::Inflector.inflections.uncountables.empty?
+  end
+
+  test "clear humans" do
+    ActiveSupport::Inflector.inflections.clear :humans
+    assert ActiveSupport::Inflector.inflections.humans.empty?
+  end
+
+  test "clear acronyms resets to reusable state" do
     ActiveSupport::Inflector.inflections.clear(:acronyms)
 
     assert_empty ActiveSupport::Inflector.inflections.acronyms
@@ -604,7 +559,7 @@ class InflectorTest < ActiveSupport::TestCase
   end
 
   Irregularities.each do |singular, plural|
-    define_method("test_irregularity_between_#{singular}_and_#{plural}") do
+    test "irregularity between #{singular} and #{plural}" do
       ActiveSupport::Inflector.inflections do |inflect|
         inflect.irregular(singular, plural)
         assert_equal singular, ActiveSupport::Inflector.singularize(plural)
@@ -614,7 +569,7 @@ class InflectorTest < ActiveSupport::TestCase
   end
 
   Irregularities.each do |singular, plural|
-    define_method("test_pluralize_of_irregularity_#{plural}_should_be_the_same") do
+    test "pluralize of irregularity #{plural} should be the same" do
       ActiveSupport::Inflector.inflections do |inflect|
         inflect.irregular(singular, plural)
         assert_equal plural, ActiveSupport::Inflector.pluralize(plural)
@@ -623,7 +578,7 @@ class InflectorTest < ActiveSupport::TestCase
   end
 
   Irregularities.each do |singular, plural|
-    define_method("test_singularize_of_irregularity_#{singular}_should_be_the_same") do
+    test "singularize of irregularity #{singular} should be the same" do
       ActiveSupport::Inflector.inflections do |inflect|
         inflect.irregular(singular, plural)
         assert_equal singular, ActiveSupport::Inflector.singularize(singular)
@@ -631,38 +586,33 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
-  [ :all, [] ].each do |scope|
+  test "clear inflections with", each: [[], :all] do |scope|
     ActiveSupport::Inflector.inflections do |inflect|
-      define_method("test_clear_inflections_with_#{scope.kind_of?(Array) ? "no_arguments" : scope}") do
-        # save all the inflections
-        singulars, plurals, uncountables = inflect.singulars, inflect.plurals, inflect.uncountables
+      # save all the inflections
+      singulars, plurals, uncountables = inflect.singulars, inflect.plurals, inflect.uncountables
 
-        # clear all the inflections
-        inflect.clear(*scope)
+      # clear all the inflections
+      inflect.clear(*scope)
 
-        assert_equal [], inflect.singulars
-        assert_equal [], inflect.plurals
-        assert_equal [], inflect.uncountables.to_a
+      assert_equal [], inflect.singulars
+      assert_equal [], inflect.plurals
+      assert_equal [], inflect.uncountables.to_a
 
-        # restore all the inflections
-        singulars.reverse_each { |singular| inflect.singular(*singular) }
-        plurals.reverse_each   { |plural|   inflect.plural(*plural) }
-        inflect.uncountable(uncountables)
+      # restore all the inflections
+      singulars.reverse_each { |singular| inflect.singular(*singular) }
+      plurals.reverse_each   { |plural|   inflect.plural(*plural) }
+      inflect.uncountable(uncountables)
 
-        assert_equal singulars, inflect.singulars
-        assert_equal plurals, inflect.plurals
-        assert_equal uncountables, inflect.uncountables
-      end
+      assert_equal singulars, inflect.singulars
+      assert_equal plurals, inflect.plurals
+      assert_equal uncountables, inflect.uncountables
     end
   end
 
-  %i(plurals singulars uncountables humans).each do |scope|
-    define_method("test_clear_inflections_with_#{scope}") do
-      # clear the inflections
-      ActiveSupport::Inflector.inflections do |inflect|
-        inflect.clear(scope)
-        assert_equal [], inflect.public_send(scope)
-      end
+  test "clear inflections with", each: %i(plurals singulars uncountables humans) do |scope|
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.clear(scope)
+      assert_equal [], inflect.public_send(scope)
     end
   end
 
