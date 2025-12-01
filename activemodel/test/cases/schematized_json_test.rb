@@ -106,4 +106,14 @@ class SchematizedJsonTest < ActiveModel::TestCase
     assert_equal 20, hash["max_invites"]
     assert_equal "Hi there!", hash["greeting"]
   end
+
+  test "to_h works with has_delegated_json" do
+    assert_equal({ "premium" => false }, @account.flags.to_h)
+  end
+
+  test "to_h works with has_delegated_json after direct assignment" do
+    @account.flags = { "premium" => "true" }
+
+    assert_equal({ "premium" => true }, @account.flags.to_h)
+  end
 end
