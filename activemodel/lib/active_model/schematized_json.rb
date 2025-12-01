@@ -34,7 +34,7 @@ module ActiveModel
           # Ensure the attribute is set if nil, so we can pass the reference to the accessor for defaults.
           _write_attribute(attr.to_s, {}) if attribute(attr.to_s).nil?
 
-          # No memoizationen used in order to stay compatible with #reload (and because it's such a thin accessor)
+          # No memoization used in order to stay compatible with #reload (and because it's such a thin accessor).
           ActiveModel::SchematizedJson::DataAccessor.new(schema, data: attribute(attr.to_s))
         end
 
