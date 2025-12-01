@@ -2651,6 +2651,27 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       url_for(controller: "photos", action: "index", username: nil)
   end
 
+  def test_url_generator_treats_empty_strings_like_nil_for_optional_segments
+    draw do
+      get "(/locale/:locale)(/currency/:currency)/products(/:id)" => "products#show"
+    end
+
+    assert_equal "http://www.example.com/currency/USD/products/123",
+      url_for(controller: "products", action: "show", locale: "", currency: "USD", id: 123)
+    assert_equal "http://www.example.com/currency/USD/products/123",
+      url_for(controller: "products", action: "show", locale: nil, currency: "USD", id: 123)
+
+    assert_equal "http://www.example.com/locale/en/products/123",
+      url_for(controller: "products", action: "show", locale: "en", currency: "", id: 123)
+    assert_equal "http://www.example.com/locale/en/products/123",
+      url_for(controller: "products", action: "show", locale: "en", currency: nil, id: 123)
+
+    assert_equal "http://www.example.com/locale/en/currency/USD/products",
+      url_for(controller: "products", action: "show", locale: "en", currency: "USD", id: "")
+    assert_equal "http://www.example.com/locale/en/currency/USD/products",
+      url_for(controller: "products", action: "show", locale: "en", currency: "USD", id: nil)
+  end
+
   def test_url_recognition_for_optional_static_segments
     draw do
       scope "(groups)" do
