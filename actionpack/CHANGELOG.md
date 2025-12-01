@@ -1,3 +1,10 @@
+*   Fix `IpSpoofAttackError` message to include `Forwarded` header content.
+
+    Without it, the error message may be misleading.
+
+    *zzak*
+
+
 ## Rails 8.1.1 (October 28, 2025) ##
 
 *   Allow methods starting with underscore to be action methods.

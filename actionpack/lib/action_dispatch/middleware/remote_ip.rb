@@ -152,7 +152,8 @@ module ActionDispatch
           # We don't know which came from the proxy, and which from the user
           raise IpSpoofAttackError, "IP spoofing attack?! " \
             "HTTP_CLIENT_IP=#{@req.client_ip.inspect} " \
-            "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}"
+            "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}" \
+            " HTTP_FORWARDED=" + @req.forwarded_for.map { "for=#{_1}" }.join(", ").inspect if @req.forwarded_for.any?
         end
 
         # We assume these things about the IP headers:
