@@ -1,3 +1,9 @@
+*   Generate correct CTE while using merge with with_recursive modifier, fixes #56145.
+
+    Using `Post.merge(Post.with_recursive(...))` preserves `RECURSIVE` modifier.
+
+    *Tahsin Hasan*
+
 *   Add support for configuring migration strategy on a per-adapter basis.
 
     `migration_strategy` can now be set on individual adapter classes, overriding
