@@ -7,10 +7,9 @@ module ActiveJob
         Time.iso8601(hash["value"])
       end
 
-      private
-        def klass
-          Time
-        end
+      def klass
+        Time
+      end
     end
   end
 end

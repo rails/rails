@@ -21,7 +21,7 @@ require "models/matey"
 require "models/dog_lover"
 require "models/dog"
 require "models/car"
-require "models/tyre"
+require "models/tire"
 require "models/subscriber"
 require "models/non_primary_key"
 require "models/clothing_item"
@@ -1953,21 +1953,21 @@ class FinderTest < ActiveRecord::TestCase
   test "find on a scope does not perform statement caching" do
     honda = cars(:honda)
     zyke = cars(:zyke)
-    tyre = honda.tyres.create!
-    tyre2 = zyke.tyres.create!
+    tire = honda.tires.create!
+    tire2 = zyke.tires.create!
 
-    assert_equal tyre, honda.tyres.custom_find(tyre.id)
-    assert_equal tyre2, zyke.tyres.custom_find(tyre2.id)
+    assert_equal tire, honda.tires.custom_find(tire.id)
+    assert_equal tire2, zyke.tires.custom_find(tire2.id)
   end
 
   test "find_by on a scope does not perform statement caching" do
     honda = cars(:honda)
     zyke = cars(:zyke)
-    tyre = honda.tyres.create!
-    tyre2 = zyke.tyres.create!
+    tire = honda.tires.create!
+    tire2 = zyke.tires.create!
 
-    assert_equal tyre, honda.tyres.custom_find_by(id: tyre.id)
-    assert_equal tyre2, zyke.tyres.custom_find_by(id: tyre2.id)
+    assert_equal tire, honda.tires.custom_find_by(id: tire.id)
+    assert_equal tire2, zyke.tires.custom_find_by(id: tire2.id)
   end
 
   test "#skip_query_cache! for #exists?" do

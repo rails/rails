@@ -30,11 +30,7 @@ module Rails
 
           template "app/views/passwords_mailer/reset.html.erb"
           template "app/views/passwords_mailer/reset.text.erb"
-
-          template "test/mailers/previews/passwords_mailer_preview.rb"
         end
-
-        template "test/test_helpers/session_test_helper.rb"
       end
 
       def configure_application_controller
@@ -58,11 +54,6 @@ module Rails
       def add_migrations
         generate "migration", "CreateUsers", "email_address:string!:uniq password_digest:string!", "--force"
         generate "migration", "CreateSessions", "user:references ip_address:string user_agent:string", "--force"
-      end
-
-      def configure_test_helper
-        inject_into_file "test/test_helper.rb", "require_relative \"test_helpers/session_test_helper\"\n", after: "require \"rails/test_help\"\n"
-        inject_into_class "test/test_helper.rb", "TestCase", "    include SessionTestHelper\n"
       end
 
       hook_for :test_framework

@@ -8,7 +8,7 @@ module ActiveRecord
         def indexes(table_name)
           indexes = []
           current_index = nil
-          internal_exec_query("SHOW KEYS FROM #{quote_table_name(table_name)}", "SCHEMA").each do |row|
+          query_all("SHOW KEYS FROM #{quote_table_name(table_name)}").each do |row|
             if current_index != row["Key_name"]
               next if row["Key_name"] == "PRIMARY" # skip the primary key
               current_index = row["Key_name"]

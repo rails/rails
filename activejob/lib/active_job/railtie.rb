@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "rails"
 require "global_id/railtie"
 require "active_job"
 
@@ -19,7 +20,7 @@ module ActiveJob
     end
 
     initializer "active_job.custom_serializers" do |app|
-      config.after_initialize do
+      ActiveSupport.on_load(:active_job_arguments) do
         custom_serializers = app.config.active_job.custom_serializers
         ActiveJob::Serializers.add_serializers custom_serializers
       end
@@ -29,25 +30,14 @@ module ActiveJob
       ActiveSupport.on_load(:active_job) do
         ActiveSupport.on_load(:active_record) do
           ActiveJob::Base.include EnqueueAfterTransactionCommit
+        end
+      end
+    end
 
-          if app.config.active_job.key?(:enqueue_after_transaction_commit)
-            ActiveJob.deprecator.warn(<<~MSG.squish)
-              `config.active_job.enqueue_after_transaction_commit` is deprecated and will be removed in Rails 8.1.
-              This configuration can still be set on individual jobs using `self.enqueue_after_transaction_commit=`,
-              but due the nature of this behavior, it is not recommended to be set globally.
-            MSG
-
-            value = case app.config.active_job.enqueue_after_transaction_commit
-            when :always
-              true
-            when :never
-              false
-            else
-              false
-            end
-
-            ActiveJob::Base.enqueue_after_transaction_commit = value
-          end
+    initializer "active_job.action_controller_parameters" do |app|
+      ActiveSupport.on_load(:active_job) do
+        ActiveSupport.on_load(:action_controller) do
+          ActiveJob::Serializers.add_serializers ActiveJob::Serializers::ActionControllerParametersSerializer
         end
       end
     end
@@ -70,6 +60,7 @@ module ActiveJob
         options = options.except(
           :log_query_tags_around_perform,
           :custom_serializers,
+          # This config can't be applied globally, so we need to remove otherwise it will be applied to `ActiveJob::Base`.
           :enqueue_after_transaction_commit
         )
 

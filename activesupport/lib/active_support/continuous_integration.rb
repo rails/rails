@@ -38,6 +38,8 @@ module ActiveSupport
     #
     # Sets the CI environment variable to "true" to allow for conditional behavior in the app, like enabling eager loading and disabling logging.
     #
+    # A 'fail fast' option can be passed as a CLI argument (-f or --fail-fast). This exits with a non-zero status directly after a step fails.
+    #
     # Example:
     #
     #   ActiveSupport::ContinuousIntegration.run do
@@ -74,12 +76,12 @@ module ActiveSupport
     #   step "Single test", "bin/rails", "test", "--name", "test_that_is_one"
     def step(title, *command)
       heading title, command.join(" "), type: :title
-      report(title) { results << system(*command) }
+      report(title) { results << [ system(*command), title ] }
     end
 
     # Returns true if all steps were successful.
     def success?
-      results.all?
+      results.map(&:first).all?
     end
 
     # Display an error heading with the title and optional subtitle to reflect that the run failed.
@@ -114,7 +116,7 @@ module ActiveSupport
 
     # :nodoc:
     def report(title, &block)
-      Signal.trap("INT") { abort colorize(:error, "\n❌ #{title} interrupted") }
+      Signal.trap("INT") { abort colorize("\n❌ #{title} interrupted", :error) }
 
       ci = self.class.new
       elapsed = timing { ci.instance_eval(&block) }
@@ -123,11 +125,36 @@ module ActiveSupport
         echo "\n✅ #{title} passed in #{elapsed}", type: :success
       else
         echo "\n❌ #{title} failed in #{elapsed}", type: :error
+
+        abort if ci.fail_fast?
+
+        if ci.multiple_results?
+          ci.failures.each do |success, title|
+            unless success
+              echo "   ↳ #{title} failed", type: :error
+            end
+          end
+        end
       end
 
       results.concat ci.results
     ensure
       Signal.trap("INT", "-")
+    end
+
+    # :nodoc:
+    def failures
+      results.reject(&:first)
+    end
+
+    # :nodoc:
+    def multiple_results?
+      results.size > 1
+    end
+
+    # :nodoc:
+    def fail_fast?
+      ARGV.include?("-f") || ARGV.include?("--fail-fast")
     end
 
     private

@@ -87,6 +87,13 @@ class EnumTest < ActiveRecord::TestCase
   test "find via negative scope" do
     assert Book.not_published.exclude?(@book)
     assert Book.not_proposed.include?(@book)
+
+    assert Book.not_forgotten.exclude?(books(:ddd))
+
+    # Should include records with nils in the column.
+    rfr = books(:rfr)
+    rfr.update!(status: nil)
+    assert Book.not_published.include?(rfr)
   end
 
   test "find via where with values" do

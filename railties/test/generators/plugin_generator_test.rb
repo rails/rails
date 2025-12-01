@@ -39,7 +39,6 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/app/views/layouts/mailer.text.erb
   test/dummy/app/views/pwa/manifest.json.erb
   test/dummy/app/views/pwa/service-worker.js
-  test/dummy/bin/bundler-audit
   test/dummy/bin/ci
   test/dummy/bin/dev
   test/dummy/bin/rails
@@ -48,7 +47,6 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config.ru
   test/dummy/config/application.rb
   test/dummy/config/boot.rb
-  test/dummy/config/bundler-audit.yml
   test/dummy/config/cable.yml
   test/dummy/config/ci.rb
   test/dummy/config/database.yml

@@ -35,6 +35,46 @@ module ActiveJob
       arguments.map { |argument| serialize_argument(argument) }
     end
 
+    def serialize_argument(argument) # :nodoc:
+      case argument
+      when nil, true, false, Integer, Float # Types that can hardly be subclassed
+        argument
+      when String
+        if argument.class == String
+          argument
+        else
+          begin
+            Serializers.serialize(argument)
+          rescue SerializationError
+            argument
+          end
+        end
+      when Symbol
+        { Serializers::OBJECT_SERIALIZER_KEY => "ActiveJob::Serializers::SymbolSerializer", "value" => argument.name }
+      when GlobalID::Identification
+        convert_to_global_id_hash(argument)
+      when Array
+        argument.map { |arg| serialize_argument(arg) }
+      when ActiveSupport::HashWithIndifferentAccess
+        serialize_indifferent_hash(argument)
+      when Hash
+        symbol_keys = argument.keys
+        symbol_keys.select! { |k| k.is_a?(Symbol) }
+        symbol_keys.map!(&:name)
+
+        aj_hash_key = if Hash.ruby2_keywords_hash?(argument)
+          RUBY2_KEYWORDS_KEY
+        else
+          SYMBOL_KEYS_KEY
+        end
+        result = serialize_hash(argument)
+        result[aj_hash_key] = symbol_keys
+        result
+      else
+        Serializers.serialize(argument)
+      end
+    end
+
     # Deserializes a set of arguments. Intrinsic types that can safely be
     # deserialized without mutation are returned as-is. Arrays/Hashes are
     # deserialized element by element. All other types are deserialized using
@@ -54,58 +94,17 @@ module ActiveJob
       RUBY2_KEYWORDS_KEY = "_aj_ruby2_keywords"
       # :nodoc:
       WITH_INDIFFERENT_ACCESS_KEY = "_aj_hash_with_indifferent_access"
-      # :nodoc:
-      OBJECT_SERIALIZER_KEY = "_aj_serialized"
 
       # :nodoc:
       RESERVED_KEYS = [
         GLOBALID_KEY, GLOBALID_KEY.to_sym,
         SYMBOL_KEYS_KEY, SYMBOL_KEYS_KEY.to_sym,
         RUBY2_KEYWORDS_KEY, RUBY2_KEYWORDS_KEY.to_sym,
-        OBJECT_SERIALIZER_KEY, OBJECT_SERIALIZER_KEY.to_sym,
+        Serializers::OBJECT_SERIALIZER_KEY, Serializers::OBJECT_SERIALIZER_KEY.to_sym,
         WITH_INDIFFERENT_ACCESS_KEY, WITH_INDIFFERENT_ACCESS_KEY.to_sym,
-      ]
+      ].to_set
       private_constant :RESERVED_KEYS, :GLOBALID_KEY,
         :SYMBOL_KEYS_KEY, :RUBY2_KEYWORDS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
-
-      def serialize_argument(argument)
-        case argument
-        when nil, true, false, Integer, Float # Types that can hardly be subclassed
-          argument
-        when String
-          if argument.class == String
-            argument
-          else
-            begin
-              Serializers.serialize(argument)
-            rescue SerializationError
-              argument
-            end
-          end
-        when GlobalID::Identification
-          convert_to_global_id_hash(argument)
-        when Array
-          argument.map { |arg| serialize_argument(arg) }
-        when ActiveSupport::HashWithIndifferentAccess
-          serialize_indifferent_hash(argument)
-        when Hash
-          symbol_keys = argument.each_key.grep(Symbol).map!(&:to_s)
-          aj_hash_key = if Hash.ruby2_keywords_hash?(argument)
-            RUBY2_KEYWORDS_KEY
-          else
-            SYMBOL_KEYS_KEY
-          end
-          result = serialize_hash(argument)
-          result[aj_hash_key] = symbol_keys
-          result
-        else
-          if argument.respond_to?(:permitted?) && argument.respond_to?(:to_h)
-            serialize_indifferent_hash(argument.to_h)
-          else
-            Serializers.serialize(argument)
-          end
-        end
-      end
 
       def deserialize_argument(argument)
         case argument
@@ -135,7 +134,7 @@ module ActiveJob
       end
 
       def custom_serialized?(hash)
-        hash.key?(OBJECT_SERIALIZER_KEY)
+        hash.key?(Serializers::OBJECT_SERIALIZER_KEY)
       end
 
       def serialize_hash(argument)
@@ -159,10 +158,12 @@ module ActiveJob
 
       def serialize_hash_key(key)
         case key
-        when *RESERVED_KEYS
+        when RESERVED_KEYS
           raise SerializationError.new("Can't serialize a Hash with reserved key #{key.inspect}")
-        when String, Symbol
-          key.to_s
+        when String
+          key
+        when Symbol
+          key.name
         else
           raise SerializationError.new("Only string and symbol hash keys may be serialized as job arguments, but #{key.inspect} is a #{key.class}")
         end
@@ -194,4 +195,6 @@ module ActiveJob
           "without an id. (Maybe you forgot to call save?)"
       end
   end
+
+  ActiveSupport.run_load_hooks(:active_job_arguments, Arguments)
 end

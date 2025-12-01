@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_record"
 require "rails"
+require "active_record"
 require "active_support/core_ext/object/try"
 require "active_model/railtie"
 
@@ -329,6 +329,10 @@ To keep using the current cache store, you can turn off cache versioning entirel
       ActiveSupport.on_load(:active_record) do
         self.filter_attributes += Rails.application.config.filter_parameters
       end
+    end
+
+    initializer "active_record.filter_attributes_as_log_parameters" do |app|
+      ActiveRecord::FilterAttributeHandler.new(app).enable
     end
 
     initializer "active_record.configure_message_verifiers" do |app|

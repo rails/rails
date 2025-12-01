@@ -90,7 +90,7 @@ module AbstractController
       #--
       # Implemented by Resolution#modules_for_helpers.
 
-      # :method: # all_helpers_from_path
+      # :method: all_helpers_from_path
       # :call-seq: all_helpers_from_path(path)
       #
       # Returns a list of helper names in a given path.

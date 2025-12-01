@@ -43,7 +43,7 @@ Releaser::FRAMEWORKS.each do |framework|
 end
 
 namespace :activejob do
-  activejob_adapters = %w(async inline queue_classic resque sidekiq sneakers sucker_punch backburner test)
+  activejob_adapters = %w(async inline queue_classic resque sidekiq sneakers backburner test)
   activejob_adapters.delete("queue_classic") if defined?(JRUBY_VERSION)
 
   desc "Run Active Job integration tests for all adapters"
@@ -199,7 +199,8 @@ task :preview_docs do
   FileUtils.mkdir_p("preview")
   PreviewDocs.new.render("preview")
 
-  require "guides/rails_guides"
+  system(%(cd guides && #{$0} guides:generate --trace))
+
   Rake::Task[:rdoc].invoke
 
   FileUtils.mv("doc/rdoc", "preview/api")

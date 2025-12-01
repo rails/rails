@@ -12,7 +12,7 @@ module ActiveRecord
 
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
-  # {ActiveRecord::Base.inheritance_column}[rdoc-ref:ModelSchema::ClassMethods#inheritance_column]
+  # {ActiveRecord::Base.inheritance_column}[rdoc-ref:ModelSchema.inheritance_column]
   # points to).
   class SubclassNotFound < ActiveRecordError
   end
@@ -129,6 +129,12 @@ module ActiveRecord
 
   # Raised when a write to the database is attempted on a read only connection.
   class ReadOnlyError < ActiveRecordError
+  end
+
+  # Raised when shard swapping is attempted on a connection that prohibits it.
+  # See {ActiveRecord::ConnectionHandling#prohibit_shard_swapping}[rdoc-ref:ConnectionHandling#prohibit_shard_swapping].
+  class ShardSwapProhibitedError < ArgumentError
+    # This subclasses ArgumentError for backwards compatibility.
   end
 
   # Raised when Active Record cannot find a record by given id or set of ids.
@@ -292,6 +298,14 @@ module ActiveRecord
   class NotNullViolation < StatementInvalid
   end
 
+  # Raised when a record cannot be inserted or updated because it would violate a check constraint.
+  class CheckViolation < StatementInvalid
+  end
+
+  # Raised when a record cannot be inserted or updated because it would violate an exclusion constraint.
+  class ExclusionViolation < StatementInvalid
+  end
+
   # Raised when a record cannot be inserted or updated because a value too long for a column type.
   class ValueTooLong < StatementInvalid
   end
@@ -443,7 +457,7 @@ module ActiveRecord
   UnknownAttributeError = ActiveModel::UnknownAttributeError
 
   # Raised when an error occurred while doing a mass assignment to an attribute through the
-  # {ActiveRecord::Base#attributes=}[rdoc-ref:AttributeAssignment#attributes=] method.
+  # {ActiveRecord::Base#attributes=}[rdoc-ref:ActiveModel::AttributeAssignment#attributes=] method.
   # The exception has an +attribute+ property that is the name of the offending attribute.
   class AttributeAssignmentError < ActiveRecordError
     attr_reader :exception, :attribute
@@ -456,7 +470,7 @@ module ActiveRecord
   end
 
   # Raised when there are multiple errors while doing a mass assignment through the
-  # {ActiveRecord::Base#attributes=}[rdoc-ref:AttributeAssignment#attributes=]
+  # {ActiveRecord::Base#attributes=}[rdoc-ref:ActiveModel::AttributeAssignment#attributes=]
   # method. The exception has an +errors+ property that contains an array of AttributeAssignmentError
   # objects, each corresponding to the error while assigning to an attribute.
   class MultiparameterAssignmentErrors < ActiveRecordError

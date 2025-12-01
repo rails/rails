@@ -54,6 +54,8 @@ module ActiveRecord
         assert_not_predicate @adapter, :in_use?
 
         assert_equal @adapter, pool.lease_connection
+      ensure
+        pool&.disconnect!
       end
     end
   end

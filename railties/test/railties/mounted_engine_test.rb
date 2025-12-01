@@ -47,6 +47,7 @@ module ApplicationTests
       @simple_plugin.write "config/routes.rb", <<-RUBY
         Weblog::Engine.routes.draw do
           get '/weblog' => "weblogs#index", as: 'weblogs'
+          get '/generate_weblog_route' => "weblogs#generate_weblog_route", as: 'weblog_generate_weblog_route'
         end
       RUBY
 
@@ -54,6 +55,10 @@ module ApplicationTests
         class WeblogsController < ActionController::Base
           def index
             render plain: request.url
+          end
+
+          def generate_weblog_route
+            render plain: weblog.weblogs_path
           end
         end
       RUBY
@@ -285,6 +290,14 @@ module ApplicationTests
       # test that the Active Storage direct upload URL is added to a file field that explicitly requires it within en engine's view code
       get "/someone/blog/file_field_with_direct_upload_path"
       assert_equal "<input type=\"file\" name=\"image\" id=\"image\" data-direct-upload-url=\"http://example.org/rails/active_storage/direct_uploads\" />", last_response.body
+
+      # test that correct path is generated in an engine mounted at root
+      get "/generate_weblog_route"
+      assert_equal "/weblog", last_response.body
+
+      # test that correct path is generated in an engine mounted at root with default_url_options
+      get "/generate_weblog_route", {}, { "SCRIPT_NAME" => "/1234" }
+      assert_equal "/1234/weblog", last_response.body
     end
 
     test "route path for controller action when engine is mounted at root" do

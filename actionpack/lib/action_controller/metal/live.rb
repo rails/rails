@@ -133,15 +133,16 @@ module ActionController
       private
         def perform_write(json, options)
           current_options = @options.merge(options).stringify_keys
-
+          event = +""
           PERMITTED_OPTIONS.each do |option_name|
             if (option_value = current_options[option_name])
-              @stream.write "#{option_name}: #{option_value}\n"
+              event << "#{option_name}: #{option_value}\n"
             end
           end
 
           message = json.gsub("\n", "\ndata: ")
-          @stream.write "data: #{message}\n\n"
+          event << "data: #{message}\n\n"
+          @stream.write event
         end
     end
 
@@ -236,12 +237,7 @@ module ActionController
 
       private
         def each_chunk(&block)
-          loop do
-            str = nil
-            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              str = @buf.pop
-            end
-            break unless str
+          while str = @buf.pop
             yield str
           end
         end
@@ -275,16 +271,14 @@ module ActionController
       # This processes the action in a child thread. It lets us return the response
       # code and headers back up the Rack stack, and still process the body in
       # parallel with sending data to the client.
-      new_controller_thread {
+      new_controller_thread do
         ActiveSupport::Dependencies.interlock.running do
           t2 = Thread.current
 
           # Since we're processing the view in a different thread, copy the thread locals
           # from the main thread to the child thread. :'(
           locals.each { |k, v| t2[k] = v }
-          ActiveSupport::IsolatedExecutionState.share_with(t1)
-
-          begin
+          ActiveSupport::IsolatedExecutionState.share_with(t1) do
             super(name)
           rescue => e
             if @_response.committed?
@@ -301,17 +295,14 @@ module ActionController
               error = e
             end
           ensure
-            ActiveSupport::IsolatedExecutionState.clear
             clean_up_thread_locals(locals, t2)
 
             @_response.commit!
           end
         end
-      }
-
-      ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-        @_response.await_commit
       end
+
+      @_response.await_commit
 
       raise error if error
     end

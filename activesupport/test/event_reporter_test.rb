@@ -48,17 +48,17 @@ module ActiveSupport
 
     test "#subscribe" do
       reporter = ActiveSupport::EventReporter.new
-      reporter.subscribe(@subscriber)
-      assert_equal([{ subscriber: @subscriber, filter: nil }], reporter.subscribers)
+      subscribers = reporter.subscribe(@subscriber)
+      assert_equal([{ subscriber: @subscriber, filter: nil }], subscribers)
     end
 
     test "#subscribe with filter" do
       reporter = ActiveSupport::EventReporter.new
 
       filter = ->(event) { event[:name].start_with?("user.") }
-      reporter.subscribe(@subscriber, &filter)
+      subscribers = reporter.subscribe(@subscriber, &filter)
 
-      assert_equal([{ subscriber: @subscriber, filter: filter }], reporter.subscribers)
+      assert_equal([{ subscriber: @subscriber, filter: filter }], subscribers)
     end
 
     test "#subscribe raises ArgumentError when sink doesn't respond to emit" do
@@ -69,6 +69,32 @@ module ActiveSupport
       end
 
       assert_equal "Event subscriber Object must respond to #emit", error.message
+    end
+
+    test "#unsubscribe" do
+      first_subscriber = @subscriber
+      second_subscriber = EventSubscriber.new
+
+      @reporter.subscribe(second_subscriber)
+      @reporter.notify(:test_event, key: "value")
+
+      assert event_matcher(name: "test_event", payload: { key: "value" }).call(second_subscriber.events.last)
+
+      @reporter.unsubscribe(second_subscriber)
+
+      assert_not_called(second_subscriber, :emit, [
+        event_matcher(name: "another_event")
+      ]) do
+        @reporter.notify(:another_event, key: "value")
+      end
+
+      assert event_matcher(name: "another_event", payload: { key: "value" }).call(first_subscriber.events.last)
+
+      @reporter.unsubscribe(EventSubscriber)
+      @reporter.notify(:last_event, key: "value")
+
+      assert_empty first_subscriber.events.select(&event_matcher(name: "last_event", payload: { key: "value" }))
+      assert_empty second_subscriber.events.select(&event_matcher(name: "last_event", payload: { key: "value" }))
     end
 
     test "#notify with name" do
@@ -222,11 +248,53 @@ module ActiveSupport
       assert_equal("Uh oh!", error.message)
     end
 
+    test "#notify with filtered payloads" do
+      filter = ActiveSupport::ParameterFilter.new([:zomg], mask: "[FILTERED]")
+      @reporter.stub(:payload_filter, filter) do
+        assert_called_with(@subscriber, :emit, [
+          event_matcher(name: "test_event", payload: { key: "value", zomg: "[FILTERED]" })
+        ]) do
+          @reporter.notify(:test_event, { key: "value", zomg: "secret" })
+        end
+      end
+    end
+
+    test "default filter_parameters is used by default" do
+      old_filter_parameters = ActiveSupport.filter_parameters
+      ActiveSupport.filter_parameters = [:secret]
+
+      assert_called_with(@subscriber, :emit, [
+        event_matcher(name: "test_event", payload: { key: "value", secret: "[FILTERED]" })
+      ]) do
+        @reporter.notify(:test_event, { key: "value", secret: "hello" })
+      end
+    ensure
+      ActiveSupport.filter_parameters = old_filter_parameters
+    end
+
+    test ".filter_parameters is used when present" do
+      old_filter_parameters = EventReporter.filter_parameters
+      EventReporter.filter_parameters = [:foo]
+
+      assert_called_with(@subscriber, :emit, [
+        event_matcher(name: "test_event", payload: { key: "value", foo: "[FILTERED]" })
+      ]) do
+        @reporter.notify(:test_event, { key: "value", foo: "hello" })
+      end
+    ensure
+      EventReporter.filter_parameters = old_filter_parameters
+    end
+
     test "#with_debug" do
       @reporter.with_debug do
         assert_predicate @reporter, :debug_mode?
       end
       assert_not_predicate @reporter, :debug_mode?
+    end
+
+    test "#debug_mode? returns true when debug_mode=true is set" do
+      @reporter.debug_mode = true
+      assert_predicate @reporter, :debug_mode?
     end
 
     test "#with_debug works with nested calls" do
@@ -523,6 +591,27 @@ module ActiveSupport
         end
       end
     end
+
+    test "payload filter reloading" do
+      @reporter.notify(:some_event, test: true)
+      ActiveSupport.filter_parameters << :param_to_be_filtered
+
+      assert_called_with(@subscriber, :emit, [
+        event_matcher(name: "some_event", payload: { param_to_be_filtered: "test" })
+      ]) do
+        @reporter.notify(:some_event, param_to_be_filtered: "test")
+      end
+
+      @reporter.reload_payload_filter
+
+      assert_called_with(@subscriber, :emit, [
+        event_matcher(name: "some_event", payload: { param_to_be_filtered: "[FILTERED]" })
+      ]) do
+        @reporter.notify(:some_event, param_to_be_filtered: "test")
+      end
+    ensure
+      ActiveSupport.filter_parameters.pop
+    end
   end
 
   class EncodersTest < ActiveSupport::TestCase
@@ -559,52 +648,6 @@ module ActiveSupport
         timestamp: 1738964843208679035,
         source_location: { filepath: "/path/to/file.rb", lineno: 42, label: "test_method" }
       }
-    end
-
-    test "JSON encoder encodes event to JSON" do
-      json_string = EventReporter::JSONEncoder.encode(@event)
-      parsed = ::JSON.parse(json_string)
-
-      assert_equal "test_event", parsed["name"]
-      assert_equal({ "id" => 123, "message" => "hello" }, parsed["payload"])
-      assert_equal({ "section" => "admin" }, parsed["tags"])
-      assert_equal({ "user_id" => 456 }, parsed["context"])
-      assert_equal 1738964843208679035, parsed["timestamp"]
-      assert_equal({ "filepath" => "/path/to/file.rb", "lineno" => 42, "label" => "test_method" }, parsed["source_location"])
-    end
-
-    test "JSON encoder serializes event objects and object tags as hashes" do
-      @event[:payload] = TestEvent.new("value")
-      @event[:tags] = { "HttpRequestTag": HttpRequestTag.new("GET", 200) }
-      json_string = EventReporter::JSONEncoder.encode(@event)
-      parsed = ::JSON.parse(json_string)
-
-      assert_equal "value", parsed["payload"]["data"]
-      assert_equal "GET", parsed["tags"]["HttpRequestTag"]["http_method"]
-      assert_equal 200, parsed["tags"]["HttpRequestTag"]["http_status"]
-    end
-
-    test "MessagePack encoder encodes event to MessagePack" do
-      msgpack_data = EventReporter::MessagePackEncoder.encode(@event)
-      parsed = ::MessagePack.unpack(msgpack_data)
-
-      assert_equal "test_event", parsed["name"]
-      assert_equal({ "id" => 123, "message" => "hello" }, parsed["payload"])
-      assert_equal({ "section" => "admin" }, parsed["tags"])
-      assert_equal({ "user_id" => 456 }, parsed["context"])
-      assert_equal 1738964843208679035, parsed["timestamp"]
-      assert_equal({ "filepath" => "/path/to/file.rb", "lineno" => 42, "label" => "test_method" }, parsed["source_location"])
-    end
-
-    test "MessagePack encoder serializes event objects and object tags as hashes" do
-      @event[:payload] = TestEvent.new("value")
-      @event[:tags] = { "HttpRequestTag": HttpRequestTag.new("GET", 200) }
-      msgpack_data = EventReporter::MessagePackEncoder.encode(@event)
-      parsed = ::MessagePack.unpack(msgpack_data)
-
-      assert_equal "value", parsed["payload"]["data"]
-      assert_equal "GET", parsed["tags"]["HttpRequestTag"]["http_method"]
-      assert_equal 200, parsed["tags"]["HttpRequestTag"]["http_status"]
     end
   end
 end

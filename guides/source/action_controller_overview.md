@@ -1234,6 +1234,54 @@ access to the various parameters.
 [`query_parameters`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html#method-i-query_parameters
 [`request_parameters`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html#method-i-request_parameters
 
+#### `request.variant`
+
+Controllers might need to tailor a response based on context-specific
+information in a request. For example, controllers responding to requests from a
+mobile platform might need to render different content than requests from a
+desktop browser. One strategy to accomplish this is by customizing a request's
+variant. Variant names are arbitrary, and can communicate anything from the
+request's platform (`:android`, `:ios`, `:linux`, `:macos`, `:windows`) to its
+browser (`:chrome`, `:edge`, `:firefox`, `:safari`), to the type of user
+(`:admin`, `:guest`, `:user`).
+
+You can set the [`request.variant`](https://api.rubyonrails.org/classes/ActionDispatch/Http/MimeNegotiation.html#method-i-variant-3D) in a `before_action`:
+
+```ruby
+request.variant = :tablet if request.user_agent.include?("iPad")
+```
+
+Responding with a variant in a controller action is like responding with a format:
+
+```ruby
+# app/controllers/projects_controller.rb
+
+def show
+  # ...
+  respond_to do |format|
+    format.html do |html|
+      html.tablet                         # renders app/views/projects/show.html+tablet.erb
+      html.phone { extra_setup; render }  # renders app/views/projects/show.html+phone.erb
+    end
+  end
+end
+```
+
+A separate template should be created for each format and variant:
+
+* `app/views/projects/show.html.erb`
+* `app/views/projects/show.html+tablet.erb`
+* `app/views/projects/show.html+phone.erb`
+
+You can also simplify the variants definition using the inline syntax:
+
+```ruby
+respond_to do |format|
+  format.html.tablet
+  format.html.phone  { extra_setup; render }
+end
+```
+
 ### The `response` Object
 
 The response object is built up during the execution of the action from

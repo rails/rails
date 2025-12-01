@@ -903,6 +903,8 @@ class BaseTest < ActiveSupport::TestCase
       # This triggers action_methods.
       respond_to?(:foo)
 
+      after_deliver :foo
+
       def notify
       end
     end

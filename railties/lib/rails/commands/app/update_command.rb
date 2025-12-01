@@ -73,6 +73,7 @@ module Rails
               skip_action_text:    !defined?(ActionText::Engine),
               skip_action_cable:   !defined?(ActionCable::Engine),
               skip_brakeman:       skip_gem?("brakeman"),
+              skip_bundler_audit:  skip_gem?("bundler-audit"),
               skip_rubocop:        skip_gem?("rubocop"),
               skip_thruster:       skip_gem?("thruster"),
               skip_test:           !defined?(Rails::TestUnitRailtie),

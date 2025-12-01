@@ -23,6 +23,7 @@ module ActionDispatch
       "ActionDispatch::Http::Parameters::ParseError"       => :bad_request,
       "ActionController::BadRequest"                       => :bad_request,
       "ActionController::ParameterMissing"                 => :bad_request,
+      "ActionController::TooManyRequests"                  => :too_many_requests,
       "Rack::QueryParser::ParameterTypeError"              => :bad_request,
       "Rack::QueryParser::InvalidParameterError"           => :bad_request
     )
@@ -235,7 +236,7 @@ module ActionDispatch
     end
 
     private
-      class SourceMapLocation < DelegateClass(Thread::Backtrace::Location) # :nodoc:
+      class SourceMapLocation < ActiveSupport::Delegation::DelegateClass(Thread::Backtrace::Location) # :nodoc:
         def initialize(location, template)
           super(location)
           @template = template

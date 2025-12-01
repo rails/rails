@@ -193,11 +193,11 @@ module ActiveRecord
       end
 
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
-        query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
+        query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})", nil, materialize_transactions: true) == 1
       end
 
       def release_advisory_lock(lock_name) # :nodoc:
-        query_value("SELECT RELEASE_LOCK(#{quote(lock_name.to_s)})") == 1
+        query_value("SELECT RELEASE_LOCK(#{quote(lock_name.to_s)})", nil, materialize_transactions: true) == 1
       end
 
       def index_algorithms
@@ -208,8 +208,6 @@ module ActiveRecord
           instant: "ALGORITHM = INSTANT",
         }
       end
-
-      # HELPER METHODS ===========================================
 
       # Must return the MySQL error number from the exception, if the exception has an
       # error number.
@@ -235,7 +233,7 @@ module ActiveRecord
       #++
 
       def begin_db_transaction # :nodoc:
-        internal_execute("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+        query_command("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
       end
 
       def begin_isolated_db_transaction(isolation) # :nodoc:
@@ -250,15 +248,15 @@ module ActiveRecord
       end
 
       def commit_db_transaction # :nodoc:
-        internal_execute("COMMIT", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+        query_command("COMMIT", "TRANSACTION", allow_retry: false, materialize_transactions: true)
       end
 
       def exec_rollback_db_transaction # :nodoc:
-        internal_execute("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+        query_command("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
       end
 
       def exec_restart_db_transaction # :nodoc:
-        internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+        query_command("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, materialize_transactions: true)
       end
 
       def empty_insert_statement_value(primary_key = nil) # :nodoc:
@@ -304,7 +302,7 @@ module ActiveRecord
       end
 
       def current_database
-        query_value("SELECT database()", "SCHEMA")
+        query_value("SELECT database()")
       end
 
       # Returns the database character set.
@@ -320,7 +318,7 @@ module ActiveRecord
       def table_comment(table_name) # :nodoc:
         scope = quoted_scope(table_name)
 
-        query_value(<<~SQL, "SCHEMA").presence
+        query_value(<<~SQL).presence
           SELECT table_comment
           FROM information_schema.tables
           WHERE table_schema = #{scope[:schema]}
@@ -496,7 +494,7 @@ module ActiveRecord
         scope = quoted_scope(table_name)
 
         # MySQL returns 1 row for each column of composite foreign keys.
-        fk_info = internal_exec_query(<<~SQL, "SCHEMA")
+        fk_info = query_all(<<~SQL)
           SELECT fk.referenced_table_name AS 'to_table',
                  fk.referenced_column_name AS 'primary_key',
                  fk.column_name AS 'column',
@@ -551,7 +549,7 @@ module ActiveRecord
           SQL
           sql += " AND cc.table_name = #{scope[:name]}" if mariadb?
 
-          chk_info = internal_exec_query(sql, "SCHEMA")
+          chk_info = query_all(sql)
 
           chk_info.map do |row|
             options = {
@@ -605,7 +603,7 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        query_value("SELECT @@#{name}", "SCHEMA", materialize_transactions: false, allow_retry: true)
+        query_value("SELECT @@#{name}")
       rescue ActiveRecord::StatementInvalid
         nil
       end
@@ -615,7 +613,7 @@ module ActiveRecord
 
         scope = quoted_scope(table_name)
 
-        query_values(<<~SQL, "SCHEMA")
+        query_values(<<~SQL)
           SELECT column_name
           FROM information_schema.statistics
           WHERE index_name = 'PRIMARY'
@@ -661,6 +659,18 @@ module ActiveRecord
 
       def default_index_type?(index) # :nodoc:
         index.using == :btree || super
+      end
+
+      def empty_all_tables # :nodoc:
+        table_names = tables - [pool.schema_migration.table_name, pool.internal_metadata.table_name]
+        return if table_names.empty?
+
+        statements = build_delete_from_statements(table_names)
+
+        # Deleting is generally much faster than truncating in MySQL
+        disable_referential_integrity do
+          execute_batch(statements, "Delete Tables")
+        end
       end
 
       def build_insert_sql(insert) # :nodoc:
@@ -838,6 +848,8 @@ module ActiveRecord
         CR_SERVER_LOST          = 2013
         ER_QUERY_TIMEOUT        = 3024
         ER_FK_INCOMPATIBLE_COLUMNS = 3780
+        ER_CHECK_CONSTRAINT_VIOLATED = 3819
+        ER_CONSTRAINT_FAILED = 4025
         ER_CLIENT_INTERACTION_TIMEOUT = 4031
 
         def translate_exception(exception, message:, sql:, binds:)
@@ -870,6 +882,8 @@ module ActiveRecord
             RangeError.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_NOT_NULL_VIOLATION, ER_DO_NOT_HAVE_DEFAULT
             NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          when ER_CHECK_CONSTRAINT_VIOLATED, ER_CONSTRAINT_FAILED
+            CheckViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_LOCK_DEADLOCK
             Deadlocked.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_LOCK_WAIT_TIMEOUT
@@ -899,7 +913,7 @@ module ActiveRecord
             comment: column.comment
           }
 
-          current_type = internal_exec_query("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}", "SCHEMA").first["Type"]
+          current_type = query_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}")["Type"]
           td = create_table_definition(table_name)
           cd = td.new_column_definition(new_column_name, current_type, **options)
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
@@ -984,15 +998,21 @@ module ActiveRecord
           end.join(", ")
 
           # ...and send them all in one query
-          raw_execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}", "SCHEMA")
+          intent = QueryIntent.new(
+            adapter: self,
+            processed_sql: "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}",
+            name: "SCHEMA"
+          )
+          intent.execute!
+          intent.finish
         end
 
         def column_definitions(table_name) # :nodoc:
-          internal_exec_query("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA", allow_retry: true)
+          query_all("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}")
         end
 
         def create_table_info(table_name) # :nodoc:
-          internal_exec_query("SHOW CREATE TABLE #{quote_table_name(table_name)}", "SCHEMA").first["Create Table"]
+          query_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
         end
 
         def arel_visitor

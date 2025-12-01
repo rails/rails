@@ -310,7 +310,7 @@ module XmlMiniTest
       assert_equal 123.0, parser.call("123,003")
       assert_equal 0.0, parser.call("")
       assert_equal 123, parser.call(123)
-      assert_raises(ArgumentError) { parser.call(123.04) }
+      assert_equal BigDecimal("123.04"), parser.call(123.04)
       assert_raises(ArgumentError) { parser.call(Date.new(2013, 11, 12, 02, 11)) }
     end
 

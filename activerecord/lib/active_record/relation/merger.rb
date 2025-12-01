@@ -85,9 +85,9 @@ module ActiveRecord
           return if other.select_values.empty?
 
           if other.model == relation.model
-            relation.select_values += other.select_values if relation.select_values != other.select_values
+            relation.select_values |= other.select_values
           else
-            relation.select_values += other.instance_eval do
+            relation.select_values |= other.instance_eval do
               arel_columns(select_values)
             end
           end

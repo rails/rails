@@ -8,7 +8,7 @@ require "models/car"
 require "models/aircraft"
 require "models/wheel"
 require "models/engine"
-require "models/tyre"
+require "models/tire"
 require "models/reply"
 require "models/category"
 require "models/categorization"
@@ -471,21 +471,21 @@ class CounterCacheTest < ActiveRecord::TestCase
 
   test "active counter cache" do
     car = Car.new
-    car.tyres = [Tyre.new, Tyre.new]
+    car.tires = [Tire.new, Tire.new]
     car.save!
 
-    assert_equal 2, car.custom_tyres_count
+    assert_equal 2, car.custom_tires_count
     car.reload
 
     assert_no_queries do
-      assert_equal 2, car.tyres.size
-      assert_not_predicate car.tyres, :empty?
-      assert_predicate car.tyres, :any?
-      assert_not_predicate car.tyres, :none?
+      assert_equal 2, car.tires.size
+      assert_not_predicate car.tires, :empty?
+      assert_predicate car.tires, :any?
+      assert_not_predicate car.tires, :none?
     end
 
     assert_queries_count(1) do
-      assert_equal 2, car.tyres.count
+      assert_equal 2, car.tires.count
     end
   end
 

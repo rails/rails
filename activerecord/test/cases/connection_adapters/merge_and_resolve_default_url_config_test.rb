@@ -323,13 +323,13 @@ module ActiveRecord
       def test_merge_no_conflicts_with_database_url
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
 
-        config   = { "default_env" => { "adapter" => "abstract", "pool" => "5" } }
+        config   = { "default_env" => { "adapter" => "abstract", "max_connections" => "5" } }
         actual   = resolve_config(config)
         expected = {
           adapter: "postgresql",
           database: "foo",
           host: "localhost",
-          pool: "5"
+          max_connections: "5"
         }
 
         assert_equal expected, actual
@@ -338,13 +338,13 @@ module ActiveRecord
       def test_merge_conflicts_with_database_url
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
 
-        config   = { "default_env" => { "adapter" => "abstract", "database" => "NOT-FOO", "pool" => "5" } }
+        config   = { "default_env" => { "adapter" => "abstract", "database" => "NOT-FOO", "max_connections" => "5" } }
         actual   = resolve_config(config)
         expected = {
           adapter: "postgresql",
           database: "foo",
           host: "localhost",
-          pool: "5"
+          max_connections: "5"
         }
 
         assert_equal expected, actual
@@ -353,28 +353,28 @@ module ActiveRecord
       def test_merge_no_conflicts_with_database_url_and_adapter
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
 
-        config   = { "default_env" => { "adapter" => "postgresql", "pool" => "5" } }
+        config   = { "default_env" => { "adapter" => "postgresql", "max_connections" => "5" } }
         actual   = resolve_config(config)
         expected = {
           adapter: "postgresql",
           database: "foo",
           host: "localhost",
-          pool: "5"
+          max_connections: "5"
         }
 
         assert_equal expected, actual
       end
 
-      def test_merge_no_conflicts_with_database_url_and_numeric_pool
+      def test_merge_no_conflicts_with_database_url_and_numeric_max_connections
         ENV["DATABASE_URL"] = "postgres://localhost/foo"
 
-        config   = { "default_env" => { "adapter" => "abstract", "pool" => 5 } }
+        config   = { "default_env" => { "adapter" => "abstract", "max_connections" => 5 } }
         actual   = resolve_config(config)
         expected = {
           adapter: "postgresql",
           database: "foo",
           host: "localhost",
-          pool: 5
+          max_connections: 5
         }
 
         assert_equal expected, actual
@@ -385,25 +385,25 @@ module ActiveRecord
 
         config = {
           "default_env" => {
-            "primary" => { "adapter" => "abstract", "pool" => 5 },
-            "animals" => { "adapter" => "abstract", "pool" => 5 }
+            "primary" => { "adapter" => "abstract", "max_connections" => 5 },
+            "animals" => { "adapter" => "abstract", "max_connections" => 5 }
           }
         }
 
         configs = ActiveRecord::DatabaseConfigurations.new(config)
         actual = configs.configs_for(env_name: "default_env", name: "primary").configuration_hash
         expected = {
-          adapter:  "postgresql",
+          adapter: "postgresql",
           database: "foo",
-          host:     "localhost",
-          pool:     5
+          host: "localhost",
+          max_connections: 5
         }
 
         assert_equal expected, actual
 
         configs = ActiveRecord::DatabaseConfigurations.new(config)
         actual = configs.configs_for(env_name: "default_env", name: "animals").configuration_hash
-        expected = { adapter: "abstract", pool: 5 }
+        expected = { adapter: "abstract", max_connections: 5 }
 
         assert_equal expected, actual
       end
@@ -415,8 +415,8 @@ module ActiveRecord
 
         config = {
           "default_env" => {
-            "primary" => { "adapter" => "abstract", "pool" => 5 },
-            "animals" => { "adapter" => "abstract", "pool" => 5 }
+            "primary" => { "adapter" => "abstract", "max_connections" => 5 },
+            "animals" => { "adapter" => "abstract", "max_connections" => 5 }
           }
         }
 

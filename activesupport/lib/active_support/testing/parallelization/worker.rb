@@ -18,18 +18,20 @@ module ActiveSupport
             DRb.stop_service
 
             @queue = DRbObject.new_with_uri(@url)
-            @queue.start_worker(@id)
+            @queue.start_worker(@id, Process.pid)
 
             begin
               after_fork
             rescue => @setup_exception; end
 
             work_from_queue
+          rescue Interrupt
+            @queue.interrupt
           ensure
             set_process_title("(stopping)")
 
             run_cleanup
-            @queue.stop_worker(@id)
+            @queue.stop_worker(@id, Process.pid)
           end
         end
 
@@ -69,15 +71,14 @@ module ActiveSupport
               Minitest::UnexpectedError.new(error)
             end
             @queue.record(reporter, result)
-          rescue Interrupt
-            @queue.interrupt
-            raise
           end
 
           set_process_title("(idle)")
         end
 
         def after_fork
+          ActiveSupport::TestCase.parallel_worker_id = @number
+
           Parallelization.after_fork_hooks.each do |cb|
             cb.call(@number)
           end

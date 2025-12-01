@@ -7,7 +7,7 @@ module ActionView
         def render
           include_hidden = @options.delete(:include_hidden)
           options = @options.stringify_keys
-          add_default_name_and_id(options)
+          add_default_name_and_field(options)
 
           if options["multiple"] && include_hidden
             hidden_field_for_multiple_file(options) + super
@@ -18,7 +18,9 @@ module ActionView
 
         private
           def hidden_field_for_multiple_file(options)
-            tag("input", "name" => options["name"], "type" => "hidden", "value" => "", "autocomplete" => "off")
+            tag_options = { "name" => options["name"], "type" => "hidden", "value" => "" }
+            tag_options["autocomplete"] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
+            tag("input", tag_options)
           end
       end
     end

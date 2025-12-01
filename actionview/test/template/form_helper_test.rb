@@ -3,6 +3,8 @@
 require "abstract_unit"
 require "controller/fake_models"
 
+require "active_support/core_ext/object/with"
+
 class FormHelperTest < ActionView::TestCase
   include RenderERBUtils
 
@@ -589,6 +591,22 @@ class FormHelperTest < ActionView::TestCase
     ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = old_value
   end
 
+  def test_file_field_with_multiple_include_hidden_includes_autocomplete
+    ActionView::Base.with(remove_hidden_field_autocomplete: false) do
+      expected = '<input type="hidden" name="import[file][]" value="" autocomplete="off">' \
+                 '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
+      assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true)
+    end
+  end
+
+  def test_file_field_with_multiple_include_hidden_omits_autocomplete
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      expected = '<input type="hidden" name="import[file][]" value="">' \
+                 '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
+      assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true)
+    end
+  end
+
   def test_file_field_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
     expected = '<input type="file" name="import[file]" id="import_file" />'
     assert_dom_equal expected, file_field("import", "file", direct_upload: true)
@@ -653,6 +671,24 @@ class FormHelperTest < ActionView::TestCase
       '<input id="post_title" name="post[title]" type="hidden" value="Something Else" />',
       hidden_field("post", "title", value: "Something Else", autocomplete: nil)
     )
+  end
+
+  def test_hidden_field_omits_autocomplete_when_remove_hidden_field_autocomplete_is_true
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      assert_dom_equal(
+        '<input id="post_title" name="post[title]" type="hidden" value="Hello World" />',
+        hidden_field("post", "title")
+      )
+    end
+  end
+
+  def test_hidden_field_respects_explicit_autocomplete_when_remove_hidden_field_autocomplete_is_true
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      assert_dom_equal(
+        '<input id="session_username" name="session[username]" type="hidden" value="me@example.com" autocomplete="username" />',
+        hidden_field("session", "username", value: "me@example.com", autocomplete: "username")
+      )
+    end
   end
 
   def test_text_field_with_custom_type
@@ -815,6 +851,24 @@ class FormHelperTest < ActionView::TestCase
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       checkbox("post", "secret", {}, 0, 1)
     )
+  end
+
+  def test_checkbox_with_unchecked_value_hidden_autocomplete
+    @post.secret = true
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="true" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="true" />',
+      checkbox("post", "secret", {}, true, true)
+    )
+  end
+
+  def test_checkbox_with_unchecked_value_omits_hidden_autocomplete
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      @post.secret = true
+      assert_dom_equal(
+        '<input name="post[secret]" type="hidden" value="true" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="true" />',
+        checkbox("post", "secret", {}, true, true)
+      )
+    end
   end
 
   def test_checkbox_with_nil_unchecked_value
@@ -2612,6 +2666,20 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "namespace_edit_post_123", "edit_post", method: "patch") do
       "<label for='namespace_post_title'>Title</label>" \
       "<input name='post[title]' type='text' id='namespace_post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_form_for_with_namespace_with_custom_label_for
+    form_for(@post, namespace: "namespace") do |f|
+      concat f.label(:title, for: "my_title")
+      concat f.text_field(:title, id: "my_title")
+    end
+
+    expected = whole_form("/posts/123", "namespace_edit_post_123", "edit_post", method: "patch") do
+      "<label for='namespace_my_title'>Title</label>" \
+      "<input name='post[title]' type='text' id='namespace_my_title' value='Hello World' />"
     end
 
     assert_dom_equal expected, @rendered

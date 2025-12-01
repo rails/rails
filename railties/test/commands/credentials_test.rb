@@ -129,6 +129,7 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
   end
 
   test "edit command does not raise when an initializer tries to access non-existent credentials" do
+    File.write(app_path("config", "environments", "qa.rb"), "")
     app_file "config/initializers/raise_when_loaded.rb", <<-RUBY
       Rails.application.credentials.missing_key!
     RUBY
@@ -286,12 +287,14 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
   end
 
   test "diff for custom environment" do
+    File.write(app_path("config", "environments", "custom.rb"), "")
     run_edit_command(environment: "custom")
 
     assert_match(/access_key_id: 123/, run_diff_command("config/credentials/custom.yml.enc"))
   end
 
   test "diff for custom environment when key is not available" do
+    File.write(app_path("config", "environments", "custom.rb"), "")
     run_edit_command(environment: "custom")
     remove_file "config/credentials/custom.key"
 

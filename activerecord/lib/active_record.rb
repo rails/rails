@@ -53,6 +53,7 @@ module ActiveRecord
   autoload :Enum
   autoload :Explain
   autoload :FixtureSet, "active_record/fixtures"
+  autoload :FilterAttributeHandler
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
@@ -405,7 +406,8 @@ module ActiveRecord
 
   ##
   # :singleton-method: migration_strategy
-  # Specify strategy to use for executing migrations.
+  # Specify the global default strategy to use for executing migrations.
+  # Individual adapter classes can override this by setting their own migration_strategy.
   singleton_class.attr_accessor :migration_strategy
   self.migration_strategy = Migration::DefaultStrategy
 

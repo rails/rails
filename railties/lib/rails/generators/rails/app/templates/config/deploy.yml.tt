@@ -1,8 +1,8 @@
 # Name of your application. Used to uniquely configure containers.
 service: <%= app_name %>
 
-# Name of the container image.
-image: your-user/<%= app_name %>
+# Name of the container image (use your-user/app-name on external registries).
+image: <%= app_name %>
 
 # Deploy to these servers.
 servers:
@@ -14,22 +14,27 @@ servers:
   #   cmd: bin/jobs
 
 # Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
-# Remove this section when using multiple web servers and ensure you terminate SSL at your load balancer.
+# If used with Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
 #
-# Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
-proxy:
-  ssl: true
-  host: app.example.com
+# Using an SSL proxy like this requires turning on config.assume_ssl and config.force_ssl in production.rb!
+#
+# Don't use this when deploying to multiple web servers (then you have to terminate SSL at your load balancer).
+#
+# proxy:
+#   ssl: true
+#   host: app.example.com
 
-# Credentials for your image host.
+# Where you keep your container images.
 registry:
-  # Specify the registry server, if you're not using Docker Hub
-  # server: registry.digitalocean.com / ghcr.io / ...
-  username: your-user
+  # Alternatives: hub.docker.com / registry.digitalocean.com / ghcr.io / ...
+  server: localhost:5555
+
+  # Needed for authenticated registries.
+  # username: your-user
 
   # Always use an access token rather than real password when possible.
-  password:
-    - KAMAL_REGISTRY_PASSWORD
+  # password:
+  #   - KAMAL_REGISTRY_PASSWORD
 
 # Inject ENV variables into containers (secrets come from .kamal/secrets).
 env:
@@ -80,10 +85,13 @@ volumes:
   - "<%= app_name %>_storage:/rails/storage"
 
 <% end -%>
+<% unless options.api? -%>
 # Bridge fingerprinted assets, like JS and CSS, between versions to avoid
 # hitting 404 on in-flight requests. Combines all files from new and old
 # version inside the asset_path.
 asset_path: /rails/public/assets
+
+<% end -%>
 
 # Configure the image builder.
 builder:

@@ -9,4 +9,8 @@ module Cpk
 
     belongs_to :book, foreign_key: [:author_id, :book_id]
   end
+
+  class OptionalChapter < Chapter
+    belongs_to :book, foreign_key: [:author_id, :book_id], optional: true
+  end
 end

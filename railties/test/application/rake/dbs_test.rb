@@ -10,7 +10,7 @@ module ApplicationTests
 
       def setup
         build_app
-        FileUtils.rm_rf("#{app_path}/config/environments")
+        reset_environment_configs
       end
 
       def teardown
@@ -486,7 +486,7 @@ module ApplicationTests
             f.puts <<-YAML
             default: &default
               adapter: sqlite3
-              pool: 5
+              max_connections: 5
               timeout: 5000
               variables:
                 statement_timeout: 1000
@@ -508,7 +508,7 @@ module ApplicationTests
             f.puts <<-YAML
             default: &default
               adapter: sqlite3
-              pool: 5
+              max_connections: 5
               timeout: 5000
               variables:
                 statement_timeout: 1000

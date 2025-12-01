@@ -1513,6 +1513,8 @@ class RenderTest < ActionController::TestCase
       get :greeting
     end
 
+    assert_match(/<!-- BEGIN [^\n]*(?:\n-->| -->)/, @response.body)
+
     assert_includes @response.body, "<!-- BEGIN"
     assert_includes @response.body, "<!-- END"
     assert_includes @response.body, "test/fixtures/actionpack/test/greeting.html.erb"
@@ -1536,7 +1538,7 @@ class RenderTest < ActionController::TestCase
     end
     line = exc.backtrace.first
     assert(line =~ %r{:(\d+):})
-    assert_equal "1", $1,
+    assert_equal "2", $1,
       "The line offset is wrong, perhaps the wrong exception has been raised, exception was: #{exc.inspect}"
   ensure
     ActionView::Base.annotate_rendered_view_with_filenames = false

@@ -684,6 +684,14 @@ module ActionController
 
       assert_equal "aaron", Thread.current[:setting]
     end
+
+    def test_isolated_state_does_not_get_reset_in_test_environment
+      ActiveSupport::IsolatedExecutionState[:setting] = "aaron"
+
+      get :greet
+
+      assert_equal "aaron", ActiveSupport::IsolatedExecutionState[:setting]
+    end
   end
 
   class BufferTest < ActionController::TestCase

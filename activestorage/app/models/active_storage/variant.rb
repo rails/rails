@@ -22,15 +22,15 @@
 # Note that to create a variant it's necessary to download the entire blob file from the service. Because of this process,
 # you also want to be considerate about when the variant is actually processed. You shouldn't be processing variants inline
 # in a template, for example. Delay the processing to an on-demand controller, like the one provided in
-# ActiveStorage::RepresentationsController.
+# ActiveStorage::Representations::ProxyController and ActiveStorage::Representations::RedirectController.
 #
 # To refer to such a delayed on-demand variant, simply link to the variant through the resolved route provided
 # by Active Storage like so:
 #
 #   <%= image_tag Current.user.avatar.variant(resize_to_limit: [100, 100]) %>
 #
-# This will create a URL for that specific blob with that specific variant, which the ActiveStorage::RepresentationsController
-# can then produce on-demand.
+# This will create a URL for that specific blob with that specific variant, which the ActiveStorage::Representations::ProxyController
+# or ActiveStorage::Representations::RedirectController can then produce on-demand.
 #
 # When you do want to actually produce the variant needed, call +processed+. This will check that the variant
 # has already been processed and uploaded to the service, and, if so, just return that. Otherwise it will perform
@@ -74,11 +74,11 @@ class ActiveStorage::Variant
     "variants/#{blob.key}/#{OpenSSL::Digest::SHA256.hexdigest(variation.key)}"
   end
 
-  # Returns the URL of the blob variant on the service. See {ActiveStorage::Blob#url} for details.
+  # Returns the URL of the blob variant on the service. See ActiveStorage::Blob#url for details.
   #
   # Use <tt>url_for(variant)</tt> (or the implied form, like <tt>link_to variant</tt> or <tt>redirect_to variant</tt>) to get the stable URL
-  # for a variant that points to the ActiveStorage::RepresentationsController, which in turn will use this +service_call+ method
-  # for its redirection.
+  # for a variant that points to the ActiveStorage::Representations::ProxyController or ActiveStorage::Representations::RedirectController,
+  # which in turn will use this +service_call+ method for its redirection.
   def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end

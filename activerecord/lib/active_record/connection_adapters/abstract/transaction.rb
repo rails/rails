@@ -124,6 +124,7 @@ module ActiveRecord
       def after_commit; yield; end
       def after_rollback; end
       def user_transaction; ActiveRecord::Transaction::NULL_TRANSACTION; end
+      def isolation=(_); end
     end
 
     class Transaction # :nodoc:
@@ -147,13 +148,16 @@ module ActiveRecord
       end
 
       attr_reader :connection, :state, :savepoint_name, :isolation_level, :user_transaction
-      attr_accessor :written
 
       delegate :invalidate!, :invalidated?, to: :@state
 
       # Returns the isolation level if it was explicitly set, nil otherwise
       def isolation
         @isolation_level
+      end
+
+      def isolation=(isolation) # :nodoc:
+        @isolation_level = isolation
       end
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
@@ -424,6 +428,10 @@ module ActiveRecord
       # Delegates to parent transaction's isolation level
       def isolation
         @parent_transaction.isolation
+      end
+
+      def isolation=(isolation) # :nodoc:
+        @parent_transaction.isolation = isolation
       end
 
       def materialize!

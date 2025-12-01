@@ -36,11 +36,13 @@ module ActionDispatch
         end
 
         assert_equal [
+          "Routes for application:",
           "       Prefix Verb URI Pattern              Controller#Action",
           "custom_assets GET  /custom/assets(.:format) custom_assets#show",
           "         blog      /blog                    Blog::Engine",
           "",
           "Routes for Blog::Engine:",
+          "Prefix Verb URI Pattern     Controller#Action",
           "  cart GET  /cart(.:format) cart#show"
         ], output
       end
@@ -59,10 +61,12 @@ module ActionDispatch
         end
 
         assert_equal [
+          "Routes for application:",
           "Prefix Verb URI Pattern Controller#Action",
           "  blog      /blog       Blog::Engine",
           "",
-          "Routes for Blog::Engine:"
+          "Routes for Blog::Engine:",
+          "No routes defined.",
         ], output
       end
 
@@ -335,7 +339,8 @@ module ActionDispatch
           mount engine => "/blog", :as => "blog"
         end
 
-        expected = ["--[ Route 1 ]----------",
+        expected = [ "[ Routes for application ]",
+                     "--[ Route 1 ]----------",
                      "Prefix            | custom_assets",
                      "Verb              | GET",
                      "URI               | /custom/assets(.:format)",
@@ -379,7 +384,7 @@ module ActionDispatch
       end
 
       def test_not_routes_when_expanded
-        output = draw(grep: "rails/dummy", formatter: ActionDispatch::Routing::ConsoleFormatter::Expanded.new) { }
+        output = draw(formatter: ActionDispatch::Routing::ConsoleFormatter::Expanded.new) { }
 
         assert_equal [
           "You don't have any routes defined!",
@@ -443,7 +448,7 @@ module ActionDispatch
       end
 
       def test_no_routes_were_defined
-        output = draw(grep: "Rails::DummyController") { }
+        output = draw { }
 
         assert_equal [
           "You don't have any routes defined!",
@@ -484,6 +489,57 @@ module ActionDispatch
         assert_equal [
           "Prefix Verb URI Pattern       Controller#Action",
           "health GET  /health(.:format) Inline handler (Proc/Lambda)"
+        ], output
+      end
+
+      def test_displaying_routes_for_engines_with_filter
+        engine = Class.new(Rails::Engine) do
+          def self.inspect
+            "Blog::Engine"
+          end
+        end
+        engine.routes.draw do
+          get "/cart", to: "cart#show"
+        end
+
+        output = draw(grep: "cart") do
+          get "/custom/assets", to: "custom_assets#show"
+          mount engine => "/blog", :as => "blog"
+        end
+
+        assert_equal [
+          "Routes for application:",
+          "No routes were found for this grep pattern.",
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.",
+          "",
+          "Routes for Blog::Engine:",
+          "Prefix Verb URI Pattern     Controller#Action",
+          "  cart GET  /cart(.:format) cart#show"
+        ], output
+      end
+
+      def test_displaying_routes_for_engines_with_filter_not_matched
+        engine = Class.new(Rails::Engine) do
+          def self.inspect
+            "Blog::Engine"
+          end
+        end
+        engine.routes.draw do
+          get "/cart", to: "cart#show"
+        end
+
+        output = draw(grep: "dummy") do
+          get "/custom/assets", to: "custom_assets#show"
+          mount engine => "/blog", :as => "blog"
+        end
+
+        assert_equal [
+          "Routes for application:",
+          "No routes were found for this grep pattern.",
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.",
+          "",
+          "Routes for Blog::Engine:",
+          "No routes were found for this grep pattern.",
         ], output
       end
 
