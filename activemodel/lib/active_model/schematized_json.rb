@@ -24,7 +24,7 @@ module ActiveModel
       #
       #   a = Account.new
       #   a.settings.restrict_creation_to_admins? # => true
-      #   a.max_invites = "100" # => Set to integer 100
+      #   a.settings.max_invites = "100" # => Set to integer 100
       #   a.settings = { "restrict_creation_to_admins" => "false", "max_invites" => "500", "greeting" => "goodbye" }
       #   a.settings.greeting # => "goodbye"
       #   a.flags.staff # => nil
