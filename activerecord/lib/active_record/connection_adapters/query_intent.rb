@@ -29,12 +29,12 @@ module ActiveRecord
         end
       end
 
-      attr_reader :arel, :name, :prepare, :allow_retry,
+      attr_reader :arel, :name, :prepare, :allow_retry, :allow_async,
                   :materialize_transactions, :batch, :pool, :session, :lock_wait
       attr_writer :raw_sql, :session
-      attr_accessor :adapter, :binds, :async, :notification_payload
+      attr_accessor :adapter, :binds, :ran_async, :notification_payload
 
-      def initialize(adapter:, arel: nil, raw_sql: nil, processed_sql: nil, name: "SQL", binds: [], prepare: false, async: false,
+      def initialize(adapter:, arel: nil, raw_sql: nil, processed_sql: nil, name: "SQL", binds: [], prepare: false, allow_async: false,
                      allow_retry: false, materialize_transactions: true, batch: false)
         if arel.nil? && raw_sql.nil? && processed_sql.nil?
           raise ArgumentError, "One of arel, raw_sql, or processed_sql must be provided"
@@ -46,7 +46,8 @@ module ActiveRecord
         @name = name
         @binds = binds
         @prepare = prepare
-        @async = async
+        @allow_async = allow_async
+        @ran_async = nil
         @allow_retry = allow_retry
         @materialize_transactions = materialize_transactions
         @batch = batch
@@ -76,7 +77,7 @@ module ActiveRecord
           name: name,
           binds: binds,
           prepare: prepare,
-          async: async,
+          allow_async: allow_async,
           allow_retry: allow_retry,
           materialize_transactions: materialize_transactions,
           batch: batch,
@@ -105,7 +106,7 @@ module ActiveRecord
                 ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = @event_buffer
 
                 @adapter = connection
-                @async = true
+                @ran_async = true
                 run_query!
               end
             rescue => error
@@ -160,9 +161,10 @@ module ActiveRecord
       end
 
       def execute!
-        if @async && can_run_async?
+        if can_run_async?
           async_schedule!(ActiveRecord::Base.asynchronous_queries_session)
         else
+          @ran_async = false
           run_query!
         end
       ensure
@@ -296,7 +298,7 @@ module ActiveRecord
             if pending?
               @pool.with_connection do |connection|
                 @adapter = connection
-                @async = false  # Foreground fallback, not actually async
+                @ran_async = false  # Foreground fallback, not actually async
                 run_query!
               end
             else
@@ -309,7 +311,7 @@ module ActiveRecord
         end
 
         def can_run_async?
-          @async && adapter.async_enabled?
+          @allow_async && adapter.async_enabled?
         end
 
         def run_query!

@@ -76,7 +76,7 @@ module ActiveRecord
           name: name,
           binds: binds,
           prepare: preparable,
-          async: async,
+          allow_async: async,
           allow_retry: allow_retry
         )
 
