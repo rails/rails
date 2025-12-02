@@ -648,15 +648,15 @@ previewable files. You can also call these methods directly.
 
 ### Lazy vs Immediate Loading
 
-By default, Active Storage will process representations lazily. This code:
+By default, Active Storage processes representations lazily. This means the image is not transformed until the moment a user’s browser actually requests it, avoiding any work during the initial page render.
 
 ```ruby
 image_tag file.representation(resize_to_limit: [100, 100])
 ```
 
-Will generate an `<img>` tag with the `src` pointing to the
-[`ActiveStorage::Representations::RedirectController`][]. The browser will
-make a request to that controller, which will perform the following:
+The above example will generate an `<img>` tag with the `src` attribute pointing to the
+[`ActiveStorage::Representations::RedirectController`][]. When the browser
+makes a request to that controller, it will perform the following:
 
 1. Process file and upload the processed file if necessary.
 2. Return a `302` redirect to the file either to
@@ -666,29 +666,31 @@ make a request to that controller, which will perform the following:
 Loading the file lazily allows features like [single use URLs](#public-access)
 to work without slowing down your initial page loads.
 
-This works fine for most cases.
-
-If you want to generate URLs for images immediately, you can call `.processed.url`:
+This works fine for most cases but if you need to generate URLs for images immediately, you can call `.processed.url`:
 
 ```ruby
 image_tag file.representation(resize_to_limit: [100, 100]).processed.url
 ```
 
-The Active Storage variant tracker improves performance of this, by storing a
-record in the database if the requested representation has been processed before.
-Thus, the above code will only make an API call to the remote service (e.g. S3)
-once, and once a variant is stored, will use that. The variant tracker runs
-automatically, but can be disabled through [`config.active_storage.track_variants`][].
+The Active Storage variant tracker stores a record in the database if the
+requested representation has been processed before. So the above code will only
+make an API call to the remote service (e.g. S3) once. After that, the variant
+will be stored and used on subsequent requests. 
 
-If you're rendering lots of images on a page, the above example could result
-in N+1 queries loading all the variant records. To avoid these N+1 queries,
-use the named scopes on [`ActiveStorage::Attachment`][].
+However, if you're rendering many images on a page, the example above can cause
+an N+1 query problem. Each call to `file.representation(...)` will look up its
+variant record individually, resulting in one query per image. To avoid these
+extra queries, you can preload variant records using the named scope,
+`with_all_variant_records` on [ActiveStorage::Attachment][].
 
 ```ruby
-message.images.with_all_variant_records.each do |file|
+product.images.with_all_variant_records.each do |file|
   image_tag file.representation(resize_to_limit: [100, 100]).processed.url
 end
 ```
+
+The variant tracker runs automatically. It is enabled by default but can be
+disabled using [`config.active_storage.track_variants`][].
 
 [`config.active_storage.track_variants`]: configuring.html#config-active-storage-track-variants
 [`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
