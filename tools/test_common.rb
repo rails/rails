@@ -2,6 +2,8 @@
 
 ActiveSupport::TestCase.alias_method :force_skip, :skip
 
+ENV["RAILS_TEST_EXECUTABLE"] = "bin/test"
+
 if ENV["BUILDKITE"]
   require "minitest-ci"
   ENV.delete("CI") # CI has affect on the applications, and we don't want it applied to the apps.

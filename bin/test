@@ -11,5 +11,6 @@ args = ARGV.filter_map do |arg|
   end
 end
 
+ENV["RAILS_TEST_PWD"] = Dir.pwd
 Dir.chdir(directory)
 exec("bin/test", *args)
