@@ -26,6 +26,10 @@ module TestUnit # :nodoc:
         # Generate system tests if this isn't an API only app and the system
         # tests option is true
         if !options.api? && options[:system_tests] == "true"
+          if !File.exist?(File.join("test/application_system_test_case.rb"))
+            template "application_system_test_case.rb", File.join("test", "application_system_test_case.rb")
+          end
+
           template "system_test.rb", File.join("test/system", class_path, "#{file_name.pluralize}_test.rb")
         end
       end
