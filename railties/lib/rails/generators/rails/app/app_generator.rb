@@ -255,9 +255,10 @@ module Rails
     end
 
     def system_test
-      empty_directory_with_keep_file "test/system"
-
-      template "test/application_system_test_case.rb"
+      if devcontainer? && depends_on_system_test?
+        empty_directory_with_keep_file "test/system"
+        template "test/application_system_test_case.rb"
+      end
     end
 
     def tmp
@@ -475,7 +476,7 @@ module Rails
       end
 
       def create_system_test_files
-        build(:system_test) if depends_on_system_test?
+        build(:system_test)
       end
 
       def create_storage_files
