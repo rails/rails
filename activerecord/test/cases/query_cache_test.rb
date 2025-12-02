@@ -11,7 +11,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
-  class ShouldNotHaveExceptionsLogger < ActiveRecord::LogSubscriber
+  class ShouldNotHaveExceptionsLogger < ActiveRecord::StructuredEventSubscriber
     attr_reader :logger, :events
 
     def initialize

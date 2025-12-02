@@ -199,7 +199,8 @@ task :preview_docs do
   FileUtils.mkdir_p("preview")
   PreviewDocs.new.render("preview")
 
-  require "guides/rails_guides"
+  system(%(cd guides && #{$0} guides:generate --trace))
+
   Rake::Task[:rdoc].invoke
 
   FileUtils.mv("doc/rdoc", "preview/api")

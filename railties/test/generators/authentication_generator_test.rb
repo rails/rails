@@ -67,8 +67,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helpers/session_test_helper.rb"
 
     assert_file "test/test_helper.rb" do |content|
-      assert_match(/session_test_helper/, content)
-      assert_match(/SessionTestHelper/, content)
+      assert_match("require_relative \"test_helpers/session_test_helper\"", content)
     end
   end
 
@@ -119,8 +118,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helpers/session_test_helper.rb"
 
     assert_file "test/test_helper.rb" do |content|
-      assert_match(/session_test_helper/, content)
-      assert_match(/SessionTestHelper/, content)
+      assert_match("require_relative \"test_helpers/session_test_helper\"", content)
     end
   end
 

@@ -115,14 +115,6 @@ module ActiveRecord
       assert_not_nil post.post_title
     end
 
-    def test_select_preserves_duplicate_columns
-      quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
-      quoted_posts = Regexp.escape(quote_table_name("posts"))
-      assert_queries_match(/SELECT #{quoted_posts_id}, #{quoted_posts_id} FROM #{quoted_posts}/i) do
-        Post.select(:id, :id).to_a
-      end
-    end
-
     def test_reselect
       expected = Post.select(:title).to_sql
       assert_equal expected, Post.select(:title, :body).reselect(:title).to_sql

@@ -673,6 +673,24 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_hidden_field_omits_autocomplete_when_remove_hidden_field_autocomplete_is_true
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      assert_dom_equal(
+        '<input id="post_title" name="post[title]" type="hidden" value="Hello World" />',
+        hidden_field("post", "title")
+      )
+    end
+  end
+
+  def test_hidden_field_respects_explicit_autocomplete_when_remove_hidden_field_autocomplete_is_true
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      assert_dom_equal(
+        '<input id="session_username" name="session[username]" type="hidden" value="me@example.com" autocomplete="username" />',
+        hidden_field("session", "username", value: "me@example.com", autocomplete: "username")
+      )
+    end
+  end
+
   def test_text_field_with_custom_type
     assert_dom_equal(
       '<input id="user_email" name="user[email]" type="email" />',

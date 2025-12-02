@@ -133,15 +133,16 @@ module ActionController
       private
         def perform_write(json, options)
           current_options = @options.merge(options).stringify_keys
-
+          event = +""
           PERMITTED_OPTIONS.each do |option_name|
             if (option_value = current_options[option_name])
-              @stream.write "#{option_name}: #{option_value}\n"
+              event << "#{option_name}: #{option_value}\n"
             end
           end
 
           message = json.gsub("\n", "\ndata: ")
-          @stream.write "data: #{message}\n\n"
+          event << "data: #{message}\n\n"
+          @stream.write event
         end
     end
 

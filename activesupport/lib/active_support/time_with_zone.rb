@@ -152,11 +152,15 @@ module ActiveSupport
     #
     #   Time.zone.now.xmlschema  # => "2014-12-04T11:02:37-05:00"
     def xmlschema(fraction_digits = 0)
+      precision = fraction_digits || 0
+
       if @is_utc
-        utc.iso8601(fraction_digits || 0)
+        utc.iso8601(precision)
       else
-        str = time.iso8601(fraction_digits || 0)
-        str[-1] = formatted_offset(true, "Z")
+        str = time.iso8601(precision)
+        offset = formatted_offset(true, "Z")
+
+        str.sub!(/(Z|[+-]\d{2}:\d{2})\z/, offset)
         str
       end
     end
@@ -177,7 +181,7 @@ module ActiveSupport
     #   # => "2005/02/01 05:15:10 -1000"
     def as_json(options = nil)
       if ActiveSupport::JSON::Encoding.use_standard_json_time_format
-        xmlschema(ActiveSupport::JSON::Encoding.time_precision)
+        xmlschema(ActiveSupport::JSON::Encoding.time_precision).force_encoding(Encoding::UTF_8)
       else
         %(#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
       end
@@ -311,16 +315,8 @@ module ActiveSupport
       if duration_of_variable_length?(other)
         method_missing(:+, other)
       else
-        begin
-          result = utc + other
-        rescue TypeError
-          result = utc.to_datetime.since(other)
-          ActiveSupport.deprecator.warn(
-            "Adding an instance of #{other.class} to an instance of #{self.class} is deprecated. This behavior will raise " \
-            "a `TypeError` in Rails 8.1."
-          )
-          result.in_time_zone(time_zone)
-        end
+        result = utc + other
+
         result.in_time_zone(time_zone)
       end
     end
@@ -450,11 +446,11 @@ module ActiveSupport
     end
 
     %w(year mon month day mday wday yday hour min sec usec nsec to_date).each do |method_name|
-      class_eval <<-EOV, __FILE__, __LINE__ + 1
+      class_eval <<~RUBY, __FILE__, __LINE__ + 1
         def #{method_name}    # def month
           time.#{method_name} #   time.month
         end                   # end
-      EOV
+      RUBY
     end
 
     # Returns Array of parts of Time in sequence of
@@ -503,13 +499,7 @@ module ActiveSupport
     # with the same UTC offset as +self+ or in the local system timezone
     # depending on the setting of +ActiveSupport.to_time_preserves_timezone+.
     def to_time
-      if preserve_timezone == :zone
-        @to_time_with_timezone ||= getlocal(time_zone)
-      elsif preserve_timezone
-        @to_time_with_instance_offset ||= getlocal(utc_offset)
-      else
-        @to_time_with_system_offset ||= getlocal
-      end
+      @to_time_with_timezone ||= getlocal(time_zone)
     end
 
     # So that +self+ <tt>acts_like?(:time)</tt>.
@@ -544,14 +534,6 @@ module ActiveSupport
 
     def marshal_load(variables)
       initialize(variables[0].utc, ::Time.find_zone(variables[1]), variables[2].utc)
-    end
-
-    # respond_to_missing? is not called in some cases, such as when type conversion is
-    # performed with Kernel#String
-    def respond_to?(sym, include_priv = false)
-      # ensure that we're not going to throw and rescue from NoMethodError in method_missing which is slow
-      return false if sym.to_sym == :to_str
-      super
     end
 
     # Ensure proxy class responds to all methods that underlying time instance

@@ -962,6 +962,12 @@ location.
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
+WARNING: It should be considered unsafe to provide arbitrary user supplied
+transformations or parameters to variant processors. This can potentially
+enable command injection vulnerabilities in your app. It is also recommended
+to implement a strict [ImageMagick security policy](https://imagemagick.org/script/security-policy.php)
+when MiniMagick is the variant processor of choice.
+
 If a variant is requested, Active Storage will automatically apply
 transformations depending on the image's format:
 
@@ -1006,15 +1012,18 @@ directly from the client to the cloud.
 
 ### Usage
 
-1. Include the Active Storage JavaScript in your application's JavaScript bundle or reference it directly.
+1. Include the Active Storage JavaScript in your application's JavaScript
+bundle or reference it directly.
 
-    Requiring directly without bundling through the asset pipeline in the application HTML with autostart:
+    Requiring it directly in the application HTML with autostart, instead of
+    bundling it through the asset pipeline:
 
     ```erb
     <%= javascript_include_tag "activestorage" %>
     ```
 
-    Requiring via importmap-rails without bundling through the asset pipeline in the application HTML without autostart as ESM:
+    Requiring via importmap-rails as an ESM in the application HTML, instead of
+    bundling it through the asset pipeline and using autostart:
 
     ```ruby
     # config/importmap.rb
@@ -1041,7 +1050,9 @@ directly from the client to the cloud.
     ActiveStorage.start()
     ```
 
-2. Annotate file inputs with the direct upload URL using Rails' [file field helper](form_helpers.html#uploading-files).
+2. Add `direct_upload: true` option to your [`file_field`
+helper](form_helpers.html#uploading-files) to automatically annotate the
+input field with the direct upload URL via `data-direct-upload-url` attribute.
 
     ```erb
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>

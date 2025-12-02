@@ -14,14 +14,17 @@ module ActiveRecord
       #   # Schema: User(token:string, auth_token:string)
       #   class User < ActiveRecord::Base
       #     has_secure_token
-      #     has_secure_token :auth_token, length: 36
+      #     has_secure_token :invite_token, prefix: true
+      #     has_secure_token :auth_token, length: 36, prefix: "auth_"
       #   end
       #
       #   user = User.new
       #   user.save
       #   user.token # => "pX27zsMN2ViQKta1bGfLmVJE"
-      #   user.auth_token # => "tU9bLuZseefXQ4yQxQo8wjtBvsAfPc78os6R"
+      #   user.invite_token # => "invite_token_srUP2WWCb6yCtfy6CAKVdzxF"
+      #   user.auth_token # => "auth_tU9bLuZseefXQ4yQxQo8wjtBvsAfPc78os6R"
       #   user.regenerate_token # => true
+      #   user.regenerate_invite_token # => true
       #   user.regenerate_auth_token # => true
       #
       # +SecureRandom::base58+ is used to generate at minimum a 24-character unique token, so collisions are highly unlikely.
@@ -33,8 +36,7 @@ module ActiveRecord
       # ==== Options
       #
       # [+:length+]
-      #   Length of the Secure Random, with a minimum of 24 characters. It will
-      #   default to 24.
+      #   Length of the randomly generated token, with a minimum of 24 characters. Defaults to 24.
       #
       # [+:on+]
       #   The callback when the value is generated. When called with <tt>on:
@@ -43,17 +45,34 @@ module ActiveRecord
       #   in a <tt>before_</tt> callback. When not specified, +:on+ will use the value of
       #   <tt>config.active_record.generate_secure_token_on</tt>, which defaults to +:initialize+
       #   starting in \Rails 7.1.
-      def has_secure_token(attribute = :token, length: MINIMUM_TOKEN_LENGTH, on: ActiveRecord.generate_secure_token_on)
+      #
+      # [+:prefix+]
+      #   An optional string prepended to the generated token. Intended primarily for keys that
+      #   will be publicly visible (e.g. API keys, URLs, etc.) so that their purpose can be identified at a glance.
+      #   The prefix does not count toward +:length+.
+      def has_secure_token(attribute = :token, length: MINIMUM_TOKEN_LENGTH, on: ActiveRecord.generate_secure_token_on, prefix: nil)
         if length < MINIMUM_TOKEN_LENGTH
           raise MinimumLengthError, "Token requires a minimum length of #{MINIMUM_TOKEN_LENGTH} characters."
         end
 
+        prefix = "#{attribute}_" if prefix == true
+
+        if prefix
+          generate_token = -> do
+            token = self.generate_unique_secure_token(length: length)
+
+            "#{prefix}#{token}"
+          end
+        else
+          generate_token = -> { self.generate_unique_secure_token(length: length) }
+        end
+
         # Load securerandom only when has_secure_token is used.
         require "active_support/core_ext/securerandom"
-        define_method("regenerate_#{attribute}") { update! attribute => self.class.generate_unique_secure_token(length: length) }
+        define_method("regenerate_#{attribute}") { update! attribute => generate_token.call }
         set_callback on, on == :initialize ? :after : :before do
           if new_record? && !query_attribute(attribute)
-            send("#{attribute}=", self.class.generate_unique_secure_token(length: length))
+            send("#{attribute}=", generate_token.call)
           end
         end
       end

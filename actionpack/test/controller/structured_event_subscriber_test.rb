@@ -131,10 +131,17 @@ module ActionController
     def test_unpermitted_parameters
       with_debug_event_reporting do
         assert_event_reported("action_controller.unpermitted_parameters", payload: {
-          controller: Another::StructuredEventSubscribersController.name,
-          action: "unpermitted_parameters",
           unpermitted_keys: ["age"],
-          params: { "name" => "John", "age" => "30" }
+          context: {
+            params: {
+              "name" => "John",
+              "age" => "30",
+              "controller" => "action_controller/structured_event_subscriber_test/another/structured_event_subscribers",
+              "action" => "unpermitted_parameters",
+            },
+            controller: Another::StructuredEventSubscribersController.name,
+            action: "unpermitted_parameters"
+          }
         }) do
           post :unpermitted_parameters, params: { name: "John", age: 30 }
         end

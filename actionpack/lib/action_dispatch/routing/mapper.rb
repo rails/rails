@@ -1948,8 +1948,10 @@ module ActionDispatch
             end
 
             scope_options = options.slice!(*RESOURCE_OPTIONS)
-            if !scope_options.empty? || !shallow.nil?
-              scope(**scope_options, shallow:) do
+            scope_options[:shallow] = shallow unless shallow.nil?
+
+            unless scope_options.empty?
+              scope(**scope_options) do
                 public_send(method, resources.pop, **options, &block)
               end
               return true

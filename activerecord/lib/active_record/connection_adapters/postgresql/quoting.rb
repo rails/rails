@@ -189,7 +189,7 @@ module ActiveRecord
 
         # TODO: Make this method private after we release 8.1.
         def lookup_cast_type(sql_type) # :nodoc:
-          super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
+          super(query_value("SELECT #{quote(sql_type)}::regtype::oid").to_i)
         end
 
         private
@@ -205,14 +205,13 @@ module ActiveRecord
           end
 
           def encode_range(range)
-            lower_bound = type_cast_range_value(range.begin)
-            upper_bound = if date_or_time_range?(range)
-              # Postgres will convert `[today,]` to `[today,)`, making it exclusive.
-              # We can use the special timestamp value `infinity` to force inclusion.
-              # https://www.postgresql.org/docs/current/rangetypes.html#RANGETYPES-INFINITE
-              range.end.nil? ? "infinity" : type_cast(range.end)
+            lower_bound, upper_bound = if date_or_time_range?(range)
+              type_cast_time_range_values(range)
             else
-              type_cast_range_value(range.end)
+              [
+                type_cast_range_value(range.begin),
+                type_cast_range_value(range.end)
+              ]
             end
 
             "[#{lower_bound},#{upper_bound}#{range.exclude_end? ? ')' : ']'}"
@@ -234,6 +233,13 @@ module ActiveRecord
 
           def type_cast_range_value(value)
             infinity?(value) ? "" : type_cast(value)
+          end
+
+          def type_cast_time_range_values(range)
+            [
+              range.begin.nil? ? "-infinity" : type_cast(range.begin),
+              range.end.nil? ? "infinity" : type_cast(range.end)
+            ]
           end
 
           def infinity?(value)

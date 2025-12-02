@@ -6,11 +6,13 @@ module ActiveJob
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
     def enqueue(event)
       job = event.payload[:job]
+      adapter = event.payload[:adapter]
       exception = event.payload[:exception_object] || job.enqueue_error
       payload = {
         job_class: job.class.name,
         job_id: job.job_id,
         queue: job.queue_name,
+        adapter: ActiveJob.adapter_name(adapter),
         aborted: event.payload[:aborted],
       }
 
@@ -28,12 +30,14 @@ module ActiveJob
 
     def enqueue_at(event)
       job = event.payload[:job]
+      adapter = event.payload[:adapter]
       exception = event.payload[:exception_object] || job.enqueue_error
       payload = {
         job_class: job.class.name,
         job_id: job.job_id,
         queue: job.queue_name,
         scheduled_at: job.scheduled_at,
+        adapter: ActiveJob.adapter_name(adapter),
         aborted: event.payload[:aborted],
       }
 
@@ -46,7 +50,7 @@ module ActiveJob
         payload[:arguments] = job.arguments
       end
 
-      emit_event("active_job.enqueued", payload)
+      emit_event("active_job.enqueued_at", payload)
     end
 
     def enqueue_all(event)
@@ -57,10 +61,12 @@ module ActiveJob
 
       emit_event("active_job.bulk_enqueued",
         adapter: ActiveJob.adapter_name(adapter),
-        total_jobs: jobs.size,
+        job_count: jobs.size,
         enqueued_count: enqueued_count,
-        failed_count: failed_count,
-        job_classes: jobs.map { |job| job.class.name }.tally
+        failed_enqueue_count: failed_count,
+        enqueued_classes: jobs.filter_map do |job|
+          job.class.name if jobs.count == enqueued_count || job.successfully_enqueued?
+        end.tally
       )
     end
 
@@ -81,10 +87,12 @@ module ActiveJob
     def perform(event)
       job = event.payload[:job]
       exception = event.payload[:exception_object]
+      adapter = event.payload[:adapter]
       payload = {
         job_class: job.class.name,
         job_id: job.job_id,
         queue: job.queue_name,
+        adapter: ActiveJob.adapter_name(adapter),
         aborted: event.payload[:aborted],
         duration: event.duration.round(2),
       }
@@ -92,6 +100,7 @@ module ActiveJob
       if exception
         payload[:exception_class] = exception.class.name
         payload[:exception_message] = exception.message
+        payload[:exception_backtrace] = exception.backtrace
       end
 
       emit_event("active_job.completed", payload)

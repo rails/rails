@@ -168,14 +168,14 @@ module ActiveRecord
         old_log = ActiveRecord::Base.connection.method(:log)
         ActiveRecord::Base.connection.singleton_class.undef_method(:log)
 
-        ActiveRecord::Base.connection.singleton_class.define_method(:log) do |*args, **kwargs, &block|
-          unless kwargs[:async]
-            return old_log.call(*args, **kwargs, &block)
+        ActiveRecord::Base.connection.singleton_class.define_method(:log) do |intent, *args, **kwargs, &block|
+          unless intent.async
+            return old_log.call(intent, *args, **kwargs, &block)
           end
 
           latch1.count_down
           latch2.wait
-          old_log.call(*args, **kwargs, &block)
+          old_log.call(intent, *args, **kwargs, &block)
         end
 
         Post.async_count

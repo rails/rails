@@ -496,7 +496,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
-    assert_gem "puma", /"\W+ \d/
+    assert_gem "puma", '">= 7.1"'
   end
 
   def test_action_cable_redis_gems
@@ -696,6 +696,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "config/ci.rb" do |content|
       assert_match(/step "Tests: Seeds", "env RAILS_ENV=test bin\/rails db:seed:replant"/, content)
+    end
+  end
+
+  def test_config_ci_does_not_include_test_steps_when_skip_test_is_given
+    run_generator [destination_root, "--skip-test"]
+
+    assert_file "config/ci.rb" do |content|
+      assert_no_match(/step "Tests: Rails"/, content)
+      assert_no_match(/step "Tests: System"/, content)
+      assert_no_match(/step "Tests: Seeds"/, content)
+      assert_no_match(/bin\/rails db:seed:replant/, content)
     end
   end
 
@@ -1138,6 +1149,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "importmap-rails"
   end
 
+  def test_css_option_with_cssbundling_uses_application_stylesheet_link_tag
+    run_generator [destination_root, "--css=bootstrap"]
+
+    assert_file "app/views/layouts/application.html.erb" do |content|
+      assert_match(/stylesheet_link_tag\s+"application"/, content)
+      assert_no_match(/stylesheet_link_tag\s+:app/, content)
+    end
+  end
+
   def test_default_generator_executes_all_rails_commands
     generator [destination_root]
     run_generator_instance
@@ -1480,7 +1500,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
           "context" => "..",
           "dockerfile" => ".devcontainer/Dockerfile"
         },
-        "volumes" => ["../../#{compose_config["name"]}:/workspaces/#{compose_config["name"]}:cached"],
+        "volumes" => ["../../tmp:/workspaces/tmp:cached"],
         "command" => "sleep infinity",
         "depends_on" => ["selenium"]
       }
@@ -1548,10 +1568,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "postgres"
 
       expected_postgres_config = {
-        "image" => "postgres:16.1",
+        "image" => "postgres:18",
         "restart" => "unless-stopped",
         "networks" => ["default"],
-        "volumes" => ["postgres-data:/var/lib/postgresql/data"],
+        "volumes" => ["postgres-data:/var/lib/postgresql"],
         "environment" => {
           "POSTGRES_USER" => "postgres",
           "POSTGRES_PASSWORD" => "postgres"

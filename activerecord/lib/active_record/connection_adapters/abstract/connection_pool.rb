@@ -788,6 +788,7 @@ module ActiveRecord
 
         if need_new_connections
           while new_conn = try_to_checkout_new_connection { @connections.size < @min_connections }
+            new_conn.allow_preconnect = true
             checkin(new_conn)
           end
         end

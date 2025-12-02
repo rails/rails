@@ -1,25 +1,18 @@
-*   Add structured events for Action Mailer:
-    - `action_mailer.delivered`
-    - `action_mailer.processed`
-
-    *Gannon McGibbon*
-
-## Rails 8.1.0.beta1 (September 04, 2025) ##
-
-*   Add `deliver_all_later` to enqueue multiple emails at once.
+*   Add `assert_part` and `assert_no_part` to `ActionMailer::TestCase`
 
     ```ruby
-    user_emails = User.all.map { |user| Notifier.welcome(user) }
-    ActionMailer.deliver_all_later(user_emails)
+    test "assert MyMailer.welcome HTML and text parts" do
+      mail = MyMailer.welcome("Hello, world")
 
-    # use a custom queue
-    ActionMailer.deliver_all_later(user_emails, queue: :my_queue)
+      assert_part :text, mail do |text|
+        assert_includes text, "Hello, world"
+      end
+      assert_part :html, mail do |html|
+        assert_dom html.root, "p", "Hello, world"
+      end
+    end
     ```
 
-    This can greatly reduce the number of round-trips to the queue datastore.
-    For queue adapters that do not implement the `enqueue_all` method, we
-    fall back to enqueuing email jobs indvidually.
+    *Sean Doyle*
 
-    *fatkodima*
-
-Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actionmailer/CHANGELOG.md) for previous changes.
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/actionmailer/CHANGELOG.md) for previous changes.

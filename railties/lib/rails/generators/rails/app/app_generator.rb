@@ -283,6 +283,7 @@ module Rails
         dev: options[:dev],
         node: using_node?,
         app_name: app_name,
+        app_folder: File.basename(app_path),
         skip_solid: options[:skip_solid],
         pretend: options[:pretend]
       }

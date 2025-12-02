@@ -29,10 +29,18 @@ Rails.application.configure do
 
   <%- end -%>
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
+  <%- if skip_kamal? -%>
   config.assume_ssl = true
+  <%- else -%>
+  # config.assume_ssl = true
+  <%- end -%>
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
+  <%- if skip_kamal? -%>
   config.force_ssl = true
+  <%- else -%>
+  # config.force_ssl = true
+  <%- end -%>
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }

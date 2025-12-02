@@ -562,8 +562,14 @@ module Rails
     end
 
     initializer :load_environment_config, before: :load_environment_hook, group: :all do
-      paths["config/environments"].existent.each do |environment|
-        require environment
+      env_files = paths["config/environments"].existent
+
+      if env_files.empty? && any_environment_files?
+        missing_environment_file
+      else
+        env_files.each do |environment|
+          require environment
+        end
       end
     end
 
@@ -687,6 +693,12 @@ module Rails
       end
 
     private
+      def missing_environment_file; end
+
+      def any_environment_files?
+        false
+      end
+
       def load_config_initializer(initializer) # :doc:
         ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
           load(initializer)

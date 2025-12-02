@@ -203,6 +203,167 @@ module ActiveRecord
           ENV["RAILS_ENV"] = previous_env
         end
 
+        def test_shard_swapping_prohibition_exception_recovery
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+          config = {
+            "default_env" => {
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" },
+              "primary_shard_two" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_two.sqlite3" },
+            }
+          }
+
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          PrimaryBase.connects_to(shards: {
+            default: { writing: :primary },
+            shard_one: { writing: :primary_shard_one },
+            shard_two: { writing: :primary_shard_two }
+          })
+
+          global_role = :writing
+
+          # Switch everything to default
+          ActiveRecord::Base.connected_to(role: global_role, shard: :default) do
+            assert_equal "primary", PrimaryBase.connection_pool.db_config.name
+
+            # Switch only primary to shard_one
+            PrimaryBase.connected_to(shard: :shard_one) do
+              assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
+
+              PrimaryBase.prohibit_shard_swapping do
+                assert_raises(ShardSwapProhibitedError) do
+                  PrimaryBase.connected_to(shard: :shard_two) { }
+                end
+
+                assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
+
+                # Prohibition can be lifted
+                PrimaryBase.prohibit_shard_swapping(false) do
+                  PrimaryBase.connected_to(shard: :shard_two) do
+                    assert_equal "primary_shard_two", PrimaryBase.connection_pool.db_config.name
+                  end
+                end
+              end
+
+              PrimaryBase.prohibit_shard_swapping do
+                assert_raises(ShardSwapProhibitedError) do
+                  ActiveRecord::Base.connected_to_many([PrimaryBase], shard: :shard_two, role: :writing) { }
+                end
+
+                assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
+
+                # Prohibition can be lifted
+                PrimaryBase.prohibit_shard_swapping(false) do
+                  ActiveRecord::Base.connected_to_many([PrimaryBase], shard: :shard_two, role: :writing) do
+                    assert_equal "primary_shard_two", PrimaryBase.connection_pool.db_config.name
+                  end
+                end
+              end
+            end
+          end
+        ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ActiveRecord::Base.establish_connection(:arunit)
+          ENV["RAILS_ENV"] = previous_env
+        end
+
+        def test_granular_prohibition_of_shard_swapping
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+          config = {
+            "default_env" => {
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" },
+              "primary_shard_two" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_two.sqlite3" },
+              "secondary" => { "adapter" => "sqlite3", "database" => "test/db/secondary.sqlite3" },
+              "secondary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/secondary_shard_one.sqlite3" },
+              "secondary_shard_two" => { "adapter" => "sqlite3", "database" => "test/db/secondary_shard_two.sqlite3" },
+            }
+          }
+
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          PrimaryBase.connects_to(shards: {
+            default: { writing: :primary },
+            shard_one: { writing: :primary_shard_one },
+            shard_two: { writing: :primary_shard_two }
+          })
+
+          SecondaryBase.connects_to(shards: {
+            default: { writing: :secondary },
+            shard_one: { writing: :secondary_shard_one },
+            shard_two: { writing: :secondary_shard_two }
+          })
+
+          global_role = :writing
+
+          # Switch everything to default
+          ActiveRecord::Base.connected_to(role: global_role, shard: :default) do
+            assert_equal "primary", PrimaryBase.connection_pool.db_config.name
+            assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
+
+            # Switch only primary to shard_one
+            PrimaryBase.connected_to(shard: :shard_one) do
+              assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
+              assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
+
+              # No prohibition on changing PrimaryBase again
+              PrimaryBase.connected_to(shard: :shard_two) do
+                assert_equal "primary_shard_two", PrimaryBase.connection_pool.db_config.name
+                assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
+              end
+
+              ActiveRecord::Base.connected_to_many([PrimaryBase], shard: :shard_two, role: :writing) do
+                assert_equal "primary_shard_two", PrimaryBase.connection_pool.db_config.name
+                assert_equal "secondary", SecondaryBase.connection_pool.db_config.name
+              end
+
+              # Prohibit shard swapping on PrimaryBase
+              PrimaryBase.prohibit_shard_swapping do
+                assert_raises(ShardSwapProhibitedError) do
+                  PrimaryBase.connected_to(shard: :shard_two) { }
+                end
+
+                assert_raises(ShardSwapProhibitedError) do
+                  ActiveRecord::Base.connected_to_many([PrimaryBase], shard: :shard_two, role: :writing) { }
+                end
+
+                # Shard swapping on SecondaryBase has not been prohibited
+                SecondaryBase.connected_to(shard: :shard_one) do
+                  assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
+                  assert_equal "secondary_shard_one", SecondaryBase.connection_pool.db_config.name
+
+                  SecondaryBase.prohibit_shard_swapping do
+                    assert_raises(ShardSwapProhibitedError) do
+                      SecondaryBase.connected_to(shard: :shard_two) { }
+                    end
+
+                    assert_raises(ShardSwapProhibitedError) do
+                      ActiveRecord::Base.connected_to_many([SecondaryBase], shard: :shard_two, role: :writing) { }
+                    end
+                  end
+
+                  SecondaryBase.connected_to(shard: :shard_two) do
+                    assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
+                    assert_equal "secondary_shard_two", SecondaryBase.connection_pool.db_config.name
+                  end
+
+                  ActiveRecord::Base.connected_to_many([SecondaryBase], shard: :shard_two, role: :writing) do
+                    assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
+                    assert_equal "secondary_shard_two", SecondaryBase.connection_pool.db_config.name
+                  end
+                end
+              end
+            end
+          end
+        ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ActiveRecord::Base.establish_connection(:arunit)
+          ENV["RAILS_ENV"] = previous_env
+        end
+
         def test_roles_and_shards_can_be_swapped_granularly
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
 

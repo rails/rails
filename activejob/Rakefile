@@ -17,8 +17,14 @@ namespace :test do
   end
 
   desc "Run all adapter tests in isolation"
-  task :isolated do
+  task isolated: :railties do
     run_without_aborting ACTIVEJOB_ADAPTERS.map { |a| "test:isolated:#{a}" }
+  end
+
+  task :railties do
+    ["active_job/railtie"].all? do |railtie|
+      sh(Gem.ruby, "-r", railtie, "-e", "'OK'")
+    end || raise("Failures")
   end
 
   desc "Run integration tests for all adapters"
