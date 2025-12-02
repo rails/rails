@@ -696,38 +696,6 @@ disabled using [`config.active_storage.track_variants`][].
 [`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
 [`ActiveStorage::Attachment`]: https://api.rubyonrails.org/classes/ActiveStorage/Attachment.html
 
-### Transforming Images
-
-Transforming images allows you to display the image at your choice of dimensions.
-To create a variation of an image, call [`variant`][] on the attachment. You
-can pass any transformation supported by the variant processor to the method.
-When the browser hits the variant URL, Active Storage will lazily transform
-the original blob into the specified format and redirect to its new service
-location.
-
-```erb
-<%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
-```
-
-If a variant is requested, Active Storage will automatically apply
-transformations depending on the image's format:
-
-1. Content types that are variable (as dictated by [`config.active_storage.variable_content_types`][])
-  and not considered web images (as dictated by [`config.active_storage.web_image_content_types`][]),
-  will be converted to PNG.
-
-2. If `quality` is not specified, the variant processor's default quality for the format will be used.
-
-Active Storage can use either [Vips][] or MiniMagick as the variant processor.
-The default depends on your `config.load_defaults` target version, and the
-processor can be changed by setting [`config.active_storage.variant_processor`][].
-
-[`config.active_storage.variable_content_types`]: configuring.html#config-active-storage-variable-content-types
-[`config.active_storage.variant_processor`]: configuring.html#config-active-storage-variant-processor
-[`config.active_storage.web_image_content_types`]: configuring.html#config-active-storage-web-image-content-types
-[`variant`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-variant
-[Vips]: https://www.rubydoc.info/gems/ruby-vips/Vips/Image
-
 ### Previewing Files
 
 Some non-image files can be previewed: that is, they can be presented as images.
