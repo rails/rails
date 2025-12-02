@@ -601,6 +601,13 @@ Analyzing Files For Metadata
 
 Active Storage analyzes files once they've been uploaded by queuing a job in Active Job. Analyzed files will store additional information in the metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling [`analyzed?`][] on it.
 
+```irb
+> user.profile_photo.analyzed?
+=> true
+```
+
+Once a file has been analyzed, the metadata is stored in the `active_storage_blobs` table and can be viewed with `user.profile_photo.blob.metadata`.
+
 Image analysis provides `width` and `height` attributes. Video analysis provides these, as well as `duration`, `angle`, `display_aspect_ratio`, and `video` and `audio` booleans to indicate the presence of those channels. Audio analysis provides `duration` and `bit_rate` attributes.
 
 [`analyzed?`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyzed-3F
