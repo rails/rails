@@ -3337,7 +3337,7 @@ module ApplicationTests
         ActiveRecord::Base
       end
 
-      assert_equal false, ActiveJob::Base.enqueue_after_transaction_commit
+      assert_equal true, ActiveJob::Base.enqueue_after_transaction_commit
     end
 
     test "active record job queue is set" do
