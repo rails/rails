@@ -4,9 +4,10 @@ require "minitest"
 
 module Rails
   class TestUnitReporter < Minitest::StatisticsReporter
+    @app_root = ENV["RAILS_TEST_PWD"]
     singleton_class.attr_accessor :app_root
 
-    @executable = "bin/rails test"
+    @executable = ENV.fetch("RAILS_TEST_EXECUTABLE", "bin/rails test")
     singleton_class.attr_accessor :executable
 
     def prerecord(test_class, test_name)
@@ -92,10 +93,14 @@ module Rails
 
       def app_root
         @app_root ||= self.class.app_root ||
-          if defined?(ENGINE_ROOT)
+          if ENV["RAILS_TEST_PWD"]
+            ENV["RAILS_TEST_PWD"]
+          elsif defined?(ENGINE_ROOT)
             ENGINE_ROOT
           elsif Rails.respond_to?(:root)
             Rails.root
+          else
+            Dir.pwd
           end
       end
 
