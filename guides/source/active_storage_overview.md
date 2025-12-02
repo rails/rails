@@ -571,26 +571,27 @@ to prevent files being accessed with the publicly accessible URLs.
 Downloading Files
 -----------------
 
-Sometimes you need to process a blob after it’s uploaded—for example, to convert
-it to a different format. Use the attachment's [`download`][Blob#download] method to read a blob’s
-binary data into memory:
+Sometimes you need to process a file after it’s uploaded. For example, to
+convert it to a different format. You can use the [`download`][Blob#download]
+method to read the file's binary data (i.e. blob) into memory:
 
 ```ruby
-binary = user.avatar.download
+binary = user.profile_photo.download
 ```
 
-You might want to download a blob to a file on disk so an external program (e.g.
-a virus scanner or media transcoder) can operate on it. Use the attachment's
-[`open`][Blob#open] method to download a blob to a tempfile on disk:
+You can also download a file's blob to local disk so an external program (e.g. a
+virus scanner or media transcoder) can operate on it. In the example below, the
+blob's [`open`][Blob#open] method saves the file to a tempfile on disk and then
+yields the file to the block:
 
 ```ruby
-message.video.open do |file|
+product.images.open do |file|
   system "/path/to/virus/scanner", file.path
   # ...
 end
 ```
 
-It's important to know that the file is not yet available in the `after_create` callback but in the `after_create_commit` only.
+NOTE: Active Storage attachments are not fully available until the record’s transaction has committed. This means methods like `download` and `open` cannot be used reliably inside an `after_create` callback because the blob is not persisted yet. Use `after_create_commit` if you need to process the uploaded file immediately after creation.
 
 [Blob#download]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-download
 [Blob#open]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-open
