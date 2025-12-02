@@ -5,8 +5,8 @@ require "minitest"
 
 module Rails
   class TestUnitReporter < Minitest::StatisticsReporter
-    class_attribute :app_root
-    class_attribute :executable, default: "bin/rails test"
+    class_attribute :app_root, default: ENV["RAILS_TEST_PWD"]
+    class_attribute :executable, default: ENV.fetch("RAILS_TEST_EXECUTABLE", "bin/rails test")
 
     def prerecord(test_class, test_name)
       super
@@ -91,10 +91,14 @@ module Rails
 
       def app_root
         @app_root ||= self.class.app_root ||
-          if defined?(ENGINE_ROOT)
+          if ENV["RAILS_TEST_PWD"]
+            ENV["RAILS_TEST_PWD"]
+          elsif defined?(ENGINE_ROOT)
             ENGINE_ROOT
           elsif Rails.respond_to?(:root)
             Rails.root
+          else
+            Dir.pwd
           end
       end
 
