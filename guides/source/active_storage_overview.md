@@ -615,17 +615,18 @@ Image analysis provides `width` and `height` attributes. Video analysis provides
 Displaying Images, Videos, and PDFs
 -----------------------------------
 
-Active Storage supports representing a variety of files. You can call
-[`representation`][] on an attachment to display an image variant, or a
-preview of a video or PDF. Before calling `representation`, check if the
-attachment can be represented by calling [`representable?`]. Some file formats
-can't be previewed by Active Storage out of the box (e.g. Word documents); if
-`representable?` returns false you may want to [link to](#serving-files)
-the file instead.
+Active Storage supports displaying a variety of files. You can call
+[`representation`][] on an attachment to display an image variant, or a preview
+of a video or PDF.
+
+Some file formats can't be previewed by Active Storage out of the box (e.g. Word
+documents), so it's a good idea to call the boolean method [`representable?`]
+first. In the case where `representable?` returns `false`, you can directly
+[link to](#serving-files) the file instead, as shown in the example below:
 
 ```erb
 <ul>
-  <% @message.files.each do |file| %>
+  <% @product.images.each do |file| %>
     <li>
       <% if file.representable? %>
         <%= image_tag file.representation(resize_to_limit: [100, 100]) %>
