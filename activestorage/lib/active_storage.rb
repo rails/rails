@@ -27,6 +27,7 @@ require "active_record"
 require "active_support"
 require "active_support/rails"
 require "active_support/core_ext/numeric/time"
+require "active_support/core_ext/numeric/bytes"
 
 require "active_storage/version"
 require "active_storage/deprecator"
@@ -353,6 +354,7 @@ module ActiveStorage
   ]
   mattr_accessor :unsupported_image_processing_arguments
 
+  mattr_accessor :streaming_chunk_max_size, default: 100.megabytes
   mattr_accessor :service_urls_expire_in, default: 5.minutes
   mattr_accessor :touch_attachment_records, default: true
   mattr_accessor :urls_expire_in

@@ -96,6 +96,20 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     assert_response :range_not_satisfiable
   end
 
+  test "Byte Range is too big" do
+    with_streaming_chunk_max_size(1.kilobyte) do
+      get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg")), headers: { "Range" => "bytes=0-" }
+      assert_response :range_not_satisfiable
+    end
+  end
+
+  test "Byte Range is too big overall" do
+    with_streaming_chunk_max_size(8.bytes) do
+      get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg")), headers: { "Range" => "bytes=0-5,6-12" }
+      assert_response :range_not_satisfiable
+    end
+  end
+
   test "multiple Byte Ranges" do
     boundary = SecureRandom.hex
     SecureRandom.stub :hex, boundary do
@@ -148,6 +162,15 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     assert_not_nil response.headers["Content-Length"], "Content-Length header should be included in proxy mode"
     assert_equal blob.byte_size.to_s, response.headers["Content-Length"], "Content-Length header should match blob size"
   end
+
+  private
+    def with_streaming_chunk_max_size(size)
+      old_size = ActiveStorage.streaming_chunk_max_size
+      ActiveStorage.streaming_chunk_max_size = size
+      yield
+    ensure
+      ActiveStorage.streaming_chunk_max_size = old_size
+    end
 end
 
 class ActiveStorage::Blobs::ExpiringProxyControllerTest < ActionDispatch::IntegrationTest
