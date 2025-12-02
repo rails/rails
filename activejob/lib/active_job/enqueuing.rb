@@ -39,6 +39,14 @@ module ActiveJob
 
   module Enqueuing
     extend ActiveSupport::Concern
+    module ValidateEnqueueAfterTransactionCommit
+      def enqueue_after_transaction_commit=(value)
+        if value && !defined?(ActiveRecord)
+          raise ArgumentError, "enqueue_after_transaction_commit must be false when ActiveRecord is not available"
+        end
+        super
+      end
+    end
 
     included do
       ##
@@ -51,6 +59,8 @@ module ActiveJob
       #  - true forces the job to be deferred.
       #  - false forces the job to be queued immediately.
       class_attribute :enqueue_after_transaction_commit, instance_accessor: false, instance_predicate: false, default: !!defined?(ActiveRecord)
+
+      singleton_class.prepend ValidateEnqueueAfterTransactionCommit
     end
 
     # Includes the +perform_later+ method for job initialization.
