@@ -1005,61 +1005,74 @@ cloud.
 Direct Uploads
 --------------
 
+By default, files uploaded through Active Storage are sent to your Rails server first, then forwarded to the configured storage service. Direct uploads bypass the Rails server entirely, sending files straight from the browser to the storage service. Direct Uploads provide improved performance as large files do not have to pass through your Rails server.
+
+Direct Uploads integrate seamlessly with Active Storage’s attachments and variants, allowing you to use the same models, validations, and background processing workflows as standard uploads.
+
 Active Storage, with its included JavaScript library, supports uploading
 directly from the client to the cloud.
 
 ### Usage
 
-1. Include the Active Storage JavaScript in your application's JavaScript bundle or reference it directly.
+In order to start using Direct Uploads, you'll need to use the JavaScript Library included with Active Storage. The library handles:
 
-    Requiring directly without bundling through the asset pipeline in the application HTML with autostart:
+* Initiating uploads to the configured service (e.g., S3, GCS, Azure).
+* Tracking upload progress and reporting it to the user.
+* Updating form inputs with the necessary signed IDs so that Rails can associate the uploaded file with the model when the form is submitted.
 
-    ```erb
-    <%= javascript_include_tag "activestorage" %>
-    ```
+To use direct uploads, you'll need to include the library in your application’s JavaScript bundle and enable the `direct_upload: true` option on your file input fields. This allows Rails and the storage service to coordinate securely using signed IDs, without requiring extra backend configuration.
 
-    Requiring via importmap-rails without bundling through the asset pipeline in the application HTML without autostart as ESM:
+There are several ways to include the Active Storage JavaScript library in your application:
 
-    ```ruby
-    # config/importmap.rb
-    pin "@rails/activestorage", to: "activestorage.esm.js"
-    ```
+1. Directly via `javascript_include_tag` - include the library in your HTML without bundling through the asset pipeline. Autostart is enabled automatically:
 
-    ```html
-    <script type="module-shim">
-      import * as ActiveStorage from "@rails/activestorage"
-      ActiveStorage.start()
-    </script>
-    ```
+```html
+<%= javascript_include_tag "activestorage" %>
+```
 
-    Using the asset pipeline:
+2. Using Importmap (ESM) - pin the library in `config/importmap.rb`:
 
-    ```js
-    //= require activestorage
-    ```
+```ruby
+pin "@rails/activestorage", to: "activestorage.esm.js"
+```
 
-    Using the npm package:
+Then import and start it in your HTML:
 
-    ```js
-    import * as ActiveStorage from "@rails/activestorage"
-    ActiveStorage.start()
-    ```
+```html
+<script type="module-shim">
+  import * as ActiveStorage from "@rails/activestorage"
+  ActiveStorage.start()
+</script>
+```
 
-2. Annotate file inputs with the direct upload URL using Rails' [file field helper](form_helpers.html#uploading-files).
+3. Using the Asset Pipeline - require the library in a JavaScript manifest:
 
-    ```erb
-    <%= form.file_field :attachments, multiple: true, direct_upload: true %>
-    ```
+```javascript
+//= require activestorage
+```
 
-    Or, if you aren't using a `FormBuilder`, add the data attribute directly:
+4. Using the npm package - install via npm/yarn and import it in your JavaScript bundle:
 
-    ```erb
-    <input type="file" data-direct-upload-url="<%= rails_direct_uploads_url %>" />
-    ```
+```ruby
+import * as ActiveStorage from "@rails/activestorage"
+ActiveStorage.start()
+```
 
-3. Configure CORS on third-party storage services to allow direct upload requests.
+All of these approaches provide the same functionality; choose the one that matches your application’s JavaScript setup.
 
-4. That's it! Uploads begin upon form submission.
+Next, add `direct_upload: true` in your forms' [file field helper](form_helpers.html#uploading-files).
+
+```erb
+<%= form.file_field :attachments, multiple: true, direct_upload: true %>
+```
+
+Or, if you aren't using a `FormBuilder`, add the data attribute directly:
+
+```erb
+<input type="file" data-direct-upload-url="<%= rails_direct_uploads_url %>" />
+```
+
+Lastly, You'll need to configure CORS on third-party storage services to allow direct upload requests.
 
 ### Cross-Origin Resource Sharing (CORS) Configuration
 
