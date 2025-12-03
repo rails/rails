@@ -147,7 +147,11 @@ module GeneratorsTestHelper
       gemfile_contents.sub!(/^(gem "rails").*/, "\\1, path: #{File.expand_path("../../..", __dir__).inspect}")
       File.write("Gemfile", gemfile_contents)
 
-      silence_stream($stdout) { system({ "BUNDLE_GEMFILE" => "Gemfile" }, "bin/rails app:update #{flags}", exception: true) }
+      silence_stream($stdout) do
+        Bundler.with_unbundled_env {
+          system("bin/rails app:update #{flags}", exception: true)
+        }
+      end
     end
   end
 
