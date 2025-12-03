@@ -41,6 +41,7 @@ module RailsGuides
 
     def generate
       if !dry_run?
+        cleanup_output_dir
         # First copy assets and add digests to make sure digest_paths are
         # present in generate_guides.
         cleanup_assets
@@ -64,6 +65,10 @@ module RailsGuides
     private
       def dry_run?
         [@lint].any?
+      end
+
+      def cleanup_output_dir
+        FileUtils.rm_rf(Dir.glob(File.join(@output_dir, "*"))) if Dir.exist?(@output_dir)
       end
 
       def register_special_mime_types
