@@ -827,7 +827,7 @@ amazon:
   bucket: your_own_bucket-<%= Rails.env %>
 ```
 
-The above configuration assumes that AWS secrets are stored using `bin/rails credentials:edit` with the appropriate keys.
+NOTE: The above configuration assumes that AWS secrets are stored using `bin/rails credentials:edit` with the appropriate keys. See the [Security Guide](security.html#custom-credentials) for  more.
 
 There are other optionals configurations as well - such as HTTP timeouts, retry limits, and upload options - that can be included:
 
@@ -868,7 +868,13 @@ There are many other options available. You can see them in [AWS S3 Client](http
 
 ### Google Cloud Storage Service
 
-Declare a Google Cloud Storage service in `config/storage.yml`:
+You'll need  to add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/main/google-cloud-storage) gem to your `Gemfile` to use the `GCS` service for Active Storage:
+
+```ruby
+gem "google-cloud-storage", "~> 1.11", require: false
+```
+
+Then you can declare a Google Cloud Storage service in `config/storage.yml`:
 
 ```yaml
 google:
@@ -878,7 +884,7 @@ google:
   bucket: your_own_bucket-<%= Rails.env %>
 ```
 
-Optionally provide a Hash of credentials instead of a keyfile path:
+You can also provide a Hash of credentials instead of a keyfile path, and optionally provide a Cache-Control header:
 
 ```yaml
 # Use bin/rails credentials:edit to set the GCS secrets (as gcs:private_key_id|private_key)
@@ -897,18 +903,10 @@ google:
     client_x509_cert_url: ""
   project: ""
   bucket: your_own_bucket-<%= Rails.env %>
-```
-
-Optionally provide a Cache-Control metadata to set on uploaded assets:
-
-```yaml
-google:
-  service: GCS
-  ...
   cache_control: "public, max-age=3600"
 ```
 
-Optionally use [IAM](https://cloud.google.com/storage/docs/access-control/signed-urls#signing-iam) instead of the `credentials` when signing URLs. This is useful if you are authenticating your GKE applications with Workload Identity, see [this Google Cloud blog post](https://cloud.google.com/blog/products/containers-kubernetes/introducing-workload-identity-better-authentication-for-your-gke-applications) for more information.
+You can optionally use [IAM](https://cloud.google.com/storage/docs/access-control/signed-urls#signing-iam) instead of the `credentials` when signing URLs. This is useful if you are authenticating your GKE applications with Workload Identity, see [this Google Cloud blog post](https://cloud.google.com/blog/products/containers-kubernetes/introducing-workload-identity-better-authentication-for-your-gke-applications) for more information.
 
 ```yaml
 google:
@@ -917,7 +915,7 @@ google:
   iam: true
 ```
 
-Optionally use a specific GSA when signing URLs. When using IAM, the [metadata server](https://cloud.google.com/compute/docs/storing-retrieving-metadata) will be contacted to get the GSA email, but this metadata server is not always present (e.g. local tests) and you may wish to use a non-default GSA.
+You can specify a GSA (Google Service Account) when signing URLs. When using IAM, the [metadata server](https://cloud.google.com/compute/docs/storing-retrieving-metadata) will be contacted to get the GSA email, but this metadata server is not always present (e.g. local tests) and you may wish to use a non-default GSA.
 
 ```yaml
 google:
@@ -927,31 +925,21 @@ google:
   gsa_email: "foobar@baz.iam.gserviceaccount.com"
 ```
 
-Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/main/google-cloud-storage) gem to your `Gemfile`:
-
-```ruby
-gem "google-cloud-storage", "~> 1.11", require: false
-```
-
 ### Mirror Service
 
-You can keep multiple services in sync by defining a mirror service. A mirror
-service replicates uploads and deletes across two or more subordinate services.
+Active Storage lets you keep multiple services in sync by defining a mirror service. A mirror service replicates uploads and deletes across two or more subordinate services, ensuring that files exist in multiple locations.
 
-A mirror service is intended to be used temporarily during a migration between
-services in production. You can start mirroring to a new service, copy
-pre-existing files from the old service to the new, then go all-in on the new
-service.
+Mirror services are primarily intended for temporary use during migrations between storage backends. The typical workflow is:
 
-NOTE: Mirroring is not atomic. It is possible for an upload to succeed on the
-primary service and fail on any of the subordinate services. Before going
-all-in on a new service, verify that all files have been copied.
+1. Start mirroring uploads to a new service alongside the existing one.
+2. Copy any pre-existing files from the old service to the new one.
+3. Switch entirely to the new service once all files are replicated.
 
-Define each of the services you'd like to mirror as described above. Reference
-them by name when defining a mirror service:
+NOTE: Mirroring is not atomic. It’s possible for an upload to succeed on the primary service but fail on one or more mirrors. Before switching fully to the new service, ensure that all files have been successfully copied.
+
+In order to define a `Mirror` service, first, define each service you want to mirror as usual. Then, reference them by name in the `Mirror` service configuration:
 
 ```yaml
-# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 s3_west_coast:
   service: S3
   access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
@@ -973,12 +961,13 @@ production:
     - s3_west_coast
 ```
 
-Although all secondary services receive uploads, downloads are always handled
+While all secondary services receive uploads, downloads are always handled
 by the primary service.
 
-Mirror services are compatible with direct uploads. New files are directly
-uploaded to the primary service. When a directly-uploaded file is attached to a
-record, a background job is enqueued to copy it to the secondary services.
+Mirror services are compatible with [direct uploads](#direct-uploads). New files
+are directly uploaded to the primary service. When a directly-uploaded file is
+attached to a record, a background job is enqueued to copy it to the secondary
+services.
 
 ### Public access
 
@@ -1007,10 +996,11 @@ When converting an existing application to use `public: true`, make sure to upda
 
 ### Implementing Other Cloud Services
 
-If you need to support a cloud service other than these, you will need to
-implement the Service. Each service extends
+If you need to support a cloud service other than the ones covered above, you
+can implement your custom service by extending
 [`ActiveStorage::Service`](https://api.rubyonrails.org/classes/ActiveStorage/Service.html)
-by implementing the methods necessary to upload and download files to the cloud.
+and implementing the methods necessary to upload and download files to the
+cloud.
 
 Direct Uploads
 --------------
