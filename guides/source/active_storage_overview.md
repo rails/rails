@@ -1143,6 +1143,8 @@ No CORS configuration is required for the Disk service since it shares your appâ
 
 ### Example
 
+TODO: Not sure what to do with the rest of the sections, they contain a bunch of code (including CSS) and seem useful but also not the usual guide style.
+
 You can use these events to show the progress of an upload.
 
 ![direct-uploads](https://user-images.githubusercontent.com/5355/28694528-16e69d0c-72f8-11e7-91a7-c0b8cfc90391.gif)
@@ -1237,9 +1239,9 @@ input[type=file][data-direct-upload-url][disabled] {
 
 ### Custom drag and drop solutions
 
-You can use the `DirectUpload` class for this purpose. Upon receiving a file from your library
-of choice, instantiate a DirectUpload and call its create method. Create takes
-a callback to invoke when the upload completes.
+You can use the `DirectUpload` class for this purpose. Upon receiving a file
+from your library of choice, instantiate a DirectUpload and call its create
+method. Create takes a callback to invoke when the upload completes.
 
 ```js
 import { DirectUpload } from "@rails/activestorage"
@@ -1286,10 +1288,10 @@ const uploadFile = (file) => {
 
 ### Track the progress of the file upload
 
-When using the `DirectUpload` constructor, it is possible to include a third parameter.
-This will allow the `DirectUpload` object to invoke the `directUploadWillStoreFileWithXHR`
-method during the upload process.
-You can then attach your own progress handler to the XHR to suit your needs.
+When using the `DirectUpload` constructor, it is possible to include a third
+parameter. This will allow the `DirectUpload` object to invoke the
+`directUploadWillStoreFileWithXHR` method during the upload process. You can
+then attach your own progress handler to the XHR to suit your needs.
 
 ```js
 import { DirectUpload } from "@rails/activestorage"
@@ -1323,10 +1325,11 @@ class Uploader {
 
 ### Integrating with Libraries or Frameworks
 
-Once you receive a file from the library you have selected, you need to create
-a `DirectUpload` instance and use its "create" method to initiate the upload process,
-adding any required additional headers as necessary. The "create" method also requires
-a callback function to be provided that will be triggered once the upload has finished.
+Once you receive a file from the library you have selected, you need to create a
+`DirectUpload` instance and use its "create" method to initiate the upload
+process, adding any required additional headers as necessary. The "create"
+method also requires a callback function to be provided that will be triggered
+once the upload has finished.
 
 ```js
 import { DirectUpload } from "@rails/activestorage"
