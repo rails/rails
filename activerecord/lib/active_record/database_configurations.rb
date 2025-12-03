@@ -179,8 +179,10 @@ module ActiveRecord
       case config
       when Symbol
         resolve_symbol_connection(config)
-      when Hash, String
+      when String
         build_db_config_from_raw_config(default_env, "primary", config)
+      when Hash
+        build_db_config_from_raw_config(config[:env_name]&.to_s || default_env, config[:name]&.to_s || "primary", config)
       else
         raise TypeError, "Invalid type for configuration. Expected Symbol, String, or Hash. Got #{config.inspect}"
       end
@@ -204,8 +206,12 @@ module ActiveRecord
         return configs if configs.is_a?(Array)
 
         db_configs = configs.flat_map do |env_name, config|
-          if config.is_a?(Hash) && config.values.all?(Hash)
-            walk_configs(env_name.to_s, config)
+          if config.is_a?(Hash)
+            if config.values.all?(Hash)
+              walk_configs(env_name.to_s, config)
+            else
+              build_db_config_from_raw_config(env_name.to_s, config[:name]&.to_s || "primary", config)
+            end
           else
             build_db_config_from_raw_config(env_name.to_s, "primary", config)
           end

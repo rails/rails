@@ -53,6 +53,80 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     assert_equal "primary", config.name
   end
 
+  def test_configuration_hash_includes_env_name_and_name
+    configs = ActiveRecord::DatabaseConfigurations.new({
+      "development" => {
+        "primary" => {
+          "adapter" => "sqlite3",
+          "database" => "db/development.sqlite3"
+        }
+      },
+      "production" => {
+        "secondary" => {
+          "adapter" => "sqlite3",
+          "database" => "db/production_secondary.sqlite3"
+        }
+      }
+    })
+
+    config = configs.configs_for(env_name: "production", name: "secondary")
+    hash = config.configuration_hash
+
+    assert_equal "production", hash[:env_name]
+    assert_equal "secondary", hash[:name]
+  end
+
+  def test_resolve_with_configuration_hash_preserves_env_name_and_name
+    configs = ActiveRecord::DatabaseConfigurations.new({
+      "development" => {
+        "primary" => {
+          "adapter" => "sqlite3",
+          "database" => "db/development.sqlite3"
+        }
+      },
+      "production" => {
+        "secondary" => {
+          "adapter" => "sqlite3",
+          "database" => "db/production_secondary.sqlite3"
+        }
+      }
+    })
+
+    config = configs.configs_for(env_name: "production", name: "secondary")
+    hash = config.configuration_hash
+
+    resolved = configs.resolve(hash)
+
+    assert_equal "production", resolved.env_name
+    assert_equal "secondary", resolved.name
+  end
+
+  def test_initialize_with_configuration_hash_preserves_env_name_and_name
+    configs = ActiveRecord::DatabaseConfigurations.new({
+      "development" => {
+        "primary" => {
+          "adapter" => "sqlite3",
+          "database" => "db/development.sqlite3"
+        }
+      },
+      "production" => {
+        "secondary" => {
+          "adapter" => "sqlite3",
+          "database" => "db/production_secondary.sqlite3"
+        }
+      }
+    })
+
+    config = configs.configs_for(env_name: "production", name: "secondary")
+    hash = config.configuration_hash
+
+    new_configs = ActiveRecord::DatabaseConfigurations.new({ "production" => hash })
+    new_config = new_configs.configs_for(env_name: "production", name: "secondary")
+
+    assert_equal "production", new_config.env_name
+    assert_equal "secondary", new_config.name
+  end
+
   def test_find_db_config_returns_first_config_for_env
     config = ActiveRecord::DatabaseConfigurations.new({
         "test" => {

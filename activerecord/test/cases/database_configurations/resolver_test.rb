@@ -26,6 +26,8 @@ module ActiveRecord
           pool_config = resolve_db_config :production, "production" => "abstract://foo?encoding=utf8"
 
           assert_equal({
+            env_name: "production",
+            name: "primary",
             adapter:  "abstract",
             host:     "foo",
             encoding: "utf8"
@@ -36,6 +38,8 @@ module ActiveRecord
           pool_config = resolve_db_config :production, "production" => { "url" => "abstract://foo?encoding=utf8" }
 
           assert_equal({
+            env_name: "production",
+            name: "primary",
             adapter:  "abstract",
             host:     "foo",
             encoding: "utf8"
@@ -47,6 +51,8 @@ module ActiveRecord
           pool_config = resolve_db_config :production, "production" => hash
 
           assert_equal({
+            env_name: "production",
+            name: "primary",
             adapter:         "abstract",
             host:            "foo",
             encoding:        "utf8",
@@ -59,6 +65,8 @@ module ActiveRecord
           pool_config = resolve_db_config :production, "production" => hash
 
           assert_equal({
+            env_name: "production",
+            name: "primary",
             adapter:  "abstract",
             user:     "user",
             password: "passwd",
@@ -69,6 +77,8 @@ module ActiveRecord
         def test_url_host_no_db
           pool_config = resolve_db_config "abstract://foo?encoding=utf8"
           assert_equal({
+            env_name: "test",
+            name: "primary",
             adapter:  "abstract",
             host:     "foo",
             encoding: "utf8"
@@ -84,6 +94,8 @@ module ActiveRecord
         def test_url_host_db
           pool_config = resolve_db_config "abstract://foo/bar?encoding=utf8"
           assert_equal({
+            env_name: "test",
+            name: "primary",
             adapter:  "abstract",
             database: "bar",
             host:     "foo",
@@ -95,6 +107,8 @@ module ActiveRecord
           pool_config = resolve_db_config "abstract://foo:123?encoding=utf8"
 
           assert_equal({
+            env_name: "test",
+            name: "primary",
             adapter:  "abstract",
             port:     123,
             host:     "foo",
@@ -137,6 +151,8 @@ module ActiveRecord
           pool_config = resolve_db_config :production, "production" => { "url" => "sqlite3:foo?encoding=utf8" }
 
           assert_equal({
+            env_name: "production",
+            name: "primary",
             adapter:  "sqlite3",
             database: "foo",
             encoding: "utf8"

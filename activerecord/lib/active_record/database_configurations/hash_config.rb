@@ -37,7 +37,7 @@ module ActiveRecord
       #
       def initialize(env_name, name, configuration_hash)
         super(env_name, name)
-        @configuration_hash = configuration_hash.symbolize_keys.freeze
+        @configuration_hash = configuration_hash.symbolize_keys.merge(env_name: env_name, name: name).freeze
         validate_configuration!
       end
 
