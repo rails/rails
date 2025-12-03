@@ -23,7 +23,7 @@ What is Active Storage?
 Active Storage facilitates attaching files to Active Record objects and
 uploading those files to cloud storage services. For local development and
 testing, Active Storage has a `Disk` service which uses local filesystem by
-default. 
+default.
 
 Active Storage supports image variants (e.g. resizing) and can transform and
 store variants of uploaded images. Using Active Storage, you can also generate
@@ -33,7 +33,7 @@ metadata.
 For cloud storage services, Active Storage supports mirroring files to secondary
 services to serve as a backup or to allow migration between services.
 
-## Setup
+### Setup
 
 Let's see Active Storage in action with an example of allowing users to upload a profile photo. First step is to install Active Storage:
 
@@ -95,7 +95,7 @@ TIP: Compared to libvips, ImageMagick is better known and more widely available.
 
 WARNING: Before you install and use third-party software, make sure you understand the licensing implications of doing so. MuPDF, in particular, is licensed under AGPL and requires a commercial license for some use.
 
-Attaching Files to Records OR Usage?
+Attaching Files to Records
 --------------------------
 
 Once Active Storage is installed and configured, we can upload files attached to a Active Record model, display those files in a view, replace or remove those files, as well as get variants and query tables related to Active Storage.
@@ -167,35 +167,7 @@ The `attached?` method determines whether a particular user has an profile photo
 user.profile_photo.attached?
 ```
 
-### Variants
 
-You can configure specific variants for attachments by calling the [`variant`](https://api.rubyonrails.org/classes/ActiveStorage/Variant.html) method on an attachable object:
-
-```ruby
-class User < ApplicationRecord
-  has_one_attached :profile_photo do |attachable|
-    attachable.variant :thumb, resize_to_limit: [100, 100]
-  end
-end
-```
-
-You can call `profile_photo.variant(:thumb)` in a view to get a thumb variant of a profile photo:
-
-```erb
-<%= image_tag user.profile_photo.variant(:thumb) %>
-```
-
-If you know in advance that your variants will be accessed, you can use the `preprocessed` option to specify that Rails should generate them ahead of time:
-
-```ruby
-class User < ApplicationRecord
-  has_one_attached :profile_photo do |attachable|
-    attachable.variant :thumb, resize_to_limit: [100, 100], preprocessed: true
-  end
-end
-```
-
-Rails will enqueue a job to generate the variant after the attachment is attached to the record.
 
 [`has_one_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached
 [Attached::One#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attach
@@ -396,7 +368,7 @@ users = User.joins(:profile_photo_blob).where(
 
 ### `has_many_attached`
 
-Similarly, when you use `has_many_attached`, Rails defines two associations: a `has_many` association named `<name>_attachments`, which represents the join records in the `active_storage_attachments` table, and a `has_many :through` association named `<name>_blobs`, which gives access to the corresponding rows in `active_storage_blobs` table. 
+Similarly, when you use `has_many_attached`, Rails defines two associations: a `has_many` association named `<name>_attachments`, which represents the join records in the `active_storage_attachments` table, and a `has_many :through` association named `<name>_blobs`, which gives access to the corresponding rows in `active_storage_blobs` table.
 
 Because the `_blobs` association provides a normal relational join, you can query it directly to filter records based on metadata stored in the blob. For example, the following code retrieves all Product records whose attached images are videos with an MP4 format:
 
@@ -615,6 +587,57 @@ Image analysis provides `width` and `height` attributes. Video analysis provides
 Displaying Images, Videos, and PDFs
 -----------------------------------
 
+Active Storage supports displaying a variety of files. You can use variants for image files and previews for other files such as video or PDF. There is also a concept for *representation*, which displays either a variant or preview depending on the file.
+
+### File Variants
+
+You can configure specific variants for attachments by calling the [`variant`](https://api.rubyonrails.org/classes/ActiveStorage/Variant.html) method on an attachable object:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :profile_photo do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100]
+  end
+end
+```
+
+You can call `profile_photo.variant(:thumb)` in a view to get a thumb variant of a profile photo:
+
+```erb
+<%= image_tag user.profile_photo.variant(:thumb) %>
+```
+
+If you know in advance that your variants will be accessed, you can use the `preprocessed` option to specify that Rails should generate them ahead of time:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :profile_photo do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100], preprocessed: true
+  end
+end
+```
+
+Rails will enqueue a job to generate the variant after the attachment is attached to the record.
+
+### Previewing Files
+
+Some non-image files can be previewed: that is, they can be presented as images.
+For example, a video file can be previewed by extracting its first frame. Out of
+the box, Active Storage supports previewing videos and PDF documents. To create
+a link to a lazily-generated preview, use the attachment's [`preview`][] method:
+
+```erb
+<%= image_tag message.video.preview(resize_to_limit: [100, 100]) %>
+```
+
+To add support for another format, add your own previewer. See the
+[`ActiveStorage::Preview`][] documentation for more information.
+
+[`preview`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-preview
+[`ActiveStorage::Preview`]: https://api.rubyonrails.org/classes/ActiveStorage/Preview.html
+
+### File Representations
+
 Active Storage supports displaying a variety of files. You can call
 [`representation`][] on an attachment to display an image variant, or a preview
 of a video or PDF.
@@ -675,7 +698,7 @@ image_tag file.representation(resize_to_limit: [100, 100]).processed.url
 The Active Storage variant tracker stores a record in the database if the
 requested representation has been processed before. So the above code will only
 make an API call to the remote service (e.g. S3) once. After that, the variant
-will be stored and used on subsequent requests. 
+will be stored and used on subsequent requests.
 
 However, if you're rendering many images on a page, the example above can cause
 an N+1 query problem. Each call to `file.representation(...)` will look up its
@@ -696,26 +719,8 @@ disabled using [`config.active_storage.track_variants`][].
 [`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
 [`ActiveStorage::Attachment`]: https://api.rubyonrails.org/classes/ActiveStorage/Attachment.html
 
-### Previewing Files
-
-Some non-image files can be previewed: that is, they can be presented as images.
-For example, a video file can be previewed by extracting its first frame. Out of
-the box, Active Storage supports previewing videos and PDF documents. To create
-a link to a lazily-generated preview, use the attachment's [`preview`][] method:
-
-```erb
-<%= image_tag message.video.preview(resize_to_limit: [100, 100]) %>
-```
-
-To add support for another format, add your own previewer. See the
-[`ActiveStorage::Preview`][] documentation for more information.
-
-[`preview`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-preview
-[`ActiveStorage::Preview`]: https://api.rubyonrails.org/classes/ActiveStorage/Preview.html
-
-
-Configure Cloud Service
------------------------
+Configure Cloud Services
+------------------------
 
 ### Storage Service
 
