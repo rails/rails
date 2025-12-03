@@ -55,6 +55,16 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_equal "100", attachable.height
   end
 
+  test "treats image attachments with non-URL paths as missing" do
+    html = '<action-text-attachment content-type="image/*" url="image.png" width="100" height="100"></action-text-attachment>'
+
+    content = content_from_html(html)
+    assert_equal 1, content.attachments.size
+
+    attachable = content.attachments.first.attachable
+    assert_kind_of ActionText::Attachables::MissingAttachable, attachable
+  end
+
   test "identifies destroyed attachables as missing" do
     file = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{file.attachable_sgid}"></action-text-attachment>)
