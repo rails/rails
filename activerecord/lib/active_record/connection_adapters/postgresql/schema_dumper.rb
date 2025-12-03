@@ -108,7 +108,17 @@ module ActiveRecord
               spec = { type: schema_type(column).inspect }.merge!(spec)
             end
 
-            spec[:enum_type] = column.sql_type.inspect if column.enum?
+            if column.enum?
+              # If only dumping one schema, or the enum type is already schema-qualified,
+              # use the enum type as is. Otherwise, qualify it with the current schema name.
+              enum_type = if @dump_schemas.size == 1 || column.sql_type.include?(".")
+                column.sql_type
+              else
+                "#{schema_name}.#{column.sql_type}"
+              end
+
+              spec[:enum_type] = enum_type.inspect
+            end
 
             spec
           end
