@@ -387,46 +387,51 @@ This query executes against the active_storage_blobs table rather than the attac
 Serving Files
 -------------
 
-Active Storage supports two ways to serve files: redirecting and proxying.
+Active Storage can serve files in two different ways: redirect mode and proxy mode. Both modes use built-in controllers to deliver blobs and [representations](#file-representations), but they differ in how the file ultimately reaches the browser.
 
 WARNING: All Active Storage controllers are publicly accessible by default. The
-generated URLs are hard to guess, but permanent by design. If your files
+Rails generated URLs are hard to guess, but permanent by design. If your files
 require a higher level of protection consider implementing
 [Authenticated Controllers](#authenticated-controllers).
 
 ### Redirect Mode
 
-To generate a permanent URL for a blob, you can pass the attachment or the blob to
-the [`url_for`][ActionView::RoutingUrlFor#url_for] view helper. This generates a
-URL with the blob's [`signed_id`][ActiveStorage::Blob#signed_id]
-that is routed to the blob's [`RedirectController`][`ActiveStorage::Blobs::RedirectController`]
+To generate a permanent URL for a blob, you can pass the attachment or the blob
+to the [`url_for`][ActionView::RoutingUrlFor#url_for] view helper. This
+generates a URL with the blob's [`signed_id`][ActiveStorage::Blob#signed_id]
+which points to the the blob's
+[`RedirectController`][`ActiveStorage::Blobs::RedirectController`]
 
 ```ruby
-url_for(user.avatar)
-# => https://www.example.com/rails/active_storage/blobs/redirect/:signed_id/my-avatar.png
+url_for(user.profile_photo)
+# => https://www.example.com/rails/active_storage/blobs/redirect/:signed_id/my-profile-photo.png
 ```
 
-The `RedirectController` redirects to the actual service endpoint. This
-indirection decouples the service URL from the actual one, and allows, for
-example, mirroring attachments in different services for high-availability. The
-redirection has an HTTP expiration of 5 minutes.
+The RedirectController does not serve the file itself. Instead, it takes the
+permanent, signed Rails URL and issues a redirect to a short-lived service URL
+(e.g. an expiring S3 URL). This indirection decouples
+your application’s public URLs from the underlying storage service and enables
+features such as mirroring attachments across multiple services for
+high-availability. The redirect response is cached by the browser for 5 minutes.
 
-To create a download link, use the `rails_blob_{path|url}` helper. Using this
-helper allows you to set the disposition.
+To create a download link, use the rails_blob_{path|url} helpers. These helpers
+generate the same permanent Rails URL but allow you to specify the file
+disposition.
 
 ```ruby
-rails_blob_path(user.avatar, disposition: "attachment")
+rails_blob_path(user.profile_photo, disposition: "attachment")
 ```
 
-WARNING: To prevent XSS attacks, Active Storage forces the Content-Disposition header
-to "attachment" for some kind of files. To change this behavior see the
-available configuration options in [Configuring Rails Applications](configuring.html#configuring-active-storage).
+WARNING: To prevent XSS attacks, Active Storage forces the Content-Disposition
+header to "attachment" for some kind of files. To change this behavior see the
+available configuration options in [Configuring Rails
+Applications](configuring.html#configuring-active-storage).
 
-If you need to create a link from outside of controller/view context (Background
-jobs, Cronjobs, etc.), you can access the `rails_blob_path` like this:
+If you need to create a link from outside of controller/view context, for
+background jobs for example, you can access the `rails_blob_path` like this:
 
 ```ruby
-Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: true)
+Rails.application.routes.url_helpers.rails_blob_path(user.profile_photo, only_path: true)
 ```
 
 [ActionView::RoutingUrlFor#url_for]: https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for
@@ -434,7 +439,7 @@ Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: tru
 
 ### Proxy Mode
 
-Optionally, files can be proxied instead. This means that your application servers will download file data from the storage service in response to requests. This can be useful for serving files from a CDN.
+In proxy mode, Rails retrieves the file from the storage service and then proxies it back to the client. Instead of sending a redirect, Rails responds with the file data directly from your application server.
 
 You can configure Active Storage to use proxying by default:
 
@@ -446,14 +451,14 @@ Rails.application.config.active_storage.resolve_model_to_route = :rails_storage_
 Or if you want to explicitly proxy specific attachments there are URL helpers you can use in the form of `rails_storage_proxy_path` and `rails_storage_proxy_url`.
 
 ```erb
-<%= image_tag rails_storage_proxy_path(@user.avatar) %>
+<%= image_tag rails_storage_proxy_path(@user.profile_photo) %>
 ```
 
 #### Putting a CDN in Front of Active Storage
 
-Additionally, in order to use a CDN for Active Storage attachments, you will need to generate URLs with proxy mode so that they are served by your app and the CDN will cache the attachment without any extra configuration. This works out of the box because the default Active Storage proxy controller sets an HTTP header indicating to the CDN to cache the response.
+To use a CDN in front of Active Storage attachments, you must generate URLs using proxy mode. In proxy mode, files are served through your application rather than redirected to the underlying storage service. This allows the CDN to cache the file without additional configuration, because the default Active Storage proxy controllers send HTTP headers instructing intermediaries (including CDNs) to cache the response.
 
-You should also make sure that the generated URLs use the CDN host instead of your app host. There are multiple ways to achieve this, but in general it involves tweaking your `config/routes.rb` file so that you can generate the proper URLs for the attachments and their variations. As an example, you could add this:
+When using CDN, you will need to ensure that the generated URLs use the CDN host instead of your application host. There are multiple ways to achieve this, but in general it involves tweaking your `config/routes.rb` file so that you can generate the proper URLs for the attachments and their variations. As an example, you could add this:
 
 ```ruby
 # config/routes.rb
@@ -486,23 +491,21 @@ end
 and then generate routes like this:
 
 ```erb
-<%= cdn_image_url(user.avatar.variant(resize_to_limit: [128, 128])) %>
+<%= cdn_image_url(user.profile_photo.variant(resize_to_limit: [128, 128])) %>
 ```
 
 ### Authenticated Controllers
 
-All Active Storage controllers are publicly accessible by default. The generated
-URLs use a plain [`signed_id`][ActiveStorage::Blob#signed_id], making them hard to
-guess but permanent. Anyone that knows the blob URL will be able to access it,
-even if a `before_action` in your `ApplicationController` would otherwise
-require a login. If your files require a higher level of protection, you can
-implement your own authenticated controllers, based on the
+By default, all Active Storage controllers are publicly accessible. The URLs they generate contain a blob’s [signed_id][ActiveStorage::Blob#signed_id], which is hard to guess but permanent. Anyone who knows the URL can access the file, even if the rest of your application requires authentication. before_actions in your own controllers (such as requiring a logged-in user) do not apply to Active Storage’s built-in controllers.
+
+If your files require stricter access control, such as “a user may only view their own files”, you can replace the built-in controllers with your own authenticated controllers. These controllers should wrap the behavior of the following built-in controllers but apply your own authorization logic before serving the file :
+
 [`ActiveStorage::Blobs::RedirectController`][],
 [`ActiveStorage::Blobs::ProxyController`][],
 [`ActiveStorage::Representations::RedirectController`][] and
 [`ActiveStorage::Representations::ProxyController`][]
 
-To only allow an account to access their own logo you could do the following:
+As an example, to only allow an account to access their own logo you could do the following:
 
 ```ruby
 # config/routes.rb
@@ -514,11 +517,10 @@ end
 ```ruby
 # app/controllers/logos_controller.rb
 class LogosController < ApplicationController
-  # Through ApplicationController:
-  # include Authenticate, SetCurrentAccount
+  # include Authentication via ApplicationController
 
   def show
-    redirect_to Current.account.logo.url
+    redirect_to Current.user.account.logo.url
   end
 end
 ```
@@ -527,13 +529,13 @@ end
 <%= image_tag account_logo_path %>
 ```
 
-And then you should disable the Active Storage default routes with:
+And finally, disable the Active Storage default routes with:
 
 ```ruby
 config.active_storage.draw_routes = false
 ```
 
-to prevent files being accessed with the publicly accessible URLs.
+This ensures that blobs and variants cannot be accessed through the built-in public controllers, and can only be served through your own authenticated routing and authorization logic.
 
 [`ActiveStorage::Blobs::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Blobs/RedirectController.html
 [`ActiveStorage::Blobs::ProxyController`]: https://api.rubyonrails.org/classes/ActiveStorage/Blobs/ProxyController.html
