@@ -1,3 +1,7 @@
+*   Avoid schema conflicts by dumping enum types with fully qualified name in PostgreSQL.
+
+    *Alex Robbin*
+
 *   Add support for configuring migration strategy on a per-adapter basis.
 
     `migration_strategy` can now be set on individual adapter classes, overriding
