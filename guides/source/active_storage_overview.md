@@ -724,11 +724,13 @@ disabled using [`config.active_storage.track_variants`][].
 Configure Cloud Services
 ------------------------
 
-### Storage Service
+Active Storage supports multiple cloud and local storage backends and each environment in your application can use a different one. All service configurations live in `config/storage.yml` file, where you define the connection details for each service your app might use. Once declared, services can be selected per-environment in `config/environments/*.rb` files.
 
-Declare Active Storage services in `config/storage.yml`. For each service your
-application uses, provide a name and the requisite configuration. The example
-below declares three services named `local`, `test`, and `amazon`:
+### Define Storage Services
+
+For each service your application uses, provide a name and the necessary
+configuration details. The example below declares three services named `local`,
+`test`, and `amazon`:
 
 ```yaml
 local:
@@ -739,7 +741,7 @@ test:
   service: Disk
   root: <%= Rails.root.join("tmp/storage") %>
 
-# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
+# Use bin/rails credentials:edit to set the AWS secrets
 amazon:
   service: S3
   access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
@@ -748,7 +750,7 @@ amazon:
   region: "" # e.g. 'us-east-1'
 ```
 
-Tell Active Storage which service to use by setting
+You can tell Active Storage which service to use by setting
 `Rails.application.config.active_storage.service`. Because each environment will
 likely use a different service, it is recommended to do this on a
 per-environment basis. To use the disk service from the previous example in the
@@ -756,7 +758,6 @@ development environment, you would add the following to
 `config/environments/development.rb`:
 
 ```ruby
-# Store files locally.
 config.active_storage.service = :local
 ```
 
@@ -764,7 +765,6 @@ To use the S3 service in production, you would add the following to
 `config/environments/production.rb`:
 
 ```ruby
-# Store files on Amazon S3.
 config.active_storage.service = :amazon
 ```
 
@@ -772,15 +772,14 @@ To use the test service when testing, you would add the following to
 `config/environments/test.rb`:
 
 ```ruby
-# Store uploaded files on the local file system in a temporary directory.
 config.active_storage.service = :test
 ```
 
-NOTE: Configuration files that are environment-specific will take precedence:
-in production, for example, the `config/storage/production.yml` file (if existent)
-will take precedence over the `config/storage.yml` file.
+NOTE: Configuration files that are environment-specific will take precedence: in
+production, for example, the `config/storage/production.yml` file will take
+precedence over the `config/storage.yml` file.
 
-It is recommended to use `Rails.env` in the bucket names to further reduce the risk of accidentally destroying production data.
+It’s a good practice to include `Rails.env` in your bucket names. This helps prevent accidental cross-environment access or data loss, such as overwriting production data while working in development.
 
 ```yaml
 amazon:
@@ -794,8 +793,8 @@ google:
   bucket: your_own_bucket-<%= Rails.env %>
 ```
 
-Continue reading for more information on the built-in service adapters (e.g.
-`Disk` and `S3`) and the configuration they require.
+Next, let's look at how to configure Active Storage's built-in service adapters
+(e.g. `Disk` and `S3`). A service adapter is the component that knows how to store, retrieve, and delete files on a particular backend.
 
 ### Disk Service
 
