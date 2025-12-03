@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
   test "showing blob inline" do

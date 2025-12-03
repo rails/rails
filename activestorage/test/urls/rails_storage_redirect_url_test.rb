@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 class RailsStorageRedirectUrlTest < ActiveSupport::TestCase
   include Rails.application.routes.url_helpers
