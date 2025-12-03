@@ -798,7 +798,7 @@ Next, let's look at how to configure Active Storage's built-in service adapters
 
 ### Disk Service
 
-Declare a Disk service in `config/storage.yml`:
+Configuring a Disk service is straightforward, as we have seen in `config/storage.yml`:
 
 ```yaml
 local:
@@ -808,10 +808,17 @@ local:
 
 ### S3 Service (Amazon S3 and S3-compatible APIs)
 
-To connect to Amazon S3, declare an S3 service in `config/storage.yml`:
+Active Storage’s built-in S3 service adapter relies on the official AWS SDK to communicate with Amazon S3 (or any S3-compatible service). Rails does not bundle the AWS SDK by default, so you must add the `aws-sdk-s3 gem` to your application’s Gemfile:
+
+```ruby
+gem "aws-sdk-s3", require: false
+```
+
+The `require: false` option avoids loading the SDK automatically. Active Storage will load it only when the S3 service is used, keeping application boot time and memory usage lower.
+
+To connect to Amazon S3, you can configure an `S3` service in `config/storage.yml`:
 
 ```yaml
-# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 amazon:
   service: S3
   access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
@@ -820,16 +827,13 @@ amazon:
   bucket: your_own_bucket-<%= Rails.env %>
 ```
 
-Optionally provide client and upload options:
+The above configuration assumes that AWS secrets are stored using `bin/rails credentials:edit` with the appropriate keys.
+
+There are other optionals configurations as well - such as HTTP timeouts, retry limits, and upload options - that can be included:
 
 ```yaml
-# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 amazon:
-  service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
-  region: "" # e.g. 'us-east-1'
-  bucket: your_own_bucket-<%= Rails.env %>
+  ...
   http_open_timeout: 0
   http_read_timeout: 0
   retry_limit: 0
@@ -840,20 +844,14 @@ amazon:
 
 TIP: Set sensible client HTTP timeouts and retry limits for your application. In certain failure scenarios, the default AWS client configuration may cause connections to be held for up to several minutes and lead to request queuing.
 
-Add the [`aws-sdk-s3`](https://github.com/aws/aws-sdk-ruby) gem to your `Gemfile`:
+NOTE: If you want to use environment variables, standard SDK configuration
+files, profiles, IAM instance profiles or task roles, you can omit the
+`access_key_id`, `secret_access_key`, and `region` keys in the example above.
+The S3 Service supports all of the authentication options described in the [AWS
+SDK
+documentation](https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
 
-```ruby
-gem "aws-sdk-s3", require: false
-```
-
-NOTE: The core features of Active Storage require the following permissions: `s3:ListBucket`, `s3:PutObject`, `s3:GetObject`, and `s3:DeleteObject`. [Public access](#public-access) additionally requires `s3:PutObjectAcl`. If you have additional upload options configured such as setting ACLs then additional permissions may be required.
-
-NOTE: If you want to use environment variables, standard SDK configuration files, profiles,
-IAM instance profiles or task roles, you can omit the `access_key_id`, `secret_access_key`,
-and `region` keys in the example above. The S3 Service supports all of the
-authentication options described in the [AWS SDK documentation](https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
-
-To connect to an S3-compatible object storage API such as DigitalOcean Spaces, provide the `endpoint`:
+You can also connect to an S3-compatible object storage API such as DigitalOcean Spaces by providing an `endpoint`:
 
 ```yaml
 digitalocean:
@@ -864,7 +862,9 @@ digitalocean:
   # ...and other options
 ```
 
-There are many other options available. You can check them in [AWS S3 Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Client.html#initialize-instance_method) documentation.
+NOTE: The core features of Active Storage require the following permissions: `s3:ListBucket`, `s3:PutObject`, `s3:GetObject`, and `s3:DeleteObject`. [Public access](#public-access) additionally requires `s3:PutObjectAcl`. If you have additional upload options configured such as setting ACLs then additional permissions may be required.
+
+There are many other options available. You can see them in [AWS S3 Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Client.html#initialize-instance_method) documentation.
 
 ### Google Cloud Storage Service
 
