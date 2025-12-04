@@ -148,7 +148,7 @@ module ActiveRecord
       elsif undesired.nil?
         found
       else
-        raise ActiveRecord::SoleRecordExceeded.new(model)
+        raise ActiveRecord::SoleRecordExceeded.new(self)
       end
     end
 
