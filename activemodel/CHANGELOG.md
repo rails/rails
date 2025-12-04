@@ -1,3 +1,23 @@
+*   Add `has_json` and `has_delegated_json` to provide schema-enforced access to JSON attributes.
+
+    ```ruby
+    class Account < ApplicationRecord
+      has_json :settings, restrict_creation_to_admins: true, max_invites: 10, greeting: "Hello!"
+      has_delegated_json :flags, beta: false, staff: :boolean
+    end
+
+    a = Account.new
+    a.settings.restrict_creation_to_admins? # => true
+    a.settings.max_invites = "100" # => Set to integer 100
+    a.settings = { "restrict_creation_to_admins" => "false", "max_invites" => "500", "greeting" => "goodbye" }
+    a.settings.greeting # => "goodbye"
+    a.staff # => nil
+    a.staff = true
+    a.staff? # => true
+    ```
+
+    *DHH*
+
 *   Changes `ActiveModel::Validations#read_attribute_for_validation` to return `nil` if the record doesn't
     respond to the attribute instead of raising an error.
 

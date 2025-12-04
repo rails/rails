@@ -2032,6 +2032,55 @@ As you can see above the `default_scope` is being merged in both
 
 [`merge`]: https://api.rubyonrails.org/classes/ActiveRecord/SpawnMethods.html#method-i-merge
 
+### Block-Level Scoping
+
+The [`scoping`][] method allows you to temporarily apply the current relation’s conditions within a block.
+Any query executed inside the block will use the scope of the relation.
+
+#### Basic Usage
+
+```ruby
+Order.where(customer_id: 1).scoping do
+  Order.first
+end
+
+# SELECT "orders".* FROM "orders" WHERE "orders"."customer_id" = ? ORDER BY "orders"."id" ASC LIMIT ?  [["customer_id", 1], ["LIMIT", 1]]
+```
+
+In this example, the `customer_id: 1` condition is applied automatically because the block is executed within the relation’s scope.
+
+#### Applying Scope To All Queries In The Block
+
+By default, scoping applies only to finder methods (such as `first`, `last`, `where`, etc.).
+If you want the scope to affect all queries—including `update` and `delete` on individual records, you can pass the option `all_queries: true`.
+
+```ruby
+Order.where(customer_id: 1).scoping(all_queries: true) do
+  order = Order.first
+  order.update(status: :complete)
+end
+
+# Order Load (0.1ms)    SELECT "orders".* FROM "orders" WHERE "orders"."customer_id" = ? ORDER BY "orders"."id" ASC LIMIT ?  [["customer_id", 1], ["LIMIT", 1]]
+# TRANSACTION (0.0ms)   BEGIN immediate TRANSACTION
+# Order Update (0.1ms)  UPDATE "orders" SET "status" = ?, "updated_at" = ? WHERE "orders"."id" = ? AND "orders"."customer_id" = ?  [["status", 2], ["updated_at", "2025-11-25 11:26:16.089553"], ["id", 1], ["customer_id", 1]]
+# TRANSACTION (0.0ms)   COMMIT TRANSACTION
+```
+
+This will ensure that the `customer_id: 1` condition is applied to all queries executed within the block.
+
+Once a block has been entered with `all_queries: true`, nested blocks cannot disable it:
+
+```ruby
+Order.where(customer_id: 1).scoping(all_queries: true) do
+  # This will raise an ArgumentError:
+  Order.scoping(all_queries: false) do
+    # ...
+  end
+end
+```
+
+[`scoping`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-scoping
+
 ### Removing All Scoping
 
 If we wish to remove scoping for any reason we can use the [`unscoped`][] method. This is
