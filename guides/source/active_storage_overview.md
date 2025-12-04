@@ -31,7 +31,7 @@ image representations of non-image uploads like PDFs and videos, and extract
 metadata.
 
 For cloud storage services, Active Storage supports mirroring files to secondary
-services to serve as a backup or to allow migration between services.
+services to serve as a backup or to allow migration between services. Active Storage also supports Direct Uploads, allowing files to be uploaded straight from the client's browser to the configured cloud storage service. This avoids routing large files through your Rails servers.
 
 ### Setup
 
@@ -50,7 +50,7 @@ The install command creates migrations to add the following Active Storage speci
 
 WARNING: If you are using UUIDs instead of integers as the primary key on your models, you will need to set `Rails.application.config.generators { |g| g.orm :active_record, primary_key_type: :uuid }` in a config file.
 
-NOTE: Since Active Storage relies on [polymorphic associations](association_basics.html#polymorphic-associations), which store Ruby class names in the database, you will need to manually update Active Storage tables if you rename Ruby class names. For example, when renaming a class that use `has_one_attached`, make sure to also update the class name in the `active_storage_attachments.record_type` table and column.
+NOTE: Since Active Storage relies on [polymorphic associations](association_basics.html#polymorphic-associations), which store Ruby class names in the database, you will need to manually update Active Storage tables if you rename related Ruby classes (e.g. `active_storage_attachments.record_type` table and column).
 
 In terms of storing uploaded file during local development and testing, the default `Disk` service can be specified in the `config/storage.yml` file:
 
@@ -78,7 +78,7 @@ In a production environment you wouldn't use the local disk-based service. So, t
 config.active_storage.service = :amazon
 ```
 
-You can find detailed information about [configuring cloud services](#configure-cloud-services) section can be found in a later section.
+You can find detailed information about [configuring cloud services](#configure-cloud-services) in a later section.
 
 ### Third Party Software
 
@@ -167,8 +167,6 @@ The `attached?` method determines whether a particular user has an profile photo
 user.profile_photo.attached?
 ```
 
-
-
 [`has_one_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached
 [Attached::One#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attach
 [Attached::One#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attached-3F
@@ -186,13 +184,13 @@ class Product < ApplicationRecord
 end
 ```
 
-or if you are using Rails 6.0+, you can run a model generator command like this:
+You can also use the model generator command like this:
 
 ```bash
 $ bin/rails generate model Product images:attachments
 ```
 
-You can create a product with images:
+The controller to create a product with multiple images looks like this:
 
 ```ruby
 class ProductsController < ApplicationController
@@ -220,7 +218,9 @@ You can call [`images.attached?`][Attached::Many#attached?] to determine whether
 @product.images.attached?
 ```
 
-Overriding the default service is done the same way as `has_one_attached`, by using the `service` option:
+NOTE: When using `has_many_attached`, calling `images.attach(...)` adds new attachments. It does not replace or overwrite existing ones. If you want to replace existing images, you must explicitly [purge](#removing-files) the old attachments before attaching new ones.
+
+Similar to `has_one_attached`, you can overriding the default service using the `service` option:
 
 ```ruby
 class Product < ApplicationRecord
@@ -228,7 +228,7 @@ class Product < ApplicationRecord
 end
 ```
 
-Configuring specific variants is done the same way as `has_one_attached`, by calling the `variant` method on the attachable object:
+and configure specific variants by calling the `variant` method on the attachable object:
 
 ```ruby
 class Message < ApplicationRecord
@@ -244,11 +244,19 @@ end
 
 #### Adding New Attachments
 
-WARNING: By default, attaching files to a `has_many_attached` association will
-replace any existing attachments.
+When working with `has_many_attached` association, it’s important to distinguish between calling `.attach` directly in Ruby and assigning attachments through form parameters.
+
+Calling `.attach` always appends new files. It never replaces existing attachments:
+
+```ruby
+# Appends new images, previously attached images remain.
+@product.images.attach(params[:new_images])
+```
+
+However, form assignment behaves differently. When a form submits `images: params`, Rails treats the submitted list as the entire intended set of attachments for that field. If the form only includes the newly uploaded files, Rails will interpret that as replacing the collection.
 
 To keep existing attachments, you can use hidden form fields with the
-[`signed_id`][ActiveStorage::Blob#signed_id] of each attached file:
+[`signed_id`][ActiveStorage::Blob#signed_id] to re-submit each of the already attached file:
 
 ```erb
 <% @product.images.each do |image| %>
@@ -570,6 +578,42 @@ NOTE: Active Storage attachments are not fully available until the record’s tr
 [Blob#download]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-download
 [Blob#open]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-open
 
+Removing Files
+--------------
+
+### Purging Attachments From a Model
+
+To remove an attachment from a model, call [`purge`][Attached::One#purge] on the
+attachment. If your application is set up to use Active Job, removal can be done
+in the background instead by calling [`purge_later`][Attached::One#purge_later].
+Purging deletes the blob and the file from the storage service.
+
+```ruby
+# Removes the profile_photo
+user.profile_photo.purge
+
+# Removes the file asynchronously with Active Job.
+user.profile_photo.purge_later
+```
+
+[Attached::One#purge]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge
+[Attached::One#purge_later]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge_later
+
+### Purging Unattached Uploads
+
+There are cases where a file is uploaded but never attached to a record. This can happen when using [Direct Uploads](#direct-uploads). You can query for unattached records using the [unattached scope](https://github.com/rails/rails/blob/8ef5bd9ced351162b673904a0b77c7034ca2bc20/activestorage/app/models/active_storage/blob.rb#L49). Below is an example using a [custom rake task](command_line.html#custom-rake-tasks).
+
+```ruby
+namespace :active_storage do
+  desc "Purges unattached Active Storage blobs. Run regularly."
+  task purge_unattached: :environment do
+    ActiveStorage::Blob.unattached.where(created_at: ..2.days.ago).find_each(&:purge_later)
+  end
+end
+```
+
+WARNING: The query generated by `ActiveStorage::Blob.unattached` can be slow and potentially disruptive on applications with larger databases.
+
 Analyzing Files For Metadata
 ----------------------------
 
@@ -627,7 +671,7 @@ enable command injection vulnerabilities in your app. It is also recommended
 to implement a strict [ImageMagick security policy](https://imagemagick.org/script/security-policy.php)
 when MiniMagick is the variant processor of choice.
 
-### Previewing Files
+### File Previews
 
 Some non-image files can be previewed: that is, they can be presented as images.
 For example, a video file can be previewed by extracting its first frame. Out of
@@ -709,7 +753,7 @@ make an API call to the remote service (e.g. S3) once. After that, the variant
 will be stored and used on subsequent requests.
 
 However, if you're rendering many images on a page, the example above can cause
-an N+1 query problem. Each call to `file.representation(...)` will look up its
+an [N+1 query problem](active_record_querying.html#n-1-queries-problem). Each call to `file.representation(...)` will look up its
 variant record individually, resulting in one query per image. To avoid these
 extra queries, you can preload variant records using the named scope,
 `with_all_variant_records` on [ActiveStorage::Attachment][].
@@ -1066,7 +1110,7 @@ ActiveStorage.start()
 
 All of these approaches provide the same functionality; choose the one that matches your application’s JavaScript setup.
 
-Next, you'll add `direct_upload: true` option to your [`file_field`
+Next step is to set the `direct_upload: true` option in your [`file_field`
 helper](form_helpers.html#uploading-files) to automatically annotate the
 input field with the direct upload URL via `data-direct-upload-url` attribute.
 
@@ -1161,7 +1205,6 @@ To show the uploaded files in a form:
 
 ```js
 // direct_uploads.js
-
 addEventListener("direct-upload:initialize", event => {
   const { target, detail } = event
   const { id, file } = detail
@@ -1205,7 +1248,6 @@ Add styles:
 
 ```css
 /* direct_uploads.css */
-
 .direct-upload {
   display: inline-block;
   position: relative;
@@ -1595,37 +1637,3 @@ s3:
   service: Disk
   root: <%= Rails.root.join("tmp/storage") %>
 ```
-
-Removing Files
---------------
-
-To remove an attachment from a model, call [`purge`][Attached::One#purge] on the
-attachment. If your application is set up to use Active Job, removal can be done
-in the background instead by calling [`purge_later`][Attached::One#purge_later].
-Purging deletes the blob and the file from the storage service.
-
-```ruby
-# Synchronously destroy the avatar and actual resource files.
-user.avatar.purge
-
-# Destroy the associated models and actual resource files async, via Active Job.
-user.avatar.purge_later
-```
-
-[Attached::One#purge]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge
-[Attached::One#purge_later]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge_later
-
-### Purging Unattached Uploads
-
-There are cases where a file is uploaded but never attached to a record. This can happen when using [Direct Uploads](#direct-uploads). You can query for unattached records using the [unattached scope](https://github.com/rails/rails/blob/8ef5bd9ced351162b673904a0b77c7034ca2bc20/activestorage/app/models/active_storage/blob.rb#L49). Below is an example using a [custom rake task](command_line.html#custom-rake-tasks).
-
-```ruby
-namespace :active_storage do
-  desc "Purges unattached Active Storage blobs. Run regularly."
-  task purge_unattached: :environment do
-    ActiveStorage::Blob.unattached.where(created_at: ..2.days.ago).find_each(&:purge_later)
-  end
-end
-```
-
-WARNING: The query generated by `ActiveStorage::Blob.unattached` can be slow and potentially disruptive on applications with larger databases.
