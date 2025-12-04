@@ -653,7 +653,7 @@ You can call `profile_photo.variant(:thumb)` in a view to get a thumb variant of
 <%= image_tag user.profile_photo.variant(:thumb) %>
 ```
 
-If you know in advance that your variants will be accessed, you can use the `preprocessed` option to specify that Rails should generate them ahead of time:
+If you know in advance that your variants will be accessed, you can use the `preprocessed` option (with both `has_one_attached` and `has_many_attached`) to specify that Rails should generate them ahead of time:
 
 ```ruby
 class User < ApplicationRecord
@@ -662,8 +662,7 @@ class User < ApplicationRecord
   end
 end
 ```
-
-Rails will enqueue a job to generate the variant after the attachment is attached to the record.
+The `preprocessed: true` option instructs Active Storage to enqueue a job that generates the variant immediately after the attachment is saved, so the resized version is ready the first time it's requested.
 
 WARNING: It should be considered unsafe to provide arbitrary user supplied
 transformations or parameters to variant processors. This can potentially
@@ -829,7 +828,7 @@ NOTE: Configuration files that are environment-specific will take precedence: in
 production, for example, the `config/storage/production.yml` file will take
 precedence over the `config/storage.yml` file.
 
-It’s a good practice to include `Rails.env` in your bucket names. This helps prevent accidental cross-environment access or data loss, such as overwriting production data while working in development.
+It’s a good practice to include `Rails.env` in your bucket names (i.e. storage containers). This helps prevent accidental cross-environment access or data loss, such as overwriting production data while working in development.
 
 ```yaml
 amazon:
@@ -891,6 +890,8 @@ amazon:
     server_side_encryption: "" # 'aws:kms' or 'AES256'
     cache_control: "private, max-age=<%= 1.day.to_i %>"
 ```
+
+The `cache_control` option adds the `Cache-Control` header to uploaded files have, so that an image downloaded from the server won't get loaded again by the browser if it's present in the browser's cache and not expired.
 
 TIP: Set sensible client HTTP timeouts and retry limits for your application. In certain failure scenarios, the default AWS client configuration may cause connections to be held for up to several minutes and lead to request queuing.
 
