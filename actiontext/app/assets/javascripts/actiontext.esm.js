@@ -887,6 +887,7 @@ class AttachmentUpload {
     this.element = element;
     this.directUpload = new DirectUpload(file, this.directUploadUrl, this);
     this.file = file;
+    this.dispatch("initialize");
   }
   start() {
     return new Promise(((resolve, reject) => {
@@ -894,7 +895,15 @@ class AttachmentUpload {
       this.dispatch("start");
     }));
   }
+  directUploadWillCreateBlobWithXHR(xhr) {
+    this.dispatch("before-blob-request", {
+      xhr: xhr
+    });
+  }
   directUploadWillStoreFileWithXHR(xhr) {
+    this.dispatch("before-storage-request", {
+      xhr: xhr
+    });
     xhr.upload.addEventListener("progress", (event => {
       const progress = event.loaded / event.total * 90;
       if (progress) {
@@ -956,6 +965,8 @@ class AttachmentUpload {
   }
   dispatch(name, detail = {}) {
     detail.attachment = this.attachment;
+    detail.file = this.directUpload.file;
+    detail.id = this.directUpload.id;
     return dispatchEvent(this.element, `direct-upload:${name}`, {
       detail: detail
     });
