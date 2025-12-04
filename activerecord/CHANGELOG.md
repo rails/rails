@@ -1,3 +1,10 @@
+*   Fix `ActiveRecord::SoleRecordExceeded#record` to return the relation.
+
+    This was the case until Rails 7.2, but starting from 8.0 it
+    started mistakenly returning the model class.
+
+    *Jean Boussier*
+
 *   Improve PostgreSQLAdapter resilience to Timeout.timeout.
 
     Better handle asynchronous exceptions being thrown inside
