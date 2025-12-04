@@ -391,6 +391,22 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal [ Payment.new(1), Payment.new(5), Payment.new(3) ], values.in_order_of(:price, [ 1, 5 ], filter: false)
   end
 
+  def test_in_order_of_works_with_procs
+    values = [ { price: 3 }, { price: 5 }, { price: 1 } ]
+    assert_equal [ { price: 1 }, { price: 5 } ], values.in_order_of(Proc.new { |e| e[:price] }, [ 1, 5 ])
+
+    values = [ { price: 3 }, { price: 5 }, { price: 1 } ]
+    assert_equal [ { price: 1 }, { price: 5 }, { price: 3 } ], values.in_order_of(Proc.new { |e| e[:price] }, [ 1, 5 ], filter: false)
+  end
+
+  def test_in_order_of_works_with_lambdas
+    values = [ { "price" => 3 }, { "price" => 5 }, { "price" => 1 } ]
+    assert_equal [ { "price" => 1 }, { "price" => 5 } ], values.in_order_of(lambda { |e| e["price"] }, [ 1, 5 ])
+
+    values = [ { "price" => 3 }, { "price" => 5 }, { "price" => 1 } ]
+    assert_equal [ { "price" => 1 }, { "price" => 5 }, { "price" => 3 } ], values.in_order_of(lambda { |e| e["price"] }, [ 1, 5 ], filter: false)
+  end
+
   def test_sole
     expected_raise = Enumerable::SoleItemExpectedError
 

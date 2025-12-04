@@ -1,3 +1,7 @@
+*   Fix `in_order_of` with filter false to works with procs and lambdas.
+
+    *Igor Depolli*
+
 *   Add a fast failure mode to `ActiveSupport::ContinuousIntegration` that stops the rest of
     the run after a step fails. Invoke by running `bin/ci --fail-fast` or `bin/ci -f`.
 
