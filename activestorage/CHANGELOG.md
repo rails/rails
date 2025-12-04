@@ -1,3 +1,10 @@
+*   Move responsibility for checksums storage service
+
+    The storage service should implement calculating and
+    validating checksums.
+
+    *Matt Pasquini*
+
 *   `ActiveStorage::Blob#open` can now be used without passing a block, like `Tempfile.open`. When using this form the
     returned temporary file must be unlinked manually.
 
