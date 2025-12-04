@@ -522,7 +522,7 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_content_tag_with_both_argument_and_block
-    assert_dom_equal '<p>limelight shines!</p>', tag.p("limelight") { " shines!" }
+    assert_dom_equal "<p>limelight shines!</p>", tag.p("limelight") { " shines!" }
   end
 
   def test_tag_builder_with_data_attributes
