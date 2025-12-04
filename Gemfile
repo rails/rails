@@ -28,10 +28,11 @@ gem "solid_queue"
 gem "solid_cable"
 gem "kamal", ">= 2.1.0", require: false
 gem "thruster", require: false
-# require: false so bcrypt is loaded only when has_secure_password is used.
+# require: false so bcrypt and argon2 are loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
-# being dependent on a binary library.
+# being dependent on binary libraries.
 gem "bcrypt", "~> 3.1.11", require: false
+gem "argon2", "~> 2.3.2", require: false
 
 # This needs to be with require false to avoid it being automatically loaded by
 # sprockets.

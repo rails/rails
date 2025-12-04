@@ -30,6 +30,7 @@ module Rails
   autoload :InfoController
   autoload :MailersController
   autoload :WelcomeController
+  autoload :DevtoolsController
 
   eager_autoload do
     autoload :HealthController

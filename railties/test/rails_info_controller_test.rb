@@ -110,7 +110,7 @@ class InfoControllerTest < ActionController::TestCase
   end
 
   test "info controller search returns exact matches for route names" do
-    get :routes, params: { query: "rails_info_" }
+    get :routes, params: { query: "rails_info_" }, as: :json
     assert exact_results.size == 0, "should not match incomplete route names"
 
     get :routes, params: { query: "" }
@@ -134,7 +134,7 @@ class InfoControllerTest < ActionController::TestCase
   end
 
   test "info controller search returns exact matches for route paths" do
-    get :routes, params: { query: "rails/info/route" }
+    get :routes, params: { query: "rails/info/route" }, as: :json
     assert exact_results.size == 0, "should not match incomplete route paths"
 
     get :routes, params: { query: "/rails/info/routes" }
@@ -155,7 +155,7 @@ class InfoControllerTest < ActionController::TestCase
   end
 
   test "info controller search returns case-sensitive exact matches for HTTP Verb methods" do
-    get :routes, params: { query: "GE" }
+    get :routes, params: { query: "GE" }, as: :json
     assert exact_results.size == 0, "should not match incomplete HTTP Verb methods"
 
     get :routes, params: { query: "get" }
@@ -170,7 +170,7 @@ class InfoControllerTest < ActionController::TestCase
   end
 
   test "info controller search returns exact matches for route Controller#Action(s)" do
-    get :routes, params: { query: "rails/info#propertie" }
+    get :routes, params: { query: "rails/info#propertie" }, as: :json
     assert exact_results.size == 0, "should not match incomplete route Controller#Action(s)"
 
     get :routes, params: { query: "rails/info#properties" }
@@ -181,7 +181,7 @@ class InfoControllerTest < ActionController::TestCase
   end
 
   test "info controller returns fuzzy matches for route names" do
-    get :routes, params: { query: "" }
+    get :routes, params: { query: "" }, as: :json
     assert exact_results.size == 0, "should not match unnamed routes"
 
     get :routes, params: { query: "rails_info" }
@@ -205,7 +205,7 @@ class InfoControllerTest < ActionController::TestCase
   end
 
   test "info controller returns fuzzy matches for route paths" do
-    get :routes, params: { query: "rails/:test" }
+    get :routes, params: { query: "rails/:test" }, as: :json
     assert fuzzy_results.size == 2, "should match incomplete routes"
     assert fuzzy_results.include? "/rails/:test/properties(.:format)"
     assert fuzzy_results.include? "/rails/:test/named_properties(.:format)"
@@ -221,7 +221,7 @@ class InfoControllerTest < ActionController::TestCase
   # Intentionally ignoring fuzzy match of HTTP Verb methods. There's not much value to 'GE' returning 'GET' results.
 
   test "info controller search returns fuzzy matches for route Controller#Action(s)" do
-    get :routes, params: { query: "rails/info#propertie" }
+    get :routes, params: { query: "rails/info#propertie" }, as: :json
     assert fuzzy_results.size == 3, "should match incomplete routes"
     assert fuzzy_results.include? "/rails/info/properties(.:format)"
     assert fuzzy_results.include? "/rails/:test/properties(.:format)"

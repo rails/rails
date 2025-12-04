@@ -67,6 +67,12 @@ The second
     end
   end
 
+  def use_stylesheet_link_tag
+    mail_with_defaults do |format|
+      format.html { render(inline: "<%= stylesheet_link_tag 'mailer' %>") }
+    end
+  end
+
   private
     def mail_with_defaults(&block)
       mail(to: "test@localhost", from: "tester@example.com",
@@ -120,6 +126,18 @@ class MailerHelperTest < ActionMailer::TestCase
       mail = HelperMailer.use_cache
       assert_equal "Greetings from a cache helper block", mail.body.encoded
     end
+  end
+
+  def test_stylesheet_link_tag_without_nonce_method
+    original_auto_include_nonce_for_styles = ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_styles
+    ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_styles = true
+
+    mail = HelperMailer.use_stylesheet_link_tag
+
+    assert_includes mail.body.encoded, %(<link rel="stylesheet" href="/stylesheets/mailer.css")
+    assert_not_includes mail.body.encoded, "nonce="
+  ensure
+    ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_styles = original_auto_include_nonce_for_styles
   end
 
   def helper

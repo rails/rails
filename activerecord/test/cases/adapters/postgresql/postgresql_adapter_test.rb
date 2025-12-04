@@ -172,29 +172,37 @@ module ActiveRecord
 
       def test_exec_insert_with_returning_disabled
         connection = connection_without_insert_returning
-        result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id", "postgresql_partitioned_table_parent_id_seq")
-        expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
+        result = assert_deprecated(ActiveRecord.deprecator) do
+          connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id", "postgresql_partitioned_table_parent_id_seq")
+        end
+        expect = connection.select_value("select max(id) from postgresql_partitioned_table_parent")
         assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_exec_insert_with_returning_disabled_and_no_sequence_name_given
         connection = connection_without_insert_returning
-        result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id")
-        expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
+        result = assert_deprecated(ActiveRecord.deprecator) do
+          connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id")
+        end
+        expect = connection.select_value("select max(id) from postgresql_partitioned_table_parent")
         assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_exec_insert_default_values_with_returning_disabled_and_no_sequence_name_given
         connection = connection_without_insert_returning
-        result = connection.exec_insert("insert into postgresql_partitioned_table_parent DEFAULT VALUES", nil, [], "id")
-        expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
+        result = assert_deprecated(ActiveRecord.deprecator) do
+          connection.exec_insert("insert into postgresql_partitioned_table_parent DEFAULT VALUES", nil, [], "id")
+        end
+        expect = connection.select_value("select max(id) from postgresql_partitioned_table_parent")
         assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_exec_insert_default_values_quoted_schema_with_returning_disabled_and_no_sequence_name_given
         connection = connection_without_insert_returning
-        result = connection.exec_insert('insert into "public"."postgresql_partitioned_table_parent" DEFAULT VALUES', nil, [], "id")
-        expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
+        result = assert_deprecated(ActiveRecord.deprecator) do
+          connection.exec_insert('insert into "public"."postgresql_partitioned_table_parent" DEFAULT VALUES', nil, [], "id")
+        end
+        expect = connection.select_value("select max(id) from postgresql_partitioned_table_parent")
         assert_equal expect.to_i, result.rows.first.first
       end
 
@@ -527,7 +535,15 @@ module ActiveRecord
 
       def test_raise_error_when_cannot_translate_exception
         assert_raise TypeError do
-          @connection.send(:log, nil) { @connection.execute(nil) }
+          @connection.execute(:not_a_query)
+        end
+      end
+
+      def test_retryable_query_error_handles_closed_connection
+        @connection.raw_connection.close
+
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          @connection.execute("SELECT 1")
         end
       end
 
@@ -765,12 +781,12 @@ module ActiveRecord
         @connection.execute("CREATE SCHEMA custom_schema")
         @connection.execute("DROP EXTENSION IF EXISTS hstore")
         @connection.execute("CREATE EXTENSION hstore SCHEMA custom_schema")
-        result = @connection.query("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
-        assert_equal [["hstore"]], result.to_a
+        result = @connection.select_values("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
+        assert_equal ["hstore"], result
 
         @connection.disable_extension "custom_schema.hstore"
-        result = @connection.query("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
-        assert_equal [], result.to_a
+        result = @connection.select_values("SELECT extname FROM pg_extension WHERE extnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'custom_schema')")
+        assert_equal [], result
       ensure
         @connection.execute("DROP EXTENSION IF EXISTS hstore")
         @connection.execute("DROP SCHEMA IF EXISTS custom_schema CASCADE")
@@ -779,12 +795,12 @@ module ActiveRecord
       def test_disable_extension_without_schema
         @connection.execute("DROP EXTENSION IF EXISTS hstore")
         @connection.execute("CREATE EXTENSION hstore")
-        result = @connection.query("SELECT extname FROM pg_extension")
-        assert_includes result.to_a, ["hstore"]
+        result = @connection.select_values("SELECT extname FROM pg_extension")
+        assert_includes result, "hstore"
 
         @connection.disable_extension "hstore"
-        result = @connection.query("SELECT extname FROM pg_extension")
-        assert_not_includes result.to_a, ["hstore"]
+        result = @connection.select_values("SELECT extname FROM pg_extension")
+        assert_not_includes result, "hstore"
       ensure
         @connection.execute("DROP EXTENSION IF EXISTS hstore")
       end

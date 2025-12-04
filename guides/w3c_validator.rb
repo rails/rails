@@ -94,5 +94,3 @@ module RailsGuides
       end
   end
 end
-
-RailsGuides::Validator.new.validate

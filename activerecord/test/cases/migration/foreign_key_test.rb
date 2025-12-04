@@ -860,7 +860,7 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
 
             if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
               if ActiveRecord::Base.lease_connection.mariadb?
-                assert_match(/Duplicate key on write or update/, error.message)
+                assert_match(/Duplicate key on write or update|Duplicate FOREIGN KEY/, error.message)
               elsif ActiveRecord::Base.lease_connection.database_version < "8.0"
                 assert_match(/Can't write; duplicate key in table/, error.message)
               else

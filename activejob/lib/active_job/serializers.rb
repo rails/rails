@@ -38,7 +38,7 @@ module ActiveJob
       # Will look up through all known serializers.
       # If no serializer found will raise <tt>ArgumentError</tt>.
       def deserialize(argument)
-        serializer_name = argument[Arguments::OBJECT_SERIALIZER_KEY]
+        serializer_name = argument[OBJECT_SERIALIZER_KEY]
         raise ArgumentError, "Serializer name is not present in the argument: #{argument.inspect}" unless serializer_name
 
         serializer = serializer_name.safe_constantize
@@ -51,30 +51,34 @@ module ActiveJob
       attr_reader :serializers
 
       def serializers=(serializers)
-        @serializers = serializers
-        index_serializers
+        @serializers_index.clear
+        @serializers = Set.new
+        add_new_serializers(serializers)
       end
 
       # Adds new serializers to a list of known serializers.
       def add_serializers(*new_serializers)
         new_serializers = new_serializers.flatten
-        new_serializers.map! do |s|
-          if s.is_a?(Class) && s < ObjectSerializer
-            s.instance
-          else
-            s
-          end
-        end
-
-        @serializers += new_serializers
-        index_serializers
-        @serializers
+        add_new_serializers(new_serializers)
       end
 
       private
-        def index_serializers
-          @serializers_index.clear
-          serializers.each do |s|
+        def add_new_serializers(new_serializers)
+          new_serializers.map! do |s|
+            if s.is_a?(Class) && s < ObjectSerializer
+              s.instance
+            else
+              s
+            end
+          end
+
+          @serializers += new_serializers
+          index_serializers(new_serializers)
+          @serializers
+        end
+
+        def index_serializers(new_serializers)
+          new_serializers.each do |s|
             if s.respond_to?(:klass)
               @serializers_index[s.klass] = s
             elsif s.respond_to?(:klass, true)
@@ -95,6 +99,9 @@ module ActiveJob
           end
         end
     end
+
+    # :nodoc:
+    OBJECT_SERIALIZER_KEY = "_aj_serialized"
 
     add_serializers SymbolSerializer.instance,
       DurationSerializer.instance,

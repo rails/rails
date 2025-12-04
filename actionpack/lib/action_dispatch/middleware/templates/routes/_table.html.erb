@@ -122,6 +122,7 @@
     function getJSON(url, success) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', url);
+      xhr.setRequestHeader('accept', 'application/json');
       xhr.onload = function() {
         if (this.status == 200)
           success(JSON.parse(this.response));
@@ -152,6 +153,7 @@
       if (searchElem.value === "") {
         exactSection.innerHTML = "";
         fuzzySection.innerHTML = "";
+        updateQueryState("");
       }
     }
 
@@ -162,6 +164,12 @@
       tr.appendChild(th);
       th.innerText = string;
       return tr;
+    }
+
+    function updateQueryState(query) {
+      var currentUrl = new URL(location);
+      currentUrl.searchParams.set('query', query)
+      history.pushState({}, '', currentUrl.toString());
     }
 
     // On key press perform a search for matching paths
@@ -175,6 +183,7 @@
       if (!query)
         return searchElem.onblur();
 
+      updateQueryState(query);
       getJSON('/rails/info/routes?query=' + query, function(matches){
         // Clear out results section
         exactSection.replaceChildren(defaultExactMatch);
@@ -224,9 +233,21 @@
     });
   }
 
+  // Pre-fills the search input with existing query
+  function setupPrefilledQuery() {
+    let urlParams = new URLSearchParams(location.search);
+    let query = urlParams.get('query');
+
+    if (query) {
+      search.value = query;
+      search.dispatchEvent(new KeyboardEvent('keyup'));
+    }
+  }
+
   setupMatchingRoutes();
   setupRouteToggleHelperLinks();
+  setupPrefilledQuery();
 
   // Focus the search input after page has loaded
-  document.getElementById('search').focus();
+  search.focus();
 </script>

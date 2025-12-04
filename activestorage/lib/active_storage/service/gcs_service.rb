@@ -14,8 +14,8 @@ module ActiveStorage
     class MetadataServerNotFoundError < ActiveStorage::Error; end
 
     def initialize(public: false, **config)
-      @config = config
       @public = public
+      @config = config
     end
 
     def upload(key, io, checksum: nil, content_type: nil, disposition: nil, filename: nil, custom_metadata: {})
@@ -144,6 +144,14 @@ module ActiveStorage
       end
     end
 
+    def bucket
+      @bucket ||= client.bucket(@config.fetch(:bucket), skip_lookup: true)
+    end
+
+    def client
+      @client ||= Google::Cloud::Storage.new(**@config.except(:bucket, :cache_control, :iam, :gsa_email))
+    end
+
     private
       def private_url(key, expires_in:, filename:, content_type:, disposition:, **)
         args = {
@@ -166,9 +174,6 @@ module ActiveStorage
         file_for(key).public_url
       end
 
-
-      attr_reader :config
-
       def file_for(key, skip_lookup: true)
         bucket.file(key, skip_lookup: skip_lookup)
       end
@@ -186,14 +191,6 @@ module ActiveStorage
           yield file.download(range: offset..(offset + chunk_size - 1)).string
           offset += chunk_size
         end
-      end
-
-      def bucket
-        @bucket ||= client.bucket(config.fetch(:bucket), skip_lookup: true)
-      end
-
-      def client
-        @client ||= Google::Cloud::Storage.new(**config.except(:bucket, :cache_control, :iam, :gsa_email))
       end
 
       def issuer

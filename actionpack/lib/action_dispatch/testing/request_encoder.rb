@@ -3,6 +3,7 @@
 # :markup: markdown
 
 require "nokogiri"
+require "action_dispatch/http/mime_type"
 
 module ActionDispatch
   class RequestEncoder # :nodoc:
@@ -15,9 +16,9 @@ module ActionDispatch
 
     @encoders = { identity: IdentityEncoder.new }
 
-    attr_reader :response_parser
+    attr_reader :response_parser, :content_type
 
-    def initialize(mime_name, param_encoder, response_parser)
+    def initialize(mime_name, param_encoder, response_parser, content_type)
       @mime = Mime[mime_name]
 
       unless @mime
@@ -27,10 +28,7 @@ module ActionDispatch
 
       @response_parser = response_parser || -> body { body }
       @param_encoder   = param_encoder   || :"to_#{@mime.symbol}".to_proc
-    end
-
-    def content_type
-      @mime.to_s
+      @content_type    = content_type    || @mime.to_s
     end
 
     def accept_header
@@ -50,11 +48,13 @@ module ActionDispatch
       @encoders[name] || @encoders[:identity]
     end
 
-    def self.register_encoder(mime_name, param_encoder: nil, response_parser: nil)
-      @encoders[mime_name] = new(mime_name, param_encoder, response_parser)
+    def self.register_encoder(mime_name, param_encoder: nil, response_parser: nil, content_type: nil)
+      @encoders[mime_name] = new(mime_name, param_encoder, response_parser, content_type)
     end
 
-    register_encoder :html, response_parser: -> body { Rails::Dom::Testing.html_document.parse(body) }
+    register_encoder :html, response_parser: -> body { Rails::Dom::Testing.html_document.parse(body) },
+                            param_encoder: -> param { param },
+                            content_type: Mime[:url_encoded_form].to_s
     register_encoder :json, response_parser: -> body { JSON.parse(body, object_class: ActiveSupport::HashWithIndifferentAccess) }
   end
 end

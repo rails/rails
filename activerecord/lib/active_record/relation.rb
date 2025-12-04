@@ -869,7 +869,9 @@ module ActiveRecord
     # Active Record's schema_cache.
     #
     # [:on_duplicate]
-    #   Configure the SQL update sentence that will be used in case of conflict.
+    #   Configure the behavior that will be used in case of conflict. Use `:skip`
+    #   to ignore any conflicts or provide a safe SQL fragment wrapped with
+    #   `Arel.sql`.
     #
     #   NOTE: If you use this option you must provide all the columns you want to update
     #   by yourself.
@@ -1020,7 +1022,7 @@ module ActiveRecord
     #
     #   Post.where(person_id: 5).where(category: ['Something', 'Else']).delete_all
     #
-    # Both calls delete the affected posts all at once with a single DELETE statement.
+    # This call deletes the affected posts all at once with a single DELETE statement.
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
     # +after_destroy+ callbacks, use the #destroy_all method instead.
     #

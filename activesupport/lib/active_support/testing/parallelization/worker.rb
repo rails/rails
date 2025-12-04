@@ -25,6 +25,8 @@ module ActiveSupport
             rescue => @setup_exception; end
 
             work_from_queue
+          rescue Interrupt
+            @queue.interrupt
           ensure
             set_process_title("(stopping)")
 
@@ -69,9 +71,6 @@ module ActiveSupport
               Minitest::UnexpectedError.new(error)
             end
             @queue.record(reporter, result)
-          rescue Interrupt
-            @queue.interrupt
-            raise
           end
 
           set_process_title("(idle)")

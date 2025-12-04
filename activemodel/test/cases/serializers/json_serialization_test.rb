@@ -6,6 +6,14 @@ require "models/address"
 require "active_support/core_ext/object/instance_variables"
 
 class JsonSerializationTest < ActiveModel::TestCase
+  class CamelContact < Contact
+    include ActiveModel::AttributeAssignment
+
+    def assign_attributes(attributes)
+      super(attributes.deep_transform_keys(&:underscore))
+    end
+  end
+
   def setup
     @contact = Contact.new
     @contact.name = "Konata Izumi"
@@ -248,6 +256,18 @@ class JsonSerializationTest < ActiveModel::TestCase
   test "from_json should work with a root (method parameter)" do
     json = @contact.to_json(root: :true)
     result = Contact.new.from_json(json, true)
+
+    assert_equal result.name, @contact.name
+    assert_equal result.age, @contact.age
+    assert_equal Time.parse(result.created_at), @contact.created_at
+    assert_equal result.awesome, @contact.awesome
+    assert_equal result.preferences, @contact.preferences
+  end
+
+  test "from_json supports models that include ActiveModel::AttributeAssignment and override assign_attributes" do
+    serialized = @contact.as_json
+    serialized.deep_transform_keys! { |key| key.camelize(:lower) }
+    result = CamelContact.new.from_json(serialized.to_json)
 
     assert_equal result.name, @contact.name
     assert_equal result.age, @contact.age

@@ -86,7 +86,7 @@ jobs:
           bundler-cache: true
       <%- if using_bun? -%>
 
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: <%= dockerfile_bun_version %>
       <%- end -%>
@@ -106,7 +106,7 @@ jobs:
         run: <%= test_command %>
 
       - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: screenshots

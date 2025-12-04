@@ -621,6 +621,12 @@ end
 
 Rails will enqueue a job to generate the variant after the attachment is attached to the record.
 
+WARNING: It should be considered unsafe to provide arbitrary user supplied
+transformations or parameters to variant processors. This can potentially
+enable command injection vulnerabilities in your app. It is also recommended
+to implement a strict [ImageMagick security policy](https://imagemagick.org/script/security-policy.php)
+when MiniMagick is the variant processor of choice.
+
 ### Previewing Files
 
 Some non-image files can be previewed: that is, they can be presented as images.
@@ -1060,7 +1066,9 @@ ActiveStorage.start()
 
 All of these approaches provide the same functionality; choose the one that matches your application’s JavaScript setup.
 
-Next, add `direct_upload: true` in your forms' [file field helper](form_helpers.html#uploading-files).
+Next, you'll add `direct_upload: true` option to your [`file_field`
+helper](form_helpers.html#uploading-files) to automatically annotate the
+input field with the direct upload URL via `data-direct-upload-url` attribute.
 
 ```erb
 <%= form.file_field :attachments, multiple: true, direct_upload: true %>

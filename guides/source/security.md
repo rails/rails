@@ -182,6 +182,12 @@ class User < ApplicationRecord
 end
 ```
 
+NOTE: `has_secure_password` adds the following validations automatically:<br/><br/>
+- Password must be present on creation<br/>
+- Password length should be less than or equal to 72 bytes<br/>
+- Confirmation of password (using a XXX_confirmation attribute)<br/><br/>
+However it doesn't validate the minimum length or the complexity of the password, you need to define validation for those yourself.
+
 #### `authenticate_by`
 
 The

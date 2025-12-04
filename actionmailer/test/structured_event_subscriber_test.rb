@@ -29,7 +29,7 @@ module ActionMailer
         BaseMailer.welcome(message_id: "123@abc").deliver_now
       end
 
-      assert event[:payload][:duration] > 0
+      assert event[:payload][:duration_ms] > 0
     ensure
       BaseMailer.deliveries.clear
     end

@@ -676,7 +676,7 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_path_relative_url_starting_with_an_at_with_notify
     with_path_relative_redirect(:notify) do
       events = []
-      ActiveSupport::Notifications.subscribe("unsafe_redirect.action_controller") do |*args|
+      subscriber = ActiveSupport::Notifications.subscribe("unsafe_redirect.action_controller") do |*args|
         events << ActiveSupport::Notifications::Event.new(*args)
       end
 
@@ -692,14 +692,14 @@ class RedirectTest < ActionController::TestCase
       assert_kind_of Array, event.payload[:stack_trace]
       assert event.payload[:stack_trace].any? { |line| line.include?("redirect_to_path_relative_url_starting_with_an_at") }
     ensure
-      ActiveSupport::Notifications.unsubscribe("unsafe_redirect.action_controller")
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
   end
 
   def test_redirect_to_path_relative_url_with_notify
     with_path_relative_redirect(:notify) do
       events = []
-      ActiveSupport::Notifications.subscribe("unsafe_redirect.action_controller") do |*args|
+      subscriber = ActiveSupport::Notifications.subscribe("unsafe_redirect.action_controller") do |*args|
         events << ActiveSupport::Notifications::Event.new(*args)
       end
 
@@ -715,7 +715,7 @@ class RedirectTest < ActionController::TestCase
       assert_kind_of Array, event.payload[:stack_trace]
       assert event.payload[:stack_trace].any? { |line| line.include?("redirect_to_path_relative_url") }
     ensure
-      ActiveSupport::Notifications.unsubscribe("unsafe_redirect.action_controller")
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
   end
 
@@ -760,7 +760,7 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_absolute_url_does_not_notify
     with_path_relative_redirect(:notify) do
       events = []
-      ActiveSupport::Notifications.subscribe("unsafe_redirect.action_controller") do |*args|
+      subscriber = ActiveSupport::Notifications.subscribe("unsafe_redirect.action_controller") do |*args|
         events << ActiveSupport::Notifications::Event.new(*args)
       end
 
@@ -774,7 +774,7 @@ class RedirectTest < ActionController::TestCase
       assert_equal "http://test.host/things/stuff", redirect_to_url
       assert_empty events
     ensure
-      ActiveSupport::Notifications.unsubscribe("unsafe_redirect.action_controller")
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
   end
 
@@ -808,7 +808,7 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_query_string_url_does_not_trigger_path_relative_warning_with_notify
     with_path_relative_redirect(:notify) do
       events = []
-      ActiveSupport::Notifications.subscribe("unsafe_redirect.action_controller") do |*args|
+      subscriber = ActiveSupport::Notifications.subscribe("unsafe_redirect.action_controller") do |*args|
         events << ActiveSupport::Notifications::Event.new(*args)
       end
 
@@ -818,7 +818,7 @@ class RedirectTest < ActionController::TestCase
 
       assert_empty events.select { |e| e.payload[:message]&.include?("Path relative URL redirect detected") }
     ensure
-      ActiveSupport::Notifications.unsubscribe("unsafe_redirect.action_controller")
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
   end
 
@@ -864,7 +864,7 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_external_with_action_on_open_redirect_notify
     with_action_on_open_redirect(:notify) do
       events = []
-      ActiveSupport::Notifications.subscribe("open_redirect.action_controller") do |*args|
+      subscriber = ActiveSupport::Notifications.subscribe("open_redirect.action_controller") do |*args|
         events << ActiveSupport::Notifications::Event.new(*args)
       end
 
@@ -878,7 +878,7 @@ class RedirectTest < ActionController::TestCase
       assert_kind_of ActionDispatch::Request, event.payload[:request]
       assert_kind_of Array, event.payload[:stack_trace]
     ensure
-      ActiveSupport::Notifications.unsubscribe("open_redirect.action_controller")
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
   end
 

@@ -20,9 +20,9 @@ The best way to be sure that your application still works after upgrading is to 
 
 Rails generally stays close to the latest released Ruby version when it's released:
 
-* Rails 8.0 requires Ruby 3.2.0 or newer.
+* Rails 8.0 and 8.1 require Ruby 3.2.0 or newer.
 * Rails 7.2 requires Ruby 3.1.0 or newer.
-* Rails 7.0 and 7.1 requires Ruby 2.7.0 or newer.
+* Rails 7.0 and 7.1 require Ruby 2.7.0 or newer.
 * Rails 6 requires Ruby 2.5.0 or newer.
 * Rails 5 requires Ruby 2.2.2 or newer.
 
@@ -76,6 +76,33 @@ Don't forget to review the difference, to see if there were any unexpected chang
 The new Rails version might have different configuration defaults than the previous version. However, after following the steps described above, your application would still run with configuration defaults from the *previous* Rails version. That's because the value for `config.load_defaults` in `config/application.rb` has not been changed yet.
 
 To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults_X_Y.rb` (with the desired Rails version in the filename). You should enable the new configuration defaults by uncommenting them in the file; this can be done gradually over several deployments. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
+
+Upgrading from Rails 8.1 to Rails 8.2
+-------------------------------------
+
+For more information on changes made to Rails 8.2 please see the [release notes](8_2_release_notes.html).
+
+### The negative scopes for enums now include records with `nil` values.
+
+Active Record negative scopes for enums now include records with `nil` values.
+
+```ruby
+class Book < ApplicationRecord
+  enum :status, [:proposed, :written, :published]
+end
+
+book1 = Book.create!(status: :published)
+book2 = Book.create!(status: :written)
+book3 = Book.create!(status: nil)
+
+# Before
+
+Book.not_published # => [book2]
+
+# After
+
+Book.not_published # => [book2, book3]
+```
 
 Upgrading from Rails 8.0 to Rails 8.1
 -------------------------------------
@@ -177,6 +204,14 @@ Failure to do so will cause Rails to generate a new secret key in the new file `
 This will invalidate all existing sessions/cookies in development and test environments, and also cause other signatures derived from `secret_key_base` to break, such as Active Storage/Action Text attachments.
 
 Production and other environments are not affected.
+
+### New ActiveSupport::Cache serialization format
+
+A new 7.1 cache format is available which includes an optimization for bare string values such as view fragments.
+
+The 7.1 cache format is used by default for new apps, and existing apps can enable the format by setting `config.load_defaults 7.1` or by setting `config.active_support.cache_format_version = 7.1` in `config/application.rb` or a `config/environments/*.rb` file.
+
+Cache entries written using the 6.1 or 7.0 cache formats can be read when using the 7.1 format. To perform a rolling deploy of a Rails 7.1 upgrade, wherein servers that have not yet been upgraded must be able to read caches from upgraded servers, leave the cache format unchanged on the first deploy, then enable the 7.1 cache format on a subsequent deploy.
 
 ### Autoloaded paths are no longer in $LOAD_PATH
 
