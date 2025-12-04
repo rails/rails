@@ -274,7 +274,7 @@ module ActionController
       end
 
       def _enforce_open_redirect_protection(location, allow_other_host:)
-        # Explictly allowed other host or host is in allow list allow redirect
+        # Explicitly allowed other host or host is in allow list allow redirect
         if allow_other_host || _url_host_allowed?(location)
           location
         # Explicitly disallowed other host
