@@ -150,7 +150,7 @@ module ActiveSupport
         universal_options = redis_options.extract!(*UNIVERSAL_OPTIONS)
 
         if pool_options = self.class.send(:retrieve_pool_options, redis_options)
-          @redis = ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
+          @redis = ::ConnectionPool.new(**pool_options) { self.class.build_redis(**redis_options) }
         else
           @redis = self.class.build_redis(**redis_options)
         end
