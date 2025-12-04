@@ -481,7 +481,7 @@ module ActiveRecord
         filename = db_config.schema_dump(format)
         return unless filename
 
-        if File.dirname(filename) == ActiveRecord::Tasks::DatabaseTasks.db_dir
+        if Pathname.new(filename).absolute? || File.dirname(filename) == ActiveRecord::Tasks::DatabaseTasks.db_dir
           filename
         else
           File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
