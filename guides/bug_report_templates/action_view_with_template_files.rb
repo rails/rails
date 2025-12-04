@@ -25,8 +25,7 @@ Rails.application.initialize!
 
 class BugTest < ActionView::TestCase
   def setup
-    @tmp_path       = Pathname(Dir.mktmpdir)
-    @old_view_path  = ActionController::Base.view_paths
+    @tmp_path = Pathname(Dir.mktmpdir)
 
     # config ActionController to search for templates at our tmp dir
     ActionController::Base.prepend_view_path @tmp_path
@@ -35,9 +34,6 @@ class BugTest < ActionView::TestCase
   def teardown
     # delete the tmp dir with files
     FileUtils.rm_rf @tmp_path
-
-    # restores the old view path
-    ActionController::Base.view_paths = @old_view_path
   end
 
   helper do
@@ -45,8 +41,8 @@ class BugTest < ActionView::TestCase
       "main"
     end
 
-    def partial_content(&block)
-      File.write(@tmp_path.join("_partial.html.erb"), block.call)
+    def partial_content(name = "_partial.html.erb", &block)
+      File.write(@tmp_path.join(name), block.call)
     end
 
     def template_content(&block)
@@ -56,7 +52,7 @@ class BugTest < ActionView::TestCase
 
   def test_stuff
     partial_content do
-      <<~ERB
+      <<~ERB.chomp
         <p><%= arg_1 %></p>
         <p><%= arg_2 %></p>
         <p><%= arg_3 %></p>
@@ -64,7 +60,7 @@ class BugTest < ActionView::TestCase
     end
 
     template_content do
-      <<~ERB
+      <<~ERB.chomp
         <div>
           <h1>Title</h1>
           <%= render partial: "partial", locals: { arg_1: "value1", arg_2: "value2", arg_3: "value3" } %>
