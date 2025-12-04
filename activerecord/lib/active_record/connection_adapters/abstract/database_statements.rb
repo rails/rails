@@ -76,30 +76,16 @@ module ActiveRecord
           name: name,
           binds: binds,
           prepare: preparable,
+          allow_async: async,
           allow_retry: allow_retry
         )
 
-        if async && async_enabled?
-          if current_transaction.joinable?
-            raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
-          end
+        intent.execute!
 
-          future_result = FutureResult::SelectAll.new(pool, intent)
-          future_result.schedule!(ActiveRecord::Base.asynchronous_queries_session)
-          future_result
+        if async
+          intent.future_result
         else
-          begin
-            intent.execute!
-            result = intent.cast_result
-          rescue ::RangeError
-            result = ActiveRecord::Result.empty
-          end
-
-          if async
-            FutureResult.wrap(result)
-          else
-            result
-          end
+          intent.cast_result
         end
       end
 

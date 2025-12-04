@@ -152,7 +152,7 @@ module ActiveRecord
               batch: true,
               binds: kwargs[:binds] || [],
               prepare: kwargs[:prepare] || false,
-              async: kwargs[:async] || false,
+              allow_async: kwargs[:async] || false,
               allow_retry: kwargs[:allow_retry] || false,
               materialize_transactions: kwargs[:materialize_transactions] != false
             )
