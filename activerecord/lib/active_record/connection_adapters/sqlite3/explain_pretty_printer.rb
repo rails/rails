@@ -11,7 +11,7 @@ module ActiveRecord
         #   0|1|1|SCAN TABLE posts (~100000 rows)
         #
         def pp(result)
-          result.rows.map do |row|
+          result.map do |row|
             row.join("|")
           end.join("\n") + "\n"
         end

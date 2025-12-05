@@ -1753,6 +1753,17 @@ module ActiveRecord
       end
     end
 
+    def test_schema_dump_path_with_absolute_path
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        configurations = {
+          "development" => { "primary" => { "adapter" => "abstract", "database" => "dev-db", "schema_dump" => "/absolute/path/to/schema.rb" } },
+        }
+        with_stubbed_configurations(configurations) do
+          assert_equal "/absolute/path/to/schema.rb", ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config_for("development", "primary"))
+        end
+      end
+    end
+
     def test_check_dump_filename_with_schema_env_with_non_primary_databases
       schema = ENV["SCHEMA"]
       ENV["SCHEMA"] = "schema_path"

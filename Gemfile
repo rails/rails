@@ -143,8 +143,7 @@ group :test do
 
   # Needed for Railties tests because it is included in generated apps.
   gem "brakeman"
-  # Skip bundler-audit until https://github.com/rubysec/bundler-audit/issues/405 is resolved for Ruby 3.5.0dev
-  gem "bundler-audit" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.5.0")
+  gem "bundler-audit"
 end
 
 platforms :ruby, :windows do

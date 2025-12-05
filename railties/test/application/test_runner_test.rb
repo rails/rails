@@ -1192,6 +1192,8 @@ module ApplicationTests
     end
 
     def test_reset_sessions_before_rollback_on_system_tests
+      generate_application_system_test_case_file
+
       app_file "test/system/reset_session_before_rollback_test.rb", <<-RUBY
         require "application_system_test_case"
         require "selenium/webdriver"
@@ -1221,6 +1223,8 @@ module ApplicationTests
     end
 
     def test_reset_sessions_on_failed_system_test_screenshot
+      generate_application_system_test_case_file
+
       app_file "test/system/reset_sessions_on_failed_system_test_screenshot_test.rb", <<~RUBY
         require "application_system_test_case"
         require "selenium/webdriver"
@@ -1247,6 +1251,8 @@ module ApplicationTests
     end
 
     def test_failed_system_test_screenshot_should_be_taken_before_other_teardown
+      generate_application_system_test_case_file
+
       app_file "test/system/failed_system_test_screenshot_should_be_taken_before_other_teardown_test.rb", <<~RUBY
         require "application_system_test_case"
         require "selenium/webdriver"
@@ -1273,6 +1279,8 @@ module ApplicationTests
     end
 
     def test_system_tests_are_not_run_with_the_default_test_command
+      generate_application_system_test_case_file
+
       app_file "test/system/dummy_test.rb", <<-RUBY
         require "application_system_test_case"
 
@@ -1289,6 +1297,8 @@ module ApplicationTests
     end
 
     def test_system_tests_are_not_run_through_rake_test
+      generate_application_system_test_case_file
+
       app_file "test/system/dummy_test.rb", <<-RUBY
         require "application_system_test_case"
 
@@ -1304,6 +1314,8 @@ module ApplicationTests
     end
 
     def test_system_tests_are_run_through_rake_test_when_given_in_TEST
+      generate_application_system_test_case_file
+
       app_file "test/system/dummy_test.rb", <<-RUBY
         require "application_system_test_case"
         require "selenium/webdriver"
@@ -1427,6 +1439,16 @@ module ApplicationTests
               puts "#{name.camelize}Test" if #{print}
               assert #{pass}, 'wups!'
             end
+          end
+        RUBY
+      end
+
+      def generate_application_system_test_case_file
+        app_file "test/application_system_test_case.rb", <<-RUBY
+          require "test_helper"
+
+          class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+            driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ]
           end
         RUBY
       end

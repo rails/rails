@@ -184,6 +184,45 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_nothing_raised { ActiveStorage::Attachment.create!(name: "whatever", record: @user, blob: create_blob) }
   end
 
+  test "create immediate variants on attach" do
+    blob = create_file_blob
+
+    assert_changes -> { @user.avatar_with_immediate_variants.variant(:immediate_thumb)&.processed? }, from: nil, to: true do
+      @user.avatar_with_immediate_variants.attach blob
+    end
+  end
+
+  test "enqueues create variants job to delay transformations after attach" do
+    blob = create_file_blob
+    assert_create_variants_job blob:, variants: [{ resize_to_limit: [2, 2] }] do
+      @user.avatar_with_later_variants.attach blob
+    end
+  end
+
+  test "avoids enqueuing create variants job when lazy" do
+    blob = create_file_blob
+
+    assert_no_enqueued_jobs only: ActiveStorage::CreateVariantsJob  do
+      @user.avatar_with_lazy_variants.attach blob
+    end
+  end
+
+  test "avoids enqueuing create variants job when blob is not representable" do
+    unrepresentable_blob = create_blob(filename: "hello.txt")
+
+    assert_no_enqueued_jobs only: ActiveStorage::CreateVariantsJob  do
+      @user.avatar_with_later_variants.attach unrepresentable_blob
+    end
+  end
+
+  test "avoids enqueuing create variants job if there aren't any variants" do
+    blob = create_file_blob
+
+    assert_no_enqueued_jobs only: ActiveStorage::CreateVariantsJob do
+      @user.resume.attach blob
+    end
+  end
+
   private
     def assert_blob_identified_before_owner_validated(owner, blob, content_type)
       validated_content_type = nil
@@ -209,5 +248,12 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
       blob.stub(:identify_without_saving, track_transaction_depth, &block)
 
       assert_equal 0, (max_transaction_depth - baseline_transaction_depth)
+    end
+
+    def assert_create_variants_job(blob:, variants:, &block)
+      assert_enqueued_with(
+        job: ActiveStorage::CreateVariantsJob,
+        args: [ blob, variants:, process: :later ], &block
+      )
     end
 end
