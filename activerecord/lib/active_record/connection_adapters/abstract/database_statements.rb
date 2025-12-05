@@ -403,29 +403,13 @@ module ActiveRecord
       # isolation level.
       #  :args: (requires_new: nil, isolation: nil, &block)
       def transaction(requires_new: nil, isolation: nil, joinable: true, &block)
-        # If we're running inside the single, non-joinable transaction that
-        # ActiveRecord::TestFixtures starts around each example (depth == 1),
-        # an `isolation:` hint must be validated then ignored so that the
-        # adapter isn't asked to change the isolation level mid-transaction.
-        if isolation && !requires_new && open_transactions == 1 && !current_transaction.joinable?
-          iso = isolation.to_sym
-
-          unless transaction_isolation_levels.include?(iso)
-            raise ActiveRecord::TransactionIsolationError,
-                  "invalid transaction isolation level: #{iso.inspect}"
-          end
-
-          current_transaction.isolation = iso
-          isolation = nil
-        end
-
         if !requires_new && current_transaction.joinable?
           if isolation && current_transaction.isolation != isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
           yield current_transaction.user_transaction
         else
-          within_new_transaction(isolation: isolation, joinable: joinable, &block)
+          within_new_transaction(isolation: isolation, fixtures: !joinable, &block)
         end
       rescue ActiveRecord::Rollback
         # rollbacks are silently swallowed

@@ -376,7 +376,7 @@ module ActiveRecord
         @pinned_connection.lock_thread = ActiveSupport::IsolatedExecutionState.context if lock_thread
         @pinned_connection.pinned = true
         @pinned_connection.verify! # eagerly validate the connection
-        @pinned_connection.begin_transaction joinable: false, _lazy: false
+        @pinned_connection.begin_transaction fixtures: true, _lazy: false
       end
 
       def unpin_connection! # :nodoc:
