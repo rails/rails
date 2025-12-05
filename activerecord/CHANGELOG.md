@@ -1,3 +1,10 @@
+*   Allow `schema_dump` configuration to be an absolute path.
+
+    Previously, the `schema_dump` configuration was always joined with the
+    `db_dir` path. Now, if an absolute path is provided, it will be used as-is.
+
+    *Mike Dalessio*
+
 *   Decode PostgreSQL bytea and money columns when they appear in direct
     query results.
 
