@@ -32,7 +32,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     assert_output prompt, @primary
   end
 
-  def spawn_console(options, wait_for_prompt: true, env: {})
+  def spawn_console(options = nil, wait_for_prompt: true, env: {})
     # Test should not depend on user's irbrc file
     home_tmp_dir = Dir.mktmpdir
 
@@ -177,6 +177,18 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     spawn_console("-e development")
 
     write_prompt "new_session.class.name", "ActionDispatch::Integration::Session"
+  end
+
+  def test_console_with_conditional_executor_enabled_by_default
+    spawn_console
+
+    write_prompt "Rails.application.executor.active?", "true"
+  end
+
+  def test_console_with_conditional_executor_can_be_disabled
+    spawn_console "--skip-executor"
+
+    write_prompt "Rails.application.executor.active?", "false"
   end
 
   def test_app_helper_method
