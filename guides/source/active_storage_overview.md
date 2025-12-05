@@ -44,15 +44,15 @@ $ bin/rails db:migrate
 
 The install command creates migrations to add the following Active Storage specific tables to your application:
 
-* `active_storage_blobs` - Stores data about uploaded files, such as filename and content type.
-* `active_storage_attachments` - A polymorphic join table that [connects your models to blobs](#attaching-files-to-records). This is a [polymorphic association](association_basics.html#polymorphic-associations) so if your model's class name changes, you will need to run a migration to update the underlying `record_type` column in this table to the new name.
-* `active_storage_variant_records` - If [variant tracking](#attaching-files-to-records) is enabled, stores records for each variant that has been generated.
+* `active_storage_blobs` - stores data about uploaded files, such as filename and content type.
+* `active_storage_attachments` - a polymorphic join table that [connects your models to blobs](#attaching-files-to-records). This is a [polymorphic association](association_basics.html#polymorphic-associations) so if your model's class name changes, you will need to run a migration to update the underlying `record_type` column in this table to the new name.
+* `active_storage_variant_records` - if [variant tracking](#attaching-files-to-records) is enabled, this table stores records for each variant that has been generated.
 
 WARNING: If you are using UUIDs instead of integers as the primary key on your models, you will need to set `Rails.application.config.generators { |g| g.orm :active_record, primary_key_type: :uuid }` in a config file.
 
 NOTE: Since Active Storage relies on [polymorphic associations](association_basics.html#polymorphic-associations), which store Ruby class names in the database, you will need to manually update Active Storage tables if you rename related Ruby classes (e.g. `active_storage_attachments.record_type` table and column).
 
-In terms of storing uploaded file during local development and testing, the default `Disk` service can be specified in the `config/storage.yml` file:
+For local development and testing, you can use the `Disk` service to store uploaded files. It can be configured in `config/storage.yml` as follows:
 
 ```yml
 test:
@@ -220,7 +220,7 @@ You can call [`images.attached?`][Attached::Many#attached?] to determine whether
 
 NOTE: When using `has_many_attached`, calling `images.attach(...)` adds new attachments. It does not replace or overwrite existing ones. If you want to replace existing images, you must explicitly [purge](#removing-files) the old attachments before attaching new ones.
 
-Similar to `has_one_attached`, you can overriding the default service using the `service` option:
+Similar to `has_one_attached`, you can override the default service using the `service` option:
 
 ```ruby
 class Product < ApplicationRecord
@@ -244,7 +244,7 @@ end
 
 #### Adding New Attachments
 
-When working with `has_many_attached` association, it’s important to distinguish between calling `.attach` directly in Ruby and assigning attachments through form parameters.
+When working with the `has_many_attached` association, it’s important to distinguish between calling `.attach` directly in Ruby and assigning attachments through form parameters.
 
 Calling `.attach` always appends new files. It never replaces existing attachments:
 
@@ -378,7 +378,7 @@ users = User.joins(:profile_photo_blob).where(
 
 Similarly, when you use `has_many_attached`, Rails defines two associations: a `has_many` association named `<name>_attachments`, which represents the join records in the `active_storage_attachments` table, and a `has_many :through` association named `<name>_blobs`, which gives access to the corresponding rows in `active_storage_blobs` table.
 
-Because the `_blobs` association provides a normal relational join, you can query it directly to filter records based on metadata stored in the blob. For example, the following code retrieves all Product records whose attached images are videos with an MP4 format:
+Because the `_blobs` association provides a normal relational join, you can query it directly to filter records based on metadata stored in the blob. For example, the following code retrieves all `Product` records whose attached images are videos with an MP4 format:
 
 ```ruby
 class Product < ApplicationRecord
@@ -390,7 +390,7 @@ products = Product.joins(:images_blobs).where(
 )
 ```
 
-This query executes against the active_storage_blobs table rather than the attachment records themselves, since the join created by joins(:images_blobs) operates on the blob side of the association. You can combine such blob-based filters with additional scope conditions in the same way you would with any standard Active Record query.
+This query executes against the `active_storage_blobs` table rather than the attachment records themselves, since the join created by `joins(:images_blobs)` operates on the blob side of the association. You can combine such blob-based filters with additional scope conditions in the same way you would with any standard Active Record query.
 
 Serving Files
 -------------
@@ -422,7 +422,7 @@ your application’s public URLs from the underlying storage service and enables
 features such as mirroring attachments across multiple services for
 high-availability. The redirect response is cached by the browser for 5 minutes.
 
-To create a download link, use the rails_blob_{path|url} helpers. These helpers
+To create a download link, use the `rails_blob_{path|url}` helpers. These helpers
 generate the same permanent Rails URL but allow you to specify the file
 disposition.
 
@@ -431,7 +431,7 @@ rails_blob_path(user.profile_photo, disposition: "attachment")
 ```
 
 WARNING: To prevent XSS attacks, Active Storage forces the Content-Disposition
-header to "attachment" for some kind of files. To change this behavior see the
+header to "attachment" for certain file types. To change this behavior see the
 available configuration options in [Configuring Rails
 Applications](configuring.html#configuring-active-storage).
 
