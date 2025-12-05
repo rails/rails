@@ -878,7 +878,7 @@ amazon:
 
 NOTE: The above configuration assumes that AWS secrets are stored using `bin/rails credentials:edit` with the appropriate keys. See the [Security Guide](security.html#custom-credentials) for  more.
 
-There are other optionals configurations as well - such as HTTP timeouts, retry limits, and upload options - that can be included:
+There are other optional configurations as well - such as HTTP timeouts, retry limits, and upload options - that can be included:
 
 ```yaml
 amazon:
@@ -891,7 +891,7 @@ amazon:
     cache_control: "private, max-age=<%= 1.day.to_i %>"
 ```
 
-The `cache_control` option adds the `Cache-Control` header to uploaded files have, so that an image downloaded from the server won't get loaded again by the browser if it's present in the browser's cache and not expired.
+The `cache_control` option adds the `Cache-Control` header to uploaded files, so that an image downloaded from the server won't get loaded again by the browser if it's present in the browser's cache and not expired.
 
 TIP: Set sensible client HTTP timeouts and retry limits for your application. In certain failure scenarios, the default AWS client configuration may cause connections to be held for up to several minutes and lead to request queuing.
 
@@ -1056,16 +1056,16 @@ cloud.
 Direct Uploads
 --------------
 
-By default, files uploaded through Active Storage are sent to your Rails server first, then forwarded to the configured storage service. Direct uploads bypass the Rails server entirely, sending files straight from the browser to the storage service. Direct Uploads provide improved performance as large files do not have to pass through your Rails server.
+By default, files uploaded through Active Storage are sent to your Rails server first, then forwarded to the configured storage service. Direct uploads bypass the Rails server entirely, sending files straight from the browser to the storage service. Direct uploads provide improved performance as large files do not have to pass through your Rails server.
 
-Direct Uploads integrate seamlessly with Active Storage’s attachments and variants, allowing you to use the same models, validations, and background processing workflows as standard uploads.
+Direct uploads integrate seamlessly with Active Storage’s attachments and variants, allowing you to use the same models, validations, and background processing workflows as standard uploads.
 
 Active Storage, with its included JavaScript library, supports uploading
 directly from the client to the cloud.
 
 ### Usage
 
-In order to start using Direct Uploads, you'll need to use the JavaScript Library included with Active Storage. The library handles:
+In order to start using direct uploads, you'll need to use the JavaScript Library included with Active Storage. The library handles:
 
 * Initiating uploads to the configured service (e.g., S3, GCS, Azure).
 * Tracking upload progress and reporting it to the user.
@@ -1077,7 +1077,7 @@ There are several ways to include the Active Storage JavaScript library in your 
 
 1. Directly via `javascript_include_tag` - include the library in your HTML without bundling through the asset pipeline. Autostart is enabled automatically:
 
-```html
+```erb
 <%= javascript_include_tag "activestorage" %>
 ```
 
