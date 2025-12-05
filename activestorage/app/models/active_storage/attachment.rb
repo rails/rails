@@ -137,14 +137,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
           named_variant.transformations
         end
       }
-
-      if blob.preview_image_needed_before_processing_variants? && preprocessed_variations.any?
-        blob.create_preview_image_later(preprocessed_variations)
-      else
-        preprocessed_variations.each do |transformations|
-          blob.preprocessed(transformations)
-        end
-      end
+      blob.transform_variants_later(preprocessed_variations) if preprocessed_variations.any?
     end
 
     def purge_dependent_blob_later
