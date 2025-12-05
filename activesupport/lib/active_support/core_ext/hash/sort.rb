@@ -7,10 +7,10 @@ class Hash
   #
   # is equivalent to
   #
-  #   data = data.sort_by {|key, value| value }
+  #   data = data.sort_by {|key, value| value }.to_h
   #
   def sort_by_value
-    sort_by {|_, value| value }
+    sort_by {|_, value| value }.to_h
   end
   alias_method :with_defaults, :sort_by_value
 
