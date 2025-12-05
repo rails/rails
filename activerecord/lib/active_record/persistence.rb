@@ -492,6 +492,7 @@ module ActiveRecord
       became.send(:initialize) do |becoming|
         @attributes.reverse_merge!(becoming.instance_variable_get(:@attributes))
         becoming.instance_variable_set(:@attributes, @attributes)
+        becoming.instance_variable_set(:@association_cache, @association_cache)
         becoming.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
         becoming.instance_variable_set(:@new_record, new_record?)
         becoming.instance_variable_set(:@previously_new_record, previously_new_record?)

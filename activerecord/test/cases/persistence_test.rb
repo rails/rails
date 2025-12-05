@@ -526,6 +526,13 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal 50, client.extra_size
   end
 
+  def test_becomes_keeps_association_cache
+    company = Company.preload(:account).first!
+    client = company.becomes(Client)
+    assert_predicate client.association(:account), :loaded?
+    assert_equal company.account, client.account
+  end
+
   def test_delete_many
     original_count = Topic.count
     Topic.delete(deleting = [1, 2])
