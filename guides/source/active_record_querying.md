@@ -997,7 +997,7 @@ WARNING: In most database systems, on selecting fields with `distinct` from a re
 Selecting Specific Fields
 -------------------------
 
-By default, `Model.find` selects all the fields from the result set using `select *`.
+By default, `ActiveRecord::Relation` selects all the fields from the result set using `select *`.
 
 To select only a subset of fields from the result set, you can specify the subset via the [`select`][] method.
 
@@ -1116,7 +1116,7 @@ GROUP BY status
 
 ### HAVING Conditions
 
-SQL uses the `HAVING` clause to specify conditions on the `GROUP BY` fields. You can add the `HAVING` clause to the SQL fired by the `Model.find` by adding the [`having`][] method to the find.
+SQL uses the `HAVING` clause to specify conditions on the `GROUP BY` fields. You can add the `HAVING` clause to the SQL fired by the `ActiveRecord::Relation` by adding the [`having`][] method to the find.
 
 For example:
 
@@ -1714,7 +1714,7 @@ Which means "return all customers that have not made any reviews".
 Eager Loading Associations
 --------------------------
 
-Eager loading is the mechanism for loading the associated records of the objects returned by `Model.find` using as few queries as possible.
+Eager loading is the mechanism for loading the associated records of the objects returned by `ActiveRecord::Relation` using as few queries as possible.
 
 ### N + 1 Queries Problem
 
@@ -1764,7 +1764,7 @@ SELECT authors.* FROM authors
 
 #### Eager Loading Multiple Associations
 
-Active Record lets you eager load any number of associations with a single `Model.find` call by using an array, hash, or a nested hash of array/hash with the `includes` method.
+Active Record lets you eager load any number of associations with a single `ActiveRecord::Relation` call by using an array, hash, or a nested hash of array/hash with the `includes` method.
 
 ##### Array of Multiple Associations
 
@@ -1839,7 +1839,7 @@ SELECT authors.* FROM authors
   WHERE authors.id IN (1,2,3,4,5,6,7,8,9,10)
 ```
 
-NOTE: The `preload` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. However, unlike the `includes` method, it is not possible to specify conditions for preloaded associations.
+NOTE: The `preload` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `ActiveRecord::Relation` call. However, unlike the `includes` method, it is not possible to specify conditions for preloaded associations.
 
 ### `eager_load`
 
@@ -1863,7 +1863,7 @@ SELECT "books"."id" AS t0_r0, "books"."title" AS t0_r1, ... FROM "books"
   LIMIT 10
 ```
 
-NOTE: The `eager_load` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `Model.find` call. Also, like the `includes` method, you can specify conditions for eager loaded associations.
+NOTE: The `eager_load` method uses an array, hash, or a nested hash of array/hash in the same way as the `includes` method to load any number of associations with a single `ActiveRecord::Relation` call. Also, like the `includes` method, you can specify conditions for eager loaded associations.
 
 ### `strict_loading`
 
