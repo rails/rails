@@ -407,7 +407,8 @@ module ActiveRecord
         # ActiveRecord::TestFixtures starts around each example (depth == 1),
         # an `isolation:` hint must be validated then ignored so that the
         # adapter isn't asked to change the isolation level mid-transaction.
-        if isolation && !requires_new && open_transactions == 1 && !current_transaction.joinable?
+        isolation_override = false
+        if isolation && open_transactions == 1 && !current_transaction.joinable?
           iso = isolation.to_sym
 
           unless transaction_isolation_levels.include?(iso)
@@ -415,6 +416,8 @@ module ActiveRecord
                   "invalid transaction isolation level: #{iso.inspect}"
           end
 
+          isolation_override = true
+          old_isolation = current_transaction.isolation
           current_transaction.isolation = iso
           isolation = nil
         end
@@ -429,6 +432,8 @@ module ActiveRecord
         end
       rescue ActiveRecord::Rollback
         # rollbacks are silently swallowed
+      ensure
+        current_transaction.isolation = old_isolation if isolation_override
       end
 
       attr_reader :transaction_manager # :nodoc:
