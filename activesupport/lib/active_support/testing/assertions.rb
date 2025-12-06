@@ -124,7 +124,8 @@ module ActiveSupport
           actual = exp.call
           rich_message = -> do
             code_string = code.respond_to?(:call) ? _callable_to_source_string(code) : code
-            error = "`#{code_string}` didn't change by #{diff}, but by #{actual - before_value}"
+            error = "`#{code_string}` didn't change by #{diff}, but by #{actual - before_value}."
+            error = "#{error}\n#{diff before_value + diff, actual}" if Minitest::VERSION > "6"
             error = "#{message}.\n#{error}" if message
             error
           end
@@ -228,7 +229,7 @@ module ActiveSupport
         rich_message = -> do
           code_string = expression.respond_to?(:call) ? _callable_to_source_string(expression) : expression
           error = "`#{code_string}` didn't change"
-          error = "#{error}. It was already #{to.inspect}" if before == to
+          error = "#{error}. It was already #{to.inspect}." if before == to
           error = "#{message}.\n#{error}" if message
           error
         end
@@ -296,8 +297,9 @@ module ActiveSupport
 
         rich_message = -> do
           code_string = expression.respond_to?(:call) ? _callable_to_source_string(expression) : expression
-          error = "`#{code_string}` changed"
+          error = "`#{code_string}` changed."
           error = "#{message}.\n#{error}" if message
+          error = "#{error}\n#{diff before, after}" if Minitest::VERSION > "6"
           error
         end
 
