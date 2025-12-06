@@ -38,6 +38,12 @@ module ActionController # :nodoc:
       # datastore as your general caches, you can pass a custom store in the `store`
       # parameter.
       #
+      # Rate limiting does not work in automated tests when your backing cache store is
+      # a `ActiveSupport::Cache::NullStore`. The global `config.cache_store` uses this
+      # for the test environment by default. To enable rate limiting in your tests, edit
+      # `config/environments/test.rb` and change the value of `config.cache_store` from
+      # `:null_store` to `:memory_store`.
+      #
       # If you want to use multiple rate limits per controller, you need to give each of
       # them an explicit name via the `name:` option.
       #
