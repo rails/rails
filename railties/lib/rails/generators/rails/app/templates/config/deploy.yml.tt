@@ -54,6 +54,8 @@ env:
   clear:
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
+    # To run the Supervisor separately, you need to remove the env variable below completely,
+    # as setting it to "false" will still make it run within Puma.
     SOLID_QUEUE_IN_PUMA: true
 
     # Set number of processes dedicated to Solid Queue (default: 1)
