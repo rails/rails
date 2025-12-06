@@ -1019,8 +1019,7 @@ CRUD application you'll be using `post`, `get`, `put`, and `delete` most
 often.
 
 NOTE: Functional tests do not verify whether the specified request type is
-accepted by the action; instead, they focus on the result. For testing the
-request type, request tests are available, making your tests more purposeful.
+accepted by the action; instead, they focus on the result.
 
 ### Testing XHR (AJAX) Requests
 
