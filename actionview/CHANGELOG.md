@@ -1,3 +1,7 @@
+*   Fix strict locals parsing to handle multiline definitions.
+
+    *Said Kaldybaev*
+
 *   Fix `content_security_policy_nonce` error in mailers when using `content_security_policy_nonce_auto` setting.
 
     The `content_security_policy_nonce helper` is provided by `ActionController::ContentSecurityPolicy`, and it relies on `request.content_security_policy_nonc`e. Mailers lack both the module and the request object.
