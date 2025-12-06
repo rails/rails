@@ -1,3 +1,8 @@
+*   Fix strict locals parsing to handle multiline definitions.
+
+    *Said Kaldybaev*
+
+
 ## Rails 7.2.3 (October 28, 2025) ##
 
 *   Fix `javascript_include_tag` `type` option to accept either strings and symbols.
