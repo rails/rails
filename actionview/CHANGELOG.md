@@ -1,3 +1,10 @@
+*   Introduce `config.action_view.html_assertions`
+
+    Adds support for testing with `Capybara::Minitest::Assertions` when set to `:capybara`.
+    Defaults to `Rails::Dom::Testing::Assertions` with `:rails_dom_testing`.
+
+    *Sean Doyle*
+
 *   Fix tag parameter content being overwritten instead of combined with tag block content.
     Before `tag.div("Hello ") { "World" }` would just return `<div>World</div>`, now it returns `<div>Hello World</div>`.
 
