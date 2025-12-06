@@ -415,7 +415,13 @@ module ActiveRecord
     # the expected number of results should be provided in the +expected_size+
     # argument.
     def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil, key = primary_key, not_found_ids = nil) # :nodoc:
-      conditions = " [#{arel.where_sql(model)}]" unless where_clause.empty?
+      conditions = unless where_clause.empty?
+        model.with_connection do |connection|
+          collector = Arel::Collectors::SubstituteBinds.new(connection, Arel::Collectors::SQLString.new)
+
+          " [WHERE #{connection.visitor.accept(where_clause.ast, collector).value}]"
+        end
+      end
 
       name = model.name
 
