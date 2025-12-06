@@ -339,13 +339,13 @@ import { FetchRequest } from '@rails/request.js'
 
 ....
 
-async myMethod () {
-  const request = new FetchRequest('post', 'localhost:3000/posts', {
+async function myMethod () {
+  const request = new FetchRequest('post', 'http://localhost:3000/posts', {
     body: JSON.stringify({ name: 'Request.JS' })
   })
   const response = await request.perform()
   if (response.ok) {
-    const body = await response.text()
+    const body = await response.text
   }
 }
 ```
