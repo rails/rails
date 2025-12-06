@@ -45,9 +45,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   after_update_commit :update_service_metadata, if: -> { content_type_previously_changed? || metadata_previously_changed? }
 
-  before_destroy(prepend: true) do
-    raise ActiveRecord::InvalidForeignKey if attachments.exists?
-  end
+  before_destroy(prepend: true) { check_destroy_preconditions! }
 
   validates :service_name, presence: true
   validates :checksum, presence: true, unless: :composed
@@ -307,12 +305,13 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.delete_prefixed("variants/#{key}/") if image?
   end
 
-  # Destroys the blob record and then deletes the file on the service. This is the recommended way to dispose of unwanted
+  # Deletes the file on the service and then destroys the blob record. This is the recommended way to dispose of unwanted
   # blobs. Note, though, that deleting the file off the service will initiate an HTTP connection to the service, which may
   # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use #purge_later instead.
   def purge
-    destroy
-    delete if previously_persisted?
+    check_destroy_preconditions!
+    delete if persisted?
+    with_no_destroy_preconditions_check { destroy }
   rescue ActiveRecord::InvalidForeignKey
   end
 
@@ -373,6 +372,18 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
     def update_service_metadata
       service.update_metadata key, **service_metadata if service_metadata.any?
+    end
+
+    def check_destroy_preconditions!
+      return if @skip_destroy_preconditions_check
+      raise ActiveRecord::InvalidForeignKey if attachments.exists?
+    end
+
+    def with_no_destroy_preconditions_check
+      @skip_destroy_preconditions_check = true
+      yield
+    ensure
+      @skip_destroy_preconditions_check = false
     end
 end
 
