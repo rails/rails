@@ -42,7 +42,6 @@ module ActiveRecord
                 types.sort.each do |name, values|
                   stream.puts "  create_enum #{relation_name(name).inspect}, #{values.inspect}"
                 end
-                stream.puts
               end
             end
           end
@@ -59,6 +58,15 @@ module ActiveRecord
           end
 
           def tables(stream)
+            previous_schema_had_tables = false
+            within_each_schema do
+              stream.puts if previous_schema_had_tables
+              super
+              previous_schema_had_tables = @connection.tables.any?
+            end
+          end
+
+          def foreign_keys(stream)
             previous_schema_had_tables = false
             within_each_schema do
               stream.puts if previous_schema_had_tables
@@ -152,7 +160,7 @@ module ActiveRecord
           end
 
           def relation_name(name)
-            if @dump_schemas.size == 1
+            if @dump_schemas.size == 1 || name.include?(".")
               name
             else
               "#{schema_name}.#{name}"
