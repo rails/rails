@@ -21,11 +21,9 @@ After reading this guide, you will know:
 What is the Active Record Query Interface?
 ------------------------------------------
 
-If you're used to using raw SQL to find database records, then you will generally find that there are better ways to carry out the same operations in Rails. Active Record insulates you from the need to use SQL in most cases.
+If you’re used to working directly with raw SQL, Active Record offers a more readable and expressive way to perform the same operations. It works with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite, and its method-based interface remains consistent regardless of which database you’re using.
 
-Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
-
-INFO: Basic knowledge of relational database management systems (RDBMS) and structured query language (SQL) is helpful for getting the most out of this guide. You can refer to [this SQL tutorial][sqlcourse] or [RDBMS tutorial][rdbmsinfo] to learn more.
+INFO: Basic knowledge of relational database management systems (RDBMS) and structured query language (SQL) is helpful for getting the most out of this guide. You can refer to [this SQL tutorial][`sqlcourse`] or [RDBMS tutorial][`rdbmsinfo`] to learn more.
 
 **Related Guides**
 
@@ -534,7 +532,7 @@ For large datasets, consider using the batch processing methods described in the
 
 ### Retrieving Multiple Objects in Batches
 
-We often need to iterate over a large set of records, as when we send a newsletter to a large set of customers, or when we export data.
+We often need to iterate over a large set of records, for example, when sending a newsletter to a large set of customers, or when exporting data.
 
 This may appear straightforward:
 
@@ -731,19 +729,19 @@ Book.where("title = ? AND out_of_print = ?", params[:title], false)
 
 In this example, the first question mark will be replaced with the value in `params[:title]` and the second will be replaced with the SQL representation of `false`, which depends on the adapter.
 
-This code is highly preferable:
+For argument safety, it's preferable to use this code:
 
 ```ruby
 Book.where("title = ?", params[:title])
 ```
 
-to this code:
+instead of this code:
 
 ```ruby
 Book.where("title = #{params[:title]}")
 ```
 
-because of argument safety. Putting the variable directly into the conditions string will pass the variable to the database **as-is**. This means that it will be an unescaped variable directly from a user who may have malicious intent. If you do this, you put your entire database at risk because once a user finds out they can exploit your database they can do just about anything to it. Never ever put your arguments directly inside the conditions string.
+Adding a variable directly into the conditions string sends it to the database **as-is**, without any escaping or protection. If that value comes from user input, it can introduce malicious SQL and put your entire database at risk. For that reason, you should avoid placing arguments directly inside the conditions string.
 
 #### Placeholder Conditions
 
@@ -1046,7 +1044,7 @@ will return instead a maximum of 5 customers beginning with the 31st. The SQL lo
 SELECT * FROM customers LIMIT 5 OFFSET 30
 ```
 
-If you would like to only grab a single record per unique value in a certain field, you can use [`distinct`][]:
+If you would like to only return a single record for each unique value in a given field, you can use [`distinct`][]:
 
 ```ruby
 Customer.select(:last_name).distinct
@@ -1161,7 +1159,7 @@ SELECT * FROM books WHERE id > 100 LIMIT 20
 SELECT * FROM books WHERE id > 100 ORDER BY id desc LIMIT 20
 ```
 
-You can also unscope specific `where` clauses. For example, this will remove `id` condition from the where clause:
+You can also unscope specific `where` clauses. For example, this will remove the `id` condition from the where clause:
 
 ```ruby
 Book.where(id: 10, out_of_print: false).unscope(where: :id)
@@ -1544,14 +1542,16 @@ All of the following will produce the expected join queries using `INNER JOIN`:
 Book.joins(:reviews)
 ```
 
-This produces:
+This produces the following SQL:
 
 ```sql
 SELECT books.* FROM books
   INNER JOIN reviews ON reviews.book_id = books.id
 ```
 
-Or, in English: "return a Book object for all books with reviews". Note that you will see duplicate books if a book has more than one review.  If you want unique books, you can use `Book.joins(:reviews).distinct`.
+The SQL query will return a Book object for all books with reviews.
+
+NOTE: You will see duplicate books if a book has more than one review.  If you want unique books, you can use `Book.joins(:reviews).distinct`.
 
 #### Joining Multiple Associations
 
@@ -1559,7 +1559,7 @@ Or, in English: "return a Book object for all books with reviews". Note that you
 Book.joins(:author, :reviews)
 ```
 
-This produces:
+This produces the following SQL:
 
 ```sql
 SELECT books.* FROM books
@@ -1567,7 +1567,10 @@ SELECT books.* FROM books
   INNER JOIN reviews ON reviews.book_id = books.id
 ```
 
-Or, in English: "return all books that have an author _and_ at least one review". Note again that books with multiple reviews will show up multiple times.
+The SQL query will return all books that have an author _and_ at least one review.
+
+NOTE: You will see duplicate books if a book has more than one review.  If you want unique books, you can use `Book.joins(:reviews).distinct`.
+
 
 ##### Joining Nested Associations (Single Level)
 
@@ -1575,7 +1578,7 @@ Or, in English: "return all books that have an author _and_ at least one review"
 Book.joins(reviews: :customer)
 ```
 
-This produces:
+This produces the following SQL:
 
 ```sql
 SELECT books.* FROM books
@@ -1583,7 +1586,7 @@ SELECT books.* FROM books
   INNER JOIN customers ON customers.id = reviews.customer_id
 ```
 
-Or, in English: "return all books that have a review by a customer."
+The SQL query will return all books that have a review by a customer.
 
 ##### Joining Nested Associations (Multiple Level)
 
@@ -1591,7 +1594,7 @@ Or, in English: "return all books that have a review by a customer."
 Author.joins(books: [{ reviews: { customer: :orders } }, :supplier])
 ```
 
-This produces:
+This produces the following SQL:
 
 ```sql
 SELECT authors.* FROM authors
@@ -1602,7 +1605,7 @@ SELECT authors.* FROM authors
 INNER JOIN suppliers ON suppliers.id = books.supplier_id
 ```
 
-Or, in English: "return all authors that have books with reviews _and_ have been ordered by a customer, _and_ the suppliers for those books."
+The SQL query will return all authors that have books with reviews _and_ have been ordered by a customer, _and_ the suppliers for those books.
 
 #### Specifying Conditions on the Joined Tables
 
@@ -1773,7 +1776,7 @@ This will find the customer with id 1 and eager load all of the associated order
 
 #### Specifying Conditions on Eager Loaded Associations
 
-Even though Active Record lets you specify conditions on the eager loaded associations just like `joins`, the recommended way is to use [joins](#joining-tables) instead.
+Even though Active Record allows you to specify conditions on eager-loaded associations, the recommended approach is to use [joins](#joining-tables) for this type of query.
 
 However if you must do this, you may use `where` as you would normally.
 
@@ -1834,7 +1837,7 @@ NOTE: The `preload` method uses an array, hash, or a nested hash of array/hash i
 
 With `eager_load`, Active Record loads all specified associations using a `LEFT OUTER JOIN`.
 
-Revisiting the case where N + 1 was occurred using the `eager_load` method, we could rewrite `Book.limit(10)` to eager load authors:
+Revisiting the case where N + 1 queries occurred using the `eager_load` method, we could rewrite `Book.limit(10)` to eager load authors:
 
 ```ruby
 books = Book.eager_load(:author).limit(10)
@@ -2430,10 +2433,7 @@ The key difference between `create_or_find_by` and `find_or_create_by` is the or
 - `find_or_create_by`: First tries to find, then creates if not found. This is **not atomic** and can have race conditions where duplicate records may be created.
 - `create_or_find_by`: First tries to create, then finds if creation fails due to uniqueness constraint violation. This is **atomic** and prevents race conditions.
 
-IMPORTANT: For `create_or_find_by` to work correctly, you **must** have a unique constraint on the attribute(s) you're querying. Without a unique constraint, the method will fail on duplicate key violations. This method is best suited when:
-- You expect to create the record most of the time
-- You have a unique constraint on the attribute(s) being queried
-- You want to avoid race conditions that could create duplicate records
+IMPORTANT: For `create_or_find_by` to work correctly, you **must** have a unique constraint on the attribute or attributes being queried. Without that constraint, the method can raise duplicate key violations. This method is most appropriate in situations where you expect the record to be created most of the time, where a unique constraint already exists on the relevant attributes, and where you want to avoid race conditions that might otherwise result in duplicate records.
 
 [`create_or_find_by`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-create_or_find_by
 
