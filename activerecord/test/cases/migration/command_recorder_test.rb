@@ -54,6 +54,42 @@ module ActiveRecord
         end
       end
 
+      def test_inverse_of_raise_exception_on_update
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :update, ["UPDATE users SET name = 'test'"]
+        end
+      end
+
+      def test_inverse_of_raise_exception_on_insert
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :insert, ["INSERT INTO users (name) VALUES ('test')"]
+        end
+      end
+
+      def test_inverse_of_raise_exception_on_delete
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :delete, ["DELETE FROM users WHERE id = 1"]
+        end
+      end
+
+      def test_irreversible_update_raises_exception
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.revert { @recorder.update "UPDATE users SET name = 'test'" }
+        end
+      end
+
+      def test_irreversible_insert_raises_exception
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.revert { @recorder.insert "INSERT INTO users (name) VALUES ('test')" }
+        end
+      end
+
+      def test_irreversible_delete_raises_exception
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.revert { @recorder.delete "DELETE FROM users WHERE id = 1" }
+        end
+      end
+
       def test_record
         @recorder.record :create_table, [:system_settings]
         assert_equal 1, @recorder.commands.length
