@@ -203,6 +203,68 @@ module ActiveRecord
       Post.enumerate_columns_in_select_statements = original_value
     end
 
+    def test_require_explicit_select_raises_error_when_no_select
+      original_value = Post.require_explicit_select
+      Post.require_explicit_select = true
+
+      error = assert_raises(ActiveRecord::ExplicitSelectRequired) do
+        Post.all.to_sql
+      end
+
+      assert_equal Post, error.model
+      assert_match(/Query on Post is missing an explicit `select` clause/, error.message)
+    ensure
+      Post.require_explicit_select = original_value
+    end
+
+    def test_require_explicit_select_allows_explicit_select
+      original_value = Post.require_explicit_select
+      Post.require_explicit_select = true
+
+      # Should not raise
+      sql = Post.select(:id, :title).to_sql
+      assert_match(/SELECT/, sql)
+    ensure
+      Post.require_explicit_select = original_value
+    end
+
+    def test_require_explicit_select_allows_count
+      original_value = Post.require_explicit_select
+      Post.require_explicit_select = true
+
+      # count sets its own select values, so should not raise
+      result = Post.count
+      assert_kind_of Integer, result
+    ensure
+      Post.require_explicit_select = original_value
+    end
+
+    def test_require_explicit_select_default_is_false
+      assert_equal false, Post.require_explicit_select
+    end
+
+    def test_require_explicit_select_can_be_set_per_model
+      original_ar_value = ActiveRecord::Base.require_explicit_select
+      original_post_value = Post.require_explicit_select
+      original_comment_value = Comment.require_explicit_select
+
+      ActiveRecord::Base.require_explicit_select = false
+      Post.require_explicit_select = true
+      Comment.require_explicit_select = false
+
+      assert_raises(ActiveRecord::ExplicitSelectRequired) do
+        Post.all.to_sql
+      end
+
+      # Comment should not raise since it has its own setting
+      sql = Comment.all.to_sql
+      assert_match(/SELECT/, sql)
+    ensure
+      ActiveRecord::Base.require_explicit_select = original_ar_value
+      Post.require_explicit_select = original_post_value
+      Comment.require_explicit_select = original_comment_value
+    end
+
     def test_select_without_any_arguments
       error = assert_raises(ArgumentError) { Post.select }
       assert_equal "Call `select' with at least one field.", error.message

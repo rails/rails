@@ -417,6 +417,37 @@ module ActiveRecord
   class StrictLoadingViolationError < ActiveRecordError
   end
 
+  # Raised when a query is executed without an explicit +select+ clause and
+  # +require_explicit_select+ is enabled on the model or globally.
+  #
+  # This error encourages developers to be explicit about which columns to fetch,
+  # which can improve performance by reducing memory usage and data transfer.
+  #
+  # To resolve this error, add an explicit +select+ clause to your query:
+  #
+  #   # Instead of:
+  #   User.all
+  #
+  #   # Use:
+  #   User.select(:id, :name, :email).all
+  #
+  # See {Selecting Specific Fields}[https://guides.rubyonrails.org/active_record_querying.html#selecting-specific-fields]
+  # for more information.
+  class ExplicitSelectRequired < ActiveRecordError
+    attr_reader :model
+
+    def initialize(model = nil)
+      @model = model
+      if model
+        super("Query on #{model.name} is missing an explicit `select` clause. " \
+              "Use `select` to specify the columns you need, " \
+              "or disable `require_explicit_select` to allow SELECT *.")
+      else
+        super("Query is missing an explicit `select` clause.")
+      end
+    end
+  end
+
   # {ActiveRecord::Base.transaction}[rdoc-ref:Transactions::ClassMethods#transaction]
   # uses this exception to distinguish a deliberate rollback from other exceptional situations.
   # Normally, raising an exception will cause the

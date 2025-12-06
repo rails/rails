@@ -1421,6 +1421,20 @@ is `nil`, purge jobs are sent to the default Active Job queue (see
 
 When `true`, will always include column names in `SELECT` statements, and avoid wildcard `SELECT * FROM ...` queries. This avoids prepared statement cache errors when adding columns to a PostgreSQL database for example. Defaults to `false`.
 
+#### `config.active_record.require_explicit_select`
+
+When `true`, raises `ActiveRecord::ExplicitSelectRequired` when a query is executed without an explicit `select` clause. This encourages developers to be explicit about which columns to fetch, improving performance by reducing memory usage and data transfer. Defaults to `false`.
+
+```ruby
+# With require_explicit_select = true
+User.all                          # => raises ActiveRecord::ExplicitSelectRequired
+User.select(:id, :name, :email)   # => works fine
+
+# Aggregate methods are not affected
+User.count      # => works
+User.pluck(:id) # => works
+```
+
 #### `config.active_record.verify_foreign_keys_for_fixtures`
 
 Ensures all foreign key constraints are valid after fixtures are loaded in tests. Supported by PostgreSQL and SQLite only.

@@ -85,6 +85,28 @@ module ActiveRecord
       # to the database while the app is running.
       class_attribute :enumerate_columns_in_select_statements, instance_accessor: false, default: false
 
+      ##
+      # :singleton-method:
+      # When set to +true+, raises an +ActiveRecord::ExplicitSelectRequired+ error
+      # when a query is executed without an explicit +select+ clause.
+      #
+      # This encourages developers to be explicit about which columns to fetch,
+      # which can improve performance by reducing memory usage and data transfer.
+      #
+      #   class ApplicationRecord < ActiveRecord::Base
+      #     self.require_explicit_select = true
+      #   end
+      #
+      #   User.all
+      #   # => raises ActiveRecord::ExplicitSelectRequired
+      #
+      #   User.select(:id, :name).all
+      #   # => works fine
+      #
+      # Note: This does not affect aggregate queries like +count+, +sum+, +pluck+, etc.
+      # as they already specify their own columns.
+      class_attribute :require_explicit_select, instance_accessor: false, default: false
+
       class_attribute :belongs_to_required_by_default, instance_accessor: false
 
       class_attribute :strict_loading_by_default, instance_accessor: false, default: false

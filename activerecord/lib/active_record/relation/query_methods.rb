@@ -1898,6 +1898,8 @@ module ActiveRecord
       def build_select(arel)
         if select_values.any?
           arel.project(*arel_columns(select_values))
+        elsif model.require_explicit_select
+          raise ExplicitSelectRequired.new(model)
         elsif model.ignored_columns.any? || model.enumerate_columns_in_select_statements
           arel.project(*model.column_names.map { |field| table[field] })
         else

@@ -1,3 +1,32 @@
+*   Add `ActiveRecord::Base.require_explicit_select` configuration option.
+
+    When set to `true`, raises `ActiveRecord::ExplicitSelectRequired` when a query
+    is executed without an explicit `select` clause. This encourages developers to
+    be explicit about which columns to fetch, improving performance by reducing
+    memory usage and data transfer.
+
+    ```ruby
+    # config/application.rb
+    config.active_record.require_explicit_select = true
+
+    # Or per-model
+    class User < ApplicationRecord
+      self.require_explicit_select = true
+    end
+
+    User.all
+    # => raises ActiveRecord::ExplicitSelectRequired
+
+    User.select(:id, :name, :email).all
+    # => works fine
+
+    # Aggregate methods are not affected
+    User.count  # => works
+    User.pluck(:id)  # => works
+    ```
+
+    *Said Kaldybaev*
+
 *   Fix bug when `current_transaction.isolation` would not have been reset in test env.
 
     Additionally, extending the change in [#55549](https://github.com/rails/rails/pull/55549)
