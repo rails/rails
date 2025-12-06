@@ -65,7 +65,6 @@ import ReactDOM from "react-dom"
 Adding npm Packages with JavaScript Bundlers
 --------------------------------------------
 
-
 Import maps are the default for new Rails applications, but if you prefer traditional JavaScript
 bundling, you can create new Rails applications with your choice of
 [Bun](https://bun.sh), [esbuild](https://esbuild.github.io/),
