@@ -461,6 +461,8 @@ class User < ApplicationRecord
 end
 ```
 
+NOTE: The `preprocessed: true` option is deprecated in favor of `process: :later`.
+
 NOTE: Since Active Storage relies on polymorphic associations, and [polymorphic associations](./association_basics.html#polymorphic-associations) rely on storing class names in the database, that data must remain synchronized with the class name used by the Ruby code. When renaming classes that use `has_one_attached`, make sure to also update the class names in the `active_storage_attachments.record_type` polymorphic type column of the corresponding rows.
 
 [`has_one_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached
