@@ -152,11 +152,24 @@ class MultiStoreTest < ActiveSupport::TestCase
 
   def test_write_multi_writes_to_all_levels
     entries = { 'foo' => 'bar', 'baz' => 'qux' }
-    @cache.write_multi(entries)
+    result = @cache.write_multi(entries)
+    assert result, "write_multi should return true on success"
     assert_equal 'bar', @l1_store.read('foo')
     assert_equal 'qux', @l1_store.read('baz')
     assert_equal 'bar', @l2_store.read('foo')
     assert_equal 'qux', @l2_store.read('baz')
+  end
+
+  def test_write_multi_returns_false_when_store_fails
+    failing_store = Class.new(ActiveSupport::Cache::MemoryStore) do
+      def write_multi_entries(entries, **options)
+        false
+      end
+    end.new
+
+    cache = ActiveSupport::Cache.lookup_store(:multi_store, @l1_store, failing_store)
+    result = cache.write_multi({ "foo" => "bar" })
+    assert_not result, "write_multi should return false when any store fails"
   end
 
   def test_fetch_multi_promotes_entries

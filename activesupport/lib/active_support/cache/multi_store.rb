@@ -78,10 +78,10 @@ module ActiveSupport
 
       def write_multi_entries(entries, **options)
         synchronize do
-          @stores.each do |store|
+          results = @stores.map do |store|
             store.send(:write_multi_entries, entries.transform_values(&:dup), **options)
           end
-          true
+          results.all?
         end
       end
 
