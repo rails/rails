@@ -371,8 +371,10 @@ module ApplicationTests
       # Load app env
       app "production"
 
-      get("/assets/demo.js", {}, "HTTPS" => "on")
-      assert_equal 404, last_response.status
+      quietly do
+        get("/assets/demo.js", {}, "HTTPS" => "on")
+        assert_equal 404, last_response.status
+      end
     end
 
     test "does not stream session cookies back" do
