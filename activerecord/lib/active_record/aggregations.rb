@@ -126,14 +126,14 @@ module ActiveRecord
       # other than the writer method.
       #
       # The immutable requirement is enforced by Active Record by freezing any object assigned as a value
-      # object. Attempting to change it afterwards will result in a +RuntimeError+.
+      # object. Attempting to change it afterward will result in a +RuntimeError+.
       #
       # Read more about value objects on http://c2.com/cgi/wiki?ValueObject and on the dangers of not
       # keeping value objects immutable on http://c2.com/cgi/wiki?ValueObjectsShouldBeImmutable
       #
       # == Custom constructors and converters
       #
-      # By default value objects are initialized by calling the <tt>new</tt> constructor of the value
+      # By default, value objects are initialized by calling the <tt>new</tt> constructor of the value
       # class passing each of the mapped attributes, in the order specified by the <tt>:mapping</tt>
       # option, as arguments. If the value class doesn't support this convention then #composed_of allows
       # a custom constructor to be specified.
@@ -144,7 +144,7 @@ module ActiveRecord
       #
       # For example, the +NetworkResource+ model has +network_address+ and +cidr_range+ attributes that should be
       # aggregated using the +NetAddr::CIDR+ value class (https://www.rubydoc.info/gems/netaddr/1.5.0/NetAddr/CIDR).
-      # The constructor for the value class is called +create+ and it expects a CIDR address string as a parameter.
+      # The constructor for the value class is called,+create+ and it expects a CIDR address string as a parameter.
       # New values can be assigned to the value object using either another +NetAddr::CIDR+ object, a string
       # or an array. The <tt>:constructor</tt> and <tt>:converter</tt> options can be used to meet
       # these requirements:
@@ -199,7 +199,7 @@ module ActiveRecord
         #   mapped attributes.
         #   This defaults to +false+.
         # * <tt>:constructor</tt> - A symbol specifying the name of the constructor method or a Proc that
-        #   is called to initialize the value object. The constructor is passed all of the mapped attributes,
+        #   is called to initialize the value object. The constructor is passed to all the mapped attributes,
         #   in the order that they are defined in the <tt>:mapping option</tt>, as arguments and uses them
         #   to instantiate a <tt>:class_name</tt> object.
         #   The default is <tt>:new</tt>.

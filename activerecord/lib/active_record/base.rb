@@ -162,7 +162,7 @@ module ActiveRecord # :nodoc:
   # you can call <tt>account.balance_before_type_cast</tt> or <tt>account.id_before_type_cast</tt>.
   #
   # This is especially useful in validation situations where the user might supply a string for an
-  # integer field and you want to display the original string back in an error message. Accessing the
+  # integer field, and you want to display the original string back in an error message. Accessing the
   # attribute normally would typecast the string to 0, which isn't what you want.
   #
   # == Dynamic attribute-based finders

@@ -79,7 +79,7 @@ module ActiveRecord
   #
   # *IMPORTANT:* In order for inheritance to work for the callback queues, you must specify the
   # callbacks before specifying the associations. Otherwise, you might trigger the loading of a
-  # child before the parent has registered the callbacks and they won't be inherited.
+  # child before the parent has registered the callbacks, and they won't be inherited.
   #
   # == Types of callbacks
   #
@@ -173,7 +173,7 @@ module ActiveRecord
   #
   # If a <tt>before_*</tt> callback throws +:abort+, all the later callbacks and
   # the associated action are cancelled.
-  # \Callbacks are generally run in the order they are defined, with the exception of callbacks defined as
+  # \Callbacks are generally run in the order they are defined, with an exception to callbacks defined as
   # methods on the model, which are called last.
   #
   # == Ordering callbacks
@@ -236,7 +236,7 @@ module ActiveRecord
   # In this case the +log_children+ is executed before +do_something_else+.
   # This applies to all non-transactional callbacks, and to +before_commit+.
   #
-  # For transactional +after_+ callbacks (+after_commit+, +after_rollback+, etc), the order
+  # For transactional +after_+ callbacks (+after_commit+, +after_rollback+, etc.), the order
   # can be set via configuration.
   #
   #   config.active_record.run_after_transaction_callbacks_in_order_defined = false

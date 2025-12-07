@@ -64,7 +64,7 @@ module ActiveRecord
   #     enum :status, active: 0, archived: 1
   #   end
   #
-  # Finally it's also possible to use a string column to persist the enumerated value.
+  # Finally, it's also possible to use a string column to persist the enumerated value.
   # Note that this will likely lead to slower database queries:
   #
   #   class Conversation < ActiveRecord::Base

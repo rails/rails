@@ -28,7 +28,7 @@ module ActiveRecord
           msg << c.explain(sql, binds, options)
         end.join("\n")
       end
-      # Overriding inspect to be more human readable, especially in the console.
+      # Overriding inspect to be more human-readable, especially in the console.
       def str.inspect
         self
       end

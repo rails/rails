@@ -8,7 +8,7 @@ module ActiveRecord
 
     # Establishes the connection to the database. Accepts a hash as input where
     # the <tt>:adapter</tt> key must be specified with the name of a database adapter (in lower-case)
-    # example for regular databases (MySQL, PostgreSQL, etc):
+    # example for regular databases (MySQL, PostgreSQL, etc.):
     #
     #   ActiveRecord::Base.establish_connection(
     #     adapter:  "mysql2",
@@ -128,7 +128,7 @@ module ActiveRecord
     # shard is passed, an +ActiveRecord::ConnectionNotEstablished+ error will be
     # raised.
     #
-    # When a shard and role is passed, Active Record will first lookup the role,
+    # When a shard and role is passed, Active Record will first look up the role,
     # and then look up the connection by shard key.
     #
     #   ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one_replica) do
