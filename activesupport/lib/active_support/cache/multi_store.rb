@@ -113,7 +113,7 @@ module ActiveSupport
               when :clear, :cleanup
                 true
               when :increment, :decrement
-                results.last
+                results.find { |r| !r.nil? }
               else
                 results
               end

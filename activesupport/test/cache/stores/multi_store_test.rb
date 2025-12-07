@@ -73,6 +73,32 @@ class MultiStoreTest < ActiveSupport::TestCase
     assert_equal 2, @l2_store.read('counter', raw: true)
   end
 
+  def test_increment_returns_value_when_last_store_fails
+    failing_store = Class.new(ActiveSupport::Cache::MemoryStore) do
+      def increment(name, amount = 1, options = nil)
+        nil
+      end
+    end.new
+
+    cache = ActiveSupport::Cache.lookup_store(:multi_store, @l1_store, failing_store)
+    cache.write("counter", 1, raw: true)
+    result = cache.increment("counter")
+    assert_equal 2, result, "increment should return L1 value when last store fails"
+  end
+
+  def test_decrement_returns_value_when_last_store_fails
+    failing_store = Class.new(ActiveSupport::Cache::MemoryStore) do
+      def decrement(name, amount = 1, options = nil)
+        nil
+      end
+    end.new
+
+    cache = ActiveSupport::Cache.lookup_store(:multi_store, @l1_store, failing_store)
+    cache.write("counter", 5, raw: true)
+    result = cache.decrement("counter")
+    assert_equal 4, result, "decrement should return L1 value when last store fails"
+  end
+
   def test_clear_clears_all_levels
     @cache.write('foo', 'bar')
     @cache.clear
