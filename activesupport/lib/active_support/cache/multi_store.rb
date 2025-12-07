@@ -116,6 +116,8 @@ module ActiveSupport
       def promote_entry(key, entry, index, **options)
         return if index.zero? || entry.expired?
 
+        # Best-effort promotion: ignore write failures since they only affect
+        # cache hit rate in higher layers, not correctness.
         @stores[0...index].each do |higher_store|
           higher_store.send(:write_entry, key, entry.dup, **options)
         end
@@ -124,6 +126,7 @@ module ActiveSupport
       def promote_value(name, value, index, **options)
         return if index.zero?
 
+        # Best-effort promotion: same semantics as promote_entry.
         @stores[0...index].each do |higher_store|
           higher_store.write(name, value, **options)
         end
@@ -156,4 +159,3 @@ module ActiveSupport
     end
   end
 end
-
