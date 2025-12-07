@@ -301,6 +301,7 @@ module ActiveRecord
 
             scope.merge!(reflection_scope) unless reflection_scope.empty_scope?
             scope.default_order!(reflection.options[:default_order]) if reflection.options[:default_order].present?
+            scope.limit!(nil) if !reflection.collection? && scope.limit_value
 
             if preload_scope && !preload_scope.empty_scope?
               scope.merge!(preload_scope)
