@@ -58,6 +58,7 @@ class Post < ActiveRecord::Base
   end
   has_one :first_comment, -> { order("id ASC") }, class_name: "Comment"
   has_one :last_comment, -> { order("id desc") }, class_name: "Comment"
+  has_one :limited_last_comment, -> { order(id: :desc).limit(1) }, class_name: "Comment"
 
   scope :no_comments, -> { left_joins(:comments).where(comments: { id: nil }) }
   scope :with_special_comments, -> { joins(:comments).where(comments: { type: "SpecialComment" }) }
