@@ -367,7 +367,7 @@ module ActionView
     def strict_locals!
       if @strict_locals == NONE
         self.source.sub!(STRICT_LOCALS_REGEX, "")
-        @strict_locals = $1
+        @strict_locals = $1&.rstrip
 
         return if @strict_locals.nil? # Magic comment not found
 
