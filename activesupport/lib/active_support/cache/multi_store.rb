@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'monitor'
+require "monitor"
 
 module ActiveSupport
   module Cache
@@ -10,6 +10,10 @@ module ActiveSupport
     class MultiStore < Store
       def initialize(*stores)
         options = stores.extract_options!
+
+        if stores.empty?
+          raise ArgumentError, "MultiStore requires at least one cache store"
+        end
 
         # When no explicit options are provided and stores are pre-instantiated, inherit options
         # from the underlying stores. This ensures MultiStore uses the same default behaviors
@@ -48,114 +52,112 @@ module ActiveSupport
       end
 
       protected
+        def read_entry(key, **options)
+          synchronize do
+            @stores.each_with_index do |store, index|
+              entry = store.send(:read_entry, key, **options)
+              next unless entry
 
-      def read_entry(key, **options)
-        synchronize do
-          @stores.each_with_index do |store, index|
-            entry = store.send(:read_entry, key, **options)
-            next unless entry
-
-            promote_entry(key, entry, index, **options)
-            return entry
-          end
-          nil
-        end
-      end
-
-      def write_entry(key, entry, **options)
-        synchronize do
-          results = @stores.map { |store| store.send(:write_entry, key, entry.dup, **options) }
-          results.all?
-        end
-      end
-
-      def delete_entry(key, **options)
-        synchronize do
-          results = @stores.map { |store| store.send(:delete_entry, key, **options) }
-          results.any?
-        end
-      end
-
-      def write_multi_entries(entries, **options)
-        synchronize do
-          results = @stores.map do |store|
-            store.send(:write_multi_entries, entries.transform_values(&:dup), **options)
-          end
-          results.all?
-        end
-      end
-
-      def read_multi_entries(names, **options)
-        synchronize do
-          remaining_names = names.to_set
-          results = {}
-
-          @stores.each_with_index do |store, index|
-            break if remaining_names.empty?
-
-            store_results = store.send(:read_multi_entries, remaining_names.to_a, **options)
-
-            store_results.each do |name, value|
-              next unless remaining_names.delete?(name)
-
-              results[name] = value
-              promote_value(name, value, index, **options) if index > 0
+              promote_entry(key, entry, index, **options)
+              return entry
             end
+            nil
           end
-
-          results
         end
-      end
+
+        def write_entry(key, entry, **options)
+          synchronize do
+            results = @stores.map { |store| store.send(:write_entry, key, entry.dup, **options) }
+            results.all?
+          end
+        end
+
+        def delete_entry(key, **options)
+          synchronize do
+            results = @stores.map { |store| store.send(:delete_entry, key, **options) }
+            results.any?
+          end
+        end
+
+        def write_multi_entries(entries, **options)
+          synchronize do
+            results = @stores.map do |store|
+              store.send(:write_multi_entries, entries.transform_values(&:dup), **options)
+            end
+            results.all?
+          end
+        end
+
+        def read_multi_entries(names, **options)
+          synchronize do
+            remaining_names = names.to_set
+            results = {}
+
+            @stores.each_with_index do |store, index|
+              break if remaining_names.empty?
+
+              store_results = store.send(:read_multi_entries, remaining_names.to_a, **options)
+
+              store_results.each do |name, value|
+                next unless remaining_names.delete?(name)
+
+                results[name] = value
+                promote_value(name, value, index, **options) if index > 0
+              end
+            end
+
+            results
+          end
+        end
 
       private
-
-      def synchronize(&block)
-        @monitor.synchronize(&block)
-      end
-
-      def promote_entry(key, entry, index, **options)
-        return if index.zero? || entry.expired?
-
-        # Best-effort promotion: ignore write failures since they only affect
-        # cache hit rate in higher layers, not correctness.
-        @stores[0...index].each do |higher_store|
-          higher_store.send(:write_entry, key, entry.dup, **options)
+        def synchronize(&block)
+          @monitor.synchronize(&block)
         end
-      end
 
-      def promote_value(name, value, index, **options)
-        return if index.zero?
+        def promote_entry(key, entry, index, **options)
+          return if index.zero? || entry.expired?
 
-        # Best-effort promotion: same semantics as promote_entry.
-        @stores[0...index].each do |higher_store|
-          higher_store.write(name, value, **options)
+          # Best-effort promotion: ignore write failures since they only affect
+          # cache hit rate in higher layers, not correctness.
+          @stores[0...index].each do |higher_store|
+            higher_store.send(:write_entry, key, entry.dup, **options)
+          end
         end
-      end
 
-      def self.broadcast_to_stores(*methods)
-        methods.each do |method|
-          define_method(method) do |*args, **kwargs|
-            synchronize do
-              results = @stores.map do |store|
-                store.public_send(method, *args, **kwargs)
-              end
-              # Return value depends on the method
-              # For 'clear' and 'cleanup', return true
-              # For 'increment' and 'decrement', return the result from the last store
-              case method
-              when :clear, :cleanup
-                true
-              when :increment, :decrement
-                results.find { |r| !r.nil? }
-              else
-                results
+        def promote_value(name, value, index, **options)
+          return if index.zero?
+
+          # Best-effort promotion: same semantics as promote_entry.
+          @stores[0...index].each do |higher_store|
+            higher_store.write(name, value, **options)
+          end
+        end
+
+        def self.broadcast_to_stores(*methods)
+          methods.each do |method|
+            define_method(method) do |*args, **kwargs|
+              synchronize do
+                results = @stores.map do |store|
+                  store.public_send(method, *args, **kwargs)
+                end
+                # Return value depends on the method
+                # For 'clear' and 'cleanup', return true
+                # For 'increment' and 'decrement', return the result from the last store
+                case method
+                when :clear, :cleanup
+                  true
+                when :increment, :decrement
+                  results.find { |r| !r.nil? }
+                else
+                  results
+                end
               end
             end
           end
         end
-      end
 
-      broadcast_to_stores :delete_matched, :increment, :decrement, :cleanup, :clear
+        broadcast_to_stores :delete_matched, :increment, :decrement, :cleanup, :clear
     end
   end
 end

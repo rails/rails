@@ -31,6 +31,16 @@ class MultiStoreTest < ActiveSupport::TestCase
   include CacheInstrumentationBehavior
   include CacheLoggingBehavior
 
+  def test_raises_argument_error_with_no_stores
+    assert_raises(ArgumentError) do
+      ActiveSupport::Cache::MultiStore.new
+    end
+
+    assert_raises(ArgumentError) do
+      ActiveSupport::Cache::MultiStore.new(expires_in: 60)
+    end
+  end
+
   def test_read_from_first_level
     @l1_store.write('foo', 'bar')
     assert_equal 'bar', @cache.read('foo')
@@ -334,12 +344,11 @@ end
 # These methods delegate to the first store to satisfy the test requirements.
 ActiveSupport::Cache::MultiStore.class_eval do
   protected
+    def serialize_entry(entry, **options)
+      @stores.first.send(:serialize_entry, entry, **options)
+    end
 
-  def serialize_entry(entry, **options)
-    @stores.first.send(:serialize_entry, entry, **options)
-  end
-
-  def deserialize_entry(payload, **options)
-    @stores.first.send(:deserialize_entry, payload, **options)
-  end
+    def deserialize_entry(payload, **options)
+      @stores.first.send(:deserialize_entry, payload, **options)
+    end
 end
