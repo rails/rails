@@ -6,6 +6,7 @@
 /*/doc/
 /*/test/tmp/
 /.bundle
+/vendor
 /dist/
 /doc/
 /guides/output/
