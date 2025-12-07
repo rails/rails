@@ -1341,6 +1341,30 @@ module ActiveRecord
     def preload_associations(records) # :nodoc:
       preload = preload_values
       preload += includes_values unless eager_loading?
+
+      # Detect scoped has_one associations with LIMIT,
+      # because preload applies LIMIT globally which breaks
+      # the expected "one record per parent" semantics.
+      has_one_limit_assocs = []
+      model = records.first.class
+
+      preload.each do |assoc_group|
+        Array(assoc_group).each do |assoc|
+          reflection = model._reflect_on_association(assoc)
+          next unless reflection&.macro == :has_one
+
+          assoc_scope = reflection.scope ? model.unscoped.instance_exec(&reflection.scope) : nil
+          has_one_limit_assocs << assoc if assoc_scope&.limit_value
+        end
+      end
+
+      # Fallback to eager_load when LIMIT is used in a has_one scope.
+      # eager_load preserves correct per-parent behavior via LEFT JOIN,
+      # avoiding the global LIMIT applied by preload.
+      if has_one_limit_assocs.any?
+        return model.eager_load(*has_one_limit_assocs).where(model.primary_key => records.map(&:id)).load
+      end
+
       scope = strict_loading_value ? StrictLoadingScope : nil
       preload.each do |associations|
         ActiveRecord::Associations::Preloader.new(records: records, associations: associations, scope: scope).call
