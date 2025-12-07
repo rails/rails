@@ -24,9 +24,9 @@ module Rails
         def exec_bundle_command(bundle_command, command, env, params)
           full_command = %Q["#{Gem.ruby}" "#{bundle_command}" #{command}]
           if options[:quiet] || params[:quiet]
-            system(env, full_command, out: File::NULL)
+            system(env, full_command, exception: true, out: File::NULL)
           else
-            system(env, full_command)
+            system(env, full_command, exception: true)
           end
         end
     end
