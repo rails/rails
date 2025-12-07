@@ -85,6 +85,28 @@ module ActiveSupport
         end
       end
 
+      def read_multi_entries(names, **options)
+        synchronize do
+          remaining_names = names.to_set
+          results = {}
+
+          @stores.each_with_index do |store, index|
+            break if remaining_names.empty?
+
+            store_results = store.send(:read_multi_entries, remaining_names.to_a, **options)
+
+            store_results.each do |name, value|
+              next unless remaining_names.delete?(name)
+
+              results[name] = value
+              promote_value(name, value, index, **options) if index > 0
+            end
+          end
+
+          results
+        end
+      end
+
       private
 
       def synchronize(&block)
@@ -96,6 +118,14 @@ module ActiveSupport
 
         @stores[0...index].each do |higher_store|
           higher_store.send(:write_entry, key, entry.dup, **options)
+        end
+      end
+
+      def promote_value(name, value, index, **options)
+        return if index.zero?
+
+        @stores[0...index].each do |higher_store|
+          higher_store.write(name, value, **options)
         end
       end
 

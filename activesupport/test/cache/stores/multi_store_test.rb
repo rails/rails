@@ -176,6 +176,31 @@ class MultiStoreTest < ActiveSupport::TestCase
     assert_equal 'qux', @l1_store.read('baz')
   end
 
+  def test_read_multi_uses_bulk_read_on_underlying_stores
+    @l1_store.write('foo', 'from_l1')
+    @l2_store.write('bar', 'from_l2')
+    @l2_store.write('baz', 'from_l2')
+
+    l1_read_multi_called = false
+    l2_read_multi_called = false
+
+    @l1_store.define_singleton_method(:read_multi_entries) do |names, **options|
+      l1_read_multi_called = true
+      super(names, **options)
+    end
+
+    @l2_store.define_singleton_method(:read_multi_entries) do |names, **options|
+      l2_read_multi_called = true
+      super(names, **options)
+    end
+
+    result = @cache.read_multi('foo', 'bar', 'baz')
+
+    assert_equal({ 'foo' => 'from_l1', 'bar' => 'from_l2', 'baz' => 'from_l2' }, result)
+    assert l1_read_multi_called, "read_multi should call read_multi_entries on L1 store"
+    assert l2_read_multi_called, "read_multi should call read_multi_entries on L2 store for missing keys"
+  end
+
   def test_write_multi_writes_to_all_levels
     entries = { 'foo' => 'bar', 'baz' => 'qux' }
     result = @cache.write_multi(entries)
