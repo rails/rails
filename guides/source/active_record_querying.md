@@ -1116,7 +1116,11 @@ GROUP BY status
 
 ### HAVING Conditions
 
-SQL uses the `HAVING` clause to specify conditions on the `GROUP BY` fields. You can add the `HAVING` clause to the SQL fired by the `ActiveRecord::Relation` by adding the [`having`][] method to the find.
+To filter the results of a grouped query, you can use the [`having`][] method.
+
+Unlike `where`, which filters rows before grouping, `having` adds a HAVING clause to filter the aggregated groups themselves.
+
+In SQL, the HAVING clause applies conditions to the fields specified in GROUP BY. You can add the `HAVING` clause to the SQL fired by the `ActiveRecord::Relation` by adding the [`having`][] method to the relation.
 
 For example:
 
@@ -1150,6 +1154,8 @@ big_orders[0].total_price
 Overriding Clauses
 ------------------
 
+There are times when you want to build on an existing relation but change part of its query by removing conditions, replacing them, or redefining how records are selected or ordered. Active Record provides several methods that allow you to override individual clauses without rebuilding the entire relation from scratch.
+
 ### `unscope`
 
 You can specify certain conditions to be removed using the [`unscope`][] method. For example:
@@ -1174,7 +1180,7 @@ Book.where(id: 10, out_of_print: false).unscope(where: :id)
 # SELECT books.* FROM books WHERE out_of_print = false
 ```
 
-A relation which has used `unscope` will affect any relation into which it is merged:
+A relation which has used `unscope` will affect any relation into which it is merged. In the following example the `order` is removed from the original relation:
 
 ```ruby
 Book.order("id desc").merge(Book.unscope(:order))
@@ -1185,7 +1191,7 @@ Book.order("id desc").merge(Book.unscope(:order))
 
 ### `only`
 
-You can also override conditions using the [`only`][] method. For example:
+You can also override conditions using the [`only`][] method.  In the following example only the `:order` and `:where` scopes are applied, the `:limit` scope is removed:
 
 ```ruby
 Book.where("id > 10").limit(20).order("id desc").only(:order, :where)
@@ -1210,7 +1216,7 @@ You can remove specific conditions using the [`except`][] method. For example:
 Book.where("id > 100").limit(20).order("id desc").except(:order)
 ```
 
-The SQL that would be executed:
+The SQL that would be executed ignores the `:order` clause:
 
 ```sql
 SELECT * FROM books WHERE id > 100 LIMIT 20
@@ -1306,7 +1312,7 @@ The [`reverse_order`][] method reverses the ordering clause if specified.
 Book.where("author_id > 10").order(:year_published).reverse_order
 ```
 
-The SQL that would be executed:
+The SQL that would be executed sets the order to be `DESC`:
 
 ```sql
 SELECT * FROM books WHERE author_id > 10 ORDER BY year_published DESC
@@ -1340,13 +1346,13 @@ The SQL that would be executed:
 SELECT * FROM books WHERE out_of_print = false
 ```
 
-If the `rewhere` clause is not used, the where clauses are ANDed together:
+If a regular `where` is used instead, the conditions are combined with AND rather than replaced:
 
 ```ruby
 Book.where(out_of_print: true).where(out_of_print: false)
 ```
 
-The SQL executed would be:
+The SQL that would be executed:
 
 ```sql
 SELECT * FROM books WHERE out_of_print = true AND out_of_print = false
@@ -1363,13 +1369,13 @@ The [`regroup`][] method overrides an existing, named `group` condition. For exa
 Book.group(:author).regroup(:id)
 ```
 
-The SQL that would be executed:
+The SQL that would be executed groups by the regrouped columns:
 
 ```sql
 SELECT * FROM books GROUP BY id
 ```
 
-If the `regroup` clause is not used, the group clauses are combined together:
+If a regular `group` is used instead of the `regroup` clause, the group clauses are combined together:
 
 ```ruby
 Book.group(:author).group(:id)
@@ -1394,10 +1400,6 @@ Book.none # returns an empty Relation and fires no queries.
 ```
 
 ```ruby
-# The highlighted_reviews method below is expected to always return a Relation.
-Book.first.highlighted_reviews.average(:rating)
-# => Returns average rating of a book
-
 class Book
   # Returns reviews if there are at least 5,
   # else consider this as non-reviewed book
@@ -1409,6 +1411,10 @@ class Book
     end
   end
 end
+
+# The highlighted_reviews method is expected to always return a Relation.
+Book.first.highlighted_reviews.average(:rating)
+# => Returns average rating of a book even when there are less than 5 reviews.
 ```
 
 Readonly Objects
@@ -1451,8 +1457,11 @@ c2 = Customer.find(1)
 c1.first_name = "Sandra"
 c1.save
 
+c1.lock_version # => 1
+c2.lock_version # => 0
+
 c2.first_name = "Michael"
-c2.save # Raises an ActiveRecord::StaleObjectError
+c2.save  # Raises an ActiveRecord::StaleObjectError
 ```
 
 You're then responsible for dealing with the conflict by rescuing the exception and either rolling back, merging, or otherwise apply the business logic needed to resolve the conflict.
@@ -1515,6 +1524,8 @@ end
 Joining Tables
 --------------
 
+Joining tables allows you to retrieve records from multiple tables in a single query, for example, fetching books together with their authors.
+
 Active Record provides two finder methods for specifying `JOIN` clauses on the
 resulting SQL: `joins` and `left_outer_joins`.
 While `joins` should be used for `INNER JOIN` or custom queries,
@@ -1535,7 +1546,8 @@ Author.joins("INNER JOIN books ON books.author_id = authors.id AND books.out_of_
 This will result in the following SQL:
 
 ```sql
-SELECT authors.* FROM authors INNER JOIN books ON books.author_id = authors.id AND books.out_of_print = FALSE
+SELECT authors.* FROM authors
+  INNER JOIN books ON books.author_id = authors.id AND books.out_of_print = FALSE
 ```
 
 #### Using Array/Hash of Named Associations
@@ -1667,7 +1679,8 @@ Which produces:
 
 ```sql
 SELECT DISTINCT customers.*, COUNT(reviews.*) AS reviews_count FROM customers
-LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id GROUP BY customers.id
+  LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id
+  GROUP BY customers.id
 ```
 
 Which means: "return all customers with their count of reviews, whether or not they
@@ -1684,15 +1697,15 @@ To use `where.associated`:
 Customer.where.associated(:reviews)
 ```
 
-Produces:
+Which produces:
 
 ```sql
 SELECT customers.* FROM customers
-INNER JOIN reviews ON reviews.customer_id = customers.id
-WHERE reviews.id IS NOT NULL
+  INNER JOIN reviews ON reviews.customer_id = customers.id
+  WHERE reviews.id IS NOT NULL
 ```
 
-Which means "return all customers that have made at least one review".
+The SQL query will return all customers that have made at least one review.
 
 To use `where.missing`:
 
@@ -1700,16 +1713,21 @@ To use `where.missing`:
 Customer.where.missing(:reviews)
 ```
 
-Produces:
+Which produces:
 
 ```sql
 SELECT customers.* FROM customers
-LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id
-WHERE reviews.id IS NULL
+  LEFT OUTER JOIN reviews ON reviews.customer_id = customers.id
+  WHERE reviews.id IS NULL
 ```
 
-Which means "return all customers that have not made any reviews".
+The SQL query will return all customers that have not made any reviews.
 
+If a join is already defined `associated` will use that join instead:
+```ruby
+# associated will use LEFT JOIN for this query instead of using JOIN
+Post.left_joins(:author).where.associated(:author)
+```
 
 Eager Loading Associations
 --------------------------
@@ -2628,7 +2646,7 @@ SELECT customer_id FROM customers
 Existence of Objects
 --------------------
 
-If you simply want to check for the existence of the object there's a method called [`exists?`][].
+If you simply want to check for the existence of an object without instantiating the object there's a method called [`exists?`][].
 This method will query the database using the same query as `find`, but instead of returning an
 object or collection of objects it will return either `true` or `false`.
 
@@ -2689,6 +2707,9 @@ Customer.first.orders.many?
 Calculations
 ------------
 
+Active Record supports different methods to do calculations in the database. With these methods you don't need to instantiate `ActiveRecord` models to make calculations.
+Calculating results in the database will generally be more performant.
+
 This section uses [`count`][] as an example method in this preamble, but the options described apply to all sub-sections.
 
 All calculation methods work directly on a model:
@@ -2696,6 +2717,7 @@ All calculation methods work directly on a model:
 ```irb
 irb> Customer.count
 SELECT COUNT(*) FROM customers
+# => 3753
 ```
 
 Or on a relation:
@@ -2703,6 +2725,7 @@ Or on a relation:
 ```irb
 irb> Customer.where(first_name: 'Ryan').count
 SELECT COUNT(*) FROM customers WHERE (first_name = 'Ryan')
+# => 17
 ```
 
 You can also use various finder methods on a relation for performing complex calculations:
@@ -2730,13 +2753,12 @@ For options, please see the parent section, [Calculations](#calculations).
 
 ### `average`
 
-If you want to see the average of a certain number in one of your tables you can call the [`average`][] method on the class that relates to the table. This method call will look something like this:
+If you want to see the average of a certain number in one of your tables you can call the [`average`][] method on the class that relates to the table. For example:
 
 ```ruby
 Order.average("subtotal")
+# => 3.14159265
 ```
-
-This will return a number (possibly a floating-point number such as 3.14159265) representing the average value in the field.
 
 For options, please see the parent section, [Calculations](#calculations).
 
@@ -2748,6 +2770,7 @@ If you want to find the minimum value of a field in your table you can call the 
 
 ```ruby
 Order.minimum("subtotal")
+# => 123.45
 ```
 
 For options, please see the parent section, [Calculations](#calculations).
@@ -2756,10 +2779,11 @@ For options, please see the parent section, [Calculations](#calculations).
 
 ### `maximum`
 
-If you want to find the maximum value of a field in your table you can call the [`maximum`][] method on the class that relates to the table. This method call will look something like this:
+If you want to find the maximum value of a field in your table you can call the [`maximum`][] method on the class that relates to the table. For example:
 
 ```ruby
 Order.maximum("subtotal")
+# => 4567.89
 ```
 
 For options, please see the parent section, [Calculations](#calculations).
@@ -2772,6 +2796,7 @@ If you want to find the sum of a field for all records in your table you can cal
 
 ```ruby
 Order.sum("subtotal")
+# => 12345.67
 ```
 
 For options, please see the parent section, [Calculations](#calculations).
