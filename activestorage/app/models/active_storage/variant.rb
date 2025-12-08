@@ -108,6 +108,17 @@ class ActiveStorage::Variant
     service.exist?(key)
   end
 
+  # Process the variant from a local io, avoiding a download from the service.
+  # This is an optimization for when the original file is still available locally
+  # (e.g., during the initial upload flow).
+  def process_from_io(io) # :nodoc:
+    return if processed?
+
+    variation.transform(io) do |output|
+      service.upload(key, output, content_type: content_type)
+    end
+  end
+
   private
     def process
       blob.open do |input|

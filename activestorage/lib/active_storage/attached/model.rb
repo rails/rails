@@ -139,6 +139,8 @@ module ActiveStorage
           end
         }
 
+        before_validation { attachment_changes[name.to_s]&.analyze }
+
         after_save { attachment_changes[name.to_s]&.save }
 
         after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
@@ -242,6 +244,8 @@ module ActiveStorage
             includes("#{name}_attachments": :blob)
           end
         }
+
+        before_validation { attachment_changes[name.to_s]&.analyze }
 
         after_save { attachment_changes[name.to_s]&.save }
 

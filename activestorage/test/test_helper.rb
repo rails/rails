@@ -158,6 +158,9 @@ class User < ActiveRecord::Base
   has_many_attached :highlights_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
   end
+  has_many_attached :highlights_with_immediate_variants do |attachable|
+    attachable.variant :immediate_thumb, resize_to_limit: [1, 1], process: :immediately
+  end
   ActiveStorage.deprecator.silence do
     has_many_attached :highlights_with_preprocessed do |attachable|
       attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true

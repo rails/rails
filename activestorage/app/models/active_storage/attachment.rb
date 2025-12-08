@@ -18,6 +18,20 @@ require "active_support/core_ext/module/delegation"
 #   # preloads blobs and variant records (if using `ActiveStorage.track_variants`)
 #   User.first.avatars.with_all_variant_records
 class ActiveStorage::Attachment < ActiveStorage::Record
+  define_model_callbacks :upload
+
+  after_upload :mirror_blob_later
+  after_upload :analyze_blob_later
+  after_upload :create_variants
+
+  # Set to true when immediate variants have been processed from local io,
+  # so create_variants knows to skip them.
+  attr_accessor :immediate_variants_processed
+
+  # Set to true for fresh uploads (io provided), false for existing blobs.
+  # Used to determine whether to run :upload callbacks in after_create_commit.
+  attr_accessor :pending_upload
+
   ##
   # :method:
   #
@@ -33,7 +47,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   delegate_missing_to :blob
   delegate :signed_id, to: :blob
 
-  after_create_commit :mirror_blob_later, :analyze_blob_later, :create_variants
+  after_create_commit :run_upload_callbacks, unless: :pending_upload
   after_destroy_commit :purge_dependent_blob_later
 
   ##
@@ -46,6 +60,31 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     variant_records: { image_attachment: :blob },
     preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
   }) }
+
+  # Called by Attached::Changes::CreateOne to handle the upload workflow for
+  # fresh uploads. Processes immediate variants and analyzes from the local io
+  # (avoiding a download round-trip), uploads the blob, then runs the :upload
+  # callbacks.
+  #
+  # For existing blob attachments, the :upload callbacks are run via
+  # after_create_commit instead.
+  def uploaded(io:)
+    blob.local_io = io
+
+    process_immediate_variants_from_io(io)
+    blob.analyze_without_saving unless blob.analyzed?
+
+    io.rewind if io.respond_to?(:rewind)
+    blob.upload_without_unfurling(io)
+
+    # Persist analysis metadata if the blob was already saved (happens when
+    # upload runs in after_commit, after the blob was saved via autosave).
+    blob.save! if blob.persisted? && blob.metadata_changed?
+
+    run_upload_callbacks
+  ensure
+    blob.local_io = nil
+  end
 
   # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
   def purge
@@ -123,12 +162,29 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   end
 
   private
+    def run_upload_callbacks
+      run_callbacks(:upload)
+    end
+
     def analyze_blob_later
       blob.analyze_later unless blob.analyzed?
     end
 
     def mirror_blob_later
       blob.mirror_later
+    end
+
+    def process_immediate_variants_from_io(io)
+      return unless blob.variable?
+
+      named_variants.each do |_variant_name, named_variant|
+        next unless named_variant.process(record) == :immediately
+
+        blob.variant(named_variant.transformations).process_from_io(io)
+        io.rewind if io.respond_to?(:rewind)
+      end
+
+      self.immediate_variants_processed = true
     end
 
     def create_variants
@@ -140,7 +196,8 @@ class ActiveStorage::Attachment < ActiveStorage::Record
       named_variants.each do |_name, named_variant|
         case named_variant.process(record)
         when :immediately
-          immediate_variants << named_variant.transformations
+          # Skip if already processed from local io in uploaded()
+          immediate_variants << named_variant.transformations unless immediate_variants_processed
         when :later
           later_variants << named_variant.transformations
         end
