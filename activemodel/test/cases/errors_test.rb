@@ -677,6 +677,32 @@ class ErrorsTest < ActiveModel::TestCase
     assert(person.errors.added?(:name, :blank))
   end
 
+  test "slice returns errors only for requested attributes" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+    errors.add(:email, :blank)
+    errors.add(:base, :invalid)
+
+    sliced = errors.slice(:email)
+
+    assert sliced.added?(:email, :blank)
+    assert_not sliced.added?(:name, :invalid)
+    assert_not sliced.added?(:base, :invalid)
+  end
+
+  test "except returns errors excluding requested attributes" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+    errors.add(:email, :blank)
+    errors.add(:base, :invalid)
+
+    excluded = errors.except(:name)
+
+    assert excluded.added?(:email, :blank)
+    assert excluded.added?(:base, :invalid)
+    assert_not excluded.added?(:name, :invalid)
+  end
+
   test "merge does not import errors when merging with self" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name, :invalid)
