@@ -110,6 +110,15 @@ module ActiveSupport
           end
         end
 
+        def delete_multi_entries(entries, **options)
+          synchronize do
+            entries.count do |key|
+              results = @stores.map { |store| store.send(:delete_entry, key, **options) }
+              results.any?
+            end
+          end
+        end
+
       private
         def synchronize(&block)
           @monitor.synchronize(&block)

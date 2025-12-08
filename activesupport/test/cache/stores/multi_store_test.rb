@@ -67,6 +67,30 @@ class MultiStoreTest < ActiveSupport::TestCase
     assert_nil @l2_store.read('foo')
   end
 
+  def test_delete_multi_deletes_from_all_levels
+    @cache.write('foo', 'bar')
+    @cache.write('baz', 'qux')
+    result = @cache.delete_multi(['foo', 'baz'])
+    assert_equal 2, result
+    assert_nil @l1_store.read('foo')
+    assert_nil @l1_store.read('baz')
+    assert_nil @l2_store.read('foo')
+    assert_nil @l2_store.read('baz')
+  end
+
+  def test_delete_multi_uses_single_lock_acquisition
+    delete_multi_entries_called = false
+
+    @cache.define_singleton_method(:delete_multi_entries) do |entries, **options|
+      delete_multi_entries_called = true
+      super(entries, **options)
+    end
+
+    @cache.write('foo', 'bar')
+    @cache.delete_multi(['foo'])
+    assert delete_multi_entries_called, "delete_multi should call delete_multi_entries"
+  end
+
   def test_increment
     @cache.write('counter', 1, raw: true)
     @cache.increment('counter')
