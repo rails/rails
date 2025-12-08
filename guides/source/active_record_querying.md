@@ -2212,13 +2212,7 @@ Enums
 
 An enum lets you define an Array of values for an attribute and refer to them by name.  The actual value stored in the database is an integer that has been mapped to one of the values.
 
-Declaring an enum will:
-
-* Create scopes that can be used to find all objects that have or do not have one of the enum values
-* Create an instance method that can be used to determine if an object has a particular value for the enum
-* Create an instance method that can be used to change the enum value of an object
-
-for all possible values of an enum.
+Declaring an enum will create scopes, predicate methods and setter methods for all possible values of an enum.
 
 For example, given this [`enum`][] declaration:
 
@@ -2228,7 +2222,7 @@ class Order < ApplicationRecord
 end
 ```
 
-These [scopes](#scopes) are created automatically and can be used to find all objects with or without a particular value for `status`:
+[scopes](#scopes) are created automatically for each enum value and can be used to find all objects with or without a particular value for `status`:
 
 ```irb
 irb> Order.shipped
@@ -2237,7 +2231,7 @@ irb> Order.not_shipped
 => #<ActiveRecord::Relation> # all orders with status != :shipped
 ```
 
-These instance methods are created automatically and query whether the model has that value for the `status` enum:
+Predicate methods are created automatically for each enum value that query whether the model has that value for the `status` enum:
 
 ```irb
 irb> order = Order.shipped.first
@@ -2247,7 +2241,7 @@ irb> order.complete?
 => false
 ```
 
-These instance methods are created automatically and will first update the value of `status` to the named value
+Instance methods are created automatically for each enum value that will first update the value of `status` to the named value
 and then query whether or not the status has been successfully set to the value:
 
 ```irb
@@ -2264,7 +2258,7 @@ Full documentation about enums can be found [here](https://api.rubyonrails.org/c
 Understanding Method Chaining
 -----------------------------
 
-Active Record implements [Method Chaining](https://en.wikipedia.org/wiki/Method_chaining),
+Active Record supports [Method Chaining](https://en.wikipedia.org/wiki/Method_chaining),
 which allows us to use multiple Active Record methods together in a simple and straightforward way.
 
 You can chain methods in a statement when the previous method called returns an
@@ -2481,8 +2475,12 @@ However, if the failure is due to a uniqueness constraint violation, it will fin
 
 [`create_or_find_by!`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-create_or_find_by-21
 
-Finding by SQL
---------------
+Finding Records and Values
+--------------------------
+
+You can find records and values in the database using the following methods.
+
+### `find_by_sql`
 
 If you'd like to use your own SQL to find records in a table you can use [`find_by_sql`][]. The `find_by_sql` method will return an array of objects even if the underlying query returns just a single record. For example, you could run this query:
 
@@ -2504,7 +2502,8 @@ object would return you an array of hashes where each hash indicates a record.
 
 ```irb
 irb> Customer.lease_connection.select_all("SELECT first_name, created_at FROM customers WHERE id = '1'").to_a
-=> [{"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"}, {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}]
+=> [{"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"},
+    {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}]
 ```
 
 [`lease_connection.select_all`]: https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/DatabaseStatements.html#method-i-select_all
@@ -2615,6 +2614,7 @@ with:
 
 ```ruby
 Customer.where(id: 1).pick(:id)
+# => 1
 ```
 
 [`pick`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-pick
@@ -2627,6 +2627,8 @@ Customer.where(id: 1).pick(:id)
 irb> Customer.ids
 SELECT id FROM customers
 ```
+
+If you are using a different `primary_key` this will be used instead:
 
 ```ruby
 class Customer < ApplicationRecord
@@ -2644,7 +2646,11 @@ SELECT customer_id FROM customers
 Existence of Objects
 --------------------
 
-If you simply want to check for the existence of an object without instantiating the object there's a method called [`exists?`][].
+You can check if a record or records exist in the database using the following methods.
+
+### `exists?`
+
+If you want to check for the existence of an object without instantiating the object there's a method called [`exists?`][].
 This method will query the database using the same query as `find`, but instead of returning an
 object or collection of objects it will return either `true` or `false`.
 
@@ -2675,6 +2681,8 @@ Customer.exists?
 ```
 
 The above returns `false` if the `customers` table is empty and `true` otherwise.
+
+### `any?` and `many?`
 
 You can also use `any?` and `many?` to check for existence on a model or relation.  `many?` will use SQL `count` to determine if the item exists.
 
