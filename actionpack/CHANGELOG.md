@@ -1,3 +1,24 @@
+*   Add `RAILS_HOST_APP_PATH` environment variable to support editor links in devcontainer/Docker environments.
+
+    When Rails runs inside a container, file paths in error pages are container-internal paths
+    that don't exist on the host machine. Setting `RAILS_HOST_APP_PATH` to the host's application
+    path enables proper translation of container paths to host paths for editor links.
+
+    Example in `.devcontainer/devcontainer.json`:
+
+    ```json
+    {
+      "containerEnv": {
+        "EDITOR": "code",
+        "RAILS_HOST_APP_PATH": "${localWorkspaceFolder}"
+      }
+    }
+    ```
+
+    This allows the "open in editor" feature to work correctly when developing in containers.
+
+    *Victor Cobos*
+
 *   Support `text/markdown` format in `DebugExceptions` middleware.
 
     When `text/markdown` is requested via the Accept header, error responses
