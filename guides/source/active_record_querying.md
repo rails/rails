@@ -1760,7 +1760,7 @@ The methods are:
 
 ### `includes`
 
-With `includes`, Active Record ensures that all of the specified associations are loaded using the minimum possible number of queries.
+With `includes`, Active Record tries to load the specified associations using the most performant queries.
 
 Revisiting the above case using the `includes` method, we could rewrite `Book.limit(10)` to eager load authors:
 
@@ -2101,9 +2101,7 @@ irb> Book.unscoped.new
 => #<Book id: nil, out_of_print: nil>
 ```
 
-Be aware that, when given in the `Array` format, `default_scope` query arguments
-cannot be converted to a `Hash` for default attribute assignment. E.g.:
-
+Be aware that when scope arguments are given as an `Array`, `default_scope` cannot convert the arguments to a `Hash` for default attribute assignment. For example:
 ```ruby
 class Book < ApplicationRecord
   default_scope { where("out_of_print = ?", false) }
