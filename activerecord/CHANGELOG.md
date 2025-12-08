@@ -1,3 +1,33 @@
+*   Fix bug when `current_transaction.isolation` would not have been reset in test env.
+
+    Additionally, extending the change in [#55549](https://github.com/rails/rails/pull/55549)
+    to handle `requires_new: true`.
+
+    *Kir Shatrov*
+
+*   Allow `schema_dump` configuration to be an absolute path.
+
+    Previously, the `schema_dump` configuration was always joined with the
+    `db_dir` path. Now, if an absolute path is provided, it will be used as-is.
+
+    *Mike Dalessio*
+
+*   Decode PostgreSQL bytea and money columns when they appear in direct
+    query results.
+
+    bytea columns are now decoded to binary-encoded Strings, and money columns
+    are decoded to BigDecimal instead of String.
+
+    ```ruby
+    ActiveRecord::Base.connection
+         .select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
+
+    ActiveRecord::Base.connection
+         .select_value("select '12.34'::money").class #=> BigDecimal
+    ```
+
+    *Matthew Draper*
+
 *   Add support for configuring migration strategy on a per-adapter basis.
 
     `migration_strategy` can now be set on individual adapter classes, overriding

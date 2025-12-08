@@ -6,13 +6,15 @@ module ActiveRecord
       module DatabaseStatements
         def explain(arel, binds = [], options = [])
           sql    = build_explain_clause(options) + " " + to_sql(arel, binds)
-          result = internal_exec_query(sql, "EXPLAIN", binds)
+          result = select_all(sql, "EXPLAIN", binds)
           PostgreSQL::ExplainPrettyPrinter.new.pp(result)
         end
 
         # Queries the database and returns the results in an Array-like object
-        def query(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
-          result = internal_execute(sql, name, allow_retry:, materialize_transactions:)
+        def query_rows(sql, name = "SCHEMA", allow_retry: true, materialize_transactions: false) # :nodoc:
+          intent = internal_build_intent(sql, name, allow_retry:, materialize_transactions:)
+          intent.execute!
+          result = intent.raw_result
           result.map_types!(@type_map_for_results).values
         end
 
@@ -46,7 +48,8 @@ module ActiveRecord
           if use_insert_returning? || pk == false
             super
           else
-            result = raw_exec_query(intent)
+            intent.execute!
+            result = intent.cast_result
             unless sequence_name
               table_ref = extract_table_ref_from_insert_sql(intent.raw_sql)
               if table_ref
@@ -56,33 +59,34 @@ module ActiveRecord
               end
               return result unless sequence_name
             end
-            last_insert_id_result(sequence_name)
+
+            query_all("SELECT currval(#{quote(sequence_name)})", "SQL")
           end
         end
 
         # Begins a transaction.
         def begin_db_transaction # :nodoc:
-          internal_execute("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         def begin_isolated_db_transaction(isolation) # :nodoc:
-          internal_execute("BEGIN ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("BEGIN ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         # Commits a transaction.
         def commit_db_transaction # :nodoc:
-          internal_execute("COMMIT", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+          query_command("COMMIT", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         # Aborts a transaction.
         def exec_rollback_db_transaction # :nodoc:
           cancel_any_running_query
-          internal_execute("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+          query_command("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         def exec_restart_db_transaction # :nodoc:
           cancel_any_running_query
-          internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+          query_command("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         # From https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
@@ -167,10 +171,10 @@ module ActiveRecord
 
                 raise
               end
-            elsif intent.binds.nil? || intent.binds.empty?
-              raw_connection.async_exec(intent.processed_sql)
-            else
+            elsif intent.has_binds?
               raw_connection.exec_params(intent.processed_sql, intent.type_casted_binds)
+            else
+              raw_connection.async_exec(intent.processed_sql)
             end
 
             verified!
@@ -207,25 +211,22 @@ module ActiveRecord
 
           def execute_batch(statements, name = nil, **kwargs)
             intent = QueryIntent.new(
+              adapter: self,
               processed_sql: combine_multi_statements(statements),
               name: name,
               batch: true,
               binds: kwargs[:binds] || [],
               prepare: kwargs[:prepare] || false,
-              async: kwargs[:async] || false,
+              allow_async: kwargs[:async] || false,
               allow_retry: kwargs[:allow_retry] || false,
               materialize_transactions: kwargs[:materialize_transactions] != false
             )
-            raw_execute(intent)
+            intent.execute!
+            intent.finish
           end
 
           def build_truncate_statements(table_names)
             ["TRUNCATE TABLE #{table_names.map(&method(:quote_table_name)).join(", ")}"]
-          end
-
-          # Returns the current ID of a table's sequence.
-          def last_insert_id_result(sequence_name)
-            internal_exec_query("SELECT currval(#{quote(sequence_name)})", "SQL")
           end
 
           def returning_column_values(result)

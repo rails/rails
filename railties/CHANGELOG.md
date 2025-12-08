@@ -1,3 +1,15 @@
+*   Wrap console command with an executor by default
+
+    This can be disabled with `-w` or `--skip_executor`, same as runner.
+
+    *zzak*
+
+*   Add a new internal route in development to respond to chromium devtools GET request.
+
+    This allows the app folder to be easily connected as a workspace in chromium-based browsers.
+
+    *coorasse*
+
 *   Set `config.rake_eager_load` in generated test environment to match `config.eager_load` behavior in CI.
 
     This ensures eager loading works consistently in CI when rake tasks invoke the `:environment` task before tests run.

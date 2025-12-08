@@ -309,7 +309,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def test_warnings_do_not_change_returned_value_of_exec_update
     previous_logger = ActiveRecord::Base.logger
-    old_sql_mode = @conn.query_value("SELECT @@SESSION.sql_mode")
+    old_sql_mode = @conn.select_value("SELECT @@SESSION.sql_mode")
 
     with_db_warnings_action(:log) do
       ActiveRecord::Base.logger = ActiveSupport::Logger.new(nil)
@@ -329,7 +329,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def test_warnings_do_not_change_returned_value_of_exec_delete
     previous_logger = ActiveRecord::Base.logger
-    old_sql_mode = @conn.query_value("SELECT @@SESSION.sql_mode")
+    old_sql_mode = @conn.select_value("SELECT @@SESSION.sql_mode")
 
     with_db_warnings_action(:log) do
       ActiveRecord::Base.logger = ActiveSupport::Logger.new(nil)

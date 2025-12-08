@@ -215,16 +215,15 @@ module ActiveRecord
         type_map.lookup(sql_type)
       end
 
-      private
-        def type_casted_binds(binds)
-          binds&.map do |value|
-            if ActiveModel::Attribute === value
-              type_cast(value.value_for_database)
-            else
-              type_cast(value)
-            end
+      def type_casted_binds(binds) # :nodoc:
+        binds&.map do |value|
+          if ActiveModel::Attribute === value
+            type_cast(value.value_for_database)
+          else
+            type_cast(value)
           end
         end
+      end
     end
   end
 end

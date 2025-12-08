@@ -73,7 +73,7 @@ module Rails
 
       initializer :initialize_event_reporter, group: :all do
         Rails.event.raise_on_error = config.consider_all_requests_local
-        Rails.event.debug_mode = Rails.env.development?
+        Rails.event.debug_mode = config.log_level.to_s == "debug"
       end
 
       # Initialize cache early in the stack so railties can make use of it.
