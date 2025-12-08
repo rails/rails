@@ -1,3 +1,10 @@
+*   Add "Copy as XML" button to error pages.
+
+    The "Copy as XML" button wraps the error message in `<error_message>` tags,
+    making it easier for LLMs to parse and understand the error context.
+
+    *Nick Warwick*
+
 *   Support `text/markdown` format in `DebugExceptions` middleware.
 
     When `text/markdown` is requested via the Accept header, error responses
