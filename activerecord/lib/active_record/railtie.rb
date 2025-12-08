@@ -88,6 +88,14 @@ module ActiveRecord
       require "active_record/base"
     end
 
+    # Register sandbox handler for Rails.sandbox { } API.
+    # Wraps the block in a transaction that is always rolled back.
+    # Supports multi-database setups by wrapping all connection pools.
+    sandbox do |app, &block|
+      require "active_record/railties/sandbox"
+      ActiveRecord::Railties::Sandbox.run(&block)
+    end
+
     initializer "active_record.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_record] = ActiveRecord.deprecator
     end

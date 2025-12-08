@@ -171,6 +171,22 @@ module Rails
         register_block_for(:server, &blk)
       end
 
+      # Register a sandbox handler that will be invoked when Rails.sandbox is called.
+      # Handlers are composed (nested) to wrap the user's block.
+      #
+      # The handler receives the application and a block to call:
+      #
+      #   sandbox do |app, &block|
+      #     MyFramework.with_rollback do
+      #       block.call
+      #     end
+      #   end
+      #
+      # Handlers should call the block exactly once and return its value.
+      def sandbox(&blk)
+        register_block_for(:sandbox, &blk)
+      end
+
       def abstract_railtie?
         ABSTRACT_RAILTIES.include?(name)
       end

@@ -31,6 +31,7 @@ module Rails
   autoload :MailersController
   autoload :WelcomeController
   autoload :DevtoolsController
+  autoload :Sandbox
 
   eager_autoload do
     autoload :HealthController
@@ -185,6 +186,24 @@ module Rails
     # itself for more details and usage patterns.
     def autoloaders
       application.autoloaders
+    end
+
+    # Executes the given block in a sandbox where all database changes
+    # are rolled back at the end. Returns the block's return value.
+    #
+    # This is useful for safely testing potentially destructive operations
+    # without persisting changes.
+    #
+    #   result = Rails.sandbox do
+    #     User.create!(name: "Test")
+    #     User.count  # => 1
+    #   end
+    #   # User.count => 0 (changes rolled back)
+    #   # result => 1 (return value preserved)
+    #
+    # Only available in development and test environments.
+    def sandbox(&block)
+      Sandbox.run(&block)
     end
   end
 end
