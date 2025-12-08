@@ -17,16 +17,18 @@ module ActiveRecord
           def execute_batch(statements, name = nil, **kwargs)
             combine_multi_statements(statements).each do |statement|
               intent = QueryIntent.new(
+                adapter: self,
                 processed_sql: statement,
                 name: name,
                 batch: true,
                 binds: kwargs[:binds] || [],
                 prepare: kwargs[:prepare] || false,
-                async: kwargs[:async] || false,
+                allow_async: kwargs[:async] || false,
                 allow_retry: kwargs[:allow_retry] || false,
                 materialize_transactions: kwargs[:materialize_transactions] != false
               )
-              raw_execute(intent)
+              intent.execute!
+              intent.finish
             end
           end
 
@@ -59,7 +61,7 @@ module ActiveRecord
             raw_connection.query_options[:database_timezone] = default_timezone
 
             result = nil
-            if intent.binds.nil? || intent.binds.empty?
+            if !intent.has_binds?
               result = raw_connection.query(intent.processed_sql)
               # Ref: https://github.com/brianmario/mysql2/pull/1383
               # As of mysql2 0.5.6 `#affected_rows` might raise Mysql2::Error if a prepared statement

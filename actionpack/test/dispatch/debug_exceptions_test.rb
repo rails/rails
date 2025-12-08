@@ -917,6 +917,18 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "editor can handle syntax errors" do
+    @app = DevelopmentApp
+    ActiveSupport::Editor.stub(:current, ActiveSupport::Editor.find("atom")) do
+      get "/syntax_error_into_view"
+
+      assert_response 500
+      assert_select "#Application-Trace-0" do
+        assert_select "code", /syntax error, unexpected|syntax errors found/
+      end
+    end
+  end
+
   test "shows a buttons for every action in an actionable error" do
     @app = DevelopmentApp
     Rails.stub :root, Pathname.new(".") do

@@ -75,14 +75,12 @@ DEFAULT_APP_FILES = %w(
   public/robots.txt
   script/.keep
   storage/.keep
-  test/application_system_test_case.rb
   test/controllers/.keep
   test/fixtures/files/.keep
   test/helpers/.keep
   test/integration/.keep
   test/mailers/.keep
   test/models/.keep
-  test/system/.keep
   test/test_helper.rb
   tmp/.keep
   tmp/pids/.keep
@@ -496,7 +494,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
-    assert_gem "puma", /"\W+ \d/
+    assert_gem "puma", '">= 7.1"'
   end
 
   def test_action_cable_redis_gems
@@ -1391,13 +1389,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file ".dockerignore"
     assert_no_file "Dockerfile"
     assert_no_file "bin/docker-entrypoint"
-  end
-
-  def test_system_tests_directory_generated
-    run_generator
-
-    assert_directory("test/system")
-    assert_file("test/system/.keep")
   end
 
   unless Gem.win_platform?

@@ -1,3 +1,7 @@
+*   Add `SecureRandom.base32` for generating case-insensitive keys that are unambiguous to humans.
+
+    *Stanko Krtalic Rusendic & Miha Rekar*
+
 *   Add a fast failure mode to `ActiveSupport::ContinuousIntegration` that stops the rest of
     the run after a step fails. Invoke by running `bin/ci --fail-fast` or `bin/ci -f`.
 
