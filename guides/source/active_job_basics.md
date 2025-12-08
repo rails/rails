@@ -30,7 +30,7 @@ the application, allowing it to handle tasks in parallel.
 Create and Enqueue Jobs
 -----------------------
 
-This section will provide a step-by-step guide to create a job and enqueue it.
+This section provides a step-by-step guide for creating a job and then adding it to a queue to be executed later.
 
 ### Create the Job
 
@@ -50,7 +50,7 @@ You can also create a job that will run on a specific queue:
 $ bin/rails generate job guests_cleanup --queue urgent
 ```
 
-If you don't want to use a generator, you could create your own file inside of
+If you don't want to use a generator, you can create your own file inside of
 `app/jobs`, just make sure that it inherits from `ApplicationJob`.
 
 Here's what a job looks like:
@@ -118,11 +118,11 @@ That's it!
 [`set`]:
     https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
 
-### Enqueue Jobs in Bulk
+#### Enqueue Multiple Jobs
 
-You can enqueue multiple jobs at once using
-[`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later).
-For more details see [Bulk Enqueuing](#bulk-enqueuing).
+You can enqueue multiple jobs at once using the
+[`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later)
+method. For more details see the [Bulk Enqueuing](#bulk-enqueuing) section.
 
 Default Backend: Solid Queue
 ------------------------------
