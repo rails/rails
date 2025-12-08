@@ -22,6 +22,13 @@
 
     *Christian Schmidt*
 
+*   Fix bug when `current_transaction.isolation` would not have been reset in test env.
+
+    Additionally, extending the change in [#55549](https://github.com/rails/rails/pull/55549)
+    to handle `requires_new: true`.
+
+    *Kir Shatrov*
+
 *   Allow `schema_dump` configuration to be an absolute path.
 
     Previously, the `schema_dump` configuration was always joined with the

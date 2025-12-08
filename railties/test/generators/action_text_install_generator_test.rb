@@ -27,12 +27,15 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     FileUtils.touch("#{destination_root}/package.json")
 
     run_generator_instance
-    assert_match %r"yarn add @rails/actiontext trix", @run_commands.join("\n")
+    assert_includes @run_commands, "yarn add trix"
+    assert_includes @run_commands, "yarn add @rails/actiontext"
   end
 
   test "throws warning for missing entry point" do
     FileUtils.rm("#{destination_root}/app/javascript/application.js")
-    assert_match "You must import the @rails/actiontext and trix JavaScript modules", run_generator_instance
+    output = run_generator_instance
+    assert_match "You must import the @rails/actiontext JavaScript module", output
+    assert_match "You must import the trix JavaScript module", output
   end
 
   test "imports JavaScript dependencies in application.js" do
