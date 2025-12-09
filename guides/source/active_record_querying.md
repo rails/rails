@@ -2034,18 +2034,6 @@ These methods will still be accessible on the association objects:
 irb> author.books.costs_more_than(100.10)
 ```
 
-### Chaining Scopes
-
-You can chain small, reusable scopes to build more specific queries:
-
-```ruby
-class Book < ApplicationRecord
-  scope :out_of_print, -> { where(out_of_print: true) }
-  scope :costs_more_than, ->(amount) { where("price > ?", amount) }
-  scope :out_of_print_and_expensive, -> { out_of_print.costs_more_than(500) }
-end
-```
-
 ### Using Conditionals
 
 Your scope can utilize conditionals:
@@ -2146,7 +2134,17 @@ irb> Book.new
 
 ### Merging of Scopes
 
-Just like `where` clauses, scopes are merged using `AND` conditions.
+You can chain small, reusable scopes to build more specific queries. Scopes can call other scopes:
+
+```ruby
+class Book < ApplicationRecord
+  scope :out_of_print, -> { where(out_of_print: true) }
+  scope :costs_more_than, ->(amount) { where("price > ?", amount) }
+  scope :out_of_print_and_expensive, -> { out_of_print.costs_more_than(500) }
+end
+```
+
+When you call multiple scopes sequentially, just like `where` clauses, scopes are merged using `AND` conditions.
 
 ```ruby
 class Book < ApplicationRecord
