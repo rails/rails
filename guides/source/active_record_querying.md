@@ -569,16 +569,13 @@ NOTE: The default batch size is 1000, but this can be customized. See [Options f
 
 This process is repeated, fetching more batches as needed, until all of the records have been processed.
 
-`find_each` works on model classes, as seen above, and also on relations:
+As seen above, `find_each` works on model classes. It also works on relations as long as they have no ordering, since the method needs to force an order internally to iterate.
 
 ```ruby
 Customer.where(weekly_subscriber: true).find_each do |customer|
   NewsMailer.weekly(customer).deliver_now
 end
 ```
-
-as long as they have no ordering, since the method needs to force an order
-internally to iterate.
 
 If an order is present in the receiver the behavior depends on the flag
 [`config.active_record.error_on_ignored_order`][]. If true, `ArgumentError` is
@@ -667,7 +664,6 @@ Customer.recently_active.find_in_batches do |customers|
 end
 ```
 
-
 [`find_in_batches`]: https://api.rubyonrails.org/classes/ActiveRecord/Batches.html#method-i-find_in_batches
 
 ##### Options for `find_in_batches`
@@ -729,7 +725,7 @@ WARNING: Building your own conditions as pure strings can leave you vulnerable t
 
 ### Array Conditions
 
-Now what if that title could vary, say as an argument from somewhere? The find would then take the form:
+If an object attribute is variable or dependent on an argument, the find could then take the form:
 
 ```ruby
 Book.where("title = ?", params[:title])
@@ -1029,7 +1025,7 @@ Be careful because this also means you're initializing a model object with only 
 ActiveModel::MissingAttributeError: missing attribute '<attribute>' for Book
 ```
 
-Where `<attribute>` is the attribute you asked for. The `id` method will not raise the `ActiveRecord::MissingAttributeError`, so just be careful when working with associations because they need the `id` method to function properly.
+In the above example, `<attribute>` would be the requested attribute. The `id` method will not raise the `ActiveRecord::MissingAttributeError`, so exercise caution when working with associations, which need the `id` method to function properly.
 
 Limiting Records
 ----------------
@@ -1042,13 +1038,13 @@ The limit method specifies how many records should be returned, while offset det
 Customer.limit(5)
 ```
 
-This returns a maximum of 5 customers and because it specifies no offset it will return the first 5 in the table. The SQL it executes looks like this:
+This example will return a maximum of 5 customers, and as it specifies no offset first 5 in the table will be returned. The SQL it executes looks like this:
 
 ```sql
 SELECT * FROM customers LIMIT 5
 ```
 
-Adding offset to that will skip the first 30 records and return the next 5, starting from the 31st record:
+Adding `offset` to that will skip the first 30 records and return the next 5, starting from the 31st record:
 
 ```ruby
 Customer.limit(5).offset(30)
@@ -1471,6 +1467,8 @@ Locking Records for Update
 --------------------------
 
 Locking is helpful for preventing race conditions when updating records in the database and ensuring atomic updates.
+
+NOTE: An atomic operation is one that completes entirely or not at all, preventing partial updates from being visible to other processes.
 
 Active Record provides two locking mechanisms:
 
