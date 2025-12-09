@@ -17,6 +17,8 @@ function hexToBase64(hexString) {
 export const sha256Algorithm = {
   createBuffer: () => sha256.create(),
   append: (buffer, data) => buffer.update(data),
-  finalize: (buffer) => buffer.hex(),
-  formatChecksum: (hexDigest) => `sha256:${hexToBase64(hexDigest)}`
+  getChecksum: (buffer) => {
+    const hexDigest = buffer.hex()
+    return `sha256:${hexToBase64(hexDigest)}`
+  }
 }
