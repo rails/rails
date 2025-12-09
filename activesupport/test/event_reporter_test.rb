@@ -11,6 +11,12 @@ module ActiveSupport
     setup do
       @subscriber = EventReporter::TestHelper::EventSubscriber.new
       @reporter = EventReporter.new(@subscriber, raise_on_error: true)
+      @old_debug_mode = @reporter.debug_mode?
+      @reporter.debug_mode = false
+    end
+
+    teardown do
+      @reporter.debug_mode = @old_debug_mode
     end
 
     class TestEvent
@@ -290,6 +296,10 @@ module ActiveSupport
         assert_predicate @reporter, :debug_mode?
       end
       assert_not_predicate @reporter, :debug_mode?
+    end
+
+    test "#debug_mode? returns true by default" do
+      assert @old_debug_mode
     end
 
     test "#debug_mode? returns true when debug_mode=true is set" do
