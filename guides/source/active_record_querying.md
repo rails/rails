@@ -1189,6 +1189,35 @@ Book.order("id desc").merge(Book.unscope(:order))
 
 [`unscope`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-unscope
 
+### `unscoped`
+
+If we wish to remove all scoping for any reason we can use the [`unscoped`][] method. This is
+especially useful if a `default_scope` is specified in the model and should not be
+applied for this particular query. However, `unscoped` can be used even when no scopes are present.
+
+```ruby
+Book.unscoped.load
+```
+
+This method removes all scoping and will do a normal query on the table.
+
+```irb
+irb> Book.unscoped.all
+SELECT books.* FROM books
+
+irb> Book.where(out_of_print: true).unscoped.all
+SELECT books.* FROM books
+```
+
+`unscoped` can also accept a block:
+
+```irb
+irb> Book.unscoped { Book.out_of_print }
+SELECT books.* FROM books WHERE books.out_of_print = true
+```
+
+[`unscoped`]: https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Default/ClassMethods.html#method-i-unscoped
+
 ### `only`
 
 You can also override conditions using the [`only`][] method.  In the following example only the `:order` and `:where` scopes are applied, the `:limit` scope is removed:
@@ -2177,35 +2206,6 @@ As you can see above the `default_scope` is being merged in both
 `scope` and `where` conditions.
 
 [`merge`]: https://api.rubyonrails.org/classes/ActiveRecord/SpawnMethods.html#method-i-merge
-
-### Removing All Scoping
-
-If we wish to remove scoping for any reason we can use the [`unscoped`][] method. This is
-especially useful if a `default_scope` is specified in the model and should not be
-applied for this particular query.
-
-```ruby
-Book.unscoped.load
-```
-
-This method removes all scoping and will do a normal query on the table.
-
-```irb
-irb> Book.unscoped.all
-SELECT books.* FROM books
-
-irb> Book.where(out_of_print: true).unscoped.all
-SELECT books.* FROM books
-```
-
-`unscoped` can also accept a block:
-
-```irb
-irb> Book.unscoped { Book.out_of_print }
-SELECT books.* FROM books WHERE books.out_of_print = true
-```
-
-[`unscoped`]: https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Default/ClassMethods.html#method-i-unscoped
 
 Enums
 -----
