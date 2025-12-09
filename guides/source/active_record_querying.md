@@ -14,7 +14,7 @@ After reading this guide, you will know:
 * How to use method chaining to use multiple Active Record methods together.
 * How to check for the existence of particular records.
 * How to perform various calculations on Active Record models.
-* How to run EXPLAIN on relations.
+* How to run .explain on relations.
 
 --------------------------------------------------------------------------------
 
@@ -2817,8 +2817,8 @@ For options, please see the parent section, [Calculations](#calculations).
 
 [`sum`]: https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-sum
 
-Running EXPLAIN
----------------
+Running .explain
+----------------
 
 You can run [`explain`][] on a relation. EXPLAIN output varies for each database.
 
@@ -2978,7 +2978,7 @@ NOTE: EXPLAIN and ANALYZE options vary across MySQL and MariaDB versions.
 [MySQL8-explain]: https://dev.mysql.com/doc/refman/8.0/en/explain.html
 [MariaDB-explain]: https://mariadb.com/kb/en/analyze-and-explain-statements/
 
-### Interpreting EXPLAIN
+### Interpreting the Output
 
 Interpretation of the output of EXPLAIN is beyond the scope of this guide. The
 following pointers may be helpful:
