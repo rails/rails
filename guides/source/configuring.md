@@ -60,6 +60,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.2
 
+- [`config.active_record.deprecated_negative_enum_scopes_exclude_nil`](#config-active-record-deprecated-negative-enum-scopes-exclude-nil): `false`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 
@@ -1240,6 +1241,19 @@ Controls whether Active Record will use optimistic locking and is `true` by defa
 #### `config.active_record.cache_timestamp_format`
 
 Controls the format of the timestamp value in the cache key. Default is `:usec`.
+
+#### `config.active_record.deprecated_negative_enum_scopes_exclude_nil`
+
+Is a boolean value that controls whether negative scopes for enums include records with `nil` values. When set to `true`, negative scopes will exclude records where the enum column is `nil`. When set to `false`, negative scopes will include records with `nil` values.
+
+This configuration is deprecated and will be removed in a future version of Rails. It is intended as a temporary measure to ease upgrades. Setting this to `true` will trigger a deprecation warning. If you need to keep the old behavior (excluding `nil` values), you should manually override the negative scope in your model instead of relying on this configuration.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- |----------------------|
+| (original)            | `true`               |
+| 8.2                   | `false`              |
 
 #### `config.active_record.record_timestamps`
 

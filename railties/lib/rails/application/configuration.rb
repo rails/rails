@@ -374,6 +374,7 @@ module Rails
           if respond_to?(:active_record)
             active_record.postgresql_adapter_decode_bytea = true
             active_record.postgresql_adapter_decode_money = true
+            active_record.deprecated_negative_enum_scopes_exclude_nil = false
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"

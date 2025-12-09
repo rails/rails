@@ -5207,6 +5207,13 @@ module ApplicationTests
       assert_not output.include?("Processing by Rails::WelcomeController#index as HTML")
     end
 
+    test "active_record.deprecated_negative_enum_scopes_exclude_nil can be configured" do
+      add_to_config "config.active_record.deprecated_negative_enum_scopes_exclude_nil = true"
+      app "development"
+      assert_equal true, Rails.application.config.active_record.deprecated_negative_enum_scopes_exclude_nil
+      assert_equal true, ActiveRecord::Base.deprecated_negative_enum_scopes_exclude_nil
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents

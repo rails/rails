@@ -87,13 +87,30 @@ class EnumTest < ActiveRecord::TestCase
   test "find via negative scope" do
     assert Book.not_published.exclude?(@book)
     assert Book.not_proposed.include?(@book)
+  end
 
-    assert Book.not_forgotten.exclude?(books(:ddd))
-
-    # Should include records with nils in the column.
+  test "deprecated_negative_enum_scopes_exclude_nil" do
     rfr = books(:rfr)
     rfr.update!(status: nil)
-    assert Book.not_published.include?(rfr)
+
+    model1 = Class.new(Book) do
+      self.deprecated_negative_enum_scopes_exclude_nil = false
+      enum :status, [:proposed, :written, :published]
+      enum :last_read, { unread: 0, reading: 2, read: 3, forgotten: nil }
+    end
+
+    assert model1.not_published.include?(rfr.becomes(model1))
+    assert model1.not_forgotten.exclude?(books(:ddd).becomes(model1))
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      model2 = Class.new(Book) do
+        self.deprecated_negative_enum_scopes_exclude_nil = true
+        enum :status, [:proposed, :written, :published]
+        enum :last_read, { unread: 0, reading: 2, read: 3, forgotten: nil }
+      end
+
+      assert model2.not_published.exclude?(rfr.becomes(model2))
+    end
   end
 
   test "find via where with values" do
