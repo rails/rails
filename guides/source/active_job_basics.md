@@ -27,10 +27,10 @@ Queue, Active Job ensures that time-consuming operations do not block the
 request-response cycle. This can improve the performance and responsiveness of
 the application, allowing it to handle tasks in parallel.
 
-Create and Enqueue Jobs
------------------------
+Creating and Enqueuing Jobs
+---------------------------
 
-This section provides a step-by-step guide for creating a job and then adding it to a queue to be executed later.
+This section provides a step-by-step guide for creating a job class and then using jobs to define work to be executed in the background.
 
 ### Create the Job
 
