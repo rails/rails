@@ -3,12 +3,13 @@
 module ActiveSupport
   module Testing
     class ParallelizeExecutor # :nodoc:
-      attr_reader :size, :parallelize_with, :threshold
+      attr_reader :size, :parallelize_with, :threshold, :work_stealing
 
-      def initialize(size:, with:, threshold: ActiveSupport.test_parallelization_threshold)
+      def initialize(size:, with:, threshold: ActiveSupport.test_parallelization_threshold, work_stealing: false)
         @size = size
         @parallelize_with = with
         @threshold = threshold
+        @work_stealing = work_stealing
         @parallelized = false
       end
 
@@ -35,10 +36,13 @@ module ActiveSupport
         def build_parallel_executor
           case parallelize_with
           when :processes
-            Testing::Parallelization.new(size)
+            Testing::Parallelization.new(size, work_stealing: work_stealing)
           when :threads
             ActiveSupport::TestCase.lock_threads = false if defined?(ActiveSupport::TestCase.lock_threads)
-            Minitest::Parallel::Executor.new(size)
+            distributor = (work_stealing ? Testing::Parallelization::RoundRobinWorkStealingDistributor : Testing::Parallelization::RoundRobinDistributor).new \
+              worker_count: size
+
+            Testing::Parallelization::ThreadPoolExecutor.new(size: size, distributor: distributor)
           else
             raise ArgumentError, "#{parallelize_with} is not a supported parallelization executor."
           end
