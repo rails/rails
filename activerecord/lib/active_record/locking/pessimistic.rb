@@ -97,9 +97,9 @@ module ActiveRecord
       def with_lock(*args)
         transaction_opts = args.extract_options!
         lock = args.present? ? args.first : true
-        transaction(**transaction_opts) do
+        transaction(**transaction_opts) do |transaction|
           lock!(lock)
-          yield
+          yield transaction
         end
       end
     end
