@@ -417,8 +417,7 @@ var SparkMD5 = sparkMd5.exports;
 const md5Algorithm = {
   createBuffer: () => new SparkMD5.ArrayBuffer,
   append: (buffer, data) => buffer.append(data),
-  finalize: buffer => btoa(buffer.end(true)),
-  formatChecksum: checksum => checksum
+  getChecksum: buffer => btoa(buffer.end(true))
 };
 
 var sha256 = {
@@ -852,8 +851,10 @@ function hexToBase64(hexString) {
 const sha256Algorithm = {
   createBuffer: () => sha256.exports.sha256.create(),
   append: (buffer, data) => buffer.update(data),
-  finalize: buffer => buffer.hex(),
-  formatChecksum: hexDigest => `sha256:${hexToBase64(hexDigest)}`
+  getChecksum: buffer => {
+    const hexDigest = buffer.hex();
+    return `sha256:${hexToBase64(hexDigest)}`;
+  }
 };
 
 const fileSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;
@@ -892,9 +893,8 @@ class FileChecksum {
   _fileReaderDidLoad(event) {
     this.algorithmConfig.append(this.checksumBuffer, event.target.result);
     if (!this.readNextChunk()) {
-      const digest = this.algorithmConfig.finalize(this.checksumBuffer);
-      const formattedChecksum = this.algorithmConfig.formatChecksum(digest);
-      this.callback(null, formattedChecksum);
+      const checksum = this.algorithmConfig.getChecksum(this.checksumBuffer);
+      this.callback(null, checksum);
     }
   }
   fileReaderDidLoad(event) {

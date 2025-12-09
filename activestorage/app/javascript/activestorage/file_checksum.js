@@ -43,9 +43,8 @@ export class FileChecksum {
     this.algorithmConfig.append(this.checksumBuffer, event.target.result)
 
     if (!this.readNextChunk()) {
-      const digest = this.algorithmConfig.finalize(this.checksumBuffer)
-      const formattedChecksum = this.algorithmConfig.formatChecksum(digest)
-      this.callback(null, formattedChecksum)
+      const checksum = this.algorithmConfig.getChecksum(this.checksumBuffer)
+      this.callback(null, checksum)
     }
   }
 
