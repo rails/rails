@@ -2820,13 +2820,20 @@ Running .explain
 
 You can run [`explain`][] on a relation. EXPLAIN output varies for each database.
 
-For example, running:
+You can also chain `explain` with calculation methods like [`count`][], [`first`][], [`last`][], [`average`][], [`maximum`][], [`minimum`][], [`sum`][], and [`pluck`][] to see the query plan for those operations:
+
+```ruby
+Customer.where(active: true).explain.count
+Customer.order(:created_at).explain.first
+```
+
+The following example shows how to run `explain` on a relation:
 
 ```ruby
 Customer.where(id: 1).joins(:orders).explain
 ```
 
-may yield this for MySQL and MariaDB:
+The output will vary depending on the database adapter. For example, for MySQL and MariaDB, the output might look like this:
 
 ```sql
 EXPLAIN SELECT `customers`.* FROM `customers` INNER JOIN `orders` ON `orders`.`customer_id` = `customers`.`id` WHERE `customers`.`id` = 1
