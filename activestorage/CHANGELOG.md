@@ -1,8 +1,40 @@
-*   Eagerly analyze attachments with immediate variants
+*   Analyze attachments before validation
 
-    Attachments with `process: :immediately` variants now eagerly analyze
-    during validation, making metadata like image dimensions available for
-    custom validations.
+    Attachment metadata (width, height, duration, etc.) is now available for
+    model validations:
+
+    ```ruby
+    class User < ApplicationRecord
+      has_one_attached :avatar
+
+      validate :validate_avatar_dimensions, if: -> { avatar.attached? }
+
+      def validate_avatar_dimensions
+        if avatar.metadata[:width] < 200 || avatar.metadata[:height] < 200
+          errors.add(:avatar, "must be at least 200x200")
+        end
+      end
+    end
+    ```
+
+    Configure when analysis is performed:
+
+    * `analyze: :immediately` (default in 8.2) - Analyze before validation
+    * `analyze: :later` - Analyze after upload from local IO or via background job
+    * `analyze: :lazily` - Skip automatic analysis; analyze on-demand
+
+    ```ruby
+    has_one_attached :document, analyze: :later
+    has_many_attached :files, analyze: :lazily
+
+    # Or set the global default:
+    config.active_storage.analyze = :later
+    ```
+
+    Direct uploads bypass the server so the file isn't locally available
+    for analysis. In this case, `:immediately` falls back to `:later`,
+    analyzing via background job after upload completes. Metadata isn't
+    available for validation; validate on the client side instead.
 
     *Jeremy Daer*
 

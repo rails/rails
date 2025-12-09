@@ -326,6 +326,124 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     User.validates :name, presence: true
   end
 
+  test "analyze: :immediately analyzes during validation" do
+    validated_width = nil
+
+    User.validate do
+      if avatar_with_immediate_analysis.attached? && avatar_with_immediate_analysis.blob
+        validated_width = avatar_with_immediate_analysis.blob.metadata[:width]
+      end
+    end
+
+    user = User.create! \
+      name: "Analysis Test",
+      avatar_with_immediate_analysis: { io: file_fixture("racecar.jpg").open, filename: "racecar.jpg", content_type: "image/jpeg" }
+
+    assert_equal 4104, validated_width
+    assert_equal 4104, user.avatar_with_immediate_analysis.blob.metadata[:width]
+  ensure
+    User.clear_validators!
+    User.validates :name, presence: true
+  end
+
+  test "analyze: :later skips analysis during validation but analyzes after upload" do
+    validated_width = nil
+
+    User.validate do
+      if avatar_with_later_analysis.attached? && avatar_with_later_analysis.blob
+        validated_width = avatar_with_later_analysis.blob.metadata[:width]
+      end
+    end
+
+    user = User.create! \
+      name: "Analysis Test",
+      avatar_with_later_analysis: { io: file_fixture("racecar.jpg").open, filename: "racecar.jpg", content_type: "image/jpeg" }
+
+    # Not analyzed during validation
+    assert_nil validated_width
+
+    # Analyzed after upload (from local io, no job needed)
+    assert_equal 4104, user.avatar_with_later_analysis.blob.metadata[:width]
+  ensure
+    User.clear_validators!
+    User.validates :name, presence: true
+  end
+
+  test "analyze: :lazily skips analysis during validation" do
+    validated_width = nil
+
+    User.validate do
+      if avatar_with_lazy_analysis.attached? && avatar_with_lazy_analysis.blob
+        validated_width = avatar_with_lazy_analysis.blob.metadata[:width]
+      end
+    end
+
+    user = User.create! \
+      name: "Analysis Test",
+      avatar_with_lazy_analysis: { io: file_fixture("racecar.jpg").open, filename: "racecar.jpg", content_type: "image/jpeg" }
+
+    # Not analyzed during validation
+    assert_nil validated_width
+
+    # Still not analyzed after save
+    assert_nil user.avatar_with_lazy_analysis.blob.metadata[:width]
+  ensure
+    User.clear_validators!
+    User.validates :name, presence: true
+  end
+
+  test "global ActiveStorage.analyze = :immediately enables immediate analysis" do
+    original = ActiveStorage.analyze
+    ActiveStorage.analyze = :immediately
+
+    validated_width = nil
+
+    User.validate do
+      if avatar.attached? && avatar.blob
+        validated_width = avatar.blob.metadata[:width]
+      end
+    end
+
+    User.create! \
+      name: "Analysis Test",
+      avatar: { io: file_fixture("racecar.jpg").open, filename: "racecar.jpg", content_type: "image/jpeg" }
+
+    assert_equal 4104, validated_width
+  ensure
+    ActiveStorage.analyze = original
+    User.clear_validators!
+    User.validates :name, presence: true
+  end
+
+  test "analyze: :lazily skips enqueuing AnalyzeJob" do
+    blob = directly_upload_file_blob(filename: "racecar.jpg")
+
+    assert_no_enqueued_jobs only: ActiveStorage::AnalyzeJob do
+      @user.avatar_with_lazy_analysis.attach(blob)
+    end
+  end
+
+  test "analyze: :later enqueues AnalyzeJob" do
+    blob = directly_upload_file_blob(filename: "racecar.jpg")
+
+    assert_enqueued_with job: ActiveStorage::AnalyzeJob do
+      @user.avatar_with_later_analysis.attach(blob)
+    end
+  end
+
+  test "global ActiveStorage.analyze = :lazily skips enqueuing AnalyzeJob" do
+    original = ActiveStorage.analyze
+    ActiveStorage.analyze = :lazily
+
+    blob = directly_upload_file_blob(filename: "racecar.jpg")
+
+    assert_no_enqueued_jobs only: ActiveStorage::AnalyzeJob do
+      @user.avatar.attach(blob)
+    end
+  ensure
+    ActiveStorage.analyze = original
+  end
+
   private
     def assert_blob_identified_before_owner_validated(owner, blob, content_type)
       validated_content_type = nil
