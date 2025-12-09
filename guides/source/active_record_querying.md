@@ -198,7 +198,7 @@ SELECT * FROM customers WHERE (customers.id = 10) LIMIT 1
 
 The `find` method will raise an `ActiveRecord::RecordNotFound` exception if no matching record is found.
 
-You can also use this method to query for multiple objects. Call the `find` method and pass in an array of primary keys. The return will be an array containing all of the matching records for the supplied _primary keys_. For example:
+You can also use this method to query for multiple objects. Call the `find` method and pass in an array of primary keys. The return value will be an array containing all of the matching records for the supplied _primary keys_. For example:
 
 ```irb
 # Find the customers with primary keys 1 and 10.
@@ -510,11 +510,17 @@ SELECT * FROM customers
 The `all` method returns an `ActiveRecord::Relation` object, which allows you to chain additional query methods. For example, you can combine it with [`where`][] to filter records:
 
 ```irb
-irb> customers = Customer.where(active: true)
+irb> customers = Customer.all.where(active: true)
 => [#<Customer id: 1, first_name: "Lifo", active: true>, #<Customer id: 3, first_name: "Joe", active: true>]
 ```
 
-The SQL equivalent of the above is:
+This is the same as:
+
+```ruby
+customers = Customer.where(active: true)
+```
+
+The SQL equivalent is:
 
 ```sql
 SELECT * FROM customers WHERE (customers.active = true)
@@ -558,6 +564,8 @@ Customer.find_each do |customer|
   NewsMailer.weekly(customer).deliver_now
 end
 ```
+
+NOTE: The default batch size is 1000, but this can be customized. See [Options for `find_each`](#options-for-find-each) for more details.
 
 This process is repeated, fetching more batches as needed, until all of the records have been processed.
 
@@ -648,7 +656,9 @@ Customer.find_in_batches do |customers|
 end
 ```
 
-`find_in_batches` works on model classes, as seen above, and also on relations:
+`find_in_batches` works on model classes, as seen above, and also on relations
+as long as they have no ordering, since the method needs to force an order
+internally to iterate:
 
 ```ruby
 # Give add_customers an array of 1000 recently active customers at a time.
@@ -657,8 +667,6 @@ Customer.recently_active.find_in_batches do |customers|
 end
 ```
 
-as long as they have no ordering, since the method needs to force an order
-internally to iterate.
 
 [`find_in_batches`]: https://api.rubyonrails.org/classes/ActiveRecord/Batches.html#method-i-find_in_batches
 
@@ -760,7 +768,7 @@ Book.where("created_at >= :start_date AND created_at <= :end_date",
   { start_date: params[:start_date], end_date: params[:end_date] })
 ```
 
-This makes for clearer readability if you have a large number of variable conditions.
+This makes for a more readable query when you have a large number of variable conditions.
 
 #### Conditions That Use `LIKE`
 
@@ -805,7 +813,7 @@ The field name can also be a string:
 Book.where("out_of_print" => true)
 ```
 
-In the case of a belongs_to relationship, an association key can be used to specify the model if an Active Record object is used as the value. This method works with polymorphic relationships as well.
+In the case of a belongs_to relationship, an association key can be used to specify the model if an Active Record object is used as the value. This method works with [polymorphic relationships](association_basics.html#polymorphic-associations) as well.
 
 ```ruby
 author = Author.first
