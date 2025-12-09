@@ -1,3 +1,8 @@
+*   Make `ActiveSupport::EventReporter#debug_mode?` true by default to emit debug events
+    outside of Rails application contexts.
+
+    *Gannon McGibbon*
+
 *   Add `SecureRandom.base32` for generating case-insensitive keys that are unambiguous to humans.
 
     *Stanko Krtalic Rusendic & Miha Rekar*
