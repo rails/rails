@@ -13,7 +13,6 @@ After reading this guide, you will know:
 * How to generate an image representation of a non-image file (e.g. PDF).
 * How to send file uploads directly from browsers to a storage service.
 * How to setup cloud storage services to work with Active Storage.
-* How to clean up files stored during testing.
 
 --------------------------------------------------------------------------------
 
@@ -21,9 +20,7 @@ What is Active Storage?
 -----------------------
 
 Active Storage facilitates attaching files to Active Record objects and
-uploading those files to cloud storage services. For local development and
-testing, Active Storage has a `Disk` service which uses local filesystem by
-default.
+uploading those files to cloud storage services.
 
 Active Storage supports image variants (e.g. resizing) and can transform and
 store variants of uploaded images. Using Active Storage, you can also generate
@@ -32,6 +29,9 @@ metadata.
 
 For cloud storage services, Active Storage supports mirroring files to secondary
 services to serve as a backup or to allow migration between services. Active Storage also supports Direct Uploads, allowing files to be uploaded straight from the client's browser to the configured cloud storage service. This avoids routing large files through your Rails servers.
+
+For local development and testing, Active Storage has a `Disk` service which
+uses the local filesystem by default.
 
 ### Setup
 
@@ -114,14 +114,6 @@ class User < ApplicationRecord
 end
 ```
 
-You can override the default configured service for a specific attachment with the `service` option:
-
-```ruby
-class User < ApplicationRecord
-  has_one_attached :profile_photo, service: :amazon
-end
-```
-
 You can also specify an attachment when using a model generator command like this:
 
 ```bash
@@ -165,6 +157,14 @@ The `attached?` method determines whether a particular user has a profile photo:
 
 ```ruby
 user.profile_photo.attached?
+```
+
+You can override the default configured service for a specific attachment with the `service` option:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :profile_photo, service: :amazon
+end
 ```
 
 [`has_one_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached
