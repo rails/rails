@@ -28,6 +28,16 @@
 # would exclude records where the enum column is `nil`. Starting in Rails 8.2, negative scopes
 # will include records with `nil` values by default.
 #
-# To restore the previous behavior, set this to `true`:
+# This configuration is deprecated and will be removed in a future version of Rails.
+# If you need to keep the old behavior (excluding `nil` values), manually override the
+# negative scope in your model instead:
+#
+#   class MyModel < ApplicationRecord
+#     enum :status, [:active, :inactive]
+#     scope :not_active, -> { where.not(status: :active) }
+#   end
+#
+# To temporarily restore the previous behavior during upgrade, uncomment the line below.
+# Note: Setting this to `true` will trigger a deprecation warning.
 #++
-# Rails.application.config.active_record.deprecated_negative_enum_scopes_exclude_nil = false
+# Rails.application.config.active_record.deprecated_negative_enum_scopes_exclude_nil = true

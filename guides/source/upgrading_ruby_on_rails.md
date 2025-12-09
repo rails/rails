@@ -104,7 +104,17 @@ Book.not_published # => [book2]
 Book.not_published # => [book2, book3]
 ```
 
-If you want to maintain the previous behavior (excluding `nil` values), you can set the following configuration:
+If you want to maintain the previous behavior (excluding `nil` values), you should manually override the negative scope in your model:
+
+```ruby
+class Book < ApplicationRecord
+  enum :status, [:proposed, :written, :published]
+  # Override to exclude nil values
+  scope :not_published, -> { where.not(status: :published) }
+end
+```
+
+Alternatively, as a temporary measure during the upgrade, you can set the following configuration. Note that this configuration is deprecated and will be removed in a future version of Rails.
 
 ```ruby
 config.active_record.deprecated_negative_enum_scopes_exclude_nil = true

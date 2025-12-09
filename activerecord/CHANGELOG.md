@@ -6,6 +6,11 @@
     When set to `false` (8.2 default), negative scopes will include records with `nil`
     values. When set to `true`, negative scopes will exclude records with `nil` values.
 
+    This configuration is deprecated and will be removed in a future version of Rails.
+    It is intended as a temporary measure to ease upgrades. Setting this to `true` will
+    trigger a deprecation warning. Applications should instead manually override the
+    negative scope in their models if they need to maintain the old behavior.
+
     *QWYNG*
 
 *   Fix bug when `current_transaction.isolation` would not have been reset in test env.

@@ -1246,6 +1246,8 @@ Controls the format of the timestamp value in the cache key. Default is `:usec`.
 
 Is a boolean value that controls whether negative scopes for enums include records with `nil` values. When set to `true`, negative scopes will exclude records where the enum column is `nil`. When set to `false`, negative scopes will include records with `nil` values.
 
+This configuration is deprecated and will be removed in a future version of Rails. It is intended as a temporary measure to ease upgrades. Setting this to `true` will trigger a deprecation warning. If you need to keep the old behavior (excluding `nil` values), you should manually override the negative scope in your model instead of relying on this configuration.
+
 The default value depends on the `config.load_defaults` target version:
 
 | Starting with version | The default value is |

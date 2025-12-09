@@ -103,6 +103,20 @@ module ActiveRecord
       class_attribute :shard_selector, instance_accessor: false, default: nil
 
       class_attribute :deprecated_negative_enum_scopes_exclude_nil, instance_accessor: false, default: true
+      module DeprecatedNegativeEnumScopesExcludeNil
+        def deprecated_negative_enum_scopes_exclude_nil=(value)
+          if value
+            ActiveRecord.deprecator.warn(<<-MSG.squish)
+              Setting `config.active_record.deprecated_negative_enum_scopes_exclude_nil` to `true` is deprecated.
+              This configuration is intended as a temporary measure to ease upgrades and will be removed in a future version of Rails.
+              If you need to keep the old behavior (excluding `nil` values), manually override the negative scope in your model.
+            MSG
+          end
+
+          super
+        end
+      end
+      singleton_class.prepend DeprecatedNegativeEnumScopesExcludeNil
 
       ##
       # :singleton-method:
