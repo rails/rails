@@ -105,7 +105,7 @@ module ActiveRecord
         # Problem is, messages may have a "c" header that is present or not
         # depending on whether compression was applied on encryption. If this
         # threshold was modified, the message generated for lookup could vary
-        # for the same clear text, and searches on exisiting data could fail.
+        # for the same clear text, and searches on existing data could fail.
         THRESHOLD_TO_JUSTIFY_COMPRESSION = 140.bytes
 
         def default_key_provider
