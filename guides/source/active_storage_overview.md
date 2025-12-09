@@ -91,14 +91,14 @@ does not install these by default so you will need to do so separately:
 
 TODO: Question - should we mention the image_processing wrapper gem?
 
-TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance).
+TIP: ImageMagick is better known and more widely available. Libvips is a newer library that runs quickly and uses little memory.
 
 WARNING: Before you install and use third-party software, make sure you understand the licensing implications of doing so. MuPDF, in particular, is licensed under AGPL and requires a commercial license for some use.
 
 Attaching Files to Records
 --------------------------
 
-Once Active Storage is installed and configured, we can upload files attached to a Active Record model, display those files in a view, replace or remove those files, as well as get variants and query tables related to Active Storage.
+Once Active Storage is installed and configured, we can upload files attached to an Active Record model, display those files in a view, replace or remove those files, as well as create variants.
 
 ### `has_one_attached`
 
@@ -161,7 +161,7 @@ The `attach` method attaches a profile photo to an existing user:
 user.profile_photo.attach(params[:profile_photo])
 ```
 
-The `attached?` method determines whether a particular user has an profile photo:
+The `attached?` method determines whether a particular user has a profile photo:
 
 ```ruby
 user.profile_photo.attached?
