@@ -1,3 +1,7 @@
+*   Yield the transaction object to the block when using `with_lock`.
+
+    *Ngan Pham*
+
 *   Fix bug when `current_transaction.isolation` would not have been reset in test env.
 
     Additionally, extending the change in [#55549](https://github.com/rails/rails/pull/55549)
