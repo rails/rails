@@ -1843,7 +1843,9 @@ This would generate a query which contains a `LEFT OUTER JOIN` whereas the
 `joins` method would generate one using the `INNER JOIN` function instead.
 
 ```sql
-  SELECT authors.id AS t0_r0, ... books.updated_at AS t1_r5 FROM authors LEFT OUTER JOIN books ON books.author_id = authors.id WHERE (books.out_of_print = true)
+  SELECT authors.id AS t0_r0, ... books.updated_at AS t1_r5 FROM authors
+    LEFT OUTER JOIN books ON books.author_id = authors.id
+    WHERE (books.out_of_print = true)
 ```
 
 If there was no `where` condition, this would generate the normal set of two queries.
