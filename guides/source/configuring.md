@@ -220,6 +220,22 @@ end
 Controls whether requests should be handled concurrently. This should only
 be set to `false` if application code is not thread safe. Defaults to `true`.
 
+#### `config.app_version`
+
+Configures application version management. This allows Rails to track and expose version and environment information through various endpoints. Accepts an `ActiveSupport::OrderedOptions` object with the following settings:
+
+* `enabled`: Enable or disable version management (default: `true`)
+* `add_headers`: Add version and environment headers to HTTP responses (default: `false`)
+* `include_revision`: Include git revision in version output. Can be a boolean or a proc (default: `-> { Rails.env.local? }`)
+
+```ruby
+config.app_version.enabled = true
+config.app_version.add_headers = false  # Opt-in for HTTP headers
+config.app_version.include_revision = -> { Rails.env.local? }
+```
+
+Version information can be accessed via `Rails.application.version` and environment via `Rails.application.app_environment`.
+
 #### `config.asset_host`
 
 Sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints built-in in browsers using different domain aliases. Shorter version of `config.action_controller.asset_host`.
