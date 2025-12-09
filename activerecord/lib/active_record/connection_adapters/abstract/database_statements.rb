@@ -615,6 +615,25 @@ module ActiveRecord
         end
       end
 
+      # Executes SQL statements in the context of this connection without
+      # returning a result.
+      def execute_batch(statements, name = nil, **kwargs) # :nodoc:
+        statements.each do |statement|
+          intent = QueryIntent.new(
+            adapter: self,
+            processed_sql: statement,
+            name: name,
+            binds: kwargs[:binds] || [],
+            prepare: kwargs[:prepare] || false,
+            allow_retry: kwargs[:allow_retry] || false,
+            materialize_transactions: kwargs[:materialize_transactions] != false,
+            batch: kwargs[:batch] || false
+          )
+          intent.execute!
+          intent.finish
+        end
+      end
+
       private
         DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
         private_constant :DEFAULT_INSERT_VALUE
@@ -645,23 +664,6 @@ module ActiveRecord
             allow_retry: allow_retry,
             materialize_transactions: materialize_transactions
           )
-        end
-
-        def execute_batch(statements, name = nil, **kwargs)
-          statements.each do |statement|
-            intent = QueryIntent.new(
-              adapter: self,
-              processed_sql: statement,
-              name: name,
-              binds: kwargs[:binds] || [],
-              prepare: kwargs[:prepare] || false,
-              allow_retry: kwargs[:allow_retry] || false,
-              materialize_transactions: kwargs[:materialize_transactions] != false,
-              batch: kwargs[:batch] || false
-            )
-            intent.execute!
-            intent.finish
-          end
         end
 
         def build_fixture_sql(fixtures, table_name)

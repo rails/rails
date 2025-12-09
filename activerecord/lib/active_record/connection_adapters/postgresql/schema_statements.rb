@@ -373,7 +373,7 @@ module ActiveRecord
               reset_sequence_sql(data.sequence, data.max_value, data.min_value)
             end
 
-            @adapter.send(:execute_batch, reset_sqls, "SCHEMA")
+            @adapter.execute_batch(reset_sqls, "SCHEMA")
           end
 
           private
