@@ -1,3 +1,34 @@
+*   Eagerly analyze attachments with immediate variants
+
+    Attachments with `process: :immediately` variants now eagerly analyze
+    during validation, making metadata like image dimensions available for
+    custom validations.
+
+    *Jeremy Daer*
+
+*   Use local files for immediate variant processing and analysis
+
+    `process: :immediately` variants and blob analysis use local files
+    directly instead of re-downloading after upload.
+
+    Applies when attaching uploadable io, not when attaching an existing Blob.
+
+    *Jeremy Daer*
+
+*   Introduce `ActiveStorage::Attachment` upload callbacks
+
+    `after_upload` fires after an attachment's blob is uploaded, enabling
+    analysis and processing to run deterministically rather than assuming
+    after-commit callback execution ordering.
+
+    ```ruby
+    ActiveStorage::Attachment.after_upload do
+      # Your custom logic here
+    end
+    ```
+
+    *Jeremy Daer*
+
 *   Introduce immediate variants that are generated immediately on attachment
 
     The new `process` option determines when variants are created:

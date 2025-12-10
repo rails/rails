@@ -107,7 +107,9 @@ class ActiveStorage::Representations::RedirectControllerWithPreviewsTest < Actio
       signed_blob_id: @blob.signed_id,
       variation_key: ActiveStorage::Variation.encode(resize_to_limit: [100, 100]))
 
-    assert_equal 0, variant_record_loaded_count
+    # One additional SELECT is expected from touch_attachments callback when
+    # persisting immediate analysis metadata on the preview image blob.
+    assert_equal 1, variant_record_loaded_count
   ensure
     ActiveSupport::Notifications.unsubscribe(query_subscriber) if query_subscriber
   end

@@ -192,6 +192,58 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     end
   end
 
+  test "create immediate variants from local file without downloading" do
+    # When attaching a fresh file (not an existing blob), immediate variants
+    # should be processed from the local io without downloading from the service.
+    download_called = false
+    original_download = ActiveStorage::Blob.service.method(:download)
+
+    ActiveStorage::Blob.service.define_singleton_method(:download) do |key, &block|
+      download_called = true
+      original_download.call(key, &block)
+    end
+
+    @user.avatar_with_immediate_variants.attach(
+      io: file_fixture("racecar.jpg").open,
+      filename: "racecar.jpg",
+      content_type: "image/jpeg"
+    )
+
+    assert @user.avatar_with_immediate_variants.variant(:immediate_thumb).processed?,
+      "Immediate variant should be processed"
+    assert_not download_called,
+      "Download should not be called when processing immediate variants from local file"
+  ensure
+    # Restore the original method
+    ActiveStorage::Blob.service.singleton_class.remove_method(:download) if ActiveStorage::Blob.service.respond_to?(:download, true)
+  end
+
+  test "analyze from local file without downloading for immediate variant attachments" do
+    # Attachments with process: :immediately variants analyze from local io
+    # without downloading from the service.
+    download_called = false
+    original_download = ActiveStorage::Blob.service.method(:download)
+
+    ActiveStorage::Blob.service.define_singleton_method(:download) do |key, &block|
+      download_called = true
+      original_download.call(key, &block)
+    end
+
+    @user.avatar_with_immediate_variants.attach(
+      io: file_fixture("racecar.jpg").open,
+      filename: "racecar.jpg",
+      content_type: "image/jpeg"
+    )
+
+    assert @user.avatar_with_immediate_variants.blob.analyzed?, "Blob should be analyzed"
+    assert_equal 4104, @user.avatar_with_immediate_variants.blob.metadata[:width]
+    assert_equal 2736, @user.avatar_with_immediate_variants.blob.metadata[:height]
+    assert_not download_called,
+      "Download should not be called when analyzing from local file"
+  ensure
+    ActiveStorage::Blob.service.singleton_class.remove_method(:download) if ActiveStorage::Blob.service.respond_to?(:download, true)
+  end
+
   test "enqueues create variants job to delay transformations after attach" do
     blob = create_file_blob
     assert_create_variants_job blob:, variants: [{ resize_to_limit: [2, 2] }] do
@@ -223,6 +275,57 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     end
   end
 
+  test "analysis metadata available before validation for immediate variant attachments" do
+    # Attachments with process: :immediately variants eagerly analyze,
+    # making metadata available during validation.
+    validated_width = nil
+    validated_height = nil
+
+    User.validate do
+      if avatar_with_immediate_variants.attached? && avatar_with_immediate_variants.blob
+        validated_width = avatar_with_immediate_variants.blob.metadata[:width]
+        validated_height = avatar_with_immediate_variants.blob.metadata[:height]
+      end
+    end
+
+    user = User.create! \
+      name: "Analysis Test",
+      avatar_with_immediate_variants: { io: file_fixture("racecar.jpg").open, filename: "racecar.jpg", content_type: "image/jpeg" }
+
+    # Analysis metadata was available during validation
+    assert_equal 4104, validated_width
+    assert_equal 2736, validated_height
+
+    # And persisted correctly
+    assert_equal 4104, user.avatar_with_immediate_variants.blob.metadata[:width]
+    assert_equal 2736, user.avatar_with_immediate_variants.blob.metadata[:height]
+  ensure
+    User.clear_validators!
+    User.validates :name, presence: true
+  end
+
+  test "analysis metadata available before validation for has_many_attached with immediate variants" do
+    validated_widths = []
+
+    User.validate do
+      highlights_with_immediate_variants.each do |highlight|
+        validated_widths << highlight.blob.metadata[:width] if highlight.blob
+      end
+    end
+
+    user = User.create! \
+      name: "Analysis Test",
+      highlights_with_immediate_variants: [
+        { io: file_fixture("racecar.jpg").open, filename: "racecar.jpg", content_type: "image/jpeg" }
+      ]
+
+    assert_equal [4104], validated_widths
+    assert_equal 4104, user.highlights_with_immediate_variants.first.blob.metadata[:width]
+  ensure
+    User.clear_validators!
+    User.validates :name, presence: true
+  end
+
   private
     def assert_blob_identified_before_owner_validated(owner, blob, content_type)
       validated_content_type = nil
@@ -235,6 +338,9 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
 
       assert_equal content_type, validated_content_type
       assert_equal content_type, blob.reload.content_type
+    ensure
+      owner.class.clear_validators!
+      owner.class.validates :name, presence: true
     end
 
     def assert_blob_identified_outside_transaction(blob, &block)
