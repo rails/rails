@@ -714,10 +714,10 @@ example, mirroring attachments in different services for high-availability. The
 redirection has an HTTP expiration of 5 minutes.
 
 To create a download link, use the `rails_blob_{path|url}` helper. Using this
-helper allows you to set the disposition.
+helper allows you to set the disposition and filename.
 
 ```ruby
-rails_blob_path(user.avatar, disposition: "attachment")
+rails_blob_path(user.avatar, disposition: { disposition: "attachment", filename: "avatar.png" })
 ```
 
 WARNING: To prevent XSS attacks, Active Storage forces the Content-Disposition header

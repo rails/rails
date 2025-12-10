@@ -12,7 +12,11 @@ class ActiveStorage::Representations::ProxyController < ActiveStorage::Represent
 
   def show
     http_cache_forever public: true do
-      send_blob_stream @representation, disposition: params[:disposition]
+      if (disposition = params[:disposition]).is_a?(ActionController::Parameters)
+        disposition, filename = disposition[:disposition], disposition[:filename]
+      end
+
+      send_blob_stream @representation, disposition: disposition, filename: filename
     end
   end
 end
