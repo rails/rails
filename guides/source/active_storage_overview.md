@@ -89,8 +89,6 @@ does not install these by default so you will need to do so separately:
 * [ffmpeg](http://ffmpeg.org/) - for video previews and ffprobe for video/audio analysis.
 * [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) - for PDF previews.
 
-TODO: Question - should we mention the image_processing wrapper gem?
-
 TIP: ImageMagick is better known and more widely available. Libvips is a newer library that runs quickly and uses little memory.
 
 WARNING: Before you install and use third-party software, make sure you understand the licensing implications of doing so. MuPDF, in particular, is licensed under AGPL and requires a commercial license for some use.
@@ -1458,82 +1456,63 @@ end
 
 ### Discarding Files Created During Tests
 
-TODO: Should we remove the System Tests subsection completely? because 1. it's a repeat of the Integration Tests section below and 2. System Tests are not part of the Scaffold by default now.
+In general, database transactions are rolled back to clean up test data. While
+entries in the Active Storage related tables are removed, files attached during
+tests are not automatically deleted. Here is how to manually clean up orphaned
+files from integration tests and system tests.
 
-#### System Tests
+#### Integration Tests
 
-In system tests, database transactions are rolled back to clean up test data.
-However, destroy is never called on objects, so attached files are not
-automatically deleted. In order to clear these files, you use a `after_teardown`
-callback. Doing it there ensures that all connections created during the test
-are complete and you won't receive an error from Active Storage saying it can't
-find a file.
+To clean up files uploaded during Integration Tests, you use a `teardown` callback.
 
 ```ruby
-class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  # ...
+class ActionDispatch::IntegrationTest
   def after_teardown
     super
     FileUtils.rm_rf(ActiveStorage::Blob.service.root)
   end
-  # ...
 end
 ```
 
-If you're using [parallel tests][] and the `DiskService`, you should configure
+If you're using [parallel tests][] and the Disk service, you can configure
 each process to use its own folder for Active Storage. This way, the `teardown`
 callback will only delete files from the relevant process' tests.
 
 ```ruby
-class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  # ...
+class ActionDispatch::IntegrationTest
   parallelize_setup do |i|
     ActiveStorage::Blob.service.root = "#{ActiveStorage::Blob.service.root}-#{i}"
   end
-  # ...
 end
 ```
 
-If your system tests verify the deletion of a model with attachments and you're
+If your tests verify the deletion of a model with attachments and you're
 using Active Job, you will need to set your test environment to use the inline
 queue adapter so the purge job is executed immediately rather at an unknown time
 in the future.
 
 ```ruby
-# Use inline job processing to make things happen immediately
 config.active_job.queue_adapter = :inline
 ```
 
 [parallel tests]: testing.html#parallel-testing
 
-#### Integration Tests
+#### System Tests
 
-Similarly to System Tests, files uploaded during Integration Tests will not be
-automatically cleaned up. If you want to clear the files, you can do it in an
-`teardown` callback.
+In order to clear these files, you use a `after_teardown` callback. Doing it
+there ensures that all connections created during the test are complete and you
+won't receive an error from Active Storage saying it can't find a file.
 
 ```ruby
-class ActionDispatch::IntegrationTest
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  # ...
   def after_teardown
     super
     FileUtils.rm_rf(ActiveStorage::Blob.service.root)
   end
+  # ...
 end
 ```
-
-If you're using [parallel tests][] and the Disk service, you should configure
-each process to use its own folder for Active Storage. This way, the `teardown`
-callback will only delete files from the relevant process' tests.
-
-```ruby
-class ActionDispatch::IntegrationTest
-  parallelize_setup do |i|
-    ActiveStorage::Blob.service.root = "#{ActiveStorage::Blob.service.root}-#{i}"
-  end
-end
-```
-
-[parallel tests]: testing.html#parallel-testing
 
 ### Adding Attachments to Fixtures
 
