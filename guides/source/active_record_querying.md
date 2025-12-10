@@ -140,7 +140,7 @@ The methods are:
 
 Finder methods that return a collection, such as `where` and `group`, return an instance of [`ActiveRecord::Relation`][].  Methods that find a single entity, such as `find` and `first`, return a single instance of the model.
 
-The primary operation of `Model.find(options)` can be summarized as:
+The primary operation of `ActiveRecord::Relation` can be summarized as:
 
 * Convert the supplied options to an equivalent SQL query.
 * Fire the SQL query and retrieve the corresponding results from the database.
@@ -207,7 +207,8 @@ You can also use this method to query for multiple objects. Call the `find` meth
 ```irb
 # Find the customers with primary keys 1 and 10.
 irb> customers = Customer.find([1, 10]) # OR Customer.find(1, 10)
-=> [#<Customer id: 1, first_name: "Lifo">, #<Customer id: 10, first_name: "Ryan">]
+=> [#<Customer id: 1, first_name: "Lifo">,
+    #<Customer id: 10, first_name: "Ryan">]
 ```
 
 The SQL equivalent of the above is:
@@ -237,7 +238,8 @@ To find multiple customers with composite IDs, you would pass an array of arrays
 ```irb
 # Find the customers with primary keys [1, 8] and [7, 15].
 irb> customers = Customer.find([[1, 8], [7, 15]]) # OR Customer.find([1, 8], [7, 15])
-=> [#<Customer store_id: 1, id: 8, first_name: "Pat">, #<Customer store_id: 7, id: 15, first_name: "Chris">]
+=> [#<Customer store_id: 1, id: 8, first_name: "Pat">,
+    #<Customer store_id: 7, id: 15, first_name: "Chris">]
 ```
 
 The SQL equivalent of the above is:
@@ -267,7 +269,8 @@ You can pass in a numerical argument to the `take` method to return up to that n
 
 ```irb
 irb> customers = Customer.take(2)
-=> [#<Customer id: 1, first_name: "Lifo">, #<Customer id: 220, first_name: "Sara">]
+=> [#<Customer id: 1, first_name: "Lifo">,
+    #<Customer id: 220, first_name: "Sara">]
 ```
 
 The SQL equivalent of the above is:
@@ -278,7 +281,7 @@ SELECT * FROM customers LIMIT 2
 
 The [`take!`][] method behaves exactly like `take`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found.
 
-TIP: The retrieved record may vary depending on the database engine.
+INFO: Since `take` doesn't specify an `ORDER BY` clause, the retrieved record may vary depending on the database engine. Without explicit ordering, SQL doesn't guarantee which record will be returned.
 
 [`take`]: https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-take
 [`take!`]: https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-take-21
@@ -306,7 +309,9 @@ You can pass in a numerical argument to the `first` method to return up to that 
 
 ```irb
 irb> customers = Customer.first(3)
-=> [#<Customer id: 1, first_name: "Lifo">, #<Customer id: 2, first_name: "Fifo">, #<Customer id: 3, first_name: "Filo">]
+=> [#<Customer id: 1, first_name: "Lifo">,
+    #<Customer id: 2, first_name: "Fifo">,
+    #<Customer id: 3, first_name: "Filo">]
 ```
 
 The SQL equivalent of the above is:
@@ -384,7 +389,9 @@ You can pass in a numerical argument to the `last` method to return up to that n
 
 ```irb
 irb> customers = Customer.last(3)
-=> [#<Customer id: 219, first_name: "James">, #<Customer id: 220, first_name: "Sara">, #<Customer id: 221, first_name: "Russel">]
+=> [#<Customer id: 219, first_name: "James">,
+    #<Customer id: 220, first_name: "Sara">,
+    #<Customer id: 221, first_name: "Russel">]
 ```
 
 The SQL equivalent of the above is:
@@ -416,10 +423,10 @@ The [`last!`][] method behaves exactly like `last`, except that it will raise `A
 The [`find_by`][] method finds the first record matching some conditions. For example:
 
 ```irb
-irb> Customer.find_by first_name: 'Lifo'
+irb> Customer.find_by(first_name: 'Lifo')
 => #<Customer id: 1, first_name: "Lifo">
 
-irb> Customer.find_by first_name: 'Jon'
+irb> Customer.find_by(first_name: 'Jon')
 => nil
 ```
 
@@ -440,7 +447,7 @@ Note that there is no `ORDER BY` in the above SQL.  If your `find_by` conditions
 The [`find_by!`][] method behaves exactly like `find_by`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found. For example:
 
 ```irb
-irb> Customer.find_by! first_name: 'does not exist'
+irb> Customer.find_by!(first_name: 'does not exist')
 ActiveRecord::RecordNotFound
 ```
 
