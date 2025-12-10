@@ -27,7 +27,7 @@ module ActionMailbox::Ingresses
         return head :ok unless payload["type"] == "email.received"
         return head :unprocessable_entity if email_id.blank? && raw_email_b64.blank?
 
-        ActionMailbox::InboundEmail.create_and_extract_message_id! raw_email
+        ActionMailbox::InboundEmail.create_and_extract_message_id! normalized_email
         mark_processed
         head :no_content
       rescue JSON::ParserError => error
@@ -119,6 +119,55 @@ module ActionMailbox::Ingresses
 
         def payload
           @payload ||= JSON.parse(request.raw_post)
+        end
+
+        def normalized_email
+          mail = Mail.new(raw_email)
+          normalize_mail_for_display(mail).encoded
+        rescue StandardError => error
+          logger.warn("Resend webhook: Failed to normalize email structure - #{error.message}")
+          raw_email
+        end
+
+        def normalize_mail_for_display(mail)
+          mixed = Mail.new
+          mixed.subject = mail.subject
+          mixed.from = mail.from
+          mixed.to = mail.to
+          mixed.cc = mail.cc
+          mixed.bcc = mail.bcc
+          mixed.content_type = "multipart/mixed"
+
+          related = Mail::Part.new
+          related.content_type = "multipart/related"
+
+          alt = Mail::Part.new
+          alt.content_type = "multipart/alternative"
+          if mail.multipart?
+            alt.add_part(mail.text_part) if mail.text_part
+            alt.add_part(mail.html_part) if mail.html_part
+          else
+            alt.add_part(Mail::Part.new { body mail.decoded; content_type mail.content_type })
+          end
+          related.add_part(alt)
+
+          mail.attachments.each do |att|
+            if att.inline?
+              related.attachments[att.filename] = {
+                content_type: att.content_type,
+                content: att.body.decoded,
+                content_id: att.cid
+              }
+            else
+              mixed.attachments[att.filename] = {
+                content_type: att.content_type,
+                content: att.body.decoded
+              }
+            end
+          end
+
+          mixed.add_part(related)
+          mixed
         end
 
         def build_mime_from_resend_api
