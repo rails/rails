@@ -9,11 +9,15 @@ After reading this guide, you will know:
 
 * How to find records using a variety of methods and conditions.
 * How to specify the order, retrieved attributes, grouping, and other properties of the found records.
+* How to retrieve records in batches to efficiently process large datasets.
+* How to join tables and work with data from multiple tables.
 * How to use eager loading to reduce the number of database queries needed for data retrieval.
-* How to use dynamic finder methods.
+* How to use scopes to create reusable query logic.
 * How to use method chaining to use multiple Active Record methods together.
 * How to check for the existence of particular records.
+* How to use pluck, pick, and ids to efficiently retrieve specific values.
 * How to perform various calculations on Active Record models.
+* How to use locking mechanisms for concurrent access control.
 * How to run .explain on relations.
 
 --------------------------------------------------------------------------------
@@ -25,7 +29,7 @@ If you’re used to working directly with raw SQL, Active Record offers a more r
 
 INFO: Basic knowledge of relational database management systems (RDBMS) and structured query language (SQL) is helpful for getting the most out of this guide. You can refer to [this SQL tutorial][`sqlcourse`] or [RDBMS tutorial][`rdbmsinfo`] to learn more.
 
-**Related Guides**
+There are also numerous related guides that you may find useful:
 
 * [Active Record Basics](active_record_basics.html) - Learn about Active Record models, associations, and validations
 * [Active Record Migrations](active_record_migrations.html) - Learn how to modify your database schema
@@ -95,7 +99,7 @@ class Supplier < ApplicationRecord
 end
 ```
 
-TIP: All of the following models use `id` as the primary key, unless specified otherwise.
+NOTE: All of the following models use `id` as the primary key, unless specified otherwise.
 
 ![Diagram of all of the bookstore models](images/active_record_querying/bookstore_models.png)
 
@@ -173,8 +177,8 @@ The primary operation of `Model.find(options)` can be summarized as:
 [`select`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-select
 [`where`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-where
 [`with_lock`]: https://api.rubyonrails.org/classes/ActiveRecord/Locking/Pessimistic.html#method-i-with_lock
-[sqlcourse]: https://www.khanacademy.org/computing/computer-programming/sql
-[rdbmsinfo]: https://www.devart.com/what-is-rdbms/
+[`sqlcourse`]: https://www.khanacademy.org/computing/computer-programming/sql
+[`rdbmsinfo`]: https://www.devart.com/what-is-rdbms/
 
 ### Retrieving a Single Object
 
@@ -998,8 +1002,8 @@ Book.includes(:author).order("books.print_year desc", "authors.name asc")
 
 WARNING: In most database systems, on selecting fields with `distinct` from a result set using methods like `select`, `pluck` and `ids`; the `order` method will raise an `ActiveRecord::StatementInvalid` exception unless the field(s) used in `order` clause are included in the select list. See the next section for selecting fields from the result set.
 
-Selecting Specific Fields
--------------------------
+Selecting Fields
+----------------
 
 By default, `ActiveRecord::Relation` selects all the fields from the result set using `select *`.
 
@@ -2927,7 +2931,7 @@ and may yield this for PostgreSQL:
 
 [`explain`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-explain
 
-### Explain Options
+### `.explain` Options
 
 For databases and adapters which support them (currently PostgreSQL, MySQL, and MariaDB), options can be passed to provide deeper analysis.
 
