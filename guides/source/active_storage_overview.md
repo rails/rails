@@ -218,15 +218,7 @@ You can call [`images.attached?`][Attached::Many#attached?] to determine whether
 
 NOTE: When using `has_many_attached`, calling `images.attach(...)` adds new attachments to the list of existing attachments. It does not replace or overwrite existing attachments. If you want to replace existing images, you must explicitly [purge](#removing-files) the old attachments before attaching new ones.
 
-Similar to `has_one_attached`, you can override the default service using the `service` option:
-
-```ruby
-class Product < ApplicationRecord
-  has_many_attached :images, service: :s3
-end
-```
-
-and configure specific variants by calling the `variant` method on the attachable object:
+You can also configure specific variants by calling the `variant` method on the attachable object:
 
 ```ruby
 class Message < ApplicationRecord
@@ -359,7 +351,7 @@ Since Active Storage attachments are Active Record associations, you can use the
 
 When you declare `has_one_attached :profile_photo`, Rails automatically sets up two associations behind the scenes: a `has_one` association called `profile_photo_attachment`, which points to the `active_storage_attachments` table, and a `has_one :through` association called `profile_photo_blob`, which points to the `active_storage_blobs` table through the attachment record.
 
-Because these associations behave like normal Active Record relations, you can query them. For example, the following query joins the users table to the blob record and filters for all users whose avatar has a PNG content type:
+Because these associations behave like normal Active Record relations, you can query them. For example, the following query joins the `users` table to the blob record and filters for all users whose profile_photo has a PNG content type:
 
 ```ruby
 class User < ApplicationRecord
@@ -415,13 +407,13 @@ url_for(user.profile_photo)
 
 The RedirectController does not serve the file itself. Instead, it takes the
 permanent, signed Rails URL and issues a redirect to a short-lived service URL
-(e.g. an expiring S3 URL). This indirection decouples
-your application’s public URLs from the underlying storage service and enables
-features such as mirroring attachments across multiple services for
-high-availability. The redirect response is cached by the browser for 5 minutes.
+(e.g. an expiring S3 URL). This indirection decouples your application’s public
+URLs from the underlying storage service and enables features such as mirroring
+attachments across multiple services for high-availability. The redirect
+response is cached by the browser for 5 minutes.
 
-To create a download link, use the `rails_blob_{path|url}` helpers. These helpers
-generate the same permanent Rails URL but allow you to specify the file
+To create a download link, use the `rails_blob_{path|url}` helpers. These
+helpers generate the same permanent Rails URL but allow you to specify the file
 disposition.
 
 ```ruby
@@ -447,7 +439,7 @@ Rails.application.routes.url_helpers.rails_blob_path(user.profile_photo, only_pa
 
 In proxy mode, Rails retrieves the file from the storage service and then proxies it back to the client. Instead of sending a redirect, Rails responds with the file data directly from your application server.
 
-You can configure Active Storage to use proxying by default:
+The default configuration mode is `rails_storage_redirect`. You can configure Active Storage to use proxying like this:
 
 ```ruby
 # config/initializers/active_storage.rb
@@ -662,6 +654,7 @@ class User < ApplicationRecord
   end
 end
 ```
+
 The `preprocessed: true` option instructs Active Storage to enqueue a job that generates the variant immediately after the attachment is saved, so the resized version is ready the first time it's requested.
 
 WARNING: It should be considered unsafe to provide arbitrary user supplied
@@ -1081,7 +1074,7 @@ There are several ways to include the Active Storage JavaScript library in your 
 <%= javascript_include_tag "activestorage" %>
 ```
 
-2. Using Importmap (ESM) - pin the library in `config/importmap.rb`:
+1. Using Importmap (ESM) - pin the library in `config/importmap.rb`:
 
 ```ruby
 pin "@rails/activestorage", to: "activestorage.esm.js"
@@ -1096,13 +1089,13 @@ Then import and start it in your HTML:
 </script>
 ```
 
-3. Using the Asset Pipeline - require the library in a JavaScript manifest:
+1. Using the Asset Pipeline - require the library in a JavaScript manifest:
 
 ```javascript
 //= require activestorage
 ```
 
-4. Using the npm package - install via npm/yarn and import it in your JavaScript bundle:
+1. Using the npm package - install via npm/yarn and import it in your JavaScript bundle:
 
 ```ruby
 import * as ActiveStorage from "@rails/activestorage"
@@ -1195,8 +1188,6 @@ No CORS configuration is required for the Disk service since it shares your app�
 | `direct-uploads:end` | `<form>` | None | All direct uploads have ended. |
 
 ### Example
-
-TODO: Not sure what to do with the rest of the sections, they contain a bunch of code (including CSS) and seem useful but also not the usual guide style.
 
 You can use these events to show the progress of an upload.
 
