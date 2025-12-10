@@ -878,7 +878,7 @@ amazon:
   bucket: your_own_bucket-<%= Rails.env %>
 ```
 
-NOTE: The above configuration assumes that AWS secrets are stored using `bin/rails credentials:edit` with the appropriate keys. See the [Security Guide](security.html#custom-credentials) for  more.
+NOTE: The above configuration assumes that AWS secrets are stored using `bin/rails credentials:edit` with the appropriate keys. See the [Security Guide](security.html#custom-credentials) for more.
 
 There are other optional configurations as well - such as HTTP timeouts, retry limits, and upload options - that can be included:
 
@@ -1207,7 +1207,7 @@ You can use these events to show the progress of an upload.
 To show the uploaded files in a form:
 
 ```js
-// direct_uploads.js
+// app/javascript/direct_uploads.js
 addEventListener("direct-upload:initialize", event => {
   const { target, detail } = event
   const { id, file } = detail
@@ -1250,7 +1250,7 @@ addEventListener("direct-upload:end", event => {
 Add styles:
 
 ```css
-/* direct_uploads.css */
+/* app/assets/stylesheets/direct_uploads.css */
 .direct-upload {
   display: inline-block;
   position: relative;
@@ -1292,11 +1292,12 @@ input[type=file][data-direct-upload-url][disabled] {
 
 ### Custom drag and drop solutions
 
-You can use the `DirectUpload` class for this purpose. Upon receiving a file
+You can use the `DirectUpload` class for this purpose as well. Upon receiving a file
 from your library of choice, instantiate a DirectUpload and call its create
 method. Create takes a callback to invoke when the upload completes.
 
 ```js
+// app/javascript/drag_and_drop_uploads.js
 import { DirectUpload } from "@rails/activestorage"
 
 const input = document.querySelector('input[type=file]')
