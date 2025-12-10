@@ -1,3 +1,11 @@
+*   Add `Rails::CodeStatistics#register_extension` to register file extensions for `rails stats`
+
+    ```ruby
+    Rails::CodeStatistics.register_extension("txt")
+    ```
+
+    *Taketo Takashima*
+
 *   Wrap console command with an executor by default
 
     This can be disabled with `-w` or `--skip_executor`, same as runner.
