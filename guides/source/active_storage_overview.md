@@ -218,7 +218,7 @@ You can call [`images.attached?`][Attached::Many#attached?] to determine whether
 @product.images.attached?
 ```
 
-NOTE: When using `has_many_attached`, calling `images.attach(...)` adds new attachments. It does not replace or overwrite existing ones. If you want to replace existing images, you must explicitly [purge](#removing-files) the old attachments before attaching new ones.
+NOTE: When using `has_many_attached`, calling `images.attach(...)` adds new attachments to the list of existing attachments. It does not replace or overwrite existing attachments. If you want to replace existing images, you must explicitly [purge](#removing-files) the old attachments before attaching new ones.
 
 Similar to `has_one_attached`, you can override the default service using the `service` option:
 
@@ -466,7 +466,7 @@ Or if you want to explicitly proxy specific attachments there are URL helpers yo
 
 To use a CDN in front of Active Storage attachments, you must generate URLs using proxy mode. In proxy mode, files are served through your application rather than redirected to the underlying storage service. This allows the CDN to cache the file without additional configuration, because the default Active Storage proxy controllers send HTTP headers instructing intermediaries (including CDNs) to cache the response.
 
-When using CDN, you will need to ensure that the generated URLs use the CDN host instead of your application host. There are multiple ways to achieve this, but in general it involves tweaking your `config/routes.rb` file so that you can generate the proper URLs for the attachments and their variations. As an example, you could add this:
+When using a CDN, you will need to ensure that the generated URLs use the CDN host instead of your application host. There are multiple ways to achieve this, but in general it involves tweaking your `config/routes.rb` file so that you can generate the proper URLs for the attachments and their variations. As an example, you could add this:
 
 ```ruby
 # config/routes.rb
@@ -601,7 +601,9 @@ user.profile_photo.purge_later
 
 ### Purging Unattached Uploads
 
-There are cases where a file is uploaded but never attached to a record. This can happen when using [Direct Uploads](#direct-uploads). You can query for unattached records using the [unattached scope](https://github.com/rails/rails/blob/8ef5bd9ced351162b673904a0b77c7034ca2bc20/activestorage/app/models/active_storage/blob.rb#L49). Below is an example using a [custom rake task](command_line.html#custom-rake-tasks).
+There are cases where a file is uploaded but never attached to a record. This can happen when using [Direct Uploads](#direct-uploads). You can query for unattached records using the [unattached scope][Blob.unattached]. Below is an example using a [custom rake task](command_line.html#custom-rake-tasks).
+
+[Blob.unattached]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-c-unattached
 
 ```ruby
 namespace :active_storage do
@@ -635,7 +637,7 @@ Displaying Images, Videos, and PDFs
 
 Active Storage supports displaying a variety of files. You can use variants for image files and previews for other files such as video or PDF. There is also a concept for *representation*, which displays either a variant or preview depending on the file.
 
-### File Variants
+### Image Variants
 
 You can configure specific variants for attachments by calling the [`variant`](https://api.rubyonrails.org/classes/ActiveStorage/Variant.html) method on an attachable object:
 
@@ -658,7 +660,7 @@ If you know in advance that your variants will be accessed, you can use the `pre
 ```ruby
 class User < ApplicationRecord
   has_one_attached :profile_photo do |attachable|
-    attachable.variant :thumb, resize_to_limit: [100, 100], preprocessed: true
+    attachable.variant :thumb, resize_to_limit: [100, 100], process: :later
   end
 end
 ```
@@ -670,7 +672,7 @@ enable command injection vulnerabilities in your app. It is also recommended
 to implement a strict [ImageMagick security policy](https://imagemagick.org/script/security-policy.php)
 when MiniMagick is the variant processor of choice.
 
-### File Previews
+### Non-image Previews
 
 Some non-image files can be previewed: that is, they can be presented as images.
 For example, a video file can be previewed by extracting its first frame. Out of
@@ -700,7 +702,7 @@ first. In the case where `representable?` returns `false`, you can directly
 
 ```erb
 <ul>
-  <% @product.images.each do |file| %>
+  <% @task.files.each do |file| %>
     <li>
       <% if file.representable? %>
         <%= image_tag file.representation(resize_to_limit: [100, 100]) %>
@@ -732,7 +734,7 @@ The above example will generate an `<img>` tag with the `src` attribute pointing
 [`ActiveStorage::Representations::RedirectController`][]. When the browser
 makes a request to that controller, it will perform the following:
 
-1. Process file and upload the processed file if necessary.
+1. Process the file and upload the processed file if necessary.
 2. Return a `302` redirect to the file either to
   * the remote service (e.g., S3).
   * or `ActiveStorage::Blobs::ProxyController` which will return the file contents if [proxy mode](#proxy-mode) is enabled.
@@ -755,7 +757,7 @@ However, if you're rendering many images on a page, the example above can cause
 an [N+1 query problem](active_record_querying.html#n-1-queries-problem). Each call to `file.representation(...)` will look up its
 variant record individually, resulting in one query per image. To avoid these
 extra queries, you can preload variant records using the named scope,
-`with_all_variant_records` on [ActiveStorage::Attachment][].
+[`with_all_variant_records`][] on `ActiveStorage::Attachment`.
 
 ```ruby
 product.images.with_all_variant_records.each do |file|
@@ -768,7 +770,7 @@ disabled using [`config.active_storage.track_variants`][].
 
 [`config.active_storage.track_variants`]: configuring.html#config-active-storage-track-variants
 [`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
-[`ActiveStorage::Attachment`]: https://api.rubyonrails.org/classes/ActiveStorage/Attachment.html
+[`with_all_variant_records`]: https://api.rubyonrails.org/classes/ActiveStorage/Attachment.html#method-c-with_all_variant_records
 
 Configure Cloud Services
 ------------------------
