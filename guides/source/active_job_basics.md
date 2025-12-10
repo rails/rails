@@ -30,24 +30,18 @@ the application, allowing it to handle tasks in parallel.
 Creating and Enqueuing Jobs
 ---------------------------
 
-This section provides a step-by-step guide for creating a job class and then using jobs to define work to be executed in the background.
+This section provides a step-by-step guide for defining a job Ruby class and then using jobs to enqueue work to be executed in the background.
 
-### Create the Job
+### Creating a Job
 
 Active Job provides a Rails generator to create jobs. The following will create
-a job in `app/jobs` (with an attached test case under `test/jobs`):
+a job in the `app/jobs` directory (with tests under `test/jobs`):
 
 ```bash
 $ bin/rails generate job guests_cleanup
 invoke  test_unit
 create    test/jobs/guests_cleanup_job_test.rb
 create  app/jobs/guests_cleanup_job.rb
-```
-
-You can also create a job that will run on a specific queue:
-
-```bash
-$ bin/rails generate job guests_cleanup --queue urgent
 ```
 
 If you don't want to use a generator, you can create your own file inside of
@@ -85,7 +79,13 @@ class ProcessPaymentJob < PaymentJob
 end
 ```
 
-### Enqueue the Job
+You can also create a job that will run on a specific queue:
+
+```bash
+$ bin/rails generate job guests_cleanup --queue urgent
+```
+
+### Enqueuing the Job
 
 Enqueue a job using [`perform_later`][] and, optionally, [`set`][]. Like so:
 
