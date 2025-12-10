@@ -19,8 +19,8 @@ module ActiveStorage
       @transfer_manager = Aws::S3::TransferManager.new(client: @client.client) if defined?(Aws::S3::TransferManager)
       @bucket = @client.bucket(bucket)
 
-      @default_digest_type = default_digest_type
-      @default_digest_class = digest_to_class(default_digest_type)
+      @default_digest_type = default_digest_type.downcase.to_sym
+      @default_digest_class = digest_to_class(@default_digest_type)
 
       @multipart_upload_threshold = upload.delete(:multipart_threshold) || 100.megabytes
       @public = public
