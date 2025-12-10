@@ -1,3 +1,7 @@
+*   Deprecate built-in `sneakers` adapter.
+
+    *Dino Maric*
+
 *   Fix using custom serializers with `ActiveJob::Arguments.serialize` when
     `ActiveJob::Base` hasn't been loaded.
 
