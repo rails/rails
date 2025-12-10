@@ -101,6 +101,28 @@ module ActiveStorage
       #     has_one_attached :avatar, strict_loading: true
       #   end
       #
+      # You can configure specific variants per attachment by calling the +variant+ method
+      # on the yielded attachable object. Use the +:process+ option to control when variants
+      # are generated:
+      #
+      #   class User < ApplicationRecord
+      #     has_one_attached :avatar do |attachable|
+      #       # Create immediately when the avatar is attached
+      #       attachable.variant :thumb, resize_to_limit: [100, 100], process: :immediately
+      #
+      #       # Create in a background job after attachment
+      #       attachable.variant :medium, resize_to_limit: [300, 300], process: :later
+      #
+      #       # Create on demand when first requested (default)
+      #       attachable.variant :large, resize_to_limit: [800, 800], process: :lazily
+      #     end
+      #   end
+      #
+      # The +:process+ option accepts:
+      # * +:lazily+ (default) - Variants are created on the fly when first requested
+      # * +:later+ - Variants are created in a background job after the attachment is saved
+      # * +:immediately+ - Variants are created synchronously when the attachment is created
+      #
       # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
       # When renaming classes that use <tt>has_one_attached</tt>, make sure to also update the class names in the
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
@@ -204,6 +226,18 @@ module ActiveStorage
       #   class Gallery < ApplicationRecord
       #     has_many_attached :photos, strict_loading: true
       #   end
+      #
+      # You can configure specific variants per attachment by calling the +variant+ method
+      # on the yielded attachable object. Use the +:process+ option to control when variants
+      # are generated:
+      #
+      #   class Gallery < ApplicationRecord
+      #     has_many_attached :photos do |attachable|
+      #       attachable.variant :thumb, resize_to_limit: [100, 100], process: :immediately
+      #     end
+      #   end
+      #
+      # See +has_one_attached+ for more details on the +:process+ option.
       #
       # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
       # When renaming classes that use <tt>has_many</tt>, make sure to also update the class names in the
