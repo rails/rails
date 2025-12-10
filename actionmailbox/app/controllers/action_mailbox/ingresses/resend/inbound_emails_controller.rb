@@ -147,7 +147,12 @@ module ActionMailbox::Ingresses
             alt.add_part(mail.text_part) if mail.text_part
             alt.add_part(mail.html_part) if mail.html_part
           else
-            alt.add_part(Mail::Part.new { body mail.decoded; content_type mail.content_type })
+            # For non-multipart emails, create a single part with the body
+            content_type = mail.content_type.presence || "text/plain; charset=UTF-8"
+            alt.add_part(Mail::Part.new do
+              content_type content_type
+              body mail.body.decoded
+            end)
           end
           related.add_part(alt)
 
