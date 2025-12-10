@@ -1,0 +1,26 @@
+From: Test Sender <sender@example.com>
+To: mail@support.migrately.nl
+Subject: Test Email with Attachments
+Message-ID: <test-normalization@example.com>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="boundary1"
+
+--boundary1
+Content-Type: text/plain; charset=UTF-8
+
+This is the plain text version of the email.
+
+Best regards,
+Test Sender
+
+--boundary1
+Content-Type: text/html; charset=UTF-8
+
+<html>
+<body>
+<p>This is the <strong>HTML version</strong> of the email.</p>
+<p>Best regards,<br>Test Sender</p>
+</body>
+</html>
+
+--boundary1--

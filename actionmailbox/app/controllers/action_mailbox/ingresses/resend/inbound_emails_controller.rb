@@ -131,11 +131,10 @@ module ActionMailbox::Ingresses
 
         def normalize_mail_for_display(mail)
           mixed = Mail.new
-          mixed.subject = mail.subject
-          mixed.from = mail.from
-          mixed.to = mail.to
-          mixed.cc = mail.cc
-          mixed.bcc = mail.bcc
+          # Copy all headers from original mail
+          mail.header.fields.each do |field|
+            mixed.header[field.name] = field.value unless field.name == "Content-Type"
+          end
           mixed.content_type = "multipart/mixed"
 
           related = Mail::Part.new
