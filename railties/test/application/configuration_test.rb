@@ -3068,6 +3068,74 @@ module ApplicationTests
       assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates
     end
 
+    test "PostgresqlAdapter.decode_money is true by default for new apps" do
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_money
+    end
+
+    test "PostgresqlAdapter.decode_money is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_money
+    end
+
+    test "PostgresqlAdapter.decode_money can be configured via config.active_record.postgresql_adapter_decode_money" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config "config.active_record.postgresql_adapter_decode_money = true"
+
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_money
+    end
+
+    test "PostgresqlAdapter.decode_bytea is true by default for new apps" do
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_bytea
+    end
+
+    test "PostgresqlAdapter.decode_bytea is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_bytea
+    end
+
+    test "PostgresqlAdapter.decode_bytea can be configured via config.active_record.postgresql_adapter_decode_bytea" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config "config.active_record.postgresql_adapter_decode_bytea = true"
+
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_bytea
+    end
+
     test "SQLite3Adapter.strict_strings_by_default is true by default for new apps" do
       app_file "config/initializers/active_record.rb", <<~RUBY
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
@@ -3242,26 +3310,6 @@ module ApplicationTests
       app "test"
 
       assert_not ActiveSupport.parallelize_test_databases
-    end
-
-    test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
-      class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer
-        def klass
-          nil
-        end
-      end
-
-      app_file "config/initializers/custom_serializers.rb", <<-RUBY
-      Rails.application.config.active_job.custom_serializers << DummySerializer
-      RUBY
-
-      app "development"
-
-      assert_nothing_raised do
-        ActiveJob::Base
-      end
-
-      assert_includes ActiveJob::Serializers.serializers, DummySerializer.instance
     end
 
     test "config.active_job.verbose_enqueue_logs defaults to true in development" do

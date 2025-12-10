@@ -143,13 +143,13 @@ module ActiveSupport
         result.delete_suffix!(" id")
       end
 
-      result.gsub!(/([a-z\d]+)/i) do |match|
+      result.gsub!(/([[[:alpha:]]\d]+)/i) do |match|
         match.downcase!
         inflections.acronyms[match] || match
       end
 
       if capitalize
-        result.sub!(/\A\w/) do |match|
+        result.sub!(/\A[[:alpha:]]/) do |match|
           match.upcase!
           match
         end

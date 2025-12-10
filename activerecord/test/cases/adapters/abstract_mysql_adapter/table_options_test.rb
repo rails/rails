@@ -62,7 +62,7 @@ class TableOptionsTest < ActiveRecord::AbstractMysqlTestCase
   test "schema dump works with NO_TABLE_OPTIONS sql mode" do
     skip "As of MySQL 5.7.22, NO_TABLE_OPTIONS is deprecated. It will be removed in a future version of MySQL." if @connection.database_version >= "5.7.22"
 
-    old_sql_mode = @connection.query_value("SELECT @@SESSION.sql_mode")
+    old_sql_mode = @connection.select_value("SELECT @@SESSION.sql_mode")
     new_sql_mode = old_sql_mode + ",NO_TABLE_OPTIONS"
 
     begin
@@ -88,15 +88,15 @@ class DefaultEngineOptionTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   def setup
-    @logger_was  = ActiveRecord::Base.logger
+    @logger_was  = ActiveRecord::LogSubscriber.logger
     @log         = StringIO.new
     @verbose_was = ActiveRecord::Migration.verbose
-    ActiveRecord::Base.logger = ActiveSupport::Logger.new(@log)
+    ActiveRecord::LogSubscriber.logger = ActiveSupport::Logger.new(@log)
     ActiveRecord::Migration.verbose = false
   end
 
   def teardown
-    ActiveRecord::Base.logger = @logger_was
+    ActiveRecord::LogSubscriber.logger = @logger_was
     ActiveRecord::Migration.verbose = @verbose_was
     ActiveRecord::Base.lease_connection.drop_table "mysql_table_options", if_exists: true
     ActiveRecord::Base.connection_pool.schema_migration.delete_all_versions rescue nil

@@ -41,10 +41,10 @@ module ApplicationTests
       assert_includes ActiveRecord::Base.filter_attributes, :special_param
     end
 
-    test "filter_paramenters include filter_attributes for an AR::Base subclass" do
+    test "filter_parameters include filter_attributes for an AR::Base subclass" do
       app "development"
 
-      assert_not_includes ActiveRecord::Base.filter_attributes, "messsage.special_attr"
+      assert_not_includes ActiveRecord::Base.filter_attributes, "message.special_attr"
 
       class Message < ActiveRecord::Base
         self.table_name = "messages"
@@ -54,7 +54,7 @@ module ApplicationTests
       assert_includes Rails.application.config.filter_parameters, "message.special_attr"
     end
 
-    test "filter_paramenters include filter_attributes for AR::Base subclasses" do
+    test "filter_parameters include filter_attributes for AR::Base subclasses" do
       app "development"
 
       assert_not_includes ActiveRecord::Base.filter_attributes, "special_attr"

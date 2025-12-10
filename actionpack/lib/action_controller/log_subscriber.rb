@@ -54,7 +54,7 @@ module ActionController
       exception_class = event[:payload][:exception_class]
       exception_message = event[:payload][:exception_message]
       exception_backtrace = event[:payload][:exception_backtrace]
-      info { "rescue_from handled #{exception_class} (#{exception_message}) - #{exception_backtrace.first.delete_prefix("#{Rails.root}/")}" }
+      info { "rescue_from handled #{exception_class} (#{exception_message}) - #{exception_backtrace}" }
     end
     event_log_level :rescue_from_handled, :info
 

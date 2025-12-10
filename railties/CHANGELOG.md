@@ -1,3 +1,39 @@
+*   Add `Rails::CodeStatistics#register_extension` to register file extensions for `rails stats`
+
+    ```ruby
+    Rails::CodeStatistics.register_extension("txt")
+    ```
+
+    *Taketo Takashima*
+
+*   Wrap console command with an executor by default
+
+    This can be disabled with `-w` or `--skip_executor`, same as runner.
+
+    *zzak*
+
+*   Add a new internal route in development to respond to chromium devtools GET request.
+
+    This allows the app folder to be easily connected as a workspace in chromium-based browsers.
+
+    *coorasse*
+
+*   Set `config.rake_eager_load` in generated test environment to match `config.eager_load` behavior in CI.
+
+    This ensures eager loading works consistently in CI when rake tasks invoke the `:environment` task before tests run.
+
+    *Trevor Turk*
+
+*   Update the `.node-version` file conditionally generated for new applications to 22.21.1
+
+    *Taketo Takashima*
+
+*   Do not assume and force SSL in production by default when using Kamal, to allow for out of the box Kamal deployments.
+
+    It is still recommended to assume and force SSL in production as soon as you can.
+
+    *Jerome Dalbert*
+
 *   Add environment config file existence check
 
     `Rails::Application` will raise an error if unable to load any environment file.

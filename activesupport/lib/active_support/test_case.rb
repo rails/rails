@@ -96,6 +96,19 @@ module ActiveSupport
       # number of tests to run is above the +threshold+ param. The default value is
       # 50, and it's configurable via +config.active_support.test_parallelization_threshold+.
       #
+      # Parallelization shuffles tests and distributes them to workers in
+      # round-robin order, so given the same seed value and worker count, the
+      # same sequence of tests will run on each worker. This makes flaky tests
+      # caused by parallel test interdependence somewhat easier to reproduce,
+      # though it is not a guarantee of deterministic test execution.
+      #
+      # This can make test runtime slower and spikier when one worker gets most
+      # of the slow tests. Enable +work_stealing+ to allow idle workers to steal
+      # tests from busy workers, smoothing out runtime at the cost of less
+      # reproducible flaky-test failures:
+      #
+      #   parallelize(workers: :number_of_processors, work_stealing: true)
+      #
       # If you want to skip Rails default creation of one database per process in favor of
       # writing your own implementation, you can set +parallelize_databases+, or configure it
       # via +config.active_support.parallelize_test_databases+.
@@ -104,7 +117,7 @@ module ActiveSupport
       #
       # Note that your test suite may deadlock if you attempt to use only one database
       # with multiple processes.
-      def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold, parallelize_databases: ActiveSupport.parallelize_test_databases)
+      def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold, parallelize_databases: ActiveSupport.parallelize_test_databases, work_stealing: false)
         case
         when ENV["PARALLEL_WORKERS"]
           workers = ENV["PARALLEL_WORKERS"].to_i
@@ -116,7 +129,7 @@ module ActiveSupport
           ActiveSupport.parallelize_test_databases = parallelize_databases
         end
 
-        Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold)
+        Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold, work_stealing: work_stealing)
       end
 
       # Before fork hook for parallel testing. This can be used to run anything

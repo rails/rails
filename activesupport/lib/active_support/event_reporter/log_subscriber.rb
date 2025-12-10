@@ -31,8 +31,10 @@ module ActiveSupport
           namespace = self.namespace.to_s
           proc do |event|
             name = event[:name]
-            event_namespace = name[0, name.index(".")]
-            namespace == event_namespace
+            if (dot_idx = name.index("."))
+              event_namespace = name[0, dot_idx]
+              namespace == event_namespace
+            end
           end
         end
       end

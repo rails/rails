@@ -104,7 +104,7 @@ class UserMailer < ApplicationMailer
   def welcome_email
     @user = params[:user]
     @url  = "http://example.com/login"
-    mail(to: @user.email, subject: "Welcome to My Awesome Site")
+    mail(to: @user.email_address, subject: "Welcome to My Awesome Site")
   end
 end
 ```
@@ -204,7 +204,7 @@ user is successfully created.
 First, let's create a `User` scaffold:
 
 ```bash
-$ bin/rails generate scaffold user name email login
+$ bin/rails generate scaffold user name email_address login
 $ bin/rails db:migrate
 ```
 
@@ -323,7 +323,7 @@ irb> UserMailer.with(user: user).weekly_summary
        #<User:0x00007f84c9327198
         id: 1,
         name: "Bhumi",
-        email: "hi@gmail.com",
+        email_address: "hi@gmail.com",
         login: "Bhumi",
         created_at: Thu, 06 Jun 2024 17:43:44.424064000 UTC +00:00,
         updated_at: Thu, 06 Jun 2024 17:43:44.424064000 UTC +00:00>},
@@ -466,7 +466,7 @@ class UserMailer < ApplicationMailer
   def welcome_email
     @user = params[:user]
     @url  = "http://example.com/login"
-    mail(to: @user.email,
+    mail(to: @user.email_address,
          subject: "Welcome to My Awesome Site",
          template_path: "notifications",
          template_name: "hello")
@@ -488,7 +488,7 @@ class UserMailer < ApplicationMailer
   def welcome_email
     @user = params[:user]
     @url  = "http://example.com/login"
-    mail(to: @user.email,
+    mail(to: @user.email_address,
          subject: "Welcome to My Awesome Site") do |format|
       format.html { render "another_template" }
       format.text { render plain: "hello" }
@@ -672,7 +672,7 @@ To use a specific layout for a given email, you can pass in a `layout:
 ```ruby
 class UserMailer < ApplicationMailer
   def welcome_email
-    mail(to: params[:user].email) do |format|
+    mail(to: params[:user].email_address) do |format|
       format.html { render layout: "my_layout" }
       format.text
     end
@@ -699,12 +699,12 @@ For example, to inform all admins of a new registration:
 
 ```ruby
 class AdminMailer < ApplicationMailer
-  default to: -> { Admin.pluck(:email) },
+  default to: -> { Admin.pluck(:email_address) },
           from: "notification@example.com"
 
   def new_registration(user)
     @user = user
-    mail(subject: "New User Signup: #{@user.email}")
+    mail(subject: "New User Signup: #{@user.email_address}")
   end
 end
 ```
@@ -725,7 +725,7 @@ To show the name of the person when they receive the email, you can use
 def welcome_email
   @user = params[:user]
   mail(
-    to: email_address_with_name(@user.email, @user.name),
+    to: email_address_with_name(@user.email_address, @user.name),
     subject: "Welcome to My Awesome Site"
   )
 end
@@ -760,7 +760,7 @@ to `text/html` below. Rails will default to `text/plain` as the content type.
 ```ruby
 class UserMailer < ApplicationMailer
   def welcome_email
-    mail(to: params[:user].email,
+    mail(to: params[:user].email_address,
          body: params[:email_body],
          content_type: "text/html",
          subject: "Already rendered!")
@@ -783,7 +783,7 @@ class UserMailer < ApplicationMailer
     delivery_options = { user_name: params[:company].smtp_user,
                          password: params[:company].smtp_password,
                          address: params[:company].smtp_host }
-    mail(to: @user.email,
+    mail(to: @user.email_address,
          subject: "Please see the Terms and Conditions attached",
          delivery_method_options: delivery_options)
   end

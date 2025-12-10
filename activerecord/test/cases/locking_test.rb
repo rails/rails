@@ -814,6 +814,13 @@ class PessimisticLockingTest < ActiveRecord::TestCase
           end
         end
       end
+
+      def test_with_lock_yields_transaction
+        person = Person.find 1
+        person.with_lock do |transaction|
+          assert_equal Person.current_transaction, transaction
+        end
+      end
     end
 
     def test_no_locks_no_wait

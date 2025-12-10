@@ -46,10 +46,14 @@ module ActionController
 
     def rescue_from_callback(event)
       exception = event.payload[:exception]
+
+      exception_backtrace = exception.backtrace&.first
+      exception_backtrace = exception_backtrace&.delete_prefix("#{Rails.root}/") if defined?(Rails.root) && Rails.root
+
       emit_event("action_controller.rescue_from_handled",
         exception_class: exception.class.name,
         exception_message: exception.message,
-        exception_backtrace: exception.backtrace&.first&.delete_prefix("#{Rails.root}/")
+        exception_backtrace:
       )
     end
 
@@ -63,6 +67,17 @@ module ActionController
 
     def send_data(event)
       emit_event("action_controller.data_sent", filename: event.payload[:filename], duration_ms: event.duration.round(1))
+    end
+
+    def open_redirect(event)
+      payload = event.payload
+
+      emit_event("action_controller.open_redirect",
+        location: payload[:location],
+        request_method: payload[:request]&.method,
+        request_path: payload[:request]&.path,
+        stacktrace: payload[:stack_trace],
+      )
     end
 
     def unpermitted_parameters(event)

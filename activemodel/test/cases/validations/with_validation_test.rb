@@ -143,12 +143,104 @@ class ValidatesWithTest < ActiveModel::TestCase
     assert_equal ["Value is "], topic.errors[:content]
   end
 
+  test "each validator skip nil values if :allow_nil is a method name evaluating to true" do
+    Topic.validates_with(
+      ValidatorPerEachAttribute,
+      attributes: [:title, :content],
+      allow_nil: :condition_is_true
+    )
+    topic = Topic.new content: nil
+    assert_predicate topic, :valid?
+    assert_empty topic.errors[:title]
+    assert_empty topic.errors[:content]
+  end
+
+  test "each validator does not skip nil values if :allow_nil is a method name evaluating to false" do
+    Topic.validates_with(
+      ValidatorPerEachAttribute,
+      attributes: [:title, :content],
+      allow_nil: :condition_is_false
+    )
+    topic = Topic.new content: nil
+    assert_predicate topic, :invalid?
+    assert_not_empty topic.errors[:content]
+  end
+
+  test "each validator skip nil values if :allow_nil is a proc evaluating to true" do
+    Topic.validates_with(
+      ValidatorPerEachAttribute,
+      attributes: [:title, :content],
+      allow_nil: -> topic { topic.condition_is_true }
+    )
+    topic = Topic.new content: nil
+    assert_predicate topic, :valid?
+    assert_empty topic.errors[:title]
+    assert_empty topic.errors[:content]
+  end
+
+  test "each validator does not skip nil values if :allow_nil is a proc evaluating to false" do
+    Topic.validates_with(
+      ValidatorPerEachAttribute,
+      attributes: [:title, :content],
+      allow_nil: -> topic { topic.condition_is_false }
+    )
+    topic = Topic.new content: nil
+    assert_predicate topic, :invalid?
+    assert_not_empty topic.errors[:content]
+  end
+
   test "each validator skip blank values if :allow_blank is set to true" do
     Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], allow_blank: true)
     topic = Topic.new content: ""
     assert_predicate topic, :valid?
     assert_empty topic.errors[:title]
     assert_empty topic.errors[:content]
+  end
+
+  test "each validator skip blank values if :allow_blank is a method name evaluating to true" do
+    Topic.validates_with(
+      ValidatorPerEachAttribute,
+      attributes: [:title, :content],
+      allow_blank: :condition_is_true
+    )
+    topic = Topic.new content: ""
+    assert_predicate topic, :valid?
+    assert_empty topic.errors[:title]
+    assert_empty topic.errors[:content]
+  end
+
+  test "each validator does not skip blank values if :allow_blank is a method name evaluating to false" do
+    Topic.validates_with(
+      ValidatorPerEachAttribute,
+      attributes: [:title, :content],
+      allow_blank: :condition_is_false
+    )
+    topic = Topic.new content: ""
+    assert_predicate topic, :invalid?
+    assert_not_empty topic.errors[:content]
+  end
+
+  test "each validator skip blank values if :allow_blank is a proc evaluating to true" do
+    Topic.validates_with(
+      ValidatorPerEachAttribute,
+      attributes: [:title, :content],
+      allow_blank: -> topic { topic.condition_is_true }
+    )
+    topic = Topic.new content: ""
+    assert_predicate topic, :valid?
+    assert_empty topic.errors[:title]
+    assert_empty topic.errors[:content]
+  end
+
+  test "each validator does not skip blank values if :allow_blank is a proc evaluating to false" do
+    Topic.validates_with(
+      ValidatorPerEachAttribute,
+      attributes: [:title, :content],
+      allow_blank: -> topic { topic.condition_is_false }
+    )
+    topic = Topic.new content: ""
+    assert_predicate topic, :invalid?
+    assert_not_empty topic.errors[:content]
   end
 
   test "validates_with can validate with an instance method" do

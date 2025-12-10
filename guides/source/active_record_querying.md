@@ -2249,6 +2249,98 @@ The `default_scope` is merged in both `scope` and `where` conditions.
 
 [`merge`]: https://api.rubyonrails.org/classes/ActiveRecord/SpawnMethods.html#method-i-merge
 
+### Block-Level Scoping
+
+The [`scoping`][] method allows you to temporarily apply the current relation’s conditions within a block.
+Any query executed inside the block will use the scope of the relation.
+
+#### Basic Usage
+
+```ruby
+Order.where(customer_id: 1).scoping do
+  Order.first
+end
+
+# SELECT "orders".* FROM "orders" WHERE "orders"."customer_id" = ? ORDER BY "orders"."id" ASC LIMIT ?  [["customer_id", 1], ["LIMIT", 1]]
+```
+
+In this example, the `customer_id: 1` condition is applied automatically because the block is executed within the relation’s scope.
+
+#### Applying Scope To All Queries In The Block
+
+By default, scoping applies only to finder methods (such as `first`, `last`, `where`, etc.).
+If you want the scope to affect all queries—including `update` and `delete` on individual records, you can pass the option `all_queries: true`.
+
+```ruby
+Order.where(customer_id: 1).scoping(all_queries: true) do
+  order = Order.first
+  order.update(status: :complete)
+end
+
+# Order Load (0.1ms)    SELECT "orders".* FROM "orders" WHERE "orders"."customer_id" = ? ORDER BY "orders"."id" ASC LIMIT ?  [["customer_id", 1], ["LIMIT", 1]]
+# TRANSACTION (0.0ms)   BEGIN immediate TRANSACTION
+# Order Update (0.1ms)  UPDATE "orders" SET "status" = ?, "updated_at" = ? WHERE "orders"."id" = ? AND "orders"."customer_id" = ?  [["status", 2], ["updated_at", "2025-11-25 11:26:16.089553"], ["id", 1], ["customer_id", 1]]
+# TRANSACTION (0.0ms)   COMMIT TRANSACTION
+```
+
+This will ensure that the `customer_id: 1` condition is applied to all queries executed within the block.
+
+Once a block has been entered with `all_queries: true`, nested blocks cannot disable it:
+
+```ruby
+Order.where(customer_id: 1).scoping(all_queries: true) do
+  # This will raise an ArgumentError:
+  Order.scoping(all_queries: false) do
+    # ...
+  end
+end
+```
+
+[`scoping`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-scoping
+
+### Removing All Scoping
+
+If we wish to remove scoping for any reason we can use the [`unscoped`][] method. This is
+especially useful if a `default_scope` is specified in the model and should not be
+applied for this particular query.
+
+```ruby
+Book.unscoped.load
+```
+
+This method removes all scoping and will do a normal query on the table.
+
+```irb
+irb> Book.unscoped.all
+SELECT books.* FROM books
+
+irb> Book.where(out_of_print: true).unscoped.all
+SELECT books.* FROM books
+```
+
+`unscoped` can also accept a block:
+
+```irb
+irb> Book.unscoped { Book.out_of_print }
+SELECT books.* FROM books WHERE books.out_of_print = true
+```
+
+[`unscoped`]: https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Default/ClassMethods.html#method-i-unscoped
+
+Dynamic Finders
+---------------
+
+For every field (also known as an attribute) you define in your table,
+Active Record provides a finder method. If you have a field called `first_name` on your `Customer` model for example,
+you get the instance method `find_by_first_name` for free from Active Record.
+If you also have a `locked` field on the `Customer` model, you also get `find_by_locked` method.
+
+You can specify an exclamation point (`!`) on the end of the dynamic finders
+to get them to raise an `ActiveRecord::RecordNotFound` error if they do not return any records, like `Customer.find_by_first_name!("Ryan")`
+
+If you want to find both by `first_name` and `orders_count`, you can chain these finders together by simply typing "`and`" between the fields.
+For example, `Customer.find_by_first_name_and_orders_count("Ryan", 5)`.
+
 Enums
 -----
 

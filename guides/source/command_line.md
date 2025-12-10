@@ -626,8 +626,8 @@ my-app(dev)> app.response.status
 ```
 
 NOTE: You have to pass the "Host" header with the `app.get` request above,
-because the Rack client used under-the-hood defaults to "www.example.com" if not
-"Host" is specified. You can modify your application to always use `localhost`
+because the Rack client used under-the-hood defaults to "www.example.com" if
+"Host" is not specified. You can modify your application to always use `localhost`
 using a configuration or an initializer.
 
 The reason you can "make requests" like above is because the `app` object is the
@@ -968,7 +968,7 @@ $ bin/rails stats
 
 ### `bin/rails time:zones:all`
 
-The`bin/rails time:zones:all` command prints the complete list of time zones
+The `bin/rails time:zones:all` command prints the complete list of time zones
 that Active Support knows about, along with their UTC offsets followed by the
 Rails timezone identifiers.
 
@@ -1018,7 +1018,6 @@ You can remove older compiled assets using `bin/rails assets:clean`. The
 an old asset while the new assets are being built.
 
 If you want to clear `public/assets` completely, you can use `bin/rails assets:clobber`.
-assets:clobber`.
 
 Managing the Database
 ---------------------
@@ -1368,7 +1367,7 @@ Custom Rake Tasks
 -----------------
 
 You may want to create custom rake tasks in your application, to delete old
-records from the database for example. You can do this with the the `bin/rails
+records from the database for example. You can do this with the `bin/rails
 generate task` command. Custom rake tasks have a `.rake` extension and are
 placed in the `lib/tasks` folder in your Rails application. For example:
 

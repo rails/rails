@@ -143,7 +143,7 @@ module ActiveModel
           end
         end
 
-        class NormalizedValueType < DelegateClass(ActiveModel::Type::Value) # :nodoc:
+        class NormalizedValueType < ActiveSupport::Delegation::DelegateClass(ActiveModel::Type::Value) # :nodoc:
           include ActiveModel::Type::SerializeCastValue
 
           attr_reader :cast_type, :normalizer, :normalize_nil

@@ -37,6 +37,12 @@ class MySQLExplainTest < ActiveRecord::AbstractMysqlTestCase
     assert_match %(#{expected_analyze_clause} SELECT `posts`.* FROM `posts` WHERE `posts`.`author_id` = 1), explain
   end
 
+  def test_explain_format_option
+    explain = Author.all.explain(format: :json).inspect
+
+    assert_match(/\{.*\}/m, explain)
+  end
+
   private
     def explain_option
       supports_analyze? || supports_explain_analyze? ? :analyze : :extended

@@ -297,6 +297,47 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/ActionController::ParameterMissing/, body)
   end
 
+  test "rescue with text error and markdown format when text/markdown is preferred" do
+    @app = DevelopmentApp
+
+    get "/", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 500
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/RuntimeError/, body)
+    assert_match(/puke/, body)
+
+    get "/not_found", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 404
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/#{AbstractController::ActionNotFound.name}/, body)
+
+    get "/method_not_allowed", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::MethodNotAllowed/, body)
+
+    get "/unknown_http_method", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::UnknownHttpMethod/, body)
+
+    get "/bad_request", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::BadRequest/, body)
+
+    get "/parameter_missing", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::ParameterMissing/, body)
+  end
+
   test "rescue with JSON error for JSON API request" do
     @app = ApiApp
 
@@ -873,6 +914,18 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
       assert_select "code a.edit-icon"
       assert_includes body, "atom://core/open"
+    end
+  end
+
+  test "editor can handle syntax errors" do
+    @app = DevelopmentApp
+    ActiveSupport::Editor.stub(:current, ActiveSupport::Editor.find("atom")) do
+      get "/syntax_error_into_view"
+
+      assert_response 500
+      assert_select "#Application-Trace-0" do
+        assert_select "code", /syntax error, unexpected|syntax errors found/
+      end
     end
   end
 
