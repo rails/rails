@@ -101,11 +101,24 @@ module ActiveStorage
       #     has_one_attached :avatar, strict_loading: true
       #   end
       #
+      # Pass the +analyze:+ option to control when analysis is performed:
+      #
+      #   class User < ApplicationRecord
+      #     has_one_attached :avatar, analyze: :immediately
+      #   end
+      #
+      # Valid values are:
+      # - +:immediately+ - Analyze before validation, making metadata available for validations
+      # - +:later+ (default) - Analyze in a background job after attachment
+      # - +:lazily+ - Skip automatic analysis; analyze on-demand when metadata is accessed
+      #
+      # The default can be changed globally with <tt>config.active_storage.analyze = :immediately</tt>.
+      #
       # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
       # When renaming classes that use <tt>has_one_attached</tt>, make sure to also update the class names in the
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
       # the corresponding rows.
-      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
+      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil)
         Attached::Model.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -149,7 +162,7 @@ module ActiveStorage
           :has_one_attached,
           name,
           nil,
-          { dependent: dependent, service_name: service },
+          { dependent: dependent, service_name: service, analyze: analyze },
           self
         )
         yield reflection if block_given?
@@ -205,11 +218,19 @@ module ActiveStorage
       #     has_many_attached :photos, strict_loading: true
       #   end
       #
+      # Pass the +analyze:+ option to control when analysis is performed:
+      #
+      #   class Gallery < ApplicationRecord
+      #     has_many_attached :photos, analyze: :immediately
+      #   end
+      #
+      # See +has_one_attached+ for available values and details.
+      #
       # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
       # When renaming classes that use <tt>has_many</tt>, make sure to also update the class names in the
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
       # the corresponding rows.
-      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
+      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil)
         Attached::Model.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -255,7 +276,7 @@ module ActiveStorage
           :has_many_attached,
           name,
           nil,
-          { dependent: dependent, service_name: service },
+          { dependent: dependent, service_name: service, analyze: analyze },
           self
         )
         yield reflection if block_given?

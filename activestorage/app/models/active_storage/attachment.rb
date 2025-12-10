@@ -72,7 +72,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     blob.local_io = io
 
     process_immediate_variants_from_io(io)
-    blob.analyze_without_saving unless blob.analyzed?
+    analyze_blob_from_io(io)
 
     io.rewind if io.respond_to?(:rewind)
     blob.upload_without_unfurling(io)
@@ -167,7 +167,22 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     end
 
     def analyze_blob_later
-      blob.analyze_later unless blob.analyzed?
+      blob.analyze_later unless blob.analyzed? || skip_later_analysis?
+    end
+
+    def analyze_blob_from_io(io)
+      return if blob.analyzed? || skip_later_analysis?
+
+      io.rewind if io.respond_to?(:rewind)
+      blob.analyze_without_saving
+    end
+
+    def skip_later_analysis?
+      (analyze_option || ActiveStorage.analyze) == :lazily
+    end
+
+    def analyze_option
+      record.attachment_reflections[name]&.options&.fetch(:analyze, nil)
     end
 
     def mirror_blob_later

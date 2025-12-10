@@ -13,8 +13,7 @@ module ActiveStorage
     end
 
     def analyze
-      return unless has_immediate_variants?
-      with_local_io { blob.analyze_without_saving unless blob.analyzed? }
+      with_local_io { blob.analyze_without_saving unless blob.analyzed? } if analyze_immediately?
     end
 
     def attachment
@@ -121,12 +120,30 @@ module ActiveStorage
         service_name
       end
 
+      def analyze_immediately?
+        case analyze_option
+        when :immediately then true
+        when :later, :lazily then false
+        when nil then has_immediate_variants? || ActiveStorage.analyze == :immediately
+        else
+          raise ArgumentError, "Unknown analyze option: #{analyze_option.inspect}. Valid options are :immediately, :later, :lazily."
+        end
+      end
+
+      def analyze_option
+        reflection&.options&.fetch(:analyze, nil)
+      end
+
+      def reflection
+        record.attachment_reflections[name]
+      end
+
       def has_immediate_variants?
         named_variants.any? { |_name, named_variant| named_variant.process(record) == :immediately }
       end
 
       def named_variants
-        record.attachment_reflections[name]&.named_variants || {}
+        reflection&.named_variants || {}
       end
 
       def open_attachable_io
