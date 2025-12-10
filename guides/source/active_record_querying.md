@@ -423,10 +423,10 @@ The [`last!`][] method behaves exactly like `last`, except that it will raise `A
 The [`find_by`][] method finds the first record matching some conditions. For example:
 
 ```irb
-irb> Customer.find_by(first_name: 'Lifo')
+irb> Customer.find_by(first_name: "Lifo")
 => #<Customer id: 1, first_name: "Lifo">
 
-irb> Customer.find_by(first_name: 'Jon')
+irb> Customer.find_by(first_name: "Jon")
 => nil
 ```
 
@@ -439,7 +439,7 @@ Customer.where(first_name: "Lifo").take
 The SQL equivalent of the above is:
 
 ```sql
-SELECT * FROM customers WHERE (customers.first_name = 'Lifo') LIMIT 1
+SELECT * FROM customers WHERE (customers.first_name = "Lifo") LIMIT 1
 ```
 
 Note that there is no `ORDER BY` in the above SQL.  If your `find_by` conditions can match multiple records, you should [apply an order](#ordering-records) to guarantee a deterministic result.
@@ -447,7 +447,7 @@ Note that there is no `ORDER BY` in the above SQL.  If your `find_by` conditions
 The [`find_by!`][] method behaves exactly like `find_by`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found. For example:
 
 ```irb
-irb> Customer.find_by!(first_name: 'does not exist')
+irb> Customer.find_by!(first_name: "does not exist")
 ActiveRecord::RecordNotFound
 ```
 
@@ -727,7 +727,7 @@ If you want to add conditions to your query, you can include them directly in th
 For example:
 
 ```ruby
-Book.where("title = 'Introduction to Algorithms'")
+Book.where("title = \"Introduction to Algorithms\"")
 ```
 
 This will find all books where the `title` field value is 'Introduction to Algorithms'.
@@ -854,7 +854,7 @@ Book.where(created_at: (Time.now.midnight - 1.day)..Time.now.midnight)
 This will find all books created yesterday by using a `BETWEEN` SQL statement:
 
 ```sql
-SELECT * FROM books WHERE (books.created_at BETWEEN '2008-12-21 00:00:00' AND '2008-12-22 00:00:00')
+SELECT * FROM books WHERE (books.created_at BETWEEN "2008-12-21 00:00:00" AND "2008-12-22 00:00:00")
 ```
 
 This demonstrates a shorter syntax for the examples in [Array Conditions](#array-conditions)
@@ -868,7 +868,7 @@ Book.where(created_at: (Time.now.midnight - 1.day)..)
 This would generate SQL like:
 
 ```sql
-SELECT * FROM books WHERE books.created_at >= '2008-12-21 00:00:00'
+SELECT * FROM books WHERE books.created_at >= "2008-12-21 00:00:00"
 ```
 
 #### Subset Conditions
@@ -924,7 +924,7 @@ Customer.where(last_name: "Smith").or(Customer.where(orders_count: [1, 3, 5]))
 ```
 
 ```sql
-SELECT * FROM customers WHERE (customers.last_name = 'Smith' OR customers.orders_count IN (1,3,5))
+SELECT * FROM customers WHERE (customers.last_name = "Smith" OR customers.orders_count IN (1,3,5))
 ```
 
 [`or`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-or
@@ -938,7 +938,7 @@ Customer.where(last_name: "Smith").where(orders_count: [1, 3, 5])
 ```
 
 ```sql
-SELECT * FROM customers WHERE customers.last_name = 'Smith' AND customers.orders_count IN (1,3,5)
+SELECT * FROM customers WHERE customers.last_name = "Smith" AND customers.orders_count IN (1,3,5)
 ```
 
 `AND` conditions for the logical intersection between relations can be built by
@@ -1541,7 +1541,7 @@ The above session produces the following SQL for a MySQL backend:
 ```sql
 SQL (0.2ms)   BEGIN
 Book Load (0.3ms)   SELECT * FROM books LIMIT 1 FOR UPDATE
-Book Update (0.4ms)   UPDATE books SET updated_at = '2009-02-07 18:05:56', title = 'Algorithms, second edition' WHERE id = 1
+Book Update (0.4ms)   UPDATE books SET updated_at = "2009-02-07 18:05:56", title = "Algorithms, second edition" WHERE id = 1
 SQL (0.8ms)   COMMIT
 ```
 
@@ -2177,7 +2177,7 @@ end
 
 ```irb
 irb> Book.out_of_print.old
-SELECT books.* FROM books WHERE books.out_of_print = 'true' AND books.year_published < 1969
+SELECT books.* FROM books WHERE books.out_of_print = "true" AND books.year_published < 1969
 ```
 
 We can mix and match `scope` and `where` conditions and the final SQL
@@ -2185,7 +2185,7 @@ will have all conditions joined with `AND`.
 
 ```irb
 irb> Book.in_print.where(price: ...100)
-SELECT books.* FROM books WHERE books.out_of_print = 'false' AND books.price < 100
+SELECT books.* FROM books WHERE books.out_of_print = "false" AND books.price < 100
 ```
 
 If we do want the last `where` clause to win then [`merge`][] can
@@ -2215,7 +2215,7 @@ SELECT books.* FROM books WHERE (year_published >= 1969)
 irb> Book.in_print
 SELECT books.* FROM books WHERE (year_published >= 1969) AND books.out_of_print = false
 
-irb> Book.where('price > 50')
+irb> Book.where("price > 50")
 SELECT books.* FROM books WHERE (year_published >= 1969) AND (price > 50)
 ```
 
@@ -2305,7 +2305,7 @@ SELECT customers.id, customers.last_name, reviews.body
 FROM customers
 INNER JOIN reviews
   ON reviews.customer_id = customers.id
-WHERE (reviews.created_at > '2019-01-08')
+WHERE (reviews.created_at > "2019-01-08")
 ```
 
 ### Retrieving Specific Data from Multiple Tables
@@ -2344,16 +2344,16 @@ The [`find_or_create_by`][] method checks whether a record with the specified at
 Suppose you want to find a customer named "Andy", and if there's none, create one. You can do so by running:
 
 ```irb
-irb> Customer.find_or_create_by(first_name: 'Andy')
+irb> Customer.find_or_create_by(first_name: "Andy")
 => #<Customer id: 5, first_name: "Andy", last_name: nil, title: nil, visits: 0, orders_count: nil, lock_version: 0, created_at: "2019-01-17 07:06:45", updated_at: "2019-01-17 07:06:45">
 ```
 
 The SQL generated by this method looks like this:
 
 ```sql
-SELECT * FROM customers WHERE (customers.first_name = 'Andy') LIMIT 1
+SELECT * FROM customers WHERE (customers.first_name = "Andy") LIMIT 1
 BEGIN
-INSERT INTO customers (created_at, first_name, locked, orders_count, updated_at) VALUES ('2011-08-30 05:22:57', 'Andy', 1, NULL, '2011-08-30 05:22:57')
+INSERT INTO customers (created_at, first_name, locked, orders_count, updated_at) VALUES ("2011-08-30 05:22:57", "Andy", 1, NULL, "2011-08-30 05:22:57")
 COMMIT
 ```
 
@@ -2398,7 +2398,7 @@ validates :orders_count, presence: true
 to your `Customer` model. If you try to create a new `Customer` without passing an `orders_count`, the record will be invalid and an exception will be raised:
 
 ```irb
-irb> Customer.find_or_create_by!(first_name: 'Andy')
+irb> Customer.find_or_create_by!(first_name: "Andy")
 ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
 ```
 
@@ -2413,7 +2413,7 @@ saved to the database. Continuing with the `find_or_create_by` example, we
 now want the customer named 'Nina':
 
 ```irb
-irb> nina = Customer.find_or_initialize_by(first_name: 'Nina')
+irb> nina = Customer.find_or_initialize_by(first_name: "Nina")
 => #<Customer id: nil, first_name: "Nina", orders_count: 0, locked: true, created_at: "2011-08-30 06:09:27", updated_at: "2011-08-30 06:09:27">
 
 irb> nina.persisted?
@@ -2426,7 +2426,7 @@ irb> nina.new_record?
 Because the object is not yet stored in the database, the SQL generated looks like this:
 
 ```sql
-SELECT * FROM customers WHERE (customers.first_name = 'Nina') LIMIT 1
+SELECT * FROM customers WHERE (customers.first_name = "Nina") LIMIT 1
 ```
 
 When you want to save it to the database, just call `save`:
@@ -2443,7 +2443,7 @@ irb> nina.save
 The [`create_or_find_by`][] method tries to create a record with the given attributes. If a record with those attributes already exists (indicated by a uniqueness constraint violation), it will find and return that existing record instead. This method is atomic and avoids race conditions that can occur with `find_or_create_by`.
 
 ```irb
-irb> Customer.create_or_find_by(first_name: 'Andy')
+irb> Customer.create_or_find_by(first_name: "Andy")
 => #<Customer id: 5, first_name: "Andy", last_name: nil, title: nil, visits: 0, orders_count: nil, lock_version: 0, created_at: "2019-01-17 07:06:45", updated_at: "2019-01-17 07:06:45">
 ```
 
@@ -2451,7 +2451,7 @@ The SQL generated by this method looks like this on first call:
 
 ```sql
 BEGIN
-INSERT INTO customers (created_at, first_name, locked, orders_count, updated_at) VALUES ('2011-08-30 05:22:57', 'Andy', 1, NULL, '2011-08-30 05:22:57')
+INSERT INTO customers (created_at, first_name, locked, orders_count, updated_at) VALUES ("2011-08-30 05:22:57", "Andy", 1, NULL, "2011-08-30 05:22:57")
 COMMIT
 ```
 
@@ -2459,9 +2459,9 @@ If the record already exists (due to a uniqueness constraint), the creation will
 
 ```sql
 BEGIN
-INSERT INTO customers (created_at, first_name, locked, orders_count, updated_at) VALUES ('2011-08-30 05:22:57', 'Andy', 1, NULL, '2011-08-30 05:22:57')
+INSERT INTO customers (created_at, first_name, locked, orders_count, updated_at) VALUES ("2011-08-30 05:22:57", "Andy", 1, NULL, "2011-08-30 05:22:57")
 ROLLBACK
-SELECT * FROM customers WHERE (customers.first_name = 'Andy') LIMIT 1
+SELECT * FROM customers WHERE (customers.first_name = "Andy") LIMIT 1
 ```
 
 The key difference between `create_or_find_by` and `find_or_create_by` is the order of operations and atomicity:
@@ -2477,14 +2477,14 @@ IMPORTANT: For `create_or_find_by` to work correctly, you **must** have a unique
 You can also use [`create_or_find_by!`][] to raise an exception if the record creation fails for reasons other than uniqueness constraint violations. This is similar to `find_or_create_by!` but with the create-first, atomic approach.
 
 ```irb
-irb> Customer.create_or_find_by!(first_name: 'Andy', orders_count: 5)
+irb> Customer.create_or_find_by!(first_name: "Andy", orders_count: 5)
 => #<Customer id: 5, first_name: "Andy", orders_count: 5, ...>
 ```
 
 If a validation fails during creation (other than uniqueness), an exception will be raised:
 
 ```irb
-irb> Customer.create_or_find_by!(first_name: 'Andy', orders_count: nil)
+irb> Customer.create_or_find_by!(first_name: "Andy", orders_count: nil)
 ActiveRecord::RecordInvalid: Validation failed: Orders count can't be blank
 ```
 
@@ -2518,7 +2518,8 @@ This method will return an instance of `ActiveRecord::Result` class and calling 
 object would return you an array of hashes where each hash indicates a record.
 
 ```irb
-irb> Customer.lease_connection.select_all("SELECT first_name, created_at FROM customers WHERE id = '1'").to_a
+irb> Customer.lease_connection.select_all("SELECT first_name, created_at FROM customers WHERE id = \"1\"").to_a
+```
 => [{"first_name"=>"Rafael", "created_at"=>"2012-11-10 23:23:45.281189"},
     {"first_name"=>"Eileen", "created_at"=>"2013-12-09 11:22:35.221282"}]
 ```
@@ -2746,15 +2747,15 @@ SELECT COUNT(*) FROM customers
 Or on a relation:
 
 ```irb
-irb> Customer.where(first_name: 'Ryan').count
-SELECT COUNT(*) FROM customers WHERE (first_name = 'Ryan')
+irb> Customer.where(first_name: "Ryan").count
+SELECT COUNT(*) FROM customers WHERE (first_name = "Ryan")
 # => 17
 ```
 
 You can also use various finder methods on a relation for performing complex calculations:
 
 ```irb
-irb> Customer.includes("orders").where(first_name: 'Ryan', orders: { status: 'shipped' }).count
+irb> Customer.includes("orders").where(first_name: "Ryan", orders: { status: "shipped" }).count
 ```
 
 Which will execute:
@@ -2762,7 +2763,7 @@ Which will execute:
 ```sql
 SELECT COUNT(DISTINCT customers.id) FROM customers
   LEFT OUTER JOIN orders ON orders.customer_id = customers.id
-  WHERE (customers.first_name = 'Ryan' AND orders.status = 0)
+  WHERE (customers.first_name = "Ryan" AND orders.status = 0)
 ```
 
 assuming that Order has `enum status: [ :shipped, :being_packed, :cancelled ]`.
@@ -2874,11 +2875,11 @@ EXPLAIN SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "orders"."c
 ------------------------------------------------------------------------------
  Nested Loop  (cost=4.33..20.85 rows=4 width=164)
     ->  Index Scan using customers_pkey on customers  (cost=0.15..8.17 rows=1 width=164)
-          Index Cond: (id = '1'::bigint)
+          Index Cond: (id = "1"::bigint)
     ->  Bitmap Heap Scan on orders  (cost=4.18..12.64 rows=4 width=8)
-          Recheck Cond: (customer_id = '1'::bigint)
+          Recheck Cond: (customer_id = "1"::bigint)
           ->  Bitmap Index Scan on index_orders_on_customer_id  (cost=0.00..4.18 rows=4 width=0)
-                Index Cond: (customer_id = '1'::bigint)
+                Index Cond: (customer_id = "1"::bigint)
 (7 rows)
 ```
 
@@ -2932,7 +2933,7 @@ and may yield this for PostgreSQL:
                                     QUERY PLAN
 ----------------------------------------------------------------------------------
  Index Scan using customers_pkey on customers  (cost=0.15..8.17 rows=1 width=164)
-   Index Cond: (id = '1'::bigint)
+   Index Cond: (id = "1"::bigint)
 (2 rows)
 ```
 
@@ -2959,7 +2960,7 @@ EXPLAIN (ANALYZE, VERBOSE) SELECT "shop_accounts".* FROM "shop_accounts" INNER J
    Inner Unique: true
    ->  Index Scan using shop_accounts_pkey on public.shop_accounts  (cost=0.15..8.17 rows=1 width=24) (actual time=0.003..0.003 rows=0 loops=1)
          Output: shop_accounts.id, shop_accounts.customer_id, shop_accounts.customer_carrier_id
-         Index Cond: (shop_accounts.id = '1'::bigint)
+         Index Cond: (shop_accounts.id = "1"::bigint)
    ->  Index Only Scan using customers_pkey on public.customers  (cost=0.15..8.17 rows=1 width=8) (never executed)
          Output: customers.id
          Index Cond: (customers.id = shop_accounts.customer_id)
