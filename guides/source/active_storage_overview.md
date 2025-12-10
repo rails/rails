@@ -715,7 +715,7 @@ previewable files. You can also call these methods directly.
 
 ### Lazy vs Immediate Loading
 
-By default, Active Storage processes representations lazily. This means the image is not transformed until the moment a user’s browser actually requests it, avoiding any work during the initial page render.
+By default, Active Storage processes representations lazily. This means the image is transformed in a separate request when needed, avoiding any work during the initial page render.
 
 ```ruby
 image_tag file.representation(resize_to_limit: [100, 100])
@@ -1097,7 +1097,7 @@ Then import and start it in your HTML:
 
 1. Using the npm package - install via npm/yarn and import it in your JavaScript bundle:
 
-```ruby
+```js
 import * as ActiveStorage from "@rails/activestorage"
 ActiveStorage.start()
 ```
