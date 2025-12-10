@@ -574,7 +574,7 @@ NOTE: The `find_each` and `find_in_batches` methods are intended for use in the 
 
 #### `find_each`
 
-The [`find_each`][] method retrieves records in batches and then yields _each_ one to the block. In the following example, `find_each` retrieves customers in batches of 1000 and yields them to the block one by one:
+The [`find_each`][] method retrieves records in batches and then yields _each_ one to the block. In the following example, `find_each` retrieves customers in batches of 1,000 and yields them to the block one by one:
 
 ```ruby
 Customer.find_each do |customer|
@@ -582,7 +582,7 @@ Customer.find_each do |customer|
 end
 ```
 
-NOTE: The default batch size is 1000, but this can be customized. See [Options for `find_each`](#options-for-find-each) for more details.
+NOTE: The default batch size is 1,000, but this can be customized. See [Options for `find_each`](#options-for-find-each) for more details.
 
 This process is repeated, fetching more batches as needed, until all of the records have been processed.
 
@@ -607,7 +607,7 @@ explained below.
 
 **`:batch_size`**
 
-The `:batch_size` option allows you to specify the number of records to be retrieved in each batch, before being passed individually to the block. For example, to retrieve records in batches of 5000, you can use the following code:
+The `:batch_size` option allows you to specify the number of records to be retrieved in each batch, before being passed individually to the block. For example, to retrieve records in batches of 5,000, you can use the following code:
 
 ```ruby
 Customer.find_each(batch_size: 5000) do |customer|
@@ -641,7 +641,7 @@ end
 ```
 
 Another example would be if you wanted multiple workers handling the same
-processing queue. You could have each worker handle 10000 records by setting the
+processing queue. You could have each worker handle 10,000 records by setting the
 appropriate `:start` and `:finish` options on each worker.
 
 **`:error_on_ignore`**
@@ -661,7 +661,7 @@ end
 
 #### `find_in_batches`
 
-The [`find_in_batches`][] method is similar to `find_each`, since both retrieve batches of records. The difference is that `find_in_batches` yields _batches_ to the block as an array of models, instead of individually. The following example will yield to the supplied block an array of up to 1000 customers at a time, with the final block containing any remaining customers:
+The [`find_in_batches`][] method is similar to `find_each`, since both retrieve batches of records. The difference is that `find_in_batches` yields _batches_ to the block as an array of models, instead of individually. The following example will yield to the supplied block an array of up to 1,000 customers at a time, with the final block containing any remaining customers:
 
 ```ruby
 # Give add_customers an array of 1000 customers at a time.
@@ -689,7 +689,7 @@ The `find_in_batches` method accepts the same options as `find_each`:
 
 **`:batch_size`**
 
-Just like for `find_each`, `batch_size` establishes how many records will be retrieved in each group. For example, retrieving batches of 2500 records can be specified as:
+Just like for `find_each`, `batch_size` establishes how many records will be retrieved in each group. For example, retrieving batches of 2,500 records can be specified as:
 
 ```ruby
 Customer.find_in_batches(batch_size: 2500) do |customers|
@@ -699,7 +699,7 @@ end
 
 **`:start`**
 
-The `start` option allows specifying the beginning ID from where records will be selected. As mentioned before, by default records are fetched in ascending order of the primary key. For example, to retrieve customers starting on ID: 5000 in batches of 2500 records, the following code can be used:
+The `start` option allows specifying the beginning ID from where records will be selected. As mentioned before, by default records are fetched in ascending order of the primary key. For example, to retrieve customers starting on ID: 5000 in batches of 2,500 records, the following code can be used:
 
 ```ruby
 Customer.find_in_batches(batch_size: 2500, start: 5000) do |customers|
