@@ -478,8 +478,7 @@ irb> Customer.find_by(id: customer.id) # Customer.find_by(id: [5, 10])
 Here, we might intend to search for a single record with the composite primary key `[5, 10]`, but Active Record will
 search for a record with an `:id` column of _either_ 5 or 10, and may return the wrong record.
 
-TIP: The [`id_value`][] method can be used to fetch the value of the `:id` column for a record, for use in finder
-methods such as `find_by` and `where`. See example below:
+The [`id_value`][] method can be used to retrieve the value of the `:id` column for a record when using finder methods such as `find_by` and `where`. For example:
 
 ```irb
 irb> customer = Customer.last
@@ -509,7 +508,8 @@ Active Record provides several methods for retrieving multiple objects from the 
 
 ```irb
 irb> customers = Customer.all
-=> [#<Customer id: 1, first_name: "Lifo">, #<Customer id: 2, first_name: "Fifo">, ...]
+=> [#<Customer id: 1, first_name: "Lifo">,
+    #<Customer id: 2, first_name: "Fifo">, ...]
 ```
 
 The SQL equivalent of the above is:
@@ -522,7 +522,8 @@ The `all` method returns an `ActiveRecord::Relation` object, which allows you to
 
 ```irb
 irb> customers = Customer.all.where(active: true)
-=> [#<Customer id: 1, first_name: "Lifo", active: true>, #<Customer id: 3, first_name: "Joe", active: true>]
+=> [#<Customer id: 1, first_name: "Lifo", active: true>,
+    #<Customer id: 3, first_name: "Joe", active: true>]
 ```
 
 This is the same as:
@@ -530,6 +531,8 @@ This is the same as:
 ```ruby
 customers = Customer.where(active: true)
 ```
+
+Since `all` returns an `ActiveRecord::Relation` and relations are lazy-loaded, calling `all` first is optional and doesn't change the query behavior.
 
 The SQL equivalent is:
 
@@ -549,9 +552,9 @@ TIP: For large datasets, consider using the batch processing methods described i
 
 ### Retrieving Multiple Objects in Batches
 
-We often need to iterate over a large set of records, for example, when sending a newsletter to a large set of customers, or when exporting data.
+We often need to iterate over a large set of records, for example, when sending a newsletter to many customers, or when exporting data.
 
-This may appear straightforward:
+You may be tempted to use the following approach:
 
 ```ruby
 # This may consume too much memory if the table is big.
@@ -560,11 +563,14 @@ Customer.all.each do |customer|
 end
 ```
 
-But this approach becomes increasingly impractical as the table size increases, since `Customer.all.each` instructs Active Record to fetch _the entire table_ in a single pass, build a model object per row, and then keep the entire array of model objects in memory. Indeed, if we have a large number of records, the entire collection may exceed the amount of memory available.
+However, this approach becomes increasingly impractical as the table size increases, since `Customer.all.each` instructs Active Record to fetch _the entire table_ in a single pass, build a model object per row, and then keep the entire array of model objects in memory. If we have a large number of records, the entire collection may exceed the amount of memory available.
 
-Rails provides two methods that address this problem by dividing records into memory-friendly batches for processing. The first method, `find_each`, retrieves a batch of records and then yields _each_ record to the block individually as a model. The second method, `find_in_batches`, retrieves a batch of records and then yields _the entire batch_ to the block as an array of models.
+Rails provides two methods that address this problem by dividing records into memory-friendly batches for processing:
 
-TIP: The `find_each` and `find_in_batches` methods are intended for use in the batch processing of a large number of records that wouldn't fit in memory all at once. If you just need to loop over a thousand records the regular find methods are the preferred option.
+- The first method, `find_each`, retrieves a batch of records and then yields _each_ record to the block individually as a model.
+- The second method, `find_in_batches`, retrieves a batch of records and then yields _the entire batch_ to the block as an array of models.
+
+NOTE: The `find_each` and `find_in_batches` methods are intended for use in the batch processing of a large number of records that wouldn't fit in memory all at once. If you just need to loop over a thousand records then the regular find methods are the preferred option.
 
 #### `find_each`
 
@@ -588,11 +594,11 @@ Customer.where(weekly_subscriber: true).find_each do |customer|
 end
 ```
 
-If an order is present in the receiver the behavior depends on the flag
-[`config.active_record.error_on_ignored_order`][]. If true, `ArgumentError` is
+If an order is present in the relation, the behavior depends on the flag
+[`config.active_record.error_on_ignored_order`][]. If this flag is set to true, `ArgumentError` is
 raised, otherwise the order is ignored and a warning issued, which is the
-default. This can be overridden with the option `:error_on_ignore`, explained
-below.
+default behavior. This can be overridden with the option `:error_on_ignore`,
+explained below.
 
 [`config.active_record.error_on_ignored_order`]: configuring.html#config-active-record-error-on-ignored-order
 [`find_each`]: https://api.rubyonrails.org/classes/ActiveRecord/Batches.html#method-i-find_each
@@ -601,7 +607,7 @@ below.
 
 **`:batch_size`**
 
-The `:batch_size` option allows you to specify the number of records to be retrieved in each batch, before being passed individually to the block. For example, to retrieve records in batches of 5000:
+The `:batch_size` option allows you to specify the number of records to be retrieved in each batch, before being passed individually to the block. For example, to retrieve records in batches of 5000, you can use the following code:
 
 ```ruby
 Customer.find_each(batch_size: 5000) do |customer|
@@ -2503,7 +2509,8 @@ If you'd like to use your own SQL to find records in a table you can use [`find_
 
 ```irb
 irb> Customer.find_by_sql("SELECT * FROM customers INNER JOIN orders ON customers.id = orders.customer_id ORDER BY customers.created_at desc")
-=> [#<Customer id: 1, first_name: "Lucas" ...>, #<Customer id: 2, first_name: "Jan" ...>, ...]
+=> [#<Customer id: 1, first_name: "Lucas" ...>,
+    #<Customer id: 2, first_name: "Jan" ...>, ...]
 ```
 
 `find_by_sql` provides you with a simple way of making custom calls to the database and retrieving instantiated objects.
