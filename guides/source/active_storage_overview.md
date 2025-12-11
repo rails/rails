@@ -692,27 +692,7 @@ You can call `profile_photo.variant(:thumb)` in a view to get a thumb variant of
 <%= image_tag user.profile_photo.variant(:thumb) %>
 ```
 
-If you know in advance that your variants will be accessed, you can use the `preprocessed` option (with both `has_one_attached` and `has_many_attached`) to specify that Rails should generate them ahead of time:
-
-```ruby
-class User < ApplicationRecord
-  has_one_attached :profile_photo do |attachable|
-    attachable.variant :thumb, resize_to_limit: [100, 100], preprocessed: :true
-  end
-end
-```
-
-The `preprocessed: true` option instructs Active Storage to enqueue a job that generates the variant immediately after the attachment is saved, so the resized version is ready the first time it's requested.
-
-WARNING: It should be considered unsafe to provide arbitrary user supplied
-transformations or parameters to variant processors. This can potentially
-enable command injection vulnerabilities in your app. It is also recommended
-to implement a strict [ImageMagick security policy](https://imagemagick.org/script/security-policy.php)
-when MiniMagick is the variant processor of choice.
-
-#### Variant `process` option: Lazily, Later, Immediately
-
-When you know in advance which variants you'll generate, you can use the `process` option to control when they're generated. The default for `process` is `lazily`:
+There is a `process` option that can be used to control when variants are generated. The default value for the `process` option is `lazily`. The other two values are `later` and `immediately`.
 
 * `:lazily` (default) - variants are created on the fly when first requested
 * `:later` - variants are created in a background job after the attachment is saved
@@ -732,6 +712,18 @@ class User < ApplicationRecord
   end
 end
 ```
+
+So, for example, if you know in advance that your variants will be accessed, you
+can use the `process: :later` option (with both `has_one_attached` and
+`has_many_attached`) to specify that Rails should generate them ahead of time
+(and not lazily).
+
+WARNING: It should be considered unsafe to provide arbitrary user supplied
+transformations or parameters to variant processors. This can potentially enable
+command injection vulnerabilities in your app. It is also recommended to
+implement a strict [ImageMagick security
+policy](https://imagemagick.org/script/security-policy.php) when MiniMagick is
+the variant processor of choice.
 
 ### Non-image Previews
 
