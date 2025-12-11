@@ -1,3 +1,7 @@
+*   Fix Inflectors when using a locale that fallbacks to `:en`.
+
+    *Said Kaldybaev*
+
 *   Fix `ActiveSupport::TimeWithZone#as_json` to consistently return UTF-8 strings.
 
     Previously the returned string would sometime be encoded in US-ASCII, which in
