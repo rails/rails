@@ -35,11 +35,28 @@ class ActiveStorage::VariantWithRecord
 
   delegate :key, :url, :download, to: :image, allow_nil: true
 
-  private
-    def processed?
-      record.present?
-    end
+  # Returns true if the variant has already been processed and stored.
+  def processed?
+    record.present?
+  end
 
+  # Process the variant from a local io, avoiding a download from the service.
+  # This is an optimization for when the original file is still available locally
+  # (e.g., during the initial upload flow).
+  def process_from_io(io) # :nodoc:
+    return if processed?
+
+    variation.transform(io) do |output|
+      create_or_find_record(image: {
+        io: output,
+        filename: "#{blob.filename.base}.#{variation.format.downcase}",
+        content_type: variation.content_type,
+        service_name: blob.service.name
+      })
+    end
+  end
+
+  private
     def process
       transform_blob { |image| create_or_find_record(image: image) }
     end

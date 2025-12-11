@@ -36,6 +36,9 @@ module ActionText
     #     message = Message.create!(content: "<div onclick='action()'>safe<script>unsafe</script></div>")
     #     message.content.to_s # => "<div>safeunsafe</div>"
 
+    cattr_accessor :editors, instance_accessor: false, default: {}.freeze
+    cattr_accessor :editor, instance_accessor: false
+
     serialize :body, coder: ActionText::Content
     delegate :to_s, :nil?, to: :body
 
@@ -86,7 +89,24 @@ module ActionText
     #     #   </figure>
     #     # </div>
     def to_trix_html
-      body&.to_trix_html
+      to_editor_html
+    end
+    deprecate to_trix_html: :to_editor_html, deprecator: ActionText.deprecator
+
+    # Returns the `body` attribute in a format that makes it editable in the
+    # editor. Previews of attachments are rendered inline.
+    #
+    #     content = "<h1>Funny Times!</h1><figure data-action-text-attachment='{\"sgid\":\"..."\}'></figure>"
+    #     message = Message.create!(content: content)
+    #     message.content.to_editor_html # =>
+    #     # <div class="trix-content">
+    #     #   <h1>Funny times!</h1>
+    #     #   <figure data-action-text-attachment='{\"sgid\":\"..."\}'>
+    #     #      <img src="http://example.org/rails/active_storage/.../funny.jpg">
+    #     #   </figure>
+    #     # </div>
+    def to_editor_html
+      body&.to_editor_html
     end
 
     delegate :blank?, :empty?, :present?, to: :to_plain_text

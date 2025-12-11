@@ -76,30 +76,16 @@ module ActiveRecord
           name: name,
           binds: binds,
           prepare: preparable,
+          allow_async: async,
           allow_retry: allow_retry
         )
 
-        if async && async_enabled?
-          if current_transaction.joinable?
-            raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
-          end
+        intent.execute!
 
-          future_result = FutureResult::SelectAll.new(pool, intent)
-          future_result.schedule!(ActiveRecord::Base.asynchronous_queries_session)
-          future_result
+        if async
+          intent.future_result
         else
-          begin
-            intent.execute!
-            result = intent.cast_result
-          rescue ::RangeError
-            result = ActiveRecord::Result.empty
-          end
-
-          if async
-            FutureResult.wrap(result)
-          else
-            result
-          end
+          intent.cast_result
         end
       end
 
@@ -421,7 +407,8 @@ module ActiveRecord
         # ActiveRecord::TestFixtures starts around each example (depth == 1),
         # an `isolation:` hint must be validated then ignored so that the
         # adapter isn't asked to change the isolation level mid-transaction.
-        if isolation && !requires_new && open_transactions == 1 && !current_transaction.joinable?
+        isolation_override = false
+        if isolation && open_transactions == 1 && !current_transaction.joinable?
           iso = isolation.to_sym
 
           unless transaction_isolation_levels.include?(iso)
@@ -429,6 +416,8 @@ module ActiveRecord
                   "invalid transaction isolation level: #{iso.inspect}"
           end
 
+          isolation_override = true
+          old_isolation = current_transaction.isolation
           current_transaction.isolation = iso
           isolation = nil
         end
@@ -443,6 +432,8 @@ module ActiveRecord
         end
       rescue ActiveRecord::Rollback
         # rollbacks are silently swallowed
+      ensure
+        current_transaction.isolation = old_isolation if isolation_override
       end
 
       attr_reader :transaction_manager # :nodoc:

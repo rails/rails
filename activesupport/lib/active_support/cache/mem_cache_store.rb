@@ -59,7 +59,7 @@ module ActiveSupport
         pool_options = retrieve_pool_options(options)
 
         if pool_options
-          ConnectionPool.new(pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
+          ConnectionPool.new(**pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
         else
           Dalli::Client.new(addresses, options)
         end

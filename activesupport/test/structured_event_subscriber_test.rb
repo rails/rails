@@ -25,8 +25,14 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
     debug_only :debug_only_event
   end
 
-  def setup
+  setup do
     @subscriber = TestSubscriber.new
+    @old_debug_mode = ActiveSupport.event_reporter.debug_mode?
+    ActiveSupport.event_reporter.debug_mode = false
+  end
+
+  teardown do
+    ActiveSupport.event_reporter.debug_mode = @old_debug_mode
   end
 
   def test_emit_event_calls_event_reporter_notify

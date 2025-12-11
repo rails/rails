@@ -169,7 +169,7 @@ module ActiveRecord
         ActiveRecord::Base.connection.singleton_class.undef_method(:log)
 
         ActiveRecord::Base.connection.singleton_class.define_method(:log) do |intent, *args, **kwargs, &block|
-          unless intent.async
+          unless intent.ran_async
             return old_log.call(intent, *args, **kwargs, &block)
           end
 

@@ -1219,7 +1219,7 @@ module ActiveRecord
               name:              intent.name,
               binds:             intent.binds,
               type_casted_binds: intent.type_casted_binds,
-              async:             intent.async,
+              async:             intent.ran_async,
               allow_retry:       intent.allow_retry,
               connection:        self,
               transaction:       current_transaction.user_transaction.presence,
