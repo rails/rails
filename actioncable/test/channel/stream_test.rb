@@ -52,6 +52,56 @@ module ActionCable::StreamTests
     end
   end
 
+  class InstrumentedStreamHandlerChannel < ActionCable::Channel::Base
+    class << self
+      attr_accessor :stream_handler_calls, :wrapped_messages
+    end
+
+    def self.reset
+      self.stream_handler_calls = []
+      self.wrapped_messages = []
+    end
+
+    def subscribed
+      stream_from "instrumented"
+    end
+
+    private
+      def stream_handler(broadcasting, user_handler, coder: nil)
+        self.class.stream_handler_calls << broadcasting
+
+        wrapped = super
+        -> message do
+          self.class.wrapped_messages << message
+          wrapped.call(message)
+        end
+      end
+  end
+
+  class CustomDefaultStreamHandlerChannel < ActionCable::Channel::Base
+    class << self
+      attr_accessor :default_handler_calls
+    end
+
+    def self.reset
+      self.default_handler_calls = []
+    end
+
+    def subscribed
+      stream_from "custom_default", coder: DummyEncoder
+    end
+
+    private
+      def default_stream_handler(broadcasting, coder:)
+        self.class.default_handler_calls << coder
+
+        stream_transmitter(
+          -> message { { wrapped: coder.decode(message) } },
+          broadcasting: broadcasting
+        )
+      end
+  end
+
   class StreamTest < ActionCable::TestCase
     test "streaming start and stop" do
       run_in_eventmachine do
@@ -281,6 +331,51 @@ module ActionCable::StreamTests
       end
     end
 
+    test "stream_handler override wraps the default handler" do
+      run_in_eventmachine do
+        InstrumentedStreamHandlerChannel.reset
+        connection = TestConnection.new
+
+        with_worker_pool(connection) do
+          channel = InstrumentedStreamHandlerChannel.new connection, "instrumented"
+          channel.subscribe_to_channel
+
+          wait_for_async
+
+          callback = connection.pubsub.subscriber_map["instrumented"].first
+          callback.('{"hello":"world"}')
+
+          wait_for_executor connection.worker_pool.executor
+        end
+
+        assert_equal ["instrumented"], InstrumentedStreamHandlerChannel.stream_handler_calls
+        assert_equal ['{"hello":"world"}'], InstrumentedStreamHandlerChannel.wrapped_messages
+        assert_equal({ "identifier" => "instrumented", "message" => { "hello" => "world" } }, connection.last_transmission)
+      end
+    end
+
+    test "default_stream_handler override can change decoding behavior" do
+      run_in_eventmachine do
+        CustomDefaultStreamHandlerChannel.reset
+        connection = TestConnection.new
+
+        with_worker_pool(connection) do
+          channel = CustomDefaultStreamHandlerChannel.new connection, "custom_default"
+          channel.subscribe_to_channel
+
+          wait_for_async
+
+          callback = connection.pubsub.subscriber_map["custom_default"].first
+          callback.(DummyEncoder.encode({ foo: "ignored" }))
+
+          wait_for_executor connection.worker_pool.executor
+        end
+
+        assert_equal [DummyEncoder], CustomDefaultStreamHandlerChannel.default_handler_calls
+        assert_equal({ "identifier" => "custom_default", "message" => { "wrapped" => { "foo" => "decoded" } } }, connection.last_transmission)
+      end
+    end
+
     test "concurrent unsubscribe_from_channel and stream_from do not raise RuntimeError" do
       threads = []
       run_in_eventmachine do
@@ -344,6 +439,29 @@ module ActionCable::StreamTests
           .pubsub
           .subscriber_map
       end
+
+      def with_worker_pool(connection, &block)
+        pool = InlineWorkerPool.new
+        connection.define_singleton_method(:worker_pool) { pool }
+        block.call
+      end
+  end
+
+  class InlineWorkerPool
+    Executor = Struct.new(:scheduled_task_count, :completed_task_count)
+
+    attr_reader :executor
+
+    def initialize
+      @executor = Executor.new(0, 0)
+    end
+
+    def async_invoke(receiver, method, *args, connection:, &block)
+      executor.scheduled_task_count += 1
+      receiver.public_send(method, *args, &block)
+    ensure
+      executor.completed_task_count += 1
+    end
   end
 
   class UserCallbackChannel < ActionCable::Channel::Base
