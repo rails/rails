@@ -16,9 +16,9 @@ require "minitest/autorun"
 
 class TestApp < Rails::Application
   config.load_defaults Rails::VERSION::STRING.to_f
-  config.eager_load       = false
-  config.logger           = Logger.new($stdout)
-  config.secret_key_base  = "secret_key_base"
+  config.eager_load = false
+  config.logger = Logger.new($stdout)
+  config.secret_key_base = "secret_key_base"
 end
 
 Rails.application.initialize!
@@ -34,12 +34,12 @@ class BugTest < ActionView::TestCase
   end
 
   helper do
-    def titleize(string)
-      string.titleize
+    def upcase(value)
+      value.upcase
     end
   end
 
-  test "Action View template rendering" do
+  def test_action_view_render_template
     view_file "posts/index.html.erb", <<~ERB
       <h1>Posts</h1>
 
@@ -49,23 +49,22 @@ class BugTest < ActionView::TestCase
     ERB
 
     view_file "posts/_post.html.erb", <<~ERB
-      <p><%= titleize(post) %></p>
+      <p><%= upcase(post) %></p>
     ERB
 
     render template: "posts/index", locals: { posts: ["hello world"] }
 
-    assert_equal "Hello World", rendered.html.at("p").text
+    assert_equal "HELLO WORLD", rendered.html.at("p").text
   end
 
-
-  test "Action View inline rendering" do
+  def test_action_view_render_inline
     render inline: <<~ERB, locals: { key: "value" }
-      <p><%= titleize(key) %></p>
+      <p><%= upcase(key) %></p>
     ERB
 
     element = rendered.html.at("p")
 
-    assert_equal element.text, "Value"
+    assert_equal element.text, "VALUE"
   end
 
   private
