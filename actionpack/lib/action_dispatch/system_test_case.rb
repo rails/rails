@@ -22,8 +22,8 @@ module ActionDispatch
   #
   # To create a system test in your application, extend your test class from
   # `ApplicationSystemTestCase`. System tests use Capybara as a base and allow you
-  # to configure the settings through your `application_system_test_case.rb` file
-  # that is generated with a new application or scaffold.
+  # to configure the settings through the `application_system_test_case.rb` file,
+  # which is created when you generate your first system test.
   #
   # Here is an example system test:
   #
@@ -41,7 +41,7 @@ module ActionDispatch
   #       end
   #     end
   #
-  # When generating an application or scaffold, an
+  # When generating system tests, an
   # `application_system_test_case.rb` file will also be generated containing the
   # base class for system testing. This is where you can change the driver, add
   # Capybara settings, and other configuration for your system tests.
