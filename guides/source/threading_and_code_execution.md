@@ -220,9 +220,7 @@ ensuring their respective threads are protected, and deciding whether a reload
 is necessary. Other components only need to use the Executor when they spawn
 additional threads.
 
-### Configuration
-
-#### Reloader and Executor Configuration
+### Reloader and Executor Configuration
 
 The Reloader only checks for file changes when
 [`config.enable_reloading`](configuring.html#config-enable-reloading) and
