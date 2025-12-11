@@ -89,10 +89,10 @@ module ActiveRecord
         self
       end
 
-    # Wraps the passed block in a transaction, reloading the object with a
-    # lock before yielding. Yields the current transaction so you can
-    # register callbacks. You can pass the SQL locking clause
-    # as an optional argument (see #lock!).
+      # Wraps the passed block in a transaction, reloading the object with a
+      # lock before yielding. Yields the current transaction so you can
+      # register callbacks. You can pass the SQL locking clause
+      # as an optional argument (see #lock!).
       #
       # You can also pass options like <tt>requires_new:</tt>, <tt>isolation:</tt>,
       # and <tt>joinable:</tt> to the wrapping transaction (see
