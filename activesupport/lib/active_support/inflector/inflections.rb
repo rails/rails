@@ -84,6 +84,7 @@ module ActiveSupport
         return @__en_instance__ ||= new if locale == :en
 
         I18n.fallbacks[locale].each do |k|
+          return @__en_instance__ if k == :en && @__en_instance__
           return @__instance__[k] if @__instance__.key?(k)
         end
         instance(locale)
