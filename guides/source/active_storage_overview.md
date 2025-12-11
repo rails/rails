@@ -872,9 +872,56 @@ It's important to know that the file is not yet available in the `after_create` 
 Analyzing Files
 ---------------
 
-Active Storage analyzes files once they've been uploaded by queuing a job in Active Job. Analyzed files will store additional information in the metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling [`analyzed?`][] on it.
+Active Storage analyzes files to extract metadata like image dimensions, video duration, and audio bit rate. Analyzed files store this information in their metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling [`analyzed?`][] on it.
 
 Image analysis provides `width` and `height` attributes. Video analysis provides these, as well as `duration`, `angle`, `display_aspect_ratio`, and `video` and `audio` booleans to indicate the presence of those channels. Audio analysis provides `duration` and `bit_rate` attributes.
+
+### Validating Attachment Metadata
+
+As of Rails 8.2, attachments are analyzed before validation by default, making metadata available for model validations:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar
+
+  validate :validate_avatar_dimensions, if: -> { avatar.attached? }
+
+  private
+    def validate_avatar_dimensions
+      if avatar.metadata[:width] < 200 || avatar.metadata[:height] < 200
+        errors.add(:avatar, "must be at least 200x200 pixels")
+      end
+    end
+end
+```
+
+NOTE: [Direct uploads](#direct-uploads) bypass the server so the file isn't locally available for analysis. In this case, `:immediately` falls back to `:later`, analyzing via background job after upload completes. Metadata isn't available for validation; validate on the client side using JavaScript instead.
+
+### Controlling When Analysis is Performed
+
+Pass the `analyze:` option to control when analysis is performed:
+
+```ruby
+class User < ApplicationRecord
+  # Analyze before validation (default in 8.2)
+  has_one_attached :avatar, analyze: :immediately
+
+  # Analyze after upload from local IO or via background job for direct uploads
+  has_one_attached :document, analyze: :later
+
+  # Skip automatic analysis - analyze on-demand when metadata is accessed
+  has_many_attached :files, analyze: :lazily
+end
+```
+
+NOTE: Attachments with `process: :immediately` variants automatically analyze immediately to ensure metadata is available before processing.
+
+You can set the global default in your application configuration:
+
+```ruby
+# config/application.rb
+config.active_storage.analyze = :later  # restore pre-8.2 behavior
+```
 
 [`analyzed?`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyzed-3F
 

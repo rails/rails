@@ -2682,6 +2682,25 @@ workers a test run should use:
 $ PARALLEL_WORKERS=15 bin/rails test
 ```
 
+#### Reproducing Flaky Parallel Tests
+
+Whether using processes or threads, tests are distributed to workers in
+round-robin order, so given the same `--seed` value and worker count, each
+worker runs the same sequence of tests. This makes flaky tests caused by
+parallel test interdependence easier to reproduce: re-run with the same seed
+and worker count to get the same distribution.
+
+This deterministic assignment can make test runtime uneven when one worker
+happens to get most of the slow tests. Enable `work_stealing` to allow idle
+workers to steal tests from busy workers, improving load balance at the cost
+of less reproducible test distribution:
+
+```ruby
+class ActiveSupport::TestCase
+  parallelize(workers: :number_of_processors, work_stealing: true)
+end
+```
+
 When parallelizing tests, Active Record automatically handles creating a
 database and loading the schema into the database for each process. The
 databases will be suffixed with the number corresponding to the worker. For

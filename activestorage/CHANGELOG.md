@@ -1,3 +1,66 @@
+*   Analyze attachments before validation
+
+    Attachment metadata (width, height, duration, etc.) is now available for
+    model validations:
+
+    ```ruby
+    class User < ApplicationRecord
+      has_one_attached :avatar
+
+      validate :validate_avatar_dimensions, if: -> { avatar.attached? }
+
+      def validate_avatar_dimensions
+        if avatar.metadata[:width] < 200 || avatar.metadata[:height] < 200
+          errors.add(:avatar, "must be at least 200x200")
+        end
+      end
+    end
+    ```
+
+    Configure when analysis is performed:
+
+    * `analyze: :immediately` (default in 8.2) - Analyze before validation
+    * `analyze: :later` - Analyze after upload from local IO or via background job
+    * `analyze: :lazily` - Skip automatic analysis; analyze on-demand
+
+    ```ruby
+    has_one_attached :document, analyze: :later
+    has_many_attached :files, analyze: :lazily
+
+    # Or set the global default:
+    config.active_storage.analyze = :later
+    ```
+
+    Direct uploads bypass the server so the file isn't locally available
+    for analysis. In this case, `:immediately` falls back to `:later`,
+    analyzing via background job after upload completes. Metadata isn't
+    available for validation; validate on the client side instead.
+
+    *Jeremy Daer*
+
+*   Use local files for immediate variant processing and analysis
+
+    `process: :immediately` variants and blob analysis use local files
+    directly instead of re-downloading after upload.
+
+    Applies when attaching uploadable io, not when attaching an existing Blob.
+
+    *Jeremy Daer*
+
+*   Introduce `ActiveStorage::Attachment` upload callbacks
+
+    `after_upload` fires after an attachment's blob is uploaded, enabling
+    analysis and processing to run deterministically rather than assuming
+    after-commit callback execution ordering.
+
+    ```ruby
+    ActiveStorage::Attachment.after_upload do
+      # Your custom logic here
+    end
+    ```
+
+    *Jeremy Daer*
+
 *   Introduce immediate variants that are generated immediately on attachment
 
     The new `process` option determines when variants are created:

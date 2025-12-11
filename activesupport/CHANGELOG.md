@@ -1,3 +1,23 @@
+*   Make flaky parallel tests easier to diagnose by deterministically assigning
+    tests to workers.
+
+    Rails assigns tests to workers in round-robin order so the same `--seed`
+    and worker count will result in the same sequence of tests running on each
+    worker (whether processes or threads) increasing the odds of reproducing
+    test failures caused by test interdependence.
+
+    This can make test runtime slower and spikier when one worker gets most of
+    the slow tests. Enable `work_stealing: true` to allow idle workers to steal
+    tests from busy workers in deterministic order, smoothing out runtime at the
+    cost of less reproducible flaky-test failures.
+
+    *Jeremy Daer*
+
+*   Make `ActiveSupport::EventReporter#debug_mode?` true by default to emit debug events
+    outside of Rails application contexts.
+
+    *Gannon McGibbon*
+
 *   Add `SecureRandom.base32` for generating case-insensitive keys that are unambiguous to humans.
 
     *Stanko Krtalic Rusendic & Miha Rekar*

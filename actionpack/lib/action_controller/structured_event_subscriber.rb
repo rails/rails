@@ -69,6 +69,17 @@ module ActionController
       emit_event("action_controller.data_sent", filename: event.payload[:filename], duration_ms: event.duration.round(1))
     end
 
+    def open_redirect(event)
+      payload = event.payload
+
+      emit_event("action_controller.open_redirect",
+        location: payload[:location],
+        request_method: payload[:request]&.method,
+        request_path: payload[:request]&.path,
+        stacktrace: payload[:stack_trace],
+      )
+    end
+
     def unpermitted_parameters(event)
       unpermitted_keys = event.payload[:keys]
       context = event.payload[:context]

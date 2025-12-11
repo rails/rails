@@ -22,6 +22,12 @@ class ActiveStorage::Blob < ActiveStorage::Record
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
   store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
 
+  # Temporary reference to a local io during the upload flow. When set,
+  # +open+ will use this instead of downloading from the service. This
+  # enables analysis and other operations to run on the local file before
+  # uploading, avoiding a download round-trip.
+  attr_accessor :local_io
+
   class_attribute :services, default: {}
   class_attribute :service, instance_accessor: false
 
@@ -285,14 +291,18 @@ class ActiveStorage::Blob < ActiveStorage::Record
   #
   # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
   def open(tmpdir: nil, &block)
-    service.open(
-      key,
-      checksum: checksum,
-      verify: !composed,
-      name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ],
-      tmpdir: tmpdir,
-      &block
-    )
+    if local_io
+      open_local_io(tmpdir: tmpdir, &block)
+    else
+      service.open(
+        key,
+        checksum: checksum,
+        verify: !composed,
+        name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ],
+        tmpdir: tmpdir,
+        &block
+      )
+    end
   end
 
   def mirror_later # :nodoc:
@@ -328,6 +338,25 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   private
+    # Opens a local io for reading, yielding a file-like object. If the io
+    # is already a File with a path, yield it directly. Otherwise, copy to
+    # a tempfile first since analyzers need file paths.
+    def open_local_io(tmpdir:)
+      if local_io.respond_to?(:path) && local_io.path && File.exist?(local_io.path)
+        local_io.rewind if local_io.respond_to?(:rewind)
+        yield local_io
+      else
+        Tempfile.open([ "ActiveStorage-#{id}-", filename.extension_with_delimiter ], tmpdir) do |file|
+          file.binmode
+          local_io.rewind if local_io.respond_to?(:rewind)
+          IO.copy_stream(local_io, file)
+          local_io.rewind if local_io.respond_to?(:rewind)
+          file.rewind
+          yield file
+        end
+      end
+    end
+
     def compute_checksum_in_chunks(io)
       raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
 
