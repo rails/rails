@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/with"
 require "active_support/test_case"
 require "rails-dom-testing"
 
@@ -34,14 +35,13 @@ module ActionMailer
 
       include ActiveSupport::Testing::ConstantLookup
       include TestHelper
-      include Rails::Dom::Testing::Assertions::SelectorAssertions
-      include Rails::Dom::Testing::Assertions::DomAssertions
 
       included do
         class_attribute :_decoders, default: Hash.new(->(body) { body }).merge!(
           Mime[:html] => ->(body) { Rails::Dom::Testing.html_document.parse(body) }
         ).freeze # :nodoc:
         class_attribute :_mailer_class
+        attr_accessor :html_document
         setup :initialize_test_deliveries
         setup :set_expected_mail
         teardown :restore_test_deliveries
@@ -115,7 +115,13 @@ module ActionMailer
 
         assert_not_nil part, "expected part matching #{mime_type} in #{mail.inspect}"
 
-        yield decoder.call(part.decoded) if block_given?
+        if block_given?
+          decoded = decoder.call(part.decoded)
+
+          with html_document: (decoded if mime_type.html?) do
+            yield decoded
+          end
+        end
       end
 
       # Assert that a Mail instance does not have a part with a matching MIME type
