@@ -36,6 +36,12 @@ class RenderersTest < ActionController::TestCase
     end
   end
 
+  class SvgRenderable
+    def to_svg
+      "<svg><circle cx=\"50\" cy=\"50\" r=\"40\"/></svg>"
+    end
+  end
+
   class TestController < ActionController::Base
     def render_simon_says
       render simon: "foo"
@@ -50,6 +56,7 @@ class RenderersTest < ActionController::TestCase
         type.csv  { render csv: CsvRenderable.new }
         type.xml  { render xml: XmlRenderable.new }
         type.md   { render markdown: MarkdownRenderable.new }
+        type.svg  { render svg: SvgRenderable.new }
         type.html { render body: "HTML"    }
         type.rss  { render body: "RSS"     }
         type.all  { render body: "Nothing" }
@@ -103,5 +110,11 @@ class RenderersTest < ActionController::TestCase
     get :respond_to_mime, format: "md"
     assert_equal Mime[:markdown], @response.media_type
     assert_equal "# This is markdown", @response.body
+  end
+
+  test "rendering svg" do
+    get :respond_to_mime, format: "svg"
+    assert_equal Mime[:svg], @response.media_type
+    assert_equal "<svg><circle cx=\"50\" cy=\"50\" r=\"40\"/></svg>", @response.body
   end
 end
