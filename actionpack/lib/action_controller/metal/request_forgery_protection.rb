@@ -566,8 +566,6 @@ module ActionController # :nodoc:
       # For all strategies, GET and HEAD requests are allowed without verification.
       #
       def verified_request? # :doc:
-        return true if request.get? || request.head? || !protect_against_forgery?
-
         request.get? || request.head? || !protect_against_forgery? ||
           (valid_request_origin? && verified_request_for_forgery_protection?)
       end
