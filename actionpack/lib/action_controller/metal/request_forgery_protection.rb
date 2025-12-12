@@ -228,24 +228,23 @@ module ActionController # :nodoc:
       #
       # *   `:using` - Set the verification strategy for CSRF protection.
       #
+      #     Built-in verification strategies are:
       #
-      # Built-in verification strategies are:
+      #     *   `:header_only` - Uses the `Sec-Fetch-Site` header sent by modern
+      #         browsers to verify that requests originate from the same site. This
+      #         approach does not require authenticity tokens but only works with
+      #         browsers that support the Fetch Metadata Request Headers. Requests
+      #         without a valid `Sec-Fetch-Site` header will be rejected. This is
+      #         the default.
       #
-      # *   `:header_only` - Uses the `Sec-Fetch-Site` header sent by modern
-      #     browsers to verify that requests originate from the same site. This
-      #     approach does not require authenticity tokens but only works with
-      #     browsers that support the Fetch Metadata Request Headers. Requests
-      #     without a valid `Sec-Fetch-Site` header will be rejected. This is the
-      #     default, as Rails only supports modern browsers by default (see
-      #     `allow_browser`).
-      #
-      # *   `:header_or_legacy_token` - A hybrid approach that first checks the `Sec-Fetch-Site`
-      #     header. If the header indicates same-site or same-origin, the request is
-      #     allowed. Requests with a cross-site value are rejected. When the header is
-      #     missing or "none", it falls back to checking the authenticity token.
-      #     This mode logs when falling back to authenticity token to help identify
-      #     requests that should be fixed to work with `:header_only`. Use this
-      #     if you need to support older browsers that don't send the `Sec-Fetch-Site` header.
+      #     *   `:header_or_legacy_token` - A hybrid approach that first checks the
+      #         `Sec-Fetch-Site` header. If the header indicates same-site or
+      #         same-origin, the request is allowed. Requests with a cross-site
+      #         value are rejected. When the header is missing or "none", it falls
+      #         back to checking the authenticity token. This mode logs when
+      #         falling back to help identify requests that should be fixed to work
+      #         with `:header_only`. Use this if you need to support older browsers
+      #         that don't send the `Sec-Fetch-Site` header.
       #
       # *   `:trusted_origins` - Array of origins to allow for cross-site requests,
       #     such as OAuth/SSO callbacks, third-party embeds, and legitimate remote
