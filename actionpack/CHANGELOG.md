@@ -1,3 +1,8 @@
+*   Fix `action_dispatch_request` early load hook call when building
+    Rails app middleware.
+
+    *Gannon McGibbon*
+
 *   Emit a structured event when `action_on_open_redirect` is set to `:notify`
     in addition to the existing Active Support Notification.
 
