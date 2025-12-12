@@ -1,3 +1,11 @@
+*   Fix `PARALLEL_WORKERS` environment variable bypassing the parallelization threshold.
+
+    Previously, setting `PARALLEL_WORKERS` would enable parallelization regardless of
+    the test count threshold. Now parallelization only occurs when the number of tests
+    exceeds the configured threshold.
+
+    *Justin Ko*
+
 *   Make flaky parallel tests easier to diagnose by deterministically assigning
     tests to workers.
 
