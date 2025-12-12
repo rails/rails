@@ -16,7 +16,13 @@ module ActionController # :nodoc:
   # # Action Controller Request Forgery Protection
   #
   # Controller actions are protected from Cross-Site Request Forgery (CSRF)
-  # attacks by including a token in the rendered HTML for your application. This
+  # attacks by checking the Sec-Fetch-Site header sent by modern browsers to
+  # indicate the relationship between request's initiator origin and the origin
+  # of the requested resource
+  # (https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Fetch-Site)
+  #
+  # For applications that need to support older browsers, there's a token-based
+  # fallback. A token is included in the rendered HTML for your application. This
   # token is stored as a random string in the session, to which an attacker does
   # not have access. When a request reaches your application, Rails verifies the
   # received token with the token in the session. All requests are checked except
@@ -40,7 +46,7 @@ module ActionController # :nodoc:
   #
   # Subclasses of ActionController::Base are protected by default with the
   # `:exception` strategy, which raises an
-  # ActionController::InvalidAuthenticityToken error on unverified requests.
+  # ActionController::InvalidCrossOriginRequest error on unverified requests.
   #
   # APIs may want to disable this behavior since they are typically designed to be
   # state-less: that is, the request API client handles the session instead of
@@ -106,6 +112,13 @@ module ActionController # :nodoc:
       delegate :csrf_token_storage_strategy, :csrf_token_storage_strategy=, to: :config
       self.csrf_token_storage_strategy = SessionStore.new
 
+      # The strategy to use for verifying requests. Options are:
+      # * :fetch_metadata - Use Sec-Fetch-Site header only (default, modern browsers)
+      # * :token_fallback - Combined approach: Sec-Fetch-Site with fallback to token
+      singleton_class.delegate :forgery_protection_verification_strategy, :forgery_protection_verification_strategy=, to: :config
+      delegate :forgery_protection_verification_strategy, :forgery_protection_verification_strategy=, to: :config
+      self.forgery_protection_verification_strategy = :fetch_metadata
+
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end
@@ -150,7 +163,7 @@ module ActionController # :nodoc:
       #
       # Built-in unverified request handling methods are:
       #
-      # *   `:exception` - Raises ActionController::InvalidAuthenticityToken
+      # *   `:exception` - Raises ActionController::InvalidCrossOriginRequest
       #     exception.
       # *   `:reset_session` - Resets the session.
       # *   `:null_session` - Provides an empty session during request but doesn't
@@ -203,6 +216,37 @@ module ActionController # :nodoc:
       #     class ApplicationController < ActionController::Base
       #       protect_from_forgery store: CustomStore.new
       #     end
+      #
+      # *   `:using` - Set the verification strategy for CSRF protection.
+      #
+      #
+      # Built-in verification strategies are:
+      #
+      # *   `:fetch_metadata` - Uses the `Sec-Fetch-Site` header sent by modern
+      #     browsers to verify that requests originate from the same site. This
+      #     approach does not require authenticity tokens but only works with
+      #     browsers that support the Fetch Metadata Request Headers. Requests
+      #     without a valid `Sec-Fetch-Site` header will be rejected. This is the
+      #     default, as Rails only supports modern browsers by default (see
+      #     `allow_browser`).
+      #
+      # *   `:token_fallback` - A hybrid approach that first checks the `Sec-Fetch-Site`
+      #     header. If the header indicates same-site or same-origin, the request is
+      #     allowed. Requests with a cross-site value are rejected. When the header is
+      #     missing or "none", it falls back to checking the authenticity token.
+      #     This mode logs when falling back to authenticity token to help identify
+      #     requests that should be fixed to work with `:fetch_metadata`. Use this
+      #     if you need to support older browsers that don't send the `Sec-Fetch-Site` header.
+      #
+      # Example:
+      #
+      #     class ApplicationController < ActionController::Base
+      #       # Modern browsers only (default)
+      #       protect_from_forgery using: :fetch_metadata, with: :exception
+      #
+      #       # Hybrid approach with fallback for older browsers
+      #       protect_from_forgery using: :token_fallback, with: :exception
+      #     end
       def protect_from_forgery(options = {})
         options = options.reverse_merge(prepend: false)
 
@@ -210,18 +254,20 @@ module ActionController # :nodoc:
         self.request_forgery_protection_token ||= :authenticity_token
 
         self.csrf_token_storage_strategy = storage_strategy(options[:store] || SessionStore.new)
+        self.forgery_protection_verification_strategy = verification_strategy(options[:using] || :fetch_metadata)
 
-        before_action :verify_authenticity_token, options
+        before_action :verify_request_for_forgery_protection, options
         append_after_action :verify_same_origin_request
+        append_after_action :append_sec_fetch_site_to_vary_header, options
       end
 
       # Turn off request forgery protection. This is a wrapper for:
       #
-      #     skip_before_action :verify_authenticity_token
+      #     skip_before_action :verify_request_for_forgery_protection
       #
       # See `skip_before_action` for allowed options.
       def skip_forgery_protection(options = {})
-        skip_before_action :verify_authenticity_token, options.reverse_merge(raise: false)
+        skip_before_action :verify_request_for_forgery_protection, options.reverse_merge(raise: false)
       end
 
       private
@@ -254,6 +300,15 @@ module ActionController # :nodoc:
 
         def is_storage_strategy?(object)
           object.respond_to?(:fetch) && object.respond_to?(:store) && object.respond_to?(:reset)
+        end
+
+        def verification_strategy(name)
+          case name
+          when :fetch_metadata, :token_fallback
+            name
+          else
+            raise ArgumentError, "Invalid request forgery verification strategy, use :fetch_metadata or :token_fallback."
+          end
         end
     end
 
@@ -318,7 +373,7 @@ module ActionController # :nodoc:
         end
 
         def handle_unverified_request
-          raise ActionController::InvalidAuthenticityToken, warning_message
+          raise ActionController::InvalidCrossOriginRequest, warning_message
         end
       end
     end
@@ -386,16 +441,16 @@ module ActionController # :nodoc:
     end
 
     private
-      # The actual before_action that is used to verify the CSRF token. Don't override
-      # this directly. Provide your own forgery protection strategy instead. If you
-      # override, you'll disable same-origin `<script>` verification.
+      # The actual before_action that is used to verify the request to protect from forgery.
+      # Don't override this directly. Provide your own forgery protection strategy instead.
+      # If you override, you'll disable same-origin `<script>` verification.
       #
       # Lean on the protect_from_forgery declaration to mark which actions are due for
       # same-origin request verification. If protect_from_forgery is enabled on an
       # action, this before_action flags its after_action to verify that JavaScript
       # responses are for XHR requests, ensuring they follow the browser's same-origin
       # policy.
-      def verify_authenticity_token # :doc:
+      def verify_request_for_forgery_protection # :doc:
         mark_for_same_origin_verification!
 
         if !verified_request?
@@ -415,11 +470,21 @@ module ActionController # :nodoc:
         protection_strategy.handle_unverified_request
       end
 
+      def cross_origin_request?
+        !valid_request_origin? ||
+          sec_fetch_site_value == "cross-site" ||
+          using_only_fetch_metadata_for_forgery_protection?
+      end
+
       def unverified_request_warning_message
-        if valid_request_origin?
-          "Can't verify CSRF token authenticity."
-        else
+        if !valid_request_origin?
           "HTTP Origin header (#{request.origin}) didn't match request.base_url (#{request.base_url})"
+        elsif sec_fetch_site_value == "cross-site"
+          "Sec-Fetch-Site header (cross-site) indicates a cross-site request"
+        elsif using_only_fetch_metadata_for_forgery_protection?
+          "Sec-Fetch-Site header is missing or invalid (#{sec_fetch_site_value.inspect})"
+        else
+          "Can't verify CSRF token authenticity."
         end
       end
 
@@ -430,7 +495,7 @@ module ActionController # :nodoc:
       private_constant :CROSS_ORIGIN_JAVASCRIPT_WARNING
       # :startdoc:
 
-      # If `verify_authenticity_token` was run (indicating that we have
+      # If `verify_request_for_forgery_protection` was run (indicating that we have
       # forgery protection enabled for this request) then also verify that we aren't
       # serving an unauthorized cross-origin response.
       def verify_same_origin_request # :doc:
@@ -442,13 +507,23 @@ module ActionController # :nodoc:
         end
       end
 
+      # Appends Sec-Fetch-Site to the Vary header. This ensures proper cache behavior since
+      # the response may vary based on this header.
+      def append_sec_fetch_site_to_vary_header # :doc:
+        vary_header = response.headers["Vary"].to_s.split(",").map(&:strip).reject(&:blank?)
+        unless vary_header.include?("Sec-Fetch-Site")
+          response.headers["Vary"] = (vary_header + ["Sec-Fetch-Site"]).join(", ")
+        end
+      end
+
       # GET requests are checked for cross-origin JavaScript after rendering.
       def mark_for_same_origin_verification! # :doc:
         @_marked_for_same_origin_verification = request.get?
       end
 
-      # If the `verify_authenticity_token` before_action ran, verify that JavaScript
-      # responses are only served to same-origin GET requests.
+      # If the `verify_request_for_forgery_protection` before_action ran,
+      # verify that JavaScript responses are only served to same-origin
+      # GET requests.
       def marked_for_same_origin_verification? # :doc:
         @_marked_for_same_origin_verification ||= false
       end
@@ -460,16 +535,57 @@ module ActionController # :nodoc:
 
       AUTHENTICITY_TOKEN_LENGTH = 32
 
-      # Returns true or false if a request is verified. Checks:
+      # Safe values for Sec-Fetch-Site header that indicate the request
+      # originated from the same site.
+      SAFE_FETCH_SITES = %w[ same-origin same-site ].freeze
+      private_constant :SAFE_FETCH_SITES
+
+      # Returns true or false if a request is verified. The verification method
+      # depends on the configured `forgery_protection_verification_strategy`:
       #
-      # *   Is it a GET or HEAD request? GETs should be safe and idempotent
-      # *   Does the form_authenticity_token match the given token value from the
-      #     params?
-      # *   Does the `X-CSRF-Token` header match the form_authenticity_token?
+      # *   `:fetch_metadata` - Uses Sec-Fetch-Site header only (default)
+      # *   `:token_fallback` - Uses Sec-Fetch-Site header with fallback to token
+      #
+      # For all strategies, GET and HEAD requests are allowed without verification.
       #
       def verified_request? # :doc:
+        return true if request.get? || request.head? || !protect_against_forgery?
+
         request.get? || request.head? || !protect_against_forgery? ||
-          (valid_request_origin? && any_authenticity_token_valid?)
+          (valid_request_origin? && verified_request_for_forgery_protection?)
+      end
+
+      def verified_request_for_forgery_protection?
+        if using_only_fetch_metadata_for_forgery_protection?
+          verified_via_fetch_metadata?
+        else
+          verified_with_token_fallback?
+        end
+      end
+
+      def using_only_fetch_metadata_for_forgery_protection?
+        forgery_protection_verification_strategy == :fetch_metadata
+      end
+
+      def verified_via_fetch_metadata?
+        SAFE_FETCH_SITES.include? sec_fetch_site_value
+      end
+
+      def verified_with_token_fallback?
+        case sec_fetch_site_value
+        when "same-origin", "same-site"
+          true
+        when "cross-site"
+          false
+        else # "none" or missing
+          logger.warn "Falling back to CSRF token check for forgery protection" if logger && log_warning_on_csrf_failure
+          any_authenticity_token_valid?
+        end
+      end
+
+      # Returns the normalized value of the Sec-Fetch-Site header.
+      def sec_fetch_site_value # :doc:
+        request.headers["Sec-Fetch-Site"].to_s.downcase.presence
       end
 
       # Checks if any of the authenticity tokens from the request are valid.
@@ -635,7 +751,7 @@ module ActionController # :nodoc:
       def valid_request_origin? # :doc:
         if forgery_protection_origin_check
           # We accept blank origin headers because some user agents don't send it.
-          raise InvalidAuthenticityToken, NULL_ORIGIN_MESSAGE if request.origin == "null"
+          raise InvalidCrossOriginRequest, NULL_ORIGIN_MESSAGE if request.origin == "null"
           request.origin.nil? || request.origin == request.base_url
         else
           true

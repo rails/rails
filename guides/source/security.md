@@ -551,7 +551,7 @@ document.head.querySelector("meta[name=csrf-token]")?.content
 It is common to use persistent cookies to store user information, with `cookies.permanent` for example. In this case, the cookies will not be cleared and the out of the box CSRF protection will not be effective. If you are using a different cookie store than the session for this information, you must handle what to do with it yourself:
 
 ```ruby
-rescue_from ActionController::InvalidAuthenticityToken do |exception|
+rescue_from ActionController::InvalidCrossOriginRequest do |exception|
   sign_out_user # Example method that will destroy the user cookies
 end
 ```
