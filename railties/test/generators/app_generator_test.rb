@@ -1771,6 +1771,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file(".devcontainer/compose.yaml")
   end
 
+  def test_generated_yml_files_format
+    generator [destination_root]
+    run_generator_instance
+
+    Dir["**/*.yml"].each do |yml_file|
+      assert_file yml_file do |content|
+        assert_no_match(/\n\n\n/, content, "File `#{yml_file}` should not have double empty lines")
+      end
+    end
+  end
+
   private
     def assert_load_defaults
       assert_file "config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/

@@ -20,3 +20,25 @@
 #++
 # Rails.application.config.active_record.postgresql_adapter_decode_bytea = true
 # Rails.application.config.active_record.postgresql_adapter_decode_money = true
+
+###
+# Analyze attachments immediately, making metadata available for validations.
+#
+# When enabled, attachment metadata (image dimensions, video duration, etc.) is extracted
+# before validation, allowing you to validate file properties:
+#
+#   has_one_attached :avatar
+#   validate :validate_avatar_dimensions, if: -> { avatar.attached? }
+#
+#   def validate_avatar_dimensions
+#     if avatar.metadata[:width] < 200 || avatar.metadata[:height] < 200
+#       errors.add(:avatar, "must be at least 200x200")
+#     end
+#   end
+#
+# Valid options:
+#  - :immediately - Analyze before validation (new default)
+#  - :later - Analyze after upload from local IO or via background job for direct uploads
+#  - :lazily - Skip automatic analysis; analyze on-demand
+#++
+# Rails.application.config.active_storage.analyze = :immediately

@@ -1,3 +1,17 @@
+*   Do not clean directories directly under the application root with `Rails::BacktraceCleaner`
+
+    Improved `Rails.backtrace_cleaner` so that most paths located directly under the application's root directory are no longer silenced.
+
+    *alpaca-tc*
+
+*   Add `Rails::CodeStatistics#register_extension` to register file extensions for `rails stats`
+
+    ```ruby
+    Rails::CodeStatistics.register_extension("txt")
+    ```
+
+    *Taketo Takashima*
+
 *   Wrap console command with an executor by default
 
     This can be disabled with `-w` or `--skip_executor`, same as runner.

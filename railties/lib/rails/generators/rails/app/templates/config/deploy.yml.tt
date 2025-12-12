@@ -90,7 +90,6 @@ volumes:
 # hitting 404 on in-flight requests. Combines all files from new and old
 # version inside the asset_path.
 asset_path: /rails/public/assets
-
 <% end -%>
 
 # Configure the image builder.

@@ -293,7 +293,7 @@ module ActiveSupport
     def initialize(*subscribers, raise_on_error: false)
       @subscribers = []
       subscribers.each { |subscriber| subscribe(subscriber) }
-      @debug_mode = false
+      @debug_mode = true
       @raise_on_error = raise_on_error
     end
 
