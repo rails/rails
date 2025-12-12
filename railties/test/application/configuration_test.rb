@@ -1823,7 +1823,7 @@ module ApplicationTests
     test "config.action_controller.default_protect_from_forgery is true by default" do
       app "development"
 
-      assert_includes ActionController::Base.__callbacks[:process_action].map(&:filter), :verify_authenticity_token
+      assert_includes ActionController::Base.__callbacks[:process_action].map(&:filter), :verify_request_for_forgery_protection
     end
 
     test "config.action_controller.permit_all_parameters can be configured in an initializer" do

@@ -371,6 +371,10 @@ module Rails
         when "8.2"
           load_defaults "8.1"
 
+          if respond_to?(:action_controller)
+            action_controller.forgery_protection_verification_strategy = :header_only
+          end
+
           if respond_to?(:active_record)
             active_record.postgresql_adapter_decode_bytea = true
             active_record.postgresql_adapter_decode_money = true
