@@ -1711,3 +1711,94 @@ class InvalidVerificationStrategyTest < ActionController::TestCase
     end
   end
 end
+
+
+class TrustedOriginsFetchMetadataController < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery using: :fetch_metadata, with: :exception,
+    trusted_origins: ["https://trusted.example.com", "https://oauth.provider.com"]
+end
+
+class TrustedOriginsTokenFallbackController < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery using: :token_fallback, with: :exception,
+    trusted_origins: ["https://trusted.example.com"]
+end
+
+class TrustedOriginsFetchMetadataControllerTest < ActionController::TestCase
+  def setup
+    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
+    ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
+  end
+
+  def teardown
+    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
+  end
+
+  test "allows cross-site POST from trusted origin" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    @request.set_header "HTTP_ORIGIN", "https://trusted.example.com"
+    post :index
+    assert_response :success
+  end
+
+  test "allows cross-site POST from another trusted origin" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    @request.set_header "HTTP_ORIGIN", "https://oauth.provider.com"
+    post :index
+    assert_response :success
+  end
+
+  test "blocks cross-site POST from untrusted origin" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    @request.set_header "HTTP_ORIGIN", "https://untrusted.example.com"
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      post :index
+    end
+  end
+
+  test "blocks cross-site POST without origin header" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      post :index
+    end
+  end
+
+  test "still allows same-origin requests" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+    post :index
+    assert_response :success
+  end
+
+  test "still allows same-site requests" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-site"
+    post :index
+    assert_response :success
+  end
+end
+
+class TrustedOriginsTokenFallbackControllerTest < ActionController::TestCase
+  def setup
+    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
+    ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
+  end
+
+  def teardown
+    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
+  end
+
+  test "allows cross-site POST from trusted origin" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    @request.set_header "HTTP_ORIGIN", "https://trusted.example.com"
+    post :index
+    assert_response :success
+  end
+
+  test "blocks cross-site POST from untrusted origin" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    @request.set_header "HTTP_ORIGIN", "https://untrusted.example.com"
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      post :index
+    end
+  end
+end

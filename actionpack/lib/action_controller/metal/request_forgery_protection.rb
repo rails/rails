@@ -119,6 +119,13 @@ module ActionController # :nodoc:
       delegate :forgery_protection_verification_strategy, :forgery_protection_verification_strategy=, to: :config
       self.forgery_protection_verification_strategy = :fetch_metadata
 
+      # Origins allowed for cross-site requests, such as OAuth/SSO callbacks,
+      # third-party embeds, and legitimate remote form submission.
+      # Example: %w[ https://accounts.google.com ]
+      singleton_class.delegate :forgery_protection_trusted_origins, :forgery_protection_trusted_origins=, to: :config
+      delegate :forgery_protection_trusted_origins, :forgery_protection_trusted_origins=, to: :config
+      self.forgery_protection_trusted_origins = []
+
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end
@@ -238,6 +245,10 @@ module ActionController # :nodoc:
       #     requests that should be fixed to work with `:fetch_metadata`. Use this
       #     if you need to support older browsers that don't send the `Sec-Fetch-Site` header.
       #
+      # *   `:trusted_origins` - Array of origins to allow for cross-site requests,
+      #     such as OAuth/SSO callbacks, third-party embeds, and legitimate remote
+      #     form submission.
+      #
       # Example:
       #
       #     class ApplicationController < ActionController::Base
@@ -246,6 +257,9 @@ module ActionController # :nodoc:
       #
       #       # Hybrid approach with fallback for older browsers
       #       protect_from_forgery using: :token_fallback, with: :exception
+      #
+      #       # Allow cross-site requests from trusted origins
+      #       protect_from_forgery trusted_origins: %w[ https://accounts.google.com ]
       #     end
       def protect_from_forgery(options = {})
         options = options.reverse_merge(prepend: false)
@@ -255,6 +269,7 @@ module ActionController # :nodoc:
 
         self.csrf_token_storage_strategy = storage_strategy(options[:store] || SessionStore.new)
         self.forgery_protection_verification_strategy = verification_strategy(options[:using] || :fetch_metadata)
+        self.forgery_protection_trusted_origins = Array(options[:trusted_origins]) if options.key?(:trusted_origins)
 
         before_action :verify_request_for_forgery_protection, options
         append_after_action :verify_same_origin_request
@@ -568,7 +583,8 @@ module ActionController # :nodoc:
       end
 
       def verified_via_fetch_metadata?
-        SAFE_FETCH_SITES.include? sec_fetch_site_value
+        SAFE_FETCH_SITES.include?(sec_fetch_site_value) ||
+          (sec_fetch_site_value == "cross-site" && origin_trusted?)
       end
 
       def verified_with_token_fallback?
@@ -576,11 +592,16 @@ module ActionController # :nodoc:
         when "same-origin", "same-site"
           true
         when "cross-site"
-          false
+          origin_trusted?
         else # "none" or missing
           logger.warn "Falling back to CSRF token check for forgery protection" if logger && log_warning_on_csrf_failure
           any_authenticity_token_valid?
         end
+      end
+
+      def origin_trusted?
+        origin = request.origin
+        origin.present? && forgery_protection_trusted_origins.include?(origin)
       end
 
       # Returns the normalized value of the Sec-Fetch-Site header.
