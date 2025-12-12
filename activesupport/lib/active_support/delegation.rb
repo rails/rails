@@ -151,11 +151,11 @@ module ActiveSupport
               "def #{method_name}(#{definition})" <<
               "  _ = #{receiver}" <<
               "  _.#{method}(#{definition})" <<
-              "rescue NoMethodError => e" <<
+              "rescue ::NoMethodError => e" <<
               "  if _.nil? && e.name == :#{method}" <<
-              "    raise ::ActiveSupport::DelegationError.nil_target(:#{method_name}, :'#{receiver}')" <<
+              "    ::Kernel.raise ::ActiveSupport::DelegationError.nil_target(:#{method_name}, :'#{receiver}')" <<
               "  else" <<
-              "    raise" <<
+              "    ::Kernel.raise" <<
               "  end" <<
               "end"
           end
@@ -202,7 +202,7 @@ module ActiveSupport
             def method_missing(method, ...)
               __target = #{target}
               if __target.nil? && !nil.respond_to?(method)
-                raise ::ActiveSupport::DelegationError.nil_target(method, :'#{target}')
+                ::Kernel.raise ::ActiveSupport::DelegationError.nil_target(method, :'#{target}')
               elsif __target.respond_to?(method)
                 __target.public_send(method, ...)
               else
