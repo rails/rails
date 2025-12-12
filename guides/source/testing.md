@@ -2805,6 +2805,9 @@ class ActiveSupport::TestCase
 end
 ```
 
+NOTE: Setting the `PARALLEL_WORKERS` environment variable will bypass the
+threshold check, enabling parallelization regardless of test count.
+
 Testing Eager Loading
 ---------------------
 
