@@ -536,9 +536,9 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_block_post_with_origin_checking_and_wrong_origin
-    old_logger = ActionController::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    ActionController::Base.logger = logger
+    old_logger = ActionController::LogSubscriber.logger
+    ActionController::LogSubscriber.logger = logger
 
     forgery_protection_origin_check do
       initialize_csrf_token
@@ -555,14 +555,14 @@ module RequestForgeryProtectionTests
       logger.logged(:warn).last
     )
   ensure
-    ActionController::Base.logger = old_logger
+    ActionController::LogSubscriber.logger = old_logger
   end
 
 
   def test_should_warn_on_missing_csrf_token
-    old_logger = ActionController::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    ActionController::Base.logger = logger
+    old_logger = ActionController::LogSubscriber.logger
+    ActionController::LogSubscriber.logger = logger
 
     begin
       assert_blocked { post :index }
@@ -571,14 +571,14 @@ module RequestForgeryProtectionTests
       assert_match(/Falling back to CSRF token/, logger.logged(:warn).first)
       assert_match(/CSRF token authenticity/, logger.logged(:warn).last)
     ensure
-      ActionController::Base.logger = old_logger
+      ActionController::LogSubscriber.logger = old_logger
     end
   end
 
   def test_should_not_warn_if_csrf_logging_disabled
-    old_logger = ActionController::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    ActionController::Base.logger = logger
+    old_logger = ActionController::LogSubscriber.logger
+    ActionController::LogSubscriber.logger = logger
     ActionController::Base.log_warning_on_csrf_failure = false
 
     begin
@@ -586,7 +586,7 @@ module RequestForgeryProtectionTests
 
       assert_equal 0, logger.logged(:warn).size
     ensure
-      ActionController::Base.logger = old_logger
+      ActionController::LogSubscriber.logger = old_logger
       ActionController::Base.log_warning_on_csrf_failure = true
     end
   end
@@ -613,9 +613,9 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_warn_on_not_same_origin_js
-    old_logger = ActionController::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    ActionController::Base.logger = logger
+    old_logger = ActionController::LogSubscriber.logger
+    ActionController::LogSubscriber.logger = logger
 
     begin
       assert_cross_origin_blocked { get :same_origin_js }
@@ -623,14 +623,14 @@ module RequestForgeryProtectionTests
       assert_equal 1, logger.logged(:warn).size
       assert_match(/<script> tag on another site requested protected JavaScript/, logger.logged(:warn).last)
     ensure
-      ActionController::Base.logger = old_logger
+      ActionController::LogSubscriber.logger = old_logger
     end
   end
 
   def test_should_not_warn_if_csrf_logging_disabled_and_not_same_origin_js
-    old_logger = ActionController::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    ActionController::Base.logger = logger
+    old_logger = ActionController::LogSubscriber.logger
+    ActionController::LogSubscriber.logger = logger
     ActionController::Base.log_warning_on_csrf_failure = false
 
     begin
@@ -638,7 +638,7 @@ module RequestForgeryProtectionTests
 
       assert_equal 0, logger.logged(:warn).size
     ensure
-      ActionController::Base.logger = old_logger
+      ActionController::LogSubscriber.logger = old_logger
       ActionController::Base.log_warning_on_csrf_failure = true
     end
   end
@@ -884,7 +884,7 @@ end
 class CustomAuthenticityParamControllerTest < ActionController::TestCase
   def setup
     super
-    @old_logger = ActionController::Base.logger
+    @old_logger = ActionController::LogSubscriber.logger
     @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
     @token = Base64.urlsafe_encode64(SecureRandom.random_bytes(32))
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
@@ -897,7 +897,7 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
   end
 
   def test_should_not_warn_if_form_authenticity_param_matches_form_authenticity_token
-    ActionController::Base.logger = @logger
+    ActionController::LogSubscriber.logger = @logger
     begin
       @controller.stub :valid_authenticity_token?, :true do
         post :index, params: { custom_token_name: "foobar" }
@@ -906,12 +906,12 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
         assert_match(/Falling back to CSRF token/, @logger.logged(:warn).first)
       end
     ensure
-      ActionController::Base.logger = @old_logger
+      ActionController::LogSubscriber.logger = @old_logger
     end
   end
 
   def test_should_warn_if_form_authenticity_param_does_not_match_form_authenticity_token
-    ActionController::Base.logger = @logger
+    ActionController::LogSubscriber.logger = @logger
 
     begin
       post :index, params: { custom_token_name: "bazqux" }
@@ -920,7 +920,7 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
       assert_match(/Falling back to CSRF token/, @logger.logged(:warn).first)
       assert_match(/CSRF token authenticity/, @logger.logged(:warn).last)
     ensure
-      ActionController::Base.logger = @old_logger
+      ActionController::LogSubscriber.logger = @old_logger
     end
   end
 end

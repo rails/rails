@@ -91,6 +91,26 @@ module ActionController
     end
     debug_only :unpermitted_parameters
 
+    def csrf_token_fallback(event)
+      emit_csrf_event "action_controller.csrf_token_fallback", event.payload
+    end
+
+    def csrf_request_blocked(event)
+      emit_csrf_event "action_controller.csrf_request_blocked", event.payload
+    end
+
+    def csrf_javascript_blocked(event)
+      emit_csrf_event "action_controller.csrf_javascript_blocked", event.payload
+    end
+
+    private def emit_csrf_event(name, payload)
+      emit_event name,
+        controller: payload[:controller],
+        action: payload[:action],
+        sec_fetch_site: payload[:sec_fetch_site],
+        message: payload[:message]
+    end
+
     def write_fragment(event)
       fragment_cache(__method__, event)
     end
