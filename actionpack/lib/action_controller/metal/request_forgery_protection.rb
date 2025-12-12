@@ -119,7 +119,7 @@ module ActionController # :nodoc:
       # * :token_fallback - Combined approach: Sec-Fetch-Site with fallback to token
       singleton_class.delegate :forgery_protection_verification_strategy, :forgery_protection_verification_strategy=, to: :config
       delegate :forgery_protection_verification_strategy, :forgery_protection_verification_strategy=, to: :config
-      self.forgery_protection_verification_strategy = :fetch_metadata
+      self.forgery_protection_verification_strategy = :token_fallback
 
       # Origins allowed for cross-site requests, such as OAuth/SSO callbacks,
       # third-party embeds, and legitimate remote form submission.
