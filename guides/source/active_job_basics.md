@@ -499,6 +499,120 @@ trip network latency. GoodJob also supports bulk enqueuing with the
 If the queue backend does *not* support bulk enqueuing, `perform_all_later` will
 enqueue jobs one by one.
 
+Callbacks
+---------
+
+Active Job provides hooks to trigger logic during the life cycle of a job. Like
+other callbacks in Rails, you can implement the callbacks as ordinary methods
+and use a macro-style class method to register them as callbacks:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_as :default
+
+  around_perform :around_cleanup
+
+  def perform
+    # Do something later
+  end
+
+  private
+    def around_cleanup
+      # Do something before perform
+      yield
+      # Do something after perform
+    end
+end
+```
+
+The macro-style class methods can also receive a block. Consider using this
+style if the code inside your block is so short that it fits in a single line.
+For example, you could send metrics for every job enqueued:
+
+```ruby
+class ApplicationJob < ActiveJob::Base
+  before_enqueue { |job| $statsd.increment "#{job.class.name.underscore}.enqueue" }
+end
+```
+
+### Available Callbacks
+
+* [`before_enqueue`][]
+* [`around_enqueue`][]
+* [`after_enqueue`][]
+* [`before_perform`][]
+* [`around_perform`][]
+* [`after_perform`][]
+* [`after_discard`][]
+
+[`before_enqueue`]:
+    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_enqueue
+[`around_enqueue`]:
+    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_enqueue
+[`after_enqueue`]:
+    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_enqueue
+[`before_perform`]:
+    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_perform
+[`around_perform`]:
+    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_perform
+[`after_perform`]:
+    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_perform
+[`after_discard`]:
+    https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html#method-i-after_discard
+
+Please note that when enqueuing jobs in bulk using `perform_all_later`,
+callbacks such as `around_enqueue` will not be triggered on the individual jobs.
+See [Bulk Enqueuing Callbacks](#bulk-enqueue-callbacks).
+
+Job Continuations
+-----------------
+
+Jobs can be split into resumable steps using continuations. This is useful when
+a job may be interrupted - for example, during queue shutdown. When using
+continuations, the job can resume from the last completed step, avoiding the
+need to restart from the beginning.
+
+To use continuations, include the `ActiveJob::Continuable` module. You can then
+define each step using the `step` method inside the `perform` method. Each step can
+be declared with a block or by referencing a method name.
+
+```ruby
+class ProcessImportJob < ApplicationJob
+  include ActiveJob::Continuable
+
+  def perform(import_id)
+    # Always runs on job start, even when resuming from an interrupted step.
+    @import = Import.find(import_id)
+
+    # Step defined using a block
+    step :initialize do
+      @import.initialize
+    end
+
+    # Step with a cursor — progress is saved and resumed if the job is interrupted
+    step :process do |step|
+      @import.records.find_each(start: step.cursor) do |record|
+        record.process
+        step.advance! from: record.id
+      end
+    end
+
+    # Step defined by referencing a method
+    step :finalize
+  end
+
+  private
+    def finalize
+      @import.finalize
+    end
+end
+```
+
+Each step runs sequentially. If the job is interrupted between steps, or within a
+step that uses a cursor, the job resumes from the last recorded position. This
+makes it easier to build long-running or multi-phase jobs that can safely pause
+and resume without losing progress.
+For more details, see [ActiveJob::Continuation](https://api.rubyonrails.org/classes/ActiveJob/Continuation.html).
 
 
 Default Backend: Solid Queue
@@ -868,128 +982,65 @@ For instance, if a job fails to process a large file due to a timeout,
 arguments and execution history, and decide whether to retry, requeue, or
 discard it.
 
+Alternate Queuing Backends
+--------------------------
 
+Active Job has other built-in adapters for multiple queuing backends (Sidekiq,
+Resque, Delayed Job, and others). To get an up-to-date list of the adapters see
+the API Documentation for [`ActiveJob::QueueAdapters`][].
 
+[`ActiveJob::QueueAdapters`]:
+    https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html
 
-Job Continuations
------------------
+### Configuring the Backend
 
-Jobs can be split into resumable steps using continuations. This is useful when
-a job may be interrupted - for example, during queue shutdown. When using
-continuations, the job can resume from the last completed step, avoiding the
-need to restart from the beginning.
-
-To use continuations, include the `ActiveJob::Continuable` module. You can then
-define each step using the `step` method inside the `perform` method. Each step can
-be declared with a block or by referencing a method name.
+You can change your queuing backend with [`config.active_job.queue_adapter`]:
 
 ```ruby
-class ProcessImportJob < ApplicationJob
-  include ActiveJob::Continuable
-
-  def perform(import_id)
-    # Always runs on job start, even when resuming from an interrupted step.
-    @import = Import.find(import_id)
-
-    # Step defined using a block
-    step :initialize do
-      @import.initialize
-    end
-
-    # Step with a cursor — progress is saved and resumed if the job is interrupted
-    step :process do |step|
-      @import.records.find_each(start: step.cursor) do |record|
-        record.process
-        step.advance! from: record.id
-      end
-    end
-
-    # Step defined by referencing a method
-    step :finalize
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    # Be sure to have the adapter's gem in your Gemfile
+    # and follow the adapter's specific installation
+    # and deployment instructions.
+    config.active_job.queue_adapter = :sidekiq
   end
-
-  private
-    def finalize
-      @import.finalize
-    end
 end
 ```
 
-Each step runs sequentially. If the job is interrupted between steps, or within a
-step that uses a cursor, the job resumes from the last recorded position. This
-makes it easier to build long-running or multi-phase jobs that can safely pause
-and resume without losing progress.
-For more details, see [ActiveJob::Continuation](https://api.rubyonrails.org/classes/ActiveJob/Continuation.html).
-
-Callbacks
----------
-
-Active Job provides hooks to trigger logic during the life cycle of a job. Like
-other callbacks in Rails, you can implement the callbacks as ordinary methods
-and use a macro-style class method to register them as callbacks:
+You can also configure your backend on a per job basis:
 
 ```ruby
 class GuestsCleanupJob < ApplicationJob
-  queue_as :default
-
-  around_perform :around_cleanup
-
-  def perform
-    # Do something later
-  end
-
-  private
-    def around_cleanup
-      # Do something before perform
-      yield
-      # Do something after perform
-    end
+  self.queue_adapter = :resque
+  # ...
 end
+
+# Now your job will use `resque` as its backend queue adapter, overriding the default Solid Queue adapter.
 ```
 
-The macro-style class methods can also receive a block. Consider using this
-style if the code inside your block is so short that it fits in a single line.
-For example, you could send metrics for every job enqueued:
+[`config.active_job.queue_adapter`]:
+    configuring.html#config-active-job-queue-adapter
 
-```ruby
-class ApplicationJob < ActiveJob::Base
-  before_enqueue { |job| $statsd.increment "#{job.class.name.underscore}.enqueue" }
-end
-```
+### Starting the Backend
 
-### Available Callbacks
+Since jobs run in parallel to your Rails application, most queuing libraries
+require that you start a library-specific queuing service (in addition to
+starting your Rails app) for the job processing to work. Refer to library
+documentation for instructions on starting your queue backend.
 
-* [`before_enqueue`][]
-* [`around_enqueue`][]
-* [`after_enqueue`][]
-* [`before_perform`][]
-* [`around_perform`][]
-* [`after_perform`][]
-* [`after_discard`][]
+Here is a noncomprehensive list of documentation:
 
-[`before_enqueue`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_enqueue
-[`around_enqueue`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_enqueue
-[`after_enqueue`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_enqueue
-[`before_perform`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_perform
-[`around_perform`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_perform
-[`after_perform`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_perform
-[`after_discard`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html#method-i-after_discard
+- [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
+- [Resque](https://github.com/resque/resque/wiki/ActiveJob)
+- [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
+- [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
+- [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
+- [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
+- [Good Job](https://github.com/bensheldon/good_job#readme)
 
-Please note that when enqueuing jobs in bulk using `perform_all_later`,
-callbacks such as `around_enqueue` will not be triggered on the individual jobs.
-See [Bulk Enqueuing Callbacks](#bulk-enqueue-callbacks).
-
-
-
-Exceptions
-----------
+Handling Failed Jobs
+--------------------
 
 Exceptions raised during the execution of the job can be handled with
 [`rescue_from`][]:
@@ -1050,66 +1101,7 @@ If a passed record is deleted after the job is enqueued but before the
     https://api.rubyonrails.org/classes/ActiveJob/DeserializationError.html
 
 
-
-Debugging
----------
-
 If you need help figuring out where jobs are coming from, you can enable
 [verbose logging](debugging_rails_applications.html#verbose-enqueue-logs).
 
-Alternate Queuing Backends
---------------------------
 
-Active Job has other built-in adapters for multiple queuing backends (Sidekiq,
-Resque, Delayed Job, and others). To get an up-to-date list of the adapters see
-the API Documentation for [`ActiveJob::QueueAdapters`][].
-
-[`ActiveJob::QueueAdapters`]:
-    https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html
-
-### Configuring the Backend
-
-You can change your queuing backend with [`config.active_job.queue_adapter`]:
-
-```ruby
-# config/application.rb
-module YourApp
-  class Application < Rails::Application
-    # Be sure to have the adapter's gem in your Gemfile
-    # and follow the adapter's specific installation
-    # and deployment instructions.
-    config.active_job.queue_adapter = :sidekiq
-  end
-end
-```
-
-You can also configure your backend on a per job basis:
-
-```ruby
-class GuestsCleanupJob < ApplicationJob
-  self.queue_adapter = :resque
-  # ...
-end
-
-# Now your job will use `resque` as its backend queue adapter, overriding the default Solid Queue adapter.
-```
-
-[`config.active_job.queue_adapter`]:
-    configuring.html#config-active-job-queue-adapter
-
-### Starting the Backend
-
-Since jobs run in parallel to your Rails application, most queuing libraries
-require that you start a library-specific queuing service (in addition to
-starting your Rails app) for the job processing to work. Refer to library
-documentation for instructions on starting your queue backend.
-
-Here is a noncomprehensive list of documentation:
-
-- [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
-- [Resque](https://github.com/resque/resque/wiki/ActiveJob)
-- [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
-- [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
-- [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
-- [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
-- [Good Job](https://github.com/bensheldon/good_job#readme)
