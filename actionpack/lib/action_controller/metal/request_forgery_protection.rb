@@ -470,7 +470,7 @@ module ActionController # :nodoc:
         mark_for_same_origin_verification!
 
         if !verified_request?
-          logger.warn unverified_request_warning_message if logger && log_warning_on_csrf_failure
+          instrument_unverified_request
 
           handle_unverified_request
         end
@@ -516,9 +516,7 @@ module ActionController # :nodoc:
       # serving an unauthorized cross-origin response.
       def verify_same_origin_request # :doc:
         if marked_for_same_origin_verification? && non_xhr_javascript_response?
-          if logger && log_warning_on_csrf_failure
-            logger.warn CROSS_ORIGIN_JAVASCRIPT_WARNING
-          end
+          instrument_cross_origin_javascript
           raise ActionController::InvalidCrossOriginRequest, CROSS_ORIGIN_JAVASCRIPT_WARNING
         end
       end
@@ -593,9 +591,32 @@ module ActionController # :nodoc:
         when "cross-site"
           origin_trusted?
         else # "none" or missing
-          logger.warn "Falling back to CSRF token check for forgery protection" if logger && log_warning_on_csrf_failure
+          instrument_csrf_token_fallback
           any_authenticity_token_valid?
         end
+      end
+
+      def instrument_csrf_token_fallback
+        instrument_csrf_event "csrf_token_fallback.action_controller"
+      end
+
+      def instrument_unverified_request
+        instrument_csrf_event "csrf_request_blocked.action_controller",
+          message: unverified_request_warning_message
+      end
+
+      def instrument_cross_origin_javascript
+        instrument_csrf_event "csrf_javascript_blocked.action_controller",
+          message: CROSS_ORIGIN_JAVASCRIPT_WARNING
+      end
+
+      def instrument_csrf_event(event, message: nil)
+        ActiveSupport::Notifications.instrument event,
+          request: request,
+          controller: self.class.name,
+          action: action_name,
+          sec_fetch_site: sec_fetch_site_value,
+          message: message
       end
 
       def origin_trusted?

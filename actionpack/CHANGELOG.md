@@ -1,3 +1,14 @@
+*   Active Support notifications for CSRF warnings.
+
+    Switches from direct logging to event-driven logging, allowing others to
+    subscribe to and act on CSRF events:
+
+    - `csrf_token_fallback.action_controller`
+    - `csrf_request_blocked.action_controller`
+    - `csrf_javascript_blocked.action_controller`
+
+    *Jeremy Daer*
+
 *   Modern header-based CSRF protection.
 
     Modern browsers send the `Sec-Fetch-Site` header to indicate the relationship
