@@ -372,7 +372,7 @@ module Rails
           load_defaults "8.1"
 
           if respond_to?(:action_controller)
-            action_controller.forgery_protection_verification_strategy = :fetch_metadata
+            action_controller.forgery_protection_verification_strategy = :header_only
           end
 
           if respond_to?(:active_record)

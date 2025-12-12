@@ -16,15 +16,16 @@
 # between request initiator and target origins. Rails can use this header to
 # reject cross-site requests without requiring authenticity tokens.
 #
-# When set to :fetch_metadata, requests without a valid Sec-Fetch-Site header
+# When set to :header_only, requests without a valid Sec-Fetch-Site header
 # (same-origin or same-site) will be rejected. This is more secure and simpler
 # than token-based protection, but only works with modern browsers.
 #
-# When set to :token_fallback (pre-8.2 default), Rails checks the Sec-Fetch-Site
-# header first, but falls back to authenticity token verification for requests
-# without the header. This supports older browsers while logging fallback usage.
+# When set to :header_or_legacy_token (pre-8.2 default), Rails checks the
+# Sec-Fetch-Site header first, but falls back to authenticity token verification
+# for requests without the header. This supports older browsers while logging
+# fallback usage.
 #++
-# Rails.application.config.action_controller.forgery_protection_verification_strategy = :fetch_metadata
+# Rails.application.config.action_controller.forgery_protection_verification_strategy = :header_only
 
 ###
 # Controls whether the PostgresqlAdapter should decode bytea and money columns automatically with manual queries.

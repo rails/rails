@@ -76,16 +76,16 @@ end
 # sample controllers
 class RequestForgeryProtectionControllerUsingResetSession < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: :reset_session, using: :token_fallback
+  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: :reset_session, using: :header_or_legacy_token
 end
 
 class RequestForgeryProtectionControllerUsingException < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: :exception, using: :token_fallback
+  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: :exception, using: :header_or_legacy_token
 end
 
 class RequestForgeryProtectionControllerUsingNullSession < ActionController::Base
-  protect_from_forgery with: :null_session, using: :token_fallback
+  protect_from_forgery with: :null_session, using: :header_or_legacy_token
 
   def signed
     cookies.signed[:foo] = "bar"
@@ -118,7 +118,7 @@ class RequestForgeryProtectionControllerUsingCustomStrategy < ActionController::
     end
   end
 
-  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: CustomStrategy, using: :token_fallback
+  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: CustomStrategy, using: :header_or_legacy_token
 end
 
 class PrependProtectForgeryBaseController < ActionController::Base
@@ -163,7 +163,7 @@ class CustomAuthenticityParamController < RequestForgeryProtectionControllerUsin
 end
 
 class PerFormTokensController < ActionController::Base
-  protect_from_forgery with: :exception, using: :token_fallback
+  protect_from_forgery with: :exception, using: :header_or_legacy_token
   self.per_form_csrf_tokens = true
 
   def index
@@ -185,7 +185,7 @@ end
 
 class SkipProtectionController < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery with: :exception, using: :token_fallback
+  protect_from_forgery with: :exception, using: :header_or_legacy_token
   skip_forgery_protection if: :skip_requested
   attr_accessor :skip_requested
 end
@@ -200,7 +200,7 @@ class CookieCsrfTokenStorageStrategyController < ActionController::Base
 
   after_action :commit_token, only: :cookie
 
-  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: :exception, store: :cookie, using: :token_fallback
+  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: :exception, store: :cookie, using: :header_or_legacy_token
 
   def reset
     reset_csrf_token(request)
@@ -237,7 +237,7 @@ class CustomCsrfTokenStorageStrategyController < ActionController::Base
   protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin),
     with: :reset_session,
     store: CustomStrategy.new,
-    using: :token_fallback
+    using: :header_or_legacy_token
 end
 
 # common test methods
@@ -1456,18 +1456,18 @@ class CustomCsrfTokenStorageStrategyControllerTest < ActionController::TestCase
   end
 end
 
-# Controllers for testing fetch_metadata and token_fallback verification strategies
-class FetchMetadataProtectionController < ActionController::Base
+# Controllers for testing header_only and header_or_legacy_token verification strategies
+class HeaderOnlyProtectionController < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery using: :fetch_metadata, with: :exception
+  protect_from_forgery using: :header_only, with: :exception
 end
 
-class TokenFallbackProtectionController < ActionController::Base
+class HeaderOrLegacyTokenProtectionController < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery using: :token_fallback, with: :exception
+  protect_from_forgery using: :header_or_legacy_token, with: :exception
 end
 
-class FetchMetadataProtectionControllerTest < ActionController::TestCase
+class HeaderOnlyProtectionControllerTest < ActionController::TestCase
   def setup
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
@@ -1572,7 +1572,7 @@ class FetchMetadataProtectionControllerTest < ActionController::TestCase
     end
 end
 
-class TokenFallbackProtectionControllerTest < ActionController::TestCase
+class HeaderOrLegacyTokenProtectionControllerTest < ActionController::TestCase
   def setup
     @token = Base64.urlsafe_encode64("railstestrailstestrailstestrails")
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
@@ -1713,19 +1713,19 @@ class InvalidVerificationStrategyTest < ActionController::TestCase
 end
 
 
-class TrustedOriginsFetchMetadataController < ActionController::Base
+class TrustedOriginsHeaderOnlyController < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery using: :fetch_metadata, with: :exception,
+  protect_from_forgery using: :header_only, with: :exception,
     trusted_origins: ["https://trusted.example.com", "https://oauth.provider.com"]
 end
 
-class TrustedOriginsTokenFallbackController < ActionController::Base
+class TrustedOriginsHeaderOrLegacyTokenController < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery using: :token_fallback, with: :exception,
+  protect_from_forgery using: :header_or_legacy_token, with: :exception,
     trusted_origins: ["https://trusted.example.com"]
 end
 
-class TrustedOriginsFetchMetadataControllerTest < ActionController::TestCase
+class TrustedOriginsHeaderOnlyControllerTest < ActionController::TestCase
   def setup
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
@@ -1777,7 +1777,7 @@ class TrustedOriginsFetchMetadataControllerTest < ActionController::TestCase
   end
 end
 
-class TrustedOriginsTokenFallbackControllerTest < ActionController::TestCase
+class TrustedOriginsHeaderOrLegacyTokenControllerTest < ActionController::TestCase
   def setup
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
