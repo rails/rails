@@ -30,6 +30,22 @@ the application, allowing it to handle tasks in parallel.
 Creating and Enqueuing Jobs
 ---------------------------
 
+todo: emailing example
+One of the most common jobs in a modern web application is sending emails
+outside of the request-response cycle, so the user doesn't have to wait on it.
+Active Job is integrated with Action Mailer so you can easily send emails
+asynchronously:
+
+```ruby
+# If you want to send the email now use #deliver_now
+UserMailer.welcome(@user).deliver_now
+
+# If you want to send the email through Active Job use #deliver_later
+UserMailer.welcome(@user).deliver_later
+```
+
+
+
 This section provides a step-by-step guide for defining a job Ruby class and then using jobs to enqueue work to be executed in the background.
 
 ### Creating a Job
@@ -795,12 +811,10 @@ Bulk enqueuing reduces the number of round trips to the queue data store (like
 Redis or a database), making it a more performant operation than enqueuing the
 same jobs individually.
 
-`perform_all_later` is a top-level API on Active Job. It accepts instantiated
-jobs as arguments (note that this is different from `perform_later`).
-`perform_all_later` does call `perform` under the hood. The arguments passed to
-`new` will be passed on to `perform` when it's eventually called.
-
-Here is an example calling `perform_all_later` with `GuestsCleanupJob` instances:
+The `perform_all_later` method accepts instantiated jobs as arguments (note that
+this is different from `perform_later`) and calls `perform` under the hood. The
+arguments passed to `new`, when creating new job instances, will be passed on to
+`perform` when it's eventually called. For example:
 
 ```ruby
 # Create jobs to pass to `perform_all_later`.
@@ -816,8 +830,8 @@ cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest).set(wait: 1.d
 ActiveJob.perform_all_later(cleanup_jobs)
 ```
 
-`perform_all_later` logs the number of jobs successfully enqueued, for example
-if `Guest.all.map` above resulted in 3 `cleanup_jobs`, it would log
+The `perform_all_later` call logs the number of jobs successfully enqueued, for
+example if `Guest.all.map` above resulted in 3 `cleanup_jobs`, it would log
 `Enqueued 3 jobs to Async (3 GuestsCleanupJob)` (assuming all were enqueued).
 
 The return value of `perform_all_later` is `nil`. Note that this is different
@@ -879,40 +893,10 @@ trip network latency. GoodJob also supports bulk enqueuing with the
 If the queue backend does *not* support bulk enqueuing, `perform_all_later` will
 enqueue jobs one by one.
 
-Action Mailer
-------------
-
-One of the most common jobs in a modern web application is sending emails
-outside of the request-response cycle, so the user doesn't have to wait on it.
-Active Job is integrated with Action Mailer so you can easily send emails
-asynchronously:
-
-```ruby
-# If you want to send the email now use #deliver_now
-UserMailer.welcome(@user).deliver_now
-
-# If you want to send the email through Active Job use #deliver_later
-UserMailer.welcome(@user).deliver_later
-```
-
-NOTE: Using the asynchronous queue from a Rake task (for example, to send an
-email using `.deliver_later`) will generally not work because Rake will likely
-end, causing the in-process thread pool to be deleted, before any/all of the
-`.deliver_later` emails are processed. To avoid this problem, use `.deliver_now`
-or run a persistent queue in development.
 
 
-Internationalization
---------------------
 
-Each job uses the `I18n.locale` set when the job was created. This is useful if
-you send emails asynchronously:
 
-```ruby
-I18n.locale = :eo
-
-UserMailer.welcome(@user).deliver_later # Email will be localized to Esperanto.
-```
 
 
 Supported Types for Arguments
@@ -1076,11 +1060,7 @@ If a passed record is deleted after the job is enqueued but before the
 [`ActiveJob::DeserializationError`]:
     https://api.rubyonrails.org/classes/ActiveJob/DeserializationError.html
 
-Job Testing
---------------
 
-You can find detailed instructions on how to test your jobs in the [testing
-guide](testing.html#testing-jobs).
 
 Debugging
 ---------
