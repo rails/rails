@@ -1802,3 +1802,26 @@ class TrustedOriginsTokenFallbackControllerTest < ActionController::TestCase
     end
   end
 end
+
+class InvalidAuthenticityTokenDeprecationTest < ActiveSupport::TestCase
+  test "InvalidAuthenticityToken is deprecated" do
+    assert_deprecated("ActionController::InvalidAuthenticityToken has been deprecated", ActionController.deprecator) do
+      ActionController::InvalidAuthenticityToken
+    end
+  end
+
+  test "InvalidAuthenticityToken resolves to InvalidCrossOriginRequest" do
+    assert_deprecated(ActionController.deprecator) do
+      assert_equal ActionController::InvalidCrossOriginRequest, ActionController::InvalidAuthenticityToken
+    end
+  end
+
+  test "can rescue InvalidCrossOriginRequest with deprecated InvalidAuthenticityToken" do
+    assert_deprecated(ActionController.deprecator) do
+      assert_nothing_raised do
+        raise ActionController::InvalidCrossOriginRequest
+      rescue ActionController::InvalidAuthenticityToken
+      end
+    end
+  end
+end

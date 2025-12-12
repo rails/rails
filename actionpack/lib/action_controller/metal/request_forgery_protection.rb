@@ -7,11 +7,13 @@ require "action_controller/metal/exceptions"
 require "active_support/security_utils"
 
 module ActionController # :nodoc:
-  class InvalidAuthenticityToken < ActionControllerError # :nodoc:
-  end
-
   class InvalidCrossOriginRequest < ActionControllerError # :nodoc:
   end
+
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+  deprecate_constant "InvalidAuthenticityToken", "ActionController::InvalidCrossOriginRequest",
+    deprecator: ActionController.deprecator,
+    message: "ActionController::InvalidAuthenticityToken has been deprecated and will be removed in Rails 9.0. Use ActionController::InvalidCrossOriginRequest instead."
 
   # # Action Controller Request Forgery Protection
   #
