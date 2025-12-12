@@ -1048,13 +1048,13 @@ module ActiveRecord
     # Allows you to change a previously set where condition for a given attribute, instead of appending to that condition.
     #
     #   Post.where(trashed: true).where(trashed: false)
-    #   # WHERE `trashed` = 1 AND `trashed` = 0
+    #   # WHERE `trashed` = true AND `trashed` = false
     #
     #   Post.where(trashed: true).rewhere(trashed: false)
-    #   # WHERE `trashed` = 0
+    #   # WHERE `trashed` = false
     #
     #   Post.where(active: true).where(trashed: true).rewhere(trashed: false)
-    #   # WHERE `active` = 1 AND `trashed` = 0
+    #   # WHERE `active` = true AND `trashed` = false
     #
     # This is short-hand for <tt>unscope(where: conditions.keys).where(conditions)</tt>.
     # Note that unlike reorder, we're only unscoping the named conditions -- not the entire where statement.
@@ -1076,16 +1076,16 @@ module ActiveRecord
     #   end
     #
     #   User.where(accepted: true)
-    #   # WHERE `accepted` = 1
+    #   # WHERE `accepted` = true
     #
     #   User.where(accepted: true).invert_where
-    #   # WHERE `accepted` != 1
+    #   # WHERE `accepted` != true
     #
     #   User.active
-    #   # WHERE `accepted` = 1 AND `locked` = 0
+    #   # WHERE `accepted` = true AND `locked` = false
     #
     #   User.active.invert_where
-    #   # WHERE NOT (`accepted` = 1 AND `locked` = 0)
+    #   # WHERE NOT (`accepted` = true AND `locked` = false)
     #
     # Be careful because this inverts all conditions before +invert_where+ call.
     #
@@ -1096,7 +1096,7 @@ module ActiveRecord
     #
     #   # It also inverts `where(role: 'admin')` unexpectedly.
     #   User.where(role: 'admin').inactive
-    #   # WHERE NOT (`role` = 'admin' AND `accepted` = 1 AND `locked` = 0)
+    #   # WHERE NOT (`role` = 'admin' AND `accepted` = true AND `locked` = false)
     #
     def invert_where
       spawn.invert_where!
