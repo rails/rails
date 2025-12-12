@@ -27,8 +27,8 @@ Queue, Active Job ensures that time-consuming operations do not block the
 request-response cycle. This can improve the performance and responsiveness of
 the application, allowing it to handle tasks in parallel.
 
-Creating and Enqueuing Jobs
----------------------------
+Creating Jobs
+-------------
 
 todo: emailing example
 One of the most common jobs in a modern web application is sending emails
@@ -44,11 +44,9 @@ UserMailer.welcome(@user).deliver_now
 UserMailer.welcome(@user).deliver_later
 ```
 
-
-
 This section provides a step-by-step guide for defining a job Ruby class and then using jobs to enqueue work to be executed in the background.
 
-### Creating a Job
+### Defining a Job
 
 Active Job provides a Rails generator to create jobs. The following will create
 a job in the `app/jobs` directory (with tests under `test/jobs`):
@@ -101,7 +99,7 @@ You can also create a job that will run on a specific queue:
 $ bin/rails generate job guests_cleanup --queue urgent
 ```
 
-### Enqueuing the Job
+### Calling the `perform_*` Methods
 
 Enqueue a job using [`perform_later`][] and, optionally, [`set`][]. Like so:
 
@@ -134,11 +132,374 @@ That's it!
 [`set`]:
     https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
 
-#### Enqueue Multiple Jobs
+### Supported Parameter Types for `perform`
 
-You can enqueue multiple jobs at once using the
-[`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later)
-method. For more details see the [Bulk Enqueuing](#bulk-enqueuing) section.
+ActiveJob supports the following types of arguments by default:
+
+  - Basic types (`NilClass`, `String`, `Integer`, `Float`, `BigDecimal`,
+    `TrueClass`, `FalseClass`)
+  - `Symbol`
+  - `Date`
+  - `Time`
+  - `DateTime`
+  - `ActiveSupport::TimeWithZone`
+  - `ActiveSupport::Duration`
+  - `Hash` (Keys should be of `String` or `Symbol` type)
+  - `ActiveSupport::HashWithIndifferentAccess`
+  - `Array`
+  - `Range`
+  - `Module`
+  - `Class`
+
+Active Job supports
+[GlobalID](https://github.com/rails/globalid/blob/main/README.md) for
+parameters. This makes it possible to pass live Active Record objects to your
+job instead of class/id pairs, which you then have to manually deserialize.
+Before, jobs would look like this:
+
+```ruby
+class TrashableCleanupJob < ApplicationJob
+  def perform(trashable_class, trashable_id, depth)
+    trashable = trashable_class.constantize.find(trashable_id)
+    trashable.cleanup(depth)
+  end
+end
+```
+
+Now you can simply do:
+
+```ruby
+class TrashableCleanupJob < ApplicationJob
+  def perform(trashable, depth)
+    trashable.cleanup(depth)
+  end
+end
+```
+
+This works with any class that mixes in `GlobalID::Identification`, which by
+default has been mixed into Active Record classes.
+
+#### Add Custom Types by Defining Serializers
+
+You can extend the list of supported argument types. You just need to define
+your own serializer:
+
+```ruby
+# app/serializers/money_serializer.rb
+class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
+  # Converts an object to a simpler representative using supported object types.
+  # The recommended representative is a Hash with a specific key. Keys can be of basic types only.
+  # You should call `super` to add the custom serializer type to the hash.
+  def serialize(money)
+    super(
+      "amount" => money.amount,
+      "currency" => money.currency
+    )
+  end
+
+  # Converts serialized value into a proper object.
+  def deserialize(hash)
+    Money.new(hash["amount"], hash["currency"])
+  end
+
+  # Checks if an argument should be serialized by this serializer.
+  def klass
+    Money
+  end
+end
+```
+
+and add this serializer to the list:
+
+```ruby
+# config/initializers/custom_serializers.rb
+Rails.application.config.active_job.custom_serializers << MoneySerializer
+```
+
+Note that autoloading reloadable code during initialization is not supported.
+Thus it is recommended to set-up serializers to be loaded only once, e.g. by
+amending `config/application.rb` like this:
+
+```ruby
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    config.autoload_once_paths << "#{root}/app/serializers"
+  end
+end
+```
+
+Enqueuing Jobs
+--------------
+
+### Naming Queues
+
+With Active Job you can schedule the job to run on a specific queue using
+[`queue_as`][]:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_as :low_priority
+  # ...
+end
+```
+
+You can prefix the queue name for all your jobs using
+[`config.active_job.queue_name_prefix`][] in `application.rb`:
+
+```ruby
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    config.active_job.queue_name_prefix = Rails.env
+  end
+end
+```
+
+```ruby
+# app/jobs/guests_cleanup_job.rb
+class GuestsCleanupJob < ApplicationJob
+  queue_as :low_priority
+  # ...
+end
+
+# Now your job will run on queue production_low_priority on your
+# production environment and on staging_low_priority
+# on your staging environment
+```
+
+You can also configure the prefix on a per job basis.
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_as :low_priority
+  self.queue_name_prefix = nil
+  # ...
+end
+
+# Now your job's queue won't be prefixed, overriding what
+# was configured in `config.active_job.queue_name_prefix`.
+```
+
+The default queue name prefix delimiter is '\_'.  This can be changed by setting
+[`config.active_job.queue_name_delimiter`][] in `application.rb`:
+
+```ruby
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    config.active_job.queue_name_prefix = Rails.env
+    config.active_job.queue_name_delimiter = "."
+  end
+end
+```
+
+```ruby
+# app/jobs/guests_cleanup_job.rb
+class GuestsCleanupJob < ApplicationJob
+  queue_as :low_priority
+  # ...
+end
+
+# Now your job will run on queue production.low_priority on your
+# production environment and on staging.low_priority
+# on your staging environment
+```
+
+To control the queue from the job level you can pass a block to `queue_as`. The
+block will be executed in the job context (so it can access `self.arguments`),
+and it must return the queue name:
+
+```ruby
+class ProcessVideoJob < ApplicationJob
+  queue_as do
+    video = self.arguments.first
+    if video.owner.premium?
+      :premium_videojobs
+    else
+      :videojobs
+    end
+  end
+
+  def perform(video)
+    # Do process video
+  end
+end
+```
+
+```ruby
+ProcessVideoJob.perform_later(Video.last)
+```
+
+If you want more control on what queue a job will be run you can pass a `:queue`
+option to `set`:
+
+```ruby
+MyJob.set(queue: :another_queue).perform_later(record)
+```
+
+NOTE: If you choose to use an [alternate queuing
+backend](#alternate-queuing-backends) you may need to specify the queues to
+listen to.
+
+[`config.active_job.queue_name_delimiter`]:
+    configuring.html#config-active-job-queue-name-delimiter
+[`config.active_job.queue_name_prefix`]:
+    configuring.html#config-active-job-queue-name-prefix
+[`queue_as`]:
+    https://api.rubyonrails.org/classes/ActiveJob/QueueName/ClassMethods.html#method-i-queue_as
+
+### Queue Priority
+
+You can schedule a job to run with a specific priority using
+`queue_with_priority`:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_with_priority 10
+  # ...
+end
+```
+
+Solid Queue, the default queuing backend, prioritizes jobs based on the order of
+the queues.  You can read more about it in the [Order of Queues
+section](#queue-order). If you're using Solid Queue, and both the order of the
+queues and the priority option are used, the queue order will take precedence,
+and the priority option will only apply within each queue.
+
+Other queuing backends may allow jobs to be prioritized relative to others
+within the same queue or across multiple queues. Refer to the documentation of
+your backend for more information.
+
+Similar to `queue_as`, you can also pass a block to `queue_with_priority` to be
+evaluated in the job context:
+
+```ruby
+class ProcessVideoJob < ApplicationJob
+  queue_with_priority do
+    video = self.arguments.first
+    if video.owner.premium?
+      0
+    else
+      10
+    end
+  end
+
+  def perform(video)
+    # Process video
+  end
+end
+```
+
+```ruby
+ProcessVideoJob.perform_later(Video.last)
+```
+
+You can also pass a `:priority` option to `set`:
+
+```ruby
+MyJob.set(priority: 50).perform_later(record)
+```
+
+NOTE: If a lower priority number performs before or after a higher priority
+number depends on the adapter implementation. Refer to documentation of your
+backend for more information. Adapter authors are encouraged to treat a lower
+number as more important.
+
+[`queue_with_priority`]:
+    https://api.rubyonrails.org/classes/ActiveJob/QueuePriority/ClassMethods.html#method-i-queue_with_priority
+
+### Bulk Enqueuing
+
+You can enqueue multiple jobs at once using
+[`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later).
+Bulk enqueuing reduces the number of round trips to the queue data store (like
+Redis or a database), making it a more performant operation than enqueuing the
+same jobs individually.
+
+The `perform_all_later` method accepts instantiated jobs as arguments (note that
+this is different from `perform_later`) and calls `perform` under the hood. The
+arguments passed to `new`, when creating new job instances, will be passed on to
+`perform` when it's eventually called. For example:
+
+```ruby
+# Create jobs to pass to `perform_all_later`.
+# The arguments to `new` are passed on to `perform`
+cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest) }
+
+# Will enqueue a separate job for each instance of `GuestsCleanupJob`
+ActiveJob.perform_all_later(cleanup_jobs)
+
+# Can also use `set` method to configure options before bulk enqueuing jobs.
+cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest).set(wait: 1.day) }
+
+ActiveJob.perform_all_later(cleanup_jobs)
+```
+
+The `perform_all_later` call logs the number of jobs successfully enqueued, for
+example if `Guest.all.map` above resulted in 3 `cleanup_jobs`, it would log
+`Enqueued 3 jobs to Async (3 GuestsCleanupJob)` (assuming all were enqueued).
+
+The return value of `perform_all_later` is `nil`. Note that this is different
+from `perform_later`, which returns the instance of the queued job class.
+
+#### Enqueue Multiple Active Job Classes
+
+With `perform_all_later`, it's also possible to enqueue different Active Job
+class instances in the same call. For example:
+
+```ruby
+class ExportDataJob < ApplicationJob
+  def perform(*args)
+    # Export data
+  end
+end
+
+class NotifyGuestsJob < ApplicationJob
+  def perform(*guests)
+    # Email guests
+  end
+end
+
+# Instantiate job instances
+cleanup_job = GuestsCleanupJob.new(guest)
+export_job = ExportDataJob.new(data)
+notify_job = NotifyGuestsJob.new(guest)
+
+# Enqueues job instances from multiple classes at once
+ActiveJob.perform_all_later(cleanup_job, export_job, notify_job)
+```
+
+#### Bulk Enqueue Callbacks
+
+When enqueuing jobs in bulk using `perform_all_later`, callbacks such as
+`around_enqueue` will not be triggered on the individual jobs. This behavior is
+in line with other Active Record bulk methods. Since callbacks run on individual
+jobs, they can't take advantage of the bulk nature of this method.
+
+However, the `perform_all_later` method does fire an
+[`enqueue_all.active_job`](active_support_instrumentation.html#enqueue-all-active-job)
+event which you can subscribe to using `ActiveSupport::Notifications`.
+
+The method
+[`successfully_enqueued?`](https://api.rubyonrails.org/classes/ActiveJob/Core.html#method-i-successfully_enqueued-3F)
+can be used to find out if a given job was successfully enqueued.
+
+#### Queue Backend Support
+
+For `perform_all_later`, bulk enqueuing needs to be backed by the queue backend.
+Solid Queue, the default queue backend, supports bulk enqueuing using
+`enqueue_all`.
+
+[Other backends](#alternate-queuing-backends) like Sidekiq have a `push_bulk`
+method, which can push a large number of jobs to Redis and prevent the round
+trip network latency. GoodJob also supports bulk enqueuing with the
+`GoodJob::Bulk.enqueue` method.
+
+If the queue backend does *not* support bulk enqueuing, `perform_all_later` will
+enqueue jobs one by one.
+
+
 
 Default Backend: Solid Queue
 ------------------------------
@@ -507,185 +868,8 @@ For instance, if a job fails to process a large file due to a timeout,
 arguments and execution history, and decide whether to retry, requeue, or
 discard it.
 
-Queues
-------
-
-With Active Job you can schedule the job to run on a specific queue using
-[`queue_as`][]:
-
-```ruby
-class GuestsCleanupJob < ApplicationJob
-  queue_as :low_priority
-  # ...
-end
-```
-
-You can prefix the queue name for all your jobs using
-[`config.active_job.queue_name_prefix`][] in `application.rb`:
-
-```ruby
-# config/application.rb
-module YourApp
-  class Application < Rails::Application
-    config.active_job.queue_name_prefix = Rails.env
-  end
-end
-```
-
-```ruby
-# app/jobs/guests_cleanup_job.rb
-class GuestsCleanupJob < ApplicationJob
-  queue_as :low_priority
-  # ...
-end
-
-# Now your job will run on queue production_low_priority on your
-# production environment and on staging_low_priority
-# on your staging environment
-```
-
-You can also configure the prefix on a per job basis.
-
-```ruby
-class GuestsCleanupJob < ApplicationJob
-  queue_as :low_priority
-  self.queue_name_prefix = nil
-  # ...
-end
-
-# Now your job's queue won't be prefixed, overriding what
-# was configured in `config.active_job.queue_name_prefix`.
-```
-
-The default queue name prefix delimiter is '\_'.  This can be changed by setting
-[`config.active_job.queue_name_delimiter`][] in `application.rb`:
-
-```ruby
-# config/application.rb
-module YourApp
-  class Application < Rails::Application
-    config.active_job.queue_name_prefix = Rails.env
-    config.active_job.queue_name_delimiter = "."
-  end
-end
-```
-
-```ruby
-# app/jobs/guests_cleanup_job.rb
-class GuestsCleanupJob < ApplicationJob
-  queue_as :low_priority
-  # ...
-end
-
-# Now your job will run on queue production.low_priority on your
-# production environment and on staging.low_priority
-# on your staging environment
-```
-
-To control the queue from the job level you can pass a block to `queue_as`. The
-block will be executed in the job context (so it can access `self.arguments`),
-and it must return the queue name:
-
-```ruby
-class ProcessVideoJob < ApplicationJob
-  queue_as do
-    video = self.arguments.first
-    if video.owner.premium?
-      :premium_videojobs
-    else
-      :videojobs
-    end
-  end
-
-  def perform(video)
-    # Do process video
-  end
-end
-```
-
-```ruby
-ProcessVideoJob.perform_later(Video.last)
-```
-
-If you want more control on what queue a job will be run you can pass a `:queue`
-option to `set`:
-
-```ruby
-MyJob.set(queue: :another_queue).perform_later(record)
-```
-
-NOTE: If you choose to use an [alternate queuing
-backend](#alternate-queuing-backends) you may need to specify the queues to
-listen to.
-
-[`config.active_job.queue_name_delimiter`]:
-    configuring.html#config-active-job-queue-name-delimiter
-[`config.active_job.queue_name_prefix`]:
-    configuring.html#config-active-job-queue-name-prefix
-[`queue_as`]:
-    https://api.rubyonrails.org/classes/ActiveJob/QueueName/ClassMethods.html#method-i-queue_as
 
 
-Priority
---------
-
-You can schedule a job to run with a specific priority using
-`queue_with_priority`:
-
-```ruby
-class GuestsCleanupJob < ApplicationJob
-  queue_with_priority 10
-  # ...
-end
-```
-
-Solid Queue, the default queuing backend, prioritizes jobs based on the order of
-the queues.  You can read more about it in the [Order of Queues
-section](#queue-order). If you're using Solid Queue, and both the order of the
-queues and the priority option are used, the queue order will take precedence,
-and the priority option will only apply within each queue.
-
-Other queuing backends may allow jobs to be prioritized relative to others
-within the same queue or across multiple queues. Refer to the documentation of
-your backend for more information.
-
-Similar to `queue_as`, you can also pass a block to `queue_with_priority` to be
-evaluated in the job context:
-
-```ruby
-class ProcessVideoJob < ApplicationJob
-  queue_with_priority do
-    video = self.arguments.first
-    if video.owner.premium?
-      0
-    else
-      10
-    end
-  end
-
-  def perform(video)
-    # Process video
-  end
-end
-```
-
-```ruby
-ProcessVideoJob.perform_later(Video.last)
-```
-
-You can also pass a `:priority` option to `set`:
-
-```ruby
-MyJob.set(priority: 50).perform_later(record)
-```
-
-NOTE: If a lower priority number performs before or after a higher priority
-number depends on the adapter implementation. Refer to documentation of your
-backend for more information. Adapter authors are encouraged to treat a lower
-number as more important.
-
-[`queue_with_priority`]:
-    https://api.rubyonrails.org/classes/ActiveJob/QueuePriority/ClassMethods.html#method-i-queue_with_priority
 
 Job Continuations
 -----------------
@@ -802,202 +986,7 @@ Please note that when enqueuing jobs in bulk using `perform_all_later`,
 callbacks such as `around_enqueue` will not be triggered on the individual jobs.
 See [Bulk Enqueuing Callbacks](#bulk-enqueue-callbacks).
 
-Bulk Enqueuing
---------------
 
-You can enqueue multiple jobs at once using
-[`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later).
-Bulk enqueuing reduces the number of round trips to the queue data store (like
-Redis or a database), making it a more performant operation than enqueuing the
-same jobs individually.
-
-The `perform_all_later` method accepts instantiated jobs as arguments (note that
-this is different from `perform_later`) and calls `perform` under the hood. The
-arguments passed to `new`, when creating new job instances, will be passed on to
-`perform` when it's eventually called. For example:
-
-```ruby
-# Create jobs to pass to `perform_all_later`.
-# The arguments to `new` are passed on to `perform`
-cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest) }
-
-# Will enqueue a separate job for each instance of `GuestsCleanupJob`
-ActiveJob.perform_all_later(cleanup_jobs)
-
-# Can also use `set` method to configure options before bulk enqueuing jobs.
-cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest).set(wait: 1.day) }
-
-ActiveJob.perform_all_later(cleanup_jobs)
-```
-
-The `perform_all_later` call logs the number of jobs successfully enqueued, for
-example if `Guest.all.map` above resulted in 3 `cleanup_jobs`, it would log
-`Enqueued 3 jobs to Async (3 GuestsCleanupJob)` (assuming all were enqueued).
-
-The return value of `perform_all_later` is `nil`. Note that this is different
-from `perform_later`, which returns the instance of the queued job class.
-
-### Enqueue Multiple Active Job Classes
-
-With `perform_all_later`, it's also possible to enqueue different Active Job
-class instances in the same call. For example:
-
-```ruby
-class ExportDataJob < ApplicationJob
-  def perform(*args)
-    # Export data
-  end
-end
-
-class NotifyGuestsJob < ApplicationJob
-  def perform(*guests)
-    # Email guests
-  end
-end
-
-# Instantiate job instances
-cleanup_job = GuestsCleanupJob.new(guest)
-export_job = ExportDataJob.new(data)
-notify_job = NotifyGuestsJob.new(guest)
-
-# Enqueues job instances from multiple classes at once
-ActiveJob.perform_all_later(cleanup_job, export_job, notify_job)
-```
-
-### Bulk Enqueue Callbacks
-
-When enqueuing jobs in bulk using `perform_all_later`, callbacks such as
-`around_enqueue` will not be triggered on the individual jobs. This behavior is
-in line with other Active Record bulk methods. Since callbacks run on individual
-jobs, they can't take advantage of the bulk nature of this method.
-
-However, the `perform_all_later` method does fire an
-[`enqueue_all.active_job`](active_support_instrumentation.html#enqueue-all-active-job)
-event which you can subscribe to using `ActiveSupport::Notifications`.
-
-The method
-[`successfully_enqueued?`](https://api.rubyonrails.org/classes/ActiveJob/Core.html#method-i-successfully_enqueued-3F)
-can be used to find out if a given job was successfully enqueued.
-
-### Queue Backend Support
-
-For `perform_all_later`, bulk enqueuing needs to be backed by the queue backend.
-Solid Queue, the default queue backend, supports bulk enqueuing using
-`enqueue_all`.
-
-[Other backends](#alternate-queuing-backends) like Sidekiq have a `push_bulk`
-method, which can push a large number of jobs to Redis and prevent the round
-trip network latency. GoodJob also supports bulk enqueuing with the
-`GoodJob::Bulk.enqueue` method.
-
-If the queue backend does *not* support bulk enqueuing, `perform_all_later` will
-enqueue jobs one by one.
-
-
-
-
-
-
-
-Supported Types for Arguments
-----------------------------
-
-ActiveJob supports the following types of arguments by default:
-
-  - Basic types (`NilClass`, `String`, `Integer`, `Float`, `BigDecimal`,
-    `TrueClass`, `FalseClass`)
-  - `Symbol`
-  - `Date`
-  - `Time`
-  - `DateTime`
-  - `ActiveSupport::TimeWithZone`
-  - `ActiveSupport::Duration`
-  - `Hash` (Keys should be of `String` or `Symbol` type)
-  - `ActiveSupport::HashWithIndifferentAccess`
-  - `Array`
-  - `Range`
-  - `Module`
-  - `Class`
-
-### GlobalID
-
-Active Job supports
-[GlobalID](https://github.com/rails/globalid/blob/main/README.md) for
-parameters. This makes it possible to pass live Active Record objects to your
-job instead of class/id pairs, which you then have to manually deserialize.
-Before, jobs would look like this:
-
-```ruby
-class TrashableCleanupJob < ApplicationJob
-  def perform(trashable_class, trashable_id, depth)
-    trashable = trashable_class.constantize.find(trashable_id)
-    trashable.cleanup(depth)
-  end
-end
-```
-
-Now you can simply do:
-
-```ruby
-class TrashableCleanupJob < ApplicationJob
-  def perform(trashable, depth)
-    trashable.cleanup(depth)
-  end
-end
-```
-
-This works with any class that mixes in `GlobalID::Identification`, which by
-default has been mixed into Active Record classes.
-
-### Serializers
-
-You can extend the list of supported argument types. You just need to define
-your own serializer:
-
-```ruby
-# app/serializers/money_serializer.rb
-class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
-  # Converts an object to a simpler representative using supported object types.
-  # The recommended representative is a Hash with a specific key. Keys can be of basic types only.
-  # You should call `super` to add the custom serializer type to the hash.
-  def serialize(money)
-    super(
-      "amount" => money.amount,
-      "currency" => money.currency
-    )
-  end
-
-  # Converts serialized value into a proper object.
-  def deserialize(hash)
-    Money.new(hash["amount"], hash["currency"])
-  end
-
-  # Checks if an argument should be serialized by this serializer.
-  def klass
-    Money
-  end
-end
-```
-
-and add this serializer to the list:
-
-```ruby
-# config/initializers/custom_serializers.rb
-Rails.application.config.active_job.custom_serializers << MoneySerializer
-```
-
-Note that autoloading reloadable code during initialization is not supported.
-Thus it is recommended to set-up serializers to be loaded only once, e.g. by
-amending `config/application.rb` like this:
-
-```ruby
-# config/application.rb
-module YourApp
-  class Application < Rails::Application
-    config.autoload_once_paths << "#{root}/app/serializers"
-  end
-end
-```
 
 Exceptions
 ----------
