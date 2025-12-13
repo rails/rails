@@ -168,6 +168,40 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
+  def test_find_in_batches_should_not_query_with_order
+    assert_queries_match(/^(?:(?!ORDER).)*$/) do
+      Post.find_in_batches(batch_size: 1, order: nil) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Post, batch.first
+      end
+    end
+  end
+
+  def test_find_in_batches_should_query_with_limit_and_no_order
+    assert_queries_match(/LIMIT/) do
+      Post.find_in_batches(batch_size: 1, order: nil) do |batch|
+        assert_kind_of Array, batch
+        assert_kind_of Post, batch.first
+      end
+    end
+  end
+
+  def test_find_each_should_not_query_with_order
+    assert_queries_match(/^(?:(?!ORDER).)*$/) do
+      Post.find_each(batch_size: 1, order: nil) do |post|
+        assert_kind_of Post, post
+      end
+    end
+  end
+
+  def test_in_batches_should_not_query_with_order
+    assert_queries_match(/^(?:(?!ORDER).)*$/) do
+      Post.in_batches(of: 1, order: nil) do |relation|
+        assert_kind_of ActiveRecord::Relation, relation
+      end
+    end
+  end
+
   def test_each_should_raise_if_order_is_invalid
     assert_raise(ArgumentError) do
       Post.select(:title).find_each(batch_size: 1, order: :invalid) { |post|
