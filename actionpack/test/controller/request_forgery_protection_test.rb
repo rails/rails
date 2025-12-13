@@ -76,16 +76,16 @@ end
 # sample controllers
 class RequestForgeryProtectionControllerUsingResetSession < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: :reset_session, using: :header_or_legacy_token
+  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: :reset_session
 end
 
 class RequestForgeryProtectionControllerUsingException < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: :exception, using: :header_or_legacy_token
+  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: :exception
 end
 
 class RequestForgeryProtectionControllerUsingNullSession < ActionController::Base
-  protect_from_forgery with: :null_session, using: :header_or_legacy_token
+  protect_from_forgery with: :null_session
 
   def signed
     cookies.signed[:foo] = "bar"
@@ -118,7 +118,7 @@ class RequestForgeryProtectionControllerUsingCustomStrategy < ActionController::
     end
   end
 
-  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: CustomStrategy, using: :header_or_legacy_token
+  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: CustomStrategy
 end
 
 class PrependProtectForgeryBaseController < ActionController::Base
@@ -163,7 +163,7 @@ class CustomAuthenticityParamController < RequestForgeryProtectionControllerUsin
 end
 
 class PerFormTokensController < ActionController::Base
-  protect_from_forgery with: :exception, using: :header_or_legacy_token
+  protect_from_forgery with: :exception
   self.per_form_csrf_tokens = true
 
   def index
@@ -185,7 +185,7 @@ end
 
 class SkipProtectionController < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery with: :exception, using: :header_or_legacy_token
+  protect_from_forgery with: :exception
   skip_forgery_protection if: :skip_requested
   attr_accessor :skip_requested
 end
@@ -200,7 +200,7 @@ class CookieCsrfTokenStorageStrategyController < ActionController::Base
 
   after_action :commit_token, only: :cookie
 
-  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: :exception, store: :cookie, using: :header_or_legacy_token
+  protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: :exception, store: :cookie
 
   def reset
     reset_csrf_token(request)
@@ -236,8 +236,7 @@ class CustomCsrfTokenStorageStrategyController < ActionController::Base
 
   protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin),
     with: :reset_session,
-    store: CustomStrategy.new,
-    using: :header_or_legacy_token
+    store: CustomStrategy.new
 end
 
 # common test methods
@@ -1464,7 +1463,7 @@ end
 
 class HeaderOrLegacyTokenProtectionController < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery using: :header_or_legacy_token, with: :exception
+  protect_from_forgery with: :exception
 end
 
 class HeaderOnlyProtectionControllerTest < ActionController::TestCase
@@ -1694,6 +1693,24 @@ class HeaderOrLegacyTokenProtectionControllerTest < ActionController::TestCase
     end
 end
 
+class ConfiguredVerificationStrategyTest < ActiveSupport::TestCase
+  test "protect_from_forgery respects configured verification strategy when :using is not provided" do
+    old_strategy = ActionController::Base.forgery_protection_verification_strategy
+    assert_equal :header_or_legacy_token, old_strategy
+
+    ActionController::Base.forgery_protection_verification_strategy = :header_only
+
+    controller_class = Class.new(ActionController::Base) do
+      include RequestForgeryProtectionActions
+      protect_from_forgery with: :exception
+    end
+
+    assert_equal :header_only, controller_class.forgery_protection_verification_strategy
+  ensure
+    ActionController::Base.forgery_protection_verification_strategy = old_strategy
+  end
+end
+
 class InvalidVerificationStrategyTest < ActionController::TestCase
   def test_raises_argument_error_for_invalid_using_option
     assert_raises(ArgumentError) do
@@ -1721,7 +1738,7 @@ end
 
 class TrustedOriginsHeaderOrLegacyTokenController < ActionController::Base
   include RequestForgeryProtectionActions
-  protect_from_forgery using: :header_or_legacy_token, with: :exception,
+  protect_from_forgery with: :exception,
     trusted_origins: ["https://trusted.example.com"]
 end
 

@@ -269,7 +269,7 @@ module ActionController # :nodoc:
         self.request_forgery_protection_token ||= :authenticity_token
 
         self.csrf_token_storage_strategy = storage_strategy(options[:store] || SessionStore.new)
-        self.forgery_protection_verification_strategy = verification_strategy(options[:using] || :header_only)
+        self.forgery_protection_verification_strategy = verification_strategy(options[:using] || forgery_protection_verification_strategy)
         self.forgery_protection_trusted_origins = Array(options[:trusted_origins]) if options.key?(:trusted_origins)
 
         before_action :verify_request_for_forgery_protection, options
