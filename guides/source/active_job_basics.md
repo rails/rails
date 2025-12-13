@@ -155,41 +155,41 @@ Active Job supports
 [GlobalID](https://github.com/rails/globalid/blob/main/README.md) for
 parameters. This makes it possible to pass live Active Record objects to your
 job instead of class/id pairs, which you then have to manually deserialize.
-Before, jobs would look like this:
+
+For example, instead of having to do something like this:
 
 ```ruby
-class TrashableCleanupJob < ApplicationJob
-  def perform(trashable_class, trashable_id, depth)
-    trashable = trashable_class.constantize.find(trashable_id)
-    trashable.cleanup(depth)
+class GuestsCleanupJob < ApplicationJob
+  def perform(guests_class, guests_id, depth)
+    guests = guests_class.constantize.find(guests_id)
+    guest.cleanup(depth)
   end
 end
 ```
 
-Now you can simply do:
+Using GlobedId, you can simply do:
 
 ```ruby
-class TrashableCleanupJob < ApplicationJob
-  def perform(trashable, depth)
-    trashable.cleanup(depth)
+class GuestsCleanupJob < ApplicationJob
+  def perform(guest, depth)
+    guest.cleanup(depth)
   end
 end
 ```
 
-This works with any class that mixes in `GlobalID::Identification`, which by
-default has been mixed into Active Record classes.
+This works with any class that mixes in `GlobalID::Identification`, which is mixed into Active Record by default.
 
 #### Add Custom Types by Defining Serializers
 
-You can extend the list of supported argument types. You just need to define
-your own serializer:
+You can extend the list of supported argument types by defining
+your own serializer for you custom types:
 
 ```ruby
 # app/serializers/money_serializer.rb
 class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
   # Converts an object to a simpler representative using supported object types.
   # The recommended representative is a Hash with a specific key. Keys can be of basic types only.
-  # You should call `super` to add the custom serializer type to the hash.
+  # You can call `super` to add the custom serializer type to the hash.
   def serialize(money)
     super(
       "amount" => money.amount,
@@ -209,16 +209,16 @@ class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
 end
 ```
 
-and add this serializer to the list:
+Once a serializer is defined, it needs to be added to of serializers Rails knows about:
 
 ```ruby
 # config/initializers/custom_serializers.rb
 Rails.application.config.active_job.custom_serializers << MoneySerializer
 ```
 
-Note that autoloading reloadable code during initialization is not supported.
-Thus it is recommended to set-up serializers to be loaded only once, e.g. by
-amending `config/application.rb` like this:
+Custom Active Job serializers are registered during application initialization and are expected to remain stable for the lifetime of the process. Reloadable autoloading is not supported in this context.
+
+To ensure serializers are loaded only once (and not reloaded in development), place them in an autoload_once_paths directory:
 
 ```ruby
 # config/application.rb
