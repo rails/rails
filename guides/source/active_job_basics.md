@@ -100,31 +100,32 @@ end
 
 ### Calling the `perform_*` Methods
 
-Enqueue a job using [`perform_later`][] and, optionally, [`set`][]. Like so:
+Once you have defined a jobs class with a `perform` method, you'd typically call this method using [`perform_later`][] to enqueue the work to be executed on a queuing backend.
+
+Here are examples of various way to use `perform_later`. To enqueue a job to be performed as soon as the queuing system is free:
 
 ```ruby
-# Enqueue a job to be performed as soon as the queuing system is
-# free.
 GuestsCleanupJob.perform_later(guest)
 ```
 
+To enqueue a job to be performed tomorrow at noon:
+
 ```ruby
-# Enqueue a job to be performed tomorrow at noon.
 GuestsCleanupJob.set(wait_until: Date.tomorrow.noon).perform_later(guest)
 ```
 
+To enqueue a job to be performed one week from now:
+
 ```ruby
-# Enqueue a job to be performed 1 week from now.
 GuestsCleanupJob.set(wait: 1.week).perform_later(guest)
 ```
 
+Note that `perform_now` and `perform_later` will call `perform` under the hood
+so you can pass as many arguments as defined in the latter.
+
 ```ruby
-# `perform_now` and `perform_later` will call `perform` under the hood so
-# you can pass as many arguments as defined in the latter.
 GuestsCleanupJob.perform_later(guest1, guest2, filter: "some_filter")
 ```
-
-That's it!
 
 [`perform_later`]:
     https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
