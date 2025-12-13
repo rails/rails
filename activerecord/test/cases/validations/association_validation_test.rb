@@ -118,4 +118,20 @@ class AssociationValidationTest < ActiveRecord::TestCase
     assert_predicate t, :valid?
     assert_predicate r, :valid?
   end
+
+  def test_should_not_validate_invalid_children_saved_with_validate_false_when_using_custom_context
+    Reply.validates :content, length: { minimum: 10 }
+
+    topic = Topic.create!("title" => "A topic", "content" => "Some content")
+    reply = topic.replies.new("title" => "A reply", "content" => "short")
+    reply.save(validate: false)
+
+    topic.reload
+    assert topic.valid?
+    assert topic.valid?(:custom)
+
+    topic.replies.load
+    assert topic.valid?
+    assert topic.valid?(:custom)
+  end
 end
