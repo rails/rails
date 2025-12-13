@@ -252,7 +252,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   def unfurl(io, identify: true) # :nodoc:
-    self.checksum     = compute_checksum_in_chunks(io)
+    self.checksum     = service&.compute_checksum(io)
     self.content_type = extract_content_type(io) if content_type.nil? || identify
     self.byte_size    = io.size
     self.identified   = true
@@ -334,7 +334,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   # Returns an instance of service, which can be configured globally or per attachment
   def service
-    services.fetch(service_name)
+    services.fetch(service_name) if service_name
   end
 
   private
@@ -355,19 +355,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
           yield file
         end
       end
-    end
-
-    def compute_checksum_in_chunks(io)
-      raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
-
-      OpenSSL::Digest::MD5.new.tap do |checksum|
-        read_buffer = "".b
-        while io.read(5.megabytes, read_buffer)
-          checksum << read_buffer
-        end
-
-        io.rewind
-      end.base64digest
     end
 
     def extract_content_type(io)
