@@ -198,10 +198,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
       time: 1999-12-31 19:00:00.000000000 Z
     EOF
 
-    # TODO: Remove assertion in Rails 7.1
-    assert_not_deprecated(ActiveSupport.deprecator) do
-      assert_equal(yaml, @twz.to_yaml)
-    end
+    assert_equal(yaml, @twz.to_yaml)
   end
 
   def test_ruby_to_yaml
@@ -214,10 +211,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
         time: 1999-12-31 19:00:00.000000000 Z
     EOF
 
-    # TODO: Remove assertion in Rails 7.1
-    assert_not_deprecated(ActiveSupport.deprecator) do
-      assert_equal(yaml, { "twz" => @twz }.to_yaml)
-    end
+    assert_equal(yaml, { "twz" => @twz }.to_yaml)
   end
 
   def test_yaml_load
