@@ -3410,20 +3410,20 @@ module ApplicationTests
       assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag is true by default" do
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag is true by default" do
       app "development"
-      assert_equal true, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+      assert_equal true, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag is false by default for upgraded apps" do
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag is false by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "6.1"'
       app "development"
 
-      assert_equal false, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+      assert_equal false, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag can be configured via config.action_view.button_to_generates_button_tag" do
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag can be configured via config.action_view.button_to_generates_button_tag" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
@@ -3432,7 +3432,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal true, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+      assert_equal true, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
     end
 
     test "ActionView::Helpers::AssetTagHelper.image_loading is nil by default" do
