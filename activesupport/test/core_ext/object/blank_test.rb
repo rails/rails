@@ -19,25 +19,32 @@ class BlankTest < ActiveSupport::TestCase
   BLANK = [ EmptyTrue.new, nil, false, "", "   ", "  \n\t  \r ", "　", "\u00a0", [], {} ]
   NOT   = [ EmptyFalse.new, Object.new, true, 0, 1, "a", [nil], { nil => 0 }, Time.now ]
 
-  def test_blank
-    BLANK.each { |v| assert_equal true, v.blank?,  "#{v.inspect} should be blank" }
-    NOT.each   { |v| assert_equal false, v.blank?, "#{v.inspect} should not be blank" }
+  test "blank", each: BLANK do |value|
+    assert_equal true, value.blank?
   end
 
-  def test_blank_with_bundled_string_encodings
-    Encoding.list.reject(&:dummy?).each do |encoding|
-      assert_predicate " ".encode(encoding), :blank?
-      assert_not_predicate "a".encode(encoding), :blank?
-    end
+  test "not blank", each: NOT do |value|
+    assert_equal false, value.blank?
   end
 
-  def test_present
-    BLANK.each { |v| assert_equal false, v.present?, "#{v.inspect} should not be present" }
-    NOT.each   { |v| assert_equal true, v.present?,  "#{v.inspect} should be present" }
+  test "blank with bundled string encodings", each: Encoding.list.reject(&:dummy?) do |encoding|
+    assert_predicate " ".encode(encoding), :blank?
+    assert_not_predicate "a".encode(encoding), :blank?
   end
 
-  def test_presence
-    BLANK.each { |v| assert_nil v.presence, "#{v.inspect}.presence should return nil" }
-    NOT.each   { |v| assert_equal v,   v.presence, "#{v.inspect}.presence should return self" }
+  test "present", each: NOT do |value|
+    assert_equal true, value.present?
+  end
+
+  test "not present", each: BLANK do |value|
+    assert_equal false, value.present?
+  end
+
+  test "presence is self", each: NOT do |value|
+    assert_equal value, value.presence
+  end
+
+  test "presence is nil", each: BLANK do |value|
+    assert_nil value.presence
   end
 end
