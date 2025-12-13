@@ -82,6 +82,30 @@ Upgrading from Rails 8.1 to Rails 8.2
 
 For more information on changes made to Rails 8.2 please see the [release notes](8_2_release_notes.html).
 
+### CSRF verification callback has been renamed
+
+If you were skipping CSRF protection by skipping the `:verify_authenticity_token` callback, you may see errors like:
+
+```text
+Before process_action callback :verify_authenticity_token has not been defined
+```
+
+To fix this, prefer using the dedicated API:
+
+```ruby
+class WebhooksController < ApplicationController
+  skip_forgery_protection
+end
+```
+
+If you need to keep using `skip_before_action`, update it to the new callback name:
+
+```ruby
+class WebhooksController < ApplicationController
+  skip_before_action :verify_request_for_forgery_protection
+end
+```
+
 ### The negative scopes for enums now include records with `nil` values.
 
 Active Record negative scopes for enums now include records with `nil` values.
