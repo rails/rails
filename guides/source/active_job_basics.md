@@ -18,14 +18,10 @@ After reading this guide, you will know:
 What is Active Job?
 -------------------
 
-Active Job is a framework in Rails designed for declaring background jobs and
-executing them on a queuing backend. It provides a standardized interface for
-tasks like sending emails, processing data, or handling regular maintenance
-activities, such as clean-ups and billing charges. By offloading these tasks
-from the main application thread to a queuing backend like the default Solid
-Queue, Active Job ensures that time-consuming operations do not block the
-request-response cycle. This can improve the performance and responsiveness of
-the application, allowing it to handle tasks in parallel.
+Active Job Rails framework allows you to declare background jobs and
+execute them on a queuing backend. It provides a consistent, high-level interface for common asynchronous tasks such as sending emails, processing data, generating reports, and running periodic maintenance work like data clean-up or billing.
+
+The goal of background jobs is to move long-running or non-critical work out of the request-response cycle and into a background queue (such as the default Solid Queue), and keep the web requests fast and responsive. This separation allows applications to perform work asynchronously, scale background processing independently, and execute multiple tasks in parallel without blocking user interactions.
 
 Creating Jobs
 -------------
@@ -44,7 +40,7 @@ UserMailer.welcome(@user).deliver_now
 UserMailer.welcome(@user).deliver_later
 ```
 
-This section provides a step-by-step guide for defining a job Ruby class and then using jobs to enqueue work to be executed in the background.
+This section provides a step-by-step guide for defining a job Ruby class and then using the `perform_*` method to enqueue work to be executed in the background.
 
 ### Defining a Job
 
@@ -59,7 +55,7 @@ create  app/jobs/guests_cleanup_job.rb
 ```
 
 If you don't want to use a generator, you can create your own file inside of
-`app/jobs`, just make sure that it inherits from `ApplicationJob`.
+`app/jobs` and define a class that it inherits from `ApplicationJob`.
 
 Here's what a job looks like:
 
@@ -73,30 +69,33 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-Note that you can define `perform` with as many arguments as you want.
+Note that you can define the `perform` method inside a job class with as many arguments as you want.
 
-If you already have an abstract class and its name differs from
-`ApplicationJob`, you can pass the `--parent` option to indicate you want a
-different abstract class:
+If your application uses a custom abstract job base class instead of
+`ApplicationJob`, you can use the `--parent` option with the generator. The parent class must itself inherit from `ApplicationJob` but can be useful for grouping related functionality in one place.
+
+For example, given a custom abstract job class:
+
+```ruby
+class PaymentJob < ApplicationJob
+  queue_as :payments
+end
+```
+
+You can generate a new job that inherits from it:
 
 ```bash
-$ bin/rails generate job process_payment --parent=payment_job
+bin/rails generate job process_payment --parent=payment_job
 ```
+
+The above creates a class that will use the `payments` queue:
 
 ```ruby
 class ProcessPaymentJob < PaymentJob
-  queue_as :default
-
   def perform(*args)
     # Do something later
   end
 end
-```
-
-You can also create a job that will run on a specific queue:
-
-```bash
-$ bin/rails generate job guests_cleanup --queue urgent
 ```
 
 ### Calling the `perform_*` Methods
@@ -106,7 +105,7 @@ Enqueue a job using [`perform_later`][] and, optionally, [`set`][]. Like so:
 ```ruby
 # Enqueue a job to be performed as soon as the queuing system is
 # free.
-GuestsCleanupJob.perform_later guest
+GuestsCleanupJob.perform_later(guest)
 ```
 
 ```ruby
@@ -242,6 +241,12 @@ class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
   # ...
 end
+```
+
+When using a generator, you can also create a job that will run on a specific queue:
+
+```bash
+$ bin/rails generate job guests_cleanup --queue low_priority
 ```
 
 You can prefix the queue name for all your jobs using
