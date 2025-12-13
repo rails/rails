@@ -15,6 +15,24 @@ module ActiveRecord
           intent.raw_result
         end
 
+        def execute_batch(statements, name = nil, **kwargs) # :nodoc:
+          combine_multi_statements(statements).each do |statement|
+            intent = QueryIntent.new(
+              adapter: self,
+              processed_sql: statement,
+              name: name,
+              batch: true,
+              binds: kwargs[:binds] || [],
+              prepare: kwargs[:prepare] || false,
+              allow_async: kwargs[:async] || false,
+              allow_retry: kwargs[:allow_retry] || false,
+              materialize_transactions: kwargs[:materialize_transactions] != false
+            )
+            intent.execute!
+            intent.finish
+          end
+        end
+
         private
           def perform_query(raw_connection, intent)
             reset_multi_statement = if intent.batch && !@config[:multi_statement]
@@ -62,24 +80,6 @@ module ActiveRecord
               super
             else
               result.last_insert_id
-            end
-          end
-
-          def execute_batch(statements, name = nil, **kwargs)
-            combine_multi_statements(statements).each do |statement|
-              intent = QueryIntent.new(
-                adapter: self,
-                processed_sql: statement,
-                name: name,
-                batch: true,
-                binds: kwargs[:binds] || [],
-                prepare: kwargs[:prepare] || false,
-                allow_async: kwargs[:async] || false,
-                allow_retry: kwargs[:allow_retry] || false,
-                materialize_transactions: kwargs[:materialize_transactions] != false
-              )
-              intent.execute!
-              intent.finish
             end
           end
       end

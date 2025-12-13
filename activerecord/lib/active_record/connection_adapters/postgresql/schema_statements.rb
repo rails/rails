@@ -357,32 +357,172 @@ module ActiveRecord
           end
         end
 
-        # Resets the sequence of a table's primary key to the maximum value.
-        def reset_pk_sequence!(table, pk = nil, sequence = nil) # :nodoc:
-          unless pk && sequence
-            default_pk, default_sequence = pk_and_sequence_for(table)
+        class SequenceReset # :nodoc:
+          Data = Struct.new(:column, :sequence, :max_value, :min_value)
 
-            pk ||= default_pk
-            sequence ||= default_sequence
+          def initialize(adapter, tables)
+            @adapter = adapter
+            @tables = tables.to_h { |table, data| [table.to_s, Data.new(*data)] }
           end
 
-          if @logger && pk && !sequence
-            @logger.warn "#{table} has primary key #{pk} with no default sequence."
+          def reset
+            backfill
+
+            reset_sqls = @tables.values.filter_map do |data|
+              next unless data.sequence && (data.max_value || data.min_value)
+              reset_sequence_sql(data.sequence, data.max_value, data.min_value)
+            end
+
+            @adapter.execute_batch(reset_sqls, "SCHEMA")
           end
 
-          if pk && sequence
-            quoted_sequence = quote_table_name(sequence)
-            max_pk = query_value("SELECT MAX(#{quote_column_name pk}) FROM #{quote_table_name(table)}")
-            if max_pk.nil?
-              if database_version >= 10_00_00
-                minvalue = query_value("SELECT seqmin FROM pg_sequence WHERE seqrelid = #{quote(quoted_sequence)}::regclass")
-              else
-                minvalue = query_value("SELECT min_value FROM #{quoted_sequence}")
+          private
+            def backfill
+              backfill_sequences_with_primary_keys
+              backfill_sequences_with_uuids
+              backfill_max_values
+              backfill_min_values
+            end
+
+            def backfill_sequences_with_primary_keys
+              tables_without_sequences = @tables.select do |table, data|
+                !data.column || !data.sequence
+              end.keys
+
+              return if tables_without_sequences.none?
+
+              sql = primary_key_column_and_sequence_sql(tables_without_sequences)
+              primary_key_column_and_sequences = @adapter.exec_query(sql, "SCHEMA")
+
+              primary_key_column_and_sequences.rows.each do |table, column, namespace, sequence|
+                table = table.delete_prefix('"').delete_suffix('"')
+                @tables[table].column = column
+                @tables[table].sequence = PostgreSQL::Name.new(namespace, sequence) if sequence
               end
             end
 
-            query_command("SELECT setval(#{quote(quoted_sequence)}, #{max_pk || minvalue}, #{max_pk ? true : false})")
-          end
+            def backfill_sequences_with_uuids
+              tables_without_sequences = @tables.select do |table, data|
+                !data.column || !data.sequence
+              end.keys
+
+              return if tables_without_sequences.none?
+
+              sql = uuid_column_and_sequence_sql(tables_without_sequences)
+              uuid_column_and_sequences = @adapter.exec_query(sql, "SCHEMA")
+
+              uuid_column_and_sequences.rows.each do |table, column, namespace, sequence|
+                table = table.delete_prefix('"').delete_suffix('"')
+                @tables[table].column = column
+                @tables[table].sequence = PostgreSQL::Name.new(namespace, sequence) if sequence
+              end
+            end
+
+            def backfill_max_values
+              tables_without_max_or_min_values = @tables.select { |table, data| !data.max_value || !data.min_value }.keys
+
+              return unless tables_without_max_or_min_values.any?
+
+              tables_max_value_sqls = tables_without_max_or_min_values.map do |table|
+                sequence = @tables[table].sequence
+                column = @tables[table].column
+                sequence ? select_max_column_value_sql(table, column) : nil
+              end
+              max_values = tables_max_value_sqls.map { |sql| @adapter.query_value(sql, "SCHEMA") if sql }
+
+              tables_without_max_or_min_values.zip(max_values).each do |table, max_value|
+                @tables[table].max_value = max_value
+              end
+            end
+
+            def backfill_min_values
+              tables_without_max_or_min_values = @tables.select { |table, data| !data.max_value || !data.min_value }.keys
+
+              return unless tables_without_max_or_min_values.any?
+
+              tables_min_value_sqls = tables_without_max_or_min_values.map do |table|
+                sequence = @tables[table].sequence
+                sequence ? select_min_column_value_sql(sequence) : nil
+              end
+              min_values = tables_min_value_sqls.map { |sql| @adapter.query_value(sql, "SCHEMA") if sql }
+
+              tables_without_max_or_min_values.zip(min_values).each do |table, (min_value)|
+                @tables[table].min_value = min_value
+              end
+            end
+
+            def primary_key_column_and_sequence_sql(tables)
+              tables = tables.map { |table| "#{@adapter.quote(@adapter.quote_table_name(table))}::regclass" }
+              <<~SQL
+              SELECT dep.refobjid::regclass::text, attr.attname, nsp.nspname, seq.relname
+              FROM pg_class      seq,
+                  pg_attribute  attr,
+                  pg_depend     dep,
+                  pg_constraint cons,
+                  pg_namespace  nsp
+              WHERE seq.oid           = dep.objid
+                AND seq.relkind       = 'S'
+                AND attr.attrelid     = dep.refobjid
+                AND attr.attnum       = dep.refobjsubid
+                AND attr.attrelid     = cons.conrelid
+                AND attr.attnum       = cons.conkey[1]
+                AND seq.relnamespace  = nsp.oid
+                AND cons.contype      = 'p'
+                AND dep.classid       = 'pg_class'::regclass
+                AND dep.refobjid      IN (#{tables.join(", ")})
+              SQL
+            end
+
+            def uuid_column_and_sequence_sql(tables)
+              tables = tables.map { |table| "#{@adapter.quote(@adapter.quote_table_name(table))}::regclass" }
+              <<~SQL
+              SELECT t.oid::regclass::text, attr.attname, nsp.nspname,
+                CASE
+                  WHEN pg_get_expr(def.adbin, def.adrelid) !~* 'nextval' THEN NULL
+                  WHEN split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2) ~ '.' THEN
+                    substr(split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2),
+                           strpos(split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2), '.')+1)
+                  ELSE split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2)
+                END
+              FROM pg_class       t
+              JOIN pg_attribute   attr ON (t.oid = attrelid)
+              JOIN pg_attrdef     def  ON (adrelid = attrelid AND adnum = attnum)
+              JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
+              JOIN pg_namespace   nsp  ON (t.relnamespace = nsp.oid)
+              WHERE t.oid IN (#{tables.join(", ")})
+                AND cons.contype = 'p'
+                AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval|uuid_generate|gen_random_uuid'
+              SQL
+            end
+
+            def select_max_column_value_sql(table, column)
+              "SELECT MAX(#{@adapter.quote_column_name(column)}) FROM #{@adapter.quote_table_name(table)}"
+            end
+
+            def select_min_column_value_sql(sequence)
+              quoted_sequence = @adapter.quote_table_name(sequence)
+              if @adapter.database_version >= 10_00_00
+                "SELECT seqmin FROM pg_sequence WHERE seqrelid = #{@adapter.quote(quoted_sequence)}::regclass"
+              else
+                "SELECT min_value FROM #{quoted_sequence}"
+              end
+            end
+
+            def reset_sequence_sql(sequence, max_value, min_value)
+              quoted_sequence = @adapter.quote_table_name(sequence)
+              "SELECT setval(#{@adapter.quote(quoted_sequence)}, #{max_value || min_value}, #{max_value ? true : false})"
+            end
+        end
+
+        # Resets the sequence of a table's primary key to the maximum value.
+        def reset_pk_sequence!(table, pk = nil, sequence = nil) # :nodoc:
+          SequenceReset.new(self, table => [pk, sequence]).reset
+        end
+
+        # Batch resets column sequences. Passed in the shape of [[table, column, sequence, max_column_value, min_column_value]].
+        # Reduces query round trips for sequence resets when there are a large amount of tables.
+        def reset_column_sequences!(tables) # :nodoc:
+          SequenceReset.new(self, tables).reset
         end
 
         # Returns a table's primary key and belonging sequence.
