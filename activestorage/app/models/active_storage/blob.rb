@@ -252,6 +252,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   def unfurl(io, identify: true) # :nodoc:
+    raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
+
+    # If the stream is at end-of-stream, then rewind it on behalf of the user
+    io.rewind if io.eof?
+
     self.checksum     = compute_checksum_in_chunks(io)
     self.content_type = extract_content_type(io) if content_type.nil? || identify
     self.byte_size    = io.size
@@ -358,8 +363,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
     end
 
     def compute_checksum_in_chunks(io)
-      raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
-
       OpenSSL::Digest::MD5.new.tap do |checksum|
         read_buffer = "".b
         while io.read(5.megabytes, read_buffer)
