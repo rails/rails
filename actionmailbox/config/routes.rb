@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   scope "/rails/action_mailbox", module: "action_mailbox/ingresses" do
     post "/postmark/inbound_emails" => "postmark/inbound_emails#create", as: :rails_postmark_inbound_emails
     post "/relay/inbound_emails"    => "relay/inbound_emails#create",    as: :rails_relay_inbound_emails
+    post "/resend/inbound_emails"   => "resend/inbound_emails#create",   as: :rails_resend_inbound_emails
     post "/sendgrid/inbound_emails" => "sendgrid/inbound_emails#create", as: :rails_sendgrid_inbound_emails
 
     # Mandrill checks for the existence of a URL with a HEAD request before it will create the webhook.
