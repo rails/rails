@@ -1,3 +1,7 @@
+*   Bump the minimum required version of concurrent-ruby from 1.3.1 to 1.3.6.
+
+    *Joshua Young*
+    
 *   Make flaky parallel tests easier to diagnose by deterministically assigning
     tests to workers.
 
