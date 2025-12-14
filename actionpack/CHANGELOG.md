@@ -1,3 +1,15 @@
+*   Add controller action source location to routes inspector.
+
+    The routes inspector now shows where controller actions are defined.
+    In `rails routes --expanded`, a new "Action Location" field displays
+    the file and line number of each action method.
+
+    On the routing error page, when `RAILS_EDITOR` or `EDITOR` is set,
+    a clickable ✏️ icon appears next to each Controller#Action that opens
+    the action directly in the editor.
+
+    *Guillermo Iguaran*
+
 *   Active Support notifications for CSRF warnings.
 
     Switches from direct logging to event-driven logging, allowing others to
