@@ -771,6 +771,19 @@ module Rails
         defined?(JRUBY_VERSION)
       end
 
+      def version_manager_ruby_version
+        return ENV["RBENV_VERSION"] if ENV["RBENV_VERSION"]
+        return ENV["rvm_ruby_string"] if ENV["rvm_ruby_string"]
+
+        version = if RUBY_ENGINE == "ruby"
+          Gem.ruby_version.to_s.sub(/\.([a-zA-Z])/, '-\1')
+        else
+          RUBY_ENGINE_VERSION
+        end
+
+        "#{RUBY_ENGINE}-#{version}"
+      end
+
       def empty_directory_with_keep_file(destination, config = {})
         empty_directory(destination, config)
         keep_file(destination)
