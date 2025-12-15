@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 class ActiveStorage::PreviewTest < ActiveSupport::TestCase
   test "previewing a PDF" do

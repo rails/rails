@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 require "active_storage/previewer/poppler_pdf_previewer"
+require "mini_magick"
 
 class ActiveStorage::Previewer::PopplerPDFPreviewerTest < ActiveSupport::TestCase
   test "previewing a PDF document" do

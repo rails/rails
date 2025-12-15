@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 require "minitest/mock"
+
+require "mini_magick"
 
 class ActiveStorage::VariantTest < ActiveSupport::TestCase
   setup do
@@ -32,6 +33,8 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "resized and monochrome variation of JPEG blob" do
+    ActiveStorage.variant_transformer = ActiveStorage::Transformers::Vips
+
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(resize_to_limit: [100, 100], colourspace: "b-w").processed
     assert_match(/racecar\.jpg/, variant.url)
@@ -43,6 +46,8 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "monochrome with default variant_processor" do
+    ActiveStorage.variant_transformer = ActiveStorage::Transformers::Vips
+
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(colourspace: "b-w").processed
     image = read_image(variant)
@@ -50,6 +55,8 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "disabled variation of JPEG blob" do
+    ActiveStorage.variant_transformer = ActiveStorage::Transformers::Vips
+
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(resize_to_limit: [100, 100], colourspace: "srgb").processed
     assert_match(/racecar\.jpg/, variant.url)
@@ -61,6 +68,8 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "center-weighted crop of JPEG blob using :resize_to_fill" do
+    ActiveStorage.variant_transformer = ActiveStorage::Transformers::Vips
+
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(resize_to_fill: [100, 100]).processed
     assert_match(/racecar\.jpg/, variant.url)
@@ -71,6 +80,8 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "resized variation of PSD blob" do
+    ActiveStorage.variable_content_types = %w(image/vnd.adobe.photoshop)
+
     blob = create_file_blob(filename: "icon.psd", content_type: "image/vnd.adobe.photoshop")
     variant = blob.variant(resize_to_limit: [20, 20]).processed
     assert_match(/icon\.png/, variant.url)
@@ -82,6 +93,8 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "resized variation of ICO blob" do
+    ActiveStorage.variable_content_types = %w(image/vnd.microsoft.icon)
+
     blob = create_file_blob(filename: "favicon.ico", content_type: "image/vnd.microsoft.icon")
     variant = blob.variant(resize_to_limit: [20, 20]).processed
     assert_match(/icon\.png/, variant.url)
@@ -93,6 +106,8 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "resized variation of TIFF blob" do
+    ActiveStorage.variable_content_types = %w(image/tiff)
+
     blob = create_file_blob(filename: "racecar.tif")
     variant = blob.variant(resize_to_limit: [50, 50]).processed
     assert_match(/racecar\.png/, variant.url)
@@ -104,6 +119,8 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "resized variation of BMP blob" do
+    ActiveStorage.variable_content_types = %w(image/bmp)
+
     blob = create_file_blob(filename: "colors.bmp", content_type: "image/bmp")
     variant = blob.variant(resize_to_limit: [15, 15]).processed
     assert_match(/colors\.png/, variant.url)
@@ -115,6 +132,9 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "resized variation of WEBP blob" do
+    ActiveStorage.variable_content_types = %w(image/webp)
+    ActiveStorage.web_image_content_types = %w(image/webp)
+
     blob = create_file_blob(filename: "valley.webp")
     variant = blob.variant(resize_to_limit: [50, 50]).processed
     assert_match(/valley\.webp/, variant.url)
@@ -126,6 +146,8 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "optimized variation of GIF blob" do
+    ActiveStorage.variable_content_types = %w(image/gif)
+
     blob = create_file_blob(filename: "image.gif", content_type: "image/gif")
 
     process_variants_with :vips do
@@ -134,7 +156,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
       end
     end
 
-    process_variants_with :mini_magick do
+    with_unsupported_processing do
       assert_nothing_raised do
         blob.variant(layers: "Optimize").processed
       end
@@ -164,7 +186,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "url doesn't grow in length despite long variant options" do
-    process_variants_with :mini_magick do
+    with_unsupported_processing do
       blob = create_file_blob(filename: "racecar.jpg")
       variant = blob.variant(font: "a" * 10_000).processed
       assert_operator variant.url.length, :<, 785
@@ -223,7 +245,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "variations with dangerous argument string raise UnsupportedImageProcessingArgument" do
-    process_variants_with :mini_magick do
+    with_unsupported_processing(%w(-path)) do
       blob = create_file_blob(filename: "racecar.jpg")
       assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
         blob.variant(resize: "-PaTh /tmp/file.erb").processed
@@ -232,7 +254,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "variations with dangerous argument array raise UnsupportedImageProcessingArgument" do
-    process_variants_with :mini_magick do
+    with_unsupported_processing(%w(-write)) do
       blob = create_file_blob(filename: "racecar.jpg")
       assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
         blob.variant(resize: [123, "-write", "/tmp/file.erb"]).processed
@@ -241,7 +263,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "variations with dangerous argument in a nested array raise UnsupportedImageProcessingArgument" do
-    process_variants_with :mini_magick do
+    with_unsupported_processing(%w(-write)) do
       blob = create_file_blob(filename: "racecar.jpg")
       assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
         blob.variant(resize: [123, ["-write", "/tmp/file.erb"], "/tmp/file.erb"]).processed
@@ -254,7 +276,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "variations with dangerous argument hash raise UnsupportedImageProcessingArgument" do
-    process_variants_with :mini_magick do
+    with_unsupported_processing(%w(-write)) do
       blob = create_file_blob(filename: "racecar.jpg")
       assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
         blob.variant(resize: { "-write": "/tmp/file.erb" }).processed
@@ -263,7 +285,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "variations with dangerous argument in a nested hash raise UnsupportedImageProcessingArgument" do
-    process_variants_with :mini_magick do
+    with_unsupported_processing(%w(-write)) do
       blob = create_file_blob(filename: "racecar.jpg")
       assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
         blob.variant(resize: { "something": { "-write": "/tmp/file.erb" } }).processed
@@ -276,11 +298,10 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "variations with unsupported methods raise UnsupportedImageProcessingMethod" do
-    process_variants_with :mini_magick do
-      blob = create_file_blob(filename: "racecar.jpg")
-      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingMethod) do
-        blob.variant(system: "touch /tmp/dangerous").processed
-      end
+    blob = create_file_blob(filename: "racecar.jpg")
+
+    assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingMethod) do
+      blob.variant(system: "touch /tmp/dangerous").processed
     end
   end
 
@@ -311,5 +332,13 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
       ENV["BUILDKITE"] ? raise : skip("Variant processor #{processor.inspect} is not installed")
     ensure
       ActiveStorage.variant_transformer = previous_transformer
+    end
+
+    def with_unsupported_processing(args = [])
+      was_unsupported = ActiveStorage.unsupported_image_processing_arguments
+      ActiveStorage.unsupported_image_processing_arguments = args
+      yield
+    ensure
+      ActiveStorage.unsupported_image_processing_arguments = was_unsupported
     end
 end

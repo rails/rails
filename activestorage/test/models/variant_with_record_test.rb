@@ -1,18 +1,9 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
-
-  setup do
-    @was_tracking, ActiveStorage.track_variants = ActiveStorage.track_variants, true
-  end
-
-  teardown do
-    ActiveStorage.track_variants = @was_tracking
-  end
 
   test "generating a resized variation of a JPEG blob" do
     blob = create_file_blob(filename: "racecar.jpg")
@@ -105,8 +96,9 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     users.reset
 
     assert_no_difference -> { ActiveStorage::VariantRecord.count } do
-      assert_queries_count(6) do
-        # 6 queries:
+      assert_queries_count(7) do
+        # 7 queries:
+        # users x 1
         # attachment (cover photos) x 1
         # blob for the cover photo x 1
         # variant record x 1

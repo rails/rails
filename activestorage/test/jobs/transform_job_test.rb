@@ -1,10 +1,15 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
+
+require "active_storage/analyzer/image_analyzer"
 
 class ActiveStorage::TransformJobTest < ActiveJob::TestCase
-  setup { @blob = create_file_blob }
+  setup do
+    @blob = create_file_blob
+
+    ActiveStorage.analyzers = [ActiveStorage::Analyzer::ImageAnalyzer::Vips]
+  end
 
   test "creates variant" do
     transformations = { resize_to_limit: [100, 100] }
