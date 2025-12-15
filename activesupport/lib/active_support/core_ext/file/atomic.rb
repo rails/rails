@@ -54,19 +54,14 @@ class File
 
   # Private utility method.
   def self.probe_stat_in(dir) # :nodoc:
-    basename = [
-      ".permissions_check",
-      Thread.current.object_id,
-      Process.pid,
-      rand(1000000)
-    ].join(".")
+    mode = File::SHARE_DELETE | File::BINARY # to unlink on Windows
+    Tempfile.create(".permissions_check", dir, mode: mode) do |file|
+      file_name = file.path
 
-    file_name = join(dir, basename)
-    FileUtils.touch(file_name)
-    stat(file_name)
-  rescue Errno::ENOENT
-    file_name = nil
-  ensure
-    FileUtils.rm_f(file_name) if file_name
+      # Tempfile always creates files with permission 0600, drop it
+      File.unlink(file_name)
+
+      file.reopen(file_name).stat
+    end
   end
 end
