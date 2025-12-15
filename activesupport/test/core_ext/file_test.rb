@@ -47,29 +47,34 @@ class AtomicWriteTest < ActiveSupport::TestCase
   end
 
   def test_atomic_write_preserves_default_file_permissions
-    contents = "Atomic Text"
-    File.atomic_write(file_name, Dir.pwd) do |file|
-      file.write(contents)
-      assert_not File.exist?(file_name)
+    Dir.mktmpdir do |temp_dir|
+      File.chmod 0700, temp_dir
+      file_path = File.join(temp_dir, file_name)
+
+      File.open(file_path, "wb", &:close)
+
+      original_permissions = File.stat(file_path).mode.to_s(8)
+      File.atomic_write(file_path, &:close)
+      actual_permissions = File.stat(file_path).mode.to_s(8)
+
+      assert_equal original_permissions, actual_permissions
     end
-    assert File.exist?(file_name)
-    assert_equal File.probe_stat_in(Dir.pwd).mode, file_mode
-    assert_equal contents, File.read(file_name)
-  ensure
-    File.unlink(file_name) rescue nil
   end
 
   def test_atomic_write_preserves_file_permissions_same_directory
     Dir.mktmpdir do |temp_dir|
       File.chmod 0700, temp_dir
+      file_path = File.join(temp_dir, file_name)
 
-      probed_permissions = File.probe_stat_in(temp_dir).mode.to_s(8)
+      File.open(file_path, "wb") do |f|
+        f.chmod(0067)
+      end
 
-      File.atomic_write(File.join(temp_dir, file_name), &:close)
+      original_permissions = File.stat(file_path).mode.to_s(8)
+      File.atomic_write(file_path, &:close)
+      actual_permissions = File.stat(file_path).mode.to_s(8)
 
-      actual_permissions = File.stat(File.join(temp_dir, file_name)).mode.to_s(8)
-
-      assert_equal actual_permissions, probed_permissions
+      assert_equal original_permissions, actual_permissions
     end
   end
 
@@ -83,8 +88,10 @@ class AtomicWriteTest < ActiveSupport::TestCase
     File.unlink(file_name) rescue nil
   end
 
-  def test_probe_stat_in_when_no_dir
-    assert_nil File.probe_stat_in("/dir/does/not/exist")
+  def test_when_no_dir
+    assert_raises Errno::ENOENT do
+      File.atomic_write("/dir/does/not/exist/file.txt") { }
+    end
   end
 
   private
