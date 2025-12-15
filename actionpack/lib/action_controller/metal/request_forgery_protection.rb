@@ -272,7 +272,7 @@ module ActionController # :nodoc:
         self.forgery_protection_verification_strategy = verification_strategy(options[:using] || forgery_protection_verification_strategy)
         self.forgery_protection_trusted_origins = Array(options[:trusted_origins]) if options.key?(:trusted_origins)
 
-        before_action :verify_request_for_forgery_protection, options
+        before_action :verify_authenticity_token, :verify_request_for_forgery_protection, options
         append_after_action :verify_same_origin_request
         append_after_action :append_sec_fetch_site_to_vary_header, options
       end
@@ -444,6 +444,7 @@ module ActionController # :nodoc:
     def initialize(...)
       super
       @_marked_for_same_origin_verification = nil
+      @_verify_authenticity_token_ran = false
     end
 
     def reset_csrf_token(request) # :doc:
@@ -457,6 +458,17 @@ module ActionController # :nodoc:
     end
 
     private
+      def verify_authenticity_token # :nodoc:
+        # This method was renamed to verify_request_for_forgery_protection, to more accurately
+        # reflect its purpose now that an authenticity token is not necessarily verified.
+        # However, because many people rely on `skip_before_action :verify_authenticity_token`,
+        # to opt out of forgery protection, we need to keep this working and deprecate it.
+        # We simply mark it as run, as part of protect_from_forgery, and when verifying the
+        # request, we check if the method ran. If it didn't, it's because it was skipped
+        # on its own and not via skip_forgery_protection, so we can emit the deprecation warning
+        @_verify_authenticity_token_ran = true
+      end
+
       # The actual before_action that is used to verify the request to protect from forgery.
       # Don't override this directly. Provide your own forgery protection strategy instead.
       # If you override, you'll disable same-origin `<script>` verification.
@@ -467,12 +479,20 @@ module ActionController # :nodoc:
       # responses are for XHR requests, ensuring they follow the browser's same-origin
       # policy.
       def verify_request_for_forgery_protection # :doc:
-        mark_for_same_origin_verification!
+        if @_verify_authenticity_token_ran
+          mark_for_same_origin_verification!
 
-        if !verified_request?
-          instrument_unverified_request
+          if !verified_request?
+            instrument_unverified_request
 
-          handle_unverified_request
+            handle_unverified_request
+          end
+        else
+          ActiveSupport.deprecator.warn(<<~MSG.squish)
+            `verify_authenticity_token` is deprecated and will be removed in a future Rails version.
+            To skip forgery protection, use `skip_forgery_protection` instead of skipping `verify_authenticity_token`
+            as this won't have any effect in a future Rails version.
+          MSG
         end
       end
 

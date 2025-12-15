@@ -195,6 +195,13 @@ class SkipProtectionWhenUnprotectedController < ActionController::Base
   skip_forgery_protection
 end
 
+# Controller using the deprecated skip_before_action :verify_authenticity_token
+class DeprecatedSkipVerifyAuthenticityTokenController < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery with: :exception
+  skip_before_action :verify_authenticity_token
+end
+
 class CookieCsrfTokenStorageStrategyController < ActionController::Base
   include RequestForgeryProtectionActions
 
@@ -1277,6 +1284,29 @@ class SkipProtectionWhenUnprotectedControllerTest < ActionController::TestCase
   def assert_not_blocked(&block)
     assert_nothing_raised(&block)
     assert_response :success
+  end
+end
+
+class DeprecatedSkipVerifyAuthenticityTokenControllerTest < ActionController::TestCase
+  def test_should_allow_post_without_token_with_deprecation_warning
+    assert_deprecated(ActiveSupport.deprecator) do
+      post :index
+    end
+    assert_response :success
+  end
+
+  def test_deprecation_message_suggests_skip_forgery_protection
+    assert_deprecated(/skip_forgery_protection/, ActiveSupport.deprecator) do
+      post :index
+    end
+  end
+
+  def test_should_not_raise_exception_when_skipped
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_nothing_raised do
+        post :index
+      end
+    end
   end
 end
 
