@@ -286,6 +286,37 @@ module ActionController # :nodoc:
         skip_before_action :verify_request_for_forgery_protection, options.reverse_merge(raise: false)
       end
 
+      # `verify_request_for_forgery_protection` is the callback added by
+      # `protect_from_forgery`. Historically this callback was named
+      # `verify_authenticity_token`, and many applications still skip it with:
+      #
+      #     skip_before_action :verify_authenticity_token
+      #
+      # Ensure old callback skips continue to work while guiding applications to
+      # the new name.
+      def skip_before_action(*names)
+        options = names.last.is_a?(Hash) ? names.pop : nil
+
+        rewritten = false
+        names = names.map do |name|
+          if name == :verify_authenticity_token || name == "verify_authenticity_token"
+            rewritten = true
+            :verify_request_for_forgery_protection
+          else
+            name
+          end
+        end
+
+        if rewritten
+          ActionController.deprecator.warn(
+            "skip_before_action :verify_authenticity_token has been deprecated and will be removed in Rails 9.0. " \
+            "Use skip_forgery_protection or skip_before_action :verify_request_for_forgery_protection instead."
+          )
+        end
+
+        options ? super(*names, options) : super(*names)
+      end
+
       private
         def protection_method_class(name)
           case name

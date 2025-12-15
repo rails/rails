@@ -1729,6 +1729,22 @@ class InvalidVerificationStrategyTest < ActionController::TestCase
   end
 end
 
+class SkipVerifyAuthenticityTokenDeprecationTest < ActiveSupport::TestCase
+  test "skip_before_action :verify_authenticity_token skips forgery protection callback and is deprecated" do
+    controller_class = nil
+
+    assert_deprecated("skip_before_action :verify_authenticity_token has been deprecated", ActionController.deprecator) do
+      controller_class = Class.new(ActionController::Base) do
+        protect_from_forgery with: :exception
+        skip_before_action :verify_authenticity_token
+      end
+    end
+
+    before_filters = controller_class._process_action_callbacks.select { |cb| cb.kind == :before }.map(&:filter)
+    assert_not_includes before_filters, :verify_request_for_forgery_protection
+  end
+end
+
 
 class TrustedOriginsHeaderOnlyController < ActionController::Base
   include RequestForgeryProtectionActions
