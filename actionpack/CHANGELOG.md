@@ -1,3 +1,17 @@
+*   Add `ActionController::Parameters#fetch_values` for fetching multiple parameter values
+
+    ```ruby
+    params = ActionController::Parameters.new(name: "Francesco", age: 22)
+    name, age = params.fetch_values(:name, :age)
+    # => ["Francesco", 22]
+
+    # With default values via block
+    name, email = params.fetch_values(:name, :email) { |key| "default_#{key}" }
+    # => ["Francesco", "default_email"]
+    ```
+
+    *Said Kaldybaev*
+
 *   Add `ActionDispatch::Request#bearer_token` to extract the bearer token from the Authorization header.
     Bearer tokens are commonly used for API and MCP requests.
 
