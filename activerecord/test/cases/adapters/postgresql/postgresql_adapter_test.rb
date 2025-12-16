@@ -136,6 +136,42 @@ module ActiveRecord
         end
       end
 
+      def test_schema_search_path_is_reapplied_after_reconnect
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(schema_search_path: "public,foo")
+        )
+
+        connection.connect!
+
+        assert_equal "public, foo", connection.select_value("SHOW search_path")
+
+        connection.reconnect!
+
+        assert_equal "public, foo", connection.select_value("SHOW search_path")
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_schema_search_path_is_reapplied_after_reset
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(schema_search_path: "public,foo")
+        )
+
+        connection.connect!
+
+        assert_equal "public, foo", connection.select_value("SHOW search_path")
+
+        connection.reset!
+
+        assert_equal "public, foo", connection.select_value("SHOW search_path")
+      ensure
+        connection&.disconnect!
+      end
+
       def test_database_exists_returns_false_when_the_database_does_not_exist
         config = { database: "non_extant_database", adapter: "postgresql" }
         assert_not ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(config),
