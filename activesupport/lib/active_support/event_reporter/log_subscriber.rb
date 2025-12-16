@@ -42,6 +42,7 @@ module ActiveSupport
       class_attribute :log_levels, default: {} # :nodoc:
 
       def emit(event)
+        return unless logger
         name = event[:name]
         event_method = name[name.index(".") + 1, name.length]
         public_send(event_method, event) if LEVEL_CHECKS[log_levels[event_method]]&.call(logger)
