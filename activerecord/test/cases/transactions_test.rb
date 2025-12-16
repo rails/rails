@@ -1525,6 +1525,56 @@ class TransactionTest < ActiveRecord::TestCase
     assert_array_match expected_queries, actual_queries
   end
 
+  class TopicWithoutCallbacks < ActiveRecord::Base
+    self.table_name = "topics"
+    self.transactional_callbacks = false
+  end
+
+  def test_save_without_callbacks_does_not_materialize_transaction
+    topic = TopicWithoutCallbacks.find(topics(:fifth).id)
+    actual_queries = capture_sql do
+      topic.title = "foo"
+      topic.save!
+    end
+
+    assert_array_match [/UPDATE/i], actual_queries
+  end
+
+  def test_update_without_callbacks_does_not_materialize_transaction
+    topic = TopicWithoutCallbacks.find(topics(:fifth).id)
+    actual_queries = capture_sql do
+      topic.update!(title: "foo")
+    end
+
+    assert_array_match [/UPDATE/i], actual_queries
+  end
+
+  def test_destroy_without_callbacks_does_not_materialize_transaction
+    topic = TopicWithoutCallbacks.find(topics(:fifth).id)
+    actual_queries = capture_sql do
+      topic.destroy
+    end
+
+    assert_array_match [/DELETE/i], actual_queries
+  end
+
+  def test_touch_without_callbacks_does_not_materialize_transaction
+    topic = TopicWithoutCallbacks.find(topics(:fifth).id)
+    actual_queries = capture_sql do
+      topic.touch
+    end
+
+    assert_array_match [/UPDATE/i], actual_queries
+  end
+
+  def test_create_without_callbacks_does_not_materialize_transaction
+    actual_queries = capture_sql do
+      TopicWithoutCallbacks.create!(title: "foo")
+    end
+
+    assert_array_match [/INSERT/i], actual_queries
+  end
+
   def test_nested_transactions_after_disable_lazy_transactions
     Topic.lease_connection.disable_lazy_transactions!
 
