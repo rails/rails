@@ -2,11 +2,9 @@
 
 require "minitest"
 
-##
-# I shouldn't need this respond_to check but some tests are running
-# sub-process tests in an unbundled environment, causing MT5 to be
-# used in some cases. This conditional can probably go after the bump
-# is complete? ... but could still fail for developers working w/
-# multiple versions installed.
+# This respond_to check handles tests running sub-processes in an
+# unbundled environment, which triggers MT5 usage. This conditional may
+# be removable after the version bump, though it currently safeguards
+# against issues in environments with multiple versions installed.
 Minitest.load :rails if Minitest.respond_to? :load
 Minitest.autorun
