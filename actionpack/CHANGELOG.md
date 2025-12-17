@@ -1,3 +1,21 @@
+*   Add `config.action_controller.live.streaming_excluded_keys` to control execution state sharing in ActionController::Live.
+
+    When using ActionController::Live, actions are executed in a separate thread that shares
+    state from the parent thread. This new configuration allows applications to opt-out specific
+    state keys that should not be shared.
+
+    This is useful when streaming inside a `connected_to` block, where you may want
+    the streaming thread to use its own database connection context.
+
+    ```ruby
+    # config/application.rb
+    config.action_controller.live.streaming_excluded_keys = [:active_record_connected_to_stack]
+    ```
+
+    By default, all keys are shared.
+
+    *Eileen M. Uchitelle*
+
 *   Add controller action source location to routes inspector.
 
     The routes inspector now shows where controller actions are defined.
