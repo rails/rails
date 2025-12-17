@@ -403,6 +403,9 @@ Minitest/SkipEnsure:
 Minitest/UnreachableAssertion:
   Enabled: true
 
+Minitest/AssertEqual:
+  Enabled: true
+
 Markdown:
   # Whether to run RuboCop against non-valid snippets
   WarnInvalid: true
