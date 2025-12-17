@@ -272,7 +272,12 @@ module ActionController # :nodoc:
         self.forgery_protection_verification_strategy = verification_strategy(options[:using] || forgery_protection_verification_strategy)
         self.forgery_protection_trusted_origins = Array(options[:trusted_origins]) if options.key?(:trusted_origins)
 
-        before_action :verify_authenticity_token, :verify_request_for_forgery_protection, options
+        if options[:prepend]
+          prepend_before_action :verify_request_for_forgery_protection, options
+          prepend_before_action :verify_authenticity_token, options
+        else
+          before_action :verify_authenticity_token, :verify_request_for_forgery_protection, options
+        end
         append_after_action :verify_same_origin_request
         append_after_action :append_sec_fetch_site_to_vary_header, options
       end

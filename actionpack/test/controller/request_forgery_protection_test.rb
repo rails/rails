@@ -139,6 +139,10 @@ class PrependProtectForgeryBaseController < ActionController::Base
       add_called_callback("custom_action")
     end
 
+    def verify_authenticity_token
+      add_called_callback("verify_authenticity_token")
+    end
+
     def verify_request_for_forgery_protection
       add_called_callback("verify_request_for_forgery_protection")
     end
@@ -828,24 +832,24 @@ class PrependProtectForgeryBaseControllerTest < ActionController::TestCase
     protect_from_forgery
   end
 
-  def test_verify_request_for_forgery_protection_is_prepended
+  def test_forgery_protection_callbacks_are_prepended_in_correct_order
     @controller = PrependTrueController.new
     get :index
-    expected_callback_order = ["verify_request_for_forgery_protection", "custom_action"]
+    expected_callback_order = ["verify_authenticity_token", "verify_request_for_forgery_protection", "custom_action"]
     assert_equal(expected_callback_order, @controller.called_callbacks)
   end
 
-  def test_verify_request_for_forgery_protection_is_not_prepended
+  def test_forgery_protection_callbacks_are_not_prepended
     @controller = PrependFalseController.new
     get :index
-    expected_callback_order = ["custom_action", "verify_request_for_forgery_protection"]
+    expected_callback_order = ["custom_action", "verify_authenticity_token", "verify_request_for_forgery_protection"]
     assert_equal(expected_callback_order, @controller.called_callbacks)
   end
 
-  def test_verify_request_for_forgery_protection_is_not_prepended_by_default
+  def test_forgery_protection_callbacks_are_not_prepended_by_default
     @controller = PrependDefaultController.new
     get :index
-    expected_callback_order = ["custom_action", "verify_request_for_forgery_protection"]
+    expected_callback_order = ["custom_action", "verify_authenticity_token", "verify_request_for_forgery_protection"]
     assert_equal(expected_callback_order, @controller.called_callbacks)
   end
 end
