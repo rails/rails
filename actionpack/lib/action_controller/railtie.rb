@@ -33,6 +33,10 @@ module ActionController
       ActionController::Helpers.helpers_path = app.helpers_paths
     end
 
+    initializer "action_controller.live_streaming_excluded_keys" do |app|
+      ActionController::Live.live_streaming_excluded_keys = app.config.action_controller.live_streaming_excluded_keys
+    end
+
     initializer "action_controller.parameters_config" do |app|
       options = app.config.action_controller
 
@@ -83,6 +87,7 @@ module ActionController
           :action_on_unpermitted_parameters,
           :always_permitted_parameters,
           :wrap_parameters_by_default,
+          :live_streaming_excluded_keys
         )
 
         filtered_options.each do |k, v|
