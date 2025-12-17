@@ -414,6 +414,12 @@ $ cd actionview
 $ bin/test test/template/form_helper_test.rb
 ```
 
+Or from the repository root:
+
+```bash
+$ bin/test actionview/test/template/form_helper_test.rb
+```
+
 #### Running a Single Test
 
 You can run a single test by name using the `-n` option:
@@ -423,6 +429,12 @@ $ cd actionmailer
 $ bin/test test/mail_layout_test.rb -n test_explicit_class_layout
 ```
 
+Or from the repository root:
+
+```bash
+$ bin/test actionmailer/test/mail_layout_test.rb -n test_explicit_class_layout
+```
+
 #### For a Specific Line
 
 Figuring out the name is not always easy, but if you know the line number your test starts at, this option is for you:
@@ -430,6 +442,12 @@ Figuring out the name is not always easy, but if you know the line number your t
 ```bash
 $ cd railties
 $ bin/test test/application/asset_debugging_test.rb:69
+```
+
+Or from the repository root:
+
+```bash
+$ bin/test railties/test/application/asset_debugging_test.rb:69
 ```
 
 #### For a Specific Line Range
