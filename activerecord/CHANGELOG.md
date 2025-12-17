@@ -1,3 +1,8 @@
+*   Improve PostgreSQL adapter performance on PostgreSQL 18+ by reading `schema_search_path`
+    via connection parameters instead of issuing  a `SHOW search_path` query.
+
+    *Matthew Draper*
+
 *   Yield the transaction object to the block when using `with_lock`.
 
     *Ngan Pham*
