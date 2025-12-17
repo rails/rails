@@ -173,6 +173,25 @@ module ActiveRecord
         connection&.disconnect!
       end
 
+      def test_schema_search_path_uses_parameter_status_on_pg18
+        skip "parameter_status('search_path') requires PostgreSQL 18+" unless @connection.database_version >= 18_00_00
+
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+        begin
+          log = capture_sql(include_schema: true) do
+            connection.connect!
+            connection.schema_search_path
+          end
+
+          assert_not log.any? { |sql| sql.include?("SHOW search_path") },
+                     "Expected no 'SHOW search_path' query, but found one in: #{log.inspect}"
+        ensure
+          connection.disconnect!
+        end
+      end
+
       def test_database_exists_returns_false_when_the_database_does_not_exist
         config = { database: "non_extant_database", adapter: "postgresql" }
         assert_not ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(config),
