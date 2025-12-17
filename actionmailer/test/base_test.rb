@@ -827,7 +827,7 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "default values which have to_proc (e.g. symbols) should not be considered procs" do
-    assert(ProcMailer.welcome["x-has-to-proc"].to_s == "symbol")
+    assert_equal("symbol", ProcMailer.welcome["x-has-to-proc"].to_s)
   end
 
   test "proc default values can have arity of 1 where arg is a mailer instance" do

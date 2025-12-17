@@ -147,7 +147,7 @@ class LoggerTest < ActiveSupport::TestCase
     @logger.level = Logger::INFO
     evaluated = false
     @logger.add(Logger::DEBUG) { evaluated = true }
-    assert evaluated == false
+    assert_equal false, evaluated
   end
 
   def test_should_not_mutate_message
