@@ -230,7 +230,11 @@ module Rails
       end
 
       def inject_index_options
-        has_uniq_index? ? ", unique: true" : ""
+        if has_uniq_index? || token?
+          ", unique: true"
+        else
+          ""
+        end
       end
 
       def options_for_migration
