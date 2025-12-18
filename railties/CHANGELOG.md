@@ -1,3 +1,10 @@
+*   Ensure `Rails::TestUnitRailtie` is defined and
+    `config.generators.system_tests` is set when generating a system test.
+
+    For integration tests we added check for `Rails::TestUnitRailtie`.
+
+    *zzak*
+
 *   Do not clean directories directly under the application root with `Rails::BacktraceCleaner`
 
     Improved `Rails.backtrace_cleaner` so that most paths located directly under the application's root directory are no longer silenced.

@@ -30,4 +30,24 @@ class SystemTestGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/system/users_test_test.rb"
     assert_file "test/system/users_test.rb"
   end
+
+  def test_system_tests_is_disabled
+    Rails.application.config.generators.with(system_tests: nil) do
+      assert_raises(RuntimeError) do
+        run_generator
+      end
+      assert_no_file "test/system/users_test.rb"
+    end
+  end
+
+  def test_rails_test_unit_railtie_is_undefined
+    original_const = Rails.send(:remove_const, :TestUnitRailtie)
+
+    assert_raises(RuntimeError) do
+      run_generator
+    end
+    assert_no_file "test/system/users_test.rb"
+  ensure
+    Rails.const_set(:TestUnitRailtie, original_const)
+  end
 end
