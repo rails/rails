@@ -1,3 +1,20 @@
+*   Remove `Rack::Sendfile` from the default middleware stack and deprecate
+    referencing it in middleware operations.
+
+    Deprecate configuration option for specifying the header used for sending files:
+
+    ```
+    config.action_dispatch.x_sendfile_header = 'X-Sendfile'
+    ```
+
+    `Rack::Sendfile` instead can be explicitly added if needed:
+
+    ```
+    use Rack::SendFile, 'X-Sendfile'
+    ```
+
+    *Stanislav Valkanov*
+
 *   Do not clean directories directly under the application root with `Rails::BacktraceCleaner`
 
     Improved `Rails.backtrace_cleaner` so that most paths located directly under the application's root directory are no longer silenced.

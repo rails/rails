@@ -82,7 +82,6 @@ For a freshly generated Rails application, this might produce something like:
 
 ```ruby
 use ActionDispatch::HostAuthorization
-use Rack::Sendfile
 use ActionDispatch::Static
 use ActionDispatch::Executor
 use ActionDispatch::ServerTiming
@@ -220,12 +219,6 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`ActionDispatch::HostAuthorization`**
 
 * Guards from DNS rebinding attacks by explicitly permitting the hosts a request can be sent to. See the [configuration guide](configuring.html#actiondispatch-hostauthorization) for configuration instructions.
-
-**`Rack::Sendfile`**
-
-* Sets server specific X-Sendfile header. Configure this via [`config.action_dispatch.x_sendfile_header`][] option.
-
-[`config.action_dispatch.x_sendfile_header`]: configuring.html#config-action-dispatch-x-sendfile-header
 
 **`ActionDispatch::Static`**
 

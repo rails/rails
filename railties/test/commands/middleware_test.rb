@@ -27,7 +27,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
 
     assert_equal [
       "ActionDispatch::HostAuthorization",
-      "Rack::Sendfile",
+      "ActionDispatch::MiddlewareStack::FakeSendfile",
       "ActionDispatch::Static",
       "Propshaft::Server",
       "ActionDispatch::Executor",
@@ -63,7 +63,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
 
     assert_equal [
       "ActionDispatch::HostAuthorization",
-      "Rack::Sendfile",
+      "ActionDispatch::MiddlewareStack::FakeSendfile",
       "ActionDispatch::Static",
       "Propshaft::Server",
       "ActionDispatch::Executor",
@@ -98,7 +98,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
 
     assert_equal [
       "ActionDispatch::HostAuthorization",
-      "Rack::Sendfile",
+      "ActionDispatch::MiddlewareStack::FakeSendfile",
       "ActionDispatch::Static",
       "Propshaft::Server",
       "ActionDispatch::Executor",
@@ -137,7 +137,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
       %w(ActionDispatch::Reloader ActionDispatch::ShowExceptions ActionDispatch::DebugExceptions),
 
       # Outright dependencies
-      %w(ActionDispatch::Static Rack::Sendfile),
+      %w(ActionDispatch::Static ActionDispatch::MiddlewareStack::FakeSendfile),
       %w(ActionDispatch::Flash ActionDispatch::Session::CookieStore),
       %w(ActionDispatch::Session::CookieStore ActionDispatch::Cookies),
     ]
