@@ -728,7 +728,7 @@ DEPENDENCIES
   libxml-ruby
   listen (~> 3.3)
   mdl (!= 0.13.0)
-  minitest
+  minitest (< 6)
   minitest-bisect
   minitest-ci
   minitest-retry
