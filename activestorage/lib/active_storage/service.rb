@@ -168,15 +168,15 @@ module ActiveStorage
       end.base64digest
     end
 
-    def default_chunk_size
-      5.megabytes
-    end
-
     def checksum_implementation(**)
       OpenSSL::Digest::MD5
     end
 
     private
+      def default_chunk_size
+        5.megabytes
+      end
+
       def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
         raise NotImplementedError
       end
