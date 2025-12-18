@@ -3,4 +3,4 @@
 require_relative "config/environment"
 
 run Rails.app
-Rails.app.load_server
+Rails.application.load_server
