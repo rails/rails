@@ -1,3 +1,10 @@
+*   Ensure `Rails::TestUnitRailtie` is defined and
+    `config.generators.system_tests` is set when generating a system test.
+
+    For integration tests we added check for `Rails::TestUnitRailtie`.
+
+    *zzak*
+
 *   Add `Rails.app` as alias for `Rails.application`. Particularly helpful when accessing nested accessors inside application code,
     like when using `Rails.app.credentials`.
 
