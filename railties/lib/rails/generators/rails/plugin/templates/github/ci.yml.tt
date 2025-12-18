@@ -10,7 +10,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     env:
-      RUBY_VERSION: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
+      RUBY_VERSION: <%= version_manager_ruby_version %>
       RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
       - name: Checkout code
@@ -82,7 +82,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
+          ruby-version: <%= version_manager_ruby_version %>
           bundler-cache: true
       <%- if using_bun? -%>
 

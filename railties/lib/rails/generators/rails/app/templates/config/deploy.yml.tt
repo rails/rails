@@ -101,7 +101,7 @@ builder:
   #
   # # Pass arguments and secrets to the Docker build process
   # args:
-  #   RUBY_VERSION: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
+  #   RUBY_VERSION: <%= Gem.ruby_version %>
   # secrets:
   #   - GITHUB_TOKEN
   #   - RAILS_MASTER_KEY
