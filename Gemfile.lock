@@ -70,6 +70,7 @@ PATH
       json
       logger (>= 1.4.2)
       minitest (>= 5.1)
+      minitest-mock
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
       uri (>= 0.13.1)
@@ -365,6 +366,7 @@ GEM
       path_expander (~> 1.1)
     minitest-ci (3.4.0)
       minitest (>= 5.0.6)
+    minitest-mock (5.27.0.beta.1.beta.1)
     minitest-retry (0.2.3)
       minitest (>= 5.0)
     minitest-server (1.0.9)

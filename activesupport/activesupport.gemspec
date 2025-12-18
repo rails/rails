@@ -39,6 +39,7 @@ Gem::Specification.new do |s|
   s.add_dependency "concurrent-ruby", "~> 1.0", ">= 1.3.1"
   s.add_dependency "connection_pool", ">= 2.2.5"
   s.add_dependency "minitest",        ">= 5.1"
+  s.add_dependency "minitest-mock"
   s.add_dependency "base64"
   s.add_dependency "drb"
   s.add_dependency "bigdecimal"
