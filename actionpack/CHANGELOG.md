@@ -1,3 +1,15 @@
+*   Yield key to `ActionController::Parameters#fetch` block
+
+    ```ruby
+    key = params.fetch(:missing) { |missing_key| missing_key }
+    key # => :missing
+
+    key = params.fetch("missing") { |missing_key| missing_key }
+    key # => "missing"
+    ```
+
+    *Sean Doyle*
+
 *   Add `config.action_controller.live.streaming_excluded_keys` to control execution state sharing in ActionController::Live.
 
     When using ActionController::Live, actions are executed in a separate thread that shares

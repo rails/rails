@@ -812,7 +812,7 @@ module ActionController
     # are several options: With no other arguments, it will raise an
     # ActionController::ParameterMissing error; if a second argument is given, then
     # that is returned (converted to an instance of `ActionController::Parameters`
-    # if possible); if a block is given, then that will be run and its result
+    # if possible); if a block is given, the key is yielded to the block and its result
     # returned.
     #
     #     params = ActionController::Parameters.new(person: { name: "Francesco" })
@@ -820,12 +820,12 @@ module ActionController
     #     params.fetch(:none)                 # => ActionController::ParameterMissing: param is missing or the value is empty or invalid: none
     #     params.fetch(:none, {})             # => #<ActionController::Parameters {} permitted: false>
     #     params.fetch(:none, "Francesco")    # => "Francesco"
-    #     params.fetch(:none) { "Francesco" } # => "Francesco"
+    #     params.fetch(:none) { |key| "Francesco" } # => "Francesco"
     def fetch(key, *args)
       convert_value_to_parameters(
         @parameters.fetch(key) {
           if block_given?
-            yield
+            yield key
           else
             args.fetch(0) { raise ActionController::ParameterMissing.new(key, @parameters.keys) }
           end
