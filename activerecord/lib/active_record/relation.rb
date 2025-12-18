@@ -1124,7 +1124,7 @@ module ActiveRecord
     #   Person.destroy_by(name: 'Spartacus', rating: 4)
     #   Person.destroy_by("published_at < ?", 2.weeks.ago)
     def destroy_by(*args)
-      where(*args).destroy_all
+      where(*args).destroy_all.tap { reset }
     end
 
     # Finds and deletes all records matching the specified conditions.
@@ -1137,7 +1137,7 @@ module ActiveRecord
     #   Person.delete_by(name: 'Spartacus', rating: 4)
     #   Person.delete_by("published_at < ?", 2.weeks.ago)
     def delete_by(*args)
-      where(*args).delete_all
+      where(*args).delete_all.tap { reset }
     end
 
     # Schedule the query to be performed from a background thread pool.
