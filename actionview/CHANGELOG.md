@@ -1,3 +1,17 @@
+*   Fix `file_field` to join mime types with a comma when provided as Array
+
+    ```ruby
+    file_field(:article, :image, accept: ['image/png', 'image/gif', 'image/jpeg'])
+    ```
+
+    Now behaves likes:
+
+    ```
+    file_field(:article, :image, accept: 'image/png,image/gif,image/jpeg')
+    ```
+
+    *Bogdan Gusiev*
+
 *   Fix strict locals parsing to handle multiline definitions.
 
     *Said Kaldybaev*
