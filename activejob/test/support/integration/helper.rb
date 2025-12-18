@@ -16,6 +16,33 @@ Rails::Generators::AppGenerator.start args
 require "#{dummy_app_path}/config/environment.rb"
 
 ActiveRecord::Migrator.migrations_paths = [ Rails.root.join("db/migrate").to_s ]
+
+ActiveRecord::Schema.define do
+  create_table :articles do
+  end
+
+  create_table :articles_tags do |t|
+    t.belongs_to :article
+    t.belongs_to :tag
+  end
+
+  create_table :tags do |t|
+    t.text :name
+  end
+end
+
+class Article < ActiveRecord::Base
+  self.strict_loading_by_default = true
+
+  has_and_belongs_to_many :tags
+
+  accepts_nested_attributes_for :tags
+end
+
+class Tag < ActiveRecord::Base
+  has_and_belongs_to_many :articles
+end
+
 ActiveRecord::Tasks::DatabaseTasks.migrate
 require "rails/test_help"
 

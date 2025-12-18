@@ -62,9 +62,20 @@ module ActiveJob
     # Track any exceptions raised by the backend so callers can inspect the errors.
     attr_accessor :enqueue_error
 
+    included do
+      cattr_accessor :locators
+      self.locators = []
+    end
+
     # These methods will be included into any Active Job object, adding
     # helpers for de/serialization and creation of job instances.
     module ClassMethods
+      def inherited(subclass)
+        super
+
+        subclass.locators = locators.dup
+      end
+
       # Creates a new job instance from a hash created with +serialize+
       def deserialize(job_data)
         job_class = job_data["job_class"].safe_constantize
@@ -95,6 +106,39 @@ module ActiveJob
       #    VideoJob.set(queue: :some_queue, wait: 5.minutes, priority: 10).perform_later(Video.last)
       def set(options = {})
         ConfiguredJob.new(self, options)
+      end
+
+      # Configure the options passed to GlobalID::Locator.locate when
+      # deserializing instances of the provided class names
+      #
+      # ==== Examples
+      #
+      #   class Article < ApplicationRecord
+      #     self.strict_loading_by_default = true
+      #
+      #     has_and_belongs_to_many :tags
+      #   end
+      #
+      #   class Tag < ApplicationRecord
+      #     has_and_belongs_to_many :articles
+      #   end
+      #
+      #   class PublishJob < ApplicationJob
+      #     locator_options "Article", includes: :tags
+      #
+      #     def perform(article)
+      #       article.tags.each do |tag|
+      #         # ...
+      #       end
+      #     end
+      #   end
+      def locator_options(*class_names, **options)
+        raise ArgumentError.new("class_names and options expected") if class_names.empty? && options.empty?
+        raise ArgumentError.new("class_names must be Strings") unless class_names.all?(String)
+
+        class_names.each do |class_name|
+          locators.push -> model_class { options if model_class == class_name.safe_constantize }
+        end
       end
     end
 
@@ -202,6 +246,21 @@ module ActiveJob
       end
 
       def deserialize_arguments(serialized_args)
+        serialized_args.collect! do |argument|
+          if Arguments::GlobalID.serialized?(argument)
+            global_id = Arguments::GlobalID.deserialize(argument)
+            options = locators.lazy
+              .map { |locator| locator.call(global_id.model_class) }
+              .detect { |options| !options.nil? }
+
+            global_id.find(options.to_h)
+          else
+            argument
+          end
+        rescue
+          raise DeserializationError
+        end
+
         Arguments.deserialize(serialized_args)
       end
 
