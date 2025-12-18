@@ -169,7 +169,14 @@ module ActionView
       #   <% content_for :script, javascript_include_tag(:defaults) %>
       #
       # WARNING: <tt>content_for</tt> is ignored in caches. So you shouldn't use it for elements that will be fragment cached.
-      def content_for(name, content = nil, flush: false, &block)
+      def content_for(name, content = nil, flush: false, **options, &block)
+        if options.any?
+          ActionView.deprecator.warn(<<-MSG.squish)
+            Passing invalid options to content_for is deprecated.
+            Options #{options.keys.join(', ')} will be ignored.
+          MSG
+        end
+
         if content || block_given?
           if block_given?
             content = capture(&block)
