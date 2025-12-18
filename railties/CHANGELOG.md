@@ -1,3 +1,7 @@
+*   Remove duplicate unique index for token migrations
+
+    *zzak*, *Dan Bota*
+
 *   Do not clean directories directly under the application root with `Rails::BacktraceCleaner`
 
     Improved `Rails.backtrace_cleaner` so that most paths located directly under the application's root directory are no longer silenced.
