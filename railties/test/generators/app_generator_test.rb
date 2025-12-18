@@ -689,11 +689,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_config_ci_includes_seed_step_by_default
+  def test_config_ci_includes_db_test_prepare_step_by_default
     run_generator [destination_root]
 
     assert_file "config/ci.rb" do |content|
-      assert_match(/step "Tests: Seeds", "env RAILS_ENV=test bin\/rails db:seed:replant"/, content)
+      assert_match(/step "Tests: Rails", "bin\/rails db:test:prepare test"/, content)
+      assert_match(/step "Tests: System", "bin\/rails db:test:prepare test:system"/, content)
     end
   end
 
@@ -703,17 +704,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/ci.rb" do |content|
       assert_no_match(/step "Tests: Rails"/, content)
       assert_no_match(/step "Tests: System"/, content)
-      assert_no_match(/step "Tests: Seeds"/, content)
-      assert_no_match(/bin\/rails db:seed:replant/, content)
     end
   end
 
-  def test_config_ci_does_not_include_seed_step_when_skip_active_record_is_given
+  def test_config_ci_does_not_include_db_test_prepare_when_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
 
     assert_file "config/ci.rb" do |content|
-      assert_no_match(/step "Tests: Seeds"/, content)
-      assert_no_match(/bin\/rails db:seed:replant/, content)
+      assert_no_match(/db:test:prepare/, content)
+      assert_match(/bin\/rails test/, content)
+      assert_match(/bin\/rails test:system/, content)
     end
   end
 

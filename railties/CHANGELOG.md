@@ -1,3 +1,7 @@
+*   Make `bin/ci` call `db:test:prepare` instead of `db:seed:replant` to make it consistent with `.github/workflows/ci.yml`
+
+    *Matthew Nguyen*
+
 *   Do not clean directories directly under the application root with `Rails::BacktraceCleaner`
 
     Improved `Rails.backtrace_cleaner` so that most paths located directly under the application's root directory are no longer silenced.
