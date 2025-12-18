@@ -628,6 +628,11 @@ class FormHelperTest < ActionView::TestCase
     assert_equal({ class: "pix", direct_upload: true }, original_options)
   end
 
+  def test_file_field_with_accept_attribute
+    expected = '<input accept="image/*,video/*" type="file" name="import[file]" />'
+    assert_dom_equal expected, file_field("import", "file", { accept: ["image/*", "video/*"], id: nil })
+  end
+
   def test_hidden_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="hidden" value="Hello World" autocomplete="off" />',
