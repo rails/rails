@@ -1,3 +1,8 @@
+*   Add Rails.app as alias for Rails.application. Particularly helpful when accessing nested accessors inside application code,
+    like when using Rails.app.credentials.
+
+    *DHH*
+
 *   Do not clean directories directly under the application root with `Rails::BacktraceCleaner`
 
     Improved `Rails.backtrace_cleaner` so that most paths located directly under the application's root directory are no longer silenced.
