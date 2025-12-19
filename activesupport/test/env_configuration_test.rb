@@ -31,12 +31,25 @@ class EnvConfigurationTest < ActiveSupport::TestCase
     end
   end
 
+  test "cached reads can be reloaded" do
+    set_env("ONE" => "1") do
+      assert_equal "1", @config[:one]
+
+      ENV["ONE"] = "2"
+      assert_equal "1", @config[:one]
+
+      @config.reload
+      assert_equal "2", @config[:one]
+    end
+  end
+
   private
     def set_env(attributes)
       attributes.each do |key, value|
         ENV[key] = value
       end
 
+      @config.reload
       yield
     ensure
       attributes.keys.each do |key|

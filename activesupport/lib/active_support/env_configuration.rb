@@ -15,6 +15,10 @@ module ActiveSupport
   #   config[:db_host] # => ENV["DB_HOST"]
   #   config.dig(:database, :host) # => ENV["DATABASE__HOST"]
   class EnvConfiguration
+    def initialize
+      reload
+    end
+
     # Find a upcased string-version of the +key+ in ENV.
     #
     # Example:
@@ -34,9 +38,14 @@ module ActiveSupport
       lookup(keys.collect { |key| envify(key) }.join("__"))
     end
 
+    # Reload the cached ENV values in case any of them changed or new ones were added during runtime.
+    def reload
+      @envs = ENV.to_h
+    end
+
     private
       def lookup(env_key)
-        ENV[env_key]
+        @envs[env_key]
       end
 
       def envify(key)
