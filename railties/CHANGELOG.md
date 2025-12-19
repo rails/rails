@@ -1,5 +1,5 @@
-*   Add Rails.app as alias for Rails.application. Particularly helpful when accessing nested accessors inside application code,
-    like when using Rails.app.credentials.
+*   Add `Rails.app` as alias for `Rails.application`. Particularly helpful when accessing nested accessors inside application code,
+    like when using `Rails.app.credentials`.
 
     *DHH*
 
