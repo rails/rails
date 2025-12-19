@@ -12,18 +12,6 @@ module ActiveSupport
       @configurations = configurations
     end
 
-    # Combined interface for #[] and #dig. Examples:
-    #
-    #   creds.grab(:db_host) # => creds[:db_host]
-    #   creds.grab(:database, :host) # => creds.dig(:database, :host)
-    def grab(*keys)
-      if keys.many?
-        dig(*keys)
-      else
-        self[keys.first]
-      end
-    end
-
     # Retrieve the value from the first configuration backend that holds it.
     def [](key)
       @configurations.each do |config|

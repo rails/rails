@@ -15,18 +15,6 @@ module ActiveSupport
   #   config[:db_host] # => ENV["DB_HOST"]
   #   config.dig(:database, :host) # => ENV["DATABASE__HOST"]
   class EnvConfiguration
-    # Combined interface for #[] and #dig. Examples:
-    #
-    #   creds.grab(:db_host) # => creds[:db_host]
-    #   creds.grab(:database, :host) # => creds.dig(:database, :host)
-    def grab(*keys)
-      if keys.many?
-        dig(*keys)
-      else
-        self[keys.first]
-      end
-    end
-
     # Find a upcased string-version of the +key+ in ENV.
     #
     # Example:

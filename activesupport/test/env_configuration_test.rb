@@ -31,16 +31,6 @@ class EnvConfigurationTest < ActiveSupport::TestCase
     end
   end
 
-  test "grab keys" do
-    set_env("ONE" => "1", "ONE__MORE" => "more") do
-      assert_equal "1", @config.grab(:one)
-      assert_equal "more", @config.grab(:one, :more)
-
-      assert_nil @config.grab(:none)
-      assert_nil @config.grab(:none, :missing)
-    end
-  end
-
   private
     def set_env(attributes)
       attributes.each do |key, value|

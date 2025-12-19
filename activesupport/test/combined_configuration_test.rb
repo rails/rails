@@ -61,9 +61,4 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   test "read nested key present in env and credentials" do
     assert_equal "env", @combined.dig(:nested, :available_in_both)
   end
-
-  test "read using combined key method" do
-    assert_equal "env", @combined.grab(:only_in_env)
-    assert_equal "env", @combined.grab(:nested, :only_in_env)
-  end
 end
