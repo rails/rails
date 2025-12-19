@@ -16,10 +16,10 @@ class Rails::CredsTest < ActiveSupport::TestCase
     app("production")
 
     ENV["MYSTERY"] = "hidden"
-    assert_equal "hidden", Rails.app.creds[:mystery]
+    assert_equal "hidden", Rails.app.creds.require(:mystery)
 
     ENV.delete("MYSTERY")
-    assert_equal "revealed", Rails.app.creds[:mystery]
+    assert_equal "revealed", Rails.app.creds.require(:mystery)
   ensure
     ENV.delete("MYSTERY")
   end

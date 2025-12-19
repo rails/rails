@@ -20,13 +20,12 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
 
     @credentials.write({ available_in_both: "cred", only_in_credentials: "cred", nested: { available_in_both: "cred", only_in_credentials: "cred" } }.to_yaml)
 
-
-    @envs = ActiveSupport::EnvConfiguration.new
     ENV["ONLY_IN_ENV"] = "env"
     ENV["AVAILABLE_IN_BOTH"] = "env"
     ENV["NESTED__ONLY_IN_ENV"] = "env"
     ENV["NESTED__AVAILABLE_IN_BOTH"] = "env"
 
+    @envs = ActiveSupport::EnvConfiguration.new
     @combined = ActiveSupport::CombinedConfiguration.new(@envs, @credentials)
   end
 
@@ -38,27 +37,27 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     ENV.delete("NESTED__AVAILABLE_IN_BOTH")
   end
 
-  test "read key present in env not credentials" do
-    assert_equal "env", @combined[:only_in_env]
+  test "require key present in env not credentials" do
+    assert_equal "env", @combined.require(:only_in_env)
   end
 
-  test "read key present in credentials not env" do
-    assert_equal "cred", @combined[:only_in_credentials]
+  test "require key present in credentials not env" do
+    assert_equal "cred", @combined.require(:only_in_credentials)
   end
 
-  test "read key present in env and credentials" do
-    assert_equal "env", @combined[:available_in_both]
+  test "require key present in env and credentials" do
+    assert_equal "env", @combined.require(:available_in_both)
   end
 
   test "read nested key present in env not credentials" do
-    assert_equal "env", @combined.dig(:nested, :only_in_env)
+    assert_equal "env", @combined.require(:nested, :only_in_env)
   end
 
   test "read nested key present in credentials not env" do
-    assert_equal "cred", @combined.dig(:nested, :only_in_credentials)
+    assert_equal "cred", @combined.require(:nested, :only_in_credentials)
   end
 
   test "read nested key present in env and credentials" do
-    assert_equal "env", @combined.dig(:nested, :available_in_both)
+    assert_equal "env", @combined.require(:nested, :available_in_both)
   end
 end

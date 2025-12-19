@@ -11,31 +11,43 @@ module ActiveSupport
   #
   # Examples:
   #
-  #   config = EnvConfiguration.new
-  #   config[:db_host] # => ENV["DB_HOST"]
-  #   config.dig(:database, :host) # => ENV["DATABASE__HOST"]
+  #   require(:db_host)           # => ENV.fetch("DB_HOST")
+  #   require(:database, :host)   # => ENV.fetch("DATABASE__HOST")
+  #   optional(:debug) { "true" } # => ENV.fetch("DB_HOST") { "true" }
   class EnvConfiguration
     def initialize
       reload
     end
 
-    # Find a upcased string-version of the +key+ in ENV.
-    #
-    # Example:
-    #
-    #   config[:db_host] # => ENV["DB_HOST"]
-    def [](key)
-      lookup envify(key)
-    end
-
     # Find a upcased and double-underscored-joined string-version of the +keys+ in ENV.
+    # Raises +KeyError+ if not found.
     #
     # Examples:
     #
-    #   config.dig(:db_host) # => ENV["DB_HOST"]
-    #   config.dig(:database, :host) # => ENV["DATABASE__HOST"]
-    def dig(*keys)
-      lookup(keys.collect { |key| envify(key) }.join("__"))
+    #   require(:db_host)         # => ENV.fetch("DB_HOST")
+    #   require(:database, :host) # => ENV.fetch("DATABASE__HOST")
+    def require(*keys)
+      @envs.fetch envify(*keys)
+    end
+
+    # Find a upcased and double-underscored-joined string-version of the +keys+ in ENV.
+    # Returns nil if the key isn't found or the value of default when passed If default is
+    # a block, it's called first.
+    #
+    # Examples:
+    #
+    #   option(:db_host)                                    # => ENV["DB_HOST"]
+    #   option(:database, :host)                            # => ENV["DATABASE__HOST"]
+    #   option(:database, :host, default: "missing")        # => ENV.fetch("DATABASE__HOST", "missing")
+    #   option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST", default.call)
+    def option(*keys, default: nil)
+      if default.is_a? Proc
+        @envs.fetch envify(*keys), default.call
+      elsif default
+        @envs.fetch envify(*keys), default
+      else
+        @envs[envify(*keys)]
+      end
     end
 
     # Reload the cached ENV values in case any of them changed or new ones were added during runtime.
@@ -48,8 +60,8 @@ module ActiveSupport
         @envs[env_key]
       end
 
-      def envify(key)
-        key.to_s.upcase
+      def envify(*keys)
+        keys.collect { |key| key.to_s.upcase }.join("__")
       end
   end
 end

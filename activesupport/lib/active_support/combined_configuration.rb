@@ -12,22 +12,44 @@ module ActiveSupport
       @configurations = configurations
     end
 
-    # Retrieve the value from the first configuration backend that holds it.
-    def [](key)
+    # Find a upcased and double-underscored-joined string-version of the +keys+ in ENV.
+    # Raises +KeyError+ if not found.
+    #
+    # Examples:
+    #
+    #   config.require(:db_host)         # => ENV.fetch("DB_HOST")
+    #   config.require(:database, :host) # => ENV.fetch("DATABASE__HOST")
+    def require(*keys)
       @configurations.each do |config|
-        if value = config[key]
+        if value = config.option(*keys)
           return value
         end
       end
+
+      raise KeyError, "Missing key: #{keys.inspect}"
     end
 
-    # Retrieve the nested value from the first configuration backend that holds it.
-    def dig(*keys)
-      @configurations.find do |config|
-        if value = config.dig(*keys)
+    # Find a upcased and double-underscored-joined string-version of the +keys+ in ENV.
+    # Returns nil if the key isn't found or the value of the default block when passed.
+    #
+    # Examples:
+    #
+    #   config.option(:db_host)                             # => ENV["DB_HOST"]
+    #   config.option(:database, :host)                     # => ENV["DATABASE__HOST"]
+    #   config.option(:database, :host, default: "missing") # => ENV["DATABASE__HOST"]
+    def option(*keys, default: nil)
+      @configurations.each do |config|
+        if value = config.option(*keys)
           return value
         end
       end
+
+      default.respond_to?(:call) ? default.call : default
+    end
+
+    # Reload the cached values in any of the backend configurations.
+    def reload
+      @configurations.each { |config| config.try(:reload) }
     end
   end
 end

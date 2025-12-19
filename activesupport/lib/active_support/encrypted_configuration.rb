@@ -58,6 +58,41 @@ module ActiveSupport
       @options = nil
     end
 
+    # Find a upcased and double-underscored-joined string-version of the +keys+ in ENV.
+    # Raises +KeyError+ if not found.
+    #
+    # Examples:
+    #
+    #   require(:db_host)         # => ENV.fetch("DB_HOST")
+    #   require(:database, :host) # => ENV.fetch("DATABASE__HOST")
+    def require(*keys)
+      dig(*keys) || raise(KeyError)
+    end
+
+    # Find a upcased and double-underscored-joined string-version of the +keys+ in ENV.
+    # Returns nil if the key isn't found or the value of default when passed If default is
+    # a block, it's called first.
+    #
+    # Examples:
+    #
+    #   config.option(:db_host)                                    # => ENV["DB_HOST"]
+    #   config.option(:database, :host)                            # => ENV["DATABASE__HOST"]
+    #   config.option(:database, :host, default: "missing")        # => ENV.fetch("DATABASE__HOST", "missing")
+    #   config.option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST", default.call)
+    def option(*keys, default: nil)
+      if default.is_a? Proc
+        dig(*keys) || default.call
+      elsif default
+        dig(*keys) || default
+      else
+        dig(*keys)
+      end
+    end
+
+    # Reload the cached values in case any of them changed or new ones were added during runtime.
+    def reload
+    end
+
     # Reads the file and returns the decrypted content. See EncryptedFile#read.
     def read
       super

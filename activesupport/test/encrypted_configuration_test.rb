@@ -141,4 +141,42 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_no_match(/#{secret}/, @credentials.inspect)
     assert_match(/\A#<ActiveSupport::EncryptedConfiguration:0x[0-9a-f]+>\z/, @credentials.inspect)
   end
+
+  test "require key" do
+    @credentials.write({ one: "1" }.to_yaml)
+    assert_equal "1", @credentials.require(:one)
+  end
+
+  test "require multiword key" do
+    @credentials.write({ one_more: "1" }.to_yaml)
+    assert_equal "1", @credentials.require(:one_more)
+  end
+
+  test "reqiure missing key raises key error" do
+    assert_raises(KeyError) do
+      @credentials.require(:gone)
+    end
+  end
+
+  test "reqiure missing multiword key raises key error" do
+    assert_raises(KeyError) do
+      @credentials.require(:gone, :missing)
+    end
+  end
+
+  test "optional missing key returns nil" do
+    assert_nil @credentials.option(:two_is_not_here)
+  end
+
+  test "optional missing multiword key returns nil" do
+    assert_nil @credentials.option(:two_is_not_here, :nor_here)
+  end
+
+  test "optional missing key with default value returns default" do
+    assert_equal "there", @credentials.option(:two_is_not_here, default: "there")
+  end
+
+  test "optional missing key with default block returns default" do
+    assert_equal "there", @credentials.option(:two_is_not_here, default: -> { "there" })
+  end
 end
