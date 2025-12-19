@@ -43,7 +43,7 @@ module ActiveSupport
     #   config.dig(:db_host) # => ENV["DB_HOST"]
     #   config.dig(:database, :host) # => ENV["DATABASE__HOST"]
     def dig(*keys)
-      lookup(Array(keys).collect { |key| envify(key) }.join("__"))
+      lookup(keys.collect { |key| envify(key) }.join("__"))
     end
 
     private
