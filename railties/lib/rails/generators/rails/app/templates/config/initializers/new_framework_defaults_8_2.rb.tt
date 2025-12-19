@@ -60,11 +60,3 @@
 #  - :lazily - Skip automatic analysis; analyze on-demand
 #++
 # Rails.application.config.active_storage.analyze = :immediately
-
-###
-# Combine credentials from ENV and from the encrypted configuration. This allows you to use
-# a consistent API for accessing credentials whether they come from ENV or the encrypted configuration.
-# You can also move keys back and forth between these backends without changing the app code.
-#
-#++
-# Rails.application.config.credentials.combine = true

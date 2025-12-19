@@ -4,6 +4,8 @@ require "yaml"
 require "active_support/core_ext/hash/keys"
 require "active_support/key_generator"
 require "active_support/message_verifiers"
+require "active_support/combined_configuration"
+require "active_support/env_configuration"
 require "active_support/encrypted_configuration"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
@@ -495,13 +497,14 @@ module Rails
     # <tt>config/credentials/#{environment}.key</tt> for the current
     # environment, or +config/master.key+ if that file does not exist.
     def credentials
-      if config.credentials.combined
-        @credentials ||= ActiveSupport::CombinedConfiguration.new \
-          ActiveSupport::EnvConfiguration.new,
-          encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
-      else
-        @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
-      end
+      @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
+    end
+
+    # Returns an ActiveSupport::CombinedConfiguration instance that combines
+    # access to the encrypted credentials available via #credentials and keys
+    # used for the same purpose in ENV.
+    def creds
+      @creds ||= ActiveSupport::CombinedConfiguration.new(ActiveSupport::EnvConfiguration.new, credentials)
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for an encrypted

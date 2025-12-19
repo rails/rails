@@ -383,8 +383,6 @@ module Rails
           if respond_to?(:active_storage)
             active_storage.analyze = :immediately
           end
-
-          credentials.combined = true
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -667,7 +665,7 @@ module Rails
           key_path = root.join("config/credentials/#{Rails.env}.key")
           key_path = root.join("config/master.key") if !key_path.exist?
 
-          { content_path: content_path, key_path: key_path, combined: false }
+          { content_path: content_path, key_path: key_path }
         end
 
         def generate_local_secret
