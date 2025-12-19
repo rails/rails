@@ -843,12 +843,13 @@ module ActionController
     #     params.fetch_values(:name, :none)               # => ActionController::ParameterMissing: param is missing or the value is empty or invalid: none
     #     params.fetch_values(:name, :none) { |key| key } # => ["Francesco", :none]
     def fetch_values(*keys)
+      original_key_lookup = keys.index_by { |key| key.to_s }
       values = @parameters.fetch_values(*keys) do |missing_key|
-        missing_key = missing_key.to_sym if missing_key.respond_to?(:to_sym) && !keys.include?(missing_key)
+        original_key = original_key_lookup[missing_key]
         if block_given?
-          yield missing_key
+          yield original_key
         else
-          raise ActionController::ParameterMissing.new(missing_key, @parameters.keys)
+          raise ActionController::ParameterMissing.new(original_key, @parameters.keys)
         end
       end
       values.map! { |value| convert_value_to_parameters(value) }
