@@ -98,6 +98,17 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     end
   end
 
+  test "edit command does not add master key when key_command specified" do
+    master_key = read_file("config/master.key")
+    remove_file "config/master.key"
+    app_file ".gitignore", ""
+    add_to_config "config.credentials.key_command = \"echo #{master_key}\""
+
+    assert_match DEFAULT_CREDENTIALS_PATTERN, run_edit_command
+    assert_no_file "config/master.key"
+    assert_no_match "config/master.key", read_file(".gitignore")
+  end
+
   test "edit command modifies file specified by environment option" do
     remove_file "config/credentials.yml.enc"
 
@@ -331,6 +342,15 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_credentials_paths "config/credentials/production.yml.enc", key_path, environment: "production"
   end
 
+  test "respects config.credentials.key_command when set in config/application.rb" do
+    master_key = read_file("config/master.key")
+    remove_file "config/master.key"
+    add_to_config "config.credentials.key_command = \"echo #{master_key}\""
+
+    assert_match DEFAULT_CREDENTIALS_PATTERN, run_edit_command
+    assert_match DEFAULT_CREDENTIALS_PATTERN, run_show_command
+  end
+
   test "respects config.credentials.content_path when set in config/environments/*.rb" do
     content_path = "my_secrets/credentials.yml.enc"
     add_to_env_config "production", "config.credentials.content_path = #{content_path.inspect}"
@@ -351,6 +371,15 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     end
 
     assert_credentials_paths "config/credentials/production.yml.enc", key_path, environment: "production"
+  end
+
+  test "respects config.credentials.key_command when set in config/environments/*.rb" do
+    run_edit_command(environment: "production")
+    production_key = read_file("config/credentials/production.key")
+    remove_file "config/credentials/production.key"
+    add_to_env_config "production", "config.credentials.key_command = \"echo #{production_key}\""
+
+    assert_match DEFAULT_CREDENTIALS_PATTERN, run_edit_command(environment: "production")
   end
 
   test "fetch value for given path" do

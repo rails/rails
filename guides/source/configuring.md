@@ -322,6 +322,20 @@ Defaults to `config/credentials/#{Rails.env}.yml.enc` if it exists, or
 NOTE: In order for the `bin/rails credentials` commands to recognize this value,
 it must be set in `config/application.rb` or `config/environments/#{Rails.env}.rb`.
 
+#### `config.credentials.key_command`
+
+A shell command to execute to retrieve the encryption key. This is useful for
+integrating with password managers like 1Password, LastPass, and Bitwarden.
+
+```ruby
+config.credentials.key_command = "op read op://vault/my_app/master_key"
+config.credentials.key_command = "lpass show --password my_app_master_key"
+config.credentials.key_command = "bw get password my_app_master_key"
+```
+
+NOTE: In order for the `bin/rails credentials` commands to recognize this value,
+it must be set in `config/application.rb` or `config/environments/#{Rails.env}.rb`.
+
 #### `config.credentials.key_path`
 
 The path of the encrypted credentials key file.

@@ -1655,7 +1655,13 @@ It is beyond the scope of this guide to inform you on how to secure your applica
 
 ### Custom Credentials
 
-Rails stores secrets in `config/credentials.yml.enc`, which is encrypted and hence cannot be edited directly. Rails uses `config/master.key` or alternatively looks for the environment variable `ENV["RAILS_MASTER_KEY"]` to encrypt the credentials file. Because the credentials file is encrypted, it can be stored in version control, as long as the master key is kept safe.
+Rails stores secrets in `config/credentials.yml.enc`, which is encrypted and hence cannot be edited directly. The encryption key can be provided via:
+
+* `ENV["RAILS_MASTER_KEY"]` environment variable
+* `config.credentials.key_command` shell command (e.g., for password managers)
+* `config/master.key` file
+
+Because the credentials file is encrypted, it can be stored in version control, as long as the master key is kept safe.
 
 By default, the credentials file contains the application's
 `secret_key_base`. It can also be used to store other secrets such as access keys for external APIs.

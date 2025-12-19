@@ -51,9 +51,9 @@ module ActiveSupport
 
     delegate_missing_to :options
 
-    def initialize(config_path:, key_path:, env_key:, raise_if_missing_key:)
-      super content_path: config_path, key_path: key_path,
-        env_key: env_key, raise_if_missing_key: raise_if_missing_key
+    def initialize(config_path:, env_key:, key_command: nil, key_path:, raise_if_missing_key:)
+      super content_path: config_path, env_key: env_key, key_command: key_command,
+        key_path: key_path, raise_if_missing_key: raise_if_missing_key
       @config = nil
       @options = nil
     end
