@@ -1,3 +1,8 @@
+*   Add `Rails.app` as alias for `Rails.application`. Particularly helpful when accessing nested accessors inside application code,
+    like when using `Rails.app.credentials`.
+
+    *DHH*
+
 *   Remove duplicate unique index for token migrations
 
     *zzak*, *Dan Bota*

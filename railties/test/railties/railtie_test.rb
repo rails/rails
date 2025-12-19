@@ -17,7 +17,7 @@ module RailtiesTest
     end
 
     def app
-      @app ||= Rails.application
+      @app ||= Rails.app
     end
 
     test "cannot instantiate a Railtie object" do
