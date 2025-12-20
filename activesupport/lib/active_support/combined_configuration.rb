@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/enumerable"
+require "active_support/core_ext/object/defined"
 
 module ActiveSupport
   # Allows for configuration keys to be pulled from multiple backends. Keys are pulled in first-found order from
@@ -22,7 +23,7 @@ module ActiveSupport
     def require(*key)
       @configurations.each do |config|
         value = config.option(*key)
-        return value unless value.nil?
+        return value if value.defined?
       end
 
       raise KeyError, "Missing key: #{key.inspect}"
@@ -40,7 +41,7 @@ module ActiveSupport
     def option(*key, default: nil)
       @configurations.each do |config|
         value = config.option(*key)
-        return value unless value.nil?
+        return value if value.defined?
       end
 
       default.respond_to?(:call) ? default.call : default
