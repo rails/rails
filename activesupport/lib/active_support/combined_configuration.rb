@@ -30,7 +30,7 @@ module ActiveSupport
     end
 
     # Find singular or nested keys across all backends. If no backend holds the key, +nil+ is returned.
-    # If a +default+ value or proc is defined, it (or its called value) will be returned on a missing key.
+    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key.
     #
     # Examples:
     #
