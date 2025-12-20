@@ -19,6 +19,7 @@ class Rails::CredsTest < ActiveSupport::TestCase
     assert_equal "hidden", Rails.app.creds.require(:mystery)
 
     ENV.delete("MYSTERY")
+    Rails.app.creds.reload
     assert_equal "revealed", Rails.app.creds.require(:mystery)
   ensure
     ENV.delete("MYSTERY")
