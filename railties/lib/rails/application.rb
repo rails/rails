@@ -496,6 +496,8 @@ module Rails
     # +config.credentials.key_path+ will point to either
     # <tt>config/credentials/#{environment}.key</tt> for the current
     # environment, or +config/master.key+ if that file does not exist.
+    #
+    # Is best used via #creds to ensure that values can be overwritten via ENV.
     def credentials
       @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
     end
@@ -503,6 +505,16 @@ module Rails
     # Returns an ActiveSupport::CombinedConfiguration instance that combines
     # access to the encrypted credentials available via #credentials and keys
     # used for the same purpose in ENV.
+    #
+    # This allows values in the encrypted credentials to be overwritten via ENV and for values to be
+    # moved between the two ways of providing credentials without rewriting application code.
+    #
+    # Examples:
+    #
+    #   Rails.app.creds.require(:db_password)
+    #   Rails.app.creds.require(:aws, :access_key_id)
+    #   Rails.app.creds.option(:cache_host, default: "cache-host-1")
+    #   Rails.app.creds.option(:cache_host, default: -> { HostProvider.cache })
     def creds
       @creds ||= ActiveSupport::CombinedConfiguration.new(ActiveSupport::EnvConfiguration.new, credentials)
     end
