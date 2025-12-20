@@ -91,6 +91,7 @@ module ActiveSupport
 
     # Reload the cached values in case any of them changed or new ones were added during runtime.
     def reload
+      @config = @options = nil
     end
 
     # Reads the file and returns the decrypted content. See EncryptedFile#read.
