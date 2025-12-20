@@ -4,7 +4,6 @@ require "yaml"
 require "active_support/encrypted_file"
 require "active_support/ordered_options"
 require "active_support/core_ext/object/inclusion"
-require "active_support/core_ext/object/defined"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/module/delegation"
 
@@ -69,7 +68,7 @@ module ActiveSupport
     def require(*key)
       value = dig(*key)
 
-      if value.defined?
+      if !value.nil?
         value
       else
         raise(KeyError)
@@ -89,7 +88,7 @@ module ActiveSupport
     def option(*key, default: nil)
       value = dig(*key)
 
-      if value.defined?
+      if !value.nil?
         value
       elsif default
         default.try(:call) || default
