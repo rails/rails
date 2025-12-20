@@ -19,7 +19,7 @@ module ActiveSupport
       reload
     end
 
-    # Find a upcased and double-underscored-joined string-version of the +key+ in ENV.
+    # Find an upcased and double-underscored-joined string-version of the +key+ in ENV.
     # Raises +KeyError+ if not found.
     #
     # Examples:
@@ -30,9 +30,9 @@ module ActiveSupport
       @envs.fetch envify(*key)
     end
 
-    # Find a upcased and double-underscored-joined string-version of the +key+ in ENV.
-    # Returns nil if the key isn't found or the value of default when passed If default is
-    # a block, it's called first.
+    # Find an upcased and double-underscored-joined string-version of the +key+ in ENV.
+    # Returns +nil+ if the key isn't found or the value of +default+ when passed.
+    # If +default+ is a callable, it's called first.
     #
     # Examples:
     #
