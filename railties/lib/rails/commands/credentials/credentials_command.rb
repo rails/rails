@@ -91,7 +91,7 @@ module Rails
         end
 
         def credentials
-          @credentials ||= Rails.application.encrypted(content_path, key_path: key_path)
+          @credentials ||= Rails.application.encrypted(content_path, key_command: config.key_command, key_path: key_path)
         end
 
         def ensure_encryption_key_has_been_added

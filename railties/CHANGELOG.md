@@ -1,3 +1,14 @@
+*   Add `config.credentials.key_command` to fetch the credentials encryption key
+    from a shell command. This enables integration with password managers like
+    1Password, LastPass, and Bitwarden.
+
+    ```ruby
+    # config/environments/production.rb
+    config.credentials.key_command = "op read op://vault/my_app/master_key"
+    ```
+
+    *Jordan Brough*
+
 *   Add `Rails.app` as alias for `Rails.application`. Particularly helpful when accessing nested accessors inside application code,
     like when using `Rails.app.credentials`.
 

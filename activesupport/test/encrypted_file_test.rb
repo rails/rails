@@ -38,6 +38,15 @@ class EncryptedFileTest < ActiveSupport::TestCase
     assert_equal @content, @encrypted_file.read
   end
 
+  test "reading content by key command" do
+    FileUtils.rm_rf @key_path
+
+    file = encrypted_file(@content_path, key_path: "", env_key: "", key_command: "echo #{@key}")
+    file.write @content
+
+    assert_equal @content, file.read
+  end
+
   test "reading content by key file" do
     @encrypted_file.write(@content)
     assert_equal @content, @encrypted_file.read
@@ -60,9 +69,29 @@ class EncryptedFileTest < ActiveSupport::TestCase
     end
   end
 
+  test "raise KeyCommandError when key command fails" do
+    file = encrypted_file(@content_path, key_command: "exit 1")
+
+    error = assert_raise ActiveSupport::EncryptedFile::KeyCommandError do
+      file.write @content
+    end
+
+    assert_equal "key_command `exit 1` failed with exit code 1", error.message
+  end
+
+  test "raise KeyCommandError when key command returns blank" do
+    file = encrypted_file(@content_path, key_command: "echo ''")
+
+    error = assert_raise ActiveSupport::EncryptedFile::KeyCommandError do
+      file.write @content
+    end
+
+    assert_equal "key_command `echo ''` returned a blank value", error.message
+  end
+
   test "raise MissingKeyError when key is missing" do
     assert_raise ActiveSupport::EncryptedFile::MissingKeyError do
-      encrypted_file(@content_path, key_path: "", env_key: "").read
+      encrypted_file(@content_path, env_key: "", key_command: nil, key_path: "").read
     end
   end
 
@@ -94,6 +123,14 @@ class EncryptedFileTest < ActiveSupport::TestCase
 
   test "key? is true when key file exists" do
     assert_predicate @encrypted_file, :key?
+  end
+
+  test "key? is true when key command is present" do
+    FileUtils.rm_rf @key_path
+
+    file = encrypted_file(@content_path, key_path: "", env_key: "", key_command: "echo #{@key}")
+
+    assert_predicate file, :key?
   end
 
   test "key? is true when env key is present" do
@@ -164,8 +201,8 @@ class EncryptedFileTest < ActiveSupport::TestCase
   end
 
   private
-    def encrypted_file(content_path, key_path: @key_path, env_key: "CONTENT_KEY")
-      ActiveSupport::EncryptedFile.new(content_path: @content_path, key_path: key_path,
-        env_key: env_key, raise_if_missing_key: true)
+    def encrypted_file(content_path, env_key: "CONTENT_KEY", key_command: nil, key_path: @key_path)
+      ActiveSupport::EncryptedFile.new(content_path: @content_path, env_key: env_key,
+        key_command: key_command, key_path: key_path, raise_if_missing_key: true)
     end
 end

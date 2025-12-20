@@ -26,6 +26,12 @@ module ActiveSupport
       end
     end
 
+    class KeyCommandError < RuntimeError
+      def initialize(key_command:, message:)
+        super "key_command `#{key_command}` #{message}"
+      end
+    end
+
     CIPHER = "aes-128-gcm"
 
     def self.generate_key
@@ -37,26 +43,27 @@ module ActiveSupport
     end
 
 
-    attr_reader :content_path, :key_path, :env_key, :raise_if_missing_key
+    attr_reader :content_path, :env_key, :key_command, :key_path, :raise_if_missing_key
 
-    def initialize(content_path:, key_path:, env_key:, raise_if_missing_key:)
+    def initialize(content_path:, env_key:, key_command: nil, key_path:, raise_if_missing_key:)
       @content_path = Pathname.new(content_path).yield_self { |path| path.symlink? ? path.realpath : path }
       @key_path = Pathname.new(key_path)
-      @env_key, @raise_if_missing_key = env_key, raise_if_missing_key
+      @env_key, @key_command, @raise_if_missing_key = env_key, key_command, raise_if_missing_key
     end
 
     # Returns the encryption key, first trying the environment variable
-    # specified by +env_key+, then trying the key file specified by +key_path+.
-    # If +raise_if_missing_key+ is true, raises MissingKeyError if the
-    # environment variable is not set and the key file does not exist.
+    # specified by +env_key+, then the shell command specified by +key_command+,
+    # then the key file specified by +key_path+.
+    # If +raise_if_missing_key+ is true, raises MissingKeyError if none of these
+    # sources provide a key.
     def key
-      read_env_key || read_key_file || handle_missing_key
+      read_env_key || read_key_command || read_key_file || handle_missing_key
     end
 
     # Returns truthy if #key is truthy. Returns falsy otherwise. Unlike #key,
     # does not raise MissingKeyError when +raise_if_missing_key+ is true.
     def key?
-      read_env_key || read_key_file
+      read_env_key || read_key_command || read_key_file
     end
 
     # Reads the file and returns the decrypted content.
@@ -116,6 +123,22 @@ module ActiveSupport
 
       def read_env_key
         ENV[env_key].presence
+      end
+
+      def read_key_command
+        return if key_command.nil?
+        return @key_command_result if defined?(@key_command_result)
+
+        @key_command_result = begin
+          result = `#{key_command}`
+          if !$?.success?
+            raise KeyCommandError.new(key_command: key_command, message: "failed with exit code #{$?.exitstatus}")
+          elsif result.blank?
+            raise KeyCommandError.new(key_command: key_command, message: "returned a blank value")
+          else
+            result.chomp
+          end
+        end
       end
 
       def read_key_file

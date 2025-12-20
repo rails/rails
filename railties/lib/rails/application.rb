@@ -489,18 +489,24 @@ module Rails
     # +production+ environment), or +config/credentials.yml.enc+ if that file
     # does not exist.
     #
-    # The encryption key is taken from either <tt>ENV["RAILS_MASTER_KEY"]</tt>,
-    # or from the file specified by +config.credentials.key_path+. By default,
-    # +config.credentials.key_path+ will point to either
+    # The encryption key is taken from <tt>ENV["RAILS_MASTER_KEY"]</tt>,
+    # the shell command specified by +config.credentials.key_command+,
+    # or the file specified by +config.credentials.key_path+.
+    # By default, +config.credentials.key_path+ will point to either
     # <tt>config/credentials/#{environment}.key</tt> for the current
     # environment, or +config/master.key+ if that file does not exist.
     def credentials
-      @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
+      @credentials ||= encrypted(
+        config.credentials.content_path,
+        key_path: config.credentials.key_path,
+        key_command: config.credentials.key_command
+      )
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for an encrypted
-    # file. By default, the encryption key is taken from either
-    # <tt>ENV["RAILS_MASTER_KEY"]</tt>, or from the +config/master.key+ file.
+    # file. By default, the encryption key is taken from
+    # <tt>ENV["RAILS_MASTER_KEY"]</tt>, the +key_command+ shell command,
+    # or the +config/master.key+ file.
     #
     #   my_config = Rails.application.encrypted("config/my_config.enc")
     #
@@ -513,11 +519,12 @@ module Rails
     # Encrypted files can be edited with the <tt>bin/rails encrypted:edit</tt>
     # command. (See the output of <tt>bin/rails encrypted:edit --help</tt> for
     # more information.)
-    def encrypted(path, key_path: "config/master.key", env_key: "RAILS_MASTER_KEY")
+    def encrypted(path, env_key: "RAILS_MASTER_KEY", key_command: nil, key_path: "config/master.key")
       ActiveSupport::EncryptedConfiguration.new(
         config_path: Rails.root.join(path),
-        key_path: Rails.root.join(key_path),
         env_key: env_key,
+        key_command: key_command,
+        key_path: Rails.root.join(key_path),
         raise_if_missing_key: config.require_master_key
       )
     end

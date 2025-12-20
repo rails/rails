@@ -1,3 +1,8 @@
+*   Add `key_command` option to `EncryptedFile` and `EncryptedConfiguration` to
+    fetch encryption keys from shell commands (e.g., password managers).
+
+    *Jordan Brough*
+
 *   Make flaky parallel tests easier to diagnose by deterministically assigning
     tests to workers.
 
