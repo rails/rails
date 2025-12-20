@@ -4,9 +4,10 @@ module ActiveRecord
   module Associations
     class Preloader
       class Batch # :nodoc:
-        def initialize(preloaders, available_records:)
+        def initialize(preloaders, available_records:, batch_size: nil)
           @preloaders = preloaders.reject(&:empty?)
           @available_records = available_records.flatten.group_by { |r| r.class.base_class }
+          @batch_size = batch_size
         end
 
         def call
@@ -39,7 +40,7 @@ module ActiveRecord
 
           def group_and_load_similar(loaders)
             loaders.grep_v(ThroughAssociation).group_by(&:loader_query).each_pair do |query, similar_loaders|
-              query.load_records_in_batch(similar_loaders)
+              query.load_records_in_batch(similar_loaders, batch_size: @batch_size)
             end
           end
       end

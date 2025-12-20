@@ -25,12 +25,12 @@ module ActiveRecord
             [association_key_name, scope.model.table_name, scope.model.connection_specification_name, scope.values_for_queries].hash
           end
 
-          def records_for(loaders)
-            LoaderRecords.new(loaders, self).records
+          def records_for(loaders, batch_size:)
+            LoaderRecords.new(loaders, self, batch_size: batch_size).records
           end
 
-          def load_records_in_batch(loaders)
-            raw_records = records_for(loaders)
+          def load_records_in_batch(loaders, batch_size:)
+            raw_records = records_for(loaders, batch_size: batch_size)
 
             loaders.each do |loader|
               loader.load_records(raw_records)
@@ -58,11 +58,12 @@ module ActiveRecord
         end
 
         class LoaderRecords
-          def initialize(loaders, loader_query)
+          def initialize(loaders, loader_query, batch_size: nil)
             @loader_query = loader_query
             @loaders = loaders
             @keys_to_load = Set.new
             @already_loaded_records_by_key = {}
+            @batch_size = batch_size
 
             populate_keys_to_load_and_already_loaded_records
           end
@@ -89,7 +90,19 @@ module ActiveRecord
             end
 
             def load_records
-              loader_query.load_records_for_keys(keys_to_load) do |record|
+              result = []
+              if @batch_size.to_i > 0
+                keys_to_load.each_slice(@batch_size) do |keys_batch|
+                  result += load_records_for_keys(keys_batch)
+                end
+              else
+                result = load_records_for_keys(keys_to_load)
+              end
+              result
+            end
+
+            def load_records_for_keys(keys)
+              loader_query.load_records_for_keys(keys) do |record|
                 loaders.each { |l| l.set_inverse(record) }
               end
             end
