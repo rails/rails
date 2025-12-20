@@ -19,18 +19,18 @@ module ActiveSupport
       reload
     end
 
-    # Find a upcased and double-underscored-joined string-version of the +keys+ in ENV.
+    # Find a upcased and double-underscored-joined string-version of the +key+ in ENV.
     # Raises +KeyError+ if not found.
     #
     # Examples:
     #
     #   require(:db_host)         # => ENV.fetch("DB_HOST")
     #   require(:database, :host) # => ENV.fetch("DATABASE__HOST")
-    def require(*keys)
-      @envs.fetch envify(*keys)
+    def require(*key)
+      @envs.fetch envify(*key)
     end
 
-    # Find a upcased and double-underscored-joined string-version of the +keys+ in ENV.
+    # Find a upcased and double-underscored-joined string-version of the +key+ in ENV.
     # Returns nil if the key isn't found or the value of default when passed If default is
     # a block, it's called first.
     #
@@ -40,13 +40,13 @@ module ActiveSupport
     #   option(:database, :host)                            # => ENV["DATABASE__HOST"]
     #   option(:database, :host, default: "missing")        # => ENV.fetch("DATABASE__HOST", "missing")
     #   option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST", default.call)
-    def option(*keys, default: nil)
+    def option(*key, default: nil)
       if default.is_a? Proc
-        @envs.fetch envify(*keys), default.call
+        @envs.fetch envify(*key), default.call
       elsif default
-        @envs.fetch envify(*keys), default
+        @envs.fetch envify(*key), default
       else
-        @envs[envify(*keys)]
+        @envs[envify(*key)]
       end
     end
 
@@ -60,8 +60,8 @@ module ActiveSupport
         @envs[env_key]
       end
 
-      def envify(*keys)
-        keys.collect { |key| key.to_s.upcase }.join("__")
+      def envify(*key)
+        key.collect { |part| part.to_s.upcase }.join("__")
       end
   end
 end

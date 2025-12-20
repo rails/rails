@@ -19,14 +19,14 @@ module ActiveSupport
     #
     #   require(:db_host)         # => ENV.fetch("DB_HOST") || Rails.app.credentials.require(:db_host)
     #   require(:database, :host) # => ENV.fetch("DATABASE__HOST") || Rails.app.credentials.require(:database, :host)
-    def require(*keys)
+    def require(*key)
       @configurations.each do |config|
-        if value = config.option(*keys)
+        if value = config.option(*key)
           return value
         end
       end
 
-      raise KeyError, "Missing key: #{keys.inspect}"
+      raise KeyError, "Missing key: #{key.inspect}"
     end
 
     # Find singular or nested keys across all backends. If no backend holds the key, +nil+ is returned.
@@ -38,9 +38,9 @@ module ActiveSupport
     #   option(:database, :host)                     # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host)
     #   option(:database, :host, default: "missing") # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host) || "missing"
     #   option(:database, :host, default: -> { "missing" }) # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host) || "missing"
-    def option(*keys, default: nil)
+    def option(*key, default: nil)
       @configurations.each do |config|
-        if value = config.option(*keys)
+        if value = config.option(*key)
           return value
         end
       end

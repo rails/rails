@@ -58,15 +58,15 @@ module ActiveSupport
       @options = nil
     end
 
-    # Find a upcased and double-underscored-joined string-version of the +keys+ in ENV.
+    # Find the referenced key
     # Raises +KeyError+ if not found.
     #
     # Examples:
     #
     #   require(:db_host)         # => ENV.fetch("DB_HOST")
     #   require(:database, :host) # => ENV.fetch("DATABASE__HOST")
-    def require(*keys)
-      dig(*keys) || raise(KeyError)
+    def require(*key)
+      dig(*key) || raise(KeyError)
     end
 
     # Find a upcased and double-underscored-joined string-version of the +keys+ in ENV.
