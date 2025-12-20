@@ -498,7 +498,7 @@ module ActiveRecord
         end
 
         def load(data)
-          YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(data) : YAML.load(data)
+          YAML.unsafe_load(data)
         end
     end
   end

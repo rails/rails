@@ -114,10 +114,7 @@ module ActiveSupport
       end
 
       def deserialize(content)
-        config = YAML.respond_to?(:unsafe_load) ?
-          YAML.unsafe_load(content, filename: content_path) :
-          YAML.load(content, filename: content_path)
-
+        config = YAML.unsafe_load(content, filename: content_path)
         config.presence || {}
       rescue Psych::SyntaxError
         raise InvalidContentError.new(content_path)

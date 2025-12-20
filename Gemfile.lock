@@ -70,6 +70,7 @@ PATH
       json
       logger (>= 1.4.2)
       minitest (>= 5.1)
+      psych (>= 4)
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
       uri (>= 0.13.1)
