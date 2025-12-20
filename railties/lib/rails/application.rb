@@ -482,6 +482,16 @@ module Rails
       config.secret_key_base
     end
 
+    # Allows for a custom combined configuration to be used for creds.
+    #
+    # Example adding a OnePassword backend between ENVS and encrypted credentials:
+    #
+    #   Rails.app.creds = ActiveSupport::CombinedConfiguration.new \
+    #     Rails.app.envs, OnePasswordConfiguration.new, Rails.app.credentials
+    def creds=(combined_configuration)
+      @creds = combined_configuration
+    end
+
     # Returns an ActiveSupport::CombinedConfiguration instance that combines
     # access to the encrypted credentials available via #credentials and keys
     # used for the same purpose in ENV.

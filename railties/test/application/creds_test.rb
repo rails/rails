@@ -24,4 +24,23 @@ class Rails::CredsTest < ActiveSupport::TestCase
   ensure
     ENV.delete("MYSTERY")
   end
+
+  test "set custom creds that only use envs" do
+    write_credentials_override(:production)
+
+    app("production")
+
+    ENV["MYSTERY"] = "hidden"
+    Rails.app.creds = ActiveSupport::CombinedConfiguration.new(Rails.app.envs)
+    assert_equal "hidden", Rails.app.creds.require(:mystery)
+
+    ENV.delete("MYSTERY")
+    Rails.app.creds.reload
+
+    assert_raises(KeyError) do
+      Rails.app.creds.require(:mystery)
+    end
+  ensure
+    ENV.delete("MYSTERY")
+  end
 end
