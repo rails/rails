@@ -387,6 +387,7 @@ module Rails
           if respond_to?(:active_record)
             active_record.postgresql_adapter_decode_bytea = true
             active_record.postgresql_adapter_decode_money = true
+            active_record.exclude_inheritance_column_from_serializable_hash = false
           end
 
           if respond_to?(:active_storage)

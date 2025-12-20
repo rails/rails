@@ -1,3 +1,29 @@
+*   Add `exclude_inheritance_column_from_serializable_hash` configuration option.
+
+    This new configuration controls inheritance column exclusion behavior in
+    `serializable_hash` for single-table inheritance models.
+
+    When set to `true`, STI models always exclude the inheritance column
+    from JSON serialization (legacy behavior). When set to `false` (the default in Rails 8.2+),
+    the inheritance column is only excluded when `include_root_in_json` is true.
+
+    ```ruby
+    class Vehicle < ActiveRecord::Base
+      self.exclude_inheritance_column_from_serializable_hash = false
+    end
+
+    car = Car.new # Car inherits from Vehicle
+
+    # When include_root_in_json is false, the "type" column is included:
+    car.serializable_hash # => Includes "type" => "Car"
+
+    # When include_root_in_json is true, the "type" column is excluded:
+    ActiveRecord::Base.include_root_in_json = true
+    car.serializable_hash # => Excludes "type"
+    ```
+
+    *Joshua Young*
+
 *   Add `implicit_persistence_transaction` hook for customizing transaction behavior.
 
     A new protected method `implicit_persistence_transaction` has been added that wraps

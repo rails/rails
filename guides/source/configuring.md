@@ -65,6 +65,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
+- [`config.active_record.exclude_inheritance_column_from_serializable_hash`](#config-active-record-exclude-inheritance-column-from-serializable-hash): `false`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 - [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
@@ -1603,7 +1604,6 @@ ActiveRecord::Base.connection
      .select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
 ```
 
-
 The default value depends on the `config.load_defaults` target version:
 
 | Starting with version | The default value is |
@@ -1619,7 +1619,6 @@ Specifies whether the PostgresqlAdapter should decode date columns.
 ActiveRecord::Base.connection
      .select_value("select '2024-01-01'::date").class #=> Date
 ```
-
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -1637,14 +1636,12 @@ ActiveRecord::Base.connection
      .select_value("select '12.34'::money").class #=> BigDecimal
 ```
 
-
 The default value depends on the `config.load_defaults` target version:
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 8.2                   | `true`               |
-
 
 #### `config.active_record.async_query_executor`
 
@@ -1724,7 +1721,6 @@ record.token # => "fwZcXX6SkJBJRogzMdciS7wf"
 | --------------------- | -------------------- |
 | (original)            | `:create`            |
 | 7.1                   | `:initialize`        |
-
 
 #### `config.active_record.permanent_connection_checkout`
 
@@ -1953,6 +1949,24 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 8.1                   | `true`               |
 
+#### `config.active_record.exclude_inheritance_column_from_serializable_hash`
+
+Controls inheritance column exclusion behavior in `serializable_hash` for single-table inheritance models. When `true`, STI models always exclude the inheritance column from JSON serialization (legacy behavior). When `false` (the default in Rails 8.2+), the inheritance column is only excluded when `include_root_in_json` is true.
+
+```ruby
+class Vehicle < ActiveRecord::Base
+  self.exclude_inheritance_column_from_serializable_hash = false
+end
+
+car = Car.new  # Car inherits from Vehicle
+car.serializable_hash  # Now includes "type" => "Car" when include_root_in_json is false
+```
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 8.2                   | `false`              |
+
 ### Configuring Action Controller
 
 `config.action_controller` includes a number of configuration settings:
@@ -2104,7 +2118,6 @@ Raises an `AbstractController::ActionNotFound` when the action specified in call
 | (original)            | `false`              |
 | 7.1                   | `true` (development and test), `false` (other envs)|
 
-
 #### `config.action_controller.raise_on_open_redirects`
 
 Protect an application from unintentionally redirecting to an external host
@@ -2164,7 +2177,6 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `:log`               |
 | 8.1                   | `:raise`             |
-
 
 #### `config.action_controller.log_query_tags_around_actions`
 
@@ -3640,7 +3652,6 @@ NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms
 
 #### `Regexp.timeout`
 
-
 See Ruby's documentation for [`Regexp.timeout=`](https://docs.ruby-lang.org/en/master/Regexp.html#method-c-timeout-3D).
 
 ### Configuring a Database
@@ -4054,7 +4065,6 @@ server {
 
 Be sure to read the [NGINX documentation](https://nginx.org/en/docs/) for the most up-to-date information.
 
-
 Rails Environment Settings
 --------------------------
 
@@ -4065,7 +4075,6 @@ Some parts of Rails can also be configured externally by supplying environment v
 * `ENV["RAILS_RELATIVE_URL_ROOT"]` is used by the routing code to recognize URLs when you [deploy your application to a subdirectory](configuring.html#deploy-to-a-subdirectory-relative-url-root).
 
 * `ENV["RAILS_CACHE_ID"]` and `ENV["RAILS_APP_VERSION"]` are used to generate expanded cache keys in Rails' caching code. This allows you to have multiple separate caches from the same application.
-
 
 Using Initializer Files
 -----------------------

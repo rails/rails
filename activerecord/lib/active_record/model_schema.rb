@@ -161,6 +161,21 @@ module ActiveRecord
     # Defines the name of the table column which will store the class name on single-table
     # inheritance situations.
 
+    ##
+    # :singleton-method: exclude_inheritance_column_from_serializable_hash
+    # :call-seq: exclude_inheritance_column_from_serializable_hash
+    #
+    # Controls inheritance column exclusion behavior in serializable_hash.
+    # When true, the inheritance column is always excluded (legacy behavior).
+    # When false, the inheritance column is only excluded when include_root_in_json is true.
+    # Defaults to true for backward compatibility, but Rails 8.2+ defaults to false.
+
+    ##
+    # :singleton-method: exclude_inheritance_column_from_serializable_hash=
+    # :call-seq: exclude_inheritance_column_from_serializable_hash=(value)
+    #
+    # Sets the inheritance column exclusion behavior.
+
     included do
       class_attribute :primary_key_prefix_type, instance_writer: false
       class_attribute :table_name_prefix, instance_writer: false, default: ""
@@ -177,6 +192,8 @@ module ActiveRecord
         private :_inheritance_column=
         alias_method :inheritance_column=, :real_inheritance_column=
       end
+
+      class_attribute :exclude_inheritance_column_from_serializable_hash, instance_writer: false, default: true
 
       self.protected_environments = ["production"]
 
