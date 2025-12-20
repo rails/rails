@@ -9,6 +9,12 @@
     Rails.app.creds.option(:cache_host, default: -> { "cache-host-1" }) # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host) || "cache-host-1"
     ```
 
+    It's also possible to assign your own combined configuration, if you need to use a different backend than just ENVs + encrypted files:
+
+    ```ruby
+    Rails.app.creds = ActiveSupport::CombinedConfiguration.new(Rails.app.envs, OnePasswordConfiguration.new)
+    ```
+
     *DHH*
 
 *   Add `Rails.app.envs` to provide access to ENV variables through symbol-based lookup with explicit methods
