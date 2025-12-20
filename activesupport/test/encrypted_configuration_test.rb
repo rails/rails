@@ -189,4 +189,9 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     @credentials.write({ bool: false }.to_yaml)
     assert_equal false, @credentials.option(:bool, default: -> { "there" })
   end
+
+  test "optional key can return false without triggering default" do
+    @credentials.write({ false: false }.to_yaml)
+    assert_equal false, @credentials.option(:false, default: -> { "true" })
+  end
 end
