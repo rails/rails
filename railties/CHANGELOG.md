@@ -11,6 +11,19 @@
 
     *DHH*
 
+*   Add `Rails.app.envs` to provide access to ENV variables through symbol-based lookup with explicit methods
+    for required and optional values. This is the same interface offered by #credentials and can be accessed in a combined manner via #creds.
+
+    ```ruby
+    Rails.app.envs.require(:db_password) # ENV,fetch("DB_PASSWORD")
+    Rails.app.envs.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
+    Rails.app.envs.option(:cache_host) # ENV["CACHE_HOST"]
+    Rails.app.envs.option(:cache_host, default: "cache-host-1") # ENV.fetch("CACHE_HOST", "cache-host-1")
+    Rails.app.envs.option(:cache_host, default: -> { HostProvider.cache }) # ENV.fetch("CACHE_HOST") { HostProvider.cache }
+    ```
+
+    *DHH*
+
 *   Add `Rails.app` as alias for `Rails.application`. Particularly helpful when accessing nested accessors inside application code,
     like when using `Rails.app.credentials`.
 
