@@ -67,8 +67,12 @@ module ActiveSupport
     #   require(:database, :host) # => ENV.fetch("DATABASE__HOST")
     def require(*key)
       value = dig(*key)
-      raise(KeyError) if value.nil?
-      value
+
+      if !value.nil?
+        value
+      else
+        raise(KeyError)
+      end
     end
 
     # Find a upcased and double-underscored-joined string-version of the +key+ in ENV.
