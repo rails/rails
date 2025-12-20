@@ -1,3 +1,16 @@
+*   Add `Rails.app.creds` to provide combined access to credentials stored in either ENV or the encrypted credentials file.
+    Provides a new require/option API for accessing these values. Examples:
+
+    ```ruby
+    Rails.app.creds.require(:db_host) # ENV.fetch("DB_HOST") || Rails.app.credentials.require(:db_host)
+    Rails.app.creds.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID") || Rails.app.credentials.require(:aws, :access_key_id)
+    Rails.app.creds.option(:cache_host) # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host)
+    Rails.app.creds.option(:cache_host, default: "cache-host-1") # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host) || "cache-host-1"
+    Rails.app.creds.option(:cache_host, default: -> { "cache-host-1" }) # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host) || "cache-host-1"
+    ```
+
+    *DHH*
+
 *   Add `Rails.app` as alias for `Rails.application`. Particularly helpful when accessing nested accessors inside application code,
     like when using `Rails.app.credentials`.
 
