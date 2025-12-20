@@ -7,18 +7,18 @@ module ActiveSupport
   # the configuration backends that the combined configuration has been initialized with.
   #
   # This is used by Rails to offer a unified API for fetching credentials from both ENV and the encrypted file.
+  # You can access this through +Rails.app.creds+ within a Rails application.
   class CombinedConfiguration
     def initialize(*configurations)
       @configurations = configurations
     end
 
-    # Find a upcased and double-underscored-joined string-version of the +keys+ in ENV.
-    # Raises +KeyError+ if not found.
+    # Find singular or nested keys across all backends. If no backend holds the key, it raises +KeyError+.
     #
-    # Examples:
+    # Examples of Rails-configured access:
     #
-    #   config.require(:db_host)         # => ENV.fetch("DB_HOST")
-    #   config.require(:database, :host) # => ENV.fetch("DATABASE__HOST")
+    #   require(:db_host)         # => ENV.fetch("DB_HOST") || Rails.app.credentials.require(:db_host)
+    #   require(:database, :host) # => ENV.fetch("DATABASE__HOST") || Rails.app.credentials.require(:database, :host)
     def require(*keys)
       @configurations.each do |config|
         if value = config.option(*keys)
@@ -29,14 +29,15 @@ module ActiveSupport
       raise KeyError, "Missing key: #{keys.inspect}"
     end
 
-    # Find a upcased and double-underscored-joined string-version of the +keys+ in ENV.
-    # Returns nil if the key isn't found or the value of the default block when passed.
+    # Find singular or nested keys across all backends. If no backend holds the key, +nil+ is returned.
+    # If a +default+ value or proc is defined, it (or its called value) will be returned on a missing key.
     #
     # Examples:
     #
-    #   config.option(:db_host)                             # => ENV["DB_HOST"]
-    #   config.option(:database, :host)                     # => ENV["DATABASE__HOST"]
-    #   config.option(:database, :host, default: "missing") # => ENV["DATABASE__HOST"]
+    #   option(:db_host)                             # => ENV["DB_HOST"] || Rails.app.credentials.option(:db_host)
+    #   option(:database, :host)                     # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host)
+    #   option(:database, :host, default: "missing") # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host) || "missing"
+    #   option(:database, :host, default: -> { "missing" }) # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host) || "missing"
     def option(*keys, default: nil)
       @configurations.each do |config|
         if value = config.option(*keys)
@@ -47,7 +48,7 @@ module ActiveSupport
       default.respond_to?(:call) ? default.call : default
     end
 
-    # Reload the cached values in any of the backend configurations.
+    # Reload the cached values for all of the backend configurations.
     def reload
       @configurations.each { |config| config.try(:reload) }
     end
