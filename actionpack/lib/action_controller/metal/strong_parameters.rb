@@ -1012,9 +1012,9 @@ module ActionController
 
     # Returns a new `ActionController::Parameters` instance with all keys from
     # `other_hash` merged into current hash.
-    def merge(other_hash)
+    def merge(other_hash, &block)
       new_instance_with_inherited_permitted_status(
-        @parameters.merge(other_hash.to_h)
+        @parameters.merge(other_hash.to_h, &block)
       )
     end
 

@@ -1,3 +1,17 @@
+*   Add block support to `ActionController::Parameters#merge`
+
+    `ActionController::Parameters#merge` now accepts a block to resolve conflicts,
+    consistent with `Hash#merge` and `Parameters#merge!`.
+
+    ```ruby
+    params1 = ActionController::Parameters.new(a: 1, b: 2)
+    params2 = ActionController::Parameters.new(b: 3, c: 4)
+    params1.merge(params2) { |key, old_val, new_val| old_val + new_val }
+    # => #<ActionController::Parameters {"a"=>1, "b"=>5, "c"=>4} permitted: false>
+    ```
+
+    *Said Kaldybaev*
+
 *   Yield key to `ActionController::Parameters#fetch` block
 
     ```ruby
