@@ -40,9 +40,8 @@ module ActiveSupport
     #   option(:database, :host, default: -> { "missing" }) # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host) || "missing"
     def option(*key, default: nil)
       @configurations.each do |config|
-        if value = config.option(*key)
-          return value
-        end
+        value = config.option(*key)
+        return value unless value.nil?
       end
 
       default.respond_to?(:call) ? default.call : default
