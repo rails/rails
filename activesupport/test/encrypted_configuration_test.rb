@@ -152,10 +152,15 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_equal "1", @credentials.require(:one_more)
   end
 
-  test "reqiure missing key raises key error" do
+  test "require missing key raises key error" do
     assert_raises(KeyError) do
       @credentials.require(:gone)
     end
+  end
+
+  test "require false key does not raise key error" do
+    @credentials.write({ one: false }.to_yaml)
+    assert_equal false, @credentials.require(:one)
   end
 
   test "reqiure missing multiword key raises key error" do
