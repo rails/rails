@@ -80,7 +80,7 @@ module ActiveSupport
     #   config.option(:database, :host, default: "missing")        # => ENV.fetch("DATABASE__HOST", "missing")
     #   config.option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST", default.call)
     def option(*keys, default: nil)
-      if default.is_a? Proc
+      if default.respond_to?(:call)
         dig(*keys) || default.call
       elsif default
         dig(*keys) || default

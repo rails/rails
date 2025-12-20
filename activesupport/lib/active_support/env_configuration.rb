@@ -41,7 +41,7 @@ module ActiveSupport
     #   option(:database, :host, default: "missing")        # => ENV.fetch("DATABASE__HOST", "missing")
     #   option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST", default.call)
     def option(*key, default: nil)
-      if default.is_a? Proc
+      if default.respond_to?(:call)
         @envs.fetch envify(*key), default.call
       elsif default
         @envs.fetch envify(*key), default
