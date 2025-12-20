@@ -1,15 +1,6 @@
 # frozen_string_literal: true
 
-begin
-  gem "minitest-mock"
-  require "minitest/mock"
-rescue LoadError
-  warn <<~WARN
-    minitest-mock gem is not available. Method call assertions including `assert_called_with` will not work.
-    Please add it to your Gemfile: `gem "minitest-mock"`
-  WARN
-  raise
-end
+require "minitest/mock"
 
 module ActiveSupport
   module Testing
