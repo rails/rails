@@ -94,6 +94,7 @@
 #++
 # Rails.application.config.active_storage.analyze = :immediately
 
+###
 # Controls whether the `rescue_from_handled.action_controller` notification payload includes the full backtrace.
 #
 # When set to `:array`, the full backtrace is included as an array of strings.
@@ -118,3 +119,13 @@
 # `ArgumentError`, matching the Ruby standard library's `Time.parse`.
 #++
 # ActiveSupport.raise_on_invalid_time_zone_parse = true
+
+###
+# Configure inheritance column exclusion behavior for STI models.
+#
+# When false (default for Rails 8.2), single-table inheritance models exclude the inheritance column
+# only when include_root_in_json is true, allowing the type to be visible in API responses by default.
+#
+# When true, the inheritance column is always excluded from serializable_hash (legacy behavior).
+#++
+# Rails.application.config.active_record.exclude_inheritance_column_from_serializable_hash = false
