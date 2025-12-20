@@ -21,9 +21,8 @@ module ActiveSupport
     #   require(:database, :host) # => ENV.fetch("DATABASE__HOST") || Rails.app.credentials.require(:database, :host)
     def require(*key)
       @configurations.each do |config|
-        if value = config.option(*key)
-          return value
-        end
+        value = config.option(*key)
+        return value unless value.nil?
       end
 
       raise KeyError, "Missing key: #{key.inspect}"

@@ -18,7 +18,7 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
       env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true
     )
 
-    @credentials.write({ available_in_both: "cred", only_in_credentials: "cred", nested: { available_in_both: "cred", only_in_credentials: "cred" } }.to_yaml)
+    @credentials.write({ available_in_both: "cred", only_in_credentials: "cred", false: false, nested: { available_in_both: "cred", only_in_credentials: "cred" } }.to_yaml)
 
     ENV["ONLY_IN_ENV"] = "env"
     ENV["AVAILABLE_IN_BOTH"] = "env"
@@ -59,5 +59,13 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
 
   test "read nested key present in env and credentials" do
     assert_equal "env", @combined.require(:nested, :available_in_both)
+  end
+
+  test "require key with a false value" do
+    assert_equal false, @combined.require(:false)
+  end
+
+  test "option key with a false value" do
+    assert_equal false, @combined.option(:false)
   end
 end
