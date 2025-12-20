@@ -69,7 +69,7 @@ module ActiveSupport
       dig(*key) || raise(KeyError)
     end
 
-    # Find a upcased and double-underscored-joined string-version of the +keys+ in ENV.
+    # Find a upcased and double-underscored-joined string-version of the +key+ in ENV.
     # Returns nil if the key isn't found or the value of default when passed If default is
     # a block, it's called first.
     #
@@ -79,13 +79,13 @@ module ActiveSupport
     #   config.option(:database, :host)                            # => ENV["DATABASE__HOST"]
     #   config.option(:database, :host, default: "missing")        # => ENV.fetch("DATABASE__HOST", "missing")
     #   config.option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST", default.call)
-    def option(*keys, default: nil)
-      if default.respond_to?(:call)
-        dig(*keys) || default.call
+    def option(*key, default: nil)
+      value = dig(*key)
+
+      if !value.nil?
+        value
       elsif default
-        dig(*keys) || default
-      else
-        dig(*keys)
+        default.try(:call) || default
       end
     end
 

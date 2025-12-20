@@ -179,4 +179,9 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   test "optional missing key with default block returns default" do
     assert_equal "there", @credentials.option(:two_is_not_here, default: -> { "there" })
   end
+
+  test "optional false key with default block returns false" do
+    @credentials.write({ bool: false }.to_yaml)
+    assert_equal false, @credentials.option(:bool, default: -> { "there" })
+  end
 end
