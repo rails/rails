@@ -1,3 +1,7 @@
+*   Fixed the `rails notes` command to properly extract notes in CSS files.
+
+    *David White*
+
 *   Fixed the default Dockerfile to properly include the `vendor/` directory during `bundle install`.
 
     *Zhong Sheng*

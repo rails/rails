@@ -107,8 +107,12 @@ module Rails
         PatternExtractor.new(/#\s*(#{tag}):?\s*(.*)$/)
       end
 
-      register_extensions("css", "js") do |tag|
+      register_extensions("js") do |tag|
         PatternExtractor.new(/\/\/\s*(#{tag}):?\s*(.*)$/)
+      end
+
+      register_extensions("css") do |tag|
+        PatternExtractor.new(/\/\*\s*(#{tag}):?\s*(.*?)(?:\*\/)?$/)
       end
 
       register_extensions("erb") do |tag|
@@ -205,7 +209,7 @@ module Rails
       results.keys.sort.each do |file|
         puts "#{file}:"
         results[file].each do |note|
-          puts "  * #{note.to_s(options)}"
+          puts "  * #{note.to_s(options).strip}"
         end
         puts
       end
