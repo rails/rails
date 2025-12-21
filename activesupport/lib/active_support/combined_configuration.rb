@@ -17,8 +17,8 @@ module ActiveSupport
     #
     # Examples of Rails-configured access:
     #
-    #   require(:db_host)         # => ENV.fetch("DB_HOST") || Rails.app.credentials.require(:db_host)
-    #   require(:database, :host) # => ENV.fetch("DATABASE__HOST") || Rails.app.credentials.require(:database, :host)
+    #   require(:db_host)         # => ENV["DB_HOST"] || Rails.app.credentials.require(:db_host)
+    #   require(:database, :host) # => ENV["DATABASE__HOST"] || Rails.app.credentials.require(:database, :host)
     def require(*key)
       @configurations.each do |config|
         value = config.option(*key)
