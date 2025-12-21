@@ -14,11 +14,22 @@ A key difference to how Active Storage works compared to other attachment soluti
 
 `Blob` models store attachment metadata (filename, content-type, etc.), and their identifier key in the storage service. Blob models do not store the actual binary data. They are intended to be immutable in spirit. One file, one blob. You can associate the same blob with multiple application models as well. And if you want to do transformations of a given `Blob`, the idea is that you'll simply create a new one, rather than attempt to mutate the existing one (though of course you can delete the previous version later if you don't need it).
 
+## Requirements
+
+Various features of Active Storage depend on third-party software which Rails
+will not install, and must be installed separately:
+
+* [libvips](https://github.com/libvips/libvips) v8.6+ and [ImageMagick](https://imagemagick.org/index.php) for image analysis and transformations
+* [ffmpeg](http://ffmpeg.org/) v3.4+ for video previews and ffprobe for video/audio analysis
+* [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) for PDF previews
+
 ## Installation
 
-Run `bin/rails active_storage:install` to copy over active_storage migrations.
+* Run `bin/rails active_storage:install` to copy over active_storage migrations.
 
 NOTE: If the task cannot be found, verify that `require "active_storage/engine"` is present in `config/application.rb`.
+
+* Run `npm install` to install all active_storage dependencies.
 
 ## Examples
 
