@@ -92,6 +92,7 @@ ActiveRecord::Schema.define do
     t.references :author_address_extra
     t.string :organization_id
     t.string :owned_essay_id
+    t.integer :published_author_id
   end
 
   create_table :author_addresses, force: true do |t|
