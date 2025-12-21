@@ -1,3 +1,7 @@
+*   Ensure batched preloaded associations accounts for klass when grouping to avoid issues with STI.
+
+    *zzak*, *Stjepan Hadjic*
+
 *   Fix `ActiveRecord::SoleRecordExceeded#record` to return the relation.
 
     This was the case until Rails 7.2, but starting from 8.0 it
