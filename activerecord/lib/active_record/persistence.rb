@@ -136,9 +136,13 @@ module ActiveRecord
               "You are passing an array of ActiveRecord::Base instances to `update`. " \
               "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
           end
-          id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
-            object.update(attributes[idx])
-          }
+          if attributes.is_a?(Array)
+            id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
+              object.update(attributes[idx])
+            }
+          elsif attributes.is_a?(Hash)
+            find(id).each { |record| record.update(attributes) }
+          end
         elsif id == :all
           all.each { |record| record.update(attributes) }
         else
@@ -162,9 +166,13 @@ module ActiveRecord
               "You are passing an array of ActiveRecord::Base instances to `update!`. " \
               "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
           end
-          id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
-            object.update!(attributes[idx])
-          }
+          if attributes.is_a?(Array)
+            id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
+              object.update!(attributes[idx])
+            }
+          elsif attributes.is_a?(Hash)
+            find(id).each { |record| record.update!(attributes) }
+          end
         elsif id == :all
           all.each { |record| record.update!(attributes) }
         else
