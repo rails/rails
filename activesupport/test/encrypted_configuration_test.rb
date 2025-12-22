@@ -153,7 +153,7 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   end
 
   test "require missing key raises key error" do
-    assert_raises(KeyError) do
+    assert_raise(KeyError, match: "Missing key: [:gone]") do
       @credentials.require(:gone)
     end
   end
@@ -163,8 +163,8 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_equal false, @credentials.require(:one)
   end
 
-  test "reqiure missing multiword key raises key error" do
-    assert_raises(KeyError) do
+  test "require missing multiword key raises key error" do
+    assert_raise(KeyError, match: "Missing key: [:gone, :missing]") do
       @credentials.require(:gone, :missing)
     end
   end
