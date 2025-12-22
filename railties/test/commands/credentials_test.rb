@@ -367,6 +367,20 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_match("Invalid or missing credential path: egg.spam", stderr_output)
   end
 
+  test "set credentials for key value pair" do
+    run_set_command("foo=bar", "baz=42")
+
+    assert_match(/bar/, run_fetch_command("foo"))
+    assert_match(/42/, run_fetch_command("baz"))
+  end
+
+  test "set credentials for the given path with key value pair" do
+    write_credentials({ "foo" => { "bar" => { "baz" => 42 } } }.to_yaml)
+    run_set_command("foo.bar.baz=another_value")
+
+    assert_match(/another_value/, run_fetch_command("foo.bar.baz"))
+  end
+
   private
     DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: \h{128}\n/m
 
@@ -391,6 +405,10 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
 
     def run_fetch_command(path, **options)
       rails "credentials:fetch", path, **options
+    end
+
+    def run_set_command(*pairs, **options)
+      rails "credentials:set", *pairs, **options
     end
 
     def write_credentials(content, **options)

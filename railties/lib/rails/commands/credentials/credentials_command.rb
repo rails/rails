@@ -77,6 +77,38 @@ module Rails
         end
       end
 
+      desc "set PATH=VALUE", "Set a value in the decrypted credentials"
+      def set(*pairs)
+        load_environment_config!
+        load_generators
+
+        ensure_encryption_key_has_been_added
+        ensure_credentials_have_been_added
+
+        if pairs.empty?
+          say_error "Missing path=value argument"
+          exit 1
+        end
+
+        if (yaml = credentials.read)
+          value = YAML.load(yaml)
+          assign_pairs_into(value, pairs)
+        else
+          missing_credentials!
+        end
+
+        credentials.change do |tmp_path|
+          File.write(tmp_path, value.to_yaml)
+        end
+
+        say "Updated #{content_path}"
+        warn_if_credentials_are_invalid
+      rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+        say error.message
+      rescue ActiveSupport::MessageEncryptor::InvalidMessage
+        say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
+      end
+
       private
         def config
           Rails.application.config.credentials
@@ -153,6 +185,33 @@ module Rails
 
         def extract_custom_environment(path)
           path =~ %r{config/credentials/(.+)\.yml\.enc} && $1
+        end
+
+        def assign_pairs_into(doc, pairs)
+          pairs.each do |pair|
+            path_str, value = pair.to_s.split("=", 2)
+
+            unless value
+              say_error "Invalid format `#{pair}`. Use path=value"
+              exit 1
+            end
+
+            keys = path_str.split(".")
+            last_key = keys.pop
+
+            target_hash = keys.inject(doc) do |node, key|
+              node[key] ||= {}
+
+              unless node[key].is_a?(Hash)
+                say_error "Cannot set '#{path_str}'='#{key}' is blocked by existing value"
+                exit 1
+              end
+
+              node[key]
+            end
+
+            target_hash[last_key] = value
+          end
         end
     end
   end
