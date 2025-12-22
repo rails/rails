@@ -124,6 +124,7 @@ module ActiveStorage
         ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
         ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
         ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
+        ActiveStorage.skip_default_direct_uploads_routes = app.config.active_storage.skip_default_direct_uploads_routes != false
 
         ActiveStorage.supported_image_processing_methods += app.config.active_storage.supported_image_processing_methods || []
         ActiveStorage.unsupported_image_processing_arguments = app.config.active_storage.unsupported_image_processing_arguments || %w(
