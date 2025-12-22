@@ -1,5 +1,5 @@
-import { getMetaValue } from "./helpers"
 import adapters from "./adapters"
+import { getMetaValue } from "./helpers"
 
 export class BlobRecord {
   constructor(file, checksum, url, customHeaders = {}) {
@@ -20,7 +20,7 @@ export class BlobRecord {
     this.xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
 
     if (Object.keys(customHeaders).length > 0) {
-      console.log("DEPRECATION: The customHeaders parameter has been replaced by dynamic HTTP requester class. Please use ActiveStorage.adapters.XMLHttpRequest = YourAdapter.");
+      console.log("DEPRECATION: The customHeaders parameter has been replaced by dynamic HTTP requester class. Please use ActiveStorage.adapters.XMLHttpRequest = YourAdapter.")
       for (const key in customHeaders) {
         this.xhr.setRequestHeader(key, customHeaders[key])
       }
