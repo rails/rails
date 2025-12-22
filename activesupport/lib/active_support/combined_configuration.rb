@@ -13,7 +13,8 @@ module ActiveSupport
       @configurations = configurations
     end
 
-    # Find singular or nested keys across all backends. If no backend holds the key, it raises +KeyError+.
+    # Find singular or nested keys across all backends.
+    # Raises +KeyError+ if no backend holds the key or if the value is nil.
     #
     # Examples of Rails-configured access:
     #
@@ -28,7 +29,8 @@ module ActiveSupport
       raise KeyError, "Missing key: #{key.inspect}"
     end
 
-    # Find singular or nested keys across all backends. If no backend holds the key, +nil+ is returned.
+    # Find singular or nested keys across all backends.
+    # Returns +nil+ if no backend holds the key.
     # If a +default+ value is defined, it (or its callable value) will be returned on a missing key.
     #
     # Examples:
@@ -36,7 +38,7 @@ module ActiveSupport
     #   option(:db_host)                             # => ENV["DB_HOST"] || Rails.app.credentials.option(:db_host)
     #   option(:database, :host)                     # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host)
     #   option(:database, :host, default: "missing") # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host) || "missing"
-    #   option(:database, :host, default: -> { "missing" }) # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host) || "missing"
+    #   option(:database, :host, default: -> { "missing" }) # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host) || default.call
     def option(*key, default: nil)
       @configurations.each do |config|
         value = config.option(*key)
