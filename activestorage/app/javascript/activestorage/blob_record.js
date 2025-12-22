@@ -1,4 +1,5 @@
 import { getMetaValue } from "./helpers"
+import adapters from "./adapters"
 
 export class BlobRecord {
   constructor(file, checksum, url, customHeaders = {}) {
@@ -11,15 +12,19 @@ export class BlobRecord {
       checksum: checksum
     }
 
-    this.xhr = new XMLHttpRequest
+    this.xhr = new adapters.XMLHttpRequest()
     this.xhr.open("POST", url, true)
     this.xhr.responseType = "json"
     this.xhr.setRequestHeader("Content-Type", "application/json")
     this.xhr.setRequestHeader("Accept", "application/json")
     this.xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
-    Object.keys(customHeaders).forEach((headerKey) => {
-      this.xhr.setRequestHeader(headerKey, customHeaders[headerKey])
-    })
+
+    if (Object.keys(customHeaders).length > 0) {
+      console.log("DEPRECATION: The customHeaders parameter has been replaced by dynamic HTTP requester class. Please use ActiveStorage.adapters.XMLHttpRequest = YourAdapter.");
+      for (const key in customHeaders) {
+        this.xhr.setRequestHeader(key, customHeaders[key])
+      }
+    }
 
     const csrfToken = getMetaValue("csrf-token")
     if (csrfToken != undefined) {
