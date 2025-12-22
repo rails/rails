@@ -5,7 +5,7 @@ require "database/setup"
 
 class RailsStorageDirectUploadTest < ActiveSupport::TestCase
   include Rails.application.routes.url_helpers
-  
+
   setup do
     @was_skip_default_direct_uploads_routes = ActiveStorage.skip_default_direct_uploads_routes
   end
