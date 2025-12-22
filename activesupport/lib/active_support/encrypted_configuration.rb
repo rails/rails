@@ -71,7 +71,7 @@ module ActiveSupport
       if !value.nil?
         value
       else
-        raise(KeyError)
+        raise KeyError, "Missing key: #{key.inspect}"
       end
     end
 

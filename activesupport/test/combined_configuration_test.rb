@@ -68,4 +68,16 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   test "option key with a false value" do
     assert_equal false, @combined.option(:false)
   end
+
+  test "require with missing key raises key error" do
+    assert_raise(KeyError, match: "Missing key: [:gone]") do
+      @combined.require(:gone)
+    end
+  end
+
+  test "require with missing nested key raises key error" do
+    assert_raise(KeyError, match: "Missing key: [:gone, :missing]") do
+      @combined.require(:gone, :missing)
+    end
+  end
 end
