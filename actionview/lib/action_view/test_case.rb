@@ -284,6 +284,7 @@ module ActionView
 
       def render(options = {}, local_assigns = {}, &block)
         view.assign(view_assigns)
+        @rendered.clear
         @rendered << output = view.render(options, local_assigns, &block)
         output
       end
