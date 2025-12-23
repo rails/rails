@@ -353,17 +353,13 @@ GEM
       logger
     mini_mime (1.1.5)
     mini_portile2 (2.8.9)
-    minitest (5.25.5)
-    minitest-bisect (1.7.0)
-      minitest-server (~> 1.0)
-      path_expander (~> 1.1)
+    minitest (6.0.0)
+      prism (~> 1.5)
     minitest-ci (3.4.0)
       minitest (>= 5.0.6)
+    minitest-mock (5.27.0)
     minitest-retry (0.2.3)
       minitest (>= 5.0)
-    minitest-server (1.0.8)
-      drb (~> 2.0)
-      minitest (~> 5.16)
     mixlib-cli (2.1.8)
     mixlib-config (3.0.27)
       tomlrb
@@ -409,7 +405,6 @@ GEM
     parser (3.3.9.0)
       ast (~> 2.4.1)
       racc
-    path_expander (1.1.3)
     pg (1.6.2)
     pg (1.6.2-aarch64-linux)
     pg (1.6.2-arm64-darwin)
@@ -418,7 +413,7 @@ GEM
     pp (0.6.2)
       prettyprint
     prettyprint (0.2.0)
-    prism (1.4.0)
+    prism (1.7.0)
     propshaft (1.3.1)
       actionpack (>= 7.0.0)
       activesupport (>= 7.0.0)
@@ -721,9 +716,9 @@ DEPENDENCIES
   libxml-ruby
   listen (~> 3.3)
   mdl (!= 0.13.0)
-  minitest (< 6)
-  minitest-bisect
+  minitest (~> 6.0)
   minitest-ci
+  minitest-mock
   minitest-retry
   msgpack (>= 1.7.0)
   mysql2 (~> 0.5, < 0.5.7)
