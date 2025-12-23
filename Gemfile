@@ -3,7 +3,14 @@
 source "https://rubygems.org"
 gemspec
 
-gem "minitest"
+# Minitest 6 requires Ruby 3.2 or higher while Rails 7.2 supports Ruby 3.1
+# https://github.com/minitest/minitest/commit/8a50ebfee5d17dc231e5fb87bf936bdf250429a1
+if RUBY_VERSION < "3.2"
+  gem "minitest", "< 6.0"
+else
+  gem "minitest", "~> 6.0"
+  gem "minitest-mock"
+end
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
@@ -138,7 +145,6 @@ local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  gem "minitest-bisect", require: false
   gem "minitest-ci", require: false
   gem "minitest-retry"
 
