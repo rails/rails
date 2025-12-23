@@ -1,3 +1,27 @@
+*   Fix `ActionController::Parameters#permit` to support numeric keys with array values
+
+    The generic permit syntax now works for numeric keys containing array values
+    (arrays of hashes), making it consistent with how numeric keys with hash
+    values already work.
+
+    ```ruby
+    params = ActionController::Parameters.new(
+      post: {
+        comments_attributes: {
+          "0" => [{ "id" => 1, "body" => "First comment" }],
+          "1" => [{ "id" => 2, "body" => "Second comment" }]
+        }
+      }
+    )
+    params.permit(post: { comments_attributes: [:id, :body] })
+    # => {"post"=>{"comments_attributes"=>{"0"=>[{"id"=>1, "body"=>"First comment"}], "1"=>[{"id"=>2, "body"=>"Second comment"}]}}}
+    ```
+
+    Previously, this would return an empty hash, requiring explicit numeric key
+    specification as a workaround.
+
+    *Said Kaldybaev*
+
 *   Add block support to `ActionController::Parameters#merge`
 
     `ActionController::Parameters#merge` now accepts a block to resolve conflicts,
