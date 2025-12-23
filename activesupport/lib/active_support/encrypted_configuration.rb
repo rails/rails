@@ -90,8 +90,10 @@ module ActiveSupport
 
       if !value.nil?
         value
-      elsif default
-        default.try(:call) || default
+      elsif default.respond_to?(:call)
+        default.call
+      else
+        default
       end
     end
 
