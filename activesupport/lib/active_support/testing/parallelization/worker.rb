@@ -46,8 +46,10 @@ module ActiveSupport
 
           set_process_title("#{klass}##{method}")
 
-          result = klass.with_info_handler reporter do
-            Minitest.run_one_method(klass, method)
+          result = if Minitest.respond_to? :run_one_method then
+            Minitest.run_one_method klass, method
+          else
+            klass.new(method).run
           end
 
           safe_record(reporter, result)
