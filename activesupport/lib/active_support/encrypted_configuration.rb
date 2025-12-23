@@ -58,13 +58,13 @@ module ActiveSupport
       @options = nil
     end
 
-    # Find the referenced key
-    # Raises +KeyError+ if not found.
+    # Find singular or nested keys.
+    # Raises +KeyError+ if not found or nil.
     #
     # Examples:
     #
-    #   require(:db_host)         # => ENV.fetch("DB_HOST")
-    #   require(:database, :host) # => ENV.fetch("DATABASE__HOST")
+    #   require(:db_host)         # => dig(:db_host) || raise(KeyError)
+    #   require(:database, :host) # => dig(:database, :host) || raise(KeyError)
     def require(*key)
       value = dig(*key)
 
@@ -75,16 +75,16 @@ module ActiveSupport
       end
     end
 
-    # Find a upcased and double-underscored-joined string-version of the +key+ in ENV.
-    # Returns nil if the key isn't found or the value of default when passed If default is
-    # a block, it's called first.
+    # Find singular or nested keys.
+    # Returns +nil+ if the key isn't found.
+    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or nil value.
     #
     # Examples:
     #
-    #   config.option(:db_host)                                    # => ENV["DB_HOST"]
-    #   config.option(:database, :host)                            # => ENV["DATABASE__HOST"]
-    #   config.option(:database, :host, default: "missing")        # => ENV.fetch("DATABASE__HOST", "missing")
-    #   config.option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST", default.call)
+    #   config.option(:db_host)                                    # => dig(:db_host)
+    #   config.option(:database, :host)                            # => dig(:database, :host)
+    #   config.option(:database, :host, default: "missing")        # => dig(:database, :host) || "missing"
+    #   config.option(:database, :host, default: -> { "missing" }) # => dig(:database, :host) || default.call
     def option(*key, default: nil)
       value = dig(*key)
 

@@ -32,7 +32,7 @@ module ActiveSupport
 
     # Find an upcased and double-underscored-joined string-version of the +key+ in ENV.
     # Returns +nil+ if the key isn't found or the value of +default+ when passed.
-    # If +default+ is a callable, it's called first.
+    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key.
     #
     # Examples:
     #
