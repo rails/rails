@@ -264,7 +264,7 @@ module ActionController
 
     class << self
       def nested_attribute?(key, value) # :nodoc:
-        /\A-?\d+\z/.match?(key) && (value.is_a?(Hash) || value.is_a?(Parameters))
+        /\A-?\d+\z/.match?(key) && (value.is_a?(Hash) || value.is_a?(Parameters) || value.is_a?(Array))
       end
     end
 
@@ -1124,9 +1124,18 @@ module ActionController
         @parameters.any? { |k, v| Parameters.nested_attribute?(k, v) }
       end
 
-      def each_nested_attribute
+      def each_nested_attribute(&block)
         hash = self.class.new
-        self.each { |k, v| hash[k] = yield v if Parameters.nested_attribute?(k, v) }
+        self.each do |k, v|
+          if Parameters.nested_attribute?(k, v)
+            if v.is_a?(Array)
+              permitted_elements = v.map { |element| block.call(element) }
+              hash[k] = permitted_elements if permitted_elements.any?
+            else
+              hash[k] = block.call(v)
+            end
+          end
+        end
         hash
       end
 
