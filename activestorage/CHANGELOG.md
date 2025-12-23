@@ -1,3 +1,10 @@
+*   Move responsibility for checksums storage service
+
+    The storage service should implement calculating and
+    validating checksums.
+
+    *Matt Pasquini*
+
 *   Analyze attachments before validation
 
     Attachment metadata (width, height, duration, etc.) is now available for
