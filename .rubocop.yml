@@ -382,6 +382,9 @@ Performance/RedundantStringChars:
 Performance/StringInclude:
   Enabled: true
 
+Minitest/AssertEqual:
+  Enabled: true
+
 Minitest/AssertNil:
   Enabled: true
 

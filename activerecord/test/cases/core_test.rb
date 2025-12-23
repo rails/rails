@@ -273,7 +273,7 @@ class CoreTest < ActiveRecord::TestCase
   end
 
   def test_composite_pk_models_equality
-    assert Cpk::Book.new(id: [1, 2]) == Cpk::Book.new(id: [1, 2])
+    assert_equal Cpk::Book.new(id: [1, 2]), Cpk::Book.new(id: [1, 2])
 
     assert_not Cpk::Book.new(id: [1, 2]) == Cpk::Book.new(id: [1, 3])
     assert_not Cpk::Book.new == Cpk::Book.new
