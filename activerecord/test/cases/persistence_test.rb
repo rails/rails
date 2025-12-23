@@ -198,6 +198,14 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal Developer.all.to_a, Developer.update(salary: 1_000_000)
   end
 
+  def test_update_many_with_same_hash_applies_to_all
+    updated = Topic.update([1, 2], content: "bulk updated")
+
+    assert_equal [1, 2], updated.map(&:id)
+    assert_equal "bulk updated", Topic.find(1).content
+    assert_equal "bulk updated", Topic.find(2).content
+  end
+
   def test_update_many!
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
     updated = Topic.update!(topic_data.keys, topic_data.values)
@@ -274,6 +282,14 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_not_equal "1 updated", Topic.find(1).content
     assert_not_equal "2 updated", Topic.find(2).content
+  end
+
+  def test_update_many_with_same_hash_applies_to_all!
+    updated = Topic.update!([1, 2], content: "bulk updated!")
+
+    assert_equal [1, 2], updated.map(&:id)
+    assert_equal "bulk updated!", Topic.find(1).content
+    assert_equal "bulk updated!", Topic.find(2).content
   end
 
   def test_raises_error_when_validations_failed
