@@ -314,7 +314,9 @@ module ActiveRecord
 
         # Returns the active schema search path.
         def schema_search_path
-          @schema_search_path ||= query_value("SHOW search_path")
+          @schema_search_path ||=
+            with_raw_connection { |conn| conn.parameter_status("search_path") } ||
+            query_value("SHOW search_path")
         end
 
         # Returns the current client message level.
