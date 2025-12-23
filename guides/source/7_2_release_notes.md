@@ -480,6 +480,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   `ActiveRecord::Base.establish_connection` no longer sets `ActiveRecord::Base.connection.active?` to `true`. If you need this behavior, you can use `ActiveRecord::Base.connection.verify!` instead.
 
+*   `ActiveRecord::SchemaDumper.dump` now requires a connection pool as its first argument instead of a connection object. Update calls from `ActiveRecord::Base.connection` to `ActiveRecord::Base.connection_pool`, or omit the first argument to use the default connection pool. [Pull Request #51162](https://github.com/rails/rails/pull/51162)
+
 Active Storage
 --------------
 
