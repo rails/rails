@@ -1,4 +1,4 @@
-*   Add `config.action_controller.live.streaming_excluded_keys` to control execution state sharing in ActionController::Live.
+*   Add `config.action_controller.live_streaming_excluded_keys` to control execution state sharing in ActionController::Live.
 
     When using ActionController::Live, actions are executed in a separate thread that shares
     state from the parent thread. This new configuration allows applications to opt-out specific
@@ -9,7 +9,7 @@
 
     ```ruby
     # config/application.rb
-    config.action_controller.live.streaming_excluded_keys = [:active_record_connected_to_stack]
+    config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack]
     ```
 
     By default, all keys are shared.
