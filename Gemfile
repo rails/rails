@@ -3,7 +3,8 @@
 source "https://rubygems.org"
 gemspec
 
-gem "minitest", "< 6"
+gem "minitest", "~> 6.0"
+gem "minitest-mock"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
@@ -137,7 +138,6 @@ local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  gem "minitest-bisect", require: false
   gem "minitest-ci", require: false
   gem "minitest-retry"
 
