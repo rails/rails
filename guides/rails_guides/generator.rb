@@ -129,6 +129,7 @@ module RailsGuides
       end
 
       def cleanup_assets
+        FileUtils.rm_f(Dir.glob("#{@output_dir}/*.html"))
         FileUtils.rm_rf(Dir.glob("#{@output_dir}/{stylesheets,javascripts}"))
       end
 
