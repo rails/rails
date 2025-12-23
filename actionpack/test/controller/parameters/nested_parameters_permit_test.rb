@@ -276,4 +276,28 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
     assert_nil            params[:properties]["1"]
     assert_equal "prop0", params[:properties]["0"]
   end
+
+  test "nested params with numeric keys containing arrays of hashes" do
+    params = ActionController::Parameters.new(
+      post: {
+        comments_attributes: {
+          "0" => [{ "id" => 1, "body" => "First comment" }],
+          "1" => [{ "id" => 2, "body" => "Second comment" }]
+        }
+      }
+    )
+
+    permitted = params.permit(post: { comments_attributes: [:id, :body] })
+
+    assert_predicate permitted, :permitted?
+    assert_equal 1, permitted[:post][:comments_attributes]["0"][0][:id]
+    assert_equal "First comment", permitted[:post][:comments_attributes]["0"][0][:body]
+    assert_equal 2, permitted[:post][:comments_attributes]["1"][0][:id]
+    assert_equal "Second comment", permitted[:post][:comments_attributes]["1"][0][:body]
+
+    assert_equal(
+      { "post" => { "comments_attributes" => { "0" => [{ "id" => 1, "body" => "First comment" }], "1" => [{ "id" => 2, "body" => "Second comment" }] } } },
+      permitted.to_h
+    )
+  end
 end
