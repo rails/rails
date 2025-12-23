@@ -61,6 +61,7 @@ Below are the default values associated with each target version. In cases of co
 #### Default Values for Target Version 8.2
 
 - [`config.action_controller.forgery_protection_verification_strategy`](#config-action-controller-forgery-protection-verification-strategy): `:header_only`
+- [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 - [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
@@ -2183,6 +2184,20 @@ This is mainly for compatibility when upgrading Rails applications, otherwise yo
 | --------------------- | -------------------- |
 | (original)            | `true`               |
 | 8.1                   | `false`              |
+
+#### `config.action_controller.rescue_from_event_backtrace`
+
+Configures the `event_backtrace` attribute in the payload of `rescue_from_handled.action_controller` notifications, and `action_controller.rescue_from_handled` events.
+
+* `:array` - Stores the backtrace as an array of strings.
+* `nil` - Stores the backtrace as the the first string of the backtrace, stripping the `Rails.root` from the controller path.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `nil`                |
+| 8.2                   | `:array`             |
 
 ### Configuring Action Dispatch
 
