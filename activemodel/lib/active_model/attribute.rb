@@ -38,6 +38,15 @@ module ActiveModel
       @value = value unless value.nil?
     end
 
+    def freezable?
+      true
+    end
+
+    def freeze
+      value.freeze
+      super
+    end
+
     def value(&)
       # `defined?` is cheaper than `||=` when we get back falsy values
       @value = type_cast(value_before_type_cast) unless defined?(@value)
