@@ -1705,6 +1705,19 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal(chapter.book, book)
   end
 
+  def test_find_or_initialize_by_sets_foreign_key_when_through_not_loaded
+    client = companies(:first_client)
+
+    expected_firm_id = client.client_of
+    assert_not_nil expected_firm_id
+
+    assert_not client.association(:firm).loaded?
+    new_account = client.accounts.find_or_initialize_by(credit_limit: 123_456)
+
+    assert_not client.association(:firm).loaded?
+    assert_equal expected_firm_id, new_account.firm_id
+  end
+
   private
     def make_model(name)
       Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
