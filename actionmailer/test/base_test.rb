@@ -30,6 +30,23 @@ class BaseTest < ActiveSupport::TestCase
     assert_nothing_raised { BaseMailer.welcome }
   end
 
+  test "ActionMailer::Base.mail delivers with explicit headers" do
+    ActionMailer::Base.deliveries.clear
+
+    delivery = ActionMailer::Base.mail(
+      from: "from@example.com",
+      to: "to@example.com",
+      subject: "Subject",
+      body: "Body"
+    )
+
+    assert_kind_of ActionMailer::MessageDelivery, delivery
+    delivery.deliver_now
+
+    assert_equal 1, ActionMailer::Base.deliveries.size
+    assert_equal "Subject", ActionMailer::Base.deliveries.last.subject
+  end
+
   # Basic mail usage without block
   test "mail() should set the headers of the mail message" do
     email = BaseMailer.welcome

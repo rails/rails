@@ -607,6 +607,12 @@ module ActionMailer
         end.to_s
       end
 
+      def action_methods
+        methods = super
+        methods.add("mail") if self == ActionMailer::Base
+        methods
+      end
+
     private
       def set_payload_for_mail(payload, mail)
         payload[:mail]               = mail.encoded
