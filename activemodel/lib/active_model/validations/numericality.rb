@@ -27,8 +27,8 @@ module ActiveModel
         end
 
         options.slice(*RANGE_CHECKS.keys).each do |option, value|
-          unless value.is_a?(Range)
-            raise ArgumentError, ":#{option} must be a range"
+          unless value.is_a?(Range) || value.is_a?(Proc) || value.is_a?(Symbol)
+            raise ArgumentError, ":#{option} must be a range, a symbol or a proc"
           end
         end
       end
@@ -52,8 +52,9 @@ module ActiveModel
               record.errors.add(attr_name, option, **filtered_options(value))
             end
           elsif RANGE_CHECKS.include?(option)
-            unless value.public_send(RANGE_CHECKS[option], option_value)
-              record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
+            range = option_as_range(record, option_value, option)
+            unless value.public_send(RANGE_CHECKS[option], range)
+              record.errors.add(attr_name, option, **filtered_options(value).merge!(count: range))
             end
           elsif COMPARE_CHECKS.include?(option)
             option_value = option_as_number(record, option_value, precision, scale)
@@ -67,6 +68,12 @@ module ActiveModel
     private
       def option_as_number(record, option_value, precision, scale)
         parse_as_number(resolve_value(record, option_value), precision, scale)
+      end
+
+      def option_as_range(record, option_value, option_name)
+        resolved = resolve_value(record, option_value)
+        return resolved if resolved.is_a?(Range)
+        raise ArgumentError, ":#{option_name} must be a range"
       end
 
       def parse_as_number(raw_value, precision, scale)
@@ -207,6 +214,7 @@ module ActiveModel
       # * <tt>:less_than_or_equal_to</tt>
       # * <tt>:only_integer</tt>
       # * <tt>:other_than</tt>
+      # * <tt>:in</tt>
       #
       # For example:
       #
