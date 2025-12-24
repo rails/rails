@@ -10,6 +10,8 @@ module ActiveRecord
       define_callbacks :commit, :rollback,
                        :before_commit,
                        scope: [:kind, :name]
+
+      class_attribute :transactional_callbacks, instance_writer: false, default: true
     end
 
     attr_accessor :_new_record_before_last_commit, :_last_transaction_return_status # :nodoc:
@@ -425,6 +427,10 @@ module ActiveRecord
     # This method is available within the context of an ActiveRecord::Base
     # instance.
     def with_transaction_returning_status # :nodoc:
+      unless self.class.transactional_callbacks
+        return yield
+      end
+
       self.class.with_connection do |connection|
         connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
           status = nil
