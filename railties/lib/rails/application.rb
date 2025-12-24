@@ -544,8 +544,8 @@ module Rails
     #   Rails.app.dotenvs.option(:cache_host) # CACHE_HOST from .env or nil
     #   Rails.app.dotenvs.option(:cache_host, default: "cache-host-1") # CACHE_HOST from .env or "cache-host-1"
     #   Rails.app.dotenvs.option(:cache_host, default: -> { HostProvider.cache }) # CACHE_HOST from .env or HostProvider.cache
-    def dotenvs
-      @dotenvs ||= ActiveSupport::DotEnvConfiguration.new
+    def dotenvs(path = Rails.root.join(".env"))
+      @dotenvs ||= ActiveSupport::DotEnvConfiguration.new(path)
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for the

@@ -32,8 +32,8 @@ module ActiveSupport
   #   option(:debug, default: "true")                     # => value of DEBUG from .env or "true" if not found
   #   option(:database, :host, default: -> { "missing" }) # => value of DATABASE__HOST from .env or "missing" if not found
   class DotEnvConfiguration < EnvConfiguration
-    def initialize(path = nil)
-      @path = path || rails_path
+    def initialize(path)
+      @path = path
       reload
     end
 
@@ -43,12 +43,6 @@ module ActiveSupport
     end
 
     private
-      def rails_path
-        if defined?(Rails) && Rails.try(:root)
-          Rails.root.join(".env").to_s
-        end
-      end
-
       def parse_env_file
         if File.exist?(@path.to_s)
           envs = {}

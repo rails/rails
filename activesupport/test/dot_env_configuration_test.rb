@@ -141,11 +141,6 @@ class DotEnvConfigurationTest < ActiveSupport::TestCase
     assert_nil @config.option(:anything)
   end
 
-  test "returns empty hash when no path given and Rails is not defined" do
-    @config = ActiveSupport::DotEnvConfiguration.new
-    assert_nil @config.option(:anything)
-  end
-
   private
     def write_env_file(attributes)
       write_env_file_raw(attributes.map { |key, value| "#{key}=#{value}" }.join("\n"))
