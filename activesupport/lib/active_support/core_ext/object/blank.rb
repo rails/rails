@@ -197,3 +197,15 @@ class Time # :nodoc:
     true
   end
 end
+
+if defined? DateTime
+  require "active_support/core_ext/date_time/blank"
+end
+
+if defined? Date
+  require "active_support/core_ext/date/blank"
+end
+
+if defined? Pathname
+  require "active_support/core_ext/pathname/blank"
+end
