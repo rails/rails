@@ -2055,6 +2055,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [david], destroyed
   end
 
+  def test_delete_by_resets_association
+    david = authors(:david)
+
+    assert_difference("david.posts.length", -3) { david.posts.delete_by(body: "hello") }
+  end
+
+  def test_destroy_by_resets_association
+    david = authors(:david)
+
+    assert_difference("david.posts.length", -3) { david.posts.destroy_by(body: "hello") }
+  end
+
   test "find_by with hash conditions returns the first matching record" do
     assert_equal posts(:eager_other), Post.order(:id).find_by(author_id: 2)
   end

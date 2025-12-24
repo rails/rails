@@ -1,3 +1,12 @@
+*   Reset relations after `delete_by`/`destroy_by`.
+
+    Methods `delete_by` and `destroy_by` which are shortcuts for `where(…).delete_all` and `where(…).destroy_all` will
+    now call `reset` at the end, like it is done for delete_all/destroy_all without condition. See
+    [#55664](https://github.com/rails/rails/issues/55664) for the issue and
+    [#45943](https://github.com/rails/rails/pull/45943) for change to `insert_all`, `insert_all!` and `upsert_all`.
+
+    *Ivan Kuchin*
+
 *   Yield the transaction object to the block when using `with_lock`.
 
     *Ngan Pham*
