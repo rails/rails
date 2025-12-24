@@ -1,3 +1,12 @@
+*   Fix `has_one` association builder setting readonly foreign key attribute when it is unchanged.
+
+    When a has_one association with a readonly foreign key was accessed and returned nil, the nil
+    value was cached and the association became loaded. Later when creating the association, the
+    cached nil would cause `set_owner_attributes` to write the foreign key even though it hadn't
+    changed, raising `ActiveRecord::ReadonlyAttributeError`.
+
+    *Rui Santos*
+
 *   Yield the transaction object to the block when using `with_lock`.
 
     *Ngan Pham*

@@ -29,7 +29,7 @@ module ActiveRecord::Associations
 
         primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
           value = owner._read_attribute(foreign_key)
-          record._write_attribute(primary_key, value)
+          record._write_attribute(primary_key, value) unless record._read_attribute(primary_key) == value
         end
 
         if reflection.type
