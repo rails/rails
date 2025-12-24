@@ -244,15 +244,11 @@ module ActiveRecord
         end
 
         define_method "#{role}_class" do
-          public_send(role_type).constantize
+          association(role).klass
         end
 
         define_method "#{role}_name" do
           public_send("#{role}_class").model_name.singular.inquiry
-        end
-
-        define_method "build_#{role}" do |*params|
-          public_send("#{role}=", public_send("#{role}_class").new(*params))
         end
 
         types.each do |type|
