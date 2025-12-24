@@ -46,6 +46,22 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "parses json params for application/csp-report" do
+    assert_parses(
+{
+        "csp-report" => {
+          "document-uri" => "http://example.com/index.html",
+          "referrer" => "",
+          "blocked-uri" => "http://otherdomain.com/css/style.css",
+          "violated-directive" => "default-src 'self'",
+          "original-policy" => "default-src 'self'; report-uri /csp-incident-reports"
+        }
+      },
+      "{\"csp-report\": {\"document-uri\": \"http://example.com/index.html\", \"referrer\": \"\", \"blocked-uri\": \"http://otherdomain.com/css/style.css\", \"violated-directive\": \"default-src 'self'\", \"original-policy\": \"default-src 'self'; report-uri /csp-incident-reports\"}}",
+      "CONTENT_TYPE" =>  "application/csp-report"
+)
+  end
+
   test "does not parse unregistered media types such as application/vnd.api+json" do
     assert_parses(
       {},
@@ -177,7 +193,7 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     )
   ensure
     Mime::Type.unregister :json
-    Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest application/problem+json )
+    Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest application/problem+json application/csp-report )
   end
 
   test "parses JSON params after custom JSON mime type registered with synonym" do
@@ -189,7 +205,7 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
     )
   ensure
     Mime::Type.unregister :json
-    Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest application/problem+json )
+    Mime::Type.register "application/json", :json, %w( text/x-json application/jsonrequest application/problem+json application/csp-report )
   end
 
   private
