@@ -6,6 +6,7 @@ require "active_support/key_generator"
 require "active_support/message_verifiers"
 require "active_support/combined_configuration"
 require "active_support/env_configuration"
+require "active_support/dot_env_configuration"
 require "active_support/encrypted_configuration"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
@@ -496,7 +497,7 @@ module Rails
     #   Rails.app.creds.option(:cache_host, default: "cache-host-1")
     #   Rails.app.creds.option(:cache_host, default: -> { HostProvider.cache })
     def creds
-      @creds ||= ActiveSupport::CombinedConfiguration.new(envs, credentials)
+      @creds ||= ActiveSupport::CombinedConfiguration.new(envs, dotenvs, credentials)
     end
 
     # Allows for a custom combined configuration to be used for creds.
@@ -521,6 +522,30 @@ module Rails
     #   Rails.app.envs.option(:cache_host, default: -> { HostProvider.cache }) # ENV.fetch("CACHE_HOST") { HostProvider.cache }
     def envs
       @envs ||= ActiveSupport::EnvConfiguration.new
+    end
+
+    # Returns an ActiveSupport::DotEnvConfiguration instance that provides
+    # access to the variables in +.env+ through symbol-based lookup with explicit methods
+    # for required and optional values. This is the same interface offered by #envs
+    # and can be accessed in a combined manner via #creds.
+    #
+    # The +.env+ file format supports:
+    # - Lines with KEY=value pairs
+    # - Comments starting with #
+    # - Empty lines (ignored)
+    # - Quoted values (single or double quotes)
+    # - Variable interpolation with ${VAR} syntax
+    # - Command execution with $(command) syntax
+    #
+    # Examples:
+    #
+    #   Rails.app.dotenvs.require(:db_password) # DB_PASSWORD from .env
+    #   Rails.app.dotenvs.require(:aws, :access_key_id) # AWS__ACCESS_KEY_ID from .env
+    #   Rails.app.dotenvs.option(:cache_host) # CACHE_HOST from .env or nil
+    #   Rails.app.dotenvs.option(:cache_host, default: "cache-host-1") # CACHE_HOST from .env or "cache-host-1"
+    #   Rails.app.dotenvs.option(:cache_host, default: -> { HostProvider.cache }) # CACHE_HOST from .env or HostProvider.cache
+    def dotenvs
+      @dotenvs ||= ActiveSupport::DotEnvConfiguration.new
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for the
