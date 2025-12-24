@@ -214,7 +214,7 @@ class Rails::Command::ServerTest < ActiveSupport::TestCase
 
     with_rails_env "production" do
       options = parse_arguments([])
-      assert_equal "0.0.0.0", options[:Host]
+      assert_equal "::", options[:Host]
     end
 
     with_rails_env "development" do
