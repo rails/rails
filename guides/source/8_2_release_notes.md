@@ -63,6 +63,16 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate invalid options (i.e., anything other than `flush:`) passed to `render_to`.
+
+    ```ruby
+    render_to(:foo, invalid: true) { "foo" }
+    ```
+    
+    Invalid options were previously silently ignored. This will now emit deprecation warnings.
+
+    In the next major release, this will instead `raise ArgumentError`.
+
 ### Notable changes
 
 Action Mailer
