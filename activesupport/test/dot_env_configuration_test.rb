@@ -116,6 +116,16 @@ class DotEnvConfigurationTest < ActiveSupport::TestCase
     assert_equal "localhost", @config.require(:database, :host)
   end
 
+  test "interpolates variables" do
+    write_env_file_raw("DB_HOST=localhost\nDB_PORT=5432\nDATABASE_URL=postgres://\${DB_HOST}:\${DB_PORT}/app")
+    assert_equal "postgres://localhost:5432/app", @config.require(:database_url)
+  end
+
+  test "interpolates missing variables as empty string" do
+    write_env_file_raw("URL=https://\${MISSING}/path")
+    assert_equal "https:///path", @config.require(:url)
+  end
+
   test "returns empty hash when file does not exist" do
     @config = ActiveSupport::DotEnvConfiguration.new(File.join(@tmpdir, "nonexistent.env"))
     assert_nil @config.option(:anything)

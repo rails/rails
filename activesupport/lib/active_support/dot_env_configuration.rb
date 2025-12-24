@@ -14,6 +14,7 @@ module ActiveSupport
   # - Comments starting with #
   # - Empty lines (ignored)
   # - Quoted values (single or double quotes)
+  # - Variable interpolation with ${VAR} syntax
   #
   # When used inside Rails, the default path for the .env file will be `Rails.root.join(".env")`.
   # Otherwise it must be passed in as +path+.
@@ -37,7 +38,7 @@ module ActiveSupport
     end
 
     private
-      def rails_env_path
+      def rails_path
         if defined?(Rails) && Rails.try(:root)
           Rails.root.join(".env").to_s
         end
@@ -55,7 +56,7 @@ module ActiveSupport
             # Match KEY=value pattern
             if line =~ /\A([A-Za-z_][A-Za-z0-9_]*)=(.*)\z/
               key, value = $1, $2
-              envs[key] = unquote(value)
+              envs[key] = interpolate(unquote(value), envs)
             end
           end
 
@@ -73,6 +74,10 @@ module ActiveSupport
         else
           value
         end
+      end
+
+      def interpolate(value, envs)
+        value.gsub(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/) { envs[$1] || "" }
       end
   end
 end
