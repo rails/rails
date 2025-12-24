@@ -15,6 +15,11 @@ module ActiveSupport
   # - Empty lines (ignored)
   # - Quoted values (single or double quotes)
   # - Variable interpolation with ${VAR} syntax
+  # - Command execution with $(command) syntax
+  #
+  # The command execution allows for easy integration with third-party credential providers, like 1password:
+  #
+  #   DB_HOST=$(op read op://Vault/item/value --account=MyAccount)
   #
   # When used inside Rails, the default path for the .env file will be `Rails.root.join(".env")`.
   # Otherwise it must be passed in as +path+.
@@ -56,7 +61,7 @@ module ActiveSupport
             # Match KEY=value pattern
             if line =~ /\A([A-Za-z_][A-Za-z0-9_]*)=(.*)\z/
               key, value = $1, $2
-              envs[key] = interpolate(unquote(value), envs)
+              envs[key] = interpolate(execute_commands(unquote(value)), envs)
             end
           end
 
@@ -78,6 +83,10 @@ module ActiveSupport
 
       def interpolate(value, envs)
         value.gsub(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/) { envs[$1] || "" }
+      end
+
+      def execute_commands(value)
+        value.gsub(/\$\((.+?)\)/) { `#{$1}`.chomp }
       end
   end
 end

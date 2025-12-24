@@ -126,6 +126,16 @@ class DotEnvConfigurationTest < ActiveSupport::TestCase
     assert_equal "https:///path", @config.require(:url)
   end
 
+  test "executes commands" do
+    write_env_file_raw("SECRET=$(echo hello)")
+    assert_equal "hello", @config.require(:secret)
+  end
+
+  test "executes commands and interpolates variables" do
+    write_env_file_raw("PREFIX=hello\nSECRET=$(echo world)\nCOMBINED=\${PREFIX}-\${SECRET}")
+    assert_equal "hello-world", @config.require(:combined)
+  end
+
   test "returns empty hash when file does not exist" do
     @config = ActiveSupport::DotEnvConfiguration.new(File.join(@tmpdir, "nonexistent.env"))
     assert_nil @config.option(:anything)
