@@ -1,3 +1,12 @@
+*   Dispatch `direct-upload:success` with `blob` and `hiddenInput`
+
+    The `direct-upload:success` event is dispatched after the final
+    `direct-upload:progress` and before `direct-upload:end`. The `blob` is the
+    response from `ActiveStorage::DirectUploadsController#create`. The `hiddenInput`
+    is the `<input type="hidden">` element created by the upload.
+
+    *Sean Doyle*
+
 *   Analyze attachments before validation
 
     Attachment metadata (width, height, duration, etc.) is now available for
