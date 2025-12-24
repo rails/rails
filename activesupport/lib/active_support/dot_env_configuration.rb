@@ -81,12 +81,12 @@ module ActiveSupport
         end
       end
 
-      def interpolate(value, envs)
-        value.gsub(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/) { envs[$1] || "" }
-      end
-
       def execute_commands(value)
         value.gsub(/\$\((.+?)\)/) { `#{$1}`.chomp }
+      end
+
+      def interpolate(value, envs)
+        value.gsub(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/) { envs[$1] || "" }
       end
   end
 end
