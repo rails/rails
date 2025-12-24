@@ -41,8 +41,8 @@ module ActiveRecord
     #   an order is present in the relation.
     # * <tt>:cursor</tt> - Specifies the column to use for batching (can be a column name or an array
     #   of column names). Defaults to primary key.
-    # * <tt>:order</tt> - Specifies the cursor column order (can be +:asc+ or +:desc+ or an array consisting
-    #   of :asc or :desc). Defaults to +:asc+.
+    # * <tt>:order</tt> - Specifies the cursor column order (can be +:asc+ or +:desc+, an array consisting
+    #   of :asc or :desc, or +nil+). A value of +nil+ will skip any ordering. Defaults to +:asc+.
     #
     #     class Order < ActiveRecord::Base
     #       self.primary_key = [:id_1, :id_2]
@@ -71,7 +71,7 @@ module ActiveRecord
     #     person.party_all_night!
     #   end
     #
-    # NOTE: Order can be ascending (:asc) or descending (:desc). It is automatically set to
+    # NOTE: Order can be ascending (:asc), descending (:desc) or +nil+. It is automatically set to
     # ascending on the primary key ("id ASC").
     # This also means that this method only works when the cursor column is
     # orderable (e.g. an integer or string).
@@ -122,8 +122,8 @@ module ActiveRecord
     #   an order is present in the relation.
     # * <tt>:cursor</tt> - Specifies the column to use for batching (can be a column name or an array
     #   of column names). Defaults to primary key.
-    # * <tt>:order</tt> - Specifies the cursor column order (can be +:asc+ or +:desc+ or an array consisting
-    #   of :asc or :desc). Defaults to +:asc+.
+    # * <tt>:order</tt> - Specifies the cursor column order (can be +:asc+ or +:desc+, an array consisting
+    #   of :asc or :desc, or +nil+). A value of +nil+ will skip any ordering. Defaults to +:asc+.
     #
     #     class Order < ActiveRecord::Base
     #       self.primary_key = [:id_1, :id_2]
@@ -147,7 +147,7 @@ module ActiveRecord
     #     group.each { |person| person.party_all_night! }
     #   end
     #
-    # NOTE: Order can be ascending (:asc) or descending (:desc). It is automatically set to
+    # NOTE: Order can be ascending (:asc), descending (:desc) or +nil+. It is automatically set to
     # ascending on the primary key ("id ASC").
     # This also means that this method only works when the cursor column is
     # orderable (e.g. an integer or string).
@@ -203,8 +203,8 @@ module ActiveRecord
     #   an order is present in the relation.
     # * <tt>:cursor</tt> - Specifies the column to use for batching (can be a column name or an array
     #   of column names). Defaults to primary key.
-    # * <tt>:order</tt> - Specifies the cursor column order (can be +:asc+ or +:desc+ or an array consisting
-    #   of :asc or :desc). Defaults to +:asc+.
+    # * <tt>:order</tt> - Specifies the cursor column order (can be +:asc+ or +:desc+, an array consisting
+    #   of :asc or :desc, or +nil+). A value of +nil+ will skip any ordering. Defaults to +:asc+.
     #
     #     class Order < ActiveRecord::Base
     #       self.primary_key = [:id_1, :id_2]
@@ -245,7 +245,7 @@ module ActiveRecord
     #
     #   Person.in_batches.each_record(&:party_all_night!)
     #
-    # NOTE: Order can be ascending (:asc) or descending (:desc). It is automatically set to
+    # NOTE: Order can be ascending (:asc), descending (:desc) or +nil+. It is automatically set to
     # ascending on the primary key ("id ASC").
     # This also means that this method only works when the cursor column is
     # orderable (e.g. an integer or string).
@@ -320,8 +320,8 @@ module ActiveRecord
           end
         end
 
-        if (Array(order) - [:asc, :desc]).any?
-          raise ArgumentError, ":order must be :asc or :desc or an array consisting of :asc or :desc, got #{order.inspect}"
+        if !order.nil? && (Array(order) - [:asc, :desc]).any?
+          raise ArgumentError, ":order must be :asc, :desc, nil, or an array consisting of :asc or :desc, got #{order.inspect}"
         end
       end
 
@@ -361,6 +361,8 @@ module ActiveRecord
       end
 
       def build_batch_orders(cursor, order)
+        return [] if order.nil?
+
         cursor.zip(Array(order)).map do |column, order_|
           [column, order_ || DEFAULT_ORDER]
         end
@@ -378,21 +380,25 @@ module ActiveRecord
 
       def batch_on_loaded_relation(relation:, start:, finish:, cursor:, order:, batch_limit:)
         records = relation.to_a
-        order = build_batch_orders(cursor, order).map(&:second)
+        batch_orders = build_batch_orders(cursor, order)
 
-        if start || finish
-          records = records.filter do |record|
-            values = record_cursor_values(record, cursor)
+        if batch_orders.any?
+          order_directions = batch_orders.map(&:second)
 
-            (start.nil? || compare_values_for_order(values, Array(start), order) >= 0) &&
-              (finish.nil? || compare_values_for_order(values, Array(finish), order) <= 0)
+          if start || finish
+            records = records.filter do |record|
+              values = record_cursor_values(record, cursor)
+
+              (start.nil? || compare_values_for_order(values, Array(start), order_directions) >= 0) &&
+                (finish.nil? || compare_values_for_order(values, Array(finish), order_directions) <= 0)
+            end
           end
-        end
 
-        records.sort! do |record1, record2|
-          values1 = record_cursor_values(record1, cursor)
-          values2 = record_cursor_values(record2, cursor)
-          compare_values_for_order(values1, values2, order)
+          records.sort! do |record1, record2|
+            values1 = record_cursor_values(record1, cursor)
+            values2 = record_cursor_values(record2, cursor)
+            compare_values_for_order(values1, values2, order_directions)
+          end
         end
 
         records.each_slice(batch_limit) do |subrecords|

@@ -1,3 +1,7 @@
+*   Support the ability to run `find_each`/`find_in_batches`/`in_batches` queries without order.
+
+    *Shayon Mukherjee*
+
 *   Yield the transaction object to the block when using `with_lock`.
 
     *Ngan Pham*
