@@ -117,7 +117,7 @@ module ActionDispatch
     include SystemTesting::TestHelpers::SetupAndTeardown
     include SystemTesting::TestHelpers::ScreenshotHelper
 
-    DEFAULT_HOST = "http://127.0.0.1"
+    DEFAULT_HOST = "http://[::1]"
 
     def initialize(*) # :nodoc:
       super

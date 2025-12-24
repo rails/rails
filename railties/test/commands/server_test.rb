@@ -209,12 +209,12 @@ class Rails::Command::ServerTest < ActiveSupport::TestCase
   def test_host
     with_rails_env "development" do
       options = parse_arguments([])
-      assert_equal "localhost", options[:Host]
+      assert_equal "::1", options[:Host]
     end
 
     with_rails_env "production" do
       options = parse_arguments([])
-      assert_equal "0.0.0.0", options[:Host]
+      assert_equal "::", options[:Host]
     end
 
     with_rails_env "development" do

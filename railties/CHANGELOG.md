@@ -1,3 +1,15 @@
+*   Change default server binding from IPv4 to IPv6
+
+    The `bin/rails server` command now binds to `::1` (IPv6 localhost) in development
+    and `::` (all IPv6 interfaces) in other environments, instead of `localhost` and `0.0.0.0`.
+
+    IPv6 sockets on most operating systems accept both IPv4 and IPv6 connections,
+    so existing workflows using `127.0.0.1` will continue to work. This change
+    prepares Rails for the increasing adoption of IPv6 and reduces reliance on
+    increasingly expensive public IPv4 addresses.
+
+    *Richard Schneeman*
+
 *   Add `Rails.app.creds` to provide combined access to credentials stored in either ENV or the encrypted credentials file.
     Provides a new require/option API for accessing these values. Examples:
 

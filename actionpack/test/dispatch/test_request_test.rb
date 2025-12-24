@@ -16,7 +16,7 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal "", env.delete("QUERY_STRING")
 
     assert_equal "test.host", env.delete("HTTP_HOST")
-    assert_equal "0.0.0.0", env.delete("REMOTE_ADDR")
+    assert_equal "::", env.delete("REMOTE_ADDR")
     assert_equal "Rails Testing", env.delete("HTTP_USER_AGENT")
 
     assert_kind_of StringIO, env.delete("rack.errors")
@@ -54,9 +54,9 @@ class TestRequestTest < ActiveSupport::TestCase
     assert_equal false, req.env.empty?
   end
 
-  test "default remote address is 0.0.0.0" do
+  test "default remote address is ::" do
     req = ActionDispatch::TestRequest.create({})
-    assert_equal "0.0.0.0", req.remote_addr
+    assert_equal "::", req.remote_addr
   end
 
   test "allows remote address to be overridden" do

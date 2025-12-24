@@ -161,7 +161,7 @@ module ActionDispatch
         @url_options = nil
 
         self.host        = DEFAULT_HOST
-        self.remote_addr = "127.0.0.1"
+        self.remote_addr = "::1"
         self.accept      = "text/xml,application/xml,application/xhtml+xml," \
                            "text/html;q=0.9,text/plain;q=0.8,image/png," \
                            "*/*;q=0.5"
