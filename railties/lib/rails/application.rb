@@ -485,10 +485,10 @@ module Rails
 
     # Returns an ActiveSupport::CombinedConfiguration instance that combines
     # access to the encrypted credentials available via #credentials and keys
-    # used for the same purpose in ENV.
+    # used for the same purpose in ENV and .env.
     #
-    # This allows values in the encrypted credentials to be overwritten via ENV and for values to be
-    # moved between the two ways of providing credentials without rewriting application code.
+    # This allows values in the encrypted credentials to be overwritten via ENV or .env and for values to be
+    # moved between the three ways of providing credentials without rewriting application code.
     #
     # Examples:
     #
