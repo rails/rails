@@ -105,7 +105,7 @@ module Rails
       class_option :port, aliases: "-p", type: :numeric,
         desc: "Run Rails on the specified port - defaults to 3000.", banner: :port
       class_option :binding, aliases: "-b", type: :string,
-        desc: "Bind Rails to the specified IP - defaults to 'localhost' in development and '0.0.0.0' in other environments'.",
+        desc: "Bind Rails to the specified IP - defaults to 'localhost' in development and '::' in other environments.",
         banner: :IP
       class_option :config, aliases: "-c", type: :string, default: "config.ru",
         desc: "Use a custom rackup configuration.", banner: :file
@@ -218,7 +218,7 @@ module Rails
           if options[:binding]
             options[:binding]
           else
-            default_host = environment == "development" ? "localhost" : "0.0.0.0"
+            default_host = environment == "development" ? "localhost" : "::"
 
             ENV.fetch("BINDING", default_host)
           end
