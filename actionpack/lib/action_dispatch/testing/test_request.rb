@@ -9,7 +9,7 @@ module ActionDispatch
   class TestRequest < Request
     DEFAULT_ENV = Rack::MockRequest.env_for("/",
       "HTTP_HOST"                => "test.host".b,
-      "REMOTE_ADDR"              => "0.0.0.0".b,
+      "REMOTE_ADDR"              => "::".b,
       "HTTP_USER_AGENT"          => "Rails Testing".b,
     )
 
