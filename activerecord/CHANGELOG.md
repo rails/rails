@@ -2,6 +2,13 @@
 
     *Ngan Pham*
 
+*   Fix `update`, `insert`, and `delete` in migrations to raise `ActiveRecord::IrreversibleMigration` on rollback.
+
+    Previously, these methods would silently execute during rollback instead of
+    raising an error like `execute` does.
+
+    *Said Kaldybaev*
+
 *   Fix bug when `current_transaction.isolation` would not have been reset in test env.
 
     Additionally, extending the change in [#55549](https://github.com/rails/rails/pull/55549)
