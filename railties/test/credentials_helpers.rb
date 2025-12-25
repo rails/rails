@@ -6,7 +6,7 @@ module CredentialsHelpers
   private
     def write_credentials_override(name, with_key: true)
       Dir.chdir(app_path) do
-        Dir.mkdir  "config/credentials"
+        FileUtils.mkdir_p "config/credentials"
         File.write "config/credentials/#{name}.key", credentials_key if with_key
 
         # secret_key_base: secret

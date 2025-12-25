@@ -485,10 +485,14 @@ module Rails
 
     # Returns an ActiveSupport::CombinedConfiguration instance that combines
     # access to the encrypted credentials available via #credentials and keys
-    # used for the same purpose in ENV and .env.
+    # used for the same purpose in ENV.
     #
-    # This allows values in the encrypted credentials to be overwritten via ENV or .env and for values to be
-    # moved between the three ways of providing credentials without rewriting application code.
+    # In the development environment, .env variables are also included, and looked up
+    # after ENV and before the encrypted credentials.
+    #
+    # This allows application creds to be accessed in a uniform way regardless of where
+    # they're being provided. You don't have to change app code when you move from ENV
+    # to encrypted credentials or vice versa.
     #
     # Examples:
     #
@@ -497,7 +501,11 @@ module Rails
     #   Rails.app.creds.option(:cache_host, default: "cache-host-1")
     #   Rails.app.creds.option(:cache_host, default: -> { HostProvider.cache })
     def creds
-      @creds ||= ActiveSupport::CombinedConfiguration.new(envs, dotenvs, credentials)
+      if Rails.env.development?
+        @creds ||= ActiveSupport::CombinedConfiguration.new(envs, dotenvs, credentials)
+      else
+        @creds ||= ActiveSupport::CombinedConfiguration.new(envs, credentials)
+      end
     end
 
     # Allows for a custom combined configuration to be used for creds.
@@ -544,6 +552,8 @@ module Rails
     #   Rails.app.dotenvs.option(:cache_host) # CACHE_HOST from .env or nil
     #   Rails.app.dotenvs.option(:cache_host, default: "cache-host-1") # CACHE_HOST from .env or "cache-host-1"
     #   Rails.app.dotenvs.option(:cache_host, default: -> { HostProvider.cache }) # CACHE_HOST from .env or HostProvider.cache
+    #
+    # In development mode, this configuration backend is automatically part of `Rails.app.creds`.
     def dotenvs(path = Rails.root.join(".env"))
       @dotenvs ||= ActiveSupport::DotEnvConfiguration.new(path)
     end
