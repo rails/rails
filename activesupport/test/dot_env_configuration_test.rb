@@ -111,6 +111,11 @@ class DotEnvConfigurationTest < ActiveSupport::TestCase
     assert_equal "2", @config.require(:two)
   end
 
+  test "allows spaces around =" do
+    write_env_file_raw("ONE = 1")
+    assert_equal "1", @config.require(:one)
+  end
+
   test "handles nested keys with double underscore" do
     write_env_file_raw("DATABASE__HOST=localhost")
     assert_equal "localhost", @config.require(:database, :host)
