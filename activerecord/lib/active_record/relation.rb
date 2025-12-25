@@ -279,7 +279,14 @@ module ActiveRecord
         end
         record
       rescue ActiveRecord::RecordNotUnique
-        if connection.transaction_open?
+        # Safely check if transaction is open, defaulting to false if check fails
+        transaction_open = begin
+          connection.transaction_open?
+        rescue
+          false
+        end
+
+        if transaction_open
           where(attributes).lock.find_by!(attributes)
         else
           find_by!(attributes)
@@ -299,7 +306,14 @@ module ActiveRecord
         end
         record
       rescue ActiveRecord::RecordNotUnique
-        if connection.transaction_open?
+        # Safely check if transaction is open, defaulting to false if check fails
+        transaction_open = begin
+          connection.transaction_open?
+        rescue
+          false
+        end
+
+        if transaction_open
           where(attributes).lock.find_by!(attributes)
         else
           find_by!(attributes)
