@@ -62,7 +62,7 @@ module ActiveSupport
 
     # Returns a <tt>Time</tt> instance that represents the time in +time_zone+.
     def time
-      @time ||= incorporate_utc_offset(@utc, utc_offset)
+      @time ||= @utc.getlocal(@time_zone)
     end
 
     # Returns a <tt>Time</tt> instance of the simultaneous time in the UTC timezone.
@@ -533,7 +533,7 @@ module ActiveSupport
     end
 
     def marshal_load(variables)
-      initialize(variables[0].utc, ::Time.find_zone(variables[1]), variables[2].utc)
+      initialize(variables[0].utc, ::Time.find_zone(variables[1]), variables[2])
     end
 
     # Ensure proxy class responds to all methods that underlying time instance
