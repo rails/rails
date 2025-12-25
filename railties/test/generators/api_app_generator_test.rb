@@ -167,6 +167,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       %w(.gitignore
         .ruby-version
         .dockerignore
+        .env
         README.md
         Gemfile
         Rakefile
