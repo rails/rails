@@ -36,7 +36,13 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   # :method:
   #
   # Returns the associated record.
-  belongs_to :record, polymorphic: true, touch: ActiveStorage.touch_attachment_records
+  #
+  # Note: +touch+ is false because we handle record touching manually via the
+  # overridden +touch+ method. This allows runtime evaluation of both the global
+  # +ActiveStorage.touch_attachment_records+ setting and the per-attachment
+  # +touch:+ option. Rails' +belongs_to+ +touch+ option is evaluated at class
+  # load time, which doesn't support conditional logic.
+  belongs_to :record, polymorphic: true, touch: false
 
   ##
   # :method:
@@ -90,7 +96,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   def purge
     transaction do
       delete
-      record.touch if record&.persisted?
+      record.touch if should_touch_record? && record&.persisted?
     end
     blob&.purge
   end
@@ -99,7 +105,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   def purge_later
     transaction do
       delete
-      record.touch if record&.persisted?
+      record.touch if should_touch_record? && record&.persisted?
     end
     blob&.purge_later
   end
@@ -161,6 +167,22 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     blob.representation(transformations)
   end
 
+  # Returns whether the parent record's timestamp should be updated when this
+  # attachment is modified. Respects both the global +ActiveStorage.touch_attachment_records+
+  # setting and the per-attachment +touch:+ option.
+  def should_touch_record?
+    return false unless ActiveStorage.touch_attachment_records
+
+    option = touch_option
+    option.nil? ? true : option
+  end
+
+  # Override touch to also touch the parent record when appropriate.
+  def touch(*, **)
+    super
+    record.touch if should_touch_record? && record&.persisted?
+  end
+
   private
     def run_upload_callbacks
       run_callbacks(:upload)
@@ -183,6 +205,10 @@ class ActiveStorage::Attachment < ActiveStorage::Record
 
     def analyze_option
       record.attachment_reflections[name]&.options&.fetch(:analyze, nil)
+    end
+
+    def touch_option
+      record.attachment_reflections[name]&.options&.fetch(:touch, nil)
     end
 
     def mirror_blob_later

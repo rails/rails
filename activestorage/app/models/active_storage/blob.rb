@@ -388,15 +388,17 @@ class ActiveStorage::Blob < ActiveStorage::Record
       end
     end
 
+    # Touches attachments and their associated records when the blob is updated.
+    #
+    # Note: Attachment has no +updated_at+ column (only +created_at+), so calling
+    # +touch+ on an attachment only has an effect when it cascades to the parent
+    # record via the overridden +touch+ method. We return early when global touch
+    # is disabled to avoid unnecessary iteration and eager-loading.
     def touch_attachments
-      attachments.then do |relation|
-        if ActiveStorage.touch_attachment_records
-          relation.includes(:record)
-        else
-          relation
-        end
-      end.each do |attachment|
-        attachment.touch
+      return unless ActiveStorage.touch_attachment_records
+
+      attachments.includes(:record).each do |attachment|
+        attachment.touch if attachment.should_touch_record?
       end
     end
 
