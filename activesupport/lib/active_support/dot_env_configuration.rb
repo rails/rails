@@ -53,7 +53,7 @@ module ActiveSupport
             next if line.empty? || line.start_with?("#")
 
             # Match KEY=value pattern
-            if line =~ /\A([A-Za-z_][A-Za-z0-9_]*)=(.*)\z/
+            if line =~ /\A([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\z/
               key, value = $1, $2
               envs[key] = interpolate(execute_commands(unquote(value)), envs)
             end
