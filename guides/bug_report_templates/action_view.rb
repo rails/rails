@@ -36,6 +36,6 @@ class BugTest < ActionView::TestCase
 
     element = rendered.html.at("p")
 
-    assert_equal element.text, "VALUE"
+    assert_equal "VALUE", element.text
   end
 end

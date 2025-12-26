@@ -38,7 +38,13 @@ module ActiveRecord
           attr_reader :loaders
 
           def group_and_load_similar(loaders)
-            loaders.grep_v(ThroughAssociation).group_by(&:loader_query).each_pair do |query, similar_loaders|
+            non_through = loaders.grep_v(ThroughAssociation)
+
+            grouped = non_through.group_by do |loader|
+              [loader.loader_query, loader.klass]
+            end
+
+            grouped.each do |(query, _klass), similar_loaders|
               query.load_records_in_batch(similar_loaders)
             end
           end

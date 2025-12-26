@@ -18,6 +18,13 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :sneakers
     class SneakersAdapter < AbstractAdapter
+      def check_adapter
+        ActiveJob.deprecator.warn <<~MSG.squish
+          The built-in `sneakers` adapter is deprecated and will be removed in Rails 8.2.
+          Please migrate from `sneakers` gem to `kicks` gem version 3.1.1 or later to use `ActiveJob` adapter from `kicks`.
+        MSG
+      end
+
       def initialize
         @monitor = Monitor.new
       end

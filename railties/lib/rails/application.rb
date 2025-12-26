@@ -4,6 +4,8 @@ require "yaml"
 require "active_support/core_ext/hash/keys"
 require "active_support/key_generator"
 require "active_support/message_verifiers"
+require "active_support/combined_configuration"
+require "active_support/env_configuration"
 require "active_support/encrypted_configuration"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
@@ -480,6 +482,47 @@ module Rails
       config.secret_key_base
     end
 
+    # Returns an ActiveSupport::CombinedConfiguration instance that combines
+    # access to the encrypted credentials available via #credentials and keys
+    # used for the same purpose in ENV.
+    #
+    # This allows values in the encrypted credentials to be overwritten via ENV and for values to be
+    # moved between the two ways of providing credentials without rewriting application code.
+    #
+    # Examples:
+    #
+    #   Rails.app.creds.require(:db_password)
+    #   Rails.app.creds.require(:aws, :access_key_id)
+    #   Rails.app.creds.option(:cache_host, default: "cache-host-1")
+    #   Rails.app.creds.option(:cache_host, default: -> { HostProvider.cache })
+    def creds
+      @creds ||= ActiveSupport::CombinedConfiguration.new(envs, credentials)
+    end
+
+    # Allows for a custom combined configuration to be used for creds.
+    #
+    # Example adding a OnePassword backend between ENVS and encrypted credentials:
+    #
+    #   Rails.app.creds = ActiveSupport::CombinedConfiguration.new \
+    #     Rails.app.envs, OnePasswordConfiguration.new, Rails.app.credentials
+    attr_writer :creds
+
+    # Returns an ActiveSupport::EnvConfiguration instance that provides
+    # access to the ENV variables through symbol-based lookup with explicit methods
+    # for required and optional values. This is the same interface offered by #credentials
+    # and can be accessed in a combined manner via #creds.
+    #
+    # Examples:
+    #
+    #   Rails.app.envs.require(:db_password) # ENV,fetch("DB_PASSWORD")
+    #   Rails.app.envs.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
+    #   Rails.app.envs.option(:cache_host) # ENV["CACHE_HOST"]
+    #   Rails.app.envs.option(:cache_host, default: "cache-host-1") # ENV.fetch("CACHE_HOST", "cache-host-1")
+    #   Rails.app.envs.option(:cache_host, default: -> { HostProvider.cache }) # ENV.fetch("CACHE_HOST") { HostProvider.cache }
+    def envs
+      @envs ||= ActiveSupport::EnvConfiguration.new
+    end
+
     # Returns an ActiveSupport::EncryptedConfiguration instance for the
     # credentials file specified by +config.credentials.content_path+.
     #
@@ -494,6 +537,8 @@ module Rails
     # +config.credentials.key_path+ will point to either
     # <tt>config/credentials/#{environment}.key</tt> for the current
     # environment, or +config/master.key+ if that file does not exist.
+    #
+    # Is best used via #creds to ensure that values can be overwritten via ENV.
     def credentials
       @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
     end

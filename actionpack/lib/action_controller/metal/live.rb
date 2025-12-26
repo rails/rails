@@ -60,10 +60,10 @@ module ActionController
   # shares execution state from the parent thread.
   #
   # You can configure which execution state keys should be excluded from being shared
-  # using the `config.action_controller.live.streaming_excluded_keys` configuration:
+  # using the `config.action_controller.live_streaming_excluded_keys` configuration:
   #
   #   # config/application.rb
-  #   config.action_controller.live.streaming_excluded_keys = [:active_record_connected_to_stack]
+  #   config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack]
   #
   # This is useful when using ActionController::Live inside a `connected_to` block. For example,
   # if the parent request is reading from a replica using `connected_to(role: :reading)`, you may
@@ -77,7 +77,7 @@ module ActionController
   #   end
   #
   #   # With configuration, streaming thread gets fresh connection context
-  #   # config.action_controller.live.streaming_excluded_keys = [:active_record_connected_to_stack]
+  #   # config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack]
   #   ActiveRecord::Base.connected_to(role: :reading) do
   #     @posts = Post.all
   #     render stream: true # Streaming thread can write to database if needed
