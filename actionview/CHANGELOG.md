@@ -1,3 +1,20 @@
+*   Introduce `field_label` form helper
+
+    Generate the text-only label contents for a field:
+
+    ```ruby
+    # Helper method
+    field_label :article, :title    # => "Title"
+
+    # FormBuilder method
+    fields model: @article do |form|
+      form.label :title             # => "<label for=\"article_title\">Title</label>"
+      form.field_label :title       # => "Title"
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Fix tag parameter content being overwritten instead of combined with tag block content.
     Before `tag.div("Hello ") { "World" }` would just return `<div>World</div>`, now it returns `<div>Hello World</div>`.
 
