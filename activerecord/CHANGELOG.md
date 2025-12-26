@@ -1,3 +1,15 @@
+*   Infer default `:inverse_of` option for `delegated_type` definitions when `config.active_record.automatic_scope_inversing = true`
+
+    ```ruby
+    class Entry < ApplicationRecord
+      # When `config.active_record.automatic_scope_inversing = true`,
+      # automatically infer `inverse_of: :entry` option
+      delegated_type :entryable, types: %w[ Message ]
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Yield the transaction object to the block when using `with_lock`.
 
     *Ngan Pham*
