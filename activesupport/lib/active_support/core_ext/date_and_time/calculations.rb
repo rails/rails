@@ -275,6 +275,7 @@ module DateAndTime
     def monday
       beginning_of_week(:monday)
     end
+    alias :previous_or_current_monday :monday
 
     # Returns a new date/time representing the end of this week on the given day.
     # Week is assumed to start on +start_day+, default is
@@ -290,6 +291,7 @@ module DateAndTime
     def sunday
       end_of_week(:monday)
     end
+    alias :next_or_current_sunday :sunday
 
     # Returns a new date/time representing the end of the month.
     # DateTime objects will have a time set to 23:59:59.
