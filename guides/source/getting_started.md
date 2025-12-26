@@ -168,7 +168,7 @@ Rails.
 Hello, Rails!
 -------------
 
-Let's start easy by creating our application's database and boot up our Rails server for the first time.
+Let's start easy by creating our application's database and booting up our Rails server for the first time.
 
 In your terminal, run the following commands in the `store` directory:
 
@@ -286,7 +286,7 @@ they can be deployed to production (live, online!) safely.
 In your code editor, open the migration Rails created for us so we can see what
 the migration does.
 
-NOTE: As convention we'll state the filepath as a comment on top of each file
+NOTE: As a convention we'll state the filepath as a comment on top of each file
 
 
 ```ruby
@@ -390,7 +390,7 @@ what defines this model?
 When the `Product` model is used, Rails will query the database table for the
 column names and types and automatically generate code for these attributes.
 Rails saves us from writing this boilerplate code and instead takes care of it
-for us behind the scenes so we can focus on our application logic instead.
+for us behind the scenes so we can focus on our application logic.
 
 Let's use the Rails console to see what columns Rails detects for the Product
 model.
@@ -1653,7 +1653,7 @@ To log out of the application, we can add a button to the top of
 you want to include in every page like a header or footer.
 
 Add a small `<nav>` section inside the `<body>` with a link to Home and a Log
-out button and wrap `yield` with a `<main>` tag.
+out button. Also, wrap `yield` with a `<main>` tag.
 
 ```erb#6-9,11,13
 <%# app/views/layouts/application.html.erb %>
@@ -2137,7 +2137,7 @@ of these subscribers.
 Let's generate a model called Subscriber to store these email addresses and
 associate them with the respective product.
 
-NOTE: Here we are not specifying a type for `email` as rails automatically defaults to a `string` when a type is not given for migrations.
+NOTE: Here we are not specifying a type for `email` as Rails automatically defaults to a `string` when a type is not given for migrations.
 
 ```bash
 $ bin/rails generate model Subscriber product:belongs_to email
@@ -3174,7 +3174,7 @@ products.
 
 Background jobs allow you to run tasks asynchronously behind-the-scenes in a
 separate process, preventing them from interrupting the user experience. Imagine
-sending in stock emails to 10,000 recipients. It could take a while, so we can
+sending in-stock emails to 10,000 recipients. It could take a while, so we can
 offload that task to a background job to keep the Rails app responsive.
 
 In development, Rails uses the `:async` queue adapter to process background jobs
@@ -3186,7 +3186,7 @@ environments. Solid Queue stores jobs in the database and executes them in a
 separate process.
 
 Solid Queue is enabled for our production Kamal deployment using the
-`SOLID_QUEUE_IN_PUMA: true` environment variable to `config/deploy.yml`. This
+`SOLID_QUEUE_IN_PUMA: true` environment variable in `config/deploy.yml`. This
 tells our web server, Puma, to start and stop the Solid Queue process
 automatically.
 
