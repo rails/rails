@@ -197,6 +197,8 @@ module Rails
     end
 
     def env
+      return if options[:pretend] || options[:dummy_app]
+
       template "env", ".env"
     end
 
