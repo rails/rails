@@ -1,5 +1,5 @@
-*   Add `Rails.app.creds` to provide combined access to credentials stored in either ENV or the encrypted credentials file.
-    Provides a new require/option API for accessing these values. Examples:
+*   Add `Rails.app.creds` to provide combined access to credentials stored in either ENV or the encrypted credentials file,
+    and in development, also .env credentials. Provides a new require/option API for accessing these values. Examples:
 
     ```ruby
     Rails.app.creds.require(:db_host) # ENV.fetch("DB_HOST") || Rails.app.credentials.require(:db_host)
