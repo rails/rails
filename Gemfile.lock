@@ -102,7 +102,7 @@ PATH
   remote: tools/releaser
   specs:
     releaser (1.0.0)
-      minitest
+      minitest (~> 6.0)
       rake (~> 13.0)
 
 GEM

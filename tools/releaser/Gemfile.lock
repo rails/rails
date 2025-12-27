@@ -2,16 +2,18 @@ PATH
   remote: .
   specs:
     releaser (1.0.0)
-      minitest
+      minitest (~> 6.0)
       rake (~> 13.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
     logger (1.7.0)
-    minitest (5.25.1)
+    minitest (6.0.1)
+      prism (~> 1.5)
     net-http (0.6.0)
       uri
+    prism (1.7.0)
     protobug (0.1.0)
     protobug_googleapis_field_behavior_protos (0.1.0)
       protobug (= 0.1.0)
@@ -43,4 +45,4 @@ DEPENDENCIES
   sigstore-cli
 
 BUNDLED WITH
-   2.6.3
+  4.0.2
