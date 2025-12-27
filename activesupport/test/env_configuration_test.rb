@@ -76,11 +76,12 @@ class EnvConfigurationTest < ActiveSupport::TestCase
     end
   end
 
-  test "inspect does not show ENV variables" do
+  test "inspect does not show ENV variable values but shows keys" do
     secret = "something_secret"
     set_env("SECRET_TOKEN" => secret) do
       assert_no_match(/#{secret}/, @config.inspect)
-      assert_match(/\A#<ActiveSupport::EnvConfiguration:0x[0-9a-f]+>\z/, @config.inspect)
+      assert_match(/keys=.*"SECRET_TOKEN"/, @config.inspect)
+      assert_match(/\A#<ActiveSupport::EnvConfiguration:0x[0-9a-f]+ keys=\[.*\]>\z/, @config.inspect)
     end
   end
 

@@ -52,7 +52,8 @@ module ActiveSupport
     end
 
     def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+      keys = @configurations.flat_map { |config| config.respond_to?(:keys) ? config.keys : [] }.uniq
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} keys=#{keys.inspect}>"
     end
   end
 end
