@@ -1,3 +1,8 @@
+*   Add `bin/rails credentials:set` commands to set encrypted credentials from the command line,
+    making it easier to update credentials without opening an editor.
+
+    *berniechiu*
+
 *   Add `Rails.app.creds` to provide combined access to credentials stored in either ENV or the encrypted credentials file.
     Provides a new require/option API for accessing these values. Examples:
 
