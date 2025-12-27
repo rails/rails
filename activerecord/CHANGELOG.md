@@ -1,3 +1,7 @@
+*   Better error message when assigning a non-model to a polymorphic association.
+
+    *Christian Schmidt*
+
 *   Yield the transaction object to the block when using `with_lock`.
 
     *Ngan Pham*
