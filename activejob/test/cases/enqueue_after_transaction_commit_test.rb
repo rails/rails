@@ -167,18 +167,7 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
     end
   end
 
-  test "default value is true when ActiveRecord is available" do
-    fake_active_record = FakeActiveRecord.new
-    stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
-      job_class = Class.new do
-        include ActiveJob::Enqueuing
-      end
-
-      assert_equal true, job_class.enqueue_after_transaction_commit
-    end
-  end
-
-  test "default value is false when ActiveRecord is not available" do
+  test "default value is false by default" do
     job_class = Class.new do
       include ActiveJob::Enqueuing
     end
@@ -186,9 +175,24 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
     assert_equal false, job_class.enqueue_after_transaction_commit
   end
 
-  test "raises error when setting to true without ActiveRecord" do
-    assert_raises(ArgumentError, "enqueue_after_transaction_commit must be false when ActiveRecord is not available") do
+  test "can set enqueue_after_transaction_commit without ActiveRecord" do
+    original = TestJob.enqueue_after_transaction_commit
+
+    assert_nothing_raised do
       TestJob.enqueue_after_transaction_commit = true
     end
+  ensure
+    TestJob.enqueue_after_transaction_commit = original
+  end
+
+  test "base setting applies to existing subclasses" do
+    original = ActiveJob::Base.enqueue_after_transaction_commit
+    job_class = Class.new(ActiveJob::Base)
+
+    ActiveJob::Base.enqueue_after_transaction_commit = true
+
+    assert_equal true, job_class.enqueue_after_transaction_commit
+  ensure
+    ActiveJob::Base.enqueue_after_transaction_commit = original
   end
 end
