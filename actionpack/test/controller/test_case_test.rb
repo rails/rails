@@ -733,7 +733,7 @@ class TestCaseTest < ActionController::TestCase
 
   def test_remote_addr
     get :test_remote_addr
-    assert_equal "0.0.0.0", @response.body
+    assert_equal "::", @response.body
 
     @request.remote_addr = "192.0.0.1"
     get :test_remote_addr
