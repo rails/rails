@@ -80,4 +80,16 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
       @combined.require(:gone, :missing)
     end
   end
+
+  test "inspect does not show configuration values" do
+    secret_env = "secret_env_value"
+
+    ENV["SECRET_ENV"] = secret_env
+    @envs.reload
+
+    assert_no_match(/#{secret_env}/, @combined.inspect)
+    assert_match(/\A#<ActiveSupport::CombinedConfiguration:0x[0-9a-f]+>\z/, @combined.inspect)
+  ensure
+    ENV.delete("SECRET_ENV")
+  end
 end

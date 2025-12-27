@@ -53,6 +53,10 @@ module ActiveSupport
       @envs = ENV.to_h
     end
 
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+    end
+
     private
       def lookup(env_key)
         @envs[env_key]

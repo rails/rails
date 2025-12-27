@@ -50,5 +50,9 @@ module ActiveSupport
     def reload
       @configurations.each { |config| config.try(:reload) }
     end
+
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+    end
   end
 end

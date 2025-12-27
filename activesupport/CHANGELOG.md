@@ -1,3 +1,26 @@
+*   Override `inspect` methods in `CombinedConfiguration` and `EnvConfiguration` to prevent
+    sensitive ENV variables and credentials from being exposed in console or logs.
+    This matches the existing security behavior of `EncryptedConfiguration`.
+
+    Before:
+
+    ```ruby
+    #<ActiveSupport::CombinedConfiguration:0x0000000122b45870
+     @configurations=[
+       #<ActiveSupport::EnvConfiguration:0x0000000122b465b8
+        @envs={"SECRET" => "SECRET_MSG", ... }>,
+       #<ActiveSupport::EncryptedConfiguration:0x00000000007af0>]>
+    ```
+
+    After:
+
+    ```ruby
+    Rails.app.creds
+    => #<ActiveSupport::CombinedConfiguration:0x0000000122b45870>
+    ```
+
+    *Emmanuel Hayford*
+
 *   Add `ActiveSupport::CombinedConfiguration` to offer interchangeable access to configuration provided by
     either ENV or encrypted credentials. Used by Rails to first look at ENV, then look in encrypted credentials,
     but can be configured separately with any number of API-compatible backends in a first-look order.
