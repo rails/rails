@@ -752,10 +752,19 @@ module ActiveRecord
 
     private
       def model_class=(class_name)
-        if class_name.is_a?(Class) # TODO: Should be an AR::Base type class, or any?
+        if class_name.is_a?(Class)
           @model_class = class_name
+        elsif class_name
+          @model_class = class_name.safe_constantize
+          if @model_class.nil?
+            raise ArgumentError, "model_class #{class_name} not found"
+          end
         else
-          @model_class = class_name.safe_constantize if class_name
+          @model_class = nil
+        end
+
+        if @model_class && !(@model_class < ActiveRecord::Base)
+          raise ArgumentError, "model_class must be a subclass of ActiveRecord::Base"
         end
       end
 

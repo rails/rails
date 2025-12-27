@@ -1874,3 +1874,19 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
     end
   end
 end
+
+class FixtureModelClassTest < ActiveRecord::TestCase
+  def test_fixture_set_with_non_ar_model_class
+    error = assert_raises(ArgumentError) do
+      ActiveRecord::FixtureSet.new(nil, "non_ar_models", Class.new, "test/fixtures/non_ar_models")
+    end
+    assert_equal "model_class must be a subclass of ActiveRecord::Base", error.message
+  end
+
+  def test_fixture_set_with_non_existent_model_class_name
+    error = assert_raises(ArgumentError) do
+      ActiveRecord::FixtureSet.new(nil, "non_existent", "NonExistentModel", "test/fixtures/non_existent")
+    end
+    assert_equal "model_class NonExistentModel not found", error.message
+  end
+end
