@@ -50,5 +50,10 @@ module ActiveSupport
     def reload
       @configurations.each { |config| config.try(:reload) }
     end
+
+    def inspect # :nodoc:
+      keys = @configurations.flat_map { |config| config.respond_to?(:keys) ? config.keys : [] }.uniq
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} keys=#{keys.inspect}>"
+    end
   end
 end

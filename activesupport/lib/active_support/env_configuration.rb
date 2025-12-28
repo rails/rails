@@ -55,6 +55,15 @@ module ActiveSupport
       @envs = ENV.to_h
     end
 
+    # Returns an array of all ENV variable keys.
+    def keys
+      @envs.keys
+    end
+
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} keys=#{keys.inspect}>"
+    end
+
     private
       def lookup(env_key)
         @envs[env_key]

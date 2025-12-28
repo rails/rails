@@ -130,7 +130,14 @@ module ActiveSupport
       @config ||= deep_symbolize_keys(deserialize(read))
     end
 
+    # Returns an array of all configuration keys.
+    def keys
+      config.keys
+    end
+
     def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} keys=#{keys.inspect}>"
+    rescue
       "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
     end
 

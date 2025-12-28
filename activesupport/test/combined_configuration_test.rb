@@ -134,4 +134,18 @@ class CombinedConfigurationTest < ActiveSupport::TestCase
       @combined.require(:gone, :missing)
     end
   end
+
+  test "inspect does not show configuration values but shows keys" do
+    secret_env = "secret_env_value"
+
+    ENV["SECRET_ENV"] = secret_env
+    @envs.reload
+
+    assert_no_match(/#{secret_env}/, @combined.inspect)
+    assert_match(/keys=/, @combined.inspect)
+    assert_match(/"SECRET_ENV"/, @combined.inspect)
+    assert_match(/\A#<ActiveSupport::CombinedConfiguration:0x[0-9a-f]+ keys=\[.*\]>\z/, @combined.inspect)
+  ensure
+    ENV.delete("SECRET_ENV")
+  end
 end

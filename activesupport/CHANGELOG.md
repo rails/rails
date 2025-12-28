@@ -1,3 +1,34 @@
+*   Override `inspect` methods in `CombinedConfiguration`, `EnvConfiguration`, and
+    `EncryptedConfiguration` to show key names while hiding sensitive values. This prevents
+    accidental exposure of secrets in console or logs while still providing useful debugging
+    information about what configuration keys are available.
+
+    Before:
+
+    ```ruby
+    Rails.app.creds
+    #<ActiveSupport::CombinedConfiguration:0x0000000122b45870
+     @configurations=[
+       #<ActiveSupport::EnvConfiguration:0x0000000122b465b8
+        @envs={"SOME_SECRET" =>  "secret_value", ...}>,
+       #<ActiveSupport::EncryptedConfiguration:0x00000000007af0>]>
+    ```
+
+    After:
+
+    ```ruby
+    Rails.app.creds
+    #<ActiveSupport::CombinedConfiguration:0x00000000006490 keys=["RAILS_ENV", "SOME_SECRET", ..., :secret_key_base, :stripe_webhook_secret]>
+
+    Rails.app.credentials
+    #<ActiveSupport::EncryptedConfiguration:0x00000000008cd0 keys=[:secret_key_base, :stripe_webhook_secret]>
+
+    Rails.app.envs
+    #<ActiveSupport::EnvConfiguration:0x0000000000a6a0 keys=["RAILS_ENV", "SOME_SECRET", "PATH", "HOME", ...]>
+    ```
+
+    *Emmanuel Hayford*
+
 *   Add `ActiveSupport::CombinedConfiguration` to offer interchangeable access to configuration provided by
     either ENV or encrypted credentials. Used by Rails to first look at ENV, then look in encrypted credentials,
     but can be configured separately with any number of API-compatible backends in a first-look order.
