@@ -5,6 +5,7 @@ require "isolation/abstract_unit"
 module TestHelpersTests
   class GenerationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    teardown :teardown_app
 
     def test_build_app
       build_app

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "support/leak_checker"
+
 ActiveSupport::TestCase.alias_method :force_skip, :skip
 
 ENV["RAILS_TEST_EXECUTABLE"] = "bin/test"
@@ -20,3 +22,5 @@ if ENV["BUILDKITE"]
   end
   ActiveSupport::TestCase.include(DisableSkipping)
 end
+
+ActiveSupport::TestCase.prepend(LeakChecker)
