@@ -18,9 +18,7 @@
 # commits before being dispatched to the queue. This prevents jobs from
 # operating on rolled-back data.
 #++
-# ActiveSupport.on_load(:active_job) do
-#   ActiveJob::Base.enqueue_after_transaction_commit = true
-# end
+# Rails.application.config.active_job.enqueue_after_transaction_commit = true
 
 ###
 # Use Sec-Fetch-Site header for CSRF protection instead of tokens.
