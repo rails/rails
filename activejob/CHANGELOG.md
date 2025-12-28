@@ -1,3 +1,15 @@
+*   Jobs are now enqueued after transaction commit.
+
+    This fixes that jobs would surprisingly run against uncommitted and
+    rolled-back records.
+
+    New Rails 8.2 apps (and apps upgrading to `config.load_defaults "8.2"`)
+    default `ActiveJob::Base.enqueue_after_transaction_commit` to true.
+    Uncomment the setting in `config/initializers/new_framework_defaults_8_2.rb`
+    to opt in.
+
+    *mugitti9*
+
 *   Deprecate built-in `sneakers` adapter.
 
     *Dino Maric*
