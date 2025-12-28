@@ -1,5 +1,5 @@
 *   Add `Rails.app.creds` to provide combined access to credentials stored in either ENV or the encrypted credentials file,
-    and in development, also .env credentials. Provides a new require/option API for accessing these values. Examples:
+    and in development also .env credentials. Provides a new require/option API for accessing these values. Examples:
 
     ```ruby
     Rails.app.creds.require(:db_host) # ENV.fetch("DB_HOST") || Rails.app.credentials.require(:db_host)
@@ -14,6 +14,13 @@
     ```ruby
     Rails.app.creds = ActiveSupport::CombinedConfiguration.new(Rails.app.envs, OnePasswordConfiguration.new)
     ```
+
+    *DHH*
+
+*   Add `Rails.app.dotenvs` to provide access to .env variables through symbol-based lookup with explicit methods
+    for required and optional values. This is the same interface offered by #credentials and can be accessed in a combined manner via #creds.
+
+    It supports both variable interpolation with ${VAR} and command interpolation with $(echo "hello"). Otherwise the same as `Rails.app.envs`.
 
     *DHH*
 
