@@ -1,3 +1,7 @@
+*   Add `unique_by` option to `insert_all!`.
+
+    *Chedli Bourguiba*
+
 *   Yield the transaction object to the block when using `with_lock`.
 
     *Ngan Pham*
