@@ -31,9 +31,9 @@ module ActiveJob
         ActiveSupport.on_load(:active_record) do
           ActiveJob::Base.include EnqueueAfterTransactionCommit
 
-          config_version = app.config.loaded_config_version
-          if config_version && Gem::Version.new(config_version.to_s) >= Gem::Version.new("8.2")
-            ActiveJob::Base.enqueue_after_transaction_commit = true
+          if app.config.active_job.key?(:enqueue_after_transaction_commit)
+            ActiveJob::Base.enqueue_after_transaction_commit =
+              app.config.active_job.enqueue_after_transaction_commit
           end
         end
       end
@@ -64,7 +64,9 @@ module ActiveJob
         # Configs used in other initializers
         options = options.except(
           :log_query_tags_around_perform,
-          :custom_serializers
+          :custom_serializers,
+          # This config can't be applied globally, so we need to remove otherwise it will be applied to `ActiveJob::Base`.
+          :enqueue_after_transaction_commit
         )
 
         options.each do |k, v|
