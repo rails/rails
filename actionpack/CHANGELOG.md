@@ -1,3 +1,8 @@
+*   Add `ActionDispatch::Request#bearer_token` to extract the bearer token from the Authorization header.
+    Bearer tokens are commonly used for API and MCP requests.
+
+    *DHH*
+
 *   Add block support to `ActionController::Parameters#merge`
 
     `ActionController::Parameters#merge` now accepts a block to resolve conflicts,
