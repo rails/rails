@@ -12,6 +12,7 @@ require "active_support/configuration_file"
 require "active_support/parameter_filter"
 require "rails/engine"
 require "rails/autoloaders"
+require "rails/app_version"
 
 module Rails
   # An Engine with the responsibility of coordinating the whole boot process.
@@ -100,6 +101,17 @@ module Rails
     attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders, :reloader, :executor, :autoloaders
+
+    # Returns the application's version as a Rails::AppVersion::Version object
+    def version
+      @version ||= Rails::AppVersion.version
+    end
+
+    # Returns the application's environment as an ActiveSupport::StringInquirer
+    def app_environment
+      @app_environment ||= Rails::AppVersion.env
+    end
+    alias_method :app_env, :app_environment
 
     delegate :default_url_options, :default_url_options=, to: :routes
 

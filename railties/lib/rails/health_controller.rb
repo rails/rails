@@ -45,15 +45,30 @@ module Rails
       def render_up
         respond_to do |format|
           format.html { render html: html_status(color: "green") }
-          format.json { render json: { status: "up", timestamp: Time.current.iso8601 } }
+          format.json { render json: health_check_json("up") }
         end
       end
 
       def render_down
         respond_to do |format|
           format.html { render html: html_status(color: "red"), status: 500 }
-          format.json { render json: { status: "down", timestamp: Time.current.iso8601 }, status: 500 }
+          format.json { render json: health_check_json("down"), status: 500 }
         end
+      end
+
+      def health_check_json(status)
+        data = {
+          status: status,
+          timestamp: Time.current.iso8601
+        }
+
+        if Rails.application.config.app_version.enabled
+          data[:version] = Rails.application.version.to_s
+          data[:revision] = Rails.application.version.short_revision if Rails.application.version.revision
+          data[:environment] = Rails.application.app_environment.to_s
+        end
+
+        data
       end
 
       def html_status(color:)
