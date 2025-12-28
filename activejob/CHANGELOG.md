@@ -4,11 +4,18 @@
     rolled-back records.
 
     New Rails 8.2 apps (and apps upgrading to `config.load_defaults "8.2"`)
-    default `ActiveJob::Base.enqueue_after_transaction_commit` to true.
+    have `config.active_job.enqueue_after_transaction_commit = true` by default.
     Uncomment the setting in `config/initializers/new_framework_defaults_8_2.rb`
     to opt in.
 
     *mugitti9*
+
+*   Un-deprecate the global `config.active_job.enqueue_after_transaction_commit`
+    toggle for app-wide overrides. It was deprecated in Rails 8.0 (when the
+    symbol values were removed) and made non-functional in 8.1. It now works
+    as a boolean config again.
+
+    *Jeremy Daer*
 
 *   Deprecate built-in `sneakers` adapter.
 
