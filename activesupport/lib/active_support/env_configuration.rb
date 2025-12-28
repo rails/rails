@@ -53,6 +53,25 @@ module ActiveSupport
       @envs = ENV.to_h
     end
 
+    # Returns an array of symbolized keys from the environment variables.
+    #
+    # Examples:
+    #
+    #   ENV["DB_HOST"] = "localhost"
+    #   ENV["DATABASE_PORT"] = "5432"
+    #
+    #   env_config = ActiveSupport::EnvConfiguration.new
+    #   env_config.keys
+    #   # => [:db_host, :database_port, ...]
+    #
+    def keys
+      @envs.keys.map { |k| k.downcase.to_sym }
+    end
+
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} keys=#{keys.inspect}>"
+    end
+
     private
       def lookup(env_key)
         @envs[env_key]
