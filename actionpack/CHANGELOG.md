@@ -1,3 +1,16 @@
+*   Add `ActionController::Parameters#fetch_values` for fetching multiple parameter values
+
+    ```ruby
+    params = ActionController::Parameters.new(name: "Francesco", age: 22)
+    name, age = params.fetch_values(:name, :age)
+    # => ["Francesco", 22]
+
+    # With default values via block
+    name, email = params.fetch_values(:name, :email) { |key| "default_#{key}" }
+    # => ["Francesco", "default_email"]
+  
+    *Said Kaldybaev*
+
 *   Add block support to `ActionController::Parameters#merge`
 
     `ActionController::Parameters#merge` now accepts a block to resolve conflicts,
