@@ -11,9 +11,11 @@ module ActiveSupport
   #
   # Examples:
   #
-  #   require(:db_host)           # => ENV.fetch("DB_HOST")
-  #   require(:database, :host)   # => ENV.fetch("DATABASE__HOST")
-  #   optional(:debug) { "true" } # => ENV.fetch("DB_HOST") { "true" }
+  #   require(:db_host)                                   # => ENV.fetch("DB_HOST")
+  #   require(:database, :host)                           # => ENV.fetch("DATABASE__HOST")
+  #   option(:database, :host)                            # => ENV["DATABASE__HOST"]
+  #   option(:debug, default: "true")                     # => ENV.fetch("DB_HOST") { "true" }
+  #   option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST") { default.call }
   class EnvConfiguration
     def initialize
       reload

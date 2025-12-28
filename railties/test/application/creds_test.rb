@@ -43,4 +43,20 @@ class Rails::CredsTest < ActiveSupport::TestCase
   ensure
     ENV.delete("MYSTERY")
   end
+
+  test "dotenvs are available only in development mode" do
+    write_credentials_override(:development)
+    write_credentials_override(:production)
+    File.write("#{app_path}/.env", "MYSTERY=dotenv_revealed")
+
+    app("development")
+
+    Rails.env = "development"
+    Rails.app.creds = nil
+    assert_equal "dotenv_revealed", Rails.app.creds.require(:mystery)
+
+    Rails.env = "production"
+    Rails.app.creds = nil
+    assert_equal "revealed", Rails.app.creds.require(:mystery)
+  end
 end
