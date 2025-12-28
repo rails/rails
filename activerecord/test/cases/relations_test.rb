@@ -1696,6 +1696,79 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_create_or_find_by_handles_connection_error_when_checking_transaction_status
+    # This test demonstrates the bug fix: when create_or_find_by catches
+    # ActiveRecord::RecordNotUnique and tries to check if the transaction is open,
+    # if connection.transaction_open? raises an exception, it should be handled gracefully.
+    #
+    # Before the fix: If transaction_open? raised, the exception would propagate
+    # and the method would fail even though the record exists.
+    # After the fix: If transaction_open? raises, we default to false and still
+    # successfully find the existing record.
+    subscriber = Subscriber.create!(nick: "alice")
+
+    connection = Subscriber.lease_connection
+    original_method = connection.method(:transaction_open?)
+    call_count = 0
+
+    # Stub transaction_open? to raise only when called outside a transaction
+    # (which happens in the rescue block after the transaction has rolled back)
+    connection.define_singleton_method(:transaction_open?) do
+      call_count += 1
+      is_open = original_method.call
+      # Only raise if we're not in a transaction (i.e., in the rescue block)
+      # We use call_count > 3 to ensure we're past the initial transaction setup
+      if !is_open && call_count > 3
+        raise "Connection error: unable to check transaction status"
+      end
+      is_open
+    end
+
+    begin
+      # This will try to create a record with nick="alice", which will raise
+      # RecordNotUnique because the record already exists. The rescue block will
+      # catch it and try to find the record. Even though transaction_open? raises,
+      # it should default to false and still find the record successfully.
+      found = Subscriber.create_or_find_by(nick: "alice")
+      assert_equal subscriber.id, found.id
+      assert_equal "alice", found.nick
+      assert_predicate found, :persisted?
+    ensure
+      # Restore the original method
+      connection.define_singleton_method(:transaction_open?, original_method)
+    end
+  end
+
+  def test_create_or_find_by_bang_handles_connection_error_when_checking_transaction_status
+    # Same test for create_or_find_by! (with bang) to ensure both methods are fixed
+    subscriber = Subscriber.create!(nick: "charlie")
+
+    connection = Subscriber.lease_connection
+    original_method = connection.method(:transaction_open?)
+    call_count = 0
+
+    connection.define_singleton_method(:transaction_open?) do
+      call_count += 1
+      is_open = original_method.call
+      # Only raise if we're not in a transaction (i.e., in the rescue block)
+      if !is_open && call_count > 3
+        raise "Connection error: unable to check transaction status"
+      end
+      is_open
+    end
+
+    begin
+      # Same scenario: try to create a duplicate, catch RecordNotUnique,
+      # and verify it still finds the record even when transaction_open? raises
+      found = Subscriber.create_or_find_by!(nick: "charlie")
+      assert_equal subscriber.id, found.id
+      assert_equal "charlie", found.nick
+      assert_predicate found, :persisted?
+    ensure
+      connection.define_singleton_method(:transaction_open?, original_method)
+    end
+  end
+
   def test_find_or_initialize_by
     assert_nil Bird.find_by(name: "bob")
 
