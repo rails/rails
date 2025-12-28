@@ -573,7 +573,7 @@ module Rails
     # <tt>config/credentials/#{environment}.key</tt> for the current
     # environment, or +config/master.key+ if that file does not exist.
     #
-    # Is best used via #creds to ensure that values can be overwritten via ENV.
+    # Is best used via #creds to ensure that values can be overwritten via ENV (or .env in dev).
     def credentials
       @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
     end
