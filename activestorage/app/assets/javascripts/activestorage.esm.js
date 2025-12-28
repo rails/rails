@@ -458,6 +458,10 @@ class FileChecksum {
   }
 }
 
+var adapters = {
+  XMLHttpRequest: typeof XMLHttpRequest !== "undefined" ? XMLHttpRequest : undefined
+};
+
 function getMetaValue(name) {
   const element = findElement(document.head, `meta[name="${name}"]`);
   if (element) {
@@ -516,15 +520,18 @@ class BlobRecord {
       byte_size: file.size,
       checksum: checksum
     };
-    this.xhr = new XMLHttpRequest;
+    this.xhr = new adapters.XMLHttpRequest;
     this.xhr.open("POST", url, true);
     this.xhr.responseType = "json";
     this.xhr.setRequestHeader("Content-Type", "application/json");
     this.xhr.setRequestHeader("Accept", "application/json");
     this.xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-    Object.keys(customHeaders).forEach((headerKey => {
-      this.xhr.setRequestHeader(headerKey, customHeaders[headerKey]);
-    }));
+    if (Object.keys(customHeaders).length > 0) {
+      console.log("DEPRECATION: The customHeaders parameter has been replaced by dynamic HTTP requester class. Please use ActiveStorage.adapters.XMLHttpRequest = YourAdapter.");
+      for (const key in customHeaders) {
+        this.xhr.setRequestHeader(key, customHeaders[key]);
+      }
+    }
     const csrfToken = getMetaValue("csrf-token");
     if (csrfToken != undefined) {
       this.xhr.setRequestHeader("X-CSRF-Token", csrfToken);
@@ -578,7 +585,7 @@ class BlobUpload {
     this.blob = blob;
     this.file = blob.file;
     const {url: url, headers: headers} = blob.directUploadData;
-    this.xhr = new XMLHttpRequest;
+    this.xhr = new adapters.XMLHttpRequest;
     this.xhr.open("PUT", url, true);
     this.xhr.responseType = "text";
     for (const key in headers) {
@@ -881,4 +888,4 @@ function autostart() {
 
 setTimeout(autostart, 1);
 
-export { DirectUpload, DirectUploadController, DirectUploadsController, dispatchEvent, start };
+export { DirectUpload, DirectUploadController, DirectUploadsController, adapters, dispatchEvent, start };

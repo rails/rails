@@ -1374,41 +1374,21 @@ class Uploader {
 
 ### Integrating with Libraries or Frameworks
 
-Once you receive a file from the library you have selected, you need to create
-a `DirectUpload` instance and use its "create" method to initiate the upload process,
-adding any required additional headers as necessary. The "create" method also requires
-a callback function to be provided that will be triggered once the upload has finished.
+Before use the DirectUpload class, you need to set the XMLHttpRequest custom adapter. this can be made replacing the default adapter with a custom one. But make sure the new adapter is compatible with XMLHttpRequest class.
 
 ```js
-import { DirectUpload } from "@rails/activestorage"
+import * as ActiveStorage from "@rails/activestorage"
 
-class Uploader {
-  constructor(file, url, token) {
-    const headers = { 'Authentication': `Bearer ${token}` }
-    // INFO: Sending headers is an optional parameter. If you choose not to send headers,
-    //       authentication will be performed using cookies or session data.
-    this.upload = new DirectUpload(file, url, this, headers)
-  }
-
-  uploadFile(file) {
-    this.upload.create((error, blob) => {
-      if (error) {
-        // Handle the error
-      } else {
-        // Use the with blob.signed_id as a file reference in next request
-      }
-    })
-  }
-
-  directUploadWillStoreFileWithXHR(request) {
-    request.upload.addEventListener("progress",
-      event => this.directUploadDidProgress(event))
-  }
-
-  directUploadDidProgress(event) {
-    // Use event.loaded and event.total to update the progress bar
+class XMLHttpRequestWithBearer extends XMLHttpRequest {
+  constructor() {
+    super()
+    this.setRequestHeader("Authorization", `Bearer ${token}`)
+    // or enable cookies with:
+    // this.withCredentials = true
   }
 }
+
+ActiveStorage.adapters.XMLHttpRequest = XMLHttpRequestWithBearer;
 ```
 
 To implement customized authentication, a new controller must be created on
