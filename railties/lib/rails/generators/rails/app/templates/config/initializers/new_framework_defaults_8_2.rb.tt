@@ -9,6 +9,17 @@
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
 
+# Active Job
+
+###
+# Defer job enqueueing until after the database transaction commits.
+#
+# When enabled, jobs enqueued inside a transaction wait until the transaction
+# commits before being dispatched to the queue. This prevents jobs from
+# operating on rolled-back data.
+#++
+# Rails.application.config.active_job.enqueue_after_transaction_commit = true
+
 ###
 # Use Sec-Fetch-Site header for CSRF protection instead of tokens.
 #

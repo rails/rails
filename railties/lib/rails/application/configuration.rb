@@ -383,6 +383,10 @@ module Rails
           if respond_to?(:active_storage)
             active_storage.analyze = :immediately
           end
+
+          if respond_to?(:active_job)
+            active_job.enqueue_after_transaction_commit = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
