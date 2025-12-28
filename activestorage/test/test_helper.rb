@@ -184,6 +184,9 @@ class User < ActiveRecord::Base
     end
   end
 
+  has_one_attached :no_touch_avatar, touch: false
+  has_many_attached :no_touch_highlights, touch: false
+
   after_commit :increment_callback_counter
   after_update_commit :notify
 
