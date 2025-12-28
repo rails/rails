@@ -131,6 +131,8 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Notable changes
 
+*   Default `enqueue_after_transaction_commit` to true for new applications.
+
 Action Text
 ----------
 
