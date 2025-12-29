@@ -51,18 +51,6 @@ module ApplicationTests
       FileUtils.cp_r(app_path, new_app)
     end
 
-    def app(env = "development")
-      @app ||= begin
-        ENV["RAILS_ENV"] = env
-
-        require "#{app_path}/config/environment"
-
-        Rails.application
-      ensure
-        ENV.delete "RAILS_ENV"
-      end
-    end
-
     def switch_development_hosts_to(*hosts)
       old_development_hosts = ENV["RAILS_DEVELOPMENT_HOSTS"]
       ENV["RAILS_DEVELOPMENT_HOSTS"] = hosts.join(",")
@@ -272,8 +260,9 @@ module ApplicationTests
       Rails.env = "test"
       assert_equal [:default, "test"], Rails.groups(assets: [:development])
 
-      ENV["RAILS_GROUPS"] = "javascripts,stylesheets"
-      assert_equal [:default, "test", "javascripts", "stylesheets"], Rails.groups
+      with_env RAILS_GROUPS: "javascripts,stylesheets" do
+        assert_equal [:default, "test", "javascripts", "stylesheets"], Rails.groups
+      end
     end
 
     test "Rails.application is nil until app is initialized" do
