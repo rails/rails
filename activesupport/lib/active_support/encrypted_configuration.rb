@@ -58,7 +58,7 @@ module ActiveSupport
       @options = nil
     end
 
-    # Find the referenced key
+    # Find the referenced key.
     # Raises +KeyError+ if not found.
     #
     # Examples:
@@ -75,8 +75,8 @@ module ActiveSupport
       end
     end
 
-    # Find a upcased and double-underscored-joined string-version of the +key+ in ENV.
-    # Returns nil if the key isn't found or the value of default when passed If default is
+    # Find an upcased and double-underscored-joined string-version of the +key+ in ENV.
+    # Returns nil if the key isn't found or the value of default when passed. If default is
     # a block, it's called first.
     #
     # Examples:
