@@ -153,7 +153,7 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   end
 
   test "require missing key raises key error" do
-    assert_raises(KeyError) do
+    assert_raise(KeyError, match: "Missing key: [:gone]") do
       @credentials.require(:gone)
     end
   end
@@ -163,8 +163,8 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_equal false, @credentials.require(:one)
   end
 
-  test "reqiure missing multiword key raises key error" do
-    assert_raises(KeyError) do
+  test "require missing multiword key raises key error" do
+    assert_raise(KeyError, match: "Missing key: [:gone, :missing]") do
       @credentials.require(:gone, :missing)
     end
   end
@@ -185,13 +185,18 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_equal "there", @credentials.option(:two_is_not_here, default: -> { "there" })
   end
 
-  test "optional false key with default block returns false" do
+  test "optional false key with default block can return false without triggering default" do
     @credentials.write({ bool: false }.to_yaml)
-    assert_equal false, @credentials.option(:bool, default: -> { "there" })
+    called = false
+    assert_equal false, @credentials.option(:bool, default: -> { called = true; "there" })
+    assert_equal false, called
   end
 
-  test "optional key can return false without triggering default" do
-    @credentials.write({ false: false }.to_yaml)
-    assert_equal false, @credentials.option(:false, default: -> { "true" })
+  test "optional missing key with default block returning false returns false" do
+    assert_equal false, @credentials.option(:missing, default: -> { false })
+  end
+
+  test "optional missing key with default block returning nil returns nil" do
+    assert_nil @credentials.option(:missing, default: -> { nil })
   end
 end

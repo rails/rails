@@ -48,6 +48,22 @@ class EnvConfigurationTest < ActiveSupport::TestCase
     assert_equal "there", @config.option(:two_is_not_here, default: -> { "there" })
   end
 
+  test "optional missing key with default block returning false returns false" do
+    assert_equal false, @config.option(:missing, default: -> { false })
+  end
+
+  test "optional missing key with default block returning nil returns nil" do
+    assert_nil @config.option(:missing, default: -> { nil })
+  end
+
+  test "optional present key with default block returns value without triggering default" do
+    set_env("EXISTS" => "value") do
+      called = false
+      assert_equal "value", @config.option(:exists, default: -> { called = true; "default" })
+      assert_equal false, called
+    end
+  end
+
   test "cached reads can be reloaded" do
     set_env("ONE" => "1") do
       assert_equal "1", @config.require(:one)

@@ -8,6 +8,14 @@ module ActiveSupport
   #
   # This interface mirrors what is used for +ActiveSupport::EncryptedConfiguration+ and thus allows both
   # to serve as interchangeable backends for +Rails.app.credentials+.
+  #
+  # Examples:
+  #
+  #   require(:db_host)                                   # => ENV.fetch("DB_HOST")
+  #   require(:database, :host)                           # => ENV.fetch("DATABASE__HOST")
+  #   option(:database, :host)                            # => ENV["DATABASE__HOST"]
+  #   option(:debug, default: "true")                     # => ENV.fetch("DB_HOST") { "true" }
+  #   option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST") { default.call }
   class EnvConfiguration
     def initialize
       reload
@@ -44,11 +52,9 @@ module ActiveSupport
     #   option(:missing, default: -> { "localhost" }) # => "localhost"
     def option(*key, default: nil)
       if default.respond_to?(:call)
-        @envs.fetch envify(*key), default.call
-      elsif default
-        @envs.fetch envify(*key), default
+        @envs.fetch(envify(*key)) { default.call }
       else
-        @envs[envify(*key)]
+        @envs.fetch envify(*key), default
       end
     end
 

@@ -1,3 +1,8 @@
+*   Add `ActionDispatch::Request#bearer_token` to extract the bearer token from the Authorization header.
+    Bearer tokens are commonly used for API and MCP requests.
+
+    *DHH*
+
 *   Add block support to `ActionController::Parameters#merge`
 
     `ActionController::Parameters#merge` now accepts a block to resolve conflicts,
@@ -24,7 +29,7 @@
 
     *Sean Doyle*
 
-*   Add `config.action_controller.live.streaming_excluded_keys` to control execution state sharing in ActionController::Live.
+*   Add `config.action_controller.live_streaming_excluded_keys` to control execution state sharing in ActionController::Live.
 
     When using ActionController::Live, actions are executed in a separate thread that shares
     state from the parent thread. This new configuration allows applications to opt-out specific
@@ -35,7 +40,7 @@
 
     ```ruby
     # config/application.rb
-    config.action_controller.live.streaming_excluded_keys = [:active_record_connected_to_stack]
+    config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack]
     ```
 
     By default, all keys are shared.

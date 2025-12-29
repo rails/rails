@@ -77,6 +77,10 @@ module ActionController # :nodoc:
       #       rate_limit to: 3, within: 2.seconds, name: "short-term"
       #       rate_limit to: 10, within: 5.minutes, name: "long-term"
       #     end
+      #
+      # For testing with rate limits, you may need to switch the cache store to
+      # ActiveSupport::Cache::MemoryStore (`config.cache_store = :memory_store`)
+      # or any store that will persist data.
       def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { raise TooManyRequests }, store: cache_store, name: nil, scope: nil, **options)
         before_action -> { rate_limiting(to: to, within: within, by: by, with: with, store: store, name: name, scope: scope || controller_path) }, **options
       end

@@ -6,6 +6,7 @@ require "active_support/key_generator"
 require "active_support/message_verifiers"
 require "active_support/combined_configuration"
 require "active_support/env_configuration"
+require "active_support/dot_env_configuration"
 require "active_support/encrypted_configuration"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
@@ -486,8 +487,12 @@ module Rails
     # access to the encrypted credentials available via #credentials and keys
     # used for the same purpose in ENV.
     #
-    # This allows values in the encrypted credentials to be overwritten via ENV and for values to be
-    # moved between the two ways of providing credentials without rewriting application code.
+    # In the development environment, .env variables are also included, and looked up
+    # after ENV and before the encrypted credentials.
+    #
+    # This allows application creds to be accessed in a uniform way regardless of where
+    # they're being provided. You don't have to change app code when you move from ENV
+    # to encrypted credentials or vice versa.
     #
     # Examples:
     #
@@ -496,7 +501,11 @@ module Rails
     #   Rails.app.creds.option(:cache_host, default: "cache-host-1")
     #   Rails.app.creds.option(:cache_host, default: -> { HostProvider.cache })
     def creds
-      @creds ||= ActiveSupport::CombinedConfiguration.new(envs, credentials)
+      if Rails.env.development?
+        @creds ||= ActiveSupport::CombinedConfiguration.new(envs, dotenvs, credentials)
+      else
+        @creds ||= ActiveSupport::CombinedConfiguration.new(envs, credentials)
+      end
     end
 
     # Allows for a custom combined configuration to be used for creds.
@@ -523,6 +532,32 @@ module Rails
       @envs ||= ActiveSupport::EnvConfiguration.new
     end
 
+    # Returns an ActiveSupport::DotEnvConfiguration instance that provides
+    # access to the variables in +.env+ through symbol-based lookup with explicit methods
+    # for required and optional values. This is the same interface offered by #envs
+    # and can be accessed in a combined manner via #creds.
+    #
+    # The +.env+ file format supports:
+    # - Lines with KEY=value pairs
+    # - Comments starting with #
+    # - Empty lines (ignored)
+    # - Quoted values (single or double quotes)
+    # - Variable interpolation with ${VAR} syntax
+    # - Command execution with $(command) syntax
+    #
+    # Examples:
+    #
+    #   Rails.app.dotenvs.require(:db_password) # DB_PASSWORD from .env
+    #   Rails.app.dotenvs.require(:aws, :access_key_id) # AWS__ACCESS_KEY_ID from .env
+    #   Rails.app.dotenvs.option(:cache_host) # CACHE_HOST from .env or nil
+    #   Rails.app.dotenvs.option(:cache_host, default: "cache-host-1") # CACHE_HOST from .env or "cache-host-1"
+    #   Rails.app.dotenvs.option(:cache_host, default: -> { HostProvider.cache }) # CACHE_HOST from .env or HostProvider.cache
+    #
+    # In development mode, this configuration backend is automatically part of `Rails.app.creds`.
+    def dotenvs(path = Rails.root.join(".env"))
+      @dotenvs ||= ActiveSupport::DotEnvConfiguration.new(path)
+    end
+
     # Returns an ActiveSupport::EncryptedConfiguration instance for the
     # credentials file specified by +config.credentials.content_path+.
     #
@@ -538,7 +573,7 @@ module Rails
     # <tt>config/credentials/#{environment}.key</tt> for the current
     # environment, or +config/master.key+ if that file does not exist.
     #
-    # Is best used via #creds to ensure that values can be overwritten via ENV.
+    # Is best used via #creds to ensure that values can be overwritten via ENV (or .env in dev).
     def credentials
       @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
     end

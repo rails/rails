@@ -131,6 +131,10 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Notable changes
 
+*   Un-deprecate `config.active_job.enqueue_after_transaction_commit` and default
+    it to `true` for new applications. This setting was deprecated in 8.0 and
+    non-functional in 8.1; it now works as a boolean config.
+
 Action Text
 ----------
 
