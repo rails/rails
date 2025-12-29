@@ -43,7 +43,7 @@ module ActiveSupport
 
     # Find singular or nested keys across all backends.
     # Returns +nil+ if no backend holds the key.
-    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key.
+    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or nil value.
     #
     # Given ENV:
     #   DB_HOST: "env.example.com"
