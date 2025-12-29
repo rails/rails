@@ -83,7 +83,7 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
       run_command_stub = -> (command, *) { @run_commands << command }
 
       generator.stub :run, run_command_stub do
-        with_database_configuration { super }
+        quietly { with_database_configuration { super } }
       end
     end
 end
