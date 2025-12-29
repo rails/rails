@@ -61,10 +61,17 @@ module ActiveSupport
     # Find singular or nested keys.
     # Raises +KeyError+ if not found or nil.
     #
-    # Examples:
+    # Given configuration:
+    #   db_host: "db.example.com"
+    #   db_port: null
+    #   database:
+    #     host: "db.example.com"
     #
-    #   require(:db_host)         # => dig(:db_host) || raise(KeyError)
-    #   require(:database, :host) # => dig(:database, :host) || raise(KeyError)
+    # Examples:
+    #   require(:db_host)         # => "db.example.com"
+    #   require(:database, :host) # => "db.example.com"
+    #   require(:missing)         # => KeyError
+    #   require(:db_port)         # => KeyError (nil values are treated as missing)
     def require(*key)
       value = dig(*key)
 
@@ -79,12 +86,19 @@ module ActiveSupport
     # Returns +nil+ if the key isn't found.
     # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or nil value.
     #
-    # Examples:
+    # Given configuration:
+    #   db_host: "db.example.com"
+    #   db_port: null
+    #   database:
+    #     host: "db.example.com"
     #
-    #   config.option(:db_host)                                    # => dig(:db_host)
-    #   config.option(:database, :host)                            # => dig(:database, :host)
-    #   config.option(:database, :host, default: "missing")        # => dig(:database, :host) || "missing"
-    #   config.option(:database, :host, default: -> { "missing" }) # => dig(:database, :host) || default.call
+    # Examples:
+    #   option(:db_host)                              # => "db.example.com"
+    #   option(:database, :host)                      # => "db.example.com"
+    #   option(:missing)                              # => nil
+    #   option(:missing, default: "localhost")        # => "localhost"
+    #   option(:missing, default: -> { "localhost" }) # => "localhost"
+    #   option(:db_port, default: 5432)               # => 5432 (nil values use default)
     def option(*key, default: nil)
       value = dig(*key)
 

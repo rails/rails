@@ -16,10 +16,22 @@ module ActiveSupport
     # Find singular or nested keys across all backends.
     # Raises +KeyError+ if no backend holds the key or if the value is nil.
     #
-    # Examples of Rails-configured access:
+    # Given ENV:
+    #   DB_HOST: "env.example.com"
+    #   DATABASE__HOST: "env.example.com"
     #
-    #   require(:db_host)         # => ENV["DB_HOST"] || Rails.app.credentials.require(:db_host)
-    #   require(:database, :host) # => ENV["DATABASE__HOST"] || Rails.app.credentials.require(:database, :host)
+    # And credentials:
+    #   database:
+    #     host: "creds.example.com"
+    #   api_key: "secret"
+    #   api_host: null
+    #
+    # Examples:
+    #   require(:db_host)         # => "env.example.com" (from ENV)
+    #   require(:database, :host) # => "env.example.com" (ENV overrides credentials)
+    #   require(:api_key)         # => "secret" (from credentials)
+    #   require(:missing)         # => KeyError
+    #   require(:api_host)        # => KeyError (nil values are treated as missing)
     def require(*key)
       @configurations.each do |config|
         value = config.option(*key)
@@ -33,12 +45,24 @@ module ActiveSupport
     # Returns +nil+ if no backend holds the key.
     # If a +default+ value is defined, it (or its callable value) will be returned on a missing key.
     #
-    # Examples:
+    # Given ENV:
+    #   DB_HOST: "env.example.com"
+    #   DATABASE__HOST: "env.example.com"
     #
-    #   option(:db_host)                             # => ENV["DB_HOST"] || Rails.app.credentials.option(:db_host)
-    #   option(:database, :host)                     # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host)
-    #   option(:database, :host, default: "missing") # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host) || "missing"
-    #   option(:database, :host, default: -> { "missing" }) # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host) || default.call
+    # And credentials:
+    #   database:
+    #     host: "creds.example.com"
+    #   api_key: "secret"
+    #   api_host: null
+    #
+    # Examples:
+    #   option(:db_host)                              # => "env.example.com" (from ENV)
+    #   option(:database, :host)                      # => "env.example.com" (ENV overrides credentials)
+    #   option(:api_key)                              # => "secret" (from credentials)
+    #   option(:missing)                              # => nil
+    #   option(:missing, default: "localhost")        # => "localhost"
+    #   option(:missing, default: -> { "localhost" }) # => "localhost"
+    #   option(:api_host, default: "api.example.com") # => "api.example.com" (nil values use default)
     def option(*key, default: nil)
       @configurations.each do |config|
         value = config.option(*key)
