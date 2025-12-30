@@ -679,8 +679,7 @@ module ActiveRecord
 
             columns.map do |name, column|
               if fixture.key?(name)
-                # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
-                with_yaml_fallback(column.fetch_cast_type(self).serialize(fixture[name]))
+                with_yaml_fallback(column.cast_type.serialize(fixture[name]))
               else
                 default_insert_value(column)
               end
