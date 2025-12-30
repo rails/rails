@@ -1,3 +1,24 @@
+*   Change default production server binding from IPv4 to IPv6
+
+    The `bin/rails server` command now binds to `::` (all IPv6 interfaces) in
+    non-development environments, instead of `0.0.0.0`. The development environment
+    continues to use `localhost` for backwards compatibility.
+
+    IPv6 sockets for `::` on most operating systems accept both IPv4 and IPv6 connections,
+    so existing workflows will continue to work. This change prepares Rails for the
+    increasing adoption of IPv6 and reduces reliance on increasingly expensive
+    public IPv4 addresses.
+
+    | Host | localhost:3000 | 127.0.0.1:3000 | \[::1\]:3000 | 0.0.0.0:3000 | \[::\]:3000 | Network Open |
+    |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+    | `localhost` | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ No |
+    | `127.0.0.1` | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ No |
+    | `::1` | ✅ | ❌ | ✅ | ❌ | ✅ | ❌ No |
+    | `0.0.0.0` | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ Yes |
+    | `::` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ Yes |
+
+    *Richard Schneeman*
+
 *   Add `Rails.app.creds` to provide combined access to credentials stored in either ENV or the encrypted credentials file,
     and in development also .env credentials. Provides a new require/option API for accessing these values. Examples:
 
