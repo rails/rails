@@ -464,6 +464,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
+  if current_adapter?(:SQLite3Adapter)
+    def test_schema_dump_includes_default_null_for_non_autoincrement_integer_pk
+      output = dump_table_schema "integer_pk_with_default_null"
+      assert_match %r{create_table "integer_pk_with_default_null".*(, default: nil)}, output
+    end
+  end
+
   def test_schema_dump_keeps_large_precision_integer_columns_as_decimal
     output = standard_dump
 
