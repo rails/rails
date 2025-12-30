@@ -466,8 +466,23 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   if current_adapter?(:SQLite3Adapter)
     def test_schema_dump_includes_default_null_for_non_autoincrement_integer_pk
+      original, $stdout = $stdout, StringIO.new
+
+      migration = Class.new(ActiveRecord::Migration::Current) do
+        def up
+          create_table :integer_pk_with_default_null, id: :integer, default: nil
+        end
+        def down
+          drop_table(:integer_pk_with_default_null)
+        end
+      end
+      migration.migrate(:up)
+
       output = dump_table_schema "integer_pk_with_default_null"
       assert_match %r{create_table "integer_pk_with_default_null".*(, default: nil)}, output
+    ensure
+      migration.migrate(:down)
+      $stdout = original
     end
   end
 

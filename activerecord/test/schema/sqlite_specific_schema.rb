@@ -19,6 +19,4 @@ ActiveRecord::Schema.define do
 
 "
     end
-
-  create_table :integer_pk_with_default_null, id: :integer, default: nil
 end
