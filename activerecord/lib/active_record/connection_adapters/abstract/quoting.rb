@@ -218,10 +218,9 @@ module ActiveRecord
         end
       end
 
-      private
-        def lookup_cast_type(sql_type)
-          type_map.lookup(sql_type)
-        end
+      def lookup_cast_type(sql_type) # :nodoc:
+        type_map.lookup(sql_type)
+      end
     end
   end
 end
