@@ -55,6 +55,10 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
     end
   end
 
+  setup do
+    @header = "X-Request-Id"
+  end
+
   test "request id is passed all the way to the response" do
     with_test_route_set do
       get "/"
@@ -70,23 +74,26 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
   end
 
   test "using a custom request_id header key" do
-    with_test_route_set(header: "X-Tracer-Id") do
+    @header = "X-Tracer-Id"
+    with_test_route_set do
       get "/"
       assert_match(/\w+/, @response.headers["X-Tracer-Id"])
     end
   end
 
   private
+    def app
+      @app ||= self.class.build_app do |middleware|
+        middleware.use Rack::Lint
+        middleware.use ActionDispatch::RequestId, header: @header
+        middleware.use Rack::Lint
+      end
+    end
+
     def with_test_route_set(header: "X-Request-Id")
       with_routing do |set|
         set.draw do
           get "/", to: ::RequestIdResponseTest::TestController.action(:index)
-        end
-
-        @app = self.class.build_app(set) do |middleware|
-          middleware.use Rack::Lint
-          middleware.use ActionDispatch::RequestId, header: header
-          middleware.use Rack::Lint
         end
 
         yield

@@ -8,6 +8,7 @@ require "models/essay"
 require "models/comment"
 require "models/categorization"
 require "models/book"
+require "models/cpk"
 
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
@@ -92,6 +93,34 @@ module ActiveRecord
       assert_equal Author.find(2), Author.order(id: :desc).joins(:reading_listing).where.associated(:reading_listing).extending(Author::NamedExtension).first
     end
 
+    def test_associated_with_add_joins_before
+      Comment.joins(:children).where.associated(:children).tap do |relation|
+        assert_includes     relation, comments(:greetings)
+        assert_not_includes relation, comments(:more_greetings)
+      end
+    end
+
+    def test_associated_with_add_left_joins_before
+      Comment.left_joins(:children).where.associated(:children).tap do |relation|
+        assert_includes     relation, comments(:greetings)
+        assert_not_includes relation, comments(:more_greetings)
+      end
+    end
+
+    def test_associated_with_add_left_outer_joins_before
+      Comment.left_outer_joins(:children).where.associated(:children).tap do |relation|
+        assert_includes     relation, comments(:greetings)
+        assert_not_includes relation, comments(:more_greetings)
+      end
+    end
+
+    def test_associated_with_composite_primary_key
+      author = Cpk::Author.create!(id: [1, 2])
+      Cpk::Book.create!(id: [author.id, 2])
+
+      assert_predicate Cpk::Author.where.associated(:books), :any?
+    end
+
     def test_missing_with_association
       assert_predicate posts(:authorless).author, :blank?
       assert_equal [posts(:authorless)], Post.where.missing(:author).to_a
@@ -165,6 +194,12 @@ module ActiveRecord
 
     def test_missing_with_enum_extended_late
       assert_equal Author.find(2), Author.order(id: :desc).joins(:reading_listing).where.missing(:unread_listing).extending(Author::NamedExtension).first
+    end
+
+    def test_missing_with_composite_primary_key
+      Cpk::Book.create!(id: [1, 2])
+
+      assert_predicate Cpk::Book.where.missing(:author), :any?
     end
 
     def test_not_inverts_where_clause

@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/class/attribute"
-require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/hash/reverse_merge"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/testing/stream"
-require "active_support/concern"
 require "rails/generators"
 
 module Rails
@@ -111,9 +108,6 @@ module Rails
             Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
           end
       end
-
-      include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-      deprecate_constant "Behaviour", "Rails::Generators::Testing::Behavior", deprecator: Rails.deprecator
     end
   end
 end

@@ -7,7 +7,7 @@ class CharsetCollationTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table :charset_collations, id: { type: :string, collation: "utf8mb4_bin" }, force: true do |t|
       t.string :string_ascii_bin, charset: "ascii", collation: "ascii_bin"
       t.text :text_ucs2_unicode_ci, charset: "ucs2", collation: "ucs2_unicode_ci"

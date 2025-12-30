@@ -49,8 +49,8 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "to_s returns the string representation of the parameters hash" do
-    assert_equal '{"person"=>{"age"=>"32", "name"=>{"first"=>"David", "last"=>"Heinemeier Hansson"}, ' \
-      '"addresses"=>[{"city"=>"Chicago", "state"=>"Illinois"}]}}', @params.to_s
+    assert_equal({ "person" => { "age" => "32", "name" => { "first" => "David", "last" => "Heinemeier Hansson" },
+      "addresses" => [{ "city" => "Chicago", "state" => "Illinois" }] } }.inspect, @params.to_s)
   end
 
   test "each carries permitted status" do
@@ -177,6 +177,18 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   test "fetch retains unpermitted status" do
     assert_not_predicate @params.fetch(:person), :permitted?
     assert_not_predicate @params[:person].fetch(:name), :permitted?
+  end
+
+  test "fetch yields string key to block when missing" do
+    key = @params.fetch("missing") { |missing_key| missing_key }
+
+    assert_equal "missing", key
+  end
+
+  test "fetch yields symbol key to block when missing" do
+    key = @params.fetch(:missing) { |missing_key| missing_key }
+
+    assert_equal :missing, key
   end
 
   test "has_key? returns true if the given key is present in the params" do
@@ -387,10 +399,19 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "inspect shows both class name, parameters and permitted flag" do
+    hash = {
+      "person" => {
+        "age" => "32",
+        "name" => {
+          "first" => "David",
+          "last" => "Heinemeier Hansson"
+        },
+        "addresses" => [{ "city" => "Chicago", "state" => "Illinois" }]
+      },
+    }
+
     assert_equal(
-      '#<ActionController::Parameters {"person"=>{"age"=>"32", '\
-        '"name"=>{"first"=>"David", "last"=>"Heinemeier Hansson"}, ' \
-        '"addresses"=>[{"city"=>"Chicago", "state"=>"Illinois"}]}} permitted: false>',
+      "#<ActionController::Parameters #{hash} permitted: false>",
       @params.inspect
     )
   end
@@ -425,11 +446,13 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   test "#extract_value splits param by delimiter" do
     params = ActionController::Parameters.new(
       id: "1_123",
-      tags: "ruby,rails,web"
+      tags: "ruby,rails,web",
+      blank_tags: ",ruby,,rails,"
     )
 
     assert_equal(["1", "123"], params.extract_value(:id))
     assert_equal(["ruby", "rails", "web"], params.extract_value(:tags, delimiter: ","))
+    assert_equal(["", "ruby", "", "rails", ""], params.extract_value(:blank_tags, delimiter: ","))
     assert_nil(params.extract_value(:non_existent_key))
   end
 end

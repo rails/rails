@@ -39,21 +39,23 @@ module ActiveRecord
       end
 
       def test_close
-        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", {})
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", adapter: "abstract")
         pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
         pool = Pool.new(pool_config)
         pool.insert_connection_for_test! @adapter
         @adapter.pool = pool
 
         # Make sure the pool marks the connection in use
-        assert_equal @adapter, pool.connection
+        assert_equal @adapter, pool.lease_connection
         assert_predicate @adapter, :in_use?
 
         # Close should put the adapter back in the pool
         @adapter.close
         assert_not_predicate @adapter, :in_use?
 
-        assert_equal @adapter, pool.connection
+        assert_equal @adapter, pool.lease_connection
+      ensure
+        pool&.disconnect!
       end
     end
   end

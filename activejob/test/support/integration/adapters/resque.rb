@@ -6,7 +6,7 @@ module ResqueJobsManager
     Resque.redis = Redis::Namespace.new "active_jobs_int_test", redis: Redis.new(url: ENV["REDIS_URL"] || "redis://127.0.0.1:6379/12")
     Resque.logger = Rails.logger
     unless can_run?
-      puts "Cannot run integration tests for resque. To be able to run integration tests for resque you need to install and start redis.\n"
+      puts "Cannot run integration tests for Resque. To be able to run integration tests for Resque you need to install and start Redis.\n"
       status = ENV["BUILDKITE"] ? false : true
       exit status
     end

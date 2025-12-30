@@ -8,11 +8,11 @@ module ActiveRecord
 
       module ClassMethods # :nodoc:
         private
-          def define_method_attribute(name, owner:)
+          def define_method_attribute(canonical_name, owner:, as: canonical_name)
             ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
-              owner, name
+              owner, canonical_name
             ) do |temp_method_name, attr_name_expr|
-              owner.define_cached_method(name, as: temp_method_name, namespace: :active_record) do |batch|
+              owner.define_cached_method(temp_method_name, as: as, namespace: :active_record) do |batch|
                 batch <<
                   "def #{temp_method_name}" <<
                   "  _read_attribute(#{attr_name_expr}) { |n| missing_attribute(n, caller) }" <<
@@ -30,19 +30,7 @@ module ActiveRecord
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
 
-        return @attributes.fetch_value(name, &block) unless name == "id" && @primary_key
-
-        if self.class.composite_primary_key?
-          @attributes.fetch_value("id", &block)
-        else
-          if @primary_key != "id"
-            ActiveRecord.deprecator.warn(<<-MSG.squish)
-              Using read_attribute(:id) to read the primary key value is deprecated.
-              Use #id instead.
-            MSG
-          end
-          @attributes.fetch_value(@primary_key, &block)
-        end
+        @attributes.fetch_value(name, &block)
       end
 
       # This method exists to avoid the expensive primary_key check internally, without

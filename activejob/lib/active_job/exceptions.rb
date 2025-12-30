@@ -21,7 +21,7 @@ module ActiveJob
       # You can also pass a block that'll be invoked if the retry attempts fail for custom logic rather than letting
       # the exception bubble up. This block is yielded with the job instance as the first and the error instance as the second parameter.
       #
-      # `retry_on` and `discard_on` handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
+      # +retry_on+ and +discard_on+ handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
       # which <tt>exception.is_a?(klass)</tt> holds true is the one invoked, if any.
       #
       # ==== Options
@@ -34,6 +34,7 @@ module ActiveJob
       # * <tt>:queue</tt> - Re-enqueues the job on a different queue
       # * <tt>:priority</tt> - Re-enqueues the job with a different priority
       # * <tt>:jitter</tt> - A random delay of wait time used when calculating backoff. The default is 15% (0.15) which represents the upper bound of possible wait time (expressed as a percentage)
+      # * <tt>:report</tt> - Errors will be reported to the Rails.error reporter before being retried
       #
       # ==== Examples
       #
@@ -49,8 +50,9 @@ module ActiveJob
       #    # retry_on Net::ReadTimeout, wait: 5.seconds, jitter: 0.30, attempts: 10
       #    # retry_on Timeout::Error, wait: :polynomially_longer, attempts: 10
       #
-      #    retry_on(YetAnotherCustomAppException) do |job, error|
-      #      ExceptionNotifier.caught(error)
+      #    retry_on YetAnotherCustomAppException, report: true
+      #    retry_on EvenWorseCustomAppException do |job, error|
+      #      CustomErrorHandlingCode.handle(job, error)
       #    end
       #
       #    def perform(*args)
@@ -59,16 +61,11 @@ module ActiveJob
       #      # Might raise Net::OpenTimeout or Timeout::Error when the remote service is down
       #    end
       #  end
-      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT)
-        if wait == :exponentially_longer
-          ActiveJob.deprecator.warn(<<~MSG.squish)
-            `wait: :exponentially_longer` will actually wait polynomially longer and is therefore deprecated.
-            Prefer `wait: :polynomially_longer` to avoid confusion and keep the same behavior.
-          MSG
-        end
+      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT, report: false)
         rescue_from(*exceptions) do |error|
           executions = executions_for(exceptions)
           if attempts == :unlimited || executions < attempts
+            ActiveSupport.error_reporter.report(error, source: "application.active_job") if report
             retry_job wait: determine_delay(seconds_or_duration_or_algorithm: wait, executions: executions, jitter: jitter), queue: queue, priority: priority, error: error
           else
             if block_given?
@@ -88,17 +85,20 @@ module ActiveJob
       # Discard the job with no attempts to retry, if the exception is raised. This is useful when the subject of the job,
       # like an Active Record, is no longer available, and the job is thus no longer relevant.
       #
+      # Passing the <tt>:report</tt> option reports the error through the error reporter before discarding the job.
+      #
       # You can also pass a block that'll be invoked. This block is yielded with the job instance as the first and the error instance as the second parameter.
       #
-      # `retry_on` and `discard_on` handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
+      # +retry_on+ and +discard_on+ handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
       # which <tt>exception.is_a?(klass)</tt> holds true is the one invoked, if any.
       #
       # ==== Example
       #
       #  class SearchIndexingJob < ActiveJob::Base
       #    discard_on ActiveJob::DeserializationError
-      #    discard_on(CustomAppException) do |job, error|
-      #      ExceptionNotifier.caught(error)
+      #    discard_on CustomAppException, report: true
+      #    discard_on(AnotherCustomAppException) do |job, error|
+      #      CustomErrorHandlingCode.handle(job, error)
       #    end
       #
       #    def perform(record)
@@ -106,9 +106,10 @@ module ActiveJob
       #      # Might raise CustomAppException for something domain specific
       #    end
       #  end
-      def discard_on(*exceptions)
+      def discard_on(*exceptions, report: false)
         rescue_from(*exceptions) do |error|
           instrument :discard, error: error do
+            ActiveSupport.error_reporter.report(error, source: "application.active_job") if report
             yield self, error if block_given?
             run_after_discard_procs(error)
           end
@@ -156,7 +157,10 @@ module ActiveJob
     #  end
     def retry_job(options = {})
       instrument :enqueue_retry, options.slice(:error, :wait) do
+        scheduled_at, queue_name, priority = self.scheduled_at, self.queue_name, self.priority
         enqueue options
+      ensure
+        self.scheduled_at, self.queue_name, self.priority = scheduled_at, queue_name, priority
       end
     end
 
@@ -168,7 +172,7 @@ module ActiveJob
         jitter = jitter == JITTER_DEFAULT ? self.class.retry_jitter : (jitter || 0.0)
 
         case seconds_or_duration_or_algorithm
-        when :exponentially_longer, :polynomially_longer
+        when  :polynomially_longer
           # This delay uses a polynomial backoff strategy, which was previously misnamed as exponential
           delay = executions**4
           delay_jitter = determine_jitter_for_delay(delay, jitter)

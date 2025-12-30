@@ -4,24 +4,57 @@ require "cases/helper"
 require "support/ddl_helper"
 require "models/book"
 require "models/post"
-
-require "active_support/error_reporter/test_helper"
+require "timeout"
 
 class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   setup do
-    @conn = ActiveRecord::Base.connection
+    @conn = ActiveRecord::Base.lease_connection
   end
 
   test "connection_error" do
     error = assert_raises ActiveRecord::ConnectionNotEstablished do
-      ActiveRecord::Base.trilogy_connection(host: "invalid", port: 12345).connect!
+      ActiveRecord::ConnectionAdapters::TrilogyAdapter.new(host: "invalid", port: 12345).connect!
     end
     assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
   end
 
+  test "timeout in transaction doesnt query closed connection" do
+    assert_raises(Timeout::Error) do
+      Timeout.timeout(0.1) do
+        @conn.transaction do
+          @conn.execute("SELECT SLEEP(1)")
+        end
+      end
+    end
+  end
+
+  test "timeout in fixture set insertion doesnt query closed connection" do
+    fixtures = [
+      ["traffic_lights", [
+        { "location" => "US", "state" => ["NY"], "long_state" => ["a"] },
+      ]]
+    ] * 2000
+
+    assert_raises(Timeout::Error) do
+      Timeout.timeout(0.1) do
+        @conn.insert_fixtures_set(fixtures)
+      end
+    end
+  end
+
+  test "timeout without referential integrity doesnt query closed connection" do
+    assert_raises(Timeout::Error) do
+      Timeout.timeout(0.1) do
+        @conn.disable_referential_integrity do
+          @conn.execute("SELECT SLEEP(1)")
+        end
+      end
+    end
+  end
+
   test "#explain for one query" do
     explain = @conn.explain("select * from posts")
-    assert_match %(possible_keys), explain
+    assert_match %r(posts), explain
   end
 
   test "#adapter_name answers name" do
@@ -97,24 +130,24 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#active? answers false with connection and exception" do
-    @conn.send(:connection).stub(:ping, -> { raise ::Trilogy::BaseError.new }) do
+    @conn.instance_variable_get(:@raw_connection).stub(:ping, -> { raise ::Trilogy::BaseError.new }) do
       assert_equal false, @conn.active?
     end
   end
 
   test "#reconnect answers new connection with existing connection" do
-    old_connection = @conn.send(:connection)
+    old_connection = @conn.instance_variable_get(:@raw_connection)
     @conn.reconnect!
-    connection = @conn.send(:connection)
+    connection = @conn.instance_variable_get(:@raw_connection)
 
     assert_instance_of Trilogy, connection
     assert_not_equal old_connection, connection
   end
 
   test "#reset answers new connection with existing connection" do
-    old_connection = @conn.send(:connection)
+    old_connection = @conn.instance_variable_get(:@raw_connection)
     @conn.reset!
-    connection = @conn.send(:connection)
+    connection = @conn.instance_variable_get(:@raw_connection)
 
     assert_instance_of Trilogy, connection
     assert_not_equal old_connection, connection
@@ -169,6 +202,8 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     @conn.cache do
       event_fired = false
       subscription = ->(name, start, finish, id, payload) {
+        next if payload[:name] == "SCHEMA"
+
         event_fired = true
 
         # First, we test keys that are defined by default by the AbstractAdapter
@@ -187,8 +222,6 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
         assert_includes payload, :type_casted_binds
         assert_equal [], payload[:type_casted_binds]
 
-        # :stament_name is always nil and never set 🤷‍♂️
-        assert_includes payload, :statement_name
         assert_nil payload[:statement_name]
 
         assert_not_includes payload, :cached
@@ -200,6 +233,8 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
 
       event_fired = false
       subscription = ->(name, start, finish, id, payload) {
+        next if payload[:name] == "SCHEMA"
+
         event_fired = true
 
         # First, we test keys that are defined by default by the AbstractAdapter
@@ -218,7 +253,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
         assert_includes payload, :type_casted_binds
         assert_equal [], payload[:type_casted_binds].is_a?(Proc) ? payload[:type_casted_binds].call : payload[:type_casted_binds]
 
-        # Rails does not include :stament_name for cached queries 🤷‍♂️
+        # Rails does not include :statement_name for cached queries 🤷‍♂️
         assert_not_includes payload, :statement_name
 
         assert_includes payload, :cached
@@ -281,18 +316,10 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     assert_equal [], @conn.indexes("users")
   end
 
-  test "#begin_db_transaction answers empty result" do
-    result = @conn.begin_db_transaction
-    assert_equal [], result.rows
-
-    # rollback transaction so it doesn't bleed into other tests
-    @conn.rollback_db_transaction
-  end
-
   test "#begin_db_transaction raises error" do
     error = Class.new(Exception)
     assert_raises error do
-      @conn.stub(:raw_execute, -> (*) { raise error }) do
+      @conn.stub(:perform_query, -> (*) { raise error }) do
         @conn.begin_db_transaction
       end
     end
@@ -301,15 +328,10 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     @conn.rollback_db_transaction
   end
 
-  test "#commit_db_transaction answers empty result" do
-    result = @conn.commit_db_transaction
-    assert_equal [], result.rows
-  end
-
   test "#commit_db_transaction raises error" do
     error = Class.new(Exception)
     assert_raises error do
-      @conn.stub(:raw_execute, -> (*) { raise error }) do
+      @conn.stub(:perform_query, -> (*) { raise error }) do
         @conn.commit_db_transaction
       end
     end
@@ -318,7 +340,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   test "#rollback_db_transaction raises error" do
     error = Class.new(Exception)
     assert_raises error do
-      @conn.stub(:raw_execute, -> (*) { raise error }) do
+      @conn.stub(:perform_query, -> (*) { raise error }) do
         @conn.rollback_db_transaction
       end
     end
@@ -341,7 +363,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     ActiveRecord::Base.establish_connection(
       db_config.configuration_hash.merge("read_timeout" => 1)
     )
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
 
     error = assert_raises(ActiveRecord::AdapterTimeout) do
       connection.execute("SELECT SLEEP(2)")
@@ -353,41 +375,48 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     ActiveRecord::Base.establish_connection :arunit
   end
 
-  # Create a temporary subscription to verify notification is sent.
-  # Optionally verify the notification payload includes expected types.
-  def assert_notification(notification, expected_payload = {}, &block)
-    notification_sent = false
-
-    subscription = lambda do |_, _, _, _, payload|
-      notification_sent = true
-
-      expected_payload.each do |key, value|
-        assert(
-          value === payload[key],
-          "Expected notification payload[:#{key}] to match #{value.inspect}, but got #{payload[key].inspect}."
-        )
-      end
+  test "socket has precedence over host" do
+    error = assert_raises ActiveRecord::ConnectionNotEstablished do
+      ActiveRecord::ConnectionAdapters::TrilogyAdapter.new(host: "invalid", port: 12345, socket: "/var/invalid.sock").connect!
     end
-
-    ActiveSupport::Notifications.subscribed(subscription, notification) do
-      block.call if block_given?
-    end
-
-    assert notification_sent, "#{notification} notification was not sent"
+    assert_includes error.message, "/var/invalid.sock"
   end
 
-  # Create a temporary subscription to verify notification was not sent.
-  def assert_no_notification(notification, &block)
-    notification_sent = false
-
-    subscription = lambda do |*args|
-      notification_sent = true
+  test "EPIPE raises ActiveRecord::ConnectionFailed" do
+    assert_raises(ActiveRecord::ConnectionFailed) do
+      @conn.raw_connection.stub(:query, -> (*) { raise Trilogy::SyscallError::EPIPE }) do
+        @conn.execute("SELECT 1")
+      end
     end
+  end
 
-    ActiveSupport::Notifications.subscribed(subscription, notification) do
-      block.call if block_given?
+  test "ETIMEDOUT raises ActiveRecord::ConnectionFailed" do
+    assert_raises(ActiveRecord::ConnectionFailed) do
+      @conn.raw_connection.stub(:query, -> (*) { raise Trilogy::SyscallError::ETIMEDOUT }) do
+        @conn.execute("SELECT 1")
+      end
     end
+  end
 
-    assert_not notification_sent, "#{notification} notification was sent"
+  test "ECONNREFUSED raises ActiveRecord::ConnectionFailed" do
+    assert_raises(ActiveRecord::ConnectionFailed) do
+      @conn.raw_connection.stub(:query, -> (*) { raise Trilogy::SyscallError::ECONNREFUSED }) do
+        @conn.execute("SELECT 1")
+      end
+    end
+  end
+
+  test "ECONNRESET raises ActiveRecord::ConnectionFailed" do
+    assert_raises(ActiveRecord::ConnectionFailed) do
+      @conn.raw_connection.stub(:query, -> (*) { raise Trilogy::SyscallError::ECONNRESET }) do
+        @conn.execute("SELECT 1")
+      end
+    end
+  end
+
+  test "setting prepared_statements to true raises" do
+    assert_raises ArgumentError do
+      ActiveRecord::ConnectionAdapters::TrilogyAdapter.new(prepared_statements: true).connect!
+    end
   end
 end

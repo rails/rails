@@ -1,21 +1,23 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/object/try"
 
 module ActionText
-  # = Action Text \Attachment
+  # # Action Text Attachment
   #
   # Attachments serialize attachables to HTML or plain text.
   #
-  #   class Person < ApplicationRecord
-  #     include ActionText::Attachable
-  #   end
+  #     class Person < ApplicationRecord
+  #       include ActionText::Attachable
+  #     end
   #
-  #   attachable = Person.create! name: "Javan"
-  #   attachment = ActionText::Attachment.from_attachable(attachable)
-  #   attachment.to_html # => "<action-text-attachment sgid=\"BAh7CEk..."
+  #     attachable = Person.create! name: "Javan"
+  #     attachment = ActionText::Attachment.from_attachable(attachable)
+  #     attachment.to_html # => "<action-text-attachment sgid=\"BAh7CEk..."
   class Attachment
-    include Attachments::TrixConversion, Attachments::Minification, Attachments::Caching
+    include Attachments::TrixConversion, Attachments::Minification, Attachments::Caching, Attachments::Conversion
 
     mattr_accessor :tag_name, default: "action-text-attachment"
 
@@ -23,7 +25,7 @@ module ActionText
 
     class << self
       def fragment_by_canonicalizing_attachments(content)
-        fragment_by_minifying_attachments(fragment_by_converting_trix_attachments(content))
+        fragment_by_minifying_attachments(fragment_by_converting_editor_attachments(content))
       end
 
       def from_node(node, attachable = nil)
@@ -82,29 +84,29 @@ module ActionText
 
     # Converts the attachment to plain text.
     #
-    #   attachable = ActiveStorage::Blob.find_by filename: "racecar.jpg"
-    #   attachment = ActionText::Attachment.from_attachable(attachable)
-    #   attachment.to_plain_text # => "[racecar.jpg]"
+    #     attachable = ActiveStorage::Blob.find_by filename: "racecar.jpg"
+    #     attachment = ActionText::Attachment.from_attachable(attachable)
+    #     attachment.to_plain_text # => "[racecar.jpg]"
     #
-    # Use the +caption+ when set:
+    # Use the `caption` when set:
     #
-    #   attachment = ActionText::Attachment.from_attachable(attachable, caption: "Vroom vroom")
-    #   attachment.to_plain_text # => "[Vroom vroom]"
+    #     attachment = ActionText::Attachment.from_attachable(attachable, caption: "Vroom vroom")
+    #     attachment.to_plain_text # => "[Vroom vroom]"
     #
     # The presentation can be overridden by implementing the
-    # +attachable_plain_text_representation+ method:
+    # `attachable_plain_text_representation` method:
     #
-    #   class Person < ApplicationRecord
-    #     include ActionText::Attachable
+    #     class Person < ApplicationRecord
+    #       include ActionText::Attachable
     #
-    #     def attachable_plain_text_representation
-    #       "[#{name}]"
+    #       def attachable_plain_text_representation
+    #         "[#{name}]"
+    #       end
     #     end
-    #   end
     #
-    #   attachable = Person.create! name: "Javan"
-    #   attachment = ActionText::Attachment.from_attachable(attachable)
-    #   attachment.to_plain_text # => "[Javan]"
+    #     attachable = Person.create! name: "Javan"
+    #     attachment = ActionText::Attachment.from_attachable(attachable)
+    #     attachment.to_plain_text # => "[Javan]"
     def to_plain_text
       if respond_to?(:attachable_plain_text_representation)
         attachable_plain_text_representation(caption)
@@ -115,9 +117,9 @@ module ActionText
 
     # Converts the attachment to HTML.
     #
-    #   attachable = Person.create! name: "Javan"
-    #   attachment = ActionText::Attachment.from_attachable(attachable)
-    #   attachment.to_html # => "<action-text-attachment sgid=\"BAh7CEk...
+    #     attachable = Person.create! name: "Javan"
+    #     attachment = ActionText::Attachment.from_attachable(attachable)
+    #     attachment.to_html # => "<action-text-attachment sgid=\"BAh7CEk...
     def to_html
       HtmlConversion.node_to_html(node)
     end

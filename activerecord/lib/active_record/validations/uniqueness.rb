@@ -14,6 +14,7 @@ module ActiveRecord
         end
         super
         @klass = options[:class]
+        @klass = @klass.superclass if @klass.singleton_class?
       end
 
       def validate_each(record, attribute, value)
@@ -53,17 +54,17 @@ module ActiveRecord
     private
       # The check for an existing value should be run from a class that
       # isn't abstract. This means working down from the current class
-      # (self), to the first non-abstract class. Since classes don't know
-      # their subclasses, we have to build the hierarchy between self and
-      # the record's class.
+      # (self), to the first non-abstract class.
       def find_finder_class_for(record)
-        class_hierarchy = [record.class]
-
-        while class_hierarchy.first != @klass
-          class_hierarchy.unshift(class_hierarchy.first.superclass)
+        current_class = record.class
+        found_class = nil
+        loop do
+          found_class = current_class unless current_class.abstract_class?
+          break if current_class == @klass
+          current_class = current_class.superclass
         end
 
-        class_hierarchy.detect { |klass| !klass.abstract_class? }
+        found_class
       end
 
       def validation_needed?(klass, record, attribute)
@@ -84,7 +85,7 @@ module ActiveRecord
           attributes = scope + [attr]
           attributes = resolve_attributes(record, attributes)
 
-          klass.connection.schema_cache.indexes(klass.table_name).any? do |index|
+          klass.schema_cache.indexes(klass.table_name).any? do |index|
             index.unique &&
               index.where.nil? &&
               (Array(index.columns) - attributes).empty?
@@ -110,16 +111,20 @@ module ActiveRecord
 
       def build_relation(klass, attribute, value)
         relation = klass.unscoped
-        comparison = relation.bind_attribute(attribute, value) do |attr, bind|
-          return relation.none! if bind.unboundable?
+        # TODO: Add case-sensitive / case-insensitive operators to Arel
+        # to no longer need to checkout a connection here.
+        comparison = klass.with_connection do |connection|
+          relation.bind_attribute(attribute, value) do |attr, bind|
+            return relation.none! if bind.unboundable?
 
-          if !options.key?(:case_sensitive) || bind.nil?
-            klass.connection.default_uniqueness_comparison(attr, bind)
-          elsif options[:case_sensitive]
-            klass.connection.case_sensitive_comparison(attr, bind)
-          else
-            # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
-            klass.connection.case_insensitive_comparison(attr, bind)
+            if !options.key?(:case_sensitive) || bind.nil?
+              connection.default_uniqueness_comparison(attr, bind)
+            elsif options[:case_sensitive]
+              connection.case_sensitive_comparison(attr, bind)
+            else
+              # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
+              connection.case_insensitive_comparison(attr, bind)
+            end
           end
         end
 

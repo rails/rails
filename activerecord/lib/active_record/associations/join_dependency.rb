@@ -61,7 +61,7 @@ module ActiveRecord
         when Hash
           associations.each do |k, v|
             cache = hash[k] ||= {}
-            walk_tree v, cache
+            walk_tree v, cache if v
           end
         else
           raise ConfigurationError, associations.inspect
@@ -103,7 +103,7 @@ module ActiveRecord
       end
 
       def instantiate(result_set, strict_loading_value, &block)
-        primary_key = aliases.column_alias(join_root, join_root.primary_key)
+        primary_key = Array(join_root.primary_key).map { |column| aliases.column_alias(join_root, column) }
 
         seen = Hash.new { |i, parent|
           i[parent] = Hash.new { |j, child_class|
@@ -141,7 +141,7 @@ module ActiveRecord
 
         message_bus.instrument("instantiation.active_record", payload) do
           result_set.each { |row_hash|
-            parent_key = primary_key ? row_hash[primary_key] : row_hash
+            parent_key = primary_key.empty? ? row_hash : row_hash.values_at(*primary_key)
             parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases, column_types, &block)
             construct(parent, join_root, row_hash, seen, model_cache, strict_loading_value)
           }
@@ -190,12 +190,12 @@ module ActiveRecord
         def make_constraints(parent, child, join_type)
           foreign_table = parent.table
           foreign_klass = parent.base_klass
-          child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection|
-            table, terminated = @joined_tables[reflection]
+          child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection, remaining_reflection_chain|
+            table, terminated = @joined_tables[remaining_reflection_chain]
             root = reflection == child.reflection
 
             if table && (!root || !terminated)
-              @joined_tables[reflection] = [table, root] if root
+              @joined_tables[remaining_reflection_chain] = [table, root] if root
               next table, true
             end
 
@@ -206,7 +206,7 @@ module ActiveRecord
               root ? name : "#{name}_join"
             end
 
-            @joined_tables[reflection] ||= [table, root] if join_type == Arel::Nodes::OuterJoin
+            @joined_tables[remaining_reflection_chain] ||= [table, root] if join_type == Arel::Nodes::OuterJoin
             table
           end.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
         end
@@ -235,6 +235,8 @@ module ActiveRecord
               raise EagerLoadPolymorphicError.new(reflection)
             end
 
+            Deprecation.guard(reflection) { "referenced in query to join its table" }
+
             JoinAssociation.new(reflection, build(right, reflection.klass))
           end
         end
@@ -254,10 +256,10 @@ module ActiveRecord
 
             if node.primary_key
               keys = Array(node.primary_key).map { |column| aliases.column_alias(node, column) }
-              ids = keys.map { |key| row[key] }
+              id = keys.map { |key| row[key] }
             else
               keys = Array(node.reflection.join_primary_key).map { |column| aliases.column_alias(node, column.to_s) }
-              ids = keys.map { nil } # Avoid id-based model caching.
+              id = keys.map { nil } # Avoid id-based model caching.
             end
 
             if keys.any? { |key| row[key].nil? }
@@ -266,11 +268,9 @@ module ActiveRecord
               next
             end
 
-            ids.each do |id|
-              unless model = seen[ar_parent][node][id]
-                model = construct_model(ar_parent, node, row, model_cache, id, strict_loading_value)
-                seen[ar_parent][node][id] = model if id
-              end
+            unless model = seen[ar_parent][node][id]
+              model = construct_model(ar_parent, node, row, model_cache, id, strict_loading_value)
+              seen[ar_parent][node][id] = model if id
             end
 
             construct(model, node, row, seen, model_cache, strict_loading_value)

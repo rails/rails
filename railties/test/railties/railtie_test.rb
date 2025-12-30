@@ -8,7 +8,7 @@ module RailtiesTest
 
     def setup
       build_app
-      FileUtils.rm_rf("#{app_path}/config/environments")
+      reset_environment_configs
       require "rails/all"
     end
 
@@ -17,7 +17,7 @@ module RailtiesTest
     end
 
     def app
-      @app ||= Rails.application
+      @app ||= Rails.app
     end
 
     test "cannot instantiate a Railtie object" do
@@ -243,7 +243,7 @@ module RailtiesTest
         Foo.instance.abc
       end
 
-      assert_match(/undefined method `abc' for.*RailtiesTest::RailtieTest::Foo/, error.original_message)
+      assert_match(/undefined method [`']abc' for.*RailtiesTest::RailtieTest::Foo/, error.original_message)
     end
 
     test "rake environment can be called in the ralitie" do

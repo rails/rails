@@ -7,6 +7,7 @@ module ActiveRecord
   module Attributes
     extend ActiveSupport::Concern
     include ActiveModel::AttributeRegistration
+    include ActiveModel::Attributes::Normalization
 
     # = Active Record \Attributes
     module ClassMethods
@@ -21,26 +22,34 @@ module ActiveRecord
       # your domain objects across much of Active Record, without having to
       # rely on implementation details or monkey patching.
       #
-      # +name+ The name of the methods to define attribute methods for, and the
-      # column which this will persist to.
+      # ==== Parameters
       #
-      # +cast_type+ A symbol such as +:string+ or +:integer+, or a type object
-      # to be used for this attribute. See the examples below for more
-      # information about providing custom type objects.
+      # [+name+]
+      #   The name of the methods to define attribute methods for, and the
+      #   column which this will persist to.
+      #
+      # [+cast_type+]
+      #   A symbol such as +:string+ or +:integer+, or a type object to be used
+      #   for this attribute. If this parameter is not passed, the previously
+      #   defined type (if any) will be used. Otherwise, the type will be
+      #   ActiveModel::Type::Value. See the examples below for more information
+      #   about providing custom type objects.
       #
       # ==== Options
       #
-      # The following options are accepted:
+      # [+:default+]
+      #   The default value to use when no value is provided. If this option is
+      #   not passed, the previously defined default value (if any) on the
+      #   superclass or in the schema will be used. Otherwise, the default will
+      #   be +nil+.
       #
-      # +default+ The default value to use when no value is provided. If this option
-      # is not passed, the previous default value (if any) will be used.
-      # Otherwise, the default will be +nil+.
+      # [+:array+]
+      #   (PostgreSQL only) Specifies that the type should be an array. See the
+      #   examples below.
       #
-      # +array+ (PostgreSQL only) specifies that the type should be an array (see the
-      # examples below).
-      #
-      # +range+ (PostgreSQL only) specifies that the type should be a range (see the
-      # examples below).
+      # [+:range+]
+      #   (PostgreSQL only) Specifies that the type should be a range. See the
+      #   examples below.
       #
       # When using a symbol for +cast_type+, extra options are forwarded to the
       # constructor of the type object.
@@ -135,7 +144,7 @@ module ActiveRecord
       # expected API. It is recommended that your type objects inherit from an
       # existing type, or from ActiveRecord::Type::Value
       #
-      #   class MoneyType < ActiveRecord::Type::Integer
+      #   class PriceType < ActiveRecord::Type::Integer
       #     def cast(value)
       #       if !value.kind_of?(Numeric) && value.include?('$')
       #         price_in_dollars = value.gsub(/\$/, '').to_f
@@ -147,11 +156,11 @@ module ActiveRecord
       #   end
       #
       #   # config/initializers/types.rb
-      #   ActiveRecord::Type.register(:money, MoneyType)
+      #   ActiveRecord::Type.register(:price, PriceType)
       #
       #   # app/models/store_listing.rb
       #   class StoreListing < ActiveRecord::Base
-      #     attribute :price_in_cents, :money
+      #     attribute :price_in_cents, :price
       #   end
       #
       #   store_listing = StoreListing.new(price_in_cents: '$10.00')
@@ -171,13 +180,13 @@ module ActiveRecord
       #   class Money < Struct.new(:amount, :currency)
       #   end
       #
-      #   class MoneyType < ActiveRecord::Type::Value
+      #   class PriceType < ActiveRecord::Type::Value
       #     def initialize(currency_converter:)
       #       @currency_converter = currency_converter
       #     end
       #
-      #     # value will be the result of +deserialize+ or
-      #     # +cast+. Assumed to be an instance of +Money+ in
+      #     # value will be the result of #deserialize or
+      #     # #cast. Assumed to be an instance of Money in
       #     # this case.
       #     def serialize(value)
       #       value_in_bitcoins = @currency_converter.convert_to_bitcoins(value)
@@ -186,12 +195,12 @@ module ActiveRecord
       #   end
       #
       #   # config/initializers/types.rb
-      #   ActiveRecord::Type.register(:money, MoneyType)
+      #   ActiveRecord::Type.register(:price, PriceType)
       #
       #   # app/models/product.rb
       #   class Product < ActiveRecord::Base
       #     currency_converter = ConversionRatesFromTheInternet.new
-      #     attribute :price_in_bitcoins, :money, currency_converter: currency_converter
+      #     attribute :price_in_bitcoins, :price, currency_converter: currency_converter
       #   end
       #
       #   Product.where(price_in_bitcoins: Money.new(5, "USD"))
@@ -210,23 +219,27 @@ module ActiveRecord
       #--
       # Implemented by ActiveModel::AttributeRegistration#attribute.
 
-      # This is the low level API which sits beneath +attribute+. It only
-      # accepts type objects, and will do its work immediately instead of
+      # This API only accepts type objects, and will do its work immediately instead of
       # waiting for the schema to load. While this method
       # is provided so it can be used by plugin authors, application code
       # should probably use ClassMethods#attribute.
       #
-      # +name+ The name of the attribute being defined. Expected to be a +String+.
+      # ==== Parameters
       #
-      # +cast_type+ The type object to use for this attribute.
+      # [+name+]
+      #   The name of the attribute being defined. Expected to be a +String+.
       #
-      # +default+ The default value to use when no value is provided. If this option
-      # is not passed, the previous default value (if any) will be used.
-      # Otherwise, the default will be +nil+. A proc can also be passed, and
-      # will be called once each time a new value is needed.
+      # [+cast_type+]
+      #   The type object to use for this attribute.
       #
-      # +user_provided_default+ Whether the default value should be cast using
-      # +cast+ or +deserialize+.
+      # [+default+]
+      #   The default value to use when no value is provided. If this option
+      #   is not passed, the previous default value (if any) will be used.
+      #   Otherwise, the default will be +nil+. A proc can also be passed, and
+      #   will be called once each time a new value is needed.
+      #
+      # [+user_provided_default+]
+      #   Whether the default value should be cast using +cast+ or +deserialize+.
       def define_attribute(
         name,
         cast_type,
@@ -239,8 +252,11 @@ module ActiveRecord
 
       def _default_attributes # :nodoc:
         @default_attributes ||= begin
-          attributes_hash = columns_hash.transform_values do |column|
-            ActiveModel::Attribute.from_database(column.name, column.default, type_for_column(column))
+          # TODO: Remove the need for a connection after we release 8.1.
+          attributes_hash = with_connection do |connection|
+            columns_hash.transform_values do |column|
+              ActiveModel::Attribute.from_database(column.name, column.default, type_for_column(connection, column))
+            end
           end
 
           attribute_set = ActiveModel::AttributeSet.new(attributes_hash)
@@ -249,12 +265,23 @@ module ActiveRecord
         end
       end
 
-      def reload_schema_from_cache(*)
-        reset_default_attributes!
-        super
-      end
+      ##
+      # :method: type_for_attribute
+      # :call-seq: type_for_attribute(attribute_name, &block)
+      #
+      # See ActiveModel::Attributes::ClassMethods#type_for_attribute.
+      #
+      # This method will access the database and load the model's schema if
+      # necessary.
+      #--
+      # Implemented by ActiveModel::AttributeRegistration::ClassMethods#type_for_attribute.
 
-      alias :reset_default_attributes :reload_schema_from_cache
+      ##
+      protected
+        def reload_schema_from_cache(*)
+          reset_default_attributes!
+          super
+        end
 
       private
         NO_DEFAULT_PROVIDED = Object.new # :nodoc:
@@ -276,11 +303,16 @@ module ActiveRecord
           _default_attributes[name] = default_attribute
         end
 
+        def reset_default_attributes
+          reload_schema_from_cache
+        end
+
         def resolve_type_name(name, **options)
           Type.lookup(name, **options, adapter: Type.adapter_name_from(self))
         end
 
-        def type_for_column(column)
+        def type_for_column(connection, column)
+          # TODO: Remove the need for a connection after we release 8.1.
           hook_attribute_type(column.name, super)
         end
     end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/testing/strict_warnings"
+require_relative "../../tools/strict_warnings"
 
 $:.unshift File.expand_path("lib", __dir__)
 
@@ -26,6 +26,8 @@ require "active_support/dependencies"
 require "active_model"
 require "zeitwerk"
 
+require_relative "support/rack_parsing_override"
+
 ActiveSupport::Cache.format_version = 7.1
 
 module Rails
@@ -33,6 +35,8 @@ module Rails
     def env
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
     end
+
+    def application; end
 
     def root; end
   end
@@ -91,15 +95,23 @@ module ActiveSupport
 end
 
 class RoutedRackApp
+  class Config < Struct.new(:middleware)
+  end
+
   attr_reader :routes
 
   def initialize(routes, &blk)
     @routes = routes
-    @stack = ActionDispatch::MiddlewareStack.new(&blk).build(@routes)
+    @stack = ActionDispatch::MiddlewareStack.new(&blk)
+    @app = @stack.build(@routes)
   end
 
   def call(env)
-    @stack.call(env)
+    @app.call(env)
+  end
+
+  def config
+    Config.new(@stack)
   end
 end
 
@@ -148,19 +160,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   def self.stub_controllers(config = ActionDispatch::Routing::RouteSet::DEFAULT_CONFIG)
     yield DeadEndRoutes.new(config)
-  end
-
-  def with_routing(&block)
-    temporary_routes = ActionDispatch::Routing::RouteSet.new
-    old_app, self.class.app = self.class.app, self.class.build_app(temporary_routes)
-    old_routes = SharedTestRoutes
-    silence_warnings { Object.const_set(:SharedTestRoutes, temporary_routes) }
-
-    yield temporary_routes
-  ensure
-    self.class.app = old_app
-    remove!
-    silence_warnings { Object.const_set(:SharedTestRoutes, old_routes) }
   end
 
   def with_autoload_path(path)
@@ -315,7 +314,7 @@ module RoutingTestHelpers
   end
 
   class TestSet < ActionDispatch::Routing::RouteSet
-    class Request < DelegateClass(ActionDispatch::Request)
+    class Request < ActiveSupport::Delegation::DelegateClass(ActionDispatch::Request)
       def initialize(target, helpers, block, strict)
         super(target)
         @helpers = helpers
@@ -514,22 +513,6 @@ module HeadersAssertions
     header = normalized_join_header(header)
     assert_equal header, expected
   end
-end
-
-class DrivenByRackTest < ActionDispatch::SystemTestCase
-  driven_by :rack_test
-end
-
-class DrivenBySeleniumWithChrome < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :chrome
-end
-
-class DrivenBySeleniumWithHeadlessChrome < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_chrome
-end
-
-class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_firefox
 end
 
 require_relative "../../tools/test_common"

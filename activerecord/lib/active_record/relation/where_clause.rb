@@ -23,12 +23,8 @@ module ActiveRecord
         WhereClause.new(predicates | other.predicates)
       end
 
-      def merge(other, rewhere = nil)
-        predicates = if rewhere
-          except_predicates(other.extract_attributes)
-        else
-          predicates_unreferenced_by(other)
-        end
+      def merge(other)
+        predicates = except_predicates(other.extract_attributes)
 
         WhereClause.new(predicates | other.predicates)
       end
@@ -51,7 +47,11 @@ module ActiveRecord
           right = right.ast
           right = right.expr if right.is_a?(Arel::Nodes::Grouping)
 
-          or_clause = Arel::Nodes::Or.new(left, right)
+          or_clause = if left.is_a?(Arel::Nodes::Or)
+            Arel::Nodes::Or.new(left.children + [right])
+          else
+            Arel::Nodes::Or.new([left, right])
+          end
 
           common.predicates << Arel::Nodes::Grouping.new(or_clause)
           common
@@ -135,10 +135,14 @@ module ActiveRecord
 
         def extract_attribute(node)
           attr_node = nil
-          Arel.fetch_attribute(node) do |attr|
-            return if attr_node&.!= attr # all attr nodes should be the same
+
+          valid_attrs = Arel.fetch_attribute(node) do |attr|
+            !attr_node || attr_node == attr # all attr nodes should be the same
+          ensure
             attr_node = attr
           end
+          return unless valid_attrs # all nested nodes should yield an attribute
+
           attr_node
         end
 
@@ -154,18 +158,6 @@ module ActiveRecord
           end
 
           equalities
-        end
-
-        def predicates_unreferenced_by(other)
-          referenced_columns = other.referenced_columns
-
-          predicates.reject do |node|
-            attr = extract_attribute(node) || begin
-              node.left if equality_node?(node) && node.left.is_a?(Arel::Predications)
-            end
-
-            attr && referenced_columns[attr]
-          end
         end
 
         def equality_node?(node)
@@ -184,11 +176,13 @@ module ActiveRecord
         end
 
         def except_predicates(columns)
+          return predicates if columns.empty?
+
           attrs = columns.extract! { |node| node.is_a?(Arel::Attribute) }
           non_attrs = columns.extract! { |node| node.is_a?(Arel::Predications) }
 
           predicates.reject do |node|
-            if !non_attrs.empty? && node.equality? && node.left.is_a?(Arel::Predications)
+            if !non_attrs.empty? && equality_node?(node) && node.left.is_a?(Arel::Predications)
               non_attrs.include?(node.left)
             end || Arel.fetch_attribute(node) do |attr|
               attrs.include?(attr) || columns.include?(attr.name.to_s)
@@ -200,7 +194,7 @@ module ActiveRecord
           non_empty_predicates.map do |node|
             case node
             when Arel::Nodes::SqlLiteral, ::String
-              wrap_sql_literal(node)
+              Arel::Nodes::Grouping.new(node)
             else node
             end
           end
@@ -209,13 +203,6 @@ module ActiveRecord
         ARRAY_WITH_EMPTY_STRING = [""]
         def non_empty_predicates
           predicates - ARRAY_WITH_EMPTY_STRING
-        end
-
-        def wrap_sql_literal(node)
-          if ::String === node
-            node = Arel.sql(node)
-          end
-          Arel::Nodes::Grouping.new(node)
         end
 
         def extract_node_value(node)

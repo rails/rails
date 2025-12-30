@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionCable
   module Channel
     module PeriodicTimers
@@ -13,14 +15,12 @@ module ActionCable
       end
 
       module ClassMethods
-        # Periodically performs a task on the channel, like updating an online
-        # user counter, polling a backend for new status messages, sending
-        # regular "heartbeat" messages, or doing some internal work and giving
-        # progress updates.
+        # Periodically performs a task on the channel, like updating an online user
+        # counter, polling a backend for new status messages, sending regular
+        # "heartbeat" messages, or doing some internal work and giving progress updates.
         #
-        # Pass a method name or lambda argument or provide a block to call.
-        # Specify the calling period in seconds using the <tt>every:</tt>
-        # keyword argument.
+        # Pass a method name or lambda argument or provide a block to call. Specify the
+        # calling period in seconds using the `every:` keyword argument.
         #
         #     periodically :transmit_progress, every: 5.seconds
         #

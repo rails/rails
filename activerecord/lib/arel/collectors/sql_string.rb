@@ -5,14 +5,14 @@ require "arel/collectors/plain_string"
 module Arel # :nodoc: all
   module Collectors
     class SQLString < PlainString
-      attr_accessor :preparable
+      attr_accessor :preparable, :retryable
 
       def initialize(*)
         super
         @bind_index = 1
       end
 
-      def add_bind(bind)
+      def add_bind(bind, &)
         self << yield(@bind_index)
         @bind_index += 1
         self

@@ -105,8 +105,8 @@ module Rails
     private
       def filter_by(&block)
         all_paths.find_all(&block).flat_map { |path|
-          paths = path.existent
-          paths - path.children.flat_map { |p| yield(p) ? [] : p.existent }
+          paths = path.existent_directories
+          paths - path.children.flat_map { |p| yield(p) ? [] : p.existent_directories }
         }.uniq
       end
     end

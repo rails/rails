@@ -11,7 +11,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.transaction do
       @connection.create_table("bytea_data_type") do |t|
         t.binary "payload"
@@ -47,8 +47,32 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_type_cast_binary_value
-    data = (+"\u001F\x8B").force_encoding("BINARY")
-    assert_equal(data, @type.deserialize(data))
+    encoded = "\\x414243".b
+    assert_deprecated(ActiveRecord.deprecator) do
+      result = @type.deserialize(encoded)
+      assert_equal "ABC", result
+      assert_equal Encoding::BINARY, result.encoding
+    end
+  end
+
+  def test_type_cast_marked_true_value
+    decoded = "\\x414243".b
+    decoded.instance_variable_set(:@ar_pg_bytea_decoded, true)
+
+    result = @type.deserialize(decoded)
+    assert_equal "\\x414243", result  # Should stay as-is, not become "ABC"
+    assert_equal Encoding::BINARY, result.encoding
+    assert_not result.instance_variable_defined?(:@ar_pg_bytea_decoded)
+  end
+
+  def test_type_cast_marked_false_value
+    encoded = "\\x414243".b
+    encoded.instance_variable_set(:@ar_pg_bytea_decoded, false)
+
+    result = @type.deserialize(encoded)
+    assert_equal "ABC", result
+    assert_equal Encoding::BINARY, result.encoding
+    assert_not result.instance_variable_defined?(:@ar_pg_bytea_decoded)
   end
 
   def test_type_case_nil
@@ -81,13 +105,13 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
     data = "'\u001F\\"
     ByteaDataType.create(payload: data)
     sql = ByteaDataType.where(payload: data).select(:payload).to_sql
-    result = @connection.query(sql)
+    result = @connection.query_rows(sql, nil)
     assert_equal([[data]], result)
   end
 
   def test_via_to_sql_with_complicating_connection
     Thread.new do
-      other_conn = ActiveRecord::Base.connection
+      other_conn = ActiveRecord::Base.lease_connection
       other_conn.execute("SET standard_conforming_strings = off")
       other_conn.execute("SET escape_string_warning = off")
     end.join
@@ -131,5 +155,13 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
     output = dump_table_schema("bytea_data_type")
     assert_match %r{t\.binary\s+"payload"$}, output
     assert_match %r{t\.binary\s+"serialized"$}, output
+  end
+
+  def test_write_and_read_binary_data
+    data = "\\x414243"
+    record = ByteaDataType.create(payload: data)
+    assert_not_predicate record, :new_record?
+    assert_equal(data, record.payload)
+    assert_equal(data, ByteaDataType.where(id: record.id).first.payload)
   end
 end

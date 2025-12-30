@@ -30,7 +30,7 @@ module ActiveJob
     # The adapter uses a {Concurrent Ruby}[https://github.com/ruby-concurrency/concurrent-ruby] thread pool to schedule and execute
     # jobs. Since jobs share a single thread pool, long-running jobs will block
     # short-lived jobs. Fine for dev/test; bad for production.
-    class AsyncAdapter
+    class AsyncAdapter < AbstractAdapter
       # See {Concurrent::ThreadPoolExecutor}[https://ruby-concurrency.github.io/concurrent-ruby/master/Concurrent/ThreadPoolExecutor.html] for executor options.
       def initialize(**executor_options)
         @scheduler = Scheduler.new(**executor_options)
@@ -74,7 +74,7 @@ module ActiveJob
       class Scheduler # :nodoc:
         DEFAULT_EXECUTOR_OPTIONS = {
           min_threads:     0,
-          max_threads:     Concurrent.processor_count,
+          max_threads:     ENV.fetch("RAILS_MAX_THREADS", 5).to_i,
           auto_terminate:  true,
           idletime:        60, # 1 minute
           max_queue:       0, # unlimited
@@ -86,7 +86,11 @@ module ActiveJob
         def initialize(**options)
           self.immediate = false
           @immediate_executor = Concurrent::ImmediateExecutor.new
-          @async_executor = Concurrent::ThreadPoolExecutor.new(DEFAULT_EXECUTOR_OPTIONS.merge(options))
+          @async_executor = Concurrent::ThreadPoolExecutor.new(
+            name: "ActiveJob-async-scheduler",
+            **DEFAULT_EXECUTOR_OPTIONS,
+            **options
+          )
         end
 
         def enqueue(job, queue_name:)

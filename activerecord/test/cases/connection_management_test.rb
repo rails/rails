@@ -26,7 +26,7 @@ module ActiveRecord
         @management = middleware(@app)
 
         # make sure we have an active connection
-        assert ActiveRecord::Base.connection
+        assert ActiveRecord::Base.lease_connection
         assert ActiveRecord::Base.connection_handler.active_connections?(:all)
       end
 
@@ -48,6 +48,19 @@ module ActiveRecord
         _, _, body = @management.call(@env)
         body.close
         assert_not ActiveRecord::Base.connection_handler.active_connections?(:all)
+      end
+
+      test "connections are cleared even if inside a non-joinable transaction" do
+        ActiveRecord::Base.connection_pool.pin_connection!(Thread.current)
+        Thread.new do
+          assert ActiveRecord::Base.lease_connection
+          assert ActiveRecord::Base.connection_handler.active_connections?(:all)
+          _, _, body = @management.call(@env)
+          body.close
+          assert_not ActiveRecord::Base.connection_handler.active_connections?(:all)
+        end.join
+      ensure
+        ActiveRecord::Base.connection_pool.unpin_connection!
       end
 
       def test_active_connections_are_not_cleared_on_body_close_during_transaction
@@ -75,7 +88,7 @@ module ActiveRecord
       end
 
       test "cancel asynchronous queries if an exception is raised" do
-        unless ActiveRecord::Base.connection.supports_concurrent_connections?
+        unless ActiveRecord::Base.lease_connection.supports_concurrent_connections?
           skip "This adapter doesn't support asynchronous queries"
         end
 
@@ -83,7 +96,7 @@ module ActiveRecord
           attr_reader :future_result
 
           def call(env)
-            @future_result = ActiveRecord::Base.connection.select_all("SELECT * FROM does_not_exists", async: true)
+            @future_result = ActiveRecord::Base.lease_connection.select_all("SELECT * FROM does_not_exists", async: true)
             raise NotImplementedError
           end
         end.new
@@ -123,6 +136,7 @@ module ActiveRecord
           @executor ||= Class.new(ActiveSupport::Executor).tap do |exe|
             ActiveRecord::QueryCache.install_executor_hooks(exe)
             ActiveRecord::AsynchronousQueriesTracker.install_executor_hooks(exe)
+            ActiveRecord::ConnectionAdapters::ConnectionPool.install_executor_hooks(exe)
           end
         end
 

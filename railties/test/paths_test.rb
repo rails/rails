@@ -101,7 +101,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it is possible to add a path that should be autoloaded only once" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root.add "app", with: "/app"
       @root["app"].autoload_once!
       assert_predicate @root["app"], :autoload_once?
@@ -120,7 +120,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it is possible to add a path without assignment and specify it should be loaded only once" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root.add "app", with: "/app", autoload_once: true
       assert_predicate @root["app"], :autoload_once?
       assert_includes @root.autoload_once, "/app"
@@ -128,7 +128,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it is possible to add multiple paths without assignment and specify it should be loaded only once" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root.add "app", with: ["/app", "/app2"], autoload_once: true
       assert_predicate @root["app"], :autoload_once?
       assert_includes @root.autoload_once, "/app"
@@ -137,7 +137,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "making a path autoload_once more than once only includes it once in @root.load_once" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root["app"] = "/app"
       @root["app"].autoload_once!
       @root["app"].autoload_once!
@@ -146,7 +146,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "paths added to a load_once path should be added to the autoload_once collection" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root["app"] = "/app"
       @root["app"].autoload_once!
       @root["app"] << "/app2"
@@ -155,7 +155,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it is possible to mark a path as eager loaded" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root["app"] = "/app"
       @root["app"].eager_load!
       assert_predicate @root["app"], :eager_load?
@@ -174,7 +174,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it is possible to add a path without assignment and mark it as eager" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root.add "app", with: "/app", eager_load: true
       assert_predicate @root["app"], :eager_load?
       assert_includes @root.eager_load, "/app"
@@ -182,7 +182,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it is possible to add multiple paths without assignment and mark them as eager" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root.add "app", with: ["/app", "/app2"], eager_load: true
       assert_predicate @root["app"], :eager_load?
       assert_includes @root.eager_load, "/app"
@@ -191,7 +191,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "it is possible to create a path without assignment and mark it both as eager and load once" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root.add "app", with: "/app", eager_load: true, autoload_once: true
       assert_predicate @root["app"], :eager_load?
       assert_predicate @root["app"], :autoload_once?
@@ -201,7 +201,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "making a path eager more than once only includes it once in @root.eager_paths" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root["app"] = "/app"
       @root["app"].eager_load!
       @root["app"].eager_load!
@@ -210,7 +210,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "paths added to an eager_load path should be added to the eager_load collection" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root["app"] = "/app"
       @root["app"].eager_load!
       @root["app"] << "/app2"
@@ -243,7 +243,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "a path can be added to the load path" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root["app"] = "app"
       @root["app"].load_path!
       @root["app/models"] = "app/models"
@@ -252,7 +252,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "a path can be added to the load path on creation" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root.add "app", with: "/app", load_path: true
       assert_predicate @root["app"], :load_path?
       assert_equal ["/app"], @root.load_paths
@@ -260,7 +260,7 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "a path can be marked as autoload path" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root["app"] = "app"
       @root["app"].autoload!
       @root["app/models"] = "app/models"
@@ -269,10 +269,30 @@ class PathsTest < ActiveSupport::TestCase
   end
 
   test "a path can be marked as autoload on creation" do
-    File.stub(:exist?, true) do
+    File.stub(:directory?, true) do
       @root.add "app", with: "/app", autoload: true
       assert_predicate @root["app"], :autoload?
       assert_equal ["/app"], @root.autoload_paths
+    end
+  end
+
+  test "load paths does NOT include files" do
+    File.stub(:directory?, false) do
+      @root.add "app/README.md", autoload_once: true, eager_load: true, autoload: true, load_path: true
+      assert_equal [], @root.autoload_once
+      assert_equal [], @root.eager_load
+      assert_equal [], @root.autoload_paths
+      assert_equal [], @root.load_paths
+    end
+  end
+
+  test "load paths does include directories" do
+    File.stub(:directory?, true) do
+      @root.add "app/special", autoload_once: true, eager_load: true, autoload: true, load_path: true
+      assert_equal ["/foo/bar/app/special"], @root.autoload_once
+      assert_equal ["/foo/bar/app/special"], @root.eager_load
+      assert_equal ["/foo/bar/app/special"], @root.autoload_paths
+      assert_equal ["/foo/bar/app/special"], @root.load_paths
     end
   end
 end

@@ -7,23 +7,13 @@ gem "mysql2", "~> 0.5"
 require "mysql2"
 
 module ActiveRecord
-  module ConnectionHandling # :nodoc:
-    def mysql2_adapter_class
-      ConnectionAdapters::Mysql2Adapter
-    end
-
-    # Establishes a connection to the database that's used by all Active Record objects.
-    def mysql2_connection(config)
-      mysql2_adapter_class.new(config)
-    end
-  end
-
   module ConnectionAdapters
     # = Active Record MySQL2 Adapter
     class Mysql2Adapter < AbstractMysqlAdapter
       ER_BAD_DB_ERROR           = 1049
       ER_DBACCESS_DENIED_ERROR  = 1044
       ER_ACCESS_DENIED_ERROR    = 1045
+      ER_UNKNOWN_STMT_HANDLER   = 1243
       ER_CONN_HOST_ERROR        = 2003
       ER_UNKNOWN_HOST_ERROR     = 2005
 
@@ -66,6 +56,7 @@ module ActiveRecord
       def initialize(...)
         super
 
+        @affected_rows_before_warnings = nil
         @config[:flags] ||= 0
 
         if @config[:flags].kind_of? Array
@@ -101,29 +92,8 @@ module ActiveRecord
         true
       end
 
-      # HELPER METHODS ===========================================
-
-      def each_hash(result, &block) # :nodoc:
-        if block_given?
-          result.each(as: :hash, symbolize_keys: true, &block)
-        else
-          to_enum(:each_hash, result)
-        end
-      end
-
       def error_number(exception)
         exception.error_number if exception.respond_to?(:error_number)
-      end
-
-      #--
-      # QUOTING ==================================================
-      #++
-
-      # Quotes strings for use in SQL input.
-      def quote_string(string)
-        with_raw_connection(allow_retry: true, materialize_transactions: false) do |connection|
-          connection.escape(string)
-        end
       end
 
       #--
@@ -135,7 +105,14 @@ module ActiveRecord
       end
 
       def active?
-        !!@raw_connection&.ping
+        if connected?
+          @lock.synchronize do
+            if @raw_connection&.ping
+              verified!
+              true
+            end
+          end
+        end || false
       end
 
       alias :reset! :reconnect!
@@ -143,15 +120,19 @@ module ActiveRecord
       # Disconnects from the database if already connected.
       # Otherwise, this method does nothing.
       def disconnect!
-        super
-        @raw_connection&.close
-        @raw_connection = nil
+        @lock.synchronize do
+          super
+          @raw_connection&.close
+          @raw_connection = nil
+        end
       end
 
       def discard! # :nodoc:
-        super
-        @raw_connection&.automatic_close = false
-        @raw_connection = nil
+        @lock.synchronize do
+          super
+          @raw_connection&.automatic_close = false
+          @raw_connection = nil
+        end
       end
 
       private
@@ -166,9 +147,11 @@ module ActiveRecord
         end
 
         def reconnect
-          @raw_connection&.close
-          @raw_connection = nil
-          connect
+          @lock.synchronize do
+            @raw_connection&.close
+            @raw_connection = nil
+            connect
+          end
         end
 
         def configure_connection

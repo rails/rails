@@ -64,7 +64,7 @@ module ActiveRecord
       end
 
       def has_defer_touch_attrs?
-        defined?(@_defer_touch_attrs) && @_defer_touch_attrs.present?
+        @_defer_touch_attrs.present?
       end
   end
 end

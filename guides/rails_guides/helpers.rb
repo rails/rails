@@ -9,7 +9,7 @@ module RailsGuides
       result = content_tag(:dt, link)
 
       if options[:work_in_progress]
-        result << content_tag(:dd, "Work in progress", class: "work-in-progress")
+        result << content_tag(:dd, "Work in progress", class: "interstitial work-in-progress")
       end
 
       result << content_tag(:dd, capture(&block))
@@ -47,9 +47,19 @@ module RailsGuides
       end
     end
 
+    def canonical_url(path)
+      url = "https://guides.rubyonrails.org/"
+      url += path unless path == "index.html"
+      url
+    end
+
     def code(&block)
       c = capture(&block)
       content_tag(:code, c)
+    end
+
+    def digest_path(original_filename)
+      @digest_paths[original_filename] || original_filename
     end
   end
 end

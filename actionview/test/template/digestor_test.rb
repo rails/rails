@@ -296,6 +296,21 @@ class TemplateDigestorTest < ActionView::TestCase
     assert_equal first_digest, second_digest
   end
 
+  def test_digest_cache_with_cycle
+    expected_deps = [
+      {
+        "comments/cycle_a" => [
+          {
+            "comments/cycle_b" => [
+              "comments/cycle_a",
+            ],
+          },
+        ],
+      },
+    ]
+    assert_equal expected_deps, nested_dependencies("comments/cycle")
+  end
+
   def test_digest_cache_cleanup_with_recursion_and_template_caching_off
     disable_resolver_caching do
       first_digest = digest("level/_recursion")

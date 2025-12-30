@@ -6,6 +6,7 @@ require "models/book_destroy_async"
 require "models/essay_destroy_async"
 require "models/tag"
 require "models/tagging"
+require "models/author"
 require "models/essay"
 require "models/category"
 require "models/post"
@@ -24,6 +25,8 @@ require "models/sharded/tag"
 require "models/sharded/blog_post"
 require "models/sharded/blog_post_tag"
 require "models/sharded/blog"
+require "models/cpk/book_destroy_async"
+require "models/cpk/chapter_destroy_async"
 
 class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   include ActiveJob::TestHelper
@@ -72,7 +75,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_equal 2, delete_sqls.count
 
     delete_sqls.each do |sql|
-      assert_match(/#{Regexp.escape(Sharded::Tag.connection.quote_table_name("sharded_tags.blog_id"))} =/, sql)
+      assert_match(/#{Regexp.escape(quote_table_name("sharded_tags.blog_id"))} =/, sql)
     end
   ensure
     Sharded::Tag.delete_all
@@ -185,7 +188,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
 
     delete_sqls = sql.select { |sql| sql.start_with?("DELETE") }
     assert_equal 1, delete_sqls.count
-    assert_match(/#{Regexp.escape(Sharded::BlogPost.connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, delete_sqls.first)
+    assert_match(/#{Regexp.escape(quote_table_name("sharded_blog_posts.blog_id"))} =/, delete_sqls.first)
   ensure
     Sharded::BlogPostDestroyAsync.delete_all
     Sharded::CommentDestroyAsync.delete_all
@@ -205,6 +208,20 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   ensure
     DlKeyedBelongsTo.delete_all
     DestroyAsyncParent.delete_all
+  end
+
+  test "polymorphic belongs_to" do
+    writer = Author.create(name: "David")
+    essay = EssayDestroyAsync.create!(name: "Der be treasure", writer: writer)
+
+    essay.destroy
+
+    assert_difference -> { Author.count }, -1 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+  ensure
+    EssayDestroyAsync.delete_all
+    Author.delete_all
   end
 
   test "has_one" do
@@ -283,22 +300,16 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   end
 
   test "has_many associated with composite primary key" do
-    blog = Sharded::Blog.create!
-    blog_post = Sharded::BlogPostDestroyAsync.create!(blog_id: blog.id)
-
-    comment1 = Sharded::CommentDestroyAsync.create!(body: "Great post! :clap:")
-    comment2 = Sharded::CommentDestroyAsync.create!(body: "Terrible post! :thumbs-down:")
-
-    blog_post.comments << [comment1, comment2]
-
-    blog_post.save!
+    book = Cpk::BookDestroyAsync.create!(id: [1, 1])
+    _chapter1 = book.chapters.create!(id: [1, 1], title: "Chapter 1")
+    _chapter2 = book.chapters.create!(id: [1, 2], title: "Chapter 2")
 
     assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
-      blog_post.destroy
+      book.destroy
     end
 
     sql = capture_sql do
-      assert_difference -> { Sharded::CommentDestroyAsync.count }, -2 do
+      assert_difference -> { Cpk::ChapterDestroyAsync.count }, -2 do
         perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
       end
     end
@@ -307,12 +318,11 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     assert_equal 2, delete_sqls.count
 
     delete_sqls.each do |sql|
-      assert_match(/#{Regexp.escape(Sharded::Tag.connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+      assert_match(/#{Regexp.escape(quote_table_name("cpk_chapters.author_id"))} =/, sql)
     end
   ensure
-    Sharded::CommentDestroyAsync.delete_all
-    Sharded::BlogPostDestroyAsync.delete_all
-    Sharded::Blog.delete_all
+    Cpk::ChapterDestroyAsync.delete_all
+    Cpk::BookDestroyAsync.delete_all
   end
 
   test "not enqueue the job if transaction is not committed" do

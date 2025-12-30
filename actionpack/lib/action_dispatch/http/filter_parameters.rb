@@ -1,22 +1,27 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/parameter_filter"
 
 module ActionDispatch
   module Http
-    # = Action Dispatch HTTP Filter Parameters
+    # # Action Dispatch HTTP Filter Parameters
     #
     # Allows you to specify sensitive query string and POST parameters to filter
     # from the request log.
     #
-    #   # Replaces values with "[FILTERED]" for keys that match /foo|bar/i.
-    #   env["action_dispatch.parameter_filter"] = [:foo, "bar"]
+    #     # Replaces values with "[FILTERED]" for keys that match /foo|bar/i.
+    #     env["action_dispatch.parameter_filter"] = [:foo, "bar"]
     #
-    # For more information about filter behavior, see ActiveSupport::ParameterFilter.
+    # For more information about filter behavior, see
+    # ActiveSupport::ParameterFilter.
     module FilterParameters
-      ENV_MATCH = [/RAW_POST_DATA/, "rack.request.form_vars"] # :nodoc:
-      NULL_PARAM_FILTER = ActiveSupport::ParameterFilter.new # :nodoc:
-      NULL_ENV_FILTER   = ActiveSupport::ParameterFilter.new ENV_MATCH # :nodoc:
+      # :stopdoc:
+      ENV_MATCH = [/RAW_POST_DATA/, "rack.request.form_vars"]
+      NULL_PARAM_FILTER = ActiveSupport::ParameterFilter.new
+      NULL_ENV_FILTER   = ActiveSupport::ParameterFilter.new ENV_MATCH
+      # :startdoc:
 
       def initialize
         super
@@ -43,7 +48,8 @@ module ActionDispatch
         @filtered_path ||= query_string.empty? ? path : "#{path}?#{filtered_query_string}"
       end
 
-      # Returns the +ActiveSupport::ParameterFilter+ object used to filter in this request.
+      # Returns the `ActiveSupport::ParameterFilter` object used to filter in this
+      # request.
       def parameter_filter
         @parameter_filter ||= if has_header?("action_dispatch.parameter_filter")
           parameter_filter_for get_header("action_dispatch.parameter_filter")
@@ -64,12 +70,17 @@ module ActionDispatch
         ActiveSupport::ParameterFilter.new(filters)
       end
 
-      KV_RE   = "[^&;=]+"
-      PAIR_RE = %r{(#{KV_RE})=(#{KV_RE})}
       def filtered_query_string # :doc:
-        query_string.gsub(PAIR_RE) do |_|
-          parameter_filter.filter($1 => $2).first.join("=")
+        parts = query_string.split(/([&;])/)
+        filtered_parts = parts.map do |part|
+          if part.include?("=")
+            key, value = part.split("=", 2)
+            parameter_filter.filter(key => value).first.join("=")
+          else
+            part
+          end
         end
+        filtered_parts.join("")
       end
     end
   end

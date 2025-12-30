@@ -120,16 +120,18 @@ class ServerTimingTest < ActionDispatch::IntegrationTest
   end
 
   private
+    def app
+      @app ||= self.class.build_app do |middleware|
+        @middlewares.each { |m| middleware.use m }
+      end
+    end
+
     def with_test_route_set
       with_routing do |set|
         set.draw do
           get "/", to: ::ServerTimingTest::TestController.action(:index)
           get "/id", to: ::ServerTimingTest::TestController.action(:show)
           post "/", to: ::ServerTimingTest::TestController.action(:create)
-        end
-
-        @app = self.class.build_app(set) do |middleware|
-          @middlewares.each { |m| middleware.use m }
         end
 
         yield

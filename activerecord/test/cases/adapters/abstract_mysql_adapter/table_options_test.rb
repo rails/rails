@@ -7,7 +7,7 @@ class TableOptionsTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def teardown
@@ -62,7 +62,7 @@ class TableOptionsTest < ActiveRecord::AbstractMysqlTestCase
   test "schema dump works with NO_TABLE_OPTIONS sql mode" do
     skip "As of MySQL 5.7.22, NO_TABLE_OPTIONS is deprecated. It will be removed in a future version of MySQL." if @connection.database_version >= "5.7.22"
 
-    old_sql_mode = @connection.query_value("SELECT @@SESSION.sql_mode")
+    old_sql_mode = @connection.select_value("SELECT @@SESSION.sql_mode")
     new_sql_mode = old_sql_mode + ",NO_TABLE_OPTIONS"
 
     begin
@@ -81,23 +81,29 @@ class DefaultEngineOptionTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
   self.use_transactional_tests = false
 
+  def run(*)
+    with_debug_event_reporting do
+      super
+    end
+  end
+
   def setup
-    @logger_was  = ActiveRecord::Base.logger
+    @logger_was  = ActiveRecord::LogSubscriber.logger
     @log         = StringIO.new
     @verbose_was = ActiveRecord::Migration.verbose
-    ActiveRecord::Base.logger = ActiveSupport::Logger.new(@log)
+    ActiveRecord::LogSubscriber.logger = ActiveSupport::Logger.new(@log)
     ActiveRecord::Migration.verbose = false
   end
 
   def teardown
-    ActiveRecord::Base.logger       = @logger_was
+    ActiveRecord::LogSubscriber.logger = @logger_was
     ActiveRecord::Migration.verbose = @verbose_was
-    ActiveRecord::Base.connection.drop_table "mysql_table_options", if_exists: true
-    ActiveRecord::Base.connection.schema_migration.delete_all_versions rescue nil
+    ActiveRecord::Base.lease_connection.drop_table "mysql_table_options", if_exists: true
+    ActiveRecord::Base.connection_pool.schema_migration.delete_all_versions rescue nil
   end
 
   test "new migrations do not contain default ENGINE=InnoDB option" do
-    ActiveRecord::Base.connection.create_table "mysql_table_options", force: true
+    ActiveRecord::Base.lease_connection.create_table "mysql_table_options", force: true
 
     assert_no_match %r{ENGINE=InnoDB}, @log.string
 
@@ -113,8 +119,8 @@ class DefaultEngineOptionTest < ActiveRecord::AbstractMysqlTestCase
       end
     end.new
 
-    connection = ActiveRecord::Base.connection
-    ActiveRecord::Migrator.new(:up, [migration], connection.schema_migration, connection.internal_metadata).migrate
+    pool = ActiveRecord::Base.connection_pool
+    ActiveRecord::Migrator.new(:up, [migration], pool.schema_migration, pool.internal_metadata).migrate
 
     assert_match %r{ENGINE=InnoDB}, @log.string
 

@@ -158,4 +158,9 @@ class FileStoreTest < ActiveSupport::TestCase
     @cache.write(1, nil)
     assert_equal false, @cache.write(1, "aaaaaaaaaa", unless_exist: true)
   end
+
+  private
+    def key_pattern(key, namespace: nil)
+      /.+\/#{Regexp.escape namespace.to_s}#{/%3A/i if namespace}#{Regexp.escape key}/
+    end
 end

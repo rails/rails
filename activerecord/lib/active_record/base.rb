@@ -6,7 +6,7 @@ require "active_support/descendants_tracker"
 require "active_support/time"
 require "active_support/core_ext/class/subclasses"
 require "active_record/log_subscriber"
-require "active_record/explain_subscriber"
+require "active_record/structured_event_subscriber"
 require "active_record/relation/delegation"
 require "active_record/attributes"
 require "active_record/type_caster"
@@ -233,7 +233,7 @@ module ActiveRecord # :nodoc:
   #
   # Connections are usually created through
   # {ActiveRecord::Base.establish_connection}[rdoc-ref:ConnectionHandling#establish_connection] and retrieved
-  # by ActiveRecord::Base.connection. All classes inheriting from ActiveRecord::Base will use this
+  # by ActiveRecord::Base.lease_connection. All classes inheriting from ActiveRecord::Base will use this
   # connection. But you can also set a class-specific connection. For example, if Course is an
   # ActiveRecord::Base, but resides in a different database, you can just say <tt>Course.establish_connection</tt>
   # and Course and all of its subclasses will use this connection instead.
@@ -256,13 +256,13 @@ module ActiveRecord # :nodoc:
   # * AssociationTypeMismatch - The object assigned to the association wasn't of the type
   #   specified in the association definition.
   # * AttributeAssignmentError - An error occurred while doing a mass assignment through the
-  #   {ActiveRecord::Base#attributes=}[rdoc-ref:AttributeAssignment#attributes=] method.
+  #   {ActiveRecord::Base#attributes=}[rdoc-ref:ActiveModel::AttributeAssignment#attributes=] method.
   #   You can inspect the +attribute+ property of the exception object to determine which attribute
   #   triggered the error.
   # * ConnectionNotEstablished - No connection has been established.
   #   Use {ActiveRecord::Base.establish_connection}[rdoc-ref:ConnectionHandling#establish_connection] before querying.
   # * MultiparameterAssignmentErrors - Collection of errors that occurred during a mass assignment using the
-  #   {ActiveRecord::Base#attributes=}[rdoc-ref:AttributeAssignment#attributes=] method.
+  #   {ActiveRecord::Base#attributes=}[rdoc-ref:ActiveModel::AttributeAssignment#attributes=] method.
   #   The +errors+ property of this exception contains an array of
   #   AttributeAssignmentError
   #   objects that should be inspected to determine which attributes triggered the errors.
@@ -328,7 +328,6 @@ module ActiveRecord # :nodoc:
     include TokenFor
     include SignedId
     include Suppressor
-    include Normalization
     include Marshalling::Methods
 
     self.param_delimiter = "_"

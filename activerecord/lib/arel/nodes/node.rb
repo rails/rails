@@ -6,7 +6,7 @@ module Arel # :nodoc: all
     #
     # Active Record uses Arel to compose SQL statements. Instead of building SQL strings directly, it's building an
     # abstract syntax tree (AST) of the statement using various types of Arel::Nodes::Node. Each node represents a
-    # fragment of a SQL statement.
+    # fragment of an SQL statement.
     #
     # The intermediate representation allows Arel to compile the statement into the database's specific SQL dialect
     # only before sending it without having to care about the nuances of each database when building the statement.
@@ -127,7 +127,7 @@ module Arel # :nodoc: all
       # Factory method to create a Nodes::Grouping node that has an Nodes::Or
       # node as a child.
       def or(right)
-        Nodes::Grouping.new Nodes::Or.new(self, right)
+        Nodes::Grouping.new Nodes::Or.new([self, right])
       end
 
       ###
@@ -147,11 +147,12 @@ module Arel # :nodoc: all
       # Maybe we should just use `Table.engine`?  :'(
       def to_sql(engine = Table.engine)
         collector = Arel::Collectors::SQLString.new
-        collector = engine.connection.visitor.accept self, collector
-        collector.value
+        engine.with_connection do |connection|
+          connection.visitor.accept(self, collector).value
+        end
       end
 
-      def fetch_attribute
+      def fetch_attribute(&)
       end
 
       def equality?; false; end

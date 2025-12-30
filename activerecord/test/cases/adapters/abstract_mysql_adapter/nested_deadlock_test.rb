@@ -15,7 +15,7 @@ module ActiveRecord
       @abort, Thread.abort_on_exception = Thread.abort_on_exception, false
       Thread.report_on_exception, @original_report_on_exception = false, Thread.report_on_exception
 
-      connection = ActiveRecord::Base.connection
+      connection = ActiveRecord::Base.lease_connection
       connection.clear_cache!
 
       connection.create_table("samples", force: true) do |t|
@@ -27,14 +27,14 @@ module ActiveRecord
 
     teardown do
       ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
-      ActiveRecord::Base.connection.drop_table "samples", if_exists: true
+      ActiveRecord::Base.lease_connection.drop_table "samples", if_exists: true
 
       Thread.abort_on_exception = @abort
       Thread.report_on_exception = @original_report_on_exception
     end
 
     test "deadlock correctly raises Deadlocked inside nested SavepointTransaction" do
-      connection = Sample.connection
+      connection = Sample.lease_connection
       assert_raises(ActiveRecord::Deadlocked) do
         barrier = Concurrent::CyclicBarrier.new(2)
 
@@ -48,7 +48,7 @@ module ActiveRecord
               Sample.transaction(requires_new: true) do
                 assert_current_transaction_is_savepoint_transaction
                 s1.lock!
-                barrier.wait
+                barrier.wait(30)
                 s2.update value: 1
               end
             end
@@ -60,7 +60,7 @@ module ActiveRecord
               Sample.transaction(requires_new: true) do
                 assert_current_transaction_is_savepoint_transaction
                 s2.lock!
-                barrier.wait
+                barrier.wait(30)
                 s1.update value: 2
               end
             end
@@ -91,7 +91,7 @@ module ActiveRecord
           Sample.transaction(requires_new: true) do
             assert_current_transaction_is_savepoint_transaction
             s1.lock!
-            barrier.wait
+            barrier.wait(30)
             s2.update value: 4
 
           rescue ActiveRecord::Deadlocked
@@ -113,7 +113,7 @@ module ActiveRecord
           Sample.transaction(requires_new: true) do
             assert_current_transaction_is_savepoint_transaction
             s2.lock!
-            barrier.wait
+            barrier.wait(30)
             s1.update value: 3
           rescue ActiveRecord::Deadlocked
             deadlocks += 1
@@ -143,7 +143,7 @@ module ActiveRecord
             Sample.transaction(requires_new: true) do
               assert_current_transaction_is_savepoint_transaction
               s1.lock!
-              barrier.wait
+              barrier.wait(30)
               s2.update value: 4
             end
           rescue ActiveRecord::Deadlocked
@@ -160,7 +160,7 @@ module ActiveRecord
             Sample.transaction(requires_new: true) do
               assert_current_transaction_is_savepoint_transaction
               s2.lock!
-              barrier.wait
+              barrier.wait(30)
               s1.update value: 3
             end
           rescue ActiveRecord::Deadlocked
@@ -182,7 +182,7 @@ module ActiveRecord
       end
 
       def assert_current_transaction_is_savepoint_transaction
-        current_transaction = Sample.connection.current_transaction
+        current_transaction = Sample.lease_connection.current_transaction
         unless current_transaction.is_a?(ActiveRecord::ConnectionAdapters::SavepointTransaction)
           flunk("current transaction is not a savepoint transaction")
         end

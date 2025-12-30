@@ -31,8 +31,8 @@ module ActiveSupport
         end
       end
 
-      def respond_to_missing?(*arguments)
-        @context.respond_to?(*arguments)
+      def respond_to_missing?(...)
+        @context.respond_to?(...)
       end
   end
 end

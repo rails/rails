@@ -1,24 +1,26 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
-  # = Action Dispatch \HostAuthorization
+  # # Action Dispatch HostAuthorization
   #
-  # This middleware guards from DNS rebinding attacks by explicitly permitting
-  # the hosts a request can be sent to, and is passed the options set in
-  # +config.host_authorization+.
+  # This middleware guards from DNS rebinding attacks by explicitly permitting the
+  # hosts a request can be sent to, and is passed the options set in
+  # `config.host_authorization`.
   #
-  # Requests can opt-out of Host Authorization with +exclude+:
+  # Requests can opt-out of Host Authorization with `exclude`:
   #
-  #    config.host_authorization = { exclude: ->(request) { request.path =~ /healthcheck/ } }
+  #     config.host_authorization = { exclude: ->(request) { request.path =~ /healthcheck/ } }
   #
-  # When a request comes to an unauthorized host, the +response_app+
-  # application will be executed and rendered. If no +response_app+ is given, a
-  # default one will run.
-  # The default response app logs blocked host info with level 'error' and
-  # responds with <tt>403 Forbidden</tt>. The body of the response contains debug info
-  # if +config.consider_all_requests_local+ is set to true, otherwise the body is empty.
+  # When a request comes to an unauthorized host, the `response_app` application
+  # will be executed and rendered. If no `response_app` is given, a default one
+  # will run. The default response app logs blocked host info with level 'error'
+  # and responds with `403 Forbidden`. The body of the response contains debug
+  # info if `config.consider_all_requests_local` is set to true, otherwise the
+  # body is empty.
   class HostAuthorization
-    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
+    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", ".test", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
     PORT_REGEX = /(?::\d+)/ # :nodoc:
     SUBDOMAIN_REGEX = /(?:[a-z0-9-]+\.)/i # :nodoc:
     IPV4_HOSTNAME = /(?<host>\d+\.\d+\.\d+\.\d+)#{PORT_REGEX}?/ # :nodoc:
@@ -45,8 +47,8 @@ module ActionDispatch
             begin
               allowed === extract_hostname(host)
             rescue
-              # IPAddr#=== raises an error if you give it a hostname instead of
-              # IP. Treat similar errors as blocked access.
+              # IPAddr#=== raises an error if you give it a hostname instead of IP. Treat
+              # similar errors as blocked access.
               false
             end
           else

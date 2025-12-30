@@ -228,8 +228,27 @@ module ActionController
         response.stream.close
       end
 
+      def no_thread_locals
+        tc.assert_nil Thread.current[:setting]
+
+        response.headers["Content-Type"] = "text/event-stream"
+        %w{ hello world }.each do |word|
+          response.stream.write word
+        end
+        response.stream.close
+      end
+
       def isolated_state
         render plain: CurrentState.id.inspect
+      end
+
+      def raw_isolated_state
+        render plain: ActiveSupport::IsolatedExecutionState[:raw_isolated_state].inspect
+      end
+
+      def connected_to_stack_not_inherited
+        stack = ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack]
+        render plain: stack.inspect
       end
 
       def with_stale
@@ -344,7 +363,11 @@ module ActionController
       super
 
       def @controller.new_controller_thread(&block)
-        Thread.new(&block)
+        original_new_controller_thread(&block)
+      end
+
+      def @controller.clean_up_thread_locals(*args)
+        original_clean_up_thread_locals(*args)
       end
     end
 
@@ -371,6 +394,18 @@ module ActionController
       assert_equal "text/csv", @response.headers["Content-Type"]
       assert_match "attachment", @response.headers["Content-Disposition"]
       assert_match "my.csv", @response.headers["Content-Disposition"]
+    end
+
+    def test_send_stream_instrumentation
+      expected_payload = {
+        filename: "sample.csv",
+        disposition: "attachment",
+        type: "text/csv"
+      }
+
+      assert_notification("send_stream.action_controller", expected_payload) do
+        get :send_stream_with_explicit_content_type
+      end
     end
 
     def test_send_stream_with_options
@@ -417,6 +452,7 @@ module ActionController
       res = get :write_sleep_autoload
       res.each { }
       ActiveSupport::Dependencies.interlock.done_running
+      pass
     end
 
     def test_async_stream
@@ -511,6 +547,62 @@ module ActionController
       assert_stream_closed
     end
 
+    def test_thread_locals_get_reset
+      @controller.tc = self
+
+      Thread.current[:originating_thread] = Thread.current.object_id
+      Thread.current[:setting]            = "aaron"
+
+      get :thread_locals
+
+      Thread.current[:setting] = nil
+
+      get :no_thread_locals
+    end
+
+    def test_isolated_state_get_reset
+      @controller.tc = self
+      ActiveSupport::IsolatedExecutionState[:raw_isolated_state] = "buffy"
+
+      get :raw_isolated_state
+      assert_equal "buffy".inspect, response.body
+      assert_stream_closed
+
+      ActiveSupport::IsolatedExecutionState.clear
+
+      get :isolated_state
+      assert_equal nil.inspect, response.body
+      assert_stream_closed
+    end
+
+    def test_connected_to_stack_not_inherited
+      original = @controller.class.live_streaming_excluded_keys
+      @controller.class.live_streaming_excluded_keys = [:active_record_connected_to_stack]
+
+      stack = [{ role: :reading, shard: :default, prevent_writes: true, klasses: [] }]
+      ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = stack
+
+      get :connected_to_stack_not_inherited
+
+      assert_equal "nil", response.body
+      assert_stream_closed
+    ensure
+      @controller.class.live_streaming_excluded_keys = original
+      ActiveSupport::IsolatedExecutionState.delete(:active_record_connected_to_stack)
+    end
+
+    def test_live_streaming_doesnt_exclude_by_default
+      stack = [{ role: :reading, shard: :default, prevent_writes: true, klasses: [] }]
+      ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = stack
+
+      get :connected_to_stack_not_inherited
+
+      assert_match(/role.*reading/, response.body)
+      assert_stream_closed
+    ensure
+      ActiveSupport::IsolatedExecutionState.delete(:active_record_connected_to_stack)
+    end
+
     def test_live_stream_default_header
       get :default_header
       assert response.headers["Content-Type"]
@@ -551,13 +643,8 @@ module ActionController
     end
 
     def test_exception_callback_when_committed
-      current_threads = Thread.list
-
       capture_log_output do |output|
         get :exception_with_callback, format: "text/event-stream"
-
-        # Wait on the execution of all threads
-        (Thread.list - current_threads).each(&:join)
 
         assert_equal %(data: "500 Internal Server Error"\n\n), response.body
         assert_match "An exception occurred...", output.rewind && output.read
@@ -605,6 +692,38 @@ module ActionController
       # The Rack spec requires bodies that cannot be
       # buffered to return false to `respond_to?(:to_ary)`
       assert_not response.to_a.last.respond_to? :to_ary
+    end
+  end
+
+  class LiveControllerThreadTest < ActionController::TestCase
+    class TestController < ActionController::Base
+      include ActionController::Live
+
+      def greet
+        response.headers["Content-Type"] = "text/event-stream"
+        %w{ hello world }.each do |word|
+          response.stream.write word
+        end
+        response.stream.close
+      end
+    end
+
+    tests TestController
+
+    def test_thread_locals_do_not_get_reset_in_test_environment
+      Thread.current[:setting] = "aaron"
+
+      get :greet
+
+      assert_equal "aaron", Thread.current[:setting]
+    end
+
+    def test_isolated_state_does_not_get_reset_in_test_environment
+      ActiveSupport::IsolatedExecutionState[:setting] = "aaron"
+
+      get :greet
+
+      assert_equal "aaron", ActiveSupport::IsolatedExecutionState[:setting]
     end
   end
 

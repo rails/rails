@@ -88,11 +88,11 @@ class String
   # characters.
   #
   #   >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".size
-  #   => 20
+  #   # => 20
   #   >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".bytesize
-  #   => 80
+  #   # => 80
   #   >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".truncate_bytes(20)
-  #   => "🔪🔪🔪🔪…"
+  #   # => "🔪🔪🔪🔪…"
   #
   # The truncated text ends with the <tt>:omission</tt> string, defaulting
   # to "…", for a total length not exceeding <tt>truncate_to</tt>.
@@ -109,7 +109,7 @@ class String
     when omission.bytesize == truncate_to
       omission.dup
     else
-      self.class.new.tap do |cut|
+      self.class.new.force_encoding(encoding).tap do |cut|
         cut_at = truncate_to - omission.bytesize
 
         each_grapheme_cluster do |grapheme|

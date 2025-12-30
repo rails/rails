@@ -121,7 +121,13 @@ module ActiveSupport
 
       private
         def uncompress(value)
-          Marshal.load(Zlib::Inflate.inflate(value))
+          marshal_load(Zlib::Inflate.inflate(value))
+        end
+
+        def marshal_load(payload)
+          Marshal.load(payload)
+        rescue ArgumentError => error
+          raise Cache::DeserializationError, error.message
         end
     end
   end

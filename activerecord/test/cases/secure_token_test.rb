@@ -98,4 +98,36 @@ class SecureTokenTest < ActiveRecord::TestCase
 
     assert_predicate user.token, :present?
   end
+
+  def test_token_calls_the_setter_method
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "users"
+      has_secure_token on: :initialize
+
+      attr_accessor :modified_token
+
+      def token=(value)
+        super
+        self.modified_token = "#{value}_modified"
+      end
+    end
+
+    user = model.new
+
+    assert_equal "#{user.token}_modified", user.modified_token
+  end
+
+  def test_token_with_prefix
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "users"
+      attribute :auth_token
+      has_secure_token prefix: true, on: :initialize
+      has_secure_token :auth_token, on: :initialize, prefix: "auth_"
+    end
+
+    user = model.new
+
+    assert_match(/^token_/, user.token)
+    assert_match(/^auth/, user.auth_token)
+  end
 end

@@ -43,6 +43,12 @@ module ActiveSupport
       end
     end
 
+    class InvalidKeyError < RuntimeError
+      def initialize(content_path, key)
+        super "Key '#{key}' is invalid, it must respond to '#to_sym' from configuration in '#{content_path}'."
+      end
+    end
+
     delegate_missing_to :options
 
     def initialize(config_path:, key_path:, env_key:, raise_if_missing_key:)
@@ -50,6 +56,50 @@ module ActiveSupport
         env_key: env_key, raise_if_missing_key: raise_if_missing_key
       @config = nil
       @options = nil
+    end
+
+    # Find the referenced key
+    # Raises +KeyError+ if not found.
+    #
+    # Examples:
+    #
+    #   require(:db_host)         # => ENV.fetch("DB_HOST")
+    #   require(:database, :host) # => ENV.fetch("DATABASE__HOST")
+    def require(*key)
+      value = dig(*key)
+
+      if !value.nil?
+        value
+      else
+        raise KeyError, "Missing key: #{key.inspect}"
+      end
+    end
+
+    # Find a upcased and double-underscored-joined string-version of the +key+ in ENV.
+    # Returns nil if the key isn't found or the value of default when passed If default is
+    # a block, it's called first.
+    #
+    # Examples:
+    #
+    #   config.option(:db_host)                                    # => ENV["DB_HOST"]
+    #   config.option(:database, :host)                            # => ENV["DATABASE__HOST"]
+    #   config.option(:database, :host, default: "missing")        # => ENV.fetch("DATABASE__HOST", "missing")
+    #   config.option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST", default.call)
+    def option(*key, default: nil)
+      value = dig(*key)
+
+      if !value.nil?
+        value
+      elsif default.respond_to?(:call)
+        default.call
+      else
+        default
+      end
+    end
+
+    # Reload the cached values in case any of them changed or new ones were added during runtime.
+    def reload
+      @config = @options = nil
     end
 
     # Reads the file and returns the decrypted content. See EncryptedFile#read.
@@ -61,7 +111,11 @@ module ActiveSupport
     end
 
     def validate! # :nodoc:
-      deserialize(read)
+      deserialize(read).each_key do |key|
+        key.to_sym
+      rescue NoMethodError
+        raise InvalidKeyError.new(content_path, key)
+      end
     end
 
     # Returns the decrypted content as a Hash with symbolized keys.
@@ -73,7 +127,7 @@ module ActiveSupport
     #   # => { some_secret: 123, some_namespace: { another_secret: 789 } }
     #
     def config
-      @config ||= deserialize(read).deep_symbolize_keys
+      @config ||= deep_symbolize_keys(deserialize(read))
     end
 
     def inspect # :nodoc:
@@ -81,6 +135,14 @@ module ActiveSupport
     end
 
     private
+      def deep_symbolize_keys(hash)
+        hash.deep_transform_keys do |key|
+          key.to_sym
+        rescue NoMethodError
+          raise InvalidKeyError.new(content_path, key)
+        end
+      end
+
       def deep_transform(hash)
         return hash unless hash.is_a?(Hash)
 
@@ -96,10 +158,7 @@ module ActiveSupport
       end
 
       def deserialize(content)
-        config = YAML.respond_to?(:unsafe_load) ?
-          YAML.unsafe_load(content, filename: content_path) :
-          YAML.load(content, filename: content_path)
-
+        config = YAML.unsafe_load(content, filename: content_path)
         config.presence || {}
       rescue Psych::SyntaxError
         raise InvalidContentError.new(content_path)

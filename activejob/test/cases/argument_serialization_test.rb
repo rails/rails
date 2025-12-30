@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
+require "json"
 require "bigdecimal"
 require "helper"
-require "active_job/arguments"
 require "models/person"
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/integer/time"
@@ -23,12 +23,37 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     end
   end
 
+  class MyString < String
+  end
+
+  class MyStringSerializer < ActiveJob::Serializers::ObjectSerializer
+    def serialize(argument)
+      super({ "value" => argument.to_s })
+    end
+
+    def deserialize(hash)
+      MyString.new(hash["value"])
+    end
+
+    def klass
+      MyString
+    end
+  end
+
+  class StringWithoutSerializer < String
+  end
+
   setup do
     @person = Person.find("5")
+    @original_serializers = ActiveJob::Serializers.serializers
+  end
+
+  teardown do
+    ActiveJob::Serializers.serializers = @original_serializers
   end
 
   [ nil, 1, 1.0, 1_000_000_000_000_000_000_000,
-    "a", true, false,
+    "a", true, false, BigDecimal(5),
     :a,
     1.day,
     Date.new(2001, 2, 3),
@@ -56,28 +81,6 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   ].each do |arg|
     test "serializes #{arg.class} - #{arg.inspect} verbatim" do
       assert_arguments_unchanged arg
-    end
-  end
-
-  test "dangerously treats BigDecimal arguments as primitives not requiring serialization by default" do
-    assert_deprecated(<<~MSG.chomp, ActiveJob.deprecator) do
-      Primitive serialization of BigDecimal job arguments is deprecated as it may serialize via .to_s using certain queue adapters.
-      Enable config.active_job.use_big_decimal_serializer to use BigDecimalSerializer instead, which will be mandatory in Rails 7.2.
-
-      Note that if your application has multiple replicas, you should only enable this setting after successfully deploying your app to Rails 7.1 first.
-      This will ensure that during your deployment all replicas are capable of deserializing arguments serialized with BigDecimalSerializer.
-    MSG
-      assert_equal(
-        BigDecimal(5),
-        *ActiveJob::Arguments.deserialize(ActiveJob::Arguments.serialize([BigDecimal(5)])),
-      )
-    end
-  end
-
-  test "safely serializes BigDecimal arguments if configured to use_big_decimal_serializer" do
-    # BigDecimal(5) example should be moved back up into array above in Rails 7.2
-    with_big_decimal_serializer do
-      assert_arguments_unchanged BigDecimal(5)
     end
   end
 
@@ -111,6 +114,8 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   end
 
   test "serialize a ActionController::Parameters" do
+    ActiveJob::Serializers.add_serializers ActiveJob::Serializers::ActionControllerParametersSerializer
+
     parameters = Parameters.new(a: 1)
 
     assert_equal(
@@ -122,6 +127,27 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   # Regression test to #48561
   test "serialize a class with permitted? defined" do
     assert_arguments_unchanged MyClassWithPermitted
+  end
+
+  test "serialize a String subclass object" do
+    original_serializers = ActiveJob::Serializers.serializers
+    ActiveJob::Serializers.add_serializers(MyStringSerializer)
+
+    my_string = MyString.new("foo")
+    serialized = ActiveJob::Arguments.serialize([my_string])
+    deserialized = ActiveJob::Arguments.deserialize(JSON.load(JSON.dump(serialized))).first
+    assert_instance_of MyString, deserialized
+    assert_equal my_string, deserialized
+  ensure
+    ActiveJob::Serializers.serializers = original_serializers
+  end
+
+  test "serialize a String subclass object without a serializer" do
+    string_without_serializer = StringWithoutSerializer.new("foo")
+    serialized = ActiveJob::Arguments.serialize([string_without_serializer])
+    deserialized = ActiveJob::Arguments.deserialize(JSON.load(JSON.dump(serialized))).first
+    assert_instance_of String, deserialized
+    assert_equal string_without_serializer, deserialized
   end
 
   test "serialize a hash" do
@@ -253,13 +279,5 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
       ArgumentsRoundTripJob.perform_later(*args) # Actually performed inline
 
       JobBuffer.last_value
-    end
-
-    def with_big_decimal_serializer(temporary = true)
-      original = ActiveJob.use_big_decimal_serializer
-      ActiveJob.use_big_decimal_serializer = temporary
-      yield
-    ensure
-      ActiveJob.use_big_decimal_serializer = original
     end
 end

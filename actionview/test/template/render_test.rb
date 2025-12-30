@@ -60,7 +60,7 @@ module RenderTestCases
 
   def test_explicit_js_format_adds_html_fallback
     rendered_templates = @controller_view.render(template: "test/js_html_fallback", formats: :js)
-    assert_equal(%Q(document.write("<b>Hello from a HTML partial!<\\/b>")\n), rendered_templates)
+    assert_equal(%Q(document.write("<b>Hello from an HTML partial!<\\/b>")\n), rendered_templates)
   end
 
   def test_render_without_options
@@ -122,7 +122,8 @@ module RenderTestCases
     e = assert_raise ActionView::Template::Error do
       @view.render(template: "with_format", formats: [:json])
     end
-    assert_includes(e.message, "Missing partial /_missing with {:locale=>[:en], :formats=>[:json], :variants=>[], :handlers=>[:raw, :erb, :html, :builder, :ruby]}.")
+    details = { locale: [:en], formats: [:json], variants: [], handlers: [:raw, :erb, :html, :builder, :ruby] }
+    assert_includes(e.message, "Missing partial /_missing with #{details}.")
   end
 
   def test_render_template_with_locale
@@ -208,45 +209,49 @@ module RenderTestCases
     end
   end
 
-  if RUBY_VERSION >= "3.2"
-    def test_render_runtime_error
-      ex = assert_raises(ActionView::Template::Error) {
-        @view.render(template: "test/runtime_error")
-      }
-      erb_btl = ex.backtrace_locations.first
+  def test_render_template_with_syntax_error
+    e = assert_raises(ActionView::Template::Error) { silence_warnings { @view.render(template: "test/syntax_error") } }
+    assert_match %r!syntax!, e.message
+    assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
+  end
 
-      # Get the spot information from ErrorHighlight
-      translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
-      translated_spot = translating_frame.spot(ex.cause)
+  def test_render_runtime_error
+    ex = assert_raises(ActionView::Template::Error) {
+      @view.render(template: "test/runtime_error")
+    }
+    erb_btl = ex.backtrace_locations.first
 
-      assert_equal 6, translated_spot[:first_column]
-    end
+    # Get the spot information from ErrorHighlight
+    translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+    translated_spot = translating_frame.spot(ex.cause)
 
-    def test_render_location_conditional_append
-      ex = assert_raises(ActionView::Template::Error) {
-        @view.render(template: "test/unparseable_runtime_error")
-      }
-      erb_btl = ex.backtrace_locations.first
+    assert_equal 6, translated_spot[:first_column]
+  end
 
-      # Get the spot information from ErrorHighlight
-      translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
-      translated_spot = translating_frame.spot(ex.cause)
+  def test_render_location_conditional_append
+    ex = assert_raises(ActionView::Template::Error) {
+      @view.render(template: "test/unparseable_runtime_error")
+    }
+    erb_btl = ex.backtrace_locations.first
 
-      assert_equal 8, translated_spot[:first_column]
-    end
+    # Get the spot information from ErrorHighlight
+    translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+    translated_spot = translating_frame.spot(ex.cause)
 
-    def test_render_location_conditional_append_2
-      ex = assert_raises(ActionView::Template::Error) {
-        @view.render(template: "test/unparseable_runtime_error_2")
-      }
-      erb_btl = ex.backtrace_locations.first
+    assert_equal 8, translated_spot[:first_column]
+  end
 
-      # Get the spot information from ErrorHighlight
-      translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
-      translated_spot = translating_frame.spot(ex.cause)
+  def test_render_location_conditional_append_2
+    ex = assert_raises(ActionView::Template::Error) {
+      @view.render(template: "test/unparseable_runtime_error_2")
+    }
+    erb_btl = ex.backtrace_locations.first
 
-      assert_instance_of Integer, translated_spot[:first_column]
-    end
+    # Get the spot information from ErrorHighlight
+    translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+    translated_spot = translating_frame.spot(ex.cause)
+
+    assert_instance_of Integer, translated_spot[:first_column]
   end
 
   def test_render_partial
@@ -293,8 +298,32 @@ module RenderTestCases
   end
 
   def test_render_partial_with_incompatible_object
-    e = assert_raises(ArgumentError) { @view.render(partial: nil) }
-    assert_equal "'#{nil.inspect}' is not an ActiveModel-compatible object. It must implement :to_partial_path.", e.message
+    assert_raises ArgumentError, match: "'#{nil.inspect}' is not an ActiveModel-compatible object. It must implement #to_partial_path." do
+      @view.render(partial: nil)
+    end
+  end
+
+  def test_render_renderable_with_nil
+    assert_raises ArgumentError, match: "'#{nil.inspect}' is not a renderable object. It must implement #render_in." do
+      @view.render renderable: nil
+    end
+  end
+
+  def test_render_renderable_with_incompatible_object
+    object = Object.new
+
+    assert_raises ArgumentError, match: "'#{object.inspect}' is not a renderable object. It must implement #render_in." do
+      @view.render renderable: object
+    end
+  end
+
+  def test_render_renderable_does_not_mask_nomethoderror_from_within_render_in
+    renderable = Object.new
+    renderable.define_singleton_method(:render_in) { |*| nil.render_in }
+
+    assert_raises NoMethodError, match: /undefined method [`']render_in' for nil/ do
+      @view.render renderable: renderable
+    end
   end
 
   def test_render_partial_starting_with_a_capital
@@ -321,12 +350,6 @@ module RenderTestCases
     assert_equal "The value (a-in) of the option `as` is not a valid Ruby identifier; " \
       "make sure it starts with lowercase letter, " \
       "and is followed by any combination of letters, numbers and underscores.", e.message
-  end
-
-  def test_render_template_with_syntax_error
-    e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/syntax_error") }
-    assert_match %r!syntax!, e.message
-    assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
   end
 
   def test_render_partial_with_errors
@@ -366,13 +389,18 @@ module RenderTestCases
 
   def test_undefined_method_error_references_named_class
     e = assert_raises(ActionView::Template::Error) { @view.render(inline: "<%= undefined %>") }
-    assert_match(/undefined local variable or method `undefined'/, e.message)
+    assert_match(/undefined local variable or method [`']undefined'/, e.message)
   end
 
   def test_render_renderable_object
     assert_equal "Hello: david", @view.render(partial: "test/customer", object: Customer.new("david"))
     assert_equal "FalseClass", @view.render(partial: "test/klass", object: false)
     assert_equal "NilClass", @view.render(partial: "test/klass", object: nil)
+  end
+
+  def test_render_renderable_render_in
+    assert_equal "Hello, World!", @view.render(TestRenderable.new)
+    assert_equal "Hello, World!", @view.render(renderable: TestRenderable.new)
   end
 
   def test_render_object_different_name
@@ -400,6 +428,11 @@ module RenderTestCases
   def test_render_partial_collection_without_as
     assert_equal "local_inspector,local_inspector_counter,local_inspector_iteration",
       @view.render(partial: "test/local_inspector", collection: [ Customer.new("mary") ])
+  end
+
+  def test_render_partial_collection_with_block
+    assert_equal "Before\narg2,arg1\nAfterBefore\narg2,arg1\nAfter",
+      @view.render(layout: "test/layout_for_block_with_args", collection: [ Customer.new, Customer.new ], as: :customer) { |a, b| "#{b},#{a}" }
   end
 
   def test_render_partial_collection_with_different_partials_still_provides_partial_iteration
@@ -679,55 +712,32 @@ module RenderTestCases
 
   def test_render_partial_provides_spellcheck
     e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/partail") }
-    if e.respond_to?(:detailed_message)
-      assert_match %r{Did you mean\?  test/partial\e\[m\n\e\[1m *test/partialhtml}, e.detailed_message
-    else
-      assert_match %r{Did you mean\?  test/partial\n *test/partialhtml}, e.message
-    end
+    assert_match %r{Did you mean\?  test/partial\e\[m\n\e\[1m *test/partialhtml}, e.detailed_message
   end
 
   def test_spellcheck_doesnt_list_directories
     e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/directory") }
-    if e.respond_to?(:detailed_message)
-      assert_match %r{Did you mean\?}, e.detailed_message
-      assert_no_match %r{Did you mean\?  test/directory\n}, e.detailed_message # test/hello is a directory
-    else
-      assert_match %r{Did you mean\?}, e.message
-      assert_no_match %r{Did you mean\?  test/directory\n}, e.message # test/hello is a directory
-    end
+    assert_match %r{Did you mean\?}, e.detailed_message
+    assert_no_match %r{Did you mean\?  test/directory\n}, e.detailed_message # test/hello is a directory
   end
 
   def test_spellcheck_only_lists_templates
     e = assert_raises(ActionView::MissingTemplate) { @view.render(template: "test/partial") }
 
-    if e.respond_to?(:detailed_message)
-      assert_match %r{Did you mean\?}, e.detailed_message
-      assert_no_match %r{Did you mean\?  test/partial\n}, e.detailed_message
-    else
-      assert_match %r{Did you mean\?}, e.message
-      assert_no_match %r{Did you mean\?  test/partial\n}, e.message
-    end
+    assert_match %r{Did you mean\?}, e.detailed_message
+    assert_no_match %r{Did you mean\?  test/partial\n}, e.detailed_message
   end
 
   def test_spellcheck_only_lists_partials
     e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/template") }
 
-    if e.respond_to?(:detailed_message)
-      assert_match %r{Did you mean\?}, e.detailed_message
-      assert_no_match %r{Did you mean\?  test/template\n}, e.detailed_message
-    else
-      assert_match %r{Did you mean\?}, e.message
-      assert_no_match %r{Did you mean\?  test/template\n}, e.message
-    end
+    assert_match %r{Did you mean\?}, e.detailed_message
+    assert_no_match %r{Did you mean\?  test/template\n}, e.detailed_message
   end
 
   def test_render_partial_wrong_details_no_spellcheck
     e = assert_raises(ActionView::MissingTemplate) { @view.render(partial: "test/partial_with_only_html_version", formats: [:xml]) }
-    if e.respond_to?(:detailed_message)
-      assert_no_match %r{Did you mean\?}, e.detailed_message
-    else
-      assert_no_match %r{Did you mean\?}, e.message
-    end
+    assert_no_match %r{Did you mean\?}, e.detailed_message
   end
 
   def test_render_with_nested_layout
@@ -764,7 +774,7 @@ module RenderTestCases
   end
 
   def test_render_mutate_string_literal
-    assert_equal "foobar", @view.render(inline: "'foo' << 'bar'", type: :ruby)
+    assert_equal "foobar", @view.render(inline: "+'foo' << 'bar'", type: :ruby)
   end
 end
 
@@ -905,6 +915,17 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     assert_nil ActionView::PartialRenderer.collection_cache.read(key)
     @view.render(partial: "test/customer", collection: [customer], cached: true)
     assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
+  end
+
+  test "template body written to cache with expiration when expires_in set" do
+    customer = Customer.new("jarrett", 2)
+    key = cache_key(customer, "test/_customer")
+    @view.render(partial: "test/customer", collection: [customer], cached: { expires_in: 1.hour })
+    assert_equal "Hello: jarrett", ActionView::PartialRenderer.collection_cache.read(key)
+
+    travel 2.hours
+
+    assert_nil ActionView::PartialRenderer.collection_cache.read(key)
   end
 
   test "collection caching does not cache by default" do

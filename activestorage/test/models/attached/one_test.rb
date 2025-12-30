@@ -743,6 +743,23 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "attaching a new blob from an uploaded file with a service defined at runtime" do
+    extra_attached = Class.new(User) do
+      def self.name; superclass.name; end
+
+      has_one_attached :signature, service: ->(user) { "disk_#{user.mirror_region}" }
+
+      def mirror_region
+        :mirror_2
+      end
+    end
+
+    @user = @user.becomes(extra_attached)
+
+    @user.signature.attach fixture_file_upload("cropped.pdf")
+    assert_equal :disk_mirror_2, @user.signature.service.name
+  end
+
   test "raises error when global service configuration is missing" do
     Rails.configuration.active_storage.stub(:service, nil) do
       error = assert_raises RuntimeError do
@@ -763,6 +780,20 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
 
     assert_match(/Cannot configure service :unknown for User#featured_photo/, error.message)
+  end
+
+  test "raises error when misconfigured service is defined at runtime" do
+    extra_attached = Class.new(User) do
+      def self.name; superclass.name; end
+
+      has_one_attached :featured_vlog, service: ->(*) { :unknown }
+    end
+
+    @user = @user.becomes(extra_attached)
+
+    assert_raises match: /Cannot configure service :unknown for .+#featured_vlog/ do
+      @user.featured_vlog.attach fixture_file_upload("video.mp4")
+    end
   end
 
   test "creating variation by variation name" do
@@ -825,39 +856,5 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
 
     assert_match(/Cannot find variant :unknown for User#avatar_with_variants/, error.message)
-  end
-
-  test "transforms variants later" do
-    blob = create_blob(filename: "funky.jpg")
-
-    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [1, 1]] do
-      @user.avatar_with_preprocessed.attach blob
-    end
-  end
-
-  test "transforms variants later conditionally via proc" do
-    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
-      @user.avatar_with_conditional_preprocessed.attach create_blob(filename: "funky.jpg")
-    end
-
-    blob = create_blob(filename: "funky.jpg")
-    @user.update(name: "transform via proc")
-
-    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [2, 2]] do
-      @user.avatar_with_conditional_preprocessed.attach blob
-    end
-  end
-
-  test "transforms variants later conditionally via method" do
-    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
-      @user.avatar_with_conditional_preprocessed.attach create_blob(filename: "funky.jpg")
-    end
-
-    blob = create_blob(filename: "funky.jpg")
-    @user.update(name: "transform via method")
-
-    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [3, 3]] do
-      @user.avatar_with_conditional_preprocessed.attach blob
-    end
   end
 end

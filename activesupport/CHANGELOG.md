@@ -1,22 +1,76 @@
-*   Fix compatibility with the `semantic_logger` gem.
+*   Add `ActiveSupport::CombinedConfiguration` to offer interchangeable access to configuration provided by
+    either ENV or encrypted credentials. Used by Rails to first look at ENV, then look in encrypted credentials,
+    but can be configured separately with any number of API-compatible backends in a first-look order.
 
-    The `semantic_logger` gem doesn't behave exactly like stdlib logger in that
-    `SemanticLogger#level` returns a Symbol while stdlib `Logger#level` returns an Integer.
+    *DHH*
 
-    This caused the various `LogSubscriber` classes in Rails to break when assigned a
-    `SemanticLogger` instance.
+*   Add `ActiveSupport::EnvConfiguration` to provide access to ENV variables in a way that's compatible with
+    `ActiveSupport::EncryptedConfiguration` and therefore can be used by `ActiveSupport::CombinedConfiguration`.
 
-    *Jean Boussier*, *ojab*
+    Examples:
 
-*   Fix MemoryStore to prevent race conditions when incrementing or decrementing.
+    ```ruby
+    conf = ActiveSupport::EnvConfiguration.new
+    conf.require(:db_host) # ENV.fetch("DB_HOST")
+    conf.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
+    conf.option(:cache_host) # ENV["CACHE_HOST"]
+    conf.option(:cache_host, default: "cache-host-1") # ENV["CACHE_HOST"] || "cache-host-1"
+    conf.option(:cache_host, default: -> { "cache-host-1" }) # ENV["CACHE_HOST"] || "cache-host-1"
+    ```
 
-    *Pierre Jambet*
+    *DHH*
 
-*   Implement `HashWithIndifferentAccess#to_proc`.
+*   Make flaky parallel tests easier to diagnose by deterministically assigning
+    tests to workers.
 
-    Previously, calling `#to_proc` on `HashWithIndifferentAccess` object used inherited `#to_proc`
-    method from the `Hash` class, which was not able to access values using indifferent keys.
+    Rails assigns tests to workers in round-robin order so the same `--seed`
+    and worker count will result in the same sequence of tests running on each
+    worker (whether processes or threads) increasing the odds of reproducing
+    test failures caused by test interdependence.
 
-    *fatkodima*
+    This can make test runtime slower and spikier when one worker gets most of
+    the slow tests. Enable `work_stealing: true` to allow idle workers to steal
+    tests from busy workers in deterministic order, smoothing out runtime at the
+    cost of less reproducible flaky-test failures.
 
-Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activesupport/CHANGELOG.md) for previous changes.
+    *Jeremy Daer*
+
+*   Make `ActiveSupport::EventReporter#debug_mode?` true by default to emit debug events
+    outside of Rails application contexts.
+
+    *Gannon McGibbon*
+
+*   Add `SecureRandom.base32` for generating case-insensitive keys that are unambiguous to humans.
+
+    *Stanko Krtalic Rusendic & Miha Rekar*
+
+*   Add a fast failure mode to `ActiveSupport::ContinuousIntegration` that stops the rest of
+    the run after a step fails. Invoke by running `bin/ci --fail-fast` or `bin/ci -f`.
+
+    *Dennis Paagman*
+
+*   Implement LocalCache strategy on `ActiveSupport::Cache::MemoryStore`. The memory store
+    needs to respond to the same interface as other cache stores (e.g. `ActiveSupport::NullStore`).
+
+    *Mikey Gough*
+
+*   Add a detailed failure summary to `ActiveSupport::ContinuousIntegration`.
+
+    *Mike Dalessio*
+
+*   Introduce `ActiveSupport::EventReporter::LogSubscriber` structured event logging.
+
+    ```ruby
+    class MyLogSubscriber < ActiveSupport::EventReporter::LogSubscriber
+      self.namespace = "test"
+
+      def something(event)
+        info { "Event #{event[:name]} emitted." }
+      end
+    end
+    ```
+
+    *Gannon McGibbon*
+
+
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activesupport/CHANGELOG.md) for previous changes.

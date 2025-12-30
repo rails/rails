@@ -3,6 +3,7 @@
 require "cases/helper"
 
 require "models/topic"
+require "models/person"
 require "models/reply"
 require "models/custom_reader"
 
@@ -14,6 +15,7 @@ class ValidationsTest < ActiveModel::TestCase
 
   def teardown
     Topic.clear_validators!
+    Person.clear_validators!
   end
 
   def test_single_field_validation
@@ -99,6 +101,22 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 2, r.errors.count
   end
 
+  def test_errors_on_custom_attribute
+    r = Reply.new
+
+    r.errors.add(:foo_bar, "is invalid")
+
+    assert_equal ["Foo bar is invalid"], r.errors.full_messages
+  end
+
+  def test_errors_on_custom_attribute_with_symbol_message
+    r = Reply.new
+
+    r.errors.add(:foo_bar, :invalid)
+
+    assert_equal ["Foo bar is invalid"], r.errors.full_messages
+  end
+
   def test_errors_empty_after_errors_on_check
     t = Topic.new
     assert_empty t.errors[:id]
@@ -168,7 +186,7 @@ class ValidationsTest < ActiveModel::TestCase
       # A common mistake -- we meant to call 'validates'
       Topic.validate :title, presence: true
     end
-    message = "Unknown key: :presence. Valid keys are: :on, :if, :unless, :prepend. Perhaps you meant to call `validates` instead of `validate`?"
+    message = "Unknown key: :presence. Valid keys are: :on, :if, :unless, :prepend, :except_on. Perhaps you meant to call `validates` instead of `validate`?"
     assert_equal message, error.message
   end
 
@@ -250,7 +268,7 @@ class ValidationsTest < ActiveModel::TestCase
 
     # If block should not fire
     assert_predicate t, :valid?
-    assert_predicate t.author_name, :nil?
+    assert_nil t.author_name
 
     # If block should fire
     assert t.invalid?(:update)
@@ -452,5 +470,37 @@ class ValidationsTest < ActiveModel::TestCase
     t = Topic.new(author_name: "Admiral")
     assert_predicate t, :invalid?
     assert_equal ["Title is missing. You have failed me for the last time, Admiral."], t.errors[:title]
+  end
+
+  def test_frozen_models_can_be_validated
+    Person.validates :title, presence: true
+    person = Person.new.freeze
+    assert_predicate person, :frozen?
+    assert_not person.valid?
+  end
+
+  def test_validate_with_except_on
+    Topic.validates :title, presence: true, except_on: :custom_context
+
+    topic = Topic.new
+    topic.validate
+
+    assert_equal ["can't be blank"], topic.errors[:title]
+
+    assert topic.validate(:custom_context)
+  end
+
+  def test_validations_some_with_except
+    Topic.validates :title, presence: { except_on: :custom_context }, length: { maximum: 10 }
+
+    assert_raise(ActiveModel::ValidationError) do
+      Topic.new.validate!
+    end
+
+    assert_raise(ActiveModel::ValidationError) do
+      Topic.new(title: "A" * 11).validate!(:custom_context)
+    end
+
+    assert Topic.new.validate!(:custom_context)
   end
 end

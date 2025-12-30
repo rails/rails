@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "concurrent/map"
-require "set"
 require "active_support/core_ext/object/try"
 
 module ActiveSupport
@@ -17,26 +16,36 @@ module ActiveSupport
     end
 
     module FanoutIteration # :nodoc:
-      def iterate_guarding_exceptions(listeners)
-        exceptions = nil
-
-        listeners.each do |s|
-          yield s
-        rescue Exception => e
-          exceptions ||= []
-          exceptions << e
-        end
-
-        if exceptions
-          if exceptions.size == 1
-            raise exceptions.first
+      private
+        def iterate_guarding_exceptions(collection, &block)
+          case collection.size
+          when 0
+          when 1
+            collection.each(&block)
           else
-            raise InstrumentationSubscriberError.new(exceptions), cause: exceptions.first
-          end
-        end
+            exceptions = nil
 
-        listeners
-      end
+            collection.each do |s|
+              yield s
+            rescue Exception => e
+              exceptions ||= []
+              exceptions << e
+            end
+
+            if exceptions
+              exceptions = exceptions.flat_map do |exception|
+                exception.is_a?(InstrumentationSubscriberError) ? exception.exceptions : [exception]
+              end
+              if exceptions.size == 1
+                raise exceptions.first
+              else
+                raise InstrumentationSubscriberError.new(exceptions), cause: exceptions.first
+              end
+            end
+          end
+
+          collection
+        end
     end
 
     # This is a default queue implementation that ships with Notifications.
@@ -50,7 +59,6 @@ module ActiveSupport
         @other_subscribers = []
         @all_listeners_for = Concurrent::Map.new
         @groups_for = Concurrent::Map.new
-        @silenceable_groups_for = Concurrent::Map.new
       end
 
       def inspect # :nodoc:
@@ -99,11 +107,9 @@ module ActiveSupport
         if key
           @all_listeners_for.delete(key)
           @groups_for.delete(key)
-          @silenceable_groups_for.delete(key)
         else
           @all_listeners_for.clear
           @groups_for.clear
-          @silenceable_groups_for.clear
         end
       end
 
@@ -181,25 +187,25 @@ module ActiveSupport
           end
       end
 
-      def groups_for(name) # :nodoc:
-        groups = @groups_for.compute_if_absent(name) do
-          all_listeners_for(name).reject(&:silenceable).group_by(&:group_class).transform_values do |s|
-            s.map(&:delegate)
-          end
-        end
+      def group_listeners(listeners) # :nodoc:
+        listeners.group_by(&:group_class).transform_values do |s|
+          s.map(&:delegate).freeze
+        end.freeze
+      end
 
-        silenceable_groups = @silenceable_groups_for.compute_if_absent(name) do
-          all_listeners_for(name).select(&:silenceable).group_by(&:group_class).transform_values do |s|
-            s.map(&:delegate)
-          end
+      def groups_for(name) # :nodoc:
+        silenceable_groups, groups = @groups_for.compute_if_absent(name) do
+          listeners = all_listeners_for(name)
+          listeners.partition(&:silenceable).map { |l| group_listeners(l) }
         end
 
         unless silenceable_groups.empty?
-          groups = groups.dup
           silenceable_groups.each do |group_class, subscriptions|
             active_subscriptions = subscriptions.reject { |s| s.silenced?(name) }
             unless active_subscriptions.empty?
-              groups[group_class] = (groups[group_class] || []) + active_subscriptions
+              groups = groups.dup if groups.frozen?
+              base_groups = groups[group_class]
+              groups[group_class] = base_groups ? base_groups + active_subscriptions : active_subscriptions
             end
           end
         end
@@ -222,13 +228,13 @@ module ActiveSupport
       #     handle.finish
       #   end
       class Handle
-        def initialize(notifier, name, id, payload) # :nodoc:
+        include FanoutIteration
+
+        def initialize(notifier, name, id, groups, payload) # :nodoc:
           @name = name
           @id = id
           @payload = payload
-          @groups = notifier.groups_for(name).map do |group_klass, grouped_listeners|
-            group_klass.new(grouped_listeners, name, id, payload)
-          end
+          @groups = groups
           @state = :initialized
         end
 
@@ -236,7 +242,7 @@ module ActiveSupport
           ensure_state! :initialized
           @state = :started
 
-          @groups.each do |group|
+          iterate_guarding_exceptions(@groups) do |group|
             group.start(@name, @id, @payload)
           end
         end
@@ -249,7 +255,7 @@ module ActiveSupport
           ensure_state! :started
           @state = :finished
 
-          @groups.each do |group|
+          iterate_guarding_exceptions(@groups) do |group|
             group.finish(name, id, payload)
           end
         end
@@ -262,10 +268,31 @@ module ActiveSupport
           end
       end
 
+      module NullHandle # :nodoc:
+        extend self
+
+        def start
+        end
+
+        def finish
+        end
+
+        def finish_with_values(_name, _id, _payload)
+        end
+      end
+
       include FanoutIteration
 
       def build_handle(name, id, payload)
-        Handle.new(self, name, id, payload)
+        groups = groups_for(name).map do |group_klass, grouped_listeners|
+          group_klass.new(grouped_listeners, name, id, payload)
+        end
+
+        if groups.empty?
+          NullHandle
+        else
+          Handle.new(self, name, id, groups, payload)
+        end
       end
 
       def start(name, id, payload)
@@ -281,8 +308,8 @@ module ActiveSupport
         handle.finish_with_values(name, id, payload)
       end
 
-      def publish(name, *args)
-        iterate_guarding_exceptions(listeners_for(name)) { |s| s.publish(name, *args) }
+      def publish(name, ...)
+        iterate_guarding_exceptions(listeners_for(name)) { |s| s.publish(name, ...) }
       end
 
       def publish_event(event)
@@ -382,9 +409,9 @@ module ActiveSupport
             EventedGroup
           end
 
-          def publish(name, *args)
+          def publish(...)
             if @can_publish
-              @delegate.publish name, *args
+              @delegate.publish(...)
             end
           end
 
@@ -414,8 +441,8 @@ module ActiveSupport
             TimedGroup
           end
 
-          def publish(name, *args)
-            @delegate.call name, *args
+          def publish(...)
+            @delegate.call(...)
           end
         end
 

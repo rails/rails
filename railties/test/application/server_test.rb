@@ -29,12 +29,12 @@ module ApplicationTests
 
       Bundler.with_original_env do
         pid = Process.spawn("bin/rails server -b localhost -P tmp/dummy.pid", chdir: app_path, in: replica, out: replica, err: replica)
-        assert_output("Listening", primary)
+        assert_output("Listening", primary, 100)
 
         rails("restart")
 
-        assert_output("Restarting", primary)
-        assert_output("Listening", primary)
+        assert_output("Restarting", primary, 100)
+        assert_output("Listening", primary, 100)
       ensure
         kill(pid) if pid
       end
@@ -59,8 +59,8 @@ module ApplicationTests
 
       Bundler.with_original_env do
         pid = Process.spawn("bin/rails server -b localhost", chdir: app_path, in: replica, out: primary, err: replica)
-        assert_output("Hello world", primary)
-        assert_output("Listening", primary)
+        assert_output("Hello world", primary, 100)
+        assert_output("Listening", primary, 100)
       ensure
         kill(pid) if pid
       end

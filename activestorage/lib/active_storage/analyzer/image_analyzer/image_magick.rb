@@ -1,5 +1,14 @@
 # frozen_string_literal: true
 
+begin
+  gem "mini_magick"
+  require "mini_magick"
+  ActiveStorage::MINIMAGICK_AVAILABLE = true # :nodoc:
+rescue LoadError => error
+  ActiveStorage::MINIMAGICK_AVAILABLE = false # :nodoc:
+  raise error unless error.message.include?("mini_magick")
+end
+
 module ActiveStorage
   # This analyzer relies on the third-party {MiniMagick}[https://github.com/minimagick/minimagick] gem. MiniMagick requires
   # the {ImageMagick}[http://www.imagemagick.org] system library.
@@ -10,10 +19,8 @@ module ActiveStorage
 
     private
       def read_image
-        begin
-          require "mini_magick"
-        rescue LoadError
-          logger.info "Skipping image analysis because the mini_magick gem isn't installed"
+        unless MINIMAGICK_AVAILABLE
+          logger.error "Skipping image analysis because the mini_magick gem isn't installed"
           return {}
         end
 

@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+require "models/tag"
+require "models/tagging"
+require "models/comment"
+require "models/category"
+
 class Post < ActiveRecord::Base
   class CategoryPost < ActiveRecord::Base
     self.table_name = "categories_posts"
@@ -37,7 +42,7 @@ class Post < ActiveRecord::Base
   scope :most_commented, lambda { |comments_count|
     joins(:comments)
     .group("posts.id")
-    .having("count(comments.id) >= #{comments_count}")
+    .having("count(comments.id) >= ?", comments_count)
   }
 
   belongs_to :author
@@ -107,6 +112,10 @@ class Post < ActiveRecord::Base
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, -> { includes(:post) }, class_name: "VerySpecialComment"
   has_one :very_special_comment_with_post_with_joins, -> { joins(:post).order("posts.id") }, class_name: "VerySpecialComment"
+  has_one :very_special_comment_with_string_joins, -> {
+    joins("JOIN posts AS p1 ON comments.post_id = p1.id")
+    .where.not(p1: { id: 999999 })
+  }, class_name: "VerySpecialComment"
   has_many :special_comments
   has_many :nonexistent_comments, -> { where "comments.id < 0" }, class_name: "Comment"
 
@@ -118,6 +127,13 @@ class Post < ActiveRecord::Base
   has_many :hmt_special_categories, -> { where.not(name: nil) },  through: :category_posts, source: :category, class_name: "SpecialCategory"
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, join_table: "categories_posts", association_foreign_key: "category_id"
+
+  has_many :essays, through: :categories
+  has_many :authors_of_essays_named_bob,
+    -> { where(name: "Bob") },
+    through: :essays,
+    source: :writer,
+    source_type: "Author"
 
   has_many :taggings, as: :taggable, counter_cache: :tags_count
   has_many :tags, through: :taggings do
@@ -329,6 +345,15 @@ end
 class SubConditionalStiPost < ConditionalStiPost
 end
 
+class PostWithDestroyCallback < ActiveRecord::Base
+  self.inheritance_column = :disabled
+  self.table_name = "posts"
+
+  before_destroy do
+    throw :abort if id == 1
+  end
+end
+
 class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
 
@@ -337,8 +362,12 @@ class FakeKlass
       ActiveRecord::Scoping::ScopeRegistry.instance
     end
 
-    def connection
-      Post.connection
+    def adapter_class
+      Post.adapter_class
+    end
+
+    def lease_connection
+      Post.lease_connection
     end
 
     def table_name

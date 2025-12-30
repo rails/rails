@@ -9,12 +9,12 @@ module ActiveRecord
     # it was opened, an ActiveRecord::StaleObjectError exception is thrown if that has occurred
     # and the update is ignored.
     #
-    # Check out +ActiveRecord::Locking::Pessimistic+ for an alternative.
+    # Check out ActiveRecord::Locking::Pessimistic for an alternative.
     #
     # == Usage
     #
     # Active Record supports optimistic locking if the +lock_version+ field is present. Each update to the
-    # record increments the +lock_version+ column and the locking facilities ensure that records instantiated twice
+    # record increments the integer column +lock_version+ and the locking facilities ensure that records instantiated twice
     # will let the last one saved raise a +StaleObjectError+ if the first was also updated. Example:
     #
     #   p1 = Person.find(1)
@@ -100,6 +100,13 @@ module ActiveRecord
 
             attribute_names = attribute_names.dup if attribute_names.frozen?
             attribute_names << locking_column
+
+            if self[locking_column].nil?
+              raise(<<-MSG.squish)
+                For optimistic locking, locking_column ('#{locking_column}') can't be nil.
+                Are you missing a default value or validation on '#{locking_column}'?
+              MSG
+            end
 
             self[locking_column] += 1
 
@@ -203,7 +210,7 @@ module ActiveRecord
     # In de/serialize we change `nil` to 0, so that we can allow passing
     # `nil` values to `lock_version`, and not result in `ActiveRecord::StaleObjectError`
     # during update record.
-    class LockingType < DelegateClass(Type::Value) # :nodoc:
+    class LockingType < ActiveSupport::Delegation::DelegateClass(Type::Value) # :nodoc:
       def self.new(subtype)
         self === subtype ? subtype : super
       end

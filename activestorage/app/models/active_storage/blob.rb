@@ -17,16 +17,16 @@
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveStorage::Record
-  include Analyzable
-  include Identifiable
-  include Representable
-
-  self.table_name = "active_storage_blobs"
-
   MINIMUM_TOKEN_LENGTH = 28
 
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
   store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
+
+  # Temporary reference to a local io during the upload flow. When set,
+  # +open+ will use this instead of downloading from the service. This
+  # enables analysis and other operations to run on the local file before
+  # uploading, avoiding a download round-trip.
+  attr_accessor :local_io
 
   class_attribute :services, default: {}
   class_attribute :service, instance_accessor: false
@@ -35,7 +35,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # :method:
   #
   # Returns the associated ActiveStorage::Attachment instances.
-  has_many :attachments
+  has_many :attachments, autosave: false
 
   ##
   # :singleton-method:
@@ -47,7 +47,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     self.service_name ||= self.class.service&.name
   end
 
-  after_update :touch_attachment_records
+  after_update :touch_attachments
 
   after_update_commit :update_service_metadata, if: -> { content_type_previously_changed? || metadata_previously_changed? }
 
@@ -77,9 +77,8 @@ class ActiveStorage::Blob < ActiveStorage::Record
     end
 
     # Works like +find_signed+, but will raise an +ActiveSupport::MessageVerifier::InvalidSignature+
-    # exception if the +signed_id+ has either expired, has a purpose mismatch, is for another record,
-    # or has been tampered with. It will also raise an +ActiveRecord::RecordNotFound+ exception if
-    # the valid signed id can't find a record.
+    # exception if the +signed_id+ has either expired, has a purpose mismatch, or has been tampered with.
+    # It will also raise an +ActiveRecord::RecordNotFound+ exception if the valid signed id can't find a record.
     def find_signed!(id, record: nil, purpose: :blob_id)
       super(id, purpose: purpose)
     end
@@ -138,24 +137,32 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
     def scope_for_strict_loading # :nodoc:
       if strict_loading_by_default? && ActiveStorage.track_variants
-        includes(variant_records: { image_attachment: :blob }, preview_image_attachment: :blob)
+        includes(
+          variant_records: { image_attachment: :blob },
+          preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
+        )
       else
         all
       end
     end
 
     # Concatenate multiple blobs into a single "composed" blob.
-    def compose(blobs, filename:, content_type: nil, metadata: nil)
+    def compose(blobs, key: nil, filename:, content_type: nil, metadata: nil)
       raise ActiveRecord::RecordNotSaved, "All blobs must be persisted." if blobs.any?(&:new_record?)
 
       content_type ||= blobs.pluck(:content_type).compact.first
 
-      new(filename: filename, content_type: content_type, metadata: metadata, byte_size: blobs.sum(&:byte_size)).tap do |combined_blob|
+      new(key: key, filename: filename, content_type: content_type, metadata: metadata, byte_size: blobs.sum(&:byte_size)).tap do |combined_blob|
         combined_blob.compose(blobs.pluck(:key))
         combined_blob.save!
       end
     end
   end
+
+  include Analyzable
+  include Identifiable
+  include Representable
+  include Servable
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
   def signed_id(purpose: :blob_id, expires_in: nil, expires_at: nil)
@@ -226,16 +233,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum, custom_metadata: custom_metadata
   end
 
-  def content_type_for_serving # :nodoc:
-    forcibly_serve_as_binary? ? ActiveStorage.binary_content_type : content_type
-  end
-
-  def forced_disposition_for_serving # :nodoc:
-    if forcibly_serve_as_binary? || !allowed_inline?
-      :attachment
-    end
-  end
-
 
   # Uploads the +io+ to the service on the +key+ for this blob. Blobs are intended to be immutable, so you shouldn't be
   # using this method after a file has already been uploaded to fit with a blob. If you want to create a derivative blob,
@@ -281,7 +278,8 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.download_chunk key, range
   end
 
-  # Downloads the blob to a tempfile on disk. Yields the tempfile.
+  # Downloads the blob to a temporary file on disk. If a block is given, the file is automatically closed and unlinked
+  # after the block executed. Otherwise the file is returned and you are responsible for closing and unlinking.
   #
   # The tempfile's name is prefixed with +ActiveStorage-+ and the blob's ID. Its extension matches that of the blob.
   #
@@ -291,18 +289,20 @@ class ActiveStorage::Blob < ActiveStorage::Record
   #     # ...
   #   end
   #
-  # The tempfile is automatically closed and unlinked after the given block is executed.
-  #
   # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
   def open(tmpdir: nil, &block)
-    service.open(
-      key,
-      checksum: checksum,
-      verify: !composed,
-      name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ],
-      tmpdir: tmpdir,
-      &block
-    )
+    if local_io
+      open_local_io(tmpdir: tmpdir, &block)
+    else
+      service.open(
+        key,
+        checksum: checksum,
+        verify: !composed,
+        name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ],
+        tmpdir: tmpdir,
+        &block
+      )
+    end
   end
 
   def mirror_later # :nodoc:
@@ -338,12 +338,32 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   private
+    # Opens a local io for reading, yielding a file-like object. If the io
+    # is already a File with a path, yield it directly. Otherwise, copy to
+    # a tempfile first since analyzers need file paths.
+    def open_local_io(tmpdir:)
+      if local_io.respond_to?(:path) && local_io.path && File.exist?(local_io.path)
+        local_io.rewind if local_io.respond_to?(:rewind)
+        yield local_io
+      else
+        Tempfile.open([ "ActiveStorage-#{id}-", filename.extension_with_delimiter ], tmpdir) do |file|
+          file.binmode
+          local_io.rewind if local_io.respond_to?(:rewind)
+          IO.copy_stream(local_io, file)
+          local_io.rewind if local_io.respond_to?(:rewind)
+          file.rewind
+          yield file
+        end
+      end
+    end
+
     def compute_checksum_in_chunks(io)
       raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
 
       OpenSSL::Digest::MD5.new.tap do |checksum|
-        while chunk = io.read(5.megabytes)
-          checksum << chunk
+        read_buffer = "".b
+        while io.read(5.megabytes, read_buffer)
+          checksum << read_buffer
         end
 
         io.rewind
@@ -352,14 +372,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
     def extract_content_type(io)
       Marcel::MimeType.for io, name: filename.to_s, declared_type: content_type
-    end
-
-    def forcibly_serve_as_binary?
-      ActiveStorage.content_types_to_serve_as_binary.include?(content_type)
-    end
-
-    def allowed_inline?
-      ActiveStorage.content_types_allowed_inline.include?(content_type)
     end
 
     def web_image?
@@ -376,8 +388,14 @@ class ActiveStorage::Blob < ActiveStorage::Record
       end
     end
 
-    def touch_attachment_records
-      attachments.includes(:record).each do |attachment|
+    def touch_attachments
+      attachments.then do |relation|
+        if ActiveStorage.touch_attachment_records
+          relation.includes(:record)
+        else
+          relation
+        end
+      end.each do |attachment|
         attachment.touch
       end
     end

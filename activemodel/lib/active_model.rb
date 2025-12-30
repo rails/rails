@@ -28,7 +28,7 @@ require "active_support/rails"
 require "active_model/version"
 require "active_model/deprecator"
 
-# :include: activemodel/README.rdoc
+# :include: ../README.rdoc
 module ActiveModel
   extend ActiveSupport::Autoload
 
@@ -49,12 +49,19 @@ module ActiveModel
   autoload :Model
   autoload :Name, "active_model/naming"
   autoload :Naming
+  autoload :SchematizedJson
   autoload :SecurePassword
   autoload :Serialization
   autoload :Translation
   autoload :Type
   autoload :Validations
   autoload :Validator
+
+  module Attributes
+    extend ActiveSupport::Autoload
+
+    autoload :Normalization
+  end
 
   eager_autoload do
     autoload :Errors

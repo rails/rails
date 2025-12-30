@@ -13,4 +13,8 @@ class Pathname
   def blank?
     to_s.empty?
   end
+
+  def present? # :nodoc:
+    !to_s.empty?
+  end
 end

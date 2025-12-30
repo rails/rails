@@ -3,7 +3,7 @@
 require_relative "helper"
 
 module Arel
-  describe "Attributes" do
+  class AttributesTest < Arel::Spec
     it "responds to lower" do
       relation  = Table.new(:users)
       attribute = relation[:foo]

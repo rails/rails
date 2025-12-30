@@ -107,8 +107,12 @@ module ActionView
         end.join("-")
       end
 
-      def to_dep_map
-        children.any? ? { name => children.map(&:to_dep_map) } : name
+      def to_dep_map(seen = Set.new.compare_by_identity)
+        if seen.add?(self)
+          children.any? ? { name => children.map { |c| c.to_dep_map(seen) } } : name
+        else # the tree has a cycle
+          name
+        end
       end
     end
 

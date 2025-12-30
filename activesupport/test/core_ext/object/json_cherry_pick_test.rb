@@ -39,6 +39,6 @@ class JsonCherryPickTest < ActiveSupport::TestCase
 
   private
     def require_or_skip(file)
-      require(file) || skip("'#{file}' was already loaded")
+      require(file) || force_skip("'#{file}' was already loaded")
     end
 end

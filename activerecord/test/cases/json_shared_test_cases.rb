@@ -13,7 +13,7 @@ module JSONSharedTestCases
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def teardown
@@ -148,7 +148,7 @@ module JSONSharedTestCases
     assert_equal "320×480", x.resolution
 
     payload = YAML.dump(x)
-    y = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+    y = YAML.unsafe_load(payload)
     assert_equal "320×480", y.resolution
   end
 
@@ -276,15 +276,11 @@ module JSONSharedTestCases
     end
 
     def assert_type_match(type, sql_type)
-      native_type = ActiveRecord::Base.connection.native_database_types[type][:name]
+      native_type = ActiveRecord::Base.lease_connection.native_database_types[type][:name]
       assert_match %r(\A#{native_type}\b), sql_type
     end
 
     def insert_statement_per_database(values)
-      if current_adapter?(:OracleAdapter)
-        "insert into json_data_type (id, payload) VALUES (json_data_type_seq.nextval, '#{values}')"
-      else
-        "insert into json_data_type (payload) VALUES ('#{values}')"
-      end
+      "insert into json_data_type (payload) VALUES ('#{values}')"
     end
 end

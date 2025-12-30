@@ -8,7 +8,7 @@ class ActiveStorage::MigrationsTest < ActiveSupport::TestCase
     @original_verbose = ActiveRecord::Migration.verbose
     ActiveRecord::Migration.verbose = false
 
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @original_options = Rails.configuration.generators.options.deep_dup
   end
 
@@ -53,7 +53,7 @@ class ActiveStorage::MigrationsTest < ActiveSupport::TestCase
     end
 
     def active_storage_tables
-      [:active_storage_blobs, :active_storage_attachments, :active_storage_variant_records]
+      @active_storage_tables ||= ActiveStorage::Record.descendants.map { |klass| klass.table_name.to_sym }
     end
 
     def primary_key(table)

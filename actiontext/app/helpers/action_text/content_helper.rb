@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "rails-html-sanitizer"
 
 module ActionText
@@ -12,6 +14,15 @@ module ActionText
     def render_action_text_content(content)
       self.prefix_partial_path_with_controller_namespace = false
       sanitize_action_text_content(render_action_text_attachments(content))
+    end
+
+    def sanitize_content_attachment(content_attachment)
+      sanitizer.sanitize(
+        content_attachment,
+        tags: sanitizer_allowed_tags,
+        attributes: sanitizer_allowed_attributes,
+        scrubber: scrubber,
+      )
     end
 
     def sanitize_action_text_content(content)

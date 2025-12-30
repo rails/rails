@@ -40,6 +40,16 @@ module ActiveModel
         end
       end
 
+      def type_for_attribute(attribute_name, &block)
+        attribute_name = resolve_attribute_name(attribute_name)
+
+        if block
+          attribute_types.fetch(attribute_name, &block)
+        else
+          attribute_types[attribute_name]
+        end
+      end
+
       private
         PendingType = Struct.new(:name, :type) do # :nodoc:
           def apply_to(attribute_set)

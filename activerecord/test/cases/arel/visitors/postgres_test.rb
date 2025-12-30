@@ -6,7 +6,7 @@ module Arel
   module Visitors
     class PostgresTest < Arel::Spec
       before do
-        @visitor = PostgreSQL.new Table.engine.connection
+        @visitor = PostgreSQL.new Table.engine.lease_connection
         @table = Table.new(:users)
         @attr = @table[:id]
       end

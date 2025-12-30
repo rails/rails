@@ -25,8 +25,8 @@ module ActiveRecord
   # You can set custom coder to encode/decode your serialized attributes to/from different formats.
   # JSON, YAML, Marshal are supported out of the box. Generally it can be any wrapper that provides +load+ and +dump+.
   #
-  # NOTE: If you are using structured database data types (e.g. PostgreSQL +hstore+/+json+, or MySQL 5.7+
-  # +json+) there is no need for the serialization provided by {.store}[rdoc-ref:rdoc-ref:ClassMethods#store].
+  # NOTE: If you are using structured database data types (e.g. PostgreSQL +hstore+/+json+, MySQL 5.7+
+  # +json+, or SQLite 3.38+ +json+) there is no need for the serialization provided by {.store}[rdoc-ref:rdoc-ref:ClassMethods#store].
   # Simply use {.store_accessor}[rdoc-ref:ClassMethods#store_accessor] instead to generate
   # the accessor methods. Be aware that these columns use a string keyed hash and do not allow access
   # using a symbol.
@@ -146,37 +146,43 @@ module ActiveRecord
             define_method("#{accessor_key}_changed?") do
               return false unless attribute_changed?(store_attribute)
               prev_store, new_store = changes[store_attribute]
-              prev_store&.dig(key) != new_store&.dig(key)
+              accessor = store_accessor_for(store_attribute)
+              accessor.get(prev_store, key) != accessor.get(new_store, key)
             end
 
             define_method("#{accessor_key}_change") do
               return unless attribute_changed?(store_attribute)
               prev_store, new_store = changes[store_attribute]
-              [prev_store&.dig(key), new_store&.dig(key)]
+              accessor = store_accessor_for(store_attribute)
+              [accessor.get(prev_store, key), accessor.get(new_store, key)]
             end
 
             define_method("#{accessor_key}_was") do
               return unless attribute_changed?(store_attribute)
               prev_store, _new_store = changes[store_attribute]
-              prev_store&.dig(key)
+              accessor = store_accessor_for(store_attribute)
+              accessor.get(prev_store, key)
             end
 
             define_method("saved_change_to_#{accessor_key}?") do
               return false unless saved_change_to_attribute?(store_attribute)
               prev_store, new_store = saved_changes[store_attribute]
-              prev_store&.dig(key) != new_store&.dig(key)
+              accessor = store_accessor_for(store_attribute)
+              accessor.get(prev_store, key) != accessor.get(new_store, key)
             end
 
             define_method("saved_change_to_#{accessor_key}") do
               return unless saved_change_to_attribute?(store_attribute)
               prev_store, new_store = saved_changes[store_attribute]
-              [prev_store&.dig(key), new_store&.dig(key)]
+              accessor = store_accessor_for(store_attribute)
+              [accessor.get(prev_store, key), accessor.get(new_store, key)]
             end
 
             define_method("#{accessor_key}_before_last_save") do
               return unless saved_change_to_attribute?(store_attribute)
               prev_store, _new_store = saved_changes[store_attribute]
-              prev_store&.dig(key)
+              accessor = store_accessor_for(store_attribute)
+              accessor.get(prev_store, key)
             end
           end
         end
@@ -217,43 +223,66 @@ module ActiveRecord
       end
 
       def store_accessor_for(store_attribute)
-        type_for_attribute(store_attribute).accessor
+        type_for_attribute(store_attribute).tap do |type|
+          unless type.respond_to?(:accessor)
+            raise ConfigurationError, "the column '#{store_attribute}' has not been configured as a store. Please make sure the column is declared serializable via 'ActiveRecord.store' or, if your database supports it, use a structured column type like hstore or json."
+          end
+        end.accessor
       end
 
       class HashAccessor # :nodoc:
+        def self.get(store_object, key)
+          if store_object
+            store_object[key]
+          end
+        end
+
         def self.read(object, attribute, key)
-          prepare(object, attribute)
-          object.public_send(attribute)[key]
+          store_object = prepare(object, attribute)
+          store_object[key]
         end
 
         def self.write(object, attribute, key, value)
-          prepare(object, attribute)
-          object.public_send(attribute)[key] = value if value != read(object, attribute, key)
+          store_object = prepare(object, attribute)
+          store_object[key] = value if value != store_object[key]
         end
 
         def self.prepare(object, attribute)
-          object.public_send :"#{attribute}=", {} unless object.send(attribute)
+          store_object = object.public_send(attribute)
+
+          if store_object.nil?
+            store_object = {}
+            object.public_send(:"#{attribute}=", store_object)
+          end
+
+          store_object
         end
       end
 
       class StringKeyedHashAccessor < HashAccessor # :nodoc:
+        def self.get(store_object, key)
+          super store_object, Symbol === key ? key.name : key.to_s
+        end
+
         def self.read(object, attribute, key)
-          super object, attribute, key.to_s
+          super object, attribute, Symbol === key ? key.name : key.to_s
         end
 
         def self.write(object, attribute, key, value)
-          super object, attribute, key.to_s, value
+          super object, attribute, Symbol === key ? key.name : key.to_s, value
         end
       end
 
       class IndifferentHashAccessor < ActiveRecord::Store::HashAccessor # :nodoc:
-        def self.prepare(object, store_attribute)
-          attribute = object.send(store_attribute)
-          unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)
-            attribute = IndifferentCoder.as_indifferent_hash(attribute)
-            object.public_send :"#{store_attribute}=", attribute
+        def self.prepare(object, attribute)
+          store_object = object.public_send(attribute)
+
+          unless store_object.is_a?(ActiveSupport::HashWithIndifferentAccess)
+            store_object = IndifferentCoder.as_indifferent_hash(store_object)
+            object.public_send :"#{attribute}=", store_object
           end
-          attribute
+
+          store_object
         end
       end
 

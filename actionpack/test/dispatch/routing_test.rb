@@ -354,6 +354,20 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "openid#login", @response.body
   end
 
+  def test_websocket
+    draw do
+      connect "chat/live", to: "chat#live"
+    end
+
+    # HTTP/1.1 connection upgrade:
+    get "/chat/live", headers: { "REQUEST_METHOD" => "GET", "HTTP_CONNECTION" => "Upgrade", "HTTP_UPGRADE" => "websocket" }
+    assert_equal "chat#live", @response.body
+
+    # `rack.protocol` connection:
+    get "/chat/live", headers: { "REQUEST_METHOD" => "CONNECT", "rack.protocol" => "websocket" }
+    assert_equal "chat#live", @response.body
+  end
+
   def test_bookmarks
     draw do
       scope "bookmark", controller: "bookmarks", as: :bookmark do
@@ -763,7 +777,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
           member do
             put  :accessible_projects
-            post :resend, :generate_new_password
+            post :resend
+            post :generate_new_password
           end
         end
       end
@@ -812,7 +827,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     draw do
       resources :projects do
         resources :posts do
-          get  :archive, :toggle_view, on: :collection
+          get :archive, on: :collection
+          get :toggle_view, on: :collection
           post :preview, on: :member
 
           resource :subscription
@@ -972,13 +988,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_resource_does_not_modify_passed_options
     options = { id: /.+?/, format: /json|xml/ }
-    draw { resource :user, options }
+    draw { resource :user, **options }
     assert_equal({ id: /.+?/, format: /json|xml/ }, options)
   end
 
   def test_resources_does_not_modify_passed_options
     options = { id: /.+?/, format: /json|xml/ }
-    draw { resources :users, options }
+    draw { resources :users, **options }
     assert_equal({ id: /.+?/, format: /json|xml/ }, options)
   end
 
@@ -1533,18 +1549,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_match_with_many_paths_containing_a_slash
-    draw do
-      get "get/first", "get/second", "get/third", to: "get#show"
+    assert_raises(ArgumentError) do
+      draw do
+        get "get/first", "get/second", "get/third", to: "get#show"
+      end
     end
-
-    get "/get/first"
-    assert_equal "get#show", @response.body
-
-    get "/get/second"
-    assert_equal "get#show", @response.body
-
-    get "/get/third"
-    assert_equal "get#show", @response.body
   end
 
   def test_match_shorthand_with_no_scope
@@ -1570,17 +1579,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_match_shorthand_with_multiple_paths_inside_namespace
-    draw do
-      namespace :proposals do
-        put "activate", "inactivate"
+    assert_raises(ArgumentError) do
+      draw do
+        namespace :proposals do
+          put "activate", "inactivate"
+        end
       end
     end
-
-    put "/proposals/activate"
-    assert_equal "proposals#activate", @response.body
-
-    put "/proposals/inactivate"
-    assert_equal "proposals#inactivate", @response.body
   end
 
   def test_match_shorthand_inside_namespace_with_controller
@@ -3882,6 +3887,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/formats/1/items/2.json", format_item_path(1, 2, :json)
   end
 
+  def test_routes_with_double_colon
+    draw do
+      get "/sort::sort", to: "sessions#sort"
+    end
+
+    get "/sort:asc"
+    assert_equal "asc", @request.params[:sort]
+    assert_equal "sessions#sort", @response.body
+  end
+
 private
   def draw(&block)
     self.class.stub_controllers do |routes|
@@ -3895,9 +3910,9 @@ private
     @app.routes.url_helpers.url_for(options)
   end
 
-  def method_missing(method, *args, &block)
-    if method.to_s.match?(/_(path|url)$/)
-      @app.routes.url_helpers.send(method, *args, &block)
+  def method_missing(method, ...)
+    if method.match?(/_(path|url)$/)
+      @app.routes.url_helpers.send(method, ...)
     else
       super
     end
@@ -4037,6 +4052,7 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
     routes = ActionDispatch::Routing::RouteSet.new
     routes.draw(&block)
     @app = self.class.build_app routes
+    @routes = routes
   end
 
   def test_missing_controller
@@ -4057,7 +4073,25 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
     assert_match(/Missing :controller/, ex.message)
   end
 
-  def test_missing_action_on_hash
+  def test_implicit_controller_with_to
+    draw do
+      controller :foo do
+        get "/foo/bar", to: "bar"
+      end
+    end
+    assert_routing "/foo/bar", controller: "foo", action: "bar"
+  end
+
+  def test_to_is_a_symbol
+    ex = assert_raises(ArgumentError) {
+      draw do
+        get "/foo/bar", to: :foo
+      end
+    }
+    assert_match(/:to must respond to/, ex.message)
+  end
+
+  def test_missing_action_with_to
     ex = assert_raises(ArgumentError) {
       draw do
         get "/foo/bar", to: "foo#"
@@ -4907,11 +4941,7 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
   test "exceptions have suggestions for fix" do
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
-    if error.respond_to?(:detailed_message)
-      assert_match "Did you mean?", error.detailed_message
-    else
-      assert_match "Did you mean?", error.message
-    end
+    assert_match "Did you mean?", error.detailed_message
   end
 
   # FIXME: we should fix all locations that raise this exception to provide
@@ -4953,49 +4983,6 @@ class TestDefaultUrlOptions < ActionDispatch::IntegrationTest
   end
 end
 
-class TestErrorsInController < ActionDispatch::IntegrationTest
-  class ::PostsController < ActionController::Base
-    def foo
-      nil.i_do_not_exist
-    end
-
-    def bar
-      NonExistingClass.new
-    end
-  end
-
-  Routes = ActionDispatch::Routing::RouteSet.new
-  Routes.draw do
-    ActionDispatch.deprecator.silence do
-      get "/:controller(/:action)"
-    end
-  end
-
-  APP = build_app Routes
-
-  def app
-    APP
-  end
-
-  def test_legit_no_method_errors_are_not_caught
-    get "/posts/foo"
-    assert_equal 500, response.status
-  end
-
-  def test_legit_name_errors_are_not_caught
-    get "/posts/bar"
-    assert_equal 500, response.status
-  end
-
-  def test_legit_routing_not_found_responses
-    get "/posts/baz"
-    assert_equal 404, response.status
-
-    get "/i_do_not_exist"
-    assert_equal 404, response.status
-  end
-end
-
 class TestPartialDynamicPathSegments < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
@@ -5018,7 +5005,7 @@ class TestPartialDynamicPathSegments < ActionDispatch::IntegrationTest
     APP
   end
 
-  def test_paths_with_partial_dynamic_segments_are_recognised
+  def test_paths_with_partial_dynamic_segments_are_recognized
     get "/david-bowie/changes-song"
     assert_equal 200, response.status
     assert_params artist: "david-bowie", song: "changes"
@@ -5159,7 +5146,7 @@ class TestInternalRoutingParams < ActionDispatch::IntegrationTest
     APP
   end
 
-  def test_paths_with_partial_dynamic_segments_are_recognised
+  def test_paths_with_partial_dynamic_segments_are_recognized
     get "/test_internal/123"
     assert_equal 200, response.status
 

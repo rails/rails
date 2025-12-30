@@ -144,6 +144,44 @@ module InitializableTests
     end
   end
 
+  module Duplicate
+    class PluginA
+      include Rails::Initializable
+
+      initializer "plugin_a.startup" do
+        $arr << 1
+      end
+
+      initializer "plugin_a.terminate" do
+        $arr << 4
+      end
+    end
+
+    class PluginB
+      include Rails::Initializable
+
+      initializer "plugin_b.startup", after: "plugin_a.startup" do
+        $arr << 2
+      end
+
+      initializer "plugin_b.terminate", before: "plugin_a.terminate" do
+        $arr << 3
+      end
+    end
+
+    class Application
+      include Rails::Initializable
+
+      def self.initializers
+        @initializers ||= (PluginA.initializers + PluginB.initializers + PluginB.initializers)
+      end
+
+      initializer "root" do
+        $arr << 5
+      end
+    end
+  end
+
   class Basic < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
@@ -200,6 +238,12 @@ module InitializableTests
       Interdependent::Application.new.run_initializers
       assert_equal [1, 2, 3, 4], $arr
     end
+
+    test "handles duplicate initializers" do
+      $arr = []
+      Duplicate::Application.new.run_initializers
+      assert_equal [1, 2, 2, 3, 3, 4, 5], $arr
+    end
   end
 
   class InstanceTest < ActiveSupport::TestCase
@@ -232,5 +276,64 @@ module InitializableTests
       OverriddenInitializer.new.run_initializers
       assert_equal [1, 2, 3, 4], $arr
     end
+  end
+
+  class CollectionTest < ActiveSupport::TestCase
+    test "delegates missing to collection array" do
+      initializable = Class.new do
+        include Rails::Initializable
+      end
+
+      Array.public_instance_methods.each do |method_name|
+        assert(
+          initializable.initializers.respond_to?(method_name),
+          "Expected Initializable::Collection to respond to #{method_name}, but does not.",
+        )
+      end
+    end
+
+    test "concat" do
+      one = collection(:a, :b)
+      two = collection(:c, :d)
+      initializers = one.initializers.concat(two.initializers)
+      initializer_names = initializers.tsort_each.map(&:name)
+
+      assert_equal [:a, :b, :c, :d], initializer_names
+    end
+
+    test "push" do
+      one = collection(:a, :b, :c)
+      two = collection(:d)
+      initializers = one.initializers.push(two.initializers.first)
+      initializer_names = initializers.tsort_each.map(&:name)
+
+      assert_equal [:a, :b, :c, :d], initializer_names
+    end
+
+    test "append" do
+      one = collection(:a)
+      two = collection(:b, :c)
+      initializers = one.initializers.append(two.initializers.first)
+      initializer_names = initializers.tsort_each.map(&:name)
+
+      assert_equal [:a, :b], initializer_names
+    end
+
+    test "<<" do
+      one = collection(:a, :b)
+      two = collection(:c)
+      initializers = (one.initializers << two.initializers.first)
+      initializer_names = initializers.tsort_each.map(&:name)
+
+      assert_equal [:a, :b, :c], initializer_names
+    end
+
+    private
+      def collection(*names)
+        Class.new do
+          include Rails::Initializable
+          names.each { |name| initializer(name) { } }
+        end
+      end
   end
 end

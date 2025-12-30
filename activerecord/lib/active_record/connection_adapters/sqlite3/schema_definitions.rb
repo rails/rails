@@ -7,6 +7,13 @@ module ActiveRecord
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         def change_column(column_name, type, **options)
           name = column_name.to_s
+
+          existing_column = @columns_hash[name]
+          if existing_column
+            existing_options = existing_column.options.except(:precision)
+            options = existing_options.merge(options)
+          end
+
           @columns_hash[name] = nil
           column(name, type, **options)
         end
@@ -16,9 +23,22 @@ module ActiveRecord
         end
         alias :belongs_to :references
 
+        def new_column_definition(name, type, **options) # :nodoc:
+          case type
+          when :virtual
+            type = options[:type]
+          end
+
+          super
+        end
+
         private
           def integer_like_primary_key_type(type, options)
             :primary_key
+          end
+
+          def valid_column_definition_options
+            super + [:as, :type, :stored]
           end
       end
     end

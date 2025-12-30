@@ -1,9 +1,29 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Ruby on Rails 7.1 Release Notes
 ===============================
 
 Highlights in Rails 7.1:
+
+* Generate Dockerfiles for new Rails applications
+* Add `ActiveRecord::Base.normalizes`
+* Add `ActiveRecord::Base.generates_token_for`
+* Add `perform_all_later` to enqueue multiple jobs at once
+* Composite primary keys
+* Introduce adapter for `Trilogy`
+* Add `ActiveSupport::MessagePack`
+* Introducing `config.autoload_lib` and `config.autoload_lib_once` for Enhanced Autoloading
+* Active Record API for general async queries
+* Allow templates to set strict `locals`
+* Add `Rails.application.deprecators`
+* Support pattern matching for JSON `response.parsed_body`
+* Extend `response.parsed_body` to parse HTML with Nokogiri
+* Introduce `ActionView::TestCase.register_parser`
+
+These release notes cover only the major changes. To learn about various bug
+fixes and changes, please refer to the changelogs or check out the [list of
+commits](https://github.com/rails/rails/commits/7-1-stable) in the main Rails
+repository on GitHub.
 
 --------------------------------------------------------------------------------
 
@@ -23,7 +43,7 @@ Major Features
 
 ### Generate Dockerfiles for new Rails applications
 
-[Default Docker support](https://github.com/rails/rails/pull/46762) to new rails applications.
+[Default Docker support](https://github.com/rails/rails/pull/46762) to new Rails applications.
 When generating a new application, Rails will now include Docker-related files in the application.
 
 These files serve as a foundational setup for deploying your Rails application in a
@@ -193,7 +213,7 @@ development:
 Alternatively, integration can be achieved using the `DATABASE_URL` environment variable:
 
 ```ruby
-ENV['DATABASE_URL'] # => "trilogy://localhost/blog_development?pool=5"
+ENV["DATABASE_URL"] # => "trilogy://localhost/blog_development?pool=5"
 ```
 
 ### Add `ActiveSupport::MessagePack`
@@ -296,7 +316,7 @@ promise.value # => 10
 These methods allow for the execution of these operations in an asynchronous manner, which can significantly
 improve performance for certain types of database queries.
 
-### Allow templates to set strict `locals`.
+### Allow templates to set strict `locals`
 
 Introduce a new feature that [allows templates to set explicit `locals`](https://github.com/rails/rails/pull/45602).
 This enhancement provides greater control and clarity when passing variables to your templates.
@@ -318,11 +338,22 @@ You can also set default values for these locals:
 <%= message %>
 ```
 
+Optional keyword arguments can be splatted:
+
+```erb
+<%# locals: (message: "Hello, world!", **attributes) -%>
+<%= tag.p(message, **attributes) %>
+```
+
 If you want to disable the use of locals entirely, you can do so like this:
 
 ```erb
 <%# locals: () %>
 ```
+
+Action View will process the `locals:` magic comment in any templating engine that supports `#`-prefixed comments, and will read the magic comment from any line in the partial.
+
+CAUTION: Only keyword arguments are supported. Defining positional or block arguments will raise an Action View Error at render-time.
 
 ### Add `Rails.application.deprecators`
 
@@ -582,7 +613,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Notable changes
 
-*   `check_box_tag` and `radio_button_tag` now accept `checked` as a keyword argument.
+*   `checkbox_tag` and `radio_button_tag` now accept `checked` as a keyword argument.
 
 *   Add `picture_tag` helper to generate HTML `<picture>` tags.
 
@@ -649,7 +680,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Deprecate `config.active_record.suppress_multiple_database_warning`.
 
-*   Deprecate using `ActiveSupport::Duration` as an interpolated bind parameter in a SQL
+*   Deprecate using `ActiveSupport::Duration` as an interpolated bind parameter in an SQL
     string template.
 
 *   Deprecate `all_connection_pools` and make `connection_pool_list` more explicit.
@@ -657,6 +688,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Deprecate `read_attribute(:id)` returning the primary key if the primary key is not `:id`.
 
 *   Deprecate `rewhere` argument on `#merge`.
+
+*   Deprecate aliasing non-attributes with `alias_attribute`.
 
 ### Notable changes
 
@@ -695,6 +728,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Add `ActiveRecord::Base#id_value` alias to access the raw value of a record's id column.
 
 *   Add validation option for `enum`.
+
+*   The default hash digest for `ActiveRecord::Encryption`, used for attributes defined with `encrypts`, is now `SHA256`, changed from `SHA1` in the default configuration. These defaults also include `support_sha1_for_non_deterministic_encryption = false` which can lead to apps being unable to decrypt data encrypted with the old default hash digest if data is not re-encrypted.
 
 Active Storage
 --------------
@@ -831,7 +866,7 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 *   Add `after_discard` method to `ActiveJob::Base` to run a callback when a job is about to be discarded.
 
-*   Add support for logging background job enqueue callers.
+*   Add support for logging background job enqueue callers via `config.active_job.verbose_enqueue_logs`.
 
 Action Text
 ----------

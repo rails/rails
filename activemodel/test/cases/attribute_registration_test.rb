@@ -10,7 +10,7 @@ module ActiveModel
     TYPE_1 = MyType.new(precision: 1)
     TYPE_2 = MyType.new(precision: 2)
 
-    MyDecorator = DelegateClass(Type::Value) do
+    MyDecorator = ActiveSupport::Delegation::DelegateClass(Type::Value) do
       attr_reader :name
       alias :cast_type :__getobj__
 
@@ -71,6 +71,17 @@ module ActiveModel
     test ".attribute_types returns the default type when key is missing" do
       klass = class_with { attribute :foo, TYPE_1 }
       assert_equal Type::Value.new, klass.attribute_types["bar"]
+    end
+
+    test ".type_for_attribute returns the registered attribute type" do
+      klass = class_with { attribute :foo, TYPE_1 }
+      assert_same TYPE_1, klass.type_for_attribute("foo")
+      assert_same TYPE_1, klass.type_for_attribute(:foo)
+    end
+
+    test ".type_for_attribute returns the default type when an unregistered attribute is specified" do
+      klass = class_with { attribute :foo, TYPE_1 }
+      assert_equal Type::Value.new, klass.type_for_attribute("bar")
     end
 
     test "new attributes can be registered at any time" do

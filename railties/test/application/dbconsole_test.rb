@@ -23,7 +23,7 @@ module ApplicationTests
         development:
            database: <%= Rails.application.config.database %>
            adapter: sqlite3
-           pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+           max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
            timeout: 5000
       YAML
 
@@ -35,7 +35,7 @@ module ApplicationTests
 
       primary, replica = PTY.open
       spawn_dbconsole(replica)
-      assert_output("sqlite>", primary)
+      assert_output("sqlite>", primary, 100)
     ensure
       primary.puts ".exit"
     end
@@ -44,7 +44,7 @@ module ApplicationTests
       app_file "config/database.yml", <<-YAML
         default: &default
           adapter: sqlite3
-          pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+          max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
           timeout: 5000
 
         development:
@@ -58,7 +58,7 @@ module ApplicationTests
 
       primary, replica = PTY.open
       spawn_dbconsole(replica, "-e production")
-      assert_output("sqlite>", primary)
+      assert_output("sqlite>", primary, 100)
 
       primary.puts "pragma database_list;"
       assert_output("production.sqlite3", primary)

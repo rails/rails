@@ -2,13 +2,16 @@
 
 require "cases/helper"
 require "models/author"
+require "models/lesson"
 require "models/post"
 require "models/pet"
+require "models/student"
 require "models/toy"
 require "models/comment"
+require "models/cpk"
 
 class DeleteAllTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :comments, :posts, :pets, :toys
+  fixtures :authors, :author_addresses, :comments, :posts, :pets, :toys, :cpk_orders, :cpk_order_agreements
 
   def test_destroy_all
     davids = Author.where(name: "David")
@@ -30,8 +33,17 @@ class DeleteAllTest < ActiveRecord::TestCase
   def test_delete_all
     davids = Author.where(name: "David")
 
-    assert_difference("Author.count", -1) { davids.delete_all }
+    assert_difference("Author.count", -1) do
+      assert_equal 1, davids.delete_all
+    end
     assert_not_predicate davids, :loaded?
+  end
+
+  def test_delete_all_return_value_ignores_cascades
+    student = Student.create(name: "Ruy Rocha")
+    lesson = Lesson.create(name: "Anything Possible")
+    student.lessons << lesson
+    assert_equal 1, Student.delete_all
   end
 
   def test_delete_all_with_index_hint
@@ -82,9 +94,9 @@ class DeleteAllTest < ActiveRecord::TestCase
     end
 
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(Pet.connection.quote_table_name("pets.pet_id"))}/, sqls.last
+      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(quote_table_name("pets.pet_id"))}/, sqls.last
     else
-      assert_match %r/SELECT #{Regexp.escape(Pet.connection.quote_table_name("pets.pet_id"))}/, sqls.last
+      assert_match %r/SELECT #{Regexp.escape(quote_table_name("pets.pet_id"))}/, sqls.last
     end
   end
 
@@ -127,5 +139,11 @@ class DeleteAllTest < ActiveRecord::TestCase
     assert_equal 1, limited_posts.delete_all
     assert_raise(ActiveRecord::RecordNotFound) { posts(:thinking) }
     assert posts(:welcome)
+  end
+
+  def test_delete_all_composite_model_with_join_subquery
+    agreement = cpk_order_agreements(:order_agreement_three)
+    join_scope = Cpk::Order.joins(:order_agreements).where(order_agreements: { signature: agreement.signature })
+    assert_equal 1, join_scope.delete_all
   end
 end

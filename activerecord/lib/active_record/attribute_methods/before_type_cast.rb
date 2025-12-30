@@ -56,7 +56,7 @@ module ActiveRecord
       # serialization.
       #
       #   class Book < ActiveRecord::Base
-      #     enum status: { draft: 1, published: 2 }
+      #     enum :status, { draft: 1, published: 2 }
       #   end
       #
       #   book = Book.new(status: "published")

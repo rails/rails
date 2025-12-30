@@ -31,7 +31,8 @@ export class DirectUploadController {
   }
 
   uploadRequestDidProgress(event) {
-    const progress = event.loaded / event.total * 100
+    // Scale upload progress to 0-90% range
+    const progress = (event.loaded / event.total) * 90
     if (progress) {
       this.dispatch("progress", { progress })
     }
@@ -63,5 +64,51 @@ export class DirectUploadController {
   directUploadWillStoreFileWithXHR(xhr) {
     this.dispatch("before-storage-request", { xhr })
     xhr.upload.addEventListener("progress", event => this.uploadRequestDidProgress(event))
+
+    // Start simulating progress after upload completes
+    xhr.upload.addEventListener("loadend", () => {
+      this.simulateResponseProgress(xhr)
+    })
+  }
+
+  simulateResponseProgress(xhr) {
+    let progress = 90
+    const startTime = Date.now()
+
+    const updateProgress = () => {
+      // Simulate progress from 90% to 99% over estimated time
+      const elapsed = Date.now() - startTime
+      const estimatedResponseTime = this.estimateResponseTime()
+      const responseProgress = Math.min(elapsed / estimatedResponseTime, 1)
+      progress = 90 + (responseProgress * 9) // 90% to 99%
+
+      this.dispatch("progress", { progress })
+
+      // Continue until response arrives or we hit 99%
+      if (xhr.readyState !== XMLHttpRequest.DONE && progress < 99) {
+        requestAnimationFrame(updateProgress)
+      }
+    }
+
+    // Stop simulation when response arrives
+    xhr.addEventListener("loadend", () => {
+      this.dispatch("progress", { progress: 100 })
+    })
+
+    requestAnimationFrame(updateProgress)
+  }
+
+  estimateResponseTime() {
+    // Base estimate: 1 second for small files, scaling up for larger files
+    const fileSize = this.file.size
+    const MB = 1024 * 1024
+
+    if (fileSize < MB) {
+      return 1000 // 1 second for files under 1MB
+    } else if (fileSize < 10 * MB) {
+      return 2000 // 2 seconds for files 1-10MB
+    } else {
+      return 3000 + (fileSize / MB * 50) // 3+ seconds for larger files
+    }
   }
 }

@@ -19,7 +19,7 @@ module ActiveRecord
       @abort, Thread.abort_on_exception = Thread.abort_on_exception, false
       Thread.report_on_exception, @original_report_on_exception = false, Thread.report_on_exception
 
-      connection = ActiveRecord::Base.connection
+      connection = ActiveRecord::Base.lease_connection
 
       connection.transaction do
         connection.drop_table "samples", if_exists: true
@@ -37,8 +37,8 @@ module ActiveRecord
     end
 
     teardown do
-      ActiveRecord::Base.connection.drop_table "samples", if_exists: true
-      ActiveRecord::Base.connection.drop_table "bits", if_exists: true
+      ActiveRecord::Base.lease_connection.drop_table "samples", if_exists: true
+      ActiveRecord::Base.lease_connection.drop_table "bits", if_exists: true
 
       Thread.abort_on_exception = @abort
       Thread.report_on_exception = @original_report_on_exception
@@ -132,7 +132,7 @@ module ActiveRecord
           s2 = Sample.create value: 2
 
           thread = Thread.new do
-            connections.add Sample.connection
+            connections.add Sample.lease_connection
             Sample.transaction(requires_new: false) do
               make_parent_transaction_dirty
               Sample.transaction(requires_new: true) do
@@ -145,7 +145,7 @@ module ActiveRecord
           end
 
           begin
-            connections.add Sample.connection
+            connections.add Sample.lease_connection
             Sample.transaction(requires_new: false) do
               make_parent_transaction_dirty
               Sample.transaction(requires_new: true) do
@@ -213,12 +213,12 @@ module ActiveRecord
 
     private
       def with_warning_suppression
-        log_level = ActiveRecord::Base.connection.client_min_messages
-        ActiveRecord::Base.connection.client_min_messages = "error"
+        log_level = ActiveRecord::Base.lease_connection.client_min_messages
+        ActiveRecord::Base.lease_connection.client_min_messages = "error"
         yield
       ensure
         ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
-        ActiveRecord::Base.connection.client_min_messages = log_level
+        ActiveRecord::Base.lease_connection.client_min_messages = log_level
       end
 
       # These tests are coordinating a controlled sequence of accesses to rows in `samples` table under serializable isolation.
@@ -229,7 +229,7 @@ module ActiveRecord
       end
 
       def assert_current_transaction_is_savepoint_transaction
-        current_transaction = Sample.connection.current_transaction
+        current_transaction = Sample.lease_connection.current_transaction
         unless current_transaction.is_a?(ActiveRecord::ConnectionAdapters::SavepointTransaction)
           flunk("current transaction is not a savepoint transaction")
         end

@@ -1,12 +1,15 @@
 # frozen_string_literal: true
 
 module MultibyteTestHelpers
-  UNICODE_STRING = "こにちわ"
-  ASCII_STRING = "ohayo"
-  BYTE_STRING = (+"\270\236\010\210\245").force_encoding("ASCII-8BIT").freeze
+  # We use Symbol#to_s to create these strings so warnings are emitted if they are mutated
+  UNICODE_STRING = :"こにちわ".to_s
+  ASCII_STRING = :"ohayo".to_s
+  BYTE_STRING = "\270\236\010\210\245".b.freeze
 
   def chars(str)
-    ActiveSupport::Multibyte::Chars.new(str)
+    assert_deprecated ActiveSupport.deprecator do
+      ActiveSupport::Multibyte::Chars.new(str)
+    end
   end
 
   def inspect_codepoints(str)

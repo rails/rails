@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
+require "models/attachment"
 require "models/developer"
 require "models/project"
 require "models/company"
@@ -31,6 +33,12 @@ require "models/tree"
 require "models/node"
 require "models/club"
 require "models/cpk"
+require "models/person" # not used by this suite as of this writing, it is a workaround for https://github.com/rails/rails/issues/55133
+require "models/car"
+require "models/sharded/blog"
+require "models/sharded/blog_post"
+require "models/sharded/comment"
+require "models/dats"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -40,7 +48,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to
     client = Client.find(3)
     first_firm = companies(:first_firm)
-    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+    assert_queries_match(/LIMIT|ROWNUM <=|FETCH FIRST/) do
       assert_equal first_firm, client.firm
       assert_equal first_firm.name, client.firm.name
     end
@@ -61,6 +69,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_where_on_polymorphic_association_with_empty_array
     assert_empty Comment.where(author: [])
+  end
+
+  def test_where_on_polymorphic_association_with_cpk
+    post = Cpk::Post.create!(title: "Welcome", author: "Mary")
+    post.comments << Cpk::Comment.create!
+    assert_equal 1, Cpk::Comment.where(commentable: post).count
   end
 
   def test_assigning_belongs_to_on_destroyed_object
@@ -97,10 +111,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_no_match(/`firm_with_primary_keys_companies`\.`id`/, sql)
       assert_match(/`firm_with_primary_keys_companies`\.`name`/, sql)
-    elsif current_adapter?(:OracleAdapter)
-      # on Oracle aliases are truncated to 30 characters and are quoted in uppercase
-      assert_no_match(/"firm_with_primary_keys_compani"\."id"/i, sql)
-      assert_match(/"firm_with_primary_keys_compani"\."name"/i, sql)
     else
       assert_no_match(/"firm_with_primary_keys_companies"\."id"/, sql)
       assert_match(/"firm_with_primary_keys_companies"\."name"/, sql)
@@ -246,9 +256,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, counter
     comment = comments.first
     assert_equal 0, counter
-    sql = capture_sql { comment.post }
+    queries = capture_sql_and_binds { comment.post }
     comment.reload
-    assert_not_equal sql, capture_sql { comment.post }
+    assert_not_equal queries, capture_sql_and_binds { comment.post }
   end
 
   def test_proxy_assignment
@@ -264,7 +274,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_raises_type_mismatch_with_namespaced_class
     assert_nil defined?(Region), "This test requires that there is no top-level Region class"
 
-    ActiveRecord::Base.connection.instance_eval do
+    ActiveRecord::Base.lease_connection.instance_eval do
       create_table(:admin_regions, force: true) { |t| t.string :name }
       add_column :admin_users, :region_id, :integer
     end
@@ -279,7 +289,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Admin.send :remove_const, "Region" if Admin.const_defined?("Region")
     Admin.send :remove_const, "RegionalUser" if Admin.const_defined?("RegionalUser")
 
-    ActiveRecord::Base.connection.instance_eval do
+    ActiveRecord::Base.lease_connection.instance_eval do
       remove_column :admin_users, :region_id if column_exists?(:admin_users, :region_id)
       drop_table :admin_regions, if_exists: true
     end
@@ -365,6 +375,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal id, cpk_book.order_id
   end
 
+  def test_belongs_to_with_explicit_composite_primary_key
+    cpk_book = cpk_books(:cpk_great_author_first_book)
+    order = cpk_book.build_order_explicit_fk_pk
+    order.shop_id = 123
+    cpk_book.save
+
+    shop_id, id = order.id
+    assert_equal id, cpk_book.order_id
+    assert_equal shop_id, cpk_book.shop_id
+    assert_equal order, cpk_book.reload.order_explicit_fk_pk
+  end
+
   def test_belongs_to_with_inverse_association_for_composite_primary_key
     author = Cpk::Author.new(name: "John")
     book = author.books.build(id: [nil, 1], title: "The Rails Way")
@@ -384,6 +406,32 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     order.save!
 
     assert_equal 3, book.shop_id
+  end
+
+  def test_clearing_optional_cpk_belongs_to_should_preserve_shared_pk
+    book = Cpk::Book.create!(id: [1, 2], title: "The Well-Grounded Rubyist")
+    chapter = Cpk::OptionalChapter.create!(id: [1, 2], book: book)
+
+    assert_equal book, chapter.book
+    assert_equal [1, 2], chapter.id
+
+    chapter.update!(book: nil)
+
+    assert_equal [1, 2], chapter.id
+    assert_nil chapter.book_id
+    assert_equal chapter.author_id, book.author_id
+  end
+
+  def test_should_reload_association_on_model_with_query_constraints_when_foreign_key_changes
+    blog = Sharded::Blog.create!
+    blog_post = Sharded::BlogPost.create!(blog: blog)
+    comment = Sharded::Comment.create!(blog: blog)
+
+    # Load the association once
+    comment.blog_post
+    comment.blog_post_id = blog_post.id
+
+    assert_equal blog_post, comment.blog_post
   end
 
   def test_building_the_belonging_object_with_implicit_sti_base_class
@@ -445,7 +493,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Company.where(id: odegy_account.firm_id).update_all(name: "ODEGY")
     assert_equal "Odegy", odegy_account.firm.name
 
-    assert_queries(1) { odegy_account.reload_firm }
+    assert_queries_count(1) { odegy_account.reload_firm }
 
     assert_no_queries { odegy_account.firm }
     assert_equal "ODEGY", odegy_account.firm.name
@@ -454,7 +502,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_reload_the_belonging_object_with_query_cache
     odegy_account_id = accounts(:odegy_account).id
 
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
     connection.enable_query_cache!
     connection.clear_query_cache
 
@@ -467,12 +515,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, connection.query_cache.size
 
     # Clear the cache and fetch the firm again, populating the cache with a query
-    assert_queries(1) { odegy_account.reload_firm }
+    assert_queries_count(1) { odegy_account.reload_firm }
 
     # This query is not cached anymore, so it should make a real SQL query
-    assert_queries(1) { Account.find(odegy_account_id) }
+    assert_queries_count(1) { Account.find(odegy_account_id) }
   ensure
-    ActiveRecord::Base.connection.disable_query_cache!
+    ActiveRecord::Base.lease_connection.disable_query_cache!
   end
 
   def test_resetting_the_association
@@ -483,7 +531,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal "Odegy", odegy_account.firm.name
 
     assert_no_queries { odegy_account.reset_firm }
-    assert_queries(1) { odegy_account.firm }
+    assert_queries_count(1) { odegy_account.firm }
     assert_equal "ODEGY", odegy_account.firm.name
   end
 
@@ -711,7 +759,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to_counter_after_save
     topic = Topic.create!(title: "monday night")
 
-    assert_queries(2) do
+    assert_queries_count(4) do
       topic.replies.create!(title: "re: monday night", content: "football")
     end
 
@@ -748,7 +796,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     debate.touch(time: time)
     debate2.touch(time: time)
 
-    assert_queries(3) do
+    assert_queries_count(5) do
       reply.parent_title = "debate"
       reply.save!
     end
@@ -759,7 +807,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     debate.touch(time: time)
     debate2.touch(time: time)
 
-    assert_queries(3) do
+    assert_queries_count(5) do
       reply.topic_with_primary_key = debate2
       reply.save!
     end
@@ -772,7 +820,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     line_item = LineItem.create!
     Invoice.create!(line_items: [line_item])
 
-    assert_queries(1) { line_item.touch }
+    assert_queries_count(3) { line_item.touch }
   end
 
   def test_belongs_to_with_touch_on_multiple_records
@@ -780,14 +828,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     line_item2 = LineItem.create!(amount: 2)
     Invoice.create!(line_items: [line_item, line_item2])
 
-    assert_queries(1) do
+    assert_queries_count(3) do
       LineItem.transaction do
         line_item.touch
         line_item2.touch
       end
     end
 
-    assert_queries(2) do
+    assert_queries_count(6) do
       line_item.touch
       line_item2.touch
     end
@@ -812,14 +860,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     line_item.invoice = nil
 
-    assert_queries(2) { line_item.touch }
+    assert_queries_count(4) { line_item.touch }
   end
 
   def test_belongs_to_with_touch_option_on_update
     line_item = LineItem.create!
     Invoice.create!(line_items: [line_item])
 
-    assert_queries(2) { line_item.update amount: 10 }
+    assert_queries_count(4) { line_item.update amount: 10 }
   end
 
   def test_belongs_to_with_touch_option_on_empty_update
@@ -833,7 +881,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     line_item = LineItem.create!
     Invoice.create!(line_items: [line_item])
 
-    assert_queries(2) { line_item.destroy }
+    assert_queries_count(4) { line_item.destroy }
   end
 
   def test_belongs_to_with_touch_option_on_destroy_with_destroyed_parent
@@ -841,7 +889,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     invoice   = Invoice.create!(line_items: [line_item])
     invoice.destroy
 
-    assert_queries(1) { line_item.destroy }
+    assert_queries_count(3) { line_item.destroy }
   end
 
   def test_belongs_to_with_touch_option_on_touch_and_reassigned_parent
@@ -850,7 +898,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     line_item.invoice = Invoice.create!
 
-    assert_queries(3) { line_item.touch }
+    assert_queries_count(5) { line_item.touch }
   end
 
   def test_belongs_to_counter_after_update
@@ -927,7 +975,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_dont_find_target_when_saving_foreign_key_after_stale_association_loaded
     client = Client.create!(name: "Test client", firm_with_basic_id: Firm.find(1))
     client.firm_id = Firm.create!(name: "Test firm").id
-    assert_queries(1) { client.save! }
+    assert_queries_count(3) { client.save! }
   end
 
   def test_field_name_same_as_foreign_key
@@ -1141,8 +1189,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_proxy_should_respond_to_private_methods_via_send
-    companies(:first_firm).send(:private_method)
-    companies(:second_client).firm.send(:private_method)
+    assert_nothing_raised do
+      companies(:first_firm).send(:private_method)
+      companies(:second_client).firm.send(:private_method)
+    end
   end
 
   def test_save_of_record_with_loaded_belongs_to
@@ -1416,6 +1466,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_equal touch_time, car.reload.wheels_owned_at
+  end
+
+  def test_polymorphic_stale_state_handles_nil_foreign_keys_correctly
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "records"
+
+      has_one :attachment, as: :record
+
+      def self.polymorphic_name
+        "Blob"
+      end
+    end
+
+    assert_nothing_raised { Attachment.create!(record: klass.build, record_type: "Document") }
   end
 
   def test_build_with_conditions
@@ -1734,14 +1798,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ship = ShipRequired.create!(name: "Medusa", developer: david)
     assert_equal david, ship.developer
 
-    assert_queries(2) do # UPDATE and SELECT to check developer presence
+    assert_queries_count(4) do # UPDATE and SELECT to check developer presence
       ship.update!(developer_id: jamis.id)
     end
 
     ship.update_column(:developer_id, nil)
     ship.reload
 
-    assert_queries(2) do # UPDATE and SELECT to check developer presence
+    assert_queries_count(4) do # UPDATE and SELECT to check developer presence
       ship.update!(developer_id: david.id)
     end
   end
@@ -1751,7 +1815,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ship = ShipRequired.create!(name: "Medusa", developer: david)
     ship.reload # unload developer association
 
-    assert_queries(1) do # UPDATE only, no SELECT to check developer presence
+    assert_queries_count(3) do # UPDATE only, no SELECT to check developer presence
       ship.update!(name: "Leviathan")
     end
   end
@@ -1770,7 +1834,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     ship = model.create!(name: "Medusa", developer: david)
     ship.reload # unload developer association
 
-    assert_queries(2) do # UPDATE and SELECT to check developer presence
+    assert_queries_count(4) do # UPDATE and SELECT to check developer presence
       ship.update!(name: "Leviathan")
     end
   ensure
@@ -1821,5 +1885,207 @@ class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
 
     assert_not AuthorAddress.exists?(address.id)
     assert_not Author.exists?(author.id)
+  end
+end
+
+class AsyncBelongsToAssociationsTest < ActiveRecord::TestCase
+  include WaitForAsyncTestHelper
+
+  self.use_transactional_tests = false
+
+  fixtures :companies
+
+  unless in_memory_db?
+    def test_async_load_belongs_to
+      client = Client.find(3)
+      first_firm = companies(:first_firm)
+
+      client.association(:firm).async_load_target
+      wait_for_async_query
+
+      events = []
+      callback = -> (event) do
+        events << event unless event.payload[:name] == "SCHEMA"
+      end
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        client.firm
+      end
+
+      assert_no_queries do
+        assert_equal first_firm, client.firm
+        assert_equal first_firm.name, client.firm.name
+      end
+
+      assert_equal 1, events.size
+      assert_equal true, events.first.payload[:async]
+    end
+  end
+end
+
+class DeprecatedBelongsToAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :cars
+
+  def modify_car_name_directly_in_the_database(car)
+    new_name = "#{car.name} edited"
+    DATS::Car.connection.execute("UPDATE cars SET name = '#{new_name}'")
+    new_name
+  end
+
+  setup do
+    @model = DATS::Bulb
+    @car = DATS::Car.first
+    @bulb = @car.create_bulb!(name: "for belongs_to deprecated test suite")
+  end
+
+  test "<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.car
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:deprecated_car)) do
+      assert_equal @car, @bulb.deprecated_car
+    end
+  end
+
+  test "<association>=" do
+    car = DATS::Car.new
+
+    assert_not_deprecated_association(:car) do
+      @bulb.car = car
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:deprecated_car=)) do
+      @bulb.deprecated_car = car
+    end
+    assert_same car, @bulb.deprecated_car
+  end
+
+  test "reload_<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.reload_car
+    end
+
+    deprecated_car = @bulb.deprecated_car # caches the associated object
+    new_name = modify_car_name_directly_in_the_database(deprecated_car)
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:reload_deprecated_car)) do
+      assert_equal new_name, @bulb.reload_deprecated_car.name
+    end
+  end
+
+  test "reset_<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.reset_car
+    end
+
+    deprecated_car = @bulb.deprecated_car # caches the associated object
+    new_name = modify_car_name_directly_in_the_database(deprecated_car)
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:reset_deprecated_car)) do
+      @bulb.reset_deprecated_car
+    end
+
+    assert_equal new_name, @bulb.deprecated_car.name
+  end
+
+  test "build_<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.build_car
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:build_deprecated_car)) do
+      assert_instance_of DATS::Car, @bulb.build_deprecated_car
+    end
+  end
+
+  test "create_<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.create_car
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:create_deprecated_car)) do
+      assert_predicate @bulb.create_deprecated_car, :persisted?
+    end
+  end
+
+  test "create_<association>!" do
+    assert_not_deprecated_association(:car) do
+      @bulb.create_car!
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:create_deprecated_car!)) do
+      assert_predicate @bulb.create_deprecated_car!, :persisted?
+    end
+  end
+
+  test "<association>_changed?" do
+    assert_not_deprecated_association(:car) do
+      @bulb.car_changed?
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:deprecated_car_changed?)) do
+      assert_not_predicate @bulb, :deprecated_car_changed?
+    end
+  end
+
+  test "<association>_previously_changed?" do
+    assert_not_deprecated_association(:car) do
+      @bulb.car_previously_changed?
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:deprecated_car_previously_changed?)) do
+      assert_predicate @bulb, :deprecated_car_previously_changed?
+    end
+  end
+
+  test "parent destroy (not deprecated)" do
+    assert_not_deprecated_association(:car) do
+      @bulb.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+
+  test "parent destroy (deprecated)" do
+    assert_deprecated_association(:deprecated_car, context: context_for_dependent) do
+      @bulb.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+
+  test "touch notifies on creation (not deprecated)" do
+    assert_not_deprecated_association(:car) do
+      @car.create_bulb!(name: "for belongs_to deprecated test suite")
+    end
+  end
+
+  test "touch notifies on creation (deprecated)" do
+    assert_deprecated_association(:deprecated_car, context: context_for_touch) do
+      @car.create_bulb!(name: "for belongs_to deprecated test suite")
+    end
+  end
+
+  test "touch notifies on update" do
+    assert_not_deprecated_association(:car) do
+      @bulb.update(name: "#{@bulb.name} edited")
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_touch) do
+      assert @bulb.update(name: "#{@bulb.name} again")
+    end
+  end
+
+  test "touch notifies on destroy (not deprecated)" do
+    assert_not_deprecated_association(:car) do
+      @bulb.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+
+  test "touch notifies on destroy (deprecated)" do
+    assert_deprecated_association(:deprecated_car, context: context_for_touch) do
+      @bulb.destroy
+    end
+    assert_predicate @car, :destroyed?
   end
 end

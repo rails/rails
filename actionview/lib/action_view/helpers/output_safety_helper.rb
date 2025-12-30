@@ -24,11 +24,11 @@ module ActionView # :nodoc:
       # the supplied separator, are HTML escaped unless they are HTML
       # safe, and the returned string is marked as HTML safe.
       #
-      #   safe_join([raw("<p>foo</p>"), "<p>bar</p>"], "<br />")
-      #   # => "<p>foo</p>&lt;br /&gt;&lt;p&gt;bar&lt;/p&gt;"
+      #   safe_join([tag.p("foo"), "<p>bar</p>"], "<br>")
+      #   # => "<p>foo</p>&lt;br&gt;&lt;p&gt;bar&lt;/p&gt;"
       #
-      #   safe_join([raw("<p>foo</p>"), raw("<p>bar</p>")], raw("<br />"))
-      #   # => "<p>foo</p><br /><p>bar</p>"
+      #   safe_join([tag.p("foo"), tag.p("bar")], tag.br)
+      #   # => "<p>foo</p><br><p>bar</p>"
       #
       def safe_join(array, sep = $,)
         sep = ERB::Util.unwrapped_html_escape(sep)
@@ -38,8 +38,7 @@ module ActionView # :nodoc:
 
       # Converts the array to a comma-separated sentence where the last element is
       # joined by the connector word. This is the html_safe-aware version of
-      # ActiveSupport's {Array#to_sentence}[https://api.rubyonrails.org/classes/Array.html#method-i-to_sentence].
-      #
+      # ActiveSupport's Array#to_sentence.
       def to_sentence(array, options = {})
         options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
 

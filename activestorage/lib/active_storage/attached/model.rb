@@ -61,28 +61,38 @@ module ActiveStorage
       # There is no column defined on the model side, Active Storage takes
       # care of the mapping between your records and the attachment.
       #
-      # To avoid N+1 queries, you can include the attached blobs in your query like so:
-      #
-      #   User.with_attached_avatar
-      #
-      # Under the covers, this relationship is implemented as a +has_one+ association to a
-      # ActiveStorage::Attachment record and a +has_one-through+ association to a
+      # Under the covers, this relationship is implemented as a +has_one+ association to an
+      # ActiveStorage::Attachment record and a +has_one-through+ association to an
       # ActiveStorage::Blob record. These associations are available as +avatar_attachment+
       # and +avatar_blob+. But you shouldn't need to work with these associations directly in
       # most circumstances.
       #
-      # The system has been designed to having you go through the ActiveStorage::Attached::One
-      # proxy that provides the dynamic proxy to the associations and factory methods, like +attach+.
+      # Instead, +has_one_attached+ generates an ActiveStorage::Attached::One proxy to
+      # provide access to the associations and factory methods, like +attach+:
       #
-      # If the +:dependent+ option isn't set, the attachment will be purged
-      # (i.e. destroyed) whenever the record is destroyed.
+      #   user.avatar.attach(uploaded_file)
+      #
+      # The +:dependent+ option defaults to +:purge_later+. This means the attachment will be
+      # purged (i.e. destroyed) in the background whenever the record is destroyed.
+      # If an ActiveJob::Backend queue adapter is not set in the application set it to
+      # +purge+ instead.
       #
       # If you need the attachment to use a service which differs from the globally configured one,
-      # pass the +:service+ option. For instance:
+      # pass the +:service+ option. For example:
       #
       #   class User < ActiveRecord::Base
       #     has_one_attached :avatar, service: :s3
       #   end
+      #
+      # +:service+ can also be specified as a proc, and it will be called with the model instance:
+      #
+      #   class User < ActiveRecord::Base
+      #     has_one_attached :avatar, service: ->(user) { user.in_europe_region? ? :s3_europe : :s3_usa }
+      #   end
+      #
+      # To avoid N+1 queries, you can include the attached blobs in your query like so:
+      #
+      #   User.with_attached_avatar
       #
       # If you need to enable +strict_loading+ to prevent lazy loading of attachment,
       # pass the +:strict_loading+ option. You can do:
@@ -91,8 +101,25 @@ module ActiveStorage
       #     has_one_attached :avatar, strict_loading: true
       #   end
       #
-      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
-        validate_service_configuration(name, service)
+      # Pass the +analyze:+ option to control when analysis is performed:
+      #
+      #   class User < ApplicationRecord
+      #     has_one_attached :avatar, analyze: :immediately
+      #   end
+      #
+      # Valid values are:
+      # - +:immediately+ - Analyze before validation, making metadata available for validations
+      # - +:later+ (default) - Analyze in a background job after attachment
+      # - +:lazily+ - Skip automatic analysis; analyze on-demand when metadata is accessed
+      #
+      # The default can be changed globally with <tt>config.active_storage.analyze = :immediately</tt>.
+      #
+      # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
+      # When renaming classes that use <tt>has_one_attached</tt>, make sure to also update the class names in the
+      # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
+      # the corresponding rows.
+      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil)
+        Attached::Model.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
@@ -116,11 +143,16 @@ module ActiveStorage
 
         scope :"with_attached_#{name}", -> {
           if ActiveStorage.track_variants
-            includes("#{name}_attachment": { blob: { variant_records: { image_attachment: :blob } } })
+            includes("#{name}_attachment": { blob: {
+              variant_records: { image_attachment: :blob },
+              preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
+            } })
           else
             includes("#{name}_attachment": :blob)
           end
         }
+
+        before_validation { attachment_changes[name.to_s]&.analyze }
 
         after_save { attachment_changes[name.to_s]&.save }
 
@@ -130,7 +162,7 @@ module ActiveStorage
           :has_one_attached,
           name,
           nil,
-          { dependent: dependent, service_name: service },
+          { dependent: dependent, service_name: service, analyze: analyze },
           self
         )
         yield reflection if block_given?
@@ -146,28 +178,38 @@ module ActiveStorage
       # There are no columns defined on the model side, Active Storage takes
       # care of the mapping between your records and the attachments.
       #
-      # To avoid N+1 queries, you can include the attached blobs in your query like so:
-      #
-      #   Gallery.where(user: Current.user).with_attached_photos
-      #
-      # Under the covers, this relationship is implemented as a +has_many+ association to a
-      # ActiveStorage::Attachment record and a +has_many-through+ association to a
+      # Under the covers, this relationship is implemented as a +has_many+ association to an
+      # ActiveStorage::Attachment record and a +has_many-through+ association to an
       # ActiveStorage::Blob record. These associations are available as +photos_attachments+
       # and +photos_blobs+. But you shouldn't need to work with these associations directly in
       # most circumstances.
       #
-      # The system has been designed to having you go through the ActiveStorage::Attached::Many
-      # proxy that provides the dynamic proxy to the associations and factory methods, like +#attach+.
+      # Instead, +has_many_attached+ generates an ActiveStorage::Attached::Many proxy to
+      # provide access to the associations and factory methods, like +attach+:
       #
-      # If the +:dependent+ option isn't set, all the attachments will be purged
-      # (i.e. destroyed) whenever the record is destroyed.
+      #   user.photos.attach(uploaded_file)
+      #
+      # The +:dependent+ option defaults to +:purge_later+. This means the attachments will be
+      # purged (i.e. destroyed) in the background whenever the record is destroyed.
+      # If an ActiveJob::Backend queue adapter is not set in the application set it to
+      # +purge+ instead.
       #
       # If you need the attachment to use a service which differs from the globally configured one,
-      # pass the +:service+ option. For instance:
+      # pass the +:service+ option. For example:
       #
       #   class Gallery < ActiveRecord::Base
       #     has_many_attached :photos, service: :s3
       #   end
+      #
+      # +:service+ can also be specified as a proc, and it will be called with the model instance:
+      #
+      #   class Gallery < ActiveRecord::Base
+      #     has_many_attached :photos, service: ->(gallery) { gallery.personal? ? :personal_s3 : :s3 }
+      #   end
+      #
+      # To avoid N+1 queries, you can include the attached blobs in your query like so:
+      #
+      #   Gallery.where(user: Current.user).with_attached_photos
       #
       # If you need to enable +strict_loading+ to prevent lazy loading of attachments,
       # pass the +:strict_loading+ option. You can do:
@@ -176,8 +218,20 @@ module ActiveStorage
       #     has_many_attached :photos, strict_loading: true
       #   end
       #
-      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
-        validate_service_configuration(name, service)
+      # Pass the +analyze:+ option to control when analysis is performed:
+      #
+      #   class Gallery < ApplicationRecord
+      #     has_many_attached :photos, analyze: :immediately
+      #   end
+      #
+      # See +has_one_attached+ for available values and details.
+      #
+      # Note: Active Storage relies on polymorphic associations, which in turn store class names in the database.
+      # When renaming classes that use <tt>has_many</tt>, make sure to also update the class names in the
+      # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
+      # the corresponding rows.
+      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil)
+        Attached::Model.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
@@ -203,11 +257,16 @@ module ActiveStorage
 
         scope :"with_attached_#{name}", -> {
           if ActiveStorage.track_variants
-            includes("#{name}_attachments": { blob: { variant_records: { image_attachment: :blob } } })
+            includes("#{name}_attachments": { blob: {
+              variant_records: { image_attachment: :blob },
+              preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
+            } })
           else
             includes("#{name}_attachments": :blob)
           end
         }
+
+        before_validation { attachment_changes[name.to_s]&.analyze }
 
         after_save { attachment_changes[name.to_s]&.save }
 
@@ -217,26 +276,28 @@ module ActiveStorage
           :has_many_attached,
           name,
           nil,
-          { dependent: dependent, service_name: service },
+          { dependent: dependent, service_name: service, analyze: analyze },
           self
         )
         yield reflection if block_given?
         ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
       end
+    end
+
+    class << self
+      def validate_service_configuration(service_name, model_class, association_name) # :nodoc:
+        if service_name
+          ActiveStorage::Blob.services.fetch(service_name) do
+            raise ArgumentError, "Cannot configure service #{service_name.inspect} for #{model_class}##{association_name}"
+          end
+        else
+          validate_global_service_configuration(model_class)
+        end
+      end
 
       private
-        def validate_service_configuration(association_name, service)
-          if service.present?
-            ActiveStorage::Blob.services.fetch(service) do
-              raise ArgumentError, "Cannot configure service :#{service} for #{name}##{association_name}"
-            end
-          else
-            validate_global_service_configuration
-          end
-        end
-
-        def validate_global_service_configuration
-          if connected? && ActiveStorage::Blob.table_exists? && Rails.configuration.active_storage.service.nil?
+        def validate_global_service_configuration(model_class)
+          if model_class.connected? && ActiveStorage::Blob.table_exists? && Rails.configuration.active_storage.service.nil?
             raise RuntimeError, "Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config/environments/#{Rails.env}.rb"
           end
         end

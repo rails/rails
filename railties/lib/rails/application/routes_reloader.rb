@@ -1,22 +1,23 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/delegation"
 
 module Rails
   class Application
     class RoutesReloader
       include ActiveSupport::Callbacks
 
-      attr_reader :route_sets, :paths, :external_routes
+      attr_reader :route_sets, :paths, :external_routes, :loaded
       attr_accessor :eager_load
-      attr_writer :run_after_load_paths # :nodoc:
-      delegate :execute_if_updated, :execute, :updated?, to: :updater
+      attr_writer :run_after_load_paths, :loaded # :nodoc:
+      delegate :execute_if_updated, :updated?, to: :updater
 
-      def initialize
+      def initialize(file_watcher: ActiveSupport::FileUpdateChecker)
         @paths      = []
         @route_sets = []
         @external_routes = []
         @eager_load = false
+        @loaded = false
+        @file_watcher = file_watcher
       end
 
       def reload!
@@ -28,6 +29,19 @@ module Rails
         revert
       end
 
+      def execute
+        @loaded = true
+        updater.execute
+      end
+
+      def execute_unless_loaded
+        unless @loaded
+          execute
+          ActiveSupport.run_load_hooks(:after_routes_loaded, Rails.application)
+          true
+        end
+      end
+
     private
       def updater
         @updater ||= begin
@@ -35,7 +49,7 @@ module Rails
             hash[dir.to_s] = %w(rb)
           end
 
-          ActiveSupport::FileUpdateChecker.new(paths, dirs) { reload! }
+          @file_watcher.new(paths, dirs) { reload! }
         end
       end
 

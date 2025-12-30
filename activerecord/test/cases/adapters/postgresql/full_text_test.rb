@@ -8,7 +8,7 @@ class PostgresqlFullTextTest < ActiveRecord::PostgreSQLTestCase
   class Tsvector < ActiveRecord::Base; end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table("tsvectors") do |t|
       t.tsvector "text_vector"
     end

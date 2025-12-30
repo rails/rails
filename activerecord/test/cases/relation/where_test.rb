@@ -124,7 +124,7 @@ module ActiveRecord
       assert_match(/Expected corresponding value for.*to be an Array/, error.message)
 
       error = assert_raise ArgumentError do
-        Cpk::Book.where([:one] => 1)
+        Cpk::Book.where([:one, :two] => 1)
       end
 
       assert_match(/Expected corresponding value for.*to be an Array/, error.message)
@@ -137,6 +137,25 @@ module ActiveRecord
       assert_equal [book_one, book_two].sort, Cpk::Book.where(title: "The Alchemist").sort
       assert_equal [book_one, book_two].sort, Cpk::Book.where(title: "The Alchemist", [:author_id, :id] => [[1, 2], [3, 4]]).sort
       assert_equal [book_two], Cpk::Book.where(title: "The Alchemist", [:author_id, :id] => [[3, 4]])
+    end
+
+    def test_with_tuple_syntax_and_large_values_list
+      # sqlite3 raises "Expression tree is too large (maximum depth 1000)"
+      skip if current_adapter?(:SQLite3Adapter)
+
+      assert_nothing_raised do
+        ids = [[1, 2]] * 1500
+        Cpk::Book.where([:author_id, :id] => ids).to_sql
+      end
+    end
+
+    def test_where_with_nil_cpk_association
+      order = Cpk::Order.create!(id: [1, 2])
+      book = order.books.create!(id: [3, 4])
+      assert_includes Cpk::Book.where(order: order), book
+
+      book.update!(order: nil)
+      assert_includes Cpk::Book.where(order: nil), book
     end
 
     def test_belongs_to_shallow_where
@@ -309,8 +328,8 @@ module ActiveRecord
           model.is_a?(klass)
         end
 
-        def method_missing(method, *args, &block)
-          model.send(method, *args, &block)
+        def method_missing(...)
+          model.send(...)
         end
       end
 
@@ -418,7 +437,7 @@ module ActiveRecord
     def test_where_on_association_with_relation_performs_subselect_not_two_queries
       author = authors(:david)
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         Essay.where(writer: Author.where(id: author.id)).to_a
       end
     end

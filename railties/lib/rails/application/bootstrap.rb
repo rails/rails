@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
 require "fileutils"
-require "set"
 require "active_support/notifications"
 require "active_support/dependencies"
 require "active_support/descendants_tracker"
-require "rails/secrets"
 
 module Rails
   class Application
@@ -54,17 +52,28 @@ module Rails
           )
           logger
         end
-        Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
 
-        unless Rails.logger.is_a?(ActiveSupport::BroadcastLogger)
-          broadcast_logger = ActiveSupport::BroadcastLogger.new(Rails.logger)
-          broadcast_logger.formatter = Rails.logger.formatter
-          Rails.logger = broadcast_logger
+        if Rails.logger.is_a?(ActiveSupport::BroadcastLogger)
+          if config.broadcast_log_level
+            Rails.logger.level = ActiveSupport::Logger.const_get(config.broadcast_log_level.to_s.upcase)
+          end
+        else
+          Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
+          Rails.logger = ActiveSupport::BroadcastLogger.new(Rails.logger)
         end
+      end
 
-        unless config.consider_all_requests_local
+      initializer :initialize_error_reporter, group: :all do
+        if config.consider_all_requests_local
+          Rails.error.debug_mode = true
+        else
           Rails.error.logger = Rails.logger
         end
+      end
+
+      initializer :initialize_event_reporter, group: :all do
+        Rails.event.raise_on_error = config.consider_all_requests_local
+        Rails.event.debug_mode = config.log_level.to_s == "debug"
       end
 
       # Initialize cache early in the stack so railties can make use of it.
@@ -105,10 +114,6 @@ module Rails
 
       initializer :bootstrap_hook, group: :all do |app|
         ActiveSupport.run_load_hooks(:before_initialize, app)
-      end
-
-      initializer :set_secrets_root, group: :all do
-        Rails::Secrets.root = root
       end
     end
   end

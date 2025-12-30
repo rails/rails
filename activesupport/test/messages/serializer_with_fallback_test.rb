@@ -64,17 +64,18 @@ class MessagesSerializerWithFallbackTest < ActiveSupport::TestCase
     value = { "foo" => "bar" }
     dumped = serializer(:json).dump(value)
 
-    payloads = []
-    callback = -> (*args) { payloads << args.extract_options! }
-    ActiveSupport::Notifications.subscribed(callback, "message_serializer_fallback.active_support") do
-      serializer(:marshal).load(dumped)
-    end
+    expected_payload = {
+      serializer: :marshal,
+      fallback: :json,
+      serialized: dumped,
+      deserialized: value,
+    }
 
-    assert_equal 1, payloads.length
-    assert_equal :marshal, payloads.first[:serializer]
-    assert_equal :json, payloads.first[:fallback]
-    assert_equal dumped, payloads.first[:serialized]
-    assert_equal value, payloads.first[:deserialized]
+    assert_notifications_count("message_serializer_fallback.active_support", 1) do
+      assert_notification("message_serializer_fallback.active_support", expected_payload) do
+        serializer(:marshal).load(dumped)
+      end
+    end
   end
 
   test "raises on invalid format name" do

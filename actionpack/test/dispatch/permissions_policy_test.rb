@@ -39,16 +39,6 @@ class PermissionsPolicyTest < ActiveSupport::TestCase
 
     assert_equal "Invalid HTTP permissions policy source: [:non_existent]", exception.message
   end
-
-  def test_deprecated_directives
-    assert_deprecated(ActionDispatch.deprecator) { @policy.speaker :self }
-    assert_deprecated(ActionDispatch.deprecator) { @policy.vibrate :self }
-    assert_deprecated(ActionDispatch.deprecator) { @policy.vr :self }
-
-    assert_not_deprecated(ActionDispatch.deprecator) do
-      assert_equal "speaker 'self'; vibrate 'self'; vr 'self'", @policy.build
-    end
-  end
 end
 
 class PermissionsPolicyMiddlewareTest < ActionDispatch::IntegrationTest
@@ -79,12 +69,12 @@ class PermissionsPolicyMiddlewareTest < ActionDispatch::IntegrationTest
     assert_equal "gyroscope 'self'", response.headers[ActionDispatch::Constants::FEATURE_POLICY]
   end
 
-  test "non-html requests will not set a policy" do
+  test "non-html requests will set a policy" do
     @app = build_app(->(env) { [200, { Rack::CONTENT_TYPE => "application/json" }, []] })
 
     get "/index"
 
-    assert_nil response.headers[ActionDispatch::Constants::FEATURE_POLICY]
+    assert_equal "gyroscope 'self'", response.headers[ActionDispatch::Constants::FEATURE_POLICY]
   end
 
   test "existing policies will not be overwritten" do
@@ -191,18 +181,6 @@ class PermissionsPolicyIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   private
-    def env_config
-      Rails.application.env_config
-    end
-
-    def permissions_policy
-      env_config["action_dispatch.permissions_policy"]
-    end
-
-    def permissions_policy=(policy)
-      env_config["action_dispatch.permissions_policy"] = policy
-    end
-
     def assert_policy(expected)
       assert_response :success
       assert_equal expected, response.headers["Feature-Policy"]
@@ -275,18 +253,6 @@ class PermissionsPolicyWithHelpersIntegrationTest < ActionDispatch::IntegrationT
   end
 
   private
-    def env_config
-      Rails.application.env_config
-    end
-
-    def permissions_policy
-      env_config["action_dispatch.permissions_policy"]
-    end
-
-    def permissions_policy=(policy)
-      env_config["action_dispatch.permissions_policy"] = policy
-    end
-
     def assert_policy(expected)
       assert_response :success
       assert_equal expected, response.headers[ActionDispatch::Constants::FEATURE_POLICY]

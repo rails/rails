@@ -4,7 +4,6 @@ require "active_support/code_generator"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/inflections"
-require "set"
 require "action_view/helpers/capture_helper"
 require "action_view/helpers/output_safety_helper"
 
@@ -45,35 +44,37 @@ module ActionView
       PRE_CONTENT_STRINGS["textarea"] = "\n"
 
       class TagBuilder # :nodoc:
-        include CaptureHelper
-        include OutputSafetyHelper
+        def self.define_element(name, code_generator:, method_name: name)
+          return if method_defined?(name)
 
-        def self.define_element(name, code_generator:, method_name: name.to_s.underscore)
-          code_generator.define_cached_method(method_name, namespace: :tag_builder) do |batch|
-            batch.push(<<~RUBY) unless instance_methods.include?(method_name.to_sym)
-              def #{method_name}(content = nil, escape: true, **options, &block)
-                tag_string(#{name.inspect}, content, escape: escape, **options, &block)
-              end
-            RUBY
+          code_generator.class_eval do |batch|
+            batch << "\n" <<
+              "def #{method_name}(content = nil, escape: true, **options, &block)" <<
+              "  tag_string(#{name.inspect}, content, options, escape: escape, &block)" <<
+              "end"
           end
         end
 
-        def self.define_void_element(name, code_generator:, method_name: name.to_s.underscore, self_closing: false)
-          code_generator.define_cached_method(method_name, namespace: :tag_builder) do |batch|
-            batch.push(<<~RUBY)
-              def #{method_name}(content = nil, escape: true, **options, &block)
-                if content || block
-                  tag_string(#{name.inspect}, content, escape: escape, **options, &block)
-                else
-                  void_tag_string(#{name.inspect}, options, escape, #{self_closing})
-                end
-              end
-            RUBY
+        def self.define_void_element(name, code_generator:, method_name: name)
+          code_generator.class_eval do |batch|
+            batch << "\n" <<
+              "def #{method_name}(escape: true, **options, &block)" <<
+              "  self_closing_tag_string(#{name.inspect}, options, escape, '>')" <<
+              "end"
           end
         end
 
-        def self.define_self_closing_element(name, **options)
-          define_void_element(name, self_closing: true, **options)
+        def self.define_self_closing_element(name, code_generator:, method_name: name)
+          code_generator.class_eval do |batch|
+            batch << "\n" <<
+              "def #{method_name}(content = nil, escape: true, **options, &block)" <<
+              "  if content || block" <<
+              "    tag_string(#{name.inspect}, content, options, escape: escape, &block)" <<
+              "  else" <<
+              "   self_closing_tag_string(#{name.inspect}, options, escape)" <<
+              "  end" <<
+              "end"
+          end
         end
 
         ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
@@ -93,8 +94,8 @@ module ActionView
           define_void_element :wbr, code_generator: code_generator
 
           define_self_closing_element :animate, code_generator: code_generator
-          define_self_closing_element :animateMotion, code_generator: code_generator
-          define_self_closing_element :animateTransform, code_generator: code_generator
+          define_self_closing_element :animateMotion, code_generator: code_generator, method_name: :animate_motion
+          define_self_closing_element :animateTransform, code_generator: code_generator, method_name: :animate_transform
           define_self_closing_element :circle, code_generator: code_generator
           define_self_closing_element :ellipse, code_generator: code_generator
           define_self_closing_element :line, code_generator: code_generator
@@ -222,26 +223,16 @@ module ActionView
           tag_options(attributes.to_h).to_s.strip.html_safe
         end
 
-        def tag_string(name, content = nil, escape: true, **options, &block)
-          content = @view_context.capture(self, &block) if block
-
-          content_tag_string(name, content, options, escape)
-        end
-
-        def void_tag_string(name, options, escape = true, self_closing = false)
-          "<#{name}#{tag_options(options, escape)}#{self_closing ? " />" : ">"}".html_safe
-        end
-
-        def content_tag_string(name, content, options, escape = true)
+        def content_tag_string(name, content, options, escape = true) # :nodoc:
           tag_options = tag_options(options, escape) if options
 
-          if escape
+          if escape && content.present?
             content = ERB::Util.unwrapped_html_escape(content)
           end
           "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
         end
 
-        def tag_options(options, escape = true)
+        def tag_options(options, escape = true) # :nodoc:
           return if options.blank?
           output = +""
           sep    = " "
@@ -262,7 +253,7 @@ module ActionView
                   tokens = TagHelper.build_tag_values(v)
                   next if tokens.none?
 
-                  v = safe_join(tokens, " ")
+                  v = @view_context.safe_join(tokens, " ")
                 else
                   v = v.to_s
                 end
@@ -283,28 +274,42 @@ module ActionView
           output unless output.empty?
         end
 
-        def boolean_tag_option(key)
-          %(#{key}="#{key}")
-        end
-
-        def tag_option(key, value, escape)
-          key = ERB::Util.xml_name_escape(key) if escape
-
-          case value
-          when Array, Hash
-            value = TagHelper.build_tag_values(value) if key.to_s == "class"
-            value = escape ? safe_join(value, " ") : value.join(" ")
-          when Regexp
-            value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
-          else
-            value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
-          end
-          value = value.gsub('"', "&quot;") if value.include?('"')
-
-          %(#{key}="#{value}")
-        end
-
         private
+          def tag_string(name, content = nil, options, escape: true, &block)
+            if content && block_given?
+              content += @view_context.capture(self, &block)
+            elsif block_given?
+              content = @view_context.capture(self, &block)
+            end
+
+            content_tag_string(name, content, options, escape)
+          end
+
+          def self_closing_tag_string(name, options, escape = true, tag_suffix = " />")
+            "<#{name}#{tag_options(options, escape)}#{tag_suffix}".html_safe
+          end
+
+          def boolean_tag_option(key)
+            %(#{key}="#{key}")
+          end
+
+          def tag_option(key, value, escape)
+            key = ERB::Util.xml_name_escape(key) if escape
+
+            case value
+            when Array, Hash
+              value = TagHelper.build_tag_values(value) if key.to_s == "class"
+              value = escape ? @view_context.safe_join(value, " ") : value.join(" ")
+            when Regexp
+              value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
+            else
+              value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
+            end
+            value = value.gsub('"', "&quot;") if value.include?('"')
+
+            %(#{key}="#{value}")
+          end
+
           def prefix_tag_option(prefix, key, value, escape)
             key = "#{prefix}-#{key.to_s.dasherize}"
             unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
@@ -317,12 +322,12 @@ module ActionView
             true
           end
 
-          def method_missing(called, *args, **options, &block)
-            name = called.to_s.dasherize
+          def method_missing(called, *args, escape: true, **options, &block)
+            name = called.name.dasherize
 
             TagHelper.ensure_valid_html5_tag_name(name)
 
-            tag_string(name, *args, **options, &block)
+            tag_string(name, *args, options, escape: escape, &block)
           end
       end
 
@@ -402,6 +407,14 @@ module ActionView
       #
       #   # A void element:
       #   tag.br  # => <br>
+      #
+      # Note that when using the block form options should be wrapped in
+      # parenthesis.
+      #
+      #   <%= tag.a(href: "/about", class: "font-bold") do %>
+      #     About the author
+      #   <% end %>
+      #   # => <a href="/about" class="font-bold">About the author</a>
       #
       # === Building HTML attributes
       #

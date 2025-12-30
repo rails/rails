@@ -15,7 +15,9 @@ module ActiveRecord
         elsif @type.serialized?
           value_for_database
         elsif @type.mutable? # If the type is simply mutable, we deep_dup it.
-          @value_before_type_cast = @value_before_type_cast.deep_dup
+          unless @value_before_type_cast.frozen?
+            @value_before_type_cast = @value_before_type_cast.deep_dup
+          end
         end
       end
 
@@ -35,7 +37,7 @@ module ActiveRecord
       def nil?
         unless value_before_type_cast.is_a?(StatementCache::Substitute)
           value_before_type_cast.nil? ||
-            type.respond_to?(:subtype) && serializable? && value_for_database.nil?
+            (type.respond_to?(:subtype) || type.respond_to?(:normalizer)) && serializable? && value_for_database.nil?
         end
       end
 

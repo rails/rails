@@ -24,6 +24,7 @@ require "models/user"
 require "models/room"
 require "models/contract"
 require "models/subscription"
+require "models/subscriber"
 require "models/book"
 require "models/branch"
 require "models/cpk"
@@ -199,6 +200,18 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     assert_equal comment.body, rating.comment.body, "Changing the original Comment's body should change the Comment's body on the association"
   end
 
+  def test_belongs_to_should_find_inverse_has_many_automatically
+    assert_equal true, Subscription.automatically_invert_plural_associations
+
+    book = Book.create!
+    subscriber = book.subscribers.new nick: "Nickname"
+
+    subscriber.save!
+
+    assert_equal [subscriber], book.reload.subscribers
+    assert_equal 1, book.reload.subscribers.count
+  end
+
   def test_polymorphic_and_has_many_through_relationships_should_not_have_inverses
     sponsor_reflection = Sponsor.reflect_on_association(:sponsorable)
 
@@ -213,6 +226,20 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     human_reflection = Human.reflect_on_association(:polymorphic_face_without_inverse)
 
     assert_predicate human_reflection, :has_inverse?
+  end
+
+  def test_has_many_inverse_of_derived_automatically_despite_of_composite_foreign_key
+    car_review_reflection = Cpk::Car.reflect_on_association(:car_reviews)
+
+    assert_predicate car_review_reflection, :has_inverse?
+    assert_equal Cpk::CarReview.reflect_on_association(:car), car_review_reflection.inverse_of
+  end
+
+  def test_belongs_to_inverse_of_derived_automatically_despite_of_composite_foreign_key
+    car_reflection = Cpk::CarReview.reflect_on_association(:car)
+
+    assert_predicate car_reflection, :has_inverse?
+    assert_equal Cpk::Car.reflect_on_association(:car_reviews), car_reflection.inverse_of
   end
 end
 
@@ -391,11 +418,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
       Human.first.confused_face
     }
 
-    if error.respond_to?(:detailed_message)
-      assert_match "Did you mean?", error.detailed_message
-    else
-      assert_match "Did you mean?", error.message
-    end
+    assert_match "Did you mean?", error.detailed_message
     assert_equal "confused_human", error.corrections.first
   end
 end
@@ -885,11 +908,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
       Face.first.confused_human
     }
 
-    if error.respond_to?(:detailed_message)
-      assert_match "Did you mean?", error.detailed_message
-    else
-      assert_match "Did you mean?", error.message
-    end
+    assert_match "Did you mean?", error.detailed_message
     assert_equal "confused_face", error.corrections.first
   end
 

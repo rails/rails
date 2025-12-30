@@ -156,7 +156,7 @@ class RelationScopingTest < ActiveRecord::TestCase
   def test_scoped_find_with_annotation
     Developer.annotate("scoped").scoping do
       developer = nil
-      assert_sql(%r{/\* scoped \*/}) do
+      assert_queries_match(%r{/\* scoped \*/}) do
         developer = Developer.where("name = 'David'").first
       end
       assert_equal "David", developer.name
@@ -370,7 +370,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
 
     Author.where(organization_id: 1).scoping(all_queries: true) do
-      update_scoped_sql = capture_sql { dev.update(name: "Not Eileen") }.first
+      update_scoped_sql = capture_sql { dev.update(name: "Not Eileen") }.second
       assert_match(/organization_id/, update_scoped_sql)
     end
   end

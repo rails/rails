@@ -13,7 +13,7 @@ class Rails::Command::DevTest < ActiveSupport::TestCase
       assert_not File.exist?("tmp/restart.txt")
 
       assert_equal <<~OUTPUT, run_dev_cache_command
-        Development mode is now being cached.
+        Action Controller caching enabled for development mode.
       OUTPUT
 
       assert File.exist?("tmp/caching-dev.txt")
@@ -30,7 +30,7 @@ class Rails::Command::DevTest < ActiveSupport::TestCase
       restart_file_time_before = File.mtime("tmp/restart.txt")
 
       assert_equal <<~OUTPUT, run_dev_cache_command
-        Development mode is now being cached.
+        Action Controller caching enabled for development mode.
       OUTPUT
 
       assert File.exist?("tmp/caching-dev.txt")
@@ -49,7 +49,7 @@ class Rails::Command::DevTest < ActiveSupport::TestCase
       restart_file_time_before = File.mtime("tmp/restart.txt")
 
       assert_equal <<~OUTPUT, run_dev_cache_command
-        Development mode is no longer being cached.
+        Action Controller caching disabled for development mode.
       OUTPUT
 
       assert_not File.exist?("tmp/caching-dev.txt")

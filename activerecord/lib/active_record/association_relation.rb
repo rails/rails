@@ -17,12 +17,12 @@ module ActiveRecord
 
     %w(insert insert_all insert! insert_all! upsert upsert_all).each do |method|
       class_eval <<~RUBY, __FILE__, __LINE__ + 1
-        def #{method}(attributes, **kwargs)
+        def #{method}(...)
           if @association.reflection.through_reflection?
             raise ArgumentError, "Bulk insert or upsert is currently not supported for has_many through association"
           end
 
-          scoping { klass.#{method}(attributes, **kwargs) }
+          super
         end
       RUBY
     end
@@ -43,6 +43,7 @@ module ActiveRecord
       def exec_queries
         super do |record|
           @association.set_inverse_instance_from_queries(record)
+          @association.set_strict_loading(record)
           yield record if block_given?
         end
       end

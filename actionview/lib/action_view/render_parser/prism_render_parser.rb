@@ -84,7 +84,7 @@ module ActionView
 
           # Here we validate that the options have the keys we expect.
           keys = options.keys
-          return if (keys & RENDER_TYPE_KEYS).empty?
+          return if !keys.intersect?(RENDER_TYPE_KEYS)
           return if (keys - ALL_KNOWN_KEYS).any?
 
           # Finally, we can return a valid set of options.
@@ -97,9 +97,21 @@ module ActionView
         def render_call_template(node)
           object_template = false
           template =
-            if node.is_a?(Prism::StringNode)
+            case node.type
+            when :string_node
               path = node.unescaped
               path.include?("/") ? path : "#{directory}/#{path}"
+            when :interpolated_string_node
+              node.parts.map do |node|
+                case node.type
+                when :string_node
+                  node.unescaped
+                when :embedded_statements_node
+                  "*"
+                else
+                  return
+                end
+              end.join("")
             else
               dependency =
                 case node.type

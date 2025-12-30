@@ -68,7 +68,7 @@ module ActiveRecord
 
             def register_array_type(row)
               register_with_subtype(row["oid"], row["typelem"].to_i) do |subtype|
-                OID::Array.new(subtype, row["typdelim"])
+                OID::Array.new(subtype, row["typdelim"].freeze)
               end
             end
 

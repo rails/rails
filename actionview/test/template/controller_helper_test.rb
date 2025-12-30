@@ -8,26 +8,28 @@ class ControllerHelperTest < ActionView::TestCase
   class SpecializedFormBuilder < ActionView::Helpers::FormBuilder ; end
 
   def test_assign_controller_sets_default_form_builder
-    @controller = OpenStruct.new(default_form_builder: SpecializedFormBuilder)
+    @controller = Struct.new(:default_form_builder).new(SpecializedFormBuilder)
     assign_controller(@controller)
 
     assert_equal SpecializedFormBuilder, default_form_builder
   end
 
   def test_assign_controller_skips_default_form_builder
-    @controller = OpenStruct.new
+    @controller = Object.new
     assign_controller(@controller)
 
     assert_nil default_form_builder
   end
 
   def test_respond_to
-    @controller = OpenStruct.new
+    @controller = Object.new
     assign_controller(@controller)
     assert_not respond_to?(:params)
     assert respond_to?(:assign_controller)
 
-    @controller.params = {}
+    def @controller.params
+      {}
+    end
     assert respond_to?(:params)
     assert respond_to?(:assign_controller)
   end

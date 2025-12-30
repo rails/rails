@@ -198,6 +198,8 @@ class Author < ActiveRecord::Base
   belongs_to :author_address,       dependent: :destroy
   belongs_to :author_address_extra, dependent: :delete, class_name: "AuthorAddress"
 
+  belongs_to :published_author, class_name: "PublishedAuthor", foreign_key: :published_author_id, optional: true
+
   has_many :category_post_comments, through: :categories, source: :post_comments
 
   has_many :misc_posts, -> { where(posts: { title: ["misc post by bob", "misc post by mary"] }) }, class_name: "Post"
@@ -209,10 +211,10 @@ class Author < ActiveRecord::Base
   has_many :posts_with_default_include, class_name: "PostWithDefaultInclude"
   has_many :comments_on_posts_with_default_include, through: :posts_with_default_include, source: :comments
 
-  has_many :posts_with_signature, ->(record) { where(arel_table[:title].matches("%by #{record.name.downcase}%")) }, class_name: "Post"
-  has_many :posts_mentioning_author, ->(record = nil) { where(arel_table[:body].matches("%#{record&.name&.downcase}%")) }, class_name: "Post"
+  has_many :posts_with_signature, ->(record) { where(model.arel_table[:title].matches("%by #{record.name.downcase}%")) }, class_name: "Post"
+  has_many :posts_mentioning_author, ->(record = nil) { where(model.arel_table[:body].matches("%#{record&.name&.downcase}%")) }, class_name: "Post"
   has_many :comments_on_posts_mentioning_author, through: :posts_mentioning_author, source: :comments
-  has_many :comments_mentioning_author, ->(record) { where(arel_table[:body].matches("%#{record.name.downcase}%")) }, through: :posts, source: :comments
+  has_many :comments_mentioning_author, ->(record) { where(model.arel_table[:body].matches("%#{record.name.downcase}%")) }, through: :posts, source: :comments
 
   has_one :recent_post, -> { order(id: :desc) }, class_name: "Post"
   has_one :recent_response, through: :recent_post, source: :comments
@@ -317,4 +319,9 @@ class AuthorFavoriteWithScope < ActiveRecord::Base
 
   belongs_to :author
   belongs_to :favorite_author, class_name: "Author"
+end
+
+class PublishedAuthor < ActiveRecord::Base
+  self.table_name = "authors"
+  has_many :books, class_name: "PublishedBook", foreign_key: :author_id
 end

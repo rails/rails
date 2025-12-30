@@ -1,11 +1,15 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionCable
   module Server
-    # = Action Cable \Server \Connections
+    # # Action Cable Server Connections
     #
-    # Collection class for all the connections that have been established on this specific server. Remember, usually you'll run many Action Cable servers, so
-    # you can't use this collection as a full list of all of the connections established against your application. Instead, use RemoteConnections for that.
+    # Collection class for all the connections that have been established on this
+    # specific server. Remember, usually you'll run many Action Cable servers, so
+    # you can't use this collection as a full list of all of the connections
+    # established against your application. Instead, use RemoteConnections for that.
     module Connections # :nodoc:
       BEAT_INTERVAL = 3
 
@@ -21,8 +25,10 @@ module ActionCable
         connections.delete connection
       end
 
-      # WebSocket connection implementations differ on when they'll mark a connection as stale. We basically never want a connection to go stale, as you
-      # then can't rely on being able to communicate with the connection. To solve this, a 3 second heartbeat runs on all connections. If the beat fails, we automatically
+      # WebSocket connection implementations differ on when they'll mark a connection
+      # as stale. We basically never want a connection to go stale, as you then can't
+      # rely on being able to communicate with the connection. To solve this, a 3
+      # second heartbeat runs on all connections. If the beat fails, we automatically
       # disconnect.
       def setup_heartbeat_timer
         @heartbeat_timer ||= event_loop.timer(BEAT_INTERVAL) do

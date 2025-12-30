@@ -2,16 +2,17 @@
 
 module ActiveRecord
   module Type
-    class Serialized < DelegateClass(ActiveModel::Type::Value) # :nodoc:
+    class Serialized < ActiveSupport::Delegation::DelegateClass(ActiveModel::Type::Value) # :nodoc:
       undef to_yaml if method_defined?(:to_yaml)
 
       include ActiveModel::Type::Helpers::Mutable
 
       attr_reader :subtype, :coder
 
-      def initialize(subtype, coder)
+      def initialize(subtype, coder, comparable: false)
         @subtype = subtype
         @coder = coder
+        @comparable = comparable
         super(subtype)
       end
 
@@ -30,15 +31,19 @@ module ActiveRecord
         end
       end
 
-      def inspect
-        Kernel.instance_method(:inspect).bind_call(self)
-      end
+      define_method(:inspect, Kernel.instance_method(:inspect))
 
       def changed_in_place?(raw_old_value, value)
         return false if value.nil?
-        raw_new_value = encoded(value)
-        raw_old_value.nil? != raw_new_value.nil? ||
-          subtype.changed_in_place?(raw_old_value, raw_new_value)
+
+        if @comparable
+          old_value = deserialize(raw_old_value)
+          old_value != value
+        else
+          raw_new_value = encoded(value)
+          raw_old_value.nil? != raw_new_value.nil? ||
+            subtype.changed_in_place?(raw_old_value, raw_new_value)
+        end
       end
 
       def accessor

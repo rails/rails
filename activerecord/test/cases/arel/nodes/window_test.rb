@@ -4,7 +4,7 @@ require_relative "../helper"
 
 module Arel
   module Nodes
-    describe "Window" do
+    class WindowTest < Arel::Spec
       describe "equality" do
         it "is equal with equal ivars" do
           window1 = Window.new

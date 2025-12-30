@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "action_controller"
+
 class Rails::ApplicationController < ActionController::Base # :nodoc:
   prepend_view_path File.expand_path("templates", __dir__)
   layout "application"

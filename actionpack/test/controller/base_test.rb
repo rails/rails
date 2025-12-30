@@ -72,6 +72,29 @@ class ActionMissingController < ActionController::Base
   end
 end
 
+class WithoutRouterController < ActionController::Base
+  after_action :log_request_details
+
+  def index
+    head :ok
+  end
+
+  private
+    def log_request_details
+      request.route_uri_pattern
+    end
+end
+
+class WithoutRouterTest < ActionController::TestCase
+  tests WithoutRouterController
+
+  def test_request_route_uri_pattern_in_after_action_callback
+    assert_nothing_raised do
+      get :index
+    end
+  end
+end
+
 class ControllerClassTests < ActiveSupport::TestCase
   def test_controller_path
     assert_equal "empty", EmptyController.controller_path
@@ -190,11 +213,7 @@ class PerformActionTest < ActionController::TestCase
     exception = assert_raise AbstractController::ActionNotFound do
       get :ello
     end
-    if exception.respond_to?(:detailed_message)
-      assert_match "Did you mean?", exception.detailed_message
-    else
-      assert_match "Did you mean?", exception.message
-    end
+    assert_match "Did you mean?", exception.detailed_message
   end
 
   def test_action_missing_should_work
@@ -348,5 +367,17 @@ class EmptyUrlOptionsTest < ActionController::TestCase
 
       assert_equal "/things", @controller.things_path
     end
+  end
+end
+
+class BaseTest < ActiveSupport::TestCase
+  def test_included_modules_are_tracked
+    base_content = File.read("#{__dir__}/../../lib/action_controller/base.rb")
+    included_modules = base_content.scan(/(?<=include )[A-Z].*/)
+
+    assert_equal(
+      ActionController::Base::MODULES.map { |m| m.to_s.delete_prefix("ActionController::") },
+      included_modules
+    )
   end
 end

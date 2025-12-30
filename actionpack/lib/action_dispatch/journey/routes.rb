@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   module Journey # :nodoc:
-    # The Routing table. Contains all routes for a system. Routes can be
-    # added to the table by calling Routes#add_route.
+    # The Routing table. Contains all routes for a system. Routes can be added to
+    # the table by calling Routes#add_route.
     class Routes # :nodoc:
       include Enumerable
 
@@ -68,6 +70,13 @@ module ActionDispatch
         partition_route(route)
         clear_cache!
         route
+      end
+
+      def visualizer
+        tt     = GTG::Builder.new(ast).transition_table
+        groups = anchored_routes.map(&:ast).group_by(&:to_s)
+        asts   = groups.values.map(&:first)
+        tt.visualizer(asts)
       end
 
       private

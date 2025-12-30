@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "rails"
 require "action_controller/railtie"
 require "active_record/railtie"
 require "active_storage/engine"
 
 require "action_text"
+require "action_text/trix"
 
 module ActionText
   class Engine < Rails::Engine
@@ -13,6 +16,10 @@ module ActionText
     config.eager_load_namespaces << ActionText
 
     config.action_text = ActiveSupport::OrderedOptions.new
+    config.action_text.editors = ActiveSupport::InheritableOptions.new(
+      trix: {}
+    )
+    config.action_text.editor = :trix
     config.action_text.attachment_tag_name = "action-text-attachment"
     config.autoload_once_paths = %W(
       #{root}/app/helpers
@@ -32,7 +39,7 @@ module ActionText
 
     initializer "action_text.asset" do
       if Rails.application.config.respond_to?(:assets)
-        Rails.application.config.assets.precompile += %w( actiontext.js trix.js trix.css )
+        Rails.application.config.assets.precompile += %w( actiontext.js actiontext.esm.js )
       end
     end
 
@@ -49,6 +56,11 @@ module ActionText
         end
 
         def to_trix_content_attachment_partial_path
+          to_editor_content_attachment_partial_path
+        end
+        deprecate :to_trix_content_attachment_partial_path, deprecator: ActionText.deprecator
+
+        def to_editor_content_attachment_partial_path
           nil
         end
       end
@@ -58,6 +70,16 @@ module ActionText
       %i[action_controller_base action_mailer].each do |base|
         ActiveSupport.on_load(base) do
           helper ActionText::Engine.helpers
+        end
+      end
+    end
+
+    initializer "action_text.editors" do |app|
+      ActiveSupport.on_load :action_text_rich_text do
+        self.editors = Editor::Registry.new(app.config.action_text.editors)
+
+        if (editor_name = app.config.action_text.editor)
+          self.editor = editors.fetch(editor_name)
         end
       end
     end
@@ -85,7 +107,9 @@ module ActionText
 
     config.after_initialize do |app|
       if klass = app.config.action_text.sanitizer_vendor
-        ActionText::ContentHelper.sanitizer = klass.safe_list_sanitizer.new
+        ActiveSupport.on_load(:action_view) do
+          ActionText::ContentHelper.sanitizer = klass.safe_list_sanitizer.new
+        end
       end
     end
   end

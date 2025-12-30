@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
 require "models/developer"
 require "models/computer"
 require "models/project"
@@ -33,6 +34,7 @@ require "models/vertex"
 require "models/publisher"
 require "models/publisher/article"
 require "models/publisher/magazine"
+require "models/dats"
 require "active_support/core_ext/string/conversions"
 
 class ProjectWithAfterCreateHook < ActiveRecord::Base
@@ -129,7 +131,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
            :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings, :computers
 
   def setup_data_for_habtm_case
-    ActiveRecord::Base.connection.execute("delete from countries_treaties")
+    ActiveRecord::Base.lease_connection.execute("delete from countries_treaties")
 
     country = Country.new(name: "India")
     country.country_id = "c1"
@@ -149,7 +151,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_should_property_quote_string_primary_keys
     setup_data_for_habtm_case
 
-    con = ActiveRecord::Base.connection
+    con = ActiveRecord::Base.lease_connection
     sql = "select * from countries_treaties"
     record = con.select_rows(sql).last
     assert_equal "c1", record[0]
@@ -300,7 +302,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_build
     devel = Developer.find(1)
 
-    proj = assert_queries(0) { devel.projects.build("name" => "Projekt") }
+    proj = assert_queries_count(0) { devel.projects.build("name" => "Projekt") }
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
@@ -316,7 +318,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_new_aliased_to_build
     devel = Developer.find(1)
 
-    proj = assert_queries(0) { devel.projects.new("name" => "Projekt") }
+    proj = assert_queries_count(0) { devel.projects.new("name" => "Projekt") }
     assert_not_predicate devel.projects, :loaded?
 
     assert_equal devel.projects.last, proj
@@ -435,7 +437,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_not_empty david.projects
     david.destroy
     assert_empty david.projects
-    assert_empty DeveloperWithBeforeDestroyRaise.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1")
+    assert_empty DeveloperWithBeforeDestroyRaise.lease_connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1")
   end
 
   def test_destroying
@@ -449,7 +451,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       david.projects.destroy(project)
     end
 
-    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id} AND project_id = #{project.id}")
+    join_records = Developer.lease_connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id} AND project_id = #{project.id}")
     assert_empty join_records
 
     assert_equal 1, david.reload.projects.size
@@ -465,7 +467,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       david.projects.destroy(*projects)
     end
 
-    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
+    join_records = Developer.lease_connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
     assert_empty join_records
 
     assert_equal 0, david.reload.projects.size
@@ -481,7 +483,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       david.projects.destroy_all
     end
 
-    join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
+    join_records = Developer.lease_connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
     assert_empty join_records
 
     assert_empty david.projects
@@ -499,11 +501,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    join_records = Parrot.connection.select_all("SELECT * FROM parrots_pirates WHERE parrot_id = #{george.id}")
+    join_records = Parrot.lease_connection.select_all("SELECT * FROM parrots_pirates WHERE parrot_id = #{george.id}")
     assert_empty join_records
     assert_empty george.pirates.reload
 
-    join_records = Parrot.connection.select_all("SELECT * FROM parrots_treasures WHERE parrot_id = #{george.id}")
+    join_records = Parrot.lease_connection.select_all("SELECT * FROM parrots_treasures WHERE parrot_id = #{george.id}")
     assert_empty join_records
     assert_empty george.treasures.reload
   end
@@ -537,7 +539,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     developer = project.developers.first
 
-    assert_queries(0) do
+    assert_queries_count(0) do
       assert_predicate project.developers, :loaded?
       assert_includes project.developers, developer
     end
@@ -549,7 +551,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     project.reload
     assert_not_predicate project.developers, :loaded?
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_includes project.developers, developer
     end
     assert_not_predicate project.developers, :loaded?
@@ -659,7 +661,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert developer.save
     developer.projects << project
     developer.update_columns("name" => "Bruza")
-    assert_equal 1, Developer.connection.select_value(<<-end_sql).to_i
+    assert_equal 1, Developer.lease_connection.select_value(<<-end_sql).to_i
       SELECT count(*) FROM developers_projects
       WHERE project_id = #{project.id}
       AND developer_id = #{developer.id}
@@ -739,7 +741,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_get_ids_for_loaded_associations
     developer = developers(:david)
     developer.projects.reload
-    assert_queries(0) do
+    assert_queries_count(0) do
       developer.project_ids
       developer.project_ids
     end
@@ -823,21 +825,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_caching_of_columns
-    david = Developer.find(1)
-    # clear cache possibly created by other tests
-    david.projects.reset_column_information
-
-    assert_queries(:any) { david.projects.columns }
-    assert_no_queries { david.projects.columns }
-
-    ## and again to verify that reset_column_information clears the cache correctly
-    david.projects.reset_column_information
-
-    assert_queries(:any) { david.projects.columns }
-    assert_no_queries { david.projects.columns }
-  end
-
   def test_attributes_are_being_set_when_initialized_from_habtm_association_with_where_clause
     new_developer = projects(:action_controller).developers.where(name: "Marcelo").build
     assert_equal "Marcelo", new_developer.name
@@ -867,7 +854,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_has_and_belongs_to_many_associations_on_new_records_use_null_relations
     projects = Developer.new.projects
-    assert_queries(0) do
+    assert_queries_count(0) do
       assert_equal [], projects
       assert_equal [], projects.where(title: "omg")
       assert_equal [], projects.pluck(:title)
@@ -928,7 +915,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_habtm_with_reflection_using_class_name_and_fixtures
-    assert_not_nil Developer._reflections["shared_computers"]
+    assert_not_nil Developer._reflections[:shared_computers]
     # Checking the fixture for named association is important here, because it's the only way
     # we've been able to reproduce this bug
     assert_not_nil File.read(File.expand_path("../../fixtures/developers.yml", __dir__)).index("shared_computers")
@@ -1008,5 +995,62 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_has_and_belongs_to_many_with_belongs_to
     sink = Sink.create! kitchen: Kitchen.new, sources: [Source.new]
     assert_equal 1, sink.sources.count
+  end
+end
+
+class DeprecatedHasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :categories
+
+  setup do
+    @model = DATS::Category
+    @category = @model.first
+  end
+
+  test "<association>" do
+    assert_not_deprecated_association(:posts) do
+      @category.posts
+    end
+
+    assert_deprecated_association(:deprecated_posts, context: context_for_method(:deprecated_posts)) do
+      assert_equal @category.posts.order(:id), @category.deprecated_posts.order(:id)
+    end
+  end
+
+  test "<association>=" do
+    post = DATS::Post.new(title: "Title", body: "Body")
+
+    assert_not_deprecated_association(:posts) do
+      @category.posts = [post]
+    end
+
+    assert_deprecated_association(:deprecated_posts, context: context_for_method(:deprecated_posts=)) do
+      @category.deprecated_posts = [post]
+    end
+    assert_equal [post], @category.deprecated_posts
+  end
+
+  test "<singular_association>_ids" do
+    assert_not_deprecated_association(:posts) do
+      @category.post_ids
+    end
+
+    assert_deprecated_association(:deprecated_posts, context: context_for_method(:deprecated_post_ids)) do
+      assert_equal @category.post_ids, @category.deprecated_post_ids
+    end
+  end
+
+  test "<singular_association>_ids=" do
+    post = DATS::Post.create!(title: "Title", body: "Body")
+
+    assert_not_deprecated_association(:posts) do
+      @category.post_ids = [post.id]
+    end
+
+    assert_deprecated_association(:deprecated_posts, context: context_for_method(:deprecated_post_ids=)) do
+      @category.deprecated_post_ids = [post.id]
+    end
+    assert_equal [post.id], @category.deprecated_post_ids
   end
 end

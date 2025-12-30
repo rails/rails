@@ -30,6 +30,10 @@ require "models/recipe"
 require "models/user_with_invalid_relation"
 require "models/hardback"
 require "models/sharded/comment"
+require "models/admin"
+require "models/admin/user"
+require "models/user"
+require "models/dats"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -181,6 +185,54 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_reflection_klass_with_same_demodularized_name
+    reflection = ActiveRecord::Reflection.create(
+      :has_one,
+      :user,
+      nil,
+      {},
+      Admin::User
+    )
+
+    assert_equal User, reflection.klass
+  end
+
+  def test_reflection_klass_with_same_demodularized_different_modularized_name
+    reflection = ActiveRecord::Reflection.create(
+      :has_one,
+      :user,
+      nil,
+      { class_name: "Nested::User" },
+      Admin::User
+    )
+
+    assert_equal Nested::User, reflection.klass
+  end
+
+  def test_reflection_klass_with_same_modularized_name
+    reflection = ActiveRecord::Reflection.create(
+      :has_many,
+      :nested_users,
+      nil,
+      {},
+      Nested::NestedUser
+    )
+
+    assert_equal Nested::NestedUser, reflection.klass
+  end
+
+  def test_reflection_klass_for_nested_association_with_top_level_module
+    reflection = ActiveRecord::Reflection.create(
+      :has_many,
+      :children,
+      nil,
+      {},
+      Nested::Child
+    )
+
+    assert_equal Nested::Child, reflection.klass
+  end
+
   def test_aggregation_reflection
     reflection_for_address = AggregateReflection.new(
       :address, nil, { mapping: [ %w(address_street street), %w(address_city city), %w(address_country country) ] }, Customer
@@ -226,34 +278,12 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "companies", Firm.reflect_on_association(:clients_of_firm).table_name
   end
 
-  def test_has_many_reflection_with_array_fk_raises
-    expected_message = <<~MSG.squish
-      Passing [:firm_id, :firm_name] array to :foreign_key option
-      on the Firm#clients association is not supported.
-      Use the query_constraints: [:firm_id, :firm_name] option instead to represent a composite foreign key.
-    MSG
-    assert_raises ArgumentError, match: expected_message do
-      ActiveRecord::Reflection.create(:has_many, :clients, nil, { foreign_key: [:firm_id, :firm_name] }, Firm)
-    end
-  end
-
   def test_has_one_reflection
     reflection_for_account = ActiveRecord::Reflection.create(:has_one, :account, nil, { foreign_key: "firm_id", dependent: :destroy }, Firm)
     assert_equal reflection_for_account, Firm.reflect_on_association(:account)
 
     assert_equal Account, Firm.reflect_on_association(:account).klass
     assert_equal "accounts", Firm.reflect_on_association(:account).table_name
-  end
-
-  def has_one_reflection_with_array_fk_raises
-    expected_message = <<~MSG.squish
-      Passing [:firm_id, :firm_name] array to :foreign_key option
-      on the Firm#account association is not supported.
-      Use the query_constraints: [:firm_id, :firm_name] option instead to represent a composite foreign key.
-    MSG
-    assert_raises ArgumentError, match: expected_message do
-      ActiveRecord::Reflection.create(:has_one, :account, nil, { foreign_key: [:firm_id, :firm_name] }, Firm)
-    end
   end
 
   def test_belongs_to_inferred_foreign_key_from_assoc_name
@@ -263,17 +293,6 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "bar_id", Company.reflect_on_association(:bar).foreign_key
     Company.belongs_to :baz, class_name: "Xyzzy", foreign_key: "xyzzy_id"
     assert_equal "xyzzy_id", Company.reflect_on_association(:baz).foreign_key
-  end
-
-  def test_belongs_to_reflection_with_array_fk_raises
-    expected_message = <<~MSG.squish
-      Passing [:firm_id, :firm_name] array to :foreign_key option
-      on the Firm#client association is not supported.
-      Use the query_constraints: [:firm_id, :firm_name] option instead to represent a composite foreign key.
-    MSG
-    assert_raises ArgumentError, match: expected_message do
-      ActiveRecord::Reflection.create(:belongs_to, :client, nil, { foreign_key: [:firm_id, :firm_name] }, Firm)
-    end
   end
 
   def test_association_reflection_in_modules
@@ -613,6 +632,18 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_reflect_on_missing_source_association
+    assert_nothing_raised do
+      assert_nil Hotel.reflect_on_association(:lost_items).source_reflection
+    end
+  end
+
+  def test_reflect_on_missing_source_association_raise_exception
+    assert_raises(ActiveRecord::HasManyThroughSourceAssociationNotFoundError) do
+      Hotel.reflect_on_association(:lost_items).check_validity!
+    end
+  end
+
   def test_name_error_from_incidental_code_is_not_converted_to_name_error_for_association
     UserWithInvalidRelation.stub(:const_missing, proc { oops }) do
       reflection = UserWithInvalidRelation.reflect_on_association(:not_a_class)
@@ -653,11 +684,97 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "id", actual
   end
 
+  def test_belongs_to_reflection_with_query_constraints_infers_correct_foreign_key
+    blog_foreign_key = Sharded::Comment.reflect_on_association(:blog).foreign_key
+    blog_post_foreign_key = Sharded::Comment.reflect_on_association(:blog_post).foreign_key
+
+    assert_equal "blog_id", blog_foreign_key
+    assert_equal ["blog_id", "blog_post_id"], blog_post_foreign_key
+  end
+
+  def test_using_query_constraints_warns_about_changing_behavior
+    has_many_expected_message = <<~MSG.squish
+      Setting `query_constraints:` option on `Firm.has_many :clients` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
+    MSG
+
+    assert_raises(ActiveRecord::ConfigurationError, match: has_many_expected_message) do
+      ActiveRecord::Reflection.create(:has_many, :clients, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
+    end
+
+    has_one_expected_message = <<~MSG.squish
+      Setting `query_constraints:` option on `Firm.has_one :account` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
+    MSG
+
+    assert_raises(ActiveRecord::ConfigurationError, match: has_one_expected_message) do
+      ActiveRecord::Reflection.create(:has_one, :account, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
+    end
+
+    belongs_to_expected_message = <<~MSG.squish
+      Setting `query_constraints:` option on `Firm.belongs_to :client` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
+    MSG
+
+    assert_raises(ActiveRecord::ConfigurationError, match: belongs_to_expected_message) do
+      ActiveRecord::Reflection.create(:belongs_to, :client, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
+    end
+  end
+
   private
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)
       options.each do |method, value|
         assert_equal(value, reflection.public_send(method))
       end
+    end
+end
+
+class DeprecatedReflectionsTest < ActiveRecord::TestCase
+  test "has_many" do
+    assert_non_deprecated_reflection DATS::Author, :posts
+    assert_deprecated_reflection DATS::Author, :deprecated_posts
+  end
+
+  test "has_one" do
+    assert_non_deprecated_reflection DATS::Author, :post
+    assert_deprecated_reflection DATS::Author, :deprecated_post
+  end
+
+  test "has_many :through" do
+    assert_non_deprecated_reflection DATS::Author, :comments
+    assert_non_deprecated_reflection DATS::Author, :deprecated_through
+    assert_non_deprecated_reflection DATS::Author, :deprecated_source
+
+    assert_deprecated_reflection DATS::Author, :deprecated_has_many_through
+    assert_deprecated_reflection DATS::Author, :deprecated_all
+  end
+
+  test "has_one :through" do
+    assert_non_deprecated_reflection DATS::Author, :comment
+    assert_non_deprecated_reflection DATS::Author, :deprecated_through1
+    assert_non_deprecated_reflection DATS::Author, :deprecated_source1
+
+    assert_deprecated_reflection DATS::Author, :deprecated_has_one_through # it is through
+    assert_deprecated_reflection DATS::Author, :deprecated_all1 # it is through
+  end
+
+  test "belongs_to" do
+    assert_non_deprecated_reflection DATS::Bulb, :car
+    assert_deprecated_reflection DATS::Bulb, :deprecated_car
+  end
+
+  test "has_and_belongs_to_many" do
+    assert_non_deprecated_reflection DATS::Category, :posts
+    assert_deprecated_reflection DATS::Category, :deprecated_posts
+  end
+
+  private
+    def assert_non_deprecated_reflection(model, name)
+      assert_not_predicate model.reflect_on_association(name), :deprecated?
+    end
+
+    def assert_deprecated_reflection(model, name)
+      assert_predicate model.reflect_on_association(name), :deprecated?
     end
 end

@@ -7,6 +7,14 @@ require "active_support/core_ext/string/multibyte"
 class MultibyteCharsTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
+  def run(...)
+    result = nil
+    assert_deprecated ActiveSupport.deprecator do
+      result = super
+    end
+    result
+  end
+
   def setup
     @proxy_class = ActiveSupport::Multibyte::Chars
     @chars = @proxy_class.new UNICODE_STRING.dup
@@ -95,6 +103,14 @@ end
 
 class MultibyteCharsUTF8BehaviorTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
+
+  def run(...)
+    result = nil
+    assert_deprecated ActiveSupport.deprecator do
+      result = super
+    end
+    result
+  end
 
   def setup
     @chars = UNICODE_STRING.dup.mb_chars
@@ -491,6 +507,14 @@ end
 class MultibyteCharsExtrasTest < ActiveSupport::TestCase
   include MultibyteTestHelpers
 
+  def run(...)
+    result = nil
+    assert_deprecated ActiveSupport.deprecator do
+      result = super
+    end
+    result
+  end
+
   def test_upcase_should_be_unicode_aware
     assert_equal "АБВГД\0F", chars("аБвгд\0f").upcase
     assert_equal "こにちわ", chars("こにちわ").upcase
@@ -569,11 +593,13 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
   end
 
   def test_should_compute_grapheme_length
+    "foo".mb_chars # appease assert_deprecated
+
     [
       ["", 0],
       ["abc", 3],
       ["こにちわ", 4],
-      [[0x0924, 0x094D, 0x0930].pack("U*"), 2],
+      [[0x0924, 0x094D, 0x0930].pack("U*"), RbConfig::CONFIG["UNICODE_VERSION"] >= "15.1.0" ? 1 : 2],
       # GB3
       [%w(cr lf), 1],
       # GB4

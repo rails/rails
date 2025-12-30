@@ -53,7 +53,7 @@ module ActiveSupport
     # loaded. If the component has already loaded, the block is executed
     # immediately.
     #
-    # Options:
+    # ==== Options
     #
     # * <tt>:yield</tt> - Yields the object that run_load_hooks to +block+.
     # * <tt>:run_once</tt> - Given +block+ will run only once.

@@ -1,5 +1,4 @@
 source "https://rubygems.org"
-git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 <% unless options[:skip_gemspec] -%>
 
 # Specify your gem's dependencies in <%= name %>.gemspec.
@@ -8,6 +7,11 @@ gemspec
 <% gemfile_entries.each do |gemfile_entry| %>
 <%= gemfile_entry %>
 <% end -%>
+<%- unless options.skip_rubocop? -%>
+
+# Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
+gem "rubocop-rails-omakase", require: false
+<%- end -%>
 <% if RUBY_ENGINE == "ruby" -%>
 
 # Start debugger with binding.b [https://github.com/ruby/debug]
@@ -15,5 +19,5 @@ gemspec
 <% end -%>
 <% if RUBY_PLATFORM.match?(/mingw|mswin|java/) -%>
 
-gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
+gem "tzinfo-data", platforms: %i[ windows jruby ]
 <% end -%>

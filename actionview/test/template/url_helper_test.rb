@@ -579,6 +579,11 @@ class UrlHelperTest < ActiveSupport::TestCase
       %{<a href="http://www.example.com" data-method="post" rel="example nofollow">Hello</a>},
       link_to("Hello", "http://www.example.com", method: :post, rel: "example")
     )
+
+    assert_dom_equal(
+      %{<a href="http://www.example.com" data-method="post" rel="example nofollow">Hello</a>},
+      link_to("Hello", "http://www.example.com", method: :post, rel: :example)
+    )
   end
 
   def test_link_tag_using_post_javascript_and_confirm
@@ -774,6 +779,27 @@ class UrlHelperTest < ActiveSupport::TestCase
     @request = request_for_url("/events", method: :post)
 
     assert_not current_page?("/events")
+    assert current_page?("/events", method: :post)
+  end
+
+  def test_current_page_with_array_of_methods_including_request_method
+    @request = request_for_url("/events", method: :post)
+
+    assert current_page?("/events", method: [:post, :put, :delete])
+    assert_not current_page?("/events", method: [:put, :delete])
+  end
+
+  def test_current_page_with_array_of_methods_including_get_method_includes_head
+    @request = request_for_url("/events", method: :head)
+
+    assert current_page?("/events", method: [:post, :get])
+  end
+
+  def test_current_page_preserves_method_param_in_url
+    @request = request_for_url("/events?method=post", method: :put)
+
+    assert current_page?("/events?method=post", method: :put)
+    assert_not current_page?("/events?method=post", method: :post)
   end
 
   def test_link_unless_current

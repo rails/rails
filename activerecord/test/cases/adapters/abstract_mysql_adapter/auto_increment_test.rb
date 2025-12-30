@@ -7,7 +7,7 @@ class AutoIncrementTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def teardown
@@ -36,6 +36,12 @@ class AutoIncrementTest < ActiveRecord::AbstractMysqlTestCase
     @connection.create_table :auto_increments, id: false, force: :cascade do |t|
       t.primary_key :id, auto_increment: false
     end
+
+    assert_not_predicate @connection.columns(:auto_increments).first, :auto_increment?
+  end
+
+  def test_auto_increment_false_with_create_table
+    @connection.create_table :auto_increments, auto_increment: false, force: :cascade
 
     assert_not_predicate @connection.columns(:auto_increments).first, :auto_increment?
   end

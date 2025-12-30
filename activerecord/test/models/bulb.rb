@@ -2,7 +2,7 @@
 
 class Bulb < ActiveRecord::Base
   default_scope { where(name: "defaulty") }
-  belongs_to :car, touch: true
+  belongs_to :car, touch: true, counter_cache: { active: false }
   scope :awesome, -> { where(frickinawesome: true) }
 
   attr_reader :scope_after_initialize, :attributes_after_initialize, :count_after_create

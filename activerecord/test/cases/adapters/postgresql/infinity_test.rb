@@ -9,7 +9,7 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
   end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table(:postgresql_infinities) do |t|
       t.float :float
       t.datetime :datetime

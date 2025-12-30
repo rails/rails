@@ -4,7 +4,7 @@ require_relative "../helper"
 
 module Arel
   module Nodes
-    describe "False" do
+    class FalseTest < Arel::Spec
       describe "equality" do
         it "is equal to other false nodes" do
           array = [False.new, False.new]

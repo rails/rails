@@ -1,23 +1,18 @@
 # frozen_string_literal: true
 
+
 module ActiveRecord
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+
   # = Active Record Errors
   #
   # Generic Active Record exception class.
   class ActiveRecordError < StandardError
   end
 
-  # DEPRECATED: Previously raised when trying to use a feature in Active Record which
-  # requires Active Job but the gem is not present. Now raises a NameError.
-  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-  DeprecatedActiveJobRequiredError = Class.new(ActiveRecordError) # :nodoc:
-  deprecate_constant "ActiveJobRequiredError", "ActiveRecord::DeprecatedActiveJobRequiredError",
-    message: "ActiveRecord::ActiveJobRequiredError has been deprecated. If Active Job is not present, a NameError will be raised instead.",
-    deprecator: ActiveRecord.deprecator
-
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
-  # {ActiveRecord::Base.inheritance_column}[rdoc-ref:ModelSchema::ClassMethods#inheritance_column]
+  # {ActiveRecord::Base.inheritance_column}[rdoc-ref:ModelSchema.inheritance_column]
   # points to).
   class SubclassNotFound < ActiveRecordError
   end
@@ -66,7 +61,7 @@ module ActiveRecord
   end
 
   # Raised when connection to the database could not been established (for example when
-  # {ActiveRecord::Base.connection=}[rdoc-ref:ConnectionHandling#connection]
+  # {ActiveRecord::Base.lease_connection=}[rdoc-ref:ConnectionHandling#lease_connection]
   # is given a +nil+ object).
   class ConnectionNotEstablished < AdapterError
     def initialize(message = nil, connection_pool: nil)
@@ -86,6 +81,19 @@ module ActiveRecord
   # acquisition timeout period: because max connections in pool
   # are in use.
   class ConnectionTimeoutError < ConnectionNotEstablished
+  end
+
+  # Raised when a database connection pool is requested but
+  # has not been defined.
+  class ConnectionNotDefined < ConnectionNotEstablished
+    def initialize(message = nil, connection_name: nil, role: nil, shard: nil)
+      super(message)
+      @connection_name = connection_name
+      @role = role
+      @shard = shard
+    end
+
+    attr_reader :connection_name, :role, :shard
   end
 
   # Raised when connection to the database could not been established because it was not
@@ -123,6 +131,12 @@ module ActiveRecord
   class ReadOnlyError < ActiveRecordError
   end
 
+  # Raised when shard swapping is attempted on a connection that prohibits it.
+  # See {ActiveRecord::ConnectionHandling#prohibit_shard_swapping}[rdoc-ref:ConnectionHandling#prohibit_shard_swapping].
+  class ShardSwapProhibitedError < ArgumentError
+    # This subclasses ArgumentError for backwards compatibility.
+  end
+
   # Raised when Active Record cannot find a record by given id or set of ids.
   class RecordNotFound < ActiveRecordError
     attr_reader :model, :primary_key, :id
@@ -137,8 +151,18 @@ module ActiveRecord
   end
 
   # Raised by {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] and
-  # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!]
-  # methods when a record is invalid and cannot be saved.
+  # {ActiveRecord::Base.update_attribute!}[rdoc-ref:Persistence#update_attribute!]
+  # methods when a record failed to validate or cannot be saved due to any of the
+  # <tt>before_*</tt> callbacks throwing +:abort+. See
+  # ActiveRecord::Callbacks for further details.
+  #
+  #   class Product < ActiveRecord::Base
+  #     before_save do
+  #       throw :abort if price < 0
+  #     end
+  #   end
+  #
+  #   Product.create! # => raises an ActiveRecord::RecordNotSaved
   class RecordNotSaved < ActiveRecordError
     attr_reader :record
 
@@ -149,15 +173,17 @@ module ActiveRecord
   end
 
   # Raised by {ActiveRecord::Base#destroy!}[rdoc-ref:Persistence#destroy!]
-  # when a call to {#destroy}[rdoc-ref:Persistence#destroy]
-  # would return false.
+  # when a record cannot be destroyed due to any of the
+  # <tt>before_destroy</tt> callbacks throwing +:abort+. See
+  # ActiveRecord::Callbacks for further details.
   #
-  #   begin
-  #     complex_operation_that_internally_calls_destroy!
-  #   rescue ActiveRecord::RecordNotDestroyed => invalid
-  #     puts invalid.record.errors
+  #   class User < ActiveRecord::Base
+  #     before_destroy do
+  #       throw :abort if still_active?
+  #     end
   #   end
   #
+  #   User.first.destroy! # => raises an ActiveRecord::RecordNotDestroyed
   class RecordNotDestroyed < ActiveRecordError
     attr_reader :record
 
@@ -272,6 +298,14 @@ module ActiveRecord
   class NotNullViolation < StatementInvalid
   end
 
+  # Raised when a record cannot be inserted or updated because it would violate a check constraint.
+  class CheckViolation < StatementInvalid
+  end
+
+  # Raised when a record cannot be inserted or updated because it would violate an exclusion constraint.
+  class ExclusionViolation < StatementInvalid
+  end
+
   # Raised when a record cannot be inserted or updated because a value too long for a column type.
   class ValueTooLong < StatementInvalid
   end
@@ -318,14 +352,15 @@ module ActiveRecord
     class << self
       def db_error(db_name)
         NoDatabaseError.new(<<~MSG)
-          We could not find your database: #{db_name}. Available database configurations can be found in config/database.yml file.
+          Database not found: #{db_name}. Available database configurations can be found in config/database.yml.
 
           To resolve this error:
 
-          - Did you create the database for this app, or delete it? You may need to create your database.
-          - Has the database name changed? Check your database.yml config has the correct database name.
+          - Create the database by running:
 
-          To create your database, run:\n\n        bin/rails db:create
+              bin/rails db:create
+
+          - Verify that config/database.yml contains the correct database name.
         MSG
       end
     end
@@ -373,6 +408,12 @@ module ActiveRecord
   end
 
   # Raised on attempt to lazily load records that are marked as strict loading.
+  #
+  # You can resolve this error by eager loading marked records before accessing
+  # them. The
+  # {Eager Loading Associations}[https://guides.rubyonrails.org/active_record_querying.html#eager-loading-associations]
+  # guide covers solutions, such as using
+  # {ActiveRecord::Base.includes}[rdoc-ref:QueryMethods#includes].
   class StrictLoadingViolationError < ActiveRecordError
   end
 
@@ -416,7 +457,7 @@ module ActiveRecord
   UnknownAttributeError = ActiveModel::UnknownAttributeError
 
   # Raised when an error occurred while doing a mass assignment to an attribute through the
-  # {ActiveRecord::Base#attributes=}[rdoc-ref:AttributeAssignment#attributes=] method.
+  # {ActiveRecord::Base#attributes=}[rdoc-ref:ActiveModel::AttributeAssignment#attributes=] method.
   # The exception has an +attribute+ property that is the name of the offending attribute.
   class AttributeAssignmentError < ActiveRecordError
     attr_reader :exception, :attribute
@@ -429,7 +470,7 @@ module ActiveRecord
   end
 
   # Raised when there are multiple errors while doing a mass assignment through the
-  # {ActiveRecord::Base#attributes=}[rdoc-ref:AttributeAssignment#attributes=]
+  # {ActiveRecord::Base#attributes=}[rdoc-ref:ActiveModel::AttributeAssignment#attributes=]
   # method. The exception has an +errors+ property that contains an array of AttributeAssignmentError
   # objects, each corresponding to the error while assigning to an attribute.
   class MultiparameterAssignmentErrors < ActiveRecordError
@@ -462,12 +503,13 @@ module ActiveRecord
   #   end
   #
   #   relation = Task.all
+  #   relation.load
   #   relation.loaded? # => true
   #
   #   # Methods which try to mutate a loaded relation fail.
-  #   relation.where!(title: 'TODO')  # => ActiveRecord::ImmutableRelation
-  #   relation.limit!(5)              # => ActiveRecord::ImmutableRelation
-  class ImmutableRelation < ActiveRecordError
+  #   relation.where!(title: 'TODO')  # => ActiveRecord::UnmodifiableRelation
+  #   relation.limit!(5)              # => ActiveRecord::UnmodifiableRelation
+  class UnmodifiableRelation < ActiveRecordError
   end
 
   # TransactionIsolationError will be raised under the following conditions:
@@ -524,6 +566,11 @@ module ActiveRecord
   class Deadlocked < TransactionRollbackError
   end
 
+  # MissingRequiredOrderError is raised when a relation requires ordering but
+  # lacks any +order+ values in scope or any model order columns to use.
+  class MissingRequiredOrderError < ActiveRecordError
+  end
+
   # IrreversibleOrderError is raised when a relation's order is too complex for
   # +reverse_order+ to automatically reverse.
   class IrreversibleOrderError < ActiveRecordError
@@ -576,4 +623,14 @@ module ActiveRecord
   # values, such as request parameters or model attributes to query methods.
   class UnknownAttributeReference < ActiveRecordError
   end
+
+  # DatabaseVersionError will be raised when the database version is not supported, or when
+  # the database version cannot be determined.
+  class DatabaseVersionError < ActiveRecordError
+  end
+
+  class DeprecatedAssociationError < ActiveRecordError
+  end
 end
+
+require "active_record/associations/errors"

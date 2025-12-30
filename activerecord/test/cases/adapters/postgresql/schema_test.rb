@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/default"
 require "support/schema_dumping_helper"
+require "active_support/core_ext/object/with"
 
 module PGSchemaHelper
   def with_schema_search_path(schema_search_path)
@@ -12,6 +13,10 @@ module PGSchemaHelper
   ensure
     @connection.schema_search_path = "'$user', public"
     @connection.schema_cache.clear!
+  end
+
+  def with_dump_schemas(value, &block)
+    ActiveRecord.with(dump_schemas: value, &block)
   end
 end
 
@@ -81,7 +86,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.execute "CREATE SCHEMA #{SCHEMA_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.\"#{TABLE_NAME}.table\" (#{COLUMNS.join(',')})"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.\"#{CAPITALIZED_TABLE_NAME}\" (#{COLUMNS.join(',')})"
@@ -131,6 +136,32 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_schema "test_schema3"
   end
 
+  def test_force_create_schema
+    @connection.create_schema "test_schema3"
+    assert_queries_match(/DROP SCHEMA IF EXISTS "test_schema3"/) do
+      @connection.create_schema "test_schema3", force: true
+    end
+    assert @connection.schema_names.include?("test_schema3")
+  ensure
+    @connection.drop_schema "test_schema3"
+  end
+
+  def test_create_schema_if_not_exists
+    @connection.create_schema "test_schema3"
+    assert_queries_match('CREATE SCHEMA IF NOT EXISTS "test_schema3"') do
+      @connection.create_schema "test_schema3", if_not_exists: true
+    end
+    assert @connection.schema_names.include?("test_schema3")
+  ensure
+    @connection.drop_schema "test_schema3"
+  end
+
+  def test_create_schema_raises_if_both_force_and_if_not_exists_provided
+    assert_raises(ArgumentError, match: "Options `:force` and `:if_not_exists` cannot be used simultaneously.") do
+      @connection.create_schema "test_schema3", force: true, if_not_exists: true
+    end
+  end
+
   def test_drop_schema
     begin
       @connection.create_schema "test_schema3"
@@ -148,9 +179,9 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_habtm_table_name_with_schema
-    ActiveRecord::Base.connection.drop_schema "music", if_exists: true
-    ActiveRecord::Base.connection.create_schema "music"
-    ActiveRecord::Base.connection.execute <<~SQL
+    ActiveRecord::Base.lease_connection.drop_schema "music", if_exists: true
+    ActiveRecord::Base.lease_connection.create_schema "music"
+    ActiveRecord::Base.lease_connection.execute <<~SQL
       CREATE TABLE music.albums (id serial primary key, deleted boolean default false);
       CREATE TABLE music.songs (id serial primary key);
       CREATE TABLE music.albums_songs (album_id integer, song_id integer);
@@ -162,7 +193,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal [album.id], Song.joins(:albums).pluck("albums.id")
     assert_equal [album.id], Song.joins(:albums).pluck("music.albums.id")
   ensure
-    ActiveRecord::Base.connection.drop_schema "music", if_exists: true
+    ActiveRecord::Base.lease_connection.drop_schema "music", if_exists: true
   end
 
   def test_drop_schema_with_nonexisting_schema
@@ -175,19 +206,49 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_rename_schema
+    @connection.create_schema("test_schema3")
+    @connection.rename_schema("test_schema3", "test_schema4")
+    assert_not_includes @connection.schema_names, "test_schema3"
+    assert_includes @connection.schema_names, "test_schema4"
+  ensure
+    @connection.drop_schema("test_schema3", if_exists: true)
+    @connection.drop_schema("test_schema4", if_exists: true)
+  end
+
+  def test_rename_schema_with_nonexisting_schema
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @connection.rename_schema("idontexist", "neitherdoi")
+    end
+  end
+
+  def test_rename_schema_with_existing_target_name
+    @connection.create_schema("test_schema3")
+    @connection.create_schema("test_schema4")
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @connection.rename_schema("test_schema3", "test_schema4")
+    end
+  ensure
+    @connection.drop_schema("test_schema3", if_exists: true)
+    @connection.drop_schema("test_schema4", if_exists: true)
+  end
+
   def test_raise_wrapped_exception_on_bad_prepare
     assert_raises(ActiveRecord::StatementInvalid) do
       @connection.exec_query "select * from developers where id = ?", "sql", [bind_param(1)]
     end
   end
 
-  if ActiveRecord::Base.connection.prepared_statements
+  if ActiveRecord::Base.lease_connection.prepared_statements
     def test_schema_change_with_prepared_stmt
       altered = false
-      @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
-      @connection.exec_query "alter table developers add column zomg int", "sql", []
-      altered = true
-      @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
+      assert_nothing_raised do
+        @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
+        @connection.exec_query "alter table developers add column zomg int", "sql", []
+        altered = true
+        @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
+      end
+      pass
     ensure
       # We are not using DROP COLUMN IF EXISTS because that syntax is only
       # supported by pg 9.X
@@ -261,6 +322,16 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal '"schema_name"."table.name"', @connection.quote_table_name('schema_name."table.name"')
     assert_equal '"schema.name"."table_name"', @connection.quote_table_name('"schema.name".table_name')
     assert_equal '"schema.name"."table.name"', @connection.quote_table_name('"schema.name"."table.name"')
+  end
+
+  def test_where_with_qualified_schema_name
+    Thing1.create(id: 1, name: "thing1", email: "thing1@localhost", moment: Time.now)
+    assert_equal ["thing1"], Thing1.where("test_schema.things.name": "thing1").map(&:name)
+  end
+
+  def test_pluck_with_qualified_schema_name
+    Thing1.create(id: 1, name: "thing1", email: "thing1@localhost", moment: Time.now)
+    assert_equal ["thing1"], Thing1.pluck(:"test_schema.things.name")
   end
 
   def test_classes_with_qualified_schema_name
@@ -464,7 +535,23 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
-  def test_reset_pk_sequence
+  def test_reset_column_sequences!
+    sequence_name = "#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
+    @connection.execute "SELECT setval('#{sequence_name}', 123)"
+    assert_equal 124, @connection.select_value("SELECT nextval('#{sequence_name}')")
+    @connection.reset_column_sequences!([["#{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME}", "id", sequence_name, nil, 1]])
+    assert_equal 1, @connection.select_value("SELECT nextval('#{sequence_name}')")
+  end
+
+  def test_reset_column_sequences_with_just_tables
+    sequence_name = "#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
+    @connection.execute "SELECT setval('#{sequence_name}', 123)"
+    assert_equal 124, @connection.select_value("SELECT nextval('#{sequence_name}')")
+    @connection.reset_column_sequences!([["#{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME}"]])
+    assert_equal 1, @connection.select_value("SELECT nextval('#{sequence_name}')")
+  end
+
+  def test_reset_pk_sequence!
     sequence_name = "#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
     @connection.execute "SELECT setval('#{sequence_name}', 123)"
     assert_equal 124, @connection.select_value("SELECT nextval('#{sequence_name}')")
@@ -489,11 +576,13 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_dumping_schemas
-    output = dump_all_table_schema(/./)
+    with_dump_schemas("test_schema,test_schema2,public") do
+      output = dump_all_table_schema(/./)
 
-    assert_no_match %r{create_schema "public"}, output
-    assert_match %r{create_schema "test_schema"}, output
-    assert_match %r{create_schema "test_schema2"}, output
+      assert_no_match %r{create_schema "public"}, output
+      assert_match %r{create_schema "test_schema"}, output
+      assert_match %r{create_schema "test_schema2"}, output
+    end
   end
 
   private
@@ -549,7 +638,7 @@ class SchemaForeignKeyTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_schema("my_schema")
   end
 
@@ -598,7 +687,7 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table "trains" do |t|
       t.string :name
       t.string :position
@@ -642,7 +731,7 @@ class SchemaIndexNullsOrderTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table "trains" do |t|
       t.string :name
       t.text :description
@@ -668,7 +757,7 @@ end
 
 class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCase
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.drop_schema "schema_1", if_exists: true
     @connection.execute "CREATE SCHEMA schema_1"
     @connection.execute "CREATE DOMAIN schema_1.text AS text"
@@ -724,7 +813,7 @@ class SchemaWithDotsTest < ActiveRecord::PostgreSQLTestCase
   include PGSchemaHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_schema "my.schema"
   end
 
@@ -758,7 +847,7 @@ end
 
 class SchemaJoinTablesTest < ActiveRecord::PostgreSQLTestCase
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_schema("test_schema")
   end
 
@@ -782,7 +871,7 @@ class SchemaIndexIncludeColumnsTest < ActiveRecord::PostgreSQLTestCase
 
   def test_schema_dumps_index_included_columns
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_include_index/).first.strip
-    if ActiveRecord::Base.connection.supports_index_include?
+    if ActiveRecord::Base.lease_connection.supports_index_include?
       assert_equal 't.index ["firm_id", "type"], name: "company_include_index", include: ["name", "account_id"]', index_definition
     else
       assert_equal 't.index ["firm_id", "type"], name: "company_include_index"', index_definition
@@ -794,7 +883,7 @@ class SchemaIndexNullsNotDistinctTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table "trains" do |t|
       t.string :name
     end
@@ -830,5 +919,167 @@ class SchemaIndexNullsNotDistinctTest < ActiveRecord::PostgreSQLTestCase
     output = dump_table_schema "trains"
 
     assert_no_match(/nulls_not_distinct/, output)
+  end
+end
+
+class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @previous_unlogged_tables = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
+    @connection = ActiveRecord::Base.connection
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = false
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+    @connection.drop_table "transportation_modes", if_exists: true
+    @connection.drop_table "vehicles", if_exists: true
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = @previous_unlogged_tables
+  end
+
+  def test_list_partition_options_is_dumped
+    skip("current adapter doesn't support native partitioning") unless supports_native_partitioning?
+
+    options = "PARTITION BY LIST (kind)"
+
+    @connection.create_table "trains", id: false, options: options do |t|
+      t.string :name
+      t.string :kind
+    end
+
+    output = dump_table_schema "trains"
+
+    assert_match("options: \"#{options}\"", output)
+  end
+
+  def test_range_partition_options_is_dumped
+    skip("current adapter doesn't support native partitioning") unless supports_native_partitioning?
+
+    options = "PARTITION BY RANGE (created_at)"
+
+    @connection.create_table "trains", id: false, options: options do |t|
+      t.string :name
+      t.datetime :created_at, null: false
+    end
+
+    output = dump_table_schema "trains"
+
+    assert_match("options: \"#{options}\"", output)
+  end
+
+  def test_inherited_table_options_is_dumped
+    @connection.create_table "transportation_modes" do |t|
+      t.string :name
+      t.string :kind
+    end
+
+    options = "INHERITS (transportation_modes)"
+
+    @connection.create_table "trains", options: options
+
+    output = dump_table_schema "trains"
+
+    assert_match("options: \"#{options}\"", output)
+  end
+
+  def test_multiple_inherited_table_options_is_dumped
+    @connection.create_table "vehicles" do |t|
+      t.string :name
+    end
+
+    @connection.create_table "transportation_modes" do |t|
+      t.string :kind
+    end
+
+    options = "INHERITS (transportation_modes, vehicles)"
+
+    @connection.create_table "trains", options: options
+
+    output = dump_table_schema "trains"
+
+    assert_match("options: \"#{options}\"", output)
+  end
+
+  def test_no_partition_options_are_dumped
+    @connection.create_table "trains" do |t|
+      t.string :name
+    end
+
+    output = dump_table_schema "trains"
+
+    assert_no_match("options:", output)
+  end
+end
+
+class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+  include PGSchemaHelper
+
+  def setup
+    @connection = ActiveRecord::Base.connection
+    @connection.create_schema("test_schema")
+    @connection.create_schema("test_schema2")
+    @connection.create_enum("test_schema.test_enum_in_test_schema", ["foo", "bar"])
+    @connection.create_enum("test_enum_in_public", ["foo", "bar"])
+    @connection.create_table("test_schema.test_table")
+    @connection.create_table("test_schema.test_table2") do |t|
+      t.integer "test_table_id"
+      t.foreign_key "test_schema.test_table"
+    end
+  end
+
+  def teardown
+    @connection.drop_schema("test_schema")
+    @connection.drop_schema("test_schema2")
+    @connection.drop_enum("test_enum_in_public")
+  end
+
+  def test_schema_dump_with_dump_schemas_all
+    with_dump_schemas(:all) do
+      output = dump_all_table_schema
+
+      assert_includes output, 'create_schema "test_schema"'
+      assert_not_includes output, 'create_schema "public"'
+      assert_includes output, 'create_enum "test_schema.test_enum_in_test_schema"'
+      assert_includes output, 'create_enum "public.test_enum_in_public"'
+      assert_includes output, 'create_table "test_schema.test_table"'
+      assert_includes output, 'create_table "public.authors"'
+      assert_includes output, 'add_foreign_key "test_schema.test_table2", "test_schema.test_table"'
+      assert_includes output, 'add_foreign_key "public.authors", "public.author_addresses"'
+    end
+  end
+
+  def test_schema_dump_with_dump_schemas_string
+    with_dump_schemas("test_schema") do
+      output = dump_all_table_schema
+
+      assert_includes output, 'create_schema "test_schema"'
+      assert_not_includes output, 'create_schema "public"'
+      assert_includes output, 'create_enum "test_enum_in_test_schema"'
+      assert_not_includes output, "test_enum_in_public"
+      assert_includes output, 'create_table "test_table"'
+      assert_not_includes output, 'create table "authors"'
+      assert_includes output, 'add_foreign_key "test_table2", "test_table"'
+      assert_not_includes output, 'add_foreign_key "authors", "author_addresses"'
+    end
+  end
+
+  def test_schema_dump_with_dump_schemas_schema_search_path
+    with_dump_schemas(:schema_search_path) do
+      with_schema_search_path("'$user',test_schema2,test_schema") do
+        output = dump_all_table_schema
+
+        assert_includes output, 'create_schema "test_schema"'
+        assert_includes output, 'create_schema "test_schema2"'
+        assert_not_includes output, 'create_schema "public"'
+        assert_includes output, 'create_enum "test_schema.test_enum_in_test_schema"'
+        assert_not_includes output, 'create_enum "public.test_enum_in_public"'
+        assert_includes output, 'create_table "test_schema.test_table"'
+        assert_not_includes output, 'create_table "public.authors"'
+        assert_includes output, 'add_foreign_key "test_schema.test_table2", "test_schema.test_table"'
+        assert_not_includes output, 'add_foreign_key "public.authors", "public.author_addresses"'
+      end
+    end
   end
 end

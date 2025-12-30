@@ -16,12 +16,16 @@ class InflectorTest < ActiveSupport::TestCase
     # This helper is implemented by setting @__instance__ because in some tests
     # there are module functions that access ActiveSupport::Inflector.inflections,
     # so we need to replace the singleton itself.
-    @original_inflections = ActiveSupport::Inflector::Inflections.instance_variable_get(:@__instance__)[:en]
-    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, en: @original_inflections.dup)
+    @original_inflections = ActiveSupport::Inflector::Inflections.instance_variable_get(:@__instance__)
+    @original_inflection_en = ActiveSupport::Inflector::Inflections.instance_variable_get(:@__en_instance__)
+
+    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, {})
+    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__en_instance__, @original_inflection_en.dup)
   end
 
   def teardown
-    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, en: @original_inflections)
+    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__instance__, @original_inflections)
+    ActiveSupport::Inflector::Inflections.instance_variable_set(:@__en_instance__, @original_inflection_en)
   end
 
   def test_pluralize_plurals
@@ -37,6 +41,16 @@ class InflectorTest < ActiveSupport::TestCase
     I18n.stub(:default_locale, :"en-GB") do
       assert_equal "days", ActiveSupport::Inflector.pluralize("day")
     end
+  end
+
+  def test_pluralize_with_i18n_fallbacks_to_en
+    original_fallbacks = I18n.fallbacks
+    I18n.fallbacks = I18n::Locale::Fallbacks.new(custom: :en)
+
+    assert_equal "applicants", ActiveSupport::Inflector.pluralize("applicant", :custom)
+    assert_equal "days", ActiveSupport::Inflector.pluralize("day", :custom)
+  ensure
+    I18n.fallbacks = original_fallbacks
   end
 
   test "uncountability of ascii word" do
@@ -426,6 +440,11 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("Lax Roundtrip To Sfo", capitalize: false))
   end
 
+  def test_humanize_with_international_characters
+    assert_equal("Áéíóú", ActiveSupport::Inflector.humanize("áÉÍÓÚ"))
+    assert_equal("Абвгде", ActiveSupport::Inflector.humanize("аБВГДЕ"))
+  end
+
   def test_constantize
     run_constantize_tests_on do |string|
       ActiveSupport::Inflector.constantize(string)
@@ -623,7 +642,7 @@ class InflectorTest < ActiveSupport::TestCase
 
         assert_equal [], inflect.singulars
         assert_equal [], inflect.plurals
-        assert_equal [], inflect.uncountables
+        assert_equal [], inflect.uncountables.to_a
 
         # restore all the inflections
         singulars.reverse_each { |singular| inflect.singular(*singular) }

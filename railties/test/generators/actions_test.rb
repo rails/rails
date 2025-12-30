@@ -401,7 +401,7 @@ class ActionsTest < Rails::Generators::TestCase
 
   def test_initializer_should_write_date_to_file_in_config_initializers
     action :initializer, "constants.rb", "MY_CONSTANT = 42"
-    assert_file "config/initializers/constants.rb", "MY_CONSTANT = 42\n"
+    assert_initializer "constants.rb", "MY_CONSTANT = 42\n"
   end
 
   def test_initializer_should_write_date_to_file_with_block_in_config_initializers
@@ -411,7 +411,9 @@ class ActionsTest < Rails::Generators::TestCase
       end
     RUBY
     action(:initializer, "constants.rb") { code }
-    assert_file "config/initializers/constants.rb", code.strip_heredoc
+    assert_initializer "constants.rb" do |content|
+      assert_equal(content, code.strip_heredoc)
+    end
   end
 
   test "generate" do
@@ -565,6 +567,13 @@ class ActionsTest < Rails::Generators::TestCase
       action :rails_command, "generate model 1234567890", inline: true
     end
     assert_match(/1234567890/, error.message)
+  end
+
+  test "rails_command with quiet option" do
+    generator(default_arguments, quiet: true)
+    assert_runs "rails new myapp", capture: true do
+      action :rails_command, "new myapp"
+    end
   end
 
   test "route should add route" do

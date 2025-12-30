@@ -49,6 +49,8 @@ module ActiveRecord
             sql << "USING #{o.using}" if o.using
             sql << "ON #{quote_table_name(o.table)}" if create
             sql << "(#{quoted_columns(o)})"
+            sql << "INVISIBLE" if o.disabled? && !mariadb?
+            sql << "IGNORED" if o.disabled? && mariadb?
 
             add_sql_comment!(sql.join(" "), o.comment)
           end

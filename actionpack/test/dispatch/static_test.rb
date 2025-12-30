@@ -175,6 +175,15 @@ class StaticTest < ActiveSupport::TestCase
     assert_not_equal "gzip", response.headers["content-encoding"]
   end
 
+  def test_serves_gzip_files_when_svg
+    file_name = "/gzip/logo-bcb6d75d927347158af5.svg"
+    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
+    assert_gzip  file_name, response
+    assert_equal "image/svg+xml", response.headers["Content-Type"]
+    assert_equal "accept-encoding",        response.headers["Vary"]
+    assert_equal "gzip",                   response.headers["Content-Encoding"]
+  end
+
   def test_set_vary_when_origin_compressed_but_client_cant_accept
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "None")

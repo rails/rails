@@ -17,6 +17,20 @@ require "models/pirate"
 class StrictLoadingTest < ActiveRecord::TestCase
   fixtures :developers, :developers_projects, :projects, :ships
 
+  def run(*)
+    with_debug_event_reporting do
+      super
+    end
+  end
+
+  setup do
+    ActiveSupport.colorize_logging = false
+  end
+
+  teardown do
+    ActiveSupport.colorize_logging = true
+  end
+
   def test_strict_loading!
     developer = Developer.first
     assert_not_predicate developer, :strict_loading?
@@ -59,6 +73,15 @@ class StrictLoadingTest < ActiveRecord::TestCase
     assert_raises ActiveRecord::StrictLoadingViolationError do
       developer.projects.last.firm
     end
+
+    assert_nothing_raised do
+      developer.projects_extended_by_name.to_a
+    end
+
+    assert developer.projects_extended_by_name.all?(&:strict_loading?)
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      developer.projects_extended_by_name.last.firm
+    end
   end
 
   def test_strict_loading_n_plus_one_only_mode_with_belongs_to
@@ -84,6 +107,32 @@ class StrictLoadingTest < ActiveRecord::TestCase
     assert_raises ActiveRecord::StrictLoadingViolationError do
       developer.ship.parts.first.trinkets.to_a
     end
+  end
+
+  def test_strict_loading_n_plus_one_only_mode_does_not_eager_load_child_associations
+    developer = Developer.first
+    developer.strict_loading!(mode: :n_plus_one_only)
+    developer.projects.first
+
+    assert_not_predicate developer.projects, :loaded?
+
+    assert_nothing_raised do
+      developer.projects.first.firm
+    end
+  end
+
+  def test_default_mode_is_all
+    developer = Developer.first
+    assert_predicate developer, :strict_loading_all?
+  end
+
+  def test_default_mode_can_be_changed_globally
+    developer = Class.new(ActiveRecord::Base) do
+      self.strict_loading_mode = :n_plus_one_only
+      self.table_name = "developers"
+    end.new
+
+    assert_predicate developer, :strict_loading_n_plus_one_only?
   end
 
   def test_strict_loading
@@ -601,6 +650,14 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_does_not_raise_when_checking_if_new_record_included_in_eager_loaded_habtm_relation
+    Developer.first.projects << Project.first
+
+    developer = Developer.includes(:projects).strict_loading.first
+
+    assert_nothing_raised { developer.projects.include?(Project.new) }
+  end
+
   def test_strict_loading_violation_raises_by_default
     assert_equal :raise, ActiveRecord.action_on_strict_loading_violation
 
@@ -692,9 +749,9 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
 
     def assert_logged(message)
-      old_logger = ActiveRecord::Base.logger
+      old_logger = ActiveRecord::LogSubscriber.logger
       log = StringIO.new
-      ActiveRecord::Base.logger = Logger.new(log)
+      ActiveRecord::LogSubscriber.logger = Logger.new(log)
 
       begin
         yield
@@ -702,7 +759,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
         log.rewind
         assert_match message, log.read
       ensure
-        ActiveRecord::Base.logger = old_logger
+        ActiveRecord::LogSubscriber.logger = old_logger
       end
     end
 end

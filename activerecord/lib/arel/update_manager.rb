@@ -16,7 +16,8 @@ module Arel # :nodoc: all
     end
 
     def set(values)
-      if String === values
+      case values
+      when String, Nodes::BoundSqlLiteral
         @ast.values = [values]
       else
         @ast.values = values.map { |column, value|
@@ -42,6 +43,11 @@ module Arel # :nodoc: all
 
     def having(expr)
       @ast.havings << expr
+      self
+    end
+
+    def comment(value)
+      @ast.comment = value
       self
     end
   end

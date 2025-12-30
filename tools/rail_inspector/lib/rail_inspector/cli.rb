@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "thor"
+require_relative "../rail_inspector"
 
 module RailInspector
   class Cli < Thor
@@ -25,10 +26,18 @@ module RailInspector
       checker = Configuring.new(rails_path)
       checker.check
 
-      puts checker.errors unless checker.errors.empty?
+      puts checker.error_message if checker.errors.any?
       exit checker.errors.empty? unless options[:autocorrect]
 
       checker.write!
+    end
+
+    desc "requires RAILS_PATH", "Check for autoloads being required"
+    option :autocorrect, type: :boolean, aliases: :a
+    def requires(rails_path)
+      require_relative "./requires"
+
+      exit Requires.new(rails_path, options[:autocorrect]).call
     end
   end
 end

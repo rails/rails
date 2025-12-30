@@ -28,7 +28,6 @@ module ActiveRecord
         ActiveRecord::Relation.prepend(RelationQueries)
         ActiveRecord::Base.include(CoreQueries)
         ActiveRecord::Encryption::EncryptedAttributeType.prepend(ExtendedEncryptableType)
-        Arel::Nodes::HomogeneousIn.prepend(InWithAdditionalValues)
       end
 
       # When modifying this file run performance tests in
@@ -42,6 +41,8 @@ module ActiveRecord
       module EncryptedQuery # :nodoc:
         class << self
           def process_arguments(owner, args, check_for_additional_values)
+            owner = owner.model if owner.is_a?(Relation)
+
             return args if owner.deterministic_encrypted_attributes&.empty?
 
             if args.is_a?(Array) && (options = args.first).is_a?(Hash)
@@ -103,12 +104,12 @@ module ActiveRecord
         end
 
         def scope_for_create
-          return super unless klass.deterministic_encrypted_attributes&.any?
+          return super unless model.deterministic_encrypted_attributes&.any?
 
           scope_attributes = super
           wheres = where_values_hash
 
-          klass.deterministic_encrypted_attributes.each do |attribute_name|
+          model.deterministic_encrypted_attributes.each do |attribute_name|
             attribute_name = attribute_name.to_s
             values = wheres[attribute_name]
             if values.is_a?(Array) && values[1..].all?(AdditionalValue)
@@ -150,20 +151,6 @@ module ActiveRecord
             data.value
           else
             super
-          end
-        end
-      end
-
-      module InWithAdditionalValues
-        def proc_for_binds
-          -> value { ActiveModel::Attribute.with_cast_value(attribute.name, value, encryption_aware_type_caster) }
-        end
-
-        def encryption_aware_type_caster
-          if attribute.type_caster.is_a?(ActiveRecord::Encryption::EncryptedAttributeType)
-            attribute.type_caster.cast_type
-          else
-            attribute.type_caster
           end
         end
       end

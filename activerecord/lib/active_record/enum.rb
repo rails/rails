@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
@@ -119,7 +118,18 @@ module ActiveRecord
   #     enum :status, [ :active, :archived ], instance_methods: false
   #   end
   #
-  # If you want the enum value to be validated before saving, use the option +:validate+:
+  # By default, an +ArgumentError+ will be raised when assigning an invalid value:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum :status, [ :active, :archived ]
+  #   end
+  #
+  #   conversation = Conversation.new
+  #
+  #   conversation.status = :unknown # 'unknown' is not a valid status (ArgumentError)
+  #
+  # If, instead, you want the enum value to be validated before saving, use the
+  # +:validate+ option:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum :status, [ :active, :archived ], validate: true
@@ -136,7 +146,7 @@ module ActiveRecord
   #   conversation.status = :active
   #   conversation.valid? # => true
   #
-  # It is also possible to pass additional validation options:
+  # You may also pass additional validation options:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum :status, [ :active, :archived ], validate: { allow_nil: true }
@@ -152,27 +162,9 @@ module ActiveRecord
   #
   #   conversation.status = :active
   #   conversation.valid? # => true
-  #
-  # Otherwise +ArgumentError+ will raise:
-  #
-  #   class Conversation < ActiveRecord::Base
-  #     enum :status, [ :active, :archived ]
-  #   end
-  #
-  #   conversation = Conversation.new
-  #
-  #   conversation.status = :unknown # 'unknown' is not a valid status (ArgumentError)
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
-    end
-
-    def load_schema! # :nodoc:
-      defined_enums.each_key do |name|
-        unless columns_hash.key?(resolve_attribute_name(name))
-          raise "Unknown enum attribute '#{name}' for #{self.name}"
-        end
-      end
     end
 
     class EnumType < Type::Value # :nodoc:
@@ -221,26 +213,16 @@ module ActiveRecord
         attr_reader :name, :mapping
     end
 
-    def enum(name = nil, values = nil, **options)
-      if name
-        values, options = options, {} unless values
-        return _enum(name, values, **options)
-      end
-
-      definitions = options.slice!(:_prefix, :_suffix, :_scopes, :_default, :_instance_methods)
-      options.transform_keys! { |key| :"#{key[1..-1]}" }
-
-      definitions.each { |name, values| _enum(name, values, **options) }
+    def enum(name, values = nil, **options)
+      values, options = options, {} unless values
+      _enum(name, values, **options)
     end
 
     private
-      def inherited(base)
-        base.defined_enums = defined_enums.deep_dup
-        super
-      end
-
       def _enum(name, values, prefix: nil, suffix: nil, scopes: true, instance_methods: true, validate: false, **options)
-        assert_valid_enum_definition_values(values)
+        values = assert_valid_enum_definition_values(values)
+        assert_valid_enum_options(options)
+
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
         name = name.to_s
@@ -255,7 +237,13 @@ module ActiveRecord
 
         attribute(name, **options)
 
-        decorate_attributes([name]) do |name, subtype|
+        decorate_attributes([name]) do |_name, subtype|
+          if subtype == ActiveModel::Type.default_value
+            raise "Undeclared attribute type for enum '#{name}' in #{self.name}. Enums must be" \
+              " backed by a database column or declared with an explicit type" \
+              " via `attribute`."
+          end
+
           subtype = subtype.subtype if EnumType === subtype
           EnumType.new(name, enum_values, subtype, raise_on_invalid_values: !validate)
         end
@@ -298,6 +286,11 @@ module ActiveRecord
         enum_values.freeze
       end
 
+      def inherited(base)
+        base.defined_enums = defined_enums.deep_dup
+        super
+      end
+
       class EnumMethods < Module # :nodoc:
         def initialize(klass)
           @klass = klass
@@ -324,7 +317,7 @@ module ActiveRecord
 
               # scope :not_active, -> { where.not(status: 0) }
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
-              klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
+              klass.scope "not_#{value_method_name}", -> { where(predicate_builder[name, value, :is_distinct_from]) }
             end
           end
       end
@@ -348,6 +341,20 @@ module ActiveRecord
           if values.keys.any?(&:blank?)
             raise ArgumentError, "Enum values #{values} must not contain a blank name."
           end
+
+          values = values.transform_values do |value|
+            value.is_a?(Symbol) ? value.name : value
+          end
+
+          values.each_value do |value|
+            case value
+            when String, Integer, true, false, nil
+              # noop
+            else
+              raise ArgumentError, "Enum values #{values} must be only booleans, integers, symbols or strings, got: #{value.class}"
+            end
+          end
+
         when Array
           if values.empty?
             raise ArgumentError, "Enum values #{values} must not be empty."
@@ -363,29 +370,38 @@ module ActiveRecord
         else
           raise ArgumentError, "Enum values #{values} must be either a non-empty hash or an array."
         end
+
+        values
+      end
+
+      def assert_valid_enum_options(options)
+        invalid_keys = options.keys & %i[_prefix _suffix _scopes _default _instance_methods]
+        unless invalid_keys.empty?
+          raise ArgumentError, "invalid option(s): #{invalid_keys.map(&:inspect).join(", ")}. Valid options are: :prefix, :suffix, :scopes, :default, :instance_methods, and :validate."
+        end
       end
 
       ENUM_CONFLICT_MESSAGE = \
         "You tried to define an enum named \"%{enum}\" on the model \"%{klass}\", but " \
-        "this will generate a %{type} method \"%{method}\", which is already defined " \
+        "this will generate %{type} method \"%{method}\", which is already defined " \
         "by %{source}."
       private_constant :ENUM_CONFLICT_MESSAGE
 
       def detect_enum_conflict!(enum_name, method_name, klass_method = false)
         if klass_method && dangerous_class_method?(method_name)
-          raise_conflict_error(enum_name, method_name, type: "class")
+          raise_conflict_error(enum_name, method_name, "a class")
         elsif klass_method && method_defined_within?(method_name, Relation)
-          raise_conflict_error(enum_name, method_name, type: "class", source: Relation.name)
+          raise_conflict_error(enum_name, method_name, "a class", source: Relation.name)
         elsif klass_method && method_name.to_sym == :id
-          raise_conflict_error(enum_name, method_name)
+          raise_conflict_error(enum_name, method_name, "an instance")
         elsif !klass_method && dangerous_attribute_method?(method_name)
-          raise_conflict_error(enum_name, method_name)
+          raise_conflict_error(enum_name, method_name, "an instance")
         elsif !klass_method && method_defined_within?(method_name, _enum_methods_module, Module)
-          raise_conflict_error(enum_name, method_name, source: "another enum")
+          raise_conflict_error(enum_name, method_name, "an instance", source: "another enum")
         end
       end
 
-      def raise_conflict_error(enum_name, method_name, type: "instance", source: "Active Record")
+      def raise_conflict_error(enum_name, method_name, type, source: "Active Record")
         raise ArgumentError, ENUM_CONFLICT_MESSAGE % {
           enum: enum_name,
           klass: name,

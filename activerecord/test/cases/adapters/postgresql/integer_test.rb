@@ -8,7 +8,7 @@ class PostgresqlIntegerTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
 
     @connection.transaction do
       @connection.create_table "pg_integers", force: true do |t|

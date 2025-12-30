@@ -88,6 +88,30 @@ class ActiveStorage::Representations::RedirectControllerWithPreviewsTest < Actio
     assert_equal 100, image.height
   end
 
+  test "processing and recording variant for preview just once" do
+    variant_record_created = false
+    variant_record_loaded_count = 0
+
+    query_subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+      case event.payload[:sql]
+      when /INSERT INTO "active_storage_variant_records"/
+        variant_record_created = true
+      when /SELECT "active_storage_variant_records".* FROM "active_storage_variant_records"/
+        next unless variant_record_created
+        variant_record_loaded_count += 1
+      end
+    end
+
+    get rails_blob_representation_url(
+      filename: @blob.filename,
+      signed_blob_id: @blob.signed_id,
+      variation_key: ActiveStorage::Variation.encode(resize_to_limit: [100, 100]))
+
+    assert_equal 0, variant_record_loaded_count
+  ensure
+    ActiveSupport::Notifications.unsubscribe(query_subscriber) if query_subscriber
+  end
+
   test "showing preview with invalid signed blob ID" do
     get rails_blob_representation_url(
       filename: @blob.filename,
@@ -110,7 +134,7 @@ end
 class ActiveStorage::Representations::RedirectControllerWithPreviewsWithStrictLoadingTest < ActionDispatch::IntegrationTest
   setup do
     @blob = create_file_blob filename: "report.pdf", content_type: "application/pdf"
-    @blob.preview(resize_to_limit: [100, 100]).processed
+    @blob.preview(resize_to_limit: [100, 100]).processed.send(:variant).processed
   end
 
   test "showing existing preview record inline" do
@@ -138,21 +162,6 @@ class ActiveStorage::Representations::RedirectControllerWithOpenRedirectTest < A
     test "showing existing variant stored in s3" do
       with_raise_on_open_redirects(:s3) do
         blob = create_file_blob filename: "racecar.jpg", service_name: :s3
-
-        get rails_blob_representation_url(
-          filename: blob.filename,
-          signed_blob_id: blob.signed_id,
-          variation_key: ActiveStorage::Variation.encode(resize_to_limit: [100, 100]))
-
-        assert_redirected_to(/racecar\.jpg/)
-      end
-    end
-  end
-
-  if SERVICE_CONFIGURATIONS[:azure]
-    test "showing existing variant stored in azure" do
-      with_raise_on_open_redirects(:azure) do
-        blob = create_file_blob filename: "racecar.jpg", service_name: :azure
 
         get rails_blob_representation_url(
           filename: blob.filename,

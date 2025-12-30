@@ -36,6 +36,7 @@ module Arel
       Arel::Table.engine = @arel_engine if defined? @arel_engine
     end
     include ActiveSupport::Testing::Assertions
+    include ActiveSupport::Testing::TestsWithoutAssertions
 
     # test/unit backwards compatibility methods
     alias :assert_no_match :refute_match

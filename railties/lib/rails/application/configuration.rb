@@ -15,17 +15,18 @@ module Rails
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters, :precompile_filter_parameters,
                     :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
-                    :log_tags, :railties_order, :relative_url_root, :secret_key_base,
+                    :log_tags, :silence_healthcheck_path, :railties_order, :relative_url_root,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x,
-                    :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
+                    :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
+                    :content_security_policy_nonce_auto,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
-                    :dom_testing_default_html_version
+                    :dom_testing_default_html_version, :yjit
 
-      attr_reader :encoding, :api_only, :loaded_config_version
+      attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
       def initialize(*)
         super
@@ -62,17 +63,17 @@ module Rails
         @exceptions_app                          = nil
         @autoflush_log                           = true
         @log_formatter                           = ActiveSupport::Logger::SimpleFormatter.new
+        @silence_healthcheck_path                = nil
         @eager_load                              = nil
         @secret_key_base                         = nil
         @api_only                                = false
         @debug_exception_response_format         = nil
         @x                                       = Custom.new
-        @enable_dependency_loading               = false
-        @read_encrypted_secrets                  = false
         @content_security_policy                 = nil
         @content_security_policy_report_only     = false
         @content_security_policy_nonce_generator = nil
         @content_security_policy_nonce_directives = nil
+        @content_security_policy_nonce_auto      = false
         @require_master_key                      = false
         @loaded_config_version                   = nil
         @credentials                             = ActiveSupport::InheritableOptions.new(credentials_defaults)
@@ -83,6 +84,7 @@ module Rails
         @rake_eager_load                         = false
         @server_timing                           = false
         @dom_testing_default_html_version        = :html4
+        @yjit                                    = false
       end
 
       # Loads default configuration values for a target version. This includes
@@ -114,8 +116,6 @@ module Rails
             action_controller.per_form_csrf_tokens = true
             action_controller.forgery_protection_origin_check = true
           end
-
-          ActiveSupport.to_time_preserves_timezone = true
 
           if respond_to?(:active_record)
             active_record.belongs_to_required_by_default = true
@@ -263,7 +263,7 @@ module Rails
           end
 
           if respond_to?(:action_controller)
-            action_controller.raise_on_open_redirects = true
+            action_controller.action_on_open_redirect = :raise
             action_controller.wrap_parameters_by_default = true
           end
         when "7.1"
@@ -279,8 +279,6 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.run_commit_callbacks_on_first_saved_instances_in_transaction = false
-            active_record.commit_transaction_on_non_local_return = true
-            active_record.allow_deprecated_singular_associations_name = false
             active_record.sqlite3_adapter_strict_strings_by_default = true
             active_record.query_log_tags_format = :sqlcommenter
             active_record.raise_on_assign_to_attr_readonly = true
@@ -305,10 +303,6 @@ module Rails
             action_dispatch.debug_exception_log_level = :error
           end
 
-          if respond_to?(:active_job)
-            active_job.use_big_decimal_serializer = true
-          end
-
           if respond_to?(:active_support)
             active_support.cache_format_version = 7.1
             active_support.message_serializer = :json_allow_marshal
@@ -316,21 +310,83 @@ module Rails
             active_support.raise_on_invalid_cache_expiration_time = true
           end
 
-          if respond_to?(:action_controller)
-            action_controller.allow_deprecated_parameters_hash_equality = false
+          if respond_to?(:action_view)
+            require "action_view/helpers"
+            action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
 
-          if defined?(Rails::HTML::Sanitizer) # nested ifs to avoid linter errors
-            if respond_to?(:action_view)
-              action_view.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
-            end
-
-            if respond_to?(:action_text)
-              action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
-            end
+          if respond_to?(:action_text)
+            require "action_view/helpers"
+            action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
         when "7.2"
           load_defaults "7.1"
+
+          self.yjit = true
+
+          if respond_to?(:active_storage)
+            active_storage.web_image_content_types = %w( image/png image/jpeg image/gif image/webp )
+          end
+
+          if respond_to?(:active_record)
+            active_record.postgresql_adapter_decode_dates = true
+            active_record.validate_migration_timestamps = true
+          end
+        when "8.0"
+          load_defaults "7.2"
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.strict_freshness = true
+          end
+
+          Regexp.timeout ||= 1 if Regexp.respond_to?(:timeout=)
+        when "8.1"
+          load_defaults "8.0"
+
+          # Development and test environments tend to reload code and
+          # redefine methods (e.g. mocking), hence YJIT isn't generally
+          # faster in these environments.
+          self.yjit = !Rails.env.local?
+
+          if respond_to?(:action_controller)
+            action_controller.escape_json_responses = false
+            action_controller.action_on_path_relative_redirect = :raise
+          end
+
+          if respond_to?(:active_record)
+            active_record.raise_on_missing_required_finder_order_columns = true
+          end
+
+          if respond_to?(:active_support)
+            active_support.escape_js_separators_in_json = false
+          end
+
+          if respond_to?(:action_view)
+            action_view.render_tracker = :ruby
+          end
+
+          if respond_to?(:action_view)
+            action_view.remove_hidden_field_autocomplete = true
+          end
+        when "8.2"
+          load_defaults "8.1"
+
+          if respond_to?(:action_controller)
+            action_controller.forgery_protection_verification_strategy = :header_only
+          end
+
+          if respond_to?(:active_record)
+            active_record.postgresql_adapter_decode_bytea = true
+            active_record.postgresql_adapter_decode_money = true
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.analyze = :immediately
+          end
+
+          if respond_to?(:active_job)
+            active_job.enqueue_after_transaction_commit = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -350,22 +406,6 @@ module Rails
         self.cache_classes = !value
       end
 
-      ENABLE_DEPENDENCY_LOADING_WARNING = <<~MSG
-        This flag addressed a limitation of the `classic` autoloader and has no effect nowadays.
-        To fix this deprecation, please just delete the reference.
-      MSG
-      private_constant :ENABLE_DEPENDENCY_LOADING_WARNING
-
-      def enable_dependency_loading
-        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
-        @enable_dependency_loading
-      end
-
-      def enable_dependency_loading=(value)
-        Rails.deprecator.warn(ENABLE_DEPENDENCY_LOADING_WARNING)
-        @enable_dependency_loading = value
-      end
-
       def encoding=(value)
         @encoding = value
         silence_warnings do
@@ -381,6 +421,13 @@ module Rails
         @debug_exception_response_format ||= :api
       end
 
+      def log_level=(level)
+        @log_level = level
+        @broadcast_log_level = level
+      end
+
+      attr_reader :broadcast_log_level # :nodoc:
+
       def debug_exception_response_format
         @debug_exception_response_format || :default
       end
@@ -391,7 +438,6 @@ module Rails
         @paths ||= begin
           paths = super
           paths.add "config/database",    with: "config/database.yml"
-          paths.add "config/secrets",     with: "config", glob: "secrets.yml{,.enc}"
           paths.add "config/environment", with: "config/environment.rb"
           paths.add "lib/templates"
           paths.add "log",                with: "log/#{Rails.env}.log"
@@ -488,12 +534,36 @@ module Rails
       end
 
       def colorize_logging
-        ActiveSupport::LogSubscriber.colorize_logging
+        ActiveSupport.colorize_logging
       end
 
       def colorize_logging=(val)
-        ActiveSupport::LogSubscriber.colorize_logging = val
+        ActiveSupport.colorize_logging = val
         generators.colorize_logging = val
+      end
+
+      def secret_key_base
+        @secret_key_base || begin
+          self.secret_key_base = if ENV["SECRET_KEY_BASE_DUMMY"]
+            generate_local_secret
+          else
+            ENV["SECRET_KEY_BASE"] ||
+              Rails.application.credentials.secret_key_base ||
+              (Rails.env.local? && generate_local_secret)
+          end
+        end
+      end
+
+      def secret_key_base=(new_secret_key_base)
+        if new_secret_key_base.nil? && Rails.env.local?
+          @secret_key_base = generate_local_secret
+        elsif new_secret_key_base.is_a?(String) && new_secret_key_base.present?
+          @secret_key_base = new_secret_key_base
+        elsif new_secret_key_base
+          raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
+        else
+          raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `bin/rails credentials:edit`"
+        end
       end
 
       # Specifies what class to use to store the session. Possible values
@@ -577,14 +647,16 @@ module Rails
         def method_missing(method, *args)
           if method.end_with?("=")
             @configurations[:"#{method[0..-2]}"] = args.first
-          else
+          elsif args.empty?
             @configurations.fetch(method) {
               @configurations[method] = ActiveSupport::OrderedOptions.new
             }
+          else
+            raise ArgumentError, "wrong number of arguments (given #{args.length}, expected 0) when reading configuration `#{method}`"
           end
         end
 
-        def respond_to_missing?(symbol, *)
+        def respond_to_missing?(symbol, _)
           true
         end
       end
@@ -598,6 +670,18 @@ module Rails
           key_path = root.join("config/master.key") if !key_path.exist?
 
           { content_path: content_path, key_path: key_path }
+        end
+
+        def generate_local_secret
+          key_file = root.join("tmp/local_secret.txt")
+
+          unless File.exist?(key_file)
+            random_key = SecureRandom.hex(64)
+            FileUtils.mkdir_p(key_file.dirname)
+            File.binwrite(key_file, random_key)
+          end
+
+          File.binread(key_file)
         end
     end
   end

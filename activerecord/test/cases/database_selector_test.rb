@@ -62,15 +62,15 @@ module ActiveRecord
           called = true
 
           assert ActiveRecord::Base.connected_to?(role: :reading)
-          assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+          assert_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
 
           ActiveRecord::Base.connected_to(role: :writing, prevent_writes: false) do
             assert ActiveRecord::Base.connected_to?(role: :writing)
-            assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
+            assert_not_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
           end
 
           assert ActiveRecord::Base.connected_to?(role: :reading)
-          assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+          assert_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
         end
         assert called
       end
@@ -202,12 +202,12 @@ module ActiveRecord
       write = false
       resolver.read do
         assert ActiveRecord::Base.connected_to?(role: :writing)
-        assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+        assert_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
         read = true
 
         resolver.write do
           assert ActiveRecord::Base.connected_to?(role: :writing)
-          assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
+          assert_not_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
           write = true
         end
       end
@@ -227,7 +227,7 @@ module ActiveRecord
         resolver.read do
           inside_preventing.wait
           assert ActiveRecord::Base.connected_to?(role: :writing)
-          assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+          assert_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
           finished_checking.set
         end
       end
@@ -235,7 +235,7 @@ module ActiveRecord
       t2 = Thread.new do
         resolver.write do
           assert ActiveRecord::Base.connected_to?(role: :writing)
-          assert_not_predicate ActiveRecord::Base.connection, :preventing_writes?
+          assert_not_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
           inside_preventing.set
           finished_checking.wait
         end
@@ -244,7 +244,7 @@ module ActiveRecord
       t3 = Thread.new do
         resolver.read do
           assert ActiveRecord::Base.connected_to?(role: :writing)
-          assert_predicate ActiveRecord::Base.connection, :preventing_writes?
+          assert_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
         end
       end
 

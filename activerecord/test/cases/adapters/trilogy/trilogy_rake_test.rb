@@ -29,7 +29,7 @@ module ActiveRecord
       mock.expect(:call, nil, [adapter: "trilogy", database: nil])
       mock.expect(:call, nil, [db_config])
 
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         ActiveRecord::Base.stub(:establish_connection, mock) do
           ActiveRecord::Tasks::DatabaseTasks.create(db_config)
         end
@@ -76,7 +76,7 @@ module ActiveRecord
 
     def test_create_when_database_exists_outputs_info_to_stderr
       with_stubbed_connection_establish_connection do
-        ActiveRecord::Base.connection.stub(
+        ActiveRecord::Base.lease_connection.stub(
           :create_database,
           proc { raise ActiveRecord::DatabaseAlreadyExists }
         ) do
@@ -90,7 +90,7 @@ module ActiveRecord
     private
       def with_stubbed_connection_establish_connection(&block)
         ActiveRecord::Base.stub(:establish_connection, nil) do
-          ActiveRecord::Base.stub(:connection, @connection, &block)
+          ActiveRecord::Base.stub(:lease_connection, @connection, &block)
         end
       end
   end
@@ -139,7 +139,7 @@ module ActiveRecord
     def test_establishes_connection_to_mysql_database
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         assert_called_with(
           ActiveRecord::Base,
           :establish_connection,
@@ -169,7 +169,7 @@ module ActiveRecord
     private
       def with_stubbed_connection_establish_connection(&block)
         ActiveRecord::Base.stub(:establish_connection, nil) do
-          ActiveRecord::Base.stub(:connection, @connection, &block)
+          ActiveRecord::Base.stub(:lease_connection, @connection, &block)
         end
       end
   end
@@ -186,7 +186,7 @@ module ActiveRecord
     def test_establishes_connection_without_database
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         assert_called(ActiveRecord::Base, :establish_connection, times: 2) do
           ActiveRecord::Tasks::DatabaseTasks.purge(db_config)
         end
@@ -217,7 +217,7 @@ module ActiveRecord
     private
       def with_stubbed_connection_establish_connection(&block)
         ActiveRecord::Base.stub(:establish_connection, nil) do
-          ActiveRecord::Base.stub(:connection, @connection, &block)
+          ActiveRecord::Base.stub(:lease_connection, @connection, &block)
         end
       end
   end
@@ -232,7 +232,7 @@ module ActiveRecord
     end
 
     def test_db_retrieves_charset
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         assert_called(@connection, :charset) do
           ActiveRecord::Tasks::DatabaseTasks.charset @configuration
         end
@@ -250,7 +250,7 @@ module ActiveRecord
     end
 
     def test_db_retrieves_collation
-      ActiveRecord::Base.stub(:connection, @connection) do
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
         assert_called(@connection, :collation) do
           ActiveRecord::Tasks::DatabaseTasks.collation @configuration
         end
@@ -271,7 +271,7 @@ module ActiveRecord
       assert_called_with(
         Kernel,
         :system,
-        ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+        ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
         returns: true
       ) do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
@@ -280,7 +280,7 @@ module ActiveRecord
 
     def test_structure_dump_with_extra_flags
       filename = "awesome-file.sql"
-      expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"]
+      expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_dump_flags(["--noop"]) do
@@ -291,7 +291,7 @@ module ActiveRecord
 
     def test_structure_dump_with_hash_extra_flags_for_a_different_driver
       filename = "awesome-file.sql"
-      expected_command = ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"]
+      expected_command = ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_dump_flags({ postgresql: ["--noop"] }) do
@@ -302,7 +302,7 @@ module ActiveRecord
 
     def test_structure_dump_with_hash_extra_flags_for_the_correct_driver
       filename = "awesome-file.sql"
-      expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"]
+      expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_dump_flags({ trilogy: ["--noop"] }) do
@@ -313,12 +313,12 @@ module ActiveRecord
 
     def test_structure_dump_with_ignore_tables
       filename = "awesome-file.sql"
-      ActiveRecord::Base.connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
+      ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
         ActiveRecord::SchemaDumper.stub(:ignore_tables, [/^prefix_/, "ignored_foo"]) do
           assert_called_with(
             Kernel,
             :system,
-            ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.prefix_foo", "--ignore-table=test-db.ignored_foo", "test-db"],
+            ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.prefix_foo", "--ignore-table=test-db.ignored_foo", "test-db", {}],
             returns: true
           ) do
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
@@ -332,13 +332,13 @@ module ActiveRecord
       assert_called_with(
         Kernel,
         :system,
-        ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+        ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
         returns: false
       ) do
         e = assert_raise(RuntimeError) {
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
         }
-        assert_match(/^failed to execute: `mysqldump`$/, e.message)
+        assert_match(/^failed to execute:\nmysqldump/, e.message)
       end
     end
 
@@ -347,7 +347,7 @@ module ActiveRecord
       assert_called_with(
         Kernel,
         :system,
-        ["mysqldump", "--port=10000", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+        ["mysqldump", "--port=10000", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
         returns: true
       ) do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(
@@ -361,7 +361,7 @@ module ActiveRecord
       assert_called_with(
         Kernel,
         :system,
-        ["mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+        ["mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
         returns: true
       ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(
@@ -390,7 +390,7 @@ module ActiveRecord
 
     def test_structure_load
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db"]
+      expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags(["--noop"]) do
@@ -401,7 +401,7 @@ module ActiveRecord
 
     def test_structure_load_with_hash_extra_flags_for_a_different_driver
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db"]
+      expected_command = ["mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags({ postgresql: ["--noop"] }) do
@@ -412,7 +412,7 @@ module ActiveRecord
 
     def test_structure_load_with_hash_extra_flags_for_the_correct_driver
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db"]
+      expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags({ trilogy: ["--noop"] }) do

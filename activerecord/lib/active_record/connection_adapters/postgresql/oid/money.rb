@@ -27,9 +27,10 @@ module ActiveRecord
             value = value.sub(/^\((.+)\)$/, '-\1') # (4)
             case value
             when /^-?\D*+[\d,]+\.\d{2}$/  # (1)
-              value.gsub!(/[^-\d.]/, "")
+              value.delete!("^-0-9.")
             when /^-?\D*+[\d.]+,\d{2}$/  # (2)
-              value.gsub!(/[^-\d,]/, "").sub!(/,/, ".")
+              value.delete!("^-0-9,")
+              value.tr!(",", ".")
             end
 
             super(value)

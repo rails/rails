@@ -5,8 +5,9 @@ require "models/topic"
 require "models/reply"
 require "models/author"
 require "models/post"
+require "active_support/log_subscriber/test_helper"
 
-if ActiveRecord::Base.connection.prepared_statements
+if ActiveRecord::Base.lease_connection.prepared_statements
   module ActiveRecord
     class BindParameterTest < ActiveRecord::TestCase
       fixtures :topics, :authors, :author_addresses, :posts
@@ -23,9 +24,15 @@ if ActiveRecord::Base.connection.prepared_statements
         end
       end
 
+      def run(*)
+        with_debug_event_reporting do
+          super
+        end
+      end
+
       def setup
         super
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
         @subscriber = LogListener.new
         @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
       end
@@ -102,7 +109,7 @@ if ActiveRecord::Base.connection.prepared_statements
 
         topics = Topic.where("topics.id = ?", 1)
         assert_equal [1], topics.map(&:id)
-        assert_not_includes statement_cache, to_sql_key(topics.arel)
+        assert_includes statement_cache, to_sql_key(topics.arel)
       end
 
       def test_too_many_binds
@@ -214,7 +221,7 @@ if ActiveRecord::Base.connection.prepared_statements
 
           authors = Author.where(id: [1, 2, 3, nil])
           assert_equal sql, @connection.to_sql(authors.arel)
-          assert_sql(sql) { assert_equal 3, authors.length }
+          assert_queries_match(sql) { assert_equal 3, authors.length }
 
           # prepared_statements: true
           #
@@ -228,7 +235,7 @@ if ActiveRecord::Base.connection.prepared_statements
 
           authors = Author.where(id: [1, 2, 3, 9223372036854775808])
           assert_equal sql, @connection.to_sql(authors.arel)
-          assert_sql(sql) { assert_equal 3, authors.length }
+          assert_queries_match(sql) { assert_equal 3, authors.length }
 
           # prepared_statements: true
           #
@@ -238,11 +245,17 @@ if ActiveRecord::Base.connection.prepared_statements
           #
           #   SELECT `authors`.* FROM `authors` WHERE `authors`.`id` IN (1, 2, 3)
           #
-          sql = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{bind_params(1..3)})"
+          params = if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+            # With MySQL integers are casted as string for security.
+            bind_params((1..3).map(&:to_s))
+          else
+            bind_params(1..3)
+          end
 
+          sql = "SELECT #{table}.* FROM #{table} WHERE #{pk} IN (#{params})"
           arel_node = Arel.sql("SELECT #{table}.* FROM #{table} WHERE #{pk} IN (?)", [1, 2, 3])
           assert_equal sql, @connection.to_sql(arel_node)
-          assert_sql(sql) { assert_equal 3, @connection.select_all(arel_node).length }
+          assert_queries_match(sql) { assert_equal 3, @connection.select_all(arel_node).length }
         end
 
         def bind_params(ids)
@@ -258,10 +271,10 @@ if ActiveRecord::Base.connection.prepared_statements
         end
 
         def cached_statement(klass, key)
-          cache = klass.send(:cached_find_by_statement, key) do
+          cache = klass.send(:cached_find_by_statement, @connection, key) do
             raise "#{klass} has no cached statement by #{key.inspect}"
           end
-          cache.send(:query_builder).instance_variable_get(:@sql)
+          cache.instance_variable_get(:@query_builder).instance_variable_get(:@sql)
         end
 
         def statement_cache
@@ -283,21 +296,12 @@ if ActiveRecord::Base.connection.prepared_statements
             123,
             payload)
 
-          logger = Class.new(ActiveRecord::LogSubscriber) {
-            attr_reader :debugs
-
-            def initialize
-              super
-              @debugs = []
-            end
-
-            def debug(str)
-              @debugs << str
-            end
-          }.new
-
-          logger.sql(event)
-          assert_match %r(\[\["id", 10\]\]\z), logger.debugs.first
+          old_logger = ActiveRecord::LogSubscriber.logger
+          ActiveRecord::LogSubscriber.logger = logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+          StructuredEventSubscriber.new.sql(event)
+          assert_match %r(\[\["id", 10\]\]\z), logger.logged(:debug).last
+        ensure
+          ActiveRecord::LogSubscriber.logger = old_logger
         end
 
         def assert_logs_unnamed_binds(binds)
@@ -315,21 +319,12 @@ if ActiveRecord::Base.connection.prepared_statements
             123,
             payload)
 
-          logger = Class.new(ActiveRecord::LogSubscriber) {
-            attr_reader :debugs
-
-            def initialize
-              super
-              @debugs = []
-            end
-
-            def debug(str)
-              @debugs << str
-            end
-          }.new
-
-          logger.sql(event)
-          assert_match %r(\[\[nil, "abcd"\]\]\z), logger.debugs.first
+          old_logger = ActiveRecord::LogSubscriber.logger
+          ActiveRecord::LogSubscriber.logger = logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+          StructuredEventSubscriber.new.sql(event)
+          assert_match %r(\[\[nil, "abcd"\]\]\z), logger.logged(:debug).last
+        ensure
+          ActiveRecord::LogSubscriber.logger = old_logger
         end
 
         def assert_filtered_log_binds(binds)
@@ -347,21 +342,12 @@ if ActiveRecord::Base.connection.prepared_statements
             123,
             payload)
 
-          logger = Class.new(ActiveRecord::LogSubscriber) {
-            attr_reader :debugs
-
-            def initialize
-              super
-              @debugs = []
-            end
-
-            def debug(str)
-              @debugs << str
-            end
-          }.new
-
-          logger.sql(event)
-          assert_match %r/#{Regexp.escape '[["auth_token", "[FILTERED]"]]'}/, logger.debugs.first
+          old_logger = ActiveRecord::LogSubscriber.logger
+          ActiveRecord::LogSubscriber.logger = logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+          StructuredEventSubscriber.new.sql(event)
+          assert_match %r/#{Regexp.escape '[["auth_token", "[FILTERED]"]]'}/, logger.logged(:debug).last
+        ensure
+          ActiveRecord::LogSubscriber.logger = old_logger
         end
     end
   end

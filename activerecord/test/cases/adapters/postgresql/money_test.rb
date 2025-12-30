@@ -10,8 +10,9 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     validates :depth, numericality: true
   end
 
-  setup do
-    @connection = ActiveRecord::Base.connection
+  def setup
+    super
+    @connection = ActiveRecord::Base.lease_connection
     @connection.execute("set lc_monetary = 'C'")
     @connection.create_table("postgresql_moneys", force: true) do |t|
       t.money "wealth"
@@ -19,8 +20,9 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
-  teardown do
+  def teardown
     @connection.drop_table "postgresql_moneys", if_exists: true
+    super
   end
 
   def test_column
@@ -37,7 +39,7 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
   def test_default
     assert_equal BigDecimal("150.55"), PostgresqlMoney.column_defaults["depth"]
     assert_equal BigDecimal("150.55"), PostgresqlMoney.new.depth
-    assert_equal "150.55", PostgresqlMoney.new.depth_before_type_cast
+    assert_equal BigDecimal("150.55"), PostgresqlMoney.new.depth_before_type_cast
   end
 
   def test_money_values
@@ -48,20 +50,28 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     second_money = PostgresqlMoney.find(2)
     assert_equal 567.89, first_money.wealth
     assert_equal(-567.89, second_money.wealth)
-    assert_equal 567.89, @connection.query_value("SELECT wealth FROM postgresql_moneys WHERE id = 1")
-    assert_equal(-567.89, @connection.query_value("SELECT wealth FROM postgresql_moneys WHERE id = 2"))
+    assert_equal 567.89, @connection.query_value("SELECT wealth FROM postgresql_moneys WHERE id = 1", nil)
+    assert_equal(-567.89, @connection.query_value("SELECT wealth FROM postgresql_moneys WHERE id = 2", nil))
   end
 
   def test_money_type_cast
     type = PostgresqlMoney.type_for_attribute("wealth")
-    assert_equal(12345678.12, type.cast(+"$12,345,678.12"))
-    assert_equal(12345678.12, type.cast(+"$12.345.678,12"))
-    assert_equal(12345678.12, type.cast(+"12,345,678.12"))
-    assert_equal(12345678.12, type.cast(+"12.345.678,12"))
-    assert_equal(-1.15, type.cast(+"-$1.15"))
-    assert_equal(-2.25, type.cast(+"($2.25)"))
-    assert_equal(-1.15, type.cast(+"-1.15"))
-    assert_equal(-2.25, type.cast(+"(2.25)"))
+
+    {
+      "12,345,678.12" => 12345678.12,
+      "12.345.678,12" => 12345678.12,
+      "0.12" => 0.12,
+      "0,12" => 0.12,
+    }.each do |string, number|
+      assert_equal number, type.cast(string)
+      assert_equal number, type.cast("$#{string}")
+
+      assert_equal(-number, type.cast("-#{string}"))
+      assert_equal(-number, type.cast("-$#{string}"))
+
+      assert_equal(-number, type.cast("(#{string})"))
+      assert_equal(-number, type.cast("($#{string})"))
+    end
   end
 
   def test_money_regex_backtracking

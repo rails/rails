@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Ruby on Rails 4.2 Release Notes
 ===============================
@@ -179,7 +179,7 @@ change your code to use the explicit form (`render file: "foo/bar"`) instead.
 
 `respond_with` and the corresponding class-level `respond_to` have been moved
 to the [responders](https://github.com/plataformatec/responders) gem. Add
-`gem 'responders', '~> 2.0'` to your `Gemfile` to use it:
+`gem "responders", "~> 2.0"` to your `Gemfile` to use it:
 
 ```ruby
 # app/controllers/users_controller.rb
@@ -445,7 +445,7 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 ### Removals
 
 *   `respond_with` and the class-level `respond_to` have been removed from Rails and
-    moved to the `responders` gem (version 2.0). Add `gem 'responders', '~> 2.0'`
+    moved to the `responders` gem (version 2.0). Add `gem "responders", "~> 2.0"`
     to your `Gemfile` to continue using these features.
     ([Pull Request](https://github.com/rails/rails/pull/16526),
      [More Details](https://guides.rubyonrails.org/v4.2/upgrading_ruby_on_rails.html#responders))

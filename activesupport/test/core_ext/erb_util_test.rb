@@ -125,6 +125,42 @@ module ActiveSupport
       ], actual_tokens
     end
 
+    def test_text_end
+      source = "<%= @post.title %>   "
+      actual_tokens = tokenize source
+      assert_equal [[:OPEN, "<%="],
+                    [:CODE, " @post.title "],
+                    [:CLOSE, "%>"],
+                    [:TEXT, "   "],
+      ], actual_tokens
+    end
+
+    # This happens when a template is multiline and no
+    # ERB tags are used on the current line.
+    def test_plain_without_tags
+      source = " @post.title\n"
+      actual_tokens = tokenize source
+      assert_equal [[:PLAIN, " @post.title"]], actual_tokens
+    end
+
+    def test_multibyte_characters_start
+      source = "こんにちは<%= name %>"
+      actual_tokens = tokenize source
+      assert_equal [[:TEXT, "こんにちは"],
+                    [:OPEN, "<%="],
+                    [:CODE, " name "],
+                    [:CLOSE, "%>"],
+      ], actual_tokens
+    end
+
+    def test_multibyte_characters_end
+      source = " 'こんにちは' %>"
+      actual_tokens = tokenize source
+      assert_equal [[:CODE, " 'こんにちは' "],
+                    [:CLOSE, "%>"],
+      ], actual_tokens
+    end
+
     def tokenize(source)
       ERB::Util.tokenize source
     end

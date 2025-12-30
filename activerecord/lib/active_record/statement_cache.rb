@@ -4,14 +4,14 @@ module ActiveRecord
   # Statement cache is used to cache a single statement in order to avoid creating the AST again.
   # Initializing the cache is done by passing the statement in the create block:
   #
-  #   cache = StatementCache.create(Book.connection) do |params|
+  #   cache = StatementCache.create(ClothingItem.lease_connection) do |params|
   #     Book.where(name: "my book").where("author_id > 3")
   #   end
   #
   # The cached statement is executed by using the
   # {connection.execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute] method:
   #
-  #   cache.execute([], Book.connection)
+  #   cache.execute([], ClothingItem.lease_connection)
   #
   # The relation returned by the block is cached, and for each
   # {execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute]
@@ -20,19 +20,22 @@ module ActiveRecord
   # If you want to cache the statement without the values you can use the +bind+ method of the
   # block parameter.
   #
-  #   cache = StatementCache.create(Book.connection) do |params|
+  #   cache = StatementCache.create(ClothingItem.lease_connection) do |params|
   #     Book.where(name: params.bind)
   #   end
   #
   # And pass the bind values as the first argument of +execute+ call.
   #
-  #   cache.execute(["my book"], Book.connection)
+  #   cache.execute(["my book"], ClothingItem.lease_connection)
   class StatementCache # :nodoc:
     class Substitute; end # :nodoc:
 
     class Query # :nodoc:
-      def initialize(sql)
+      attr_reader :retryable
+
+      def initialize(sql, retryable:)
         @sql = sql
+        @retryable = retryable
       end
 
       def sql_for(binds, connection)
@@ -41,11 +44,12 @@ module ActiveRecord
     end
 
     class PartialQuery < Query # :nodoc:
-      def initialize(values)
+      def initialize(values, retryable:)
         @values = values
         @indexes = values.each_with_index.find_all { |thing, i|
           Substitute === thing
         }.map(&:last)
+        @retryable = retryable
       end
 
       def sql_for(binds, connection)
@@ -62,7 +66,7 @@ module ActiveRecord
     end
 
     class PartialQueryCollector
-      attr_accessor :preparable
+      attr_accessor :preparable, :retryable
 
       def initialize
         @parts = []
@@ -74,13 +78,13 @@ module ActiveRecord
         self
       end
 
-      def add_bind(obj)
+      def add_bind(obj, &)
         @binds << obj
         @parts << Substitute.new
         self
       end
 
-      def add_binds(binds, proc_for_binds = nil)
+      def add_binds(binds, proc_for_binds = nil, &)
         @binds.concat proc_for_binds ? binds.map(&proc_for_binds) : binds
         binds.size.times do |i|
           @parts << ", " unless i == 0
@@ -94,12 +98,12 @@ module ActiveRecord
       end
     end
 
-    def self.query(sql)
-      Query.new(sql)
+    def self.query(...)
+      Query.new(...)
     end
 
-    def self.partial_query(values)
-      PartialQuery.new(values)
+    def self.partial_query(...)
+      PartialQuery.new(...)
     end
 
     def self.partial_query_collector
@@ -133,23 +137,26 @@ module ActiveRecord
       relation = (callable || block).call Params.new
       query_builder, binds = connection.cacheable_query(self, relation.arel)
       bind_map = BindMap.new(binds)
-      new(query_builder, bind_map, relation.klass)
+      new(query_builder, bind_map, relation.model)
     end
 
-    def initialize(query_builder, bind_map, klass)
+    def initialize(query_builder, bind_map, model)
       @query_builder = query_builder
       @bind_map = bind_map
-      @klass = klass
+      @model = model
     end
 
-    def execute(params, connection, &block)
-      bind_values = bind_map.bind params
+    def execute(params, connection, async: false, &block)
+      bind_values = @bind_map.bind params
+      sql = @query_builder.sql_for bind_values, connection
 
-      sql = query_builder.sql_for bind_values, connection
-
-      klass.find_by_sql(sql, bind_values, preparable: true, &block)
+      if async
+        @model.async_find_by_sql(sql, bind_values, preparable: true, allow_retry: @query_builder.retryable, &block)
+      else
+        @model.find_by_sql(sql, bind_values, preparable: true, allow_retry: @query_builder.retryable, &block)
+      end
     rescue ::RangeError
-      []
+      async ? Promise.wrap([]) : []
     end
 
     def self.unsupported_value?(value)
@@ -157,8 +164,5 @@ module ActiveRecord
       when NilClass, Array, Range, Hash, Relation, Base then true
       end
     end
-
-    private
-      attr_reader :query_builder, :bind_map, :klass
   end
 end

@@ -5,9 +5,8 @@ module ActiveRecord
     class PoolConfig # :nodoc:
       include MonitorMixin
 
-      attr_reader :db_config, :role, :shard
+      attr_reader :db_config, :role, :shard, :connection_descriptor
       attr_writer :schema_reflection, :server_version
-      attr_accessor :connection_class
 
       def schema_reflection
         @schema_reflection ||= SchemaReflection.new(db_config.lazy_schema_cache_path)
@@ -29,7 +28,7 @@ module ActiveRecord
       def initialize(connection_class, db_config, role, shard)
         super()
         @server_version = nil
-        @connection_class = connection_class
+        self.connection_descriptor = connection_class
         @db_config = db_config
         @role = role
         @shard = shard
@@ -41,17 +40,16 @@ module ActiveRecord
         @server_version || synchronize { @server_version ||= connection.get_database_version }
       end
 
-      def connection_name
-        if connection_class.primary_class?
-          "ActiveRecord::Base"
+      def connection_descriptor=(connection_descriptor)
+        case connection_descriptor
+        when ConnectionHandler::ConnectionDescriptor
+          @connection_descriptor = connection_descriptor
         else
-          connection_class.name
+          @connection_descriptor = ConnectionHandler::ConnectionDescriptor.new(connection_descriptor.name, connection_descriptor.primary_class?)
         end
       end
 
       def disconnect!(automatic_reconnect: false)
-        ActiveSupport::ForkTracker.check!
-
         return unless @pool
 
         synchronize do
@@ -65,8 +63,6 @@ module ActiveRecord
       end
 
       def pool
-        ActiveSupport::ForkTracker.check!
-
         @pool || synchronize { @pool ||= ConnectionAdapters::ConnectionPool.new(self) }
       end
 

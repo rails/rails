@@ -30,7 +30,7 @@ module Arel # :nodoc: all
     end
 
     module FetchAttribute
-      def fetch_attribute
+      def fetch_attribute(&)
         if left.is_a?(Arel::Attributes::Attribute)
           yield left
         elsif right.is_a?(Arel::Attributes::Attribute)
@@ -108,12 +108,6 @@ module Arel # :nodoc: all
 
       def invert
         Arel::Nodes::In.new(left, right)
-      end
-    end
-
-    class Or < Binary
-      def fetch_attribute(&block)
-        left.fetch_attribute(&block) && right.fetch_attribute(&block)
       end
     end
 

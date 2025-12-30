@@ -13,7 +13,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
 
     enable_extension!("hstore", @connection)
 
@@ -149,7 +149,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     assert_equal "GMT", x.timezone
 
     payload = YAML.dump(x)
-    y = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+    y = YAML.unsafe_load(payload)
     assert_equal "fr", y.language
     assert_equal "GMT", y.timezone
   end

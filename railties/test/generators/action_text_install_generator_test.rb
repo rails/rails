@@ -27,12 +27,15 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     FileUtils.touch("#{destination_root}/package.json")
 
     run_generator_instance
-    assert_match %r"yarn add @rails/actiontext trix", @run_commands.join("\n")
+    assert_includes @run_commands, "yarn add trix"
+    assert_includes @run_commands, "yarn add @rails/actiontext"
   end
 
   test "throws warning for missing entry point" do
     FileUtils.rm("#{destination_root}/app/javascript/application.js")
-    assert_match "You must import the @rails/actiontext and trix JavaScript modules", run_generator_instance
+    output = run_generator_instance
+    assert_match "You must import the @rails/actiontext JavaScript module", output
+    assert_match "You must import the trix JavaScript module", output
   end
 
   test "imports JavaScript dependencies in application.js" do
@@ -58,32 +61,6 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     assert_file "app/assets/stylesheets/actiontext.css"
   end
 
-  test "appends @import 'actiontext.css' to base scss file" do
-    FileUtils.touch("#{destination_root}/app/assets/stylesheets/application.bootstrap.scss")
-
-    run_generator_instance
-
-    assert_file "app/assets/stylesheets/application.bootstrap.scss" do |content|
-      assert_match "@import 'actiontext.css';", content
-    end
-  end
-
-
-  test "appends @import 'actiontext.css'; to base css file" do
-    FileUtils.touch("#{destination_root}/app/assets/stylesheets/application.postcss.css")
-
-    run_generator_instance
-
-    assert_file "app/assets/stylesheets/application.postcss.css" do |content|
-      assert_match "@import 'actiontext.css';", content
-    end
-  end
-
-  test "throws a warning for missing base (s)css file" do
-    assert_match "To use the Trix editor, you must require 'app/assets/stylesheets/actiontext.css' in your base stylesheet.",
-      run_generator_instance
-  end
-
   test "creates Active Storage view partial" do
     run_generator_instance
     assert_file "app/views/active_storage/blobs/_blob.html.erb"
@@ -98,18 +75,6 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
     assert_migration "db/migrate/create_active_storage_tables.active_storage.rb"
     assert_migration "db/migrate/create_action_text_tables.action_text.rb"
-  end
-
-  test "uncomments image_processing gem" do
-    gemfile = Pathname("Gemfile").expand_path(destination_root)
-    gemfile.dirname.mkpath
-    gemfile.write(%(# gem "image_processing"))
-
-    run_generator_instance
-
-    assert_file gemfile do |content|
-      assert_equal %(gem "image_processing"), content
-    end
   end
 
   private

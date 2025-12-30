@@ -45,14 +45,11 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal 1, id
   end
 
-  def test_read_attribute_with_custom_primary_key
+  def test_read_attribute_with_custom_primary_key_does_not_return_it_when_reading_the_id_attribute
     keyboard = Keyboard.create!
-    msg = "Using read_attribute(:id) to read the primary key value is deprecated. Use #id instead."
-    id = assert_deprecated(msg, ActiveRecord.deprecator) do
-      keyboard.read_attribute(:id)
-    end
+    id = keyboard.read_attribute(:id)
 
-    assert_equal keyboard.key_number, id
+    assert_nil id
   end
 
   def test_read_attribute_with_composite_primary_key
@@ -224,9 +221,9 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   def test_quoted_primary_key_after_set_primary_key
     k = Class.new(ActiveRecord::Base)
     k.table_name = "bar"
-    assert_equal k.connection.quote_column_name("id"), k.quoted_primary_key
+    assert_equal k.lease_connection.quote_column_name("id"), k.quoted_primary_key
     k.primary_key = "foo"
-    assert_equal k.connection.quote_column_name("foo"), k.quoted_primary_key
+    assert_equal k.lease_connection.quote_column_name("foo"), k.quoted_primary_key
   end
 
   def test_auto_detect_primary_key_from_schema
@@ -244,13 +241,11 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_create_without_primary_key_no_extra_query
-    skip if current_adapter?(:OracleAdapter)
-
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "dashboards"
     end
     klass.create! # warmup schema cache
-    assert_queries(3, ignore_none: true) { klass.create! }
+    assert_queries_count(3, include_schema: true) { klass.create! }
   end
 
   def test_assign_id_raises_error_if_primary_key_doesnt_exist
@@ -259,6 +254,17 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     end
     dashboard = klass.new
     assert_raises(ActiveModel::MissingAttributeError) { dashboard.id = "1" }
+  end
+
+  def test_reconfiguring_primary_key_resets_composite_primary_key
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "cpk_books"
+    end
+
+    assert_predicate klass, :composite_primary_key?
+
+    klass.primary_key = :id
+    assert_not_predicate klass, :composite_primary_key?
   end
 
   def composite_primary_key_is_false_for_a_non_cpk_model
@@ -294,7 +300,7 @@ class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def teardown
@@ -331,7 +337,7 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
   end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table(:barcodes, primary_key: "code", id: :string, limit: 42, force: true)
   end
 
@@ -356,7 +362,7 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
     assert_no_match %r{t\.index \["code"\]}, schema
   end
 
-  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && supports_datetime_with_precision?
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     test "schema typed primary key column" do
       @connection.create_table(:scheduled_logs, id: :timestamp, precision: 6, force: true)
       schema = dump_table_schema("scheduled_logs")
@@ -373,8 +379,8 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   fixtures :cpk_books, :cpk_orders
 
   def setup
-    @connection = ActiveRecord::Base.connection
-    @connection.schema_cache.clear!
+    ActiveRecord::Base.schema_cache.clear!
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table(:uber_barcodes, primary_key: ["region", "code"], force: true) do |t|
       t.string :region
       t.integer :code
@@ -460,15 +466,13 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_derives_composite_primary_key
-    def test_primary_key_issues_warning
-      model = Class.new(ActiveRecord::Base) do
-        def self.table_name
-          "uber_barcodes"
-        end
+    model = Class.new(ActiveRecord::Base) do
+      def self.table_name
+        "uber_barcodes"
       end
-
-      assert_equal ["region", "code"], model.primary_key
     end
+
+    assert_equal ["region", "code"], model.primary_key
   end
 
   def test_collectly_dump_composite_primary_key
@@ -505,7 +509,7 @@ class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def teardown
@@ -536,7 +540,7 @@ class PrimaryKeyIntegerTest < ActiveRecord::TestCase
     end
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @pk_type = current_adapter?(:PostgreSQLAdapter) ? :serial : :integer
     end
 

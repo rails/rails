@@ -55,6 +55,16 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_equal "100", attachable.height
   end
 
+  test "treats image attachments with non-URL paths as missing" do
+    html = '<action-text-attachment content-type="image/*" url="image.png" width="100" height="100"></action-text-attachment>'
+
+    content = content_from_html(html)
+    assert_equal 1, content.attachments.size
+
+    attachable = content.attachments.first.attachable
+    assert_kind_of ActionText::Attachables::MissingAttachable, attachable
+  end
+
   test "identifies destroyed attachables as missing" do
     file = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{file.attachable_sgid}"></action-text-attachment>)
@@ -158,6 +168,34 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     ActionText::ContentHelper.allowed_attributes = old_attrs
   end
 
+  test "sanitizes attachment markup for Trix" do
+    html = '<action-text-attachment content="<img src=\&quot;.\&quot; onerror=alert>"></action-text-attachment>'
+    trix_html = '<figure data-trix-attachment="{&quot;content&quot;:&quot;<img src=\\&quot;\\\\%22.\\\\%22\\&quot;>&quot;}"></figure>'
+    content_to_trix_html = assert_deprecated(ActionText.deprecator) { content_from_html(html).to_trix_html }
+    assert_equal trix_html, content_to_trix_html.strip
+  end
+
+  test "removes content attribute if it's value is empty" do
+    html = '<action-text-attachment sgid="123" content=""></action-text-attachment>'
+    trix_html = '<figure data-trix-attachment="{&quot;sgid&quot;:&quot;123&quot;}"></figure>'
+    content_to_trix_html = assert_deprecated(ActionText.deprecator) { content_from_html(html).to_trix_html }
+    assert_equal trix_html, content_to_trix_html.strip
+  end
+
+  test "removes content attribute if it's value is empty after sanitization" do
+    html = '<action-text-attachment sgid="123" content="<script></script>"></action-text-attachment>'
+    trix_html = '<figure data-trix-attachment="{&quot;sgid&quot;:&quot;123&quot;}"></figure>'
+    content_to_trix_html = assert_deprecated(ActionText.deprecator) { content_from_html(html).to_trix_html }
+    assert_equal trix_html, content_to_trix_html.strip
+  end
+
+  test "does not add missing content attribute" do
+    html = '<action-text-attachment sgid="123"></action-text-attachment>'
+    trix_html = '<figure data-trix-attachment="{&quot;sgid&quot;:&quot;123&quot;}"></figure>'
+    content_to_trix_html = assert_deprecated(ActionText.deprecator) { content_from_html(html).to_trix_html }
+    assert_equal trix_html, content_to_trix_html.strip
+  end
+
   test "renders with layout when in a new thread" do
     html = "<h1>Hello world</h1>"
     rendered = nil
@@ -192,6 +230,20 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     end
 
     assert_equal expected_html.strip, replaced_fragment.to_html
+  end
+
+  test "delegates pattern matching to Nokogiri" do
+    content = ActionText::Content.new <<~HTML
+      <h1 id="hello-world">Hello, world</h1>
+
+      <div>The body</div>
+    HTML
+
+    content => [h1, div]
+
+    assert_pattern { h1 => { name: "h1", content: "Hello, world", attributes: [{ name: "id", value: "hello-world" }] } }
+    refute_pattern { h1 => { name: "h1", content: "Goodbye, world" } }
+    assert_pattern { div => { content: "The body" } }
   end
 
   private

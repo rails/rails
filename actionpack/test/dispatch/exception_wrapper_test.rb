@@ -28,6 +28,24 @@ module ActionDispatch
       end
     end
 
+    class TestTemplate
+      attr_reader :method_name
+
+      def initialize(method_name)
+        @method_name = method_name
+      end
+
+      def spot(backtrace_location)
+        { first_lineno: 1, script_lines: ["compiled @ #{backtrace_location.base_label}:#{backtrace_location.lineno}"] }
+      end
+
+      def translate_location(backtrace_location, spot)
+        # note: extract_source_fragment_lines pulls lines from script_lines for indexes near first_lineno
+        # since we're mocking the behavior, we need to leave the first_lineno close to 1
+        { first_lineno: 1, script_lines: ["translated @ #{backtrace_location.base_label}:#{backtrace_location.lineno}"] }
+      end
+    end
+
     setup do
       @cleaner = ActiveSupport::BacktraceCleaner.new
       @cleaner.remove_filters!
@@ -38,10 +56,12 @@ module ActionDispatch
 
     test "#source_extracts fetches source fragments for every backtrace entry" do
       exception = begin index; rescue TestError => ex; ex; end
+
       wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
+      trace = wrapper.source_extracts.first[:trace]
 
       assert_called_with(wrapper, :source_fragment, ["lib/file.rb", 42], returns: "foo") do
-        assert_equal [ code: "foo", line_number: 42 ], wrapper.source_extracts
+        assert_equal [ code: "foo", line_number: 42, trace: trace ], wrapper.source_extracts
       end
     end
 
@@ -51,9 +71,10 @@ module ActionDispatch
       exc = begin ms_index; rescue TestError => ex; ex; end
 
       wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exc, 1))
+      trace = wrapper.source_extracts.first[:trace]
 
       assert_called_with(wrapper, :source_fragment, ["c:/path/to/rails/app/controller.rb", 27], returns: "nothing") do
-        assert_equal [ code: "nothing", line_number: 27 ], wrapper.source_extracts
+        assert_equal [ code: "nothing", line_number: 27, trace: trace ], wrapper.source_extracts
       end
     end
 
@@ -63,36 +84,122 @@ module ActionDispatch
       exc = begin invalid_ex; rescue TestError => ex; ex; end
 
       wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exc, 1))
+      trace = wrapper.source_extracts.first[:trace]
 
       assert_called_with(wrapper, :source_fragment, ["invalid", 0], returns: "nothing") do
-        assert_equal [ code: "nothing", line_number: 0 ], wrapper.source_extracts
+        assert_equal [ code: "nothing", line_number: 0, trace: trace ], wrapper.source_extracts
       end
     end
 
-    if defined?(ErrorHighlight) && Gem::Version.new(ErrorHighlight::VERSION) >= Gem::Version.new("0.4.0")
-      test "#source_extracts works with error_highlight" do
-        lineno = __LINE__
-        begin
-          1.time
-        rescue NameError => exc
-        end
+    class_eval "def throw_syntax_error; eval %(
+      pluralize { # create a syntax error without a parser warning
+    ); end", "lib/file.rb", 42
 
-        wrapper = ExceptionWrapper.new(nil, exc)
+    test "#source_extracts works with eval syntax error" do
+      exception = begin throw_syntax_error; rescue SyntaxError => ex; ex; end
 
-        code = {}
-        File.foreach(__FILE__).to_a.drop(lineno - 1).take(6).each_with_index do |line, i|
-          code[lineno + i] = line
-        end
-        code[lineno + 2] = ["          1", ".time", "\n"]
-        assert_equal({ code: code, line_number: lineno + 2 }, wrapper.source_extracts.first)
+      wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
+      trace = wrapper.source_extracts.first[:trace]
+
+      assert_called_with(wrapper, :source_fragment, ["lib/file.rb", 42], returns: "foo") do
+        assert_equal [ code: "foo", line_number: 42, trace: trace ], wrapper.source_extracts
       end
+    end
+
+    test "#source_extracts works with nil backtrace_locations" do
+      exception = begin eval "class Foo; yield; end"; rescue SyntaxError => ex; ex; end
+
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      assert_empty wrapper.source_extracts
+    end
+
+    test "#source_extracts works with error_highlight" do
+      lineno = __LINE__
+      begin
+        1.time
+      rescue NameError => exc
+      end
+
+      wrapper = ExceptionWrapper.new(nil, exc)
+
+      code = {}
+      File.foreach(__FILE__).to_a.drop(lineno - 1).take(6).each_with_index do |line, i|
+        code[lineno + i] = line
+      end
+      code[lineno + 2] = ["        1", ".time", "\n"]
+      assert_equal({ code: code, line_number: lineno + 2, trace: wrapper.source_extracts.first[:trace] }, wrapper.source_extracts.first)
+    end
+
+    class_eval "def _app_views_tests_show_html_erb;
+      raise TestError; end", "app/views/tests/show.html.erb", 2
+
+    test "#source_extracts wraps template lines in a SourceMapLocation" do
+      exception = begin _app_views_tests_show_html_erb; rescue TestError => ex; ex; end
+
+      template = TestTemplate.new("_app_views_tests_show_html_erb")
+      resolver = Data.define(:built_templates).new(built_templates: [template])
+
+      wrapper = nil
+      assert_called(ActionView::PathRegistry, :all_resolvers, nil, returns: [resolver]) do
+        wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
+      end
+
+      assert_equal [{
+        code: { 1 => "translated @ _app_views_tests_show_html_erb:3" },
+        line_number: 1,
+        trace: wrapper.source_extracts.first[:trace]
+      }], wrapper.source_extracts
+    end
+
+    class_eval "def _app_views_tests_nested_html_erb;
+      [1].each do
+        [2].each do
+          raise TestError
+        end
+      end
+    end", "app/views/tests/nested.html.erb", 2
+
+    test "#source_extracts works with nested template code" do
+      exception = begin _app_views_tests_nested_html_erb; rescue TestError => ex; ex; end
+
+      template = TestTemplate.new("_app_views_tests_nested_html_erb")
+      resolver = Data.define(:built_templates).new(built_templates: [template])
+
+      wrapper = nil
+      assert_called(ActionView::PathRegistry, :all_resolvers, nil, returns: [resolver]) do
+        wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 5))
+      end
+
+      extracts = wrapper.source_extracts
+      assert_equal({
+        code: { 1 => "translated @ _app_views_tests_nested_html_erb:5" },
+        line_number: 1,
+        trace: extracts[0][:trace]
+      }, extracts[0])
+      # extracts[1] is Array#each (unreliable backtrace across rubies)
+      assert_equal({
+        code: { 1 => "translated @ _app_views_tests_nested_html_erb:4" },
+        line_number: 1,
+        trace: extracts[2][:trace]
+      }, extracts[2])
+      # extracts[3] is Array#each (unreliable backtrace across rubies)
+      assert_equal({
+        code: { 1 => "translated @ _app_views_tests_nested_html_erb:3" },
+        line_number: 1,
+        trace: extracts[4][:trace]
+      }, extracts[4])
     end
 
     test "#application_trace returns traces only from the application" do
       exception = begin index; rescue TestError => ex; ex; end
       wrapper = ExceptionWrapper.new(@cleaner, TopErrorProxy.new(exception, 1))
 
-      assert_equal [ "lib/file.rb:42:in `index'" ], wrapper.application_trace.map(&:to_s)
+      if RUBY_VERSION >= "3.4"
+        assert_equal [ "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'" ], wrapper.application_trace.map(&:to_s)
+      else
+        assert_equal [ "lib/file.rb:42:in `index'" ], wrapper.application_trace.map(&:to_s)
+      end
     end
 
     test "#status_code returns 400 for Rack::Utils::ParameterTypeError" do
@@ -160,30 +267,65 @@ module ActionDispatch
       exception = begin in_rack; rescue TestError => ex; TopErrorProxy.new(ex, 2); end
       wrapper = ExceptionWrapper.new(@cleaner, exception)
 
-      assert_equal({
-        "Application Trace" => [
-          exception_object_id: exception.object_id,
-          id: 0,
-          trace: "lib/file.rb:42:in `index'"
-        ],
-        "Framework Trace" => [
-          exception_object_id: exception.object_id,
-          id: 1,
-          trace: "/gems/rack.rb:43:in `in_rack'"
-        ],
-        "Full Trace" => [
-          {
+      if RUBY_VERSION >= "3.4"
+        assert_equal({
+          "Application Trace" => [
             exception_object_id: exception.object_id,
             id: 0,
-            trace: "lib/file.rb:42:in `index'"
-          },
-          {
+            trace: wrapper.source_extracts.first[:trace],
+            filtered_trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'"
+          ],
+          "Framework Trace" => [
             exception_object_id: exception.object_id,
             id: 1,
-            trace: "/gems/rack.rb:43:in `in_rack'"
-          }
-        ]
-      }.inspect, wrapper.traces.inspect)
+            trace: wrapper.source_extracts.second[:trace],
+            filtered_trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'"
+          ],
+          "Full Trace" => [
+            {
+              exception_object_id: exception.object_id,
+              id: 0,
+              trace: wrapper.source_extracts.first[:trace],
+              filtered_trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'"
+            },
+            {
+              exception_object_id: exception.object_id,
+              id: 1,
+              trace: wrapper.source_extracts.second[:trace],
+              filtered_trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'"
+            }
+          ]
+        }.inspect, wrapper.traces.inspect)
+      else
+        assert_equal({
+          "Application Trace" => [
+            exception_object_id: exception.object_id,
+            id: 0,
+            trace: wrapper.source_extracts.first[:trace],
+            filtered_trace: "lib/file.rb:42:in `index'"
+          ],
+          "Framework Trace" => [
+            exception_object_id: exception.object_id,
+            id: 1,
+            trace: wrapper.source_extracts.last[:trace],
+            filtered_trace: "/gems/rack.rb:43:in `in_rack'"
+          ],
+          "Full Trace" => [
+            {
+              exception_object_id: exception.object_id,
+              id: 0,
+              trace: wrapper.source_extracts.first[:trace],
+              filtered_trace: "lib/file.rb:42:in `index'"
+            },
+            {
+              exception_object_id: exception.object_id,
+              id: 1,
+              trace: wrapper.source_extracts.last[:trace],
+              filtered_trace: "/gems/rack.rb:43:in `in_rack'"
+            }
+          ]
+        }.inspect, wrapper.traces.inspect)
+      end
     end
 
     test "#show? returns false when using :rescuable and the exceptions is not rescuable" do
@@ -224,36 +366,6 @@ module ActionDispatch
       request = ActionDispatch::Request.new(env)
 
       assert_equal true, wrapper.show?(request)
-    end
-
-    test "#show? emits a deprecation when show_exceptions is true" do
-      exception = RuntimeError.new("")
-      wrapper = ExceptionWrapper.new(nil, exception)
-
-      env = { "action_dispatch.show_exceptions" => true }
-      request = ActionDispatch::Request.new(env)
-
-      msg = "Setting action_dispatch.show_exceptions to true is deprecated. Set to :all instead."
-      result = assert_deprecated(msg, ActionDispatch.deprecator) do
-        wrapper.show?(request)
-      end
-
-      assert_equal true, result
-    end
-
-    test "#show? emits a deprecation when show_exceptions is false" do
-      exception = RuntimeError.new("")
-      wrapper = ExceptionWrapper.new(nil, exception)
-
-      env = { "action_dispatch.show_exceptions" => false }
-      request = ActionDispatch::Request.new(env)
-
-      msg = "Setting action_dispatch.show_exceptions to false is deprecated. Set to :none instead."
-      result = assert_deprecated(msg, ActionDispatch.deprecator) do
-        wrapper.show?(request)
-      end
-
-      assert_equal false, result
     end
   end
 end

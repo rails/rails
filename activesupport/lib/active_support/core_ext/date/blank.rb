@@ -11,4 +11,8 @@ class Date # :nodoc:
   def blank?
     false
   end
+
+  def present?
+    true
+  end
 end

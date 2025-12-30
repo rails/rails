@@ -25,7 +25,10 @@ module ActiveRecord
         payload = [attributes_for_database, new_record?]
 
         cached_associations = self.class.reflect_on_all_associations.select do |reflection|
-          association_cached?(reflection.name)
+          if association_cached?(reflection.name)
+            association = association(reflection.name)
+            association.loaded? || association.target.present?
+          end
         end
 
         unless cached_associations.empty?

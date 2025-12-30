@@ -49,6 +49,10 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_exit_on_failure
+    assert_equal true, generator_class.exit_on_failure?
+  end
+
   def test_add_migration_with_attributes
     migration = "add_title_body_to_posts"
     run_generator [migration, "title:string", "body:text"]
@@ -391,6 +395,16 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_create_table_migration_with_uniq_token_option
+    run_generator ["create_users", "auth_token:token:uniq"]
+    assert_migration "db/migrate/create_users.rb" do |content|
+      assert_method :change, content do |change|
+        occurrences = content.scan("unique: true").count
+        assert_equal 1, occurrences, "Should only have unique: true present once"
+      end
+    end
+  end
+
   def test_add_migration_with_token_option
     migration = "add_token_to_users"
     run_generator [migration, "auth_token:token"]
@@ -398,6 +412,17 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
       assert_method :change, content do |change|
         assert_match(/add_column :users, :auth_token, :string/, change)
         assert_match(/add_index :users, :auth_token, unique: true/, change)
+      end
+    end
+  end
+
+  def test_add_migration_with_uniq_token_option
+    migration = "add_uniq_token_to_users"
+    run_generator [migration, "token:token:uniq"]
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        occurrences = content.scan("unique: true").count
+        assert_equal 1, occurrences, "Should only have unique: true present once"
       end
     end
   end
@@ -447,6 +472,29 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
         assert_no_match(/remove_column :messages, :content, :rich_text/, change)
         assert_no_match(/remove_column :messages, :video, :attachment/, change)
         assert_no_match(/remove_column :messages, :photos, :attachments/, change)
+      end
+    end
+  end
+
+  def test_create_table_migration_with_required_attributes
+    run_generator ["create_books", "title:string!", "content:text!"]
+    assert_migration "db/migrate/create_books.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :books/, change)
+        assert_match(/  t\.string :title, null: false/, change)
+        assert_match(/  t\.text :content, null: false/, change)
+      end
+    end
+  end
+
+  def test_add_migration_with_required_attributes
+    migration = "add_title_body_to_posts"
+    run_generator [migration, "title:string!", "body:text!"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_column :posts, :title, :string, null: false/, change)
+        assert_match(/add_column :posts, :body, :text, null: false/, change)
       end
     end
   end

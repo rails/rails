@@ -3,19 +3,17 @@
 require "cases/helper"
 require "support/ddl_helper"
 
-require "active_support/error_reporter/test_helper"
-
 class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
   include DdlHelper
 
   def setup
-    @conn = ActiveRecord::Base.connection
+    @conn = ActiveRecord::Base.lease_connection
     @original_db_warnings_action = :ignore
   end
 
   def test_connection_error
     error = assert_raises ActiveRecord::ConnectionNotEstablished do
-      ActiveRecord::Base.mysql2_connection(socket: File::NULL, prepared_statements: false).connect!
+      ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(socket: File::NULL, prepared_statements: false).connect!
     end
     assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
   end
@@ -68,6 +66,11 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
 
     assert_equal false, adapter.prepared_statements
+  end
+
+  def test_exec_query_with_prepared_statements
+    result = @conn.exec_query("SELECT 1", "SQL", [], prepare: true)
+    assert_equal [{ "1" => 1 }], result.to_a
   end
 
   def test_exec_query_nothing_raises_with_no_result_queries
@@ -267,7 +270,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     ActiveRecord::Base.establish_connection(
       db_config.configuration_hash.merge("read_timeout" => 1)
     )
-    connection = ActiveRecord::Base.connection
+    connection = ActiveRecord::Base.lease_connection
 
     error = assert_raises(ActiveRecord::AdapterTimeout) do
       connection.execute("SELECT SLEEP(2)")
@@ -304,91 +307,9 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     end
   end
 
-  def test_ignores_warnings_when_behaviour_ignore
-    with_db_warnings_action(:ignore) do
-      result = @conn.execute('SELECT 1 + "foo"')
-      assert_equal [1], result.to_a.first
-    end
-  end
-
-  def test_logs_warnings_when_behaviour_log
-    with_db_warnings_action(:log) do
-      mysql_warning = "[ActiveRecord::SQLWarning] Truncated incorrect DOUBLE value: 'foo' (1292)"
-
-      assert_called_with(ActiveRecord::Base.logger, :warn, [mysql_warning]) do
-        @conn.execute('SELECT 1 + "foo"')
-      end
-    end
-  end
-
-  def test_raises_warnings_when_behaviour_raise
-    with_db_warnings_action(:raise) do
-      error = assert_raises(ActiveRecord::SQLWarning) do
-        @conn.execute('SELECT 1 + "foo"')
-      end
-
-      assert_equal @conn.pool, error.connection_pool
-    end
-  end
-
-  def test_reports_when_behaviour_report
-    with_db_warnings_action(:report) do
-      error_reporter = ActiveSupport::ErrorReporter.new
-      subscriber = ActiveSupport::ErrorReporter::TestHelper::ErrorSubscriber.new
-
-      Rails.define_singleton_method(:error) { error_reporter }
-      Rails.error.subscribe(subscriber)
-
-      @conn.execute('SELECT 1 + "foo"')
-
-      warning_event, * = subscriber.events.first
-
-      assert_kind_of ActiveRecord::SQLWarning, warning_event
-      assert_equal "Truncated incorrect DOUBLE value: 'foo'", warning_event.message
-    end
-  end
-
-  def test_warnings_behaviour_can_be_customized_with_a_proc
-    warning_code = nil
-    ActiveRecord.db_warnings_action = ->(warning) do
-      warning_code = warning.code
-    end
-
-    @conn.execute('SELECT 1 + "foo"')
-
-    assert_equal 1292, warning_code
-  ensure
-    ActiveRecord.db_warnings_action = @original_db_warnings_action
-  end
-
-  def test_allowlist_of_warnings_to_ignore
-    with_db_warnings_action(:raise, [/Truncated incorrect DOUBLE value/]) do
-      result = @conn.execute('SELECT 1 + "foo"')
-
-      assert_equal [1], result.to_a.first
-    end
-  end
-
-  def test_allowlist_of_warning_codes_to_ignore
-    with_db_warnings_action(:raise, ["1062"]) do
-      row_id = @conn.insert("INSERT INTO posts (title, body) VALUES('Title', 'Body')")
-      result = @conn.execute("INSERT IGNORE INTO posts (id, title, body) VALUES(#{row_id}, 'Title', 'Body')")
-
-      assert_nil result
-    end
-  end
-
-  def test_does_not_raise_note_level_warnings
-    with_db_warnings_action(:raise) do
-      result = @conn.execute("DROP TABLE IF EXISTS non_existent_table")
-
-      assert_equal [], result.to_a
-    end
-  end
-
   def test_warnings_do_not_change_returned_value_of_exec_update
     previous_logger = ActiveRecord::Base.logger
-    old_sql_mode = @conn.query_value("SELECT @@SESSION.sql_mode")
+    old_sql_mode = @conn.select_value("SELECT @@SESSION.sql_mode")
 
     with_db_warnings_action(:log) do
       ActiveRecord::Base.logger = ActiveSupport::Logger.new(nil)
@@ -408,7 +329,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
   def test_warnings_do_not_change_returned_value_of_exec_delete
     previous_logger = ActiveRecord::Base.logger
-    old_sql_mode = @conn.query_value("SELECT @@SESSION.sql_mode")
+    old_sql_mode = @conn.select_value("SELECT @@SESSION.sql_mode")
 
     with_db_warnings_action(:log) do
       ActiveRecord::Base.logger = ActiveSupport::Logger.new(nil)

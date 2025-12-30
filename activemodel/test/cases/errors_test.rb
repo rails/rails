@@ -463,6 +463,19 @@ class ErrorsTest < ActiveModel::TestCase
     assert_raises(FrozenError) { errors.messages[:foo].clear }
   end
 
+  test "messages_for contains all the error messages for the given attribute" do
+    person = Person.new
+    person.errors.add(:name, :invalid)
+    assert_equal ["is invalid"], person.errors.messages_for(:name)
+  end
+
+  test "messages_for contains all the error messages for the given attribute and type" do
+    person = Person.new
+    person.errors.add(:name, :invalid)
+    person.errors.add(:name, :too_long, message: "is too long")
+    assert_equal ["is too long"], person.errors.messages_for(:name, :too_long)
+  end
+
   test "full_messages doesn't require the base object to respond to `:errors" do
     model = Class.new do
       def initialize
@@ -496,6 +509,13 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.add(:name, "cannot be blank")
     person.errors.add(:name, "cannot be nil")
     assert_equal ["name cannot be blank", "name cannot be nil"], person.errors.full_messages_for(:name)
+  end
+
+  test "full_messages_for contains all the error messages for the given attribute and type" do
+    person = Person.new
+    person.errors.add(:name, :invalid)
+    person.errors.add(:name, :too_long, message: "is too long")
+    assert_equal ["name is too long"], person.errors.full_messages_for(:name, :too_long)
   end
 
   test "full_messages_for does not contain error messages from other attributes" do
@@ -693,7 +713,7 @@ class ErrorsTest < ActiveModel::TestCase
       options: {}
     CODE
 
-    errors = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(yaml) : YAML.load(yaml)
+    errors = YAML.unsafe_load(yaml)
     assert_equal({ name: ["is invalid"] }, errors.messages)
     assert_equal({ name: [{ error: :invalid }] }, errors.details)
 

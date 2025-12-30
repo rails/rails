@@ -114,7 +114,7 @@ module Rails
       class_option :using, aliases: "-u", type: :string,
         desc: "Specify the Rack server used to run the application (thin/puma/webrick).", banner: :name
       class_option :pid, aliases: "-P", type: :string,
-        desc: "Specify the PID file - defaults to #{DEFAULT_PIDFILE}."
+        desc: "Specify the PID file. Defaults to #{DEFAULT_PIDFILE} in development."
       class_option :dev_caching, aliases: "-C", type: :boolean, default: nil,
         desc: "Specify whether to perform caching in development."
       class_option :restart, type: :boolean, default: nil, hide: true
@@ -243,11 +243,13 @@ module Rails
         end
 
         def pid
-          File.expand_path(options[:pid] || ENV.fetch("PIDFILE", DEFAULT_PIDFILE))
+          default_pidfile = environment == "development" ? DEFAULT_PIDFILE : nil
+          pid = options[:pid] || ENV["PIDFILE"] || default_pidfile
+          File.expand_path(pid) if pid
         end
 
         def prepare_restart
-          FileUtils.rm_f(pid) if options[:restart]
+          FileUtils.rm_f(pid) if pid && options[:restart]
         end
 
         def rack_server_suggestion(server)

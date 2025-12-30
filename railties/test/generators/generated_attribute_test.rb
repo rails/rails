@@ -49,16 +49,16 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_field_type :date, :date_field
   end
 
-  def test_field_type_returns_text_area
-    assert_field_type :text, :text_area
+  def test_field_type_returns_textarea
+    assert_field_type :text, :textarea
   end
 
-  def test_field_type_returns_check_box
-    assert_field_type :boolean, :check_box
+  def test_field_type_returns_checkbox
+    assert_field_type :boolean, :checkbox
   end
 
-  def test_field_type_returns_rich_text_area
-    assert_field_type :rich_text, :rich_text_area
+  def test_field_type_returns_rich_textarea
+    assert_field_type :rich_text, :rich_textarea
   end
 
   def test_field_type_returns_file_field
@@ -227,5 +227,40 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     Rails.application.config.active_record.belongs_to_required_by_default = false
     att = Rails::Generators::GeneratedAttribute.parse("supplier:references:index")
     assert_not_predicate att, :required?
+  end
+
+  def test_generated_attribute_to_s
+    att = Rails::Generators::GeneratedAttribute.parse("name")
+    assert_equal "name:string", att.to_s
+  end
+
+  def test_generated_attribute_to_s_with_index
+    att = Rails::Generators::GeneratedAttribute.parse("name:index")
+    assert_equal "name:string:index", att.to_s
+  end
+
+  def test_generated_attribute_to_s_with_uniq_index
+    att = Rails::Generators::GeneratedAttribute.parse("name:uniq")
+    assert_equal "name:string:uniq", att.to_s
+  end
+
+  def test_generated_attribute_to_s_with_limit
+    att = Rails::Generators::GeneratedAttribute.parse("name:text{140}")
+    assert_equal "name:text{140}", att.to_s
+  end
+
+  def test_generated_attribute_to_s_with_size
+    att = Rails::Generators::GeneratedAttribute.parse("name:text{medium}")
+    assert_equal "name:text{medium}", att.to_s
+  end
+
+  def test_generated_attribute_to_s_with_precision_and_scale
+    att = Rails::Generators::GeneratedAttribute.parse("name:decimal{1,2}")
+    assert_equal "name:decimal{1,2}", att.to_s
+  end
+
+  def test_generated_attribute_to_s_with_polymorphic
+    att = Rails::Generators::GeneratedAttribute.parse("name:references{polymorphic}")
+    assert_equal "name:references{polymorphic}", att.to_s
   end
 end

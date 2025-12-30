@@ -10,7 +10,7 @@ class PostgresqlXMLTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table("xml_data_type") do |t|
       t.xml "payload"
     end

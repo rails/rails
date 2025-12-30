@@ -7,7 +7,7 @@ module Arel
   module Nodes
     class SqlLiteralTest < Arel::Spec
       before do
-        @visitor = Visitors::ToSql.new Table.engine.connection
+        @visitor = Visitors::ToSql.new Table.engine.lease_connection
       end
 
       def compile(node)

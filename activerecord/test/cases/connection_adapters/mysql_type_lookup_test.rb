@@ -10,7 +10,7 @@ module ActiveRecord
         include ConnectionHelper
 
         setup do
-          @connection = ActiveRecord::Base.connection
+          @connection = ActiveRecord::Base.lease_connection
         end
 
         def teardown

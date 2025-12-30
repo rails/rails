@@ -5,11 +5,20 @@ require "cases/helper"
 module ActiveRecord
   module ConnectionAdapters
     class ColumnDefinitionTest < ActiveRecord::TestCase
-      def setup
-        @adapter = AbstractAdapter.new(nil)
-        def @adapter.native_database_types
+      class DummyAdapter < AbstractAdapter
+        class << self
+          def quote_column_name(column_name)
+            column_name.to_s
+          end
+        end
+
+        def native_database_types
           { string: "varchar" }
         end
+      end
+
+      def setup
+        @adapter = DummyAdapter.new(nil)
         @viz = @adapter.send(:schema_creation)
       end
 

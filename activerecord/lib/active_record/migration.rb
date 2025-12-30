@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "benchmark"
-require "set"
-require "zlib"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
@@ -21,7 +18,7 @@ module ActiveRecord
   # For example the following migration is not reversible.
   # Rolling back this migration will raise an ActiveRecord::IrreversibleMigration error.
   #
-  #   class IrreversibleMigrationExample < ActiveRecord::Migration[7.2]
+  #   class IrreversibleMigrationExample < ActiveRecord::Migration[8.2]
   #     def change
   #       create_table :distributors do |t|
   #         t.string :zipcode
@@ -39,7 +36,7 @@ module ActiveRecord
   #
   # 1. Define <tt>#up</tt> and <tt>#down</tt> methods instead of <tt>#change</tt>:
   #
-  #  class ReversibleMigrationExample < ActiveRecord::Migration[7.2]
+  #  class ReversibleMigrationExample < ActiveRecord::Migration[8.2]
   #    def up
   #      create_table :distributors do |t|
   #        t.string :zipcode
@@ -64,7 +61,7 @@ module ActiveRecord
   #
   # 2. Use the #reversible method in <tt>#change</tt> method:
   #
-  #   class ReversibleMigrationExample < ActiveRecord::Migration[7.2]
+  #   class ReversibleMigrationExample < ActiveRecord::Migration[8.2]
   #     def change
   #       create_table :distributors do |t|
   #         t.string :zipcode
@@ -131,22 +128,36 @@ module ActiveRecord
     end
   end
 
+  class InvalidMigrationTimestampError < MigrationError # :nodoc:
+    def initialize(version = nil, name = nil)
+      if version && name
+        super(<<~MSG)
+          Invalid timestamp #{version} for migration file: #{name}.
+          Timestamp must be in form YYYYMMDDHHMMSS, and less than #{(Time.now.utc + 1.day).strftime("%Y%m%d%H%M%S")}.
+        MSG
+      else
+        super(<<~MSG)
+          Invalid timestamp for migration.
+          Timestamp must be in form YYYYMMDDHHMMSS, and less than #{(Time.now.utc + 1.day).strftime("%Y%m%d%H%M%S")}.
+        MSG
+      end
+    end
+  end
+
   class PendingMigrationError < MigrationError # :nodoc:
     include ActiveSupport::ActionableError
 
     action "Run pending migrations" do
-      ActiveRecord::Tasks::DatabaseTasks.migrate
+      ActiveRecord::Tasks::DatabaseTasks.migrate_all
 
       if ActiveRecord.dump_schema_after_migration
-        connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection
-        ActiveRecord::Tasks::DatabaseTasks.dump_schema(connection.pool.db_config)
+        ActiveRecord::Tasks::DatabaseTasks.dump_all
       end
     end
 
     def initialize(message = nil, pending_migrations: nil)
       if pending_migrations.nil?
-        connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection
-        pending_migrations = connection.migration_context.open.pending_migrations
+        pending_migrations = connection_pool.migration_context.open.pending_migrations
       end
 
       super(message || detailed_migration_message(pending_migrations))
@@ -167,8 +178,8 @@ module ActiveRecord
         message
       end
 
-      def connection
-        ActiveRecord::Tasks::DatabaseTasks.migration_connection
+      def connection_pool
+        ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool
       end
   end
 
@@ -235,7 +246,7 @@ module ActiveRecord
   #
   # Example of a simple migration:
   #
-  #   class AddSsl < ActiveRecord::Migration[7.2]
+  #   class AddSsl < ActiveRecord::Migration[8.2]
   #     def up
   #       add_column :accounts, :ssl_enabled, :boolean, default: true
   #     end
@@ -255,7 +266,7 @@ module ActiveRecord
   #
   # Example of a more complex migration that also needs to initialize data:
   #
-  #   class AddSystemSettings < ActiveRecord::Migration[7.2]
+  #   class AddSystemSettings < ActiveRecord::Migration[8.2]
   #     def up
   #       create_table :system_settings do |t|
   #         t.string  :name
@@ -342,7 +353,7 @@ module ActiveRecord
   #
   # === Deletion
   #
-  # * <tt>drop_table(name)</tt>: Drops the table called +name+.
+  # * <tt>drop_table(*names)</tt>: Drops the given tables.
   # * <tt>drop_join_table(table_1, table_2, options)</tt>: Drops the join table
   #   specified by the given arguments.
   # * <tt>remove_column(table_name, column_name, type, options)</tt>: Removes the column
@@ -371,7 +382,8 @@ module ActiveRecord
   # The \Rails package has several tools to help create and apply migrations.
   #
   # To generate a new migration, you can use
-  #   bin/rails generate migration MyNewMigration
+  #
+  #   $ bin/rails generate migration MyNewMigration
   #
   # where MyNewMigration is the name of your migration. The generator will
   # create an empty migration file <tt>timestamp_my_new_migration.rb</tt>
@@ -380,10 +392,10 @@ module ActiveRecord
   #
   # There is a special syntactic shortcut to generate migrations that add fields to a table.
   #
-  #   bin/rails generate migration add_fieldname_to_tablename fieldname:string
+  #   $ bin/rails generate migration add_fieldname_to_tablename fieldname:string
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename.rb</tt>, which will look like this:
-  #   class AddFieldnameToTablename < ActiveRecord::Migration[7.2]
+  #   class AddFieldnameToTablename < ActiveRecord::Migration[8.2]
   #     def change
   #       add_column :tablenames, :fieldname, :string
   #     end
@@ -409,7 +421,7 @@ module ActiveRecord
   #
   # Not all migrations change the schema. Some just fix the data:
   #
-  #   class RemoveEmptyTags < ActiveRecord::Migration[7.2]
+  #   class RemoveEmptyTags < ActiveRecord::Migration[8.2]
   #     def up
   #       Tag.all.each { |tag| tag.destroy if tag.pages.empty? }
   #     end
@@ -422,7 +434,7 @@ module ActiveRecord
   #
   # Others remove columns when they migrate up instead of down:
   #
-  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration[7.2]
+  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration[8.2]
   #     def up
   #       remove_column :items, :incomplete_items_count
   #       remove_column :items, :completed_items_count
@@ -436,7 +448,7 @@ module ActiveRecord
   #
   # And sometimes you need to do something in SQL not abstracted directly by migrations:
   #
-  #   class MakeJoinUnique < ActiveRecord::Migration[7.2]
+  #   class MakeJoinUnique < ActiveRecord::Migration[8.2]
   #     def up
   #       execute "ALTER TABLE `pages_linked_pages` ADD UNIQUE `page_id_linked_page_id` (`page_id`,`linked_page_id`)"
   #     end
@@ -453,7 +465,7 @@ module ActiveRecord
   # <tt>Base#reset_column_information</tt> in order to ensure that the model has the
   # latest column data from after the new column was added. Example:
   #
-  #   class AddPeopleSalary < ActiveRecord::Migration[7.2]
+  #   class AddPeopleSalary < ActiveRecord::Migration[8.2]
   #     def up
   #       add_column :people, :salary, :integer
   #       Person.reset_column_information
@@ -469,7 +481,7 @@ module ActiveRecord
   # them to the console as they happen, along with benchmarks describing how
   # long each step took.
   #
-  # You can quiet them down by setting ActiveRecord::Migration.verbose = false.
+  # You can quiet them down by setting <tt>ActiveRecord::Migration.verbose = false</tt>.
   #
   # You can also insert your own messages and benchmarks by using the +say_with_time+
   # method:
@@ -493,7 +505,11 @@ module ActiveRecord
   #
   #    20080717013526_your_migration_name.rb
   #
-  # The prefix is a generation timestamp (in UTC).
+  # The prefix is a generation timestamp (in UTC). Timestamps should not be
+  # modified manually. To validate that migration timestamps adhere to the
+  # format Active Record expects, you can use the following configuration option:
+  #
+  #    config.active_record.validate_migration_timestamps = true
   #
   # If you'd prefer to use numeric prefixes, you can turn timestamped migrations
   # off by setting:
@@ -511,7 +527,7 @@ module ActiveRecord
   # To define a reversible migration, define the +change+ method in your
   # migration like this:
   #
-  #   class TenderloveMigration < ActiveRecord::Migration[7.2]
+  #   class TenderloveMigration < ActiveRecord::Migration[8.2]
   #     def change
   #       create_table(:horses) do |t|
   #         t.column :content, :text
@@ -541,7 +557,7 @@ module ActiveRecord
   # can't execute inside a transaction though, and for these situations
   # you can turn the automatic transactions off.
   #
-  #   class ChangeEnum < ActiveRecord::Migration[7.2]
+  #   class ChangeEnum < ActiveRecord::Migration[8.2]
   #     disable_ddl_transaction!
   #
   #     def up
@@ -554,6 +570,7 @@ module ActiveRecord
   class Migration
     autoload :CommandRecorder, "active_record/migration/command_recorder"
     autoload :Compatibility, "active_record/migration/compatibility"
+    autoload :DefaultSchemaVersionsFormatter, "active_record/migration/default_schema_versions_formatter"
     autoload :JoinTable, "active_record/migration/join_table"
     autoload :ExecutionStrategy, "active_record/migration/execution_strategy"
     autoload :DefaultStrategy, "active_record/migration/default_strategy"
@@ -584,7 +601,7 @@ module ActiveRecord
         end
       end
 
-      def drop_table(table_name, **options)
+      def drop_table(*table_names, **options)
         if block_given?
           super { |t| yield compatible_table_definition(t) }
         else
@@ -661,10 +678,6 @@ module ActiveRecord
           paths = all_configs.flat_map { |config| config.migrations_paths || Migrator.migrations_paths }.uniq
           @file_watcher.new([], paths.index_with(["rb"]), &block)
         end
-
-        def connection
-          ActiveRecord::Tasks::DatabaseTasks.migration_connection
-        end
     end
 
     class << self
@@ -675,30 +688,13 @@ module ActiveRecord
         delegate || superclass.nearest_delegate
       end
 
-      # Raises ActiveRecord::PendingMigrationError error if any migrations are pending.
-      #
-      # This is deprecated in favor of +check_all_pending!+
-      def check_pending!(connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection)
-        ActiveRecord.deprecator.warn(<<-MSG.squish)
-          The `check_pending!` method is deprecated in favor of `check_all_pending!`. The
-          new implementation will loop through all available database configurations and find
-          pending migrations. The prior implementation did not permit this.
-        MSG
-
-        pending_migrations = connection.migration_context.open.pending_migrations
-
-        if pending_migrations.any?
-          raise ActiveRecord::PendingMigrationError.new(pending_migrations: pending_migrations)
-        end
-      end
-
       # Raises ActiveRecord::PendingMigrationError error if any migrations are pending
       # for all database configurations in an environment.
       def check_all_pending!
         pending_migrations = []
 
-        ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection_for_each(env: env) do |connection|
-          if pending = connection.migration_context.open.pending_migrations
+        ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: env) do |pool|
+          if pending = pool.migration_context.open.pending_migrations
             pending_migrations << pending
           end
         end
@@ -712,13 +708,7 @@ module ActiveRecord
 
       def load_schema_if_pending!
         if any_schema_needs_update?
-          # Roundtrip to Rake to allow plugins to hook into database initialization.
-          root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
-
-          FileUtils.cd(root) do
-            Base.connection_handler.clear_all_connections!(:all)
-            system("bin/rails db:test:prepare")
-          end
+          load_schema!
         end
 
         check_pending_migrations
@@ -730,10 +720,9 @@ module ActiveRecord
         end
       end
 
-      def method_missing(name, *args, &block) # :nodoc:
-        nearest_delegate.send(name, *args, &block)
+      def method_missing(name, ...) # :nodoc:
+        nearest_delegate.send(name, ...)
       end
-      ruby2_keywords(:method_missing)
 
       def migrate(direction)
         new.migrate direction
@@ -758,7 +747,7 @@ module ActiveRecord
       private
         def any_schema_needs_update?
           !db_configs_in_current_env.all? do |db_config|
-            Tasks::DatabaseTasks.schema_up_to_date?(db_config, ActiveRecord.schema_format)
+            Tasks::DatabaseTasks.schema_up_to_date?(db_config)
           end
         end
 
@@ -770,8 +759,8 @@ module ActiveRecord
           pending_migrations = []
 
           ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|
-            ActiveRecord::PendingMigrationConnection.establish_temporary_connection(db_config) do |conn|
-              if pending = conn.migration_context.open.pending_migrations
+            ActiveRecord::PendingMigrationConnection.with_temporary_pool(db_config) do |pool|
+              if pending = pool.migration_context.open.pending_migrations
                 pending_migrations << pending
               end
             end
@@ -783,12 +772,33 @@ module ActiveRecord
         def env
           ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
         end
+
+        def load_schema!
+          # Roundtrip to Rake to allow plugins to hook into database initialization.
+          root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
+
+          FileUtils.cd(root) do
+            Base.connection_handler.clear_all_connections!(:all)
+            system("bin/rails db:test:prepare")
+          end
+        end
+
+        def respond_to_missing?(method, include_private = false)
+          return false if nearest_delegate == delegate
+          nearest_delegate.respond_to?(method, include_private)
+        end
     end
 
     def disable_ddl_transaction # :nodoc:
       self.class.disable_ddl_transaction
     end
 
+    ##
+    # :singleton-method: verbose
+    #
+    # Specifies if migrations will write the actions they are taking to the console as they
+    # happen, along with benchmarks describing how long each step took. Defaults to
+    # true.
     cattr_accessor :verbose
     attr_accessor :name, :version
 
@@ -796,10 +806,11 @@ module ActiveRecord
       @name       = name
       @version    = version
       @connection = nil
+      @pool       = nil
     end
 
     def execution_strategy
-      @execution_strategy ||= ActiveRecord.migration_strategy.new(self)
+      @execution_strategy ||= (connection.migration_strategy || ActiveRecord.migration_strategy).new(self)
     end
 
     self.verbose = true
@@ -813,7 +824,7 @@ module ActiveRecord
     # and create the table 'apples' on the way up, and the reverse
     # on the way down.
     #
-    #   class FixTLMigration < ActiveRecord::Migration[7.2]
+    #   class FixTLMigration < ActiveRecord::Migration[8.2]
     #     def change
     #       revert do
     #         create_table(:horses) do |t|
@@ -832,7 +843,7 @@ module ActiveRecord
     #
     #   require_relative "20121212123456_tenderlove_migration"
     #
-    #   class FixupTLMigration < ActiveRecord::Migration[7.2]
+    #   class FixupTLMigration < ActiveRecord::Migration[8.2]
     #     def change
     #       revert TenderloveMigration
     #
@@ -883,7 +894,7 @@ module ActiveRecord
     # when the three columns 'first_name', 'last_name' and 'full_name' exist,
     # even when migrating down:
     #
-    #    class SplitNameMigration < ActiveRecord::Migration[7.2]
+    #    class SplitNameMigration < ActiveRecord::Migration[8.2]
     #      def change
     #        add_column :users, :first_name, :string
     #        add_column :users, :last_name, :string
@@ -911,7 +922,7 @@ module ActiveRecord
     # In the following example, the new column +published+ will be given
     # the value +true+ for all existing records.
     #
-    #    class AddPublishedToPosts < ActiveRecord::Migration[7.2]
+    #    class AddPublishedToPosts < ActiveRecord::Migration[8.2]
     #      def change
     #        add_column :posts, :published, :boolean, default: false
     #        up_only do
@@ -963,16 +974,16 @@ module ActiveRecord
       when :down then announce "reverting"
       end
 
-      time = nil
+      time_elapsed = nil
       ActiveRecord::Tasks::DatabaseTasks.migration_connection.pool.with_connection do |conn|
-        time = Benchmark.measure do
+        time_elapsed = ActiveSupport::Benchmark.realtime do
           exec_migration(conn, direction)
         end
       end
 
       case direction
-      when :up   then announce "migrated (%.4fs)" % time.real; write
-      when :down then announce "reverted (%.4fs)" % time.real; write
+      when :up   then announce "migrated (%.4fs)" % time_elapsed; write
+      when :down then announce "reverted (%.4fs)" % time_elapsed; write
       end
     end
 
@@ -1013,8 +1024,8 @@ module ActiveRecord
     def say_with_time(message)
       say(message)
       result = nil
-      time = Benchmark.measure { result = yield }
-      say "%.4fs" % time.real, :subitem
+      time_elapsed = ActiveSupport::Benchmark.realtime { result = yield }
+      say "%.4fs" % time_elapsed, :subitem
       say("#{result} rows", :subitem) if result.is_a?(Integer)
       result
     end
@@ -1029,6 +1040,10 @@ module ActiveRecord
 
     def connection
       @connection || ActiveRecord::Tasks::DatabaseTasks.migration_connection
+    end
+
+    def connection_pool
+      @pool || ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool
     end
 
     def method_missing(method, *arguments, &block)
@@ -1160,6 +1175,10 @@ module ActiveRecord
       def command_recorder
         CommandRecorder.new(connection)
       end
+
+      def respond_to_missing?(method, include_private = false)
+        execution_strategy.respond_to?(method, include_private) || super
+      end
   end
 
   # MigrationProxy is used to defer loading of the actual migration classes
@@ -1202,31 +1221,9 @@ module ActiveRecord
     attr_reader :migrations_paths, :schema_migration, :internal_metadata
 
     def initialize(migrations_paths, schema_migration = nil, internal_metadata = nil)
-      if schema_migration == SchemaMigration
-        ActiveRecord.deprecator.warn(<<-MSG.squish)
-          SchemaMigration no longer inherits from ActiveRecord::Base. If you want
-          to use the default connection, remove this argument. If you want to use a
-          specific connection, instantiate MigrationContext with the connection's schema
-          migration, for example `MigrationContext.new(path, Dog.connection.schema_migration)`.
-        MSG
-
-        schema_migration = nil
-      end
-
-      if internal_metadata == InternalMetadata
-        ActiveRecord.deprecator.warn(<<-MSG.squish)
-          SchemaMigration no longer inherits from ActiveRecord::Base. If you want
-          to use the default connection, remove this argument. If you want to use a
-          specific connection, instantiate MigrationContext with the connection's internal
-          metadata, for example `MigrationContext.new(path, nil, Dog.connection.internal_metadata)`.
-        MSG
-
-        internal_metadata = nil
-      end
-
       @migrations_paths = migrations_paths
-      @schema_migration = schema_migration || SchemaMigration.new(connection)
-      @internal_metadata = internal_metadata || InternalMetadata.new(connection)
+      @schema_migration = schema_migration || SchemaMigration.new(connection_pool)
+      @internal_metadata = internal_metadata || InternalMetadata.new(connection_pool)
     end
 
     # Runs the migrations in the +migrations_path+.
@@ -1316,6 +1313,9 @@ module ActiveRecord
       migrations = migration_files.map do |file|
         version, name, scope = parse_migration_filename(file)
         raise IllegalMigrationNameError.new(file) unless version
+        if validate_timestamp? && !valid_migration_timestamp?(version)
+          raise InvalidMigrationTimestampError.new(version, name)
+        end
         version = version.to_i
         name = name.camelize
 
@@ -1331,6 +1331,9 @@ module ActiveRecord
       file_list = migration_files.filter_map do |file|
         version, name, scope = parse_migration_filename(file)
         raise IllegalMigrationNameError.new(file) unless version
+        if validate_timestamp? && !valid_migration_timestamp?(version)
+          raise InvalidMigrationTimestampError.new(version, name)
+        end
         version = schema_migration.normalize_migration_number(version)
         status = db_list.delete(version) ? "up" : "down"
         [status, version, (name + scope).humanize]
@@ -1352,11 +1355,12 @@ module ActiveRecord
     end
 
     def last_stored_environment # :nodoc:
-      return nil unless connection.internal_metadata.enabled?
+      internal_metadata = connection_pool.internal_metadata
+      return nil unless internal_metadata.enabled?
       return nil if current_version == 0
-      raise NoEnvironmentInSchemaError unless connection.internal_metadata.table_exists?
+      raise NoEnvironmentInSchemaError unless internal_metadata.table_exists?
 
-      environment = connection.internal_metadata[:environment]
+      environment = internal_metadata[:environment]
       raise NoEnvironmentInSchemaError unless environment
       environment
     end
@@ -1366,6 +1370,10 @@ module ActiveRecord
         ActiveRecord::Tasks::DatabaseTasks.migration_connection
       end
 
+      def connection_pool
+        ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool
+      end
+
       def migration_files
         paths = Array(migrations_paths)
         Dir[*paths.flat_map { |path| "#{path}/**/[0-9]*_*.rb" }]
@@ -1373,6 +1381,14 @@ module ActiveRecord
 
       def parse_migration_filename(filename)
         File.basename(filename).scan(Migration::MigrationFilenameRegexp).first
+      end
+
+      def validate_timestamp?
+        ActiveRecord.timestamped_migrations && ActiveRecord.validate_migration_timestamps
+      end
+
+      def valid_migration_timestamp?(version)
+        version.to_i < (Time.now.utc + 1.day).strftime("%Y%m%d%H%M%S").to_i
       end
 
       def move(direction, steps)
@@ -1401,9 +1417,9 @@ module ActiveRecord
 
       # For cases where a table doesn't exist like loading from schema cache
       def current_version
-        connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection
-        schema_migration = SchemaMigration.new(connection)
-        internal_metadata = InternalMetadata.new(connection)
+        connection_pool = ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool
+        schema_migration = SchemaMigration.new(connection_pool)
+        internal_metadata = InternalMetadata.new(connection_pool)
 
         MigrationContext.new(migrations_paths, schema_migration, internal_metadata).current_version
       end
@@ -1522,7 +1538,8 @@ module ActiveRecord
         return if down? && !migrated.include?(migration.version.to_i)
         return if up?   &&  migrated.include?(migration.version.to_i)
 
-        Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
+        message = up? ? "Migrating to" : "Reverting"
+        Base.logger.info "#{message} #{migration.name} (#{migration.version})" if Base.logger
 
         ddl_transaction(migration) do
           migration.migrate(@direction)

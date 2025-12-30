@@ -2,15 +2,17 @@ require "test_helper"
 
 <% module_namespacing do -%>
 class <%= class_name %>MailerTest < ActionMailer::TestCase
-<% actions.each do |action| -%>
+<% actions.each_with_index do |action, index| -%>
+<% if index != 0 -%>
+
+<% end -%>
   test "<%= action %>" do
     mail = <%= class_name %>Mailer.<%= action %>
     assert_equal <%= action.to_s.humanize.inspect %>, mail.subject
-    assert_equal ["to@example.org"], mail.to
-    assert_equal ["from@example.com"], mail.from
+    assert_equal [ "to@example.org" ], mail.to
+    assert_equal [ "from@example.com" ], mail.from
     assert_match "Hi", mail.body.encoded
   end
-
 <% end -%>
 <% if actions.blank? -%>
   # test "the truth" do

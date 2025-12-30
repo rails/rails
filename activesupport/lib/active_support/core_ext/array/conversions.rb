@@ -16,11 +16,11 @@ class Array
   # ==== Options
   #
   # * <tt>:words_connector</tt> - The sign or word used to join all but the last
-  #   element in arrays with three or more elements (default: ", ").
+  #   element in arrays with three or more elements (default: <tt>", "</tt>).
   # * <tt>:last_word_connector</tt> - The sign or word used to join the last element
-  #   in arrays with three or more elements (default: ", and ").
+  #   in arrays with three or more elements (default: <tt>", and "</tt>).
   # * <tt>:two_words_connector</tt> - The sign or word used to join the elements
-  #   in arrays with two elements (default: " and ").
+  #   in arrays with two elements (default: <tt>" and "</tt>).
   # * <tt>:locale</tt> - If +i18n+ is available, you can set a locale and use
   #   the connector options defined on the 'support.array' namespace in the
   #   corresponding dictionary file.
@@ -104,8 +104,6 @@ class Array
     end
   end
   alias_method :to_formatted_s, :to_fs
-  alias_method :to_default_s, :to_s
-  deprecate to_default_s: :to_s, deprecator: ActiveSupport.deprecator
 
   # Returns a string that represents the array in XML by invoking +to_xml+
   # on each element. Active Record collections delegate their representation

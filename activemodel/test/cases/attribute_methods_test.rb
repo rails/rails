@@ -262,7 +262,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_equal("Active Model Topic", topic_class.new.subject_to_be_undefined)
     topic_class.undefine_attribute_methods
 
-    assert_raises(NoMethodError, match: /undefined method `subject_to_be_undefined'/) do
+    assert_raises(NoMethodError, match: /undefined method [`']subject_to_be_undefined'/) do
       topic_class.new.subject_to_be_undefined
     end
   end
@@ -370,5 +370,45 @@ class AttributeMethodsTest < ActiveModel::TestCase
   test "name clashes are handled" do
     assert_equal :model_1, NameClash::Model1.new.x_changed?
     assert_equal :model_2, NameClash::Model2.new.x_changed?
+  end
+
+  test "alias attribute respects user defined method" do
+    model = Class.new do
+      include ActiveModel::AttributeMethods
+
+      attr_accessor :name
+      define_attribute_methods :name
+
+      alias_attribute :nickname, :name
+
+      def initialize(name)
+        @name = name
+      end
+    end
+
+    instance = model.new("George")
+    assert_equal "George", instance.name
+    assert_equal "George", instance.nickname
+  end
+
+  test "alias attribute respects user defined method in parent classes" do
+    model = Class.new do
+      include ActiveModel::AttributeMethods
+
+      attr_accessor :name
+      define_attribute_methods :name
+
+      def initialize(name)
+        @name = name
+      end
+    end
+
+    subclass = Class.new(model) do
+      alias_attribute :nickname, :name
+    end
+
+    instance = subclass.new("George")
+    assert_equal "George", instance.name
+    assert_equal "George", instance.nickname
   end
 end

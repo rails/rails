@@ -12,7 +12,7 @@ module ActiveSupport
   # * Limit the set of zones provided by TZInfo to a meaningful subset of 134
   #   zones.
   # * Retrieve and display zones with a friendlier name
-  #   (e.g., "Eastern Time (US & Canada)" instead of "America/New_York").
+  #   (e.g., "Eastern \Time (US & Canada)" instead of "America/New_York").
   # * Lazily load +TZInfo::Timezone+ instances only when they're needed.
   # * Create ActiveSupport::TimeWithZone instances via TimeZone's +local+,
   #   +parse+, +at+, and +now+ methods.
@@ -57,13 +57,14 @@ module ActiveSupport
       "Caracas"                      => "America/Caracas",
       "La Paz"                       => "America/La_Paz",
       "Santiago"                     => "America/Santiago",
+      "Asuncion"                     => "America/Asuncion",
       "Newfoundland"                 => "America/St_Johns",
       "Brasilia"                     => "America/Sao_Paulo",
       "Buenos Aires"                 => "America/Argentina/Buenos_Aires",
       "Montevideo"                   => "America/Montevideo",
       "Georgetown"                   => "America/Guyana",
       "Puerto Rico"                  => "America/Puerto_Rico",
-      "Greenland"                    => "America/Godthab",
+      "Greenland"                    => "America/Nuuk",
       "Mid-Atlantic"                 => "Atlantic/South_Georgia",
       "Azores"                       => "Atlantic/Azores",
       "Cape Verde Is."               => "Atlantic/Cape_Verde",
@@ -134,10 +135,10 @@ module ActiveSupport
       "Mumbai"                       => "Asia/Kolkata",
       "New Delhi"                    => "Asia/Kolkata",
       "Kathmandu"                    => "Asia/Kathmandu",
-      "Astana"                       => "Asia/Dhaka",
       "Dhaka"                        => "Asia/Dhaka",
       "Sri Jayawardenepura"          => "Asia/Colombo",
       "Almaty"                       => "Asia/Almaty",
+      "Astana"                       => "Asia/Almaty",
       "Novosibirsk"                  => "Asia/Novosibirsk",
       "Rangoon"                      => "Asia/Rangoon",
       "Bangkok"                      => "Asia/Bangkok",
@@ -208,7 +209,7 @@ module ActiveSupport
         TZInfo::Timezone.get(MAPPING[name] || name)
       end
 
-      alias_method :create, :new
+      alias_method :create, :new # :nodoc:
 
       # Returns a TimeZone instance with the given name, or +nil+ if no
       # such TimeZone instance exists. (This exists to support the use of
@@ -296,14 +297,27 @@ module ActiveSupport
     attr_reader :name
     attr_reader :tzinfo
 
+    ##
+    # :singleton-method: create
+    # :call-seq: create(name, utc_offset = nil, tzinfo = nil)
+    #
     # Create a new TimeZone object with the given name and offset. The
     # offset is the number of seconds that this time zone is offset from UTC
     # (GMT). Seconds were chosen as the offset unit because that is the unit
     # that Ruby uses to represent time zone offsets (see Time#utc_offset).
+
+    # :stopdoc:
     def initialize(name, utc_offset = nil, tzinfo = nil)
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
+    end
+    # :startdoc:
+
+    # Returns a standard time zone name defined by IANA
+    # https://www.iana.org/time-zones
+    def standard_name
+      MAPPING[name] || name
     end
 
     # Returns the offset of this time zone from UTC in seconds.
@@ -348,7 +362,7 @@ module ActiveSupport
       "(GMT#{formatted_offset}) #{name}"
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # \Method for creating new ActiveSupport::TimeWithZone instance in time zone
     # of +self+ from given values.
     #
     #   Time.zone = 'Hawaii'                    # => "Hawaii"
@@ -358,7 +372,7 @@ module ActiveSupport
       ActiveSupport::TimeWithZone.new(nil, self, time)
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # \Method for creating new ActiveSupport::TimeWithZone instance in time zone
     # of +self+ from number of seconds since the Unix epoch.
     #
     #   Time.zone = 'Hawaii'        # => "Hawaii"
@@ -373,7 +387,7 @@ module ActiveSupport
       Time.at(*args).utc.in_time_zone(self)
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # \Method for creating new ActiveSupport::TimeWithZone instance in time zone
     # of +self+ from an ISO 8601 string.
     #
     #   Time.zone = 'Hawaii'                     # => "Hawaii"
@@ -425,7 +439,7 @@ module ActiveSupport
       raise ArgumentError, "invalid date"
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # \Method for creating new ActiveSupport::TimeWithZone instance in time zone
     # of +self+ from parsed string.
     #
     #   Time.zone = 'Hawaii'                   # => "Hawaii"
@@ -447,7 +461,7 @@ module ActiveSupport
       parts_to_time(Date._parse(str, false), now)
     end
 
-    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # \Method for creating new ActiveSupport::TimeWithZone instance in time zone
     # of +self+ from an RFC 3339 string.
     #
     #   Time.zone = 'Hawaii'                     # => "Hawaii"
@@ -545,20 +559,24 @@ module ActiveSupport
       tzinfo.local_to_utc(time, dst)
     end
 
-    # Available so that TimeZone instances respond like +TZInfo::Timezone+
-    # instances.
-    def period_for_utc(time)
+    def period_for_utc(time) # :nodoc:
       tzinfo.period_for_utc(time)
     end
 
-    # Available so that TimeZone instances respond like +TZInfo::Timezone+
-    # instances.
-    def period_for_local(time, dst = true)
+    def period_for_local(time, dst = true) # :nodoc:
       tzinfo.period_for_local(time, dst) { |periods| periods.last }
     end
 
     def periods_for_local(time) # :nodoc:
       tzinfo.periods_for_local(time)
+    end
+
+    def abbr(time) # :nodoc:
+      tzinfo.abbr(time)
+    end
+
+    def dst?(time) # :nodoc:
+      tzinfo.dst?(time)
     end
 
     def init_with(coder) # :nodoc:

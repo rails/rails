@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "action_controller"
+
 module Rails
   # Built-in Health Check Endpoint
   #
@@ -24,7 +26,7 @@ module Rails
   # The health check will now be accessible via the +/healthz+ path.
   #
   # NOTE: This endpoint does not reflect the status of all of your application's
-  # dependencies, such as the database or redis cluster. Replace
+  # dependencies, such as the database or Redis cluster. Replace
   # <tt>"rails/health#show"</tt> with your own controller action if you have
   # application specific needs.
   #
@@ -41,11 +43,17 @@ module Rails
 
     private
       def render_up
-        render html: html_status(color: "green")
+        respond_to do |format|
+          format.html { render html: html_status(color: "green") }
+          format.json { render json: { status: "up", timestamp: Time.current.iso8601 } }
+        end
       end
 
       def render_down
-        render html: html_status(color: "red"), status: 500
+        respond_to do |format|
+          format.html { render html: html_status(color: "red"), status: 500 }
+          format.json { render json: { status: "down", timestamp: Time.current.iso8601 }, status: 500 }
+        end
       end
 
       def html_status(color:)

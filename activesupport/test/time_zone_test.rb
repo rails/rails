@@ -873,7 +873,57 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_yaml_load
     payload = "--- !ruby/object:ActiveSupport::TimeZone\nname: Pacific/Honolulu\n"
-    loaded = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+    loaded = YAML.unsafe_load(payload)
     assert_equal(ActiveSupport::TimeZone["Pacific/Honolulu"], loaded)
+  end
+
+  def test_abbr
+    zone = ActiveSupport::TimeZone["America/Toronto"]
+    assert_equal "EST", zone.abbr(Time.utc(2000, 4, 2, 6))
+    assert_equal "EDT", zone.abbr(Time.utc(2000, 4, 2, 7))
+    assert_equal "EDT", zone.abbr(Time.utc(2000, 4, 2, 8))
+    assert_equal "EDT", zone.abbr(Time.utc(2000, 10, 29, 5))
+    assert_equal "EST", zone.abbr(Time.utc(2000, 10, 29, 6))
+    assert_equal "EST", zone.abbr(Time.utc(2000, 10, 29, 7))
+  end
+
+  def test_dst
+    zone = ActiveSupport::TimeZone["America/Toronto"]
+    assert_equal false, zone.dst?(Time.utc(2000, 4, 2, 6))
+    assert_equal true,  zone.dst?(Time.utc(2000, 4, 2, 7))
+    assert_equal true,  zone.dst?(Time.utc(2000, 4, 2, 8))
+    assert_equal true,  zone.dst?(Time.utc(2000, 10, 29, 5))
+    assert_equal false, zone.dst?(Time.utc(2000, 10, 29, 6))
+    assert_equal false, zone.dst?(Time.utc(2000, 10, 29, 7))
+  end
+
+  def test_works_as_ruby_time_zone
+    zone = ActiveSupport::TimeZone["America/Toronto"]
+    time = Time.new(2000, 1, 1, 1, in: zone)
+    assert_same zone, time.zone
+    assert_equal "2000-01-01T01:00:00-05:00", time.iso8601
+    assert_equal(-18000, time.utc_offset)
+    assert_equal "EST", time.strftime("%Z")
+    assert_equal false, time.isdst
+
+    time = Time.new(2000, 6, 1, 1, in: zone)
+    assert_same zone, time.zone
+    assert_equal "2000-06-01T01:00:00-04:00", time.iso8601
+    assert_equal(-14400, time.utc_offset)
+    assert_equal "EDT", time.strftime("%Z")
+    assert_equal true, time.isdst
+
+    time = Time.at(959835600, in: zone)
+    assert_same zone, time.zone
+    assert_equal "2000-06-01T01:00:00-04:00", time.iso8601
+    assert_equal(-14400, time.utc_offset)
+    assert_equal "EDT", time.strftime("%Z")
+    assert_equal true, time.isdst
+  end
+
+  def test_standard_name
+    assert_equal "America/New_York", ActiveSupport::TimeZone["Eastern Time (US & Canada)"].standard_name
+    assert_equal "America/Montevideo", ActiveSupport::TimeZone["Montevideo"].standard_name
+    assert_equal "America/Toronto", ActiveSupport::TimeZone["America/Toronto"].standard_name
   end
 end

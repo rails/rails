@@ -29,6 +29,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
       "ActionDispatch::HostAuthorization",
       "Rack::Sendfile",
       "ActionDispatch::Static",
+      "Propshaft::Server",
       "ActionDispatch::Executor",
       "ActionDispatch::ServerTiming",
       "ActiveSupport::Cache::Strategy::LocalCache",
@@ -46,7 +47,6 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
       "ActionDispatch::Session::CookieStore",
       "ActionDispatch::Flash",
       "ActionDispatch::ContentSecurityPolicy::Middleware",
-      "ActionDispatch::PermissionsPolicy::Middleware",
       "Rack::Head",
       "Rack::ConditionalGet",
       "Rack::ETag",
@@ -65,6 +65,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
       "ActionDispatch::HostAuthorization",
       "Rack::Sendfile",
       "ActionDispatch::Static",
+      "Propshaft::Server",
       "ActionDispatch::Executor",
       "ActionDispatch::ServerTiming",
       "ActiveSupport::Cache::Strategy::LocalCache",
@@ -83,7 +84,6 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
       "ActionDispatch::Session::CookieStore",
       "ActionDispatch::Flash",
       "ActionDispatch::ContentSecurityPolicy::Middleware",
-      "ActionDispatch::PermissionsPolicy::Middleware",
       "Rack::Head",
       "Rack::ConditionalGet",
       "Rack::ETag",
@@ -100,6 +100,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
       "ActionDispatch::HostAuthorization",
       "Rack::Sendfile",
       "ActionDispatch::Static",
+      "Propshaft::Server",
       "ActionDispatch::Executor",
       "ActiveSupport::Cache::Strategy::LocalCache",
       "Rack::Runtime",
@@ -202,12 +203,25 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
     assert_includes middleware, "ActionDispatch::SSL"
   end
 
+  test "silence healthcheck" do
+    add_to_config "config.silence_healthcheck_path = '/up'"
+    boot!
+    assert_includes middleware, "Rails::Rack::SilenceRequest"
+  end
+
   test "ActionDispatch::SSL is configured with options when given" do
     add_to_config "config.force_ssl = true"
     add_to_config "config.ssl_options = { redirect: { host: 'example.com' } }"
     boot!
 
     assert_equal [{ redirect: { host: "example.com" }, ssl_default_redirect_status: 308 }], Rails.application.middleware[1].args
+  end
+
+  test "ActionDispatch::PermissionsPolicy::MiddlewareStack is included if permissions_policy set" do
+    add_to_config "config.permissions_policy { ActionDispatch::PermissionsPolicy.new }"
+    boot!
+
+    assert_includes middleware, "ActionDispatch::PermissionsPolicy::Middleware"
   end
 
   test "removing Active Record omits its middleware" do
@@ -301,16 +315,16 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
   end
 
   test "Rails.cache does not respond to middleware" do
-    add_to_config "config.cache_store = :memory_store, { timeout: 10 }"
+    add_to_config "config.cache_store = :file_store, '/tmp/cache'"
     boot!
-    assert_equal "Rack::Runtime", middleware[4]
-    assert_instance_of ActiveSupport::Cache::MemoryStore, Rails.cache
+    assert_equal "Rack::Runtime", middleware[5]
+    assert_instance_of ActiveSupport::Cache::FileStore, Rails.cache
   end
 
   test "Rails.cache does respond to middleware" do
     boot!
-    assert_equal "ActiveSupport::Cache::Strategy::LocalCache", middleware[4]
-    assert_equal "Rack::Runtime", middleware[5]
+    assert_equal "ActiveSupport::Cache::Strategy::LocalCache", middleware[5]
+    assert_equal "Rack::Runtime", middleware[6]
   end
 
   test "insert middleware before" do

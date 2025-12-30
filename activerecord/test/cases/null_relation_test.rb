@@ -20,7 +20,7 @@ class NullRelationTest < ActiveRecord::TestCase
   end
 
   def test_none_chainable
-    assert_queries(0) do
+    assert_queries_count(0) do
       assert_equal [], Developer.none.where(name: "David")
     end
   end
@@ -38,7 +38,7 @@ class NullRelationTest < ActiveRecord::TestCase
   end
 
   def test_none_chained_to_methods_firing_queries_straight_to_db
-    assert_no_queries(ignore_none: false) do
+    assert_no_queries do
       assert_equal [],    Developer.none.pluck(:id, :name)
       assert_equal 0,     Developer.none.delete_all
       assert_equal 0,     Developer.none.update_all(name: "David")

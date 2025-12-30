@@ -1,0 +1,270 @@
+/* ----------------------------------------------------------------------------
+// Rails Guides Redesign
+// 
+// Created: 29 February 2024
+// Modified: 19 March 2024
+// ---------------------------------------------------------------------------- */
+
+// ----------------------------------------------------------------------------
+// Imports
+
+@import 'vendor/normalize';
+@import 'vendor/boilerplate';
+@import 'vendor/include-media';
+
+// ----------------------------------------------------------------------------
+// Breakpoints
+//
+// This overrides the defaults in include-media.
+
+$breakpoints: (
+  'phone': 320px,
+  'phone-wide': 480px,
+  'tablet': 768px,
+  'desktop': 1024px,
+  'desktop-wide': 1280px,
+  'desktop-ultra-wide': 1440px,
+  'desktop-hd': 1920px,
+  'desktop-full': 2560px
+); 
+
+// ----------------------------------------------------------------------------
+// Variables
+
+// ----------------------------------------------------------------------------
+// Global Colors
+
+$rf-brand: #C81418;
+$rf-brand-light: lighten($rf-brand, 5%);
+$rf-brand-lighter: lighten($rf-brand, 15%);
+$rf-brand-lightest: lighten($rf-brand, 25%);
+$rf-brand-dark: darken($rf-brand, 15%);
+$rf-brand-darker: darken($rf-brand, 20%);
+$rf-highlight: rgba($rf-brand, 10%);
+
+$gray-100: #FAF9F8;
+$gray-200: #F5F3F1;
+$gray-300: #EBEBEA;
+$gray-400: #DCDCD8;
+$gray-500: #A9A9A8;
+$gray-600: #666666;
+$gray-650: #505050;
+$gray-700: #3A3939;
+$gray-800: #343434;
+$gray-850: #2E2E2E;
+$gray-900: #292929;
+$gray-1000: #181818;
+
+$note: #FFD600;
+$note-dark: rgba($note, 0.5);
+$note-bkgnd: rgba($note, 15%);
+$note-bkgnd-dark: rgba($note, 5%);
+
+
+$tip: #00F0FF;
+$tip-dark: rgba($tip, 0.5);
+$tip-bkgnd: rgba($tip, 15%);
+$tip-bkgnd-dark: rgba($tip, 5%);
+
+$stop: $rf-brand;
+$stop-dark: rgba($stop, 0.5);
+$stop-bkgnd: rgba($stop, 15%);
+$stop-bkgnd-dark: rgba($stop, 5%);
+
+// APCA has different rules if the background is darker than #333333.
+// The variables with darker in them are intended for those cases.
+// Large text is text that is > 24px
+// See https://github.com/Myndex/SAPC-APCA/discussions/106
+$text-on-dark-bg: #EDEDED; // APCA Lc 90 on gray-800
+$text-on-darker-bg: #E5E5E5; // APCA Lc -89.9 on gray-1000, Lc -87.4 on gray-900
+$large-text-on-darker-bg: #CCCCCC; // APCA Lc -74.6 on gray-1000, Lc -72.0 on gray-900
+
+// ----------------------------------------------------------------------------
+// Fonts
+// These are the same fonts that are used on the marcom site, and they are 
+// included from those links/embeds. 
+
+
+@font-face {
+  font-family: InterVariable;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('https://rubyonrails.org/assets/fonts/InterVariable.woff2?v=4.0') format('woff2');
+}
+@font-face {
+  font-family: InterVariable;
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('https://rubyonrails.org/assets/fonts/InterVariable-Italic.woff2?v=4.0') format('woff2');
+}
+
+/* static fonts */
+@font-face { font-family:Inter; font-style:normal; font-weight:100; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-Thin.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:italic; font-weight:100; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-ThinItalic.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:normal; font-weight:200; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-ExtraLight.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:italic; font-weight:200; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-ExtraLightItalic.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:normal; font-weight:300; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-Light.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:italic; font-weight:300; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-LightItalic.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:normal; font-weight:400; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-Regular.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:italic; font-weight:400; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-Italic.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:normal; font-weight:500; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-Medium.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:italic; font-weight:500; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-MediumItalic.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:normal; font-weight:600; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-SemiBold.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:italic; font-weight:600; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-SemiBoldItalic.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:normal; font-weight:700; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-Bold.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:italic; font-weight:700; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-BoldItalic.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:normal; font-weight:800; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-ExtraBold.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:italic; font-weight:800; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-ExtraBoldItalic.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:normal; font-weight:900; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-Black.woff2?v=4.0") format("woff2"); }
+@font-face { font-family:Inter; font-style:italic; font-weight:900; font-display:swap; src:url("https://rubyonrails.org/assets/fonts/Inter-BlackItalic.woff2?v=4.0") format("woff2"); }
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Text.woff") format("woff");
+  font-display:swap
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: italic;
+  font-weight: 400;
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-TextItalic.woff") format("woff");
+  font-display:swap
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-Medium.woff") format("woff");
+  font-display:swap
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: italic;
+  font-weight: 500;
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.eot");
+  src: url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.eot?#iefix") format("embedded-opentype"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.woff2") format("woff2"), url("https://rubyonrails.org/assets/fonts/IBMPlexMono-MediumItalic.woff") format("woff");
+  font-display:swap
+}
+
+@font-face {
+  font-family: 'Calibre';
+  font-style: normal;
+  font-weight: 400;
+  src: url("https://rubyonrails.org/assets/fonts/calibre-regular.woff2") format("woff2");
+  font-display:swap
+}
+
+@font-face {
+  font-family: 'Calibre';
+  font-style: italic;
+  font-weight: 400;
+  src: url("https://rubyonrails.org/assets/fonts/calibre-regular-italic.woff2") format("woff2");
+  font-display:swap
+}
+
+@font-face {
+  font-family: 'Calibre';
+  font-style: normal;
+  font-weight: 600;
+  src: url("https://rubyonrails.org/assets/fonts/calibre-semibold.woff2") format("woff2");
+  font-display:swap
+}
+
+@font-face {
+  font-family: 'Calibre';
+  font-style: italic;
+  font-weight: 600;
+  src: url("https://rubyonrails.org/assets/fonts/calibre-semibold-italic.woff2") format("woff2");
+  font-display:swap
+}
+
+@font-face {
+  font-family: 'Calibre';
+  font-style: normal;
+  font-weight: 700;
+  src: url("https://rubyonrails.org/assets/fonts/calibre-bold.woff2") format("woff2");
+  font-display:swap
+}
+
+
+// ----------------------------------------------------------------------------
+// Sizes
+$base-border-radius: 8px;
+
+
+
+// ----------------------------------------------------------------------------
+// Base & Utility
+
+// Fix everything's box model for better style control
+* {
+  box-sizing: border-box;
+} // *
+
+// Makes a list not look like a list
+%list-in-disguise {
+  margin: 0;
+  padding: 0;
+
+  li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+} // %list-in-disguise
+
+// For image replacement
+%image-replacement {
+  background-color: transparent;
+  color: transparent;
+  border: 0;
+  overflow: hidden;
+  text-indent: 100%;
+  text-shadow: none;
+  white-space: nowrap;
+
+  &:before {
+    content: "";
+    display: block;
+    height: 100%;
+    width: 0;
+  }
+} // %image-replacement
+
+// Clearfix, not used often anymore, but present for times when the browser misbehaves.
+.clearfix, %clearfix {
+  &:after,
+  &:before {
+    content: " ";
+    display: table;
+  } // &:after, &:before
+
+  &:after {
+    clear: both;
+  } // &:after
+} // %clearfix // .clearfix, %clearfix
+
+.hide {
+  visibility: hidden;
+}
+
+// ----------------------------------------------------------------------------
+// COMPONENTS
+
+@import 'components/_code-container';
+
+// ----------------------------------------------------------------------------
+// Now, bring me that horizon.
+
+@import 'main';
+@import 'dark';

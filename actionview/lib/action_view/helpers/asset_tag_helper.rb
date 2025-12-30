@@ -26,6 +26,8 @@ module ActionView
       mattr_accessor :image_decoding
       mattr_accessor :preload_links_header
       mattr_accessor :apply_stylesheet_media_default
+      mattr_accessor :auto_include_nonce_for_scripts
+      mattr_accessor :auto_include_nonce_for_styles
 
       # Returns an HTML script tag for each of the +sources+ provided.
       #
@@ -68,6 +70,8 @@ module ActionView
       #   attribute, which indicates to the browser that the script is meant to
       #   be executed after the document has been parsed. Additionally, prevents
       #   sending the Preload Links header.
+      # * <tt>:nopush</tt>  - Specify if the use of server push is not desired
+      #   for the script. Defaults to +true+.
       #
       # Any other specified options will be treated as HTML attributes for the
       # +script+ tag.
@@ -113,11 +117,11 @@ module ActionView
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         preload_links = []
         use_preload_links_header = options["preload_links_header"].nil? ? preload_links_header : options.delete("preload_links_header")
-        nopush = options["nopush"].nil? ? true : options.delete("nopush")
+        nopush = options["nopush"].nil? || options.delete("nopush")
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
         integrity = options["integrity"]
-        rel = options["type"] == "module" ? "modulepreload" : "preload"
+        rel = options["type"] == "module" || options["type"] == :module ? "modulepreload" : "preload"
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
@@ -125,6 +129,7 @@ module ActionView
             preload_link = "<#{href}>; rel=#{rel}; as=script"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
+            preload_link += "; nonce=#{content_security_policy_nonce}" if options["nonce"] == true
             preload_link += "; nopush" if nopush
             preload_links << preload_link
           end
@@ -132,8 +137,10 @@ module ActionView
             "src" => href,
             "crossorigin" => crossorigin
           }.merge!(options)
-          if tag_options["nonce"] == true
+          if tag_options["nonce"] == true || (!tag_options.key?("nonce") && auto_include_nonce_for_scripts)
             tag_options["nonce"] = content_security_policy_nonce
+          elsif tag_options["nonce"] == false
+            tag_options.delete("nonce")
           end
           content_tag("script", "", tag_options)
         }.join("\n").html_safe
@@ -166,6 +173,10 @@ module ActionView
       #   that path.
       # * <tt>:skip_pipeline</tt>  - This option is used to bypass the asset pipeline
       #   when it is set to true.
+      # * <tt>:nonce</tt>  - When set to true, adds an automatic nonce value if
+      #   you have Content Security Policy enabled.
+      # * <tt>:nopush</tt>  - Specify if the use of server push is not desired
+      #   for the stylesheet. Defaults to +true+.
       #
       # ==== Examples
       #
@@ -190,6 +201,9 @@ module ActionView
       #   stylesheet_link_tag "random.styles", "/css/stylish"
       #   # => <link href="/assets/random.styles" rel="stylesheet" />
       #   #    <link href="/css/stylish.css" rel="stylesheet" />
+      #
+      #   stylesheet_link_tag "style", nonce: true
+      #   # => <link href="/assets/style.css" rel="stylesheet" nonce="..." />
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
@@ -197,7 +211,7 @@ module ActionView
         preload_links = []
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
-        nopush = options["nopush"].nil? ? true : options.delete("nopush")
+        nopush = options["nopush"].nil? || options.delete("nopush")
         integrity = options["integrity"]
 
         sources_tags = sources.uniq.map { |source|
@@ -206,6 +220,7 @@ module ActionView
             preload_link = "<#{href}>; rel=preload; as=style"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
+            preload_link += "; nonce=#{content_security_policy_nonce}" if options["nonce"] == true
             preload_link += "; nopush" if nopush
             preload_links << preload_link
           end
@@ -214,6 +229,11 @@ module ActionView
             "crossorigin" => crossorigin,
             "href" => href
           }.merge!(options)
+          if tag_options["nonce"] == true || (!tag_options.key?("nonce") && auto_include_nonce_for_styles && respond_to?(:content_security_policy_nonce))
+            tag_options["nonce"] = content_security_policy_nonce
+          elsif tag_options["nonce"] == false
+            tag_options.delete("nonce")
+          end
 
           if apply_stylesheet_media_default && tag_options["media"].blank?
             tag_options["media"] = "screen"
@@ -348,8 +368,16 @@ module ActionView
         crossorigin = options.delete(:crossorigin)
         crossorigin = "anonymous" if crossorigin == true || (crossorigin.blank? && as_type == "font")
         integrity = options[:integrity]
+        fetchpriority = options.delete(:fetchpriority)
         nopush = options.delete(:nopush) || false
-        rel = mime_type == "module" ? "modulepreload" : "preload"
+        rel = mime_type == "module" || mime_type == :module ? "modulepreload" : "preload"
+        add_nonce = content_security_policy_nonce &&
+          respond_to?(:request) &&
+          request.content_security_policy_nonce_directives&.include?("#{as_type}-src")
+
+        if add_nonce
+          options[:nonce] = content_security_policy_nonce
+        end
 
         link_tag = tag.link(
           rel: rel,
@@ -357,12 +385,15 @@ module ActionView
           as: as_type,
           type: mime_type,
           crossorigin: crossorigin,
+          fetchpriority: fetchpriority,
           **options.symbolize_keys)
 
         preload_link = "<#{href}>; rel=#{rel}; as=#{as_type}"
         preload_link += "; type=#{mime_type}" if mime_type
         preload_link += "; crossorigin=#{crossorigin}" if crossorigin
+        preload_link += "; fetchpriority=#{fetchpriority}" if fetchpriority
         preload_link += "; integrity=#{integrity}" if integrity
+        preload_link += "; nonce=#{content_security_policy_nonce}" if add_nonce
         preload_link += "; nopush" if nopush
 
         send_preload_links_header([preload_link])
@@ -378,8 +409,8 @@ module ActionView
       # You can add HTML attributes using the +options+. The +options+ supports
       # additional keys for convenience and conformance:
       #
-      # * <tt>:size</tt> - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
-      #   width="30" and height="45", and "50" becomes width="50" and height="50".
+      # * <tt>:size</tt> - Supplied as <tt>"#{width}x#{height}"</tt> or <tt>"#{number}"</tt>, so <tt>"30x45"</tt> becomes
+      #   <tt>width="30" height="45"</tt>, and <tt>"50"</tt> becomes <tt>width="50" height="50"</tt>.
       #   <tt>:size</tt> will be ignored if the value is not in the correct format.
       # * <tt>:srcset</tt> - If supplied as a hash or array of <tt>[source, descriptor]</tt>
       #   pairs, each image path will be expanded before the list is formatted as a string.
@@ -511,8 +542,8 @@ module ActionView
       #
       # * <tt>:poster</tt> - Set an image (like a screenshot) to be shown
       #   before the video loads. The path is calculated like the +src+ of +image_tag+.
-      # * <tt>:size</tt> - Supplied as "{Width}x{Height}" or "{Number}", so "30x45" becomes
-      #   width="30" and height="45", and "50" becomes width="50" and height="50".
+      # * <tt>:size</tt> - Supplied as <tt>"#{width}x#{height}"</tt> or <tt>"#{number}"</tt>, so <tt>"30x45"</tt> becomes
+      #   <tt>width="30" height="45"</tt>, and <tt>"50"</tt> becomes <tt>width="50" height="50"</tt>.
       #   <tt>:size</tt> will be ignored if the value is not in the correct format.
       # * <tt>:poster_skip_pipeline</tt> will bypass the asset pipeline when using
       #   the <tt>:poster</tt> option instead using an asset in the public folder.
@@ -645,11 +676,11 @@ module ActionView
           return if response_present && response.sending?
 
           if respond_to?(:request) && request
-            request.send_early_hints("Link" => preload_links.join("\n"))
+            request.send_early_hints("link" => preload_links.join(","))
           end
 
           if response_present
-            header = +response.headers["Link"].to_s
+            header = +response.headers["link"].to_s
             preload_links.each do |link|
               break if header.bytesize + link.bytesize > max_header_size
 
@@ -660,7 +691,7 @@ module ActionView
               end
             end
 
-            response.headers["Link"] = header
+            response.headers["link"] = header
           end
         end
     end

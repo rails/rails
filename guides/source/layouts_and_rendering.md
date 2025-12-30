@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Layouts and Rendering in Rails
 ==============================
@@ -209,7 +209,7 @@ You can send an HTML string back to the browser by using the `:html` option to
 `render`:
 
 ```ruby
-render html: helpers.tag.strong('Not Found')
+render html: helpers.tag.strong("Not Found")
 ```
 
 TIP: This is useful when you're rendering a small snippet of HTML code.
@@ -283,18 +283,28 @@ TIP: `send_file` is often a faster and better option if a layout isn't required.
 
 #### Rendering Objects
 
-Rails can render objects responding to `:render_in`.
+Rails can render objects responding to `#render_in`. The format can be controlled by defining `#format` on the object.
 
 ```ruby
-render MyRenderable.new
+class Greeting
+  def render_in(view_context)
+    view_context.render html: "Hello, World"
+  end
+
+  def format
+    :html
+  end
+end
+
+render Greeting.new
+# => "Hello World"
 ```
 
-This calls `render_in` on the provided object with the current view context.
-
-You can also provide the object by using the `:renderable` option to `render`:
+This calls `render_in` on the provided object with the current view context. You can also provide the object by using the `:renderable` option to `render`:
 
 ```ruby
-render renderable: MyRenderable.new
+render renderable: Greeting.new
+# => "Hello World"
 ```
 
 #### Options for `render`
@@ -448,22 +458,28 @@ With this set of variants Rails will look for the following set of templates and
 
 If a template with the specified format does not exist an `ActionView::MissingTemplate` error is raised.
 
-Instead of setting the variant on the render call you may also set it on the request object in your controller action.
+Instead of setting the variant on the render call you may also set
+[`request.variant`](https://api.rubyonrails.org/classes/ActionDispatch/Http/MimeNegotiation.html#method-i-variant-3D)
+in your controller action. Learn more about variants in the [Action Controller
+Overview](./action_controller_overview.html#request-variant) guides.
 
 ```ruby
 def index
   request.variant = determine_variant
 end
 
-  private
-    def determine_variant
-      variant = nil
-      # some code to determine the variant(s) to use
-      variant = :mobile if session[:use_mobile]
+private
+  def determine_variant
+    variant = nil
+    # some code to determine the variant(s) to use
+    variant = :mobile if session[:use_mobile]
 
-      variant
-    end
+    variant
+  end
 ```
+
+NOTE: Adding many new variant templates with similarities to existing template
+files can make maintaining your view code more difficult.
 
 #### Finding Layouts
 
@@ -704,7 +720,14 @@ Just like the `:status` option for `render`, `:status` for `redirect_to` accepts
 
 #### The Difference Between `render` and `redirect_to`
 
-Sometimes inexperienced developers think of `redirect_to` as a sort of `goto` command, moving execution from one place to another in your Rails code. This is _not_ correct. Your code stops running and waits for a new request from the browser. It just happens that you've told the browser what request it should make next, by sending back an HTTP 302 status code.
+Sometimes inexperienced developers think of `redirect_to` as a sort of `goto`
+command, moving execution from one place to another in your Rails code. This is
+_not_ correct.
+
+The current action will complete, returning a response to the browser. After
+this your code stops running and waits for a new request, it just happens that
+you've told the browser what request it should make next by sending back an
+HTTP 302 status code.
 
 Consider these actions to see the difference:
 
@@ -856,7 +879,7 @@ If you are using Rails with the [Asset Pipeline](asset_pipeline.html) enabled, t
 
 A JavaScript file within a Rails application or Rails engine goes in one of three locations: `app/assets`, `lib/assets` or `vendor/assets`. These locations are explained in detail in the [Asset Organization section in the Asset Pipeline Guide](asset_pipeline.html#asset-organization).
 
-You can specify a full path relative to the document root, or a URL, if you prefer. For example, to link to a JavaScript file that is inside a directory called `javascripts` inside of one of `app/assets`, `lib/assets` or `vendor/assets`, you would do this:
+You can specify a full path relative to the document root, or a URL, if you prefer. For example, to link to a JavaScript file `main.js` that is inside one of `app/assets/javascripts`, `lib/assets/javascripts` or `vendor/assets/javascripts`, you would do this:
 
 ```erb
 <%= javascript_include_tag "main" %>
@@ -1037,7 +1060,7 @@ Within the context of a layout, `yield` identifies a section where content from 
   <head>
   </head>
   <body>
-  <%= yield %>
+    <%= yield %>
   </body>
 </html>
 ```
@@ -1047,15 +1070,17 @@ You can also create a layout with multiple yielding regions:
 ```html+erb
 <html>
   <head>
-  <%= yield :head %>
+    <%= yield :head %>
   </head>
   <body>
-  <%= yield %>
+    <%= yield %>
   </body>
 </html>
 ```
 
-The main body of the view will always render into the unnamed `yield`. To render content into a named `yield`, you use the `content_for` method.
+The main body of the view will always render into the unnamed `yield`. To render content into a named `yield`, call the `content_for` method with the same argument as the named `yield`.
+
+NOTE: Newly generated applications will include `<%= yield :head %>` within the `<head>` element of its `app/views/layouts/application.html.erb` template.
 
 ### Using the `content_for` Method
 
@@ -1074,15 +1099,15 @@ The result of rendering this page into the supplied layout would be this HTML:
 ```html+erb
 <html>
   <head>
-  <title>A simple page</title>
+    <title>A simple page</title>
   </head>
   <body>
-  <p>Hello, Rails!</p>
+    <p>Hello, Rails!</p>
   </body>
 </html>
 ```
 
-The `content_for` method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting tags that load page-specific JavaScript or CSS files into the header of an otherwise generic layout.
+The `content_for` method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting page-specific JavaScript `<script>` elements, CSS `<link>` elements, context-specific `<meta>` elements, or any other elements into the `<head>` of an otherwise generic layout.
 
 ### Using Partials
 
@@ -1346,7 +1371,7 @@ Rails also makes a counter variable available within a partial called by the col
 <%= product_counter %> # 0 for the first product, 1 for the second product...
 ```
 
-This also works when the partial name is changed using the `as:` option. So if you did `as: :item`, the counter variable would be `item_counter`.
+This also works when the local variable name is changed using the `as:` option. So if you did `as: :item`, the counter variable would be `item_counter`.
 
 #### Spacer Templates
 
@@ -1381,7 +1406,7 @@ Suppose you have the following `ApplicationController` layout:
     <head>
       <title><%= @page_title or "Page Title" %></title>
       <%= stylesheet_link_tag "layout" %>
-      <style><%= yield :stylesheets %></style>
+      <%= yield :head %>
     </head>
     <body>
       <div id="top_menu">Top menu items here</div>
@@ -1396,9 +1421,11 @@ On pages generated by `NewsController`, you want to hide the top menu and add a 
 * `app/views/layouts/news.html.erb`
 
     ```html+erb
-    <% content_for :stylesheets do %>
-      #top_menu {display: none}
-      #right_menu {float: right; background-color: yellow; color: black}
+    <% content_for :head do %>
+      <style>
+        #top_menu {display: none}
+        #right_menu {float: right; background-color: yellow; color: black}
+      </style>
     <% end %>
     <% content_for :content do %>
       <div id="right_menu">Right menu items here</div>

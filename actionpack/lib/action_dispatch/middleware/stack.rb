@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/inflector/methods"
 require "active_support/dependencies"
 
 module ActionDispatch
-  # = Action Dispatch \MiddlewareStack
+  # # Action Dispatch MiddlewareStack
   #
-  # Read more about {Rails middleware
-  # stack}[https://guides.rubyonrails.org/rails_on_rack.html#action-dispatcher-middleware-stack]
+  # Read more about [Rails middleware
+  # stack](https://guides.rubyonrails.org/rails_on_rack.html#action-dispatcher-middleware-stack)
   # in the guides.
   class MiddlewareStack
     class Middleware
@@ -47,9 +49,8 @@ module ActionDispatch
       end
     end
 
-    # This class is used to instrument the execution of a single middleware.
-    # It proxies the +call+ method transparently and instruments the method
-    # call.
+    # This class is used to instrument the execution of a single middleware. It
+    # proxies the `call` method transparently and instruments the method call.
     class InstrumentationProxy
       EVENT_NAME = "process_middleware.action_dispatch"
 
@@ -125,16 +126,16 @@ module ActionDispatch
 
     # Deletes a middleware from the middleware stack.
     #
-    # Returns the array of middlewares not including the deleted item, or
-    # returns nil if the target is not found.
+    # Returns the array of middlewares not including the deleted item, or returns
+    # nil if the target is not found.
     def delete(target)
       middlewares.reject! { |m| m.name == target.name }
     end
 
     # Deletes a middleware from the middleware stack.
     #
-    # Returns the array of middlewares not including the deleted item, or
-    # raises +RuntimeError+ if the target is not found.
+    # Returns the array of middlewares not including the deleted item, or raises
+    # `RuntimeError` if the target is not found.
     def delete!(target)
       delete(target) || (raise "No such middleware to remove: #{target.inspect}")
     end

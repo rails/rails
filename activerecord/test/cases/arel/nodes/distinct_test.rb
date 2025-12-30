@@ -4,7 +4,7 @@ require_relative "../helper"
 
 module Arel
   module Nodes
-    describe "Distinct" do
+    class DistinctTest < Arel::Spec
       describe "equality" do
         it "is equal to other distinct nodes" do
           array = [Distinct.new, Distinct.new]

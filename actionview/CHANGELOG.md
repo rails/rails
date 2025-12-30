@@ -1,38 +1,14 @@
-*   Fix the `capture` view helper compatibility with HAML and Slim
+*   Fix tag parameter content being overwritten instead of combined with tag block content.
+    Before `tag.div("Hello ") { "World" }` would just return `<div>World</div>`, now it returns `<div>Hello World</div>`.
 
-    When a blank string was captured in HAML or Slim (and possibly other template engines)
-    it would instead return the entire buffer.
+    *DHH*
 
-    *Jean Boussier*
+*   Add ability to pass a block when rendering collection. The block will be executed for each rendered element in the collection.
 
-*   Updated `@rails/ujs` files to ignore certain data-* attributes when element is contenteditable.
+    *Vincent Robert*
 
-    This fix was already landed in >= 7.0.4.3, < 7.1.0.
-    [[CVE-2023-23913](https://github.com/advisories/GHSA-xp5h-f8jf-rc8q)]
+*   Add `key:` and `expires_in:` options under `cached:` to `render` when used with `collection:`
 
-    *Ryunosuke Sato*
+    *Jarrett Lusso*
 
-*   Added validation for HTML tag names in the `tag` and `content_tag` helper method. The `tag` and
-    `content_tag` method now checks that the provided tag name adheres to the HTML specification. If
-    an invalid HTML tag name is provided, the method raises an `ArgumentError` with an appropriate error
-    message.
-
-    Examples:
-
-    ```ruby
-    # Raises ArgumentError: Invalid HTML5 tag name: 12p
-    content_tag("12p") # Starting with a number
-
-    # Raises ArgumentError: Invalid HTML5 tag name: ""
-    content_tag("") # Empty tag name
-
-    # Raises ArgumentError: Invalid HTML5 tag name: div/
-    tag("div/") # Contains a solidus
-
-    # Raises ArgumentError: Invalid HTML5 tag name: "image file"
-    tag("image file") # Contains a space
-    ```
-
-    *Akhil G Krishnan*
-
-Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/actionview/CHANGELOG.md) for previous changes.
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/actionview/CHANGELOG.md) for previous changes.

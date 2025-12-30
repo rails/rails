@@ -12,14 +12,17 @@ class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Mi
       t.<%= attribute.type %> :<%= attribute.name %><%= attribute.inject_options %>
 <% end -%>
 <% end -%>
-<% if options[:timestamps] %>
+<% unless attributes.empty? -%>
+
+<% end -%>
+<% if options[:timestamps] -%>
       t.timestamps
 <% end -%>
     end
 <% attributes.select(&:token?).each do |attribute| -%>
-    add_index :<%= table_name %>, :<%= attribute.index_name %><%= attribute.inject_index_options %>, unique: true
+    add_index :<%= table_name %>, :<%= attribute.index_name %><%= attribute.inject_index_options %>
 <% end -%>
-<% attributes_with_index.each do |attribute| -%>
+<% attributes_with_index.reject(&:token?).each do |attribute| -%>
     add_index :<%= table_name %>, :<%= attribute.index_name %><%= attribute.inject_index_options %>
 <% end -%>
   end

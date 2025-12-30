@@ -46,22 +46,50 @@ class ActiveStorage::Analyzer::ImageAnalyzer::ImageMagickTest < ActiveSupport::T
     end
   end
 
+  test "analyzing with ruby-vips unavailable" do
+    stub_const(Object, :Vips, Module.new) do
+      analyze_with_image_magick do
+        blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+        metadata = extract_metadata_from(blob)
+
+        assert_equal 4104, metadata[:width]
+        assert_equal 2736, metadata[:height]
+      end
+    end
+  end
+
   test "instrumenting analysis" do
-    analyze_with_image_magick do
-      events = subscribe_events_from("analyze.active_storage")
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
 
+    assert_notifications_count("analyze.active_storage", 1) do
+      assert_notification("analyze.active_storage", analyzer: "mini_magick") do
+        analyze_with_image_magick do
+          blob.analyze
+        end
+      end
+    end
+  end
+
+  test "when image_magick is not installed" do
+    stub_const(ActiveStorage, :MINIMAGICK_AVAILABLE, false) do
       blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
-      blob.analyze
 
-      assert_equal 1, events.size
-      assert_equal({ analyzer: "mini_magick" }, events.first.payload)
+      output = StringIO.new
+      logger = ActiveSupport::Logger.new(output)
+
+      ActiveStorage.with(logger: logger) do
+        analyze_with_image_magick do
+          blob.analyze
+        end
+      end
+
+      assert_includes output.string, "Skipping image analysis because the mini_magick gem isn't installed"
     end
   end
 
   private
     def analyze_with_image_magick
       previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, :mini_magick
-      require "mini_magick"
 
       yield
     rescue LoadError

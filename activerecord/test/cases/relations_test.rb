@@ -2,6 +2,7 @@
 
 require "pp"
 require "cases/helper"
+require "support/deprecated_associations_test_helpers.rb"
 require "models/tag"
 require "models/tagging"
 require "models/post"
@@ -19,15 +20,17 @@ require "models/contract"
 require "models/bird"
 require "models/car"
 require "models/engine"
-require "models/tyre"
+require "models/tire"
 require "models/minivan"
 require "models/possession"
 require "models/reader"
 require "models/category"
 require "models/categorization"
 require "models/edge"
+require "models/wheel"
 require "models/subscriber"
 require "models/cpk"
+require "models/dats"
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :topics, :entrants, :developers, :people, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans, :cpk_orders
@@ -46,18 +49,18 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_two_scopes_with_includes_should_not_drop_any_include
     # heat habtm cache
-    car = Car.incl_engines.incl_tyres.first
-    car.tyres.length
+    car = Car.incl_engines.incl_tires.first
+    car.tires.length
     car.engines.length
 
-    car = Car.incl_engines.incl_tyres.first
-    assert_no_queries { car.tyres.length }
+    car = Car.incl_engines.incl_tires.first
+    assert_no_queries { car.tires.length }
     assert_no_queries { car.engines.length }
   end
 
   def test_dynamic_finder
     x = Post.where("author_id = ?", 1)
-    assert_respond_to x.klass, :find_by_id
+    assert_respond_to x.model, :find_by_id
   end
 
   def test_multivalue_where
@@ -98,7 +101,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_predicate topics, :loaded?
     assert_not_predicate topics, :loaded
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       2.times { assert_equal 5, topics.to_a.size }
     end
 
@@ -109,7 +112,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_scoped_first
     topics = Topic.all.order("id ASC")
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       2.times { assert_equal "The First Topic", topics.first.title }
     end
 
@@ -153,7 +156,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_reload
     topics = Topic.all
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       2.times { topics.to_a }
     end
 
@@ -162,7 +165,7 @@ class RelationTest < ActiveRecord::TestCase
     original_size = topics.to_a.size
     Topic.create! title: "fake"
 
-    assert_queries(1) { topics.reload }
+    assert_queries_count(1) { topics.reload }
     assert_equal original_size + 1, topics.size
     assert_predicate topics, :loaded?
   end
@@ -362,12 +365,26 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::IrreversibleOrderError) do
       Topic.order("author_name, title nulls last").reverse_order
     end
-  end if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
+  end if current_adapter?(:PostgreSQLAdapter)
 
   def test_default_reverse_order_on_table_without_primary_key
-    assert_raises(ActiveRecord::IrreversibleOrderError) do
+    error = assert_raises(ActiveRecord::IrreversibleOrderError) do
       Edge.all.reverse_order
     end
+    assert_match(/Relation has no order values/, error.message)
+  end
+
+  def test_default_reverse_order_on_table_without_primary_key_with_implicit_order_column
+    ordered_edge = Class.new(Edge) do
+      self.implicit_order_column = "source_id"
+    end
+
+    ordered_edge.delete_all
+
+    edge_1 = ordered_edge.create!(source_id: 1, sink_id: 2)
+    edge_2 = ordered_edge.create!(source_id: 2, sink_id: 3)
+    assert_equal edge_1.source_id, ordered_edge.all.first.source_id
+    assert_equal edge_2.source_id, ordered_edge.all.reverse_order.first.source_id
   end
 
   def test_order_with_hash_and_symbol_generates_the_same_sql
@@ -476,9 +493,9 @@ class RelationTest < ActiveRecord::TestCase
   def test_finding_with_sanitized_order
     query = Tag.order([Arel.sql("field(id, ?)"), [1, 3, 2]]).to_sql
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      assert_match(/field\(id, '1','3','2'\)/, query)
+      assert_match(/field\(id, '1',\s*'3',\s*'2'\)/, query)
     else
-      assert_match(/field\(id, 1,3,2\)/, query)
+      assert_match(/field\(id, 1,\s*3,\s*2\)/, query)
     end
 
     query = Tag.order([Arel.sql("field(id, ?)"), []]).to_sql
@@ -614,27 +631,27 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_find_with_preloaded_associations
-    assert_queries(2) do
+    assert_queries_count(2) do
       posts = Post.preload(:comments).order("posts.id")
       assert posts.first.comments.first
     end
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       posts = Post.preload(:comments).order("posts.id")
       assert posts.first.comments.first
     end
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       posts = Post.preload(:author).order("posts.id")
       assert posts.first.author
     end
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       posts = Post.preload(:author).order("posts.id")
       assert posts.first.author
     end
 
-    assert_queries(3) do
+    assert_queries_count(3) do
       posts = Post.preload(:author, :comments).order("posts.id")
       assert posts.first.author
       assert posts.first.comments.first
@@ -642,36 +659,36 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_preload_applies_to_all_chained_preloaded_scopes
-    assert_queries(3) do
+    assert_queries_count(3) do
       post = Post.with_comments.with_tags.first
       assert post
     end
   end
 
   def test_extracted_association
-    relation_authors = assert_queries(2) { Post.all.extract_associated(:author) }
-    root_authors = assert_queries(2) { Post.extract_associated(:author) }
+    relation_authors = assert_queries_count(2) { Post.all.extract_associated(:author) }
+    root_authors = assert_queries_count(2) { Post.extract_associated(:author) }
     assert_equal relation_authors, root_authors
     assert_equal Post.all.collect(&:author), relation_authors
   end
 
   def test_find_with_included_associations
-    assert_queries(2) do
+    assert_queries_count(2) do
       posts = Post.includes(:comments).order("posts.id")
       assert posts.first.comments.first
     end
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       posts = Post.all.includes(:comments).order("posts.id")
       assert posts.first.comments.first
     end
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       posts = Post.includes(:author).order("posts.id")
       assert posts.first.author
     end
 
-    assert_queries(3) do
+    assert_queries_count(3) do
       posts = Post.includes(:author, :comments).order("posts.id")
       assert posts.first.author
       assert posts.first.comments.first
@@ -902,17 +919,17 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_all_using_where_with_relation
     david = authors(:david)
-    assert_queries(1) {
+    assert_queries_count(1) {
       relation = Author.where(id: Author.where(id: david.id))
       assert_equal [david], relation.to_a
     }
 
-    assert_queries(1) {
+    assert_queries_count(1) {
       relation = Author.where("id in (?)", Author.where(id: david).select(:id))
       assert_equal [david], relation.to_a
     }
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       relation = Author.where("id in (:author_ids)", author_ids: Author.where(id: david).select(:id))
       assert_equal [david], relation.to_a
     end
@@ -922,17 +939,17 @@ class RelationTest < ActiveRecord::TestCase
     david = authors(:david)
     davids_posts = david.posts.order(:id).to_a
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       relation = Post.where(id: david.posts.select(:id))
       assert_equal davids_posts, relation.order(:id).to_a
     end
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       relation = Post.where("id in (?)", david.posts.select(:id))
       assert_equal davids_posts, relation.order(:id).to_a, "should process Relation as bind variables"
     end
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       relation = Post.where("id in (:post_ids)", post_ids: david.posts.select(:id))
       assert_equal davids_posts, relation.order(:id).to_a, "should process Relation as named bind variables"
     end
@@ -940,7 +957,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_all_using_where_with_relation_and_alternate_primary_key
     cool_first = minivans(:cool_first)
-    assert_queries(1) {
+    assert_queries_count(1) {
       relation = Minivan.where(minivan_id: Minivan.where(name: cool_first.name))
       assert_equal [cool_first], relation.to_a
     }
@@ -966,7 +983,7 @@ class RelationTest < ActiveRecord::TestCase
 
     subquery = Author.where(id: david.id)
 
-    assert_queries(1) {
+    assert_queries_count(1) {
       relation = Author.where(id: subquery)
       assert_equal [david], relation.to_a
     }
@@ -976,7 +993,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_all_using_where_with_relation_with_joins
     david = authors(:david)
-    assert_queries(1) {
+    assert_queries_count(1) {
       relation = Author.where(id: Author.joins(:posts).where(id: david.id))
       assert_equal [david], relation.to_a
     }
@@ -984,7 +1001,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_all_using_where_with_relation_with_select_to_build_subquery
     david = authors(:david)
-    assert_queries(1) {
+    assert_queries_count(1) {
       relation = Author.where(name: Author.where(id: david.id).select(:name))
       assert_equal [david], relation.to_a
     }
@@ -1059,33 +1076,33 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_size_with_distinct
     posts = Post.distinct.select(:author_id, :comments_count)
-    assert_queries(1) { assert_equal 8, posts.size }
-    assert_queries(1) { assert_equal 8, posts.load.size }
+    assert_queries_count(1) { assert_equal 8, posts.size }
+    assert_queries_count(1) { assert_equal 8, posts.load.size }
   end
 
   def test_size_with_eager_loading_and_custom_order
     posts = Post.includes(:comments).order("comments.id")
-    assert_queries(1) { assert_equal 11, posts.size }
-    assert_queries(1) { assert_equal 11, posts.load.size }
+    assert_queries_count(1) { assert_equal 11, posts.size }
+    assert_queries_count(1) { assert_equal 11, posts.load.size }
   end
 
   def test_size_with_eager_loading_and_custom_select_and_order
     posts = Post.includes(:comments).order("comments.id").select(:type)
-    assert_queries(1) { assert_equal 11, posts.size }
-    assert_queries(1) { assert_equal 11, posts.load.size }
+    assert_queries_count(1) { assert_equal 11, posts.size }
+    assert_queries_count(1) { assert_equal 11, posts.load.size }
   end
 
   def test_size_with_eager_loading_and_custom_order_and_distinct
     posts = Post.includes(:comments).order("comments.id").distinct
-    assert_queries(1) { assert_equal 11, posts.size }
-    assert_queries(1) { assert_equal 11, posts.load.size }
+    assert_queries_count(1) { assert_equal 11, posts.size }
+    assert_queries_count(1) { assert_equal 11, posts.load.size }
   end
 
   def test_size_with_eager_loading_and_manual_distinct_select_and_custom_order
     accounts = Account.select("DISTINCT accounts.firm_id").order("accounts.firm_id")
 
-    assert_queries(1) { assert_equal 5, accounts.size }
-    assert_queries(1) { assert_equal 5, accounts.load.size }
+    assert_queries_count(1) { assert_equal 5, accounts.size }
+    assert_queries_count(1) { assert_equal 5, accounts.load.size }
   end
 
   def test_count_explicit_columns
@@ -1110,7 +1127,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_size
     posts = Post.all
 
-    assert_queries(1) { assert_equal 11, posts.size }
+    assert_queries_count(1) { assert_equal 11, posts.size }
     assert_not_predicate posts, :loaded?
 
     best_posts = posts.where(comments_count: 0)
@@ -1121,7 +1138,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_size_with_limit
     posts = Post.limit(10)
 
-    assert_queries(1) { assert_equal 10, posts.size }
+    assert_queries_count(1) { assert_equal 10, posts.size }
     assert_not_predicate posts, :loaded?
 
     best_posts = posts.where(comments_count: 0)
@@ -1156,11 +1173,11 @@ class RelationTest < ActiveRecord::TestCase
   def test_empty
     posts = Post.all
 
-    assert_queries(1) { assert_equal false, posts.empty? }
+    assert_queries_count(1) { assert_equal false, posts.empty? }
     assert_not_predicate posts, :loaded?
 
     no_posts = posts.where(title: "")
-    assert_queries(1) { assert_equal true, no_posts.empty? }
+    assert_queries_count(1) { assert_equal true, no_posts.empty? }
     assert_not_predicate no_posts, :loaded?
 
     best_posts = posts.where(comments_count: 0)
@@ -1171,18 +1188,18 @@ class RelationTest < ActiveRecord::TestCase
   def test_empty_complex_chained_relations
     posts = Post.select("comments_count").where("id is not null").group("author_id").where("legacy_comments_count > 0")
 
-    assert_queries(1) { assert_equal false, posts.empty? }
+    assert_queries_count(1) { assert_equal false, posts.empty? }
     assert_not_predicate posts, :loaded?
 
     no_posts = posts.where(title: "")
-    assert_queries(1) { assert_equal true, no_posts.empty? }
+    assert_queries_count(1) { assert_equal true, no_posts.empty? }
     assert_not_predicate no_posts, :loaded?
   end
 
   def test_any
     posts = Post.all
 
-    assert_queries(3) do
+    assert_queries_count(3) do
       assert_predicate posts, :any? # Uses COUNT()
       assert_not_predicate posts.where(id: nil), :any?
 
@@ -1199,7 +1216,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_many
     posts = Post.all
 
-    assert_queries(2) do
+    assert_queries_count(2) do
       assert_predicate posts, :many? # Uses COUNT()
       assert posts.many? { |p| p.id > 0 }
       assert_not posts.many? { |p| p.id < 2 }
@@ -1221,13 +1238,13 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_none?
     posts = Post.all
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_not posts.none? # Uses COUNT()
     end
 
     assert_not_predicate posts, :loaded?
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert posts.none? { |p| p.id < 0 }
       assert_not posts.none? { |p| p.id == 1 }
 
@@ -1240,13 +1257,13 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_one
     posts = Post.all
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_not posts.one? # Uses COUNT()
     end
 
     assert_not_predicate posts, :loaded?
 
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_not posts.one? { |p| p.id < 3 }
       assert posts.one? { |p| p.id == 1 }
 
@@ -1259,7 +1276,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_one_with_destroy
     posts = Post.all
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_not posts.one?
     end
 
@@ -1350,13 +1367,13 @@ class RelationTest < ActiveRecord::TestCase
   def test_create_with_block
     sparrow = Bird.create do |bird|
       bird.name = "sparrow"
-      bird.color = "grey"
+      bird.color = "gray"
     end
 
     assert_kind_of Bird, sparrow
     assert_predicate sparrow, :persisted?
     assert_equal "sparrow", sparrow.name
-    assert_equal "grey", sparrow.color
+    assert_equal "gray", sparrow.color
   end
 
   def test_create_bang_with_array
@@ -1580,6 +1597,33 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
   end
 
+  def test_create_or_find_by_rollbacks_a_transaction
+    assert_no_difference(-> { Car.count }) do
+      car = BrokenCar.create_or_find_by(name: "Civic")
+
+      assert_instance_of(BrokenCar, car)
+      assert_not_predicate(car, :persisted?)
+    end
+  end
+
+  def test_create_or_find_by_bang_rollbacks_a_transaction
+    assert_no_difference(-> { Car.count }) do
+      car = BrokenCar.create_or_find_by!(name: "Civic")
+
+      assert_instance_of(BrokenCar, car)
+      assert_not_predicate(car, :persisted?)
+    end
+  end
+
+  def test_create_or_find_by_on_a_collections_rollbacks_a_transaction_when_owner_is_not_persisted
+    car = BrokenCar.create(name: "Civic")
+    assert_not_predicate(car, :persisted?)
+
+    assert_raises(ActiveRecord::RecordNotSaved) do
+      car.wheels.create_or_find_by!(size: 1500)
+    end
+  end
+
   def test_create_or_find_by_with_block
     assert_nil Subscriber.find_by(nick: "bob")
 
@@ -1676,6 +1720,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal bird, Bird.find_or_initialize_by(name: "bob", color: "blue")
   end
 
+  def test_find_or_initialize_by_with_cpk_association
+    order1 = Cpk::Order.create!(id: [1, 1])
+    order2 = Cpk::Order.create!(id: [1, 2])
+    Cpk::Book.create!(id: [2, 1], order: order1)
+    book = Cpk::Book.find_or_initialize_by(order: order2)
+    assert_equal order2, book.order
+  end
+
   def test_explicit_create_with
     hens = Bird.where(name: "hen")
     assert_equal "hen", hens.new.name
@@ -1722,7 +1774,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_anonymous_extension
     relation = Post.where(author_id: 1).order("id ASC").extending do
-      def author
+      def author # rubocop:disable Lint/NestedMethodDefinition
         "lifo"
       end
     end
@@ -1786,10 +1838,10 @@ class RelationTest < ActiveRecord::TestCase
     query = Tag.select(:name).where(id: [tag1.id, tag2.id])
 
     assert_equal ["Foo", "Foo"], query.map(&:name)
-    assert_sql(/DISTINCT/) do
+    assert_queries_match(/DISTINCT/) do
       assert_equal ["Foo"], query.distinct.map(&:name)
     end
-    assert_sql(/DISTINCT/) do
+    assert_queries_match(/DISTINCT/) do
       assert_equal ["Foo"], query.distinct(true).map(&:name)
     end
     assert_equal ["Foo", "Foo"], query.distinct(true).distinct(false).map(&:name)
@@ -1894,11 +1946,8 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["comments"], scope.references_values
 
     scope = Post.order("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
-    if current_adapter?(:OracleAdapter)
-      assert_equal ["COMMENTS"], scope.references_values
-    else
-      assert_equal ["comments"], scope.references_values
-    end
+
+    assert_equal ["comments"], scope.references_values
 
     scope = Post.order("comments.body", "yaks.body")
     assert_equal ["comments", "yaks"], scope.references_values
@@ -1919,11 +1968,8 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal %w(comments), scope.references_values
 
     scope = Post.reorder("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
-    if current_adapter?(:OracleAdapter)
-      assert_equal ["COMMENTS"], scope.references_values
-    else
-      assert_equal ["comments"], scope.references_values
-    end
+
+    assert_equal ["comments"], scope.references_values
 
     scope = Post.reorder("comments.body", "yaks.body")
     assert_equal %w(comments yaks), scope.references_values
@@ -1973,7 +2019,7 @@ class RelationTest < ActiveRecord::TestCase
     topics = Topic.all
 
     # the first query is triggered because there are no topics yet.
-    assert_queries(1) { assert_predicate topics, :present? }
+    assert_queries_count(1) { assert_predicate topics, :present? }
 
     # checking if there are topics is used before you actually display them,
     # thus it shouldn't invoke an extra count query.
@@ -1986,7 +2032,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_no_queries { topics.each }
 
     # count always trigger the COUNT query.
-    assert_queries(1) { topics.count }
+    assert_queries_count(1) { topics.count }
 
     assert_predicate topics, :loaded?
   end
@@ -2026,7 +2072,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "find_by doesn't have implicit ordering" do
-    assert_sql(/^((?!ORDER).)*$/) { Post.all.find_by(author_id: 2) }
+    assert_queries_match(/^((?!ORDER).)*$/) { Post.all.find_by(author_id: 2) }
   end
 
   test "find_by requires at least one argument" do
@@ -2046,7 +2092,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "find_by! doesn't have implicit ordering" do
-    assert_sql(/^((?!ORDER).)*$/) { Post.all.find_by!(author_id: 2) }
+    assert_queries_match(/^((?!ORDER).)*$/) { Post.all.find_by!(author_id: 2) }
   end
 
   test "find_by! raises RecordNotFound if the record is missing" do
@@ -2063,7 +2109,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.to_a
 
-    assert_raises(ActiveRecord::ImmutableRelation) do
+    assert_raises(ActiveRecord::UnmodifiableRelation) do
       relation.where! "foo"
     end
   end
@@ -2072,7 +2118,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.to_a
 
-    assert_raises(ActiveRecord::ImmutableRelation) do
+    assert_raises(ActiveRecord::UnmodifiableRelation) do
       relation.limit! 5
     end
   end
@@ -2081,7 +2127,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.to_a
 
-    assert_raises(ActiveRecord::ImmutableRelation) do
+    assert_raises(ActiveRecord::UnmodifiableRelation) do
       relation.merge! where: "foo"
     end
   end
@@ -2090,7 +2136,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.to_a
 
-    assert_raises(ActiveRecord::ImmutableRelation) do
+    assert_raises(ActiveRecord::UnmodifiableRelation) do
       relation.extending! Module.new
     end
   end
@@ -2099,8 +2145,8 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.arel
 
-    assert_raises(ActiveRecord::ImmutableRelation) { relation.limit!(5) }
-    assert_raises(ActiveRecord::ImmutableRelation) { relation.where!("1 = 2") }
+    assert_raises(ActiveRecord::UnmodifiableRelation) { relation.limit!(5) }
+    assert_raises(ActiveRecord::UnmodifiableRelation) { relation.where!("1 = 2") }
   end
 
   test "relations show the records in #inspect" do
@@ -2114,13 +2160,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "relations don't load all records in #inspect" do
-    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+    assert_queries_match(/LIMIT|ROWNUM <=|FETCH FIRST/) do
       Post.all.inspect
     end
   end
 
   test "loading query is annotated in #inspect" do
-    assert_sql(%r(/\* loading for inspect \*/)) do
+    assert_queries_match(%r(/\* loading for inspect \*/)) do
       Post.all.inspect
     end
   end
@@ -2145,13 +2191,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "relations don't load all records in #pretty_print" do
-    assert_sql(/LIMIT|ROWNUM <=|FETCH FIRST/) do
+    assert_queries_match(/LIMIT|ROWNUM <=|FETCH FIRST/) do
       PP.pp Post.all, StringIO.new # avoid outputting.
     end
   end
 
   test "loading query is annotated in #pretty_print" do
-    assert_sql(%r(/\* loading for pp \*/)) do
+    assert_queries_match(%r(/\* loading for pp \*/)) do
       PP.pp Post.all, StringIO.new # avoid outputting.
     end
   end
@@ -2187,7 +2233,7 @@ class RelationTest < ActiveRecord::TestCase
 
   test "#load" do
     relation = Post.all
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_equal relation, relation.load
     end
     assert_no_queries { relation.to_a }
@@ -2393,12 +2439,12 @@ class RelationTest < ActiveRecord::TestCase
 
   test "#skip_query_cache!" do
     Post.cache do
-      assert_queries(1) do
+      assert_queries_count(1) do
         Post.all.load
         Post.all.load
       end
 
-      assert_queries(2) do
+      assert_queries_count(2) do
         Post.all.skip_query_cache!.load
         Post.all.skip_query_cache!.load
       end
@@ -2407,12 +2453,12 @@ class RelationTest < ActiveRecord::TestCase
 
   test "#skip_query_cache! with an eager load" do
     Post.cache do
-      assert_queries(1) do
+      assert_queries_count(1) do
         Post.eager_load(:comments).load
         Post.eager_load(:comments).load
       end
 
-      assert_queries(2) do
+      assert_queries_count(2) do
         Post.eager_load(:comments).skip_query_cache!.load
         Post.eager_load(:comments).skip_query_cache!.load
       end
@@ -2421,12 +2467,12 @@ class RelationTest < ActiveRecord::TestCase
 
   test "#skip_query_cache! with a preload" do
     Post.cache do
-      assert_queries(2) do
+      assert_queries_count(2) do
         Post.preload(:comments).load
         Post.preload(:comments).load
       end
 
-      assert_queries(4) do
+      assert_queries_count(4) do
         Post.preload(:comments).skip_query_cache!.load
         Post.preload(:comments).skip_query_cache!.load
       end
@@ -2456,14 +2502,8 @@ class RelationTest < ActiveRecord::TestCase
   private
     def custom_post_relation(alias_name = "omg_posts")
       table_alias = Post.arel_table.alias(alias_name)
-      table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
-      predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
 
-      ActiveRecord::Relation.create(
-        Post,
-        table: table_alias,
-        predicate_builder: predicate_builder
-      )
+      ActiveRecord::Relation.create(Post, table: table_alias)
     end
 end
 
@@ -2514,5 +2554,231 @@ class CreateOrFindByWithinTransactions < ActiveRecord::TestCase
 
         assert_equal 1, Subscriber.where(nick: "bob").count
       end
+  end
+end
+
+class DeprecatedAssociationsRelationSimpleTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :cars
+
+  setup do
+    @model = DATS::Car
+  end
+
+  test "includes reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.includes(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_preload) do
+      @model.includes(:deprecated_tires).to_a
+    end
+  end
+
+  test "eager_load reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.eager_load(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.eager_load(:deprecated_tires).to_a
+    end
+  end
+
+  test "preload reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.preload(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_preload) do
+      @model.preload(:deprecated_tires).to_a
+    end
+  end
+
+  test "extract_associated reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.extract_associated(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_preload) do
+      @model.extract_associated(:deprecated_tires).to_a
+    end
+  end
+
+  test "joins reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.joins(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.joins(:deprecated_tires).to_a
+    end
+  end
+
+  test "left_outer_joins reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.left_outer_joins(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.left_outer_joins(:deprecated_tires).to_a
+    end
+  end
+
+  test "left_joins reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.left_joins(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.left_joins(:deprecated_tires).to_a
+    end
+  end
+
+  test "associated reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.where.associated(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.where.associated(:deprecated_tires).to_a
+    end
+  end
+
+  test "missing reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.where.missing(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.where.missing(:deprecated_tires).to_a
+    end
+  end
+end
+
+class DeprecatedAssociationsRelationComplexTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :posts, :authors, :author_addresses
+
+  setup do
+    @model = DATS::Post
+  end
+
+  test "includes reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.includes(:comments, author: :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_preload) do
+      @model.includes(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_preload) do
+      @model.includes(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+  end
+
+  test "eager_load reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.eager_load(:comments, author: :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_join) do
+      @model.eager_load(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_join) do
+      @model.eager_load(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+  end
+
+  test "preload reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.preload(:comments, author: :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_preload) do
+      @model.preload(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_preload) do
+      @model.preload(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+  end
+
+  test "joins reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.joins(:comments, author: :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_join) do
+      @model.joins(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_join) do
+      @model.joins(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+  end
+
+  test "left_outer_joins reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.left_outer_joins(:comments, author: :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_join) do
+      @model.left_outer_joins(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_join) do
+      @model.left_outer_joins(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+  end
+
+  test "left_joins reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.left_joins(:comments, author: :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_join) do
+      @model.left_joins(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_join) do
+      @model.left_joins(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+  end
+
+  test "associated reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.where.associated(:comments, :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_join) do
+      @model.where.associated(:deprecated_comments, :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_through(:author_favorites)) do
+      # :author_favorites is correct, this one is a has_many through and
+      # :deprecated_author_favorites is a nested one.
+      @model.where.associated(:deprecated_comments, :author_favorites).to_a
+    end
+  end
+
+  test "missing reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.where.missing(:comments, :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_join) do
+      @model.where.missing(:deprecated_comments, :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_through(:author_favorites)) do
+      # :author_favorites is correct, this one is a has_many through and
+      # :deprecated_author_favorites is a nested one we get a notification for.
+      @model.where.missing(:deprecated_comments, :author_favorites).to_a
+    end
   end
 end

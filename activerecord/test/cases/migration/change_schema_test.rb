@@ -9,7 +9,7 @@ module ActiveRecord
 
       def setup
         super
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
         @table_name = :testings
       end
 
@@ -70,9 +70,9 @@ module ActiveRecord
         five = columns.detect { |c| c.name == "five" } unless mysql
 
         assert_equal "hello", one.default
-        assert_equal true, connection.lookup_cast_type_from_column(two).deserialize(two.default)
-        assert_equal false, connection.lookup_cast_type_from_column(three).deserialize(three.default)
-        assert_equal "1", four.default
+        assert_equal true, two.fetch_cast_type(connection).deserialize(two.default)
+        assert_equal false, three.fetch_cast_type(connection).deserialize(three.default)
+        assert_equal 1, four.default
         assert_equal "hello", five.default unless mysql
       end
 
@@ -106,9 +106,7 @@ module ActiveRecord
         columns = connection.columns(:testings)
         eight   = columns.detect { |c| c.name == "eight_int"   }
 
-        if current_adapter?(:OracleAdapter)
-          assert_equal "NUMBER(19)", eight.sql_type
-        elsif current_adapter?(:SQLite3Adapter)
+        if current_adapter?(:SQLite3Adapter)
           assert_equal "bigint", eight.sql_type
         else
           assert_equal :integer, eight.type
@@ -148,11 +146,6 @@ module ActiveRecord
           assert_match %r/\Atinyint/, one.sql_type
           assert_match %r/\Aint/, four.sql_type
           assert_match %r/\Abigint/, eight.sql_type
-        elsif current_adapter?(:OracleAdapter)
-          assert_equal "NUMBER(38)", default.sql_type
-          assert_equal "NUMBER(1)", one.sql_type
-          assert_equal "NUMBER(4)", four.sql_type
-          assert_equal "NUMBER(8)", eight.sql_type
         end
       end
 
@@ -235,6 +228,7 @@ module ActiveRecord
 
       def test_create_table_without_a_block
         connection.create_table table_name
+        assert connection.table_exists?(table_name)
       end
 
       # SQLite3 will not allow you to add a NOT NULL
@@ -283,8 +277,6 @@ module ActiveRecord
           assert_equal "timestamp without time zone", column.sql_type
         elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           assert_equal "timestamp", column.sql_type
-        elsif current_adapter?(:OracleAdapter)
-          assert_equal "TIMESTAMP(6)", column.sql_type
         else
           assert_equal connection.type_to_sql("datetime(6)"), column.sql_type
         end
@@ -302,8 +294,7 @@ module ActiveRecord
         if current_adapter?(:PostgreSQLAdapter)
           assert_equal "timestamp(6) without time zone", column.sql_type
         elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-          sql_type = supports_datetime_with_precision? ? "datetime(6)" : "datetime"
-          assert_equal sql_type, column.sql_type
+          assert_equal "datetime(6)", column.sql_type
         else
           assert_equal connection.type_to_sql("datetime(6)"), column.sql_type
         end
@@ -339,8 +330,6 @@ module ActiveRecord
           assert_equal "timestamp without time zone", column.sql_type
         elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           assert_equal "timestamp", column.sql_type
-        elsif current_adapter?(:OracleAdapter)
-          assert_equal "TIMESTAMP(6)", column.sql_type
         else
           assert_equal connection.type_to_sql("datetime(6)"), column.sql_type
         end
@@ -353,12 +342,9 @@ module ActiveRecord
 
         connection.change_column :testings, :select, :string, limit: 10
 
-        # Oracle needs primary key value from sequence
-        if current_adapter?(:OracleAdapter)
-          connection.execute "insert into testings (id, #{connection.quote_column_name('select')}) values (testings_seq.nextval, '7 chars')"
-        else
-          connection.execute "insert into testings (#{connection.quote_column_name('select')}) values ('7 chars')"
-        end
+        connection.execute "insert into testings (#{connection.quote_column_name('select')}) values ('7 chars')"
+
+        assert_equal 1, connection.select_value("SELECT COUNT(*) FROM testings")
       end
 
       def test_keeping_default_and_notnull_constraints_on_change
@@ -368,45 +354,40 @@ module ActiveRecord
         person_klass = Class.new(ActiveRecord::Base)
         person_klass.table_name = "testings"
 
-        person_klass.connection.add_column "testings", "wealth", :integer, null: false, default: 99
+        person_klass.lease_connection.add_column "testings", "wealth", :integer, null: false, default: 99
         person_klass.reset_column_information
         assert_equal 99, person_klass.column_defaults["wealth"]
         assert_equal false, person_klass.columns_hash["wealth"].null
-        # Oracle needs primary key value from sequence
-        if current_adapter?(:OracleAdapter)
-          assert_nothing_raised { person_klass.connection.execute("insert into testings (id, title) values (testings_seq.nextval, 'tester')") }
-        else
-          assert_nothing_raised { person_klass.connection.execute("insert into testings (title) values ('tester')") }
-        end
+        assert_nothing_raised { person_klass.lease_connection.execute("insert into testings (title) values ('tester')") }
 
         # change column default to see that column doesn't lose its not null definition
-        person_klass.connection.change_column_default "testings", "wealth", 100
+        person_klass.lease_connection.change_column_default "testings", "wealth", 100
         person_klass.reset_column_information
         assert_equal 100, person_klass.column_defaults["wealth"]
         assert_equal false, person_klass.columns_hash["wealth"].null
 
         # rename column to see that column doesn't lose its not null and/or default definition
-        person_klass.connection.rename_column "testings", "wealth", "money"
+        person_klass.lease_connection.rename_column "testings", "wealth", "money"
         person_klass.reset_column_information
         assert_nil person_klass.columns_hash["wealth"]
         assert_equal 100, person_klass.column_defaults["money"]
         assert_equal false, person_klass.columns_hash["money"].null
 
         # change column
-        person_klass.connection.change_column "testings", "money", :integer, null: false, default: 1000
+        person_klass.lease_connection.change_column "testings", "money", :integer, null: false, default: 1000
         person_klass.reset_column_information
         assert_equal 1000, person_klass.column_defaults["money"]
         assert_equal false, person_klass.columns_hash["money"].null
 
         # change column, make it nullable and clear default
-        person_klass.connection.change_column "testings", "money", :integer, null: true, default: nil
+        person_klass.lease_connection.change_column "testings", "money", :integer, null: true, default: nil
         person_klass.reset_column_information
         assert_nil person_klass.columns_hash["money"].default
         assert_equal true, person_klass.columns_hash["money"].null
 
         # change_column_null, make it not nullable and set null values to a default value
-        person_klass.connection.execute("UPDATE testings SET money = NULL")
-        person_klass.connection.change_column_null "testings", "money", false, 2000
+        person_klass.lease_connection.execute("UPDATE testings SET money = NULL")
+        person_klass.lease_connection.change_column_null "testings", "money", false, 2000
         person_klass.reset_column_information
         assert_nil person_klass.columns_hash["money"].default
         assert_equal false, person_klass.columns_hash["money"].null
@@ -486,8 +467,22 @@ module ActiveRecord
         assert_not connection.table_exists?(:testings)
       end
 
+      def test_drop_tables_if_exists
+        connection.create_table(:testings)
+        connection.create_table(:sobrinho)
+        assert connection.table_exists?(:testings)
+        assert connection.table_exists?(:sobrinho)
+        connection.drop_table(:testings, :sobrinho, if_exists: true)
+        assert_not connection.table_exists?(:testings)
+        assert_not connection.table_exists?(:sobrinho)
+      end
+
       def test_drop_table_if_exists_nothing_raised
         assert_nothing_raised { connection.drop_table(:nonexistent, if_exists: true) }
+      end
+
+      def test_drop_tables_if_exists_nothing_raised
+        assert_nothing_raised { connection.drop_table(:nonexistent, :nonexistent_sobrinho, if_exists: true) }
       end
 
       private
@@ -500,12 +495,12 @@ module ActiveRecord
         end
     end
 
-    if ActiveRecord::Base.connection.supports_foreign_keys?
+    if ActiveRecord::Base.lease_connection.supports_foreign_keys?
       class ChangeSchemaWithDependentObjectsTest < ActiveRecord::TestCase
         self.use_transactional_tests = false
 
         setup do
-          @connection = ActiveRecord::Base.connection
+          @connection = ActiveRecord::Base.lease_connection
           @connection.create_table :trains
           @connection.create_table(:wagons) { |t| t.references :train }
           @connection.add_foreign_key :wagons, :trains

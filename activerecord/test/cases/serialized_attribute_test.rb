@@ -133,7 +133,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     # Force a row to have a JSON "null" instead of a database NULL (this is how
     # null values are saved on 4.1 and before)
-    id = Topic.connection.insert "INSERT INTO topics (content) VALUES('null')"
+    id = Topic.lease_connection.insert "INSERT INTO topics (content) VALUES('null')"
     t = Topic.find(id)
 
     assert_nil t.content
@@ -143,10 +143,27 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     Topic.serialize :content, coder: JSON
 
     # Force a row to have a database NULL instead of a JSON "null"
-    id = Topic.connection.insert "INSERT INTO topics (content) VALUES(NULL)"
+    id = Topic.lease_connection.insert "INSERT INTO topics (content) VALUES(NULL)"
     t = Topic.find(id)
 
     assert_nil t.content
+  end
+
+  def test_json_type_hash_default_value
+    Topic.serialize :content, coder: JSON, type: Hash
+    t = Topic.new
+    assert_equal({}, t.content)
+  end
+
+  def test_json_symbolize_names_returns_symbolized_names
+    Topic.serialize :content, coder: ActiveRecord::Coders::JSON.new(symbolize_names: true)
+    my_post = posts(:welcome)
+
+    t = Topic.new(content: my_post)
+    t.save!
+    t.reload
+
+    assert_equal(t.content.deep_symbolize_keys, t.content)
   end
 
   def test_serialized_attribute_declared_in_subclass
@@ -245,7 +262,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     settings = { "color" => "green" }
     Topic.serialize(:content, type: Hash)
     topic = Topic.create!(content: settings)
-    assert_equal topic, Topic.where(content: [settings]).take
+    assert_equal topic, Topic.where(content: [settings, { "herring" => "red" }]).take
   end
 
   def test_serialized_default_class
@@ -334,7 +351,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     error = assert_raise(ActiveRecord::SerializationTypeMismatch) do
       topic.content
     end
-    expected = "can't load `content`: was supposed to be a Array, but was a Hash. -- {:zomg=>true}"
+    expected = "can't load `content`: was supposed to be a Array, but was a Hash. -- #{{ zomg: true }}"
     assert_equal expected, error.to_s
   end
 
@@ -434,10 +451,13 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     end
 
     subclass = Class.new(klass) do
-      self.table_name = "posts"
+      self.table_name = "topics"
     end
 
     subclass.define_attribute_methods
+
+    topic = subclass.create!(content: { foo: 1 })
+    assert_equal [topic], subclass.where(content: { foo: 1 }).to_a
   end
 
   def test_nil_is_always_persisted_as_null
@@ -502,11 +522,12 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name
       store :content, coder: ActiveRecord::Coders::JSON
-      attribute(:content) { |subtype| EncryptedType.new(subtype: subtype) }
+      decorate_attributes([:content]) do |name, type|
+        EncryptedType.new(subtype: type)
+      end
     end
 
     topic = klass.create!(content: { trial: true })
-
     assert_equal({ "trial" => true }, topic.content)
   end
 
@@ -660,7 +681,7 @@ class SerializedAttributeTestWithYamlSafeLoad < SerializedAttributeTest
     error = assert_raise(ActiveRecord::SerializationTypeMismatch) do
       topic.content
     end
-    expected = "can't load `content`: was supposed to be a Array, but was a Hash. -- {\"zomg\"=>true}"
+    expected = "can't load `content`: was supposed to be a Array, but was a Hash. -- #{{ "zomg" => true }}"
     assert_equal expected, error.to_s
   end
 
@@ -694,25 +715,28 @@ class SerializedAttributeTestWithYamlSafeLoad < SerializedAttributeTest
     assert topic.save
   end
 
-  def test_recognizes_coder_as_deprecated_positional_argument
-    some_coder = Struct.new(:foo) do
-      def self.dump(value)
-        value.foo
-      end
+  def test_changed_in_place_compare_serialized_representation
+    Topic.serialize :content, type: Hash
+    topic = Topic.create!(content: { "a" => 1, "b" => 2 })
 
-      def self.load(value)
-        new(value)
-      end
-    end
+    topic.content = { "a" => 1, "b" => 2 }
+    assert_not_predicate topic, :content_changed?
 
-    assert_deprecated(/Please pass the coder as a keyword argument/, ActiveRecord.deprecator) do
-      Topic.serialize(:content, some_coder)
-    end
+    topic.content = { "b" => 2, "a" => 1 }
+    assert_predicate topic, :content_changed?
   end
 
-  def test_recognizes_type_as_deprecated_positional_argument
-    assert_deprecated(/Please pass the class as a keyword argument/, ActiveRecord.deprecator) do
-      Topic.serialize(:content, Hash)
-    end
+  def test_changed_in_place_compare_deserialized_representation_when_comparable_is_set
+    Topic.serialize :content, type: Hash, comparable: true
+    topic = Topic.create!(content: { "a" => 1, "b" => 2 })
+
+    topic.content = { "a" => 1, "b" => 2 }
+    assert_not_predicate topic, :content_changed?
+
+    topic.content = { "b" => 2, "a" => 1 }
+    assert_not_predicate topic, :content_changed?
+
+    topic.content = {}
+    assert_predicate topic, :content_changed?
   end
 end

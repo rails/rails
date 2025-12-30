@@ -46,7 +46,7 @@ module ActiveRecord
           end
 
           if matching_pair
-            matching_pair.last.call(lookup_key)
+            matching_pair.last.call(lookup_key).freeze
           elsif @parent
             @parent.perform_fetch(lookup_key, &block)
           else

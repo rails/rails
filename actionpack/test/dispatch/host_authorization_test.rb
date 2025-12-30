@@ -443,7 +443,7 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
   end
 
   test "blocks requests with invalid hostnames" do
-    @app = build_app(".example.com")
+    @app = build_app(".example.com", lint: false)
 
     get "/", env: {
       "HOST" => "attacker.com#x.example.com",
@@ -493,11 +493,17 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
   end
 
   private
-    def build_app(hosts, exclude: nil, response_app: nil)
-      Rack::Lint.new(
-        ActionDispatch::HostAuthorization.new(
-          Rack::Lint.new(App), hosts, exclude: exclude, response_app: response_app
-        )
-      )
+    def build_app(hosts, exclude: nil, response_app: nil, lint: true, app: App)
+      if lint
+        app = Rack::Lint.new(app)
+      end
+
+      app = ActionDispatch::HostAuthorization.new(app, hosts, exclude: exclude, response_app: response_app)
+
+      if lint
+        Rack::Lint.new(app)
+      end
+
+      app
     end
 end

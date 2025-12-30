@@ -15,38 +15,49 @@ module ActionView
 
       # Sanitizes HTML input, stripping all but known-safe tags and attributes.
       #
-      # It also strips href/src attributes with unsafe protocols like <tt>javascript:</tt>, while
+      # It also strips +href+ / +src+ attributes with unsafe protocols like +javascript:+, while
       # also protecting against attempts to use Unicode, ASCII, and hex character references to work
       # around these protocol filters.
       #
-      # The default sanitizer is Rails::HTML5::SafeListSanitizer. See {Rails HTML
+      # The default sanitizer is +Rails::HTML5::SafeListSanitizer+. See {Rails HTML
       # Sanitizers}[https://github.com/rails/rails-html-sanitizer] for more information.
       #
       # Custom sanitization rules can also be provided.
+      #
+      # <b>Warning</b>: Adding disallowed tags or attributes to the allowlists may introduce
+      # vulnerabilities into your application. Please rely on the default allowlists whenever
+      # possible, because they are curated to maintain security and safety. If you think that the
+      # default allowlists should be expanded, please {open an issue on the rails-html-sanitizer
+      # project}[https://github.com/rails/rails-html-sanitizer/issues].
       #
       # Please note that sanitizing user-provided text does not guarantee that the
       # resulting markup is valid or even well-formed.
       #
       # ==== Options
       #
-      # * <tt>:tags</tt> - An array of allowed tags.
-      # * <tt>:attributes</tt> - An array of allowed attributes.
-      # * <tt>:scrubber</tt> - A {Rails::HTML scrubber}[https://github.com/rails/rails-html-sanitizer]
+      # [+:tags+]
+      #   An array of allowed tags.
+      #
+      # [+:attributes+]
+      #   An array of allowed attributes.
+      #
+      # [+:scrubber+]
+      #   A {Rails::HTML scrubber}[https://github.com/rails/rails-html-sanitizer]
       #   or {Loofah::Scrubber}[https://github.com/flavorjones/loofah] object that
       #   defines custom sanitization rules. A custom scrubber takes precedence over
       #   custom tags and attributes.
       #
       # ==== Examples
       #
-      # Normal use:
+      # ===== Normal use
       #
       #   <%= sanitize @comment.body %>
       #
-      # Providing custom lists of permitted tags and attributes:
+      # ===== Providing custom lists of permitted tags and attributes
       #
       #   <%= sanitize @comment.body, tags: %w(strong em a), attributes: %w(href) %>
       #
-      # Providing a custom Rails::HTML scrubber:
+      # ===== Providing a custom +Rails::HTML+ scrubber
       #
       #   class CommentScrubber < Rails::HTML::PermitScrubber
       #     def initialize
@@ -60,21 +71,27 @@ module ActionView
       #     end
       #   end
       #
+      # <code></code>
+      #
       #   <%= sanitize @comment.body, scrubber: CommentScrubber.new %>
       #
       # See {Rails HTML Sanitizer}[https://github.com/rails/rails-html-sanitizer] for
-      # documentation about Rails::HTML scrubbers.
+      # documentation about +Rails::HTML+ scrubbers.
       #
-      # Providing a custom Loofah::Scrubber:
+      # ===== Providing a custom +Loofah::Scrubber+
       #
       #   scrubber = Loofah::Scrubber.new do |node|
       #     node.remove if node.name == 'script'
       #   end
       #
+      # <code></code>
+      #
       #   <%= sanitize @comment.body, scrubber: scrubber %>
       #
       # See {Loofah's documentation}[https://github.com/flavorjones/loofah] for more
-      # information about defining custom Loofah::Scrubber objects.
+      # information about defining custom +Loofah::Scrubber+ objects.
+      #
+      # ==== Global Configuration
       #
       # To set the default allowed tags or attributes across your application:
       #
@@ -95,13 +112,13 @@ module ActionView
       #   # In config/application.rb
       #   config.action_view.sanitizer_vendor = Rails::HTML5::Sanitizer
       #
-      # NOTE: Rails::HTML5::Sanitizer is not supported on JRuby, so on JRuby platforms \Rails will
-      # fall back to use Rails::HTML4::Sanitizer.
+      # NOTE: +Rails::HTML5::Sanitizer+ is not supported on JRuby, so on JRuby platforms \Rails will
+      # fall back to using +Rails::HTML4::Sanitizer+.
       def sanitize(html, options = {})
         self.class.safe_list_sanitizer.sanitize(html, options)&.html_safe
       end
 
-      # Sanitizes a block of CSS code. Used by +sanitize+ when it comes across a style attribute.
+      # Sanitizes a block of CSS code. Used by #sanitize when it comes across a style attribute.
       def sanitize_css(style)
         self.class.safe_list_sanitizer.sanitize_css(style)
       end

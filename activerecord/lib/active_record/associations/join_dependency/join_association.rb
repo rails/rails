@@ -25,8 +25,9 @@ module ActiveRecord
           joins = []
           chain = []
 
-          reflection.chain.each do |reflection|
-            table, terminated = yield reflection
+          reflection_chain = reflection.chain
+          reflection_chain.each_with_index do |reflection, index|
+            table, terminated = yield reflection, reflection_chain[index..]
             @table ||= table
 
             if terminated
@@ -91,7 +92,7 @@ module ActiveRecord
           def append_constraints(join, constraints)
             if join.is_a?(Arel::Nodes::StringJoin)
               join_string = Arel::Nodes::And.new(constraints.unshift join.left)
-              join.left = Arel.sql(base_klass.connection.visitor.compile(join_string))
+              join.left = join_string
             else
               right = join.right
               right.expr = Arel::Nodes::And.new(constraints.unshift right.expr)

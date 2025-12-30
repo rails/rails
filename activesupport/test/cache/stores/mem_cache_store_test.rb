@@ -207,6 +207,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_write_with_unless_exist
+    assert_equal true, @cache.write("foo", 1)
+    assert_equal false, @cache.write("foo", 1, unless_exist: true)
+  end
+
   def test_increment_expires_in
     cache = lookup_store(raw: true, namespace: nil)
     assert_called_with client(cache), :incr, [ "foo", 1, 60, 1 ] do
@@ -292,14 +297,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
-  def test_uses_provided_dalli_client_if_present
-    assert_deprecated(ActiveSupport.deprecator) do
-      host = "custom_host"
-      cache = lookup_store(Dalli::Client.new(host))
-      assert_equal [host], servers(cache)
-    end
-  end
-
   def test_forwards_string_addresses_if_present
     expected_addresses = ["first", "second"]
     cache = lookup_store(expected_addresses)
@@ -374,14 +371,36 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_equal({}, @cache.send(:read_multi_entries, [key]))
   end
 
-  def test_deprecated_connection_pool_works
-    assert_deprecated(ActiveSupport.deprecator) do
-      cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool_size: 2, pool_timeout: 1)
-      pool = cache.instance_variable_get(:@data) # loads 'connection_pool' gem
-      assert_kind_of ::ConnectionPool, pool
-      assert_equal 2, pool.size
-      assert_equal 1, pool.instance_variable_get(:@timeout)
+  def test_falls_back_to_default_value_when_client_raises_dalli_error
+    cache = lookup_store
+    client = cache.instance_variable_get(:@data)
+    client.stub(:get_multi, lambda { |*_args| raise Dalli::DalliError.new("test error") }) do
+      assert_equal({}, cache.read_multi("key1", "key2"))
     end
+  end
+
+  def test_falls_back_to_default_value_when_client_raises_connection_pool_timeout_error
+    cache = lookup_store
+    client = cache.instance_variable_get(:@data)
+    client.stub(:get_multi, lambda { |*_args| raise ConnectionPool::TimeoutError.new("test error") }) do
+      assert_equal({}, cache.read_multi("key1", "key2"))
+    end
+  end
+
+  def test_falls_back_to_default_value_when_client_raises_connection_pool_error
+    cache = lookup_store
+    client = cache.instance_variable_get(:@data)
+    client.stub(:get_multi, lambda { |*_args| raise ConnectionPool::Error.new("test error") }) do
+      assert_equal({}, cache.read_multi("key1", "key2"))
+    end
+  end
+
+  def test_pool_options_work
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool: { size: 2, timeout: 1 })
+    pool = cache.instance_variable_get(:@data) # loads 'connection_pool' gem
+    assert_kind_of ::ConnectionPool, pool
+    assert_equal 2, pool.size
+    assert_equal 1, pool.instance_variable_get(:@timeout)
   end
 
   def test_connection_pooling_by_default

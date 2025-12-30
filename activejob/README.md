@@ -89,11 +89,13 @@ Active Job has built-in adapters for multiple queuing backends (Sidekiq,
 Resque, Delayed Job and others). To get an up-to-date list of the adapters
 see the API Documentation for [ActiveJob::QueueAdapters](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
-**Please note:** We are not accepting pull requests for new adapters. We
-encourage library authors to provide an ActiveJob adapter as part of
-their gem, or as a stand-alone gem. For discussion about this see the
-following PRs: [23311](https://github.com/rails/rails/issues/23311#issuecomment-176275718),
-[21406](https://github.com/rails/rails/pull/21406#issuecomment-138813484), and [#32285](https://github.com/rails/rails/pull/32285).
+**Please note:** We are not accepting pull requests for new adapters, and we are
+actively extracting the current adapters. We encourage library authors to provide
+an Active Job adapter as part of their gem, or as a stand-alone gem.
+
+## Continuations
+
+Continuations allow jobs to be interrupted and resumed. See more at ActiveJob::Continuation.
 
 
 ## Download and installation
@@ -126,6 +128,6 @@ Bug reports for the Ruby on \Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 
-Feature requests should be discussed on the rails-core mailing list here:
+Feature requests should be discussed on the rubyonrails-core forum here:
 
 * https://discuss.rubyonrails.org/c/rubyonrails-core

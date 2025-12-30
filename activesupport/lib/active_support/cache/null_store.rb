@@ -25,10 +25,10 @@ module ActiveSupport
       def cleanup(options = nil)
       end
 
-      def increment(name, amount = 1, options = nil)
+      def increment(name, amount = 1, **options)
       end
 
-      def decrement(name, amount = 1, options = nil)
+      def decrement(name, amount = 1, **options)
       end
 
       def delete_matched(matcher, options = nil)

@@ -41,23 +41,23 @@ class Rails::Command::TestTest < ActiveSupport::TestCase
 
   test "test command with name option skips test:prepare task" do
     assert_skips_prepare_task do
-      run_test_command("test", "-n", "test_some_code")
+      run_test_command("test", "-n", "test_some_code", allow_failure: true)
     end
 
     assert_skips_prepare_task do
-      run_test_command("test", "-n", "/some_code/")
+      run_test_command("test", "-n", "/some_code/", allow_failure: true)
     end
 
     assert_skips_prepare_task do
-      run_test_command("test", "-n", "some code")
+      run_test_command("test", "-n", "some code", allow_failure: true)
     end
 
     assert_skips_prepare_task do
-      run_test_command("test", "--name", "test_some_code")
+      run_test_command("test", "--name", "test_some_code", allow_failure: true)
     end
 
     assert_skips_prepare_task do
-      run_test_command("test", "--name=test_some_code")
+      run_test_command("test", "--name=test_some_code", allow_failure: true)
     end
   end
 
@@ -74,7 +74,7 @@ class Rails::Command::TestTest < ActiveSupport::TestCase
 
   test "test:all with name option skips test:prepare task" do
     assert_skips_prepare_task do
-      run_test_command("test:all", "-n", "test_some_code")
+      run_test_command("test:all", "-n", "test_some_code", allow_failure: true)
     end
   end
 
@@ -86,7 +86,7 @@ class Rails::Command::TestTest < ActiveSupport::TestCase
 
   test "test:* with name option skips test:prepare task" do
     assert_skips_prepare_task do
-      run_test_command("test:models", "-n", "test_some_code")
+      run_test_command("test:models", "-n", "test_some_code", allow_failure: true)
     end
   end
 

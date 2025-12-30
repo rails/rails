@@ -359,6 +359,9 @@ class TextHelperTest < ActionView::TestCase
     options = { separator: "\n", radius: 1 }
     assert_equal("...very\nvery long\nstring", excerpt("my very\nvery\nvery long\nstring", "long", options))
 
+    options = { separator: "_" }
+    assert_equal("foo", excerpt("foo", "foo", options))
+
     assert_equal excerpt("This is a beautiful morning", "a"),
                  excerpt("This is a beautiful morning", "a", separator: nil)
   end
@@ -391,6 +394,11 @@ class TextHelperTest < ActionView::TestCase
     input = "  1 1\n  1 1\n"
     assert_equal "  1\n1\n  1\n1", word_wrap(input, line_width: 3)
     assert_equal "  1-+1-+  1-+1", word_wrap(input, line_width: 3, break_sequence: "-+")
+  end
+
+  test "word_wrap when no wrapping is necessary" do
+    assert_equal "1", word_wrap("1", line_width: 3)
+    assert_equal "", word_wrap("", line_width: 3)
   end
 
   def test_pluralization
@@ -533,7 +541,9 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_reset_unknown_cycle
-    reset_cycle("colors")
+    assert_nothing_raised do
+      reset_cycle("colors")
+    end
   end
 
   def test_reset_named_cycle

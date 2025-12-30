@@ -31,7 +31,11 @@
 # These libraries are not provided by \Rails. You must install them yourself to use the built-in previewers. Before you
 # install and use third-party software, make sure you understand the licensing implications of doing so.
 class ActiveStorage::Preview
+  include ActiveStorage::Blob::Servable
+
   class UnprocessedError < StandardError; end
+
+  delegate :filename, :content_type, to: :presentation
 
   attr_reader :blob, :variation
 
@@ -39,7 +43,7 @@ class ActiveStorage::Preview
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
   end
 
-  # Processes the preview if it has not been processed yet. Returns the receiving Preview instance for convenience:
+  # Processes the preview if it has not been processed yet. Returns the receiving +ActiveStorage::Preview+ instance for convenience:
   #
   #   blob.preview(resize_to_limit: [100, 100]).processed.url
   #
@@ -47,6 +51,7 @@ class ActiveStorage::Preview
   # image is stored with the blob, it is only generated once.
   def processed
     process unless processed?
+    variant.processed if variant?
     self
   end
 
@@ -62,7 +67,7 @@ class ActiveStorage::Preview
   # a stable URL that redirects to the URL returned by this method.
   def url(**options)
     if processed?
-      variant.url(**options)
+      presentation.url(**options)
     else
       raise UnprocessedError
     end
@@ -71,7 +76,7 @@ class ActiveStorage::Preview
   # Returns a combination key of the blob and the variation that together identifies a specific variant.
   def key
     if processed?
-      variant.key
+      presentation.key
     else
       raise UnprocessedError
     end
@@ -84,17 +89,17 @@ class ActiveStorage::Preview
   # if the preview has not been processed yet.
   def download(&block)
     if processed?
-      variant.download(&block)
+      presentation.download(&block)
     else
       raise UnprocessedError
     end
   end
 
-  private
-    def processed?
-      image.attached?
-    end
+  def processed?
+    image.attached?
+  end
 
+  private
     def process
       previewer.preview(service_name: blob.service_name) do |attachable|
         ActiveRecord::Base.connected_to(role: ActiveRecord.writing_role) do
@@ -104,7 +109,15 @@ class ActiveStorage::Preview
     end
 
     def variant
-      image.variant(variation).processed
+      @variant ||= image.variant(variation)
+    end
+
+    def variant?
+      variation.transformations.present?
+    end
+
+    def presentation
+      variant? ? variant.processed : image
     end
 
 

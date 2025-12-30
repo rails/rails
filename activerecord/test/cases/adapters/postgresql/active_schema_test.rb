@@ -4,7 +4,7 @@ require "cases/helper"
 
 class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
   def setup
-    ActiveRecord::Base.connection.materialize_transactions
+    ActiveRecord::Base.lease_connection.materialize_transactions
 
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
       def execute(sql, name = nil) sql end
@@ -25,6 +25,10 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_create_database_with_collation_and_ctype
     assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'UTF8' LC_COLLATE = 'ja_JP.UTF8' LC_CTYPE = 'ja_JP.UTF8'), create_database(:aimonetti, encoding: :"UTF8", collation: :"ja_JP.UTF8", ctype: :"ja_JP.UTF8")
+  end
+
+  def test_create_database_with_locale_provider_and_locale
+    assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'utf8' LOCALE_PROVIDER = 'builtin' LOCALE = 'C.UTF-8'), create_database(:aimonetti, locale_provider: :builtin, locale: "C.UTF-8")
   end
 
   def test_add_index
@@ -110,8 +114,20 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_drop_database_without_force
+    ActiveRecord::Base.lease_connection.stub(:database_version, 12_99_99) do
+      assert_equal %(DROP DATABASE IF EXISTS "development"), drop_database(:development)
+    end
+  end
+
+  def test_drop_database_with_force
+    ActiveRecord::Base.lease_connection.stub(:database_version, 13_00_00) do
+      assert_equal %(DROP DATABASE IF EXISTS "development" WITH (FORCE)), drop_database(:development)
+    end
+  end
+
   private
     def method_missing(...)
-      ActiveRecord::Base.connection.public_send(...)
+      ActiveRecord::Base.lease_connection.public_send(...)
     end
 end

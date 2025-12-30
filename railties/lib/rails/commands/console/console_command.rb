@@ -4,14 +4,6 @@ require "rails/command/environment_argument"
 
 module Rails
   class Console
-    module BacktraceCleaner
-      def filter_backtrace(bt)
-        if result = super
-          Rails.backtrace_cleaner.filter([result]).first
-        end
-      end
-    end
-
     def self.start(*args)
       new(*args).start
     end
@@ -32,16 +24,8 @@ module Rails
       app.load_console
 
       @console = app.config.console || begin
-        require "irb"
-        require "irb/completion"
-
-        IRB::WorkSpace.prepend(BacktraceCleaner)
-
-        if !Rails.env.local?
-          ENV["IRB_USE_AUTOCOMPLETE"] ||= "false"
-        end
-
-        IRB
+        require "rails/commands/console/irb_console"
+        IRBConsole.new(app)
       end
     end
 
@@ -71,10 +55,8 @@ module Rails
       else
         puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
       end
+      puts "Type 'help' for help."
 
-      if defined?(console::ExtendCommandBundle)
-        console::ExtendCommandBundle.include(Rails::ConsoleMethods)
-      end
       console.start
     end
   end
@@ -85,6 +67,8 @@ module Rails
 
       class_option :sandbox, aliases: "-s", type: :boolean, default: nil,
         desc: "Rollback database modifications on exit."
+
+      class_option :skip_executor, type: :boolean, aliases: "-w", desc: "Don't wrap with Rails Executor", default: false
 
       def initialize(args = [], local_options = {}, config = {})
         console_options = []
@@ -103,8 +87,21 @@ module Rails
       desc "console", "Start the Rails console"
       def perform
         boot_application!
-        Rails::Console.start(Rails.application, options)
+
+        wrap_with_executor = !options[:skip_executor]
+        conditional_executor(wrap_with_executor, source: "application.console.railties") do
+          Rails::Console.start(Rails.application, options)
+        end
       end
+
+      private
+        def conditional_executor(enabled, **args, &block)
+          if enabled
+            Rails.application.executor.wrap(**args, &block)
+          else
+            yield
+          end
+        end
     end
   end
 end

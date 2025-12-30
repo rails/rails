@@ -9,11 +9,25 @@ class ActiveStorage::TransformJobTest < ActiveJob::TestCase
   test "creates variant" do
     transformations = { resize_to_limit: [100, 100] }
 
-    assert_changes -> { @blob.variant(transformations).send(:processed?) }, from: false, to: true do
+    assert_changes -> { @blob.variant(transformations).processed? }, from: false, to: true do
       perform_enqueued_jobs do
         ActiveStorage::TransformJob.perform_later @blob, transformations
       end
     end
+  end
+
+  test "creates variant for previewable file" do
+    @blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
+    transformations = { resize_to_limit: [100, 100] }
+
+    assert_changes -> { @blob.preview(transformations).processed? }, from: false, to: true do
+      perform_enqueued_jobs do
+        ActiveStorage::TransformJob.perform_later @blob, transformations
+      end
+      @blob.reload
+    end
+
+    assert @blob.preview(transformations).image.variant(transformations).processed?
   end
 
   test "creates variant when untracked" do
@@ -21,7 +35,7 @@ class ActiveStorage::TransformJobTest < ActiveJob::TestCase
     transformations = { resize_to_limit: [100, 100] }
 
     begin
-      assert_changes -> { @blob.variant(transformations).send(:processed?) }, from: false, to: true do
+      assert_changes -> { @blob.variant(transformations).processed? }, from: false, to: true do
         perform_enqueued_jobs do
           ActiveStorage::TransformJob.perform_later @blob, transformations
         end
@@ -29,5 +43,23 @@ class ActiveStorage::TransformJobTest < ActiveJob::TestCase
     ensure
       ActiveStorage.track_variants = @was_tracking
     end
+  end
+
+  test "null transformer returns original file" do
+    @was_transformer = ActiveStorage.variant_transformer
+    ActiveStorage.variant_transformer = ActiveStorage::Transformers::NullTransformer
+
+    transformations = { resize_to_limit: [100, 100] }
+    assert_changes -> { @blob.variant(transformations).processed? }, from: false, to: true do
+      perform_enqueued_jobs do
+        ActiveStorage::TransformJob.perform_later @blob, transformations
+      end
+    end
+
+    original = @blob.download
+    result   = @blob.variant(transformations).processed.download
+    assert_equal original, result
+  ensure
+    ActiveStorage.variant_transformer = @was_transformer
   end
 end

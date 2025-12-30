@@ -115,11 +115,6 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
-    def set_with_with_escapable_characters
-      cookies["that & guy"] = "foo & bar => baz"
-      head :ok
-    end
-
     def authenticate_for_fourteen_days
       cookies["user_name"] = { "value" => "david", "expires" => Time.utc(2005, 10, 10, 5) }
       head :ok
@@ -493,12 +488,6 @@ class CookiesTest < ActionController::TestCase
     assert_equal({ "user_name" => "Jamie" }, response.cookies)
   end
 
-  def test_setting_with_escapable_characters
-    get :set_with_with_escapable_characters
-    assert_set_cookie_header "that+%26+guy=foo+%26+bar+%3D%3E+baz; path=/; SameSite=Lax"
-    assert_equal({ "that & guy" => "foo & bar => baz" }, @response.cookies)
-  end
-
   def test_setting_cookie_for_fourteen_days
     get :authenticate_for_fourteen_days
     assert_set_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 GMT; SameSite=Lax"
@@ -592,6 +581,15 @@ class CookiesTest < ActionController::TestCase
     cookies.delete("user_name")
     assert cookies.deleted?("user_name")
     assert_equal false, cookies.deleted?("another")
+  end
+
+  # Ensure all HTTP methods have their cookies updated
+  [:get, :post, :patch, :put, :delete, :head].each do |method|
+    define_method("test_deleting_cookie_#{method}") do
+      request.cookies[:user_name] = "Joe"
+      public_send method, :logout
+      assert_nil cookies[:user_name]
+    end
   end
 
   def test_deleted_cookie_predicate_with_mismatching_options
@@ -974,7 +972,7 @@ class CookiesTest < ActionController::TestCase
     error = assert_raise(ActionDispatch::Cookies::CookieOverflow) do
       get :raise_data_overflow
     end
-    assert_equal "foo cookie overflowed with size 5522 bytes", error.message
+    assert_equal "foo cookie overflowed with size 5525 bytes", error.message
   end
 
   def test_tampered_cookies

@@ -7,14 +7,14 @@ class ReviewsController < ResourcesController; end
 class RoutingConcernsTest < ActionDispatch::IntegrationTest
   class Reviewable
     def self.call(mapper, options = {})
-      mapper.resources :reviews, options
+      mapper.resources :reviews, **options
     end
   end
 
   Routes = ActionDispatch::Routing::RouteSet.new.tap do |app|
     app.draw do
       concern :commentable do |options|
-        resources :comments, options
+        resources :comments, **options
       end
 
       concern :image_attachable do

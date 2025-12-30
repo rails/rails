@@ -28,7 +28,7 @@ class Comment < ActiveRecord::Base
   has_many :children, class_name: "Comment", inverse_of: :parent
   belongs_to :parent, class_name: "Comment", counter_cache: :children_count, inverse_of: :children
 
-  enum label: [:default, :child]
+  enum :label, [:default, :child]
 
   class ::OopsError < RuntimeError; end
 

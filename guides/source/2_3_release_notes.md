@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Ruby on Rails 2.3 Release Notes
 ===============================
@@ -54,7 +54,7 @@ Documentation
 
 The [Ruby on Rails guides](https://guides.rubyonrails.org/) project has published several additional guides for Rails 2.3. In addition, a [separate site](https://edgeguides.rubyonrails.org/) maintains updated copies of the Guides for Edge Rails. Other documentation efforts include a relaunch of the [Rails wiki](http://newwiki.rubyonrails.org/) and early planning for a Rails Book.
 
-* More Information: [Rails Documentation Projects](https://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects)
+* More Information: [Rails Documentation Projects](https://rubyonrails.org/2009/1/15/rails-documentation-projects)
 
 Ruby 1.9.1 Support
 ------------------
@@ -89,7 +89,7 @@ accepts_nested_attributes_for :author,
 ```
 
 * Lead Contributor: [Eloy Duran](http://superalloy.nl/)
-* More Information: [Nested Model Forms](https://weblog.rubyonrails.org/2009/1/26/nested-model-forms)
+* More Information: [Nested Model Forms](https://rubyonrails.org/2009/1/26/nested-model-forms)
 
 ### Nested Transactions
 
@@ -185,7 +185,7 @@ developers = Developer.find(:all, :group => "salary",
 
 MySQL supports a reconnect flag in its connections - if set to true, then the client will try reconnecting to the server before giving up in case of a lost connection. You can now set `reconnect = true` for your MySQL connections in `database.yml` to get this behavior from a Rails application. The default is `false`, so the behavior of existing applications doesn't change.
 
-* Lead Contributor: [Dov Murik](http://twitter.com/dubek)
+* Lead Contributor: [Dov Murik](http://x.com/dubek)
 * More information:
     * [Controlling Automatic Reconnection Behavior](http://dev.mysql.com/doc/refman/5.6/en/auto-reconnect.html)
     * [MySQL auto-reconnect revisited](http://groups.google.com/group/rubyonrails-core/browse_thread/thread/49d2a7e9c96cb9f4)
@@ -365,7 +365,7 @@ You can write this view in Rails 2.3:
       <% unless order_form.object.new_record? %>
         <div>
           <%= order_form.label :_delete, 'Remove:' %>
-          <%= order_form.check_box :_delete %>
+          <%= order_form.checkbox :_delete %>
         </div>
       <% end %>
     </p>
@@ -377,7 +377,7 @@ You can write this view in Rails 2.3:
 
 * Lead Contributor: [Eloy Duran](http://superalloy.nl/)
 * More Information:
-    * [Nested Model Forms](https://weblog.rubyonrails.org/2009/1/26/nested-model-forms)
+    * [Nested Model Forms](https://rubyonrails.org/2009/1/26/nested-model-forms)
     * [complex-form-examples](https://github.com/alloy/complex-form-examples)
     * [What's New in Edge Rails: Nested Object Forms](http://archives.ryandaigle.com/articles/2009/2/1/what-s-new-in-edge-rails-nested-attributes)
 
@@ -469,7 +469,7 @@ options_from_collection_for_select(@product.sizes, :name, :id, :disabled => lamb
 ```
 
 * Lead Contributor: [Tekin Suleyman](http://tekin.co.uk/)
-* More Information: [New in rails 2.3 - disabled option tags and lambdas for selecting and disabling options from collections](https://tekin.co.uk/2009/03/new-in-rails-23-disabled-option-tags-and-lambdas-for-selecting-and-disabling-options-from-collections)
+* More Information: [New in Rails 2.3 - disabled option tags and lambdas for selecting and disabling options from collections](https://tekin.co.uk/2009/03/new-in-rails-23-disabled-option-tags-and-lambdas-for-selecting-and-disabling-options-from-collections)
 
 ### A Note About Template Loading
 
@@ -503,7 +503,7 @@ A lot of folks have adopted the notion of using try() to attempt operations on o
 
 ### Object#tap Backport
 
-`Object#tap` is an addition to [Ruby 1.9](http://www.ruby-doc.org/core-1.9/classes/Object.html#M000309) and 1.8.7 that is similar to the `returning` method that Rails has had for a while: it yields to a block, and then returns the object that was yielded. Rails now includes code to make this available under older versions of Ruby as well.
+`Object#tap` is an addition to [Ruby 1.9](https://docs.ruby-lang.org/en/master/Kernel.html#method-i-tap) and 1.8.7 that is similar to the `returning` method that Rails has had for a while: it yields to a block, and then returns the object that was yielded. Rails now includes code to make this available under older versions of Ruby as well.
 
 ### Swappable Parsers for XMLmini
 
@@ -552,7 +552,7 @@ In addition to the Rack changes covered above, Railties (the core code of Rails 
 Rails Metal is a new mechanism that provides superfast endpoints inside of your Rails applications. Metal classes bypass routing and Action Controller to give you raw speed (at the cost of all the things in Action Controller, of course). This builds on all of the recent foundation work to make Rails a Rack application with an exposed middleware stack. Metal endpoints can be loaded from your application or from plugins.
 
 * More Information:
-    * [Introducing Rails Metal](https://weblog.rubyonrails.org/2008/12/17/introducing-rails-metal)
+    * [Introducing Rails Metal](https://rubyonrails.org/2008/12/17/introducing-rails-metal)
     * [Rails Metal: a micro-framework with the power of Rails](http://soylentfoo.jnewland.com/articles/2008/12/16/rails-metal-a-micro-framework-with-the-power-of-rails-m)
     * [Metal: Super-fast Endpoints within your Rails Apps](http://www.railsinside.com/deployment/180-metal-super-fast-endpoints-within-your-rails-apps.html)
     * [What's New in Edge Rails: Rails Metal](http://archives.ryandaigle.com/articles/2008/12/18/what-s-new-in-edge-rails-rails-metal)

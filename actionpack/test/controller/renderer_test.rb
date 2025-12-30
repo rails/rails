@@ -73,6 +73,10 @@ class RendererTest < ActiveSupport::TestCase
       %(Hello, World!),
       renderer.render(TestRenderable.new)
     )
+    assert_equal(
+      %(Hello, World!),
+      renderer.render(renderable: TestRenderable.new)
+    )
   end
 
   test "rendering with custom env" do

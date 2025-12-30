@@ -3,7 +3,7 @@
 require "isolation/abstract_unit"
 require "rack/test"
 
-class SharedSetup < ActionController::TestCase
+class ActionControllerTestCaseIntegrationTest < ActionController::TestCase
   class_attribute :executor_around_each_request
 
   include ActiveSupport::Testing::Isolation
@@ -54,57 +54,59 @@ class SharedSetup < ActionController::TestCase
       <%= Current.customer&.name || 'noone' %>,<%= Time.zone.name %>
     RUBY
 
+    app_file "config/routes.rb", <<~RUBY
+      Rails.application.routes.draw do
+        get "/customers/:action", controller: :customers
+      end
+    RUBY
+
     require "#{app_path}/config/environment"
 
     @controller = CustomersController.new
-    @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
-      r.draw do
-        get "/customers/:action", controller: :customers
-      end
-    end
+    @routes = Rails.application.routes
   end
 
   teardown :teardown_app
-end
 
-class ActionControllerTestCaseWithExecutorIntegrationTest < SharedSetup
-  self.executor_around_each_request = true
+  class WithExecutorIntegrationTest < ActionControllerTestCaseIntegrationTest
+    self.executor_around_each_request = true
 
-  test "current customer is cleared after each request" do
-    assert Rails.application.config.active_support.executor_around_test_case
-    assert ActionController::TestCase.executor_around_each_request
+    test "current customer is cleared after each request" do
+      assert Rails.application.config.active_support.executor_around_test_case
+      assert ActionController::TestCase.executor_around_each_request
 
-    get :get_current_customer
-    assert_response :ok
-    assert_match(/noone,UTC/, response.body)
+      get :get_current_customer
+      assert_response :ok
+      assert_match(/noone,UTC/, response.body)
 
-    get :set_current_customer
-    assert_response :ok
-    assert_match(/david,Copenhagen/, response.body)
+      get :set_current_customer
+      assert_response :ok
+      assert_match(/david,Copenhagen/, response.body)
 
-    get :get_current_customer
-    assert_response :ok
-    assert_match(/noone,UTC/, response.body)
+      get :get_current_customer
+      assert_response :ok
+      assert_match(/noone,UTC/, response.body)
+    end
   end
-end
 
-class ActionControllerTestCaseWithoutExecutorIntegrationTest < SharedSetup
-  self.executor_around_each_request = false
+  class WithoutExecutorIntegrationTest < ActionControllerTestCaseIntegrationTest
+    self.executor_around_each_request = false
 
-  test "current customer is not cleared after each request" do
-    assert_not Rails.application.config.active_support.executor_around_test_case
-    assert_not ActionController::TestCase.executor_around_each_request
+    test "current customer is not cleared after each request" do
+      assert_not Rails.application.config.active_support.executor_around_test_case
+      assert_not ActionController::TestCase.executor_around_each_request
 
-    get :get_current_customer
-    assert_response :ok
-    assert_match(/noone,UTC/, response.body)
+      get :get_current_customer
+      assert_response :ok
+      assert_match(/noone,UTC/, response.body)
 
-    get :set_current_customer
-    assert_response :ok
-    assert_match(/david,Copenhagen/, response.body)
+      get :set_current_customer
+      assert_response :ok
+      assert_match(/david,Copenhagen/, response.body)
 
-    get :get_current_customer
-    assert_response :ok
-    assert_match(/david,Copenhagen/, response.body)
+      get :get_current_customer
+      assert_response :ok
+      assert_match(/david,Copenhagen/, response.body)
+    end
   end
 end

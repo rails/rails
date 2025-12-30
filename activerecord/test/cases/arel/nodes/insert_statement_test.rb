@@ -2,7 +2,7 @@
 
 require_relative "../helper"
 
-describe Arel::Nodes::InsertStatement do
+class Arel::Nodes::InsertStatementTest < Arel::Spec
   describe "#clone" do
     it "clones columns and values" do
       statement = Arel::Nodes::InsertStatement.new

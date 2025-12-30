@@ -7,8 +7,8 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
   include ConnectionHelper
 
   def setup
-    ActiveRecord::Base.connection.send(:default_row_format)
-    ActiveRecord::Base.connection.singleton_class.class_eval do
+    ActiveRecord::Base.lease_connection.send(:default_row_format)
+    ActiveRecord::Base.lease_connection.singleton_class.class_eval do
       alias_method :execute_without_stub, :execute
       def execute(sql, name = nil)
         ActiveSupport::Notifications.instrumenter.instrument(
@@ -83,14 +83,14 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
   def test_index_in_create
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
       expected = /\ACREATE TABLE `people` \(#{type} INDEX `index_people_on_last_name` \(`last_name`\)\)/
-      actual = ActiveRecord::Base.connection.create_table(:people, id: false) do |t|
+      actual = ActiveRecord::Base.lease_connection.create_table(:people, id: false) do |t|
         t.index :last_name, type: type
       end
       assert_match expected, actual
     end
 
     expected = /\ACREATE TABLE `people` \(INDEX `index_people_on_last_name` USING btree \(`last_name`\(10\)\)\)/
-    actual = ActiveRecord::Base.connection.create_table(:people, id: false) do |t|
+    actual = ActiveRecord::Base.lease_connection.create_table(:people, id: false) do |t|
       t.index :last_name, length: 10, using: :btree
     end
     assert_match expected, actual
@@ -99,16 +99,16 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
   def test_index_in_bulk_change
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
       expected = "ALTER TABLE `people` ADD #{type} INDEX `index_people_on_last_name` (`last_name`)"
-      assert_sql(expected) do
-        ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
+      assert_queries_match(expected) do
+        ActiveRecord::Base.lease_connection.change_table(:people, bulk: true) do |t|
           t.index :last_name, type: type
         end
       end
     end
 
     expected = "ALTER TABLE `people` ADD INDEX `index_people_on_last_name` USING btree (`last_name`(10)), ALGORITHM = COPY"
-    assert_sql(expected) do
-      ActiveRecord::Base.connection.change_table(:people, bulk: true) do |t|
+    assert_queries_match(expected) do
+      ActiveRecord::Base.lease_connection.change_table(:people, bulk: true) do |t|
         t.index :last_name, length: 10, using: :btree, algorithm: :copy
       end
     end
@@ -118,8 +118,12 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
     assert_equal "DROP TABLE `people`", drop_table(:people)
   end
 
+  def test_drop_tables
+    assert_equal "DROP TABLE `people`, `sobrinho`", drop_table(:people, :sobrinho)
+  end
+
   def test_create_mysql_database_with_encoding
-    if ActiveRecord::Base.connection.send(:row_format_dynamic_by_default?)
+    if ActiveRecord::Base.lease_connection.send(:row_format_dynamic_by_default?)
       assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8mb4`", create_database(:matt)
     else
       error = assert_raises(RuntimeError) { create_database(:matt) }
@@ -147,33 +151,37 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
     assert_equal "DROP TABLE `otherdb`.`people`", drop_table("otherdb.people")
   end
 
+  def test_drop_tables_with_specific_database
+    assert_equal "DROP TABLE `otherdb`.`people`, `otherdb`.`sobrinho`", drop_table("otherdb.people", "otherdb.sobrinho")
+  end
+
   def test_add_timestamps
     with_real_execute do
-      ActiveRecord::Base.connection.create_table :delete_me
-      ActiveRecord::Base.connection.add_timestamps :delete_me, null: true
+      ActiveRecord::Base.lease_connection.create_table :delete_me
+      ActiveRecord::Base.lease_connection.add_timestamps :delete_me, null: true
       assert column_exists?("delete_me", "updated_at", "datetime")
       assert column_exists?("delete_me", "created_at", "datetime")
     ensure
-      ActiveRecord::Base.connection.drop_table :delete_me rescue nil
+      ActiveRecord::Base.lease_connection.drop_table :delete_me rescue nil
     end
   end
 
   def test_remove_timestamps
     with_real_execute do
-      ActiveRecord::Base.connection.create_table :delete_me do |t|
+      ActiveRecord::Base.lease_connection.create_table :delete_me do |t|
         t.timestamps null: true
       end
-      ActiveRecord::Base.connection.remove_timestamps :delete_me, null: true
+      ActiveRecord::Base.lease_connection.remove_timestamps :delete_me, null: true
       assert_not column_exists?("delete_me", "updated_at", "datetime")
       assert_not column_exists?("delete_me", "created_at", "datetime")
     ensure
-      ActiveRecord::Base.connection.drop_table :delete_me rescue nil
+      ActiveRecord::Base.lease_connection.drop_table :delete_me rescue nil
     end
   end
 
   def test_indexes_in_create
     expected = /\ACREATE TEMPORARY TABLE `temp` \(INDEX `index_temp_on_zip` \(`zip`\)\)(?: ROW_FORMAT=DYNAMIC)? AS SELECT id, name, zip FROM a_really_complicated_query/
-    actual = ActiveRecord::Base.connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|
+    actual = ActiveRecord::Base.lease_connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|
       t.index :zip
     end
 
@@ -182,7 +190,7 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
 
   private
     def with_real_execute
-      ActiveRecord::Base.connection.singleton_class.class_eval do
+      ActiveRecord::Base.lease_connection.singleton_class.class_eval do
         alias_method :execute_with_stub, :execute
         remove_method :execute
         alias_method :execute, :execute_without_stub
@@ -190,13 +198,13 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
 
       yield
     ensure
-      ActiveRecord::Base.connection.singleton_class.class_eval do
+      ActiveRecord::Base.lease_connection.singleton_class.class_eval do
         remove_method :execute
         alias_method :execute, :execute_with_stub
       end
     end
 
     def method_missing(...)
-      ActiveRecord::Base.connection.public_send(...)
+      ActiveRecord::Base.lease_connection.public_send(...)
     end
 end

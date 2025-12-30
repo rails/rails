@@ -18,13 +18,18 @@ module Rails
 
         def perform(task, args, config)
           with_rake(task, *args) do |rake|
-            if unrecognized_task = rake.top_level_tasks.find { |task| !rake.lookup(task[/[^\[]+/]) }
+            if unrecognized_task = (rake.top_level_tasks - ["default"]).find { |task| !rake.lookup(task[/[^\[]+/]) }
               @rake_tasks = rake.tasks
               raise UnrecognizedCommandError.new(unrecognized_task)
             end
 
             rake.options.suppress_backtrace_pattern = non_app_file_pattern
-            rake.standard_exception_handling { rake.top_level }
+
+            rake.standard_exception_handling do
+              ActiveSupport.error_reporter.record(source: "rake_command.rails") do
+                rake.top_level
+              end
+            end
           end
         end
 

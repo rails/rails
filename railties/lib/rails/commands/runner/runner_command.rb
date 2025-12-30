@@ -7,6 +7,8 @@ module Rails
     class RunnerCommand < Base # :nodoc:
       include EnvironmentArgument
 
+      class_option :skip_executor, type: :boolean, aliases: "-w", desc: "Don't wrap with Rails Executor", default: false
+
       no_commands do
         def help(command_name = nil, *)
           super
@@ -30,19 +32,20 @@ module Rails
 
         ARGV.replace(command_argv)
 
+        wrap_with_executor = !options[:skip_executor]
         if code_or_file == "-"
-          Rails.application.executor.wrap(source: "application.runner.railties") do
+          conditional_executor(wrap_with_executor, source: "application.runner.railties") do
             eval($stdin.read, TOPLEVEL_BINDING, "stdin")
           end
         elsif File.exist?(code_or_file)
           expanded_file_path = File.expand_path code_or_file
           $0 = expanded_file_path
-          Rails.application.executor.wrap(source: "application.runner.railties") do
+          conditional_executor(wrap_with_executor, source: "application.runner.railties") do
             Kernel.load expanded_file_path
           end
         else
           begin
-            Rails.application.executor.wrap(source: "application.runner.railties") do
+            conditional_executor(wrap_with_executor, source: "application.runner.railties") do
               eval(code_or_file, TOPLEVEL_BINDING, __FILE__, __LINE__)
             end
           rescue SyntaxError, NameError => e
@@ -62,6 +65,14 @@ module Rails
       end
 
       private
+        def conditional_executor(enabled, **args, &block)
+          if enabled
+            Rails.application.executor.wrap(**args, &block)
+          else
+            yield
+          end
+        end
+
         def looks_like_a_file_path?(code_or_file)
           code_or_file.ends_with?(".rb")
         end

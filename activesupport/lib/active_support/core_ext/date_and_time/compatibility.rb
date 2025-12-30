@@ -1,18 +1,10 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/module/redefine_method"
 
 module DateAndTime
   module Compatibility
-    # If true, +to_time+ preserves the timezone offset of receiver.
-    #
-    # NOTE: With Ruby 2.4+ the default for +to_time+ changed from
-    # converting to the local system time, to preserving the offset
-    # of the receiver. For backwards compatibility we're overriding
-    # this behavior, but new apps will have an initializer that sets
-    # this to true, because the new behavior is preferred.
-    mattr_accessor :preserve_timezone, instance_writer: false, default: false
-
     # Change the output of <tt>ActiveSupport::TimeZone.utc_to_local</tt>.
     #
     # When +true+, it returns local times with a UTC offset, with +false+ local

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/object/with"
 
 class ExecutorTest < ActiveSupport::TestCase
   class MyBody < Array
@@ -119,10 +120,96 @@ class ExecutorTest < ActiveSupport::TestCase
     assert_equal requests_count - 1, completed
   end
 
+  def test_error_reporting
+    raised_error = nil
+    error_report = assert_error_reported(Exception) do
+      raised_error = assert_raises Exception do
+        call_and_return_body { raise Exception }
+      end
+    end
+    assert_same raised_error, error_report.error
+  end
+
+  def test_error_reporting_with_show_exception
+    middleware = Rack::Lint.new(
+      ActionDispatch::Executor.new(
+        ActionDispatch::ShowExceptions.new(
+          Rack::Lint.new(->(_env) { 1 + "1" }),
+          ->(_env) { [500, {}, ["Oops"]] },
+        ),
+        executor,
+      )
+    )
+
+    env = Rack::MockRequest.env_for("", {})
+    error_report = assert_error_reported do
+      middleware.call(env)
+    end
+    assert_instance_of TypeError, error_report.error
+  end
+
+  class BusinessAsUsual < StandardError; end
+
+  def test_handled_error_is_not_reported
+    middleware = Rack::Lint.new(
+      ActionDispatch::Executor.new(
+        ActionDispatch::ShowExceptions.new(
+          Rack::Lint.new(->(_env) { raise BusinessAsUsual }),
+          ->(env) { [418, {}, ["I'm a teapot"]] },
+        ),
+        executor,
+      )
+    )
+
+    env = Rack::MockRequest.env_for("", {})
+    ActionDispatch::ExceptionWrapper.with(rescue_responses: { BusinessAsUsual.name => 418 }) do
+      assert_no_error_reported do
+        response = middleware.call(env)
+        assert_equal 418, response[0]
+      end
+    end
+  end
+
+  def test_complete_callbacks_are_called_on_rack_response_finished
+    completed = false
+    executor.to_complete { completed = true }
+
+    env = Rack::MockRequest.env_for
+    env["rack.response_finished"] = []
+
+    call_and_return_body(env)
+
+    assert_not completed
+
+    assert_equal 1, env["rack.response_finished"].size
+    env["rack.response_finished"].first.call(env, 200, {}, nil)
+
+    assert completed
+  end
+
+  def test_complete_callbacks_are_called_once_on_rack_response_finished_when_exception_is_raised
+    completed_count = 0
+    executor.to_complete { completed_count += 1 }
+
+    env = Rack::MockRequest.env_for
+    env["rack.response_finished"] = []
+
+    begin
+      call_and_return_body(env) do
+        raise "error"
+      end
+    rescue
+    end
+
+    assert_equal 1, env["rack.response_finished"].size
+    env["rack.response_finished"].first.call(env, 200, {}, nil)
+
+    assert_equal 1, completed_count
+  end
+
   private
-    def call_and_return_body(&block)
+    def call_and_return_body(env = Rack::MockRequest.env_for, &block)
       app = block || proc { [200, {}, []] }
-      env = Rack::MockRequest.env_for("", {})
       _, _, body = middleware(app).call(env)
       body
     end

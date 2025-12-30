@@ -7,6 +7,10 @@ class Rails::Command::HelpIntegrationTest < ActiveSupport::TestCase
   setup :build_app
   teardown :teardown_app
 
+  test "when passing --trace it invokes default" do
+    assert_match "Invoke default", rails("--trace")
+  end
+
   test "prints helpful error on unrecognized command" do
     output = rails "vershen", allow_failure: true
 
@@ -30,10 +34,22 @@ class Rails::Command::HelpIntegrationTest < ActiveSupport::TestCase
     help = rails "dev:help"
     output = rails "dev", allow_failure: true
 
-    assert_equal help, output
+    assert_match help, output
   end
 
-  test "excludes application Rake tasks from command listing" do
+  test "prints Rake tasks on --tasks / -T option" do
+    app_file "lib/tasks/my_task.rake", <<~RUBY
+      Rake.application.clear
+
+      desc "my_task"
+      task :my_task
+    RUBY
+
+    assert_match "my_task", rails("--tasks")
+    assert_match "my_task", rails("-T")
+  end
+
+  test "excludes application Rake tasks from command list via --help" do
     app_file "Rakefile", <<~RUBY, "a"
       desc "my_task"
       task :my_task_1

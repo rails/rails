@@ -14,7 +14,7 @@ module ActiveRecord
     #   class Person < ActiveRecord::Base
     #   end
     #
-    #   person = Person.create(name: "Alisson")
+    #   person = Person.create(name: "Allison")
     #   person.changed? # => false
     #
     # Change the name:
@@ -31,7 +31,7 @@ module ActiveRecord
     #   person.name_in_database        # => "Alice"
     #   person.saved_change_to_name?   # => true
     #   person.saved_change_to_name    # => ["Allison", "Alice"]
-    #   person.name_before_last_change # => "Allison"
+    #   person.name_before_last_save   # => "Allison"
     #
     # Similar to ActiveModel::Dirty, methods can be invoked as
     # +saved_change_to_name?+ or by passing an argument to the generic method
@@ -76,11 +76,13 @@ module ActiveRecord
       #
       # ==== Options
       #
-      # +from+ When passed, this method will return false unless the original
-      # value is equal to the given option
+      # [+from+]
+      #   When specified, this method will return false unless the original
+      #   value is equal to the given value.
       #
-      # +to+ When passed, this method will return false unless the value was
-      # changed to the given value
+      # [+to+]
+      #   When specified, this method will return false unless the value will be
+      #   changed to the given value.
       def saved_change_to_attribute?(attr_name, **options)
         mutations_before_last_save.changed?(attr_name.to_s, **options)
       end
@@ -126,11 +128,13 @@ module ActiveRecord
       #
       # ==== Options
       #
-      # +from+ When passed, this method will return false unless the original
-      # value is equal to the given option
+      # [+from+]
+      #   When specified, this method will return false unless the original
+      #   value is equal to the given value.
       #
-      # +to+ When passed, this method will return false unless the value will be
-      # changed to the given value
+      # [+to+]
+      #   When specified, this method will return false unless the value will be
+      #   changed to the given value.
       def will_save_change_to_attribute?(attr_name, **options)
         mutations_from_database.changed?(attr_name.to_s, **options)
       end
@@ -247,7 +251,7 @@ module ActiveRecord
             changed_attribute_names_to_save
           else
             attribute_names.reject do |attr_name|
-              if column_for_attribute(attr_name).default_function
+              if column_for_attribute(attr_name).auto_populated?
                 !attribute_changed?(attr_name)
               end
             end

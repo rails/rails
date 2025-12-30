@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionText
+  # DEPRECATED
   class TrixAttachment
     TAG_NAME = "figure"
     SELECTOR = "[data-trix-attachment]"

@@ -3,7 +3,7 @@
 require "cases/helper"
 require "models/professor"
 
-if ActiveRecord::Base.connection.supports_foreign_tables?
+if ActiveRecord::Base.lease_connection.supports_foreign_tables?
   class ForeignTableTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
@@ -18,7 +18,7 @@ if ActiveRecord::Base.connection.supports_foreign_tables?
     def setup
       @professor = Professor.create(name: "Nicola")
 
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       enable_extension!("postgres_fdw", @connection)
 
       foreign_db_config = ARTest.test_configuration_hashes["arunit2"]
@@ -52,7 +52,7 @@ if ActiveRecord::Base.connection.supports_foreign_tables?
 
     def test_table_exists
       table_name = ForeignProfessor.table_name
-      assert_not ActiveRecord::Base.connection.table_exists?(table_name)
+      assert_not ActiveRecord::Base.lease_connection.table_exists?(table_name)
     end
 
     def test_foreign_tables_are_valid_data_sources

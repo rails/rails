@@ -15,7 +15,7 @@ module ActiveSupport
 
     initializer "active_support.isolation_level" do |app|
       config.after_initialize do
-        if level = app.config.active_support.delete(:isolation_level)
+        if level = app.config.active_support.isolation_level
           ActiveSupport::IsolatedExecutionState.isolation_level = level
         end
       end
@@ -38,19 +38,35 @@ module ActiveSupport
       end
     end
 
-    initializer "active_support.reset_execution_context" do |app|
-      app.reloader.before_class_unload { ActiveSupport::ExecutionContext.clear }
-      app.executor.to_run              { ActiveSupport::ExecutionContext.clear }
-      app.executor.to_complete         { ActiveSupport::ExecutionContext.clear }
+    initializer "active_support.set_event_reporter_context_store" do |app|
+      config.after_initialize do
+        if klass = app.config.active_support.event_reporter_context_store
+          ActiveSupport::EventReporter.context_store = klass
+        end
+      end
     end
 
-    initializer "active_support.reset_all_current_attributes_instances" do |app|
-      app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
-      app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }
-      app.executor.to_complete         { ActiveSupport::CurrentAttributes.reset_all }
+    initializer "active_support.reset_execution_context" do |app|
+      app.reloader.before_class_unload do
+        ActiveSupport::CurrentAttributes.clear_all
+        ActiveSupport::ExecutionContext.clear
+        ActiveSupport.event_reporter.clear_context
+      end
+
+      app.executor.to_run do
+        ActiveSupport::ExecutionContext.push
+      end
+
+      app.executor.to_complete do
+        ActiveSupport::CurrentAttributes.clear_all
+        ActiveSupport::ExecutionContext.pop
+        ActiveSupport.event_reporter.clear_context
+      end
 
       ActiveSupport.on_load(:active_support_test_case) do
         if app.config.active_support.executor_around_test_case
+          ActiveSupport::ExecutionContext.nestable = true
+
           require "active_support/executor/test_helper"
           include ActiveSupport::Executor::TestHelper
         else
@@ -60,6 +76,13 @@ module ActiveSupport
           require "active_support/execution_context/test_helper"
           include ActiveSupport::ExecutionContext::TestHelper
         end
+      end
+    end
+
+    initializer "active_support.set_filter_parameters" do |app|
+      config.after_initialize do
+        ActiveSupport.filter_parameters += Rails.application.config.filter_parameters
+        ActiveSupport.event_reporter.reload_payload_filter
       end
     end
 
@@ -89,10 +112,11 @@ module ActiveSupport
       begin
         TZInfo::DataSource.get
       rescue TZInfo::DataSourceNotFound => e
-        raise e.exception "tzinfo-data is not present. Please add gem 'tzinfo-data' to your Gemfile and run bundle install"
+        raise e.exception('tzinfo-data is not present. Please add gem "tzinfo-data" to your Gemfile and run bundle install')
       end
       require "active_support/core_ext/time/zones"
       Time.zone_default = Time.find_zone!(app.config.time_zone)
+      config.eager_load_namespaces << TZInfo
     end
 
     # Sets the default week start
@@ -117,16 +141,8 @@ module ActiveSupport
 
     initializer "active_support.set_configs" do |app|
       app.config.active_support.each do |k, v|
-        if k == "disable_to_s_conversion"
-          ActiveSupport.deprecator.warn("config.active_support.disable_to_s_conversion is deprecated and will be removed in Rails 7.2.")
-        elsif k == "remove_deprecated_time_with_zone_name"
-          ActiveSupport.deprecator.warn("config.active_support.remove_deprecated_time_with_zone_name is deprecated and will be removed in Rails 7.2.")
-        elsif k == "use_rfc4122_namespaced_uuids"
-          ActiveSupport.deprecator.warn("config.active_support.use_rfc4122_namespaced_uuids is deprecated and will be removed in Rails 7.2.")
-        else
-          k = "#{k}="
-          ActiveSupport.public_send(k, v) if ActiveSupport.respond_to? k
-        end
+        k = "#{k}="
+        ActiveSupport.public_send(k, v) if ActiveSupport.respond_to? k
       end
     end
 
