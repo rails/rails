@@ -160,8 +160,7 @@ module ActiveRecord
           elsif column.type == :uuid && value.is_a?(String) && value.include?("()")
             value # Does not quote function default values for UUID columns
           elsif column.respond_to?(:array?)
-            # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
-            quote(column.fetch_cast_type(self).serialize(value))
+            quote(column.cast_type.serialize(value))
           else
             super
           end
