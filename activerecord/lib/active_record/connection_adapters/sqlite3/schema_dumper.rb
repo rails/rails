@@ -23,7 +23,7 @@ module ActiveRecord
           end
 
           def explicit_primary_key_default?(column)
-            column.bigint?
+            column.bigint? || (column.type == :integer && !column.auto_increment?)
           end
 
           def prepare_column_options(column)
