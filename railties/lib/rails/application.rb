@@ -119,6 +119,8 @@ module Rails
       @message_verifiers = nil
       @deprecators       = nil
       @ran_load_hooks    = false
+      @revision          = nil
+      @revision_initialized = false
 
       @executor          = Class.new(ActiveSupport::Executor)
       @reloader          = Class.new(ActiveSupport::Reloader)
@@ -394,7 +396,35 @@ module Rails
       self.class.isolate_namespace(mod)
     end
 
+
+    # Returns the application's revision (deployment identifier).
+    # Useful for error reporting and deployment verification.
+    #
+    # Set via config.revision (string or proc) or REVISION file.
+    # Always either a String or +nil+.
+    def revision
+      unless @revision_initialized
+        @revision = begin
+          root.join("REVISION").read.strip.presence
+        rescue SystemCallError
+          if Dir.exist?(".git")
+            rev = `git rev-parse HEAD 2> /dev/null`.strip.presence
+            rev if $?.success?
+          end
+        end
+        @revision_initialized = true
+      end
+      @revision
+    end
+
     ## Rails internal API
+
+    def revision=(rev) # :nodoc:
+      rev = rev.call if rev.respond_to?(:call)
+      rev = rev&.to_s
+      @revision = rev
+      @revision_initialized = true
+    end
 
     # This method is called just after an application inherits from Rails::Application,
     # allowing the developer to load classes in lib and use them during application
