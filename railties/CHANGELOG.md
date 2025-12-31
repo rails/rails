@@ -1,3 +1,25 @@
+*   Add `Rails.app.revision` to provide a version identifier for error reporting, monitoring, cache keys, etc.
+
+    ```ruby
+    Rails.app.revision # => "3d31d593e6cf0f82fa9bd0338b635af2f30d627b"
+    ```
+
+    By defaults it looks for a `REVISION` file at the root of the application, if absent it tries to extract
+    the revision from the local git repository.
+
+    If none of that is adequate, it can be set in the application config:
+
+    ```ruby
+    # config/application.rb
+    module MyApp
+      class Application < Rails::Application
+        config.revision = ENV["GIT_SHA"]
+      end
+    end
+    ```
+
+    *Abdelkader Boudih*, *Jean Boussier*
+
 *   Add `Rails.app.creds` to provide combined access to credentials stored in either ENV or the encrypted credentials file,
     and in development also .env credentials. Provides a new require/option API for accessing these values. Examples:
 

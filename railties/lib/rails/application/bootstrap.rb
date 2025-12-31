@@ -63,12 +63,20 @@ module Rails
         end
       end
 
-      initializer :initialize_error_reporter, group: :all do
+      initializer :initialize_error_reporter, group: :all do |app|
         if config.consider_all_requests_local
           Rails.error.debug_mode = true
         else
           Rails.error.logger = Rails.logger
         end
+
+        Rails.error.add_middleware(->(error, context) {
+          context[:rails] ||= {
+            version: Rails::VERSION::STRING,
+            app_revision: app.revision,
+            environment: Rails.env.to_s,
+          }
+        })
       end
 
       initializer :initialize_event_reporter, group: :all do

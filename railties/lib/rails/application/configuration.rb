@@ -566,6 +566,10 @@ module Rails
         end
       end
 
+      def revision=(val)
+        Rails.application.revision = val
+      end
+
       # Specifies what class to use to store the session. Possible values
       # are +:cache_store+, +:cookie_store+, +:mem_cache_store+, a custom
       # store, or +:disabled+. +:disabled+ tells \Rails not to deal with
