@@ -22,7 +22,7 @@ module ActiveRecord
       ActiveRecord::Base.configurations.configs_for(env_name: env_name, include_hidden: true).each do |db_config|
         db_config._database = "#{db_config.database}_#{i}"
 
-        if db_config.database_tasks? && ActiveRecord.maintain_test_schema
+        if db_config.database_tasks? && ActiveRecord.maintain_test_schema != false
           ActiveRecord::Tasks::DatabaseTasks.reconstruct_from_schema(db_config, nil)
         end
       end
