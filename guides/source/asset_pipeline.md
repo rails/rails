@@ -150,12 +150,12 @@ dependencies:
 
 ### Asset Organization
 
-Propshaft organizes assets within the app/assets directory. While it includes
-default subdirectories like images, javascripts, and stylesheets, Propshaft
-will automatically manage any subdirectory you create within app/assets (such
-as app/assets/videos) You can place your JavaScript, CSS, image files, and
-other assets into these directories, and Propshaft will manage them during the
-precompilation process.
+Propshaft organizes assets within the `app/assets` directory. While it includes
+default subdirectories like `images`, `javascripts`, and `stylesheets`,
+Propshaft will automatically manage any subdirectory you create within
+`app/assets` (such as `app/assets/videos`). You can place your JavaScript, CSS,
+image files, and other assets into these directories, and Propshaft will manage
+them during the precompilation process.
 
 You can also specify additional asset paths for Propshaft to search by modifying
 `config.assets.paths` in your `config/initializers/assets.rb` file. For example:
