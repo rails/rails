@@ -7,8 +7,8 @@ This guide explains how to handle essential asset management tasks.
 
 After reading this guide, you will know:
 
-* What is an asset pipeline.
-* The main features of Propshaft, and how to set it up.
+* What an asset pipeline is.
+* The main features of Propshaft, and how to set them up.
 * How to migrate from Sprockets to Propshaft.
 * How to use other libraries for more advanced asset management.
 
