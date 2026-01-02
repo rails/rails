@@ -1,3 +1,9 @@
+*   Deprecate built-in `delayed_job` adapter.
+
+    If you're using this adapter, upgrade to `delayed_job` 4.2.0 or later to use the `delayed_job` gem's adapter.
+
+    *Dino Maric, David Genord II, Wojciech Wnętrzak*
+
 *   Deprecate built-in `backburner` adapter.
 
     *Dino Maric, Nathan Esquenazi, Earlopain*
