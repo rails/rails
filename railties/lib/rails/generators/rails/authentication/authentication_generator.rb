@@ -51,6 +51,16 @@ module Rails
         end
       end
 
+      def configure_bcrypt_cost
+        inject_into_file "config/environments/test.rb", before: /^end\n*\z/ do
+          <<RUBY
+
+  # Speed up tests by lowering BCrypt's cost function.
+  BCrypt::Engine.cost = BCrypt::Engine::MIN_COST
+RUBY
+        end
+      end
+
       def add_migrations
         generate "migration", "CreateUsers", "email_address:string!:uniq password_digest:string!", "--force"
         generate "migration", "CreateSessions", "user:references ip_address:string user_agent:string", "--force"

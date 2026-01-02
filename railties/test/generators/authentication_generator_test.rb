@@ -21,6 +21,11 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
         end
       end
     RUBY
+    FileUtils.mkdir_p("#{destination_root}/config/environments")
+    File.write("#{destination_root}/config/environments/test.rb", <<~RUBY)
+      Rails.application.configure do
+      end
+    RUBY
 
     copy_gemfile
 
@@ -181,6 +186,16 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     end
   ensure
     ActionMailer.const_set(:Railtie, old_value)
+  end
+
+  def test_authentication_generator_sets_bcrypt_min_cost_in_test_environment
+    generator([destination_root])
+
+    run_generator_instance
+
+    assert_file "config/environments/test.rb" do |content|
+      assert_match(/BCrypt::Engine\.cost = BCrypt::Engine::MIN_COST/, content)
+    end
   end
 
   private

@@ -1,3 +1,8 @@
+*   Set `BCrypt::Engine.cost` to `BCrypt::Engine::MIN_COST` in `config/environments/test.rb`
+    when running the authentication generator to speed up tests.
+
+    *Ashwin M*
+
 *   Add `Rails.app.revision` to provide a version identifier for error reporting, monitoring, cache keys, etc.
 
     ```ruby
