@@ -257,14 +257,14 @@ module InflectorTestCases
   }
 
   UnderscoreToHumanWithKeepIdSuffix = {
-    "this_is_a_string_ending_with_id" => "This is a string ending with id",
-    "employee_id"                => "Employee id",
+    "this_is_a_string_ending_with_id" => "This is a string ending with ID",
+    "employee_id"                => "Employee ID",
     "employee_id_something_else" => "Employee id something else",
     "underground"               => "Underground",
     "employee id"               => "Employee id",
     "employee id etc"           => "Employee id etc",
-    "_id"                       => "Id",
-    "_external_id"              => "External id"
+    "_id"                       => "ID",
+    "_external_id"              => "External ID"
   }
 
   UnderscoreToHumanWithoutCapitalize = {
@@ -274,8 +274,8 @@ module InflectorTestCases
   }
 
   MixtureToTitleCaseWithKeepIdSuffix = {
-    "this_is_a_string_ending_with_id" => "This Is A String Ending With Id",
-    "EmployeeId"                      => "Employee Id",
+    "this_is_a_string_ending_with_id" => "This Is A String Ending With ID",
+    "EmployeeId"                      => "Employee ID",
     "Author Id"                       => "Author Id"
   }
 
