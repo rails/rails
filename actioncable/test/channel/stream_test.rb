@@ -5,6 +5,7 @@ require "minitest/mock"
 require "stubs/test_connection"
 require "stubs/room"
 require "concurrent/atomic/cyclic_barrier"
+require "concurrent"
 
 module ActionCable::StreamTests
   class Connection < ActionCable::Connection::Base
@@ -54,10 +55,12 @@ module ActionCable::StreamTests
 
   class StreamHandlerOverrideChannel < ActionCable::Channel::Base
     attr_reader :handled_message, :stream_handler_args, :stream_handler_ran
+    attr_accessor :handled_event
 
     def subscribed
       stream_from "stream_handler_override", coder: DummyEncoder do |message|
         @handled_message = message
+        handled_event&.set
       end
     end
 
@@ -75,6 +78,7 @@ module ActionCable::StreamTests
 
   class DefaultStreamHandlerOverrideChannel < ActionCable::Channel::Base
     attr_reader :handled_message, :default_handler_args
+    attr_accessor :handled_event
 
     def subscribed
       stream_from "default_stream_handler_override", coder: DummyEncoder
@@ -87,6 +91,7 @@ module ActionCable::StreamTests
 
         -> message do
           @handled_message = decoder.call(message)
+          handled_event&.set
         end
       end
   end
@@ -116,13 +121,15 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = TestConnection.new
 
+        handled = Concurrent::Event.new
         channel = StreamHandlerOverrideChannel.new connection, "{id: 1}"
+        channel.handled_event = handled
         channel.subscribe_to_channel
         wait_for_async
 
         handler = subscribers_of(connection)["stream_handler_override"].first
         handler.call("payload")
-        wait_for_executor connection.server.worker_pool.executor
+        assert handled.wait(2), "Stream handler did not process the message in time"
 
         assert_equal "stream_handler_override", channel.stream_handler_args[:broadcasting]
         assert_instance_of Proc, channel.stream_handler_args[:user_handler]
@@ -157,13 +164,15 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = TestConnection.new
 
+        handled = Concurrent::Event.new
         channel = DefaultStreamHandlerOverrideChannel.new connection, "{id: 1}"
+        channel.handled_event = handled
         channel.subscribe_to_channel
         wait_for_async
 
         handler = subscribers_of(connection)["default_stream_handler_override"].first
         handler.call("payload")
-        wait_for_executor connection.server.worker_pool.executor
+        assert handled.wait(2), "Default stream handler did not process the message in time"
 
         assert_equal "default_stream_handler_override", channel.default_handler_args[:broadcasting]
         assert_equal DummyEncoder, channel.default_handler_args[:coder]
