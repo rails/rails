@@ -1,10 +1,10 @@
 *   Extract tags from container in
     `ActiveStorage::Analyzer::AudioAnalyzer`
 
-	Previously the tags were extracted from the streams, but in
+    Previously the tags were extracted from the streams, but in
     practice ID3 style metadata is included in the container itself.
 
-	*Luke Lau*
+    *Luke Lau*
 
 *   Analyze attachments before validation
 
