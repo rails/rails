@@ -279,10 +279,10 @@ module ActiveRecord
         end
         record
       rescue ActiveRecord::RecordNotUnique
-        # Safely check if transaction is open, defaulting to false if check fails
+        # Safely check if transaction is open, defaulting to false if connection is unavailable
         transaction_open = begin
           connection.transaction_open?
-        rescue
+        rescue ActiveRecord::ConnectionNotEstablished, ActiveRecord::ConnectionFailed
           false
         end
 
@@ -306,10 +306,10 @@ module ActiveRecord
         end
         record
       rescue ActiveRecord::RecordNotUnique
-        # Safely check if transaction is open, defaulting to false if check fails
+        # Safely check if transaction is open, defaulting to false if connection is unavailable
         transaction_open = begin
           connection.transaction_open?
-        rescue
+        rescue ActiveRecord::ConnectionNotEstablished, ActiveRecord::ConnectionFailed
           false
         end
 
