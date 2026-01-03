@@ -1,3 +1,7 @@
+*   Deprecate built-in `backburner` adapter.
+
+    *Dino Maric, Nathan Esquenazi, Earlopain*
+
 *   Jobs are now enqueued after transaction commit.
 
     This fixes that jobs would surprisingly run against uncommitted and
