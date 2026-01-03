@@ -36,15 +36,6 @@ module ApplicationTests
       assert_equal "deploy-123", Rails.app.revision
     end
 
-    test "revision can be set via config.revision proc" do
-      add_to_config <<-RUBY
-        config.revision = -> { "proc-456" }
-      RUBY
-
-      require "#{app_path}/config/environment"
-      assert_equal "proc-456", Rails.app.revision
-    end
-
     test "config.revision takes precedence over REVISION file" do
       File.write("#{app_path}/REVISION", "file-revision")
 

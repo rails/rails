@@ -420,9 +420,7 @@ module Rails
     ## Rails internal API
 
     def revision=(rev) # :nodoc:
-      rev = rev.call if rev.respond_to?(:call)
-      rev = rev&.to_s
-      @revision = rev
+      @revision = rev&.to_s
       @revision_initialized = true
     end
 
