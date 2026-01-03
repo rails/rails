@@ -1,3 +1,15 @@
+*   Add `delete_in_batches` for deleting records in batches.
+
+    Unlike `in_batches.delete_all`, this does not use cursor tracking or
+    `ORDER BY` since deleted records are excluded from subsequent batches.
+
+    ```ruby
+    Event.where("created_at < ?", 1.year.ago).delete_in_batches
+    Event.where(processed: true).delete_in_batches(of: 5000)
+    ```
+
+    *Shayon Mukherjee*
+
 *   Yield the transaction object to the block when using `with_lock`.
 
     *Ngan Pham*
