@@ -72,7 +72,7 @@ TIP: Any commands prefaced with a dollar sign `$` should be run in the terminal.
 
 For this project, you will need:
 
-* Ruby 3.2 or newer
+* Ruby 3.3 or newer
 * Rails 8.2.0 or newer
 * A code editor
 
