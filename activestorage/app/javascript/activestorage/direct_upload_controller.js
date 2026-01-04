@@ -17,12 +17,13 @@ export class DirectUploadController {
 
     this.dispatch("start")
 
-    this.directUpload.create((error, attributes) => {
+    this.directUpload.create((error, blob) => {
       if (error) {
         hiddenInput.parentNode.removeChild(hiddenInput)
         this.dispatchError(error)
       } else {
-        hiddenInput.value = attributes.signed_id
+        hiddenInput.value = blob.signed_id
+        this.dispatch("success", { blob, hiddenInput })
       }
 
       this.dispatch("end")

@@ -660,12 +660,16 @@ class DirectUploadController {
     hiddenInput.name = this.input.name;
     this.input.insertAdjacentElement("beforebegin", hiddenInput);
     this.dispatch("start");
-    this.directUpload.create(((error, attributes) => {
+    this.directUpload.create(((error, blob) => {
       if (error) {
         hiddenInput.parentNode.removeChild(hiddenInput);
         this.dispatchError(error);
       } else {
-        hiddenInput.value = attributes.signed_id;
+        hiddenInput.value = blob.signed_id;
+        this.dispatch("success", {
+          blob: blob,
+          hiddenInput: hiddenInput
+        });
       }
       this.dispatch("end");
       callback(error);
