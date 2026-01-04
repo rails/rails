@@ -130,4 +130,19 @@ class SecureTokenTest < ActiveRecord::TestCase
     assert_match(/^token_/, user.token)
     assert_match(/^auth/, user.auth_token)
   end
+
+  def test_token_masked_on_inspect
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "users"
+      attribute :auth_token
+      has_secure_token on: :initialize, prefix: true, skip_inspection_filter: true
+      has_secure_token :auth_token, on: :initialize, prefix: "auth_"
+    end
+
+    user = model.new
+
+    assert_not_includes user.inspect, "token: token_[FILTERED]"
+    assert_includes user.inspect, "auth_token: auth_[FILTERED]"
+    assert_equal 1, user.inspect.scan("[FILTERED]").length
+  end
 end

@@ -1,3 +1,7 @@
+*   Add `prefix:` and `skip_inspection_filter:` options to `has_secure_token` and filter token values by default.
+
+    *Benjamin Garcia*
+
 *   Yield the transaction object to the block when using `with_lock`.
 
     *Ngan Pham*
