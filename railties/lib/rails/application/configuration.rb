@@ -560,7 +560,7 @@ module Rails
         elsif new_secret_key_base.is_a?(String) && new_secret_key_base.present?
           @secret_key_base = new_secret_key_base
         elsif new_secret_key_base
-          raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
+          raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String, got: #{new_secret_key_base.inspect}`"
         else
           raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `bin/rails credentials:edit`"
         end
