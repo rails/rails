@@ -69,6 +69,17 @@ module ActionController
       emit_event("action_controller.data_sent", filename: event.payload[:filename], duration_ms: event.duration.round(1))
     end
 
+    def open_redirect(event)
+      payload = event.payload
+
+      emit_event("action_controller.open_redirect",
+        location: payload[:location],
+        request_method: payload[:request]&.method,
+        request_path: payload[:request]&.path,
+        stacktrace: payload[:stack_trace],
+      )
+    end
+
     def unpermitted_parameters(event)
       unpermitted_keys = event.payload[:keys]
       context = event.payload[:context]
@@ -79,6 +90,26 @@ module ActionController
       )
     end
     debug_only :unpermitted_parameters
+
+    def csrf_token_fallback(event)
+      emit_csrf_event "action_controller.csrf_token_fallback", event.payload
+    end
+
+    def csrf_request_blocked(event)
+      emit_csrf_event "action_controller.csrf_request_blocked", event.payload
+    end
+
+    def csrf_javascript_blocked(event)
+      emit_csrf_event "action_controller.csrf_javascript_blocked", event.payload
+    end
+
+    private def emit_csrf_event(name, payload)
+      emit_event name,
+        controller: payload[:controller],
+        action: payload[:action],
+        sec_fetch_site: payload[:sec_fetch_site],
+        message: payload[:message]
+    end
 
     def write_fragment(event)
       fragment_cache(__method__, event)

@@ -142,6 +142,10 @@ class PrependProtectForgeryBaseController < ActionController::Base
     def verify_authenticity_token
       add_called_callback("verify_authenticity_token")
     end
+
+    def verify_request_for_forgery_protection
+      add_called_callback("verify_request_for_forgery_protection")
+    end
 end
 
 class FreeCookieController < RequestForgeryProtectionControllerUsingResetSession
@@ -193,6 +197,13 @@ end
 class SkipProtectionWhenUnprotectedController < ActionController::Base
   include RequestForgeryProtectionActions
   skip_forgery_protection
+end
+
+# Controller using the deprecated skip_before_action :verify_authenticity_token
+class DeprecatedSkipVerifyAuthenticityTokenController < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery with: :exception
+  skip_before_action :verify_authenticity_token
 end
 
 class CookieCsrfTokenStorageStrategyController < ActionController::Base
@@ -525,7 +536,7 @@ module RequestForgeryProtectionTests
     forgery_protection_origin_check do
       initialize_csrf_token
       @controller.stub :form_authenticity_token, @token do
-        exception = assert_raises(ActionController::InvalidAuthenticityToken) do
+        exception = assert_raises(ActionController::InvalidCrossOriginRequest) do
           @request.set_header "HTTP_ORIGIN", "null"
           post :index, params: { custom_authenticity_token: @token }
         end
@@ -535,14 +546,14 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_block_post_with_origin_checking_and_wrong_origin
-    old_logger = ActionController::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    ActionController::Base.logger = logger
+    old_logger = ActionController::LogSubscriber.logger
+    ActionController::LogSubscriber.logger = logger
 
     forgery_protection_origin_check do
       initialize_csrf_token
       @controller.stub :form_authenticity_token, @token do
-        assert_blocked do
+        assert_origin_blocked do
           @request.set_header "HTTP_ORIGIN", "http://bad.host"
           post :index, params: { custom_authenticity_token: @token }
         end
@@ -554,29 +565,30 @@ module RequestForgeryProtectionTests
       logger.logged(:warn).last
     )
   ensure
-    ActionController::Base.logger = old_logger
+    ActionController::LogSubscriber.logger = old_logger
   end
 
 
   def test_should_warn_on_missing_csrf_token
-    old_logger = ActionController::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    ActionController::Base.logger = logger
+    old_logger = ActionController::LogSubscriber.logger
+    ActionController::LogSubscriber.logger = logger
 
     begin
       assert_blocked { post :index }
 
-      assert_equal 1, logger.logged(:warn).size
+      assert_equal 2, logger.logged(:warn).size
+      assert_match(/Falling back to CSRF token/, logger.logged(:warn).first)
       assert_match(/CSRF token authenticity/, logger.logged(:warn).last)
     ensure
-      ActionController::Base.logger = old_logger
+      ActionController::LogSubscriber.logger = old_logger
     end
   end
 
   def test_should_not_warn_if_csrf_logging_disabled
-    old_logger = ActionController::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    ActionController::Base.logger = logger
+    old_logger = ActionController::LogSubscriber.logger
+    ActionController::LogSubscriber.logger = logger
     ActionController::Base.log_warning_on_csrf_failure = false
 
     begin
@@ -584,7 +596,7 @@ module RequestForgeryProtectionTests
 
       assert_equal 0, logger.logged(:warn).size
     ensure
-      ActionController::Base.logger = old_logger
+      ActionController::LogSubscriber.logger = old_logger
       ActionController::Base.log_warning_on_csrf_failure = true
     end
   end
@@ -611,9 +623,9 @@ module RequestForgeryProtectionTests
   end
 
   def test_should_warn_on_not_same_origin_js
-    old_logger = ActionController::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    ActionController::Base.logger = logger
+    old_logger = ActionController::LogSubscriber.logger
+    ActionController::LogSubscriber.logger = logger
 
     begin
       assert_cross_origin_blocked { get :same_origin_js }
@@ -621,14 +633,14 @@ module RequestForgeryProtectionTests
       assert_equal 1, logger.logged(:warn).size
       assert_match(/<script> tag on another site requested protected JavaScript/, logger.logged(:warn).last)
     ensure
-      ActionController::Base.logger = old_logger
+      ActionController::LogSubscriber.logger = old_logger
     end
   end
 
   def test_should_not_warn_if_csrf_logging_disabled_and_not_same_origin_js
-    old_logger = ActionController::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    ActionController::Base.logger = logger
+    old_logger = ActionController::LogSubscriber.logger
+    ActionController::LogSubscriber.logger = logger
     ActionController::Base.log_warning_on_csrf_failure = false
 
     begin
@@ -636,7 +648,7 @@ module RequestForgeryProtectionTests
 
       assert_equal 0, logger.logged(:warn).size
     ensure
-      ActionController::Base.logger = old_logger
+      ActionController::LogSubscriber.logger = old_logger
       ActionController::Base.log_warning_on_csrf_failure = true
     end
   end
@@ -709,6 +721,13 @@ module RequestForgeryProtectionTests
     assert_not_blocked(&block)
   end
 
+  # For origin check failures - defaults to assert_blocked which is overridden
+  # by individual test classes. Test classes using :exception strategy should
+  # override this to expect InvalidCrossOriginRequest.
+  def assert_origin_blocked(&block)
+    assert_blocked(&block)
+  end
+
   def forgery_protection_origin_check
     old_setting = ActionController::Base.forgery_protection_origin_check
     ActionController::Base.forgery_protection_origin_check = true
@@ -768,14 +787,18 @@ class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::T
   include RequestForgeryProtectionTests
 
   def assert_blocked(&block)
-    assert_raises(ActionController::InvalidAuthenticityToken, &block)
+    assert_raises(ActionController::InvalidCrossOriginRequest, &block)
+  end
+
+  def assert_origin_blocked(&block)
+    assert_raises(ActionController::InvalidCrossOriginRequest, &block)
   end
 
   def test_raised_exception_message_explains_why_it_occurred
     forgery_protection_origin_check do
       initialize_csrf_token
       @controller.stub :form_authenticity_token, @token do
-        exception = assert_raises(ActionController::InvalidAuthenticityToken) do
+        exception = assert_raises(ActionController::InvalidCrossOriginRequest) do
           @request.set_header "HTTP_ORIGIN", "http://bad.host"
           post :index, params: { custom_authenticity_token: @token }
         end
@@ -809,24 +832,24 @@ class PrependProtectForgeryBaseControllerTest < ActionController::TestCase
     protect_from_forgery
   end
 
-  def test_verify_authenticity_token_is_prepended
+  def test_forgery_protection_callbacks_are_prepended_in_correct_order
     @controller = PrependTrueController.new
     get :index
-    expected_callback_order = ["verify_authenticity_token", "custom_action"]
+    expected_callback_order = ["verify_authenticity_token", "verify_request_for_forgery_protection", "custom_action"]
     assert_equal(expected_callback_order, @controller.called_callbacks)
   end
 
-  def test_verify_authenticity_token_is_not_prepended
+  def test_forgery_protection_callbacks_are_not_prepended
     @controller = PrependFalseController.new
     get :index
-    expected_callback_order = ["custom_action", "verify_authenticity_token"]
+    expected_callback_order = ["custom_action", "verify_authenticity_token", "verify_request_for_forgery_protection"]
     assert_equal(expected_callback_order, @controller.called_callbacks)
   end
 
-  def test_verify_authenticity_token_is_not_prepended_by_default
+  def test_forgery_protection_callbacks_are_not_prepended_by_default
     @controller = PrependDefaultController.new
     get :index
-    expected_callback_order = ["custom_action", "verify_authenticity_token"]
+    expected_callback_order = ["custom_action", "verify_authenticity_token", "verify_request_for_forgery_protection"]
     assert_equal(expected_callback_order, @controller.called_callbacks)
   end
 end
@@ -871,7 +894,7 @@ end
 class CustomAuthenticityParamControllerTest < ActionController::TestCase
   def setup
     super
-    @old_logger = ActionController::Base.logger
+    @old_logger = ActionController::LogSubscriber.logger
     @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
     @token = Base64.urlsafe_encode64(SecureRandom.random_bytes(32))
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
@@ -884,25 +907,30 @@ class CustomAuthenticityParamControllerTest < ActionController::TestCase
   end
 
   def test_should_not_warn_if_form_authenticity_param_matches_form_authenticity_token
-    ActionController::Base.logger = @logger
+    ActionController::LogSubscriber.logger = @logger
     begin
       @controller.stub :valid_authenticity_token?, :true do
         post :index, params: { custom_token_name: "foobar" }
-        assert_equal 0, @logger.logged(:warn).size
+        # 1 warning for falling back to CSRF token (no Sec-Fetch-Site header)
+        assert_equal 1, @logger.logged(:warn).size
+        assert_match(/Falling back to CSRF token/, @logger.logged(:warn).first)
       end
     ensure
-      ActionController::Base.logger = @old_logger
+      ActionController::LogSubscriber.logger = @old_logger
     end
   end
 
   def test_should_warn_if_form_authenticity_param_does_not_match_form_authenticity_token
-    ActionController::Base.logger = @logger
+    ActionController::LogSubscriber.logger = @logger
 
     begin
       post :index, params: { custom_token_name: "bazqux" }
-      assert_equal 1, @logger.logged(:warn).size
+      # 2 warnings: fallback warning + CSRF token authenticity warning
+      assert_equal 2, @logger.logged(:warn).size
+      assert_match(/Falling back to CSRF token/, @logger.logged(:warn).first)
+      assert_match(/CSRF token authenticity/, @logger.logged(:warn).last)
     ensure
-      ActionController::Base.logger = @old_logger
+      ActionController::LogSubscriber.logger = @old_logger
     end
   end
 end
@@ -960,7 +988,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
 
     # Set invalid URI in PATH_INFO
     @request.env["PATH_INFO"] = "/foo/bar<"
-    exception = assert_raises(ActionController::InvalidAuthenticityToken) do
+    exception = assert_raises(ActionController::InvalidCrossOriginRequest) do
       post :post_one, params: { custom_authenticity_token: form_token }
     end
     assert_match "Can't verify CSRF token authenticity.", exception.message
@@ -975,7 +1003,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
 
     # This is required because PATH_INFO isn't reset between requests.
     @request.env["PATH_INFO"] = "/per_form_tokens/post_two"
-    assert_raises(ActionController::InvalidAuthenticityToken) do
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
       post :post_two, params: { custom_authenticity_token: form_token }
     end
   end
@@ -989,7 +1017,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
 
     # This is required because PATH_INFO isn't reset between requests.
     @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
-    assert_raises(ActionController::InvalidAuthenticityToken) do
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
       patch :post_one, params: { custom_authenticity_token: form_token }
     end
   end
@@ -1003,7 +1031,7 @@ class PerFormTokensControllerTest < ActionController::TestCase
 
     # This is required because PATH_INFO isn't reset between requests.
     @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
-    assert_raises(ActionController::InvalidAuthenticityToken) do
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
       patch :post_one, params: { custom_authenticity_token: form_token }
     end
   end
@@ -1243,7 +1271,7 @@ class SkipProtectionControllerTest < ActionController::TestCase
   end
 
   def assert_blocked(&block)
-    assert_raises(ActionController::InvalidAuthenticityToken, &block)
+    assert_raises(ActionController::InvalidCrossOriginRequest, &block)
   end
 
   def assert_not_blocked(&block)
@@ -1260,6 +1288,29 @@ class SkipProtectionWhenUnprotectedControllerTest < ActionController::TestCase
   def assert_not_blocked(&block)
     assert_nothing_raised(&block)
     assert_response :success
+  end
+end
+
+class DeprecatedSkipVerifyAuthenticityTokenControllerTest < ActionController::TestCase
+  def test_should_allow_post_without_token_with_deprecation_warning
+    assert_deprecated(ActiveSupport.deprecator) do
+      post :index
+    end
+    assert_response :success
+  end
+
+  def test_deprecation_message_suggests_skip_forgery_protection
+    assert_deprecated(/skip_forgery_protection/, ActiveSupport.deprecator) do
+      post :index
+    end
+  end
+
+  def test_should_not_raise_exception_when_skipped
+    assert_deprecated(ActiveSupport.deprecator) do
+      assert_nothing_raised do
+        post :index
+      end
+    end
   end
 end
 
@@ -1410,7 +1461,11 @@ class CookieCsrfTokenStorageStrategyControllerTest < ActionController::TestCase
   end
 
   def assert_blocked(&block)
-    assert_raises(ActionController::InvalidAuthenticityToken, &block)
+    assert_raises(ActionController::InvalidCrossOriginRequest, &block)
+  end
+
+  def assert_origin_blocked(&block)
+    assert_raises(ActionController::InvalidCrossOriginRequest, &block)
   end
 
   def assert_not_blocked(&block)
@@ -1431,5 +1486,393 @@ class CustomCsrfTokenStorageStrategyControllerTest < ActionController::TestCase
 
   def initialize_csrf_token(token = @token)
     request.env[:custom_storage] = token
+  end
+end
+
+# Controllers for testing header_only and header_or_legacy_token verification strategies
+class HeaderOnlyProtectionController < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery using: :header_only, with: :exception
+end
+
+class HeaderOrLegacyTokenProtectionController < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery with: :exception
+end
+
+class HeaderOnlyProtectionControllerTest < ActionController::TestCase
+  def setup
+    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
+    ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
+  end
+
+  def teardown
+    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
+  end
+
+  test "allows GET requests without Sec-Fetch-Site header" do
+    get :index
+    assert_response :success
+  end
+
+  test "allows HEAD requests without Sec-Fetch-Site header" do
+    head :index
+    assert_response :success
+  end
+
+  test "allows POST with same-origin Sec-Fetch-Site" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+    post :index
+    assert_response :success
+  end
+
+  test "allows POST with same-site Sec-Fetch-Site" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-site"
+    post :index
+    assert_response :success
+  end
+
+  test "blocks POST with cross-site Sec-Fetch-Site" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      post :index
+    end
+  end
+
+  test "blocks POST with missing Sec-Fetch-Site header" do
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      post :index
+    end
+  end
+
+  test "blocks POST with none Sec-Fetch-Site" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "none"
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      post :index
+    end
+  end
+
+  test "Sec-Fetch-Site check is case insensitive" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "Same-Origin"
+    post :index
+    assert_response :success
+  end
+
+  test "appends Sec-Fetch-Site to Vary header" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+    get :index
+    assert_includes response.headers["Vary"], "Sec-Fetch-Site"
+  end
+
+  test "appends Sec-Fetch-Site to existing Vary header" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+    @request.set_header "HTTP_ACCEPT", "text/html"
+    get :index
+
+    vary_values = response.headers["Vary"].split(",").map(&:strip)
+    assert_includes vary_values, "Sec-Fetch-Site"
+  end
+
+  test "does not duplicate Sec-Fetch-Site in Vary header" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+    get :index
+    get :index
+
+    vary_values = response.headers["Vary"].split(",").map(&:strip)
+    sec_fetch_site_count = vary_values.count("Sec-Fetch-Site")
+    assert_equal 1, sec_fetch_site_count
+  end
+
+  test "blocks POST with wrong Origin even with valid Sec-Fetch-Site" do
+    forgery_protection_origin_check do
+      @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+      @request.set_header "HTTP_ORIGIN", "http://bad.host"
+      assert_raises(ActionController::InvalidCrossOriginRequest) do
+        post :index
+      end
+    end
+  end
+
+  private
+    def forgery_protection_origin_check
+      old_setting = ActionController::Base.forgery_protection_origin_check
+      ActionController::Base.forgery_protection_origin_check = true
+      begin
+        yield
+      ensure
+        ActionController::Base.forgery_protection_origin_check = old_setting
+      end
+    end
+end
+
+class HeaderOrLegacyTokenProtectionControllerTest < ActionController::TestCase
+  def setup
+    @token = Base64.urlsafe_encode64("railstestrailstestrailstestrails")
+    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
+    ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
+  end
+
+  def teardown
+    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
+  end
+
+  test "allows GET requests" do
+    get :index
+    assert_response :success
+  end
+
+  test "allows HEAD requests" do
+    head :index
+    assert_response :success
+  end
+
+  test "allows POST with same-origin Sec-Fetch-Site" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+    post :index
+    assert_response :success
+  end
+
+  test "allows POST with same-site Sec-Fetch-Site" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-site"
+    post :index
+    assert_response :success
+  end
+
+  test "blocks POST with cross-site Sec-Fetch-Site" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      post :index
+    end
+  end
+
+  test "allows POST with missing Sec-Fetch-Site and valid token" do
+    initialize_csrf_token
+    @controller.stub :form_authenticity_token, @token do
+      post :index, params: { custom_authenticity_token: @token }
+      assert_response :success
+    end
+  end
+
+  test "blocks POST with missing Sec-Fetch-Site without token" do
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      post :index
+    end
+  end
+
+  test "allows POST with none Sec-Fetch-Site and valid token" do
+    initialize_csrf_token
+    @request.set_header "HTTP_SEC_FETCH_SITE", "none"
+    @controller.stub :form_authenticity_token, @token do
+      post :index, params: { custom_authenticity_token: @token }
+      assert_response :success
+    end
+  end
+
+  test "blocks POST with none Sec-Fetch-Site without token" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "none"
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      post :index
+    end
+  end
+
+  test "blocks POST with wrong Origin even with valid Sec-Fetch-Site" do
+    forgery_protection_origin_check do
+      @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+      @request.set_header "HTTP_ORIGIN", "http://bad.host"
+      assert_raises(ActionController::InvalidCrossOriginRequest) do
+        post :index
+      end
+    end
+  end
+
+  test "logs warning when falling back to CSRF token" do
+    initialize_csrf_token
+    @controller.stub :form_authenticity_token, @token do
+      post :index, params: { custom_authenticity_token: @token }
+      assert_response :success
+    end
+  end
+
+  test "does not log warning when Sec-Fetch-Site is same-origin" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+    post :index
+    assert_response :success
+  end
+
+  test "appends Sec-Fetch-Site to Vary header" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+    get :index
+    assert_includes response.headers["Vary"], "Sec-Fetch-Site"
+  end
+
+  test "Sec-Fetch-Site check is case insensitive" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "Same-Site"
+    post :index
+    assert_response :success
+  end
+
+  private
+    def initialize_csrf_token(token = @token, session = self.session)
+      session[:_csrf_token] = token
+    end
+
+    def forgery_protection_origin_check
+      old_setting = ActionController::Base.forgery_protection_origin_check
+      ActionController::Base.forgery_protection_origin_check = true
+      begin
+        yield
+      ensure
+        ActionController::Base.forgery_protection_origin_check = old_setting
+      end
+    end
+end
+
+class ConfiguredVerificationStrategyTest < ActiveSupport::TestCase
+  test "protect_from_forgery respects configured verification strategy when :using is not provided" do
+    old_strategy = ActionController::Base.forgery_protection_verification_strategy
+    assert_equal :header_or_legacy_token, old_strategy
+
+    ActionController::Base.forgery_protection_verification_strategy = :header_only
+
+    controller_class = Class.new(ActionController::Base) do
+      include RequestForgeryProtectionActions
+      protect_from_forgery with: :exception
+    end
+
+    assert_equal :header_only, controller_class.forgery_protection_verification_strategy
+  ensure
+    ActionController::Base.forgery_protection_verification_strategy = old_strategy
+  end
+end
+
+class InvalidVerificationStrategyTest < ActionController::TestCase
+  def test_raises_argument_error_for_invalid_using_option
+    assert_raises(ArgumentError) do
+      Class.new(ActionController::Base) do
+        protect_from_forgery using: :invalid_strategy
+      end
+    end
+  end
+
+  def test_raises_argument_error_for_authenticity_token_option
+    assert_raises(ArgumentError) do
+      Class.new(ActionController::Base) do
+        protect_from_forgery using: :authenticity_token
+      end
+    end
+  end
+end
+
+
+class TrustedOriginsHeaderOnlyController < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery using: :header_only, with: :exception,
+    trusted_origins: ["https://trusted.example.com", "https://oauth.provider.com"]
+end
+
+class TrustedOriginsHeaderOrLegacyTokenController < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery with: :exception,
+    trusted_origins: ["https://trusted.example.com"]
+end
+
+class TrustedOriginsHeaderOnlyControllerTest < ActionController::TestCase
+  def setup
+    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
+    ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
+  end
+
+  def teardown
+    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
+  end
+
+  test "allows cross-site POST from trusted origin" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    @request.set_header "HTTP_ORIGIN", "https://trusted.example.com"
+    post :index
+    assert_response :success
+  end
+
+  test "allows cross-site POST from another trusted origin" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    @request.set_header "HTTP_ORIGIN", "https://oauth.provider.com"
+    post :index
+    assert_response :success
+  end
+
+  test "blocks cross-site POST from untrusted origin" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    @request.set_header "HTTP_ORIGIN", "https://untrusted.example.com"
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      post :index
+    end
+  end
+
+  test "blocks cross-site POST without origin header" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      post :index
+    end
+  end
+
+  test "still allows same-origin requests" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+    post :index
+    assert_response :success
+  end
+
+  test "still allows same-site requests" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-site"
+    post :index
+    assert_response :success
+  end
+end
+
+class TrustedOriginsHeaderOrLegacyTokenControllerTest < ActionController::TestCase
+  def setup
+    @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
+    ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
+  end
+
+  def teardown
+    ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
+  end
+
+  test "allows cross-site POST from trusted origin" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    @request.set_header "HTTP_ORIGIN", "https://trusted.example.com"
+    post :index
+    assert_response :success
+  end
+
+  test "blocks cross-site POST from untrusted origin" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    @request.set_header "HTTP_ORIGIN", "https://untrusted.example.com"
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      post :index
+    end
+  end
+end
+
+class InvalidAuthenticityTokenDeprecationTest < ActiveSupport::TestCase
+  test "InvalidAuthenticityToken is deprecated" do
+    assert_deprecated("ActionController::InvalidAuthenticityToken has been deprecated", ActionController.deprecator) do
+      ActionController::InvalidAuthenticityToken
+    end
+  end
+
+  test "InvalidAuthenticityToken resolves to InvalidCrossOriginRequest" do
+    assert_deprecated(ActionController.deprecator) do
+      assert_equal ActionController::InvalidCrossOriginRequest, ActionController::InvalidAuthenticityToken
+    end
+  end
+
+  test "can rescue InvalidCrossOriginRequest with deprecated InvalidAuthenticityToken" do
+    assert_deprecated(ActionController.deprecator) do
+      assert_nothing_raised do
+        raise ActionController::InvalidCrossOriginRequest
+      rescue ActionController::InvalidAuthenticityToken
+      end
+    end
   end
 end

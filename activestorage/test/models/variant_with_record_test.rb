@@ -301,7 +301,7 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
       # The second time we load this variant, we are back down to just 3 queries.
 
       assert_queries_match(/SELECT/i, count: 10) do
-        # 9 queries:
+        # 10 queries:
         # attachments (vlogs) initial load x 1
         # blob x 1 (gets both records)
         # variant record x 1 (gets both records)

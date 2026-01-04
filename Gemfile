@@ -3,7 +3,8 @@
 source "https://rubygems.org"
 gemspec
 
-gem "minitest"
+gem "minitest", "~> 6.0"
+gem "minitest-mock"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
@@ -132,7 +133,6 @@ local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  gem "minitest-bisect", require: false
   gem "minitest-ci", require: false
   gem "minitest-retry"
 
@@ -143,8 +143,7 @@ group :test do
 
   # Needed for Railties tests because it is included in generated apps.
   gem "brakeman"
-  # Skip bundler-audit until https://github.com/rubysec/bundler-audit/issues/405 is resolved for Ruby 3.5.0dev
-  gem "bundler-audit" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.5.0")
+  gem "bundler-audit"
 end
 
 platforms :ruby, :windows do

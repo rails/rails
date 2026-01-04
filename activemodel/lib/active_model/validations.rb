@@ -425,9 +425,9 @@ module ActiveModel
     end
 
     # Hook method defining how an attribute value should be retrieved. By default
-    # this is assumed to be an instance named after the attribute. Override this
-    # method in subclasses should you need to retrieve the value for a given
-    # attribute differently:
+    # this is assumed to be an instance named after the attribute. If the attribute
+    # does not exist, nil is returned. Override this method in subclasses should you
+    # need to retrieve the value for a given attribute differently:
     #
     #   class MyClass
     #     include ActiveModel::Validations
@@ -440,7 +440,9 @@ module ActiveModel
     #       @data[key]
     #     end
     #   end
-    alias :read_attribute_for_validation :send
+    def read_attribute_for_validation(attribute)
+      send(attribute) if respond_to?(attribute, true)
+    end
 
     # Returns the context when running validations.
     def validation_context

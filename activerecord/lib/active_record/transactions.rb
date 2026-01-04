@@ -4,8 +4,7 @@ module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
     extend ActiveSupport::Concern
-    # :nodoc:
-    ACTIONS = [:create, :destroy, :update]
+    ACTIONS = [:create, :destroy, :update] # :nodoc:
 
     included do
       define_callbacks :commit, :rollback,
@@ -425,7 +424,7 @@ module ActiveRecord
     #
     # This method is available within the context of an ActiveRecord::Base
     # instance.
-    def with_transaction_returning_status
+    def with_transaction_returning_status # :nodoc:
       self.class.with_connection do |connection|
         connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
           status = nil

@@ -435,7 +435,7 @@ Because this can be quite tricky and many people shouldn't need to worry about i
 by default Solid Queue is configured in a different database as the main app.
 
 However, if you use Solid Queue in the same database as your app, you can make sure you
-don't rely accidentallly on transactional integrity with Active Job’s
+don't rely accidentally on transactional integrity with Active Job’s
 `enqueue_after_transaction_commit` option which can be enabled for individual jobs or
 all jobs through `ApplicationJob`:
 

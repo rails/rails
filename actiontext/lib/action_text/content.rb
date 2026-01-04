@@ -133,7 +133,15 @@ module ActionText
     end
 
     def to_trix_html
-      render_attachments(&:to_trix_attachment).to_html
+      to_editor_html
+    end
+    deprecate :to_trix_html, deprecator: ActionText.deprecator
+
+    def to_editor_html # :nodoc:
+      canonical_content = render_attachments(&:to_editor_attachment)
+      canonical_fragment = Fragment.wrap(canonical_content.fragment)
+
+      RichText.editor.as_editable(canonical_fragment).to_html
     end
 
     def to_html

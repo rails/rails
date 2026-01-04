@@ -21,6 +21,16 @@ class RateLimitedController < ActionController::Base
     head :ok
   end
 
+  rate_limit to: :dynamic_to, within: :dynamic_within, only: :limited_with_dynamic_to_within
+  def limited_with_dynamic_to_within
+    head :ok
+  end
+
+  rate_limit to: -> { params[:max_requests]&.to_i || 2 }, within: -> { params[:time_window]&.to_i&.seconds || 2.seconds }, only: :limited_with_callable_to_within
+  def limited_with_callable_to_within
+    head :ok
+  end
+
   private
     def by_method
       params[:rate_limit_key]
@@ -28,6 +38,14 @@ class RateLimitedController < ActionController::Base
 
     def head_forbidden
       head :forbidden
+    end
+
+    def dynamic_to
+      params[:max_requests]&.to_i || 2
+    end
+
+    def dynamic_within
+      params[:time_window]&.to_i&.seconds || 2.seconds
     end
 end
 
@@ -162,6 +180,50 @@ class RateLimitingTest < ActionController::TestCase
     get :limited_with_methods
     get :limited_with_methods
     assert_response :forbidden
+  end
+
+  test "dynamic to and within with methods" do
+    get :limited_with_dynamic_to_within
+    get :limited_with_dynamic_to_within
+    assert_response :ok
+
+    assert_raises ActionController::TooManyRequests do
+      get :limited_with_dynamic_to_within
+    end
+  end
+
+  test "dynamic to and within with methods using custom values" do
+    get :limited_with_dynamic_to_within, params: { max_requests: 5, time_window: 10 }
+    get :limited_with_dynamic_to_within, params: { max_requests: 5, time_window: 10 }
+    get :limited_with_dynamic_to_within, params: { max_requests: 5, time_window: 10 }
+    get :limited_with_dynamic_to_within, params: { max_requests: 5, time_window: 10 }
+    get :limited_with_dynamic_to_within, params: { max_requests: 5, time_window: 10 }
+    assert_response :ok
+
+    assert_raises ActionController::TooManyRequests do
+      get :limited_with_dynamic_to_within, params: { max_requests: 5, time_window: 10 }
+    end
+  end
+
+  test "dynamic to and within with callables" do
+    get :limited_with_callable_to_within
+    get :limited_with_callable_to_within
+    assert_response :ok
+
+    assert_raises ActionController::TooManyRequests do
+      get :limited_with_callable_to_within
+    end
+  end
+
+  test "dynamic to and within with callables using custom values" do
+    get :limited_with_callable_to_within, params: { max_requests: 3, time_window: 5 }
+    get :limited_with_callable_to_within, params: { max_requests: 3, time_window: 5 }
+    get :limited_with_callable_to_within, params: { max_requests: 3, time_window: 5 }
+    assert_response :ok
+
+    assert_raises ActionController::TooManyRequests do
+      get :limited_with_callable_to_within, params: { max_requests: 3, time_window: 5 }
+    end
   end
 
   test "cross-controller rate limit" do

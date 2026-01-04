@@ -39,7 +39,7 @@ class Date
   #   date.to_fs(:iso8601)       # => "2007-11-10"
   #
   # == Adding your own date formats to to_fs
-  # You can add your own formats to the Date::DATE_FORMATS hash.
+  # You can add your own formats to the +Date::DATE_FORMATS+ hash.
   # Use the format name as the hash key and either a strftime string
   # or Proc instance that takes a date argument as the value.
   #

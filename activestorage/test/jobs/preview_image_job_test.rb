@@ -10,14 +10,18 @@ class ActiveStorage::PreviewImageJobTest < ActiveJob::TestCase
   end
 
   test "creates preview" do
-    assert_changes -> { @blob.preview_image.attached? }, from: false, to: true do
-      ActiveStorage::PreviewImageJob.perform_now @blob, [ @transformation ]
+    ActiveStorage.deprecator.silence do
+      assert_changes -> { @blob.preview_image.attached? }, from: false, to: true do
+        ActiveStorage::PreviewImageJob.perform_now @blob, [ @transformation ]
+      end
     end
   end
 
   test "enqueues transform variant jobs" do
-    assert_enqueued_with job: ActiveStorage::TransformJob, args: [ @blob, @transformation ] do
-      ActiveStorage::PreviewImageJob.perform_now @blob, [ @transformation ]
+    ActiveStorage.deprecator.silence do
+      assert_enqueued_with job: ActiveStorage::TransformJob, args: [ @blob, @transformation ] do
+        ActiveStorage::PreviewImageJob.perform_now @blob, [ @transformation ]
+      end
     end
   end
 end

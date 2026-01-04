@@ -64,7 +64,7 @@ These special columns are automatically managed by Active Record if they exist.
 # db/schema.rb
 ActiveRecord::Schema[8.2].define(version: 2024_05_02_100843) do
   # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
+  enable_extension "pg_catalog.plpgsql"
 
   create_table "products", force: :cascade do |t|
     t.string "name"

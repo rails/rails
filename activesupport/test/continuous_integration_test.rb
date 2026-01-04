@@ -82,4 +82,32 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     output = capture_io { @CI.failure "This sucks", "But such is the life of programming sometimes" }.first.to_s
     assert_equal "\e[1;31m\n\nThis sucks\e[0m\n\e[1;90mBut such is the life of programming sometimes\n\e[0m\n", output
   end
+
+  %w[-f --fail-fast].each do |flag|
+    test "report aborts immediately on failure with #{flag} flag" do
+      output = with_argv([flag]) do
+        capture_io do
+          assert_raises SystemExit do
+            @CI.report("CI") do
+              step "Success!", "true"
+              step "Failed!", "false"
+              step "Should not run", "true"
+            end
+          end
+        end
+      end.to_s
+
+      assert_no_match(/Should not run/, output)
+    end
+  end
+
+  private
+    def with_argv(argv)
+      original_argv = ARGV.dup
+      ARGV.replace(argv)
+
+      yield
+    ensure
+      ARGV.replace(original_argv)
+    end
 end

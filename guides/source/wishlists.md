@@ -181,7 +181,7 @@ so that it's also validated at the database level.
 
 Finally, let's update `app/models/wishlist.rb` with it's associations:
 
-```ruby
+```ruby#3-4
 class Wishlist < ApplicationRecord
   belongs_to :user
   has_many :wishlist_products, dependent: :destroy

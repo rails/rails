@@ -1823,7 +1823,7 @@ module ApplicationTests
     test "config.action_controller.default_protect_from_forgery is true by default" do
       app "development"
 
-      assert_includes ActionController::Base.__callbacks[:process_action].map(&:filter), :verify_authenticity_token
+      assert_includes ActionController::Base.__callbacks[:process_action].map(&:filter), :verify_request_for_forgery_protection
     end
 
     test "config.action_controller.permit_all_parameters can be configured in an initializer" do
@@ -3068,6 +3068,74 @@ module ApplicationTests
       assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates
     end
 
+    test "PostgresqlAdapter.decode_money is true by default for new apps" do
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_money
+    end
+
+    test "PostgresqlAdapter.decode_money is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_money
+    end
+
+    test "PostgresqlAdapter.decode_money can be configured via config.active_record.postgresql_adapter_decode_money" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config "config.active_record.postgresql_adapter_decode_money = true"
+
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_money
+    end
+
+    test "PostgresqlAdapter.decode_bytea is true by default for new apps" do
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_bytea
+    end
+
+    test "PostgresqlAdapter.decode_bytea is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_bytea
+    end
+
+    test "PostgresqlAdapter.decode_bytea can be configured via config.active_record.postgresql_adapter_decode_bytea" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config "config.active_record.postgresql_adapter_decode_bytea = true"
+
+      app_file "config/initializers/active_record.rb", <<~RUBY
+        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_bytea
+    end
+
     test "SQLite3Adapter.strict_strings_by_default is true by default for new apps" do
       app_file "config/initializers/active_record.rb", <<~RUBY
         ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
@@ -3244,26 +3312,6 @@ module ApplicationTests
       assert_not ActiveSupport.parallelize_test_databases
     end
 
-    test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
-      class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer
-        def klass
-          nil
-        end
-      end
-
-      app_file "config/initializers/custom_serializers.rb", <<-RUBY
-      Rails.application.config.active_job.custom_serializers << DummySerializer
-      RUBY
-
-      app "development"
-
-      assert_nothing_raised do
-        ActiveJob::Base
-      end
-
-      assert_includes ActiveJob::Serializers.serializers, DummySerializer.instance
-    end
-
     test "config.active_job.verbose_enqueue_logs defaults to true in development" do
       build_app
       app "development"
@@ -3278,18 +3326,47 @@ module ApplicationTests
       assert_not ActiveJob.verbose_enqueue_logs
     end
 
-    test "config.active_job.enqueue_after_transaction_commit is deprecated" do
+    test "config.active_job.enqueue_after_transaction_commit defaults to true for new apps" do
+      build_app
+      app "production"
+
+      assert ActiveRecord::Base
+      assert_equal true, ActiveJob::Base.enqueue_after_transaction_commit
+    end
+
+    test "config.active_job.enqueue_after_transaction_commit can be set to false for new apps" do
+      build_app
+
       app_file "config/initializers/enqueue_after_transaction_commit.rb", <<-RUBY
-      Rails.application.config.active_job.enqueue_after_transaction_commit = true
+        Rails.application.config.active_job.enqueue_after_transaction_commit = false
       RUBY
 
       app "production"
 
-      assert_nothing_raised do
-        ActiveRecord::Base
-      end
-
+      assert ActiveRecord::Base
       assert_equal false, ActiveJob::Base.enqueue_after_transaction_commit
+    end
+
+    test "config.active_job.enqueue_after_transaction_commit defaults to false for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "production"
+
+      assert ActiveRecord::Base
+      assert_equal false, ActiveJob::Base.enqueue_after_transaction_commit
+    end
+
+    test "config.active_job.enqueue_after_transaction_commit can be set to true for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/enqueue_after_transaction_commit.rb", <<-RUBY
+        Rails.application.config.active_job.enqueue_after_transaction_commit = true
+      RUBY
+
+      app "production"
+
+      assert ActiveRecord::Base
+      assert_equal true, ActiveJob::Base.enqueue_after_transaction_commit
     end
 
     test "active record job queue is set" do
@@ -5157,6 +5234,30 @@ module ApplicationTests
 
       assert_equal false, Rails.application.config.action_controller.logger
       assert_not output.include?("Processing by Rails::WelcomeController#index as HTML")
+    end
+
+    test "config.action_controller.live_streaming_excluded_keys configures ActionController::Live" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ActionController::Base
+        include ActionController::Live
+
+        def index
+          render plain: self.class.live_streaming_excluded_keys.inspect
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack, :custom_key]
+      RUBY
+
+      app "development"
+
+      get "/posts"
+      assert_equal "[:active_record_connected_to_stack, :custom_key]", last_response.body
     end
 
     private

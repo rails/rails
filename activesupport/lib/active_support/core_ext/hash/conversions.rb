@@ -94,7 +94,7 @@ class Hash
     # Returns a Hash containing a collection of pairs when the key is the node name and the value is
     # its content
     #
-    #   xml = <<-XML
+    #   xml = <<~XML
     #     <?xml version="1.0" encoding="UTF-8"?>
     #       <hash>
     #         <foo type="integer">1</foo>
@@ -112,7 +112,7 @@ class Hash
     # Custom +disallowed_types+ can also be passed in the form of an
     # array.
     #
-    #   xml = <<-XML
+    #   xml = <<~XML
     #     <?xml version="1.0" encoding="UTF-8"?>
     #       <hash>
     #         <foo type="integer">1</foo>

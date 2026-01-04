@@ -312,7 +312,7 @@ module ActionDispatch
     def self.new(app) app; end
   end
 
-  class Request
+  ActiveSupport.on_load(:action_dispatch_request) do
     prepend Flash::RequestMethods
   end
 end

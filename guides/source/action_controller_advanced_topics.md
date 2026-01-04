@@ -51,7 +51,7 @@ end
 ```
 
 NOTE: All subclasses of `ActionController::Base` are protected by default and
-will raise an `ActionController::InvalidAuthenticityToken` error on unverified
+will raise an `ActionController::InvalidCrossOriginRequest` error on unverified
 requests.
 
 ### Authenticity Token in Forms

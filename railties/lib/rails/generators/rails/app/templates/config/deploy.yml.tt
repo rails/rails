@@ -90,7 +90,6 @@ volumes:
 # hitting 404 on in-flight requests. Combines all files from new and old
 # version inside the asset_path.
 asset_path: /rails/public/assets
-
 <% end -%>
 
 # Configure the image builder.
@@ -102,7 +101,7 @@ builder:
   #
   # # Pass arguments and secrets to the Docker build process
   # args:
-  #   RUBY_VERSION: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
+  #   RUBY_VERSION: <%= Gem.ruby_version %>
   # secrets:
   #   - GITHUB_TOKEN
   #   - RAILS_MASTER_KEY

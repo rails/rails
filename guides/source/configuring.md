@@ -60,6 +60,12 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.2
 
+- [`config.action_controller.forgery_protection_verification_strategy`](#config-action-controller-forgery-protection-verification-strategy): `:header_only`
+- [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
+- [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
+- [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
+- [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
+
 #### Default Values for Target Version 8.1
 
 - [`config.action_controller.action_on_path_relative_redirect`](#config-action-controller-action-on-path-relative-redirect): `:raise`
@@ -531,6 +537,18 @@ Enables or disables reloading of classes only when tracked files change. By defa
 #### `config.require_master_key`
 
 Causes the app to not boot if a master key hasn't been made available through `ENV["RAILS_MASTER_KEY"]` or the `config/master.key` file.
+
+#### `config.revision`
+
+Sets the application revision for deployment tracking and error reporting. Must be a string.
+When not set, Rails first tries reading from a `REVISION` file in the application root, and if absent
+it attempts to get the current commit from the local git repository (default: `nil`).
+
+```ruby
+config.revision = ENV["GIT_SHA"]
+```
+
+Revision can be accessed via `Rails.app.revision`.
 
 #### `config.sandbox_by_default`
 
@@ -1188,6 +1206,23 @@ end
 config.active_record.migration_strategy = CustomMigrationStrategy
 ```
 
+You can also configure migration strategies on a per-adapter basis by setting the `migration_strategy` class on the adapter itself.
+This is useful when you want to customize migration behavior for a specific database type.
+
+For example, to use a custom migration strategy for PostgreSQL:
+
+```ruby
+class CustomPostgresStrategy < ActiveRecord::Migration::DefaultStrategy
+  def drop_table(*)
+    # Custom logic specific to PostgreSQL
+  end
+end
+
+ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy = CustomPostgresStrategy
+```
+
+By assigning to the adapter class, all migrations run through connections using that adapter will use the specified strategy.
+
 #### `config.active_record.schema_versions_formatter`
 
 Controls the formatter class used by schema dumper to format versions information. Custom class can be provided
@@ -1551,6 +1586,23 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 7.1                   | `true`               |
 
+#### `config.active_record.postgresql_adapter_decode_bytea`
+
+Specifies whether the PostgresqlAdapter should decode bytea columns.
+
+```ruby
+ActiveRecord::Base.connection
+     .select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
+```
+
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
+
 #### `config.active_record.postgresql_adapter_decode_dates`
 
 Specifies whether the PostgresqlAdapter should decode date columns.
@@ -1567,6 +1619,23 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.2                   | `true`               |
+
+#### `config.active_record.postgresql_adapter_decode_money`
+
+Specifies whether the PostgresqlAdapter should decode money columns.
+
+```ruby
+ActiveRecord::Base.connection
+     .select_value("select '12.34'::money").class #=> BigDecimal
+```
+
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
 
 
 #### `config.active_record.async_query_executor`
@@ -1929,6 +1998,27 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 5.0                   | `true`               |
+
+#### `config.action_controller.forgery_protection_verification_strategy`
+
+Configures how Rails verifies requests for CSRF protection. Available strategies are:
+
+* `:header_only` - Uses the `Sec-Fetch-Site` header sent by modern browsers to verify
+  that requests originate from the same site. Requests without a valid header are rejected.
+  This is simpler and more secure but only works with browsers that support the
+  [Fetch Metadata Request Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Site).
+
+* `:header_or_legacy_token` - A hybrid approach that checks the `Sec-Fetch-Site` header first.
+  If the header indicates same-origin or same-site, the request is allowed. When the
+  header is missing or has the value "none", it falls back to checking the authenticity
+  token. This supports older browsers while logging when fallback occurs.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is         |
+| --------------------- | ---------------------------- |
+| (original)            | `:header_or_legacy_token`    |
+| 8.2                   | `:header_only`               |
 
 #### `config.action_controller.default_protect_from_forgery`
 
@@ -3130,6 +3220,25 @@ Accepts a logger conforming to the interface of Log4r or the default Ruby Logger
 
 Allows to set custom argument serializers. Defaults to `[]`.
 
+#### `config.active_job.enqueue_after_transaction_commit`
+
+Controls whether jobs enqueued inside an Active Record transaction are deferred
+until after the transaction commits. When false, jobs are enqueued immediately.
+Individual jobs can override the global setting:
+
+```ruby
+class NotificationJob < ApplicationJob
+  self.enqueue_after_transaction_commit = false
+end
+```
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
+
 #### `config.active_job.log_arguments`
 
 Controls if the arguments of a job are logged. Defaults to `true`.
@@ -3225,6 +3334,41 @@ If you want to disable analyzers, you can set this to an empty array:
 ```ruby
 config.active_storage.analyzers = []
 ```
+
+#### `config.active_storage.analyze`
+
+Controls when attachment analysis (image/video/audio metadata extraction) is performed:
+
+* `:immediately` - Analyze before validation, making metadata available for validations (e.g. image dimensions, video duration)
+* `:later` - Analyze after upload from local IO or via background job for direct uploads
+* `:lazily` - Skip automatic analysis; analyze on-demand
+
+When set to `:immediately`, you can validate file properties in model validations:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar
+
+  validate :validate_avatar_dimensions, if: -> { avatar.attached? }
+
+  def validate_avatar_dimensions
+    if avatar.metadata[:width] < 200 || avatar.metadata[:height] < 200
+      errors.add(:avatar, "must be at least 200x200 pixels")
+    end
+  end
+end
+```
+
+Attachments with `process: :immediately` variants implicitly use immediate analysis to ensure metadata is available before processing.
+
+NOTE: Direct uploads bypass the server so the file isn't locally available for analysis. In this case, `:immediately` falls back to `:later`, analyzing via background job after upload completes. Metadata isn't available for validation.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:later`             |
+| 8.2                   | `:immediately`       |
 
 #### `config.active_storage.previewers`
 

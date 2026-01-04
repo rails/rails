@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
