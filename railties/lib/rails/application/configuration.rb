@@ -679,13 +679,18 @@ module Rails
         def generate_local_secret
           key_file = root.join("tmp/local_secret.txt")
 
-          unless File.exist?(key_file)
-            random_key = SecureRandom.hex(64)
-            FileUtils.mkdir_p(key_file.dirname)
-            File.binwrite(key_file, random_key)
+          random_key = begin
+            File.binread(key_file)
+          rescue SystemCallError
+            nil
           end
 
-          File.binread(key_file)
+          return random_key if random_key.present?
+
+          random_key = SecureRandom.hex(64)
+          FileUtils.mkdir_p(key_file.dirname)
+          File.binwrite(key_file, random_key)
+          random_key
         end
     end
   end
