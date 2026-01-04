@@ -139,7 +139,6 @@ instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
   gem "minitest-bisect", require: false
-  gem "minitest-ci", require: false
   gem "minitest-retry"
 
   platforms :mri do
