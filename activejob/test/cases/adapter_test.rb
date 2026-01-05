@@ -28,7 +28,7 @@ class AdapterTest < ActiveSupport::TestCase
       before_adapter = ActiveJob::Base.queue_adapter
 
       msg = <<~MSG.squish
-        The built-in `sneakers` adapter is deprecated and will be removed in Rails 8.2.
+        The built-in `sneakers` adapter is deprecated and will be removed in Rails 9.0.
         Please migrate from `sneakers` gem to `kicks` gem version 3.1.1 or later to use `ActiveJob` adapter from `kicks`.
       MSG
       assert_deprecated(msg, ActiveJob.deprecator) do
@@ -41,7 +41,7 @@ class AdapterTest < ActiveSupport::TestCase
 
     test "sneakers check_adapter should warn" do
       msg = <<~MSG.squish
-        The built-in `sneakers` adapter is deprecated and will be removed in Rails 8.2.
+        The built-in `sneakers` adapter is deprecated and will be removed in Rails 9.0.
         Please migrate from `sneakers` gem to `kicks` gem version 3.1.1 or later to use `ActiveJob` adapter from `kicks`.
       MSG
       assert_deprecated(msg, ActiveJob.deprecator) do
@@ -55,7 +55,7 @@ class AdapterTest < ActiveSupport::TestCase
       before_adapter = ActiveJob::Base.queue_adapter
 
       msg = <<~MSG.squish
-        The built-in `backburner` adapter is deprecated and will be removed in Rails 8.2.
+        The built-in `backburner` adapter is deprecated and will be removed in Rails 9.0.
         Please upgrade `backburner` gem to version 1.7 or later to use the `backburner` gem's adapter.
       MSG
       assert_deprecated(msg, ActiveJob.deprecator) do
@@ -68,7 +68,7 @@ class AdapterTest < ActiveSupport::TestCase
 
     test "backburner check_adapter should warn" do
       msg = <<~MSG.squish
-        The built-in `backburner` adapter is deprecated and will be removed in Rails 8.2.
+        The built-in `backburner` adapter is deprecated and will be removed in Rails 9.0.
         Please upgrade `backburner` gem to version 1.7 or later to use the `backburner` gem's adapter.
       MSG
       assert_deprecated(msg, ActiveJob.deprecator) do
