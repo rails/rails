@@ -1,3 +1,9 @@
+*   Remove deprecated `sidekiq` Active Job adapter.
+
+    The adapter is available in the `sidekiq` gem.
+
+    *Wojciech Wnętrzak*
+
 *   Deprecate built-in `delayed_job` adapter.
 
     If you're using this adapter, upgrade to `delayed_job` 4.2.0 or later to use the `delayed_job` gem's adapter.

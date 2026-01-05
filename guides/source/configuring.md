@@ -3163,7 +3163,7 @@ Sets the adapter for the queuing backend. The default adapter is `:async`. For a
 # Be sure to have the adapter's gem in your Gemfile
 # and follow the adapter's specific installation
 # and deployment instructions.
-config.active_job.queue_adapter = :sidekiq
+config.active_job.queue_adapter = :solid_queue
 ```
 
 #### `config.active_job.default_queue_name`
