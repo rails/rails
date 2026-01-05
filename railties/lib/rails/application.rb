@@ -296,7 +296,6 @@ module Rails
       yaml = name.is_a?(Pathname) ? name : Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
 
       if yaml.exist?
-        require "erb"
         all_configs    = ActiveSupport::ConfigurationFile.parse(yaml).deep_symbolize_keys
         config, shared = all_configs[env.to_sym], all_configs[:shared]
 
