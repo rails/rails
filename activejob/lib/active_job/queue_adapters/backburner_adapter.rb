@@ -17,7 +17,7 @@ module ActiveJob
     class BackburnerAdapter < AbstractAdapter
       def check_adapter
         ActiveJob.deprecator.warn <<~MSG.squish
-          The built-in `backburner` adapter is deprecated and will be removed in Rails 8.2.
+          The built-in `backburner` adapter is deprecated and will be removed in Rails 9.0.
           Please upgrade `backburner` gem to version 1.7 or later to use the `backburner` gem's adapter.
         MSG
       end
