@@ -54,5 +54,23 @@ module ApplicationTests
 
       assert_equal "deadbeef123", Rails::Info.properties.value_for("Application revision")
     end
+
+    class ContextReporter
+      attr_reader :context
+
+      def report(error, handled:, severity:, context:, source:)
+        @context = context
+      end
+    end
+
+    test "Rails.error includes revision" do
+      File.write("#{app_path}/REVISION", "deadbeef123")
+      require "#{app_path}/config/environment"
+      reporter = ContextReporter.new
+      Rails.error.subscribe(reporter)
+      Rails.error.handle(context: { some: :context }) { raise }
+      assert_equal :context, reporter.context[:some]
+      assert_equal({ version: Rails::VERSION::STRING, app_revision: "deadbeef123", environment: "development" }, reporter.context[:rails])
+    end
   end
 end
