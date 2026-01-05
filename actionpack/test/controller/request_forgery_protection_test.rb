@@ -199,6 +199,15 @@ class SkipProtectionWhenUnprotectedController < ActionController::Base
   skip_forgery_protection
 end
 
+class ProtectedParentController < ActionController::Base
+  protect_from_forgery with: :exception
+end
+
+class SkipsInheritedProtectionController < ProtectedParentController
+  include RequestForgeryProtectionActions
+  skip_forgery_protection
+end
+
 # Controller using the deprecated skip_before_action :verify_authenticity_token
 class DeprecatedSkipVerifyAuthenticityTokenController < ActionController::Base
   include RequestForgeryProtectionActions
@@ -1287,6 +1296,40 @@ class SkipProtectionWhenUnprotectedControllerTest < ActionController::TestCase
 
   def assert_not_blocked(&block)
     assert_nothing_raised(&block)
+    assert_response :success
+  end
+
+  test "does not add Sec-Fetch-Site to Vary header when forgery protection is skipped" do
+    get :index
+    assert_response :success
+    assert_nil response.headers["Vary"]
+  end
+
+  test "response does not vary by Sec-Fetch-Site when forgery protection is skipped" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+    post :index
+    assert_response :success
+
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    post :index
+    assert_response :success
+  end
+end
+
+class SkipsInheritedProtectionControllerTest < ActionController::TestCase
+  test "does not add Sec-Fetch-Site to Vary header when inherited forgery protection is skipped" do
+    get :index
+    assert_response :success
+    assert_nil response.headers["Vary"]
+  end
+
+  test "response does not vary by Sec-Fetch-Site when inherited forgery protection is skipped" do
+    @request.set_header "HTTP_SEC_FETCH_SITE", "same-origin"
+    post :index
+    assert_response :success
+
+    @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+    post :index
     assert_response :success
   end
 end

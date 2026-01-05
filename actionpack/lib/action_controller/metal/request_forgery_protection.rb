@@ -285,10 +285,13 @@ module ActionController # :nodoc:
       # Turn off request forgery protection. This is a wrapper for:
       #
       #     skip_before_action :verify_request_for_forgery_protection
+      #     skip_after_action :append_sec_fetch_site_to_vary_header
       #
       # See `skip_before_action` for allowed options.
       def skip_forgery_protection(options = {})
-        skip_before_action :verify_request_for_forgery_protection, options.reverse_merge(raise: false)
+        options = options.reverse_merge(raise: false)
+        skip_before_action :verify_request_for_forgery_protection, options
+        skip_after_action :append_sec_fetch_site_to_vary_header, options
       end
 
       private
