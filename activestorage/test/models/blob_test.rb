@@ -96,6 +96,21 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "create_and_upload rewinds an io which is at end-of-stream" do
+    io = StringIO.new
+    io << "Hello world!"
+    blob = ActiveStorage::Blob.create_and_upload!(io: io, filename: "hello.txt")
+    assert_equal "Hello world!", blob.open(&:read)
+  end
+
+  test "create_and_upload raises for an io with an offset" do
+    io = StringIO.new("Hello world!")
+    io.read(1)
+    assert_raises(ActiveStorage::IntegrityError) do
+      ActiveStorage::Blob.create_and_upload!(io: io, filename: "hello.txt")
+    end
+  end
+
   test "record touched after analyze" do
     user = User.create!(
       name: "Nate",
