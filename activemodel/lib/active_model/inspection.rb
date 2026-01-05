@@ -79,7 +79,7 @@ module ActiveModel
 
       # Returns the inspection filter used to mask sensitive attributes.
       def inspection_filter # :nodoc:
-        if defined?(@filter_attributes)
+        if defined?(@filter_attributes) && @filter_attributes
           @inspection_filter ||= begin
             mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
             ActiveSupport::ParameterFilter.new(@filter_attributes, mask: mask)
