@@ -218,19 +218,75 @@ module ActiveRecord
 
         def define_autosave_validation_callbacks(reflection)
           validation_method = :"validate_associated_records_for_#{reflection.name}"
-          if reflection.validate? && !method_defined?(validation_method)
-            if reflection.collection?
-              method = :validate_collection_association
-            elsif reflection.has_one?
-              method = :validate_has_one_association
-            else
-              method = :validate_belongs_to_association
+
+          # Enable validation for has_one :through associations that are non-collection and non-polymorphic.
+          needs_validation =
+            reflection.validate? ||
+            (
+              reflection.through_reflection? &&
+                reflection.has_one? &&
+                !reflection.through_reflection.collection? &&
+                !reflection.through_reflection.polymorphic?
+            )
+          return unless needs_validation && !method_defined?(validation_method)
+
+          if reflection.through_reflection? && reflection.has_one? &&
+             !reflection.through_reflection.collection? &&
+             !reflection.through_reflection.polymorphic?
+
+            define_non_cyclic_method(validation_method) do
+              begin
+                associated = association(reflection.name).target
+              rescue StandardError
+                # Skip if association chain is invalid or cannot be built
+                next true
+              end
+
+              records = Array(associated).compact
+              next true if records.empty?
+
+              @_already_called ||= {}
+              invalid = false
+
+              records.each do |record|
+                # Prevent recursive validation loops
+                next if @_already_called[record.object_id]
+
+                @_already_called[record.object_id] = true
+                begin
+                  unless record.valid?
+                    invalid = true
+                    record.errors.each do |attribute, message|
+                      errors.add("#{reflection.name}.#{attribute}", message)
+                    end
+                  end
+                ensure
+                  @_already_called.delete(record.object_id)
+                end
+              end
+
+              !invalid
             end
 
-            define_non_cyclic_method(validation_method) { send(method, reflection) }
-            validate validation_method
-            after_validation :_ensure_no_duplicate_errors
+            # Register validation on the owner model, not within the reflection.
+            reflection.active_record.validate validation_method
+            reflection.active_record.after_validation :_ensure_no_duplicate_errors
+            return
           end
+
+          # Default validation behavior for all other associations.
+          method =
+            if reflection.collection?
+              :validate_collection_association
+            elsif reflection.has_one?
+              :validate_has_one_association
+            else
+              :validate_belongs_to_association
+            end
+
+          define_non_cyclic_method(validation_method) { send(method, reflection) }
+          validate validation_method
+          after_validation :_ensure_no_duplicate_errors
         end
     end
 
