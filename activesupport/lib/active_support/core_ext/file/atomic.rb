@@ -27,7 +27,7 @@ class File
 
     # Names can't be longer than 255B
     tmp_suffix = ".tmp.#{SecureRandom.hex}"
-    tmp_name = ".#{basename(file_name).byteslice(0, 254 - tmp_suffix.bytesize)}"
+    tmp_name = ".#{basename(file_name).byteslice(0, 254 - tmp_suffix.bytesize)}#{tmp_suffix}"
     tmp_path = File.join(temp_dir, tmp_name)
     open(tmp_path, RDWR | CREAT | EXCL | SHARE_DELETE | BINARY) do |temp_file|
       temp_file.binmode
