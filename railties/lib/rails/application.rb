@@ -406,9 +406,12 @@ module Rails
         @revision = begin
           root.join("REVISION").read.strip.presence
         rescue SystemCallError
-          if Dir.exist?(".git")
-            rev = `git rev-parse HEAD 2> /dev/null`.strip.presence
-            rev if $?.success?
+          r, w = IO.pipe
+          if system("git", "-C", root.to_s, "rev-parse", "HEAD", in: File::NULL, err: File::NULL, out: w)
+            r.read.strip
+          else
+            r.close
+            nil
           end
         end
         @revision_initialized = true
