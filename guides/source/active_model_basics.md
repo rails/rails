@@ -199,6 +199,8 @@ irb> person.active
 Some additional methods described below are available when using
 `ActiveModel::Attributes`.
 
+NOTE: Assigning any value (including `nil`) will override an attribute's default.
+
 #### Method: `attribute_names`
 
 The `attribute_names` method returns an array of attribute names.
