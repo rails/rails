@@ -1,3 +1,12 @@
+*   Add support for applying the same hash of attributes to all records when calling
+    `update([1, 2, 3], { name: "New Name" })` with an array of IDs and a single hash.
+
+    ```ruby
+    Person.update([1, 2, 3], { group: "masters" })
+    ```
+
+    *Said Kaldybaev*
+
 *   Yield the transaction object to the block when using `with_lock`.
 
     *Ngan Pham*
