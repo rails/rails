@@ -385,8 +385,14 @@ Performance/StringInclude:
 Minitest/AssertEqual:
   Enabled: true
   Exclude:
+    # Mime::Type has a custom == operator that allows comparison with strings and symbols.
+    # assert_equal would reverse the comparison order and fail since String/Symbol don't know how to compare with Mime::Type.
     - 'actionpack/test/dispatch/mime_type_test.rb'
+    # BCrypt::Password has a custom == operator for password digest comparison.
+    # Using assert_equal with BCrypt objects doesn't work as expected.
     - 'activemodel/test/cases/secure_password_test.rb'
+    # BCrypt::Password has a custom == operator for password verification.
+    # This must use the custom operator to properly verify the password.
     - 'railties/test/generators/scaffold_generator_test.rb'
 
 Minitest/AssertNil:
