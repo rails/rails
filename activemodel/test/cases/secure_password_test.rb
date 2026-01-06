@@ -288,7 +288,7 @@ class SecurePasswordTest < ActiveModel::TestCase
 
   test "setting a blank password should not change an existing password" do
     @existing_user.password = ""
-    assert_equal "password", @existing_user.password_digest
+    assert @existing_user.password_digest == "password"
   end
 
   test "setting a nil password should clear an existing password" do

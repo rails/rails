@@ -384,6 +384,10 @@ Performance/StringInclude:
 
 Minitest/AssertEqual:
   Enabled: true
+  Exclude:
+    - 'actionpack/test/dispatch/mime_type_test.rb'
+    - 'activemodel/test/cases/secure_password_test.rb'
+    - 'railties/test/generators/scaffold_generator_test.rb'
 
 Minitest/AssertNil:
   Enabled: true

@@ -565,7 +565,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     assert_file "test/fixtures/users.yml" do |content|
       assert_match(/password_digest: (.+)$/, content)
       digest = content.match(/password_digest: ([^#\s]+)/)[1].strip
-      assert_equal "secret", BCrypt::Password.new(digest)
+      assert BCrypt::Password.new(digest) == "secret"
     end
   end
 

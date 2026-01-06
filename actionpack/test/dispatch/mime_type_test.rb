@@ -173,8 +173,8 @@ class MimeTypeTest < ActiveSupport::TestCase
   end
 
   test "type should be equal to symbol" do
-    assert_equal "application/xhtml+xml", Mime[:html]
-    assert_equal :html, Mime[:html]
+    assert_operator Mime[:html], :==, "application/xhtml+xml"
+    assert_operator Mime[:html], :==, :html
   end
 
   test "type convenience methods" do
