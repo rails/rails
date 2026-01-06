@@ -1,3 +1,13 @@
+*   Restore the ability of enum to be foats.
+
+    ```ruby
+    enum :rating, { low: 0.0, medium: 0.5, high: 1.0 },
+    ```
+
+    In Rails 8.1.0, enum values are eagerly validated, and floats weren't expected.
+
+    *Said Kaldybaev*
+
 *   Ensure batched preloaded associations accounts for klass when grouping to avoid issues with STI.
 
     *zzak*, *Stjepan Hadjic*
