@@ -37,7 +37,7 @@ module ActiveStorage
       end
 
       def tags
-        tags = audio_stream["tags"]
+        tags = probe.dig("format", "tags")
         Hash(tags) if tags
       end
 
