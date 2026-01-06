@@ -163,6 +163,26 @@ module ActiveRecord
       assert_not_equal cache_key, developers.cache_key
     end
 
+    test "delete_by will update cache_key" do
+      Developer.create!(name: "Ivan")
+      developers = Developer.all
+      cache_key = developers.cache_key
+
+      developers.delete_by(name: "Ivan")
+
+      assert_not_equal cache_key, developers.cache_key
+    end
+
+    test "destroy_by will update cache_key" do
+      Developer.create!(name: "Ivan")
+      developers = Developer.all
+      cache_key = developers.cache_key
+
+      developers.destroy_by(name: "Ivan")
+
+      assert_not_equal cache_key, developers.cache_key
+    end
+
     test "it triggers at most one query" do
       developers = Developer.where(name: "David")
 
