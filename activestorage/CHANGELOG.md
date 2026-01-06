@@ -1,3 +1,23 @@
+*   Add `touch:` option to `has_one_attached` and `has_many_attached`
+
+    You can now control whether the parent record's timestamp is updated
+    on a per-attachment basis:
+
+    ```ruby
+    class User < ApplicationRecord
+      has_one_attached :avatar                    # follows global setting
+      has_one_attached :og_image, touch: false    # opt-out: never touches
+    end
+    ```
+
+    When `touch:` is not specified, the behavior follows the global
+    `ActiveStorage.touch_attachment_records` setting (default: true).
+    Note that the global setting takes precedence - if it is set to `false`,
+    attachments will never touch their parent records regardless of the
+    per-attachment setting.
+
+    *Donn Felker*
+
 *   Analyze attachments before validation
 
     Attachment metadata (width, height, duration, etc.) is now available for

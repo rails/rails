@@ -444,6 +444,166 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     ActiveStorage.analyze = original
   end
 
+  test "touch: false does not touch record on attachment creation" do
+    user = User.create!(name: "Test")
+    original_updated_at = user.updated_at
+
+    travel 1.second do
+      user.no_touch_avatar.attach(create_blob)
+    end
+
+    assert_equal original_updated_at, user.reload.updated_at
+  end
+
+  test "touch: false does not touch record on purge" do
+    user = User.create!(name: "Test")
+    user.no_touch_avatar.attach(create_blob)
+    original_updated_at = user.reload.updated_at
+
+    travel 1.second do
+      user.no_touch_avatar.purge
+    end
+
+    assert_equal original_updated_at, user.reload.updated_at
+  end
+
+  test "touch: false does not touch record on purge_later" do
+    user = User.create!(name: "Test")
+    user.no_touch_avatar.attach(create_blob)
+    original_updated_at = user.reload.updated_at
+
+    travel 1.second do
+      user.no_touch_avatar.purge_later
+    end
+
+    assert_equal original_updated_at, user.reload.updated_at
+  end
+
+  test "global touch_attachment_records: false disables all touching regardless of per-attachment setting" do
+    original_global = ActiveStorage.touch_attachment_records
+    ActiveStorage.touch_attachment_records = false
+
+    user = User.create!(name: "Test")
+    original_updated_at = user.updated_at
+
+    travel 1.second do
+      # avatar has default touch (nil), but global is false
+      user.avatar.attach(create_blob)
+    end
+
+    assert_equal original_updated_at, user.reload.updated_at
+  ensure
+    ActiveStorage.touch_attachment_records = original_global
+  end
+
+  test "nil touch option touches when global setting is true" do
+    original_global = ActiveStorage.touch_attachment_records
+    ActiveStorage.touch_attachment_records = true
+
+    user = User.create!(name: "Test")
+    original_updated_at = user.updated_at
+
+    travel 1.second do
+      user.avatar.attach(create_blob)
+    end
+
+    assert user.reload.updated_at > original_updated_at
+  ensure
+    ActiveStorage.touch_attachment_records = original_global
+  end
+
+  test "has_many_attached with touch: false does not touch record" do
+    user = User.create!(name: "Test")
+    original_updated_at = user.updated_at
+
+    travel 1.second do
+      user.no_touch_highlights.attach(create_blob)
+    end
+
+    assert_equal original_updated_at, user.reload.updated_at
+  end
+
+  # Comprehensive permutation tests for touch option
+
+  test "two has_one_attached: default touches, touch: false does not touch" do
+    user = User.create!(name: "Test")
+    original_updated_at = user.updated_at
+
+    # First, attach to avatar (default - should touch)
+    travel 1.second do
+      user.avatar.attach(create_blob)
+    end
+
+    touched_updated_at = user.reload.updated_at
+    assert touched_updated_at > original_updated_at, "avatar (default) should touch record"
+
+    # Now attach to no_touch_avatar (touch: false - should NOT touch)
+    travel 1.second do
+      user.no_touch_avatar.attach(create_blob)
+    end
+
+    assert_equal touched_updated_at, user.reload.updated_at, "no_touch_avatar (touch: false) should NOT touch record"
+  end
+
+  test "has_one_attached touch: false and has_many_attached default in same record" do
+    user = User.create!(name: "Test")
+    original_updated_at = user.updated_at
+
+    # Attach to no_touch_avatar (touch: false - should NOT touch)
+    travel 1.second do
+      user.no_touch_avatar.attach(create_blob)
+    end
+
+    assert_equal original_updated_at, user.reload.updated_at, "no_touch_avatar (touch: false) should NOT touch record"
+
+    # Attach to highlights (default - should touch)
+    travel 1.second do
+      user.highlights.attach(create_blob)
+    end
+
+    assert user.reload.updated_at > original_updated_at, "highlights (default) should touch record"
+  end
+
+  test "has_one_attached default and has_many_attached touch: false in same record" do
+    user = User.create!(name: "Test")
+    original_updated_at = user.updated_at
+
+    # Attach to avatar (default - should touch)
+    travel 1.second do
+      user.avatar.attach(create_blob)
+    end
+
+    touched_updated_at = user.reload.updated_at
+    assert touched_updated_at > original_updated_at, "avatar (default) should touch record"
+
+    # Attach to no_touch_highlights (touch: false - should NOT touch)
+    travel 1.second do
+      user.no_touch_highlights.attach(create_blob)
+    end
+
+    assert_equal touched_updated_at, user.reload.updated_at, "no_touch_highlights (touch: false) should NOT touch record"
+  end
+
+  test "two has_many_attached: default touches, touch: false does not touch" do
+    user = User.create!(name: "Test")
+    original_updated_at = user.updated_at
+
+    # Attach to highlights (default - should touch)
+    travel 1.second do
+      user.highlights.attach(create_blob)
+    end
+
+    touched_updated_at = user.reload.updated_at
+    assert touched_updated_at > original_updated_at, "highlights (default) should touch record"
+
+    # Attach to no_touch_highlights (touch: false - should NOT touch)
+    travel 1.second do
+      user.no_touch_highlights.attach(create_blob)
+    end
+
+    assert_equal touched_updated_at, user.reload.updated_at, "no_touch_highlights (touch: false) should NOT touch record"
+  end
+
   private
     def assert_blob_identified_before_owner_validated(owner, blob, content_type)
       validated_content_type = nil
