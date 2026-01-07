@@ -1,3 +1,10 @@
+*   Fix PostgreSQL `schema_search_path` not being reapplied after `reset!` or `reconnect!`.
+
+    The `schema_search_path` configured in `database.yml` is now correctly
+    reapplied instead of falling back to PostgreSQL defaults.
+
+    *Tobias Egli*
+
 *   Restore the ability of enum to be foats.
 
     ```ruby
