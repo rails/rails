@@ -24,6 +24,7 @@ require "models/cpk"
 require "models/room"
 require "models/user"
 require "models/dats"
+require "models/eye"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -323,6 +324,20 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     firm = Firm.create(name: "GlobalMegaCorp")
     account = firm.create_account(credit_limit: 1000)
     assert_equal account, firm.reload.account
+  end
+
+  def test_create_association_with_readonly_foreign_key
+    eye = Eye.create!
+
+    assert_nothing_raised do
+      eye.iris_with_read_only_foreign_key || eye.create_iris_with_read_only_foreign_key!(color: "blue")
+    end
+
+    iris = eye.iris_with_read_only_foreign_key
+
+    assert_equal "blue", iris.color
+    assert_equal eye.id, iris.eye_id
+    assert iris.persisted?
   end
 
   def test_clearing_an_association_clears_the_associations_inverse
