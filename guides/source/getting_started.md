@@ -2455,11 +2455,11 @@ Concern is a Ruby module with some syntactic sugar to make using them easier.
 
 First let’s create the Notifications module.
 
-Create a file at `app/models/product/notifications.rb` with the following:
+Create a file at `app/models/concerns/notifications.rb` with the following:
 
 ```ruby
-# app/models/product/notifications.rb
-module Product::Notifications
+# app/models/concerns/notifications.rb
+module Notifications
   extend ActiveSupport::Concern
 
   included do
