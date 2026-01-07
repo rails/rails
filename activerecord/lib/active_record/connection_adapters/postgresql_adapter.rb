@@ -787,7 +787,7 @@ module ActiveRecord
         #
         def register_type_mapping(&block)
           raise ArgumentError, "block required" unless block_given?
-          @@type_mapping_callbacks ||= []
+          @@type_mapping_callbacks = [] unless defined?(@@type_mapping_callbacks)
           @@type_mapping_callbacks << block
         end
 
@@ -808,7 +808,8 @@ module ActiveRecord
 
           load_additional_types
 
-          @@type_mapping_callbacks&.each { |block| block.call(m) }
+          @@type_mapping_callbacks = [] unless defined?(@@type_mapping_callbacks)
+          @@type_mapping_callbacks.each { |block| block.call(m) }
         end
 
         # Extracts the value from a PostgreSQL column default definition.
