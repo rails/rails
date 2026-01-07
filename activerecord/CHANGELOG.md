@@ -1,3 +1,10 @@
+*   Fix SQLite3 schema dump for non-autoincrement integer primary keys.
+
+    Previously, `schema.rb` should incorrectly restore that table with an auto incrementing
+    primary key.
+
+    *Chris Hasiński*
+
 *   Fix PostgreSQL `schema_search_path` not being reapplied after `reset!` or `reconnect!`.
 
     The `schema_search_path` configured in `database.yml` is now correctly
