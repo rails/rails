@@ -1751,6 +1751,74 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal book, Cpk::Order.eager_load(:book).find_by(id: order.id).book
   end
 
+  test "preloading has_one association with scope that has limit" do
+    # Define a temporary model with has_one association using limit in scope
+    post_model = Class.new(ActiveRecord::Base) do
+      def self.name; "PostWithLimitedComment"; end
+      self.table_name = "posts"
+      self.inheritance_column = :disabled
+      has_one :last_comment, -> { order(id: :desc).limit(1) }, class_name: "Comment", foreign_key: "post_id"
+    end
+
+    # Get two posts that have comments
+    post1 = post_model.find(posts(:welcome).id)
+    post2 = post_model.find(posts(:thinking).id)
+
+    # Verify precondition: both posts have comments and last_comment works without preloading
+    last_comment1 = post1.last_comment
+    last_comment2 = post2.last_comment
+
+    assert_not_nil last_comment1, "Post 1 should have a last_comment"
+    assert_not_nil last_comment2, "Post 2 should have a last_comment"
+
+    # Now preload both posts together - this is where the bug manifests
+    preloaded_posts = post_model.where(id: [post1.id, post2.id]).preload(:last_comment).order(:id).to_a
+
+    # Without the fix, only ONE post will have its last_comment loaded
+    # because LIMIT 1 is applied globally instead of per-post
+    assert_equal 2, preloaded_posts.size
+
+    preloaded_post1 = preloaded_posts.find { |p| p.id == post1.id }
+    preloaded_post2 = preloaded_posts.find { |p| p.id == post2.id }
+
+    assert_equal last_comment1, preloaded_post1.last_comment,
+      "Post 1's last_comment should match after preloading"
+    assert_equal last_comment2, preloaded_post2.last_comment,
+      "Post 2's last_comment should match after preloading"
+  end
+
+  test "includes on has_one association with scope that has limit" do
+    # Same test but using includes() instead of preload()
+    post_model = Class.new(ActiveRecord::Base) do
+      def self.name; "PostWithLimitedComment"; end
+      self.table_name = "posts"
+      self.inheritance_column = :disabled
+      has_one :last_comment, -> { order(id: :desc).limit(1) }, class_name: "Comment", foreign_key: "post_id"
+    end
+
+    post1 = post_model.find(posts(:welcome).id)
+    post2 = post_model.find(posts(:thinking).id)
+
+    last_comment1 = post1.last_comment
+    last_comment2 = post2.last_comment
+
+    assert_not_nil last_comment1, "Post 1 should have a last_comment"
+    assert_not_nil last_comment2, "Post 2 should have a last_comment"
+
+    # Test with includes() which may use preload or eager_load strategy
+    included_posts = post_model.where(id: [post1.id, post2.id]).includes(:last_comment).order(:id).to_a
+
+    assert_equal 2, included_posts.size
+
+    included_post1 = included_posts.find { |p| p.id == post1.id }
+    included_post2 = included_posts.find { |p| p.id == post2.id }
+
+    assert_equal last_comment1, included_post1.last_comment,
+      "Post 1's last_comment should match after includes"
+    assert_equal last_comment2, included_post2.last_comment,
+      "Post 2's last_comment should match after includes"
+  end
+
   private
     def find_all_ordered(klass, include = nil)
       klass.order("#{klass.table_name}.#{klass.primary_key}").includes(include).to_a
