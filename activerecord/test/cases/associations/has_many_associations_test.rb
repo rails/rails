@@ -827,7 +827,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_all
     firm = Firm.first
-    assert_equal 3, firm.clients.where("#{QUOTED_TYPE} = 'Client'").to_a.length
+    assert_equal 3, firm.clients.where("#{ARTest::QUOTED_TYPE} = 'Client'").to_a.length
     assert_equal 1, firm.clients.where("name = 'Summit'").to_a.length
   end
 
@@ -881,14 +881,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = Firm.first
     client2 = Client.find(2)
     assert_equal firm.clients.first, firm.clients.order("id").first
-    assert_equal client2, firm.clients.where("#{QUOTED_TYPE} = 'Client'").order("id").first
+    assert_equal client2, firm.clients.where("#{ARTest::QUOTED_TYPE} = 'Client'").order("id").first
   end
 
   def test_find_first_sanitized
     firm = Firm.first
     client2 = Client.find(2)
-    assert_equal client2, firm.clients.where("#{QUOTED_TYPE} = ?", "Client").first
-    assert_equal client2, firm.clients.where("#{QUOTED_TYPE} = :type", type: "Client").first
+    assert_equal client2, firm.clients.where("#{ARTest::QUOTED_TYPE} = ?", "Client").first
+    assert_equal client2, firm.clients.where("#{ARTest::QUOTED_TYPE} = :type", type: "Client").first
   end
 
   def test_find_first_after_reset_scope
