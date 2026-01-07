@@ -775,6 +775,25 @@ module ActiveRecord
             OID::Interval.new(precision: precision)
           end
         end
+
+        # Registers a callback to extend the type map during initialization.
+        # Useful for third-party gems that need to register custom SQL types.
+        #
+        #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.register_type_mapping do |type_map|
+        #     type_map.register_type("geometry") do |oid, fmod, sql_type|
+        #       MyGeometryType.new(sql_type)
+        #     end
+        #   end
+        #
+        def register_type_mapping(&block)
+          raise ArgumentError, "block required" unless block_given?
+          @@type_mapping_callbacks ||= []
+          @@type_mapping_callbacks << block
+        end
+
+        def clear_type_mapping_callbacks! # :nodoc:
+          @@type_mapping_callbacks = [] if defined?(@@type_mapping_callbacks)
+        end
       end
 
       private
@@ -788,6 +807,8 @@ module ActiveRecord
           self.class.register_class_with_precision m, "timestamptz", OID::TimestampWithTimeZone
 
           load_additional_types
+
+          @@type_mapping_callbacks&.each { |block| block.call(m) }
         end
 
         # Extracts the value from a PostgreSQL column default definition.
