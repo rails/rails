@@ -918,6 +918,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_generation_aborts_on_bundle_install_failure
+    generator([destination_root])
+
+    # Simulate bundle install failure by making bundle_command return false
+    failing_bundle_command = ->(*) { false }
+
+    error = assert_raises(SystemExit) do
+      generator.stub :bundle_command, failing_bundle_command do
+        quietly { generator.invoke_all }
+      end
+    end
+
+    assert_equal 1, error.status
+  end
+
   def test_skip_active_job_option
     run_generator [destination_root, "--skip-active-job"]
 
