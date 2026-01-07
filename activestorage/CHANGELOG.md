@@ -1,3 +1,21 @@
+*   Restore ADC when signing URLs with IAM for GCS
+
+    ADC was previously used for automatic authorization when signing URLs with IAM.
+    Now it is again, but the auth client is memoized so that new credentials are only
+    requested when the current ones expire. Other auth methods can now be used
+    instead by setting the authorization on `ActiveStorage::Service::GCSService#iam_client`.
+
+    ```ruby
+    ActiveStorage::Blob.service.iam_client.authorization = Google::Auth::ImpersonatedServiceAccountCredentials.new(options)
+    ```
+
+    This is safer than setting `Google::Apis::RequestOptions.default.authorization`
+    because it only applies to Active Storage and does not affect other Google API
+    clients.
+
+    *Justin Malčić*
+
+
 ## Rails 8.1.1 (October 28, 2025) ##
 
 *   No changes.
