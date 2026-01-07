@@ -381,6 +381,11 @@ module ActiveRecord
         end
       end
 
+      def clear_cache!(new_connection: false)
+        super
+        @schema_search_path = nil if new_connection
+      end
+
       # Disconnects from the database if already connected. Otherwise, this
       # method does nothing.
       def disconnect!
@@ -992,6 +997,8 @@ module ActiveRecord
 
           add_pg_encoders
           add_pg_decoders
+
+          schema_search_path # populate cache
 
           reload_type_map
         end
