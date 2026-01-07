@@ -296,7 +296,7 @@ module ActiveRecord
       # or saved. If +autosave+ is +false+ only new records will be returned,
       # unless the parent is/was a new record itself.
       def associated_records_to_validate_or_save(association, new_record, autosave)
-        if new_record || custom_validation_context?
+        if new_record
           association && association.target
         elsif autosave
           association.target.find_all(&:changed_for_autosave?)
@@ -329,7 +329,7 @@ module ActiveRecord
       def validate_has_one_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.reader
-        return unless record && (record.changed_for_autosave? || custom_validation_context?)
+        return unless record && record.changed_for_autosave?
 
         inverse_association = reflection.inverse_of && record.association(reflection.inverse_of.name)
         return if inverse_association && (record.validating_belongs_to_for?(inverse_association) ||
@@ -343,7 +343,7 @@ module ActiveRecord
       def validate_belongs_to_association(reflection)
         association = association_instance_get(reflection.name)
         record      = association && association.reader
-        return unless record && (record.changed_for_autosave? || custom_validation_context?)
+        return unless record && record.changed_for_autosave?
 
         begin
           @validating_belongs_to_for ||= {}
