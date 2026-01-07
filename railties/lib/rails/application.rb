@@ -407,12 +407,11 @@ module Rails
           root.join("REVISION").read.strip.presence
         rescue SystemCallError
           r, w = IO.pipe
-          if system("git", "-C", root.to_s, "rev-parse", "HEAD", in: File::NULL, err: File::NULL, out: w)
-            r.read.strip
-          else
-            r.close
-            nil
-          end
+          success = system("git", "-C", root.to_s, "rev-parse", "HEAD", in: File::NULL, err: File::NULL, out: w)
+          w.close
+          rev = r.read.strip
+          r.close
+          rev if success
         end
         @revision_initialized = true
       end
