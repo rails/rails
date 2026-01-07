@@ -1134,15 +1134,22 @@ domain.
 
 `_url` returns a full URL including the protocol, host, and port.
 
-URL helpers are useful for rendering emails that will be viewed outside of the
+URL generating helpers are useful for rendering emails that will be viewed outside of the
 browser.
 
-Combined with the `link_to` helper, we can generate anchor tags and use the URL
-helper to do this cleanly in Ruby. `link_to` accepts the display content for the
-link (`product.name`) and the path or URL to link to for the `href` attribute
-(`product`).
+We can use the `link_to` helper method together with the path or URL generating helper methods to create very clean anchor tags in Ruby. `link_to` takes an argument for the link's display content and an argument for the link's `href` attribute (the path or URL to link to). We could therefore create a link in Ruby like so:
 
-Let's refactor this to use these helpers:
+```
+link_to product.name, product_path(product.id)
+```
+
+We can make this even cleaner, however. When `link_to` is given an Active Record object as its path, it generates the path for that record’s show action, so we only need:
+
+```
+link_to product.name, product
+```
+
+We will see a similar approach shortly when we use the `redirect_to` method. Let's refactor to use these helpers:
 
 ```erb#7
 <%# app/views/products/index.html.erb %>
@@ -1151,7 +1158,7 @@ Let's refactor this to use these helpers:
 <div id="products">
   <% @products.each do |product| %>
     <div>
-      <%= link_to product.name, product_path(product.id) %>
+      <%= link_to product.name, product %>
     </div>
   <% end %>
 </div>
@@ -1200,7 +1207,7 @@ We can update `app/views/products/index.html.erb` to link to the new action.
 <div id="products">
   <% @products.each do |product| %>
     <div>
-      <%= link_to product.name, product_path(product.id) %>
+      <%= link_to product.name, product %>
     </div>
   <% end %>
 </div>
@@ -1924,7 +1931,7 @@ Add `:featured_image` as a permitted parameter in
 ```
 
 Lastly, we want to display the featured image for our product in
-`app/views/products/show.html.erb`. Add the following to the top.
+`app/views/products/show.html.erb`. Add the following to the top (above the cache block).
 
 ```erb
 <%# app/views/products/show.html.erb %>
