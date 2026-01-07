@@ -301,6 +301,32 @@ module ActiveRecord
       end
     end
 
+    # Deletes records in batches. Returns the total number of rows deleted.
+    #
+    #   Person.where("age < 21").delete_in_batches
+    #
+    # ==== Options
+    #
+    # * <tt>:of</tt> - Specifies the size of the batch. Defaults to 1000.
+    #
+    # This method does not instantiate records and does not invoke
+    # callbacks. If you need callbacks to run, use #destroy_all or
+    # <tt>in_batches.destroy_all</tt> instead.
+    #
+    # Unlike other batch methods, this does not use +ORDER BY+ since
+    # deleted records are excluded from subsequent batches.
+    def delete_in_batches(of: 1000)
+      total = 0
+
+      loop do
+        deleted = limit(of).delete_all
+        break if deleted == 0
+        total += deleted
+      end
+
+      total
+    end
+
     private
       def ensure_valid_options_for_batching!(cursor, start, finish, order)
         if start && Array(start).size != cursor.size

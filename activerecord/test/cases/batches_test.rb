@@ -1117,4 +1117,46 @@ class EachTest < ActiveRecord::TestCase
     relation = Cpk::Book.where("author_id >= ? AND id < ?", author_id, id).in_batches(of: 1, order: [:asc, :desc]).first
     assert_equal book2, relation.first
   end
+
+  def test_delete_in_batches_should_return_total_deleted_count
+    total = Post.count
+    assert_equal total, Post.all.delete_in_batches
+    assert_equal 0, Post.count
+  end
+
+  def test_delete_in_batches_should_return_zero_when_no_records
+    assert_equal 0, Post.where("1=0").delete_in_batches
+  end
+
+  def test_delete_in_batches_should_delete_in_specified_batch_size
+    total = Post.count
+    assert_equal total, Post.all.delete_in_batches(of: 2)
+    assert_equal 0, Post.count
+  end
+
+  def test_delete_in_batches_should_not_delete_records_outside_of_scope
+    not_deleted_count = Post.where("id <= 2").count
+    deleted_count = Post.where("id > 2").count
+    assert_equal deleted_count, Post.where("id > 2").delete_in_batches
+    assert_equal 0, Post.where("id > 2").count
+    assert_equal not_deleted_count, Post.count
+  end
+
+  def test_delete_in_batches_should_not_use_order
+    assert_queries_match(/^(?:(?!ORDER).)*$/) do
+      Post.where("id > 7").delete_in_batches(of: 2)
+    end
+  end
+
+  def test_delete_in_batches_should_use_limit
+    assert_queries_match(/LIMIT/) do
+      Post.where("id > 7").delete_in_batches(of: 2)
+    end
+  end
+
+  def test_delete_in_batches_with_default_batch_size
+    total = Post.count
+    assert_equal total, Post.all.delete_in_batches
+    assert_equal 0, Post.count
+  end
 end
