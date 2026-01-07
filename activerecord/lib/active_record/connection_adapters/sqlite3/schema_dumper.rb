@@ -19,11 +19,23 @@ module ActiveRecord
           end
 
           def default_primary_key?(column)
-            schema_type(column) == :integer
+            schema_type(column) == :integer && primary_key_has_autoincrement?
           end
 
           def explicit_primary_key_default?(column)
-            column.bigint?
+            column.bigint? || (column.type == :integer && !primary_key_has_autoincrement?)
+          end
+
+          def primary_key_has_autoincrement?
+            return false unless table_name
+
+            table_sql = @connection.query_value(<<~SQL, "SCHEMA")
+              SELECT sql FROM sqlite_master WHERE name = #{@connection.quote(table_name)} AND type = 'table'
+              UNION ALL
+              SELECT sql FROM sqlite_temp_master WHERE name = #{@connection.quote(table_name)} AND type = 'table'
+            SQL
+
+            table_sql.to_s.match?(/\bAUTOINCREMENT\b/i)
           end
 
           def prepare_column_options(column)
