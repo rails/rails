@@ -20,6 +20,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
   MINIMUM_TOKEN_LENGTH = 28
 
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
+
+  # FIXME: these property should never have been stored in the metadata.
+  # The blob table should be migrated to have dedicated columns for theses.
+  PROTECTED_METADATA = %w(analyzed identified composed)
+  private_constant :PROTECTED_METADATA
   store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
 
   # Temporary reference to a local io during the upload flow. When set,
@@ -110,6 +115,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     # Once the form using the direct upload is submitted, the blob can be associated with the right record using
     # the signed ID.
     def create_before_direct_upload!(key: nil, filename:, byte_size:, checksum:, content_type: nil, metadata: nil, service_name: nil, record: nil)
+      metadata = filter_metadata(metadata)
       create! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, metadata: metadata, service_name: service_name
     end
 
@@ -157,6 +163,15 @@ class ActiveStorage::Blob < ActiveStorage::Record
         combined_blob.save!
       end
     end
+
+    private
+      def filter_metadata(metadata)
+        if metadata.is_a?(Hash)
+          metadata.without(*PROTECTED_METADATA)
+        else
+          metadata
+        end
+      end
   end
 
   include Analyzable
