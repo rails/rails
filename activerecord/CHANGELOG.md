@@ -1,3 +1,16 @@
+*   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
+
+        # before
+        add_foreign_key "hst.event_log_attributes", "hst.event_logs" # emits correctly because they're in the same schema (hst)
+        add_foreign_key "hst.event_log_attributes", "hst.usr.user_profiles", column: "created_by_id" # emits hst.user.* when user.* is expected
+
+        # after
+        add_foreign_key "hst.event_log_attributes", "hst.event_logs"
+        add_foreign_key "hst.event_log_attributes", "usr.user_profiles", column: "created_by_id"
+
+    *Chiperific*
+
+
 ## Rails 8.1.2 (January 08, 2026) ##
 
 *   Fix counting cached queries in `ActiveRecord::RuntimeRegistry`.
