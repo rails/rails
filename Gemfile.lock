@@ -355,8 +355,6 @@ GEM
     mini_portile2 (2.8.9)
     minitest (6.0.0)
       prism (~> 1.5)
-    minitest-ci (3.4.0)
-      minitest (>= 5.0.6)
     minitest-mock (5.27.0)
     minitest-retry (0.2.3)
       minitest (>= 5.0)
@@ -717,7 +715,6 @@ DEPENDENCIES
   listen (~> 3.3)
   mdl (!= 0.13.0)
   minitest (~> 6.0)
-  minitest-ci
   minitest-mock
   minitest-retry
   msgpack (>= 1.7.0)
