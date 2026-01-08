@@ -85,7 +85,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     def self.default_scope; where(deleted: false); end
   end
 
-  def setup
+  setup do
     @connection = ActiveRecord::Base.lease_connection
     @connection.execute "CREATE SCHEMA #{SCHEMA_NAME} CREATE TABLE #{TABLE_NAME} (#{COLUMNS.join(',')})"
     @connection.execute "CREATE TABLE #{SCHEMA_NAME}.\"#{TABLE_NAME}.table\" (#{COLUMNS.join(',')})"
@@ -1095,6 +1095,22 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
 
       assert_includes output, 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema2.referenced_table"'
       assert_not_includes output, 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema.test_schema2.referenced_table"'
+    end
+  end
+
+  def test_schema_dump_emits_all_foreign_keys_after_all_tables
+    with_dump_schemas(:schema_search_path) do
+      with_schema_search_path("'$user',test_schema2,test_schema") do
+        output = dump_all_table_schema
+
+        last_create_table_index = output.rindex("create_table")
+        first_add_foreign_key_index = output.index("add_foreign_key")
+
+        assert_not_nil last_create_table_index, "Expected output to contain create_table"
+        assert_not_nil first_add_foreign_key_index, "Expected output to contain add_foreign_key"
+        assert last_create_table_index < first_add_foreign_key_index,
+          "Expected all add_foreign_key statements to come after all create_table statements"
+      end
     end
   end
 end

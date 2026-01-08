@@ -67,6 +67,12 @@ module ActiveRecord
             end
           end
 
+          def foreign_keys(stream, tables = nil)
+            within_each_schema do
+              super(stream, tables || not_ignored_tables)
+            end
+          end
+
           def exclusion_constraints_in_create(table, stream)
             if (exclusion_constraints = @connection.exclusion_constraints(table)).any?
               exclusion_constraint_statements = exclusion_constraints.map do |exclusion_constraint|
@@ -157,7 +163,7 @@ module ActiveRecord
             elsif name.include?(".")
               name  # Already schema-qualified, don't add another prefix
             else
-              "#{schema_name}.#{name}"
+              [schema_name, name].compact.join(".")
             end
           end
       end

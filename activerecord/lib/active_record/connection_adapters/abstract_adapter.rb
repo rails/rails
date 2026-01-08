@@ -611,6 +611,13 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter require referenced tables to exist for any given definition?
+      # e.g. SQLite allows you to define a foreign_key on a table that doesn't yet exist, but PostgreSQL raises an error.
+      # The schema_dumper needs to help ensure that tables aren't referenced before they are instantiated.
+      def requires_referential_integrity_at_definition?
+        false
+      end
+
       def return_value_after_insert?(column) # :nodoc:
         column.auto_populated?
       end
