@@ -146,7 +146,8 @@ module ActiveRecord
         if value.is_a?(Proc)
           value.call
         else
-          value = column.cast_type.serialize(value)
+          cast_type = column.cast_type || lookup_cast_type(column.sql_type)
+          value = cast_type.serialize(value)
           quote(value)
         end
       end
@@ -218,9 +219,10 @@ module ActiveRecord
         end
       end
 
-      def lookup_cast_type(sql_type) # :nodoc:
-        type_map.lookup(sql_type)
-      end
+      private
+        def lookup_cast_type(sql_type)
+          type_map.lookup(sql_type)
+        end
     end
   end
 end
