@@ -1991,7 +1991,7 @@ your account.
 
 ```bash
 $ bin/kamal dbc
-UPDATE users SET admin=true WHERE users.email='you@example.org';
+UPDATE users SET admin=true WHERE users.email_address='you@example.org';
 .quit
 ```
 
@@ -1999,7 +1999,7 @@ Otherwise, you can use the Rails console to update your account.
 
 ```bash
 $ bin/kamal console
-irb> User.find_by(email: "you@example.org").update(admin: true)
+irb> User.find_by(email_address: "you@example.org").update(admin: true)
 ```
 
 You can now access the Store settings in production with your account.

@@ -128,6 +128,22 @@ module ActiveRecord
           execute("SET CONSTRAINTS #{constraints} #{deferred.to_s.upcase}")
         end
 
+        def execute_batch(statements, name = nil, **kwargs) # :nodoc:
+          intent = QueryIntent.new(
+            adapter: self,
+            processed_sql: combine_multi_statements(statements),
+            name: name,
+            batch: true,
+            binds: kwargs[:binds] || [],
+            prepare: kwargs[:prepare] || false,
+            allow_async: kwargs[:async] || false,
+            allow_retry: kwargs[:allow_retry] || false,
+            materialize_transactions: kwargs[:materialize_transactions] != false
+          )
+          intent.execute!
+          intent.finish
+        end
+
         private
           IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR]
           private_constant :IDLE_TRANSACTION_STATUSES
@@ -207,22 +223,6 @@ module ActiveRecord
             affected_rows = result.cmd_tuples
             result.clear
             affected_rows
-          end
-
-          def execute_batch(statements, name = nil, **kwargs)
-            intent = QueryIntent.new(
-              adapter: self,
-              processed_sql: combine_multi_statements(statements),
-              name: name,
-              batch: true,
-              binds: kwargs[:binds] || [],
-              prepare: kwargs[:prepare] || false,
-              allow_async: kwargs[:async] || false,
-              allow_retry: kwargs[:allow_retry] || false,
-              materialize_transactions: kwargs[:materialize_transactions] != false
-            )
-            intent.execute!
-            intent.finish
           end
 
           def build_truncate_statements(table_names)

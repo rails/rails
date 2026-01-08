@@ -9,6 +9,35 @@
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
 
+# Active Job
+
+###
+# Defer job enqueueing until after the database transaction commits.
+#
+# When enabled, jobs enqueued inside a transaction wait until the transaction
+# commits before being dispatched to the queue. This prevents jobs from
+# operating on rolled-back data.
+#++
+# Rails.application.config.active_job.enqueue_after_transaction_commit = true
+
+###
+# Use Sec-Fetch-Site header for CSRF protection instead of tokens.
+#
+# Modern browsers send the Sec-Fetch-Site header to indicate the relationship
+# between request initiator and target origins. Rails can use this header to
+# reject cross-site requests without requiring authenticity tokens.
+#
+# When set to :header_only, requests without a valid Sec-Fetch-Site header
+# (same-origin or same-site) will be rejected. This is more secure and simpler
+# than token-based protection, but only works with modern browsers.
+#
+# When set to :header_or_legacy_token (pre-8.2 default), Rails checks the
+# Sec-Fetch-Site header first, but falls back to authenticity token verification
+# for requests without the header. This supports older browsers while logging
+# fallback usage.
+#++
+# Rails.application.config.action_controller.forgery_protection_verification_strategy = :header_only
+
 ###
 # Controls whether the PostgresqlAdapter should decode bytea and money columns automatically with manual queries.
 #

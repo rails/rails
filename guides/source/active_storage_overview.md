@@ -79,8 +79,8 @@ test:
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 amazon:
   service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  access_key_id: <%= Rails.app.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.app.credentials.dig(:aws, :secret_access_key) %>
   bucket: your_own_bucket-<%= Rails.env %>
   region: "" # e.g. 'us-east-1'
 ```
@@ -152,8 +152,8 @@ To connect to Amazon S3, declare an S3 service in `config/storage.yml`:
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 amazon:
   service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  access_key_id: <%= Rails.app.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.app.credentials.dig(:aws, :secret_access_key) %>
   region: "" # e.g. 'us-east-1'
   bucket: your_own_bucket-<%= Rails.env %>
 ```
@@ -164,10 +164,11 @@ Optionally provide client and upload options:
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 amazon:
   service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  access_key_id: <%= Rails.app.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.app.credentials.dig(:aws, :secret_access_key) %>
   region: "" # e.g. 'us-east-1'
   bucket: your_own_bucket-<%= Rails.env %>
+  default_digest_type: :md5 # or :sha256
   http_open_timeout: 0
   http_read_timeout: 0
   retry_limit: 0
@@ -197,8 +198,8 @@ To connect to an S3-compatible object storage API such as DigitalOcean Spaces, p
 digitalocean:
   service: S3
   endpoint: https://nyc3.digitaloceanspaces.com
-  access_key_id: <%= Rails.application.credentials.dig(:digitalocean, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:digitalocean, :secret_access_key) %>
+  access_key_id: <%= Rails.app.credentials.dig(:digitalocean, :access_key_id) %>
+  secret_access_key: <%= Rails.app.credentials.dig(:digitalocean, :secret_access_key) %>
   # ...and other options
 ```
 
@@ -225,8 +226,8 @@ google:
   credentials:
     type: "service_account"
     project_id: ""
-    private_key_id: <%= Rails.application.credentials.dig(:gcs, :private_key_id) %>
-    private_key: <%= Rails.application.credentials.dig(:gcs, :private_key).dump %>
+    private_key_id: <%= Rails.app.credentials.dig(:gcs, :private_key_id) %>
+    private_key: <%= Rails.app.credentials.dig(:gcs, :private_key).dump %>
     client_email: ""
     client_id: ""
     auth_uri: "https://accounts.google.com/o/oauth2/auth"
@@ -292,15 +293,15 @@ them by name when defining a mirror service:
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 s3_west_coast:
   service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  access_key_id: <%= Rails.app.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.app.credentials.dig(:aws, :secret_access_key) %>
   region: "" # e.g. 'us-west-1'
   bucket: your_own_bucket-<%= Rails.env %>
 
 s3_east_coast:
   service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  access_key_id: <%= Rails.app.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.app.credentials.dig(:aws, :secret_access_key) %>
   region: "" # e.g. 'us-east-1'
   bucket: your_own_bucket-<%= Rails.env %>
 

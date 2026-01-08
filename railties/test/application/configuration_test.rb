@@ -51,18 +51,6 @@ module ApplicationTests
       FileUtils.cp_r(app_path, new_app)
     end
 
-    def app(env = "development")
-      @app ||= begin
-        ENV["RAILS_ENV"] = env
-
-        require "#{app_path}/config/environment"
-
-        Rails.application
-      ensure
-        ENV.delete "RAILS_ENV"
-      end
-    end
-
     def switch_development_hosts_to(*hosts)
       old_development_hosts = ENV["RAILS_DEVELOPMENT_HOSTS"]
       ENV["RAILS_DEVELOPMENT_HOSTS"] = hosts.join(",")
@@ -272,8 +260,9 @@ module ApplicationTests
       Rails.env = "test"
       assert_equal [:default, "test"], Rails.groups(assets: [:development])
 
-      ENV["RAILS_GROUPS"] = "javascripts,stylesheets"
-      assert_equal [:default, "test", "javascripts", "stylesheets"], Rails.groups
+      with_env RAILS_GROUPS: "javascripts,stylesheets" do
+        assert_equal [:default, "test", "javascripts", "stylesheets"], Rails.groups
+      end
     end
 
     test "Rails.application is nil until app is initialized" do
@@ -1823,7 +1812,7 @@ module ApplicationTests
     test "config.action_controller.default_protect_from_forgery is true by default" do
       app "development"
 
-      assert_includes ActionController::Base.__callbacks[:process_action].map(&:filter), :verify_authenticity_token
+      assert_includes ActionController::Base.__callbacks[:process_action].map(&:filter), :verify_request_for_forgery_protection
     end
 
     test "config.action_controller.permit_all_parameters can be configured in an initializer" do
@@ -3326,18 +3315,47 @@ module ApplicationTests
       assert_not ActiveJob.verbose_enqueue_logs
     end
 
-    test "config.active_job.enqueue_after_transaction_commit is deprecated" do
+    test "config.active_job.enqueue_after_transaction_commit defaults to true for new apps" do
+      build_app
+      app "production"
+
+      assert ActiveRecord::Base
+      assert_equal true, ActiveJob::Base.enqueue_after_transaction_commit
+    end
+
+    test "config.active_job.enqueue_after_transaction_commit can be set to false for new apps" do
+      build_app
+
       app_file "config/initializers/enqueue_after_transaction_commit.rb", <<-RUBY
-      Rails.application.config.active_job.enqueue_after_transaction_commit = true
+        Rails.application.config.active_job.enqueue_after_transaction_commit = false
       RUBY
 
       app "production"
 
-      assert_nothing_raised do
-        ActiveRecord::Base
-      end
-
+      assert ActiveRecord::Base
       assert_equal false, ActiveJob::Base.enqueue_after_transaction_commit
+    end
+
+    test "config.active_job.enqueue_after_transaction_commit defaults to false for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "production"
+
+      assert ActiveRecord::Base
+      assert_equal false, ActiveJob::Base.enqueue_after_transaction_commit
+    end
+
+    test "config.active_job.enqueue_after_transaction_commit can be set to true for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/enqueue_after_transaction_commit.rb", <<-RUBY
+        Rails.application.config.active_job.enqueue_after_transaction_commit = true
+      RUBY
+
+      app "production"
+
+      assert ActiveRecord::Base
+      assert_equal true, ActiveJob::Base.enqueue_after_transaction_commit
     end
 
     test "active record job queue is set" do
@@ -5205,6 +5223,30 @@ module ApplicationTests
 
       assert_equal false, Rails.application.config.action_controller.logger
       assert_not output.include?("Processing by Rails::WelcomeController#index as HTML")
+    end
+
+    test "config.action_controller.live_streaming_excluded_keys configures ActionController::Live" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ActionController::Base
+        include ActionController::Live
+
+        def index
+          render plain: self.class.live_streaming_excluded_keys.inspect
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack, :custom_key]
+      RUBY
+
+      app "development"
+
+      get "/posts"
+      assert_equal "[:active_record_connected_to_stack, :custom_key]", last_response.body
     end
 
     private

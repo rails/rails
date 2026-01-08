@@ -62,6 +62,12 @@ module ActiveSupport
         ActiveSupport.test_order ||= :random
       end
 
+      if Minitest.respond_to? :run_order # MT6 API change
+        def run_order # :nodoc:
+          test_order
+        end
+      end
+
       # Parallelizes the test suite.
       #
       # Takes a +workers+ argument that controls how many times the process
@@ -74,7 +80,9 @@ module ActiveSupport
       # If <tt>ENV["PARALLEL_WORKERS"]</tt> is set the workers argument will be ignored
       # and the environment variable will be used instead. This is useful for CI
       # environments, or other environments where you may need more workers than
-      # you do for local testing.
+      # you do for local testing. Note that setting <tt>PARALLEL_WORKERS</tt> will
+      # also bypass the +threshold+ check, enabling parallelization regardless of
+      # test count.
       #
       # If the number of workers is set to +1+ or fewer, the tests will not be
       # parallelized.

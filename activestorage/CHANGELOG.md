@@ -1,3 +1,27 @@
+*   Restore ADC when signing URLs with IAM for GCS
+
+    ADC was previously used for automatic authorization when signing URLs with IAM.
+    Now it is again, but the auth client is memoized so that new credentials are only
+    requested when the current ones expire. Other auth methods can now be used
+    instead by setting the authorization on `ActiveStorage::Service::GCSService#iam_client`.
+
+    ```ruby
+    ActiveStorage::Blob.service.iam_client.authorization = Google::Auth::ImpersonatedServiceAccountCredentials.new(options)
+    ```
+
+    This is safer than setting `Google::Apis::RequestOptions.default.authorization`
+    because it only applies to Active Storage and does not affect other Google API
+    clients.
+
+    *Justin Malčić*
+
+*   Move responsibility for checksums storage service
+
+    The storage service should implement calculating and
+    validating checksums.
+
+    *Matt Pasquini*
+
 *   Analyze attachments before validation
 
     Attachment metadata (width, height, duration, etc.) is now available for

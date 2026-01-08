@@ -30,6 +30,11 @@ module ActiveJob
       ActiveSupport.on_load(:active_job) do
         ActiveSupport.on_load(:active_record) do
           ActiveJob::Base.include EnqueueAfterTransactionCommit
+
+          if app.config.active_job.key?(:enqueue_after_transaction_commit)
+            ActiveJob::Base.enqueue_after_transaction_commit =
+              app.config.active_job.enqueue_after_transaction_commit
+          end
         end
       end
     end

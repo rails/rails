@@ -1580,6 +1580,17 @@ class PreloaderTest < ActiveRecord::TestCase
       assert_same author, post.author
     end
   end
+
+  def test_preload_group_with_klass
+    published_author = PublishedAuthor.create!(name: "PublishedAuthor")
+    PublishedBook.create!(name: "PublishedBook", author_id: published_author.id, isbn: "12345")
+
+    author = Author.create!(name: "Author", published_author_id: published_author.id)
+    Book.create!(name: "Book", author_id: author.id, isbn: "67890")
+
+    result = Author.includes(books: [], published_author: { books: [] }).last
+    assert_equal [PublishedBook], result.published_author.books.map(&:class)
+  end
 end
 
 class GeneratedMethodsTest < ActiveRecord::TestCase

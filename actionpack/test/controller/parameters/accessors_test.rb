@@ -179,6 +179,18 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_not_predicate @params[:person].fetch(:name), :permitted?
   end
 
+  test "fetch yields string key to block when missing" do
+    key = @params.fetch("missing") { |missing_key| missing_key }
+
+    assert_equal "missing", key
+  end
+
+  test "fetch yields symbol key to block when missing" do
+    key = @params.fetch(:missing) { |missing_key| missing_key }
+
+    assert_equal :missing, key
+  end
+
   test "has_key? returns true if the given key is present in the params" do
     assert @params.has_key?(:person)
   end

@@ -535,7 +535,23 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
-  def test_reset_pk_sequence
+  def test_reset_column_sequences!
+    sequence_name = "#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
+    @connection.execute "SELECT setval('#{sequence_name}', 123)"
+    assert_equal 124, @connection.select_value("SELECT nextval('#{sequence_name}')")
+    @connection.reset_column_sequences!([["#{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME}", "id", sequence_name, nil, 1]])
+    assert_equal 1, @connection.select_value("SELECT nextval('#{sequence_name}')")
+  end
+
+  def test_reset_column_sequences_with_just_tables
+    sequence_name = "#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
+    @connection.execute "SELECT setval('#{sequence_name}', 123)"
+    assert_equal 124, @connection.select_value("SELECT nextval('#{sequence_name}')")
+    @connection.reset_column_sequences!([["#{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME}"]])
+    assert_equal 1, @connection.select_value("SELECT nextval('#{sequence_name}')")
+  end
+
+  def test_reset_pk_sequence!
     sequence_name = "#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
     @connection.execute "SELECT setval('#{sequence_name}', 123)"
     assert_equal 124, @connection.select_value("SELECT nextval('#{sequence_name}')")

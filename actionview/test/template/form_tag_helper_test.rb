@@ -439,6 +439,25 @@ class FormTagHelperTest < ActionView::TestCase
     assert_equal({ class: "pix", direct_upload: true }, original_options)
   end
 
+  def test_file_field_tag_with_direct_upload_includes_checksum_algorithm
+    @controller = WithActiveStorageRoutesControllers.new
+
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\" data-direct-upload-url=\"http://testtwo.host/rails/active_storage/direct_uploads\" data-checksum-algorithm=\"sha256\"/>",
+      file_field_tag("picsplz", class: "pix", direct_upload: true, data_checksum_algorithm: "sha256")
+    )
+  end
+
+  def test_file_field_tag_with_direct_upload_defaults_checksum_algorithm_to_md5
+    @controller = WithActiveStorageRoutesControllers.new
+
+    # Should not override existing data-checksum-algorithm
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\" data-direct-upload-url=\"http://testtwo.host/rails/active_storage/direct_uploads\" data-checksum-algorithm=\"md5\"/>",
+      file_field_tag("picsplz", class: "pix", direct_upload: true, data_checksum_algorithm: "md5")
+    )
+  end
+
   def test_password_field_tag
     actual = password_field_tag
     expected = %(<input id="password" name="password" type="password" />)

@@ -1,3 +1,29 @@
+*   Add `ActiveSupport::CombinedConfiguration` to offer interchangeable access to configuration provided by
+    either ENV or encrypted credentials. Used by Rails to first look at ENV, then look in encrypted credentials,
+    but can be configured separately with any number of API-compatible backends in a first-look order.
+
+    The object is inspect safe and will only show keys, not values.
+
+    *DHH*, *Emmanuel Hayford*
+
+*   Add `ActiveSupport::EnvConfiguration` to provide access to ENV variables in a way that's compatible with
+    `ActiveSupport::EncryptedConfiguration` and therefore can be used by `ActiveSupport::CombinedConfiguration`.
+
+    The object is inspect safe and will only show keys, not values.
+
+    Examples:
+
+    ```ruby
+    conf = ActiveSupport::EnvConfiguration.new
+    conf.require(:db_host) # ENV.fetch("DB_HOST")
+    conf.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
+    conf.option(:cache_host) # ENV["CACHE_HOST"]
+    conf.option(:cache_host, default: "cache-host-1") # ENV["CACHE_HOST"] || "cache-host-1"
+    conf.option(:cache_host, default: -> { "cache-host-1" }) # ENV["CACHE_HOST"] || "cache-host-1"
+    ```
+
+    *DHH*, *Emmanuel Hayford*
+
 *   Make flaky parallel tests easier to diagnose by deterministically assigning
     tests to workers.
 
