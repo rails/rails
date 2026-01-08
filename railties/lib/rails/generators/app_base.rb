@@ -628,6 +628,9 @@ module Rails
           packages << "python-is-python3"
         end
 
+        # ActiveStorage preview support
+        packages << "libvips" unless skip_active_storage?
+
         packages.compact.sort
       end
 
