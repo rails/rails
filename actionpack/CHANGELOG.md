@@ -1,3 +1,10 @@
+*   Introduce `config.action_controller.html_assertions` and `config.action_dispatch.html_assertions`
+
+    Adds support for testing with `Capybara::Minitest::Assertions` when set to `:capybara`.
+    Defaults to `Rails::Dom::Testing::Assertions` with `:rails_dom_testing`.
+
+    *Sean Doyle*
+
 *   Add `ActionDispatch::Request#bearer_token` to extract the bearer token from the Authorization header.
     Bearer tokens are commonly used for API and MCP requests.
 
