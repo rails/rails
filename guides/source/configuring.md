@@ -4167,6 +4167,7 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActionController::API`              | `action_controller`                  |
 | `ActionController::Base`             | `action_controller_base`             |
 | `ActionController::Base`             | `action_controller`                  |
+| `ActionController::Live`             | `action_controller_live`             |
 | `ActionController::TestCase`         | `action_controller_test_case`        |
 | `ActionDispatch::IntegrationTest`    | `action_dispatch_integration_test`   |
 | `ActionDispatch::Response`           | `action_dispatch_response`           |
