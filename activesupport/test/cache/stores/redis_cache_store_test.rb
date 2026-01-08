@@ -515,4 +515,64 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
   end
+
+  class ReadAndDeleteTest < StoreTest
+    test "read_and_delete returns value and deletes entry" do
+      key = SecureRandom.uuid
+      @cache.write(key, "bar")
+
+      assert_equal "bar", @cache.read_and_delete(key)
+      assert_nil @cache.read(key)
+    end
+
+    test "read_and_delete returns nil for missing key" do
+      key = SecureRandom.uuid
+      assert_nil @cache.read_and_delete(key)
+    end
+
+    test "read_and_delete respects namespace" do
+      key = SecureRandom.uuid
+      @cache.write(key, "bar")
+
+      assert_nil @cache.read_and_delete(key, namespace: "other")
+
+      assert_equal "bar", @cache.read(key)
+    end
+
+    test "read_and_delete with version mismatch returns nil and preserves entry" do
+      key = SecureRandom.uuid
+      @cache.write(key, "bar", version: "v1")
+
+      assert_nil @cache.read_and_delete(key, version: "v2")
+
+      assert_equal "bar", @cache.read(key, version: "v1")
+    end
+
+    test "read_and_delete with expired entry returns nil" do
+      key = SecureRandom.uuid
+      time = Time.now
+      @cache.write(key, "bar", expires_in: 1.second)
+      Time.stub(:now, time + 2.seconds) do
+        assert_nil @cache.read_and_delete(key)
+        assert_nil @cache.read(key)
+      end
+    end
+
+    test "read_and_delete with raw mode" do
+      key = SecureRandom.uuid
+      @cache.write(key, "123", raw: true)
+
+      value = @cache.read_and_delete(key, raw: true)
+      assert_equal "123", value
+      assert_nil @cache.read(key, raw: true)
+    end
+
+    test "read_and_delete with nil value" do
+      key = SecureRandom.uuid
+      @cache.write(key, nil)
+
+      assert_nil @cache.read_and_delete(key)
+      assert_nil @cache.read(key)
+    end
+  end
 end

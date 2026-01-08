@@ -88,4 +88,11 @@ class NullStoreTest < ActiveSupport::TestCase
       assert_equal({}, @cache.read_multi("foo", "bar"))
     end
   end
+
+  def test_read_and_delete
+    key = SecureRandom.uuid
+    @cache.write(key, "bar")
+    assert_nil @cache.read_and_delete(key)
+    assert_nil @cache.read(key)
+  end
 end

@@ -535,6 +535,60 @@ module ActiveSupport
         end
       end
 
+      # Reads and deletes data from the cache, using the given key.
+      # If there is data in the cache with the given key, then that data is
+      # returned and the entry is deleted. Otherwise, +nil+ is returned.
+      #
+      # This operation is atomic for cache stores that support it natively
+      # (e.g., RedisCacheStore with Redis 6.2.0+). For other stores,
+      # it falls back to a non-atomic read + delete which may have race
+      # conditions under high concurrency.
+      #
+      # Note, if data was written with the <tt>:expires_in</tt> or
+      # <tt>:version</tt> options, both of these conditions are applied before
+      # the data is returned.
+      #
+      # ==== Options
+      #
+      # * +:namespace+ - Replace the store namespace for this call.
+      # * +:version+ - Specifies a version for the cache entry. If the cached
+      #   version does not match the requested version, the read will be treated
+      #   as a cache miss. The entry will be preserved (not deleted) if the
+      #   version doesn't match.
+      #
+      # Other options will be handled by the specific cache store implementation.
+      def read_and_delete(name, options = nil)
+        options = merged_options(options)
+        key     = normalize_key(name, options)
+        version = normalize_version(name, options)
+
+        instrument(:read_and_delete, key, options) do |payload|
+          entry = read_entry(key, **options, event: payload)
+          if entry
+            if entry.expired?
+              delete_entry(key, **options)
+              payload[:hit] = false if payload
+              nil
+            elsif entry.mismatched?(version)
+              payload[:hit] = false if payload
+              nil
+            else
+              delete_entry(key, **options)
+              payload[:hit] = true if payload
+              begin
+                entry.value
+              rescue DeserializationError
+                payload[:hit] = false if payload
+                nil
+              end
+            end
+          else
+            payload[:hit] = false if payload
+            nil
+          end
+        end
+      end
+
       # Reads multiple values at once from the cache. Options can be passed
       # in the last argument.
       #

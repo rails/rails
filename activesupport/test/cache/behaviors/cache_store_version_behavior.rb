@@ -122,4 +122,82 @@ module CacheStoreVersionBehavior
     @cache.write(key, value, version: 1)
     assert_equal value, @cache.read(key, version: "1")
   end
+
+  def test_read_and_delete_with_right_version_should_delete
+    key = SecureRandom.uuid
+    value = SecureRandom.alphanumeric
+
+    @cache.write(key, value, version: 1)
+    assert_equal value, @cache.read_and_delete(key, version: 1)
+    assert_not @cache.exist?(key)
+  end
+
+  def test_read_and_delete_with_wrong_version_should_preserve
+    key = SecureRandom.uuid
+    value = SecureRandom.alphanumeric
+
+    @cache.write(key, value, version: 1)
+    assert_nil @cache.read_and_delete(key, version: 2)
+
+    # Entry should still exist with original version
+    assert @cache.exist?(key, version: 1)
+    assert_equal value, @cache.read(key, version: 1)
+  end
+
+  def test_read_and_delete_with_model_supporting_cache_version
+    model_name = SecureRandom.alphanumeric
+
+    m1v1 = ModelWithKeyAndVersion.new("#{model_name}/1", 1)
+    m1v2 = ModelWithKeyAndVersion.new("#{model_name}/1", 2)
+
+    value = SecureRandom.alphanumeric
+
+    @cache.write(m1v1, value)
+
+    # Read and delete with matching version
+    assert_equal value, @cache.read_and_delete(m1v1)
+    assert_not @cache.exist?(m1v1)
+
+    # Write again and try with wrong version
+    @cache.write(m1v1, value)
+    assert_nil @cache.read_and_delete(m1v2)
+
+    # Original entry should still exist
+    assert @cache.exist?(m1v1)
+    assert_equal value, @cache.read(m1v1)
+  end
+
+  def test_read_and_delete_with_version_normalized
+    key = SecureRandom.uuid
+    value = SecureRandom.alphanumeric
+
+    @cache.write(key, value, version: 1)
+
+    # Should work with string version "1" when written with integer 1
+    assert_equal value, @cache.read_and_delete(key, version: "1")
+    assert_not @cache.exist?(key)
+  end
+
+  def test_read_and_delete_with_nested_key_and_version
+    model_name = SecureRandom.alphanumeric
+
+    m1v1 = ModelWithKeyAndVersion.new("#{model_name}/1", 1)
+    m1v2 = ModelWithKeyAndVersion.new("#{model_name}/1", 2)
+
+    value = SecureRandom.alphanumeric
+
+    @cache.write(["something", m1v1], value)
+
+    # Read and delete with matching version
+    assert_equal value, @cache.read_and_delete(["something", m1v1])
+    assert_not @cache.exist?(["something", m1v1])
+
+    # Write again and try with wrong version
+    @cache.write(["something", m1v1], value)
+    assert_nil @cache.read_and_delete(["something", m1v2])
+
+    # Original entry should still exist
+    assert @cache.exist?(["something", m1v1])
+    assert_equal value, @cache.read(["something", m1v1])
+  end
 end

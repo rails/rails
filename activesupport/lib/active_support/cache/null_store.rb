@@ -31,6 +31,9 @@ module ActiveSupport
       def decrement(name, amount = 1, **options)
       end
 
+      def read_and_delete(name, options = nil)
+      end
+
       def delete_matched(matcher, options = nil)
       end
 

@@ -762,6 +762,66 @@ module CacheStoreBehavior
     assert_equal "bar", cache.read(key)
   end
 
+  def test_read_and_delete
+    key = SecureRandom.uuid
+    @cache.write(key, "bar")
+    assert_equal "bar", @cache.read_and_delete(key)
+    assert_nil @cache.read(key)
+  end
+
+  def test_read_and_delete_returns_nil_for_missing_key
+    key = SecureRandom.uuid
+    assert_nil @cache.read_and_delete(key)
+  end
+
+  def test_read_and_delete_with_different_types
+    string_key = SecureRandom.uuid
+    @cache.write(string_key, "string_value")
+    assert_equal "string_value", @cache.read_and_delete(string_key)
+
+    integer_key = SecureRandom.uuid
+    @cache.write(integer_key, 123)
+    assert_equal 123, @cache.read_and_delete(integer_key)
+
+    hash_key = SecureRandom.uuid
+    @cache.write(hash_key, { a: 1, b: 2 })
+    assert_equal({ a: 1, b: 2 }, @cache.read_and_delete(hash_key))
+
+    nil_key = SecureRandom.uuid
+    @cache.write(nil_key, nil)
+    assert_nil @cache.read_and_delete(nil_key)
+    assert_not @cache.exist?(nil_key)
+
+    false_key = SecureRandom.uuid
+    @cache.write(false_key, false)
+    assert_equal false, @cache.read_and_delete(false_key)
+    assert_not @cache.exist?(false_key)
+  end
+
+  def test_read_and_delete_with_expires_in
+    key = SecureRandom.uuid
+    time = Time.now
+    @cache.write(key, "bar", expires_in: 1.second)
+
+    Time.stub(:now, time + 0.5.seconds) do
+      assert_equal "bar", @cache.read_and_delete(key)
+    end
+
+    assert_nil @cache.read(key)
+  end
+
+  def test_read_and_delete_with_expired_entry
+    key = SecureRandom.uuid
+    time = Time.now
+    @cache.write(key, "bar", expires_in: 1.second)
+
+    Time.stub(:now, time + 2.seconds) do
+      assert_nil @cache.read_and_delete(key)
+    end
+
+    assert_nil @cache.read(key)
+  end
+
   private
     def with_raise_on_invalid_cache_expiration_time(new_value, &block)
       old_value = ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time

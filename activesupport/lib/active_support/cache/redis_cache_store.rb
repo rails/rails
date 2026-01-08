@@ -192,6 +192,75 @@ module ActiveSupport
         end
       end
 
+      # Reads and deletes data from the cache, using the given key.
+      # If there is data in the cache with the given key, then that data is
+      # returned and the entry is atomically deleted. Otherwise, +nil+ is returned.
+      #
+      # This operation is atomic when using Redis 6.2.0 or later via the GETDEL
+      # command. For older Redis versions, it falls back to a non-atomic GET + UNLINK
+      # which may have race conditions under high concurrency.
+      #
+      # Note, if data was written with the <tt>:expires_in</tt> or
+      # <tt>:version</tt> options, both of these conditions are applied before
+      # the data is returned.
+      #
+      # ==== Options
+      #
+      # * +:namespace+ - Replace the store namespace for this call.
+      # * +:version+ - Specifies a version for the cache entry. If the cached
+      #   version does not match the requested version, the read will be treated
+      #   as a cache miss. The entry will be deleted and then restored if the
+      #   version doesn't match.
+      # * +:raw+ - Reads the raw value from the cache, bypassing deserialization.
+      #
+      # Other options will be handled by the specific cache store implementation.
+      #
+      # ==== Examples
+      #
+      #   cache.write("token", "abc123", expires_in: 5.minutes)
+      #   cache.read_and_delete("token") # => "abc123"
+      #   cache.read("token")            # => nil
+      #
+      #   # Version mismatch - returns nil and preserves the entry
+      #   cache.write("key", "value", version: "v1")
+      #   cache.read_and_delete("key", version: "v2") # => nil
+      #   cache.read("key", version: "v1")             # => "value"
+      #
+      # Failsafe: Raises errors.
+      def read_and_delete(name, options = nil)
+        return super unless supports_getdel?
+
+        options = merged_options(options)
+        key     = normalize_key(name, options)
+        version = normalize_version(name, options)
+
+        instrument(:read_and_delete, key, options) do |payload|
+          entry = deserialize_entry(redis.then { |c| c.getdel(key) }, **options)
+          if entry
+            if entry.expired?
+              payload[:hit] = false if payload
+              nil
+            elsif entry.mismatched?(version)
+              # Restore the entry since version doesn't match
+              write_entry(key, entry, **options)
+              payload[:hit] = false if payload
+              nil
+            else
+              payload[:hit] = true if payload
+              begin
+                entry.value
+              rescue DeserializationError
+                payload[:hit] = false if payload
+                nil
+              end
+            end
+          else
+            payload[:hit] = false if payload
+            nil
+          end
+        end
+      end
+
       # Cache Store API implementation.
       #
       # Supports Redis KEYS glob patterns:
@@ -485,6 +554,13 @@ module ActiveSupport
 
           redis_versions = redis.then { |c| Array.wrap(c.info("server")).pluck("redis_version") }
           @supports_expire_nx = redis_versions.all? { |v| Gem::Version.new(v) >= Gem::Version.new("7.0.0") }
+        end
+
+        def supports_getdel?
+          return @supports_getdel if defined?(@supports_getdel)
+
+          redis_versions = redis.then { |c| Array.wrap(c.info("server")).pluck("redis_version") }
+          @supports_getdel = redis_versions.all? { |v| Gem::Version.new(v) >= Gem::Version.new("6.2.0") }
         end
 
         def failsafe(method, returning: nil)
