@@ -1,3 +1,7 @@
+*   Fix merging relations with arel equality predicates with null relations.
+
+    *fatkodima*
+
 *   Fix SQLite3 schema dump for non-autoincrement integer primary keys.
 
     Previously, `schema.rb` should incorrectly restore that table with an auto incrementing
