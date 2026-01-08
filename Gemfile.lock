@@ -80,7 +80,7 @@ PATH
       drb
       i18n (>= 1.6, < 2)
       logger (>= 1.4.2)
-      minitest (>= 5.1)
+      minitest (>= 5.1, < 6)
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
     rails (7.2.3)
@@ -364,8 +364,6 @@ GEM
     minitest-bisect (1.7.0)
       minitest-server (~> 1.0)
       path_expander (~> 1.1)
-    minitest-ci (3.4.0)
-      minitest (>= 5.0.6)
     minitest-retry (0.2.5)
       minitest (>= 5.0)
     minitest-server (1.0.8)
@@ -692,7 +690,6 @@ DEPENDENCIES
   mdl (!= 0.13.0)
   minitest
   minitest-bisect
-  minitest-ci
   minitest-retry
   msgpack (>= 1.7.0)
   mysql2 (~> 0.5, < 0.5.7)
