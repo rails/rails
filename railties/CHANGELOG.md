@@ -1,3 +1,15 @@
+*   Skip all system test files on app generation.
+
+    *Eileen M. Uchitelle*
+
+*   Fix `db:system:change` to correctly update Dockerfile base packages.
+
+    *Josiah Smith*
+
+*   Fix devcontainer volume mount when app name differs from folder name.
+
+    *Rafael Mendonça França*
+
 *   Fixed the `rails notes` command to properly extract notes in CSS files.
 
     *David White*

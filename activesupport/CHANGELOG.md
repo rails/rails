@@ -1,3 +1,7 @@
+*   Make `delegate` and `delegate_missing_to` work in BasicObject subclasses.
+
+    *Rafael Mendonça França*
+
 *   Fix Inflectors when using a locale that fallbacks to `:en`.
 
     *Said Kaldybaev*
