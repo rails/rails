@@ -455,7 +455,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match %r{Showing <i>.*test/dispatch/debug_exceptions_test.rb</i>}, body
   end
 
-  test "show the last exception and cause even when the cause is mapped to resque_responses" do
+  test "show the last exception and cause even when the cause is mapped to rescue_responses" do
     @app = DevelopmentApp
 
     get "/cause_mapped_to_rescue_responses", headers: { "action_dispatch.show_exceptions" => :all }

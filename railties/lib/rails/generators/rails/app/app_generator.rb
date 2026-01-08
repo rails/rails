@@ -196,6 +196,12 @@ module Rails
       master_key_generator.add_master_key_file_silently
     end
 
+    def env
+      return if options[:pretend] || options[:dummy_app]
+
+      template "env", ".env"
+    end
+
     def credentials
       return if options[:pretend] || options[:dummy_app]
 
@@ -427,7 +433,8 @@ module Rails
         build(:master_key)
       end
 
-      def create_credentials
+      def create_creds
+        build(:env)
         build(:credentials)
         build(:credentials_diff_enroll)
       end

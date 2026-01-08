@@ -1,3 +1,79 @@
+*   Add `Rails.app.revision` to provide a version identifier for error reporting, monitoring, cache keys, etc.
+
+    ```ruby
+    Rails.app.revision # => "3d31d593e6cf0f82fa9bd0338b635af2f30d627b"
+    ```
+
+    By default it looks for a `REVISION` file at the root of the application, if absent it tries to extract
+    the revision from the local git repository.
+
+    If none of that is adequate, it can be set in the application config:
+
+    ```ruby
+    # config/application.rb
+    module MyApp
+      class Application < Rails::Application
+        config.revision = ENV["GIT_SHA"]
+      end
+    end
+    ```
+
+    *Abdelkader Boudih*, *Jean Boussier*
+
+*   Add `Rails.app.creds` to provide combined access to credentials stored in either ENV or the encrypted credentials file,
+    and in development also .env credentials. Provides a new require/option API for accessing these values. Examples:
+
+    ```ruby
+    Rails.app.creds.require(:db_host) # ENV.fetch("DB_HOST") || Rails.app.credentials.require(:db_host)
+    Rails.app.creds.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID") || Rails.app.credentials.require(:aws, :access_key_id)
+    Rails.app.creds.option(:cache_host) # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host)
+    Rails.app.creds.option(:cache_host, default: "cache-host-1") # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host) || "cache-host-1"
+    Rails.app.creds.option(:cache_host, default: -> { "cache-host-1" }) # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host) || "cache-host-1"
+    ```
+
+    It's also possible to assign your own combined configuration, if you need to use a different backend than just ENVs + encrypted files:
+
+    ```ruby
+    Rails.app.creds = ActiveSupport::CombinedConfiguration.new(Rails.app.envs, OnePasswordConfiguration.new)
+    ```
+
+    *DHH*
+
+*   Add `Rails.app.dotenvs` to provide access to .env variables through symbol-based lookup with explicit methods
+    for required and optional values. This is the same interface offered by #credentials and can be accessed in a combined manner via #creds.
+
+    It supports both variable interpolation with ${VAR} and command interpolation with $(echo "hello"). Otherwise the same as `Rails.app.envs`.
+
+    *DHH*
+
+*   Add `Rails.app.envs` to provide access to ENV variables through symbol-based lookup with explicit methods
+    for required and optional values. This is the same interface offered by #credentials and can be accessed in a combined manner via #creds.
+
+    ```ruby
+    Rails.app.envs.require(:db_password) # ENV,fetch("DB_PASSWORD")
+    Rails.app.envs.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
+    Rails.app.envs.option(:cache_host) # ENV["CACHE_HOST"]
+    Rails.app.envs.option(:cache_host, default: "cache-host-1") # ENV.fetch("CACHE_HOST", "cache-host-1")
+    Rails.app.envs.option(:cache_host, default: -> { HostProvider.cache }) # ENV.fetch("CACHE_HOST") { HostProvider.cache }
+    ```
+
+    *DHH*
+
+*   Add `Rails.app` as alias for `Rails.application`. Particularly helpful when accessing nested accessors inside application code,
+    like when using `Rails.app.credentials`.
+
+    *DHH*
+
+*   Remove duplicate unique index for token migrations
+
+    *zzak*, *Dan Bota*
+
+*   Do not clean directories directly under the application root with `Rails::BacktraceCleaner`
+
+    Improved `Rails.backtrace_cleaner` so that most paths located directly under the application's root directory are no longer silenced.
+
+    *alpaca-tc*
+
 *   Add `Rails::CodeStatistics#register_extension` to register file extensions for `rails stats`
 
     ```ruby

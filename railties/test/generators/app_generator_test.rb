@@ -6,6 +6,7 @@ require "generators/shared_generator_tests"
 
 DEFAULT_APP_FILES = %w(
   .dockerignore
+  .env
   .git
   .gitattributes
   .github/dependabot.yml
@@ -1389,6 +1390,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file ".dockerignore"
     assert_no_file "Dockerfile"
     assert_no_file "bin/docker-entrypoint"
+  end
+
+  def test_env
+    run_generator
+
+    assert_file ".env" do |content|
+      assert_match(/Add local environment variables/, content)
+    end
   end
 
   unless Gem.win_platform?

@@ -87,6 +87,30 @@ module ActionController
     end
     event_log_level :unpermitted_parameters, :debug
 
+    def csrf_token_fallback(event)
+      return unless ActionController::Base.log_warning_on_csrf_failure
+
+      warn do
+        payload = event[:payload]
+        "Falling back to CSRF token verification for #{payload[:controller]}##{payload[:action]}"
+      end
+    end
+    event_log_level :csrf_token_fallback, :info
+
+    def csrf_request_blocked(event)
+      return unless ActionController::Base.log_warning_on_csrf_failure
+
+      warn { event[:payload][:message] }
+    end
+    event_log_level :csrf_request_blocked, :info
+
+    def csrf_javascript_blocked(event)
+      return unless ActionController::Base.log_warning_on_csrf_failure
+
+      warn { event[:payload][:message] }
+    end
+    event_log_level :csrf_javascript_blocked, :info
+
     def fragment_cache(event)
       return unless ActionController::Base.enable_fragment_cache_logging
 

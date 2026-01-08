@@ -615,6 +615,25 @@ module ActiveRecord
         end
       end
 
+      # Executes SQL statements in the context of this connection without
+      # returning a result.
+      def execute_batch(statements, name = nil, **kwargs) # :nodoc:
+        statements.each do |statement|
+          intent = QueryIntent.new(
+            adapter: self,
+            processed_sql: statement,
+            name: name,
+            binds: kwargs[:binds] || [],
+            prepare: kwargs[:prepare] || false,
+            allow_retry: kwargs[:allow_retry] || false,
+            materialize_transactions: kwargs[:materialize_transactions] != false,
+            batch: kwargs[:batch] || false
+          )
+          intent.execute!
+          intent.finish
+        end
+      end
+
       private
         DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
         private_constant :DEFAULT_INSERT_VALUE
@@ -647,23 +666,6 @@ module ActiveRecord
           )
         end
 
-        def execute_batch(statements, name = nil, **kwargs)
-          statements.each do |statement|
-            intent = QueryIntent.new(
-              adapter: self,
-              processed_sql: statement,
-              name: name,
-              binds: kwargs[:binds] || [],
-              prepare: kwargs[:prepare] || false,
-              allow_retry: kwargs[:allow_retry] || false,
-              materialize_transactions: kwargs[:materialize_transactions] != false,
-              batch: kwargs[:batch] || false
-            )
-            intent.execute!
-            intent.finish
-          end
-        end
-
         def build_fixture_sql(fixtures, table_name)
           columns = schema_cache.columns_hash(table_name).reject { |_, column| supports_virtual_columns? && column.virtual? }
 
@@ -677,8 +679,7 @@ module ActiveRecord
 
             columns.map do |name, column|
               if fixture.key?(name)
-                # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
-                with_yaml_fallback(column.fetch_cast_type(self).serialize(fixture[name]))
+                with_yaml_fallback(column.cast_type.serialize(fixture[name]))
               else
                 default_insert_value(column)
               end

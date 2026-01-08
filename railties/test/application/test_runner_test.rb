@@ -1020,7 +1020,7 @@ module ApplicationTests
 
       output = run_test_command("-n test_should_create_user")
 
-      assert_match "ActionController::InvalidAuthenticityToken", output
+      assert_match "ActionController::InvalidCrossOriginRequest", output
     end
 
     def test_raise_error_when_specified_file_does_not_exist

@@ -24,7 +24,7 @@ class ParametersSerializationTest < ActiveSupport::TestCase
   test "YAML deserialization" do
     params = ActionController::Parameters.new(key: :value)
     payload = YAML.dump(params)
-    roundtripped = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+    roundtripped = YAML.unsafe_load(payload)
 
     assert_equal params, roundtripped
     assert_not_predicate roundtripped, :permitted?
@@ -35,7 +35,7 @@ class ParametersSerializationTest < ActiveSupport::TestCase
       --- !ruby/hash:ActionController::Parameters
       key: :value
     end_of_yaml
-    params = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+    params = YAML.unsafe_load(payload)
 
     assert_equal :value, params[:key]
     assert_not_predicate params, :permitted?
@@ -49,7 +49,7 @@ class ParametersSerializationTest < ActiveSupport::TestCase
       ivars:
         :@permitted: false
     end_of_yaml
-    params = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+    params = YAML.unsafe_load(payload)
 
     assert_equal :value, params[:key]
     assert_not_predicate params, :permitted?
