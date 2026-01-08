@@ -1,3 +1,11 @@
+*   Enhanced `bin/dev` Script
+
+    Previously, `bin/dev` would only start the Rails server. Gems requiring multiple processes override the `bin/dev` script to start Foreman instead, which prevents interaction with the Rails server console (debugger).
+
+    This new `bin/dev` script starts Foreman in the background if a `Procfile.dev` is present and starts Rails in the foreground to allow debugging with breakpoints.
+
+    *Joé Dupuis*
+
 *   Add `Rails.app.revision` to provide a version identifier for error reporting, monitoring, cache keys, etc.
 
     ```ruby
