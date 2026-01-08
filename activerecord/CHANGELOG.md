@@ -1,3 +1,5 @@
+## Rails 8.1.2 (January 08, 2026) ##
+
 *   Fix counting cached queries in `ActiveRecord::RuntimeRegistry`.
 
     *fatkodima*

@@ -1,3 +1,5 @@
+## Rails 8.1.2 (January 08, 2026) ##
+
 *   Fix `ActiveJob.perform_all_later` to respect `job_class.enqueue_after_transaction_commit`.
 
     Previously, `perform_all_later` would enqueue all jobs immediately, even if

@@ -1,3 +1,8 @@
+## Rails 8.1.2 (January 08, 2026) ##
+
+*   No changes.
+
+
 ## Rails 8.1.1 (October 28, 2025) ##
 
 *   No changes.

@@ -1,3 +1,5 @@
+## Rails 8.1.2 (January 08, 2026) ##
+
 *   Fix `file_field` to join mime types with a comma when provided as Array
 
     ```ruby

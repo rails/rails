@@ -1,3 +1,5 @@
+## Rails 8.1.2 (January 08, 2026) ##
+
 *   Restore ADC when signing URLs with IAM for GCS
 
     ADC was previously used for automatic authorization when signing URLs with IAM.

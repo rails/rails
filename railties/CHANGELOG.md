@@ -1,3 +1,5 @@
+## Rails 8.1.2 (January 08, 2026) ##
+
 *   Skip all system test files on app generation.
 
     *Eileen M. Uchitelle*
