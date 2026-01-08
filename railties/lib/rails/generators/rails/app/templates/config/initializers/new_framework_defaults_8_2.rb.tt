@@ -39,6 +39,18 @@
 # Rails.application.config.action_controller.forgery_protection_verification_strategy = :header_only
 
 ###
+# Change the default strategy when calling protect_from_forgery without arguments.
+#
+# When protect_from_forgery is called without the :with option, it will now
+# default to :exception instead of :null_session. This matches the behavior
+# when config.action_controller.default_protect_from_forgery is enabled.
+#
+# The :exception strategy raises ActionController::InvalidCrossOriginRequest on
+# CSRF failures, while :null_session provides an empty session during the request.
+#++
+# Rails.application.config.action_controller.default_protect_from_forgery_with = :exception
+
+###
 # Controls whether the PostgresqlAdapter should decode bytea and money columns automatically with manual queries.
 #
 # Example:
