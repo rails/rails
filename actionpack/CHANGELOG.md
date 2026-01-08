@@ -1,3 +1,8 @@
+*   Avoid loading `ActionController::Live` early in initializer, and introduce
+    `action_controller_live` load hook.
+
+    *Adrianna Chang*
+
 *   Deprecate calling `protect_from_forgery` without specifying a strategy.
 
     When `protect_from_forgery` is called without the `:with` option, it currently defaults to
