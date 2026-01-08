@@ -705,7 +705,8 @@ Column modifiers can be applied when creating or changing a column:
 * `default`      Allows to set a default value on the column. Note that if you
   are using a dynamic value (such as a date), the default will only be
   calculated the first time (i.e. on the date the migration is applied). Use
-  `nil` for `NULL`.
+  `nil` for `NULL`. Depending on your database, existing records may not
+  receive the default value.
 * `limit`        Sets the maximum number of characters for a `string` column and
   the maximum number of bytes for `text/binary/integer` columns.
 * `null`         Allows or disallows `NULL` values in the column.
