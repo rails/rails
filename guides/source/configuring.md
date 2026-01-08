@@ -60,6 +60,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.2
 
+- [`config.action_controller.default_protect_from_forgery_with`](#config-action-controller-default-protect-from-forgery-with): `:exception`
 - [`config.action_controller.forgery_protection_verification_strategy`](#config-action-controller-forgery-protection-verification-strategy): `:header_only`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
@@ -2030,6 +2031,22 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 5.2                   | `true`               |
+
+#### `config.action_controller.default_protect_from_forgery_with`
+
+Configures the default strategy used when calling `protect_from_forgery` without the `:with` option.
+Defaults to `:null_session`, but will change to `:exception` in a future version of Rails.
+
+Applications can opt into the new behavior early by setting:
+
+```ruby
+config.action_controller.default_protect_from_forgery_with = :exception
+```
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:null_session`      |
+| 8.2                   | `:exception`         |
 
 #### `config.action_controller.relative_url_root`
 

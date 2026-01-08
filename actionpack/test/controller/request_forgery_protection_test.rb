@@ -830,15 +830,15 @@ end
 
 class PrependProtectForgeryBaseControllerTest < ActionController::TestCase
   PrependTrueController = Class.new(PrependProtectForgeryBaseController) do
-    protect_from_forgery prepend: true
+    protect_from_forgery prepend: true, with: :null_session
   end
 
   PrependFalseController = Class.new(PrependProtectForgeryBaseController) do
-    protect_from_forgery prepend: false
+    protect_from_forgery prepend: false, with: :null_session
   end
 
   PrependDefaultController = Class.new(PrependProtectForgeryBaseController) do
-    protect_from_forgery
+    protect_from_forgery with: :null_session
   end
 
   def test_forgery_protection_callbacks_are_prepended_in_correct_order
@@ -1792,7 +1792,7 @@ class InvalidVerificationStrategyTest < ActionController::TestCase
   def test_raises_argument_error_for_invalid_using_option
     assert_raises(ArgumentError) do
       Class.new(ActionController::Base) do
-        protect_from_forgery using: :invalid_strategy
+        protect_from_forgery using: :invalid_strategy, with: :null_session
       end
     end
   end
@@ -1800,7 +1800,7 @@ class InvalidVerificationStrategyTest < ActionController::TestCase
   def test_raises_argument_error_for_authenticity_token_option
     assert_raises(ArgumentError) do
       Class.new(ActionController::Base) do
-        protect_from_forgery using: :authenticity_token
+        protect_from_forgery using: :authenticity_token, with: :null_session
       end
     end
   end
@@ -1916,6 +1916,56 @@ class InvalidAuthenticityTokenDeprecationTest < ActiveSupport::TestCase
         raise ActionController::InvalidCrossOriginRequest
       rescue ActionController::InvalidAuthenticityToken
       end
+    end
+  end
+end
+
+class ProtectFromForgeryDefaultStrategyTest < ActionController::TestCase
+  test "protect_from_forgery without :with option shows deprecation warning" do
+    assert_deprecated(/Calling `protect_from_forgery` without specifying a strategy is deprecated/, ActionController.deprecator) do
+      Class.new(ActionController::Base) do
+        protect_from_forgery
+      end
+    end
+  end
+
+  test "protect_from_forgery without :with option defaults to :null_session" do
+    assert_deprecated(ActionController.deprecator) do
+      controller_class = Class.new(ActionController::Base) do
+        protect_from_forgery
+      end
+      assert_equal ActionController::RequestForgeryProtection::ProtectionMethods::NullSession,
+                   controller_class.forgery_protection_strategy
+    end
+  end
+
+  test "protect_from_forgery with explicit :with option does not show deprecation" do
+    assert_not_deprecated(ActionController.deprecator) do
+      Class.new(ActionController::Base) do
+        protect_from_forgery with: :null_session
+      end
+    end
+  end
+
+  test "protect_from_forgery respects default_protect_from_forgery_with config" do
+    assert_not_deprecated(ActionController.deprecator) do
+      controller_class = Class.new(ActionController::Base) do
+        self.default_protect_from_forgery_with = :exception
+        protect_from_forgery
+      end
+      assert_equal ActionController::RequestForgeryProtection::ProtectionMethods::Exception,
+                   controller_class.forgery_protection_strategy
+    end
+  end
+
+  test "protect_from_forgery with explicit :with overrides default_protect_from_forgery_with" do
+    assert_not_deprecated(ActionController.deprecator) do
+      controller_class = Class.new(ActionController::Base) do
+        self.default_protect_from_forgery_with = :exception
+        protect_from_forgery with: :reset_session
+      end
+      assert_equal ActionController::RequestForgeryProtection::ProtectionMethods::ResetSession,
+                   controller_class.forgery_protection_strategy
     end
   end
 end
