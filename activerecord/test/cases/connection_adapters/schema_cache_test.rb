@@ -315,13 +315,13 @@ module ActiveRecord
         assert_same coder["columns"], schema_cache.instance_variable_get(:@columns)
       end
 
-      test "#encode_with sorts members" do
+      test "#encode_with preserves database order for columns and indexes when schema_cache_dump_order is :database" do
         values = [["z", nil], ["y", nil], ["x", nil]]
-        expected = values.sort.to_h
+        sorted_values = values.sort.to_h
 
         named = Struct.new(:name)
         named_values = [["z", [named.new("c"), named.new("b")]], ["y", [named.new("c"), named.new("b")]], ["x", [named.new("c"), named.new("b")]]]
-        named_expected = named_values.sort.to_h.transform_values { _1.sort_by(&:name) }
+        unsorted_named_hash = named_values.to_h
 
         coder = {
           "columns" => named_values,
@@ -333,12 +333,45 @@ module ActiveRecord
 
         schema_cache = SchemaCache.allocate
         schema_cache.init_with(coder)
-        schema_cache.encode_with(coder)
 
-        assert_equal named_expected, coder["columns"]
-        assert_equal expected, coder["primary_keys"]
-        assert_equal expected, coder["data_sources"]
-        assert_equal named_expected, coder["indexes"]
+        SchemaCache.with(schema_cache_dump_order: :database) do
+          schema_cache.encode_with(coder)
+        end
+
+        assert_equal unsorted_named_hash, coder["columns"]
+        assert_equal unsorted_named_hash, coder["indexes"]
+        assert_equal sorted_values, coder["primary_keys"]
+        assert_equal sorted_values, coder["data_sources"]
+        assert coder.key?("version")
+      end
+
+      test "#encode_with sorts columns and indexes when schema_cache_dump_order is :sorted" do
+        values = [["z", nil], ["y", nil], ["x", nil]]
+        sorted_values = values.sort.to_h
+
+        named = Struct.new(:name)
+        named_values = [["z", [named.new("c"), named.new("b")]], ["y", [named.new("c"), named.new("b")]], ["x", [named.new("c"), named.new("b")]]]
+        sorted_named_hash = named_values.sort.to_h.transform_values { _1.sort_by(&:name) }
+
+        coder = {
+          "columns" => named_values,
+          "primary_keys" => values,
+          "data_sources" => values,
+          "indexes" => named_values,
+          "deduplicated" => true
+        }
+
+        schema_cache = SchemaCache.allocate
+        schema_cache.init_with(coder)
+
+        SchemaCache.with(schema_cache_dump_order: :sorted) do
+          schema_cache.encode_with(coder)
+        end
+
+        assert_equal sorted_named_hash, coder["columns"]
+        assert_equal sorted_named_hash, coder["indexes"]
+        assert_equal sorted_values, coder["primary_keys"]
+        assert_equal sorted_values, coder["data_sources"]
         assert coder.key?("version")
       end
 

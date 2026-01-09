@@ -584,6 +584,23 @@ module ApplicationTests
       assert_not ActiveRecord::ConnectionAdapters::SchemaReflection.use_schema_cache_dump
     end
 
+    test "schema_cache_dump_order defaults to :database" do
+      app "development"
+
+      assert_equal :database, Rails.application.config.active_record.schema_cache_dump_order
+      assert_equal :database, ActiveRecord::ConnectionAdapters::SchemaCache.schema_cache_dump_order
+    end
+
+    test "propagates schema_cache_dump_order=:sorted to ActiveRecord::ConnectionAdapters::SchemaCache" do
+      add_to_config <<-RUBY
+        config.active_record.schema_cache_dump_order = :sorted
+      RUBY
+
+      app "development"
+
+      assert_equal :sorted, Rails.application.config.active_record.schema_cache_dump_order
+      assert_equal :sorted, ActiveRecord::ConnectionAdapters::SchemaCache.schema_cache_dump_order
+    end
 
     test "filter_parameters should be able to set via config.filter_parameters" do
       add_to_config <<-RUBY
