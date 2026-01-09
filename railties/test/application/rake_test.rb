@@ -316,6 +316,13 @@ module ApplicationTests
       app_file "config/initializers/dummy.rb", "puts 'Hello, World!'"
       app_file "template.rb", ""
 
+      # Mock bundle_command to succeed without actually running bundle install.
+      # The test app's Gemfile references unreleased Rails which would fail.
+      require "rails/generators/bundle_helper"
+      silence_warnings do
+        Rails::Generators::BundleHelper.define_method(:bundle_command) { |*| true }
+      end
+
       output = rails("app:template", "LOCATION=template.rb")
       assert_match(/Hello, World!/, output)
     end
