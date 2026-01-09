@@ -19,15 +19,15 @@ CI.run do
   step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error"
 <% end -%>
 <% unless options[:skip_test] -%>
-<% if options[:api] || options[:skip_system_test] -%>
   step "Tests: Rails", "bin/rails test"
-<% else %>
-  step "Tests: Rails", "bin/rails test"
-  step "Tests: System", "bin/rails test:system"
-<% end -%>
 <% unless options.skip_active_record? -%>
   step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant"
 <% end -%>
+<% end -%>
+
+<% unless options[:skip_test] -%>
+  # Optional: Run system tests
+  # step "Tests: System", "bin/rails test:system"
 <% end -%>
 
   # Optional: set a green GitHub commit status to unblock PR merge.

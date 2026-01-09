@@ -1,3 +1,9 @@
+*   Add `libvips` to generated `ci.yml`
+
+    Conditionally adds `libvips` to `ci.yml`.
+
+    *Steve Polito*
+
 *   Add `Rails.app.revision` to provide a version identifier for error reporting, monitoring, cache keys, etc.
 
     ```ruby
