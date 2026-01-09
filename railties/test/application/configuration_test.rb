@@ -1815,6 +1815,24 @@ module ApplicationTests
       assert_includes ActionController::Base.__callbacks[:process_action].map(&:filter), :verify_request_for_forgery_protection
     end
 
+    test "config.action_controller.default_protect_from_forgery_with is :exception by default in 8.2" do
+      app "development"
+
+      require "action_controller/base"
+      assert_equal :exception, ActionController::Base.default_protect_from_forgery_with
+    end
+
+    test "config.action_controller.default_protect_from_forgery_with can be configured" do
+      add_to_config <<-RUBY
+        config.action_controller.default_protect_from_forgery_with = :reset_session
+      RUBY
+
+      app "development"
+
+      require "action_controller/base"
+      assert_equal :reset_session, ActionController::Base.default_protect_from_forgery_with
+    end
+
     test "config.action_controller.permit_all_parameters can be configured in an initializer" do
       app_file "config/initializers/permit_all_parameters.rb", <<-RUBY
         Rails.application.config.action_controller.permit_all_parameters = true
