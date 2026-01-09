@@ -191,11 +191,8 @@ module Arel # :nodoc: all
         #     FROM messages
         #   ) __ar_distinct_on__ WHERE __ar_row_num__ = 1
         def visit_distinct_on_with_window_function(o, distinct_on_node, collector)
-          # Clone the statement to avoid modifying the original
-          inner_stmt = o.dup
-          inner_stmt.instance_variable_set(:@cores, o.cores.map(&:dup))
-          inner_stmt.instance_variable_set(:@orders, o.orders.dup)
-
+          # Deep duplicate the original statement to avoid modifying it
+          inner_stmt = o.deep_dup
           inner_core = inner_stmt.cores.first
 
           # Remove DISTINCT ON from inner query
@@ -205,14 +202,14 @@ module Arel # :nodoc: all
           # PARTITION BY: the columns from DISTINCT ON
           # ORDER BY: the existing ORDER BY clauses from the statement
           partition_cols = distinct_on_node.expr
-          order_cols = inner_stmt.orders
+          order_cols = o.orders
 
           # Create ROW_NUMBER() OVER (PARTITION BY ... ORDER BY ...)
           row_number_func = Nodes::NamedFunction.new("ROW_NUMBER", [])
           window = Nodes::Window.new
-          window.instance_variable_set(:@partitions, partition_cols.is_a?(Array) ? partition_cols : [partition_cols])
-          window.instance_variable_set(:@orders, order_cols)
-          window.instance_variable_set(:@framing, nil)
+          window.partitions = partition_cols.is_a?(Array) ? partition_cols : [partition_cols]
+          window.orders = order_cols
+          window.framing = nil
 
           row_number_over = Nodes::Over.new(row_number_func, window)
           row_num_alias = Nodes::SqlLiteral.new("__ar_row_num__", retryable: true)
@@ -221,11 +218,11 @@ module Arel # :nodoc: all
           # Add ROW_NUMBER() to projections
           inner_core.projections << row_number_as
 
-          # Clear orders from inner statement (they're now in the window function)
-          inner_stmt.instance_variable_set(:@orders, [])
-          # Clear limit/offset from inner statement (they should be applied to outer query)
-          inner_stmt.instance_variable_set(:@limit, nil)
-          inner_stmt.instance_variable_set(:@offset, nil)
+          # Clear orders, limit, and offset from inner statement
+          # (they're applied to the outer query instead)
+          inner_stmt.orders = []
+          inner_stmt.limit = nil
+          inner_stmt.offset = nil
 
           # Build outer query: SELECT * FROM (...) WHERE __ar_row_num__ = 1
           if o.with
@@ -235,7 +232,7 @@ module Arel # :nodoc: all
 
           collector << "SELECT * FROM ("
 
-          # Visit the modified inner statement (without orders, limit, offset)
+          # Visit the inner statement
           collector = inner_stmt.cores.inject(collector) { |c, x|
             visit_Arel_Nodes_SelectCore(x, c)
           }
