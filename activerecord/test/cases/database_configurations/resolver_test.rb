@@ -43,14 +43,14 @@ module ActiveRecord
         end
 
         def test_url_sub_key_merges_correctly
-          hash = { "url" => "abstract://foo?encoding=utf8&", "adapter" => "sqlite3", "host" => "bar", "pool" => "3" }
+          hash = { "url" => "abstract://foo?encoding=utf8&", "adapter" => "sqlite3", "host" => "bar", "max_connections" => "3" }
           pool_config = resolve_db_config :production, "production" => hash
 
           assert_equal({
-            adapter:  "abstract",
-            host:     "foo",
-            encoding: "utf8",
-            pool:     "3"
+            adapter:         "abstract",
+            host:            "foo",
+            encoding:        "utf8",
+            max_connections: "3"
           }, pool_config.configuration_hash)
         end
 

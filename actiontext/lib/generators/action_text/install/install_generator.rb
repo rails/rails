@@ -10,12 +10,42 @@ module ActionText
     class InstallGenerator < ::Rails::Generators::Base
       source_root File.expand_path("templates", __dir__)
 
+      class_option :editor, type: :string, default: "trix"
+
+      def install_editor
+        editor = options[:editor]
+
+        say "Installing #{editor} JavaScript dependency", :green
+        if using_bun?
+          run "bun add #{editor}"
+        elsif using_node?
+          run "yarn add #{editor}"
+        end
+      end
+
+      def append_editor
+        destination = Pathname(destination_root)
+        editor = options[:editor]
+
+        if (application_javascript_path = destination.join("app/javascript/application.js")).exist?
+          insert_into_file application_javascript_path.to_s, %(\nimport "#{editor}"\n)
+        else
+          say <<~INSTRUCTIONS, :green
+            You must import the #{editor} JavaScript module in your application entrypoint.
+          INSTRUCTIONS
+        end
+
+        if (importmap_path = destination.join("config/importmap.rb")).exist?
+          append_to_file importmap_path.to_s, %(pin "#{editor}"\n)
+        end
+      end
+
       def install_javascript_dependencies
         say "Installing JavaScript dependencies", :green
         if using_bun?
-          run "bun add @rails/actiontext trix"
+          run "bun add @rails/actiontext"
         elsif using_node?
-          run "yarn add @rails/actiontext trix"
+          run "yarn add @rails/actiontext"
         end
       end
 
@@ -23,15 +53,15 @@ module ActionText
         destination = Pathname(destination_root)
 
         if (application_javascript_path = destination.join("app/javascript/application.js")).exist?
-          insert_into_file application_javascript_path.to_s, %(\nimport "trix"\nimport "@rails/actiontext"\n)
+          insert_into_file application_javascript_path.to_s, %(\nimport "@rails/actiontext"\n)
         else
           say <<~INSTRUCTIONS, :green
-            You must import the @rails/actiontext and trix JavaScript modules in your application entrypoint.
+            You must import the @rails/actiontext JavaScript module in your application entrypoint.
           INSTRUCTIONS
         end
 
         if (importmap_path = destination.join("config/importmap.rb")).exist?
-          append_to_file importmap_path.to_s, %(pin "trix"\npin "@rails/actiontext", to: "actiontext.esm.js"\n)
+          append_to_file importmap_path.to_s, %(pin "@rails/actiontext", to: "actiontext.esm.js"\n)
         end
       end
 
@@ -45,18 +75,6 @@ module ActionText
 
         copy_file "#{gem_root}/app/views/layouts/action_text/contents/_content.html.erb",
           "app/views/layouts/action_text/contents/_content.html.erb"
-      end
-
-      def enable_image_processing_gem
-        if (gemfile_path = Pathname(destination_root).join("Gemfile")).exist?
-          say "Ensure image_processing gem has been enabled so image uploads will work (remember to bundle!)"
-          image_processing_regex = /gem ["']image_processing["']/
-          if File.readlines(gemfile_path).grep(image_processing_regex).any?
-            uncomment_lines gemfile_path, image_processing_regex
-          else
-            run "bundle add --skip-install image_processing"
-          end
-        end
       end
 
       def create_migrations

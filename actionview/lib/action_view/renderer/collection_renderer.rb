@@ -167,10 +167,10 @@ module ActionView
 
           collection_body = if template
             cache_collection_render(payload, view, template, collection) do |filtered_collection|
-              collection_with_template(view, template, layout, filtered_collection)
+              collection_with_template(view, template, layout, filtered_collection, &block)
             end
           else
-            collection_with_template(view, nil, layout, collection)
+            collection_with_template(view, nil, layout, collection, &block)
           end
 
           return RenderedCollection.empty(@lookup_context.formats.first) if collection_body.empty?
@@ -179,7 +179,7 @@ module ActionView
         end
       end
 
-      def collection_with_template(view, template, layout, collection)
+      def collection_with_template(view, template, layout, collection, &block)
         locals = @locals
         cache = {}
 
@@ -194,7 +194,7 @@ module ActionView
 
           _template = (cache[path] ||= (template || find_template(path, @locals.keys + [as, counter, iteration])))
 
-          content = _template.render(view, locals, implicit_locals: [counter, iteration])
+          content = _template.render(view, locals, implicit_locals: [counter, iteration], &block)
           content = layout.render(view, locals) { content } if layout
           partial_iteration.iterate!
           build_rendered_template(content, _template)

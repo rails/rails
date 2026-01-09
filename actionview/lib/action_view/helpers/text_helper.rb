@@ -260,7 +260,14 @@ module ActionView
         prefix, first_part   = cut_excerpt_part(:first, first_part, separator, options)
         postfix, second_part = cut_excerpt_part(:second, second_part, separator, options)
 
-        affix = [first_part, separator, phrase, separator, second_part].join.strip
+        affix = [
+          first_part,
+          !first_part.empty? ? separator : "",
+          phrase,
+          !second_part.empty? ? separator : "",
+          second_part
+        ].join.strip
+
         [prefix, affix, postfix].join
       end
 
@@ -271,7 +278,7 @@ module ActionView
       #
       # The word will be pluralized using rules defined for the locale
       # (you must define your own inflection rules for languages other than English).
-      # See ActiveSupport::Inflector.pluralize
+      # See ActiveSupport::Inflector.pluralize.
       #
       #   pluralize(1, 'person')
       #   # => "1 person"
@@ -346,7 +353,7 @@ module ActionView
       # ==== Options
       # * <tt>:sanitize</tt> - If +false+, does not sanitize +text+.
       # * <tt>:sanitize_options</tt> - Any extra options you want appended to the sanitize.
-      # * <tt>:wrapper_tag</tt> - String representing the wrapper tag, defaults to <tt>"p"</tt>
+      # * <tt>:wrapper_tag</tt> - String representing the wrapper tag, defaults to <tt>"p"</tt>.
       #
       # ==== Examples
       #   my_text = "Here is some basic text...\n...with a line break."

@@ -7,11 +7,12 @@ require "active_support/core_ext/date_time/calculations"
 require "active_support/values/time_zone"
 
 class DateTime
-  # Convert to a formatted string. See Time::DATE_FORMATS for predefined formats.
+  # Convert to a formatted string. See +Time::DATE_FORMATS+ for predefined formats.
   #
   # This method is aliased to <tt>to_formatted_s</tt>.
   #
-  # === Examples
+  # ==== Examples
+  #
   #   datetime = DateTime.civil(2007, 12, 4, 0, 0, 0, 0)   # => Tue, 04 Dec 2007 00:00:00 +0000
   #
   #   datetime.to_fs(:db)            # => "2007-12-04 00:00:00"
@@ -23,9 +24,10 @@ class DateTime
   #   datetime.to_fs(:rfc822)        # => "Tue, 04 Dec 2007 00:00:00 +0000"
   #   datetime.to_fs(:iso8601)       # => "2007-12-04T00:00:00+00:00"
   #
-  # == Adding your own datetime formats to to_fs
+  # ==== Adding your own datetime formats to +to_fs+
+  #
   # DateTime formats are shared with Time. You can add your own to the
-  # Time::DATE_FORMATS hash. Use the format name as the hash key and
+  # +Time::DATE_FORMATS+ hash. Use the format name as the hash key and
   # either a strftime string or Proc instance that takes a time or
   # datetime argument as the value.
   #

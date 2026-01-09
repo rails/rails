@@ -3,7 +3,8 @@
 source "https://rubygems.org"
 gemspec
 
-gem "minitest"
+gem "minitest", "~> 6.0"
+gem "minitest-mock"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
@@ -28,10 +29,11 @@ gem "solid_queue"
 gem "solid_cable"
 gem "kamal", ">= 2.1.0", require: false
 gem "thruster", require: false
-# require: false so bcrypt is loaded only when has_secure_password is used.
+# require: false so bcrypt and argon2 are loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
-# being dependent on a binary library.
+# being dependent on binary libraries.
 gem "bcrypt", "~> 3.1.11", require: false
+gem "argon2", "~> 2.3.2", require: false
 
 # This needs to be with require false to avoid it being automatically loaded by
 # sprockets.
@@ -46,9 +48,7 @@ gem "uri", ">= 0.13.1", require: false
 gem "prism"
 
 group :rubocop do
-  # Rubocop has to be locked in the Gemfile because CI ignores Gemfile.lock
-  # We don't want rubocop to start failing whenever rubocop makes a new release.
-  gem "rubocop", "< 1.73", require: false
+  gem "rubocop", "1.79.2", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
@@ -64,8 +64,7 @@ group :mdl do
 end
 
 group :doc do
-  gem "sdoc", git: "https://github.com/rails/sdoc.git", branch: "main"
-  gem "rdoc", "< 6.10"
+  gem "sdoc", "~> 2.6.4"
   gem "redcarpet", "~> 3.6.1", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"
@@ -100,8 +99,6 @@ gem "useragent", require: false
 group :job do
   gem "resque", require: false
   gem "resque-scheduler", require: false
-  gem "sidekiq", "!= 8.0.3", require: false
-  gem "sucker_punch", require: false
   gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "backburner", require: false
@@ -122,7 +119,6 @@ end
 group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.11", require: false
-  gem "azure-storage-blob", "~> 2.0", require: false
 
   gem "image_processing", "~> 1.2"
 end
@@ -136,8 +132,6 @@ local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  gem "minitest-bisect", require: false
-  gem "minitest-ci", require: false
   gem "minitest-retry"
 
   platforms :mri do
@@ -158,7 +152,7 @@ platforms :ruby, :windows do
 
   group :db do
     gem "pg", "~> 1.3"
-    gem "mysql2", "~> 0.5"
+    gem "mysql2", "~> 0.5", "< 0.5.7"
     gem "trilogy", ">= 2.7.0"
   end
 end

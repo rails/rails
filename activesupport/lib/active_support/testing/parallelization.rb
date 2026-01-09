@@ -3,6 +3,8 @@
 require "drb"
 require "drb/unix" unless Gem.win_platform?
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/testing/parallelization/test_distributor"
+require "active_support/testing/parallelization/thread_pool_executor"
 require "active_support/testing/parallelization/server"
 require "active_support/testing/parallelization/worker"
 
@@ -33,9 +35,13 @@ module ActiveSupport
 
       cattr_reader :run_cleanup_hooks
 
-      def initialize(worker_count)
+      def initialize(worker_count, work_stealing: false)
         @worker_count = worker_count
-        @queue_server = Server.new
+
+        distributor = (work_stealing ? RoundRobinWorkStealingDistributor : RoundRobinDistributor).new \
+          worker_count: worker_count
+
+        @queue_server = Server.new(distributor: distributor)
         @worker_pool = []
         @url = DRb.start_service("drbunix:", @queue_server).uri
       end
@@ -60,8 +66,19 @@ module ActiveSupport
       end
 
       def shutdown
+        dead_worker_pids = @worker_pool.filter_map do |pid|
+          Process.waitpid(pid, Process::WNOHANG)
+        rescue Errno::ECHILD
+          pid
+        end
+        @queue_server.remove_dead_workers(dead_worker_pids)
+
         @queue_server.shutdown
-        @worker_pool.each { |pid| Process.waitpid pid }
+        @worker_pool.each do |pid|
+          Process.waitpid(pid)
+        rescue Errno::ECHILD
+          nil
+        end
       end
     end
   end

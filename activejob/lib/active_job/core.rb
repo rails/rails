@@ -124,7 +124,7 @@ module ActiveJob
         "arguments"  => serialize_arguments_if_needed(arguments),
         "executions" => executions,
         "exception_executions" => exception_executions,
-        "locale"     => I18n.locale.to_s,
+        "locale"     => locale || I18n.locale.to_s,
         "timezone"   => timezone,
         "enqueued_at" => Time.now.utc.iso8601(9),
         "scheduled_at" => scheduled_at ? scheduled_at.utc.iso8601(9) : nil,
@@ -167,8 +167,8 @@ module ActiveJob
       self.exception_executions = job_data["exception_executions"]
       self.locale               = job_data["locale"] || I18n.locale.to_s
       self.timezone             = job_data["timezone"] || Time.zone&.name
-      self.enqueued_at          = Time.iso8601(job_data["enqueued_at"]) if job_data["enqueued_at"]
-      self.scheduled_at         = Time.iso8601(job_data["scheduled_at"]) if job_data["scheduled_at"]
+      self.enqueued_at          = deserialize_time(job_data["enqueued_at"]) if job_data["enqueued_at"]
+      self.scheduled_at         = deserialize_time(job_data["scheduled_at"]) if job_data["scheduled_at"]
     end
 
     # Configures the job with the given options.
@@ -207,6 +207,14 @@ module ActiveJob
 
       def arguments_serialized?
         @serialized_arguments
+      end
+
+      def deserialize_time(time)
+        if time.is_a?(Time)
+          time
+        else
+          Time.iso8601(time)
+        end
       end
   end
 end

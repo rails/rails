@@ -266,6 +266,10 @@ module ActionView
         end
       end
 
+      def after_setup
+        @__setup_ivars = instance_variables << :@__setup_ivars
+      end
+
       def setup_with_controller
         controller_class = Class.new(ActionView::TestCase::TestController)
         @controller = controller_class.new
@@ -299,7 +303,6 @@ module ActionView
       class RenderedViewContent < String # :nodoc:
       end
 
-      # Need to experiment if this priority is the best one: rendered => output_buffer
       class RenderedViewsCollection
         def initialize
           @rendered_views ||= Hash.new { |hash, key| hash[key] = [] }
@@ -400,7 +403,7 @@ module ActionView
       ]
 
       def _user_defined_ivars
-        instance_variables - INTERNAL_IVARS
+        instance_variables - INTERNAL_IVARS - @__setup_ivars
       end
 
       # Returns a Hash of instance variables and their values, as defined by

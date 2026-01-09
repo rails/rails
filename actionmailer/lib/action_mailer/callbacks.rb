@@ -4,6 +4,8 @@ module ActionMailer
   module Callbacks
     extend ActiveSupport::Concern
 
+    DEFAULT_INTERNAL_METHODS = [:_run_deliver_callbacks].freeze # :nodoc:
+
     included do
       include ActiveSupport::Callbacks
       define_callbacks :deliver, skip_after_callbacks_if_terminated: true
@@ -25,6 +27,10 @@ module ActionMailer
       # Defines a callback that will get called around the message's deliver method.
       def around_deliver(*filters, &blk)
         set_callback(:deliver, :around, *filters, &blk)
+      end
+
+      def internal_methods # :nodoc:
+        super.concat(DEFAULT_INTERNAL_METHODS)
       end
     end
   end

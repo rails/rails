@@ -202,7 +202,7 @@ module ActiveRecord
     #   @entry.access_notice_message
     #   @entry.access_notice_message?
     #
-    # === Options
+    # ==== Options
     #
     # The +options+ are passed directly to the +belongs_to+ call, so this is where you declare +dependent+ etc.
     # The following options can be included to specialize the behavior of the delegated type convenience methods.

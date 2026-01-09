@@ -1,8 +1,8 @@
 // Smooth scrolling (back-to-top etc.)
 @media (prefers-reduced-motion: no-preference) {
-  // This smooth scrolling behaviour does not work in tandem with scrollIntoView
+  // This smooth scrolling behavior does not work in tandem with scrollIntoView
   // for some browser-os combinations. Therefore, if JavaScript is enabled, this
-  // style is removed and the behaviour is added to the back-to-top element etc.
+  // style is removed and the behavior is added to the back-to-top element etc.
   html {
     scroll-behavior: smooth;
   }
@@ -370,6 +370,13 @@ body.guide {
     white-space: -pre-wrap; /* Opera 4-6 */
     white-space: -o-pre-wrap; /* Opera 7 */
     word-wrap: break-word; /* Internet Explorer 5.5+ */
+  }
+
+  // Ensures that 'code' inside 'pre' preserves formatting and does not wrap, makes it horizontally scrollable instead
+  pre {
+    code {
+      white-space: pre;
+    }
   }
 
   // Back to Top element

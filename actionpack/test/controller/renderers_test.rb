@@ -11,6 +11,7 @@ class RenderersTest < ActionController::TestCase
       "<#{options[:root]}/>"
     end
   end
+
   class JsonRenderable
     def as_json(options = {})
       hash = { a: :b, c: :d, e: :f }
@@ -22,11 +23,25 @@ class RenderersTest < ActionController::TestCase
       super except: [:c, :e]
     end
   end
+
   class CsvRenderable
     def to_csv
       "c,s,v"
     end
   end
+
+  class MarkdownRenderable
+    def to_markdown
+      "# This is markdown"
+    end
+  end
+
+  class SvgRenderable
+    def to_svg
+      "<svg><circle cx=\"50\" cy=\"50\" r=\"40\"/></svg>"
+    end
+  end
+
   class TestController < ActionController::Base
     def render_simon_says
       render simon: "foo"
@@ -38,8 +53,10 @@ class RenderersTest < ActionController::TestCase
           render json: JsonRenderable.new
         end
         type.js   { render json: "JS", callback: "alert" }
-        type.csv  { render csv: CsvRenderable.new    }
-        type.xml  { render xml: XmlRenderable.new     }
+        type.csv  { render csv: CsvRenderable.new }
+        type.xml  { render xml: XmlRenderable.new }
+        type.md   { render markdown: MarkdownRenderable.new }
+        type.svg  { render svg: SvgRenderable.new }
         type.html { render body: "HTML"    }
         type.rss  { render body: "RSS"     }
         type.all  { render body: "Nothing" }
@@ -87,5 +104,17 @@ class RenderersTest < ActionController::TestCase
     assert_equal "c,s,v", @response.body
   ensure
     ActionController::Renderers.remove :csv
+  end
+
+  test "rendering markdown" do
+    get :respond_to_mime, format: "md"
+    assert_equal Mime[:markdown], @response.media_type
+    assert_equal "# This is markdown", @response.body
+  end
+
+  test "rendering svg" do
+    get :respond_to_mime, format: "svg"
+    assert_equal Mime[:svg], @response.media_type
+    assert_equal "<svg><circle cx=\"50\" cy=\"50\" r=\"40\"/></svg>", @response.body
   end
 end

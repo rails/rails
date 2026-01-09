@@ -246,6 +246,11 @@ module ActionController
         render plain: ActiveSupport::IsolatedExecutionState[:raw_isolated_state].inspect
       end
 
+      def connected_to_stack_not_inherited
+        stack = ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack]
+        render plain: stack.inspect
+      end
+
       def with_stale
         render plain: "stale" if stale?(etag: "123", template: false)
       end
@@ -570,6 +575,34 @@ module ActionController
       assert_stream_closed
     end
 
+    def test_connected_to_stack_not_inherited
+      original = @controller.class.live_streaming_excluded_keys
+      @controller.class.live_streaming_excluded_keys = [:active_record_connected_to_stack]
+
+      stack = [{ role: :reading, shard: :default, prevent_writes: true, klasses: [] }]
+      ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = stack
+
+      get :connected_to_stack_not_inherited
+
+      assert_equal "nil", response.body
+      assert_stream_closed
+    ensure
+      @controller.class.live_streaming_excluded_keys = original
+      ActiveSupport::IsolatedExecutionState.delete(:active_record_connected_to_stack)
+    end
+
+    def test_live_streaming_doesnt_exclude_by_default
+      stack = [{ role: :reading, shard: :default, prevent_writes: true, klasses: [] }]
+      ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = stack
+
+      get :connected_to_stack_not_inherited
+
+      assert_match(/role.*reading/, response.body)
+      assert_stream_closed
+    ensure
+      ActiveSupport::IsolatedExecutionState.delete(:active_record_connected_to_stack)
+    end
+
     def test_live_stream_default_header
       get :default_header
       assert response.headers["Content-Type"]
@@ -683,6 +716,14 @@ module ActionController
       get :greet
 
       assert_equal "aaron", Thread.current[:setting]
+    end
+
+    def test_isolated_state_does_not_get_reset_in_test_environment
+      ActiveSupport::IsolatedExecutionState[:setting] = "aaron"
+
+      get :greet
+
+      assert_equal "aaron", ActiveSupport::IsolatedExecutionState[:setting]
     end
   end
 

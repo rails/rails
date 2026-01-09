@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "cgi/escape"
-require "cgi/util" if RUBY_VERSION < "3.5"
 require "action_view/helpers/date_helper"
 require "action_view/helpers/url_helper"
 require "action_view/helpers/form_tag_helper"

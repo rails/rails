@@ -109,7 +109,7 @@ module Rails
     end
 
     def bin
-      exclude_pattern = Regexp.union([(/thrust/ if skip_thruster?), (/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?)].compact)
+      exclude_pattern = Regexp.union([(/thrust/ if skip_thruster?), (/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?), (/bundler-audit/ if skip_bundler_audit?)].compact)
       directory "bin", { exclude_pattern: exclude_pattern } do |content|
         "#{shebang}\n" + content
       end
@@ -127,8 +127,8 @@ module Rails
         template "routes.rb" unless options[:update]
         template "application.rb"
         template "environment.rb"
-        template "bundler-audit.yml"
-        template "cable.yml" unless options[:update] || options[:skip_action_cable]
+        template "bundler-audit.yml" unless skip_bundler_audit?
+        template "cable.yml" unless options[:update] || skip_action_cable?
         template "ci.rb"
         template "puma.rb"
         template "storage.yml" unless options[:update] || skip_active_storage?
@@ -153,7 +153,7 @@ module Rails
 
       config
 
-      if !options[:skip_action_cable] && !action_cable_config_exist
+      if !skip_action_cable? && !action_cable_config_exist
         template "config/cable.yml"
       end
 
@@ -177,7 +177,7 @@ module Rails
         remove_file "config/initializers/cors.rb"
       end
 
-      if !bundle_audit_config_exist
+      if !skip_bundler_audit? && !bundle_audit_config_exist
         template "config/bundler-audit.yml"
       end
 
@@ -194,7 +194,12 @@ module Rails
       require "rails/generators/rails/master_key/master_key_generator"
       master_key_generator = Rails::Generators::MasterKeyGenerator.new([], quiet: options[:quiet], force: options[:force])
       master_key_generator.add_master_key_file_silently
-      master_key_generator.ignore_master_key_file_silently
+    end
+
+    def env
+      return if options[:pretend] || options[:dummy_app]
+
+      template "env", ".env"
     end
 
     def credentials
@@ -256,9 +261,10 @@ module Rails
     end
 
     def system_test
-      empty_directory_with_keep_file "test/system"
-
-      template "test/application_system_test_case.rb"
+      if devcontainer? && depends_on_system_test?
+        empty_directory_with_keep_file "test/system"
+        template "test/application_system_test_case.rb"
+      end
     end
 
     def tmp
@@ -284,6 +290,7 @@ module Rails
         dev: options[:dev],
         node: using_node?,
         app_name: app_name,
+        app_folder: File.basename(app_path),
         skip_solid: options[:skip_solid],
         pretend: options[:pretend]
       }
@@ -318,6 +325,7 @@ module Rails
             :skip_active_storage,
             :skip_bootsnap,
             :skip_brakeman,
+            :skip_bundler_audit,
             :skip_ci,
             :skip_dev_gems,
             :skip_docker,
@@ -425,7 +433,8 @@ module Rails
         build(:master_key)
       end
 
-      def create_credentials
+      def create_creds
+        build(:env)
         build(:credentials)
         build(:credentials_diff_enroll)
       end
@@ -474,7 +483,7 @@ module Rails
       end
 
       def create_system_test_files
-        build(:system_test) if depends_on_system_test?
+        build(:system_test)
       end
 
       def create_storage_files

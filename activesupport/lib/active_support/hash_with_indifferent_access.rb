@@ -278,9 +278,7 @@ module ActiveSupport
     #   hash[:a][:c] # => "c"
     #   dup[:a][:c]  # => "c"
     def dup
-      self.class.new(self).tap do |new_hash|
-        set_defaults(new_hash)
-      end
+      copy_defaults(self.class.new(self))
     end
 
     # This method has the same semantics of +update+, except it does not
@@ -297,13 +295,13 @@ module ActiveSupport
     #   hash['a'] = nil
     #   hash.reverse_merge(a: 0, b: 1) # => {"a"=>nil, "b"=>1}
     def reverse_merge(other_hash)
-      super(self.class.new(other_hash))
+      super(cast(other_hash))
     end
     alias_method :with_defaults, :reverse_merge
 
     # Same semantics as +reverse_merge+ but modifies the receiver in-place.
     def reverse_merge!(other_hash)
-      super(self.class.new(other_hash))
+      super(cast(other_hash))
     end
     alias_method :with_defaults!, :reverse_merge!
 
@@ -312,7 +310,7 @@ module ActiveSupport
     #   h = { "a" => 100, "b" => 200 }
     #   h.replace({ "c" => 300, "d" => 400 }) # => {"c"=>300, "d"=>400}
     def replace(other_hash)
-      super(self.class.new(other_hash))
+      super(cast(other_hash))
     end
 
     # Removes the specified key from the hash.
@@ -354,21 +352,26 @@ module ActiveSupport
     NOT_GIVEN = Object.new # :nodoc:
 
     def transform_keys(hash = NOT_GIVEN, &block)
-      return to_enum(:transform_keys) if NOT_GIVEN.equal?(hash) && !block_given?
-      dup.tap { |h| h.transform_keys!(hash, &block) }
+      if NOT_GIVEN.equal?(hash)
+        if block_given?
+          self.class.new(super(&block))
+        else
+          to_enum(:transform_keys)
+        end
+      else
+        self.class.new(super)
+      end
     end
 
     def transform_keys!(hash = NOT_GIVEN, &block)
-      return to_enum(:transform_keys!) if NOT_GIVEN.equal?(hash) && !block_given?
-
-      if hash.nil?
-        super
-      elsif NOT_GIVEN.equal?(hash)
-        keys.each { |key| self[yield(key)] = delete(key) }
-      elsif block_given?
-        keys.each { |key| self[hash[key] || yield(key)] = delete(key) }
+      if NOT_GIVEN.equal?(hash)
+        if block_given?
+          replace(copy_defaults(transform_keys(&block)))
+        else
+          return to_enum(:transform_keys!)
+        end
       else
-        keys.each { |key| self[hash[key] || key] = delete(key) }
+        replace(copy_defaults(transform_keys(hash, &block)))
       end
 
       self
@@ -392,8 +395,7 @@ module ActiveSupport
     def to_hash
       copy = Hash[self]
       copy.transform_values! { |v| convert_value_to_hash(v) }
-      set_defaults(copy)
-      copy
+      copy_defaults(copy)
     end
 
     def to_proc
@@ -401,6 +403,10 @@ module ActiveSupport
     end
 
     private
+      def cast(other)
+        self.class === other ? other : self.class.new(other)
+      end
+
       def convert_key(key)
         Symbol === key ? key.name : key
       end
@@ -429,12 +435,13 @@ module ActiveSupport
       end
 
 
-      def set_defaults(target)
+      def copy_defaults(target)
         if default_proc
           target.default_proc = default_proc.dup
         else
           target.default = default
         end
+        target
       end
 
       def update_with_single_argument(other_hash, block)

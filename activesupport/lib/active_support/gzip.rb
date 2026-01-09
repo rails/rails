@@ -32,6 +32,7 @@ module ActiveSupport
     def self.compress(source, level = Zlib::DEFAULT_COMPRESSION, strategy = Zlib::DEFAULT_STRATEGY)
       output = Stream.new
       gz = Zlib::GzipWriter.new(output, level, strategy)
+      gz.mtime = 0
       gz.write(source)
       gz.close
       output.string

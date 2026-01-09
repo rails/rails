@@ -4,7 +4,9 @@
 
 require "action_dispatch"
 require "action_dispatch/log_subscriber"
+require "action_dispatch/structured_event_subscriber"
 require "active_support/messages/rotation_configuration"
+require "rails/railtie"
 
 module ActionDispatch
   class Railtie < Rails::Railtie # :nodoc:
@@ -33,6 +35,7 @@ module ActionDispatch
 
     config.action_dispatch.ignore_leading_brackets = nil
     config.action_dispatch.strict_query_string_separator = nil
+    config.action_dispatch.verbose_redirect_logs = false
 
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",
@@ -55,8 +58,18 @@ module ActionDispatch
       ActionDispatch::Http::URL.secure_protocol = app.config.force_ssl
       ActionDispatch::Http::URL.tld_length = app.config.action_dispatch.tld_length
 
-      ActionDispatch::ParamBuilder.ignore_leading_brackets = app.config.action_dispatch.ignore_leading_brackets
-      ActionDispatch::QueryParser.strict_query_string_separator = app.config.action_dispatch.strict_query_string_separator
+      unless app.config.action_dispatch.domain_extractor.nil?
+        ActionDispatch::Http::URL.domain_extractor = app.config.action_dispatch.domain_extractor
+      end
+
+      unless app.config.action_dispatch.ignore_leading_brackets.nil?
+        ActionDispatch::ParamBuilder.ignore_leading_brackets = app.config.action_dispatch.ignore_leading_brackets
+      end
+      unless app.config.action_dispatch.strict_query_string_separator.nil?
+        ActionDispatch::QueryParser.strict_query_string_separator = app.config.action_dispatch.strict_query_string_separator
+      end
+
+      ActionDispatch.verbose_redirect_logs = app.config.action_dispatch.verbose_redirect_logs
 
       ActiveSupport.on_load(:action_dispatch_request) do
         self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header

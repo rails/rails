@@ -5,7 +5,7 @@ require "active_support/core_ext/object/try"
 module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
-      class TimeZoneConverter < DelegateClass(Type::Value) # :nodoc:
+      class TimeZoneConverter < ActiveSupport::Delegation::DelegateClass(Type::Value) # :nodoc:
         def self.new(subtype)
           self === subtype ? subtype : super
         end
@@ -17,11 +17,15 @@ module ActiveRecord
         def cast(value)
           return if value.nil?
 
-          if value.is_a?(Hash)
+          if value.is_a?(::Hash)
             set_time_zone_without_conversion(super)
           elsif value.respond_to?(:in_time_zone)
             begin
-              super(user_input_in_time_zone(value)) || super
+              result = super(__getobj__.user_input_in_time_zone(value)) || super
+              if result && type == :time
+                result = result.change(year: 2000, month: 1, day: 1)
+              end
+              result
             rescue ArgumentError
               nil
             end
@@ -41,7 +45,11 @@ module ActiveRecord
             return if value.nil?
 
             if value.acts_like?(:time)
-              value.in_time_zone
+              converted = value.in_time_zone
+              if type == :time && converted
+                converted = converted.change(year: 2000, month: 1, day: 1)
+              end
+              converted
             elsif value.respond_to?(:infinite?) && value.infinite?
               value
             else

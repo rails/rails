@@ -7,7 +7,7 @@ module ActiveRecord
     # Executes the block with the collect flag enabled. Queries are collected
     # asynchronously by the subscriber and returned.
     def collecting_queries_for_explain # :nodoc:
-      ExplainRegistry.collect = true
+      ExplainRegistry.start
       yield
       ExplainRegistry.queries
     ensure

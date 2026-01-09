@@ -6,7 +6,7 @@
 #
 default: &default
   adapter: sqlite3
-  pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  max_connections: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
 
 development:
@@ -19,7 +19,6 @@ development:
 test:
   <<: *default
   database: storage/test.sqlite3
-
 
 <%- if options.skip_kamal? -%>
 # SQLite3 write its data on the local filesystem, as such it requires

@@ -4,6 +4,7 @@ require "active_record_unit"
 require "active_record/railties/controller_runtime"
 require "fixtures/project"
 require "active_support/log_subscriber/test_helper"
+require "action_controller/structured_event_subscriber"
 require "action_controller/log_subscriber"
 
 ActionController::Base.include(ActiveRecord::Railties::ControllerRuntime)
@@ -19,7 +20,7 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
     end
 
     def create
-      ActiveRecord::RuntimeRegistry.sql_runtime += 100.0
+      ActiveRecord::RuntimeRegistry.stats.sql_runtime += 100.0
       Project.last
       redirect_to "/"
     end
@@ -32,11 +33,10 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
     def db_after_render
       render inline: "Hello world"
       Project.all.to_a
-      ActiveRecord::RuntimeRegistry.sql_runtime += 100.0
+      ActiveRecord::RuntimeRegistry.stats.sql_runtime += 100.0
     end
   end
 
-  include ActiveSupport::LogSubscriber::TestHelper
   tests LogSubscriberController
 
   with_routes do
@@ -47,34 +47,34 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
     post :create, to: "#{LogSubscriberController.controller_path}#create"
   end
 
+  def run(*)
+    with_debug_event_reporting do
+      super
+    end
+  end
+
   def setup
-    @old_logger = ActionController::Base.logger
     super
-    ActionController::LogSubscriber.attach_to :action_controller
+    @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    @old_logger = ActionController::LogSubscriber.logger
+    ActionController::LogSubscriber.logger = @logger
   end
 
   def teardown
     super
-    ActiveSupport::LogSubscriber.log_subscribers.clear
-    ActionController::Base.logger = @old_logger
-  end
-
-  def set_logger(logger)
-    ActionController::Base.logger = logger
+    ActionController::LogSubscriber.logger = @old_logger
   end
 
   def test_log_with_active_record
     get :show
-    wait
 
     assert_equal 2, @logger.logged(:info).size
     assert_match(/\(Views: [\d.]+ms \| ActiveRecord: [\d.]+ms \(0 queries, 0 cached\) \| GC: [\d.]+ms\)/, @logger.logged(:info)[1])
   end
 
   def test_runtime_reset_before_requests
-    ActiveRecord::RuntimeRegistry.sql_runtime += 12345.0
+    ActiveRecord::RuntimeRegistry.stats.sql_runtime += 12345.0
     get :zero
-    wait
 
     assert_equal 2, @logger.logged(:info).size
     assert_match(/\(Views: [\d.]+ms \| ActiveRecord: [\d.]+ms \(0 queries, 0 cached\) \| GC: [\d.]+ms\)/, @logger.logged(:info)[1])
@@ -82,20 +82,19 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
 
   def test_log_with_active_record_when_post
     post :create
-    wait
+
     assert_match(/ActiveRecord: ([1-9][\d.]+)ms \(1 query, 0 cached\) \| GC: [\d.]+ms\)/, @logger.logged(:info)[2])
   end
 
   def test_log_with_active_record_when_redirecting
     get :redirect
-    wait
+
     assert_equal 3, @logger.logged(:info).size
     assert_match(/\(ActiveRecord: [\d.]+ms \(0 queries, 0 cached\) \| GC: [\d.]+ms\)/, @logger.logged(:info)[2])
   end
 
   def test_include_time_query_time_after_rendering
     get :db_after_render
-    wait
 
     assert_equal 2, @logger.logged(:info).size
     assert_match(/\(Views: [\d.]+ms \| ActiveRecord: ([1-9][\d.]+)ms \(1 query, 0 cached\) \| GC: [\d.]+ms\)/, @logger.logged(:info)[1])

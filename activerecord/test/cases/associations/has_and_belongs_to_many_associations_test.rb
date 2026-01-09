@@ -1014,7 +1014,7 @@ class DeprecatedHasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_deprecated_association(:deprecated_posts, context: context_for_method(:deprecated_posts)) do
-      assert_equal @category.posts, @category.deprecated_posts
+      assert_equal @category.posts.order(:id), @category.deprecated_posts.order(:id)
     end
   end
 

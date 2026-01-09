@@ -160,8 +160,7 @@ module ActiveRecord
           elsif column.type == :uuid && value.is_a?(String) && value.include?("()")
             value # Does not quote function default values for UUID columns
           elsif column.respond_to?(:array?)
-            # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
-            quote(column.fetch_cast_type(self).serialize(value))
+            quote(column.cast_type.serialize(value))
           else
             super
           end
@@ -189,7 +188,7 @@ module ActiveRecord
 
         # TODO: Make this method private after we release 8.1.
         def lookup_cast_type(sql_type) # :nodoc:
-          super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
+          super(query_value("SELECT #{quote(sql_type)}::regtype::oid").to_i)
         end
 
         private
@@ -205,7 +204,16 @@ module ActiveRecord
           end
 
           def encode_range(range)
-            "[#{type_cast_range_value(range.begin)},#{type_cast_range_value(range.end)}#{range.exclude_end? ? ')' : ']'}"
+            lower_bound, upper_bound = if date_or_time_range?(range)
+              type_cast_time_range_values(range)
+            else
+              [
+                type_cast_range_value(range.begin),
+                type_cast_range_value(range.end)
+              ]
+            end
+
+            "[#{lower_bound},#{upper_bound}#{range.exclude_end? ? ')' : ']'}"
           end
 
           def determine_encoding_of_strings_in_array(value)
@@ -226,8 +234,19 @@ module ActiveRecord
             infinity?(value) ? "" : type_cast(value)
           end
 
+          def type_cast_time_range_values(range)
+            [
+              range.begin.nil? ? "-infinity" : type_cast(range.begin),
+              range.end.nil? ? "infinity" : type_cast(range.end)
+            ]
+          end
+
           def infinity?(value)
             value.respond_to?(:infinite?) && value.infinite?
+          end
+
+          def date_or_time_range?(range)
+            [range.begin.class, range.end.class].intersect?([Date, DateTime, Time])
           end
       end
     end

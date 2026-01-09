@@ -87,4 +87,16 @@ class JavaScriptHelperTest < ActionView::TestCase
     assert_dom_equal "<script nonce=\"iyhD0Yc0W+c=\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>",
       javascript_tag("alert('hello')")
   end
+
+  def test_javascript_tag_nonce_true
+    instance_eval { def content_security_policy_nonce = "iyhD0Yc0W+c=" }
+    assert_dom_equal "<script nonce=\"iyhD0Yc0W+c=\">\n//<![CDATA[\nalert('hello')\n//]]>\n</script>",
+      javascript_tag("alert('hello')", nonce: true)
+  end
+
+  def test_javascript_tag_nonce_false
+    instance_eval { def content_security_policy_nonce = "iyhD0Yc0W+c=" }
+    assert_dom_equal "<script>\n//<![CDATA[\nalert('hello')\n//]]>\n</script>",
+      javascript_tag("alert('hello')", nonce: false)
+  end
 end

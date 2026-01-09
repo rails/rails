@@ -11,7 +11,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
-  class ShouldNotHaveExceptionsLogger < ActiveRecord::LogSubscriber
+  class ShouldNotHaveExceptionsLogger < ActiveRecord::StructuredEventSubscriber
     attr_reader :logger, :events
 
     def initialize
@@ -339,8 +339,6 @@ class QueryCacheTest < ActiveRecord::TestCase
       ActiveRecord::Base.connection_pool.connections.each do |conn|
         assert_cache :off, conn
       end
-    ensure
-      ActiveRecord::Base.connection_pool.disconnect!
     end
   end
 
@@ -731,16 +729,28 @@ class QueryCacheTest < ActiveRecord::TestCase
       ActiveRecord::Base.lease_connection.enable_query_cache!
       assert_cache :clean
 
+      main_thread_cache = ActiveRecord::Base.lease_connection.query_cache
+      assert_same main_thread_cache, ActiveRecord::Base.lease_connection.query_cache
+
       thread_a = Thread.new do
         middleware { |env|
           assert_cache :clean
+
+          # In a background thread, the cache instance must stay consistent but be different from the main
+          # thread.
+          background_thread_cache = ActiveRecord::Base.lease_connection.query_cache
+          assert_same background_thread_cache, ActiveRecord::Base.lease_connection.query_cache
+          assert_not_same main_thread_cache, ActiveRecord::Base.lease_connection.query_cache
           [200, {}, nil]
         }.call({})
       end
 
       thread_a.join
+
+      assert_same main_thread_cache, ActiveRecord::Base.lease_connection.query_cache
     ensure
       ActiveRecord::Base.connection_pool.unpin_connection!
+      assert_same main_thread_cache, ActiveRecord::Base.lease_connection.query_cache
     end
   end
 
@@ -757,7 +767,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
       thread_a = Thread.new do
         middleware { |env|
-          assert_cache :dirty # The cache is shared with the main thread
+          assert_cache :clean
 
           Post.first
           assert_cache :dirty
@@ -830,13 +840,6 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   private
-    def with_temporary_connection_pool(&block)
-      pool_config = ActiveRecord::Base.lease_connection.pool.pool_config
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
-
-      pool_config.stub(:pool, new_pool, &block)
-    end
-
     def middleware(&app)
       executor = Class.new(ActiveSupport::Executor)
       ActiveRecord::QueryCache.install_executor_hooks executor
@@ -854,10 +857,12 @@ class QueryCacheTest < ActiveRecord::TestCase
         end
       when :clean
         assert connection.query_cache_enabled, "cache should be on"
+        assert_not_nil connection.query_cache
         assert_predicate connection.query_cache, :empty?, "cache should be empty"
       when :dirty
         assert connection.query_cache_enabled, "cache should be on"
-        assert_not connection.query_cache.empty?, "cache should be dirty"
+        assert_not_nil connection.query_cache
+        assert_not_predicate connection.query_cache, :empty?, "cache should be dirty"
       else
         raise "unknown state"
       end

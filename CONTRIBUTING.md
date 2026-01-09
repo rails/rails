@@ -41,7 +41,7 @@ Changes that are cosmetic in nature and do not add anything substantial to the s
 
 #### **Do you intend to add a new feature or change an existing one?**
 
-* Suggest your change in the [rubyonrails-core mailing list](https://discuss.rubyonrails.org/c/rubyonrails-core) and start writing code.
+* Suggest your change in the [rubyonrails-core forum](https://discuss.rubyonrails.org/c/rubyonrails-core) and start writing code.
 
 * Do not open an issue on GitHub until you have collected positive feedback about the change. GitHub issues are primarily intended for bug reports and fixes.
 

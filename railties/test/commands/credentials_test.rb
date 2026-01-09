@@ -42,7 +42,7 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
 
     Dir.chdir(app_path) do
       gitignore = File.read(".gitignore")
-      assert_equal 1, gitignore.scan(%r|config/master\.key|).length
+      assert_equal 1, gitignore.scan("config/*.key").length
     end
   end
 
@@ -61,7 +61,7 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     run_edit_command
 
     assert_file "config/master.key"
-    assert_match "config/master.key", read_file(".gitignore")
+    assert_match "config/*.key", read_file(".gitignore")
   end
 
   test "edit command does not overwrite master key file if it already exists" do
@@ -74,7 +74,7 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
   test "edit command does not add duplicate master key entries to gitignore" do
     2.times { run_edit_command }
 
-    assert_equal 1, read_file(".gitignore").scan("config/master.key").length
+    assert_equal 1, read_file(".gitignore").scan("config/*.key").length
   end
 
   test "edit command can add master key when require_master_key is true" do
@@ -129,6 +129,7 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
   end
 
   test "edit command does not raise when an initializer tries to access non-existent credentials" do
+    File.write(app_path("config", "environments", "qa.rb"), "")
     app_file "config/initializers/raise_when_loaded.rb", <<-RUBY
       Rails.application.credentials.missing_key!
     RUBY
@@ -170,7 +171,6 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_match %r/foo: bar: bad/, run_edit_command
   end
 
-
   test "show credentials" do
     assert_match DEFAULT_CREDENTIALS_PATTERN, run_show_command
   end
@@ -186,7 +186,8 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     remove_file "config/master.key"
     add_to_config "config.require_master_key = false"
 
-    assert_match(/Missing 'config\/master\.key' to decrypt credentials/, run_show_command)
+    stderr_output = capture(:stderr) { run_show_command(stderr: true, allow_failure: true) }
+    assert_match(/Missing 'config\/master\.key' to decrypt credentials/, stderr_output)
   end
 
   test "show command displays content specified by environment option" do
@@ -286,12 +287,14 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
   end
 
   test "diff for custom environment" do
+    File.write(app_path("config", "environments", "custom.rb"), "")
     run_edit_command(environment: "custom")
 
     assert_match(/access_key_id: 123/, run_diff_command("config/credentials/custom.yml.enc"))
   end
 
   test "diff for custom environment when key is not available" do
+    File.write(app_path("config", "environments", "custom.rb"), "")
     run_edit_command(environment: "custom")
     remove_file "config/credentials/custom.key"
 
@@ -350,6 +353,20 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_credentials_paths "config/credentials/production.yml.enc", key_path, environment: "production"
   end
 
+  test "fetch value for given path" do
+    write_credentials({ "foo" => { "bar" => { "baz" => 42 } } }.to_yaml)
+
+    assert_match(/42/, run_fetch_command("foo.bar.baz"))
+  end
+
+  test "fetch missing key" do
+    write_credentials({ "foo" => { "bar" => { "baz" => 42 } } }.to_yaml)
+
+
+    stderr_output = capture(:stderr) { run_fetch_command("egg.spam", stderr: true, allow_failure: true) }
+    assert_match("Invalid or missing credential path: egg.spam", stderr_output)
+  end
+
   private
     DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: \h{128}\n/m
 
@@ -370,6 +387,10 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     def run_diff_command(path = nil, enroll: nil, disenroll: nil, **options)
       args = [path, ("--enroll" if enroll), ("--disenroll" if disenroll)].compact
       rails "credentials:diff", args, **options
+    end
+
+    def run_fetch_command(path, **options)
+      rails "credentials:fetch", path, **options
     end
 
     def write_credentials(content, **options)

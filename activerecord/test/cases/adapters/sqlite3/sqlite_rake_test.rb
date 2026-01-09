@@ -22,8 +22,10 @@ module ActiveRecord
 
     def test_db_checks_database_exists
       ActiveRecord::Base.stub(:establish_connection, nil) do
-        assert_called_with(File, :exist?, [@database], returns: false) do
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
+        assert_called_with(ConnectionAdapters::SQLite3Adapter, :resolve_path, [@database], returns: @database_root) do
+          assert_called_with(File, :exist?, [@database_root], returns: false) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
+          end
         end
       end
     end
@@ -91,30 +93,12 @@ module ActiveRecord
       $stdout, $stderr = @original_stdout, @original_stderr
     end
 
-    def test_checks_db_dir_is_absolute
-      assert_called_with(File, :absolute_path?, [@database], returns: false) do
-        ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root
-      end
-    end
-
-    def test_removes_file_with_absolute_path
-      assert_called_with(FileUtils, :rm, [@database_root]) do
-        assert_called_with(FileUtils, :rm_f, [["#{@database_root}-shm", "#{@database_root}-wal"]]) do
-          ActiveRecord::Tasks::DatabaseTasks.drop @configuration_root, @root
-        end
-      end
-    end
-
-    def test_generates_absolute_path_with_given_root
-      assert_called_with(File, :join, [@root, @database], returns: "#{@root}/#{@database}") do
-        ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root
-      end
-    end
-
-    def test_removes_file_with_relative_path
-      assert_called_with(FileUtils, :rm, [@database_root]) do
-        assert_called_with(FileUtils, :rm_f, [["#{@database_root}-shm", "#{@database_root}-wal"]]) do
-          ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root
+    def test_removes_fully_resolved_db_path
+      assert_called_with(ConnectionAdapters::SQLite3Adapter, :resolve_path, [@database], root: "/rails/root", returns: @database_root) do
+        assert_called_with(FileUtils, :rm, [@database_root]) do
+          assert_called_with(FileUtils, :rm_f, [["#{@database_root}-shm", "#{@database_root}-wal"]]) do
+            ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root
+          end
         end
       end
     end
@@ -214,9 +198,8 @@ module ActiveRecord
       assert_called_with(
         Kernel,
         :system,
-        ["sqlite3", "--noop", "db_create.sqlite3", ".schema --nosys"],
+        ["sqlite3", "--noop", "db_create.sqlite3", ".schema --nosys", { out: "awesome-file.sql" }],
         returns: nil,
-        out: "awesome-file.sql"
       ) do
         e = assert_raise(RuntimeError) do
           with_structure_dump_flags(["--noop"]) do
@@ -254,7 +237,7 @@ module ActiveRecord
       filename = "awesome-file.sql"
 
       open(filename, "w") { |f| f.puts("select datetime('now', 'localtime');") }
-      ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, "/rails/root"
+      quietly { ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, "/rails/root" }
       assert File.exist?(dbfile)
     ensure
       FileUtils.rm_f(filename)

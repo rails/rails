@@ -345,10 +345,45 @@ module ActiveRecord
 
     def test_structure_dump_header_comments_removed
       Kernel.stub(:system, true) do
-        File.write(@filename, "-- header comment\n\n-- more header comment\n statement \n-- lower comment\n")
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        raw_dump_sql = <<~SQL
+          -- header comment
 
-        assert_equal [" statement \n", "-- lower comment\n"], File.readlines(@filename).first(2)
+          -- more header comment
+          statement
+          -- lower comment
+        SQL
+        expected_dump_sql = <<~SQL
+          statement
+          -- lower comment
+        SQL
+        File.write(@filename, raw_dump_sql)
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        assert_equal expected_dump_sql, File.readlines(@filename).first(2).join
+      end
+    end
+
+    def test_structure_dump_header_comments_with_restrict_commands_removed
+      Kernel.stub(:system, true) do
+        raw_dump_sql = <<~SQL
+          \\restrict pbgv1pF8SxQK6cuT7hwDi21uDYr8wpxKJ3wlLa9Zk5EIO1xBiu84SJQU8fL22PT
+
+          -- header comment
+
+          -- more header comment
+          statement
+          -- lower comment
+          \\unrestrict pbgv1pF8SxQK6cuT7hwDi21uDYr8wpxKJ3wlLa9Zk5EIO1xBiu84SJQU8fL22PT
+
+          other_statement
+        SQL
+        expected_dump_sql = <<~SQL
+          statement
+          -- lower comment
+          other_statement
+        SQL
+        File.write(@filename, raw_dump_sql)
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        assert_equal expected_dump_sql, File.readlines(@filename).first(3).join
       end
     end
 

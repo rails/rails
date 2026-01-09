@@ -33,22 +33,4 @@ class ActiveStorage::Service::ConfiguratorTest < ActiveSupport::TestCase
     configurator = ActiveStorage::Service::Configurator.new({})
     assert_match(/#<ActiveStorage::Service::Configurator>/, configurator.inspect)
   end
-
-  test "azure service is deprecated" do
-    msg = <<~MSG.squish
-      `ActiveStorage::Service::AzureStorageService` is deprecated and will be
-      removed in Rails 8.1.
-      Please try the `azure-blob` gem instead.
-      This gem is not maintained by the Rails team, so please test your applications before deploying to production.
-    MSG
-
-    assert_deprecated(msg, ActiveStorage.deprecator) do
-      ActiveStorage::Service::Configurator.build(:azure, azure: {
-        service: "AzureStorage",
-        storage_account_name: "test_account",
-        storage_access_key: Base64.encode64("test_access_key").strip,
-        container: "container"
-      })
-    end
-  end
 end

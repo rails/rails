@@ -74,6 +74,33 @@ class ActiveRecord::Relation
       assert_equal expected, a.merge(b)
     end
 
+    test "merge with or/and correctly handles SQL literals and attributes" do
+      a = WhereClause.new([
+        table["id"].eq(1),
+        Arel::Nodes::Grouping.new(Arel.sql("foo = bar"))
+      ])
+      b = (a + WhereClause.new([table["attr_1"].eq("val_1")])).or(
+        WhereClause.new([table["attr_2"].eq("val_2")])
+      )
+
+      expected = WhereClause.new([
+        table["id"].eq(1),
+        Arel::Nodes::Grouping.new(Arel.sql("foo = bar")),
+        Arel::Nodes::Grouping.new(
+          Arel::Nodes::Or.new([
+            Arel::Nodes::And.new([
+              table["id"].eq(1),
+              Arel::Nodes::Grouping.new(Arel.sql("foo = bar")),
+              table["attr_1"].eq("val_1")
+            ]),
+            table["attr_2"].eq("val_2")
+          ])
+        )
+      ])
+
+      assert_equal expected, a.merge(b)
+    end
+
     test "a clause knows if it is empty" do
       assert_empty WhereClause.empty
       assert_not_empty WhereClause.new([Arel.sql("anything")])

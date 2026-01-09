@@ -13,6 +13,7 @@ require_relative "../support/config"
 require_relative "../support/connection"
 require_relative "../support/adapter_helper"
 require_relative "../support/load_schema_helper"
+require_relative "../support/postgresql_config"
 
 module ActiveRecord
   # = Active Record Test Case
@@ -188,6 +189,15 @@ module ActiveRecord
       klass.subclasses.each do |subclass|
         subclass.send("_#{kind}_callbacks=", old_callbacks[subclass])
       end
+    end
+
+    def with_temporary_connection_pool(&block)
+      pool_config = ActiveRecord::Base.connection_pool.pool_config
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
+
+      pool_config.stub(:pool, new_pool, &block)
+    ensure
+      new_pool&.disconnect!
     end
 
     def with_postgresql_datetime_type(type)

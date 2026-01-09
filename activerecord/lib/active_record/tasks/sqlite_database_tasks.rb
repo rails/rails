@@ -2,26 +2,22 @@
 
 module ActiveRecord
   module Tasks # :nodoc:
-    class SQLiteDatabaseTasks # :nodoc:
-      def self.using_database_configurations?
-        true
-      end
-
+    class SQLiteDatabaseTasks < AbstractTasks # :nodoc:
       def initialize(db_config, root = ActiveRecord::Tasks::DatabaseTasks.root)
         @db_config = db_config
         @root = root
       end
 
       def create
-        raise DatabaseAlreadyExists if File.exist?(db_config.database)
+        file = ConnectionAdapters::SQLite3Adapter.resolve_path(db_config.database)
+        raise DatabaseAlreadyExists if File.exist?(file)
 
         establish_connection
         connection
       end
 
       def drop
-        db_path = db_config.database
-        file = File.absolute_path?(db_path) ? db_path : File.join(root, db_path)
+        file = ConnectionAdapters::SQLite3Adapter.resolve_path(db_config.database, root: root)
         FileUtils.rm(file)
         FileUtils.rm_f(["#{file}-shm", "#{file}-wal"])
       rescue Errno::ENOENT => error
@@ -37,10 +33,6 @@ module ActiveRecord
         connection.reconnect!
       end
 
-      def charset
-        connection.encoding
-      end
-
       def structure_dump(filename, extra_flags)
         args = []
         args.concat(Array(extra_flags)) if extra_flags
@@ -54,35 +46,33 @@ module ActiveRecord
         else
           args << ".schema --nosys"
         end
-        run_cmd("sqlite3", args, filename)
+
+        run_cmd("sqlite3", *args, out: filename)
       end
 
       def structure_load(filename, extra_flags)
-        flags = extra_flags.join(" ") if extra_flags
-        `sqlite3 #{flags} #{db_config.database} < "#{filename}"`
+        args = []
+        args.concat(extra_flags) if extra_flags
+        args << db_config.database
+        run_cmd("sqlite3", *args, in: filename)
+      end
+
+      def check_current_protected_environment!(db_config, migration_class)
+        super
+      rescue ActiveRecord::StatementInvalid => e
+        case e.cause
+        when SQLite3::ReadOnlyException
+        else
+          raise e
+        end
       end
 
       private
-        attr_reader :db_config, :root
-
-        def connection
-          ActiveRecord::Base.lease_connection
-        end
+        attr_reader :root
 
         def establish_connection(config = db_config)
           ActiveRecord::Base.establish_connection(config)
           connection.connect!
-        end
-
-        def run_cmd(cmd, args, out)
-          fail run_cmd_error(cmd, args) unless Kernel.system(cmd, *args, out: out)
-        end
-
-        def run_cmd_error(cmd, args)
-          msg = +"failed to execute:\n"
-          msg << "#{cmd} #{args.join(' ')}\n\n"
-          msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
-          msg
         end
     end
   end

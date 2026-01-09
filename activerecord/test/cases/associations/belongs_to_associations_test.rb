@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "support/deprecated_associations_test_helpers"
+require "models/attachment"
 require "models/developer"
 require "models/project"
 require "models/company"
@@ -405,6 +406,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     order.save!
 
     assert_equal 3, book.shop_id
+  end
+
+  def test_clearing_optional_cpk_belongs_to_should_preserve_shared_pk
+    book = Cpk::Book.create!(id: [1, 2], title: "The Well-Grounded Rubyist")
+    chapter = Cpk::OptionalChapter.create!(id: [1, 2], book: book)
+
+    assert_equal book, chapter.book
+    assert_equal [1, 2], chapter.id
+
+    chapter.update!(book: nil)
+
+    assert_equal [1, 2], chapter.id
+    assert_nil chapter.book_id
+    assert_equal chapter.author_id, book.author_id
   end
 
   def test_should_reload_association_on_model_with_query_constraints_when_foreign_key_changes
@@ -1451,6 +1466,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_equal touch_time, car.reload.wheels_owned_at
+  end
+
+  def test_polymorphic_stale_state_handles_nil_foreign_keys_correctly
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "records"
+
+      has_one :attachment, as: :record
+
+      def self.polymorphic_name
+        "Blob"
+      end
+    end
+
+    assert_nothing_raised { Attachment.create!(record: klass.build, record_type: "Document") }
   end
 
   def test_build_with_conditions

@@ -30,6 +30,7 @@ module Rails
   autoload :InfoController
   autoload :MailersController
   autoload :WelcomeController
+  autoload :DevtoolsController
 
   eager_autoload do
     autoload :HealthController
@@ -45,6 +46,7 @@ module Rails
       @application ||= (app_class.instance if app_class)
     end
 
+    alias :app :application
     delegate :initialize!, :initialized?, to: :application
 
     # The Configuration instance used to configure the \Rails environment
@@ -91,6 +93,14 @@ module Rails
     #   Rails.error.report(error)
     def error
       ActiveSupport.error_reporter
+    end
+
+    # Returns the ActiveSupport::EventReporter of the current \Rails project,
+    # otherwise it returns +nil+ if there is no project.
+    #
+    #   Rails.event.notify("my_event", { message: "Hello, world!" })
+    def event
+      ActiveSupport.event_reporter
     end
 
     # Returns all \Rails groups for loading based on:

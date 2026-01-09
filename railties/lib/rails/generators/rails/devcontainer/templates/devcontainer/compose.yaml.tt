@@ -7,7 +7,7 @@ services:
       dockerfile: .devcontainer/Dockerfile
 
     volumes:
-    - ../..:/workspaces:cached
+    - ../../<%= app_folder %>:/workspaces/<%= app_folder %>:cached
 
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity

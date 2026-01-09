@@ -41,11 +41,14 @@ module ActiveRecord
 
         def cleanup_view_runtime
           if logger && logger.info?
-            db_rt_before_render = ActiveRecord::RuntimeRegistry.reset_runtimes
+            runtime_stats = ActiveRecord::RuntimeRegistry.stats
+            db_rt_before_render = runtime_stats.reset_runtimes
             self.db_runtime = (db_runtime || 0) + db_rt_before_render
+
             runtime = super
-            queries_rt = ActiveRecord::RuntimeRegistry.sql_runtime - ActiveRecord::RuntimeRegistry.async_sql_runtime
-            db_rt_after_render = ActiveRecord::RuntimeRegistry.reset_runtimes
+
+            queries_rt = runtime_stats.sql_runtime - runtime_stats.async_sql_runtime
+            db_rt_after_render = runtime_stats.reset_runtimes
             self.db_runtime += db_rt_after_render
             runtime - queries_rt
           else
@@ -56,9 +59,11 @@ module ActiveRecord
         def append_info_to_payload(payload)
           super
 
-          payload[:db_runtime] = (db_runtime || 0) + ActiveRecord::RuntimeRegistry.reset_runtimes
-          payload[:queries_count] = ActiveRecord::RuntimeRegistry.reset_queries_count
-          payload[:cached_queries_count] = ActiveRecord::RuntimeRegistry.reset_cached_queries_count
+          runtime_stats = ActiveRecord::RuntimeRegistry.stats
+          payload[:db_runtime] = (db_runtime || 0) + runtime_stats.sql_runtime
+          payload[:queries_count] = runtime_stats.queries_count
+          payload[:cached_queries_count] = runtime_stats.cached_queries_count
+          runtime_stats.reset
         end
     end
   end

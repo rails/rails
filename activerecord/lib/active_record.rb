@@ -53,6 +53,7 @@ module ActiveRecord
   autoload :Enum
   autoload :Explain
   autoload :FixtureSet, "active_record/fixtures"
+  autoload :FilterAttributeHandler
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
@@ -87,7 +88,6 @@ module ActiveRecord
   autoload :Timestamp
   autoload :TokenFor
   autoload :TouchLater
-  autoload :Transaction
   autoload :Transactions
   autoload :Translation
   autoload :Validations
@@ -109,6 +109,7 @@ module ActiveRecord
     autoload :Result
     autoload :StatementCache
     autoload :TableMetadata
+    autoload :Transaction
     autoload :Type
 
     autoload_under "relation" do
@@ -174,7 +175,8 @@ module ActiveRecord
     extend ActiveSupport::Autoload
 
     autoload :DatabaseTasks
-    autoload :MySQLDatabaseTasks,  "active_record/tasks/mysql_database_tasks"
+    autoload :AbstractTasks, "active_record/tasks/abstract_tasks"
+    autoload :MySQLDatabaseTasks, "active_record/tasks/mysql_database_tasks"
     autoload :PostgreSQLDatabaseTasks, "active_record/tasks/postgresql_database_tasks"
     autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
   end
@@ -355,6 +357,9 @@ module ActiveRecord
   singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
   self.run_after_transaction_callbacks_in_order_defined = false
 
+  singleton_class.attr_accessor :raise_on_missing_required_finder_order_columns
+  self.run_after_transaction_callbacks_in_order_defined = false
+
   singleton_class.attr_accessor :application_record_class
   self.application_record_class = nil
 
@@ -401,7 +406,8 @@ module ActiveRecord
 
   ##
   # :singleton-method: migration_strategy
-  # Specify strategy to use for executing migrations.
+  # Specify the global default strategy to use for executing migrations.
+  # Individual adapter classes can override this by setting their own migration_strategy.
   singleton_class.attr_accessor :migration_strategy
   self.migration_strategy = Migration::DefaultStrategy
 

@@ -1467,7 +1467,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
 
   def test_only_generates_a_pk_if_necessary
     assert_nothing_raised do
-      m = Matey.first
+      m = Matey.take
       m.pirate = pirates(:blackbeard)
       m.target = pirates(:redbeard)
     end
@@ -1777,7 +1777,15 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
   end
 
   class CompositePkFixturesTest < ActiveRecord::TestCase
-    fixtures :cpk_orders, :cpk_books, :cpk_authors, :cpk_reviews, :cpk_order_agreements
+    fixtures :cpk_orders, :cpk_books, :cpk_posts, :cpk_tags, :cpk_authors, :cpk_reviews, :cpk_order_agreements
+
+    def test_supports_inline_habtm
+      assert_includes cpk_posts(:welcome).tags, cpk_tags(:cpk_tag_ruby_on_rails)
+      assert_includes cpk_posts(:welcome).tags, cpk_tags(:cpk_tag_digital_product)
+      assert_not_includes cpk_posts(:welcome).tags, cpk_tags(:cpk_tag_loyal_customer)
+
+      assert_equal [cpk_tags(:cpk_tag_digital_product)], cpk_posts(:thinking).tags
+    end
 
     def test_generates_composite_primary_key_for_partially_filled_fixtures
       alice = cpk_authors(:cpk_great_author)

@@ -414,7 +414,8 @@ module ActiveModel
     end
     alias :to_a :full_messages
 
-    # Returns all the full error messages for a given attribute in an array.
+    # Returns all the full error messages for a given attribute
+    # and type (optional) in an array.
     #
     #   class Person
     #     validates_presence_of :name, :email
@@ -424,11 +425,15 @@ module ActiveModel
     #   person = Person.create()
     #   person.errors.full_messages_for(:name)
     #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank"]
-    def full_messages_for(attribute)
-      where(attribute).map(&:full_message).freeze
+    #
+    #   person.errors.full_messages_for(:name, :invalid)
+    #   # => ["Name is invalid"]
+    def full_messages_for(attribute, type = nil)
+      where(attribute, type).map(&:full_message).freeze
     end
 
-    # Returns all the error messages for a given attribute in an array.
+    # Returns all the error messages for a given attribute
+    # and type (optional) in an array.
     #
     #   class Person
     #     validates_presence_of :name, :email
@@ -438,8 +443,11 @@ module ActiveModel
     #   person = Person.create()
     #   person.errors.messages_for(:name)
     #   # => ["is too short (minimum is 5 characters)", "can't be blank"]
-    def messages_for(attribute)
-      where(attribute).map(&:message)
+    #
+    #   person.errors.messages_for(:name, :invalid)
+    #   # => ["is invalid"]
+    def messages_for(attribute, type = nil)
+      where(attribute, type).map(&:message)
     end
 
     # Returns a full message for a given attribute.

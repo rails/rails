@@ -316,6 +316,10 @@ module ActionController
       [self.class, @parameters, @permitted].hash
     end
 
+    def deconstruct_keys(keys)
+      slice(*keys).each.with_object({}) { |(key, value), hash| hash.merge!(key.to_sym => value) }
+    end
+
     # Returns a safe ActiveSupport::HashWithIndifferentAccess representation of the
     # parameters with all unpermitted keys removed.
     #
@@ -808,7 +812,7 @@ module ActionController
     # are several options: With no other arguments, it will raise an
     # ActionController::ParameterMissing error; if a second argument is given, then
     # that is returned (converted to an instance of `ActionController::Parameters`
-    # if possible); if a block is given, then that will be run and its result
+    # if possible); if a block is given, the key is yielded to the block and its result
     # returned.
     #
     #     params = ActionController::Parameters.new(person: { name: "Francesco" })
@@ -816,12 +820,12 @@ module ActionController
     #     params.fetch(:none)                 # => ActionController::ParameterMissing: param is missing or the value is empty or invalid: none
     #     params.fetch(:none, {})             # => #<ActionController::Parameters {} permitted: false>
     #     params.fetch(:none, "Francesco")    # => "Francesco"
-    #     params.fetch(:none) { "Francesco" } # => "Francesco"
+    #     params.fetch(:none) { |key| "Francesco" } # => "Francesco"
     def fetch(key, *args)
       convert_value_to_parameters(
         @parameters.fetch(key) {
           if block_given?
-            yield
+            yield key
           else
             args.fetch(0) { raise ActionController::ParameterMissing.new(key, @parameters.keys) }
           end
@@ -1008,9 +1012,9 @@ module ActionController
 
     # Returns a new `ActionController::Parameters` instance with all keys from
     # `other_hash` merged into current hash.
-    def merge(other_hash)
+    def merge(other_hash, &block)
       new_instance_with_inherited_permitted_status(
-        @parameters.merge(other_hash.to_h)
+        @parameters.merge(other_hash.to_h, &block)
       )
     end
 

@@ -42,6 +42,32 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     assert_not @CI.success?
   end
 
+  test "report with successful and failed steps combined presents a failure summary" do
+    output = capture_io do
+      @CI.report("CI") do
+        step "Success!", "true"
+        step "Failed!", "false"
+        step "Also success!", "true"
+        step "Also failed!", "false"
+      end
+    end.to_s
+
+    assert_no_match(/↳ Success/, output)
+    assert_no_match(/↳ Also success/, output)
+    assert_match(/↳ Failed! failed/, output)
+    assert_match(/↳ Also failed! failed/, output)
+  end
+
+  test "report with only one failing step does not print a failure summary" do
+    output = capture_io do
+      @CI.report("CI") do
+        step "Failed!", "false"
+      end
+    end.to_s
+
+    assert_no_match(/↳ Failed/, output)
+  end
+
   test "echo uses terminal coloring" do
     output = capture_io { @CI.echo "Hello", type: :success }.first.to_s
     assert_equal "\e[1;32mHello\e[0m\n", output
@@ -56,4 +82,32 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     output = capture_io { @CI.failure "This sucks", "But such is the life of programming sometimes" }.first.to_s
     assert_equal "\e[1;31m\n\nThis sucks\e[0m\n\e[1;90mBut such is the life of programming sometimes\n\e[0m\n", output
   end
+
+  %w[-f --fail-fast].each do |flag|
+    test "report aborts immediately on failure with #{flag} flag" do
+      output = with_argv([flag]) do
+        capture_io do
+          assert_raises SystemExit do
+            @CI.report("CI") do
+              step "Success!", "true"
+              step "Failed!", "false"
+              step "Should not run", "true"
+            end
+          end
+        end
+      end.to_s
+
+      assert_no_match(/Should not run/, output)
+    end
+  end
+
+  private
+    def with_argv(argv)
+      original_argv = ARGV.dup
+      ARGV.replace(argv)
+
+      yield
+    ensure
+      ARGV.replace(original_argv)
+    end
 end

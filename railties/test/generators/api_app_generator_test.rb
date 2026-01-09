@@ -140,11 +140,34 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "public/406-unsupported-browser.html"
   end
 
+  def test_kamal_deploy_yml_excludes_asset_path_for_api_apps
+    generator [destination_root], ["--api"]
+    run_generator_instance
+
+    assert_equal 1, @bundle_commands.count("binstubs kamal")
+    assert_equal 1, @bundle_commands.count("exec kamal init")
+
+    assert_file "config/deploy.yml" do |content|
+      assert_no_match(/asset_path:/, content)
+      assert_no_match(/public\/assets/, content)
+    end
+  end
+
   private
+    def run_generator_instance
+      @bundle_commands = []
+      bundle_command_stub = -> (command, *) { @bundle_commands << command }
+
+      generator.stub :bundle_command, bundle_command_stub do
+        super
+      end
+    end
+
     def default_files
       %w(.gitignore
         .ruby-version
         .dockerignore
+        .env
         README.md
         Gemfile
         Rakefile

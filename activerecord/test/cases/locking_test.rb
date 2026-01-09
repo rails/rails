@@ -580,7 +580,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   def test_yaml_dumping_with_lock_column
     t1 = LockWithoutDefault.new
     payload = YAML.dump(t1)
-    t2 = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+    t2 = YAML.unsafe_load(payload)
 
     assert_equal t1.attributes, t2.attributes
   end
@@ -814,6 +814,13 @@ class PessimisticLockingTest < ActiveRecord::TestCase
           end
         end
       end
+
+      def test_with_lock_yields_transaction
+        person = Person.find 1
+        person.with_lock do |transaction|
+          assert_equal Person.current_transaction, transaction
+        end
+      end
     end
 
     def test_no_locks_no_wait
@@ -859,7 +866,7 @@ end
 
 class PessimisticLockingWhilePreventingWritesTest < ActiveRecord::TestCase
   CUSTOM_LOCK = if current_adapter?(:SQLite3Adapter)
-    true # no-op
+    "FOR UPDATE" # no-op
   else
     "FOR SHARE"
   end

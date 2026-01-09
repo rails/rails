@@ -12,16 +12,17 @@
 default: &default
   adapter: trilogy
   encoding: utf8mb4
-  pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  max_connections: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   username: root
   password:
+<% if !devcontainer? && database.socket -%>
+  socket: <%= database.socket %>
+<% else -%>
   host: <%%= ENV.fetch("DB_HOST") { "<%= database.host %>" } %>
+<% end -%>
 
 development:
   <<: *default
-<% if database.socket -%>
-  socket: <%= database.socket %>
-<% end -%>
   database: <%= app_name %>_development
 
 # Warning: The database defined as "test" will be erased and
@@ -29,9 +30,6 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-<% if database.socket -%>
-  socket: <%= database.socket %>
-<% end -%>
   database: <%= app_name %>_test
 
 # As with config/credentials.yml, you never want to store sensitive information,

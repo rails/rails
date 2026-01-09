@@ -276,7 +276,7 @@ module ActiveRecord
         return super if StatementCache.unsupported_value?(id)
 
         cached_find_by([primary_key], [id]) ||
-          raise(RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}", name, primary_key, id))
+          raise(RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id.inspect}", name, primary_key, id))
       end
 
       def find_by(*args) # :nodoc:
@@ -357,6 +357,8 @@ module ActiveRecord
       def filter_attributes=(filter_attributes)
         @inspection_filter = nil
         @filter_attributes = filter_attributes
+
+        FilterAttributeHandler.sensitive_attribute_was_declared(self, filter_attributes)
       end
 
       def inspection_filter # :nodoc:
@@ -599,7 +601,7 @@ module ActiveRecord
     #
     #   topic = Topic.new(title: "Budget", author_name: "Jason")
     #   topic.slice(:title, :author_name)
-    #   => { "title" => "Budget", "author_name" => "Jason" }
+    #   # => { "title" => "Budget", "author_name" => "Jason" }
     #
     #--
     # Implemented by ActiveModel::Access#slice.
@@ -613,7 +615,7 @@ module ActiveRecord
     #
     #   topic = Topic.new(title: "Budget", author_name: "Jason")
     #   topic.values_at(:title, :author_name)
-    #   => ["Budget", "Jason"]
+    #   # => ["Budget", "Jason"]
     #
     #--
     # Implemented by ActiveModel::Access#values_at.
@@ -690,12 +692,14 @@ module ActiveRecord
     # Sets the record to strict_loading mode. This will raise an error
     # if the record tries to lazily load an association.
     #
+    # NOTE: Strict loading is disabled during validation in order to let the record validate its association.
+    #
     #   user = User.first
     #   user.strict_loading! # => true
     #   user.address.city
-    #   => ActiveRecord::StrictLoadingViolationError
+    #   # => ActiveRecord::StrictLoadingViolationError
     #   user.comments.to_a
-    #   => ActiveRecord::StrictLoadingViolationError
+    #   # => ActiveRecord::StrictLoadingViolationError
     #
     # ==== Parameters
     #
@@ -715,7 +719,7 @@ module ActiveRecord
     #   user.address.city # => "Tatooine"
     #   user.comments.to_a # => [#<Comment:0x00...]
     #   user.comments.first.ratings.to_a
-    #   => ActiveRecord::StrictLoadingViolationError
+    #   # => ActiveRecord::StrictLoadingViolationError
     def strict_loading!(value = true, mode: :all)
       unless [:all, :n_plus_one_only].include?(mode)
         raise ArgumentError, "The :mode option must be one of [:all, :n_plus_one_only] but #{mode.inspect} was provided."
@@ -854,7 +858,7 @@ module ActiveRecord
         self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
       end
 
-      class InspectionMask < DelegateClass(::String)
+      class InspectionMask < ActiveSupport::Delegation::DelegateClass(::String)
         def pretty_print(pp)
           pp.text __getobj__
         end

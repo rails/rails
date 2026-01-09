@@ -1,66 +1,45 @@
-*   Allow jobs to the interrupted and resumed with Continuations
+*   Remove deprecated `sidekiq` Active Job adapter.
 
-    A job can use Continuations by including the `ActiveJob::Continuable`
-    concern. Continuations split jobs into steps. When the queuing system
-    is shutting down jobs can be interrupted and their progress saved.
+    The adapter is available in the `sidekiq` gem.
 
-    ```ruby
-    class ProcessImportJob
-      include ActiveJob::Continuable
+    *Wojciech Wnętrzak*
 
-      def perform(import_id)
-        @import = Import.find(import_id)
+*   Deprecate built-in `delayed_job` adapter.
 
-        # block format
-        step :initialize do
-          @import.initialize
-        end
+    If you're using this adapter, upgrade to `delayed_job` 4.2.0 or later to use the `delayed_job` gem's adapter.
 
-        # step with cursor, the cursor is saved when the job is interrupted
-        step :process do |step|
-          @import.records.find_each(start: step.cursor) do |record|
-            record.process
-            step.advance! from: record.id
-          end
-        end
+    *Dino Maric, David Genord II, Wojciech Wnętrzak*
 
-        # method format
-        step :finalize
+*   Deprecate built-in `backburner` adapter.
 
-        private
-          def finalize
-            @import.finalize
-          end
-      end
-    end
-    ```
+    *Dino Maric, Nathan Esquenazi, Earlopain*
 
-    *Donal McBreen*
+*   Jobs are now enqueued after transaction commit.
 
-*   Defer invocation of ActiveJob enqueue callbacks until after commit when
-    `enqueue_after_transaction_commit` is enabled.
+    This fixes that jobs would surprisingly run against uncommitted and
+    rolled-back records.
 
-    *Will Roever*
+    New Rails 8.2 apps (and apps upgrading to `config.load_defaults "8.2"`)
+    have `config.active_job.enqueue_after_transaction_commit = true` by default.
+    Uncomment the setting in `config/initializers/new_framework_defaults_8_2.rb`
+    to opt in.
 
-*   Add `report:` option to `ActiveJob::Base#retry_on` and `#discard_on`
+    *mugitti9*
 
-    When the `report:` option is passed, errors will be reported to the error reporter
-    before being retried / discarded.
+*   Un-deprecate the global `config.active_job.enqueue_after_transaction_commit`
+    toggle for app-wide overrides. It was deprecated in Rails 8.0 (when the
+    symbol values were removed) and made non-functional in 8.1. It now works
+    as a boolean config again.
 
-    *Andrew Novoselac*
+    *Jeremy Daer*
 
-*   Accept a block for `ActiveJob::ConfiguredJob#perform_later`.
+*   Deprecate built-in `sneakers` adapter.
 
-    This was inconsistent with a regular `ActiveJob::Base#perform_later`.
+    *Dino Maric*
 
-    *fatkodima*
+*   Fix using custom serializers with `ActiveJob::Arguments.serialize` when
+    `ActiveJob::Base` hasn't been loaded.
 
-*   Raise a more specific error during deserialization when a previously serialized job class is now unknown.
+    *Hartley McGuire*
 
-    `ActiveJob::UnknownJobClassError` will be raised instead of a more generic
-    `NameError` to make it easily possible for adapters to tell if the `NameError`
-    was raised during job execution or deserialization.
-
-    *Earlopain*
-
-Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activejob/CHANGELOG.md) for previous changes.
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activejob/CHANGELOG.md) for previous changes.

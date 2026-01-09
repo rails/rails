@@ -186,6 +186,23 @@ module ActionView
 
       alias_method :distance_of_time_in_words_to_now, :time_ago_in_words
 
+      # Like <tt>time_ago_in_words</tt>, but adds a prefix/suffix depending on whether the time is in the past or future.
+      # You can use the <tt>scope</tt> option to customize the translation scope. All other options
+      # are forwarded to <tt>time_ago_in_words</tt>.
+      #
+      #   relative_time_in_words(3.minutes.from_now) # => "in 3 minutes"
+      #   relative_time_in_words(3.minutes.ago) # => "3 minutes ago"
+      #   relative_time_in_words(10.seconds.ago, include_seconds: true) # => "less than 10 seconds ago"
+      #
+      # See also #time_ago_in_words
+      def relative_time_in_words(from_time, options = {})
+        now = Time.now
+        time = distance_of_time_in_words(from_time, now, options.except(:scope))
+        key = from_time > now ? :future : :past
+
+        I18n.t(key, time: time, scope: options.fetch(:scope, :'datetime.relative'), locale: options[:locale])
+      end
+
       # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based
       # attribute (identified by +method+) on an object assigned to the template (identified by +object+).
       #

@@ -268,14 +268,28 @@ module ActiveSupport
       assert(logger.foo)
     end
 
-    test "calling a method that accepts a block" do
-      logger = BroadcastLogger.new(CustomLogger.new)
-
-      called = false
-      logger.bar do
-        called = true
+    test "methods are called on each logger" do
+      calls = 0
+      loggers = [CustomLogger.new, FakeLogger.new, CustomLogger.new].each do |logger|
+        logger.define_singleton_method(:special_method) do
+          calls += 1
+        end
       end
-      assert(called)
+      logger = BroadcastLogger.new(*loggers)
+      logger.special_method
+      assert_equal(3, calls)
+    end
+
+    test "calling a method that accepts a block is yielded only once" do
+      called = 0
+      logger.info do
+        called += 1
+        "Hello"
+      end
+
+      assert_equal 1, called, "block should be called just once"
+      assert_equal [[::Logger::INFO, "Hello", nil]], log1.adds
+      assert_equal [[::Logger::INFO, "Hello", nil]], log2.adds
     end
 
     test "calling a method that accepts args" do
@@ -356,27 +370,27 @@ module ActiveSupport
         true
       end
 
-      def debug(message, &block)
+      def debug(message = nil, &block)
         add(::Logger::DEBUG, message, &block)
       end
 
-      def info(message, &block)
+      def info(message = nil, &block)
         add(::Logger::INFO, message, &block)
       end
 
-      def warn(message, &block)
+      def warn(message = nil, &block)
         add(::Logger::WARN, message, &block)
       end
 
-      def error(message, &block)
+      def error(message = nil, &block)
         add(::Logger::ERROR, message, &block)
       end
 
-      def fatal(message, &block)
+      def fatal(message = nil, &block)
         add(::Logger::FATAL, message, &block)
       end
 
-      def unknown(message, &block)
+      def unknown(message = nil, &block)
         add(::Logger::UNKNOWN, message, &block)
       end
 
@@ -385,7 +399,8 @@ module ActiveSupport
       end
 
       def add(message_level, message = nil, progname = nil, &block)
-        @adds << [message_level, message, progname] if message_level >= local_level
+        @adds << [message_level, block_given? ? block.call : message, progname] if message_level >= local_level
+        true
       end
 
       def debug?

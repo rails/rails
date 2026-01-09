@@ -2,12 +2,9 @@
 
 module ActiveRecord
   class TableMetadata # :nodoc:
-    delegate :join_primary_key, :join_primary_type, :join_foreign_key, :join_foreign_type, to: :reflection
-
-    def initialize(klass, arel_table, reflection = nil)
+    def initialize(klass, arel_table)
       @klass = klass
       @arel_table = arel_table
-      @reflection = reflection
     end
 
     def primary_key
@@ -22,7 +19,7 @@ module ActiveRecord
       klass&.columns_hash&.key?(column_name)
     end
 
-    def associated_with?(table_name)
+    def associated_with(table_name)
       klass&._reflect_on_association(table_name)
     end
 
@@ -42,24 +39,12 @@ module ActiveRecord
       if association_klass
         arel_table = association_klass.arel_table
         arel_table = arel_table.alias(table_name) if arel_table.name != table_name
-        TableMetadata.new(association_klass, arel_table, reflection)
+        TableMetadata.new(association_klass, arel_table)
       else
         type_caster = TypeCaster::Connection.new(klass, table_name)
         arel_table = Arel::Table.new(table_name, type_caster: type_caster)
-        TableMetadata.new(nil, arel_table, reflection)
+        TableMetadata.new(nil, arel_table)
       end
-    end
-
-    def polymorphic_association?
-      reflection&.polymorphic?
-    end
-
-    def polymorphic_name_association
-      reflection&.polymorphic_name
-    end
-
-    def through_association?
-      reflection&.through_reflection?
     end
 
     def reflect_on_aggregation(aggregation_name)
@@ -78,6 +63,6 @@ module ActiveRecord
     attr_reader :arel_table
 
     private
-      attr_reader :klass, :reflection
+      attr_reader :klass
   end
 end

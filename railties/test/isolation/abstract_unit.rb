@@ -104,11 +104,11 @@ module TestHelpers
   module Generation
     # Build an application by invoking the generator and going through the whole stack.
     def build_app(options = {})
-      @prev_rails_app_class = Rails.app_class
-      @prev_rails_application = Rails.application
+      @prev_rails_app_class ||= Rails.app_class
+      @prev_rails_application ||= Rails.application
       Rails.app_class = Rails.application = nil
 
-      @prev_rails_env = ENV["RAILS_ENV"]
+      @prev_rails_env ||= ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
 
       FileUtils.rm_rf(app_path)
@@ -118,13 +118,6 @@ module TestHelpers
       unless options[:initializers]
         Dir["#{app_path}/config/initializers/**/*.rb"].each do |initializer|
           File.delete(initializer)
-        end
-      end
-
-      routes = File.read("#{app_path}/config/routes.rb")
-      if routes =~ /(\n\s*end\s*)\z/
-        File.open("#{app_path}/config/routes.rb", "w") do |f|
-          f.puts $` + "\nActionDispatch.deprecator.silence { match ':controller(/:action(/:id))(.:format)', via: :all }\n" + $1
         end
       end
 
@@ -151,6 +144,12 @@ module TestHelpers
       add_to_env_config :production, "config.log_level = :error"
     end
 
+    def reset_environment_configs
+      Dir["#{app_path}/config/environments/*.rb"].each do |path|
+        File.write(path, "")
+      end
+    end
+
     def teardown_app
       ENV["RAILS_ENV"] = @prev_rails_env if @prev_rails_env
       Rails.app_class = @prev_rails_app_class if @prev_rails_app_class
@@ -162,7 +161,7 @@ module TestHelpers
       <<-YAML
         default: &default
           adapter: sqlite3
-          pool: 5
+          max_connections: 5
           timeout: 5000
         development:
           <<: *default
@@ -180,7 +179,7 @@ module TestHelpers
       <<-YAML
         default: &default
           adapter: sqlite3
-          pool: 5
+          max_connections: 5
           timeout: 5000
           variables:
             statement_timeout: 1000
@@ -270,7 +269,6 @@ module TestHelpers
       @app.config.active_support.deprecation = :log
       @app.config.log_level = :error
       @app.config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
-      @app.config.active_support.to_time_preserves_timezone = :zone
 
       yield @app if block_given?
       @app.initialize!
@@ -483,6 +481,14 @@ module TestHelpers
       app_file("app/controllers/#{name}_controller.rb", contents)
     end
 
+    def routes(routes)
+      app_file("config/routes.rb", <<~RUBY)
+        Rails.application.routes.draw do
+          #{routes}
+        end
+      RUBY
+    end
+
     def use_frameworks(arr)
       to_remove = [:actionmailer, :activerecord, :activestorage, :activejob, :actionmailbox] - arr
 
@@ -500,7 +506,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: postgresql
-            pool: 5
+            max_connections: 5
           development:
             primary:
               <<: *default
@@ -516,7 +522,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: postgresql
-            pool: 5
+            max_connections: 5
           development:
             <<: *default
             database: #{database_name}_development
@@ -536,7 +542,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: mysql2
-            pool: 5
+            max_connections: 5
             username: root
           <% if ENV['MYSQL_CODESPACES'] %>
             password: 'root'
@@ -562,7 +568,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: mysql2
-            pool: 5
+            max_connections: 5
             username: root
           <% if ENV['MYSQL_CODESPACES'] %>
             password: 'root'

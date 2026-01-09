@@ -307,7 +307,7 @@ module ActiveRecord
       end
     end
 
-    # Like #find_or_create_by, but calls {new}[rdoc-ref:Core#new]
+    # Like #find_or_create_by, but calls {new}[rdoc-ref:Core.new]
     # instead of {create}[rdoc-ref:Persistence::ClassMethods#create].
     def find_or_initialize_by(attributes, &block)
       find_by(attributes) || new(attributes, &block)
@@ -625,7 +625,7 @@ module ActiveRecord
       end
 
       model.with_connection do |c|
-        arel = eager_loading? ? apply_join_dependency.arel : arel(c)
+        arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
         key = if model.composite_primary_key?
@@ -869,7 +869,9 @@ module ActiveRecord
     # Active Record's schema_cache.
     #
     # [:on_duplicate]
-    #   Configure the SQL update sentence that will be used in case of conflict.
+    #   Configure the behavior that will be used in case of conflict. Use `:skip`
+    #   to ignore any conflicts or provide a safe SQL fragment wrapped with
+    #   `Arel.sql`.
     #
     #   NOTE: If you use this option you must provide all the columns you want to update
     #   by yourself.
@@ -969,7 +971,7 @@ module ActiveRecord
     # If attribute names are passed, they are updated along with +updated_at+/+updated_on+ attributes.
     # If no time argument is passed, the current time is used as default.
     #
-    # === Examples
+    # ==== Examples
     #
     #   # Touch all records
     #   Person.all.touch_all
@@ -1020,7 +1022,7 @@ module ActiveRecord
     #
     #   Post.where(person_id: 5).where(category: ['Something', 'Else']).delete_all
     #
-    # Both calls delete the affected posts all at once with a single DELETE statement.
+    # This call deletes the affected posts all at once with a single DELETE statement.
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
     # +after_destroy+ callbacks, use the #destroy_all method instead.
     #
@@ -1040,7 +1042,7 @@ module ActiveRecord
       end
 
       model.with_connection do |c|
-        arel = eager_loading? ? apply_join_dependency.arel : arel(c)
+        arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
         key = if model.composite_primary_key?
@@ -1233,7 +1235,7 @@ module ActiveRecord
         end
       else
         model.with_connection do |conn|
-          conn.unprepared_statement { conn.to_sql(arel(conn)) }
+          conn.unprepared_statement { conn.to_sql(arel) }
         end
       end
     end

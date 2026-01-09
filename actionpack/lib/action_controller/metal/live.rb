@@ -53,8 +53,49 @@ module ActionController
   #       response.headers["Last-Modified"] = Time.now.httpdate # Add this line if your Rack version is 2.2.x
   #       ...
   #     end
+  #
+  # ## Streaming and Execution State
+  #
+  # When streaming, the action is executed in a separate thread. By default, this thread
+  # shares execution state from the parent thread.
+  #
+  # You can configure which execution state keys should be excluded from being shared
+  # using the `config.action_controller.live_streaming_excluded_keys` configuration:
+  #
+  #   # config/application.rb
+  #   config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack]
+  #
+  # This is useful when using ActionController::Live inside a `connected_to` block. For example,
+  # if the parent request is reading from a replica using `connected_to(role: :reading)`, you may
+  # want the streaming thread to use its own connection context instead of inheriting the read-only
+  # context:
+  #
+  #   # Without configuration, streaming thread inherits read-only connection
+  #   ActiveRecord::Base.connected_to(role: :reading) do
+  #     @posts = Post.all
+  #     render stream: true # Streaming thread cannot write to database
+  #   end
+  #
+  #   # With configuration, streaming thread gets fresh connection context
+  #   # config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack]
+  #   ActiveRecord::Base.connected_to(role: :reading) do
+  #     @posts = Post.all
+  #     render stream: true # Streaming thread can write to database if needed
+  #   end
+  #
+  # Common keys you might want to exclude:
+  # - `:active_record_connected_to_stack` - Database connection routing and roles
+  # - `:active_record_prohibit_shard_swapping` - Shard swapping restrictions
+  #
+  # By default, no keys are excluded to maintain backward compatibility.
   module Live
     extend ActiveSupport::Concern
+
+    mattr_accessor :live_streaming_excluded_keys, default: []
+
+    included do
+      class_attribute :live_streaming_excluded_keys, instance_accessor: false, default: Live.live_streaming_excluded_keys
+    end
 
     module ClassMethods
       def make_response!(request)
@@ -133,15 +174,16 @@ module ActionController
       private
         def perform_write(json, options)
           current_options = @options.merge(options).stringify_keys
-
+          event = +""
           PERMITTED_OPTIONS.each do |option_name|
             if (option_value = current_options[option_name])
-              @stream.write "#{option_name}: #{option_value}\n"
+              event << "#{option_name}: #{option_value}\n"
             end
           end
 
           message = json.gsub("\n", "\ndata: ")
-          @stream.write "data: #{message}\n\n"
+          event << "data: #{message}\n\n"
+          @stream.write event
         end
     end
 
@@ -236,12 +278,7 @@ module ActionController
 
       private
         def each_chunk(&block)
-          loop do
-            str = nil
-            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              str = @buf.pop
-            end
-            break unless str
+          while str = @buf.pop
             yield str
           end
         end
@@ -275,16 +312,15 @@ module ActionController
       # This processes the action in a child thread. It lets us return the response
       # code and headers back up the Rack stack, and still process the body in
       # parallel with sending data to the client.
-      new_controller_thread {
+      new_controller_thread do
         ActiveSupport::Dependencies.interlock.running do
           t2 = Thread.current
 
           # Since we're processing the view in a different thread, copy the thread locals
           # from the main thread to the child thread. :'(
           locals.each { |k, v| t2[k] = v }
-          ActiveSupport::IsolatedExecutionState.share_with(t1)
 
-          begin
+          ActiveSupport::IsolatedExecutionState.share_with(t1, except: self.class.live_streaming_excluded_keys) do
             super(name)
           rescue => e
             if @_response.committed?
@@ -301,17 +337,14 @@ module ActionController
               error = e
             end
           ensure
-            ActiveSupport::IsolatedExecutionState.clear
             clean_up_thread_locals(locals, t2)
 
             @_response.commit!
           end
         end
-      }
-
-      ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-        @_response.await_commit
       end
+
+      @_response.await_commit
 
       raise error if error
     end

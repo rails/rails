@@ -102,7 +102,7 @@ NOTE: You need to enable the `hstore` extension to use hstore.
 
 ```ruby
 # db/migrate/20131009135255_create_profiles.rb
-class CreateProfiles < ActiveRecord::Migration[8.1]
+class CreateProfiles < ActiveRecord::Migration[8.2]
   enable_extension "hstore" unless extension_enabled?("hstore")
   create_table :profiles do |t|
     t.hstore "settings"
@@ -579,14 +579,14 @@ To use the Rails model generator for a table using UUID as the primary key, pass
 For example:
 
 ```bash
-$ rails generate model Device --primary-key-type=uuid kind:string
+$ bin/rails generate model Device --primary-key-type=uuid kind:string
 ```
 
 When building a model with a foreign key that will reference this UUID, treat
 `uuid` as the native field type, for example:
 
 ```bash
-$ rails generate model Case device_id:uuid
+$ bin/rails generate model Case device_id:uuid
 ```
 
 Indexing

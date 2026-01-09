@@ -313,6 +313,40 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
       end
     end
   end
+
+  class CheckConstraintViolationTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    class Trade < ActiveRecord::Base
+    end
+
+    setup do
+      @connection = ActiveRecord::Base.lease_connection
+      @connection.create_table "trades", force: true do |t|
+        t.integer :price
+        t.integer :quantity
+        t.check_constraint "price > 0", name: "price_check"
+      end
+    end
+
+    teardown do
+      @connection.drop_table "trades", if_exists: true
+    end
+
+    def test_check_constraint_violation_on_insert
+      assert_raises(ActiveRecord::CheckViolation) do
+        Trade.create(price: -10, quantity: 5)
+      end
+    end
+
+    def test_check_constraint_violation_on_update
+      trade = Trade.create(price: 100, quantity: 5)
+
+      assert_raises(ActiveRecord::CheckViolation) do
+        trade.update(price: -10)
+      end
+    end
+  end
 else
   module ActiveRecord
     class Migration

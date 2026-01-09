@@ -977,19 +977,23 @@ class MysqlAdapter < AbstractAdapter
 end
 ```
 
-Instance methods are created as well for convenience, they are just proxies to the class attribute. So, instances can change the class attribute, but cannot override it as it happens with `class_attribute` (see above). For example given
+Instance methods are also created for convenience, but they are simply proxies to the internal value which is shared among the class. As a result, when an instance modifies the value, this affects the entire class hierarchy. This behavior is different than `class_attribute` (see above).
+
+For example:
 
 ```ruby
-module ActionView
-  class Base
-    cattr_accessor :field_error_proc, default: Proc.new {
-      # ...
-    }
-  end
+class Foo
+  cattr_accessor :bar
 end
-```
 
-we can access `field_error_proc` in views.
+instance = Foo.new
+
+Foo.bar = 1
+instance.bar # => 1
+
+instance.bar = 2
+Foo.bar # => 2
+```
 
 The generation of the reader instance method can be prevented by setting `:instance_reader` to `false` and the generation of the writer instance method can be prevented by setting `:instance_writer` to `false`. Generation of both methods can be prevented by setting `:instance_accessor` to `false`. In all cases, the value must be exactly `false` and not any false value.
 
@@ -1014,31 +1018,7 @@ NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 [Module#cattr_reader]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_reader
 [Module#cattr_writer]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_writer
 
-### Subclasses and Descendants
-
-#### `subclasses`
-
-The [`subclasses`][Class#subclasses] method returns the subclasses of the receiver:
-
-```ruby
-class C; end
-C.subclasses # => []
-
-class B < C; end
-C.subclasses # => [B]
-
-class A < B; end
-C.subclasses # => [B]
-
-class D < C; end
-C.subclasses # => [B, D]
-```
-
-The order in which these classes are returned is unspecified.
-
-NOTE: Defined in `active_support/core_ext/class/subclasses.rb`.
-
-[Class#subclasses]: https://api.rubyonrails.org/classes/Class.html#method-i-subclasses
+### Descendants
 
 #### `descendants`
 
@@ -3226,8 +3206,8 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ##### `monday`, `sunday`
 
-The methods [`monday`][DateAndTime::Calculations#monday] and [`sunday`][DateAndTime::Calculations#sunday] return the dates for the previous Monday and
-next Sunday, respectively.
+The methods [`monday`][DateAndTime::Calculations#monday] and [`sunday`][DateAndTime::Calculations#sunday] return the dates for the previous Monday (or the same day if it is Monday) and
+next Sunday (or the same day if it is Sunday), respectively.
 
 ```ruby
 d = Date.new(2010, 5, 8)     # => Sat, 08 May 2010

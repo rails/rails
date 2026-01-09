@@ -1,193 +1,212 @@
-*   Always check query string keys for valid encoding just like values are checked.
+*   Deprecate calling `protect_from_forgery` without specifying a strategy.
 
-    *Casper Smits*
+    When `protect_from_forgery` is called without the `:with` option, it currently defaults to
+    `:null_session`. This is inconsistent with `config.action_controller.default_protect_from_forgery`,
+    which uses `:exception`.
 
-*   Always return empty body for HEAD requests in `PublicExceptions` and
-    `DebugExceptions`.
+    A new configuration option `config.action_controller.default_protect_from_forgery_with` has been
+    added to allow applications to configure the default strategy. It currently defaults to `:null_session`
+    for backwards compatibility, but will change to `:exception` in a future version of Rails.
 
-    This is required by `Rack::Lint` (per RFC9110).
-
-    *Hartley McGuire*
-
-*   Add comprehensive support for HTTP Cache-Control request directives according to RFC 9111.
-
-    Provides a `request.cache_control_directives` object that gives access to request cache directives:
+    Applications can opt into the new behavior now by setting:
 
     ```ruby
-    # Boolean directives
-    request.cache_control_directives.only_if_cached?  # => true/false
-    request.cache_control_directives.no_cache?        # => true/false
-    request.cache_control_directives.no_store?        # => true/false
-    request.cache_control_directives.no_transform?    # => true/false
-
-    # Value directives
-    request.cache_control_directives.max_age          # => integer or nil
-    request.cache_control_directives.max_stale        # => integer or nil (or true for valueless max-stale)
-    request.cache_control_directives.min_fresh        # => integer or nil
-    request.cache_control_directives.stale_if_error   # => integer or nil
-
-    # Special helpers for max-stale
-    request.cache_control_directives.max_stale?         # => true if max-stale present (with or without value)
-    request.cache_control_directives.max_stale_unlimited? # => true only for valueless max-stale
+    config.action_controller.default_protect_from_forgery_with = :exception
     ```
 
-    Example usage:
+    To silence the deprecation warning without changing behavior, explicitly pass the strategy:
 
     ```ruby
-    def show
-      if request.cache_control_directives.only_if_cached?
-        @article = Article.find_cached(params[:id])
-        return head(:gateway_timeout) if @article.nil?
-      else
-        @article = Article.find(params[:id])
-      end
-
-      render :show
-    end
+    protect_from_forgery with: :null_session
     ```
 
-    *egg528*
+    *Said Kaldybaev*
 
-*   Add assert_in_body/assert_not_in_body as the simplest way to check if a piece of text is in the response body.
+*   Add `ActionDispatch::Request#bearer_token` to extract the bearer token from the Authorization header.
+    Bearer tokens are commonly used for API and MCP requests.
 
     *DHH*
 
-*   Include cookie name when calculating maximum allowed size.
+*   Add block support to `ActionController::Parameters#merge`
 
-    *Hartley McGuire*
-
-*   Implement `must-understand` directive according to RFC 9111.
-
-    The `must-understand` directive indicates that a cache must understand the semantics of the response status code, or discard the response. This directive is enforced to be used only with `no-store` to ensure proper cache behavior.
+    `ActionController::Parameters#merge` now accepts a block to resolve conflicts,
+    consistent with `Hash#merge` and `Parameters#merge!`.
 
     ```ruby
-    class ArticlesController < ApplicationController
-      def show
-        @article = Article.find(params[:id])
+    params1 = ActionController::Parameters.new(a: 1, b: 2)
+    params2 = ActionController::Parameters.new(b: 3, c: 4)
+    params1.merge(params2) { |key, old_val, new_val| old_val + new_val }
+    # => #<ActionController::Parameters {"a"=>1, "b"=>5, "c"=>4} permitted: false>
+    ```
 
-        if @article.special_format?
-          must_understand
-          render status: 203 # Non-Authoritative Information
-        else
-          fresh_when @article
+    *Said Kaldybaev*
+
+*   Yield key to `ActionController::Parameters#fetch` block
+
+    ```ruby
+    key = params.fetch(:missing) { |missing_key| missing_key }
+    key # => :missing
+
+    key = params.fetch("missing") { |missing_key| missing_key }
+    key # => "missing"
+    ```
+
+    *Sean Doyle*
+
+*   Add `config.action_controller.live_streaming_excluded_keys` to control execution state sharing in ActionController::Live.
+
+    When using ActionController::Live, actions are executed in a separate thread that shares
+    state from the parent thread. This new configuration allows applications to opt-out specific
+    state keys that should not be shared.
+
+    This is useful when streaming inside a `connected_to` block, where you may want
+    the streaming thread to use its own database connection context.
+
+    ```ruby
+    # config/application.rb
+    config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack]
+    ```
+
+    By default, all keys are shared.
+
+    *Eileen M. Uchitelle*
+
+*   Add controller action source location to routes inspector.
+
+    The routes inspector now shows where controller actions are defined.
+    In `rails routes --expanded`, a new "Action Location" field displays
+    the file and line number of each action method.
+
+    On the routing error page, when `RAILS_EDITOR` or `EDITOR` is set,
+    a clickable ✏️ icon appears next to each Controller#Action that opens
+    the action directly in the editor.
+
+    *Guillermo Iguaran*
+
+*   Active Support notifications for CSRF warnings.
+
+    Switches from direct logging to event-driven logging, allowing others to
+    subscribe to and act on CSRF events:
+
+    - `csrf_token_fallback.action_controller`
+    - `csrf_request_blocked.action_controller`
+    - `csrf_javascript_blocked.action_controller`
+
+    *Jeremy Daer*
+
+*   Modern header-based CSRF protection.
+
+    Modern browsers send the `Sec-Fetch-Site` header to indicate the relationship
+    between request initiator and target origins. Rails now uses this header to
+    verify same-origin requests without requiring authenticity tokens.
+
+    Two verification strategies are available via `protect_from_forgery using:`:
+
+    * `:header_only` - Uses `Sec-Fetch-Site` header only. Rejects requests
+      without a valid header. Default for new Rails 8.2 applications.
+
+    * `:header_or_legacy_token` - Uses `Sec-Fetch-Site` header when present,
+      falls back to authenticity token verification for older browsers.
+
+    Configure trusted origins for legitimate cross-site requests (OAuth callbacks,
+    third-party embeds) with `trusted_origins:`:
+
+    ```ruby
+    protect_from_forgery trusted_origins: %w[ https://accounts.google.com ]
+    ```
+
+    `InvalidAuthenticityToken` is deprecated in favor of `InvalidCrossOriginRequest`.
+
+    *Rosa Gutierrez*
+
+*   Fix `action_dispatch_request` early load hook call when building
+    Rails app middleware.
+
+    *Gannon McGibbon*
+
+*   Emit a structured event when `action_on_open_redirect` is set to `:notify`
+    in addition to the existing Active Support Notification.
+
+    *Adrianna Chang*, *Hartley McGuire*
+
+*   Support `text/markdown` format in `DebugExceptions` middleware.
+
+    When `text/markdown` is requested via the Accept header, error responses
+    are returned with `Content-Type: text/markdown` instead of HTML.
+    The existing text templates are reused for markdown output, allowing
+    CLI tools and other clients to receive byte-efficient error information.
+
+    *Guillermo Iguaran*
+
+*   Support dynamic `to:` and `within:` options in `rate_limit`.
+
+    The `to:` and `within:` options now accept callables (lambdas or procs) and
+    method names (as symbols), in addition to static values. This allows for
+    dynamic rate limiting based on user attributes or other runtime conditions.
+
+    ```ruby
+    class APIController < ApplicationController
+      rate_limit to: :max_requests, within: :time_window, by: -> { current_user.id }
+
+      private
+        def max_requests
+          current_user.premium? ? 1000 : 100
+        end
+
+        def time_window
+          current_user.premium? ? 1.hour : 1.minute
+        end
+    end
+    ```
+
+    *Murilo Duarte*
+
+*   Define `ActionController::Parameters#deconstruct_keys` to support pattern matching
+
+    ```ruby
+    if params in { search:, page: }
+      Article.search(search).limit(page)
+    else
+      …
+    end
+
+    case (value = params[:string_or_hash_with_nested_key])
+    in String
+      # do something with a String `value`…
+    in { nested_key: }
+      # do something with `nested_key` or `value`
+    else
+      # …
+    end
+    ```
+
+    *Sean Doyle*
+
+*   Submit test requests using `as: :html` with `Content-Type: x-www-form-urlencoded`
+
+    *Sean Doyle*
+
+*   Add `svg:` renderer:
+
+    ```ruby
+    class Page
+      def to_svg
+        body
+      end
+    end
+
+    class PagesController < ActionController::Base
+      def show
+        @page = Page.find(params[:id])
+
+        respond_to do |format|
+          format.html
+          format.svg { render svg: @page }
         end
       end
     end
     ```
 
-    *heka1024*
+    *Thiago Youssef*
 
-*   The JSON renderer doesn't escape HTML entities or Unicode line separators anymore.
-
-    Using `render json:` will no longer escape `<`, `>`, `&`, `U+2028` and `U+2029` characters that can cause errors
-    when the resulting JSON is embedded in JavaScript, or vulnerabilities when the resulting JSON is embedded in HTML.
-
-    Since the renderer is used to return a JSON document as `application/json`, it's typically not necessary to escape
-    those characters, and it improves performance.
-
-    Escaping will still occur when the `:callback` option is set, since the JSON is used as JavaScript code in this
-    situation (JSONP).
-
-    You can use the `:escape` option or set `config.action_controller.escape_json_responses` to `true` to restore the
-    escaping behavior.
-
-    ```ruby
-    class PostsController < ApplicationController
-      def index
-        render json: Post.last(30), escape: true
-      end
-    end
-    ```
-
-    *Étienne Barrié*, *Jean Boussier*
-
-*   Load lazy route sets before inserting test routes
-
-    Without loading lazy route sets early, we miss `after_routes_loaded` callbacks, or risk
-    invoking them with the test routes instead of the real ones if another load is triggered by an engine.
-
-    *Gannon McGibbon*
-
-*   Raise `AbstractController::DoubleRenderError` if `head` is called after rendering.
-
-    After this change, invoking `head` will lead to an error if response body is already set:
-
-    ```ruby
-    class PostController < ApplicationController
-      def index
-        render locals: {}
-        head :ok
-      end
-    end
-    ```
-
-    *Iaroslav Kurbatov*
-
-*   The Cookie Serializer can now serialize an Active Support SafeBuffer when using message pack.
-
-    Such code would previously produce an error if an application was using messagepack as its cookie serializer.
-
-    ```ruby
-    class PostController < ApplicationController
-      def index
-        flash.notice = t(:hello_html) # This would try to serialize a SafeBuffer, which was not possible.
-      end
-    end
-    ```
-
-    *Edouard Chin*
-
-*   Fix `Rails.application.reload_routes!` from clearing almost all routes.
-
-    When calling `Rails.application.reload_routes!` inside a middleware of
-    a Rake task, it was possible under certain conditions that all routes would be cleared.
-    If ran inside a middleware, this would result in getting a 404 on most page you visit.
-    This issue was only happening in development.
-
-    *Edouard Chin*
-
-*   Add resource name to the `ArgumentError` that's raised when invalid `:only` or `:except` options are given to `#resource` or `#resources`
-
-    This makes it easier to locate the source of the problem, especially for routes drawn by gems.
-
-    Before:
-    ```
-    :only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo, :bar]
-    ```
-
-    After:
-    ```
-    Route `resources :products` - :only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo, :bar]
-    ```
-
-    *Jeremy Green*
-
-*   Add `check_collisions` option to `ActionDispatch::Session::CacheStore`.
-
-    Newly generated session ids use 128 bits of randomness, which is more than
-    enough to ensure collisions can't happen, but if you need to harden sessions
-    even more, you can enable this option to check in the session store that the id
-    is indeed free you can enable that option. This however incurs an extra write
-    on session creation.
-
-    *Shia*
-
-*   In ExceptionWrapper, match backtrace lines with built templates more often,
-    allowing improved highlighting of errors within do-end blocks in templates.
-    Fix for Ruby 3.4 to match new method labels in backtrace.
-
-    *Martin Emde*
-
-*   Allow setting content type with a symbol of the Mime type.
-
-    ```ruby
-    # Before
-    response.content_type = "text/html"
-
-    # After
-    response.content_type = :html
-    ```
-
-    *Petrik de Heus*
-
-Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actionpack/CHANGELOG.md) for previous changes.
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/actionpack/CHANGELOG.md) for previous changes.

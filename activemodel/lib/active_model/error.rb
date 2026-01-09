@@ -179,11 +179,11 @@ module ActiveModel
     # See if error matches provided +attribute+, +type+, and +options+ exactly.
     #
     # All params must be equal to Error's own attributes to be considered a
-    # strict match.
+    # strict match. Callback and message options are filtered from both sides.
     def strict_match?(attribute, type, **options)
       return false unless match?(attribute, type)
 
-      options == @options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS)
+      options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS) == @options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS)
     end
 
     def ==(other) # :nodoc:
@@ -204,4 +204,6 @@ module ActiveModel
         [@base, @attribute, @raw_type, @options.except(*CALLBACKS_OPTIONS)]
       end
   end
+
+  ActiveSupport.run_load_hooks(:active_model_error, Error)
 end

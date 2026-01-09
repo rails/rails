@@ -1247,20 +1247,20 @@ class NestedAttributesForDeprecatedAssociationsTest < ActiveRecord::TestCase
   setup do
     @model = DATS::Car
     @car = @model.first
-    @tyre_attributes = {}
+    @tire_attributes = {}
     @bulb_attributes = { "name" => "name for deprecated nested attributes" }
   end
 
   test "has_many" do
-    assert_not_deprecated_association(:tyres) do
-      @car.tyres_attributes = [@tyre_attributes]
+    assert_not_deprecated_association(:tires) do
+      @car.tires_attributes = [@tire_attributes]
     end
 
-    assert_deprecated_association(:deprecated_tyres, context: context_for_method(:deprecated_tyres_attributes=)) do
-      @car.deprecated_tyres_attributes = [@tyre_attributes]
+    assert_deprecated_association(:deprecated_tires, context: context_for_method(:deprecated_tires_attributes=)) do
+      @car.deprecated_tires_attributes = [@tire_attributes]
     end
 
-    assert @tyre_attributes <= @car.deprecated_tyres[0].attributes
+    assert @tire_attributes <= @car.deprecated_tires[0].attributes
   end
 
   test "has_one" do

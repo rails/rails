@@ -46,6 +46,18 @@ class ActiveStorage::Analyzer::ImageAnalyzer::ImageMagickTest < ActiveSupport::T
     end
   end
 
+  test "analyzing with ruby-vips unavailable" do
+    stub_const(Object, :Vips, Module.new) do
+      analyze_with_image_magick do
+        blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+        metadata = extract_metadata_from(blob)
+
+        assert_equal 4104, metadata[:width]
+        assert_equal 2736, metadata[:height]
+      end
+    end
+  end
+
   test "instrumenting analysis" do
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
 
@@ -58,14 +70,31 @@ class ActiveStorage::Analyzer::ImageAnalyzer::ImageMagickTest < ActiveSupport::T
     end
   end
 
+  test "when image_magick is not installed" do
+    stub_const(ActiveStorage, :MINIMAGICK_AVAILABLE, false) do
+      blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+
+      output = StringIO.new
+      logger = ActiveSupport::Logger.new(output)
+
+      ActiveStorage.with(logger: logger) do
+        analyze_with_image_magick do
+          blob.analyze
+        end
+      end
+
+      assert_includes output.string, "Skipping image analysis because the mini_magick gem isn't installed"
+    end
+  end
+
   private
     def analyze_with_image_magick
-      previous_analyzers, ActiveStorage.analyzers = ActiveStorage.analyzers, [ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick]
+      previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, :mini_magick
 
       yield
     rescue LoadError
       ENV["BUILDKITE"] ? raise : skip("Variant processor image_magick is not installed")
     ensure
-      ActiveStorage.analyzers = previous_analyzers
+      ActiveStorage.variant_processor = previous_processor
     end
 end

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "cgi/escape"
-require "cgi/util" if RUBY_VERSION < "3.5"
 require "erb"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/array/extract_options"
@@ -371,7 +369,7 @@ module ActionView
           html_attributes[:disabled] ||= disabled && option_value_selected?(value, disabled)
           html_attributes[:value] = value
 
-          tag_builder.content_tag_string(:option, text, html_attributes)
+          tag_builder.option(text, **html_attributes)
         end.join("\n").html_safe
       end
 
@@ -497,7 +495,8 @@ module ActionView
       #     <option value="France">France</option>
       #   </optgroup>
       #
-      # Parameters:
+      # ==== Parameters
+      #
       # * +grouped_options+ - Accepts a nested array or hash of strings. The first value serves as the
       #   <tt><optgroup></tt> label while the second value must be an array of options. The second value can be a
       #   nested array of text-value pairs. See <tt>options_for_select</tt> for more info.
@@ -508,7 +507,8 @@ module ActionView
       #   which will have the +selected+ attribute set. Note: It is possible for this value to match multiple options
       #   as you might have the same option in multiple groups. Each will then get <tt>selected="selected"</tt>.
       #
-      # Options:
+      # ==== Options
+      #
       # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this
       #   prepends an option with a generic prompt - "Please select" - or the given prompt string.
       # * <tt>:divider</tt> - the divider for the options groups.
@@ -600,7 +600,8 @@ module ActionView
 
       # Returns a string of option tags for the days of the week.
       #
-      # Options:
+      # ====Options
+      #
       # * <tt>:index_as_value</tt> - Defaults to false, set to true to use the indexes from
       #   <tt>I18n.translate("date.day_names")</tt> as the values. By default, Sunday is always 0.
       # * <tt>:day_format</tt> - The I18n key of the array to use for the weekday options.

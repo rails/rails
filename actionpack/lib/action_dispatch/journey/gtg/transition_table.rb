@@ -13,7 +13,6 @@ module ActionDispatch
         attr_reader :memos
 
         DEFAULT_EXP = /[^.\/?]+/
-        DEFAULT_EXP_ANCHORED = /\A#{DEFAULT_EXP}\Z/
 
         def initialize
           @stdparam_states = {}
@@ -111,10 +110,10 @@ module ActionDispatch
           end
 
           {
-            regexp_states:   simple_regexp,
-            string_states:   @string_states,
-            stdparam_states: @stdparam_states,
-            accepting:       @accepting
+            regexp_states:   simple_regexp.stringify_keys,
+            string_states:   @string_states.stringify_keys,
+            stdparam_states: @stdparam_states.stringify_keys,
+            accepting:       @accepting.stringify_keys
           }
         end
 
@@ -193,12 +192,15 @@ module ActionDispatch
         end
 
         def transitions
+          # double escaped because dot evaluates escapes
+          default_exp_anchored = "\\\\A#{DEFAULT_EXP.source}\\\\Z"
+
           @string_states.flat_map { |from, hash|
             hash.map { |s, to| [from, s, to] }
           } + @stdparam_states.map { |from, to|
-            [from, DEFAULT_EXP_ANCHORED, to]
+            [from, default_exp_anchored, to]
           } + @regexp_states.flat_map { |from, hash|
-            hash.map { |s, to| [from, s, to] }
+            hash.map { |r, to| [from, r.source.gsub("\\") { "\\\\" }, to] }
           }
         end
       end

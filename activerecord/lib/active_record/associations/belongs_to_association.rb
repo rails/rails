@@ -135,7 +135,9 @@ module ActiveRecord
             target_key_values = record ? Array(primary_key(record.class)).map { |key| record._read_attribute(key) } : []
 
             if force || reflection_fk.map { |fk| owner._read_attribute(fk) } != target_key_values
+              owner_pk = Array(owner.class.primary_key)
               reflection_fk.each_with_index do |key, index|
+                next if record.nil? && owner_pk.include?(key)
                 owner[key] = target_key_values[index]
               end
             end
@@ -162,8 +164,14 @@ module ActiveRecord
         end
 
         def stale_state
-          Array(reflection.foreign_key).map do |fk|
-            owner._read_attribute(fk) { |n| owner.send(:missing_attribute, n, caller) }
+          foreign_key = reflection.foreign_key
+          if foreign_key.is_a?(Array)
+            attributes = foreign_key.map do |fk|
+              owner._read_attribute(fk) { |n| owner.send(:missing_attribute, n, caller) }
+            end
+            attributes if attributes.any?
+          else
+            owner._read_attribute(foreign_key) { |n| owner.send(:missing_attribute, n, caller) }
           end
         end
     end

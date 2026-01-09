@@ -517,6 +517,37 @@ module ActiveRecord
       @connection.disable_query_cache!
     end
 
+    def test_empty_all_tables
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.empty_all_tables
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+    end
+
+    def test_empty_all_tables_with_query_cache
+      @connection.enable_query_cache!
+
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.empty_all_tables
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+      @connection.disable_query_cache!
+    end
+
     # test resetting sequences in odd tables in PostgreSQL
     if ActiveRecord::Base.lease_connection.respond_to?(:reset_pk_sequence!)
       require "models/movie"
@@ -882,20 +913,13 @@ module ActiveRecord
       end
 
       test "#execute is retryable" do
-        conn_id = case @connection.adapter_name
-                  when "Mysql2"
-                    @connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
-                  when "Trilogy"
-                    @connection.execute("SELECT CONNECTION_ID() as connection_id").to_a[0][0]
-                  when "PostgreSQL"
-                    @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
-                  else
-                    skip("kill_connection_from_server unsupported")
-        end
+        initial_connection_id = connection_id_from_server(@connection)
 
-        kill_connection_from_server(conn_id)
+        kill_connection_from_server(initial_connection_id)
 
         @connection.execute("SELECT 1", allow_retry: true)
+
+        assert_not_equal initial_connection_id, connection_id_from_server(@connection)
       end
 
       test "disconnect and recover on #configure_connection failure" do
@@ -937,68 +961,10 @@ module ActiveRecord
         end
 
         assert_equal [[1]], connection.exec_query("SELECT 1").rows
-        assert_empty failures
+        assert_empty slow
       ensure
         connection&.disconnect!
       end
-
-      private
-        def raw_transaction_open?(connection)
-          case connection.adapter_name
-          when "PostgreSQL"
-            connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
-          when "Mysql2", "Trilogy"
-            begin
-              connection.instance_variable_get(:@raw_connection).query("SAVEPOINT transaction_test")
-              connection.instance_variable_get(:@raw_connection).query("RELEASE SAVEPOINT transaction_test")
-
-              true
-            rescue
-              false
-            end
-          when "SQLite"
-            begin
-              connection.instance_variable_get(:@raw_connection).transaction { nil }
-              false
-            rescue
-              true
-            end
-          else
-            skip("kill_connection_from_server unsupported")
-          end
-        end
-
-        def remote_disconnect(connection)
-          case connection.adapter_name
-          when "PostgreSQL"
-            # Connection was left in a bad state, need to reconnect to simulate fresh disconnect
-            connection.verify! if connection.instance_variable_get(:@raw_connection).status == ::PG::CONNECTION_BAD
-            unless connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
-              connection.instance_variable_get(:@raw_connection).async_exec("begin")
-            end
-            connection.instance_variable_get(:@raw_connection).async_exec("set idle_in_transaction_session_timeout = '10ms'")
-            sleep 0.05
-          when "Mysql2", "Trilogy"
-            connection.send(:internal_execute, "set @@wait_timeout=1", materialize_transactions: false)
-            sleep 1.2
-          else
-            skip("remote_disconnect unsupported")
-          end
-        end
-
-        def kill_connection_from_server(connection_id)
-          conn = @connection.pool.checkout
-          case conn.adapter_name
-          when "Mysql2", "Trilogy"
-            conn.execute("KILL #{connection_id}")
-          when "PostgreSQL"
-            conn.execute("SELECT pg_cancel_backend(#{connection_id})")
-          else
-            skip("kill_connection_from_server unsupported")
-          end
-
-          conn.close
-        end
     end
   end
 

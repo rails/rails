@@ -1,111 +1,149 @@
-*   Remove unnecessary `ruby-version` input from `ruby/setup-ruby`
+*   Add `libvips` to generated `ci.yml`
 
-    *TangRufus*
+    Conditionally adds `libvips` to `ci.yml`.
 
-*   Add --reset option to bin/setup which will call db:reset as part of the setup.
+    *Steve Polito*
 
-    *DHH*
-
-*   Add RuboCop cache restoration to RuboCop job in GitHub Actions workflow templates.
-
-    *Lovro Bikić*
-
-*   Skip generating mailer-related files in authentication generator if the application does
-    not use ActionMailer
-
-    *Rami Massoud*
-
-*   Introduce `bin/ci` for running your tests, style checks, and security audits locally or in the cloud.
-
-    The specific steps are defined by a new DSL in `config/ci.rb`.
+*   Add `Rails.app.revision` to provide a version identifier for error reporting, monitoring, cache keys, etc.
 
     ```ruby
-    ActiveSupport::ContinuousIntegration.run do
-      step "Setup", "bin/setup --skip-server"
-      step "Style: Ruby", "bin/rubocop"
-      step "Security: Gem audit", "bin/bundler-audit"
-      step "Tests: Rails", "bin/rails test test:system"
+    Rails.app.revision # => "3d31d593e6cf0f82fa9bd0338b635af2f30d627b"
+    ```
+
+    By default it looks for a `REVISION` file at the root of the application, if absent it tries to extract
+    the revision from the local git repository.
+
+    If none of that is adequate, it can be set in the application config:
+
+    ```ruby
+    # config/application.rb
+    module MyApp
+      class Application < Rails::Application
+        config.revision = ENV["GIT_SHA"]
+      end
     end
     ```
 
-    Optionally use [gh-signoff](https://github.com/basecamp/gh-signoff) to
-    set a green PR status - ready for merge.
+    *Abdelkader Boudih*, *Jean Boussier*
 
-    *Jeremy Daer*, *DHH*
+*   Add `Rails.app.creds` to provide combined access to credentials stored in either ENV or the encrypted credentials file,
+    and in development also .env credentials. Provides a new require/option API for accessing these values. Examples:
 
-*   Generate session controller tests when running the authentication generator.
+    ```ruby
+    Rails.app.creds.require(:db_host) # ENV.fetch("DB_HOST") || Rails.app.credentials.require(:db_host)
+    Rails.app.creds.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID") || Rails.app.credentials.require(:aws, :access_key_id)
+    Rails.app.creds.option(:cache_host) # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host)
+    Rails.app.creds.option(:cache_host, default: "cache-host-1") # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host) || "cache-host-1"
+    Rails.app.creds.option(:cache_host, default: -> { "cache-host-1" }) # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host) || "cache-host-1"
+    ```
 
-    *Jerome Dalbert*
+    It's also possible to assign your own combined configuration, if you need to use a different backend than just ENVs + encrypted files:
 
-*   Add bin/bundler-audit and config/bundler-audit.yml for discovering and managing known security problems with app gems.
+    ```ruby
+    Rails.app.creds = ActiveSupport::CombinedConfiguration.new(Rails.app.envs, OnePasswordConfiguration.new)
+    ```
 
     *DHH*
 
-*   Rails no longer generates a `bin/bundle` binstub when creating new applications.
+*   Add `Rails.app.dotenvs` to provide access to .env variables through symbol-based lookup with explicit methods
+    for required and optional values. This is the same interface offered by #credentials and can be accessed in a combined manner via #creds.
 
-    The `bin/bundle` binstub used to help activate the right version of bundler.
-    This is no longer necessary as this mechanism is now part of Rubygem itself.
+    It supports both variable interpolation with ${VAR} and command interpolation with $(echo "hello"). Otherwise the same as `Rails.app.envs`.
 
-    *Edouard Chin*
+    *DHH*
 
-*   Add a `SessionTestHelper` module with `sign_in_as(user)` and `sign_out` test helpers when
-    running `rails g authentication`. Simplifies authentication in integration tests.
+*   Add `Rails.app.envs` to provide access to ENV variables through symbol-based lookup with explicit methods
+    for required and optional values. This is the same interface offered by #credentials and can be accessed in a combined manner via #creds.
 
-    *Bijan Rahnema*
-
-*   Rate limit password resets in authentication generator
-
-    This helps mitigate abuse from attackers spamming the password reset form.
-
-    *Chris Oliver*
-
-*   Update `rails new --minimal` option
-
-    Extend the `--minimal` flag to exclude recently added features:
-    `skip_brakeman`, `skip_ci`, `skip_docker`, `skip_kamal`, `skip_rubocop`, `skip_solid` and `skip_thruster`.
-
-    *eelcoj*
-
-*   Add `application-name` metadata to application layout
-
-    The following metatag will be added to `app/views/layouts/application.html.erb`
-
-    ```html
-    <meta name="application-name" content="Name of Rails Application">
+    ```ruby
+    Rails.app.envs.require(:db_password) # ENV,fetch("DB_PASSWORD")
+    Rails.app.envs.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
+    Rails.app.envs.option(:cache_host) # ENV["CACHE_HOST"]
+    Rails.app.envs.option(:cache_host, default: "cache-host-1") # ENV.fetch("CACHE_HOST", "cache-host-1")
+    Rails.app.envs.option(:cache_host, default: -> { HostProvider.cache }) # ENV.fetch("CACHE_HOST") { HostProvider.cache }
     ```
 
-    *Steve Polito*
+    *DHH*
 
-*   Use `secret_key_base` from ENV or credentials when present locally.
+*   Add `Rails.app` as alias for `Rails.application`. Particularly helpful when accessing nested accessors inside application code,
+    like when using `Rails.app.credentials`.
 
-    When ENV["SECRET_KEY_BASE"] or
-    `Rails.application.credentials.secret_key_base` is set for test or
-    development, it is used for the `Rails.config.secret_key_base`,
-    instead of generating a `tmp/local_secret.txt` file.
+    *DHH*
+
+*   Remove duplicate unique index for token migrations
+
+    *zzak*, *Dan Bota*
+
+*   Do not clean directories directly under the application root with `Rails::BacktraceCleaner`
+
+    Improved `Rails.backtrace_cleaner` so that most paths located directly under the application's root directory are no longer silenced.
+
+    *alpaca-tc*
+
+*   Add `Rails::CodeStatistics#register_extension` to register file extensions for `rails stats`
+
+    ```ruby
+    Rails::CodeStatistics.register_extension("txt")
+    ```
+
+    *Taketo Takashima*
+
+*   Wrap console command with an executor by default
+
+    This can be disabled with `-w` or `--skip_executor`, same as runner.
+
+    *zzak*
+
+*   Add a new internal route in development to respond to chromium devtools GET request.
+
+    This allows the app folder to be easily connected as a workspace in chromium-based browsers.
+
+    *coorasse*
+
+*   Set `config.rake_eager_load` in generated test environment to match `config.eager_load` behavior in CI.
+
+    This ensures eager loading works consistently in CI when rake tasks invoke the `:environment` task before tests run.
+
+    *Trevor Turk*
+
+*   Update the `.node-version` file conditionally generated for new applications to 22.21.1
+
+    *Taketo Takashima*
+
+*   Do not assume and force SSL in production by default when using Kamal, to allow for out of the box Kamal deployments.
+
+    It is still recommended to assume and force SSL in production as soon as you can.
+
+    *Jerome Dalbert*
+
+*   Add environment config file existence check
+
+    `Rails::Application` will raise an error if unable to load any environment file.
+
+    *Daniel Niknam*
+
+*   `Rails::Application::RoutesReloader` uses the configured `Rails.application.config.file_watcher`
+
+    *Jan Grodowski*
+
+*   Add structured event for Rails deprecations, when `config.active_support.deprecation` is set to `:notify`.
+
+    *zzak*
+
+*   Report unhandled exceptions to the Error Reporter when running rake tasks via Rails command.
+
+    *Akimichi Tanei*
+
+*   Show help hint when starting `bin/rails console`
 
     *Petrik de Heus*
 
-*   Introduce `RAILS_MASTER_KEY` placeholder in generated ci.yml files
+*   Persist `/rails/info/routes` search query and results between page reloads.
 
-    *Steve Polito*
+    *Ryan Kulp*
 
-*   Colorize the Rails console prompt even on non standard environments.
+*   Add `--update` option to the `bin/bundler-audit` script.
 
-    *Lorenzo Zabot*
+    *Julien ANNE*
 
-*   Don't enable YJIT in development and test environments
-
-    Development and test environments tend to reload code and redefine methods (e.g. mocking),
-    hence YJIT isn't generally faster in these environments.
-
-    *Ali Ismayilov*, *Jean Boussier*
-
-*   Only include PermissionsPolicy::Middleware if policy is configured.
-
-    *Petrik de Heus*
-
-*   Only add browser restrictions for a new Rails app when using importmap.
-
-    *Lucas Dohmen*
-
-Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/railties/CHANGELOG.md) for previous changes.
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/railties/CHANGELOG.md) for previous changes.

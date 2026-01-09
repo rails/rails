@@ -29,7 +29,7 @@ module ActionDispatch
       def from_requirements(requirements)
         routes.find { |route| route.requirements == requirements }
       end
-      # :stopdoc:
+      # :enddoc:
 
       # Since the router holds references to many parts of the system like engines,
       # controllers and the application itself, inspecting the route set can actually
@@ -59,8 +59,6 @@ module ActionDispatch
         private
           def controller(req)
             req.controller_class
-          rescue NameError => e
-            raise ActionController::RoutingError, e.message, e.backtrace
           end
 
           def dispatch(controller, action, req, res)
@@ -659,14 +657,14 @@ module ActionDispatch
         if route.segment_keys.include?(:controller)
           ActionDispatch.deprecator.warn(<<-MSG.squish)
             Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 8.1.
+            will be removed in Rails 9.0.
           MSG
         end
 
         if route.segment_keys.include?(:action)
           ActionDispatch.deprecator.warn(<<-MSG.squish)
             Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 8.1.
+            will be removed in Rails 9.0.
           MSG
         end
 
@@ -953,6 +951,5 @@ module ActionDispatch
         end
       end
     end
-    # :startdoc:
   end
 end

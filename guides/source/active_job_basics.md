@@ -435,7 +435,7 @@ Because this can be quite tricky and many people shouldn't need to worry about i
 by default Solid Queue is configured in a different database as the main app.
 
 However, if you use Solid Queue in the same database as your app, you can make sure you
-don't rely accidentallly on transactional integrity with Active Job’s
+don't rely accidentally on transactional integrity with Active Job’s
 `enqueue_after_transaction_commit` option which can be enabled for individual jobs or
 all jobs through `ApplicationJob`:
 
@@ -671,6 +671,56 @@ number as more important.
 [`queue_with_priority`]:
     https://api.rubyonrails.org/classes/ActiveJob/QueuePriority/ClassMethods.html#method-i-queue_with_priority
 
+Job Continuations
+-----------------
+
+Jobs can be split into resumable steps using continuations. This is useful when
+a job may be interrupted - for example, during queue shutdown. When using
+continuations, the job can resume from the last completed step, avoiding the
+need to restart from the beginning.
+
+To use continuations, include the `ActiveJob::Continuable` module. You can then
+define each step using the `step` method inside the `perform` method. Each step can
+be declared with a block or by referencing a method name.
+
+```ruby
+class ProcessImportJob < ApplicationJob
+  include ActiveJob::Continuable
+
+  def perform(import_id)
+    # Always runs on job start, even when resuming from an interrupted step.
+    @import = Import.find(import_id)
+
+    # Step defined using a block
+    step :initialize do
+      @import.initialize
+    end
+
+    # Step with a cursor — progress is saved and resumed if the job is interrupted
+    step :process do |step|
+      @import.records.find_each(start: step.cursor) do |record|
+        record.process
+        step.advance! from: record.id
+      end
+    end
+
+    # Step defined by referencing a method
+    step :finalize
+  end
+
+  private
+    def finalize
+      @import.finalize
+    end
+end
+```
+
+Each step runs sequentially. If the job is interrupted between steps, or within a
+step that uses a cursor, the job resumes from the last recorded position. This
+makes it easier to build long-running or multi-phase jobs that can safely pause
+and resume without losing progress.
+For more details, see [ActiveJob::Continuation](https://api.rubyonrails.org/classes/ActiveJob/Continuation.html).
+
 Callbacks
 ---------
 
@@ -715,6 +765,7 @@ end
 * [`before_perform`][]
 * [`around_perform`][]
 * [`after_perform`][]
+* [`after_discard`][]
 
 [`before_enqueue`]:
     https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_enqueue
@@ -728,6 +779,8 @@ end
     https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_perform
 [`after_perform`]:
     https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_perform
+[`after_discard`]:
+    https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html#method-i-after_discard
 
 Please note that when enqueuing jobs in bulk using `perform_all_later`,
 callbacks such as `around_enqueue` will not be triggered on the individual jobs.
@@ -747,24 +800,24 @@ jobs as arguments (note that this is different from `perform_later`).
 `perform_all_later` does call `perform` under the hood. The arguments passed to
 `new` will be passed on to `perform` when it's eventually called.
 
-Here is an example calling `perform_all_later` with `GuestCleanupJob` instances:
+Here is an example calling `perform_all_later` with `GuestsCleanupJob` instances:
 
 ```ruby
 # Create jobs to pass to `perform_all_later`.
 # The arguments to `new` are passed on to `perform`
-guest_cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest) }
+cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest) }
 
-# Will enqueue a separate job for each instance of `GuestCleanupJob`
-ActiveJob.perform_all_later(guest_cleanup_jobs)
+# Will enqueue a separate job for each instance of `GuestsCleanupJob`
+ActiveJob.perform_all_later(cleanup_jobs)
 
 # Can also use `set` method to configure options before bulk enqueuing jobs.
-guest_cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest).set(wait: 1.day) }
+cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest).set(wait: 1.day) }
 
-ActiveJob.perform_all_later(guest_cleanup_jobs)
+ActiveJob.perform_all_later(cleanup_jobs)
 ```
 
 `perform_all_later` logs the number of jobs successfully enqueued, for example
-if `Guest.all.map` above resulted in 3 `guest_cleanup_jobs`, it would log
+if `Guest.all.map` above resulted in 3 `cleanup_jobs`, it would log
 `Enqueued 3 jobs to Async (3 GuestsCleanupJob)` (assuming all were enqueued).
 
 The return value of `perform_all_later` is `nil`. Note that this is different
@@ -935,11 +988,10 @@ class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
     Money.new(hash["amount"], hash["currency"])
   end
 
-  private
-    # Checks if an argument should be serialized by this serializer.
-    def klass
-      Money
-    end
+  # Checks if an argument should be serialized by this serializer.
+  def klass
+    Money
+  end
 end
 ```
 
@@ -1039,8 +1091,7 @@ If you need help figuring out where jobs are coming from, you can enable
 Alternate Queuing Backends
 --------------------------
 
-Active Job has other built-in adapters for multiple queuing backends (Sidekiq,
-Resque, Delayed Job, and others). To get an up-to-date list of the adapters see
+Active Job has other built-in adapters for multiple queuing backends (Resque, Delayed Job, and others). To get an up-to-date list of the adapters see
 the API Documentation for [`ActiveJob::QueueAdapters`][].
 
 [`ActiveJob::QueueAdapters`]:
@@ -1057,7 +1108,7 @@ module YourApp
     # Be sure to have the adapter's gem in your Gemfile
     # and follow the adapter's specific installation
     # and deployment instructions.
-    config.active_job.queue_adapter = :sidekiq
+    config.active_job.queue_adapter = :async
   end
 end
 ```

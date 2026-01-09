@@ -359,6 +359,9 @@ class TextHelperTest < ActionView::TestCase
     options = { separator: "\n", radius: 1 }
     assert_equal("...very\nvery long\nstring", excerpt("my very\nvery\nvery long\nstring", "long", options))
 
+    options = { separator: "_" }
+    assert_equal("foo", excerpt("foo", "foo", options))
+
     assert_equal excerpt("This is a beautiful morning", "a"),
                  excerpt("This is a beautiful morning", "a", separator: nil)
   end

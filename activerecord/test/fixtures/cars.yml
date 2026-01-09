@@ -3,7 +3,7 @@ honda:
   name: honda
   engines_count: 0
   bulbs_count: 0
-  custom_tyres_count: 0
+  custom_tires_count: 0
   person_id: 1
 
 zyke:
@@ -11,5 +11,5 @@ zyke:
   name: zyke
   engines_count: 0
   bulbs_count: 0
-  custom_tyres_count: 0
+  custom_tires_count: 0
   person_id: 2

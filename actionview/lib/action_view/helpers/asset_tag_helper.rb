@@ -117,11 +117,11 @@ module ActionView
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         preload_links = []
         use_preload_links_header = options["preload_links_header"].nil? ? preload_links_header : options.delete("preload_links_header")
-        nopush = options["nopush"].nil? ? true : options.delete("nopush")
+        nopush = options["nopush"].nil? || options.delete("nopush")
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
         integrity = options["integrity"]
-        rel = options["type"] == "module" ? "modulepreload" : "preload"
+        rel = options["type"] == "module" || options["type"] == :module ? "modulepreload" : "preload"
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
@@ -139,6 +139,8 @@ module ActionView
           }.merge!(options)
           if tag_options["nonce"] == true || (!tag_options.key?("nonce") && auto_include_nonce_for_scripts)
             tag_options["nonce"] = content_security_policy_nonce
+          elsif tag_options["nonce"] == false
+            tag_options.delete("nonce")
           end
           content_tag("script", "", tag_options)
         }.join("\n").html_safe
@@ -209,7 +211,7 @@ module ActionView
         preload_links = []
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
-        nopush = options["nopush"].nil? ? true : options.delete("nopush")
+        nopush = options["nopush"].nil? || options.delete("nopush")
         integrity = options["integrity"]
 
         sources_tags = sources.uniq.map { |source|
@@ -227,8 +229,10 @@ module ActionView
             "crossorigin" => crossorigin,
             "href" => href
           }.merge!(options)
-          if tag_options["nonce"] == true || (!tag_options.key?("nonce") && auto_include_nonce_for_styles)
+          if tag_options["nonce"] == true || (!tag_options.key?("nonce") && auto_include_nonce_for_styles && respond_to?(:content_security_policy_nonce))
             tag_options["nonce"] = content_security_policy_nonce
+          elsif tag_options["nonce"] == false
+            tag_options.delete("nonce")
           end
 
           if apply_stylesheet_media_default && tag_options["media"].blank?
@@ -364,8 +368,9 @@ module ActionView
         crossorigin = options.delete(:crossorigin)
         crossorigin = "anonymous" if crossorigin == true || (crossorigin.blank? && as_type == "font")
         integrity = options[:integrity]
+        fetchpriority = options.delete(:fetchpriority)
         nopush = options.delete(:nopush) || false
-        rel = mime_type == "module" ? "modulepreload" : "preload"
+        rel = mime_type == "module" || mime_type == :module ? "modulepreload" : "preload"
         add_nonce = content_security_policy_nonce &&
           respond_to?(:request) &&
           request.content_security_policy_nonce_directives&.include?("#{as_type}-src")
@@ -380,11 +385,13 @@ module ActionView
           as: as_type,
           type: mime_type,
           crossorigin: crossorigin,
+          fetchpriority: fetchpriority,
           **options.symbolize_keys)
 
         preload_link = "<#{href}>; rel=#{rel}; as=#{as_type}"
         preload_link += "; type=#{mime_type}" if mime_type
         preload_link += "; crossorigin=#{crossorigin}" if crossorigin
+        preload_link += "; fetchpriority=#{fetchpriority}" if fetchpriority
         preload_link += "; integrity=#{integrity}" if integrity
         preload_link += "; nonce=#{content_security_policy_nonce}" if add_nonce
         preload_link += "; nopush" if nopush

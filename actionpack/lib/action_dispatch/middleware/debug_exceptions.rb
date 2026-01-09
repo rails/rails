@@ -70,18 +70,21 @@ module ActionDispatch
           elsif api_request?(content_type)
             render_for_api_request(content_type, wrapper)
           else
-            render_for_browser_request(request, wrapper)
+            render_for_browser_request(request, wrapper, content_type)
           end
         else
           raise exception
         end
       end
 
-      def render_for_browser_request(request, wrapper)
+      def render_for_browser_request(request, wrapper, content_type)
         template = create_template(request, wrapper)
         file = "rescues/#{wrapper.rescue_template}"
 
-        if request.xhr?
+        if content_type == Mime[:md]
+          body = template.render(template: file, layout: false, formats: [:text])
+          format = "text/markdown"
+        elsif request.xhr?
           body = template.render(template: file, layout: false, formats: [:text])
           format = "text/plain"
         else
@@ -127,6 +130,7 @@ module ActionDispatch
           trace_to_show: wrapper.trace_to_show,
           routes_inspector: routes_inspector(wrapper),
           source_extracts: wrapper.source_extracts,
+          exception_message_for_copy: compose_exception_message(wrapper).join("\n"),
         )
       end
 
@@ -140,6 +144,11 @@ module ActionDispatch
         return unless logger
         return if !log_rescued_responses?(request) && wrapper.rescue_response?
 
+        message = compose_exception_message(wrapper)
+        log_array(logger, message, request)
+      end
+
+      def compose_exception_message(wrapper)
         trace = wrapper.exception_trace
 
         message = []
@@ -168,7 +177,7 @@ module ActionDispatch
           end
         end
 
-        log_array(logger, message, request)
+        message
       end
 
       def log_array(logger, lines, request)

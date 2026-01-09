@@ -380,3 +380,9 @@ class AuditRequiredDeveloper < ActiveRecord::Base
   self.table_name = "developers"
   has_many :required_audit_logs, class_name: "AuditLogRequired"
 end
+
+class OnlyColumnsDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  self.only_columns = %w[name salary firm_id mentor_id]
+  has_many :required_audit_logs, class_name: "AuditLogRequired"
+end

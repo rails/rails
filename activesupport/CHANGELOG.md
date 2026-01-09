@@ -1,268 +1,80 @@
-*   Given an array of `Thread::Backtrace::Location` objects, the new method
-    `ActiveSupport::BacktraceCleaner#clean_locations` returns an array with the
-    clean ones:
+*   Add `ActiveSupport::CombinedConfiguration` to offer interchangeable access to configuration provided by
+    either ENV or encrypted credentials. Used by Rails to first look at ENV, then look in encrypted credentials,
+    but can be configured separately with any number of API-compatible backends in a first-look order.
+
+    The object is inspect safe and will only show keys, not values.
+
+    *DHH*, *Emmanuel Hayford*
+
+*   Add `ActiveSupport::EnvConfiguration` to provide access to ENV variables in a way that's compatible with
+    `ActiveSupport::EncryptedConfiguration` and therefore can be used by `ActiveSupport::CombinedConfiguration`.
+
+    The object is inspect safe and will only show keys, not values.
+
+    Examples:
 
     ```ruby
-    clean_locations = backtrace_cleaner.clean_locations(caller_locations)
+    conf = ActiveSupport::EnvConfiguration.new
+    conf.require(:db_host) # ENV.fetch("DB_HOST")
+    conf.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
+    conf.option(:cache_host) # ENV["CACHE_HOST"]
+    conf.option(:cache_host, default: "cache-host-1") # ENV["CACHE_HOST"] || "cache-host-1"
+    conf.option(:cache_host, default: -> { "cache-host-1" }) # ENV["CACHE_HOST"] || "cache-host-1"
     ```
 
-    Filters and silencers receive strings as usual. However, the `path`
-    attributes of the locations in the returned array are the original,
-    unfiltered ones, since locations are immutable.
+    *DHH*, *Emmanuel Hayford*
 
-    *Xavier Noria*
+*   Make flaky parallel tests easier to diagnose by deterministically assigning
+    tests to workers.
 
-*   Improve `CurrentAttributes` and `ExecutionContext` state managment in test cases.
+    Rails assigns tests to workers in round-robin order so the same `--seed`
+    and worker count will result in the same sequence of tests running on each
+    worker (whether processes or threads) increasing the odds of reproducing
+    test failures caused by test interdependence.
 
-    Previously these two global state would be entirely cleared out whenever calling
-    into code that is wrapped by the Rails executor, typically Action Controller or
-    Active Job helpers:
+    This can make test runtime slower and spikier when one worker gets most of
+    the slow tests. Enable `work_stealing: true` to allow idle workers to steal
+    tests from busy workers in deterministic order, smoothing out runtime at the
+    cost of less reproducible flaky-test failures.
 
-    ```ruby
-    test "#index works" do
-      CurrentUser.id = 42
-      get :index
-      CurrentUser.id == nil
-    end
-    ```
+    *Jeremy Daer*
 
-    Now re-entering the executor properly save and restore that state.
-
-    *Jean Boussier*
-
-*   The new method `ActiveSupport::BacktraceCleaner#first_clean_location`
-    returns the first clean location of the caller's call stack, or `nil`.
-    Locations are `Thread::Backtrace::Location` objects. Useful when you want to
-    report the application-level location where something happened as an object.
-
-    *Xavier Noria*
-
-*   FileUpdateChecker and EventedFileUpdateChecker ignore changes in Gem.path now.
-
-    *Ermolaev Andrey*, *zzak*
-
-*   The new method `ActiveSupport::BacktraceCleaner#first_clean_frame` returns
-    the first clean frame of the caller's backtrace, or `nil`. Useful when you
-    want to report the application-level frame where something happened as a
-    string.
-
-    *Xavier Noria*
-
-*   Always clear `CurrentAttributes` instances.
-
-    Previously `CurrentAttributes` instance would be reset at the end of requests.
-    Meaning its attributes would be re-initialized.
-
-    This is problematic because it assume these objects don't hold any state
-    other than their declared attribute, which isn't always the case, and
-    can lead to state leak across request.
-
-    Now `CurrentAttributes` instances are abandoned at the end of a request,
-    and a new instance is created at the start of the next request.
-
-    *Jean Boussier*, *Janko Marohnić*
-
-*   Add public API for `before_fork_hook` in parallel testing.
-
-    Introduces a public API for calling the before fork hooks implemented by parallel testing.
-
-    ```ruby
-    parallelize_before_fork do
-        # perform an action before test processes are forked
-    end
-    ```
-
-    *Eileen M. Uchitelle*
-
-*   Implement ability to skip creating parallel testing databases.
-
-    With parallel testing, Rails will create a database per process. If this isn't
-    desirable or you would like to implement databases handling on your own, you can
-    now turn off this default behavior.
-
-    To skip creating a database per process, you can change it via the
-    `parallelize` method:
-
-    ```ruby
-    parallelize(workers: 10, parallelize_databases: false)
-    ```
-
-    or via the application configuration:
-
-    ```ruby
-    config.active_support.parallelize_databases = false
-    ```
-
-    *Eileen M. Uchitelle*
-
-*   Allow to configure maximum cache key sizes
-
-    When the key exceeds the configured limit (250 bytes by default), it will be truncated and
-    the digest of the rest of the key appended to it.
-
-    Note that previously `ActiveSupport::Cache::RedisCacheStore` allowed up to 1kb cache keys before
-    truncation, which is now reduced to 250 bytes.
-
-    ```ruby
-    config.cache_store = :redis_cache_store, { max_key_size: 64 }
-    ```
-
-    *fatkodima*
-
-*   Use `UNLINK` command instead of `DEL` in `ActiveSupport::Cache::RedisCacheStore` for non-blocking deletion.
-
-    *Aron Roh*
-
-*   Add `Cache#read_counter` and `Cache#write_counter`
-
-    ```ruby
-    Rails.cache.write_counter("foo", 1)
-    Rails.cache.read_counter("foo") # => 1
-    Rails.cache.increment("foo")
-    Rails.cache.read_counter("foo") # => 2
-    ```
-
-    *Alex Ghiculescu*
-
-*   Introduce ActiveSupport::Testing::ErrorReporterAssertions#capture_error_reports
-
-    Captures all reported errors from within the block that match the given
-    error class.
-
-    ```ruby
-    reports = capture_error_reports(IOError) do
-      Rails.error.report(IOError.new("Oops"))
-      Rails.error.report(IOError.new("Oh no"))
-      Rails.error.report(StandardError.new)
-    end
-
-    assert_equal 2, reports.size
-    assert_equal "Oops", reports.first.error.message
-    assert_equal "Oh no", reports.last.error.message
-    ```
-
-    *Andrew Novoselac*
-
-*   Introduce ActiveSupport::ErrorReporter#add_middleware
-
-    When reporting an error, the error context middleware will be called with the reported error
-    and base execution context. The stack may mutate the context hash. The mutated context will
-    then be passed to error subscribers. Middleware receives the same parameters as `ErrorReporter#report`.
-
-    *Andrew Novoselac*, *Sam Schmidt*
-
-*   Change execution wrapping to report all exceptions, including `Exception`.
-
-    If a more serious error like `SystemStackError` or `NoMemoryError` happens,
-    the error reporter should be able to report these kinds of exceptions.
+*   Make `ActiveSupport::EventReporter#debug_mode?` true by default to emit debug events
+    outside of Rails application contexts.
 
     *Gannon McGibbon*
 
-*   `ActiveSupport::Testing::Parallelization.before_fork_hook` allows declaration of callbacks that
-    are invoked immediately before forking test workers.
+*   Add `SecureRandom.base32` for generating case-insensitive keys that are unambiguous to humans.
+
+    *Stanko Krtalic Rusendic & Miha Rekar*
+
+*   Add a fast failure mode to `ActiveSupport::ContinuousIntegration` that stops the rest of
+    the run after a step fails. Invoke by running `bin/ci --fail-fast` or `bin/ci -f`.
+
+    *Dennis Paagman*
+
+*   Implement LocalCache strategy on `ActiveSupport::Cache::MemoryStore`. The memory store
+    needs to respond to the same interface as other cache stores (e.g. `ActiveSupport::NullStore`).
+
+    *Mikey Gough*
+
+*   Add a detailed failure summary to `ActiveSupport::ContinuousIntegration`.
 
     *Mike Dalessio*
 
-*   Allow the `#freeze_time` testing helper to accept a date or time argument.
+*   Introduce `ActiveSupport::EventReporter::LogSubscriber` structured event logging.
 
     ```ruby
-    Time.current # => Sun, 09 Jul 2024 15:34:49 EST -05:00
-    freeze_time Time.current + 1.day
-    sleep 1
-    Time.current # => Mon, 10 Jul 2024 15:34:49 EST -05:00
-    ```
+    class MyLogSubscriber < ActiveSupport::EventReporter::LogSubscriber
+      self.namespace = "test"
 
-    *Joshua Young*
-
-*   `ActiveSupport::JSON` now accepts options
-
-    It is now possible to pass options to `ActiveSupport::JSON`:
-    ```ruby
-    ActiveSupport::JSON.decode('{"key": "value"}', symbolize_names: true) # => { key: "value" }
-    ```
-
-    *matthaigh27*
-
-*   `ActiveSupport::Testing::NotificationAssertions`'s `assert_notification` now matches against payload subsets by default.
-
-    Previously the following assertion would fail due to excess key vals in the notification payload. Now with payload subset matching, it will pass.
-
-    ```ruby
-    assert_notification("post.submitted", title: "Cool Post") do
-      ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post", body: "Cool Body")
+      def something(event)
+        info { "Event #{event[:name]} emitted." }
+      end
     end
     ```
 
-    Additionally, you can now persist a matched notification for more customized assertions.
+    *Gannon McGibbon*
 
-    ```ruby
-    notification = assert_notification("post.submitted", title: "Cool Post") do
-      ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post", body: Body.new("Cool Body"))
-    end
 
-    assert_instance_of(Body, notification.payload[:body])
-    ```
-
-    *Nicholas La Roux*
-
-*   Deprecate `String#mb_chars` and `ActiveSupport::Multibyte::Chars`.
-
-    These APIs are a relic of the Ruby 1.8 days when Ruby strings weren't encoding
-    aware. There is no legitimate reasons to need these APIs today.
-
-    *Jean Boussier*
-
-*   Deprecate `ActiveSupport::Configurable`
-
-    *Sean Doyle*
-
-*   `nil.to_query("key")` now returns `key`.
-
-    Previously it would return `key=`, preventing round tripping with `Rack::Utils.parse_nested_query`.
-
-    *Erol Fornoles*
-
-*   Avoid wrapping redis in a `ConnectionPool` when using `ActiveSupport::Cache::RedisCacheStore` if the `:redis`
-    option is already a `ConnectionPool`.
-
-    *Joshua Young*
-
-*   Alter `ERB::Util.tokenize` to return :PLAIN token with full input string when string doesn't contain ERB tags.
-
-    *Martin Emde*
-
-*   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceded by multibyte characters.
-
-    *Martin Emde*
-
-*   Add `ActiveSupport::Testing::NotificationAssertions` module to help with testing `ActiveSupport::Notifications`.
-
-    *Nicholas La Roux*, *Yishu See*, *Sean Doyle*
-
-*   `ActiveSupport::CurrentAttributes#attributes` now will return a new hash object on each call.
-
-    Previously, the same hash object was returned each time that method was called.
-
-    *fatkodima*
-
-*   `ActiveSupport::JSON.encode` supports CIDR notation.
-
-    Previously:
-
-    ```ruby
-    ActiveSupport::JSON.encode(IPAddr.new("172.16.0.0/24")) # => "\"172.16.0.0\""
-    ```
-
-    After this change:
-
-    ```ruby
-    ActiveSupport::JSON.encode(IPAddr.new("172.16.0.0/24")) # => "\"172.16.0.0/24\""
-    ```
-
-    *Taketo Takashima*
-
-*   Make `ActiveSupport::FileUpdateChecker` faster when checking many file-extensions.
-
-    *Jonathan del Strother*
-
-Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activesupport/CHANGELOG.md) for previous changes.
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activesupport/CHANGELOG.md) for previous changes.
