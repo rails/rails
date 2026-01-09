@@ -153,9 +153,6 @@ module ActiveSupport
           match.upcase!
           match
         end
-        if keep_id_suffix && lower_case_and_underscored_word&.end_with?("_id")
-          result == "Id" ? result.sub!(/Id$/, "ID") : result.sub!(/ id$/, " ID")
-        end
       end
 
       result
