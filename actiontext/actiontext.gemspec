@@ -39,5 +39,5 @@ Gem::Specification.new do |s|
 
   s.add_dependency "nokogiri", ">= 1.8.5"
   s.add_dependency "globalid", ">= 0.6.0"
-  s.add_dependency "action_text-trix", "~> 2.1.15"
+  s.add_dependency "action_text-trix", "~> 2.1.16"
 end
