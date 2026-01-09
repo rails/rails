@@ -49,7 +49,8 @@ module ActionCable
 
       def remove(data)
         logger.info "Unsubscribing from channel: #{data['identifier']}"
-        remove_subscription find(data)
+        subscription = find(data)
+        remove_subscription(subscription) if subscription
       end
 
       def remove_subscription(subscription)
@@ -58,7 +59,9 @@ module ActionCable
       end
 
       def perform_action(data)
-        find(data).perform_action ActiveSupport::JSON.decode(data["data"])
+        subscription = find(data)
+        raise "Unable to find subscription with identifier: #{data['identifier']}" unless subscription
+        subscription.perform_action ActiveSupport::JSON.decode(data["data"])
       end
 
       def identifiers
@@ -74,11 +77,7 @@ module ActionCable
         delegate :logger, to: :connection
 
         def find(data)
-          if subscription = subscriptions[data["identifier"]]
-            subscription
-          else
-            raise "Unable to find subscription with identifier: #{data['identifier']}"
-          end
+          subscriptions[data["identifier"]]
         end
     end
   end
