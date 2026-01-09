@@ -17,6 +17,8 @@ module ActionView
 
     config.eager_load_namespaces << ActionView
 
+    guard_load_hooks(:action_view, :action_view_test_case)
+
     config.after_initialize do |app|
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms =
         app.config.action_view.delete(:embed_authenticity_token_in_remote_forms)
