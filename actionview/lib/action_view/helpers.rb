@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/benchmarkable"
+require "active_support/core_ext/module/delegation"
 require "action_view/helpers/capture_helper"
 require "action_view/helpers/output_safety_helper"
 require "action_view/helpers/tag_helper"
@@ -22,6 +23,7 @@ require "action_view/helpers/form_tag_helper"
 require "action_view/helpers/form_helper"
 require "action_view/helpers/form_options_helper"
 require "action_view/helpers/javascript_helper"
+require "action_view/helpers/navigation_helper"
 require "action_view/helpers/number_helper"
 require "action_view/helpers/rendering_helper"
 require "action_view/helpers/translation_helper"
@@ -56,6 +58,7 @@ module ActionView # :nodoc:
     include FormOptionsHelper
     include FormTagHelper
     include JavaScriptHelper
+    include NavigationHelper
     include NumberHelper
     include OutputSafetyHelper
     include RenderingHelper
@@ -64,5 +67,11 @@ module ActionView # :nodoc:
     include TextHelper
     include TranslationHelper
     include UrlHelper
+
+    UrlHelper.singleton_class.delegate(
+      :button_to_generates_button_tag,
+      :button_to_generates_button_tag=,
+      to: NavigationHelper
+    )
   end
 end
