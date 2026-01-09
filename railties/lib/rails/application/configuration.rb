@@ -17,7 +17,7 @@ module Rails
                     :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
                     :log_tags, :silence_healthcheck_path, :railties_order, :relative_url_root,
                     :ssl_options, :public_file_server,
-                    :session_options, :time_zone, :reload_classes_only_on_change,
+                    :session_options, :time_zone, :reload_classes_only_on_change, :disable_file_watcher,
                     :beginning_of_week, :filter_redirect, :x,
                     :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
@@ -60,6 +60,7 @@ module Rails
         @relative_url_root                       = ENV["RAILS_RELATIVE_URL_ROOT"]
         @reload_classes_only_on_change           = true
         @file_watcher                            = ActiveSupport::FileUpdateChecker
+        @disable_file_watcher                    = true
         @exceptions_app                          = nil
         @autoflush_log                           = true
         @log_formatter                           = ActiveSupport::Logger::SimpleFormatter.new
