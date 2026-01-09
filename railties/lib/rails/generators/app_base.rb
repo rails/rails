@@ -677,7 +677,7 @@ module Rails
       end
 
       def bundle_install?
-        !(options[:skip_bundle] || options[:pretend])
+        !(options[:skip_bundle] || options[:pretend] || ENV["RAILS_SKIP_BUNDLE"])
       end
 
       def depends_on_system_test?
