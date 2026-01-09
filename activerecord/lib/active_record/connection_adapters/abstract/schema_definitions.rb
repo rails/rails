@@ -324,6 +324,237 @@ module ActiveRecord
         column(name, type, **options, primary_key: true)
       end
 
+      ##
+      # :method: bigint
+      # :call-seq: bigint(*names, **options)
+      #
+      # Adds a +bigint+ column for storing large integer values.
+      #
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
+      #
+      # Example:
+      #
+      #   create_table :subscriptions do |t|
+      #     t.bigint :account_id
+      #   end
+
+      ##
+      # :method: binary
+      # :call-seq: binary(*names, **options)
+      #
+      # Adds a +binary+ column for storing binary data such as files or blobs.
+      #
+      # Example:
+      #
+      #   create_table :responses do |t|
+      #     t.binary :payload
+      #   end
+
+      ##
+      # :method: boolean
+      # :call-seq: boolean(*names, **options)
+      #
+      # Adds a +boolean+ column for storing true/false values.
+      #
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
+      #
+      # Example:
+      #
+      #   create_table :features do |t|
+      #     t.boolean :active
+      #   end
+
+      ##
+      # :method: date
+      # :call-seq: date(*names, **options)
+      #
+      # Adds a +date+ column for storing calendar dates (year, month, day).
+      #
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
+      #
+      # Example:
+      #
+      #   create_table :schedules do |t|
+      #     t.date :published_on
+      #   end
+
+      ##
+      # :method: datetime
+      # :call-seq: datetime(*names, **options)
+      #
+      # Adds a +datetime+ column for storing precise date and time values.
+      #
+      # Example:
+      #
+      #   create_table :posts do |t|
+      #     t.datetime :posted_at
+      #   end
+
+      ##
+      # :method: decimal
+      # :call-seq: decimal(*names, **options)
+      #
+      # Adds a +decimal+ column for storing fixed-point numbers.
+      #
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
+      # Use the +:precision+ and +:scale+ options to control the number format.
+      #
+      # Example:
+      #
+      #   create_table :products do |t|
+      #     t.decimal :price, precision: 10, scale: 2
+      #   end
+
+      ##
+      # :method: float
+      # :call-seq: float(*names, **options)
+      #
+      # Adds a +float+ column for storing approximate decimal numbers.
+      #
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
+      #
+      # Example:
+      #
+      #   create_table :reviews do |t|
+      #     t.float :rating
+      #   end
+
+      ##
+      # :method: integer
+      # :call-seq: integer(*names, **options)
+      #
+      # Adds an +integer+ column for storing whole numbers.
+      #
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
+      #
+      # Example:
+      #
+      #   create_table :books do |t|
+      #     t.integer :ratings, array: true, default: []
+      #   end
+
+      ##
+      # :method: json
+      # :call-seq: json(*names, **options)
+      #
+      # Adds a +json+ column for storing structured data in JSON format.
+      #
+      # Use this for unindexed, flexible key-value data. For indexed JSON support, prefer +jsonb+ on PostgreSQL.
+      #
+      # Example:
+      #
+      #   create_table :accounts do |t|
+      #     t.json :settings
+      #   end
+
+      ##
+      # :method: string
+      # :call-seq: string(*names, **options)
+      #
+      # Adds a +string+ column for storing short text values.
+      #
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
+      #
+      # You can limit the maximum length using the +:limit+ option.
+      #
+      # Example:
+      #
+      #   create_table :labels do |t|
+      #     t.string :name, limit: 50
+      #   end
+
+      ##
+      # :method: text
+      # :call-seq: text(*names, **options)
+      #
+      # Adds a +text+ column for storing longer, unbounded text data.
+      #
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
+      #
+      # Example:
+      #
+      #   create_table :reviews do |t|
+      #     t.text :description
+      #   end
+
+      ##
+      # :method: time
+      # :call-seq: time(*names, **options)
+      #
+      # Adds a +time+ column for storing time-of-day values (without date).
+      #
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
+      #
+      # Example:
+      #
+      #   create_table :lessons do |t|
+      #     t.time :sunrise
+      #   end
+
+      ##
+      # :method: timestamp
+      # :call-seq: timestamp(*names, **options)
+      #
+      # Adds a +timestamp+ column for storing date and time values.
+      #
+      # This is similar to +datetime+ and may be treated interchangeably on some databases.
+      #
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
+      #
+      # Example:
+      #
+      #   create_table :runs do |t|
+      #     t.timestamp :created_at
+      #   end
+
+      ##
+      # :method: virtual
+      # :call-seq: virtual(*names, **options)
+      #
+      # Adds a +virtual+ column to the table definition.
+      #
+      # Virtual columns are computed from an expression based on other columns. They do not
+      # accept user input directly and can optionally be marked as +stored+ depending on the
+      # database adapter.
+      #
+      # Use the +:as+ option to define the expression, and the +:stored+ option to persist the
+      # result. The +:type+ must also be specified.
+      #
+      # This method defines the column in the schema, but actual support depends on the
+      # database adapter:
+      #
+      # - PostgreSQL (12+): supports *stored* generated columns only.
+      # - MySQL (5.7+): supports both *virtual* and *stored* generated columns.
+      # - SQLite (3.31+): supports stored generated columns.
+      #
+      # Example:
+      #
+      #   # db/migrate/20250615000000_create_users.rb
+      #   create_table :users do |t|
+      #     t.string :first_name
+      #     t.string :last_name
+      #     t.virtual :full_name, type: :string, as: "first_name || ' ' || last_name", stored: true
+      #   end
+      #
+      #   # app/models/user.rb
+      #   class User < ApplicationRecord
+      #   end
+      #
+      #   # Usage
+      #   user = User.create(first_name: "Ada", last_name: "Lovelace")
+      #   User.last.full_name
+      #   # => "Ada Lovelace"
+
       define_column_methods :bigint, :binary, :boolean, :date, :datetime, :decimal,
         :float, :integer, :json, :string, :text, :time, :timestamp, :virtual
 
