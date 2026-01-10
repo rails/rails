@@ -73,6 +73,7 @@ module ActiveRecord
       end
       ActiveRecord.verbose_query_logs = false
       ActiveRecord::Base.attributes_for_inspect = :all
+      ActiveRecord::Base.logger = Logger.new(STDOUT)
     end
 
     runner do
