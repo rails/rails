@@ -174,6 +174,10 @@
     </div>
   </footer>
 
+  <% if @guide_markdown_source.present? %>
+    <template id="guide-markdown"><%= ERB::Util.html_escape(@guide_markdown_source) %></template>
+  <% end %>
+
   <a href="#main-skip-link" class="back-to-top" data-turbo="false"><span class="visibly-hidden">Back to top</span></a>
 </body>
 </html>
