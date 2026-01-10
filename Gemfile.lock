@@ -714,7 +714,6 @@ DEPENDENCIES
   rack (~> 3.0)
   rack-cache (~> 1.2)
   rails!
-  rake (>= 13)
   redcarpet (~> 3.6.1)
   redis (>= 4.0.1)
   redis-namespace
