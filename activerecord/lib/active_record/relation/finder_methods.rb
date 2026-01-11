@@ -156,7 +156,13 @@ module ActiveRecord
     # record is found. Raises ActiveRecord::SoleRecordExceeded if more than one
     # record is found.
     #
-    #   Product.find_sole_by(["price = %?", price])
+    #   Product.find_sole_by(["price = ?", price])
+    #
+    # ==== Edge Cases
+    #
+    #   Product.find_sole_by(nil)         # returns ActiveRecord object if the argument is nil.
+    #   Product.find_sole_by              # raises Argument error if the argument is not provided.
+    #   Product.find_sole_by([])          # returns ActiveRecord object if the argument is an empty array.
     def find_sole_by(arg, *args)
       where(arg, *args).sole
     end
