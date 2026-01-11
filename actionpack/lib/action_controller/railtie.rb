@@ -34,7 +34,9 @@ module ActionController
     end
 
     initializer "action_controller.live_streaming_excluded_keys" do |app|
-      ActionController::Live.live_streaming_excluded_keys = app.config.action_controller.live_streaming_excluded_keys
+      ActiveSupport.on_load(:action_controller_live) do
+        ActionController::Live.live_streaming_excluded_keys = app.config.action_controller.live_streaming_excluded_keys
+      end
     end
 
     initializer "action_controller.parameters_config" do |app|
