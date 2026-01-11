@@ -136,7 +136,7 @@ module ApplicationTests
     end
 
     test "raises an error if cache does not support recyclable cache keys" do
-      build_app(initializers: true)
+      restore_default_config
       add_to_env_config "production", "config.cache_store = Class.new {}.new"
       add_to_env_config "production", "config.active_record.cache_versioning = true"
 
@@ -1535,7 +1535,7 @@ module ApplicationTests
     end
 
     test "config.action_view.cache_template_loading with config.enable_reloading in an environment" do
-      build_app(initializers: true)
+      restore_default_config
       add_to_env_config "development", "config.enable_reloading = true"
 
       # These requires are to emulate an engine loading Action View before the application
@@ -2031,8 +2031,7 @@ module ApplicationTests
     end
 
     test "config.active_record.dump_schema_after_migration is false on production" do
-      build_app
-
+      restore_default_config
       app "production"
 
       assert_not ActiveRecord.dump_schema_after_migration
@@ -3320,21 +3319,19 @@ module ApplicationTests
     end
 
     test "config.active_job.verbose_enqueue_logs defaults to true in development" do
-      build_app
+      restore_default_config
       app "development"
 
       assert ActiveJob.verbose_enqueue_logs
     end
 
     test "config.active_job.verbose_enqueue_logs defaults to false in production" do
-      build_app
       app "production"
 
       assert_not ActiveJob.verbose_enqueue_logs
     end
 
     test "config.active_job.enqueue_after_transaction_commit defaults to true for new apps" do
-      build_app
       app "production"
 
       assert ActiveRecord::Base
@@ -3342,8 +3339,6 @@ module ApplicationTests
     end
 
     test "config.active_job.enqueue_after_transaction_commit can be set to false for new apps" do
-      build_app
-
       app_file "config/initializers/enqueue_after_transaction_commit.rb", <<-RUBY
         Rails.application.config.active_job.enqueue_after_transaction_commit = false
       RUBY
@@ -3734,14 +3729,13 @@ module ApplicationTests
     end
 
     test "config.action_dispatch.verbose_redirect_logs is true in development" do
-      build_app
+      restore_default_config
       app "development"
 
       assert ActionDispatch.verbose_redirect_logs
     end
 
     test "config.action_dispatch.verbose_redirect_logs is false in production" do
-      build_app
       app "production"
 
       assert_not ActionDispatch.verbose_redirect_logs

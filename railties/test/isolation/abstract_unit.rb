@@ -151,7 +151,11 @@ module TestHelpers
     end
 
     def teardown_app
-      ENV["RAILS_ENV"] = @prev_rails_env if @prev_rails_env
+      if @prev_rails_env
+        ENV["RAILS_ENV"] = @prev_rails_env
+      else
+        ENV.delete("RAILS_ENV")
+      end
       Rails.app_class = @prev_rails_app_class if @prev_rails_app_class
       Rails.application = @prev_rails_application if @prev_rails_application
       FileUtils.rm_rf(tmp_path)
