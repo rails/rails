@@ -1,3 +1,40 @@
+*   Add `ActiveModel::Inspection` to provide human-readable `#inspect` output for ActiveModel objects.
+
+    Classes that include `ActiveModel::Attributes` now automatically get formatted inspect output
+    with full feature parity to ActiveRecord, including `filter_attributes`, `attributes_for_inspect`,
+    `full_inspect`, and `pretty_print` support.
+
+    ```ruby
+    class Person
+      include ActiveModel::Model
+      include ActiveModel::Attributes
+
+      attribute :name, :string
+      attribute :age, :integer
+      attribute :password, :string
+    end
+
+    person = Person.new(name: "Alice", age: 30, password: "secret")
+    person.inspect
+    # => "#<Person name: \"Alice\", age: 30, password: \"secret\">"
+
+    # Filter sensitive attributes
+    Person.filter_attributes = [:password]
+    person.inspect
+    # => "#<Person name: \"Alice\", age: 30, password: [FILTERED]>"
+
+    # Limit attributes shown in inspect
+    Person.attributes_for_inspect = [:name]
+    person.inspect
+    # => "#<Person name: \"Alice\">"
+
+    # Show all attributes regardless of attributes_for_inspect
+    person.full_inspect
+    # => "#<Person name: \"Alice\", age: 30, password: [FILTERED]>"
+    ```
+
+    *Vinícius Almeida*
+
 *   Add `has_json` and `has_delegated_json` to provide schema-enforced access to JSON attributes.
 
     ```ruby
