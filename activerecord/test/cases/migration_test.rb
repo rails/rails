@@ -1602,6 +1602,32 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
       assert_no_column Person, :column1
       assert_no_column Person, :column2
     end
+
+    def test_bulk_revert_with_table_name_prefix
+      ActiveRecord::Base.table_name_prefix = "prefix_"
+      @connection.create_table(:prefix_testings, force: true)
+
+      migration = Class.new(ActiveRecord::Migration::Current) {
+        def write(text = ""); end
+
+        def change
+          change_table :testings, bulk: true do |t|
+            t.column :foo, :string
+          end
+        end
+      }.new
+
+      migration.migrate(:up)
+      assert @connection.column_exists?(:prefix_testings, :foo)
+
+      assert_queries_count(1) do
+        migration.migrate(:down)
+      end
+      assert_not @connection.column_exists?(:prefix_testings, :foo)
+    ensure
+      @connection.drop_table :prefix_testings, if_exists: true
+      ActiveRecord::Base.table_name_prefix = ""
+    end
   end
 end
 
