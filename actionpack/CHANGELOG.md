@@ -1,3 +1,8 @@
+*   Avoid loading `ActionController::Live` early in initializer, and introduce
+    `action_controller_live` load hook.
+
+    *Adrianna Chang*
+
 *   Make CSRF header-only protection compatible with local installs using HTTP
 
     In local installations that don't use HTTPS and where the app is
