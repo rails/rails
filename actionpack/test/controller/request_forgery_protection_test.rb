@@ -1582,9 +1582,10 @@ class HeaderOnlyProtectionControllerTest < ActionController::TestCase
     end
   end
 
-  test "blocks POST with missing Sec-Fetch-Site header" do
-    assert_raises(ActionController::InvalidCrossOriginRequest) do
+  test "allows POST with missing Sec-Fetch-Site header on HTTP when force_ssl is disabled" do
+    with_secure_protocol(false) do
       post :index
+      assert_response :success
     end
   end
 
@@ -1636,6 +1637,21 @@ class HeaderOnlyProtectionControllerTest < ActionController::TestCase
     end
   end
 
+  test "blocks POST without Sec-Fetch-Site header when request is HTTPS" do
+    @request.set_header "HTTPS", "on"
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      post :index
+    end
+  end
+
+  test "blocks POST without Sec-Fetch-Site header when request is HTTP but force_ssl is enabled" do
+    with_secure_protocol(true) do
+      assert_raises(ActionController::InvalidCrossOriginRequest) do
+        post :index
+      end
+    end
+  end
+
   private
     def forgery_protection_origin_check
       old_setting = ActionController::Base.forgery_protection_origin_check
@@ -1645,6 +1661,14 @@ class HeaderOnlyProtectionControllerTest < ActionController::TestCase
       ensure
         ActionController::Base.forgery_protection_origin_check = old_setting
       end
+    end
+
+    def with_secure_protocol(enabled)
+      old_secure_protocol = ActionDispatch::Http::URL.secure_protocol
+      ActionDispatch::Http::URL.secure_protocol = enabled
+      yield
+    ensure
+      ActionDispatch::Http::URL.secure_protocol = old_secure_protocol
     end
 end
 
