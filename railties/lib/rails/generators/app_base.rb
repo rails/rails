@@ -711,7 +711,11 @@ module Rails
       end
 
       def run_bundle
-        bundle_command("install --quiet", "BUNDLE_IGNORE_MESSAGES" => "1") if bundle_install?
+        return unless bundle_install?
+
+        unless bundle_command("install --quiet", "BUNDLE_IGNORE_MESSAGES" => "1")
+          abort "Bundle install failed. Please run `bundle install` manually to see the error."
+        end
       end
 
       def run_javascript
