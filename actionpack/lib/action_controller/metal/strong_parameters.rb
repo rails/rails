@@ -1011,20 +1011,20 @@ module ActionController
     end
 
     # Returns a new `ActionController::Parameters` instance with all keys from
-    # `other_hash` merged into current hash.
-    def merge(other_hash, &block)
+    # `other_hashes` merged into current hash.
+    def merge(*other_hashes, &block)
       new_instance_with_inherited_permitted_status(
-        @parameters.merge(other_hash.to_h, &block)
+        @parameters.merge(*other_hashes.map!(&:to_h), &block)
       )
     end
 
     ##
-    # :call-seq: merge!(other_hash)
+    # :call-seq: merge!(*other_hashes)
     #
-    # Returns the current `ActionController::Parameters` instance with `other_hash`
+    # Returns the current `ActionController::Parameters` instance with `other_hashes`
     # merged into current hash.
-    def merge!(other_hash, &block)
-      @parameters.merge!(other_hash.to_h, &block)
+    def merge!(*other_hashes, &block)
+      @parameters.merge!(*other_hashes.map!(&:to_h), &block)
       self
     end
 

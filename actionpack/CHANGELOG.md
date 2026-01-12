@@ -1,3 +1,16 @@
+*   Support multiple arguments in `ActionController::Parameters#merge` and `#merge!`
+
+    Both methods now accept multiple hashes, matching Ruby's `Hash#merge` behavior.
+
+    ```ruby
+    params1 = ActionController::Parameters.new(a: 1)
+    params2 = ActionController::Parameters.new(b: 2)
+    params1.merge(params2, { c: 3 })
+    # => #<ActionController::Parameters {"a"=>1, "b"=>2, "c"=>3} permitted: false>
+    ```
+
+    *Bernie Chiu*
+
 *   Deprecate calling `protect_from_forgery` without specifying a strategy.
 
     When `protect_from_forgery` is called without the `:with` option, it currently defaults to
