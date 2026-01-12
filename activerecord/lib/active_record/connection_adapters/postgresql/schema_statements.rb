@@ -699,7 +699,7 @@ module ActiveRecord
           result = execute schema_creation.accept(create_index)
 
           index = create_index.index
-          execute change_index_comment_sql(index) if index.comment
+          execute change_index_comment_sql(index, table_name) if index.comment
           result
         end
 
@@ -1431,8 +1431,11 @@ module ActiveRecord
             "DROP TABLE#{exists} #{quoted_table_names}#{cascade}"
           end
 
-          def change_index_comment_sql(index)
-            "COMMENT ON INDEX #{quote_column_name(index.name)} IS #{quote(index.comment)}"
+          def change_index_comment_sql(index, table_name)
+            name = Utils.extract_schema_qualified_name(table_name.to_s)
+            index_name = name.schema ? PostgreSQL::Name.new(name.schema, index.name).to_s : index.name
+
+            "COMMENT ON INDEX #{quote_table_name(index_name)} IS #{quote(index.comment)}"
           end
       end
     end

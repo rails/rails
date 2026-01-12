@@ -320,7 +320,7 @@ module ActiveRecord
             statements << schema_creation.accept(index_definition)
 
             if supports_comments? && !supports_comments_in_create?
-              statements << change_index_comment_sql(index_definition.index) if index_definition.index.comment.present?
+              statements << change_index_comment_sql(index_definition.index, table_name) if index_definition.index.comment.present?
             end
           end
         end
@@ -2066,7 +2066,7 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        def change_index_comment_sql(index)
+        def change_index_comment_sql(index, table_name)
           raise NotImplementedError
         end
     end
