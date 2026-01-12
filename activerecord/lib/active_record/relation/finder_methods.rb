@@ -124,7 +124,7 @@ module ActiveRecord
     #
     #   Person.take # returns an object fetched by SELECT * FROM people LIMIT 1
     #   Person.take(5) # returns 5 objects fetched by SELECT * FROM people LIMIT 5
-    #   Person.where(["name LIKE '%?'", name]).take
+    #   Person.where(["name LIKE ?", "%#{name}"]).take
     def take(limit = nil)
       limit ? find_take_with_limit(limit) : find_take
     end
@@ -139,7 +139,7 @@ module ActiveRecord
     # record is found. Raises ActiveRecord::SoleRecordExceeded if more than one
     # record is found.
     #
-    #   Product.where(["price = %?", price]).sole
+    #   Product.where(["price = ?", price]).sole
     def sole
       found, undesired = take(2)
 
@@ -156,7 +156,7 @@ module ActiveRecord
     # record is found. Raises ActiveRecord::SoleRecordExceeded if more than one
     # record is found.
     #
-    #   Product.find_sole_by(["price = %?", price])
+    #   Product.find_sole_by(["price = ?", price])
     def find_sole_by(arg, *args)
       where(arg, *args).sole
     end
