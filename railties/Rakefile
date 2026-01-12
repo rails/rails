@@ -164,6 +164,12 @@ namespace :test do
   ensure
     output_file&.close
     output_file&.unlink
+
+    # Clear ARGV to prevent Minitest from trying to parse rake options like --trace
+    # at exit. The abstract_unit.rb requires active_support/testing/autorun which
+    # calls Minitest.autorun, setting up an at_exit hook that would fail on
+    # unrecognized options.
+    ARGV.clear
   end
 end
 
