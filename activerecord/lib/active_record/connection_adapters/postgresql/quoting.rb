@@ -186,12 +186,11 @@ module ActiveRecord
           end
         end
 
-        # TODO: Make this method private after we release 8.1.
-        def lookup_cast_type(sql_type) # :nodoc:
-          super(query_value("SELECT #{quote(sql_type)}::regtype::oid").to_i)
-        end
-
         private
+          def lookup_cast_type(sql_type) # :nodoc:
+            super(query_value("SELECT #{quote(sql_type)}::regtype::oid").to_i)
+          end
+
           def encode_array(array_data)
             encoder = array_data.encoder
             values = type_cast_array(array_data.values)
