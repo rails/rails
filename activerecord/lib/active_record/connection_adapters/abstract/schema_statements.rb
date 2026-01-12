@@ -1604,11 +1604,11 @@ module ActiveRecord
         non_combinable_operations = []
 
         operations.each do |command, args|
-          table, arguments = args.shift, args
+          args.shift # remove table_name
           method = :"#{command}_for_alter"
 
           if respond_to?(method, true)
-            sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
+            sqls, procs = Array(send(method, table_name, *args)).partition { |v| v.is_a?(String) }
             sql_fragments.concat(sqls)
             non_combinable_operations.concat(procs)
           else
@@ -1616,7 +1616,7 @@ module ActiveRecord
             non_combinable_operations.each(&:call)
             sql_fragments = []
             non_combinable_operations = []
-            send(command, table, *arguments)
+            send(command, table_name, *args)
           end
         end
 
