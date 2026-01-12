@@ -1824,6 +1824,10 @@ whether a foreign key's name should be dumped to db/schema.rb or not. By
 default, foreign key names starting with `fk_rails_` are not exported to the
 database schema dump. Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
 
+#### `ActiveRecord::SchemaDumper.sort_table_columns`
+
+When `true`, table columns are sorted alphabetically in the generated schema file. When `false`, the columns are listed in the same order as in the database. Defaults to `true`.
+
 #### `config.active_record.encryption.support_unencrypted_data`
 
 When `true`, unencrypted data can be read normally. When `false`, it will raise errors. Default: `false`.
