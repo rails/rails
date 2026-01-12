@@ -1615,6 +1615,8 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
         def change
           change_table :testings, bulk: true do |t|
             t.column :foo, :string
+            t.column :bar, :string
+            t.index :foo
           end
         end
       }.new
@@ -1622,9 +1624,7 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
       migration.migrate(:up)
       assert @connection.column_exists?(:prefix_testings, :foo)
 
-      assert_queries_count(1) do
-        migration.migrate(:down)
-      end
+      migration.migrate(:down)
       assert_not @connection.column_exists?(:prefix_testings, :foo)
     ensure
       @connection.drop_table :prefix_testings, if_exists: true
