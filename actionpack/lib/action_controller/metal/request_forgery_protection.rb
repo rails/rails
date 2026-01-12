@@ -636,7 +636,8 @@ module ActionController # :nodoc:
 
       def verified_via_header_only?
         SAFE_FETCH_SITES.include?(sec_fetch_site_value) ||
-          (sec_fetch_site_value == "cross-site" && origin_trusted?)
+          (sec_fetch_site_value == "cross-site" && origin_trusted?) ||
+          (sec_fetch_site_value.nil? && !request.ssl? && !ActionDispatch::Http::URL.secure_protocol)
       end
 
       def verified_with_legacy_token?
