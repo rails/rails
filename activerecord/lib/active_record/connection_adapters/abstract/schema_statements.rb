@@ -874,6 +874,12 @@ module ActiveRecord
       #
       # Note: only supported by PostgreSQL.
       #
+      # ====== Creating an index with a comment
+      #
+      #   add_index(:accounts, :branch_id, comment: "Used by reports")
+      #
+      # Note: only supported by PostgreSQL.
+      #
       # ====== Creating an index where NULLs are treated equally
       #
       #   add_index(:people, :last_name, nulls_not_distinct: true)
@@ -1569,6 +1575,18 @@ module ActiveRecord
       #   change_column_comment(:posts, :state, from: "old_comment", to: "new_comment")
       def change_column_comment(table_name, column_name, comment_or_changes)
         raise NotImplementedError, "#{self.class} does not support changing column comments"
+      end
+
+      # Changes the comment for an index or removes it if +nil+.
+      #
+      # Passing a hash containing +:from+ and +:to+ will make this change
+      # reversible in migration:
+      #
+      #   change_index_comment("index_name", from: "old_comment", to: "new_comment")
+      #
+      # Note: only supported by PostgreSQL
+      def change_index_comment(index_name, comment_or_changes)
+        raise NotImplementedError, "#{self.class} does not support changing index comments"
       end
 
       # Enables an index to be used by queries.

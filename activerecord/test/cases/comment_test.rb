@@ -197,5 +197,18 @@ if ActiveRecord::Base.lease_connection.supports_comments?
       output = dump_table_schema "pk_commenteds"
       assert_match %r[create_table "pk_commenteds", id: { comment: "Primary key comment" }.*, comment: "Table comment"], output
     end
+
+    if ActiveRecord::Base.lease_connection.supports_index_comments?
+      def test_change_index_comment
+        @connection.change_index_comment "index_commenteds_on_name", "Edited index comment"
+        index_comment = @connection.indexes("commenteds").find { _1.name == "index_commenteds_on_name" }.comment
+        assert_equal "Edited index comment", index_comment
+      end
+
+      def test_change_index_comment_to_nil
+        @connection.change_index_comment "index_commenteds_on_name", nil
+        assert_nil @connection.indexes("commenteds").find { _1.name == "index_commenteds_on_name" }.comment
+      end
+    end
   end
 end

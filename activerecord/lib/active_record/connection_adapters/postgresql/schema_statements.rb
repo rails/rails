@@ -688,6 +688,13 @@ module ActiveRecord
           execute "COMMENT ON TABLE #{quote_table_name(table_name)} IS #{quote(comment)}"
         end
 
+        # Adds comment for given index or drops it if +comment+ is nil
+        def change_index_comment(index_name, comment_or_changes) # :nodoc:
+          clear_cache!
+          comment = extract_new_comment_value(comment_or_changes)
+          execute "COMMENT ON INDEX #{quote_table_name(index_name)} IS #{quote(comment)}"
+        end
+
         # Renames a column in a table.
         def rename_column(table_name, column_name, new_column_name) # :nodoc:
           clear_cache!
@@ -704,7 +711,7 @@ module ActiveRecord
             schema, _table = extract_schema_qualified_name(table_name)
             index_ref = schema.present? ? PostgreSQL::Name.new(schema, index.name).to_s : index.name
 
-            execute "COMMENT ON INDEX #{quote_table_name(index_ref)} IS #{quote(index.comment)}"
+            change_index_comment(index_ref, index.comment)
           end
           result
         end
