@@ -406,12 +406,15 @@ module Rails
         @revision = begin
           root.join("REVISION").read.strip.presence
         rescue SystemCallError
+          nil
+        end
+        if @revision.nil?
           r, w = IO.pipe
           success = system("git", "-C", root.to_s, "rev-parse", "HEAD", in: File::NULL, err: File::NULL, out: w)
           w.close
           rev = r.read.strip
           r.close
-          rev if success
+          @revision = rev if success
         end
         @revision_initialized = true
       end

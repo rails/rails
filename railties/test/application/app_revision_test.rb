@@ -47,6 +47,74 @@ module ApplicationTests
       assert_equal "config-wins", Rails.app.revision
     end
 
+    test "revision reads from git commit SHA when REVISION file not present" do
+      Dir.chdir(app_path) do
+        `git init`
+        `git config user.email "test@example.com"`
+        `git config user.name "Test User"`
+        File.write("dummy.txt", "content")
+        `git add .`
+        `git commit -m "Initial commit"`
+
+        commit_sha = `git rev-parse HEAD`.strip
+
+        require "#{app_path}/config/environment"
+        assert_equal commit_sha, Rails.app.revision
+      end
+    end
+
+    test "git commit SHA is used when REVISION file is empty" do
+      Dir.chdir(app_path) do
+        File.write("#{app_path}/REVISION", "")
+
+        `git init`
+        `git config user.email "test@example.com"`
+        `git config user.name "Test User"`
+        File.write("dummy.txt", "content")
+        `git add .`
+        `git commit -m "Initial commit"`
+
+        commit_sha = `git rev-parse HEAD`.strip
+
+        require "#{app_path}/config/environment"
+        assert_equal commit_sha, Rails.app.revision
+      end
+    end
+
+    test "REVISION file takes precedence over git commit SHA" do
+      Dir.chdir(app_path) do
+        File.write("#{app_path}/REVISION", "file-revision-123")
+
+        `git init`
+        `git config user.email "test@example.com"`
+        `git config user.name "Test User"`
+        File.write("dummy.txt", "content")
+        `git add .`
+        `git commit -m "Initial commit"`
+
+        require "#{app_path}/config/environment"
+        assert_equal "file-revision-123", Rails.app.revision
+      end
+    end
+
+    test "config.revision takes precedence over git commit SHA" do
+      Dir.chdir(app_path) do
+        `git init`
+        `git config user.email "test@example.com"`
+        `git config user.name "Test User"`
+        File.write("dummy.txt", "content")
+        `git add .`
+        `git commit -m "Initial commit"`
+
+        add_to_config <<-RUBY
+          config.revision = "config-override"
+        RUBY
+
+        require "#{app_path}/config/environment"
+        assert_equal "config-override", Rails.app.revision
+      end
+    end
+
     test "Rails::Info includes revision when present" do
       File.write("#{app_path}/REVISION", "deadbeef123")
 
