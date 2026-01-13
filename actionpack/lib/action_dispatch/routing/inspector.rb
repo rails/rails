@@ -156,9 +156,10 @@ module ActionDispatch
         def normalize_filter(filter)
           if filter[:controller]
             { controller: /#{filter[:controller].underscore.sub(/_?controller\z/, "")}/ }
-          elsif filter[:grep]
-            grep_pattern = Regexp.new(filter[:grep])
-            path = URI::RFC2396_PARSER.escape(filter[:grep])
+          elsif filter[:grep] || filter[:grep_v]
+            grep_string = filter[:grep] || filter[:grep_v]
+            grep_pattern = Regexp.new(grep_string)
+            path = URI::RFC2396_PARSER.escape(grep_string)
             normalized_path = ("/" + path).squeeze("/")
 
             {
@@ -168,13 +169,16 @@ module ActionDispatch
               name: grep_pattern,
               path: grep_pattern,
               exact_path_match: normalized_path,
+              invert: filter[:grep_v].present?,
             }
           end
         end
 
         def filter_routes(routes, filter)
           if filter
-            routes.select do |route|
+            invert = filter.delete(:invert)
+            method = invert ? :reject : :select
+            routes.public_send(method) do |route|
               filter.any? { |filter_type, value| route.matches_filter?(filter_type, value) }
             end
           else
@@ -209,7 +213,7 @@ module ActionDispatch
           @buffer <<
             if filter.key?(:controller)
               "No routes were found for this controller."
-            elsif filter.key?(:grep)
+            elsif filter.key?(:grep) || filter.key?(:grep_v)
               "No routes were found for this grep pattern."
             elsif routes.none?
               if engine
@@ -323,7 +327,7 @@ module ActionDispatch
               "No unused routes found."
             elsif filter.key?(:controller)
               "No unused routes found for this controller."
-            elsif filter.key?(:grep)
+            elsif filter.key?(:grep) || filter.key?(:grep_v)
               "No unused routes found for this grep pattern."
             end
         end

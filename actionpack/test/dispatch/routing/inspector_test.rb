@@ -464,6 +464,34 @@ module ActionDispatch
         ], output
       end
 
+      def test_routes_can_be_filtered_with_grep_v
+        output = draw(grep_v: "posts") do
+          resources :articles
+          resources :posts
+        end
+
+        assert_equal ["      Prefix Verb   URI Pattern                  Controller#Action",
+                      "    articles GET    /articles(.:format)          articles#index",
+                      "             POST   /articles(.:format)          articles#create",
+                      " new_article GET    /articles/new(.:format)      articles#new",
+                      "edit_article GET    /articles/:id/edit(.:format) articles#edit",
+                      "     article GET    /articles/:id(.:format)      articles#show",
+                      "             PATCH  /articles/:id(.:format)      articles#update",
+                      "             PUT    /articles/:id(.:format)      articles#update",
+                      "             DELETE /articles/:id(.:format)      articles#destroy"], output
+      end
+
+      def test_no_routes_matched_grep_v_filter
+        output = draw(grep_v: "photos") do
+          get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
+        end
+
+        assert_equal [
+          "No routes were found for this grep pattern.",
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
+        ], output
+      end
+
       def test_no_routes_were_defined
         output = draw { }
 

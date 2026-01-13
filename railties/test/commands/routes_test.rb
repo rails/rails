@@ -118,6 +118,21 @@ rails_blob_representation_proxy GET  /rails/active_storage/representations/proxy
     MESSAGE
   end
 
+  test "rails routes with inverted grep" do
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get '/cart', to: 'cart#show'
+        post '/cart', to: 'cart#create'
+        get '/basketballs', to: 'basketball#index'
+      end
+    RUBY
+
+    output = run_routes_command([ "-v", "basketballs" ])
+    assert_includes output, "cart#show"
+    assert_includes output, "cart#create"
+    assert_not_includes output, "basketball#index"
+  end
+
   test "rails routes with controller search key" do
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
