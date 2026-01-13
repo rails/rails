@@ -856,11 +856,11 @@ module ActiveRecord
       #
       # ====== Creating a partial index
       #
-      #   add_index(:accounts, [:branch_id, :party_id], unique: true, where: "active")
+      #   add_index(:accounts, [:branch_id, :party_id], unique: true, where: "state = 'active'")
       #
       # generates:
       #
-      #   CREATE UNIQUE INDEX index_accounts_on_branch_id_and_party_id ON accounts(branch_id, party_id) WHERE active
+      #   CREATE UNIQUE INDEX index_accounts_on_branch_id_and_party_id ON accounts(branch_id, party_id) WHERE state = 'active'
       #
       # Note: Partial indexes are only supported for PostgreSQL and SQLite.
       #
