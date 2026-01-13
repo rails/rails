@@ -345,11 +345,12 @@ module ActionDispatch
             yield
           end
 
-          def blocks(callable_constraint)
-            unless callable_constraint.respond_to?(:call) || callable_constraint.respond_to?(:matches?)
-              raise ArgumentError, "Invalid constraint: #{callable_constraint.inspect} must respond to :call or :matches?"
+          def blocks(callable_constraints)
+            Array(callable_constraints).flatten.each do |c|
+              unless c.respond_to?(:call) || c.respond_to?(:matches?)
+                raise ArgumentError, "Invalid constraint: #{c.inspect} must respond to :call or :matches?"
+              end
             end
-            [callable_constraint]
           end
 
           def constraints(options, path_params)
@@ -640,6 +641,15 @@ module ActionDispatch
 
           target_as = name_for_action(as, path_or_action)
           via ||= :all
+
+          # Merge scoped constraints and mount constraints
+          merged = []
+
+          merged.concat(Array(@scope[:blocks])) if @scope[:blocks]
+          merged.concat(Array(constraints)) if constraints
+          merged << @scope[:constraints] if @scope[:constraints].present?
+
+          constraints = merged if merged.any?
 
           match(path_or_action, to: app, as:, via:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, &block)
 
