@@ -1,3 +1,19 @@
+*   Allow `retry_on` `wait` procs to accept the error as a second argument.
+
+    Procs with arity 1 continue to receive only the execution count.
+
+    ```ruby
+    class RemoteServiceJob < ActiveJob::Base
+      retry_on CustomError, wait: ->(executions, error) { error.retry_after || executions * 2 }
+
+      def perform
+        # ...
+      end
+    end
+    ```
+
+    *JP Camara*
+
 *   Deprecate built-in `resque` adapter.
 
     If you're using this adapter, upgrade to `resque` 3.0 or later to use the `resque` gem's adapter.
