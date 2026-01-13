@@ -74,7 +74,7 @@ module ActiveModel
 
     module ClassMethods
       # Declares a method available for all attributes with the given prefix.
-      # Uses +method_missing+ and <tt>respond_to?</tt> to rewrite the method.
+      # Uses +method_missing+ and <tt>respond_to?</tt> to rewrite the method:
       #
       #   #{prefix}#{attr}(*args, &block)
       #
@@ -109,7 +109,7 @@ module ActiveModel
       end
 
       # Declares a method available for all attributes with the given suffix.
-      # Uses +method_missing+ and <tt>respond_to?</tt> to rewrite the method.
+      # Uses +method_missing+ and <tt>respond_to?</tt> to rewrite the method:
       #
       #   #{attr}#{suffix}(*args, &block)
       #
@@ -144,7 +144,7 @@ module ActiveModel
 
       # Declares a method available for all attributes with the given prefix
       # and suffix. Uses +method_missing+ and <tt>respond_to?</tt> to rewrite
-      # the method.
+      # the method:
       #
       #   #{prefix}#{attr}#{suffix}(*args, &block)
       #
