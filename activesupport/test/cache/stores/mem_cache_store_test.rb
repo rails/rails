@@ -4,6 +4,7 @@ require_relative "../../abstract_unit"
 require "active_support/cache"
 require_relative "../behaviors"
 require "dalli"
+require "json"
 
 class MemCacheStoreTest < ActiveSupport::TestCase
   # Emulates a latency on Dalli's back-end for the key latency to facilitate
