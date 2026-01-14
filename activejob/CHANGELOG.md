@@ -1,3 +1,9 @@
+*   Deprecate built-in `resque` adapter.
+
+    If you're using this adapter, upgrade to `resque` 3.0 or later to use the `resque` gem's adapter.
+
+    *zzak, Wojciech Wnętrzak*
+
 *   Remove deprecated `sidekiq` Active Job adapter.
 
     The adapter is available in the `sidekiq` gem.
