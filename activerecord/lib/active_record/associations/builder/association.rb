@@ -153,18 +153,25 @@ module ActiveRecord::Associations::Builder # :nodoc:
       model.before_destroy(->(o) { o.association(reflection.name).handle_dependency })
     end
 
+    def self.after_commit_jobs_defined?(model)
+      if model == ActiveRecord::Base
+        false
+      else
+        model.generated_association_methods.method_defined?(:_after_commit_jobs) ||
+          after_commit_jobs_defined?(model.superclass)
+      end
+    end
+
     def self.add_after_commit_jobs_callback(model, dependent)
       if dependent == :destroy_async
-        mixin = model.generated_association_methods
-
-        unless mixin.method_defined?(:_after_commit_jobs)
+        unless after_commit_jobs_defined?(model)
           model.after_commit(-> do
             _after_commit_jobs.each do |job_class, job_arguments|
               job_class.perform_later(**job_arguments)
             end
           end)
 
-          mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+          model.generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
             def _after_commit_jobs
               @_after_commit_jobs ||= []
             end
@@ -176,6 +183,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
     private_class_method :build_scope, :macro, :valid_options, :validate_options, :define_extensions,
       :define_callbacks, :define_accessors, :define_readers, :define_writers, :define_validations,
       :define_change_tracking_methods, :valid_dependent_options, :check_dependent_options,
-      :add_destroy_callbacks, :add_after_commit_jobs_callback
+      :add_destroy_callbacks, :add_after_commit_jobs_callback, :after_commit_jobs_defined?
   end
 end

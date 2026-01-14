@@ -438,4 +438,16 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     Tag.delete_all
     BookDestroyAsync.delete_all
   end
+
+  test "destroying a record enqueues the job once" do
+    book = BookDestroyAsyncEssaysAndContent.create!
+    book.create_content
+
+    assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
+      book.destroy
+    end
+  ensure
+    BookDestroyAsyncEssaysAndContent.delete_all
+    Content.delete_all
+  end
 end
