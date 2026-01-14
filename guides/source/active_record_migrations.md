@@ -1183,6 +1183,64 @@ This is all taken care of by `revert`.
 [`revert`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-revert
 
+
+### Composite Types (PostgreSQL only)
+
+PostgreSQL supports [composite
+types](https://www.postgresql.org/docs/current/static/rowtypes.html), which let
+you define structured types with multiple named fields, similar to a
+struct. Rails does not currently provide first-class support for these types.
+When used, they are treated as plain text columns.
+
+You can define and use a composite type like this:
+
+```sql
+CREATE TYPE full_address AS (
+  city VARCHAR(90),
+  street VARCHAR(90)
+);
+```
+
+Then reference it in a migration:
+
+```ruby
+# db/migrate/20140207133952_create_contacts.rb
+class CreateContacts < ActiveRecord::Migration[7.1]
+  def change
+    execute <<-SQL
+      CREATE TYPE full_address AS (
+        city VARCHAR(90),
+        street VARCHAR(90)
+      );
+    SQL
+
+    create_table :contacts do |t|
+      t.column :address, :full_address
+    end
+  end
+end
+```
+
+Rails treats the `address` column as a string:
+
+```ruby
+# app/models/contact.rb
+class Contact < ApplicationRecord
+end
+```
+
+```irb
+irb> Contact.create(address: "(Paris,Champs-Élysées)")
+irb> contact = Contact.first
+irb> contact.address
+=> "(Paris,Champs-Élysées)"
+irb> contact.address = "(Paris,Rue Basse)"
+irb> contact.save!
+```
+
+If you want to work with the data as structured fields in Ruby, you’ll need to
+manually parse and serialize the values.
+
 Running Migrations
 ------------------
 
@@ -1564,7 +1622,20 @@ instances.
 
 When the schema format is set to `:sql`, the database structure will be dumped
 using a tool specific to the database into `db/structure.sql`. For example, for
-PostgreSQL, the `pg_dump` utility is used. For MySQL and MariaDB, this file will
+PostgreSQL, the
+[`pg_dump`](https://www.postgresql.org/docs/current/app-pgdump.html) utility is
+used.
+
+You can then use
+[`ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags`](https://api.rubyonrails.org/classes/ActiveRecord/Tasks/DatabaseTasks.html)
+to configure `pg_dump`. For example, to exclude comments from your structure
+dump, add this to an initializer:
+
+```ruby
+ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ["--no-comments"]
+```
+
+For MySQL and MariaDB, this file will
 contain the output of `SHOW CREATE TABLE` for the various tables.
 
 To load the schema from `db/structure.sql`, run `bin/rails db:schema:load`.
@@ -1816,3 +1887,126 @@ Instead, consider using the
 gem provides a framework for creating and managing data migrations and other
 maintenance tasks in a way that is safe and easy to manage without interfering
 with schema migrations.
+
+### Database Views
+
+Sometimes, the database you’re working with isn’t structured the way Rails
+expects. You might be dealing with a legacy system where table and column names
+don’t follow Rails conventions—like `TBL_ART` instead of `articles`, or
+`STR_TITLE` instead of `title`. Or maybe you only want to expose a filtered
+subset of data to your application.
+
+This is where database views come in handy. A view is a virtual table defined by
+a SQL query. It behaves like a regular table when queried, but it doesn’t store
+data itself. Instead, it presents the results of the underlying query. This
+allows you to rename columns, filter rows, and reshape non-standard tables into
+something Active Record can work with easily.
+
+#### Non-Conventional Tables
+
+In some databases—such as PostgreSQL—views can even be updateable, meaning you
+can insert, update, or delete records through them under certain conditions.
+
+Imagine you're working with a legacy table like this:
+
+```sh
+$ \d "TBL_ART"
+                                        Table "public.TBL_ART"
+   Column   |            Type             |                         Modifiers
+------------+-----------------------------+------------------------------------------------------------
+ INT_ID     | integer                     | not null default nextval('"TBL_ART_INT_ID_seq"'::regclass)
+ STR_TITLE  | character varying           |
+ STR_STAT   | character varying           | default 'draft'::character varying
+ DT_PUBL_AT | timestamp without time zone |
+ BL_ARCH    | boolean                     | default false
+Indexes:
+    "TBL_ART_pkey" PRIMARY KEY, btree ("INT_ID")
+```
+
+This table doesn’t follow Rails conventions at all. Instead of trying to work
+around the mismatched column names and formats, you can define a view that
+reshapes the data to fit Rails expectations.
+
+
+#### Creating the View
+
+You can define the view using raw SQL inside a migration:
+
+```ruby
+# db/migrate/20131220144913_create_articles_view.rb
+execute <<-SQL
+  CREATE VIEW articles AS
+    SELECT "INT_ID" AS id,
+           "STR_TITLE" AS title,
+           "STR_STAT" AS status,
+           "DT_PUBL_AT" AS published_at,
+           "BL_ARCH" AS archived
+    FROM "TBL_ART"
+    WHERE "BL_ARCH" = 'f'
+SQL
+```
+
+This creates a virtual table named `articles`, with Rails-style column names and
+only includes non-archived records.
+
+#### Defining the Model
+
+Next, define your model to work with the view:
+
+```ruby
+# app/models/article.rb
+class Article < ApplicationRecord
+  self.primary_key = "id"
+
+  def archive!
+    update_attribute :archived, true
+  end
+end
+```
+
+Since the view exposes the archived field, and Active Record is aware of the
+primary key, you can perform standard model operations.
+
+#### Using the View in Rails
+
+Here’s how this works in practice:
+
+```irb
+irb> first = Article.create!(
+  title: "Winter is coming",
+  status: "published",
+  published_at: 1.year.ago
+)
+
+irb> second = Article.create!(
+  title: "Brace yourself",
+  status: "draft",
+  published_at: 1.month.ago
+)
+
+irb> Article.count
+# => 2
+
+irb> first.archive!
+
+irb> Article.count
+# => 1
+```
+
+Since the view only includes non-archived articles `(WHERE "BL_ARCH" = 'f')`,
+archiving an article causes it to disappear from the view—without needing to
+manually filter it out in your application code.
+
+#### Compatibility Notes
+
+Most relational databases support views, but their behavior varies. Some treat
+views as read-only and do not support writing through them.
+
+Others only allow updates under specific conditions (for example, no joins, no
+computed columns).
+
+PostgreSQL offers the most seamless experience with updateable views, making it
+ideal for this pattern.
+
+Be sure to consult your database’s documentation to determine what operations
+are supported for views in your environment.
