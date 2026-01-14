@@ -120,7 +120,7 @@ module ActiveRecord
     class ConnectionPool
       # Prior to 3.3.5, WeakKeyMap had a use after free bug
       # https://bugs.ruby-lang.org/issues/20688
-      if ObjectSpace.const_defined?(:WeakKeyMap) && RUBY_VERSION >= "3.3.5"
+      if ObjectSpace.const_defined?(:WeakKeyMap) && Gem::Version.new(RUBY_VERSION) >= "3.3.5"
         WeakThreadKeyMap = ObjectSpace::WeakKeyMap
       else
         class WeakThreadKeyMap # :nodoc:
