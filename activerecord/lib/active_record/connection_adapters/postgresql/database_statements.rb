@@ -333,6 +333,12 @@ module ActiveRecord
           def get_result(raw_connection)
             result = nil
             while incoming = raw_connection.get_result
+              if block_given?
+                action = yield incoming
+                next if action == :skip
+                break if action == :break
+              end
+
               result&.clear
               result = incoming
 
