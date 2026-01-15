@@ -383,10 +383,45 @@ module ActiveRecord
       def active?
         @lock.synchronize do
           return false unless connected?
-          @raw_connection.query ";"
+
+          restore_pipeline = false
+
+          if pipeline_active?
+            if pipeline_pending?
+              # Flush any pending work; connection errors surface while draining results
+              flush_pipeline
+            else
+              unless defined?(@pipelining_locked) && @pipelining_locked
+                restore_pipeline = true
+
+                begin
+                  exit_pipeline_mode
+                rescue PG::Error
+                  return false
+                end
+
+                begin
+                  @raw_connection.query ";"
+                rescue PG::Error
+                  return false
+                end
+              end
+            end
+          else
+            @raw_connection.query ";"
+          end
+
+          if restore_pipeline && connected?
+            begin
+              enter_pipeline_mode
+            rescue PG::Error
+              return false
+            end
+          end
+
           verified!
+          true
         end
-        true
       rescue PG::Error
         false
       end
@@ -408,6 +443,8 @@ module ActiveRecord
         @lock.synchronize do
           return connect! unless @raw_connection
 
+          exit_pipeline_mode
+
           unless @raw_connection.transaction_status == ::PG::PQTRANS_IDLE
             @raw_connection.query "ROLLBACK"
           end
@@ -426,6 +463,8 @@ module ActiveRecord
       # method does nothing.
       def disconnect!
         @lock.synchronize do
+          exit_pipeline_mode rescue nil
+
           super
           @raw_connection&.close rescue nil
           @raw_connection = nil
@@ -436,6 +475,11 @@ module ActiveRecord
         super
         @raw_connection&.socket_io&.reopen(IO::NULL) rescue nil
         @raw_connection = nil
+      end
+
+      def _run_checkin_callbacks(&block) # :nodoc:
+        exit_pipeline_mode
+        super
       end
 
       def self.native_database_types # :nodoc:

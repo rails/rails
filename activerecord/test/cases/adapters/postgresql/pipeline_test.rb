@@ -217,6 +217,31 @@ module ActiveRecord
       assert_equal [[2]], intent2.cast_result.rows
     end
 
+    def test_multi_statement_sql_not_pipelined
+      @connection.enter_pipeline_mode
+
+      # Queue a pipelined query
+      intent1 = @connection.send(:internal_build_intent, "SELECT 1 AS n", "TEST")
+      intent1.execute!
+
+      assert @connection.pipeline_active?
+      assert_not intent1.raw_result_available?
+
+      # Execute multi-statement SQL - should exit pipeline first
+      intent2 = @connection.send(:internal_build_intent, "SELECT 1; SELECT 2", "TEST")
+      intent2.execute!
+
+      # Pipeline should have been exited
+      assert_not @connection.pipeline_active?
+
+      # First intent should have been flushed
+      assert intent1.raw_result_available?
+      assert_equal [[1]], intent1.cast_result.rows
+
+      # Second intent should have executed immediately
+      assert intent2.raw_result_available?
+    end
+
     def test_concurrent_query_queueing
       @connection.enter_pipeline_mode
 
@@ -344,6 +369,42 @@ module ActiveRecord
       assert_not @connection.pipeline_active?
       assert intent2.raw_result_available?
       assert_equal [[2]], intent2.cast_result.rows
+    end
+
+    def test_auto_flush_on_checkin
+      @connection.enter_pipeline_mode
+
+      intent = @connection.send(:internal_build_intent, "SELECT 1 AS n", "TEST")
+      intent.execute!
+
+      assert_not intent.raw_result_available?
+      assert @connection.pipeline_active?
+
+      # Return connection to pool (simulates what happens at end of request)
+      @connection.send(:_run_checkin_callbacks) { }
+
+      # Pipeline should be flushed and exited
+      assert_not @connection.pipeline_active?
+      assert intent.raw_result_available?
+
+      result = @connection.send(:cast_result, intent.raw_result)
+      assert_equal [[1]], result.rows
+    end
+
+    def test_concurrent_pipeline_mode_transitions
+      threads = 10.times.map do
+        Thread.new do
+          5.times do
+            @connection.enter_pipeline_mode
+            Thread.pass
+            @connection.exit_pipeline_mode
+          end
+        end
+      end
+
+      threads.each(&:join)
+
+      assert_not @connection.pipeline_active?
     end
   end
 

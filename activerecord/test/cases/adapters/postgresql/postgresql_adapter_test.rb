@@ -895,7 +895,7 @@ module ActiveRecord
 
       def test_raise_error_when_cannot_translate_exception
         assert_raise TypeError do
-          @connection.execute(:not_a_query)
+          @connection.execute([:not_a_query])
         end
       end
 

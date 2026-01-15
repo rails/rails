@@ -16,9 +16,22 @@ module ActiveRecord
           end
         end
 
+        def pipeline_pending?
+          @lock.synchronize do
+            @pending_intents ||= []
+            @pending_intents.any?
+          end
+        end
+
         def enter_pipeline_mode
           @lock.synchronize do
             return if pipeline_active?
+            raise "Cannot enter pipeline mode: pipelining is locked" if @pipelining_locked
+
+            unless connected?
+              raise ActiveRecord::ConnectionFailed, "Connection is not usable while entering pipeline mode"
+            end
+
             @raw_connection.enter_pipeline_mode
           end
         end
@@ -26,18 +39,21 @@ module ActiveRecord
         def exit_pipeline_mode
           @lock.synchronize do
             return unless pipeline_active?
+            raise "Cannot exit pipeline mode: pipelining is locked" if @pipelining_locked
 
             begin
-              flush_pipeline
+              flush_pipeline if connected?
             ensure
               begin
-                @raw_connection.discard_results
+                @raw_connection.discard_results if connected?
               rescue PG::Error
                 # Connection dead, can't discard
               end
             end
 
-            @raw_connection.exit_pipeline_mode
+            if connected?
+              @raw_connection.exit_pipeline_mode
+            end
           end
         end
 
@@ -45,6 +61,8 @@ module ActiveRecord
         # The intent's raw_result will be populated when the pipeline is flushed.
         def pipeline_add_query(intent)
           @lock.synchronize do
+            raise "Pipeline mode not active" unless pipeline_active?
+
             @pending_intents ||= []
 
             # Send the query to the pipeline.
