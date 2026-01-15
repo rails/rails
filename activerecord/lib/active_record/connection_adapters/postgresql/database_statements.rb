@@ -150,7 +150,14 @@ module ActiveRecord
           intent.type_casted_binds
 
           if should_pipeline?(intent)
-            with_raw_connection(allow_retry: false, materialize_transactions: intent.materialize_transactions, pipeline_mode: true) do |_conn|
+            if intent.materialize_transactions
+              # Validate before BEGIN - can raise locally (e.g. ReadOnlyError)
+              intent.processed_sql
+              materialize_transactions
+            end
+
+            start_intent_log(intent)
+            with_raw_connection(allow_retry: false, materialize_transactions: false, pipeline_mode: true) do |_conn|
               pipeline_add_query(intent)
             end
 

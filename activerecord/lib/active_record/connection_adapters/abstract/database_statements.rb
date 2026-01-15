@@ -603,7 +603,11 @@ module ActiveRecord
 
       # Lowest-level abstract execution of a query, called only from the intent itself.
       # Final wrapper around the subclass-specific +perform_query+. Populates the calling
-      # intent's raw_result.
+      # intent's raw_result via deliver_result/deliver_failure.
+      #
+      # Uses intent-driven retry: the intent tracks retry state and handles
+      # retries internally via deliver_failure, enabling coordinated retry
+      # of multiple intents (for pipeline mode).
       def execute_intent(intent) # :nodoc:
         should_dirty = false
 
@@ -614,14 +618,22 @@ module ActiveRecord
           materialize_transactions
         end
 
-        log(intent) do |notification_payload|
-          intent.notification_payload = notification_payload
-          with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: false, pipeline_mode: false) do |conn|
-            should_dirty = intent.materialize_transactions
-            result = perform_query(conn, intent)
-            intent.raw_result = result
-            handle_warnings(result, intent.processed_sql)
-          end
+        start_intent_log(intent)
+        @lock.synchronize do
+          reconnectable = ensure_connection_ready(
+            allow_retry: intent.allow_retry,
+            materialize_transactions: false
+          )
+
+          should_dirty = intent.materialize_transactions
+
+          intent.initialize_retry_state(
+            retries: intent.allow_retry ? connection_retries : 0,
+            deadline: retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline,
+            reconnectable: reconnectable
+          )
+
+          perform_sync_attempt(intent)
         end
       ensure
         dirty_current_transaction if should_dirty
@@ -644,6 +656,63 @@ module ActiveRecord
           intent.execute!
           intent.finish
         end
+      end
+
+      # Perform one synchronous query attempt, delivering result or failure to intent
+      def perform_sync_attempt(intent) # :nodoc:
+        result =
+          begin
+            exit_pipeline_mode if pipeline_active?
+            perform_query(@raw_connection, intent)
+          rescue => e
+            # Use raise/rescue to establish cause chain for deferred raising
+            translated = translate_exception_with_cause(e, intent.processed_sql, intent.binds)
+            invalidate_transaction(translated)
+            intent.deliver_failure(translated)
+            return
+          end
+
+        intent.deliver_result(result)
+      end
+
+      # Start logging for an intent. Creates a notification handle and starts timing.
+      # The handle is stored on the intent for later finishing.
+      def start_intent_log(intent) # :nodoc:
+        payload = {
+          sql:               intent.processed_sql,
+          name:              intent.name,
+          binds:             intent.binds,
+          type_casted_binds: intent.type_casted_binds,
+          async:             intent.ran_async,
+          allow_retry:       intent.allow_retry,
+          connection:        self,
+          transaction:       current_transaction.user_transaction.presence,
+          affected_rows:     0,
+          row_count:         0,
+        }
+        intent.notification_payload = payload
+
+        # Use EventBuffer's deferred handle for async, real instrumenter handle for sync.
+        # Both provide the same interface but differ in when subscribers are notified.
+        instr = intent.event_buffer || instrumenter
+        handle = instr.build_handle("sql.active_record", payload)
+        handle.start
+        intent.log_handle = handle
+      end
+
+      # Finish logging for an intent. Stops timing and publishes the notification.
+      # Called when the intent reaches a final outcome (success or permanent failure).
+      def finish_intent_log(intent, exception: nil) # :nodoc:
+        handle = intent.log_handle
+        return unless handle
+
+        if exception
+          payload = intent.notification_payload
+          payload[:exception] = [exception.class.name, exception.message]
+          payload[:exception_object] = exception
+        end
+
+        handle.finish
       end
 
       private

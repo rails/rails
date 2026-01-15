@@ -20,6 +20,18 @@ module ActiveRecord
           end
         end
 
+        # Build a deferred handle for split start/finish logging.
+        # Unlike the real instrumenter's build_handle (which notifies subscribers
+        # immediately), this captures timing and queues for later publishing.
+        def build_handle(name, payload)
+          DeferredHandle.new(self, @instrumenter, name, payload)
+        end
+
+        # Add a finished event to the buffer for later publishing
+        def add_event(event)
+          @events << event
+        end
+
         def flush
           events, @events = @events, []
           events.each do |event|
@@ -27,12 +39,36 @@ module ActiveRecord
             ActiveSupport::Notifications.publish_event(event)
           end
         end
+
+        # A handle that records timing but defers notification until buffer flush.
+        # Mirrors the interface of ActiveSupport::Notifications::Fanout::Handle.
+        class DeferredHandle
+          def initialize(buffer, instrumenter, name, payload)
+            @buffer = buffer
+            @event = instrumenter.new_event(name, payload)
+          end
+
+          def start
+            @event.start!
+          end
+
+          def finish
+            @event.finish!
+            @buffer.add_event(@event)
+          end
+
+          def payload
+            @event.payload
+          end
+        end
       end
 
       attr_reader :arel, :name, :prepare, :allow_retry, :allow_async,
-                  :materialize_transactions, :batch, :pool, :session, :lock_wait
+                  :materialize_transactions, :batch, :pool, :session, :lock_wait,
+                  :retries_remaining, :retry_deadline, :error, :reconnectable,
+                  :event_buffer
       attr_writer :raw_sql, :session
-      attr_accessor :adapter, :binds, :ran_async, :notification_payload
+      attr_accessor :adapter, :binds, :ran_async, :notification_payload, :log_handle
 
       def initialize(adapter:, arel: nil, raw_sql: nil, processed_sql: nil, name: "SQL", binds: [], prepare: false, allow_async: false,
                      allow_retry: false, materialize_transactions: true, batch: false)
@@ -66,6 +102,12 @@ module ActiveRecord
         @error = nil
         @lock_wait = nil
         @event_buffer = nil
+        @log_handle = nil
+
+        # Retry tracking state (initialized when execution begins)
+        @retries_remaining = nil
+        @retry_deadline = nil
+        @reconnectable = nil
       end
 
       # Returns a hash representation of the QueryIntent for debugging/introspection
@@ -197,6 +239,96 @@ module ActiveRecord
         end
       end
 
+      # Deliver a successful result to this intent.
+      # Handles logging, transaction dirtying, and marks the intent complete.
+      def deliver_result(value)
+        adapter.lock.synchronize do
+          @raw_result = value
+          @error = nil
+
+          adapter.send(:handle_warnings, value, processed_sql)
+          adapter.send(:dirty_current_transaction) if @materialize_transactions
+
+          @raw_result_available = true
+        end
+
+        # Logging outside lock to avoid blocking other threads
+        adapter.finish_intent_log(self)
+      end
+
+      # Deliver a failure to this intent.
+      # Handles retry logic internally - if retriable, will attempt again.
+      # Otherwise marks as permanent failure with logging and transaction dirtying.
+      def deliver_failure(exception)
+        should_finish_log = false
+
+        adapter.lock.synchronize do
+          @error = exception
+
+          if retriable?
+            action = adapter.send(:classify_retry_action, exception, reconnectable: @reconnectable)
+            if action
+              consume_retry
+              reset_for_retry
+
+              case action
+              when :retry_query
+                adapter.send(:backoff, adapter.send(:connection_retries) - @retries_remaining)
+              when :retry_after_reconnect
+                adapter.reconnect!(restore_transactions: true)
+                @reconnectable = false
+              end
+
+              adapter.perform_sync_attempt(self)
+              return
+            end
+          end
+
+          # Permanent failure
+          adapter.send(:mark_connection_unhealthy_unless_query_error, exception)
+          adapter.send(:dirty_current_transaction) if @materialize_transactions
+
+          @raw_result_available = true
+          should_finish_log = true
+        end
+
+        # Logging outside lock to avoid blocking other threads
+        adapter.finish_intent_log(self, exception: exception) if should_finish_log
+      end
+
+      # Initialize retry tracking state from adapter configuration.
+      # Called when beginning execution attempts.
+      def initialize_retry_state(retries:, deadline:, reconnectable:)
+        @retries_remaining = retries
+        @retry_deadline = deadline
+        @reconnectable = reconnectable
+      end
+
+      # Decrement retries remaining. Returns true if retry is still possible.
+      def consume_retry
+        return false unless @retries_remaining && @retries_remaining > 0
+        return false if retry_deadline_exceeded?
+        @retries_remaining -= 1
+        true
+      end
+
+      # Check if the retry deadline has passed
+      def retry_deadline_exceeded?
+        @retry_deadline && @retry_deadline < Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      end
+
+      # Check if this intent can still be retried
+      def retriable?
+        @allow_retry && @retries_remaining && @retries_remaining > 0 && !retry_deadline_exceeded?
+      end
+
+      # Reset state to allow another attempt
+      def reset_for_retry
+        @raw_result = nil
+        @raw_result_available = false
+        @error = nil
+      end
+
       # Check if result has been populated yet (without blocking)
       def raw_result_available?
         @raw_result_available
@@ -254,15 +386,9 @@ module ActiveRecord
 
       private
         def flush_pipelined_result(connection)
-          connection.send(:log, self) do |notification_payload|
-            @notification_payload = notification_payload
-            connection.flush_pipeline
-
-            if @raw_result
-              notification_payload[:affected_rows] = @raw_result.cmd_tuples
-              notification_payload[:row_count] = @raw_result.ntuples
-            end
-          end
+          # Just flush the pipeline - logging is handled by start/finish_intent_log
+          # via deliver_result called from consume_pipeline
+          connection.flush_pipeline
         end
 
         def async_schedule!(session)

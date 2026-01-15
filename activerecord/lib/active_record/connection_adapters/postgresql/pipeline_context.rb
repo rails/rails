@@ -154,9 +154,22 @@ module ActiveRecord
               }
               @pending_intents.shift
 
-              # Assign the result (even if it contains an error). The intent will
-              # raise the error when the result is accessed (via cast_result, etc.)
-              intent.raw_result = raw_result
+              # Check if the result contains an error
+              begin
+                raw_result&.check
+              rescue => e
+                translated = translate_exception_with_cause(e, intent.processed_sql, intent.binds)
+                intent.deliver_failure(translated)
+                next
+              end
+
+              # Update notification payload (like perform_query does for sync path)
+              if intent.notification_payload && raw_result
+                intent.notification_payload[:affected_rows] = raw_result.cmd_tuples
+                intent.notification_payload[:row_count] = raw_result.ntuples
+              end
+
+              intent.deliver_result(raw_result)
             end
           end
         end

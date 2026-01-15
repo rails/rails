@@ -87,6 +87,26 @@ module ActiveRecord
       @connection.instance_variable_set(:@mapped_default_timezone, original_mapped)
     end
 
+    def test_notification_exceptions_propagate_from_pipeline
+      # Exceptions raised by notification subscribers should propagate directly,
+      # not be caught and re-wrapped by pipeline error handling.
+      original_error = StandardError.new("Subscriber error")
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") { raise original_error }
+
+      @connection.enter_pipeline_mode
+
+      intent = @connection.send(:internal_build_intent, "SELECT 1", "TEST")
+      intent.execute!
+
+      actual_error = assert_raises(StandardError) do
+        intent.cast_result
+      end
+      assert_equal original_error, actual_error
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+      @connection.exit_pipeline_mode if @connection.pipeline_active?
+    end
+
     def test_auto_flush_on_result_access
       @connection.enter_pipeline_mode
 
@@ -467,6 +487,29 @@ module ActiveRecord
       event = events.find { |e| e[:sql] == "SELECT 1 AS n" }
       assert event, "Expected notification for pipelined query"
       assert_equal 1, event[:row_count]
+    end
+
+    def test_pipelined_sql_events_do_not_overlap_with_materialization
+      events = []
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+        events << event
+      end
+
+      @connection.transaction do
+        @connection.select_all("SELECT 1 AS n", "TEST", [], pipeline: true).to_a
+      end
+
+      savepoint_event = events.find { |e| e.payload[:sql].start_with?("SAVEPOINT") }
+      select_event = events.find { |e| e.payload[:sql] == "SELECT 1 AS n" }
+
+      assert savepoint_event, "Expected SAVEPOINT event"
+      assert select_event, "Expected SELECT event"
+
+      # Transaction materialization (SAVEPOINT) must complete before the
+      # pipelined query's own instrumentation event begins.
+      assert_operator savepoint_event.end, :<=, select_event.time
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
     end
 
     def test_statement_pool_eviction_during_pipeline_mode
