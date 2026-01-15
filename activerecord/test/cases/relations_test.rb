@@ -1696,6 +1696,55 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_create_or_find_by_handles_connection_error_when_checking_transaction_status
+    # This test demonstrates the bug fix: when create_or_find_by catches
+    # ActiveRecord::RecordNotUnique and tries to check if the transaction is open,
+    # if connection.transaction_open? raises an exception, it should be handled gracefully.
+    subscriber = Subscriber.create!(nick: "alice")
+    connection = Subscriber.lease_connection
+    call_count = 0
+
+    # Stub transaction_open? to raise only when called outside a transaction
+    # (which happens in the rescue block after the transaction has rolled back)
+    connection.stub(:transaction_open?, -> {
+      call_count += 1
+      is_open = connection.current_transaction.open?
+      # Only raise if we're not in a transaction (i.e., in the rescue block)
+      # We use call_count > 3 to ensure we're past the initial transaction setup
+      if !is_open && call_count > 3
+        raise "Connection error: unable to check transaction status"
+      end
+      is_open
+    }) do
+      found = Subscriber.create_or_find_by(nick: "alice")
+      assert_equal subscriber.id, found.id
+      assert_equal "alice", found.nick
+      assert_predicate found, :persisted?
+    end
+  end
+
+  def test_create_or_find_by_bang_handles_connection_error_when_checking_transaction_status
+    # Same test for create_or_find_by! (with bang) to ensure both methods are fixed
+    subscriber = Subscriber.create!(nick: "charlie")
+    connection = Subscriber.lease_connection
+    call_count = 0
+
+    connection.stub(:transaction_open?, -> {
+      call_count += 1
+      is_open = connection.current_transaction.open?
+      # Only raise if we're not in a transaction (i.e., in the rescue block)
+      if !is_open && call_count > 3
+        raise "Connection error: unable to check transaction status"
+      end
+      is_open
+    }) do
+      found = Subscriber.create_or_find_by!(nick: "charlie")
+      assert_equal subscriber.id, found.id
+      assert_equal "charlie", found.nick
+      assert_predicate found, :persisted?
+    end
+  end
+
   def test_find_or_initialize_by
     assert_nil Bird.find_by(name: "bob")
 
