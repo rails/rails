@@ -339,6 +339,7 @@ module ActiveRecord
             # accessed while holding the connection's lock. (And we
             # don't need the complication of with_raw_connection because
             # a reconnect would invalidate the entire statement pool.)
+            @connection.exit_pipeline_mode
             if (conn = @connection.instance_variable_get(:@raw_connection)) && conn.status == PG::CONNECTION_OK
               if @connection.supports_close_prepared?
                 conn.close_prepared key

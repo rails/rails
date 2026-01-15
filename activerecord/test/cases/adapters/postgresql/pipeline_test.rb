@@ -434,6 +434,41 @@ module ActiveRecord
       assert event, "Expected notification for pipelined query"
       assert_equal 1, event[:row_count]
     end
+
+    def test_statement_pool_eviction_during_pipeline_mode
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_config = pool_config.configuration_hash.merge(statement_limit: 2)
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", test_config),
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.materialize_transactions
+
+        # Fill the statement cache to capacity
+        conn.exec_query("SELECT 1", "SQL", [], prepare: true)
+        conn.exec_query("SELECT 2", "SQL", [], prepare: true)
+
+        conn.enter_pipeline_mode
+
+        # Directly trigger statement pool eviction while in pipeline mode
+        statements = conn.instance_variable_get(:@statements)
+        first_key = statements.first[1]
+        statements["new_statement"] = "a999"
+
+        conn.exit_pipeline_mode
+        prepared = conn.select_values("SELECT name FROM pg_prepared_statements")
+        assert_not_includes prepared, first_key
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
   end
 
   class PostgresqlPipelineBatchSemanticsTest < ActiveRecord::PostgreSQLTestCase
