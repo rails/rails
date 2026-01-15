@@ -277,8 +277,22 @@ module ActiveRecord
               when :retry_query
                 adapter.send(:backoff, adapter.send(:connection_retries) - @retries_remaining)
               when :retry_after_reconnect
+                replayable = adapter.send(:abandon_pipelined_intents, exception, allow_recovery: true)
                 adapter.reconnect!(restore_transactions: true)
                 @reconnectable = false
+
+                if replayable
+                  # All intents are eligible for replay. Re-enter pipeline
+                  # mode and re-queue everything, preserving original order:
+                  # self was shifted off @pending_intents before deliver_failure
+                  # was called, so it precedes the replayable intents.
+                  # consume_pipeline will drain the replayed results.
+                  adapter.enter_pipeline_mode
+                  adapter.pipeline_add_query(self)
+                  replayable.each { |intent| adapter.pipeline_add_query(intent) }
+                  adapter.pipeline_sync
+                  return
+                end
               end
 
               adapter.perform_sync_attempt(self)

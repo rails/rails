@@ -126,13 +126,45 @@ module ActiveRecord
         end
 
         # Flush pending queries and collect results.
+        #
+        # Connection errors during sync/drain are handled with transparent
+        # replay when all outstanding intents are eligible, otherwise intents
+        # are abandoned with appropriate terminal states.
         def flush_pipeline
           @lock.synchronize do
             return unless pipeline_active?
             return unless pipeline_pending?
 
-            pipeline_sync
-            consume_pipeline
+            begin
+              pipeline_sync
+              consume_pipeline
+            rescue PG::Error => e
+              translated = translate_exception_class(e, nil, nil)
+
+              # A FATAL error means the server explicitly told us it's
+              # terminating the connection. Everything still in
+              # @pending_intents is definitively not-executed, so all
+              # are safe to replay regardless of allow_retry.
+              server_fatal = e.respond_to?(:result) &&
+                e.result&.error_field(PG::PG_DIAG_SEVERITY_NONLOCALIZED) == "FATAL"
+
+              replayable = retryable_connection_error?(translated) &&
+                if server_fatal
+                  abandon_pipelined_intents(translated, allow_recovery: true, all_unsynced: true)
+                else
+                  abandon_pipelined_intents(translated, allow_recovery: true)
+                end
+
+              if replayable
+                reconnect!(restore_transactions: true)
+                enter_pipeline_mode
+                replayable.each { |intent| pipeline_add_query(intent) }
+                retry
+              end
+
+              abandon_pipelined_intents(translated)
+              raise translated
+            end
           end
         end
 
@@ -180,18 +212,56 @@ module ActiveRecord
         end
 
         private
-          def abandon_pipelined_intents
+          # Classify and deliver terminal states to all pending intents after
+          # a connection failure, based on sync boundaries.
+          #
+          # When +allow_recovery+ is true and every intent is eligible for
+          # replay (synced intents must have allow_retry; unsynced are always
+          # eligible), returns the intents instead of marking them so the
+          # caller can reconnect and replay. Returns nil otherwise.
+          def abandon_pipelined_intents(connection_error = nil, allow_recovery: false, all_unsynced: false)
             intents = @pending_intents
             @pending_intents = []
 
             return unless intents&.any?
 
-            error = ActiveRecord::ConnectionFailed.new("Connection lost during pipeline execution")
-            intents.each do |intent|
-              next if intent.is_a?(SyncIntent)
-              next if intent.raw_result_available?
-              intent.deliver_failure(error)
+            if all_unsynced
+              # Server sent FATAL - the connection is dying. The first
+              # pending intent (which received the FATAL) may have been
+              # partially executed, so it respects allow_retry like a
+              # synced intent. Everything after it is definitively
+              # not-run.
+              first_real = intents.index { |i| !i.is_a?(SyncIntent) }
+              synced = first_real ? [intents[first_real]] : []
+              unsynced = first_real ? intents[(first_real + 1)..].reject { |i| i.is_a?(SyncIntent) } : []
+            else
+              # Partition intents by sync state: intents before a SyncIntent
+              # were synced (server may have executed), intents after the last
+              # SyncIntent were never synced (definitely not executed).
+              synced = []
+              unsynced = []
+
+              intents.each do |intent|
+                if intent.is_a?(SyncIntent)
+                  synced.concat(unsynced)
+                  unsynced = []
+                else
+                  unsynced << intent
+                end
+              end
             end
+
+            if allow_recovery && synced.all? { |i| i.allow_retry }
+              all = synced + unsynced
+              all.each(&:reset_for_retry)
+              return all
+            end
+
+            error = connection_error || ActiveRecord::ConnectionFailed.new("Connection lost during pipeline execution")
+            synced.each { |intent| intent.deliver_failure(error) }
+            unsynced.each { |intent| intent.deliver_not_run(reason: :unsynced) }
+
+            nil
           end
       end
     end

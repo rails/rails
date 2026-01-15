@@ -587,15 +587,9 @@ module ActiveRecord
 
         @connection.execute("SELECT pg_terminate_backend(#{pid})")
 
-        # Drain pending results to make connection realize it's dead
-        conn.instance_variable_get(:@raw_connection).tap do |raw_conn|
-          raw_conn.pipeline_sync
-          raw_conn.discard_results rescue nil
-        end
-
-        assert_raises(PG::ConnectionBad) do
-          conn.exit_pipeline_mode
-        end
+        # exit_pipeline_mode flushes the pipeline, discovers the FATAL
+        # error, reconnects, replays, and clears pending intents.
+        conn.exit_pipeline_mode
 
         assert_empty conn.instance_variable_get(:@pending_intents)
       ensure
@@ -746,6 +740,126 @@ module ActiveRecord
       end
     end
 
+    def test_transparent_replay_preserves_query_order
+      # Replay must preserve the original pipeline order, otherwise
+      # dependent queries (where a later query relies on side effects
+      # of an earlier one) will fail.
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.materialize_transactions
+        initial_pid = conn.select_value("SELECT pg_backend_pid()")
+
+        conn.enter_pipeline_mode
+
+        # These queries have a dependency: the INSERT references the
+        # temp table created by the first query. If replay reorders
+        # them, the INSERT will fail with "relation does not exist".
+        intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "CREATE TEMP TABLE pipeline_order_test (val int) ON COMMIT DROP",
+          name: "TEST",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+        intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "INSERT INTO pipeline_order_test VALUES (42)",
+          name: "TEST",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+        intent3 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT val FROM pipeline_order_test",
+          name: "TEST",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+
+        intent1.execute!
+        intent2.execute!
+        intent3.execute!
+
+        # Kill the connection - all three queries are replayed as a batch
+        @connection.execute("SELECT pg_terminate_backend(#{initial_pid})")
+
+        intent1.affected_rows
+        intent2.affected_rows
+        assert_equal [[42]], intent3.cast_result.rows
+
+        new_pid = conn.select_value("SELECT pg_backend_pid()")
+        assert_not_equal initial_pid, new_pid
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
+    def test_non_retryable_synced_intent_prevents_transparent_replay
+      # When a synced intent does not have allow_retry, transparent replay
+      # is not possible. The synced intent gets ConnectionFailed (fate
+      # unknown), while other intents retry individually or re-execute
+      # on demand.
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.materialize_transactions
+        initial_pid = conn.select_value("SELECT pg_backend_pid()")
+
+        conn.enter_pipeline_mode
+
+        intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n FROM pg_sleep(2)",
+          name: "TEST",
+          allow_retry: true
+        )
+        intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 2 AS n",
+          name: "TEST",
+          allow_retry: false  # blocks transparent replay
+        )
+
+        intent1.execute!
+        intent2.execute!
+
+        @connection.execute("SELECT pg_terminate_backend(#{initial_pid})")
+
+        # intent1 is retryable, so it retries individually and succeeds
+        assert_equal [[1]], intent1.cast_result.rows
+
+        # intent2 was synced but not retryable - server may have executed
+        # it, so it gets ConnectionFailed
+        assert_raises(ActiveRecord::ConnectionFailed) do
+          intent2.cast_result
+        end
+
+        new_pid = conn.select_value("SELECT pg_backend_pid()")
+        assert_not_equal initial_pid, new_pid
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
     def test_pipeline_failure_cascades_to_subsequent_queries
       # When a query fails in a pipeline, subsequent queries also fail.
       # This is the conservative default - we don't know if later queries
@@ -805,6 +919,202 @@ module ActiveRecord
         assert_equal [[2]], result2.rows
       ensure
         lock_holder.execute("ROLLBACK") rescue nil
+        test_pool.disconnect! rescue nil
+      end
+    end
+
+    def test_abandon_distinguishes_synced_vs_unsynced_intents
+      # Test the sync-aware partitioning logic in abandon_pipelined_intents.
+      # Intents before a SyncIntent were synced (fate unknown), intents after
+      # the last SyncIntent were never synced (safe to retry).
+
+      # Simple stub that records which delivery method was called
+      stub_intent = Class.new do
+        attr_reader :delivered_failure, :not_run_reason
+
+        def deliver_failure(error)
+          @delivered_failure = error
+        end
+
+        def deliver_not_run(reason:, resettable: true)
+          @not_run_reason = reason
+        end
+      end
+
+      synced_intent = stub_intent.new
+      unsynced_intent = stub_intent.new
+      sync_marker = ActiveRecord::ConnectionAdapters::PostgreSQL::PipelineContext::SyncIntent.new
+
+      # Simulate: [synced_intent, SyncIntent, unsynced_intent]
+      # synced_intent is before the sync, unsynced_intent is after
+      @connection.instance_variable_set(:@pending_intents, [synced_intent, sync_marker, unsynced_intent])
+
+      @connection.send(:abandon_pipelined_intents)
+
+      # Synced intent receives ConnectionFailed (fate unknown)
+      assert_kind_of ActiveRecord::ConnectionFailed, synced_intent.delivered_failure
+      assert_nil synced_intent.not_run_reason
+
+      # Unsynced intent was definitely not run
+      assert_nil unsynced_intent.delivered_failure
+      assert_equal :unsynced, unsynced_intent.not_run_reason
+    end
+
+    def test_abandon_with_multiple_sync_markers
+      # With multiple sync markers, all intents before the LAST sync marker
+      # are considered synced (server may have executed). Only intents after
+      # the last sync marker are unsynced.
+      stub_intent = Class.new do
+        attr_reader :delivered_failure, :not_run_reason
+
+        def deliver_failure(error)
+          @delivered_failure = error
+        end
+
+        def deliver_not_run(reason:, resettable: true)
+          @not_run_reason = reason
+        end
+      end
+
+      intent1 = stub_intent.new
+      intent2 = stub_intent.new
+      intent3 = stub_intent.new
+      sync1 = ActiveRecord::ConnectionAdapters::PostgreSQL::PipelineContext::SyncIntent.new
+      sync2 = ActiveRecord::ConnectionAdapters::PostgreSQL::PipelineContext::SyncIntent.new
+
+      # [intent1, sync1, intent2, sync2, intent3]
+      # intent1 and intent2 are before the last sync → synced
+      # intent3 is after the last sync → unsynced
+      @connection.instance_variable_set(:@pending_intents, [intent1, sync1, intent2, sync2, intent3])
+
+      @connection.send(:abandon_pipelined_intents)
+
+      assert_kind_of ActiveRecord::ConnectionFailed, intent1.delivered_failure
+      assert_nil intent1.not_run_reason
+
+      assert_kind_of ActiveRecord::ConnectionFailed, intent2.delivered_failure
+      assert_nil intent2.not_run_reason
+
+      assert_nil intent3.delivered_failure
+      assert_equal :unsynced, intent3.not_run_reason
+    end
+
+    def test_synced_retryable_intents_replayed_after_connection_failure
+      # Tests the "synced but retryable" replay path: queries that have
+      # crossed a sync boundary (so the server may have executed them)
+      # but are all marked allow_retry, so replay is still safe.
+      #
+      # This complements test_connection_failure_while_enqueuing which
+      # tests the "unsynced" path (no sync boundary crossed, replay is
+      # safe regardless of allow_retry).
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.materialize_transactions
+        initial_pid = conn.select_value("SELECT pg_backend_pid()")
+
+        conn.enter_pipeline_mode
+
+        intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n",
+          name: "TEST",
+          allow_retry: true
+        )
+        intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 2 AS n",
+          name: "TEST",
+          allow_retry: true
+        )
+
+        intent1.execute!
+        intent2.execute!
+
+        # Sync the pipeline - this succeeds, recording a SyncIntent
+        # marker. The server may have already processed the queries.
+        conn.pipeline_sync
+
+        # Now close the socket. The SyncIntent is already recorded,
+        # so these intents are "synced" (fate unknown).
+        raw_conn = conn.instance_variable_get(:@raw_connection)
+        previous_stderr = $stderr
+        begin
+          $stderr = StringIO.new
+          fd = raw_conn.socket
+        ensure
+          $stderr = previous_stderr
+        end
+        IO.for_fd(fd).close
+
+        # Accessing results triggers flush_pipeline, which detects
+        # the dead connection and replays because all synced intents
+        # have allow_retry.
+        assert_equal [[1]], intent1.cast_result.rows
+        assert_equal [[2]], intent2.cast_result.rows
+
+        new_pid = conn.select_value("SELECT pg_backend_pid()")
+        assert_not_equal initial_pid, new_pid
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
+    def test_server_aborted_query_reruns_on_demand_outside_transaction
+      # When a SQL error aborts subsequent queries in a pipeline and
+      # there's no enclosing transaction, the aborted queries can
+      # re-execute on demand when their results are accessed.
+      #
+      # Uses a separate connection to avoid the fixture transaction,
+      # which would leave the transaction in a failed state and block
+      # re-execution.
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.connect!
+        conn.materialize_transactions
+
+        conn.enter_pipeline_mode
+
+        intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn, raw_sql: "SELECT 1 AS n", name: "TEST")
+        intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn, raw_sql: "SELECT * FROM nonexistent_table_xyz", name: "TEST")
+        intent3 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn, raw_sql: "SELECT 2 AS n", name: "TEST")
+
+        intent1.execute!
+        intent2.execute!
+        intent3.execute!
+
+        conn.flush_pipeline
+
+        assert_equal [[1]], intent1.cast_result.rows
+        assert_raises(ActiveRecord::StatementInvalid) { intent2.cast_result }
+
+        # intent3 was server-aborted (never ran). Since there's no enclosing
+        # transaction, on-demand re-execution succeeds.
+        assert_equal :server_aborted, intent3.not_run_reason
+        assert_equal [[2]], intent3.cast_result.rows
+      ensure
         test_pool.disconnect! rescue nil
       end
     end
