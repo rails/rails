@@ -66,6 +66,7 @@ module ActiveRecord
         @error = nil
         @lock_wait = nil
         @event_buffer = nil
+        @instrumented = false
       end
 
       # Returns a hash representation of the QueryIntent for debugging/introspection
@@ -212,7 +213,28 @@ module ActiveRecord
           execute_or_wait
         elsif !@raw_result_available
           # Result not available - flush pipeline to get it
-          adapter.flush_pipeline
+          # Instrument the flush if we haven't already
+          should_instrument = false
+          adapter.lock.synchronize do
+            if !@raw_result_available && !@instrumented
+              @instrumented = true
+              should_instrument = true
+            end
+          end
+
+          if should_instrument
+            adapter.send(:log, self) do |notification_payload|
+              @notification_payload = notification_payload
+              adapter.flush_pipeline
+
+              if @raw_result
+                notification_payload[:affected_rows] = @raw_result.cmd_tuples
+                notification_payload[:row_count] = @raw_result.ntuples
+              end
+            end
+          else
+            adapter.flush_pipeline
+          end
         end
 
         @event_buffer&.flush
