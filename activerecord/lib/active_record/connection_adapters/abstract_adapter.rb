@@ -449,6 +449,20 @@ module ActiveRecord
         false
       end
 
+      def pipeline_active?
+        false
+      end
+
+      def enter_pipeline_mode
+        raise NotImplementedError
+      end
+
+      def exit_pipeline_mode
+      end
+
+      def flush_pipeline
+      end
+
       # Should primary key values be selected from their corresponding
       # sequence before the insert statement? If true, next_sequence_value
       # is called before each insert to set the record's primary key.
@@ -1180,20 +1194,6 @@ module ActiveRecord
 
         def backoff(counter)
           sleep 0.1 * counter
-        end
-
-        # Pipeline mode stubs - overridden by adapters that support pipelining
-        def pipeline_active?
-          false
-        end
-
-        def enter_pipeline_mode
-        end
-
-        def exit_pipeline_mode
-        end
-
-        def flush_pipeline
         end
 
         def reconnect
