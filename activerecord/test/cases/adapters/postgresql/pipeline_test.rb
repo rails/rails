@@ -598,6 +598,91 @@ module ActiveRecord
       end
     end
 
+    def test_pipelined_query_with_allow_retry_recovers_from_connection_death
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.materialize_transactions
+        initial_pid = conn.select_value("SELECT pg_backend_pid()")
+
+        conn.enter_pipeline_mode
+
+        # Queue a slow query so it's still in-flight when we kill the connection
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n FROM pg_sleep(2)",
+          name: "TEST",
+          allow_retry: true
+        )
+        intent.execute!
+
+        assert conn.pipeline_active?
+        assert_not intent.raw_result_available?
+
+        # Kill the connection while the query is running
+        @connection.execute("SELECT pg_terminate_backend(#{initial_pid})")
+
+        # Accessing the result should trigger flush, hit error, retry with reconnect, and succeed
+        result = intent.cast_result
+
+        assert_equal [[1]], result.rows
+
+        # Connection should have been replaced
+        new_pid = conn.select_value("SELECT pg_backend_pid()")
+        assert_not_equal initial_pid, new_pid
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
+    def test_pipelined_query_without_allow_retry_fails_on_connection_death
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.materialize_transactions
+        initial_pid = conn.select_value("SELECT pg_backend_pid()")
+
+        conn.enter_pipeline_mode
+
+        # Queue a slow non-retryable query so it's still in-flight when we kill the connection
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n FROM pg_sleep(2)",
+          name: "TEST",
+          allow_retry: false
+        )
+        intent.execute!
+
+        # Kill the connection while the query is running
+        @connection.execute("SELECT pg_terminate_backend(#{initial_pid})")
+
+        # Should fail without retry
+        assert_raises(ActiveRecord::ConnectionFailed) do
+          intent.cast_result
+        end
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
     def test_multiple_retryable_pipelined_queries_all_recover
       pool_config = ActiveRecord::Base.connection_pool.db_config
       test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(

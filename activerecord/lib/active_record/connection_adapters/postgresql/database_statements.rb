@@ -158,6 +158,13 @@ module ActiveRecord
 
             start_intent_log(intent)
             with_raw_connection(allow_retry: false, materialize_transactions: false, pipeline_mode: true) do |_conn|
+              # Initialize retry state for this pipelined query
+              intent.initialize_retry_state(
+                retries: intent.allow_retry ? connection_retries : 0,
+                deadline: retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline,
+                reconnectable: reconnect_can_restore_state?
+              )
+
               pipeline_add_query(intent)
             end
 
