@@ -1,3 +1,11 @@
+*   Add `--package-manager` option to `rails new` and detect manager from lockfiles.
+
+    Introduces `Rails::Generators::JsPackageManager` to centralize JavaScript package manager
+    configuration and detection. Rails generators (like `actiontext:install`) now
+    automatically detect the appropriate manager by looking for project lockfiles.
+
+    *David Löwenfels*
+
 *   Add `libvips` to generated `ci.yml`
 
     Conditionally adds `libvips` to `ci.yml`.
