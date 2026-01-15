@@ -469,6 +469,18 @@ module ActiveRecord
         test_pool.disconnect! rescue nil
       end
     end
+
+    def test_prepare_statement_raises_in_pipeline_mode
+      @connection.enter_pipeline_mode
+
+      raw_conn = @connection.instance_variable_get(:@raw_connection)
+      error = assert_raises(RuntimeError) do
+        @connection.send(:prepare_statement, "SELECT 42", [], raw_conn)
+      end
+      assert_match(/pipeline mode does not support prepared statements/, error.message)
+
+      @connection.exit_pipeline_mode
+    end
   end
 
   class PostgresqlPipelineBatchSemanticsTest < ActiveRecord::PostgreSQLTestCase

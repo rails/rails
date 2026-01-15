@@ -1063,6 +1063,7 @@ module ActiveRecord
         # Prepare the statement if it hasn't been prepared, return
         # the statement key.
         def prepare_statement(sql, binds, conn)
+          raise "pipeline mode does not support prepared statements" if pipeline_active?
           sql_key = sql_key(sql)
           unless @statements.key? sql_key
             nextkey = @statements.next_key
