@@ -243,29 +243,12 @@ With the authentication generator configured as above, your application is ready
 for a more secure user authentication and password recovery process in just a
 few steps.
 
-NOTE: You may need to think about cleaning up orphaned session records.
-If a user deletes the cookie used for authentication (or the webbrowser is set
-up to remove cookies on exit) the user appears to be logged out but the session
-record still exists in the database.
-Depending on your requirements there are several solutions, like:
-
-- Display all other active sessions in the UI to the logged in user and let the
-  user decide which sessions to remove. You would need to implement the
-  necessary views, routes, and controller actions yourself
-- When a user starts a new session remove old sessions. You could add a line to
-  the end of the `start_new_session_for(user)` method. For instance:
-  `user.sessions.where("created_at < ?", 1.month.ago).delete_all`
-  or even `user.sessions.where.not(id: session.id).delete_all`
-- Regularly remove old session records using a rake task, like so:
-
-  ```
-  namespace :authentication do
-    desc "Purge historical sessions (might drop active sessions requiring users to log in again)"
-    task purge_historical: :environment do
-      Session.where(updated_at: ..1.month.ago).delete_all
-    end
-  end
-  ```
+NOTE: You may need to think about cleaning up stale session records. If a user
+deletes the cookie used for authentication (or the webbrowser is set up to remove
+cookies on exit) the user appears to be logged out but the session record still
+exists in the database. Depending on your requirements there are several
+solutions. A simple solution is to add a line to the 'start_new_session_for(user)'
+method: 'user.sessions.where("created_at < ?", 1.month.ago).delete_all'.
 
 Sessions
 --------
