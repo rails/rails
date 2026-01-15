@@ -230,6 +230,11 @@ module ActiveRecord
   class WrappedDatabaseException < StatementInvalid
   end
 
+  # Raised when a query was not executed because an earlier query in the
+  # same pipeline failed. The query was definitively never run.
+  class QueryNotRun < StatementInvalid
+  end
+
   # Raised when a record cannot be inserted or updated because it would violate a uniqueness constraint.
   class RecordNotUnique < WrappedDatabaseException
   end

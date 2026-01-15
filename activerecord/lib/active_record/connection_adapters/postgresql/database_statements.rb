@@ -270,8 +270,10 @@ module ActiveRecord
 
             verified!
 
-            intent.notification_payload[:affected_rows] = result.cmd_tuples
-            intent.notification_payload[:row_count] = result.ntuples
+            if intent.notification_payload
+              intent.notification_payload[:affected_rows] = result.cmd_tuples
+              intent.notification_payload[:row_count] = result.ntuples
+            end
             result
           end
 

@@ -66,7 +66,7 @@ module ActiveRecord
       attr_reader :arel, :name, :prepare, :allow_retry, :allow_async,
                   :materialize_transactions, :batch, :pool, :session, :lock_wait,
                   :retries_remaining, :retry_deadline, :error, :reconnectable,
-                  :event_buffer
+                  :event_buffer, :not_run_reason
       attr_writer :raw_sql, :session
       attr_accessor :adapter, :binds, :ran_async, :notification_payload, :log_handle
 
@@ -93,6 +93,8 @@ module ActiveRecord
         @raw_result = nil
         @raw_result_available = false
         @executed = false
+        @not_run_reason = nil
+        @not_run_resettable = false
         @write_query = nil
 
         # Deferred execution state
@@ -296,6 +298,20 @@ module ActiveRecord
         adapter.finish_intent_log(self, exception: exception) if should_finish_log
       end
 
+      # Mark this intent as not run, with an explicit reason and reset policy.
+      #
+      # When +resettable+ is true, accessing the result will trigger on-demand
+      # re-execution rather than raising QueryNotRun.
+      #
+      # All current pipelining is AR-internal, so +resettable+ is always true
+      # today. A future manual batching API would set +resettable: false+ so
+      # that callers observe QueryNotRun for server-aborted queries.
+      def deliver_not_run(reason:, resettable: true)
+        @not_run_reason = reason
+        @not_run_resettable = resettable
+        @raw_result_available = true
+      end
+
       # Initialize retry tracking state from adapter configuration.
       # Called when beginning execution attempts.
       def initialize_retry_state(retries:, deadline:, reconnectable:)
@@ -352,6 +368,15 @@ module ActiveRecord
 
         @event_buffer&.flush
 
+        if @not_run_reason
+          if @not_run_resettable
+            reset_for_rerun
+            adapter.perform_sync_attempt(self)
+          else
+            raise ActiveRecord::QueryNotRun.new("Query was not run due to pipeline failure (#{@not_run_reason})")
+          end
+        end
+
         # Raise any error captured during deferred execution
         raise @error if @error
 
@@ -385,6 +410,16 @@ module ActiveRecord
       end
 
       private
+        def reset_for_rerun
+          @raw_result = nil
+          @raw_result_available = false
+          @error = nil
+          @not_run_reason = nil
+          @not_run_resettable = false
+          remove_instance_variable(:@cast_result) if defined?(@cast_result)
+          remove_instance_variable(:@affected_rows) if defined?(@affected_rows)
+        end
+
         def flush_pipelined_result(connection)
           # Just flush the pipeline - logging is handled by start/finish_intent_log
           # via deliver_result called from consume_pipeline

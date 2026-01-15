@@ -181,11 +181,16 @@ module ActiveRecord
         intent2.cast_result
       end
 
-      # Third query should have pipeline aborted result
+      # Third query was server-aborted (never ran). It's resettable, so
+      # accessing its result triggers on-demand re-execution. Inside the
+      # fixture transaction, the transaction is in a failed state, so the
+      # server rejects the re-execution attempt.
       assert intent3.raw_result_available?
-      assert_raises(ActiveRecord::StatementInvalid) do
+      assert_equal :server_aborted, intent3.not_run_reason
+      error = assert_raises(ActiveRecord::StatementInvalid) do
         intent3.cast_result
       end
+      assert_match(/current transaction is aborted/, error.message)
 
       @connection.exit_pipeline_mode
     end
@@ -794,10 +799,10 @@ module ActiveRecord
           intent1.cast_result
         end
 
-        # Second query also fails due to pipeline abort
-        assert_raises(ActiveRecord::StatementInvalid) do
-          intent2.cast_result
-        end
+        # Second query was server-aborted (never ran). It's resettable,
+        # so on-demand re-execution succeeds (no enclosing transaction).
+        result2 = intent2.cast_result
+        assert_equal [[2]], result2.rows
       ensure
         lock_holder.execute("ROLLBACK") rescue nil
         test_pool.disconnect! rescue nil

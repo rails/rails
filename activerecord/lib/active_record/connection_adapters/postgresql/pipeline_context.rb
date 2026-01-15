@@ -154,6 +154,11 @@ module ActiveRecord
               }
               @pending_intents.shift
 
+              if raw_result&.result_status == PG::PGRES_PIPELINE_ABORTED
+                intent.deliver_not_run(reason: :server_aborted)
+                next
+              end
+
               # Check if the result contains an error
               begin
                 raw_result&.check
