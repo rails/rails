@@ -193,7 +193,7 @@ module ActiveRecord
 
             # Otherwise, don't pipeline by default
             # Future: add logic for starting pipeline mode based on transaction state
-            false
+            ENV["AR_POSTGRESQL_PIPELINE"] == "1"
           end
 
           def cancel_any_running_query

@@ -16,7 +16,9 @@ module ActiveRecord
     end
 
     def test_pipeline_mode_lifecycle
-      assert_not @connection.pipeline_active?, "Pipeline should not be active initially"
+      unless ENV["AR_POSTGRESQL_PIPELINE"]
+        assert_not @connection.pipeline_active?, "Pipeline should not be active initially"
+      end
 
       @connection.enter_pipeline_mode
       assert @connection.pipeline_active?, "Pipeline should be active after entering"
@@ -53,7 +55,9 @@ module ActiveRecord
     end
 
     def test_queries_outside_pipeline_execute_immediately
-      assert_not @connection.pipeline_active?
+      unless ENV["AR_POSTGRESQL_PIPELINE"]
+        assert_not @connection.pipeline_active?
+      end
 
       result = @connection.exec_query("SELECT 1 AS n")
 
