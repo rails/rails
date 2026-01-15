@@ -66,7 +66,6 @@ module ActiveRecord
         @error = nil
         @lock_wait = nil
         @event_buffer = nil
-        @instrumented = false
       end
 
       # Returns a hash representation of the QueryIntent for debugging/introspection
@@ -110,6 +109,9 @@ module ActiveRecord
                 @adapter = connection
                 @ran_async = true
                 run_query!
+
+                # If pipelined, flush with instrumentation before releasing connection
+                flush_pipelined_result(connection) unless @raw_result_available
               end
             rescue => error
               @error = error
@@ -213,28 +215,7 @@ module ActiveRecord
           execute_or_wait
         elsif !@raw_result_available
           # Result not available - flush pipeline to get it
-          # Instrument the flush if we haven't already
-          should_instrument = false
-          adapter.lock.synchronize do
-            if !@raw_result_available && !@instrumented
-              @instrumented = true
-              should_instrument = true
-            end
-          end
-
-          if should_instrument
-            adapter.send(:log, self) do |notification_payload|
-              @notification_payload = notification_payload
-              adapter.flush_pipeline
-
-              if @raw_result
-                notification_payload[:affected_rows] = @raw_result.cmd_tuples
-                notification_payload[:row_count] = @raw_result.ntuples
-              end
-            end
-          else
-            adapter.flush_pipeline
-          end
+          flush_pipelined_result(adapter)
         end
 
         @event_buffer&.flush
@@ -243,9 +224,8 @@ module ActiveRecord
         raise @error if @error
 
         # Check if the result contains an error (for pipelined queries)
-        # Async queries (@session set) and regular sync queries raise errors immediately,
-        # but pipeline results defer errors until the result is accessed
-        if !@session && @raw_result.respond_to?(:check)
+        # Pipeline results defer errors until the result is accessed.
+        if @raw_result.respond_to?(:check)
           begin
             @raw_result.check
           rescue => e
@@ -257,20 +237,34 @@ module ActiveRecord
       def cast_result
         raise "Cannot call cast_result before query has executed" unless @executed
         raise "Cannot call cast_result after affected_rows has been called" if defined?(@affected_rows)
+        return @cast_result if defined?(@cast_result)
 
         ensure_result
-        @cast_result ||= adapter.send(:cast_result, @raw_result)
+        @cast_result = adapter.send(:cast_result, @raw_result)
       end
 
       def affected_rows
         raise "Cannot call affected_rows before query has executed" unless @executed
         raise "Cannot call affected_rows after cast_result has been called" if defined?(@cast_result)
+        return @affected_rows if defined?(@affected_rows)
 
         ensure_result
-        @affected_rows ||= adapter.send(:affected_rows, @raw_result)
+        @affected_rows = adapter.send(:affected_rows, @raw_result)
       end
 
       private
+        def flush_pipelined_result(connection)
+          connection.send(:log, self) do |notification_payload|
+            @notification_payload = notification_payload
+            connection.flush_pipeline
+
+            if @raw_result
+              notification_payload[:affected_rows] = @raw_result.cmd_tuples
+              notification_payload[:row_count] = @raw_result.ntuples
+            end
+          end
+        end
+
         def async_schedule!(session)
           if adapter.current_transaction.joinable?
             raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
@@ -340,6 +334,9 @@ module ActiveRecord
                 @adapter = connection
                 @ran_async = false  # Foreground fallback, not actually async
                 run_query!
+
+                # If pipelined, flush with instrumentation before releasing connection
+                flush_pipelined_result(connection) unless @raw_result_available
               end
             else
               # Result was computed by background thread while we waited for mutex
