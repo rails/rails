@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/author"
 
 module ActiveRecord
   class PostgresqlPipelineTest < ActiveRecord::PostgreSQLTestCase
@@ -219,6 +220,39 @@ module ActiveRecord
       # Second intent should have executed immediately
       assert intent2.raw_result_available?
       assert_equal [[2]], intent2.cast_result.rows
+    end
+
+    def test_preparable_arel_query_not_pipelined
+      # When an intent is created with arel (not raw SQL) and prepare: nil,
+      # preparability is determined later by compile_arel!. should_pipeline?
+      # must check intent.prepare AFTER compile_arel! has run.
+      @connection.enter_pipeline_mode
+
+      # Queue a pipelined query
+      intent1 = @connection.send(:internal_build_intent, "SELECT 1 AS n", "TEST")
+      intent1.execute!
+
+      assert @connection.pipeline_active?
+      assert_not intent1.raw_result_available?
+
+      # Create intent from Relation arel with prepare: nil (like select_all does)
+      intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+        adapter: @connection,
+        arel: Author.where(id: 1).arel,
+        name: "TEST",
+        prepare: nil  # Determined by compile_arel!
+      )
+      intent2.execute!
+
+      # Pipeline should have been exited because query is preparable
+      assert_not @connection.pipeline_active?
+
+      # First intent should have been flushed
+      assert intent1.raw_result_available?
+      assert_equal [[1]], intent1.cast_result.rows
+
+      # Second intent should have executed immediately
+      assert intent2.raw_result_available?
     end
 
     def test_multi_statement_sql_not_pipelined

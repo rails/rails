@@ -174,16 +174,17 @@ module ActiveRecord
             # Don't pipeline batch queries
             return false if intent.batch
 
-            # Don't pipeline prepared statements (they need different handling)
-            # Note: must check after has_binds?/processed_sql to ensure compile_arel! has run
-            return false if intent.prepare
-
             # Don't pipeline multi-statement SQL without binds
             # send_query_params uses prepared statements which don't support multiple commands
             # With binds, it's safe because the query likely doesn't have semicolons
+            # Note: has_binds? triggers compile_arel! which determines intent.prepare
             if !intent.has_binds? && intent.processed_sql.include?(";")
               return false
             end
+
+            # Don't pipeline prepared statements (they need different handling)
+            # Must check AFTER has_binds?/processed_sql to ensure compile_arel! has run
+            return false if intent.prepare
 
             # If pipelining is locked, maintain current state (don't change mode)
             return pipeline_active? if @pipelining_locked
