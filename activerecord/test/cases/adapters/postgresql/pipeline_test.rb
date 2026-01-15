@@ -481,6 +481,166 @@ module ActiveRecord
 
       @connection.exit_pipeline_mode
     end
+
+    def test_pending_intents_cleared_on_connection_failure
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.materialize_transactions
+        pid = conn.select_value("SELECT pg_backend_pid()")
+
+        conn.enter_pipeline_mode
+
+        conn.send(:internal_build_intent, "SELECT 1", "TEST").execute!
+        conn.send(:internal_build_intent, "SELECT 2", "TEST").execute!
+
+        @connection.execute("SELECT pg_terminate_backend(#{pid})")
+
+        # Drain pending results to make connection realize it's dead
+        conn.instance_variable_get(:@raw_connection).tap do |raw_conn|
+          raw_conn.pipeline_sync
+          raw_conn.discard_results rescue nil
+        end
+
+        assert_raises(PG::ConnectionBad) do
+          conn.exit_pipeline_mode
+        end
+
+        assert_empty conn.instance_variable_get(:@pending_intents)
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
+    def test_multiple_retryable_pipelined_queries_all_recover
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.materialize_transactions
+        initial_pid = conn.select_value("SELECT pg_backend_pid()")
+
+        conn.enter_pipeline_mode
+
+        # Queue three retryable queries; the first is slow to ensure connection dies mid-flight
+        intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n FROM pg_sleep(2)",
+          name: "TEST",
+          allow_retry: true
+        )
+        intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 2 AS n",
+          name: "TEST",
+          allow_retry: true
+        )
+        intent3 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 3 AS n",
+          name: "TEST",
+          allow_retry: true
+        )
+
+        intent1.execute!
+        intent2.execute!
+        intent3.execute!
+
+        # Kill the connection while queries are running
+        @connection.execute("SELECT pg_terminate_backend(#{initial_pid})")
+
+        # All three should succeed after retry
+        assert_equal [[1]], intent1.cast_result.rows
+        assert_equal [[2]], intent2.cast_result.rows
+        assert_equal [[3]], intent3.cast_result.rows
+
+        # Connection should have been replaced
+        new_pid = conn.select_value("SELECT pg_backend_pid()")
+        assert_not_equal initial_pid, new_pid
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
+    def test_pipeline_failure_cascades_to_subsequent_queries
+      # When a query fails in a pipeline, subsequent queries also fail.
+      # This is the conservative default - we don't know if later queries
+      # depended on earlier ones affecting server state.
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        lock_holder = test_pool.checkout
+        lock_holder.connect!
+        conn = test_pool.checkout
+        conn.connect!
+
+        # Create a table and lock a row from another connection
+        lock_holder.execute("CREATE TABLE IF NOT EXISTS pipeline_lock_test (id serial PRIMARY KEY)")
+        lock_holder.execute("INSERT INTO pipeline_lock_test DEFAULT VALUES ON CONFLICT DO NOTHING")
+        lock_holder.execute("BEGIN")
+        lock_holder.execute("SELECT * FROM pipeline_lock_test FOR UPDATE")
+
+        # Set lock_timeout before entering pipeline mode
+        conn.execute("SET lock_timeout = '100ms'")
+        conn.enter_pipeline_mode
+
+        # First query will fail (lock timeout)
+        intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT * FROM pipeline_lock_test FOR UPDATE",
+          name: "TEST",
+          allow_retry: false
+        )
+        # Second query will be aborted due to first query's failure
+        intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 2 AS n",
+          name: "TEST",
+          allow_retry: true
+        )
+
+        intent1.execute!
+        intent2.execute!
+
+        # First query fails
+        assert_raises(ActiveRecord::LockWaitTimeout) do
+          intent1.cast_result
+        end
+
+        # Second query also fails due to pipeline abort
+        assert_raises(ActiveRecord::StatementInvalid) do
+          intent2.cast_result
+        end
+      ensure
+        lock_holder.execute("ROLLBACK") rescue nil
+        test_pool.disconnect! rescue nil
+      end
+    end
   end
 
   class PostgresqlPipelineBatchSemanticsTest < ActiveRecord::PostgreSQLTestCase
