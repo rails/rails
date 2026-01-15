@@ -27,7 +27,15 @@ module ActiveRecord
           @lock.synchronize do
             return unless pipeline_active?
 
-            flush_pipeline
+            begin
+              flush_pipeline
+            ensure
+              begin
+                @raw_connection.discard_results
+              rescue PG::Error
+                # Connection dead, can't discard
+              end
+            end
 
             @raw_connection.exit_pipeline_mode
           end

@@ -188,8 +188,10 @@ module ActiveRecord
 
       # Internal setter for raw result
       def raw_result=(value)
-        @raw_result = value
-        @raw_result_available = true
+        adapter.lock.synchronize do
+          @raw_result = value
+          @raw_result_available = true
+        end
       end
 
       # Check if result has been populated yet (without blocking)
@@ -208,12 +210,26 @@ module ActiveRecord
         if @session
           # Async was scheduled: wait for result (sets lock_wait)
           execute_or_wait
+        elsif !@raw_result_available
+          # Result not available - flush pipeline to get it
+          adapter.flush_pipeline
         end
 
         @event_buffer&.flush
 
         # Raise any error captured during deferred execution
         raise @error if @error
+
+        # Check if the result contains an error (for pipelined queries)
+        # Async queries (@session set) and regular sync queries raise errors immediately,
+        # but pipeline results defer errors until the result is accessed
+        if !@session && @raw_result.respond_to?(:check)
+          begin
+            @raw_result.check
+          rescue => e
+            raise adapter.send(:translate_exception_class, e, processed_sql, binds)
+          end
+        end
       end
 
       def cast_result

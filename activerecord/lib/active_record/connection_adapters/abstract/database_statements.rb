@@ -616,7 +616,7 @@ module ActiveRecord
 
         log(intent) do |notification_payload|
           intent.notification_payload = notification_payload
-          with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: false) do |conn|
+          with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: false, pipeline_mode: false) do |conn|
             should_dirty = intent.materialize_transactions
             result = perform_query(conn, intent)
             intent.raw_result = result

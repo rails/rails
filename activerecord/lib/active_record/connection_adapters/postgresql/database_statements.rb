@@ -144,9 +144,47 @@ module ActiveRecord
           intent.finish
         end
 
+        def execute_intent(intent) # :nodoc:
+          # Lock in bind values before routing decision; this also ensures
+          # timezone is current before we commit to running the query
+          intent.type_casted_binds
+
+          if should_pipeline?(intent)
+            with_raw_connection(allow_retry: false, materialize_transactions: intent.materialize_transactions, pipeline_mode: true) do |_conn|
+              pipeline_add_query(intent)
+            end
+
+            # No immediate result - will be populated when pipeline flushes
+            nil
+          else
+            # Normal immediate execution (exits pipeline mode if active)
+            super
+          end
+        end
+
         private
           IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR]
           private_constant :IDLE_TRANSACTION_STATUSES
+
+          # Decide whether this query should be pipelined
+          def should_pipeline?(intent)
+            # Don't pipeline if connection is dirty (userspace has raw connection)
+            return false if @raw_connection_dirty
+
+            # Don't pipeline batch queries
+            return false if intent.batch
+
+            # Don't pipeline prepared statements (they need different handling)
+            # Note: must check after has_binds?/processed_sql to ensure compile_arel! has run
+            return false if intent.prepare
+
+            # Pipeline if already active (add to existing batch)
+            return true if pipeline_active?
+
+            # Otherwise, don't pipeline by default
+            # Future: add logic for starting pipeline mode based on transaction state
+            false
+          end
 
           def cancel_any_running_query
             return if @raw_connection.nil? || IDLE_TRANSACTION_STATUSES.include?(@raw_connection.transaction_status)
