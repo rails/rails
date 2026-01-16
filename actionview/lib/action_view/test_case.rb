@@ -248,7 +248,7 @@ module ActionView
       included do
         class_attribute :content_class, instance_accessor: false, default: RenderedViewContent
 
-        setup :setup_with_controller
+        setup :capture_setup_ivars, :setup_with_controller
 
         register_parser :html, -> rendered { Rails::Dom::Testing.html_document_fragment.parse(rendered) }
         register_parser :json, -> rendered { JSON.parse(rendered, object_class: ActiveSupport::HashWithIndifferentAccess) }
@@ -266,7 +266,7 @@ module ActionView
         end
       end
 
-      def after_setup
+      def capture_setup_ivars
         @__setup_ivars = instance_variables << :@__setup_ivars
       end
 

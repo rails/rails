@@ -193,6 +193,23 @@ module ActionView
     end
   end
 
+  class ViewAssignsFromSetupTest < ActionView::TestCase
+    setup do
+      @user = { name: "Alice" }
+    end
+
+    test "view_assigns includes ivars defined in setup block" do
+      assert_includes view_assigns.keys, :user
+      assert_equal({ name: "Alice" }, view_assigns[:user])
+    end
+
+    test "view_assigns includes both setup-defined and test-defined ivars" do
+      @extra = "value"
+      assert_includes view_assigns.keys, :user
+      assert_includes view_assigns.keys, :extra
+    end
+  end
+
   class HelperExposureTest < ActionView::TestCase
     helper(Module.new do
       def render_from_helper
