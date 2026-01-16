@@ -77,4 +77,20 @@ class AdapterTest < ActiveSupport::TestCase
       ActiveJob::Base.queue_adapter = before_adapter
     end
   end
+
+  if adapter_is?(:queue_classic)
+    test "queue classic adapter should be deprecated" do
+      before_adapter = ActiveJob::Base.queue_adapter
+
+      msg = <<~MSG.squish
+        The built-in `queue_classic` adapter is deprecated and will be removed in Rails 9.0.
+      MSG
+      assert_deprecated(msg, ActiveJob.deprecator) do
+        ActiveJob::Base.queue_adapter = :queue_classic
+      end
+
+    ensure
+      ActiveJob::Base.queue_adapter = before_adapter
+    end
+  end
 end
