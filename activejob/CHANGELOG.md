@@ -1,3 +1,7 @@
+*   Deprecate built-in `queue_classic` Active Job adapter.
+
+    *Harun Sabljaković, Wojciech Wnętrzak*
+
 *   Allow `retry_on` `wait` procs to accept the error as a second argument.
 
     Procs with arity 1 continue to receive only the execution count.
