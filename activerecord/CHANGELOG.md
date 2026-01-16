@@ -1,3 +1,9 @@
+*   Reduce object allocations when building WHERE clauses.
+
+    Fewer short-lived objects means less GC pressure in high-throughput applications.
+
+    *David Lowenfels*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before

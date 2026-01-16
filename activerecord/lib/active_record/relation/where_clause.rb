@@ -15,6 +15,10 @@ module ActiveRecord
         WhereClause.new(predicates + other.predicates)
       end
 
+      def add_predicates(other_predicates)
+        WhereClause.new(predicates + other_predicates)
+      end
+
       def -(other)
         WhereClause.new(predicates - other.predicates)
       end

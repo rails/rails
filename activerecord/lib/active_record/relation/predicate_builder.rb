@@ -21,8 +21,27 @@ module ActiveRecord
     end
 
     def build_from_hash(attributes, &block)
+      # Fast path: simple column equality without associations or dot notation
+      if simple_attributes?(attributes)
+        return attributes.map { |key, value| self[key.to_s, value] }
+      end
+
       attributes = convert_dot_notation_to_hash(attributes)
       expand_from_hash(attributes, &block)
+    end
+
+    # Check if attributes can use the fast path (simple column equality).
+    # Returns false if any attribute requires special handling.
+    def simple_attributes?(attributes)
+      attributes.each do |key, value|
+        return false if value.is_a?(Hash)
+        key_s = key.to_s
+        return false if key_s.include?(".")
+        return false if key.is_a?(Array)
+        return false if table.associated_with(key_s)
+        return false if table.aggregated_with?(key_s)
+      end
+      true
     end
 
     def self.references(attributes)

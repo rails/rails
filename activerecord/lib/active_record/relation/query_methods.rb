@@ -1041,7 +1041,7 @@ module ActiveRecord
     end
 
     def where!(opts, *rest) # :nodoc:
-      self.where_clause += build_where_clause(opts, rest)
+      self.where_clause = where_clause.add_predicates(build_where_clause_parts(opts, rest))
       self
     end
 
@@ -1612,6 +1612,11 @@ module ActiveRecord
       end
 
       def build_where_clause(opts, rest = []) # :nodoc:
+        Relation::WhereClause.new(build_where_clause_parts(opts, rest))
+      end
+      alias :build_having_clause :build_where_clause
+
+      def build_where_clause_parts(opts, rest = []) # :nodoc:
         opts = sanitize_forbidden_attributes(opts)
 
         if opts.is_a?(Array)
@@ -1650,9 +1655,8 @@ module ActiveRecord
           raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
         end
 
-        Relation::WhereClause.new(parts)
+        parts
       end
-      alias :build_having_clause :build_where_clause
 
       def async! # :nodoc:
         @async = true
