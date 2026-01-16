@@ -266,10 +266,6 @@ module ActionView
         end
       end
 
-      def after_setup
-        @__setup_ivars = instance_variables << :@__setup_ivars
-      end
-
       def setup_with_controller
         controller_class = Class.new(ActionView::TestCase::TestController)
         @controller = controller_class.new
@@ -400,10 +396,11 @@ module ActionView
         :@view_flow,
         :@_subscribers,
         :@html_document,
+        :@__leak_checker_before_env,
       ]
 
       def _user_defined_ivars
-        instance_variables - INTERNAL_IVARS - @__setup_ivars
+        instance_variables - INTERNAL_IVARS
       end
 
       # Returns a Hash of instance variables and their values, as defined by
