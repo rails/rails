@@ -456,6 +456,15 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_primary_key_default_to_create_table_migration
+    run_generator ["account", "--primary_key_type=uuid", "--primary_key_default=uuidv7()"]
+    assert_migration "db/migrate/create_accounts.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :accounts, id: :uuid, default: -> \{ "uuidv7\(\)" \}/, change)
+      end
+    end
+  end
+
   def test_database_puts_migrations_in_configured_folder
     with_database_configuration do
       run_generator ["account", "--database=secondary"]

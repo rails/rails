@@ -1,3 +1,11 @@
+*   Add ability to set a default value for primary keys when generating database migrations.
+
+        config.generators do |g|
+          g.orm :active_record, primary_key_type: :uuid, primary_key_default: "uuidv7()"
+        end
+
+    *Jonathan Baker*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before
