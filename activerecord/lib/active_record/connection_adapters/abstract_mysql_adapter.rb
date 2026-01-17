@@ -28,6 +28,8 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
       class_attribute :emulate_booleans, default: true
 
+      ER_SP_DOES_NOT_EXIST = 1305
+
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigint auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
@@ -115,6 +117,15 @@ module ActiveRecord
 
       def supports_restart_db_transaction?
         true
+      end
+
+      def ignore_savepoint_error?(error)
+        return false unless error
+
+        cause = error.cause
+        return false unless cause
+
+        error_number(cause) == ER_SP_DOES_NOT_EXIST
       end
 
       def supports_explain?
