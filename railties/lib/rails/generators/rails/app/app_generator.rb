@@ -310,6 +310,7 @@ module Rails
       class_option :minimal, type: :boolean, desc: "Preconfigure a minimal rails app"
       class_option :javascript, type: :string, aliases: ["-j", "--js"], default: "importmap", enum: JAVASCRIPT_OPTIONS, desc: "Choose JavaScript approach"
       class_option :css, type: :string, aliases: "-c", enum: CSS_OPTIONS, desc: "Choose CSS processor. Check https://github.com/rails/cssbundling-rails for more options"
+      class_option :package_manager, type: :string, aliases: "-pm", default: "yarn", enum: PACKAGE_MANAGER_OPTIONS, desc: "Choose package manager (yarn, npm, pnpm). Ignored when --javascript=bun"
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: nil, desc: "Don't run bundle install"
       class_option :skip_decrypted_diffs, type: :boolean, default: nil, desc: "Don't configure git to show decrypted diffs of encrypted credentials"
 

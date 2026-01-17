@@ -13,14 +13,10 @@ FileUtils.chdir APP_ROOT do
 
   puts "== Installing dependencies =="
   system("bundle check") || system!("bundle install")
-<% if using_node? -%>
+<% if using_js_runtime? -%>
 
   # Install JavaScript dependencies
-  system("yarn install --check-files")
-<% elsif using_bun? -%>
-
-  # Install JavaScript dependencies
-  system!("bun install")
+  system!("<%= package_manager %> install")
 <% end -%>
 <% unless options.skip_active_record? -%>
 
