@@ -1,3 +1,10 @@
+*   Add `--package-manager` option to `rails new`.
+
+    Allows selecting yarn (default), npm, or pnpm when generating a new application.
+    Updates `bin/setup`, `Dockerfile`, and `config/ci.rb` to use the selected manager.
+
+    *David Lowenfels*
+
 *   Detect JavaScript package manager from lockfiles in generators.
 
     Rails generators now automatically detect bun, pnpm, npm, or yarn by looking
