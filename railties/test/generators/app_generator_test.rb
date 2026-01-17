@@ -1077,6 +1077,84 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_invalid_package_manager_option_raises_an_error
+    content = capture(:stderr) { run_generator [destination_root, "--package-manager", "invalid"] }
+    assert_match(/Expected '--package-manager' to be one of/, content)
+  end
+
+  def test_package_manager_option_with_npm
+    run_generator [destination_root, "--javascript", "esbuild", "--package-manager", "npm"]
+    assert_gem "jsbundling-rails"
+
+    assert_file "Dockerfile" do |content|
+      assert_no_match(/ARG YARN_VERSION/, content)
+      assert_match("COPY package.json package-lock.json", content)
+      assert_match("RUN npm ci", content)
+    end
+
+    assert_file "bin/setup" do |content|
+      assert_match('system!("npm install")', content)
+    end
+
+    assert_file "config/ci.rb" do |content|
+      assert_match('"npm audit"', content)
+    end
+  end
+
+  def test_package_manager_option_with_pnpm
+    run_generator [destination_root, "--javascript", "esbuild", "--package-manager", "pnpm"]
+    assert_gem "jsbundling-rails"
+
+    assert_file "Dockerfile" do |content|
+      assert_no_match(/ARG YARN_VERSION/, content)
+      assert_match("npm install -g pnpm", content)
+      assert_match("COPY package.json pnpm-lock.yaml", content)
+      assert_match("RUN pnpm install --frozen-lockfile", content)
+    end
+
+    assert_file "bin/setup" do |content|
+      assert_match('system!("pnpm install")', content)
+    end
+
+    assert_file "config/ci.rb" do |content|
+      assert_match('"pnpm audit"', content)
+    end
+  end
+
+  def test_package_manager_option_with_yarn
+    run_generator [destination_root, "--javascript", "esbuild", "--package-manager", "yarn"]
+    assert_gem "jsbundling-rails"
+
+    assert_file "Dockerfile" do |content|
+      assert_match(/ARG YARN_VERSION/, content)
+      assert_match("COPY package.json yarn.lock", content)
+      assert_match("RUN yarn install --immutable", content)
+    end
+
+    assert_file "bin/setup" do |content|
+      assert_match('system!("yarn install")', content)
+    end
+
+    assert_file "config/ci.rb" do |content|
+      assert_match('"yarn audit"', content)
+    end
+  end
+
+  def test_package_manager_option_ignored_with_bun
+    run_generator [destination_root, "--javascript", "bun", "--package-manager", "npm"]
+    assert_gem "jsbundling-rails"
+
+    # Should use bun despite --package-manager=npm
+    assert_file "Dockerfile" do |content|
+      assert_match("bun install --frozen-lockfile", content)
+      assert_no_match(/npm ci/, content)
+    end
+
+    assert_file "bin/setup" do |content|
+      assert_match('system!("bun install")', content)
+    end
+  end
+
   def test_skip_javascript_option_with_skip_javascript_argument
     run_generator [destination_root, "--skip-javascript"]
     assert_no_gem "stimulus-rails"
