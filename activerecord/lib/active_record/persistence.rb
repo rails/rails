@@ -566,7 +566,7 @@ module ActiveRecord
     def update(attributes)
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
-      with_transaction_returning_status do
+      with_transaction_returning_status(requires_new: _requires_new_transaction_for_update?) do
         assign_attributes(attributes)
         save
       end
@@ -577,7 +577,7 @@ module ActiveRecord
     def update!(attributes)
       # The following transaction covers any possible database side-effects of the
       # attributes assignment. For example, setting the IDs of a child collection.
-      with_transaction_returning_status do
+      with_transaction_returning_status(requires_new: _requires_new_transaction_for_update?) do
         assign_attributes(attributes)
         save!
       end
@@ -844,6 +844,16 @@ module ActiveRecord
     end
 
     private
+      def _requires_new_transaction_for_update?
+        self.class.with_connection do |connection|
+          return false unless connection.transaction_open?
+          return false unless connection.supports_savepoints?
+
+          transaction = connection.current_transaction
+          transaction.joinable? && transaction.savepoint_name.nil?
+        end
+      end
+
       def init_internals
         super
         @_trigger_destroy_callback = @_trigger_update_callback = nil
