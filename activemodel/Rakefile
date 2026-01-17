@@ -1,20 +1,11 @@
 # frozen_string_literal: true
 
-require "rake/testtask"
-
 task default: :test
 
-ENV["RAILS_MINITEST_PLUGIN"] = "true"
-
-Rake::TestTask.new do |t|
-  t.libs << "test"
-  t.test_files = FileList["#{__dir__}/test/cases/**/*_test.rb"]
-  t.warning = true
-  if ENV["CI"]
-    t.verbose = true
-    t.options = "--profile --defer-output"
-  end
-  t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+require "megatest/test_task"
+Megatest::TestTask.create do |t|
+  t.full_backtrace = true
+  t.command = "bin/test"
 end
 
 namespace :test do

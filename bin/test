@@ -7,7 +7,9 @@ args = ARGV.filter_map do |arg|
   if arg == raw_directory
     nil
   else
-    arg.delete_prefix(directory)
+    arg = arg.delete_prefix(directory)
+    arg = nil if arg.empty?
+    arg
   end
 end
 
