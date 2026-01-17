@@ -1,3 +1,13 @@
+*   Add `--grep-v` (`-v`) option to `rails routes` for inverse grep filtering
+
+    Filter out routes matching a pattern, showing only routes that don't match:
+
+    ```bash
+    $ rails routes -v admin
+    ```
+
+    *Ariel Rzezak*
+
 *   Add `libvips` to generated `ci.yml`
 
     Conditionally adds `libvips` to `ci.yml`.
