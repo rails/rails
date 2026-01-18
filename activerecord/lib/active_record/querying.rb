@@ -77,6 +77,12 @@ module ActiveRecord
         column_types = column_types.reject { |k, _| attribute_types.key?(k) }
       end
 
+      duplicate_column_names = result_set.columns.tally.filter_map { |column, count| column if count > 1 }
+      unless duplicate_column_names.empty?
+        logger&.warn "Duplicate column names detected: #{duplicate_column_names.join(', ')}. " \
+                     "Use explicit column selection (e.g., 'posts.*') to avoid ambiguous results."
+      end
+
       message_bus = ActiveSupport::Notifications.instrumenter
 
       payload = {
