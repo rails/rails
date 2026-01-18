@@ -450,19 +450,34 @@ module ActiveRecord
 
       def rollback
         unless @state.invalidated?
-          connection.rollback_to_savepoint(savepoint_name) if materialized? && connection.active?
+          if materialized? && connection.active?
+            with_savepoint_error_handling do
+              connection.rollback_to_savepoint(savepoint_name)
+            end
+          end
         end
         @state.rollback!
         @instrumenter.finish(:rollback) if materialized?
       end
 
       def commit
-        connection.release_savepoint(savepoint_name) if materialized?
+        if materialized?
+          with_savepoint_error_handling do
+            connection.release_savepoint(savepoint_name)
+          end
+        end
         @state.commit!
         @instrumenter.finish(:commit) if materialized?
       end
 
       def full_rollback?; false; end
+
+      private
+        def with_savepoint_error_handling
+          yield
+        rescue ActiveRecord::StatementInvalid => error
+          raise unless connection.ignore_savepoint_error?(error)
+        end
     end
 
     # = Active Record Real \Transaction

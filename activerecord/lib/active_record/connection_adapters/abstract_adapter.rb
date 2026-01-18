@@ -439,6 +439,10 @@ module ActiveRecord
         false
       end
 
+      def ignore_savepoint_error?(_error)
+        false
+      end
+
       def supports_restart_db_transaction?
         false
       end
