@@ -911,6 +911,7 @@ actions automatically. Below are some of the actions that `change` supports:
 * [`change_column_default`][] (must supply `:from` and `:to` options)
 * [`change_column_null`][]
 * [`change_table_comment`][] (must supply `:from` and `:to` options)
+* [`change_index_comment`][] (must supply `:from` and `:to` options)
 * [`create_join_table`][]
 * [`create_table`][]
 * `disable_extension`
@@ -944,6 +945,8 @@ If you need to use any other methods, you should use `reversible` or write the
     https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_column_comment
 [`change_table_comment`]:
     https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_table_comment
+[`change_index_comment`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-change_index_comment
 [`drop_join_table`]:
     https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-drop_join_table
 [`drop_table`]:

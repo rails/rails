@@ -20,6 +20,7 @@ module ActiveRecord
     # * change_column_null
     # * change_column_comment (must supply a +:from+ and +:to+ option)
     # * change_table_comment (must supply a +:from+ and +:to+ option)
+    # * change_index_comment (must supply a +:from+ and +:to+ option)
     # * create_enum
     # * create_join_table
     # * create_virtual_table
@@ -54,7 +55,7 @@ module ActiveRecord
         :drop_join_table, :drop_table, :execute_block, :enable_extension, :disable_extension,
         :change_column, :execute, :remove_columns, :change_column_null,
         :add_foreign_key, :remove_foreign_key,
-        :change_column_comment, :change_table_comment,
+        :change_column_comment, :change_table_comment, :change_index_comment,
         :add_check_constraint, :remove_check_constraint,
         :add_exclusion_constraint, :remove_exclusion_constraint,
         :add_unique_constraint, :remove_unique_constraint,
@@ -334,6 +335,16 @@ module ActiveRecord
           end
 
           [:change_table_comment, [table, from: options[:to], to: options[:from]]]
+        end
+
+        def invert_change_index_comment(args)
+          index_name, options = args
+
+          unless options.is_a?(Hash) && options.has_key?(:from) && options.has_key?(:to)
+            raise ActiveRecord::IrreversibleMigration, "change_index_comment is only reversible if given a :from and :to option."
+          end
+
+          [:change_index_comment, [index_name, from: options[:to], to: options[:from]]]
         end
 
         def invert_add_check_constraint(args)
