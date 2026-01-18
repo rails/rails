@@ -200,6 +200,21 @@ module ActiveRecord
       end
     end
 
+    def test_set_invalid_session_variable
+      run_without_connection do |orig_connection|
+        assert_raises(ArgumentError) do
+          ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { 'sql injection': true }))
+        end
+      end
+    end
+
+    def test_set_session_encoding
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(encoding: "LATIN1"))
+        assert_equal "LATIN1", ActiveRecord::Base.lease_connection.select_value("SHOW client_encoding")
+      end
+    end
+
     def test_get_and_release_advisory_lock
       lock_id = 5295901941911233559
       list_advisory_locks = <<~SQL
