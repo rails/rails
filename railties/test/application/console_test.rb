@@ -254,6 +254,23 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "User.new.respond_to?(:age)", "=> true"
   end
 
+  def test_reload_command_resets_executor
+    spawn_console("-e development")
+
+    write_prompt "key = Rails.application.executor.active_key; nil"
+    write_prompt "old_executor_id = ActiveSupport::IsolatedExecutionState[key].object_id; nil"
+    write_prompt "reload!", "Reloading...\r\n"
+    write_prompt "ActiveSupport::IsolatedExecutionState[key].object_id != old_executor_id", "=> true"
+  end
+
+  def test_reload_command_does_not_start_executor_when_it_is_not_active
+    spawn_console("-e development --skip-executor")
+
+    write_prompt "Rails.application.executor.active?", "=> false"
+    write_prompt "reload!", "Reloading...\r\n"
+    write_prompt "Rails.application.executor.active?", "=> false"
+  end
+
   def test_console_respects_user_defined_irb_name
     irbrc = Tempfile.new("irbrc")
     irbrc.write <<-RUBY

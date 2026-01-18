@@ -1,3 +1,7 @@
+*   Console `reload!` will reset the console's executor, when present.
+
+    *Ben Sheldon*
+
 *   Add `libvips` to generated `ci.yml`
 
     Conditionally adds `libvips` to `ci.yml`.
