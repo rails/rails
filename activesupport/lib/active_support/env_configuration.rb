@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/object/blank"
 
 module ActiveSupport
   # Provide a better interface for accessing configuration options stored in ENV.
@@ -22,32 +22,44 @@ module ActiveSupport
     end
 
     # Find an upcased and double-underscored-joined string-version of the +key+ in ENV.
-    # Raises +KeyError+ if not found.
+    # Raises +KeyError+ if not found or blank.
+    #
+    # Given ENV:
+    #   DB_HOST: "env.example.com"
+    #   DATABASE__HOST: "env.example.com"
+    #   BLANK_VALUE: ""
     #
     # Examples:
-    #
-    #   require(:db_host)         # => ENV.fetch("DB_HOST")
-    #   require(:database, :host) # => ENV.fetch("DATABASE__HOST")
+    #   require(:db_host)         # => "env.example.com"
+    #   require(:database, :host) # => "env.example.com"
+    #   require(:missing)         # => KeyError
+    #   require(:blank_value)     # => KeyError (blank values are treated as missing)
     def require(*key)
-      @envs.fetch envify(*key)
+      @envs.fetch(envify(*key)).presence || raise(KeyError, "Missing key: #{key.inspect}")
     end
 
     # Find an upcased and double-underscored-joined string-version of the +key+ in ENV.
-    # Returns +nil+ if the key isn't found or the value of +default+ when passed.
-    # If +default+ is a callable, it's called first.
+    # Returns +nil+ if the key isn't found.
+    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or blank value.
+    #
+    # Given ENV:
+    #   DB_HOST: "env.example.com"
+    #   DATABASE__HOST: "env.example.com"
+    #   BLANK_VALUE: ""
     #
     # Examples:
-    #
-    #   option(:db_host)                                    # => ENV["DB_HOST"]
-    #   option(:database, :host)                            # => ENV["DATABASE__HOST"]
-    #   option(:database, :host, default: "missing")        # => ENV.fetch("DATABASE__HOST", "missing")
-    #   option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST") { default.call }
+    #   option(:db_host)                              # => "env.example.com"
+    #   option(:database, :host)                      # => "env.example.com"
+    #   option(:missing)                              # => nil
+    #   option(:missing, default: "localhost")        # => "localhost"
+    #   option(:missing, default: -> { "localhost" }) # => "localhost"
+    #   option(:blank_value, default: "localhost")    # => "localhost" (blank values use default)
     def option(*key, default: nil)
-      if default.respond_to?(:call)
-        @envs.fetch(envify(*key)) { default.call }
-      else
-        @envs.fetch envify(*key), default
-      end
+      @envs[envify(*key)].presence || if default.respond_to?(:call)
+                                        default.call
+                                      else
+                                        default
+                                      end
     end
 
     # Reload the cached ENV values in case any of them changed or new ones were added during runtime.

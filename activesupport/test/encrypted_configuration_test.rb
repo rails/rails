@@ -159,9 +159,11 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     end
   end
 
-  test "require false key does not raise key error" do
-    @credentials.write({ one: false }.to_yaml)
-    assert_equal false, @credentials.require(:one)
+  test "require blank key raises key error" do
+    @credentials.write({ blank: "" }.to_yaml)
+    assert_raise(KeyError, match: "Missing key: [:blank]") do
+      @credentials.require(:blank)
+    end
   end
 
   test "require missing multiword key raises key error" do
@@ -186,11 +188,14 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_equal "there", @credentials.option(:two_is_not_here, default: -> { "there" })
   end
 
-  test "optional false key with default block can return false without triggering default" do
-    @credentials.write({ bool: false }.to_yaml)
-    called = false
-    assert_equal false, @credentials.option(:bool, default: -> { called = true; "there" })
-    assert_equal false, called
+  test "option blank key returns default" do
+    @credentials.write({ blank: "" }.to_yaml)
+    assert_equal "default", @credentials.option(:blank, default: "default")
+  end
+
+  test "option blank key without default returns nil" do
+    @credentials.write({ blank: "" }.to_yaml)
+    assert_nil @credentials.option(:blank)
   end
 
   test "optional missing key with default block returning false returns false" do
