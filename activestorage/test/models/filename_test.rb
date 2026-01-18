@@ -47,11 +47,11 @@ class ActiveStorage::FilenameTest < ActiveSupport::TestCase
   end
 
   test "compare case-insensitively" do
-    assert_operator ActiveStorage::Filename.new("foobar.pdf"), :==, ActiveStorage::Filename.new("FooBar.PDF")
+    assert_equal ActiveStorage::Filename.new("foobar.pdf"), ActiveStorage::Filename.new("FooBar.PDF")
   end
 
   test "compare sanitized" do
-    assert_operator ActiveStorage::Filename.new("foo-bar.pdf"), :==, ActiveStorage::Filename.new("foo\tbar.pdf")
+    assert_equal ActiveStorage::Filename.new("foo-bar.pdf"), ActiveStorage::Filename.new("foo\tbar.pdf")
   end
 
   test "String equality" do
