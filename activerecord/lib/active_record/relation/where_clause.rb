@@ -12,7 +12,12 @@ module ActiveRecord
       end
 
       def +(other)
-        WhereClause.new(predicates + other.predicates)
+        other_predicates = case other
+          when WhereClause then other.predicates
+          when Array then other
+          else raise ArgumentError, "expected WhereClause or Array, got #{other.class}"
+        end
+        WhereClause.new(predicates + other_predicates)
       end
 
       def -(other)
