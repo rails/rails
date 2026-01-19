@@ -537,17 +537,21 @@ module ActiveRecord
                  pg_attribute  attr,
                  pg_depend     dep,
                  pg_constraint cons,
-                 pg_namespace  nsp
+                 pg_namespace  nsp,
+                 unnest(cons.conkey) AS key(attnum)
             WHERE seq.oid           = dep.objid
               AND seq.relkind       = 'S'
               AND attr.attrelid     = dep.refobjid
               AND attr.attnum       = dep.refobjsubid
               AND attr.attrelid     = cons.conrelid
-              AND attr.attnum       = cons.conkey[1]
+              AND attr.attnum       = key.attnum
               AND seq.relnamespace  = nsp.oid
               AND cons.contype      = 'p'
               AND dep.classid       = 'pg_class'::regclass
               AND dep.refobjid      = #{quote(quote_table_name(table))}::regclass
+            ORDER BY
+              CASE attr.attname WHEN 'id' THEN 0 ELSE 1 END, -- Prefer 'id' column
+              attr.attnum -- Then by attribute number for stable sort
           SQL
 
           if result.nil? || result.empty?
