@@ -700,7 +700,12 @@ module ActiveRecord
           result = execute schema_creation.accept(create_index)
 
           index = create_index.index
-          execute "COMMENT ON INDEX #{quote_column_name(index.name)} IS #{quote(index.comment)}" if index.comment
+          if index.comment
+            schema, _table = extract_schema_qualified_name(table_name)
+            index_ref = schema.present? ? PostgreSQL::Name.new(schema, index.name).to_s : index.name
+
+            execute "COMMENT ON INDEX #{quote_table_name(index_ref)} IS #{quote(index.comment)}"
+          end
           result
         end
 
