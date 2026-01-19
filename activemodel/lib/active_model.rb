@@ -45,6 +45,7 @@ module ActiveModel
   autoload :Dirty
   autoload :EachValidator, "active_model/validator"
   autoload :ForbiddenAttributesProtection
+  autoload :Inspection
   autoload :Lint
   autoload :Model
   autoload :Name, "active_model/naming"
