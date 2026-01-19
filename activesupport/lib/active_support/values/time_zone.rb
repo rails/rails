@@ -590,8 +590,7 @@ module ActiveSupport
 
     private
       def parts_to_time(parts, now)
-        raise ArgumentError, "invalid date" if parts.nil?
-        return if parts.empty?
+        raise ArgumentError, "invalid date" if parts.blank?
 
         if parts[:seconds]
           time = Time.at(parts[:seconds])

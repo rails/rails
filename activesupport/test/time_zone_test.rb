@@ -425,8 +425,13 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_parse_returns_nil_when_string_without_date_information_is_passed_in
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    assert_nil zone.parse("foobar")
-    assert_nil zone.parse("   ")
+
+    exception = assert_raises(ArgumentError) do
+      zone.parse("foobar")
+      zone.parse("   ")
+    end
+
+    assert_equal "invalid date", exception.message
   end
 
   def test_parse_with_incomplete_date
