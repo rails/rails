@@ -1,3 +1,14 @@
+*   Fix `BroadcastLogger#method_missing` to execute blocks only once when broadcasting to multiple loggers.
+
+    Previously, when calling methods like `tagged` via `method_missing` with multiple broadcast destinations,
+    the block would be executed once per destination. This caused issues such as duplicate callback executions
+    when using `BroadcastLogger` with `ActiveJob`.
+
+    The fix applies the same block-wrapping semantics used in `dispatch` to ensure blocks are executed only
+    once, with subsequent loggers receiving the cached result.
+
+    *Quint Pieters*
+
 *   Add `ActiveSupport::CombinedConfiguration` to offer interchangeable access to configuration provided by
     either ENV or encrypted credentials. Used by Rails to first look at ENV, then look in encrypted credentials,
     but can be configured separately with any number of API-compatible backends in a first-look order.
