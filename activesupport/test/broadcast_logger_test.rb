@@ -292,6 +292,32 @@ module ActiveSupport
       assert_equal [[::Logger::INFO, "Hello", nil]], log2.adds
     end
 
+    test "method_missing with multiple loggers executes block only once" do
+      logger1 = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(StringIO.new))
+      logger2 = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(StringIO.new))
+
+      broadcast_logger = BroadcastLogger.new(logger1, logger2)
+
+      execution_count = 0
+      broadcast_logger.tagged("TEST") { execution_count += 1 }
+
+      assert_equal 1, execution_count,
+                   "Block should execute once, but currently executes once per broadcast destination (bug)"
+    end
+
+    test "method_missing with multiple destinations executes block once regardless of destination count" do
+      loggers = 4.times.map do
+        ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(StringIO.new))
+      end
+      broadcast_logger = BroadcastLogger.new(*loggers)
+
+      execution_count = 0
+      broadcast_logger.tagged("TEST") { execution_count += 1 }
+
+      assert_equal 1, execution_count,
+                   "Block should execute once, but currently executes 4 times with 4 destinations (bug)"
+    end
+
     test "calling a method that accepts args" do
       logger = BroadcastLogger.new(CustomLogger.new)
 
