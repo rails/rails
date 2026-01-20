@@ -255,6 +255,35 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "First[]", render(arg_1: "First")
   end
 
+  def test_strict_locals_regex_with_trailing_text
+    # Test that STRICT_LOCALS_REGEX correctly parses locals when followed by
+    # additional comment text. This is common with template linting tools
+    # that merge multiple comments into one line.
+    # e.g., HAML: "-# locals: (post:), haml-lint:disable LineLength"
+
+    # The regex should match the locals declaration even with trailing text
+    source_with_trailing_comma = "# locals: (post:), some-linter:disable SomeRule"
+    match = source_with_trailing_comma.match(ActionView::Template::STRICT_LOCALS_REGEX)
+    assert_not_nil match, "Should match locals with trailing comma and text"
+    assert_equal "post:", match[1]
+
+    source_with_trailing_dash = "# locals: (post:)- some text"
+    match = source_with_trailing_dash.match(ActionView::Template::STRICT_LOCALS_REGEX)
+    assert_not_nil match, "Should match locals with trailing dash and text"
+    assert_equal "post:", match[1]
+
+    # Ensure we still match the original cases
+    source_erb = "<%# locals: (post:) %>"
+    match = source_erb.match(ActionView::Template::STRICT_LOCALS_REGEX)
+    assert_not_nil match, "Should match ERB format"
+    assert_equal "post:", match[1]
+
+    source_line_end = "# locals: (post:)"
+    match = source_line_end.match(ActionView::Template::STRICT_LOCALS_REGEX)
+    assert_not_nil match, "Should match with line end"
+    assert_equal "post:", match[1]
+  end
+
   def test_required_locals_must_be_specified
     error = assert_raises(ActionView::Template::Error) do
       @template = new_template("<%# locals: (message:) -%>")
