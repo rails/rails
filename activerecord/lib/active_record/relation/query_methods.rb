@@ -1041,7 +1041,7 @@ module ActiveRecord
     end
 
     def where!(opts, *rest) # :nodoc:
-      self.where_clause = where_clause.add_predicates(build_where_clause_parts(opts, rest))
+      self.where_clause = where_clause.concat(build_where_clause_parts(opts, rest))
       self
     end
 
