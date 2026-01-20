@@ -200,35 +200,38 @@ module ActiveSupport
 
     private
       def dispatch(method, *args, **kwargs, &block)
-        if block_given?
-          # Maintain semantics that the first logger yields the block
-          # as normal, but subsequent loggers won't re-execute the block.
-          # Instead, the initial result is immediately returned.
-          called, result = false, nil
-          block = proc { |*args, **kwargs|
-            if called then result
-            else
-              called = true
-              result = yield(*args, **kwargs)
-            end
-          }
-        end
+        block = wrap_block_for_broadcast(&block) if block_given?
 
         @broadcasts.map { |logger|
           logger.send(method, *args, **kwargs, &block)
         }.first
       end
 
-      def method_missing(name, ...)
+      def method_missing(name, *args, **kwargs, &block)
         loggers = @broadcasts.select { |logger| logger.respond_to?(name) }
 
         if loggers.none?
           super
         elsif loggers.one?
-          loggers.first.send(name, ...)
+          loggers.first.send(name, *args, **kwargs, &block)
         else
-          loggers.map { |logger| logger.send(name, ...) }
+          block = wrap_block_for_broadcast(&block) if block_given?
+          loggers.map { |logger| logger.send(name, *args, **kwargs, &block) }
         end
+      end
+
+      # Wraps a block to ensure it executes only once when broadcasting to multiple loggers.
+      # The first logger yields the block as normal, subsequent loggers receive the cached result.
+      def wrap_block_for_broadcast(&block)
+        called, result = false, nil
+        proc { |*args, **kwargs|
+          if called
+            result
+          else
+            called = true
+            result = yield(*args, **kwargs)
+          end
+        }
       end
 
       def respond_to_missing?(method, include_all)
