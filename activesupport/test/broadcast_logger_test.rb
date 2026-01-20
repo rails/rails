@@ -301,8 +301,7 @@ module ActiveSupport
       execution_count = 0
       broadcast_logger.tagged("TEST") { execution_count += 1 }
 
-      assert_equal 1, execution_count,
-                   "Block should execute once, but currently executes once per broadcast destination (bug)"
+      assert_equal 1, execution_count
     end
 
     test "method_missing with multiple destinations executes block once regardless of destination count" do
@@ -314,8 +313,7 @@ module ActiveSupport
       execution_count = 0
       broadcast_logger.tagged("TEST") { execution_count += 1 }
 
-      assert_equal 1, execution_count,
-                   "Block should execute once, but currently executes 4 times with 4 destinations (bug)"
+      assert_equal 1, execution_count
     end
 
     test "calling a method that accepts args" do
