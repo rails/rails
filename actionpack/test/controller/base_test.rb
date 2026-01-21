@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "active_support/logger"
 require "controller/fake_models"
+require "rails/engine"
 
 # Provide some controller to run the tests on.
 module Submodule
@@ -29,6 +30,34 @@ end
 class NonEmptyController < ActionController::Base
   def public_action
     head :ok
+  end
+end
+
+module RoutesHelpersEngineInheritance
+  HostRoutes = ActionDispatch::Routing::RouteSet.new
+  HostRoutes.draw do
+    get "/app", to: "app#show", as: :app
+    get "/shared", to: "app#shared", as: :shared
+  end
+
+  class HostApplicationController < ActionController::Base
+    include HostRoutes.url_helpers
+    extend AbstractController::Railties::RoutesHelpers.with(HostRoutes)
+  end
+
+  class Engine < ::Rails::Engine
+    isolate_namespace RoutesHelpersEngineInheritance
+
+    routes.draw do
+      get "/engine", to: "engine#show", as: :engine
+      get "/shared", to: "engine#shared", as: :shared
+    end
+  end
+
+  class ApplicationController < HostApplicationController
+  end
+
+  class ThingsController < ApplicationController
   end
 end
 
@@ -152,6 +181,16 @@ class ControllerInstanceTests < ActiveSupport::TestCase
     assert_includes ActionController::Base.instance_methods, :status
     assert_equal Set.new(["status", "hello"]), SimpleController.action_methods
     assert_equal Set.new(["status", "hello"]), ChildController.action_methods
+  end
+
+  def test_engine_routes_are_used_when_isolated_controller_inherits_application_controller
+    things_controller = RoutesHelpersEngineInheritance::ThingsController
+
+    assert_same RoutesHelpersEngineInheritance::Engine.routes, things_controller._routes
+    assert_includes things_controller.instance_methods, :engine_path
+    assert_includes things_controller.instance_methods, :shared_path
+    assert_not_includes things_controller.instance_methods, :app_path
+    assert_equal Set.new, things_controller.action_methods
   end
 
   def test_temporary_anonymous_controllers
