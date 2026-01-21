@@ -300,15 +300,64 @@ module ActiveRecord
 
             scope.merge!(reflection_scope) unless reflection_scope.empty_scope?
 
-            if preload_scope && !preload_scope.empty_scope?
-              scope.merge!(preload_scope)
+            actual_preload_scope, strict_loading_enabled = extract_scope_and_strict_loading(preload_scope)
+
+            if actual_preload_scope
+              evaluated_scope = evaluate_preload_scope(actual_preload_scope)
+              evaluated_scope = ensure_required_columns(evaluated_scope) unless evaluated_scope.empty_scope?
+              scope.merge!(evaluated_scope) unless evaluated_scope.empty_scope?
             end
 
-            cascade_strict_loading(scope)
+            cascade_strict_loading(scope, strict_loading_enabled)
           end
 
-          def cascade_strict_loading(scope)
-            preload_scope&.strict_loading_value ? scope.strict_loading : scope
+          def extract_scope_and_strict_loading(preload_scope)
+            if preload_scope.is_a?(Hash) && preload_scope.key?(:scope)
+              [preload_scope[:scope], preload_scope[:strict_loading]]
+            elsif preload_scope.respond_to?(:strict_loading_value)
+              [preload_scope, preload_scope.strict_loading_value]
+            else
+              [preload_scope, false]
+            end
+          end 
+
+          def evaluate_preload_scope(preload_scope)
+            case preload_scope
+            when Proc
+              klass.instance_exec(&preload_scope) || klass.none
+            else
+              preload_scope
+            end
+          end
+
+          def ensure_required_columns(scope)
+            return scope unless scope.select_values.any?
+            
+            required = [klass.primary_key, association_key_name].flatten.compact.uniq
+            
+            if reflection.type && !reflection.through_reflection?
+              required << reflection.type
+            end
+            
+            if klass.finder_needs_type_condition?
+              required << klass.inheritance_column
+            end
+            
+            selected_columns = scope.select_values.map { |v| 
+              v.respond_to?(:name) ? v.name.to_s : v.to_s 
+            }
+            
+            missing = required.reject { |col| selected_columns.include?(col.to_s) }
+            
+            missing.any? ? scope.select(*missing) : scope
+          end
+
+          def cascade_strict_loading(scope, strict_loading_enabled = nil)
+            if strict_loading_enabled || (preload_scope.respond_to?(:strict_loading_value) && preload_scope.strict_loading_value)
+              scope.strict_loading
+            else
+              scope
+            end
           end
       end
     end

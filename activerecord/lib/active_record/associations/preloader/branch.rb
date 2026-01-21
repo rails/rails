@@ -127,15 +127,43 @@ module ActiveRecord
           def build_children(children)
             Array.wrap(children).flat_map { |association|
               Array(association).flat_map { |parent, child|
+                child_scope, nested_children = extract_scope_and_children(child)
+                
                 Branch.new(
                   parent: self,
                   association: parent,
-                  children: child,
+                  children: nested_children,
                   associate_by_default: associate_by_default,
-                  scope: scope
+                  scope: merge_scopes(scope, child_scope)
                 )
               }
             }
+          end
+
+          def extract_scope_and_children(child)
+            case child
+            when Proc, ActiveRecord::Relation
+              [child, nil]
+            when Hash
+              if child.key?(:scope)
+                [child[:scope], child.except(:scope)]
+              else
+                [nil, child]
+              end
+            else
+              [nil, child]
+            end
+          end
+
+          def merge_scopes(parent_scope, child_scope)
+            return parent_scope if child_scope.nil?
+            return child_scope if parent_scope.nil?
+            
+            if parent_scope.respond_to?(:strict_loading_value) && parent_scope.strict_loading_value
+              { scope: child_scope, strict_loading: true }
+            else
+              child_scope
+            end
           end
 
           # Returns a class containing the logic needed to load preload the data
