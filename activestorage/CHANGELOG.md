@@ -17,13 +17,12 @@
       event.preventDefault()
       const { id, error, xhr } = event.detail
       const element = document.getElementById(`direct-upload-${id}`)
-      const errorMessage = xhr.response['error'] // Example: File size must be less than 100MB
+      // Use the server's error response if provided
+      const errorMessage = xhr.response?.error || error
       element.classList.add("direct-upload--error")
       element.setAttribute("title", errorMessage)
     })
     ```
-
-    Fixes #49104
 
     *Sean Abrahams*
 
