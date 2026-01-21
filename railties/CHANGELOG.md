@@ -1,3 +1,10 @@
+*   Detect JavaScript package manager from lockfiles in generators.
+
+    Rails generators now automatically detect bun, pnpm, npm, or yarn by looking
+    for project lockfiles instead of hardcoding `yarn`.
+
+    *David Lowenfels*
+
 *   Console `reload!` will reset the console's executor, when present.
 
     *Ben Sheldon*
