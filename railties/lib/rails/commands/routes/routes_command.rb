@@ -7,6 +7,7 @@ module Rails
     class RoutesCommand < Base # :nodoc:
       class_option :controller, aliases: "-c", desc: "Filter by a specific controller, e.g. PostsController or Admin::PostsController."
       class_option :grep, aliases: "-g", desc: "Grep routes by a specific pattern."
+      class_option :grep_v, aliases: "-v", desc: "Grep routes not matching a specific pattern."
       class_option :expanded, type: :boolean, aliases: "-E", desc: "Print routes expanded vertically with parts explained."
       class_option :unused, type: :boolean, aliases: "-u", desc: "Print unused routes."
 
@@ -42,7 +43,7 @@ module Rails
         end
 
         def routes_filter
-          options.symbolize_keys.slice(:controller, :grep)
+          options.symbolize_keys.slice(:controller, :grep, :grep_v)
         end
     end
   end
