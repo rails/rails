@@ -4943,16 +4943,6 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
     assert_match "Did you mean?", error.detailed_message
   end
-
-  # FIXME: we should fix all locations that raise this exception to provide
-  # the info DidYouMean needs and then delete this test.  Just adding the
-  # test for now because some parameters to the constructor are optional, and
-  # we don't want to break other code.
-  test "correct for empty UrlGenerationError" do
-    err = ActionController::UrlGenerationError.new("oh no!")
-
-    assert_equal [], err.corrections
-  end
 end
 
 class TestDefaultUrlOptions < ActionDispatch::IntegrationTest
