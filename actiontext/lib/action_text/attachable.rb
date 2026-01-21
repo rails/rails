@@ -121,7 +121,9 @@ module ActionText
     # Override to render a different partial:
     #
     #     class User < ApplicationRecord
-    #       "users/editor_content_attachment"
+    #       def to_editor_content_attachment_partial_path
+    #         "users/editor_content_attachment"
+    #       end
     #     end
     def to_editor_content_attachment_partial_path
       to_partial_path
