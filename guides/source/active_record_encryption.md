@@ -651,7 +651,7 @@ config.active_record.encryption.encryptor = MyEncryptor.new
 ```
 
 You can use
-[`with_encryption_context`](`https://api.rubyonrails.org/classes/ActiveRecord/Encryption/Contexts.html#method-i-with_encryption_context`)
+[`with_encryption_context`](https://api.rubyonrails.org/classes/ActiveRecord/Encryption/Contexts.html#method-i-with_encryption_context)
 to override any of the properties of the encryption context.
 
 ### Encryption Context with a Block of Code
