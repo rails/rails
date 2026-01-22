@@ -67,6 +67,15 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     assert_includes @run_commands, "bun add @rails/actiontext"
   end
 
+  test "installs JavaScript dependencies with bun when bun.lock exists" do
+    FileUtils.touch("#{destination_root}/package.json")
+    FileUtils.touch("#{destination_root}/bun.lock")
+
+    run_generator_instance
+    assert_includes @run_commands, "bun add trix"
+    assert_includes @run_commands, "bun add @rails/actiontext"
+  end
+
   test "throws warning for missing entry point" do
     FileUtils.rm("#{destination_root}/app/javascript/application.js")
     output = run_generator_instance

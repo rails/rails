@@ -33,7 +33,7 @@ module Rails
       }.freeze
 
       def self.detect(root)
-        if root.join("bun.lockb").exist? || root.join("bun.config.js").exist?
+        if root.join("bun.lock").exist? || root.join("bun.lockb").exist? || root.join("bun.config.js").exist?
           :bun
         elsif root.join("pnpm-lock.yaml").exist?
           :pnpm

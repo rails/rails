@@ -22,6 +22,11 @@ class JsPackageManagerTest < Rails::Generators::TestCase
     assert_equal :bun, Rails::Generators::JsPackageManager.detect(Pathname(destination_root))
   end
 
+  test "detects bun from bun.lock" do
+    FileUtils.touch(File.join(destination_root, "bun.lock"))
+    assert_equal :bun, Rails::Generators::JsPackageManager.detect(Pathname(destination_root))
+  end
+
   test "detects bun from bun.config.js" do
     FileUtils.touch(File.join(destination_root, "bun.config.js"))
     assert_equal :bun, Rails::Generators::JsPackageManager.detect(Pathname(destination_root))
