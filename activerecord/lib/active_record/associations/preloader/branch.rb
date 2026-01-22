@@ -128,7 +128,7 @@ module ActiveRecord
             Array.wrap(children).flat_map { |association|
               Array(association).flat_map { |parent, child|
                 child_scope, nested_children = extract_scope_and_children(child)
-                
+
                 Branch.new(
                   parent: self,
                   association: parent,
@@ -158,7 +158,7 @@ module ActiveRecord
           def merge_scopes(parent_scope, child_scope)
             return parent_scope if child_scope.nil?
             return child_scope if parent_scope.nil?
-            
+
             if parent_scope.respond_to?(:strict_loading_value) && parent_scope.strict_loading_value
               { scope: child_scope, strict_loading: true }
             else

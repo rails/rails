@@ -319,7 +319,7 @@ module ActiveRecord
             else
               [preload_scope, false]
             end
-          end 
+          end
 
           def evaluate_preload_scope(preload_scope)
             case preload_scope
@@ -332,23 +332,23 @@ module ActiveRecord
 
           def ensure_required_columns(scope)
             return scope unless scope.select_values.any?
-            
+
             required = [klass.primary_key, association_key_name].flatten.compact.uniq
-            
+
             if reflection.type && !reflection.through_reflection?
               required << reflection.type
             end
-            
+
             if klass.finder_needs_type_condition?
               required << klass.inheritance_column
             end
-            
-            selected_columns = scope.select_values.map { |v| 
-              v.respond_to?(:name) ? v.name.to_s : v.to_s 
+
+            selected_columns = scope.select_values.map { |v|
+              v.respond_to?(:name) ? v.name.to_s : v.to_s
             }
-            
+
             missing = required.reject { |col| selected_columns.include?(col.to_s) }
-            
+
             missing.any? ? scope.select(*missing) : scope
           end
 
