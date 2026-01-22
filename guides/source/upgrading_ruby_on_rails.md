@@ -20,6 +20,7 @@ The best way to be sure that your application still works after upgrading is to 
 
 Rails generally stays close to the latest released Ruby version when it's released:
 
+* Rails 8.2 requires Ruby 3.3.0 or newer.
 * Rails 8.0 and 8.1 require Ruby 3.2.0 or newer.
 * Rails 7.2 requires Ruby 3.1.0 or newer.
 * Rails 7.0 and 7.1 require Ruby 2.7.0 or newer.
