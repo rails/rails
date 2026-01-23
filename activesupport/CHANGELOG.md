@@ -1,4 +1,4 @@
-*   Silence Dalli 4.0+ warning when using `ActiveSupport::Cache::MemCacheStore`
+*   Silence Dalli 4.0+ warning when using `ActiveSupport::Cache::MemCacheStore`.
 
     *zzak*
 
