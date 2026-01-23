@@ -39,7 +39,7 @@ module ActiveRecord
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
 
-      @unique_by = find_unique_index_for(@unique_by)
+      @unique_by = find_unique_index_for(@unique_by) if @on_duplicate != :raise
 
       configure_on_duplicate_update_logic
       ensure_valid_options_for_connection!
