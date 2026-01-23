@@ -1,3 +1,7 @@
+*   Silence Dalli 4.0+ warning when using `ActiveSupport::Cache::MemCacheStore`
+
+    *zzak*
+
 ## Rails 8.1.2 (January 08, 2026) ##
 
 *   Make `delegate` and `delegate_missing_to` work in BasicObject subclasses.
