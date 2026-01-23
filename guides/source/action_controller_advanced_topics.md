@@ -608,6 +608,7 @@ class ApplicationController < ActionController::Base
 
   private
     def record_not_found
+      set_response! self.class.make_response! request
       render plain: "Record Not Found", status: 404
     end
 end
@@ -652,6 +653,12 @@ end
 WARNING: Using `rescue_from` with `Exception` or `StandardError` would cause
 serious side-effects as it prevents Rails from handling exceptions properly. As
 such, it is not recommended to do so unless there is a strong reason.
+
+WARNING: If you use `rescue_from` to respond with a non-2xx response, you
+should *usually* create a fresh response object by calling
+`set_response! self.class.make_response! request`. This ensures the error
+response does not inherit cookies, caching information, or other headers that
+were set as part of your application’s normal request handling.
 
 NOTE: Certain exceptions are only rescuable from the `ApplicationController`
 class, as they are raised before the controller gets initialized, and the action
