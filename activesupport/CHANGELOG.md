@@ -1,3 +1,7 @@
+*   Silence Dalli 4.0+ warning when using `ActiveSupport::Cache::MemCacheStore`.
+
+    *zzak*
+
 *   Make `delegate` and `delegate_missing_to` work in BasicObject subclasses.
 
     *Rafael Mendonça França*
