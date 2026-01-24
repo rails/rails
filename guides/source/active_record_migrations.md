@@ -1290,13 +1290,12 @@ The `bin/rails db:prepare` command is similar to `bin/rails db:setup`, but it
 operates idempotently, so it can safely be called several times, but it will
 only perform the necessary tasks once.
 
-* If the database has not been created yet, the command will run as the
-  `bin/rails db:setup` does.
-* If the database exists but the tables have not been created, the command will
-  load the schema, run any pending migrations, dump the updated schema, and
-  finally load the seed data. See the [Seeding Data
-  documentation](#migrations-and-seed-data) for more details.
-* If the database and tables exist, the command will do nothing.
+* If the database has not been created yet, the command behaves the same as
+  `bin/rails db:setup`.
+* If the database exists but the tables are missing, the command additionally
+  loads the schema.
+* If tables already exist, the command runs any pending migrations and dumps the
+  updated schema.
 
 Once the database and tables exist, the `db:prepare` task will not try to reload
 the seed data, even if the previously loaded seed data or the existing seed file
