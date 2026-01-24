@@ -193,6 +193,25 @@
         background-color: $gray-1000;
       }
 
+      .guide-actions {
+        .copy-markdown-button {
+          background-color: $text-on-darker-bg;
+          border-color: $gray-650;
+          color: $gray-1000;
+
+          &:hover,
+          &:focus-visible {
+            background-color: $large-text-on-darker-bg;
+            border-color: $gray-700;
+          }
+
+          &:active {
+            background-color: $gray-500;
+            border-color: $gray-800;
+          }
+        }
+      }
+
       #column-side {
         background-color: $gray-900;
 
