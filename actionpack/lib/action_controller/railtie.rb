@@ -33,6 +33,12 @@ module ActionController
       ActionController::Helpers.helpers_path = app.helpers_paths
     end
 
+    initializer "action_controller.live_streaming_excluded_keys" do |app|
+      ActiveSupport.on_load(:action_controller_live) do
+        ActionController::Live.live_streaming_excluded_keys = app.config.action_controller.live_streaming_excluded_keys
+      end
+    end
+
     initializer "action_controller.parameters_config" do |app|
       options = app.config.action_controller
 
@@ -83,6 +89,7 @@ module ActionController
           :action_on_unpermitted_parameters,
           :always_permitted_parameters,
           :wrap_parameters_by_default,
+          :live_streaming_excluded_keys
         )
 
         filtered_options.each do |k, v|
@@ -133,15 +140,7 @@ module ActionController
           ActiveRecord::QueryLogs.taggings = ActiveRecord::QueryLogs.taggings.merge(
             controller:            ->(context) { context[:controller]&.controller_name },
             action:                ->(context) { context[:controller]&.action_name },
-            namespaced_controller: ->(context) {
-              if context[:controller]
-                controller_class = context[:controller].class
-                # based on ActionController::Metal#controller_name, but does not demodulize
-                unless controller_class.anonymous?
-                  controller_class.name.delete_suffix("Controller").underscore
-                end
-              end
-            }
+            namespaced_controller: ->(context) { context[:controller]&.controller_path }
           )
         end
       end

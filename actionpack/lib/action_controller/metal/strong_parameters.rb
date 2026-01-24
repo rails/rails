@@ -812,7 +812,7 @@ module ActionController
     # are several options: With no other arguments, it will raise an
     # ActionController::ParameterMissing error; if a second argument is given, then
     # that is returned (converted to an instance of `ActionController::Parameters`
-    # if possible); if a block is given, then that will be run and its result
+    # if possible); if a block is given, the key is yielded to the block and its result
     # returned.
     #
     #     params = ActionController::Parameters.new(person: { name: "Francesco" })
@@ -820,12 +820,12 @@ module ActionController
     #     params.fetch(:none)                 # => ActionController::ParameterMissing: param is missing or the value is empty or invalid: none
     #     params.fetch(:none, {})             # => #<ActionController::Parameters {} permitted: false>
     #     params.fetch(:none, "Francesco")    # => "Francesco"
-    #     params.fetch(:none) { "Francesco" } # => "Francesco"
-    def fetch(key, *args)
+    #     params.fetch(:none) { |key| "Francesco" } # => "Francesco"
+    def fetch(key, *args, &block)
       convert_value_to_parameters(
         @parameters.fetch(key) {
           if block_given?
-            yield
+            yield key
           else
             args.fetch(0) { raise ActionController::ParameterMissing.new(key, @parameters.keys) }
           end
@@ -890,7 +890,7 @@ module ActionController
     #     params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
     #     params.transform_values { |x| x * 2 }
     #     # => #<ActionController::Parameters {"a"=>2, "b"=>4, "c"=>6} permitted: false>
-    def transform_values
+    def transform_values(&block)
       return to_enum(:transform_values) unless block_given?
       new_instance_with_inherited_permitted_status(
         @parameters.transform_values { |v| yield convert_value_to_parameters(v) }
@@ -899,7 +899,7 @@ module ActionController
 
     # Performs values transformation and returns the altered
     # `ActionController::Parameters` instance.
-    def transform_values!
+    def transform_values!(&block)
       return to_enum(:transform_values!) unless block_given?
       @parameters.transform_values! { |v| yield convert_value_to_parameters(v) }
       self
@@ -1012,9 +1012,9 @@ module ActionController
 
     # Returns a new `ActionController::Parameters` instance with all keys from
     # `other_hash` merged into current hash.
-    def merge(other_hash)
+    def merge(other_hash, &block)
       new_instance_with_inherited_permitted_status(
-        @parameters.merge(other_hash.to_h)
+        @parameters.merge(other_hash.to_h, &block)
       )
     end
 
@@ -1124,7 +1124,7 @@ module ActionController
         @parameters.any? { |k, v| Parameters.nested_attribute?(k, v) }
       end
 
-      def each_nested_attribute
+      def each_nested_attribute(&block)
         hash = self.class.new
         self.each { |k, v| hash[k] = yield v if Parameters.nested_attribute?(k, v) }
         hash

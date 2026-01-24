@@ -99,7 +99,7 @@ dependencies:
     JavaScript code. Just make sure your JavaScript files are set up as modules
     using `<script type="module">` in your HTML:
 
-    ```
+    ```js
     // main.js
     import { initUtilities } from "./utilities.js";
     import { setupFeature } from "./feature.js";
@@ -110,7 +110,7 @@ dependencies:
 
     Then in your layout:
 
-    ```
+    ```html
     <script type="module" src="main.js"></script>
     ```
 

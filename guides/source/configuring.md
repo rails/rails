@@ -60,6 +60,14 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.2
 
+- [`config.action_controller.default_protect_from_forgery_with`](#config-action-controller-default-protect-from-forgery-with): `:exception`
+- [`config.action_controller.forgery_protection_verification_strategy`](#config-action-controller-forgery-protection-verification-strategy): `:header_only`
+- [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
+- [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
+- [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
+- [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
+- [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
+
 #### Default Values for Target Version 8.1
 
 - [`config.action_controller.action_on_path_relative_redirect`](#config-action-controller-action-on-path-relative-redirect): `:raise`
@@ -531,6 +539,18 @@ Enables or disables reloading of classes only when tracked files change. By defa
 #### `config.require_master_key`
 
 Causes the app to not boot if a master key hasn't been made available through `ENV["RAILS_MASTER_KEY"]` or the `config/master.key` file.
+
+#### `config.revision`
+
+Sets the application revision for deployment tracking and error reporting. Must be a string.
+When not set, Rails first tries reading from a `REVISION` file in the application root, and if absent
+it attempts to get the current commit from the local git repository (default: `nil`).
+
+```ruby
+config.revision = ENV["GIT_SHA"]
+```
+
+Revision can be accessed via `Rails.app.revision`.
 
 #### `config.sandbox_by_default`
 
@@ -1188,6 +1208,23 @@ end
 config.active_record.migration_strategy = CustomMigrationStrategy
 ```
 
+You can also configure migration strategies on a per-adapter basis by setting the `migration_strategy` class on the adapter itself.
+This is useful when you want to customize migration behavior for a specific database type.
+
+For example, to use a custom migration strategy for PostgreSQL:
+
+```ruby
+class CustomPostgresStrategy < ActiveRecord::Migration::DefaultStrategy
+  def drop_table(*)
+    # Custom logic specific to PostgreSQL
+  end
+end
+
+ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy = CustomPostgresStrategy
+```
+
+By assigning to the adapter class, all migrations run through connections using that adapter will use the specified strategy.
+
 #### `config.active_record.schema_versions_formatter`
 
 Controls the formatter class used by schema dumper to format versions information. Custom class can be provided
@@ -1551,6 +1588,23 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 7.1                   | `true`               |
 
+#### `config.active_record.postgresql_adapter_decode_bytea`
+
+Specifies whether the PostgresqlAdapter should decode bytea columns.
+
+```ruby
+ActiveRecord::Base.connection
+     .select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
+```
+
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
+
 #### `config.active_record.postgresql_adapter_decode_dates`
 
 Specifies whether the PostgresqlAdapter should decode date columns.
@@ -1567,6 +1621,23 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.2                   | `true`               |
+
+#### `config.active_record.postgresql_adapter_decode_money`
+
+Specifies whether the PostgresqlAdapter should decode money columns.
+
+```ruby
+ActiveRecord::Base.connection
+     .select_value("select '12.34'::money").class #=> BigDecimal
+```
+
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
 
 
 #### `config.active_record.async_query_executor`
@@ -1753,11 +1824,50 @@ whether a foreign key's name should be dumped to db/schema.rb or not. By
 default, foreign key names starting with `fk_rails_` are not exported to the
 database schema dump. Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
 
+#### `config.active_record.encryption.support_unencrypted_data`
+
+When `true`, unencrypted data can be read normally. When `false`, it will raise errors. Default: `false`.
+
+#### `config.active_record.encryption.extend_queries`
+
+When `true`, queries referencing deterministically encrypted attributes will be modified to include additional values if needed. Those additional values will be the clean version of the value (when `config.active_record.encryption.support_unencrypted_data` is `true`) and values encrypted with previous encryption schemes, if any (as provided with the `previous:` option). Default: `false`.
+
+#### `config.active_record.encryption.encrypt_fixtures`
+
+When `true`, encryptable attributes in fixtures will be automatically encrypted when loaded. Default: `false`.
+
+#### `config.active_record.encryption.store_key_references`
+
+When `true`, a reference to the encryption key is stored in the headers of the encrypted message. This makes for faster decryption when multiple keys are in use. Default: `false`.
+
 #### `config.active_record.encryption.add_to_filter_parameters`
 
-Enables automatic filtering of encrypted attributes on `inspect`.
+When `true`, encrypted attribute names are added automatically to [`config.filter_parameters`](#config-filter-parameters) and won't be shown in logs. Default: `true`.
 
-The default value is `true`.
+#### `config.active_record.encryption.excluded_from_filter_parameters`
+
+You can configure a list of params that won't be filtered out when `config.active_record.encryption.add_to_filter_parameters` is true. Default: `[]`.
+
+#### `config.active_record.encryption.validate_column_size`
+
+Adds a validation based on the column size. This is recommended to prevent storing huge values using highly compressible payloads. Default: `true`.
+
+#### `config.active_record.encryption.primary_key`
+
+The key or lists of keys used to derive root data encryption keys. The way they are used depends on the key provider configured. It's preferred to configure it via the `active_record_encryption.primary_key` credential.
+
+#### `config.active_record.encryption.deterministic_key`
+
+The key or list of keys used for deterministic encryption. It's preferred to configure it via the `active_record_encryption.deterministic_key` credential.
+
+#### `config.active_record.encryption.key_derivation_salt`
+
+The salt used when deriving keys. It's preferred to configure it via the `active_record_encryption.key_derivation_salt` credential.
+
+#### `config.active_record.encryption.forced_encoding_for_deterministic_encryption`
+
+The default encoding for attributes encrypted deterministically. You can disable
+forced encoding by setting this option to `nil`. It's `Encoding::UTF_8` by default.
 
 #### `config.active_record.encryption.hash_digest_class`
 
@@ -1772,8 +1882,9 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
 
-Enables support for decrypting existing data encrypted using a SHA-1 digest class. When `false`,
-it will only support the digest configured in `config.active_record.encryption.hash_digest_class`.
+Enables support for decrypting existing data encrypted using a SHA-1 digest
+class. When `false`, it will only support the digest configured in
+`config.active_record.encryption.hash_digest_class`.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -1784,9 +1895,7 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.active_record.encryption.compressor`
 
-Sets the compressor used by Active Record Encryption. The default value is `Zlib`.
-
-You can use your own compressor by setting this to a class that responds to `deflate` and `inflate`.
+The compressor used to compress encrypted payloads. The default is `Zlib`. You can use your own compressor by setting this to a class that responds to `deflate` and `inflate`.
 
 #### `config.active_record.protocol_adapters`
 
@@ -1892,6 +2001,27 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 5.0                   | `true`               |
 
+#### `config.action_controller.forgery_protection_verification_strategy`
+
+Configures how Rails verifies requests for CSRF protection. Available strategies are:
+
+* `:header_only` - Uses the `Sec-Fetch-Site` header sent by modern browsers to verify
+  that requests originate from the same site. Requests without a valid header are rejected.
+  This is simpler and more secure but only works with browsers that support the
+  [Fetch Metadata Request Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Site).
+
+* `:header_or_legacy_token` - A hybrid approach that checks the `Sec-Fetch-Site` header first.
+  If the header indicates same-origin or same-site, the request is allowed. When the
+  header is missing or has the value "none", it falls back to checking the authenticity
+  token. This supports older browsers while logging when fallback occurs.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is         |
+| --------------------- | ---------------------------- |
+| (original)            | `:header_or_legacy_token`    |
+| 8.2                   | `:header_only`               |
+
 #### `config.action_controller.default_protect_from_forgery`
 
 Determines whether forgery protection is added on `ActionController::Base`.
@@ -1902,6 +2032,22 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 5.2                   | `true`               |
+
+#### `config.action_controller.default_protect_from_forgery_with`
+
+Configures the default strategy used when calling `protect_from_forgery` without the `:with` option.
+Defaults to `:null_session`, but will change to `:exception` in a future version of Rails.
+
+Applications can opt into the new behavior early by setting:
+
+```ruby
+config.action_controller.default_protect_from_forgery_with = :exception
+```
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:null_session`      |
+| 8.2                   | `:exception`         |
 
 #### `config.action_controller.relative_url_root`
 
@@ -2109,6 +2255,7 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | <pre><code>{<br>  "X-Frame-Options" => "SAMEORIGIN",<br>  "X-XSS-Protection" => "1; mode=block",<br>  "X-Content-Type-Options" => "nosniff",<br>  "X-Download-Options" => "noopen",<br>  "X-Permitted-Cross-Domain-Policies" => "none",<br>  "Referrer-Policy" => "strict-origin-when-cross-origin"<br>}</code></pre> |
 | 7.0                   | <pre><code>{<br>  "X-Frame-Options" => "SAMEORIGIN",<br>  "X-XSS-Protection" => "0",<br>  "X-Content-Type-Options" => "nosniff",<br>  "X-Download-Options" => "noopen",<br>  "X-Permitted-Cross-Domain-Policies" => "none",<br>  "Referrer-Policy" => "strict-origin-when-cross-origin"<br>}</code></pre> |
 | 7.1                   | <pre><code>{<br>  "X-Frame-Options" => "SAMEORIGIN",<br>  "X-XSS-Protection" => "0",<br>  "X-Content-Type-Options" => "nosniff",<br>  "X-Permitted-Cross-Domain-Policies" => "none",<br>  "Referrer-Policy" => "strict-origin-when-cross-origin"<br>}</code></pre> |
+| 8.2                   | <pre><code>{<br>  "X-Frame-Options" => "SAMEORIGIN"<br>  "X-Content-Type-Options" => "nosniff",<br>  "X-Permitted-Cross-Domain-Policies" => "none",<br>  "Referrer-Policy" => "strict-origin-when-cross-origin"<br>}</code></pre> |
 
 #### `config.action_dispatch.default_charset`
 
@@ -3035,7 +3182,7 @@ Sets the adapter for the queuing backend. The default adapter is `:async`. For a
 # Be sure to have the adapter's gem in your Gemfile
 # and follow the adapter's specific installation
 # and deployment instructions.
-config.active_job.queue_adapter = :sidekiq
+config.active_job.queue_adapter = :solid_queue
 ```
 
 #### `config.active_job.default_queue_name`
@@ -3091,6 +3238,25 @@ Accepts a logger conforming to the interface of Log4r or the default Ruby Logger
 #### `config.active_job.custom_serializers`
 
 Allows to set custom argument serializers. Defaults to `[]`.
+
+#### `config.active_job.enqueue_after_transaction_commit`
+
+Controls whether jobs enqueued inside an Active Record transaction are deferred
+until after the transaction commits. When false, jobs are enqueued immediately.
+Individual jobs can override the global setting:
+
+```ruby
+class NotificationJob < ApplicationJob
+  self.enqueue_after_transaction_commit = false
+end
+```
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
 
 #### `config.active_job.log_arguments`
 
@@ -3187,6 +3353,41 @@ If you want to disable analyzers, you can set this to an empty array:
 ```ruby
 config.active_storage.analyzers = []
 ```
+
+#### `config.active_storage.analyze`
+
+Controls when attachment analysis (image/video/audio metadata extraction) is performed:
+
+* `:immediately` - Analyze before validation, making metadata available for validations (e.g. image dimensions, video duration)
+* `:later` - Analyze after upload from local IO or via background job for direct uploads
+* `:lazily` - Skip automatic analysis; analyze on-demand
+
+When set to `:immediately`, you can validate file properties in model validations:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar
+
+  validate :validate_avatar_dimensions, if: -> { avatar.attached? }
+
+  def validate_avatar_dimensions
+    if avatar.metadata[:width] < 200 || avatar.metadata[:height] < 200
+      errors.add(:avatar, "must be at least 200x200 pixels")
+    end
+  end
+end
+```
+
+Attachments with `process: :immediately` variants implicitly use immediate analysis to ensure metadata is available before processing.
+
+NOTE: Direct uploads bypass the server so the file isn't locally available for analysis. In this case, `:immediately` falls back to `:later`, analyzing via background job after upload completes. Metadata isn't available for validation.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:later`             |
+| 8.2                   | `:immediately`       |
 
 #### `config.active_storage.previewers`
 
@@ -3966,6 +4167,7 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActionController::API`              | `action_controller`                  |
 | `ActionController::Base`             | `action_controller_base`             |
 | `ActionController::Base`             | `action_controller`                  |
+| `ActionController::Live`             | `action_controller_live`             |
 | `ActionController::TestCase`         | `action_controller_test_case`        |
 | `ActionDispatch::IntegrationTest`    | `action_dispatch_integration_test`   |
 | `ActionDispatch::Response`           | `action_dispatch_response`           |

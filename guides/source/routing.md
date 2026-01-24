@@ -1213,7 +1213,7 @@ resources :photos
 ```
 
 This changes the route helpers for `/admin/photos` from `photos_path`,
-`new_photos_path`, etc. to `admin_photos_path`, `new_admin_photo_path`, etc.
+`new_photo_path`, etc. to `admin_photos_path`, `new_admin_photo_path`, etc.
 Without the addition of `as: 'admin_photos'` on the scoped `resources :photos`,
 the non-scoped `resources :photos` will not have any route helpers.
 

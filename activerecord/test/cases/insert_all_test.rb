@@ -18,6 +18,12 @@ end
 class InsertAllTest < ActiveRecord::TestCase
   fixtures :books
 
+  def run(*)
+    with_debug_event_reporting do
+      super
+    end
+  end
+
   def setup
     Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
     @original_db_warnings_action = :ignore
@@ -281,9 +287,26 @@ class InsertAllTest < ActiveRecord::TestCase
 
       Cart.upsert_all [{ id: 3, shop_id: 2, title: "My other cart" }], unique_by: [:shop_id, :id]
     end
+  end
+
+  def test_insert_all_bang_does_not_require_unique_index
+    skip unless supports_insert_conflict_target?
+
+    assert_difference "Cart.count", +1 do
+      Cart.insert_all! [{ id: 2, shop_id: 1, title: "My cart" }]
+    end
+  end
+
+  def test_insert_all_and_upsert_all_raises_when_no_unique_index_found_for_composite_primary_key
+    skip unless supports_insert_conflict_target?
 
     error = assert_raises ArgumentError do
-      Cart.insert_all! [{ id: 2, shop_id: 1, title: "My cart" }]
+      Cart.insert_all [{ id: 2, shop_id: 1, title: "My cart" }]
+    end
+    assert_match "No unique index found for id", error.message
+
+    error = assert_raises ArgumentError do
+      Cart.upsert_all [{ id: 2, shop_id: 1, title: "My cart" }]
     end
     assert_match "No unique index found for id", error.message
   end
@@ -1048,12 +1071,12 @@ class InsertAllTest < ActiveRecord::TestCase
   private
     def capture_log_output
       output = StringIO.new
-      old_logger, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ActiveSupport::Logger.new(output)
+      old_logger, ActiveRecord::LogSubscriber.logger = ActiveRecord::LogSubscriber.logger, ActiveSupport::Logger.new(output)
 
       begin
         yield output
       ensure
-        ActiveRecord::Base.logger = old_logger
+        ActiveRecord::LogSubscriber.logger = old_logger
       end
     end
 

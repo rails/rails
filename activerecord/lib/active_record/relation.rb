@@ -1022,7 +1022,7 @@ module ActiveRecord
     #
     #   Post.where(person_id: 5).where(category: ['Something', 'Else']).delete_all
     #
-    # Both calls delete the affected posts all at once with a single DELETE statement.
+    # This call deletes the affected posts all at once with a single DELETE statement.
     # If you need to destroy dependent associations or call your <tt>before_*</tt> or
     # +after_destroy+ callbacks, use the #destroy_all method instead.
     #

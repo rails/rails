@@ -873,7 +873,7 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_yaml_load
     payload = "--- !ruby/object:ActiveSupport::TimeZone\nname: Pacific/Honolulu\n"
-    loaded = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+    loaded = YAML.unsafe_load(payload)
     assert_equal(ActiveSupport::TimeZone["Pacific/Honolulu"], loaded)
   end
 

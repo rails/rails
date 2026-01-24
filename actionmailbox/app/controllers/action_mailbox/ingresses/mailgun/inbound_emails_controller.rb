@@ -78,7 +78,7 @@ module ActionMailbox
       end
 
       def key
-        Rails.application.credentials.dig(:action_mailbox, :mailgun_signing_key) || ENV["MAILGUN_INGRESS_SIGNING_KEY"]
+        Rails.app.credentials.dig(:action_mailbox, :mailgun_signing_key) || ENV["MAILGUN_INGRESS_SIGNING_KEY"]
       end
 
       class Authenticator

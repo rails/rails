@@ -795,6 +795,16 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_sole_record_exceeded_record_accessor
+    relation = Topic.where("author_name = 'Carl'")
+    error = assert_raises ActiveRecord::SoleRecordExceeded, match: "Wanted only one Topic" do
+      relation.sole
+    end
+
+    assert_kind_of ActiveRecord::Relation, error.record
+    assert_equal relation.count, error.record.count
+  end
+
   def test_sole_on_loaded_relation
     relation = Topic.where("title = 'The First Topic'").load
     expected_topic = topics(:first)
@@ -1748,7 +1758,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_id_with_conditions_with_or
     assert_nothing_raised do
-      Post.where("posts.id <= 3 OR posts.#{QUOTED_TYPE} = 'Post'").find([1, 2, 3])
+      Post.where("posts.id <= 3 OR posts.#{ARTest::QUOTED_TYPE} = 'Post'").find([1, 2, 3])
     end
   end
 

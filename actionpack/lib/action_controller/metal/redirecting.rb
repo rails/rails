@@ -117,7 +117,7 @@ module ActionController
     # The `action_on_open_redirect` configuration option controls the behavior when an unsafe
     # redirect is detected:
     # * `:log` - Logs a warning but allows the redirect
-    # * `:notify` - Sends an ActiveSupport notification for monitoring
+    # * `:notify` - Sends an Active Support notification and structured event for monitoring
     # * `:raise` - Raises an UnsafeRedirectError
     #
     # To allow any external redirects pass `allow_other_host: true`, though using a
@@ -144,7 +144,7 @@ module ActionController
     #     config.action_controller.action_on_path_relative_redirect = :raise
     #
     # * `:log` - Logs a warning but allows the redirect
-    # * `:notify` - Sends an ActiveSupport notification but allows the redirect
+    # * `:notify` - Sends an Active Support notification but allows the redirect
     #   (includes stack trace to help identify the source)
     # * `:raise` - Raises an UnsafeRedirectError
     def redirect_to(options = {}, response_options = {})
@@ -274,7 +274,7 @@ module ActionController
       end
 
       def _enforce_open_redirect_protection(location, allow_other_host:)
-        # Explictly allowed other host or host is in allow list allow redirect
+        # Explicitly allowed other host or host is in allow list allow redirect
         if allow_other_host || _url_host_allowed?(location)
           location
         # Explicitly disallowed other host

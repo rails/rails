@@ -29,29 +29,15 @@ module ActiveRecord
           end
         end
 
-        if YAML.respond_to?(:unsafe_load)
-          def load(payload)
-            if @unsafe_load.nil? ? ActiveRecord.use_yaml_unsafe_load : @unsafe_load
-              YAML.unsafe_load(payload)
-            else
-              YAML.safe_load(
-                payload,
-                permitted_classes: @permitted_classes + ActiveRecord.yaml_column_permitted_classes,
-                aliases: true,
-              )
-            end
-          end
-        else
-          def load(payload)
-            if @unsafe_load.nil? ? ActiveRecord.use_yaml_unsafe_load : @unsafe_load
-              YAML.load(payload)
-            else
-              YAML.safe_load(
-                payload,
-                permitted_classes: @permitted_classes + ActiveRecord.yaml_column_permitted_classes,
-                aliases: true,
-              )
-            end
+        def load(payload)
+          if @unsafe_load.nil? ? ActiveRecord.use_yaml_unsafe_load : @unsafe_load
+            YAML.unsafe_load(payload)
+          else
+            YAML.safe_load(
+              payload,
+              permitted_classes: @permitted_classes + ActiveRecord.yaml_column_permitted_classes,
+              aliases: true,
+            )
           end
         end
       end

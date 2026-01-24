@@ -316,18 +316,10 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     assert_equal [], @conn.indexes("users")
   end
 
-  test "#begin_db_transaction answers empty result" do
-    result = @conn.begin_db_transaction
-    assert_equal [], result.rows
-
-    # rollback transaction so it doesn't bleed into other tests
-    @conn.rollback_db_transaction
-  end
-
   test "#begin_db_transaction raises error" do
     error = Class.new(Exception)
     assert_raises error do
-      @conn.stub(:raw_execute, -> (*) { raise error }) do
+      @conn.stub(:perform_query, -> (*) { raise error }) do
         @conn.begin_db_transaction
       end
     end
@@ -336,15 +328,10 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     @conn.rollback_db_transaction
   end
 
-  test "#commit_db_transaction answers empty result" do
-    result = @conn.commit_db_transaction
-    assert_equal [], result.rows
-  end
-
   test "#commit_db_transaction raises error" do
     error = Class.new(Exception)
     assert_raises error do
-      @conn.stub(:raw_execute, -> (*) { raise error }) do
+      @conn.stub(:perform_query, -> (*) { raise error }) do
         @conn.commit_db_transaction
       end
     end
@@ -353,7 +340,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   test "#rollback_db_transaction raises error" do
     error = Class.new(Exception)
     assert_raises error do
-      @conn.stub(:raw_execute, -> (*) { raise error }) do
+      @conn.stub(:perform_query, -> (*) { raise error }) do
         @conn.rollback_db_transaction
       end
     end

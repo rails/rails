@@ -17,9 +17,16 @@ require "models/person"
 
 class LoggingTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
-  include ActiveSupport::LogSubscriber::TestHelper
   include ActiveSupport::Logger::Severity
   include TestLoggerHelper
+
+  setup do
+    ActiveJob::LogSubscriber.logger = @logger
+  end
+
+  teardown do
+    ActiveJob::LogSubscriber.logger = nil
+  end
 
   def test_uses_active_job_as_tag
     HelloJob.perform_later "Cristian"

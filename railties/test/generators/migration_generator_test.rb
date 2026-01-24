@@ -395,6 +395,16 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_create_table_migration_with_uniq_token_option
+    run_generator ["create_users", "auth_token:token:uniq"]
+    assert_migration "db/migrate/create_users.rb" do |content|
+      assert_method :change, content do |change|
+        occurrences = content.scan("unique: true").count
+        assert_equal 1, occurrences, "Should only have unique: true present once"
+      end
+    end
+  end
+
   def test_add_migration_with_token_option
     migration = "add_token_to_users"
     run_generator [migration, "auth_token:token"]
@@ -402,6 +412,17 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
       assert_method :change, content do |change|
         assert_match(/add_column :users, :auth_token, :string/, change)
         assert_match(/add_index :users, :auth_token, unique: true/, change)
+      end
+    end
+  end
+
+  def test_add_migration_with_uniq_token_option
+    migration = "add_uniq_token_to_users"
+    run_generator [migration, "token:token:uniq"]
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        occurrences = content.scan("unique: true").count
+        assert_equal 1, occurrences, "Should only have unique: true present once"
       end
     end
   end

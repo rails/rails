@@ -23,13 +23,13 @@ class ActionMailbox::Generators::InstallGeneratorTest < Rails::Generators::TestC
   end
 
   def test_create_action_mailbox_files
-    with_database_configuration { run_generator }
+    run_generator
 
     assert_file "app/mailboxes/application_mailbox.rb"
   end
 
   def test_add_action_mailbox_production_environment_config
-    with_database_configuration { run_generator }
+    run_generator
 
     assert_file "config/environments/production.rb" do |content|
       assert_match("Prepare the ingress controller used to receive mail", content)
@@ -38,9 +38,14 @@ class ActionMailbox::Generators::InstallGeneratorTest < Rails::Generators::TestC
   end
 
   def test_create_migrations
-    with_database_configuration { run_generator }
+    run_generator
 
     assert_migration "db/migrate/create_active_storage_tables.active_storage.rb"
     assert_migration "db/migrate/create_action_mailbox_tables.action_mailbox.rb"
   end
+
+  private
+    def run_generator
+      quietly { with_database_configuration { super } }
+    end
 end

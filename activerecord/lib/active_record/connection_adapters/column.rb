@@ -7,7 +7,7 @@ module ActiveRecord
     class Column
       include Deduplicable
 
-      attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment
+      attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment, :cast_type
 
       delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
 
@@ -26,11 +26,6 @@ module ActiveRecord
         @default_function = default_function
         @collation = collation
         @comment = comment
-      end
-
-      def fetch_cast_type(connection) # :nodoc:
-        # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
-        @cast_type || connection.lookup_cast_type(sql_type)
       end
 
       def has_default?
@@ -109,9 +104,6 @@ module ActiveRecord
       def virtual?
         false
       end
-
-      protected
-        attr_reader :cast_type
 
       private
         def deduplicated

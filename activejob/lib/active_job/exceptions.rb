@@ -26,7 +26,8 @@ module ActiveJob
       #
       # ==== Options
       # * <tt>:wait</tt> - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds),
-      #   as a computing proc that takes the number of executions so far as an argument, or as a symbol reference of
+      #   as a computing proc that takes the number of executions so far as an argument (and optionally the error),
+      #   or as a symbol reference of
       #   <tt>:polynomially_longer</tt>, which applies the wait algorithm of <tt>((executions**4) + (Kernel.rand * (executions**4) * jitter)) + 2</tt>
       #   (first wait ~3s, then ~18s, then ~83s, etc)
       # * <tt>:attempts</tt> - Enqueues the job the specified number of times (default: 5 attempts) or a symbol reference of <tt>:unlimited</tt>
@@ -41,6 +42,7 @@ module ActiveJob
       #  class RemoteServiceJob < ActiveJob::Base
       #    retry_on CustomAppException # defaults to ~3s wait, 5 attempts
       #    retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
+      #    retry_on ThirdCustomAppException, wait: ->(executions, error) { error.retry_after || executions * 2 }
       #    retry_on CustomInfrastructureException, wait: 5.minutes, attempts: :unlimited
       #
       #    retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
@@ -66,7 +68,7 @@ module ActiveJob
           executions = executions_for(exceptions)
           if attempts == :unlimited || executions < attempts
             ActiveSupport.error_reporter.report(error, source: "application.active_job") if report
-            retry_job wait: determine_delay(seconds_or_duration_or_algorithm: wait, executions: executions, jitter: jitter), queue: queue, priority: priority, error: error
+            retry_job wait: determine_delay(seconds_or_duration_or_algorithm: wait, executions: executions, error: error, jitter: jitter), queue: queue, priority: priority, error: error
           else
             if block_given?
               instrument :retry_stopped, error: error do
@@ -168,7 +170,7 @@ module ActiveJob
       JITTER_DEFAULT = Object.new
       private_constant :JITTER_DEFAULT
 
-      def determine_delay(seconds_or_duration_or_algorithm:, executions:, jitter: JITTER_DEFAULT)
+      def determine_delay(seconds_or_duration_or_algorithm:, executions:, error: nil, jitter: JITTER_DEFAULT)
         jitter = jitter == JITTER_DEFAULT ? self.class.retry_jitter : (jitter || 0.0)
 
         case seconds_or_duration_or_algorithm
@@ -183,7 +185,7 @@ module ActiveJob
           delay + delay_jitter
         when Proc
           algorithm = seconds_or_duration_or_algorithm
-          algorithm.call(executions)
+          algorithm.arity == 1 ? algorithm.call(executions) : algorithm.call(executions, error)
         else
           raise "Couldn't determine a delay based on #{seconds_or_duration_or_algorithm.inspect}"
         end

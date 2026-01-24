@@ -8,3 +8,88 @@
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
+
+# Active Job
+
+###
+# Defer job enqueueing until after the database transaction commits.
+#
+# When enabled, jobs enqueued inside a transaction wait until the transaction
+# commits before being dispatched to the queue. This prevents jobs from
+# operating on rolled-back data.
+#++
+# Rails.application.config.active_job.enqueue_after_transaction_commit = true
+
+###
+# Use Sec-Fetch-Site header for CSRF protection instead of tokens.
+#
+# Modern browsers send the Sec-Fetch-Site header to indicate the relationship
+# between request initiator and target origins. Rails can use this header to
+# reject cross-site requests without requiring authenticity tokens.
+#
+# When set to :header_only, requests without a valid Sec-Fetch-Site header
+# (same-origin or same-site) will be rejected. This is more secure and simpler
+# than token-based protection, but only works with modern browsers.
+#
+# When set to :header_or_legacy_token (pre-8.2 default), Rails checks the
+# Sec-Fetch-Site header first, but falls back to authenticity token verification
+# for requests without the header. This supports older browsers while logging
+# fallback usage.
+#++
+# Rails.application.config.action_controller.forgery_protection_verification_strategy = :header_only
+
+###
+# Change the default strategy when calling protect_from_forgery without arguments.
+#
+# When protect_from_forgery is called without the :with option, it will now
+# default to :exception instead of :null_session. This matches the behavior
+# when config.action_controller.default_protect_from_forgery is enabled.
+#
+# The :exception strategy raises ActionController::InvalidCrossOriginRequest on
+# CSRF failures, while :null_session provides an empty session during the request.
+#++
+# Rails.application.config.action_controller.default_protect_from_forgery_with = :exception
+
+###
+# Remove the default X-XSS-Protection headers since all browsers have removed support for it years ago.
+#++
+# config.action_dispatch.default_headers = {
+#   "X-Frame-Options" => "SAMEORIGIN",
+#   "X-Content-Type-Options" => "nosniff",
+#   "X-Permitted-Cross-Domain-Policies" => "none",
+#   "Referrer-Policy" => "strict-origin-when-cross-origin"
+# }
+
+###
+# Controls whether the PostgresqlAdapter should decode bytea and money columns automatically with manual queries.
+#
+# Example:
+#   ActiveRecord::Base.connection.select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
+#   ActiveRecord::Base.connection.select_value("select '12.34'::money").class #=> BigDecimal
+#
+# When false, these queries return UTF-8 `String` values.
+#++
+# Rails.application.config.active_record.postgresql_adapter_decode_bytea = true
+# Rails.application.config.active_record.postgresql_adapter_decode_money = true
+
+###
+# Analyze attachments immediately, making metadata available for validations.
+#
+# When enabled, attachment metadata (image dimensions, video duration, etc.) is extracted
+# before validation, allowing you to validate file properties:
+#
+#   has_one_attached :avatar
+#   validate :validate_avatar_dimensions, if: -> { avatar.attached? }
+#
+#   def validate_avatar_dimensions
+#     if avatar.metadata[:width] < 200 || avatar.metadata[:height] < 200
+#       errors.add(:avatar, "must be at least 200x200")
+#     end
+#   end
+#
+# Valid options:
+#  - :immediately - Analyze before validation (new default)
+#  - :later - Analyze after upload from local IO or via background job for direct uploads
+#  - :lazily - Skip automatic analysis; analyze on-demand
+#++
+# Rails.application.config.active_storage.analyze = :immediately

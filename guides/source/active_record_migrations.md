@@ -15,6 +15,7 @@ After reading this guide, you will know:
 * How to change existing migrations and update your schema.
 * How migrations relate to `schema.rb`.
 * How to maintain referential integrity.
+* How to customize migration behavior with swappable strategies.
 
 --------------------------------------------------------------------------------
 
@@ -64,7 +65,7 @@ These special columns are automatically managed by Active Record if they exist.
 # db/schema.rb
 ActiveRecord::Schema[8.2].define(version: 2024_05_02_100843) do
   # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
+  enable_extension "pg_catalog.plpgsql"
 
   create_table "products", force: :cascade do |t|
     t.string "name"
@@ -191,6 +192,12 @@ class AddPartNumberToProducts < ActiveRecord::Migration[8.2]
   end
 end
 ```
+
+NOTE: Rails infers the target table from the migration name when it matches the
+`add_<columns>_to_<table>` or `remove_<columns>_from_<table>` patterns. Using a
+name such as `AddPartNumberToProducts` lets the generator configure
+`add_column :products, ...` automatically. For more on these conventions, run
+`bin/rails generate migration --help` to see the generator usage and examples.
 
 If you'd like to add an index on the new column, you can do that as well.
 
@@ -699,7 +706,8 @@ Column modifiers can be applied when creating or changing a column:
 * `default`      Allows to set a default value on the column. Note that if you
   are using a dynamic value (such as a date), the default will only be
   calculated the first time (i.e. on the date the migration is applied). Use
-  `nil` for `NULL`.
+  `nil` for `NULL`. Depending on your database, existing records may not
+  receive the default value.
 * `limit`        Sets the maximum number of characters for a `string` column and
   the maximum number of bytes for `text/binary/integer` columns.
 * `null`         Allows or disallows `NULL` values in the column.
@@ -1809,3 +1817,124 @@ Instead, consider using the
 gem provides a framework for creating and managing data migrations and other
 maintenance tasks in a way that is safe and easy to manage without interfering
 with schema migrations.
+
+Customizing Migration Behavior with Swappable Strategies
+--------------------------------------------------------
+
+Rails allows you to customize how migrations execute by using **migration
+strategies**. A migration strategy is an object that sits between your migration
+and the connection, giving you control over how schema changes are applied to
+the database.
+
+By default, Rails uses [`ActiveRecord::Migration::DefaultStrategy`][], which
+executes migrations by sending method calls directly to the connection.
+However, you can replace this with your own strategy to modify, validate,
+or even prevent certain migration operations. Migration strategies are
+especially useful when you need different migration behavior across
+environments. For example, production migrations may require:
+
+* **Safety and Validation**: Prevent dangerous operations like dropping tables
+  or removing columns in production environments.
+* **Online Schema Changes**: Integrate with tools that perform schema
+  changes without downtime (e.g., `pt-online-schema-change`, `gh-ost`).
+* **Centralized Management**: Submit migrations to a centralized service
+  rather than executing them directly, useful in large-scale deployments.
+
+### Configuring a Global Migration Strategy
+
+To customize how migrations are executed, you can define your own migration
+strategy by subclassing [`ActiveRecord::Migration::DefaultStrategy`][]. This
+default class automatically forwards all migration methods to the underlying
+database connection, so you only need to override the methods you want to
+customize.
+
+For example, to prevent dropping tables in production:
+
+```ruby
+class CustomMigrationStrategy < ActiveRecord::Migration::DefaultStrategy
+  def drop_table(table_name, **options)
+    raise "Dropping tables is not allowed in production!"
+  end
+end
+```
+
+You can override any schema statement method your application needs, such as:
+
+- `create_table`
+- `drop_table`
+- `add_column`
+- `remove_column`
+- `add_index`
+- `remove_index`
+- Or any other method from
+  [`ActiveRecord::ConnectionAdapters::SchemaStatements`][]
+
+You can also subclass [`ActiveRecord::Migration::ExecutionStrategy`][], the base
+strategy class. This is useful if you want to define all migration behavior from
+scratch, without having any methods forwarded to the connection.
+
+Once you've defined your custom strategy, make it the default for migrations across
+all database connections by setting [`config.active_record.migration_strategy`][].
+For example, to set a custom strategy in production:
+
+```ruby
+# config/environments/production.rb
+Rails.application.configure do
+  config.active_record.migration_strategy = CustomMigrationStrategy
+end
+```
+
+All migrations methods will be sent to your custom strategy in production.
+
+### Configuring Per-Adapter Migration Strategies
+
+If you're working with multiple database systems, a single global strategy is
+likely insufficient: you may need to tailor migration behavior according to the
+database. Active Record allows you to configure migration strategies on a
+per-adapter basis. For example, suppose your application has a MySQL database,
+`primary`, and a PostgreSQL database, `animals`:
+
+```yaml
+  primary:
+    database: my_primary_database
+    username: root
+    password: <%= ENV['ROOT_PASSWORD'] %>
+    adapter: trilogy
+  animals:
+    database: my_animals_database
+    username: animals_root
+    password: <%= ENV['ANIMALS_ROOT_PASSWORD'] %>
+    adapter: postgresql
+    migrations_paths: db/animals_migrate
+```
+
+You can configure a `migration_strategy` on each adapter class:
+
+```ruby
+# config/initializers/migration_strategies.rb
+if Rails.env.production?
+  ActiveSupport.on_load(:active_record_trilogyadapter) do
+    ActiveRecord::ConnectionAdapters::Trilogy.migration_strategy =
+      MySQLMigrationStrategy
+  end
+
+  ActiveSupport.on_load(:active_record_postgresqladapter) do
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy =
+      PostgreSQLMigrationStrategy
+  end
+end
+```
+
+Migrations running against `primary` will use `MySQLMigrationStrategy`, and
+migrations running against `animals` will use `PostgreSQLMigrationStrategy`.
+The adapter-specific strategy takes precedence over any globally-configured
+stategy.
+
+[`ActiveRecord::Migration::DefaultStrategy`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Migration/DefaultStrategy.html
+[`ActiveRecord::Migration::ExecutionStrategy`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Migration/ExecutionStrategy.html
+[`config.active_record.migration_strategy`]:
+    configuring.html#config-active-record-migration-strategy
+[`ActiveRecord::ConnectionAdapters::SchemaStatements`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html

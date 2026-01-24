@@ -63,17 +63,25 @@ module Rails
         end
       end
 
-      initializer :initialize_error_reporter, group: :all do
+      initializer :initialize_error_reporter, group: :all do |app|
         if config.consider_all_requests_local
           Rails.error.debug_mode = true
         else
           Rails.error.logger = Rails.logger
         end
+
+        Rails.error.add_middleware(->(error, handled:, severity:, context:, source:) {
+          context.reverse_merge(rails: {
+            version: Rails::VERSION::STRING,
+            app_revision: app.revision,
+            environment: Rails.env.to_s,
+          })
+        })
       end
 
       initializer :initialize_event_reporter, group: :all do
         Rails.event.raise_on_error = config.consider_all_requests_local
-        Rails.event.debug_mode = Rails.env.development?
+        Rails.event.debug_mode = config.log_level.to_s == "debug"
       end
 
       # Initialize cache early in the stack so railties can make use of it.

@@ -59,7 +59,7 @@ module ActiveSupport
         pool_options = retrieve_pool_options(options)
 
         if pool_options
-          ConnectionPool.new(pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
+          ConnectionPool.new(**pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
         else
           Dalli::Client.new(addresses, options)
         end
@@ -90,6 +90,9 @@ module ActiveSupport
         # The value "compress: false" prevents duplicate compression within Dalli.
         @mem_cache_options[:compress] = false
         (OVERRIDDEN_OPTIONS - %i(compress)).each { |name| @mem_cache_options.delete(name) }
+        # Set the default serializer for Dalli to prevent warning about
+        # inheriting the default serializer.
+        @mem_cache_options[:serializer] = Marshal
         @data = self.class.build_mem_cache(*(addresses + [@mem_cache_options]))
       end
 

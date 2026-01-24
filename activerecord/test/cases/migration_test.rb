@@ -454,6 +454,7 @@ class MigrationTest < ActiveRecord::TestCase
       def connection
         Class.new {
           def create_table; "hi mom!"; end
+          def migration_strategy; nil; end
         }.new
       end
     }.new
@@ -466,6 +467,7 @@ class MigrationTest < ActiveRecord::TestCase
       def connection
         Class.new {
           def create_table; end
+          def migration_strategy; nil; end
         }.new
       end
     }
@@ -1602,6 +1604,32 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
       assert_no_column Person, :column1
       assert_no_column Person, :column2
     end
+
+    def test_bulk_revert_with_table_name_prefix
+      ActiveRecord::Base.table_name_prefix = "prefix_"
+      @connection.create_table(:prefix_testings, force: true)
+
+      migration = Class.new(ActiveRecord::Migration::Current) {
+        def write(text = ""); end
+
+        def change
+          change_table :testings, bulk: true do |t|
+            t.column :foo, :string
+            t.column :bar, :string
+            t.index :foo
+          end
+        end
+      }.new
+
+      migration.migrate(:up)
+      assert @connection.column_exists?(:prefix_testings, :foo)
+
+      migration.migrate(:down)
+      assert_not @connection.column_exists?(:prefix_testings, :foo)
+    ensure
+      @connection.drop_table :prefix_testings, if_exists: true
+      ActiveRecord::Base.table_name_prefix = ""
+    end
   end
 end
 
@@ -1946,5 +1974,82 @@ class CopyMigrationsTest < ActiveRecord::TestCase
         paths.each { |path| File.delete(path) if File.exist?(path) }
         Dir.rmdir(migrations_dir) if Dir.exist?(migrations_dir)
       end
+  end
+
+  class MigrationStrategyTest < ActiveRecord::TestCase
+    class TestStrategy < ActiveRecord::Migration::DefaultStrategy
+      attr_reader :called
+
+      def initialize(migration)
+        super
+        @called = false
+      end
+
+      def create_table(*)
+        super
+        @called = true
+      end
+    end
+
+    class AlternateStrategy < TestStrategy; end
+
+    class TestMigration < ActiveRecord::Migration::Current
+      def change
+        create_table :test_strategy_table do |t|
+          t.string :name
+        end
+      end
+    end
+
+    def setup
+      @original_global_strategy = ActiveRecord.migration_strategy
+      @connection = ActiveRecord::Base.lease_connection
+      @original_connection_strategy = @connection.migration_strategy
+      @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
+    end
+
+    def teardown
+      ActiveRecord.migration_strategy = @original_global_strategy
+      ActiveRecord::Migration.verbose = @verbose_was
+      @connection.class.migration_strategy = @original_connection_strategy
+      @connection.drop_table(:test_strategy_table) rescue nil
+    end
+
+    test "migration uses global migration strategy when set" do
+      ActiveRecord.migration_strategy = TestStrategy
+      migration = TestMigration.new("TestMigration", 1)
+      strategy = migration.execution_strategy
+
+      assert_instance_of TestStrategy, strategy
+
+      migration.migrate(:up)
+
+      assert strategy.called
+    end
+
+    test "migration uses adapter-specific strategy when set" do
+      @connection.class.migration_strategy = TestStrategy
+      migration = TestMigration.new("TestMigration", 1)
+      strategy = migration.execution_strategy
+
+      assert_instance_of TestStrategy, strategy
+
+      migration.migrate(:up)
+
+      assert strategy.called
+    end
+
+    test "migration uses adapter-specific stategy over global strategy" do
+      ActiveRecord.migration_strategy = TestStrategy
+      @connection.class.migration_strategy = AlternateStrategy
+      migration = TestMigration.new("TestMigration", 1)
+      strategy = migration.execution_strategy
+
+      assert_instance_of AlternateStrategy, strategy
+
+      migration.migrate(:up)
+
+      assert strategy.called
+    end
   end
 end
