@@ -110,7 +110,7 @@ module ActiveRecord
       #   #    ]
 
       # Finds an object in the collection responding to the +id+. Uses the same
-      # rules as ActiveRecord::FinderMethods.find. Returns ActiveRecord::RecordNotFound
+      # rules as ActiveRecord::FinderMethods.find. Raises ActiveRecord::RecordNotFound
       # error if the object cannot be found.
       #
       #   class Person < ActiveRecord::Base
@@ -928,7 +928,20 @@ module ActiveRecord
         !!@association.include?(record)
       end
 
-      def proxy_association # :nodoc:
+      # Returns the association object for the collection.
+      #
+      #   class Person < ActiveRecord::Base
+      #     has_many :pets
+      #   end
+      #
+      #   person.pets.proxy_association
+      #   # => #<ActiveRecord::Associations::HasManyAssociation owner="#<Person:0x00>">
+      #
+      # Returns the same object as <tt>person.association(:pets)</tt>,
+      # allowing you to make calls like <tt>person.pets.proxy_association.owner</tt>.
+      #
+      # See Associations::ClassMethods@Association+extensions for more.
+      def proxy_association
         @association
       end
 
@@ -1112,14 +1125,32 @@ module ActiveRecord
         super
       end
 
+      %w(insert insert_all insert! insert_all! upsert upsert_all).each do |method|
+        class_eval <<~RUBY, __FILE__, __LINE__ + 1
+          def #{method}(...)
+            if @association&.target&.any? { |r| r.new_record? }
+              association_name = @association.reflection.name
+              ActiveRecord.deprecator.warn(<<~MSG)
+                Using #{method} on association \#{association_name} with unpersisted records
+                is deprecated and will be removed in Rails 8.2.
+                The unpersisted records will be lost after this operation.
+                Please either persist your records first or store them separately before
+                calling #{method}.
+              MSG
+              scope.#{method}(...)
+            else
+              scope.#{method}(...).tap { reset }
+            end
+          end
+        RUBY
+      end
+
       delegate_methods = [
         QueryMethods,
         SpawnMethods,
       ].flat_map { |klass|
         klass.public_instance_methods(false)
-      } - self.public_instance_methods(false) - [:select] + [
-        :scoping, :values, :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all, :load_async
-      ]
+      } - self.public_instance_methods(false) - [ :select ] + [ :scoping, :values, :load_async ]
 
       delegate(*delegate_methods, to: :scope)
 

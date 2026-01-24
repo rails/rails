@@ -22,10 +22,10 @@ module ActionController
   #       default_form_builder AdminFormBuilder
   #     end
   #
-  # Then in the view any form using `form_for` will be an instance of the
-  # specified form builder:
+  # Then in the view any form using `form_with` or `form_for` will be an
+  # instance of the specified form builder:
   #
-  #     <%= form_for(@instance) do |builder| %>
+  #     <%= form_with(model: @instance) do |builder| %>
   #       <%= builder.special_field(:name) %>
   #     <% end %>
   module FormBuilder
@@ -40,7 +40,7 @@ module ActionController
       # rendered by this controller and its subclasses.
       #
       # #### Parameters
-      # *   `builder` - Default form builder, an instance of
+      # *   `builder` - Default form builder. Accepts a subclass of
       #     ActionView::Helpers::FormBuilder
       def default_form_builder(builder)
         self._default_form_builder = builder

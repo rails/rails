@@ -14,8 +14,8 @@ module ActiveStorage
     class MetadataServerNotFoundError < ActiveStorage::Error; end
 
     def initialize(public: false, **config)
-      @config = config
       @public = public
+      @config = config
     end
 
     def upload(key, io, checksum: nil, content_type: nil, disposition: nil, filename: nil, custom_metadata: {})
@@ -144,6 +144,29 @@ module ActiveStorage
       end
     end
 
+    def bucket
+      @bucket ||= client.bucket(@config.fetch(:bucket), skip_lookup: true)
+    end
+
+    def client
+      @client ||= Google::Cloud::Storage.new(**@config.except(:bucket, :cache_control, :iam, :gsa_email))
+    end
+
+    # Returns the IAM client used for direct uploads and signed URLs.
+    # By default, the authorization for the IAM client is set to
+    # {Application Default Credentials}[https://docs.cloud.google.com/docs/authentication/application-default-credentials],
+    # fetched once at instantiation time, then refreshed automatically when expired.
+    # This can be set to a different value to use other authorization methods.
+    #
+    #   ActiveStorage::Blob.service.iam_client.authorization = Google::Auth::ImpersonatedServiceAccountCredentials.new(options)
+    def iam_client
+      @iam_client ||= Google::Apis::IamcredentialsV1::IAMCredentialsService.new.tap do |client|
+        client.authorization ||= Google::Auth.get_application_default(["https://www.googleapis.com/auth/iam"])
+      rescue
+        nil
+      end
+    end
+
     private
       def private_url(key, expires_in:, filename:, content_type:, disposition:, **)
         args = {
@@ -166,9 +189,6 @@ module ActiveStorage
         file_for(key).public_url
       end
 
-
-      attr_reader :config
-
       def file_for(key, skip_lookup: true)
         bucket.file(key, skip_lookup: skip_lookup)
       end
@@ -188,14 +208,6 @@ module ActiveStorage
         end
       end
 
-      def bucket
-        @bucket ||= client.bucket(config.fetch(:bucket), skip_lookup: true)
-      end
-
-      def client
-        @client ||= Google::Cloud::Storage.new(**config.except(:bucket, :cache_control, :iam, :gsa_email))
-      end
-
       def issuer
         @issuer ||= @config[:gsa_email].presence || email_from_metadata_server
       end
@@ -211,11 +223,6 @@ module ActiveStorage
       def signer
         # https://googleapis.dev/ruby/google-cloud-storage/latest/Google/Cloud/Storage/Project.html#signed_url-instance_method
         lambda do |string_to_sign|
-          iam_client = Google::Apis::IamcredentialsV1::IAMCredentialsService.new
-
-          scopes = ["https://www.googleapis.com/auth/iam"]
-          iam_client.authorization = Google::Auth.get_application_default(scopes)
-
           request = Google::Apis::IamcredentialsV1::SignBlobRequest.new(
             payload: string_to_sign
           )

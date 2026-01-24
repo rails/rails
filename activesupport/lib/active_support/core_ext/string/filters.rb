@@ -19,7 +19,9 @@ class String
   #   str.squish!                         # => "foo bar boo"
   #   str                                 # => "foo bar boo"
   def squish!
-    gsub!(/[[:space:]]+/, " ")
+    # Search for two or more `[[:space:]]` OR a single
+    # [[:space:]] that isn't `" "`.
+    gsub!(/([[:space:]]{2,}|[[[:space:]]&&[^ ]])/, " ")
     strip!
     self
   end
@@ -88,11 +90,11 @@ class String
   # characters.
   #
   #   >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".size
-  #   => 20
+  #   # => 20
   #   >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".bytesize
-  #   => 80
+  #   # => 80
   #   >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".truncate_bytes(20)
-  #   => "🔪🔪🔪🔪…"
+  #   # => "🔪🔪🔪🔪…"
   #
   # The truncated text ends with the <tt>:omission</tt> string, defaulting
   # to "…", for a total length not exceeding <tt>truncate_to</tt>.

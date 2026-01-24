@@ -11,7 +11,7 @@ module ActionView
   #
   # Consider for example the following code that form of post:
   #
-  #   <%= form_for(post) do |f| %>
+  #   <%= form_with(model: post) do |f| %>
   #     <%= f.text_field :body %>
   #   <% end %>
   #
@@ -99,6 +99,27 @@ module ActionView
       else
         dom_class(record_or_class, prefix || NEW)
       end
+    end
+
+    # The DOM target convention is to concatenate any number of parameters into a string.
+    # Records are passed through dom_id, while string and symbols are retained.
+    #
+    #   dom_target(Post.find(45))                  # => "post_45"
+    #   dom_target(Post.find(45), :edit)           # => "post_45_edit"
+    #   dom_target(Post.find(45), :edit, :special) # => "post_45_edit_special"
+    #   dom_target(Post.find(45), Comment.find(1)) # => "post_45_comment_1"
+    def dom_target(*objects)
+      objects.map! do |object|
+        case object
+        when Symbol, String
+          object
+        when Class
+          dom_class(object)
+        else
+          dom_id(object)
+        end
+      end
+      objects.join(JOIN)
     end
 
   private

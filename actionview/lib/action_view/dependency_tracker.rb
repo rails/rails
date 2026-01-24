@@ -10,6 +10,7 @@ module ActionView
 
     autoload :ERBTracker
     autoload :RubyTracker
+    autoload :WildcardResolver
 
     @trackers = Concurrent::Map.new
 
@@ -35,6 +36,11 @@ module ActionView
       @trackers.delete(handler)
     end
 
-    register_tracker :erb, ERBTracker
+    case ActionView.render_tracker
+    when :ruby
+      register_tracker :erb, RubyTracker
+    else
+      register_tracker :erb, ERBTracker
+    end
   end
 end

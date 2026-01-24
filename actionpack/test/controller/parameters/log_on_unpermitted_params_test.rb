@@ -1,15 +1,24 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/event_reporter_assertions"
 require "action_controller/metal/strong_parameters"
 
 class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::EventReporterAssertions
+
   def setup
     ActionController::Parameters.action_on_unpermitted_parameters = :log
   end
 
   def teardown
     ActionController::Parameters.action_on_unpermitted_parameters = false
+  end
+
+  def run(*)
+    with_debug_event_reporting do
+      super
+    end
   end
 
   test "logs on unexpected param" do
@@ -50,13 +59,23 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
     end
   end
 
-  test "logs on unexpected nested params with require" do
+  test "does not log on unexpected nested params with expect" do
     request_params = { book: { pages: 65, title: "Green Cats and where to find then.", author: "G. A. Dog" } }
     context = { "action" => "my_action", "controller" => "my_controller" }
     params = ActionController::Parameters.new(request_params, context)
 
-    assert_logged("Unpermitted parameters: :title, :author. Context: { action: my_action, controller: my_controller }") do
-      params.require(:book).permit(:pages)
+    assert_logged("") do
+      params.expect(book: :pages)
+    end
+  end
+
+  test "does not log on unexpected nested params with expect!" do
+    request_params = { book: { pages: 65, title: "Green Cats and where to find then.", author: "G. A. Dog" } }
+    context = { "action" => "my_action", "controller" => "my_controller" }
+    params = ActionController::Parameters.new(request_params, context)
+
+    assert_logged("") do
+      params.expect!(book: :pages)
     end
   end
 
@@ -186,9 +205,9 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
 
   private
     def assert_logged(message)
-      old_logger = ActionController::Base.logger
+      old_logger = ActionController::LogSubscriber.logger
       log = StringIO.new
-      ActionController::Base.logger = Logger.new(log)
+      ActionController::LogSubscriber.logger = Logger.new(log)
 
       begin
         yield
@@ -196,7 +215,7 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
         log.rewind
         assert_match message, log.read
       ensure
-        ActionController::Base.logger = old_logger
+        ActionController::LogSubscriber.logger = old_logger
       end
     end
 end

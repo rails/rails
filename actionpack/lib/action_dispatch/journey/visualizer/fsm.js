@@ -105,12 +105,10 @@ function match(input) {
         }
 
         if(stdparam_states[state] && default_re.test(token)) {
-          for(var key in stdparam_states[state]) {
-            var new_state = stdparam_states[state][key];
-            highlight_edge(state, new_state);
-            highlight_state(new_state);
-            new_states.push([new_state, null]);
-          }
+          var new_state = stdparam_states[state];
+          highlight_edge(state, new_state);
+          highlight_state(new_state);
+          new_states.push([new_state, null]);
         }
       }
 

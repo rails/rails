@@ -35,6 +35,8 @@ module ActiveSupport
       :race_condition_ttl,
       :serializer,
       :skip_nil,
+      :raw,
+      :max_key_size,
     ]
 
     # Mapping of canonical option names to aliases that a store will recognize.
@@ -52,7 +54,7 @@ module ActiveSupport
       autoload :LocalCache, "active_support/cache/strategy/local_cache"
     end
 
-    @format_version = 6.1
+    @format_version = 7.0
 
     class << self
       attr_accessor :format_version
@@ -186,6 +188,12 @@ module ActiveSupport
     #   @last_mod_time = Time.now  # Invalidate the entire cache by changing namespace
     #
     class Store
+      # Default +ConnectionPool+ options
+      DEFAULT_POOL_OPTIONS = { size: 5, timeout: 5 }.freeze
+
+      # Keys are truncated with the Active Support digest if they exceed the limit.
+      MAX_KEY_SIZE = 250
+
       cattr_accessor :logger, instance_writer: true
       cattr_accessor :raise_on_invalid_cache_expiration_time, default: false
 
@@ -194,30 +202,9 @@ module ActiveSupport
 
       class << self
         private
-          DEFAULT_POOL_OPTIONS = { size: 5, timeout: 5 }.freeze
-          private_constant :DEFAULT_POOL_OPTIONS
-
           def retrieve_pool_options(options)
             if options.key?(:pool)
               pool_options = options.delete(:pool)
-            elsif options.key?(:pool_size) || options.key?(:pool_timeout)
-              pool_options = {}
-
-              if options.key?(:pool_size)
-                ActiveSupport.deprecator.warn(<<~MSG)
-                  Using :pool_size is deprecated and will be removed in Rails 7.2.
-                  Use `pool: { size: #{options[:pool_size].inspect} }` instead.
-                MSG
-                pool_options[:size] = options.delete(:pool_size)
-              end
-
-              if options.key?(:pool_timeout)
-                ActiveSupport.deprecator.warn(<<~MSG)
-                  Using :pool_timeout is deprecated and will be removed in Rails 7.2.
-                  Use `pool: { timeout: #{options[:pool_timeout].inspect} }` instead.
-                MSG
-                pool_options[:timeout] = options.delete(:pool_timeout)
-              end
             else
               pool_options = true
             end
@@ -304,7 +291,7 @@ module ActiveSupport
       #   <tt>coder: nil</tt> to avoid the overhead of safeguarding against
       #   mutation.
       #
-      #   The +:coder+ option is mutally exclusive with the +:serializer+ and
+      #   The +:coder+ option is mutually exclusive with the +:serializer+ and
       #   +:compressor+ options. Specifying them together will raise an
       #   +ArgumentError+.
       #
@@ -315,6 +302,9 @@ module ActiveSupport
 
         @options[:compress] = true unless @options.key?(:compress)
         @options[:compress_threshold] ||= DEFAULT_COMPRESS_LIMIT
+
+        @max_key_size = @options.delete(:max_key_size)
+        @max_key_size = MAX_KEY_SIZE if @max_key_size.nil? # allow 'false' as a value
 
         @coder = @options.delete(:coder) do
           legacy_serializer = Cache.format_version < 7.1 && !@options[:serializer]
@@ -404,7 +394,7 @@ module ActiveSupport
       #   process can try to generate a new value after the extended time window
       #   has elapsed.
       #
-      #     # Set all values to expire after one minute.
+      #     # Set all values to expire after one second.
       #     cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1)
       #
       #     cache.write("foo", "original value")
@@ -437,7 +427,7 @@ module ActiveSupport
       #     t1.join
       #
       #     p val_1 # => "new value 1"
-      #     p val_2 # => "oritinal value"
+      #     p val_2 # => "original value"
       #     p cache.fetch("foo") # => "new value 1"
       #
       #     # The entry requires 3 seconds to expire (expires_in + race_condition_ttl)
@@ -556,10 +546,11 @@ module ActiveSupport
 
         options = names.extract_options!
         options = merged_options(options)
+        keys    = names.map { |name| normalize_key(name, options) }
 
-        instrument_multi :read_multi, names, options do |payload|
+        instrument_multi :read_multi, keys, options do |payload|
           read_multi_entries(names, **options, event: payload).tap do |results|
-            payload[:hits] = results.keys
+            payload[:hits] = results.keys.map { |name| normalize_key(name, options) }
           end
         end
       end
@@ -569,10 +560,11 @@ module ActiveSupport
         return hash if hash.empty?
 
         options = merged_options(options)
+        normalized_hash = hash.transform_keys { |key| normalize_key(key, options) }
 
-        instrument_multi :write_multi, hash, options do |payload|
+        instrument_multi :write_multi, normalized_hash, options do |payload|
           entries = hash.each_with_object({}) do |(name, value), memo|
-            memo[normalize_key(name, options)] = Entry.new(value, **options.merge(version: normalize_version(name, options)))
+            memo[normalize_key(name, options)] = Entry.new(value, **options, version: normalize_version(name, options))
           end
 
           write_multi_entries entries, **options
@@ -614,9 +606,9 @@ module ActiveSupport
 
         options = names.extract_options!
         options = merged_options(options)
-
+        keys    = names.map { |name| normalize_key(name, options) }
         writes  = {}
-        ordered = instrument_multi :read_multi, names, options do |payload|
+        ordered = instrument_multi :read_multi, keys, options do |payload|
           if options[:force]
             reads = {}
           else
@@ -628,7 +620,7 @@ module ActiveSupport
           end
           writes.compact! if options[:skip_nil]
 
-          payload[:hits] = reads.keys
+          payload[:hits] = reads.keys.map { |name| normalize_key(name, options) }
           payload[:super_operation] = :fetch_multi
 
           ordered
@@ -674,13 +666,15 @@ module ActiveSupport
       #   version, the read will be treated as a cache miss. This feature is
       #   used to support recyclable cache keys.
       #
+      # * +:unless_exist+ - Prevents overwriting an existing cache entry.
+      #
       # Other options will be handled by the specific cache store implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
 
         instrument(:write, key, options) do
-          entry = Entry.new(value, **options.merge(version: normalize_version(name, options)))
+          entry = Entry.new(value, **options, version: normalize_version(name, options))
           write_entry(key, entry, **options)
         end
       end
@@ -693,7 +687,7 @@ module ActiveSupport
         options = merged_options(options)
         key = normalize_key(name, options)
 
-        instrument(:delete, key) do
+        instrument(:delete, key, options) do
           delete_entry(key, **options)
         end
       end
@@ -708,7 +702,7 @@ module ActiveSupport
         options = merged_options(options)
         names.map! { |key| normalize_key(key, options) }
 
-        instrument_multi :delete_multi, names do
+        instrument_multi(:delete_multi, names, options) do
           delete_multi_entries(names, **options)
         end
       end
@@ -757,6 +751,32 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support decrement")
       end
 
+      # Reads a counter that was set by #increment / #decrement.
+      #
+      #   cache.write_counter("foo", 1)
+      #   cache.read_counter("foo") # => 1
+      #   cache.increment("foo")
+      #   cache.read_counter("foo") # => 2
+      #
+      # Options are passed to the underlying cache implementation.
+      def read_counter(name, **options)
+        options = merged_options(options).merge(raw: true)
+        read(name, **options)&.to_i
+      end
+
+      # Writes a counter that can then be modified by #increment / #decrement.
+      #
+      #   cache.write_counter("foo", 1)
+      #   cache.read_counter("foo") # => 1
+      #   cache.increment("foo")
+      #   cache.read_counter("foo") # => 2
+      #
+      # Options are passed to the underlying cache implementation.
+      def write_counter(name, value, **options)
+        options = merged_options(options).merge(raw: true)
+        write(name, value.to_i, **options)
+      end
+
       # Cleans up the cache by removing expired entries.
       #
       # Options are passed to the underlying cache implementation.
@@ -776,17 +796,20 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
+      # Get the current namespace
+      def namespace
+        @options[:namespace]
+      end
+
+      # Set the current namespace. Note, this will be ignored if custom
+      # options are passed to cache wills with a namespace key.
+      def namespace=(namespace)
+        @options[:namespace] = namespace
+      end
+
       private
         def default_serializer
           case Cache.format_version
-          when 6.1
-            ActiveSupport.deprecator.warn <<~EOM
-              Support for `config.active_support.cache_format_version = 6.1` has been deprecated and will be removed in Rails 7.2.
-
-              Check the Rails upgrade guide at https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#new-activesupport-cache-serialization-format
-              for more information on how to upgrade.
-            EOM
-            Cache::SerializerWithFallback[:marshal_6_1]
           when 7.0
             Cache::SerializerWithFallback[:marshal_7_0]
           when 7.1
@@ -950,14 +973,31 @@ module ActiveSupport
           options
         end
 
-        # Expands and namespaces the cache key.
+        # Expands, namespaces and truncates the cache key.
         # Raises an exception when the key is +nil+ or an empty string.
         # May be overridden by cache stores to do additional normalization.
         def normalize_key(key, options = nil)
+          key = expand_and_namespace_key(key, options)
+          truncate_key(key)
+        end
+
+        def expand_and_namespace_key(key, options = nil)
           str_key = expanded_key(key)
           raise(ArgumentError, "key cannot be blank") if !str_key || str_key.empty?
 
           namespace_key str_key, options
+        end
+
+        def truncate_key(key)
+          if key && @max_key_size && key.bytesize > @max_key_size
+            suffix = ":hash:#{ActiveSupport::Digest.hexdigest(key)}"
+            truncate_at = @max_key_size - suffix.bytesize
+            key = key.byteslice(0, truncate_at)
+            key.scrub!("")
+            "#{key}#{suffix}"
+          else
+            key
+          end
         end
 
         # Prefix the key with a namespace string:
@@ -969,9 +1009,12 @@ module ActiveSupport
         #
         #   namespace_key 'foo', namespace: -> { 'cache' }
         #   # => 'cache:foo'
-        def namespace_key(key, options = nil)
-          options = merged_options(options)
-          namespace = options[:namespace]
+        def namespace_key(key, call_options = nil)
+          namespace = if call_options&.key?(:namespace)
+            call_options[:namespace]
+          else
+            options[:namespace]
+          end
 
           if namespace.respond_to?(:call)
             namespace = namespace.call
@@ -1056,7 +1099,7 @@ module ActiveSupport
               # When an entry has a positive :race_condition_ttl defined, put the stale entry back into the cache
               # for a brief period while the entry is being recalculated.
               entry.expires_at = Time.now.to_f + race_ttl
-              write_entry(key, entry, expires_in: race_ttl * 2)
+              write_entry(key, entry, **options, expires_in: race_ttl * 2)
             else
               delete_entry(key, **options)
             end

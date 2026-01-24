@@ -96,7 +96,6 @@ module ActionController
     #     *   `:script_name` - The portion of the incoming request's URL path that
     #         corresponds to the application. Converts to Rack's `SCRIPT_NAME`.
     #     *   `:input` - The input stream. Converts to Rack's `rack.input`.
-    #
     # *   `defaults` - Default values for the Rack env. Entries are specified in the
     #     same format as `env`. `env` will be merged on top of these values.
     #     `defaults` will be retained when calling #new on a renderer instance.

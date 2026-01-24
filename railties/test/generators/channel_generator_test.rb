@@ -78,6 +78,16 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  test "import channels in javascript entrypoint when using a css processor" do
+    FileUtils.touch("#{destination_root}/package.json")
+
+    run_generator ["books"]
+
+    assert_file "app/javascript/application.js" do |entrypoint|
+      assert_match %r|import "channels"|, entrypoint
+    end
+  end
+
   test "import channels in javascript entrypoint under node" do
     use_under_node
     generator(["chat"]).stub(:install_javascript_dependencies, true) do

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require "active_support"
+require "active_support/rails"
 require "active_support/core_ext/enumerable"
-require "active_support/core_ext/object/blank"
 require "rails/deprecator"
 
 require "thor"
@@ -21,12 +21,6 @@ module Rails
         @name = name
         @alternatives = alternatives
         super(message)
-      end
-
-      if !Exception.method_defined?(:detailed_message) # Ruby 3.2+
-        def detailed_message(...)
-          message
-        end
       end
 
       if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)

@@ -1,279 +1,160 @@
-*   Allow Actionable Errors encountered when running tests to be retried.
+*   Detect JavaScript package manager from lockfiles in generators.
 
-    ```txt
-    Migrations are pending. To resolve this issue, run:
+    Rails generators now automatically detect bun, pnpm, npm, or yarn by looking
+    for project lockfiles instead of hardcoding `yarn`.
 
-            bin/rails db:migrate
+    *David Lowenfels*
 
-    You have 1 pending migration:
-
-    db/migrate/20240201213806_add_a_to_b.rb
-    Run pending migrations? [Yn] Y
-    == 20240201213806 AddAToB: migrating =========================================
-    == 20240201213806 AddAToB: migrated (0.0000s) ================================
-
-    Running 7 tests in a single process (parallelization threshold is 50)
-    Run options: --seed 22200
-
-    # Running:
-
-    .......
-
-    Finished in 0.243394s, 28.7600 runs/s, 45.1942 assertions/s.
-    7 runs, 11 assertions, 0 failures, 0 errors, 0 skips
-    ```
-
-    This feature will only be present on interactive terminals.
-
-    *Andrew Novoselac & Gannon McGibbon*
-
-*   Skip generating a `test` job in ci.yml when a new application is generated with the
-    `--skip-test` option.
-
-    *Steve Polito*
-
-*   Update the `.node-version` file conditionally generated for new applications to 20.11.1
-
-    *Steve Polito*
-
-*   Fix sanitizer vendor configuration in 7.1 defaults.
-
-    In apps where rails-html-sanitizer was not eagerly loaded, the sanitizer default could end up
-    being Rails::HTML4::Sanitizer when it should be set to Rails::HTML5::Sanitizer.
-
-    *Mike Dalessio*, *Rafael Mendonça França*
-
-*   Set `action_mailer.default_url_options` values in `development` and `test`.
-
-    Prior to this commit, new Rails applications would raise `ActionView::Template::Error`
-    if a mailer included a url built with a `*_path` helper.
-
-    *Steve Polito*
-
-*   Introduce `Rails::Generators::Testing::Assertions#assert_initializer`
-
-    Compliments the existing `initializer` generator action.
-
-    ```rb
-    assert_initializer "mail_interceptors.rb"
-    ```
-
-    *Steve Polito*
-
-*   Generate a .devcontainer folder and its contents when creating a new app.
-
-    The .devcontainer folder includes everything needed to boot the app and do development in a remote container.
-
-    The container setup includes:
-     - A redis container for Kredis, ActionCable etc.
-     - A database (SQLite, Postgres, MySQL or MariaDB)
-     - A Headless chrome container for system tests
-     - Active Storage configured to use the local disk and with preview features working
-
-    If any of these options are skipped in the app setup they will not be included in the container configuration.
-
-    These files can be skipped using the `--skip-devcontainer` option.
-
-    *Andrew Novoselac & Rafael Mendonça França*
-
-*   Introduce `SystemTestCase#served_by` for configuring the System Test application server
-
-    By default this is localhost. This method allows the host and port to be specified manually.
-
-    ```ruby
-    class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-      served_by host: "testserver", port: 45678
-    end
-    ```
-
-    *Andrew Novoselac & Rafael Mendonça França*
-
-*   `bin/rails test` will no longer load files named `*_test.rb` if they are located in the `fixtures` folder.
-
-    *Edouard Chin*
-
-*   Ensure logger tags configured with `config.log_tags` are still active in `request.action_dispatch` handlers
-
-    *KJ Tsanaktsidis*
-
-*   Setup jemalloc in the default Dockerfile for memory optimization.
-
-    *Matt Almeida*, *Jean Boussier*
-
-*   Commented out lines in .railsrc file should not be treated as arguments when using
-    rails new generator command. Update ARGVScrubber to ignore text after # symbols.
-
-    *Willian Tenfen*
-
-*   Skip CSS when generating APIs.
-
-    *Ruy Rocha*
-
-*   Rails console now indicates application name and the current Rails environment:
-
-    ```txt
-    my-app(dev)> # for RAILS_ENV=development
-    my-app(test)> # for RAILS_ENV=test
-    my-app(prod)> # for RAILS_ENV=production
-    my-app(my_env)> # for RAILS_ENV=my_env
-    ```
-
-    The application name is derived from the application's module name from `config/application.rb`.
-    For example, `MyApp` will displayed as `my-app` in the prompt.
-
-    Additionally, the environment name will be colorized when the environment is
-    `development` (blue), `test` (blue), or `production` (red), if your
-    terminal supports it.
-
-    *Stan Lo*
-
-*   Ensure `autoload_paths`, `autoload_once_paths`, `eager_load_paths`, and
-    `load_paths` only have directories when initialized from engine defaults.
-    Previously, files under the `app` directory could end up there too.
-
-    *Takumasa Ochi*
-
-*   Prevent unnecessary application reloads in development.
-
-    Previously, some files outside autoload paths triggered unnecessary reloads.
-    With this fix, application reloads according to `Rails.autoloaders.main.dirs`,
-    thereby preventing unnecessary reloads.
-
-    *Takumasa Ochi*
-
-*   Use `oven-sh/setup-bun` in GitHub CI when generating an app with Bun.
-
-    *TangRufus*
-
-*   Disable `pidfile` generation in the `production` environment.
-
-    *Hans Schnedlitz*
-
-*   Set `config.action_view.annotate_rendered_view_with_filenames` to `true` in
-    the `development` environment.
-
-    *Adrian Marin*
-
-*   Support the `BACKTRACE` environment variable to turn off backtrace cleaning.
-
-    Useful for debugging framework code:
-
-    ```sh
-    BACKTRACE=1 bin/rails server
-    ```
-
-    *Alex Ghiculescu*
-
-*   Raise `ArgumentError` when reading `config.x.something` with arguments:
-
-    ```ruby
-    config.x.this_works.this_raises true # raises ArgumentError
-    ```
-
-    *Sean Doyle*
-
-*   Add default PWA files for manifest and service-worker that are served from `app/views/pwa` and can be dynamically rendered through ERB. Mount these files explicitly at the root with default routes in the generated routes file.
-
-    *DHH*
-
-*   Updated system tests to now use headless Chrome by default for the new applications.
-
-    *DHH*
-
-*   Add GitHub CI files for Dependabot, Brakeman, RuboCop, and running tests by default. Can be skipped with `--skip-ci`.
-
-    *DHH*
-
-*   Add Brakeman by default for static analysis of security vulnerabilities. Allow skipping with `--skip-brakeman option`.
-
-    *vipulnsward*
-
-*   Add RuboCop with rules from `rubocop-rails-omakase` by default. Skip with `--skip-rubocop`.
-
-    *DHH* and *zzak*
-
-*   Use `bin/rails runner --skip-executor` to not wrap the runner script with an
-    Executor.
+*   Console `reload!` will reset the console's executor, when present.
 
     *Ben Sheldon*
 
-*   Fix isolated engines to take `ActiveRecord::Base.table_name_prefix` into consideration.
-    This will allow for engine defined models, such as inside Active Storage, to respect
-    Active Record table name prefix configuration.
+*   Add `libvips` to generated `ci.yml`
 
-    *Chedli Bourguiba*
-
-*   Fix running `db:system:change` when the app has no Dockerfile.
-
-    *Hartley McGuire*
-
-*   In Action Mailer previews, list inline attachments separately from normal
-    attachments. For example, attachments that were previously listed like
-
-      > Attachments: logo.png file1.pdf file2.pdf
-
-    will now be listed like
-
-      > Attachments: file1.pdf file2.pdf (Inline: logo.png)
-
-    *Christian Schmidt* and *Jonathan Hefner*
-
-*   In mailer preview, only show SMTP-To if it differs from the union of To, Cc and Bcc.
-
-    *Christian Schmidt*
-
-*   Enable YJIT by default on new applications running Ruby 3.3+.
-
-    Adds a `config/initializers/enable_yjit.rb` initializer that enables YJIT
-    when running on Ruby 3.3+.
-
-    *Jean Boussier*
-
-*   In Action Mailer previews, show date from message `Date` header if present.
-
-    *Sampat Badhe*
-
-*   Exit with non-zero status when the migration generator fails.
-
-    *Katsuhiko YOSHIDA*
-
-*   Use numeric UID and GID in Dockerfile template
-
-    The Dockerfile generated by `rails new` sets the default user and group
-    by name instead of UID:GID. This can cause the following error in Kubernetes:
-
-    ```
-    container has runAsNonRoot and image has non-numeric user (rails), cannot verify user is non-root
-    ```
-
-    This change sets default user and group by their numeric values.
-
-    *Ivan Fedotov*
-
-*   Disallow invalid values for rails new options.
-
-    The `--database`, `--asset-pipeline`, `--css`, and `--javascript` options
-    for `rails new` take different arguments. This change validates them.
-
-    *Tony Drake*, *Akhil G Krishnan*, *Petrik de Heus*
-
-*   Conditionally print `$stdout` when invoking `run_generator`.
-
-    In an effort to improve the developer experience when debugging
-    generator tests, we add the ability to conditionally print `$stdout`
-    instead of capturing it.
-
-    This allows for calls to `binding.irb` and `puts` work as expected.
-
-    ```sh
-    RAILS_LOG_TO_STDOUT=true ./bin/test test/generators/actions_test.rb
-    ```
+    Conditionally adds `libvips` to `ci.yml`.
 
     *Steve Polito*
 
-*   Remove the option `config.public_file_server.enabled` from the generators
-    for all environments, as the value is the same in all environments.
+*   Add `Rails.app.revision` to provide a version identifier for error reporting, monitoring, cache keys, etc.
 
-    *Adrian Hirt*
+    ```ruby
+    Rails.app.revision # => "3d31d593e6cf0f82fa9bd0338b635af2f30d627b"
+    ```
 
-Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/railties/CHANGELOG.md) for previous changes.
+    By default it looks for a `REVISION` file at the root of the application, if absent it tries to extract
+    the revision from the local git repository.
+
+    If none of that is adequate, it can be set in the application config:
+
+    ```ruby
+    # config/application.rb
+    module MyApp
+      class Application < Rails::Application
+        config.revision = ENV["GIT_SHA"]
+      end
+    end
+    ```
+
+    *Abdelkader Boudih*, *Jean Boussier*
+
+*   Add `Rails.app.creds` to provide combined access to credentials stored in either ENV or the encrypted credentials file,
+    and in development also .env credentials. Provides a new require/option API for accessing these values. Examples:
+
+    ```ruby
+    Rails.app.creds.require(:db_host) # ENV.fetch("DB_HOST") || Rails.app.credentials.require(:db_host)
+    Rails.app.creds.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID") || Rails.app.credentials.require(:aws, :access_key_id)
+    Rails.app.creds.option(:cache_host) # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host)
+    Rails.app.creds.option(:cache_host, default: "cache-host-1") # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host) || "cache-host-1"
+    Rails.app.creds.option(:cache_host, default: -> { "cache-host-1" }) # ENV["CACHE_HOST"] || Rails.app.credentials.option(:cache_host) || "cache-host-1"
+    ```
+
+    It's also possible to assign your own combined configuration, if you need to use a different backend than just ENVs + encrypted files:
+
+    ```ruby
+    Rails.app.creds = ActiveSupport::CombinedConfiguration.new(Rails.app.envs, OnePasswordConfiguration.new)
+    ```
+
+    *DHH*
+
+*   Add `Rails.app.dotenvs` to provide access to .env variables through symbol-based lookup with explicit methods
+    for required and optional values. This is the same interface offered by #credentials and can be accessed in a combined manner via #creds.
+
+    It supports both variable interpolation with ${VAR} and command interpolation with $(echo "hello"). Otherwise the same as `Rails.app.envs`.
+
+    *DHH*
+
+*   Add `Rails.app.envs` to provide access to ENV variables through symbol-based lookup with explicit methods
+    for required and optional values. This is the same interface offered by #credentials and can be accessed in a combined manner via #creds.
+
+    ```ruby
+    Rails.app.envs.require(:db_password) # ENV,fetch("DB_PASSWORD")
+    Rails.app.envs.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
+    Rails.app.envs.option(:cache_host) # ENV["CACHE_HOST"]
+    Rails.app.envs.option(:cache_host, default: "cache-host-1") # ENV.fetch("CACHE_HOST", "cache-host-1")
+    Rails.app.envs.option(:cache_host, default: -> { HostProvider.cache }) # ENV.fetch("CACHE_HOST") { HostProvider.cache }
+    ```
+
+    *DHH*
+
+*   Add `Rails.app` as alias for `Rails.application`. Particularly helpful when accessing nested accessors inside application code,
+    like when using `Rails.app.credentials`.
+
+    *DHH*
+
+*   Remove duplicate unique index for token migrations
+
+    *zzak*, *Dan Bota*
+
+*   Do not clean directories directly under the application root with `Rails::BacktraceCleaner`
+
+    Improved `Rails.backtrace_cleaner` so that most paths located directly under the application's root directory are no longer silenced.
+
+    *alpaca-tc*
+
+*   Add `Rails::CodeStatistics#register_extension` to register file extensions for `rails stats`
+
+    ```ruby
+    Rails::CodeStatistics.register_extension("txt")
+    ```
+
+    *Taketo Takashima*
+
+*   Wrap console command with an executor by default
+
+    This can be disabled with `-w` or `--skip_executor`, same as runner.
+
+    *zzak*
+
+*   Add a new internal route in development to respond to chromium devtools GET request.
+
+    This allows the app folder to be easily connected as a workspace in chromium-based browsers.
+
+    *coorasse*
+
+*   Set `config.rake_eager_load` in generated test environment to match `config.eager_load` behavior in CI.
+
+    This ensures eager loading works consistently in CI when rake tasks invoke the `:environment` task before tests run.
+
+    *Trevor Turk*
+
+*   Update the `.node-version` file conditionally generated for new applications to 22.21.1
+
+    *Taketo Takashima*
+
+*   Do not assume and force SSL in production by default when using Kamal, to allow for out of the box Kamal deployments.
+
+    It is still recommended to assume and force SSL in production as soon as you can.
+
+    *Jerome Dalbert*
+
+*   Add environment config file existence check
+
+    `Rails::Application` will raise an error if unable to load any environment file.
+
+    *Daniel Niknam*
+
+*   `Rails::Application::RoutesReloader` uses the configured `Rails.application.config.file_watcher`
+
+    *Jan Grodowski*
+
+*   Add structured event for Rails deprecations, when `config.active_support.deprecation` is set to `:notify`.
+
+    *zzak*
+
+*   Report unhandled exceptions to the Error Reporter when running rake tasks via Rails command.
+
+    *Akimichi Tanei*
+
+*   Show help hint when starting `bin/rails console`
+
+    *Petrik de Heus*
+
+*   Persist `/rails/info/routes` search query and results between page reloads.
+
+    *Ryan Kulp*
+
+*   Add `--update` option to the `bin/bundler-audit` script.
+
+    *Julien ANNE*
+
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/railties/CHANGELOG.md) for previous changes.

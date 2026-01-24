@@ -10,4 +10,6 @@ class Hotel < ActiveRecord::Base
   has_many :mocktail_designers, through: :chef_lists, source: :employable, source_type: "MocktailDesigner"
 
   has_many :recipes, through: :chefs
+
+  has_many :lost_items, through: :departments
 end

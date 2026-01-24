@@ -30,14 +30,18 @@ module ApplicationTests
 
     test "rails/info/routes in development" do
       app("development")
-      get "/rails/info/routes"
-      assert_equal 200, last_response.status
+      quietly do
+        get "/rails/info/routes"
+        assert_equal 200, last_response.status
+      end
     end
 
     test "rails/info/properties in development" do
       app("development")
-      get "/rails/info/properties"
-      assert_equal 200, last_response.status
+      quietly do
+        get "/rails/info/properties"
+        assert_equal 200, last_response.status
+      end
     end
 
     test "/rails/info routes are accessible with globbing route present" do
@@ -108,26 +112,34 @@ module ApplicationTests
 
     test "rails/welcome in production" do
       app("production")
-      get("/", {}, "HTTPS" => "on")
-      assert_equal 404, last_response.status
+      quietly do
+        get("/", {}, "HTTPS" => "on")
+        assert_equal 404, last_response.status
+      end
     end
 
     test "rails/info in production" do
       app("production")
-      get("/rails/info", {}, "HTTPS" => "on")
-      assert_equal 404, last_response.status
+      quietly do
+        get("/rails/info", {}, "HTTPS" => "on")
+        assert_equal 404, last_response.status
+      end
     end
 
     test "rails/info/routes in production" do
       app("production")
-      get("/rails/info/routes", {}, "HTTPS" => "on")
-      assert_equal 404, last_response.status
+      quietly do
+        get("/rails/info/routes", {}, "HTTPS" => "on")
+        assert_equal 404, last_response.status
+      end
     end
 
     test "rails/info/properties in production" do
       app("production")
-      get("/rails/info/properties", {}, "HTTPS" => "on")
-      assert_equal 404, last_response.status
+      quietly do
+        get("/rails/info/properties", {}, "HTTPS" => "on")
+        assert_equal 404, last_response.status
+      end
     end
 
     test "rails/health in production" do
@@ -309,6 +321,31 @@ module ApplicationTests
           get 'lol' => 'hello#index'
         end
       R
+
+      get "/win"
+      assert_equal "WIN", last_response.body
+    end
+
+    test "routes appending blocks after reload" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get ':controller/:action'
+        end
+      RUBY
+
+      add_to_config <<-R
+        config.before_eager_load do |app|
+          app.reload_routes!
+        end
+
+        config.after_initialize do |app|
+          app.routes.append do
+            get '/win' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, ['WIN']] }
+          end
+        end
+      R
+
+      app "production"
 
       get "/win"
       assert_equal "WIN", last_response.body
@@ -789,6 +826,16 @@ module ApplicationTests
 
       get "/"
       assert_equal 200, last_response.status
+    end
+
+    test "routes reloader uses configured file_watcher" do
+      add_to_config <<-RUBY
+        config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+      RUBY
+
+      app "development"
+
+      assert_instance_of ActiveSupport::EventedFileUpdateChecker, Rails.application.routes_reloader.send(:updater)
     end
   end
 end

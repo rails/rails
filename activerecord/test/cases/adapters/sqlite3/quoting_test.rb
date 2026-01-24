@@ -95,4 +95,16 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
       end
     end
   end
+
+  def test_quote_numeric_infinity
+    assert_equal "'Infinity'", @conn.quote(Float::INFINITY)
+    assert_equal "'-Infinity'", @conn.quote(-Float::INFINITY)
+    assert_equal "'Infinity'", @conn.quote(BigDecimal(Float::INFINITY))
+    assert_equal "'-Infinity'", @conn.quote(BigDecimal(-Float::INFINITY))
+  end
+
+  def test_quote_float_nan
+    assert_equal "'NaN'", @conn.quote(Float::NAN)
+    assert_equal "'NaN'", @conn.quote(BigDecimal(Float::NAN))
+  end
 end

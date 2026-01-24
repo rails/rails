@@ -54,7 +54,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
             :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors,
             :pirates, :mateys, :sharded_blogs, :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags,
-            :sharded_tags
+            :sharded_tags, :cpk_orders, :cpk_order_agreements
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
     member = Member.all.merge!(includes: :favorite_club).find(members(:some_other_guy).id)
@@ -91,7 +91,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_loading_conditions_with_or
     posts = authors(:david).posts.references(:comments).merge(
       includes: :comments,
-      where: "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE} = 'SpecialComment'"
+      where: "comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE} = 'SpecialComment'"
     ).to_a
     assert_nil posts.detect { |p| p.author_id != authors(:david).id },
       "expected to find only david's posts"
@@ -497,22 +497,20 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_and_conditions_string_with_quoted_table_name
-    quoted_posts_id = Comment.lease_connection.quote_table_name("posts") + "." + Comment.lease_connection.quote_column_name("id")
     assert_nothing_raised do
-      Comment.includes(:post).references(:posts).where("#{quoted_posts_id} = ?", 4)
+      Comment.includes(:post).references(:posts).where("#{quote_table_name("posts.id")} = ?", 4)
     end
   end
 
   def test_eager_association_loading_with_belongs_to_and_order_string_with_unquoted_table_name
     assert_nothing_raised do
-      Comment.all.merge!(includes: :post, order: "posts.id").to_a
+      Comment.includes(:post).references(:posts).order("posts.id")
     end
   end
 
   def test_eager_association_loading_with_belongs_to_and_order_string_with_quoted_table_name
-    quoted_posts_id = Comment.lease_connection.quote_table_name("posts") + "." + Comment.lease_connection.quote_column_name("id")
     assert_nothing_raised do
-      Comment.includes(:post).references(:posts).order(quoted_posts_id)
+      Comment.includes(:post).references(:posts).order(quote_table_name("posts.id"))
     end
   end
 
@@ -572,7 +570,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     Subscription.create!(subscriber_id: "PL", book_id: b.id)
     s.reload
-    s.book_ids = s.book_ids
+    assert_equal [b.id], s.book_ids
   end
 
   def test_eager_load_has_many_through_with_string_keys
@@ -772,7 +770,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts =
       authors(:david).posts
         .includes(:comments)
-        .where("comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'")
+        .where("comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE}= 'SpecialComment'")
         .references(:comments)
         .limit(2)
         .to_a
@@ -780,7 +778,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     count =
       Post.includes(:comments, :author)
-        .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')")
+        .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE}= 'SpecialComment')")
         .references(:authors, :comments)
         .limit(2)
         .count
@@ -790,7 +788,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_has_many_and_limit_and_scoped_conditions_on_the_eagers
     posts = nil
     Post.includes(:comments)
-      .where("comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'")
+      .where("comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE}= 'SpecialComment'")
       .references(:comments)
       .scoping do
       posts = authors(:david).posts.limit(2).to_a
@@ -798,7 +796,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
 
     Post.includes(:comments, :author)
-      .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')")
+      .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE}= 'SpecialComment')")
       .references(:authors, :comments)
       .scoping do
       count = Post.limit(2).count
@@ -816,7 +814,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_inheritance
-    SpecialPost.all.merge!(includes: [ :comments ]).to_a
+    posts = SpecialPost.all.merge!(includes: [ :comments ]).to_a
+    assert_equal 1, posts.size
   end
 
   def test_eager_has_one_with_association_inheritance
@@ -880,11 +879,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     error = assert_raise(ActiveRecord::AssociationNotFoundError) {
       Post.all.merge!(includes: :taggingz).find(6)
     }
-    if error.respond_to?(:detailed_message)
-      assert_match "Did you mean?  tagging", error.detailed_message
-    else
-      assert_match "Did you mean?  tagging\n", error.message
-    end
+    assert_match "Did you mean?  tagging", error.detailed_message
   end
 
   def test_eager_has_many_through_with_order
@@ -1031,11 +1026,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_multiple_associations_with_same_table_has_many_and_habtm
-    # Eager includes of has many and habtm associations aren't necessarily sorted in the same way
-    def assert_equal_after_sort(item1, item2, item3 = nil)
-      assert_equal(item1.sort { |a, b| a.id <=> b.id }, item2.sort { |a, b| a.id <=> b.id })
-      assert_equal(item3.sort { |a, b| a.id <=> b.id }, item2.sort { |a, b| a.id <=> b.id }) if item3
-    end
     # Test regular association, association with conditions, association with
     # STI, and association with conditions assured not to be true
     post_types = [:posts, :other_posts, :special_posts]
@@ -1146,39 +1136,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_association_loading_notification
-    notifications = messages_for("instantiation.active_record") do
+    notification = assert_notification("instantiation.active_record", class_name: Developer.name) do
       Developer.all.merge!(includes: "projects", where: { "developers_projects.access_level" => 1 }, limit: 5).to_a.size
     end
 
-    message = notifications.first
-    payload = message.last
     count = Developer.all.merge!(includes: "projects", where: { "developers_projects.access_level" => 1 }, limit: 5).to_a.size
 
     # eagerloaded row count should be greater than just developer count
-    assert_operator payload[:record_count], :>, count
-    assert_equal Developer.name, payload[:class_name]
+    assert_operator notification.payload[:record_count], :>, count
   end
 
   def test_base_messages
-    notifications = messages_for("instantiation.active_record") do
-      Developer.all.to_a
-    end
-    message = notifications.first
-    payload = message.last
-
-    assert_equal Developer.all.to_a.count, payload[:record_count]
-    assert_equal Developer.name, payload[:class_name]
-  end
-
-  def messages_for(name)
-    notifications = []
-    ActiveSupport::Notifications.subscribe(name) do |*args|
-      notifications << args
-    end
-    yield
-    notifications
-  ensure
-    ActiveSupport::Notifications.unsubscribe(name)
+    expected_payload = { record_count: Developer.all.to_a.count, class_name: Developer.name }
+    assert_notification("instantiation.active_record", expected_payload) { Developer.all.to_a }
   end
 
   def test_load_with_sti_sharing_association
@@ -1556,10 +1526,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   test "preload with invalid argument" do
-    exception = assert_raises(ActiveRecord::AssociationNotFoundError) do
+    exception = assert_raises(ArgumentError) do
       Author.preload(10).to_a
     end
-    assert_match(/Association named '10' was not found on Author; perhaps you misspelled it\?/, exception.message)
+    assert_match(/Association names must be Symbol or String, got: Integer/, exception.message)
+
+    exception = assert_raises(ActiveRecord::AssociationNotFoundError) do
+      Author.preload(:does_not_exists).to_a
+    end
+    assert_match(/Association named 'does_not_exists' was not found on Author; perhaps you misspelled it\?/, exception.message)
   end
 
   test "associations with extensions are not instance dependent" do
@@ -1697,9 +1672,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
       assert_equal 3, comments_collection.size
     end.last
 
-    c = Sharded::BlogPost.lease_connection
-    quoted_blog_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_id"))
-    quoted_blog_post_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_post_id"))
+    quoted_blog_id = Regexp.escape(quote_table_name("sharded_comments.blog_id"))
+    quoted_blog_post_id = Regexp.escape(quote_table_name("sharded_comments.blog_post_id"))
     assert_match(/WHERE #{quoted_blog_id} IN \(.+\) AND #{quoted_blog_post_id} IN \(.+\)/, sql)
   end
 
@@ -1756,9 +1730,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   test "preloading has_many with cpk" do
-    order = Cpk::Order.create!(shop_id: 2)
-    order_agreement = Cpk::OrderAgreement.create!(order: order)
-    assert_equal [order_agreement], Cpk::Order.eager_load(:order_agreements).find_by(id: order.id).order_agreements
+    order_1 = Cpk::Order.create!(shop_id: 200)
+    order_2 = Cpk::Order.create!(shop_id: 300)
+    agreement_1 = order_1.order_agreements.create!(signature: "A")
+    agreement_2 = order_1.order_agreements.create!(signature: "Z")
+    agreement_3 = order_2.order_agreements.create!(signature: "A")
+    agreement_4 = order_2.order_agreements.create!(signature: "Z")
+
+    relation = Cpk::Order.where(shop_id: [200, 300]).eager_load(:order_agreements)
+    results = relation.to_a.sort_by(&:shop_id)
+
+    assert_equal [order_1, order_2], results
+    assert_equal [agreement_1, agreement_2], results.first.order_agreements.sort_by(&:signature)
+    assert_equal [agreement_3, agreement_4], results.last.order_agreements.sort_by(&:signature)
   end
 
   test "preloading has_one with cpk" do
@@ -1770,5 +1754,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
   private
     def find_all_ordered(klass, include = nil)
       klass.order("#{klass.table_name}.#{klass.primary_key}").includes(include).to_a
+    end
+
+    # Eager includes of has many and habtm associations aren't necessarily sorted in the same way
+    def assert_equal_after_sort(item1, item2, item3 = nil)
+      assert_equal(item1.sort { |a, b| a.id <=> b.id }, item2.sort { |a, b| a.id <=> b.id })
+      assert_equal(item3.sort { |a, b| a.id <=> b.id }, item2.sort { |a, b| a.id <=> b.id }) if item3
     end
 end

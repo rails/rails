@@ -1,66 +1,115 @@
-*   Add support for custom `key` in `ActiveStorage::Blob#compose`.
+*   Restore ADC when signing URLs with IAM for GCS
 
-    *Elvin Efendiev*
+    ADC was previously used for automatic authorization when signing URLs with IAM.
+    Now it is again, but the auth client is memoized so that new credentials are only
+    requested when the current ones expire. Other auth methods can now be used
+    instead by setting the authorization on `ActiveStorage::Service::GCSService#iam_client`.
 
-*   Add `image/webp` to `config.active_storage.web_image_content_types` when `load_defaults "7.2"`
-    is set.
+    ```ruby
+    ActiveStorage::Blob.service.iam_client.authorization = Google::Auth::ImpersonatedServiceAccountCredentials.new(options)
+    ```
 
-    *Lewis Buckley*
+    This is safer than setting `Google::Apis::RequestOptions.default.authorization`
+    because it only applies to Active Storage and does not affect other Google API
+    clients.
 
-*   Fix JSON-encoding of `ActiveStorage::Filename` instances.
+    *Justin Malčić*
 
-    *Jonathan del Strother*
+*   Move responsibility for checksums storage service
 
-*   Fix N+1 query when fetching preview images for non-image assets
+    The storage service should implement calculating and
+    validating checksums.
 
-    *Aaron Patterson & Justin Searls*
+    *Matt Pasquini*
 
-*   Fix all Active Storage database related models to respect
-    `ActiveRecord::Base.table_name_prefix` configuration.
+*   Analyze attachments before validation
 
-    *Chedli Bourguiba*
+    Attachment metadata (width, height, duration, etc.) is now available for
+    model validations:
 
-*   Fix `ActiveStorage::Representations::ProxyController` not returning the proper
-    preview image variant for previewable files.
+    ```ruby
+    class User < ApplicationRecord
+      has_one_attached :avatar
 
-    *Chedli Bourguiba*
+      validate :validate_avatar_dimensions, if: -> { avatar.attached? }
 
-*   Fix `ActiveStorage::Representations::ProxyController` to proxy untracked
-    variants.
+      def validate_avatar_dimensions
+        if avatar.metadata[:width] < 200 || avatar.metadata[:height] < 200
+          errors.add(:avatar, "must be at least 200x200")
+        end
+      end
+    end
+    ```
 
-    *Chedli Bourguiba*
+    Configure when analysis is performed:
 
-*   When using the `preprocessed: true` option, avoid enqueuing transform jobs
-    for blobs that are not representable.
+    * `analyze: :immediately` (default in 8.2) - Analyze before validation
+    * `analyze: :later` - Analyze after upload from local IO or via background job
+    * `analyze: :lazily` - Skip automatic analysis; analyze on-demand
 
-    *Chedli Bourguiba*
+    ```ruby
+    has_one_attached :document, analyze: :later
+    has_many_attached :files, analyze: :lazily
 
-*   Prevent `ActiveStorage::Blob#preview` to generate a variant if an empty variation is passed.
-    Calls to `#url`, `#key` or `#download` will now use the original preview
-    image instead of generating a variant with the exact same dimensions.
+    # Or set the global default:
+    config.active_storage.analyze = :later
+    ```
 
-    *Chedli Bourguiba*
+    Direct uploads bypass the server so the file isn't locally available
+    for analysis. In this case, `:immediately` falls back to `:later`,
+    analyzing via background job after upload completes. Metadata isn't
+    available for validation; validate on the client side instead.
 
-*   Process preview image variant when calling `ActiveStorage::Preview#processed`.
-    For example, `attached_pdf.preview(:thumb).processed` will now immediately
-    generate the full-sized preview image and the `:thumb` variant of it.
-    Previously, the `:thumb` variant would not be generated until a further call
-    to e.g. `processed.url`.
+    *Jeremy Daer*
 
-    *Chedli Bourguiba* and *Jonathan Hefner*
+*   Use local files for immediate variant processing and analysis
 
-*   Prevent `ActiveRecord::StrictLoadingViolationError` when strict loading is
-    enabled and the variant of an Active Storage preview has already been
-    processed (for example, by calling `ActiveStorage::Preview#url`).
+    `process: :immediately` variants and blob analysis use local files
+    directly instead of re-downloading after upload.
 
-    *Jonathan Hefner*
+    Applies when attaching uploadable io, not when attaching an existing Blob.
 
-*   Fix `preprocessed: true` option for named variants of previewable files.
+    *Jeremy Daer*
 
-    *Nico Wenterodt*
+*   Introduce `ActiveStorage::Attachment` upload callbacks
 
-*   Allow accepting `service` as a proc as well in `has_one_attached` and `has_many_attached`.
+    `after_upload` fires after an attachment's blob is uploaded, enabling
+    analysis and processing to run deterministically rather than assuming
+    after-commit callback execution ordering.
 
-    *Yogesh Khater*
+    ```ruby
+    ActiveStorage::Attachment.after_upload do
+      # Your custom logic here
+    end
+    ```
 
-Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activestorage/CHANGELOG.md) for previous changes.
+    *Jeremy Daer*
+
+*   Introduce immediate variants that are generated immediately on attachment
+
+    The new `process` option determines when variants are created:
+
+    - `:lazily` (default) - Variants are created dynamically when requested
+    - `:later` (replaces `preprocessed: true`) - Variants are created after attachment, in a background job
+    - `:immediately` (new) - Variants are created along with the attachment
+
+    ```ruby
+    has_one_attached :avatar do |attachable|
+      attachable.variant :thumb, resize_to_limit: [100, 100], process: :immediately
+    end
+    ```
+
+    The `preprocessed: true` option is deprecated in favor of `process: :later`.
+
+    *Tom Rossi*
+
+*   Make `Variant#processed?` and `VariantWithRecord#processed?` public so apps can check variant generation status.
+
+    *Tom Rossi*
+
+*   `ActiveStorage::Blob#open` can now be used without passing a block, like `Tempfile.open`. When using this form the
+    returned temporary file must be unlinked manually.
+
+    *Bart de Water*
+
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activestorage/CHANGELOG.md) for previous changes.

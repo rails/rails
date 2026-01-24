@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
-
 module ActiveRecord
   module AttributeMethods
     # = Active Record Attribute Methods Primary Key
@@ -89,10 +87,9 @@ module ActiveRecord
             @composite_primary_key
           end
 
-          # Returns a quoted version of the primary key name, used to construct
-          # SQL statements.
+          # Returns a quoted version of the primary key name.
           def quoted_primary_key
-            @quoted_primary_key ||= adapter_class.quote_column_name(primary_key)
+            adapter_class.quote_column_name(primary_key)
           end
 
           def reset_primary_key # :nodoc:
@@ -132,13 +129,13 @@ module ActiveRecord
           #   Project.primary_key # => "foo_id"
           def primary_key=(value)
             @primary_key = if value.is_a?(Array)
-              @composite_primary_key = true
               include CompositePrimaryKey
               @primary_key = value.map { |v| -v.to_s }.freeze
             elsif value
               -value.to_s
             end
-            @quoted_primary_key = nil
+
+            @composite_primary_key = value.is_a?(Array)
             @attributes_builder = nil
           end
 
@@ -148,7 +145,6 @@ module ActiveRecord
               base.class_eval do
                 @primary_key = PRIMARY_KEY_NOT_SET
                 @composite_primary_key = false
-                @quoted_primary_key = nil
                 @attributes_builder = nil
               end
             end

@@ -165,95 +165,16 @@ module ActionController # :nodoc:
   #
   # ## Web server support
   #
-  # Not all web servers support streaming out-of-the-box. You need to check the
-  # instructions for each of them.
-  #
-  # #### Unicorn
-  #
-  # Unicorn supports streaming but it needs to be configured. For this, you need
-  # to create a config file as follow:
-  #
-  #     # unicorn.config.rb
-  #     listen 3000, tcp_nopush: false
-  #
-  # And use it on initialization:
-  #
-  #     unicorn_rails --config-file unicorn.config.rb
-  #
-  # You may also want to configure other parameters like `:tcp_nodelay`.
-  #
-  # For more information, please check the
-  # [documentation](https://bogomips.org/unicorn/Unicorn/Configurator.html#method-
-  # i-listen).
-  #
-  # If you are using Unicorn with NGINX, you may need to tweak NGINX. Streaming
-  # should work out of the box on Rainbows.
-  #
-  # #### Passenger
-  #
-  # Phusion Passenger with NGINX, offers two streaming mechanisms out of the box.
-  #
-  # 1.  NGINX response buffering mechanism which is dependent on the value of
-  #     `passenger_buffer_response` option (default is "off").
-  # 2.  Passenger buffering system which is always 'on' irrespective of the value
-  #     of `passenger_buffer_response`.
-  #
-  #
-  # When `passenger_buffer_response` is turned "on", then streaming would be done
-  # at the NGINX level which waits until the application is done sending the
-  # response back to the client.
-  #
-  # For more information, please check the [documentation]
-  # (https://www.phusionpassenger.com/docs/references/config_reference/nginx/#passenger_buffer_response).
+  # Rack 3+ compatible servers all support streaming.
   module Streaming
-    class Body # :nodoc:
-      TERM = "\r\n"
-      TAIL = "0#{TERM}"
-
-      # Store the response body to be chunked.
-      def initialize(body)
-        @body = body
-      end
-
-      # For each element yielded by the response body, yield the element in chunked
-      # encoding.
-      def each(&block)
-        term = TERM
-        @body.each do |chunk|
-          size = chunk.bytesize
-          next if size == 0
-
-          yield [size.to_s(16), term, chunk.b, term].join
-        end
-        yield TAIL
-        yield term
-      end
-
-      # Close the response body if the response body supports it.
-      def close
-        @body.close if @body.respond_to?(:close)
-      end
-    end
-
     private
-      # Set proper cache control and transfer encoding when streaming
-      def _process_options(options)
-        super
-        if options[:stream]
-          if request.version == "HTTP/1.0"
-            options.delete(:stream)
-          else
-            headers["Cache-Control"] ||= "no-cache"
-            headers["Transfer-Encoding"] = "chunked"
-            headers.delete("Content-Length")
-          end
-        end
-      end
-
       # Call render_body if we are streaming instead of usual `render`.
       def _render_template(options)
         if options.delete(:stream)
-          Body.new view_renderer.render_body(view_context, options)
+          # It shouldn't be necessary to set this.
+          headers["cache-control"] ||= "no-cache"
+
+          view_renderer.render_body(view_context, options)
         else
           super
         end

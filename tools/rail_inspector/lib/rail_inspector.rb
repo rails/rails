@@ -25,4 +25,14 @@ require_relative "rail_inspector/version"
 # SOFTWARE.
 
 module RailInspector
+  class << self
+    def frameworks(rails_path)
+      @frameworks ||= begin
+        spec = Gem::Specification.load(rails_path.join("rails.gemspec").to_s)
+        names = spec.dependencies.map(&:name)
+        names.delete("bundler")
+        names
+      end
+    end
+  end
 end

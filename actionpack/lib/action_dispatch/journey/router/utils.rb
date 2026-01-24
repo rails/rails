@@ -17,7 +17,14 @@ module ActionDispatch
         #     normalize_path("")      # => "/"
         #     normalize_path("/%ab")  # => "/%AB"
         def self.normalize_path(path)
-          path ||= ""
+          return "/".dup unless path
+
+          # Fast path for the overwhelming majority of paths that don't need to be normalized
+          if path == "/" || (path.start_with?("/") && !path.end_with?("/") && !path.match?(%r{%|//}))
+            return path.dup
+          end
+
+          # Slow path
           encoding = path.encoding
           path = +"/#{path}"
           path.squeeze!("/")
@@ -61,11 +68,6 @@ module ActionDispatch
             escape(segment, SEGMENT)
           end
 
-          def unescape_uri(uri)
-            encoding = uri.encoding == US_ASCII ? UTF_8 : uri.encoding
-            uri.gsub(ESCAPED) { |match| [match[1, 2].hex].pack("C") }.force_encoding(encoding)
-          end
-
           private
             def escape(component, pattern)
               component.gsub(pattern) { |unsafe| percent_encode(unsafe) }.force_encoding(US_ASCII)
@@ -90,14 +92,6 @@ module ActionDispatch
 
         def self.escape_fragment(fragment)
           ENCODER.escape_fragment(fragment.to_s)
-        end
-
-        # Replaces any escaped sequences with their unescaped representations.
-        #
-        #     uri = "/topics?title=Ruby%20on%20Rails"
-        #     unescape_uri(uri)  #=> "/topics?title=Ruby on Rails"
-        def self.unescape_uri(uri)
-          ENCODER.unescape_uri(uri)
         end
       end
     end

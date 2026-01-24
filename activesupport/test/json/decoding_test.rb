@@ -110,8 +110,11 @@ class TestJSONDecoding < ActiveSupport::TestCase
     assert_raise(ActiveSupport::JSON.parse_error) { ActiveSupport::JSON.decode(%()) }
   end
 
-  def test_cannot_pass_unsupported_options
-    assert_raise(ArgumentError) { ActiveSupport::JSON.decode("", create_additions: true) }
+  def test_symbolized_names_option
+    json = '{"foo":"bar"}'
+    assert_equal({ "foo" => "bar" }, ActiveSupport::JSON.decode(json))
+    assert_equal({ foo: "bar" }, ActiveSupport::JSON.decode(json, symbolize_names: true))
+    assert_equal({ foo: "bar" }, ActiveSupport::JSON.decode(json, { symbolize_names: true }))
   end
 
   private

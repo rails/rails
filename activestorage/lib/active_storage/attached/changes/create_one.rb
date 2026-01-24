@@ -12,6 +12,10 @@ module ActiveStorage
       blob.identify_without_saving
     end
 
+    def analyze
+      with_local_io { blob.analyze_without_saving unless blob.analyzed? } if analyze_immediately?
+    end
+
     def attachment
       @attachment ||= find_or_build_attachment
     end
@@ -21,27 +25,8 @@ module ActiveStorage
     end
 
     def upload
-      case attachable
-      when ActionDispatch::Http::UploadedFile
-        blob.upload_without_unfurling(attachable.open)
-      when Rack::Test::UploadedFile
-        blob.upload_without_unfurling(
-          attachable.respond_to?(:open) ? attachable.open : attachable
-        )
-      when Hash
-        blob.upload_without_unfurling(attachable.fetch(:io))
-      when File
-        blob.upload_without_unfurling(attachable)
-      when Pathname
-        blob.upload_without_unfurling(attachable.open)
-      when ActiveStorage::Blob
-      when String
-      else
-        raise(
-          ArgumentError,
-          "Could not upload: expected attachable, " \
-            "got #{attachable.inspect}"
-        )
+      if io = open_attachable_io
+        attachment.uploaded(io: io)
       end
     end
 
@@ -62,7 +47,16 @@ module ActiveStorage
       end
 
       def build_attachment
-        ActiveStorage::Attachment.new(record: record, name: name, blob: blob)
+        ActiveStorage::Attachment.new(record: record, name: name, blob: blob).tap do |attachment|
+          attachment.pending_upload = pending_upload?
+        end
+      end
+
+      def pending_upload?
+        case attachable
+        when ActiveStorage::Blob, String then false
+        else true
+        end
       end
 
       def find_or_build_blob
@@ -121,9 +115,67 @@ module ActiveStorage
         service_name = record.attachment_reflections[name].options[:service_name]
         if service_name.is_a?(Proc)
           service_name = service_name.call(record)
-          ActiveStorage::Blob.validate_service_configuration(service_name, record.class, name)
+          Attached::Model.validate_service_configuration(service_name, record.class, name)
         end
         service_name
+      end
+
+      def analyze_immediately?
+        case analyze_option
+        when :immediately then true
+        when :later, :lazily then false
+        when nil then has_immediate_variants? || ActiveStorage.analyze == :immediately
+        else
+          raise ArgumentError, "Unknown analyze option: #{analyze_option.inspect}. Valid options are :immediately, :later, :lazily."
+        end
+      end
+
+      def analyze_option
+        reflection&.options&.fetch(:analyze, nil)
+      end
+
+      def reflection
+        record.attachment_reflections[name]
+      end
+
+      def has_immediate_variants?
+        named_variants.any? { |_name, named_variant| named_variant.process(record) == :immediately }
+      end
+
+      def named_variants
+        reflection&.named_variants || {}
+      end
+
+      def open_attachable_io
+        case attachable
+        when ActionDispatch::Http::UploadedFile
+          attachable.open
+        when Rack::Test::UploadedFile
+          attachable.respond_to?(:open) ? attachable.open : attachable
+        when Hash
+          attachable.fetch(:io)
+        when File
+          attachable
+        when Pathname
+          attachable.open
+        when ActiveStorage::Blob, String
+          nil
+        else
+          raise ArgumentError, "Could not upload: expected attachable, got #{attachable.inspect}"
+        end
+      end
+
+      def with_local_io
+        io = open_attachable_io if pending_upload? && !blob.local_io
+
+        if io
+          blob.local_io = io
+          io.rewind if io.respond_to?(:rewind)
+        end
+
+        yield if io || blob.local_io
+      ensure
+        blob.local_io = nil if io
       end
   end
 end

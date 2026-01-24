@@ -44,12 +44,11 @@ class AttrInternalTest < ActiveSupport::TestCase
     assert_nothing_raised { assert_equal 1, @instance.foo }
   end
 
-  def test_naming_format_deprecation
+  def test_invalid_naming_format
     assert_equal "_%s", Module.attr_internal_naming_format
-    assert_deprecated(ActiveSupport.deprecator) do
+    assert_raises(ArgumentError) do
       Module.attr_internal_naming_format = "@___%s"
     end
-    assert_equal "___%s", Module.attr_internal_naming_format
   end
 
   def test_naming_format

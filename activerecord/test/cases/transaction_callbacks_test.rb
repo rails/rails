@@ -503,7 +503,9 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   def test_saving_two_records_that_override_object_id_should_run_after_commit_callbacks_for_both
     klass = Class.new(TopicWithCallbacks) do
-      define_method(:object_id) { 42 }
+      silence_warnings do
+        define_method(:object_id) { 42 }
+      end
     end
 
     records = [klass.new, klass.new]
@@ -521,7 +523,9 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   def test_saving_two_records_that_override_object_id_should_run_after_rollback_callbacks_for_both
     klass = Class.new(TopicWithCallbacks) do
-      define_method(:object_id) { 42 }
+      silence_warnings do
+        define_method(:object_id) { 42 }
+      end
     end
 
     records = [klass.new, klass.new]
@@ -643,7 +647,7 @@ end
 class CallbackOrderTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
-  module Behaviour
+  module Behavior
     extend ActiveSupport::Concern
 
     included do
@@ -675,14 +679,14 @@ class CallbackOrderTest < ActiveRecord::TestCase
   run_after_transaction_callbacks_in_order_defined_was = ActiveRecord.run_after_transaction_callbacks_in_order_defined
   ActiveRecord.run_after_transaction_callbacks_in_order_defined = true
   class TopicWithCallbacksWithSpecificOrderWithSettingTrue < ActiveRecord::Base
-    include Behaviour
+    include Behavior
   end
   ActiveRecord.run_after_transaction_callbacks_in_order_defined = run_after_transaction_callbacks_in_order_defined_was
 
   run_after_transaction_callbacks_in_order_defined_was = ActiveRecord.run_after_transaction_callbacks_in_order_defined
   ActiveRecord.run_after_transaction_callbacks_in_order_defined = false
   class TopicWithCallbacksWithSpecificOrderWithSettingFalse < ActiveRecord::Base
-    include Behaviour
+    include Behavior
   end
   ActiveRecord.run_after_transaction_callbacks_in_order_defined = run_after_transaction_callbacks_in_order_defined_was
 

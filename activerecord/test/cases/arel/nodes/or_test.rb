@@ -4,7 +4,7 @@ require_relative "../helper"
 
 module Arel
   module Nodes
-    describe "or" do
+    class OrTest < Arel::Spec
       describe "#or" do
         it "makes an OR node" do
           attr = Table.new(:users)[:id]

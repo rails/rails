@@ -3,8 +3,10 @@
 require "minitest"
 require "active_support/testing/tagged_logging"
 require "active_support/testing/setup_and_teardown"
+require "active_support/testing/tests_without_assertions"
 require "active_support/testing/assertions"
 require "active_support/testing/error_reporter_assertions"
+require "active_support/testing/event_reporter_assertions"
 require "active_support/testing/deprecation"
 require "active_support/testing/declarative"
 require "active_support/testing/isolation"
@@ -14,13 +16,29 @@ require "active_support/testing/constant_stubbing"
 require "active_support/testing/file_fixtures"
 require "active_support/testing/parallelization"
 require "active_support/testing/parallelize_executor"
+require "active_support/testing/notification_assertions"
 require "concurrent/utility/processor_counter"
 
 module ActiveSupport
   class TestCase < ::Minitest::Test
     Assertion = Minitest::Assertion
 
+    # Class variable to store the parallel worker ID
+    @@parallel_worker_id = nil
+
     class << self
+      # Returns the current parallel worker ID if tests are running in parallel,
+      # nil otherwise.
+      #
+      #   ActiveSupport::TestCase.parallel_worker_id # => 2
+      def parallel_worker_id
+        @@parallel_worker_id
+      end
+
+      def parallel_worker_id=(value) # :nodoc:
+        @@parallel_worker_id = value
+      end
+
       # Sets the order in which test cases are run.
       #
       #   ActiveSupport::TestCase.test_order = :random # => :random
@@ -44,19 +62,27 @@ module ActiveSupport
         ActiveSupport.test_order ||= :random
       end
 
+      if Minitest.respond_to? :run_order # MT6 API change
+        def run_order # :nodoc:
+          test_order
+        end
+      end
+
       # Parallelizes the test suite.
       #
       # Takes a +workers+ argument that controls how many times the process
       # is forked. For each process a new database will be created suffixed
       # with the worker number.
       #
-      #   test-database-0
-      #   test-database-1
+      #   test-database_0
+      #   test-database_1
       #
       # If <tt>ENV["PARALLEL_WORKERS"]</tt> is set the workers argument will be ignored
       # and the environment variable will be used instead. This is useful for CI
       # environments, or other environments where you may need more workers than
-      # you do for local testing.
+      # you do for local testing. Note that setting <tt>PARALLEL_WORKERS</tt> will
+      # also bypass the +threshold+ check, enabling parallelization regardless of
+      # test count.
       #
       # If the number of workers is set to +1+ or fewer, the tests will not be
       # parallelized.
@@ -77,14 +103,58 @@ module ActiveSupport
       # Because parallelization presents an overhead, it is only enabled when the
       # number of tests to run is above the +threshold+ param. The default value is
       # 50, and it's configurable via +config.active_support.test_parallelization_threshold+.
-      def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold)
-        workers = Concurrent.processor_count if workers == :number_of_processors
-        workers = ENV["PARALLEL_WORKERS"].to_i if ENV["PARALLEL_WORKERS"]
+      #
+      # Parallelization shuffles tests and distributes them to workers in
+      # round-robin order, so given the same seed value and worker count, the
+      # same sequence of tests will run on each worker. This makes flaky tests
+      # caused by parallel test interdependence somewhat easier to reproduce,
+      # though it is not a guarantee of deterministic test execution.
+      #
+      # This can make test runtime slower and spikier when one worker gets most
+      # of the slow tests. Enable +work_stealing+ to allow idle workers to steal
+      # tests from busy workers, smoothing out runtime at the cost of less
+      # reproducible flaky-test failures:
+      #
+      #   parallelize(workers: :number_of_processors, work_stealing: true)
+      #
+      # If you want to skip Rails default creation of one database per process in favor of
+      # writing your own implementation, you can set +parallelize_databases+, or configure it
+      # via +config.active_support.parallelize_test_databases+.
+      #
+      #   parallelize(workers: :number_of_processors, parallelize_databases: false)
+      #
+      # Note that your test suite may deadlock if you attempt to use only one database
+      # with multiple processes.
+      def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold, parallelize_databases: ActiveSupport.parallelize_test_databases, work_stealing: false)
+        case
+        when ENV["PARALLEL_WORKERS"]
+          workers = ENV["PARALLEL_WORKERS"].to_i
+        when workers == :number_of_processors
+          workers = (Concurrent.available_processor_count || Concurrent.processor_count).floor
+        end
 
-        Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold)
+        if with == :processes
+          ActiveSupport.parallelize_test_databases = parallelize_databases
+        end
+
+        Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold, work_stealing: work_stealing)
       end
 
-      # Set up hook for parallel testing. This can be used if you have multiple
+      # Before fork hook for parallel testing. This can be used to run anything
+      # before the processes are forked.
+      #
+      # In your +test_helper.rb+ add the following:
+      #
+      #   class ActiveSupport::TestCase
+      #     parallelize_before_fork do
+      #       # run this before fork
+      #     end
+      #   end
+      def parallelize_before_fork(&block)
+        ActiveSupport::Testing::Parallelization.before_fork_hook(&block)
+      end
+
+      # Setup hook for parallel testing. This can be used if you have multiple
       # databases or any behavior that needs to be run after the process is forked
       # but before the tests run.
       #
@@ -140,10 +210,18 @@ module ActiveSupport
 
     alias_method :method_name, :name
 
+    # Returns the current parallel worker ID if tests are running in parallel
+    def parallel_worker_id
+      self.class.parallel_worker_id
+    end
+
     include ActiveSupport::Testing::TaggedLogging
     prepend ActiveSupport::Testing::SetupAndTeardown
+    prepend ActiveSupport::Testing::TestsWithoutAssertions
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::ErrorReporterAssertions
+    include ActiveSupport::Testing::EventReporterAssertions
+    include ActiveSupport::Testing::NotificationAssertions
     include ActiveSupport::Testing::Deprecation
     include ActiveSupport::Testing::ConstantStubbing
     include ActiveSupport::Testing::TimeHelpers

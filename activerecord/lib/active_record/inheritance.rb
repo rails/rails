@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/inflector"
-require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
   # = Single table inheritance
@@ -97,7 +96,7 @@ module ActiveRecord
       # Returns the first class in the inheritance hierarchy that descends from either an
       # abstract class or from <tt>ActiveRecord::Base</tt>.
       #
-      # Consider the following behaviour:
+      # Consider the following behavior:
       #
       #   class ApplicationRecord < ActiveRecord::Base
       #     self.abstract_class = true
@@ -202,7 +201,9 @@ module ActiveRecord
           "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " \
           "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " \
           "Please rename this column if you didn't intend it to be used for storing the inheritance class " \
-          "or overwrite #{name}.inheritance_column to use another column for that information."
+          "or overwrite #{name}.inheritance_column to use another column for that information. " \
+          "If you wish to disable single-table inheritance for #{name} set " \
+          "#{name}.inheritance_column to nil"
       end
 
       # Returns the value to be stored in the polymorphic type column for Polymorphic Associations.

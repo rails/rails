@@ -136,6 +136,19 @@ module ActionDispatch
                    " but was a <400: Bad Request>"
         assert_match expected, error.message
       end
+
+      def test_error_message_shows_rescued_exception
+        @response = ActionDispatch::Response.new
+        @response.status = 500
+
+        @request = ActionDispatch::Request.new("action_dispatch.exception" => RuntimeError.new("example error"))
+
+        error = assert_raises(Minitest::Assertion) { assert_response 200 }
+        expected = "Expected response to be a <200: OK>,"\
+                   " but was a <500: Internal Server Error>\n\n"\
+                   "Exception while processing request: RuntimeError: example error\n"
+        assert_match expected, error.message
+      end
     end
   end
 end

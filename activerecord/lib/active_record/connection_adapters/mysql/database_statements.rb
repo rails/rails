@@ -27,7 +27,7 @@ module ActiveRecord
         def explain(arel, binds = [], options = [])
           sql     = build_explain_clause(options) + " " + to_sql(arel, binds)
           start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          result  = internal_exec_query(sql, "EXPLAIN", binds)
+          result  = select_all(sql, "EXPLAIN", binds)
           elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
 
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
@@ -35,6 +35,10 @@ module ActiveRecord
 
         def build_explain_clause(options = [])
           return "EXPLAIN" if options.empty?
+
+          options = options.flat_map do |option|
+            option.is_a?(Hash) ? option.to_a.map { |nested| nested.join("=") } : option
+          end
 
           explain_clause = "EXPLAIN #{options.join(" ").upcase}"
 
@@ -45,14 +49,14 @@ module ActiveRecord
           end
         end
 
+        def default_insert_value(column) # :nodoc:
+          super unless column.auto_increment?
+        end
+
         private
           # https://mariadb.com/kb/en/analyze-statement/
           def analyze_without_explain?
             mariadb? && database_version >= "10.1.0"
-          end
-
-          def default_insert_value(column)
-            super unless column.auto_increment?
           end
 
           def returning_column_values(result)

@@ -2,40 +2,29 @@
 
 module ActiveRecord
   module QueryLogs
-    class LegacyFormatter # :nodoc:
-      def initialize
-        @key_value_separator = ":"
-      end
-
-      # Formats the key value pairs into a string.
-      def format(pairs)
-        pairs.map! do |key, value|
-          "#{key}#{key_value_separator}#{format_value(value)}"
-        end.join(",")
-      end
-
-      private
-        attr_reader :key_value_separator
-
-        def format_value(value)
-          value
+    module LegacyFormatter # :nodoc:
+      class << self
+        # Formats the key value pairs into a string.
+        def format(key, value)
+          "#{key}:#{value}"
         end
+
+        def join(pairs)
+          pairs.join(",")
+        end
+      end
     end
 
-    class SQLCommenter < LegacyFormatter # :nodoc:
-      def initialize
-        @key_value_separator = "="
-      end
-
-      def format(pairs)
-        pairs.sort_by! { |pair| pair.first.to_s }
-        super
-      end
-
-      private
-        def format_value(value)
-          "'#{ERB::Util.url_encode(value)}'"
+    class SQLCommenter # :nodoc:
+      class << self
+        def format(key, value)
+          "#{key}='#{ERB::Util.url_encode(value)}'"
         end
+
+        def join(pairs)
+          pairs.join(",")
+        end
+      end
     end
   end
 end

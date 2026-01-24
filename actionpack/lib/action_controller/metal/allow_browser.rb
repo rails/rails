@@ -14,13 +14,13 @@ module ActionController # :nodoc:
       # aren't reporting a user-agent header, will be allowed access.
       #
       # A browser that's blocked will by default be served the file in
-      # public/406-unsupported-browser.html with a HTTP status code of "406 Not
+      # public/406-unsupported-browser.html with an HTTP status code of "406 Not
       # Acceptable".
       #
       # In addition to specifically named browser versions, you can also pass
       # `:modern` as the set to restrict support to browsers natively supporting webp
       # images, web push, badges, import maps, CSS nesting, and CSS :has. This
-      # includes Safari 17.2+, Chrome 119+, Firefox 121+, Opera 104+.
+      # includes Safari 17.2+, Chrome 120+, Firefox 121+, Opera 106+.
       #
       # You can use https://caniuse.com to check for browser versions supporting the
       # features you use.
@@ -31,8 +31,18 @@ module ActionController # :nodoc:
       # Examples:
       #
       #     class ApplicationController < ActionController::Base
-      #       # Allow only browsers natively supporting webp images, web push, badges, import maps, CSS nesting + :has
+      #       # Allow only browsers natively supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has
       #       allow_browser versions: :modern
+      #     end
+      #
+      #     class ApplicationController < ActionController::Base
+      #       # Allow only browsers natively supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has
+      #       allow_browser versions: :modern, block: :handle_outdated_browser
+      #
+      #       private
+      #         def handle_outdated_browser
+      #           render file: Rails.root.join("public/custom-error.html"), status: :not_acceptable
+      #         end
       #     end
       #
       #     class ApplicationController < ActionController::Base
@@ -55,14 +65,14 @@ module ActionController # :nodoc:
 
         if BrowserBlocker.new(request, versions: versions).blocked?
           ActiveSupport::Notifications.instrument("browser_block.action_controller", request: request, versions: versions) do
-            instance_exec(&block)
+            block.is_a?(Symbol) ? send(block) : instance_exec(&block)
           end
         end
       end
 
-      class BrowserBlocker
+      class BrowserBlocker # :nodoc:
         SETS = {
-          modern: { safari: 17.2, chrome: 119, firefox: 121, opera: 104, ie: false }
+          modern: { safari: 17.2, chrome: 120, firefox: 121, opera: 106, ie: false }
         }
 
         attr_reader :request, :versions
@@ -85,11 +95,15 @@ module ActionController # :nodoc:
           end
 
           def unsupported_browser?
-            version_guarded_browser? && version_below_minimum_required?
+            version_guarded_browser? && version_below_minimum_required? && !bot?
           end
 
           def version_guarded_browser?
             minimum_browser_version_for_browser != nil
+          end
+
+          def bot?
+            parsed_user_agent.bot?
           end
 
           def version_below_minimum_required?

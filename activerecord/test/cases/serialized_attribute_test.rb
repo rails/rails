@@ -149,6 +149,23 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_nil t.content
   end
 
+  def test_json_type_hash_default_value
+    Topic.serialize :content, coder: JSON, type: Hash
+    t = Topic.new
+    assert_equal({}, t.content)
+  end
+
+  def test_json_symbolize_names_returns_symbolized_names
+    Topic.serialize :content, coder: ActiveRecord::Coders::JSON.new(symbolize_names: true)
+    my_post = posts(:welcome)
+
+    t = Topic.new(content: my_post)
+    t.save!
+    t.reload
+
+    assert_equal(t.content.deep_symbolize_keys, t.content)
+  end
+
   def test_serialized_attribute_declared_in_subclass
     hash = { "important1" => "value1", "important2" => "value2" }
     important_topic = ImportantTopic.create("important" => hash)
@@ -334,7 +351,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     error = assert_raise(ActiveRecord::SerializationTypeMismatch) do
       topic.content
     end
-    expected = "can't load `content`: was supposed to be a Array, but was a Hash. -- {:zomg=>true}"
+    expected = "can't load `content`: was supposed to be a Array, but was a Hash. -- #{{ zomg: true }}"
     assert_equal expected, error.to_s
   end
 
@@ -434,10 +451,13 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     end
 
     subclass = Class.new(klass) do
-      self.table_name = "posts"
+      self.table_name = "topics"
     end
 
     subclass.define_attribute_methods
+
+    topic = subclass.create!(content: { foo: 1 })
+    assert_equal [topic], subclass.where(content: { foo: 1 }).to_a
   end
 
   def test_nil_is_always_persisted_as_null
@@ -502,11 +522,12 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = Topic.table_name
       store :content, coder: ActiveRecord::Coders::JSON
-      attribute(:content) { |subtype| EncryptedType.new(subtype: subtype) }
+      decorate_attributes([:content]) do |name, type|
+        EncryptedType.new(subtype: type)
+      end
     end
 
     topic = klass.create!(content: { trial: true })
-
     assert_equal({ "trial" => true }, topic.content)
   end
 
@@ -660,7 +681,7 @@ class SerializedAttributeTestWithYamlSafeLoad < SerializedAttributeTest
     error = assert_raise(ActiveRecord::SerializationTypeMismatch) do
       topic.content
     end
-    expected = "can't load `content`: was supposed to be a Array, but was a Hash. -- {\"zomg\"=>true}"
+    expected = "can't load `content`: was supposed to be a Array, but was a Hash. -- #{{ "zomg" => true }}"
     assert_equal expected, error.to_s
   end
 
@@ -692,5 +713,30 @@ class SerializedAttributeTestWithYamlSafeLoad < SerializedAttributeTest
     Topic.serialize(:content, yaml: { permitted_classes: [Time] })
     topic = Topic.new(content: Time.now)
     assert topic.save
+  end
+
+  def test_changed_in_place_compare_serialized_representation
+    Topic.serialize :content, type: Hash
+    topic = Topic.create!(content: { "a" => 1, "b" => 2 })
+
+    topic.content = { "a" => 1, "b" => 2 }
+    assert_not_predicate topic, :content_changed?
+
+    topic.content = { "b" => 2, "a" => 1 }
+    assert_predicate topic, :content_changed?
+  end
+
+  def test_changed_in_place_compare_deserialized_representation_when_comparable_is_set
+    Topic.serialize :content, type: Hash, comparable: true
+    topic = Topic.create!(content: { "a" => 1, "b" => 2 })
+
+    topic.content = { "a" => 1, "b" => 2 }
+    assert_not_predicate topic, :content_changed?
+
+    topic.content = { "b" => 2, "a" => 1 }
+    assert_not_predicate topic, :content_changed?
+
+    topic.content = {}
+    assert_predicate topic, :content_changed?
   end
 end

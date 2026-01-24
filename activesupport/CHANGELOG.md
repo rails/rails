@@ -1,141 +1,80 @@
-*   `stub_const` now accepts a `exists: false` parameter to allow stubbing missing constants.
+*   Add `ActiveSupport::CombinedConfiguration` to offer interchangeable access to configuration provided by
+    either ENV or encrypted credentials. Used by Rails to first look at ENV, then look in encrypted credentials,
+    but can be configured separately with any number of API-compatible backends in a first-look order.
 
-    *Jean Boussier*
+    The object is inspect safe and will only show keys, not values.
 
-*   Make ActiveSupport::BacktraceCleaner copy filters and silencers on dup and clone
+    *DHH*, *Emmanuel Hayford*
 
-    Previously the copy would still share the internal silencers and filters array,
-    causing state to leak.
+*   Add `ActiveSupport::EnvConfiguration` to provide access to ENV variables in a way that's compatible with
+    `ActiveSupport::EncryptedConfiguration` and therefore can be used by `ActiveSupport::CombinedConfiguration`.
 
-    *Jean Boussier*
+    The object is inspect safe and will only show keys, not values.
 
-*   Updating Astana with Western Kazakhstan TZInfo identifier
-
-    *Damian Nelson*
-
-*   Add filename support for `ActiveSupport::Logger.logger_outputs_to?`
+    Examples:
 
     ```ruby
-    logger = Logger.new('/var/log/rails.log')
-    ActiveSupport::Logger.logger_outputs_to?(logger, '/var/log/rails.log')
+    conf = ActiveSupport::EnvConfiguration.new
+    conf.require(:db_host) # ENV.fetch("DB_HOST")
+    conf.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
+    conf.option(:cache_host) # ENV["CACHE_HOST"]
+    conf.option(:cache_host, default: "cache-host-1") # ENV["CACHE_HOST"] || "cache-host-1"
+    conf.option(:cache_host, default: -> { "cache-host-1" }) # ENV["CACHE_HOST"] || "cache-host-1"
     ```
 
-    *Christian Schmidt*
+    *DHH*, *Emmanuel Hayford*
 
-*   Include `IPAddr#prefix` when serializing an `IPAddr` using the
-    `ActiveSupport::MessagePack` serializer. This change is backward and forward
-    compatible — old payloads can still be read, and new payloads will be
-    readable by older versions of Rails.
+*   Make flaky parallel tests easier to diagnose by deterministically assigning
+    tests to workers.
 
-    *Taiki Komaba*
+    Rails assigns tests to workers in round-robin order so the same `--seed`
+    and worker count will result in the same sequence of tests running on each
+    worker (whether processes or threads) increasing the odds of reproducing
+    test failures caused by test interdependence.
 
-*   Add `default:` support for `ActiveSupport::CurrentAttributes.attribute`
+    This can make test runtime slower and spikier when one worker gets most of
+    the slow tests. Enable `work_stealing: true` to allow idle workers to steal
+    tests from busy workers in deterministic order, smoothing out runtime at the
+    cost of less reproducible flaky-test failures.
 
-    ```ruby
-    class Current < ActiveSupport::CurrentAttributes
-      attribute :counter, default: 0
-    end
-    ```
+    *Jeremy Daer*
 
-    *Sean Doyle*
+*   Make `ActiveSupport::EventReporter#debug_mode?` true by default to emit debug events
+    outside of Rails application contexts.
 
-*   Yield instance to `Object#with` block
+    *Gannon McGibbon*
 
-    ```ruby
-    client.with(timeout: 5_000) do |c|
-      c.get("/commits")
-    end
-    ```
+*   Add `SecureRandom.base32` for generating case-insensitive keys that are unambiguous to humans.
 
-    *Sean Doyle*
+    *Stanko Krtalic Rusendic & Miha Rekar*
 
-*   Use logical core count instead of physical core count to determine the
-    default number of workers when parallelizing tests.
+*   Add a fast failure mode to `ActiveSupport::ContinuousIntegration` that stops the rest of
+    the run after a step fails. Invoke by running `bin/ci --fail-fast` or `bin/ci -f`.
 
-    *Jonathan Hefner*
+    *Dennis Paagman*
 
-*   Fix `Time.now/DateTime.now/Date.today` to return results in a system timezone after `#travel_to`.
+*   Implement LocalCache strategy on `ActiveSupport::Cache::MemoryStore`. The memory store
+    needs to respond to the same interface as other cache stores (e.g. `ActiveSupport::NullStore`).
 
-    There is a bug in the current implementation of #travel_to:
-    it remembers a timezone of its argument, and all stubbed methods start
-    returning results in that remembered timezone. However, the expected
-    behaviour is to return results in a system timezone.
+    *Mikey Gough*
 
-    *Aleksei Chernenkov*
+*   Add a detailed failure summary to `ActiveSupport::ContinuousIntegration`.
 
-*   Add `ErrorReported#unexpected` to report precondition violations.
+    *Mike Dalessio*
 
-    For example:
+*   Introduce `ActiveSupport::EventReporter::LogSubscriber` structured event logging.
 
     ```ruby
-    def edit
-      if published?
-        Rails.error.unexpected("[BUG] Attempting to edit a published article, that shouldn't be possible")
-        return false
+    class MyLogSubscriber < ActiveSupport::EventReporter::LogSubscriber
+      self.namespace = "test"
+
+      def something(event)
+        info { "Event #{event[:name]} emitted." }
       end
-      # ...
     end
     ```
 
-    The above will raise an error in development and test, but only report the error in production.
+    *Gannon McGibbon*
 
-    *Jean Boussier*
 
-*   Make the order of read_multi and write_multi notifications for `Cache::Store#fetch_multi` operations match the order they are executed in.
-
-    *Adam Renberg Tamm*
-
-*   Make return values of `Cache::Store#write` consistent.
-
-    The return value was not specified before. Now it returns `true` on a successful write,
-    `nil` if there was an error talking to the cache backend, and `false` if the write failed
-    for another reason (e.g. the key already exists and `unless_exist: true` was passed).
-
-    *Sander Verdonschot*
-
-*   Fix logged cache keys not always matching actual key used by cache action.
-
-    *Hartley McGuire*
-
-*   Improve error messages of `assert_changes` and `assert_no_changes`
-
-    `assert_changes` error messages now display objects with `.inspect` to make it easier
-    to differentiate nil from empty strings, strings from symbols, etc.
-    `assert_no_changes` error messages now surface the actual value.
-
-    *pcreux*
-
-*   Fix `#to_fs(:human_size)` to correctly work with negative numbers.
-
-    *Earlopain*
-
-*   Fix `BroadcastLogger#dup` so that it duplicates the logger's `broadcasts`.
-
-    *Andrew Novoselac*
-
-*   Fix issue where `bootstrap.rb` overwrites the `level` of a `BroadcastLogger`'s `broadcasts`.
-
-    *Andrew Novoselac*
-
-*   Fix compatibility with the `semantic_logger` gem.
-
-    The `semantic_logger` gem doesn't behave exactly like stdlib logger in that
-    `SemanticLogger#level` returns a Symbol while stdlib `Logger#level` returns an Integer.
-
-    This caused the various `LogSubscriber` classes in Rails to break when assigned a
-    `SemanticLogger` instance.
-
-    *Jean Boussier*, *ojab*
-
-*   Fix MemoryStore to prevent race conditions when incrementing or decrementing.
-
-    *Pierre Jambet*
-
-*   Implement `HashWithIndifferentAccess#to_proc`.
-
-    Previously, calling `#to_proc` on `HashWithIndifferentAccess` object used inherited `#to_proc`
-    method from the `Hash` class, which was not able to access values using indifferent keys.
-
-    *fatkodima*
-
-Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activesupport/CHANGELOG.md) for previous changes.
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activesupport/CHANGELOG.md) for previous changes.

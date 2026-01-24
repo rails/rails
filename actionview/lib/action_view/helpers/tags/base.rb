@@ -80,30 +80,32 @@ module ActionView
             end
           end
 
-          def add_default_name_and_id_for_value(tag_value, options)
+          def add_default_name_and_field_for_value(tag_value, options, field = "id")
             if tag_value.nil?
-              add_default_name_and_id(options)
+              add_default_name_and_field(options, field)
             else
-              specified_id = options["id"]
-              add_default_name_and_id(options)
+              specified_field = options[field]
+              add_default_name_and_field(options, field)
 
-              if specified_id.blank? && options["id"].present?
-                options["id"] += "_#{sanitized_value(tag_value)}"
+              if specified_field.blank? && options[field].present?
+                options[field] += "_#{sanitized_value(tag_value)}"
               end
             end
           end
+          alias_method :add_default_name_and_id_for_value, :add_default_name_and_field_for_value
 
-          def add_default_name_and_id(options)
+          def add_default_name_and_field(options, field = "id")
             index = name_and_id_index(options)
             options["name"] = options.fetch("name") { tag_name(options["multiple"], index) }
 
             if generate_ids?
-              options["id"] = options.fetch("id") { tag_id(index, options.delete("namespace")) }
+              options[field] = options.fetch(field) { tag_id(index, options.delete("namespace")) }
               if namespace = options.delete("namespace")
-                options["id"] = options["id"] ? "#{namespace}_#{options['id']}" : namespace
+                options[field] = options[field] ? "#{namespace}_#{options[field]}" : namespace
               end
             end
           end
+          alias_method :add_default_name_and_id, :add_default_name_and_field
 
           def tag_name(multiple = false, index = nil)
             @template_object.field_name(@object_name, sanitized_method_name, multiple: multiple, index: index)

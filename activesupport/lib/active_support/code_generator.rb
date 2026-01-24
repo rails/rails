@@ -9,16 +9,19 @@ module ActiveSupport
         @cache = METHOD_CACHES[namespace]
         @sources = []
         @methods = {}
+        @canonical_methods = {}
       end
 
-      def define_cached_method(name, as: name)
-        name = name.to_sym
-        as = as.to_sym
-        @methods.fetch(name) do
-          unless @cache.method_defined?(as)
+      def define_cached_method(canonical_name, as: nil)
+        canonical_name = canonical_name.to_sym
+        as = (as || canonical_name).to_sym
+
+        @methods.fetch(as) do
+          unless @cache.method_defined?(canonical_name) || @canonical_methods[canonical_name]
             yield @sources
           end
-          @methods[name] = as
+          @canonical_methods[canonical_name] = true
+          @methods[as] = canonical_name
         end
       end
 
@@ -26,8 +29,10 @@ module ActiveSupport
         unless @sources.empty?
           @cache.module_eval("# frozen_string_literal: true\n" + @sources.join(";"), path, line)
         end
-        @methods.each do |name, as|
-          owner.define_method(name, @cache.instance_method(as))
+        @canonical_methods.clear
+
+        @methods.each do |as, canonical_name|
+          owner.define_method(as, @cache.instance_method(canonical_name))
         end
       end
     end
@@ -50,15 +55,24 @@ module ActiveSupport
       @path = path
       @line = line
       @namespaces = Hash.new { |h, k| h[k] = MethodSet.new(k) }
+      @sources = []
     end
 
-    def define_cached_method(name, namespace:, as: name, &block)
-      @namespaces[namespace].define_cached_method(name, as: as, &block)
+    def class_eval
+      yield @sources
+    end
+
+    def define_cached_method(canonical_name, namespace:, as: nil, &block)
+      @namespaces[namespace].define_cached_method(canonical_name, as: as, &block)
     end
 
     def execute
       @namespaces.each_value do |method_set|
         method_set.apply(@owner, @path, @line - 1)
+      end
+
+      unless @sources.empty?
+        @owner.class_eval("# frozen_string_literal: true\n" + @sources.join(";"), @path, @line - 1)
       end
     end
   end

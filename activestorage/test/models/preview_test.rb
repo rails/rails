@@ -58,8 +58,7 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
 
   test "previewing an unpreviewable blob" do
     blob = create_file_blob
-
-    assert_raises ActiveStorage::UnpreviewableError do
+    assert_raises ActiveStorage::UnpreviewableError, match: /blob with ID=\d+ and content_type=image\/jpeg/ do
       blob.preview resize_to_limit: [640, 280]
     end
   end
@@ -80,7 +79,7 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     transformations = { resize_to_limit: [640, 280] }
     preview = blob.preview(transformations)
 
-    assert_changes -> { !!preview.image.variant(transformations)&.send(:processed?) }, to: true do
+    assert_changes -> { !!preview.image.variant(transformations)&.processed? }, to: true do
       preview.processed
     end
   end

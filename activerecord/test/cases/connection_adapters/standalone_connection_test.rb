@@ -31,6 +31,7 @@ module ActiveRecord
 
       def test_can_close
         @connection.close
+        assert_not @connection.active?
       end
     end
   end

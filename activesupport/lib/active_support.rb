@@ -39,17 +39,22 @@ module ActiveSupport
   autoload :Concern
   autoload :CodeGenerator
   autoload :ActionableError
+  autoload :Configurable
   autoload :ConfigurationFile
+  autoload :ContinuousIntegration
   autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker
+  autoload :Editor
   autoload :ExecutionWrapper
   autoload :Executor
   autoload :ErrorReporter
+  autoload :EventReporter
   autoload :FileUpdateChecker
   autoload :EventedFileUpdateChecker
   autoload :ForkTracker
   autoload :LogSubscriber
+  autoload :StructuredEventSubscriber
   autoload :IsolatedExecutionState
   autoload :Notifications
   autoload :Reloader
@@ -57,11 +62,12 @@ module ActiveSupport
 
   eager_autoload do
     autoload :BacktraceCleaner
-    autoload :ProxyObject
+    autoload :Benchmark
     autoload :Benchmarkable
     autoload :Cache
     autoload :Callbacks
-    autoload :Configurable
+    autoload :ColorizeLogging
+    autoload :ClassAttribute
     autoload :Deprecation
     autoload :Delegation
     autoload :Digest
@@ -98,9 +104,18 @@ module ActiveSupport
 
   cattr_accessor :test_order # :nodoc:
   cattr_accessor :test_parallelization_threshold, default: 50 # :nodoc:
+  cattr_accessor :parallelize_test_databases, default: true # :nodoc:
 
   @error_reporter = ActiveSupport::ErrorReporter.new
   singleton_class.attr_accessor :error_reporter # :nodoc:
+
+  @event_reporter = ActiveSupport::EventReporter.new
+  singleton_class.attr_accessor :event_reporter # :nodoc:
+
+  cattr_accessor :filter_parameters, default: [] # :nodoc:
+
+  @colorize_logging = true
+  singleton_class.attr_accessor :colorize_logging
 
   def self.cache_format_version
     Cache.format_version
@@ -111,17 +126,18 @@ module ActiveSupport
   end
 
   def self.to_time_preserves_timezone
-    DateAndTime::Compatibility.preserve_timezone
+    ActiveSupport.deprecator.warn(
+      "`config.active_support.to_time_preserves_timezone` is deprecated and will be removed in Rails 8.2"
+    )
+    @to_time_preserves_timezone
   end
 
   def self.to_time_preserves_timezone=(value)
-    unless value
-      ActiveSupport.deprecator.warn(
-        "Support for the pre-Ruby 2.4 behavior of to_time has been deprecated and will be removed in Rails 7.2."
-      )
-    end
+    ActiveSupport.deprecator.warn(
+      "`config.active_support.to_time_preserves_timezone` is deprecated and will be removed in Rails 8.2"
+    )
 
-    DateAndTime::Compatibility.preserve_timezone = value
+    @to_time_preserves_timezone = value
   end
 
   def self.utc_to_local_returns_utc_offset_times

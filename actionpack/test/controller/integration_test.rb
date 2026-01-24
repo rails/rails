@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "controller/fake_controllers"
 require "rails/engine"
+require "launchy"
 
 class SessionTest < ActiveSupport::TestCase
   StubApp = lambda { |env|
@@ -494,7 +495,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal "foo=bar", request.env["QUERY_STRING"]
       assert_equal "foo=bar", request.query_string
       assert_equal "bar", request.parameters["foo"]
-      assert_predicate request.parameters["leaks"], :nil?
+      assert_nil request.parameters["leaks"]
     end
   end
 
@@ -1097,6 +1098,12 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
       render plain: "ok"
     end
 
+    def foos_html
+      render inline: <<~ERB
+        <code><%= params.permit(:foo) %></code>
+      ERB
+    end
+
     def foos_json
       render json: params.permit(:foo)
     end
@@ -1123,6 +1130,17 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
 
       assert_response :success
       assert_equal({ "foo" => "fighters" }, response.parsed_body)
+    end
+  end
+
+  def test_encoding_as_html
+    post_to_foos as: :html do
+      assert_response :success
+      assert_equal "application/x-www-form-urlencoded", request.media_type
+      assert_equal "text/html", request.accepts.first.to_s
+      assert_equal :html, request.format.ref
+      assert_equal({ "foo" => "fighters" }, request.request_parameters)
+      assert_equal({ "foo" => "fighters" }.to_s, response.parsed_body.at("code").text)
     end
   end
 
@@ -1307,3 +1325,89 @@ class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
     assert_equal "45142", @response.body
   end
 end
+
+# rubocop:disable Lint/Debugger
+class PageDumpIntegrationTest < ActionDispatch::IntegrationTest
+  class FooController < ActionController::Base
+    def index
+      render plain: "Hello world"
+    end
+
+    def redirect
+      redirect_to action: :index
+    end
+  end
+
+  def with_root(&block)
+    Rails.stub(:root, Pathname.getwd.join("test"), &block)
+  end
+
+  def setup
+    with_root do
+      remove_dumps
+    end
+  end
+
+  def teardown
+    with_root do
+      remove_dumps
+    end
+  end
+
+  def self.routes
+    @routes ||= ActionDispatch::Routing::RouteSet.new
+  end
+
+  def self.call(env)
+    routes.call(env)
+  end
+
+  def app
+    self.class
+  end
+
+  def dump_path
+    Pathname.new(Dir["#{Rails.root}/tmp/html_dump/#{method_name}*"].sole)
+  end
+
+  def remove_dumps
+    Dir["#{Rails.root}/tmp/html_dump/#{method_name}*"].each(&File.method(:delete))
+  end
+
+  routes.draw do
+    get "/" => "page_dump_integration_test/foo#index"
+    get "/redirect" => "page_dump_integration_test/foo#redirect"
+  end
+
+  test "save_and_open_page saves a copy of the page and call to Launchy" do
+    launchy_called = false
+    get "/"
+    with_root do
+      Launchy.stub(:open, ->(path) { launchy_called = (path == dump_path) }) do
+        save_and_open_page
+      end
+      assert launchy_called
+      assert_equal File.read(dump_path), response.body
+    end
+  end
+
+  test "prints a warning to install launchy if it can't be loaded" do
+    get "/"
+    with_root do
+      Launchy.stub(:open, ->(path) { raise LoadError.new }) do
+        self.stub(:warn, ->(warning) { warning.include?("Please install the launchy gem to open the file automatically.") }) do
+          save_and_open_page
+        end
+      end
+      assert_equal File.read(dump_path), response.body
+    end
+  end
+
+  test "raises when called after a redirect" do
+    with_root do
+      get "/redirect"
+      assert_raise(InvalidResponse) { save_and_open_page }
+    end
+  end
+end
+# rubocop:enable Lint/Debugger

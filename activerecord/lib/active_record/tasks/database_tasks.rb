@@ -45,7 +45,7 @@ module ActiveRecord
       # Example:
       #   ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = {
       #     mysql2: ['--no-defaults', '--skip-add-drop-table'],
-      #     postgres: '--no-tablespaces'
+      #     postgresql: '--no-tablespaces'
       #   }
       mattr_accessor :structure_dump_flags, instance_accessor: false
 
@@ -66,7 +66,7 @@ module ActiveRecord
         return if ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
 
         configs_for(env_name: environment).each do |db_config|
-          check_current_protected_environment!(db_config)
+          database_adapter_for(db_config).check_current_protected_environment!(db_config, migration_class)
         end
       end
 
@@ -147,8 +147,6 @@ module ActiveRecord
         return if database_configs.count == 1
 
         database_configs.each do |db_config|
-          next unless db_config.database_tasks?
-
           yield db_config.name
         end
       end
@@ -175,26 +173,32 @@ module ActiveRecord
 
       def prepare_all
         seed = false
+        dump_db_configs = []
 
         each_current_configuration(env) do |db_config|
-          with_temporary_pool(db_config) do
-            begin
-              database_initialized = migration_connection_pool.schema_migration.table_exists?
-            rescue ActiveRecord::NoDatabaseError
-              create(db_config)
-              retry
-            end
+          database_initialized = initialize_database(db_config)
 
-            unless database_initialized
-              if File.exist?(schema_dump_path(db_config))
-                load_schema(db_config, ActiveRecord.schema_format, nil)
+          seed = true if database_initialized && db_config.seeds?
+        end
+
+        each_current_environment(env) do |environment|
+          db_configs_with_versions(environment).sort.each do |version, db_configs|
+            dump_db_configs |= db_configs
+
+            db_configs.each do |db_config|
+              with_temporary_pool(db_config) do
+                migrate(version)
               end
-
-              seed = true
             end
+          end
+        end
 
-            migrate
-            dump_schema(db_config) if ActiveRecord.dump_schema_after_migration
+        # Dump schema for databases that were migrated.
+        if ActiveRecord.dump_schema_after_migration
+          dump_db_configs.each do |db_config|
+            with_temporary_pool(db_config) do
+              dump_schema(db_config)
+            end
           end
         end
 
@@ -221,6 +225,13 @@ module ActiveRecord
         each_current_configuration(environment) { |db_config| drop(db_config) }
       end
 
+      def empty_all_tables(db_config)
+        with_temporary_connection(db_config) do |conn|
+          conn.empty_all_tables
+        end
+      end
+      private :empty_all_tables
+
       def truncate_tables(db_config)
         with_temporary_connection(db_config) do |conn|
           conn.truncate_tables(*conn.tables)
@@ -234,11 +245,32 @@ module ActiveRecord
         end
       end
 
-      def migrate(version = nil)
+      def migrate_all
+        db_configs = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env)
+        db_configs.each { |db_config| initialize_database(db_config) }
+
+        if db_configs.size == 1 && db_configs.first.primary?
+          ActiveRecord::Tasks::DatabaseTasks.migrate(skip_initialize: true)
+        else
+          mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions
+
+          mapped_versions.sort.each do |version, db_configs|
+            db_configs.each do |db_config|
+              ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(db_config) do
+                ActiveRecord::Tasks::DatabaseTasks.migrate(version, skip_initialize: true)
+              end
+            end
+          end
+        end
+      end
+
+      def migrate(version = nil, skip_initialize: false)
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose?
 
         check_target_version
+
+        initialize_database(migration_connection_pool.db_config) unless skip_initialize
 
         migration_connection_pool.migration_context.migrate(target_version) do |migration|
           if version.blank?
@@ -255,10 +287,10 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def db_configs_with_versions # :nodoc:
+      def db_configs_with_versions(environment = env) # :nodoc:
         db_configs_with_versions = Hash.new { |h, k| h[k] = [] }
 
-        with_temporary_pool_for_each do |pool|
+        with_temporary_pool_for_each(env: environment) do |pool|
           db_config = pool.db_config
           versions_to_run = pool.migration_context.pending_migration_versions
           target_version = ActiveRecord::Tasks::DatabaseTasks.target_version
@@ -346,7 +378,8 @@ module ActiveRecord
         database_adapter_for(db_config, *arguments).structure_load(filename, flags)
       end
 
-      def load_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
+      def load_schema(db_config, format = db_config.schema_format, file = nil) # :nodoc:
+        format = format.to_sym
         file ||= schema_dump_path(db_config, format)
         return unless file
 
@@ -367,7 +400,7 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def schema_up_to_date?(configuration, format = ActiveRecord.schema_format, file = nil)
+      def schema_up_to_date?(configuration, _ = nil, file = nil)
         db_config = resolve_configuration(configuration)
 
         file ||= schema_dump_path(db_config)
@@ -383,87 +416,88 @@ module ActiveRecord
         end
       end
 
-      def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
-        file ||= schema_dump_path(db_config, format)
+      def reconstruct_from_schema(db_config, file = nil) # :nodoc:
+        file ||= schema_dump_path(db_config, db_config.schema_format)
 
         check_schema_file(file) if file
 
         with_temporary_pool(db_config, clobber: true) do
-          if schema_up_to_date?(db_config, format, file)
-            truncate_tables(db_config)
+          if schema_up_to_date?(db_config, nil, file)
+            empty_all_tables(db_config)
           else
             purge(db_config)
-            load_schema(db_config, format, file)
+            load_schema(db_config, db_config.schema_format, file)
           end
         rescue ActiveRecord::NoDatabaseError
           create(db_config)
-          load_schema(db_config, format, file)
+          load_schema(db_config, db_config.schema_format, file)
         end
       end
 
-      def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
+      def dump_all
+        seen_schemas = []
+
+        ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
+          schema_path = schema_dump_path(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
+
+          next if seen_schemas.include?(schema_path)
+
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
+          seen_schemas << schema_path
+        end
+      end
+
+      def dump_schema(db_config, format = db_config.schema_format) # :nodoc:
         return unless db_config.schema_dump
 
         require "active_record/schema_dumper"
         filename = schema_dump_path(db_config, format)
         return unless filename
 
-        FileUtils.mkdir_p(db_dir)
-        case format
-        when :ruby
-          File.open(filename, "w:utf-8") do |file|
-            ActiveRecord::SchemaDumper.dump(migration_connection_pool, file)
-          end
-        when :sql
-          structure_dump(db_config, filename)
-          if migration_connection_pool.schema_migration.table_exists?
-            File.open(filename, "a") do |f|
-              f.puts migration_connection.dump_schema_information
-              f.print "\n"
+        with_temporary_pool(db_config) do |pool|
+          FileUtils.mkdir_p(db_dir)
+          case format.to_sym
+          when :ruby
+            File.open(filename, "w:utf-8") do |file|
+              ActiveRecord::SchemaDumper.dump(pool, file)
+            end
+          when :sql
+            structure_dump(db_config, filename)
+            if pool.schema_migration.table_exists?
+              File.open(filename, "a") do |f|
+                pool.with_connection do |connection|
+                  f.puts connection.dump_schema_versions
+                end
+                f.print "\n"
+              end
             end
           end
         end
       end
 
-      def schema_dump_path(db_config, format = ActiveRecord.schema_format)
+      def schema_dump_path(db_config, format = db_config.schema_format)
         return ENV["SCHEMA"] if ENV["SCHEMA"]
 
         filename = db_config.schema_dump(format)
         return unless filename
 
-        if File.dirname(filename) == ActiveRecord::Tasks::DatabaseTasks.db_dir
+        if Pathname.new(filename).absolute? || File.dirname(filename) == ActiveRecord::Tasks::DatabaseTasks.db_dir
           filename
         else
           File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
         end
       end
 
-      def cache_dump_filename(db_config_or_name, schema_cache_path: nil)
-        if db_config_or_name.is_a?(DatabaseConfigurations::DatabaseConfig)
-          schema_cache_path ||
-            db_config_or_name.schema_cache_path ||
-            schema_cache_env ||
-            db_config_or_name.default_schema_cache_path(ActiveRecord::Tasks::DatabaseTasks.db_dir)
-        else
-          ActiveRecord.deprecator.warn(<<~MSG.squish)
-            Passing a database name to `cache_dump_filename` is deprecated and will be removed in Rails 7.3. Pass a
-            `ActiveRecord::DatabaseConfigurations::DatabaseConfig` object instead.
-          MSG
-
-          filename = if ActiveRecord::Base.configurations.primary?(db_config_or_name)
-            "schema_cache.yml"
-          else
-            "#{db_config_or_name}_schema_cache.yml"
-          end
-
-          schema_cache_path || schema_cache_env || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
-        end
+      def cache_dump_filename(db_config, schema_cache_path: nil)
+        schema_cache_path ||
+          db_config.schema_cache_path ||
+          db_config.default_schema_cache_path(ActiveRecord::Tasks::DatabaseTasks.db_dir)
       end
 
-      def load_schema_current(format = ActiveRecord.schema_format, file = nil, environment = env)
+      def load_schema_current(format = nil, file = nil, environment = env)
         each_current_configuration(environment) do |db_config|
           with_temporary_connection(db_config) do
-            load_schema(db_config, format, file)
+            load_schema(db_config, format || db_config.schema_format, file)
           end
         end
       end
@@ -528,17 +562,6 @@ module ActiveRecord
       end
 
       private
-        def schema_cache_env
-          if ENV["SCHEMA_CACHE"]
-            ActiveRecord.deprecator.warn(<<~MSG.squish)
-              Setting `ENV["SCHEMA_CACHE"]` is deprecated and will be removed in Rails 7.3.
-              Configure the `:schema_cache_path` in the database configuration instead.
-            MSG
-
-            nil
-          end
-        end
-
         def with_temporary_pool(db_config, clobber: false)
           original_db_config = migration_class.connection_db_config
           pool = migration_class.connection_handler.establish_connection(db_config, clobber: clobber)
@@ -580,16 +603,19 @@ module ActiveRecord
         end
 
         def each_current_configuration(environment, name = nil)
-          environments = [environment]
-          environments << "test" if environment == "development" && !ENV["SKIP_TEST_DATABASE"] && !ENV["DATABASE_URL"]
-
-          environments.each do |env|
+          each_current_environment(environment) do |env|
             configs_for(env_name: env).each do |db_config|
               next if name && name != db_config.name
 
               yield db_config
             end
           end
+        end
+
+        def each_current_environment(environment, &block)
+          environments = [environment]
+          environments << "test" if environment == "development" && !ENV["SKIP_TEST_DATABASE"] && !ENV["DATABASE_URL"]
+          environments.each(&block)
         end
 
         def each_local_configuration
@@ -629,20 +655,23 @@ module ActiveRecord
           end
         end
 
-        def check_current_protected_environment!(db_config)
-          with_temporary_pool(db_config) do |pool|
-            migration_context = pool.migration_context
-            current = migration_context.current_environment
-            stored  = migration_context.last_stored_environment
-
-            if migration_context.protected_environment?
-              raise ActiveRecord::ProtectedEnvironmentError.new(stored)
+        def initialize_database(db_config)
+          with_temporary_pool(db_config) do
+            begin
+              database_already_initialized = migration_connection_pool.schema_migration.table_exists?
+            rescue ActiveRecord::NoDatabaseError
+              create(db_config)
+              retry
             end
 
-            if stored && stored != current
-              raise ActiveRecord::EnvironmentMismatchError.new(current: current, stored: stored)
+            unless database_already_initialized
+              schema_dump_path = schema_dump_path(db_config)
+              if schema_dump_path && File.exist?(schema_dump_path)
+                load_schema(db_config)
+              end
             end
-          rescue ActiveRecord::NoDatabaseError
+
+            !database_already_initialized
           end
         end
     end

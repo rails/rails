@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/testing/strict_warnings"
+require_relative "../../tools/strict_warnings"
 
 ENV["RAILS_ENV"] ||= "test"
 require_relative "dummy/config/environment.rb"
@@ -11,7 +11,9 @@ require "active_support/test_case"
 require "active_support/core_ext/object/try"
 require "active_support/testing/autorun"
 require "image_processing/mini_magick"
+require "webmock/minitest"
 
+require "active_support/current_attributes/test_helper"
 require "active_record/testing/query_assertions"
 
 require "active_job"
@@ -22,9 +24,12 @@ ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 ActiveStorage::FixtureSet.file_fixture_path = File.expand_path("fixtures/files", __dir__)
 
+WebMock.disable!
+
 class ActiveSupport::TestCase
   self.file_fixture_path = ActiveStorage::FixtureSet.file_fixture_path
 
+  include ActiveSupport::CurrentAttributes::TestHelper
   include ActiveRecord::TestFixtures
   include ActiveRecord::Assertions::QueryAssertions
 
@@ -32,10 +37,6 @@ class ActiveSupport::TestCase
 
   setup do
     ActiveStorage::Current.url_options = { protocol: "https://", host: "example.com", port: nil }
-  end
-
-  teardown do
-    ActiveStorage::Current.reset
   end
 
   private
@@ -114,12 +115,6 @@ class ActiveSupport::TestCase
       ActionController::Base.raise_on_open_redirects = old_raise_on_open_redirects
       ActiveStorage::Blob.service = old_service
     end
-
-    def subscribe_events_from(name)
-      events = []
-      ActiveSupport::Notifications.subscribe(name) { |event| events << event }
-      events
-    end
 end
 
 require "global_id"
@@ -127,6 +122,9 @@ GlobalID.app = "ActiveStorageExampleApp"
 ActiveRecord::Base.include GlobalID::Identification
 
 class User < ActiveRecord::Base
+  attr_accessor :record_callbacks, :callback_counter
+  attr_reader :notification_sent
+
   validates :name, presence: true
 
   has_one_attached :avatar
@@ -134,43 +132,79 @@ class User < ActiveRecord::Base
   has_one_attached :avatar_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
   end
-  has_one_attached :avatar_with_preprocessed do |attachable|
-    attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
+  has_one_attached :avatar_with_immediate_variants do |attachable|
+    attachable.variant :immediate_thumb, resize_to_limit: [1, 1], process: :immediately
   end
-  has_one_attached :avatar_with_conditional_preprocessed do |attachable|
-    attachable.variant :proc, resize_to_limit: [2, 2],
-      preprocessed: ->(user) { user.name == "transform via proc" }
-    attachable.variant :method, resize_to_limit: [3, 3],
-      preprocessed: :should_preprocessed?
+  has_one_attached :avatar_with_later_variants do |attachable|
+    attachable.variant :later_thumb, resize_to_limit: [2, 2], process: :later
+  end
+  has_one_attached :avatar_with_lazy_variants do |attachable|
+    attachable.variant :lazy_thumb, resize_to_limit: [3, 3], process: :lazily
+    attachable.variant :default_thumb, resize_to_limit: [4, 4]
+  end
+  ActiveStorage.deprecator.silence do
+    has_one_attached :avatar_with_preprocessed do |attachable|
+      attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
+    end
+    has_one_attached :avatar_with_conditional_preprocessed do |attachable|
+      attachable.variant :proc, resize_to_limit: [2, 2],
+        preprocessed: ->(user) { user.name == "transform via proc" }
+      attachable.variant :method, resize_to_limit: [3, 3],
+        preprocessed: :should_preprocessed?
+    end
   end
   has_one_attached :intro_video
   has_one_attached :name_pronunciation_audio
+  has_one_attached :avatar_with_immediate_analysis, analyze: :immediately
+  has_one_attached :avatar_with_later_analysis, analyze: :later
+  has_one_attached :avatar_with_lazy_analysis, analyze: :lazily
 
   has_many_attached :highlights
   has_many_attached :vlogs, dependent: false, service: :local
   has_many_attached :highlights_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
   end
-  has_many_attached :highlights_with_preprocessed do |attachable|
-    attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
+  has_many_attached :highlights_with_immediate_variants do |attachable|
+    attachable.variant :immediate_thumb, resize_to_limit: [1, 1], process: :immediately
   end
-  has_many_attached :highlights_with_conditional_preprocessed do |attachable|
-    attachable.variant :proc, resize_to_limit: [2, 2],
-      preprocessed: ->(user) { user.name == "transform via proc" }
-    attachable.variant :method, resize_to_limit: [3, 3],
-      preprocessed: :should_preprocessed?
+  ActiveStorage.deprecator.silence do
+    has_many_attached :highlights_with_preprocessed do |attachable|
+      attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
+    end
+    has_many_attached :highlights_with_conditional_preprocessed do |attachable|
+      attachable.variant :proc, resize_to_limit: [2, 2],
+        preprocessed: ->(user) { user.name == "transform via proc" }
+      attachable.variant :method, resize_to_limit: [3, 3],
+        preprocessed: :should_preprocessed?
+    end
   end
   has_one_attached :resume do |attachable|
     attachable.variant :preview, resize_to_fill: [400, 400]
   end
-  has_one_attached :resume_with_preprocessing do |attachable|
-    attachable.variant :preview, resize_to_fill: [400, 400], preprocessed: true
+  ActiveStorage.deprecator.silence do
+    has_one_attached :resume_with_preprocessing do |attachable|
+      attachable.variant :preview, resize_to_fill: [400, 400], preprocessed: true
+    end
   end
+
+  after_commit :increment_callback_counter
+  after_update_commit :notify
 
   accepts_nested_attributes_for :highlights_attachments, allow_destroy: true
 
   def should_preprocessed?
     name == "transform via method"
+  end
+
+  def increment_callback_counter
+    if record_callbacks
+      @callback_counter ||= 0
+      @callback_counter += 1
+    end
+  end
+
+  def notify
+    @notification_sent = true if highlights_attachments.any?(&:previously_new_record?)
   end
 end
 

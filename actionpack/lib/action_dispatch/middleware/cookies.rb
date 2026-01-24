@@ -116,13 +116,15 @@ module ActionDispatch
   #     cookies[:login] = { value: "XJ-122", expires: Time.utc(2020, 10, 15, 5) }
   #
   #     # Sets a signed cookie, which prevents users from tampering with its value.
-  #     # It can be read using the signed method `cookies.signed[:name]`
   #     cookies.signed[:user_id] = current_user.id
+  #     # It can be read using the signed method.
+  #     cookies.signed[:user_id] # => 123
   #
   #     # Sets an encrypted cookie value before sending it to the client which
   #     # prevent users from reading and tampering with its value.
-  #     # It can be read using the encrypted method `cookies.encrypted[:name]`
   #     cookies.encrypted[:discount] = 45
+  #     # It can be read using the encrypted method.
+  #     cookies.encrypted[:discount] # => 45
   #
   #     # Sets a "permanent" cookie (which expires in 20 years from now).
   #     cookies.permanent[:login] = "XJ-122"
@@ -608,8 +610,10 @@ module ActionDispatch
         end
 
         def check_for_overflow!(name, options)
-          if options[:value].bytesize > MAX_COOKIE_SIZE
-            raise CookieOverflow, "#{name} cookie overflowed with size #{options[:value].bytesize} bytes"
+          total_size = name.to_s.bytesize + options[:value].bytesize
+
+          if total_size > MAX_COOKIE_SIZE
+            raise CookieOverflow, "#{name} cookie overflowed with size #{total_size} bytes"
           end
         end
     end

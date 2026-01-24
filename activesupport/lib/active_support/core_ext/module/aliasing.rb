@@ -22,10 +22,10 @@ class Module
     # The following reader methods use an explicit `self` receiver in order to
     # support aliases that start with an uppercase letter. Otherwise, they would
     # be resolved as constants instead.
-    module_eval <<-STR, __FILE__, __LINE__ + 1
+    module_eval <<~RUBY, __FILE__, __LINE__ + 1
       def #{new_name}; self.#{old_name}; end          # def subject; self.title; end
       def #{new_name}?; self.#{old_name}?; end        # def subject?; self.title?; end
       def #{new_name}=(v); self.#{old_name} = v; end  # def subject=(v); self.title = v; end
-    STR
+    RUBY
   end
 end

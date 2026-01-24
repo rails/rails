@@ -56,6 +56,16 @@ Event = Struct.new(:case) do
   delegate :foo, to: :case
 end
 
+class BasicEvent < BasicObject
+  delegate :foo, to: :case
+
+  attr_reader :case
+
+  def initialize(kase)
+    @case = kase
+  end
+end
+
 Tester = Struct.new(:client) do
   delegate :name, to: :client, prefix: false
 
@@ -92,11 +102,19 @@ end
 DecoratedTester = Struct.new(:client) do
   include ExtraMissing
 
+  def call_name
+    name
+  end
+
   delegate_missing_to :client
 end
 
 class DecoratedMissingAllowNil
   delegate_missing_to :case, allow_nil: true
+
+  def call_name
+    name
+  end
 
   attr_reader :case
 
@@ -130,6 +148,16 @@ class Cavern
 
   def target
     @maze.passages = :twisty
+  end
+end
+
+class BasicCavern < BasicObject
+  delegate_missing_to :target
+
+  attr_reader :target
+
+  def initialize(target)
+    @target = target
   end
 end
 
@@ -413,6 +441,10 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal "David", DecoratedTester.new(@david).name
   end
 
+  def test_delegate_missing_to_calling_on_self
+    assert_equal "David", DecoratedTester.new(@david).call_name
+  end
+
   def test_delegate_missing_to_with_reserved_methods
     assert_equal "David", DecoratedReserved.new(@david).name
   end
@@ -449,6 +481,10 @@ class ModuleTest < ActiveSupport::TestCase
     assert_nil DecoratedMissingAllowNil.new(nil).name
   end
 
+  def test_delegate_missing_with_allow_nil_when_called_on_self
+    assert_nil DecoratedMissingAllowNil.new(nil).call_name
+  end
+
   def test_delegate_missing_to_affects_respond_to
     assert_respond_to DecoratedTester.new(@david), :name
     assert_not_respond_to DecoratedTester.new(@david), :private_name
@@ -474,6 +510,22 @@ class ModuleTest < ActiveSupport::TestCase
     deserialized_array = Marshal.load(serialized_array)
 
     assert_nil deserialized_array[1]
+  end
+
+  def test_delegate_to_missing_raises_delegation_error_on_basic_object
+    cavern = BasicCavern.new(nil)
+
+    assert_raises(Module::DelegationError) do
+      cavern.some_method
+    end
+  end
+
+  def test_delegate_raises_delegation_error_on_basic_object
+    cavern = BasicEvent.new(nil)
+
+    assert_raises(Module::DelegationError) do
+      cavern.foo
+    end
   end
 
   def test_delegate_with_case

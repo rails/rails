@@ -17,91 +17,28 @@ module ActiveRecord
 
         def explain(arel, binds = [], _options = [])
           sql    = "EXPLAIN QUERY PLAN " + to_sql(arel, binds)
-          result = internal_exec_query(sql, "EXPLAIN", [])
+          result = query_rows(sql, "EXPLAIN")
           SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
-        def internal_exec_query(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false) # :nodoc:
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-
-          mark_transaction_written_if_write(sql)
-
-          type_casted_binds = type_casted_binds(binds)
-
-          log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
-            with_raw_connection do |conn|
-              # Don't cache statements if they are not prepared
-              unless prepare
-                stmt = conn.prepare(sql)
-                begin
-                  cols = stmt.columns
-                  unless without_prepared_statement?(binds)
-                    stmt.bind_params(type_casted_binds)
-                  end
-                  records = stmt.to_a
-                ensure
-                  stmt.close
-                end
-              else
-                stmt = @statements[sql] ||= conn.prepare(sql)
-                cols = stmt.columns
-                stmt.reset!
-                stmt.bind_params(type_casted_binds)
-                records = stmt.to_a
-              end
-              verified!
-
-              result = build_result(columns: cols, rows: records)
-              notification_payload[:row_count] = result.length
-              result
-            end
-          end
+        def begin_deferred_transaction(isolation = nil) # :nodoc:
+          internal_begin_transaction(:deferred, isolation)
         end
-
-        def exec_delete(sql, name = "SQL", binds = []) # :nodoc:
-          internal_exec_query(sql, name, binds)
-          @raw_connection.changes
-        end
-        alias :exec_update :exec_delete
 
         def begin_isolated_db_transaction(isolation) # :nodoc:
-          raise TransactionIsolationError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted
-          raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
-
-          with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
-            ActiveSupport::IsolatedExecutionState[:active_record_read_uncommitted] = conn.get_first_value("PRAGMA read_uncommitted")
-            conn.read_uncommitted = true
-            begin_db_transaction
-          end
+          internal_begin_transaction(:deferred, isolation)
         end
 
         def begin_db_transaction # :nodoc:
-          log("begin transaction", "TRANSACTION") do
-            with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
-              result = conn.transaction
-              verified!
-              result
-            end
-          end
+          internal_begin_transaction(:immediate, nil)
         end
 
         def commit_db_transaction # :nodoc:
-          log("commit transaction", "TRANSACTION") do
-            with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
-              conn.commit
-            end
-          end
-          reset_read_uncommitted
+          query_command("COMMIT TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         def exec_rollback_db_transaction # :nodoc:
-          log("rollback transaction", "TRANSACTION") do
-            with_raw_connection(allow_retry: true, materialize_transactions: false) do |conn|
-              conn.rollback
-            end
-          end
-          reset_read_uncommitted
+          query_command("ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         # https://stackoverflow.com/questions/17574784
@@ -113,47 +50,114 @@ module ActiveRecord
           HIGH_PRECISION_CURRENT_TIMESTAMP
         end
 
+        def execute(...) # :nodoc:
+          # SQLite3Adapter was refactored to use ActiveRecord::Result internally
+          # but for backward compatibility we have to keep returning arrays of hashes here
+          super&.to_a
+        end
+
+        def reset_isolation_level # :nodoc:
+          query_command("PRAGMA read_uncommitted=#{@previous_read_uncommitted}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          @previous_read_uncommitted = nil
+        end
+
+        def default_insert_value(column) # :nodoc:
+          if column.default_function
+            Arel.sql(column.default_function)
+          else
+            column.default
+          end
+        end
+
+        def execute_batch(statements, name = nil, **kwargs) # :nodoc:
+          sql = combine_multi_statements(statements)
+          intent = QueryIntent.new(
+            adapter: self,
+            processed_sql: sql,
+            name: name,
+            batch: true,
+            binds: kwargs[:binds] || [],
+            prepare: kwargs[:prepare] || false,
+            allow_async: kwargs[:async] || false,
+            allow_retry: kwargs[:allow_retry] || false,
+            materialize_transactions: kwargs[:materialize_transactions] != false
+          )
+          intent.execute!
+          intent.finish
+        end
+
         private
-          def raw_execute(sql, name, async: false, allow_retry: false, materialize_transactions: false)
-            log(sql, name, async: async) do |notification_payload|
-              with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-                result = conn.execute(sql)
-                verified!
-                notification_payload[:row_count] = result.length
-                result
-              end
+          def internal_begin_transaction(mode, isolation)
+            if isolation
+              raise TransactionIsolationError, "SQLite3 only supports the `read_uncommitted` transaction isolation level" if isolation != :read_uncommitted
+              raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
+            end
+
+            query_command("BEGIN #{mode} TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+            if isolation
+              @previous_read_uncommitted = query_value("PRAGMA read_uncommitted", "TRANSACTION")
+              query_command("PRAGMA read_uncommitted=ON", "TRANSACTION", allow_retry: true, materialize_transactions: false)
             end
           end
 
-          def reset_read_uncommitted
-            read_uncommitted = ActiveSupport::IsolatedExecutionState[:active_record_read_uncommitted]
-            return unless read_uncommitted
+          def perform_query(raw_connection, intent)
+            total_changes_before_query = raw_connection.total_changes
+            affected_rows = nil
 
-            @raw_connection&.read_uncommitted = read_uncommitted
-          end
+            if intent.batch
+              raw_connection.execute_batch2(intent.processed_sql)
+            else
+              stmt = if intent.prepare
+                @statements[intent.processed_sql] ||= raw_connection.prepare(intent.processed_sql)
+                @statements[intent.processed_sql].reset!
+              else
+                # Don't cache statements if they are not prepared.
+                raw_connection.prepare(intent.processed_sql)
+              end
+              begin
+                if intent.has_binds?
+                  stmt.bind_params(intent.type_casted_binds)
+                end
+                result = if stmt.column_count.zero? # No return
+                  stmt.step
 
-          def execute_batch(statements, name = nil)
-            statements = statements.map { |sql| transform_query(sql) }
-            sql = combine_multi_statements(statements)
+                  affected_rows = if raw_connection.total_changes > total_changes_before_query
+                    raw_connection.changes
+                  else
+                    0
+                  end
 
-            check_if_write_query(sql)
-            mark_transaction_written_if_write(sql)
+                  ActiveRecord::Result.empty(affected_rows: affected_rows)
+                else
+                  rows = stmt.to_a
 
-            log(sql, name) do |notification_payload|
-              with_raw_connection do |conn|
-                result = conn.execute_batch2(sql)
-                verified!
-                notification_payload[:row_count] = result.length
-                result
+                  affected_rows = if raw_connection.total_changes > total_changes_before_query
+                    raw_connection.changes
+                  else
+                    0
+                  end
+
+                  ActiveRecord::Result.new(stmt.columns, rows, stmt.types.map { |t| type_map.lookup(t) }, affected_rows: affected_rows)
+                end
+              ensure
+                stmt.close unless intent.prepare
               end
             end
+            verified!
+
+            intent.notification_payload[:affected_rows] = affected_rows
+            intent.notification_payload[:row_count] = result&.length || 0
+            result
           end
 
-          def build_fixture_statements(fixture_set)
-            fixture_set.flat_map do |table_name, fixtures|
-              next if fixtures.empty?
-              fixtures.map { |fixture| build_fixture_sql([fixture], table_name) }
-            end.compact
+          def cast_result(result)
+            # Given that SQLite3 doesn't have a Result type, raw_execute already returns an ActiveRecord::Result
+            # so we have nothing to cast here.
+            result
+          end
+
+          def affected_rows(result)
+            result&.affected_rows
           end
 
           def build_truncate_statement(table_name)

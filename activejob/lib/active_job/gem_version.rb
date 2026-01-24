@@ -7,7 +7,7 @@ module ActiveJob
   end
 
   module VERSION
-    MAJOR = 7
+    MAJOR = 8
     MINOR = 2
     TINY  = 0
     PRE   = "alpha"

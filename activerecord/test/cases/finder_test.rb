@@ -21,11 +21,12 @@ require "models/matey"
 require "models/dog_lover"
 require "models/dog"
 require "models/car"
-require "models/tyre"
+require "models/tire"
 require "models/subscriber"
 require "models/non_primary_key"
 require "models/clothing_item"
 require "models/cpk"
+require "models/edge"
 require "support/stubs/strong_parameters"
 require "support/async_helper"
 
@@ -275,8 +276,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_does_not_select_columns_without_alias
-    c = Topic.lease_connection
-    assert_queries_match(/SELECT 1 AS one FROM #{Regexp.escape(c.quote_table_name("topics"))}/i) do
+    assert_queries_match(/SELECT 1 AS one FROM #{Regexp.escape(quote_table_name("topics"))}/i) do
       Topic.exists?
     end
   end
@@ -287,6 +287,46 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_returns_false_with_false_arg
     assert_equal false, Topic.exists?(false)
+  end
+
+  def test_exists_with_loaded_relation
+    topics = Topic.all.load
+    assert_queries_match(/SELECT 1 AS one/i, count: 1) do
+      assert_predicate topics, :exists?
+    end
+  end
+
+  def test_exists_with_empty_loaded_relation
+    Topic.delete_all
+    topics = Topic.all.load
+    assert_queries_match(/SELECT 1 AS one/i, count: 1) do
+      assert_not_predicate topics, :exists?
+    end
+  end
+
+  def test_exists_with_loaded_relation_having_unsaved_records
+    author = authors(:david)
+    posts = author.posts.load
+    assert_not_empty posts
+    posts.each(&:destroy)
+
+    assert_queries_match(/SELECT 1 AS one/i) do
+      assert_not_predicate posts, :exists?
+    end
+  end
+
+  def test_exists_with_loaded_relation_having_updated_owner_record
+    author = authors(:david)
+    assert_not_empty author.posts
+
+    author.posts.each do |post|
+      post.author = nil
+      post.save!
+    end
+
+    assert_queries_count(1) do
+      assert_not_predicate author.posts, :exists?
+    end
   end
 
   # exists? should handle nil for id's that come from URLs and always return false
@@ -755,6 +795,25 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_sole_record_exceeded_record_accessor
+    relation = Topic.where("author_name = 'Carl'")
+    error = assert_raises ActiveRecord::SoleRecordExceeded, match: "Wanted only one Topic" do
+      relation.sole
+    end
+
+    assert_kind_of ActiveRecord::Relation, error.record
+    assert_equal relation.count, error.record.count
+  end
+
+  def test_sole_on_loaded_relation
+    relation = Topic.where("title = 'The First Topic'").load
+    expected_topic = topics(:first)
+
+    assert_no_queries do
+      assert_equal expected_topic, relation.sole
+    end
+  end
+
   def test_first
     assert_equal topics(:second).title, Topic.where("title = 'The Second Topic of the day'").first.title
   end
@@ -948,12 +1007,11 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_nth_to_last_with_order_uses_limit
-    c = Topic.lease_connection
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) do
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.id"))} DESC LIMIT/i) do
       Topic.second_to_last
     end
 
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.updated_at"))} DESC LIMIT/i) do
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.updated_at"))} DESC LIMIT/i) do
       Topic.order(:updated_at).second_to_last
     end
   end
@@ -1008,10 +1066,120 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  def test_last_with_irreversible_order
-    assert_raises(ActiveRecord::IrreversibleOrderError) do
+  def test_first_without_order_columns
+    assert_nil Edge.primary_key
+    assert_nil Edge.implicit_order_column
+    assert_nil Edge.query_constraints_list
+    error = assert_raises(ActiveRecord::MissingRequiredOrderError) do
+      Edge.all.first
+    end
+    assert_match(/Relation has no order values/, error.message)
+  end
+
+  # TODO: Remove this test when we remove the deprecated `raise_on_missing_required_finder_order_columns`
+  def test_first_without_order_columns_and_raise_on_missing_required_finder_order_columns_disabled
+    raise_on_missing_required_finder_order_columns_before = ActiveRecord.raise_on_missing_required_finder_order_columns
+    ActiveRecord.raise_on_missing_required_finder_order_columns = false
+
+    assert_nil Edge.primary_key
+    assert_nil Edge.implicit_order_column
+    assert_nil Edge.query_constraints_list
+    assert_nothing_raised do
+      assert_deprecated(/Calling order dependent finder methods/, ActiveRecord.deprecator) do
+        Edge.all.first
+      end
+    end
+  ensure
+    ActiveRecord.raise_on_missing_required_finder_order_columns = raise_on_missing_required_finder_order_columns_before
+  end
+
+  def test_first_with_at_least_primary_key
+    ordered_edge = Class.new(Edge) do
+      self.primary_key = "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.first
+    end
+  end
+
+  def test_first_with_at_least_implict_order_column
+    ordered_edge = Class.new(Edge) do
+      self.implicit_order_column = "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.first
+    end
+  end
+
+  def first_with_at_least_query_constraints
+    ordered_edge = Class.new(Edge) do
+      query_constraints "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.first
+    end
+  end
+
+  def test_last_without_order_columns
+    assert_nil Edge.primary_key
+    assert_nil Edge.implicit_order_column
+    assert_nil Edge.query_constraints_list
+    error = assert_raises(ActiveRecord::MissingRequiredOrderError) do
+      Edge.all.last
+    end
+    assert_match(/Relation has no order values/, error.message)
+  end
+
+  # TODO: Remove this test when we remove `raise_on_missing_required_finder_order_columns`
+  def test_last_without_order_columns_and_raise_on_missing_required_finder_order_columns_disabled
+    raise_on_missing_required_finder_order_columns_before = ActiveRecord.raise_on_missing_required_finder_order_columns
+    ActiveRecord.raise_on_missing_required_finder_order_columns = false
+
+    assert_nil Edge.primary_key
+    assert_nil Edge.implicit_order_column
+    assert_nil Edge.query_constraints_list
+    error = assert_raises(ActiveRecord::IrreversibleOrderError) do
+      assert_deprecated(/Calling order dependent finder methods/, ActiveRecord.deprecator) do
+        Edge.all.last
+      end
+    end
+    assert_match(/Relation has no order values/, error.message)
+  ensure
+    ActiveRecord.raise_on_missing_required_finder_order_columns = raise_on_missing_required_finder_order_columns_before
+  end
+
+  def test_last_with_at_least_primary_key
+    ordered_edge = Class.new(Edge) do
+      self.primary_key = "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.last
+    end
+  end
+
+  def test_last_with_at_least_implict_order_column
+    ordered_edge = Class.new(Edge) do
+      self.implicit_order_column = "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.last
+    end
+  end
+
+  def last_with_at_least_query_constraints
+    ordered_edge = Class.new(Edge) do
+      query_constraints "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.last
+    end
+  end
+
+  def test_last_with_irreversible_order_value
+    error = assert_raises(ActiveRecord::IrreversibleOrderError) do
       Topic.order(Arel.sql("coalesce(author_name, title)")).last
     end
+    assert_match(/Order .* cannot be reversed automatically/, error.message)
   end
 
   def test_last_on_relation_with_limit_and_offset
@@ -1059,15 +1227,36 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal expected, clients.order(nil).first(2)
   end
 
-  def test_implicit_order_column_is_configurable
+  def test_implicit_order_column_is_configurable_with_a_single_value
     old_implicit_order_column = Topic.implicit_order_column
     Topic.implicit_order_column = "title"
 
     assert_equal topics(:fifth), Topic.first
     assert_equal topics(:third), Topic.last
 
-    c = Topic.lease_connection
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.title"))} DESC, #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) {
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.title"))} DESC, #{Regexp.escape(quote_table_name("topics.id"))} DESC LIMIT/i) {
+      Topic.last
+    }
+  ensure
+    Topic.implicit_order_column = old_implicit_order_column
+  end
+
+  def test_implicit_order_column_is_configurable_with_multiple_values
+    old_implicit_order_column = Topic.implicit_order_column
+    Topic.implicit_order_column = ["title", "author_name"]
+
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.title"))} DESC, #{Regexp.escape(quote_table_name("topics.author_name"))} DESC, #{Regexp.escape(quote_table_name("topics.id"))} DESC LIMIT/i) {
+      Topic.last
+    }
+  ensure
+    Topic.implicit_order_column = old_implicit_order_column
+  end
+
+  def test_ordering_does_not_append_primary_keys_or_query_constraints_if_passed_an_implicit_order_column_array_ending_in_nil
+    old_implicit_order_column = Topic.implicit_order_column
+    Topic.implicit_order_column = ["author_name", nil]
+
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.author_name"))} DESC LIMIT/i) {
       Topic.last
     }
   ensure
@@ -1078,8 +1267,7 @@ class FinderTest < ActiveRecord::TestCase
     old_implicit_order_column = Topic.implicit_order_column
     Topic.implicit_order_column = "id"
 
-    c = Topic.lease_connection
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) {
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.id"))} DESC LIMIT/i) {
       Topic.last
     }
   ensure
@@ -1090,8 +1278,7 @@ class FinderTest < ActiveRecord::TestCase
     old_implicit_order_column = NonPrimaryKey.implicit_order_column
     NonPrimaryKey.implicit_order_column = "created_at"
 
-    c = NonPrimaryKey.lease_connection
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("non_primary_keys.created_at"))} DESC LIMIT/i) {
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("non_primary_keys.created_at"))} DESC LIMIT/i) {
       NonPrimaryKey.last
     }
   ensure
@@ -1099,10 +1286,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_implicit_order_column_reorders_query_constraints
-    c = ClothingItem.lease_connection
     ClothingItem.implicit_order_column = "color"
-    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
-    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+    quoted_type = Regexp.escape(quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(quote_table_name("clothing_items.color"))
 
     assert_queries_match(/ORDER BY #{quoted_color} ASC, #{quoted_type} ASC LIMIT/i) do
       assert_kind_of ClothingItem, ClothingItem.first
@@ -1112,13 +1298,12 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_implicit_order_column_prepends_query_constraints
-    c = ClothingItem.lease_connection
     ClothingItem.implicit_order_column = "description"
-    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
-    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
-    quoted_descrption = Regexp.escape(c.quote_table_name("clothing_items.description"))
+    quoted_type = Regexp.escape(quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(quote_table_name("clothing_items.color"))
+    quoted_description = Regexp.escape(quote_table_name("clothing_items.description"))
 
-    assert_queries_match(/ORDER BY #{quoted_descrption} ASC, #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
+    assert_queries_match(/ORDER BY #{quoted_description} ASC, #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
       assert_kind_of ClothingItem, ClothingItem.first
     end
   ensure
@@ -1573,7 +1758,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_id_with_conditions_with_or
     assert_nothing_raised do
-      Post.where("posts.id <= 3 OR posts.#{QUOTED_TYPE} = 'Post'").find([1, 2, 3])
+      Post.where("posts.id <= 3 OR posts.#{ARTest::QUOTED_TYPE} = 'Post'").find([1, 2, 3])
     end
   end
 
@@ -1698,7 +1883,7 @@ class FinderTest < ActiveRecord::TestCase
       e = assert_raises(ActiveRecord::RecordNotFound) do
         model.find "Hello World!"
       end
-      assert_equal "Couldn't find MercedesCar with 'name'=Hello World!", e.message
+      assert_equal %{Couldn't find MercedesCar with 'name'="Hello World!"}, e.message
     end
   end
 
@@ -1708,7 +1893,7 @@ class FinderTest < ActiveRecord::TestCase
       e = assert_raises(ActiveRecord::RecordNotFound) do
         model.find "Hello", "World!"
       end
-      assert_equal "Couldn't find all MercedesCars with 'name': (Hello, World!) (found 0 results, but was looking for 2).", e.message
+      assert_equal %{Couldn't find all MercedesCars with 'name': ("Hello", "World!") (found 0 results, but was looking for 2).}, e.message
     end
   end
 
@@ -1778,21 +1963,21 @@ class FinderTest < ActiveRecord::TestCase
   test "find on a scope does not perform statement caching" do
     honda = cars(:honda)
     zyke = cars(:zyke)
-    tyre = honda.tyres.create!
-    tyre2 = zyke.tyres.create!
+    tire = honda.tires.create!
+    tire2 = zyke.tires.create!
 
-    assert_equal tyre, honda.tyres.custom_find(tyre.id)
-    assert_equal tyre2, zyke.tyres.custom_find(tyre2.id)
+    assert_equal tire, honda.tires.custom_find(tire.id)
+    assert_equal tire2, zyke.tires.custom_find(tire2.id)
   end
 
   test "find_by on a scope does not perform statement caching" do
     honda = cars(:honda)
     zyke = cars(:zyke)
-    tyre = honda.tyres.create!
-    tyre2 = zyke.tyres.create!
+    tire = honda.tires.create!
+    tire2 = zyke.tires.create!
 
-    assert_equal tyre, honda.tyres.custom_find_by(id: tyre.id)
-    assert_equal tyre2, zyke.tyres.custom_find_by(id: tyre2.id)
+    assert_equal tire, honda.tires.custom_find_by(id: tire.id)
+    assert_equal tire2, zyke.tires.custom_find_by(id: tire2.id)
   end
 
   test "#skip_query_cache! for #exists?" do
@@ -1824,9 +2009,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   test "#last for a model with composite query constraints" do
-    c = ClothingItem.lease_connection
-    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
-    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+    quoted_type = Regexp.escape(quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(quote_table_name("clothing_items.color"))
 
     assert_queries_match(/ORDER BY #{quoted_type} DESC, #{quoted_color} DESC LIMIT/i) do
       assert_kind_of ClothingItem, ClothingItem.last
@@ -1834,9 +2018,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   test "#first for a model with composite query constraints" do
-    c = ClothingItem.lease_connection
-    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
-    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+    quoted_type = Regexp.escape(quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(quote_table_name("clothing_items.color"))
 
     assert_queries_match(/ORDER BY #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
       assert_kind_of ClothingItem, ClothingItem.first

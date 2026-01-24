@@ -26,6 +26,8 @@ module ActionView
 
       # Delegates to ActiveSupport::NumberHelper#number_to_phone.
       #
+      #   number_to_phone("1234567890")         # => "123-456-7890"
+      #
       # Additionally, supports a +:raise+ option that will cause
       # InvalidNumberError to be raised if +number+ is not a valid number:
       #
@@ -42,6 +44,8 @@ module ActionView
 
       # Delegates to ActiveSupport::NumberHelper#number_to_currency.
       #
+      #   number_to_currency("1234")               # => "$1234.00"
+      #
       # Additionally, supports a +:raise+ option that will cause
       # InvalidNumberError to be raised if +number+ is not a valid number:
       #
@@ -53,6 +57,8 @@ module ActionView
       end
 
       # Delegates to ActiveSupport::NumberHelper#number_to_percentage.
+      #
+      #   number_to_percentage("99")               # => "99.000%"
       #
       # Additionally, supports a +:raise+ option that will cause
       # InvalidNumberError to be raised if +number+ is not a valid number:
@@ -66,6 +72,8 @@ module ActionView
 
       # Delegates to ActiveSupport::NumberHelper#number_to_delimited.
       #
+      #   number_with_delimiter("1234")               # => "1,234"
+      #
       # Additionally, supports a +:raise+ option that will cause
       # InvalidNumberError to be raised if +number+ is not a valid number:
       #
@@ -77,6 +85,8 @@ module ActionView
       end
 
       # Delegates to ActiveSupport::NumberHelper#number_to_rounded.
+      #
+      #   number_with_precision("1234")               # => "1234.000"
       #
       # Additionally, supports a +:raise+ option that will cause
       # InvalidNumberError to be raised if +number+ is not a valid number:
@@ -90,6 +100,8 @@ module ActionView
 
       # Delegates to ActiveSupport::NumberHelper#number_to_human_size.
       #
+      #   number_to_human_size("1234")               # => "1.21 KB"
+      #
       # Additionally, supports a +:raise+ option that will cause
       # InvalidNumberError to be raised if +number+ is not a valid number:
       #
@@ -101,6 +113,8 @@ module ActionView
       end
 
       # Delegates to ActiveSupport::NumberHelper#number_to_human.
+      #
+      #   number_to_human("1234")               # => "1.23 Thousand"
       #
       # Additionally, supports a +:raise+ option that will cause
       # InvalidNumberError to be raised if +number+ is not a valid number:

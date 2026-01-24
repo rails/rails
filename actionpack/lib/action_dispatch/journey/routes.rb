@@ -72,6 +72,13 @@ module ActionDispatch
         route
       end
 
+      def visualizer
+        tt     = GTG::Builder.new(ast).transition_table
+        groups = anchored_routes.map(&:ast).group_by(&:to_s)
+        asts   = groups.values.map(&:first)
+        tt.visualizer(asts)
+      end
+
       private
         def clear_cache!
           @ast                = nil

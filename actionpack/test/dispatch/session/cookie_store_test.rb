@@ -203,7 +203,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       error = assert_raise(ActionDispatch::Cookies::CookieOverflow) {
         get "/raise_data_overflow"
       }
-      assert_equal "_myapp_session cookie overflowed with size 5612 bytes", error.message
+      assert_equal "_myapp_session cookie overflowed with size 5626 bytes", error.message
     end
   end
 

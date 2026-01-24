@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "database/setup"
+require "minitest/mock"
 
 class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDispatch::IntegrationTest
   setup do
@@ -63,6 +64,16 @@ class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDi
 
     assert_response :not_found
   end
+
+  test "sessions are disabled" do
+    get rails_blob_representation_proxy_url(
+      disposition: :attachment,
+      filename: @blob.filename,
+      signed_blob_id: @blob.signed_id,
+      variation_key: ActiveStorage::Variation.encode(@transformations))
+    assert request.session_options[:skip],
+      "Expected request.session_options[:skip] to be true"
+  end
 end
 
 class ActiveStorage::Representations::ProxyControllerWithVariantsWithStrictLoadingTest < ActionDispatch::IntegrationTest
@@ -83,6 +94,39 @@ class ActiveStorage::Representations::ProxyControllerWithVariantsWithStrictLoadi
     assert_response :ok
     assert_match(/^inline/, response.headers["Content-Disposition"])
     assert_equal @blob.variant(@transformations).download, response.body
+  end
+
+
+  test "invalidates cache and returns a 404 if the file is not found on download" do
+    # This mock requires a pre-processed variant as processing the variant will call to download
+    mock_download = lambda do |_|
+      raise ActiveStorage::FileNotFoundError.new "File still uploading!"
+    end
+
+    @blob.service.stub(:download, mock_download) do
+      get rails_blob_representation_proxy_url(
+        filename: @blob.filename,
+        signed_blob_id: @blob.signed_id,
+        variation_key: ActiveStorage::Variation.encode(@transformations))
+    end
+    assert_response :not_found
+    assert_equal "no-cache", response.headers["Cache-Control"]
+  end
+
+  test "invalidates cache and returns a 500 if the an error is raised on download" do
+    # This mock requires a pre-processed variant as processing the variant will call to download
+    mock_download = lambda do |_|
+      raise StandardError.new "Something is not cool!"
+    end
+
+    @blob.service.stub(:download, mock_download) do
+      get rails_blob_representation_proxy_url(
+        filename: @blob.filename,
+        signed_blob_id: @blob.signed_id,
+        variation_key: ActiveStorage::Variation.encode(@transformations))
+    end
+    assert_response :internal_server_error
+    assert_equal "no-cache", response.headers["Cache-Control"]
   end
 end
 

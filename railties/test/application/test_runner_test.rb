@@ -222,6 +222,69 @@ module ApplicationTests
       end
     end
 
+    def test_run_test_at_root
+      app_file "my_test.rb", <<-RUBY
+        require "test_helper"
+
+        class MyTest < ActiveSupport::TestCase
+          def test_rikka
+            puts 'Rikka'
+          end
+        end
+      RUBY
+
+      run_test_command("my_test.rb").tap do |output|
+        assert_match "Rikka", output
+      end
+    end
+
+    def test_run_test_having_a_slash_in_its_name
+      app_file "my_test.rb", <<-RUBY
+        require "test_helper"
+
+        class MyTest < ActiveSupport::TestCase
+          test "foo/foo" do
+            puts 'Rikka'
+          end
+        end
+      RUBY
+
+      run_test_command("my_test.rb -n foo\/foo").tap do |output|
+        assert_match "Rikka", output
+      end
+    end
+
+    def test_run_test_with_flags_unordered
+      app_file "my_test.rb", <<-RUBY
+        require "test_helper"
+
+        class MyTest < ActiveSupport::TestCase
+          test "foo/foo" do
+            puts 'Rikka'
+          end
+        end
+      RUBY
+
+      run_test_command("--seed 344 my_test.rb --fail-fast -n foo\/foo").tap do |output|
+        assert_match "Rikka", output
+      end
+    end
+
+    def test_run_test_after_a_flag_without_argument
+      app_file "my_test.rb", <<-RUBY
+        require "test_helper"
+        class MyTest < ActiveSupport::TestCase
+          test "foo/foo" do
+            puts 'Rikka'
+          end
+        end
+      RUBY
+
+      run_test_command("--fail-fast my_test.rb -n foo\/foo").tap do |output|
+        assert_match "Rikka", output
+      end
+    end
+
     def test_run_matched_test
       app_file "test/unit/chu_2_koi_test.rb", <<-RUBY
         require "test_helper"
@@ -782,8 +845,9 @@ module ApplicationTests
             assert false
           end
 
-          10.times do |n|
+          4.times do |n|
             define_method("test_verify_fail_fast_\#{n}") do
+              sleep 0.1
               assert true
             end
           end
@@ -797,7 +861,7 @@ module ApplicationTests
 
       matches = @test_output.match(/(\d+) runs, (\d+) assertions, (\d+) failures/)
 
-      assert_match %r{Interrupt}, @error_output
+      assert_empty @error_output
       assert_equal 1, matches[3].to_i
       assert_operator matches[1].to_i, :<, 11
     end
@@ -950,13 +1014,14 @@ module ApplicationTests
       app_file "config/environments/test.rb", <<-RUBY
         Rails.application.configure do
           config.action_controller.allow_forgery_protection = true
+          config.action_controller.forgery_protection_verification_strategy = :header_or_legacy_token
           config.action_dispatch.show_exceptions = :none
         end
       RUBY
 
       output = run_test_command("-n test_should_create_user")
 
-      assert_match "ActionController::InvalidAuthenticityToken", output
+      assert_match "ActionController::InvalidCrossOriginRequest", output
     end
 
     def test_raise_error_when_specified_file_does_not_exist
@@ -968,8 +1033,32 @@ module ApplicationTests
       create_test_file :models, "account"
       output = run_test_command("test/models/accnt.rb")
 
-      assert_match(%r{Could not load test file.+test/models/accnt\.rb}, output)
-      assert_match(%r{Did you mean?.+test/models/account_test\.rb}, output)
+      expected = <<~MSG
+        bin/rails: Could not load test file: test/models/accnt.rb. (Rails::TestUnit::InvalidTestError)
+
+        Did you mean?  test/models/account_test.rb
+      MSG
+
+      assert_equal(expected, output)
+      assert_not_predicate $?, :success?
+    end
+
+    def test_unrelated_load_error
+      app_file "test/models/account_test.rb", <<-RUBY
+        require "test_helper"
+
+        require "does-not-exist"
+
+        class AccountsTest < ActiveSupport::TestCase
+          def test_truth
+            assert true
+          end
+        end
+      RUBY
+
+      output = run_test_command("test/models/account_test.rb")
+      assert_match("cannot load such file -- does-not-exist", output)
+      assert_not_predicate $?, :success?
     end
 
     def test_pass_TEST_env_on_rake_test
@@ -1104,6 +1193,8 @@ module ApplicationTests
     end
 
     def test_reset_sessions_before_rollback_on_system_tests
+      generate_application_system_test_case_file
+
       app_file "test/system/reset_session_before_rollback_test.rb", <<-RUBY
         require "application_system_test_case"
         require "selenium/webdriver"
@@ -1133,6 +1224,8 @@ module ApplicationTests
     end
 
     def test_reset_sessions_on_failed_system_test_screenshot
+      generate_application_system_test_case_file
+
       app_file "test/system/reset_sessions_on_failed_system_test_screenshot_test.rb", <<~RUBY
         require "application_system_test_case"
         require "selenium/webdriver"
@@ -1159,6 +1252,8 @@ module ApplicationTests
     end
 
     def test_failed_system_test_screenshot_should_be_taken_before_other_teardown
+      generate_application_system_test_case_file
+
       app_file "test/system/failed_system_test_screenshot_should_be_taken_before_other_teardown_test.rb", <<~RUBY
         require "application_system_test_case"
         require "selenium/webdriver"
@@ -1185,6 +1280,8 @@ module ApplicationTests
     end
 
     def test_system_tests_are_not_run_with_the_default_test_command
+      generate_application_system_test_case_file
+
       app_file "test/system/dummy_test.rb", <<-RUBY
         require "application_system_test_case"
 
@@ -1201,6 +1298,8 @@ module ApplicationTests
     end
 
     def test_system_tests_are_not_run_through_rake_test
+      generate_application_system_test_case_file
+
       app_file "test/system/dummy_test.rb", <<-RUBY
         require "application_system_test_case"
 
@@ -1216,6 +1315,8 @@ module ApplicationTests
     end
 
     def test_system_tests_are_run_through_rake_test_when_given_in_TEST
+      generate_application_system_test_case_file
+
       app_file "test/system/dummy_test.rb", <<-RUBY
         require "application_system_test_case"
         require "selenium/webdriver"
@@ -1339,6 +1440,16 @@ module ApplicationTests
               puts "#{name.camelize}Test" if #{print}
               assert #{pass}, 'wups!'
             end
+          end
+        RUBY
+      end
+
+      def generate_application_system_test_case_file
+        app_file "test/application_system_test_case.rb", <<-RUBY
+          require "test_helper"
+
+          class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+            driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ]
           end
         RUBY
       end

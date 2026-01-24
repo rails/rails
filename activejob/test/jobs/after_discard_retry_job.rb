@@ -11,6 +11,7 @@ class AfterDiscardRetryJob < ActiveJob::Base
   class CustomDiscardableError < StandardError; end
   class AfterDiscardError < StandardError; end
   class ChildAfterDiscardError < AfterDiscardError; end
+  class ReportedError < StandardError; end
 
   retry_on DefaultsError
   retry_on(CustomCatchError) { |job, error| JobBuffer.add("Dealt with a job that failed to retry in a custom way after #{job.arguments.second} attempts. Message: #{error.message}") }
@@ -19,6 +20,7 @@ class AfterDiscardRetryJob < ActiveJob::Base
 
   discard_on DiscardableError
   discard_on(CustomDiscardableError) { |_job, error| JobBuffer.add("Dealt with a job that was discarded in a custom way. Message: #{error.message}") }
+  discard_on(ReportedError, report: true)
 
   after_discard { |_job, error| JobBuffer.add("Ran after_discard for job. Message: #{error.message}") }
 

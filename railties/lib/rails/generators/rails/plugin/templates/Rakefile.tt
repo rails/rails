@@ -4,10 +4,6 @@ require "bundler/setup"
 APP_RAKEFILE = File.expand_path("<%= dummy_path -%>/Rakefile", __dir__)
 load "rails/tasks/engine.rake"
 <% end -%>
-<% if engine? -%>
-
-load "rails/tasks/statistics.rake"
-<% end -%>
 <% unless options[:skip_gemspec] -%>
 
 require "bundler/gem_tasks"

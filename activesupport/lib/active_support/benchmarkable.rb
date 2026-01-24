@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/benchmark"
 require "active_support/core_ext/hash/keys"
 
 module ActiveSupport
@@ -41,7 +40,9 @@ module ActiveSupport
         options[:level] ||= :info
 
         result = nil
-        ms = Benchmark.ms { result = options[:silence] ? logger.silence(&block) : yield }
+        ms = ActiveSupport::Benchmark.realtime(:float_millisecond) do
+          result = options[:silence] ? logger.silence(&block) : yield
+        end
         logger.public_send(options[:level], "%s (%.1fms)" % [ message, ms ])
         result
       else

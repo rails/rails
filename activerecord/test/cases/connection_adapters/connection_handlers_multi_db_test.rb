@@ -359,13 +359,13 @@ module ActiveRecord
       end
 
       def test_calling_connected_to_on_a_non_existent_handler_raises
-        error = assert_raises ActiveRecord::ConnectionNotEstablished do
+        error = assert_raises ActiveRecord::ConnectionNotDefined do
           ActiveRecord::Base.connected_to(role: :non_existent) do
             Person.first
           end
         end
 
-        assert_equal "No connection pool for 'ActiveRecord::Base' found for the 'non_existent' role.", error.message
+        assert_equal "No database connection defined for 'non_existent' role.", error.message
       end
 
       def test_default_handlers_are_writing_and_reading

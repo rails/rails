@@ -19,12 +19,10 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :queue_classic
     class QueueClassicAdapter < AbstractAdapter
-      def initialize(enqueue_after_transaction_commit: false)
-        @enqueue_after_transaction_commit = enqueue_after_transaction_commit
-      end
-
-      def enqueue_after_transaction_commit? # :nodoc:
-        @enqueue_after_transaction_commit
+      def check_adapter
+        ActiveJob.deprecator.warn <<~MSG.squish
+          The built-in `queue_classic` adapter is deprecated and will be removed in Rails 9.0.
+        MSG
       end
 
       def enqueue(job) # :nodoc:

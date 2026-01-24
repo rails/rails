@@ -2,7 +2,7 @@
 
 require_relative "../helper"
 
-describe Arel::Nodes::SelectStatement do
+class Arel::Nodes::SelectStatementTest < Arel::Spec
   describe "#clone" do
     it "clones cores" do
       statement = Arel::Nodes::SelectStatement.new %w[a b c]

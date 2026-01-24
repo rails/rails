@@ -49,10 +49,13 @@ module ActiveStorage
   mattr_accessor :verifier
   mattr_accessor :variant_processor, default: :mini_magick
 
+  mattr_accessor :variant_transformer
+
   mattr_accessor :queues, default: {}
 
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers,  default: []
+  mattr_accessor :analyze,    default: :later
 
   mattr_accessor :paths, default: {}
 
@@ -72,7 +75,6 @@ module ActiveStorage
     "annotate",
     "antialias",
     "append",
-    "apply",
     "attenuate",
     "authenticate",
     "auto_gamma",
@@ -213,7 +215,6 @@ module ActiveStorage
     "linewidth",
     "liquid_rescale",
     "list",
-    "loader",
     "log",
     "loop",
     "lowlight_color",
@@ -276,7 +277,6 @@ module ActiveStorage
     "rotate",
     "sample",
     "sampling_factor",
-    "saver",
     "scale",
     "scene",
     "screen",
@@ -365,26 +365,13 @@ module ActiveStorage
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
-  def self.replace_on_assign_to_many
-    ActiveStorage.deprecator.warn("config.active_storage.replace_on_assign_to_many is deprecated and has no effect.")
-  end
-
-  def self.replace_on_assign_to_many=(value)
-    ActiveStorage.deprecator.warn("config.active_storage.replace_on_assign_to_many is deprecated and has no effect.")
-  end
-
-  def self.silence_invalid_content_types_warning
-    ActiveStorage.deprecator.warn("config.active_storage.silence_invalid_content_types_warning is deprecated and has no effect.")
-  end
-
-  def self.silence_invalid_content_types_warning=(value)
-    ActiveStorage.deprecator.warn("config.active_storage.silence_invalid_content_types_warning is deprecated and has no effect.")
-  end
-
   module Transformers
     extend ActiveSupport::Autoload
 
     autoload :Transformer
+    autoload :NullTransformer
     autoload :ImageProcessingTransformer
+    autoload :Vips
+    autoload :ImageMagick
   end
 end

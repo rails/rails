@@ -67,8 +67,8 @@ module ApplicationTests
       RUBY
 
       app("development")
-      assert Foo.method_defined?(:foo_url)
-      assert Foo.method_defined?(:main_app)
+      assert Foo.new.respond_to?(:foo_url)
+      assert Foo.new.respond_to?(:main_app)
     end
 
     test "allows to not load all helpers for controllers" do
@@ -220,7 +220,9 @@ module ApplicationTests
       rails %w(generate model post title:string)
 
       with_unhealthy_database do
-        app("development")
+        assert_nothing_raised do
+          app("development")
+        end
       end
     end
 
@@ -342,32 +344,28 @@ module ApplicationTests
 
     test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do
       app("development")
-      orig_database_url = ENV.delete("DATABASE_URL")
-      orig_rails_env, Rails.env = Rails.env, "development"
-      ActiveRecord::Base.establish_connection
-      assert ActiveRecord::Base.lease_connection
-      assert_match(/#{ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary").database}/, ActiveRecord::Base.connection_db_config.database)
-      db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
-      assert_match(/#{db_config.database}/, ActiveRecord::Base.connection_db_config.database)
+      with_env DATABASE_URL: nil, RAILS_ENV: "development" do
+        ActiveRecord::Base.establish_connection
+        assert ActiveRecord::Base.lease_connection
+        assert_match(/#{ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary").database}/, ActiveRecord::Base.connection_db_config.database)
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
+        assert_match(/#{db_config.database}/, ActiveRecord::Base.connection_db_config.database)
+      end
     ensure
       ActiveRecord::Base.remove_connection
-      ENV["DATABASE_URL"] = orig_database_url if orig_database_url
-      Rails.env = orig_rails_env if orig_rails_env
     end
 
     test "active record establish_connection uses DATABASE_URL even if Rails.env is set" do
       app("development")
-      orig_database_url = ENV.delete("DATABASE_URL")
-      orig_rails_env, Rails.env = Rails.env, "development"
-      database_url_db_name = "db/database_url_db.sqlite3"
-      ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
-      ActiveRecord::Base.establish_connection
-      assert ActiveRecord::Base.lease_connection
-      assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_db_config.database)
+      with_env DATABASE_URL: nil, RAILS_ENV: "development" do
+        database_url_db_name = "db/database_url_db.sqlite3"
+        ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
+        ActiveRecord::Base.establish_connection
+        assert ActiveRecord::Base.lease_connection
+        assert_match(/#{database_url_db_name}/, ActiveRecord::Base.connection_db_config.database)
+      end
     ensure
       ActiveRecord::Base.remove_connection
-      ENV["DATABASE_URL"] = orig_database_url if orig_database_url
-      Rails.env = orig_rails_env if orig_rails_env
     end
 
     test "connections checked out during initialization are returned to the pool" do

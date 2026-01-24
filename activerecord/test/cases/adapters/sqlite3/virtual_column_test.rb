@@ -17,6 +17,7 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
         t.virtual :upper_name, type: :string, as: "UPPER(name)", stored: true
         t.virtual :lower_name, type: :string, as: "LOWER(name)", stored: false
         t.virtual :octet_name, type: :integer, as: "LENGTH(name)"
+        t.virtual :mutated_name, type: :string, as: "REPLACE(name, 'l', 'L')"
         t.integer :column1
       end
       VirtualColumn.create(name: "Rails", column1: 10)
@@ -58,6 +59,14 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
       assert_equal 5, VirtualColumn.take.octet_name
     end
 
+    def test_virtual_column_with_comma_in_definition
+      column = VirtualColumn.columns_hash["mutated_name"]
+      assert_predicate column, :virtual?
+      assert_not_predicate column, :virtual_stored?
+      assert_not_nil column.default_function
+      assert_equal "RaiLs", VirtualColumn.take.mutated_name
+    end
+
     def test_change_table_with_stored_generated_column
       @connection.change_table :virtual_columns do |t|
         t.virtual :decr_column1, type: :integer, as: "column1 - 1", stored: true
@@ -97,7 +106,8 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
     end
 
     def test_build_fixture_sql
-      ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :virtual_columns)
+      fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :virtual_columns).first
+      assert_equal 2, fixtures.size
     end
   end
 end

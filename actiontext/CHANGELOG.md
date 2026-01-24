@@ -1,43 +1,26 @@
-*   Use `includes` instead of `eager_load` for `with_all_rich_text`.
+*   Install generator now detects which JS package manager to use when
+    installing javascript dependencies for the editor.
 
-    *Petrik de Heus*
+    *David Lowenfels*
 
-*   Delegate `ActionText::Content#deconstruct` to `Nokogiri::XML::DocumentFragment#elements`
+*   Deprecate Trix-specific classes, modules, and methods
 
-    ```ruby
-    content = ActionText::Content.new <<~HTML
-      <h1>Hello, world</h1>
-
-      <div>The body</div>
-    HTML
-
-    content => [h1, div]
-
-    assert_pattern { h1 => { content: "Hello, world" } }
-    assert_pattern { div => { content: "The body" } }
-    ```
+    * `ActionText::Attachable#to_trix_content_attachment_partial_path`. Override
+      `#to_editor_content_attachment_partial_path` instead.
+    * `ActionText::Attachments::TrixConversion`
+    * `ActionText::Content#to_trix_html`.
+    * `ActionText::RichText#to_trix_html`.
+    * `ActionText::TrixAttachment`
 
     *Sean Doyle*
 
-*   Fix all Action Text database related models to respect
-    `ActiveRecord::Base.table_name_prefix` configuration.
+*   Validate `RemoteImage` URLs at creation time.
 
-    *Chedli Bourguiba*
+    `RemoteImage.from_node` now validates the URL before creating a `RemoteImage` object, using the
+    same regex that `AssetUrlHelper` uses during rendering. URLs like "image.png" that would
+    previously have been passed to the asset pipeline and raised a `ActionView::Template::Error` are
+    rejected early, and gracefully fail by resulting in a `MissingAttachable`.
 
-*   Compile ESM package that can be used directly in the browser as actiontext.esm.js
+    *Mike Dalessio*
 
-    *Matias Grunberg*
-
-*   Fix using actiontext.js with Sprockets
-
-    *Matias Grunberg*
-
-*   Upgrade Trix to 2.0.7
-
-    *Hartley McGuire*
-
-*   Fix using Trix with Sprockets
-
-    *Hartley McGuire*
-
-Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/actiontext/CHANGELOG.md) for previous changes.
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/actiontext/CHANGELOG.md) for previous changes.

@@ -4,7 +4,6 @@ require "redcarpet"
 require "nokogiri"
 require "rails_guides/markdown/renderer"
 require "rails_guides/markdown/epub_renderer"
-require "rails-html-sanitizer"
 
 module RailsGuides
   class Markdown
@@ -23,8 +22,8 @@ module RailsGuides
       @raw_body = body
       extract_raw_header_and_body
       generate_header
-      generate_description
       generate_title
+      generate_description
       generate_body
       generate_structure
       generate_index
@@ -55,6 +54,7 @@ module RailsGuides
 
         text.downcase.gsub(/\?/, "-questionmark")
                      .gsub(/!/, "-bang")
+                     .gsub(/\[\]/, "-squarebrackets")
                      .gsub(/[#{escaped_chars}]+/, " ").strip
                      .gsub(/\s+/, "-")
       end
@@ -95,7 +95,7 @@ module RailsGuides
 
       def generate_description
         sanitizer = Rails::Html::FullSanitizer.new
-        @description = sanitizer.sanitize(@header).squish
+        @description = sanitizer.sanitize(@header).squish.delete_prefix(@heading)
       end
 
       def generate_structure
@@ -125,8 +125,11 @@ module RailsGuides
             end
 
             doc.css("h2, h3, h4, h5").each do |node|
-              node.inner_html = "<a class='anchorlink' href='##{node[:id]}'>#{node.inner_html}</a>"
+              node.inner_html = "<a class='anchorlink' href='##{node[:id]}' data-turbo='false'>#{node.inner_html}</a>"
             end
+
+            tables = doc.css("table")
+            tables.wrap("<div class='table-wrapper'>")
           end
           @body = @epub ? document.to_xhtml : document.to_html
         end
@@ -148,9 +151,13 @@ module RailsGuides
           end.to_html
 
           @index = <<-INDEX.html_safe
-          <nav id="subCol">
-            <h3 class="chapter">
-              <picture>
+          <nav id="column-side" aria-label="Chapter" class="guide-index" data-turbo="false">
+            <a id="chapter-nav-skip-link" href="#article-body" class="skip-link">
+              Skip to article body
+            </a>
+
+            <h2 class="chapter">
+              <picture aria-hidden="true">
                 <!-- Using the `source`  HTML tag to set the dark theme image -->
                 <source
                   srcset="images/icon_book-close-bookmark-1-wht.svg"
@@ -159,7 +166,7 @@ module RailsGuides
                 <img src="images/icon_book-close-bookmark-1.svg" alt="Chapter Icon" />
               </picture>
               Chapters
-            </h3>
+            </h2>
             #{@index}
           </nav>
           INDEX
@@ -167,8 +174,8 @@ module RailsGuides
       end
 
       def generate_title
-        if heading = html_fragment(@header).at(:h1)
-          @title = "#{heading.text} — Ruby on Rails Guides"
+        if @heading = html_fragment(@header).at(:h1)
+          @title = "#{@heading.text} — Ruby on Rails Guides"
         else
           @title = "Ruby on Rails Guides"
         end
@@ -178,15 +185,15 @@ module RailsGuides
         case hierarchy.size
         when 1
           @index_counter[2] = @index_counter[3] = @index_counter[4] = 0
-          "#{@index_counter[1] += 1}"
+          "#{@index_counter[1] += 1}."
         when 2
           @index_counter[3] = @index_counter[4] = 0
-          "#{@index_counter[1]}.#{@index_counter[2] += 1}"
+          "#{@index_counter[1]}.#{@index_counter[2] += 1}."
         when 3
           @index_counter[4] = 0
-          "#{@index_counter[1]}.#{@index_counter[2]}.#{@index_counter[3] += 1}"
+          "#{@index_counter[1]}.#{@index_counter[2]}.#{@index_counter[3] += 1}."
         when 4
-          "#{@index_counter[1]}.#{@index_counter[2]}.#{@index_counter[3]}.#{@index_counter[4] += 1}"
+          "#{@index_counter[1]}.#{@index_counter[2]}.#{@index_counter[3]}.#{@index_counter[4] += 1}."
         end
       end
 

@@ -118,6 +118,10 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
     assert_equal "DROP TABLE `people`", drop_table(:people)
   end
 
+  def test_drop_tables
+    assert_equal "DROP TABLE `people`, `sobrinho`", drop_table(:people, :sobrinho)
+  end
+
   def test_create_mysql_database_with_encoding
     if ActiveRecord::Base.lease_connection.send(:row_format_dynamic_by_default?)
       assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8mb4`", create_database(:matt)
@@ -145,6 +149,10 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
 
   def test_drop_table_with_specific_database
     assert_equal "DROP TABLE `otherdb`.`people`", drop_table("otherdb.people")
+  end
+
+  def test_drop_tables_with_specific_database
+    assert_equal "DROP TABLE `otherdb`.`people`, `otherdb`.`sobrinho`", drop_table("otherdb.people", "otherdb.sobrinho")
   end
 
   def test_add_timestamps

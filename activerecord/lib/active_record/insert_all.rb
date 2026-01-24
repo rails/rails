@@ -8,15 +8,16 @@ module ActiveRecord
     attr_reader :on_duplicate, :update_only, :returning, :unique_by, :update_sql
 
     class << self
-      def execute(model, ...)
-        model.with_connection do |c|
-          new(model, c, ...).execute
-        end
+      def execute(relation, ...)
+        relation.model.with_connection do |c|
+          new(relation, c, ...).execute
+        end.tap { relation.reset }
       end
     end
 
-    def initialize(model, connection, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
-      @model, @connection, @inserts = model, connection, inserts.map(&:stringify_keys)
+    def initialize(relation, connection, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
+      @relation = relation
+      @model, @connection, @inserts = relation.model, connection, inserts.map(&:stringify_keys)
       @on_duplicate, @update_only, @returning, @unique_by = on_duplicate, update_only, returning, unique_by
       @record_timestamps = record_timestamps.nil? ? model.record_timestamps : record_timestamps
 
@@ -31,16 +32,13 @@ module ActiveRecord
         @keys = @inserts.first.keys
       end
 
-      if model.scope_attributes?
-        @scope_attributes = model.scope_attributes
-        @keys |= @scope_attributes.keys
-      end
-      @keys = @keys.to_set
+      @scope_attributes = relation.scope_for_create.except(@model.inheritance_column)
+      @keys |= @scope_attributes.keys
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
 
-      @unique_by = find_unique_index_for(@unique_by)
+      @unique_by = find_unique_index_for(@unique_by) if @on_duplicate != :raise
 
       configure_on_duplicate_update_logic
       ensure_valid_options_for_connection!
@@ -60,7 +58,7 @@ module ActiveRecord
     end
 
     def primary_keys
-      Array(@model.schema_cache.primary_keys(model.table_name))
+      Array(@connection.schema_cache.primary_keys(model.table_name))
     end
 
     def skip_duplicates?
@@ -72,10 +70,14 @@ module ActiveRecord
     end
 
     def map_key_with_value
+      timestamps_to_merge = model.all_timestamp_attributes_in_model if record_timestamps?
+
       inserts.map do |attributes|
-        attributes = attributes.stringify_keys
-        attributes.merge!(scope_attributes) if scope_attributes
-        attributes.reverse_merge!(timestamps_for_create) if record_timestamps?
+        attributes.merge!(@scope_attributes)
+
+        timestamps_to_merge&.each do |attribute|
+          attributes[attribute] = connection.high_precision_current_timestamp if !attributes.key?(attribute)
+        end
 
         verify_attributes(attributes)
 
@@ -92,15 +94,13 @@ module ActiveRecord
     # TODO: Consider renaming this method, as it only conditionally extends keys, not always
     def keys_including_timestamps
       @keys_including_timestamps ||= if record_timestamps?
-        keys + model.all_timestamp_attributes_in_model
+        (keys | model.all_timestamp_attributes_in_model).sort!
       else
-        keys
+        keys.sort!
       end
     end
 
     private
-      attr_reader :scope_attributes
-
       def has_attribute_aliases?(attributes)
         attributes.keys.any? { |attribute| model.attribute_alias?(attribute) }
       end
@@ -135,7 +135,7 @@ module ActiveRecord
         end
 
         if update_only.present?
-          @updatable_columns = Array(update_only)
+          @updatable_columns = Array(update_only).map(&:to_s)
           @on_duplicate = :update
         elsif custom_update_sql_provided?
           @update_sql = on_duplicate
@@ -170,7 +170,7 @@ module ActiveRecord
       end
 
       def unique_indexes
-        @model.schema_cache.indexes(model.table_name).select(&:unique)
+        @connection.schema_cache.indexes(model.table_name).select(&:unique)
       end
 
       def ensure_valid_options_for_connection!
@@ -198,7 +198,7 @@ module ActiveRecord
 
 
       def readonly_columns
-        primary_keys + model.readonly_attributes.to_a
+        primary_keys + model.readonly_attributes
       end
 
       def unique_by_columns
@@ -207,7 +207,7 @@ module ActiveRecord
 
 
       def verify_attributes(attributes)
-        if keys_including_timestamps != attributes.keys.to_set
+        if keys_including_timestamps != attributes.keys.sort!
           raise ArgumentError, "All objects being inserted must have the same keys"
         end
       end
@@ -221,14 +221,10 @@ module ActiveRecord
                              "by wrapping them in Arel.sql()."
       end
 
-      def timestamps_for_create
-        model.all_timestamp_attributes_in_model.index_with(connection.high_precision_current_timestamp)
-      end
-
       class Builder # :nodoc:
         attr_reader :model
 
-        delegate :skip_duplicates?, :update_duplicates?, :keys, :keys_including_timestamps, :record_timestamps?, to: :insert_all
+        delegate :skip_duplicates?, :update_duplicates?, :keys, :keys_including_timestamps, :record_timestamps?, :primary_keys, to: :insert_all
 
         def initialize(insert_all)
           @insert_all, @model, @connection = insert_all, insert_all.model, insert_all.connection
@@ -239,11 +235,17 @@ module ActiveRecord
         end
 
         def values_list
-          types = extract_types_from_columns_on(model.table_name, keys: keys_including_timestamps)
+          types = extract_types_for(keys_including_timestamps)
+          pks = primary_keys
 
           values_list = insert_all.map_key_with_value do |key, value|
-            next value if Arel::Nodes::SqlLiteral === value
-            connection.with_yaml_fallback(types[key].serialize(value))
+            if Arel::Nodes::SqlLiteral === value
+              value
+            elsif pks.include?(key) && value.nil?
+              connection.default_insert_value(model.columns_hash[key])
+            else
+              ActiveModel::Type::SerializeCastValue.serialize(type = types[key], type.cast(value))
+            end
           end
 
           connection.visitor.compile(Arel::Nodes::ValuesList.new(values_list))
@@ -284,7 +286,7 @@ module ActiveRecord
 
           model.timestamp_attributes_for_update_in_model.filter_map do |column_name|
             if touch_timestamp_attribute?(column_name)
-              "#{column_name}=(CASE WHEN (#{updatable_columns.map(&block).join(" AND ")}) THEN #{model.quoted_table_name}.#{column_name} ELSE #{connection.high_precision_current_timestamp} END),"
+              "#{column_name}=(CASE WHEN (#{updatable_columns.map(&block).join(" AND ")}) THEN #{model.quoted_table_name}.#{column_name} ELSE #{connection.high_precision_current_timestamp} END), "
             end
           end.join
         end
@@ -306,8 +308,8 @@ module ActiveRecord
             format_columns(insert_all.keys_including_timestamps)
           end
 
-          def extract_types_from_columns_on(table_name, keys:)
-            columns = @model.schema_cache.columns_hash(table_name)
+          def extract_types_for(keys)
+            columns = @model.columns_hash
 
             unknown_column = (keys - columns.keys).first
             raise UnknownAttributeError.new(model.new, unknown_column) if unknown_column

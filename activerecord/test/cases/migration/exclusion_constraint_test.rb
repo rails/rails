@@ -144,7 +144,7 @@ if ActiveRecord::Base.lease_connection.supports_exclusion_constraints?
 
           Invoice.create(start_date: "2020-01-01", end_date: "2021-01-01")
 
-          assert_raises(ActiveRecord::StatementInvalid) do
+          assert_raises(ActiveRecord::ExclusionViolation) do
             Invoice.create(start_date: "2020-12-31", end_date: "2021-01-01")
           end
         end
@@ -154,7 +154,7 @@ if ActiveRecord::Base.lease_connection.supports_exclusion_constraints?
 
           invoice = Invoice.create(start_date: "2020-01-01", end_date: "2021-01-01")
 
-          assert_raises(ActiveRecord::StatementInvalid) do
+          assert_raises(ActiveRecord::ExclusionViolation) do
             Invoice.transaction(requires_new: true) do
               Invoice.create!(start_date: "2020-12-31", end_date: "2021-01-01")
             end
@@ -184,6 +184,17 @@ if ActiveRecord::Base.lease_connection.supports_exclusion_constraints?
         def test_remove_non_existing_exclusion_constraint
           assert_raises(ArgumentError) do
             @connection.remove_exclusion_constraint :invoices, name: "nonexistent"
+          end
+        end
+
+        def test_exclusion_constraint_violation_on_update
+          @connection.add_exclusion_constraint :invoices, "daterange(start_date, end_date) WITH &&", using: :gist, name: "invoices_date_overlap"
+
+          Invoice.create(start_date: "2020-01-01", end_date: "2021-01-01")
+          invoice = Invoice.create(start_date: "2022-01-01", end_date: "2023-01-01")
+
+          assert_raises(ActiveRecord::ExclusionViolation) do
+            invoice.update(start_date: "2020-12-31", end_date: "2021-01-01")
           end
         end
       end

@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+ActiveSupport.deprecator.warn <<~MSG
+  ActiveSupport::Configurable is deprecated without replacement, and will be removed in Rails 8.2.
+
+  You can emulate the previous behavior with `class_attribute`.
+MSG
+
 require "active_support/concern"
 require "active_support/ordered_options"
 
@@ -19,7 +25,7 @@ module ActiveSupport
       # Compiles reader methods so we don't have to go through method_missing.
       def self.compile_methods!(keys)
         keys.reject { |m| method_defined?(m) }.each do |key|
-          class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          class_eval <<~RUBY, __FILE__, __LINE__ + 1
             def #{key}; _get(#{key.inspect}); end
           RUBY
         end
@@ -27,6 +33,19 @@ module ActiveSupport
     end
 
     module ClassMethods
+      # Reads and writes attributes from a configuration OrderedOptions.
+      #
+      #   require "active_support/configurable"
+      #
+      #   class User
+      #     include ActiveSupport::Configurable
+      #   end
+      #
+      #   User.config.allowed_access = true
+      #   User.config.level = 1
+      #
+      #   User.config.allowed_access # => true
+      #   User.config.level          # => 1
       def config
         @_config ||= if respond_to?(:superclass) && superclass.respond_to?(:config)
           superclass.config.inheritable_copy
@@ -36,6 +55,21 @@ module ActiveSupport
         end
       end
 
+      # Configure values from within the passed block.
+      #
+      #   require "active_support/configurable"
+      #
+      #   class User
+      #     include ActiveSupport::Configurable
+      #   end
+      #
+      #   User.allowed_access # => nil
+      #
+      #   User.configure do |config|
+      #     config.allowed_access = true
+      #   end
+      #
+      #   User.allowed_access # => true
       def configure
         yield config
       end

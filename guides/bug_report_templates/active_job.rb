@@ -10,8 +10,18 @@ gemfile(true) do
   # gem "rails", github: "rails/rails", branch: "main"
 end
 
-require "active_job"
+require "active_job/railtie"
 require "minitest/autorun"
+
+class TestApp < Rails::Application
+  config.load_defaults Rails::VERSION::STRING.to_f
+  config.eager_load = false
+  config.secret_key_base = "secret_key_base"
+  config.active_job.queue_adapter = :test
+
+  config.logger = Logger.new($stdout)
+end
+Rails.application.initialize!
 
 class BuggyJob < ActiveJob::Base
   def perform

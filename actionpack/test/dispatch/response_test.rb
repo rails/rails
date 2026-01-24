@@ -42,7 +42,12 @@ class ResponseTest < ActiveSupport::TestCase
   def test_each_isnt_called_if_str_body_is_written
     # Controller writes and reads response body
     each_counter = 0
-    @response.body = Object.new.tap { |o| o.singleton_class.define_method(:each) { |&block| each_counter += 1; block.call "foo" } }
+
+    @response.body = Object.new.tap do |object|
+      object.singleton_class.define_method(:each) { |&block| each_counter += 1; block.call "foo" }
+      object.singleton_class.define_method(:to_ary) { enum_for(:each).to_a }
+    end
+
     @response["X-Foo"] = @response.body
 
     assert_equal 1, each_counter, "#each was not called once"
@@ -646,5 +651,18 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     assert_equal("text/plain", @response.media_type)
     assert_equal("utf-8", @response.charset)
     assert_equal("012345678910", @response.body)
+  end
+
+  test "response does not buffer enumerator body" do
+    # This is an enumerable body, and it should not be buffered:
+    body = Enumerator.new do |enumerator|
+      enumerator << "Hello World"
+    end
+
+    # The response created here should not attempt to buffer the body:
+    response = ActionDispatch::Response.new(200, { "content-type" => "text/plain" }, body)
+
+    # The body should be the same enumerator object, i.e. it should be passed through unchanged:
+    assert_equal body, response.body
   end
 end

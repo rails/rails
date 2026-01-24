@@ -22,7 +22,7 @@ module ActionMailbox
       head :ok
     rescue JSON::ParserError => error
       logger.error error.message
-      head :unprocessable_entity
+      head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     end
 
     def health_check
@@ -55,7 +55,7 @@ module ActionMailbox
       end
 
       def key
-        Rails.application.credentials.dig(:action_mailbox, :mandrill_api_key) || ENV["MANDRILL_INGRESS_API_KEY"]
+        Rails.app.credentials.dig(:action_mailbox, :mandrill_api_key) || ENV["MANDRILL_INGRESS_API_KEY"]
       end
 
       class Authenticator

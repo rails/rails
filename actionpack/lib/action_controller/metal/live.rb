@@ -53,12 +53,53 @@ module ActionController
   #       response.headers["Last-Modified"] = Time.now.httpdate # Add this line if your Rack version is 2.2.x
   #       ...
   #     end
+  #
+  # ## Streaming and Execution State
+  #
+  # When streaming, the action is executed in a separate thread. By default, this thread
+  # shares execution state from the parent thread.
+  #
+  # You can configure which execution state keys should be excluded from being shared
+  # using the `config.action_controller.live_streaming_excluded_keys` configuration:
+  #
+  #   # config/application.rb
+  #   config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack]
+  #
+  # This is useful when using ActionController::Live inside a `connected_to` block. For example,
+  # if the parent request is reading from a replica using `connected_to(role: :reading)`, you may
+  # want the streaming thread to use its own connection context instead of inheriting the read-only
+  # context:
+  #
+  #   # Without configuration, streaming thread inherits read-only connection
+  #   ActiveRecord::Base.connected_to(role: :reading) do
+  #     @posts = Post.all
+  #     render stream: true # Streaming thread cannot write to database
+  #   end
+  #
+  #   # With configuration, streaming thread gets fresh connection context
+  #   # config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack]
+  #   ActiveRecord::Base.connected_to(role: :reading) do
+  #     @posts = Post.all
+  #     render stream: true # Streaming thread can write to database if needed
+  #   end
+  #
+  # Common keys you might want to exclude:
+  # - `:active_record_connected_to_stack` - Database connection routing and roles
+  # - `:active_record_prohibit_shard_swapping` - Shard swapping restrictions
+  #
+  # By default, no keys are excluded to maintain backward compatibility.
   module Live
     extend ActiveSupport::Concern
 
+    mattr_accessor :live_streaming_excluded_keys, default: []
+
+    included do
+      class_attribute :live_streaming_excluded_keys, instance_accessor: false, default: Live.live_streaming_excluded_keys
+    end
+
     module ClassMethods
       def make_response!(request)
-        if request.get_header("HTTP_VERSION") == "HTTP/1.0"
+        if (request.get_header("SERVER_PROTOCOL") || request.get_header("HTTP_VERSION")) == "HTTP/1.0"
           super
         else
           Live::Response.new.tap do |res|
@@ -77,12 +118,15 @@ module ActionController
     # Writing an object will convert it into standard SSE format with whatever
     # options you have configured. You may choose to set the following options:
     #
-    #     1) Event. If specified, an event with this name will be dispatched on
-    #     the browser.
-    #     2) Retry. The reconnection time in milliseconds used when attempting
-    #     to send the event.
-    #     3) Id. If the connection dies while sending an SSE to the browser, then
-    #     the server will receive a +Last-Event-ID+ header with value equal to +id+.
+    # `:event`
+    # :   If specified, an event with this name will be dispatched on the browser.
+    #
+    # `:retry`
+    # :   The reconnection time in milliseconds used when attempting to send the event.
+    #
+    # `:id`
+    # :   If the connection dies while sending an SSE to the browser, then the
+    #     server will receive a `Last-Event-ID` header with value equal to `id`.
     #
     # After setting an option in the constructor of the SSE object, all future SSEs
     # sent across the stream will use those options unless overridden.
@@ -130,15 +174,16 @@ module ActionController
       private
         def perform_write(json, options)
           current_options = @options.merge(options).stringify_keys
-
+          event = +""
           PERMITTED_OPTIONS.each do |option_name|
             if (option_value = current_options[option_name])
-              @stream.write "#{option_name}: #{option_value}\n"
+              event << "#{option_name}: #{option_value}\n"
             end
           end
 
           message = json.gsub("\n", "\ndata: ")
-          @stream.write "data: #{message}\n\n"
+          event << "data: #{message}\n\n"
+          @stream.write event
         end
     end
 
@@ -167,12 +212,6 @@ module ActionController
         @aborted = false
         @ignore_disconnect = false
       end
-
-      # ActionDispatch::Response delegates #to_ary to the internal
-      # ActionDispatch::Response::Buffer, defining #to_ary is an indicator that the
-      # response body can be buffered and/or cached by Rack middlewares, this is not
-      # the case for Live responses so we undefine it for this Buffer subclass.
-      undef_method :to_ary
 
       def write(string)
         unless @response.committed?
@@ -239,12 +278,7 @@ module ActionController
 
       private
         def each_chunk(&block)
-          loop do
-            str = nil
-            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              str = @buf.pop
-            end
-            break unless str
+          while str = @buf.pop
             yield str
           end
         end
@@ -278,16 +312,15 @@ module ActionController
       # This processes the action in a child thread. It lets us return the response
       # code and headers back up the Rack stack, and still process the body in
       # parallel with sending data to the client.
-      new_controller_thread {
+      new_controller_thread do
         ActiveSupport::Dependencies.interlock.running do
           t2 = Thread.current
 
           # Since we're processing the view in a different thread, copy the thread locals
           # from the main thread to the child thread. :'(
           locals.each { |k, v| t2[k] = v }
-          ActiveSupport::IsolatedExecutionState.share_with(t1)
 
-          begin
+          ActiveSupport::IsolatedExecutionState.share_with(t1, except: self.class.live_streaming_excluded_keys) do
             super(name)
           rescue => e
             if @_response.committed?
@@ -304,14 +337,14 @@ module ActionController
               error = e
             end
           ensure
+            clean_up_thread_locals(locals, t2)
+
             @_response.commit!
           end
         end
-      }
-
-      ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-        @_response.await_commit
       end
+
+      @_response.await_commit
 
       raise error if error
     end
@@ -325,7 +358,8 @@ module ActionController
     # or other running data where you don't want the entire file buffered in memory
     # first. Similar to send_data, but where the data is generated live.
     #
-    # Options:
+    # #### Options:
+    #
     # *   `:filename` - suggests a filename for the browser to use.
     # *   `:type` - specifies an HTTP content type. You can specify either a string
     #     or a symbol for a registered type with `Mime::Type.register`, for example
@@ -345,7 +379,7 @@ module ActionController
     #         stream.write "#{subscriber.email_address},#{subscriber.updated_at}\n"
     #       end
     #     end
-    def send_stream(filename:, disposition: "attachment", type: nil)
+    def send_stream(filename:, disposition: "attachment", type: nil, &block)
       payload = { filename: filename, disposition: disposition, type: type }
       ActiveSupport::Notifications.instrument("send_stream.action_controller", payload) do
         response.headers["Content-Type"] =
@@ -367,12 +401,21 @@ module ActionController
       # fact that Rack isn't based around IOs and we need to use a thread to stream
       # data from the response bodies. Nobody should call this method except in Rails
       # internals. Seriously!
-      def new_controller_thread # :nodoc:
-        Thread.new {
+      def new_controller_thread(&block) # :nodoc:
+        ActionController::Live.live_thread_pool_executor.post do
           t2 = Thread.current
           t2.abort_on_exception = true
           yield
-        }
+        end
+      end
+
+      # Ensure we clean up any thread locals we copied so that the thread can reused.
+      def clean_up_thread_locals(locals, thread) # :nodoc:
+        locals.each { |k, _| thread[k] = nil }
+      end
+
+      def self.live_thread_pool_executor
+        @live_thread_pool_executor ||= Concurrent::CachedThreadPool.new(name: "action_controller.live")
       end
 
       def log_error(exception)
@@ -386,5 +429,7 @@ module ActionController
           "#{message}\n\n"
         end
       end
+
+      ActiveSupport.run_load_hooks(:action_controller_live, self)
   end
 end

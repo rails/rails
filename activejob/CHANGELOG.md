@@ -1,52 +1,71 @@
-*   Make Active Job transaction aware when used conjointly with Active Record.
+*   Deprecate built-in `queue_classic` Active Job adapter.
 
-    A common mistake with Active Job is to enqueue jobs from inside a transaction,
-    causing them to potentially be picked and ran by another process, before the
-    transaction is committed, which may result in various errors.
+    *Harun Sabljaković, Wojciech Wnętrzak*
+
+*   Allow `retry_on` `wait` procs to accept the error as a second argument.
+
+    Procs with arity 1 continue to receive only the execution count.
 
     ```ruby
-    Topic.transaction do
-      topic = Topic.create(...)
-      NewTopicNotificationJob.perform_later(topic)
+    class RemoteServiceJob < ActiveJob::Base
+      retry_on CustomError, wait: ->(executions, error) { error.retry_after || executions * 2 }
+
+      def perform
+        # ...
+      end
     end
     ```
 
-    Now Active Job will automatically defer the enqueuing to after the transaction is committed,
-    and drop the job if the transaction is rolled back.
+    *JP Camara*
 
-    Various queue implementations can choose to disable this behavior, and users can disable it,
-    or force it on a per job basis:
+*   Deprecate built-in `resque` adapter.
 
-    ```ruby
-    class NewTopicNotificationJob < ApplicationJob
-      self.enqueue_after_transaction_commit = :never # or `:always` or `:default`
-    end
-    ```
+    If you're using this adapter, upgrade to `resque` 3.0 or later to use the `resque` gem's adapter.
 
-    *Jean Boussier*, *Cristian Bica*
+    *zzak, Wojciech Wnętrzak*
 
-*   Do not trigger immediate loading of `ActiveJob::Base` when loading `ActiveJob::TestHelper`.
+*   Remove deprecated `sidekiq` Active Job adapter.
 
-    *Maxime Réty*
+    The adapter is available in the `sidekiq` gem.
 
-*   Preserve the serialized timezone when deserializing `ActiveSupport::TimeWithZone` arguments.
+    *Wojciech Wnętrzak*
 
-    *Joshua Young*
+*   Deprecate built-in `delayed_job` adapter.
 
-*   Remove deprecated `:exponentially_longer` value for the `:wait` in `retry_on`.
+    If you're using this adapter, upgrade to `delayed_job` 4.2.0 or later to use the `delayed_job` gem's adapter.
 
-    *Rafael Mendonça França*
+    *Dino Maric, David Genord II, Wojciech Wnętrzak*
 
-*   Remove deprecated support to set numeric values to `scheduled_at` attribute.
+*   Deprecate built-in `backburner` adapter.
 
-    *Rafael Mendonça França*
+    *Dino Maric, Nathan Esquenazi, Earlopain*
 
-*   Deprecate `Rails.application.config.active_job.use_big_decimal_serialize`.
+*   Jobs are now enqueued after transaction commit.
 
-    *Rafael Mendonça França*
+    This fixes that jobs would surprisingly run against uncommitted and
+    rolled-back records.
 
-*   Remove deprecated primitive serializer for `BigDecimal` arguments.
+    New Rails 8.2 apps (and apps upgrading to `config.load_defaults "8.2"`)
+    have `config.active_job.enqueue_after_transaction_commit = true` by default.
+    Uncomment the setting in `config/initializers/new_framework_defaults_8_2.rb`
+    to opt in.
 
-    *Rafael Mendonça França*
+    *mugitti9*
 
-Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activejob/CHANGELOG.md) for previous changes.
+*   Un-deprecate the global `config.active_job.enqueue_after_transaction_commit`
+    toggle for app-wide overrides. It was deprecated in Rails 8.0 (when the
+    symbol values were removed) and made non-functional in 8.1. It now works
+    as a boolean config again.
+
+    *Jeremy Daer*
+
+*   Deprecate built-in `sneakers` adapter.
+
+    *Dino Maric*
+
+*   Fix using custom serializers with `ActiveJob::Arguments.serialize` when
+    `ActiveJob::Base` hasn't been loaded.
+
+    *Hartley McGuire*
+
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activejob/CHANGELOG.md) for previous changes.

@@ -142,16 +142,16 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     a.foo   = :bar
     a[:baz] = :quz
 
-    assert_equal "#<ActiveSupport::OrderedOptions {:foo=>:bar, :baz=>:quz}>", a.inspect
+    assert_equal "#<ActiveSupport::OrderedOptions #{{ foo: :bar, baz: :quz }}>", a.inspect
   end
 
   def test_inheritable_option_inspect
     object = ActiveSupport::InheritableOptions.new(one: "first value")
-    assert_equal "#<ActiveSupport::InheritableOptions {:one=>\"first value\"}>", object.inspect
+    assert_equal "#<ActiveSupport::InheritableOptions #{{ one: "first value" }}>", object.inspect
 
     object[:two] = "second value"
     object["three"] = "third value"
-    assert_equal "#<ActiveSupport::InheritableOptions {:one=>\"first value\", :two=>\"second value\", :three=>\"third value\"}>", object.inspect
+    assert_equal "#<ActiveSupport::InheritableOptions #{{ one: "first value", two: "second value", three: "third value" }}>", object.inspect
   end
 
   def test_ordered_options_to_h
@@ -288,16 +288,16 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     object[:two] = "second value"
     object["three"] = "third value"
 
-    assert_equal "{:one=>\"first value\", :two=>\"second value\", :three=>\"third value\"}", object.to_s
+    assert_equal({ one: "first value", two: "second value", three: "third value" }.inspect, object.to_s)
   end
 
   def test_inheritable_options_to_s
     object = ActiveSupport::InheritableOptions.new(one: "first value")
-    assert_equal "{:one=>\"first value\"}", object.to_s
+    assert_equal({ one: "first value" }.inspect, object.to_s)
 
     object[:two] = "second value"
     object["three"] = "third value"
-    assert_equal "{:one=>\"first value\", :two=>\"second value\", :three=>\"third value\"}", object.to_s
+    assert_equal({ one: "first value", two: "second value", three: "third value" }.inspect, object.to_s)
   end
 
   def test_odrered_options_pp
@@ -308,17 +308,17 @@ class OrderedOptionsTest < ActiveSupport::TestCase
 
     io = StringIO.new
     PP.pp(object, io)
-    assert_equal "{:one=>\"first value\", :two=>\"second value\", :three=>\"third value\"}\n", io.string
+    assert_equal({ one: "first value", two: "second value", three: "third value" }.inspect, io.string.strip)
   end
 
   def test_inheritable_options_pp
     object = ActiveSupport::InheritableOptions.new(one: "first value")
     object[:two] = "second value"
     object["three"] = "third value"
-    assert_equal "{:one=>\"first value\", :two=>\"second value\", :three=>\"third value\"}", object.to_s
+    assert_equal({ one: "first value", two: "second value", three: "third value" }.inspect, object.to_s)
 
     io = StringIO.new
     PP.pp(object, io)
-    assert_equal "{:one=>\"first value\", :two=>\"second value\", :three=>\"third value\"}\n", io.string
+    assert_equal({ one: "first value", two: "second value", three: "third value" }.inspect, io.string.strip)
   end
 end

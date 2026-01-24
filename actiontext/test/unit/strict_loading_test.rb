@@ -28,7 +28,9 @@ class ActionText::StrictLoadingTest < ActiveSupport::TestCase
 
     records = MessageWithStrictLoading.with_rich_text_strict_loading_content.all
 
-    records.map(&:strict_loading_content)
+    assert_nothing_raised do
+      records.map(&:strict_loading_content)
+    end
   end
 
   test "has_rich_text accepts strict_loading: overrides" do
@@ -36,6 +38,8 @@ class ActionText::StrictLoadingTest < ActiveSupport::TestCase
 
     records = MessageWithFooter.all
 
-    records.map(&:footer)
+    assert_nothing_raised do
+      records.map(&:footer)
+    end
   end
 end

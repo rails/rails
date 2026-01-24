@@ -1,4 +1,5 @@
 <header>
+  <%= render "rescues/copy_button" %>
   <h1>
     <%= @exception_wrapper.exception_class_name %>
     <% if params_valid? && @request.parameters['controller'] %>

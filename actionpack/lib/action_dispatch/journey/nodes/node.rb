@@ -74,6 +74,7 @@ module ActionDispatch
         def initialize(left)
           @left = left
           @memo = nil
+          @to_s = nil
         end
 
         def each(&block)
@@ -81,7 +82,7 @@ module ActionDispatch
         end
 
         def to_s
-          Visitors::String::INSTANCE.accept(self, "")
+          @to_s ||= Visitors::String::INSTANCE.accept(self, "".dup).freeze
         end
 
         def to_dot

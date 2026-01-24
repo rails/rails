@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
+require "active_support/testing/parallelize_executor"
+
 module ActiveSupport
   module Testing
     module Isolation
-      require "thread"
-
       SubprocessCrashed = Class.new(StandardError)
 
       def self.included(klass) # :nodoc:

@@ -3,8 +3,8 @@ require_relative "lib/<%= namespaced_name %>/version"
 Gem::Specification.new do |spec|
   spec.name        = <%= name.inspect %>
   spec.version     = <%= camelized_modules %>::VERSION
-  spec.authors     = [<%= author.inspect %>]
-  spec.email       = [<%= email.inspect %>]
+  spec.authors     = [ <%= author.inspect %> ]
+  spec.email       = [ <%= email.inspect %> ]
   spec.homepage    = "TODO"
   spec.summary     = "TODO: Summary of <%= camelized_modules %>."
   spec.description = "TODO: Description of <%= camelized_modules %>."

@@ -1,9 +1,18 @@
-*   Remove deprecated params via `:args` for `assert_enqueued_email_with`.
+*   Add `assert_part` and `assert_no_part` to `ActionMailer::TestCase`
 
-    *Rafael Mendonça França*
+    ```ruby
+    test "assert MyMailer.welcome HTML and text parts" do
+      mail = MyMailer.welcome("Hello, world")
 
-*   Remove deprecated `config.action_mailer.preview_path`.
+      assert_part :text, mail do |text|
+        assert_includes text, "Hello, world"
+      end
+      assert_part :html, mail do |html|
+        assert_dom html.root, "p", "Hello, world"
+      end
+    end
+    ```
 
-    *Rafael Mendonça França*
+    *Sean Doyle*
 
-Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/actionmailer/CHANGELOG.md) for previous changes.
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/actionmailer/CHANGELOG.md) for previous changes.

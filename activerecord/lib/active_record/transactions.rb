@@ -4,8 +4,7 @@ module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
     extend ActiveSupport::Concern
-    # :nodoc:
-    ACTIONS = [:create, :destroy, :update]
+    ACTIONS = [:create, :destroy, :update] # :nodoc:
 
     included do
       define_callbacks :commit, :rollback,
@@ -13,7 +12,7 @@ module ActiveRecord
                        scope: [:kind, :name]
     end
 
-    attr_accessor :_new_record_before_last_commit # :nodoc:
+    attr_accessor :_new_record_before_last_commit, :_last_transaction_return_status # :nodoc:
 
     # = Active Record \Transactions
     #
@@ -188,15 +187,26 @@ module ActiveRecord
     # #after_commit is a good spot to put in a hook to clearing a cache since clearing it from
     # within a transaction could trigger the cache to be regenerated before the database is updated.
     #
-    # *Warning*: Callbacks are deduplicated according to the callback and method.
-    # This means you cannot have multiple <tt>after_xxx_commit</tt> shortcuts calling the same method.
+    # ==== NOTE: Callbacks are deduplicated per callback by filter.
     #
-    #   after_create_commit :do_foo # This will NOT fire
-    #   after_save_commit :do_foo
+    # Trying to define multiple callbacks with the same filter will result in a single callback being run.
     #
-    # Instead, use after_commit directly
+    # For example:
     #
-    #   after_commit :do_foo, on: [:create, :save]
+    #   after_commit :do_something
+    #   after_commit :do_something # only the last one will be called
+    #
+    # This applies to all variations of <tt>after_*_commit</tt> callbacks as well.
+    #
+    #   after_commit :do_something
+    #   after_create_commit :do_something
+    #   after_save_commit :do_something
+    #
+    # It is recommended to use the +on:+ option to specify when the callback should be run.
+    #
+    #   after_commit :do_something, on: [:create, :update]
+    #
+    # This is equivalent to using +after_create_commit+ and +after_update_commit+, but will not be deduplicated.
     #
     # === Caveats
     #
@@ -208,25 +218,50 @@ module ActiveRecord
     # database error will occur because the savepoint has already been
     # automatically released. The following example demonstrates the problem:
     #
-    #   Model.lease_connection.transaction do                           # BEGIN
-    #     Model.lease_connection.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
-    #       Model.lease_connection.create_table(...)                    # active_record_1 now automatically released
-    #     end                                                     # RELEASE SAVEPOINT active_record_1
-    #                                                             # ^^^^ BOOM! database error!
-    #   end
+    #   Model.transaction do                           # BEGIN
+    #     Model.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
+    #       Model.lease_connection.create_table(...)   # active_record_1 now automatically released
+    #     end                                          # RELEASE SAVEPOINT active_record_1
+    #   end                                            # ^^^^ BOOM! database error!
     #
     # Note that "TRUNCATE" is also a MySQL DDL statement!
     module ClassMethods
       # See the ConnectionAdapters::DatabaseStatements#transaction API docs.
       def transaction(**options, &block)
         with_connection do |connection|
-          connection.transaction(**options, &block)
+          connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
+            connection.transaction(**options, &block)
+          end
         end
       end
 
-      # Returns the current transaction. See ActiveRecord::Transactions API docs.
+      # Makes all transactions the current pool use the isolation level initiated within the block.
+      def with_pool_transaction_isolation_level(isolation_level, &block)
+        if current_transaction.open?
+          raise ActiveRecord::TransactionIsolationError, "cannot set default isolation level while transaction is open"
+        end
+
+        old_level = connection_pool.pool_transaction_isolation_level
+        connection_pool.pool_transaction_isolation_level = isolation_level
+        yield
+      ensure
+        connection_pool.pool_transaction_isolation_level = old_level
+      end
+
+      # Returns the default isolation level for the connection pool, set earlier by #with_pool_transaction_isolation_level.
+      def pool_transaction_isolation_level
+        connection_pool.pool_transaction_isolation_level
+      end
+
+      # Returns a representation of the current transaction state,
+      # which can be a top level transaction, a savepoint, or the absence of a transaction.
+      #
+      # An object is always returned, whether or not a transaction is currently active.
+      # To check if a transaction was opened, use <tt>current_transaction.open?</tt>.
+      #
+      # See the ActiveRecord::Transaction documentation for detailed behavior.
       def current_transaction
-        connection_pool.active_connection&.current_transaction || ConnectionAdapters::NULL_TRANSACTION
+        connection_pool.active_connection&.current_transaction&.user_transaction || Transaction::NULL_TRANSACTION
       end
 
       def before_commit(*args, &block) # :nodoc:
@@ -252,32 +287,24 @@ module ActiveRecord
       end
 
       # Shortcut for <tt>after_commit :hook, on: [ :create, :update ]</tt>.
-      #
-      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method.
       def after_save_commit(*args, &block)
         set_options_for_callbacks!(args, on: [ :create, :update ], **prepend_option)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :create</tt>.
-      #
-      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method.
       def after_create_commit(*args, &block)
         set_options_for_callbacks!(args, on: :create, **prepend_option)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :update</tt>.
-      #
-      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method.
       def after_update_commit(*args, &block)
         set_options_for_callbacks!(args, on: :update, **prepend_option)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :destroy</tt>.
-      #
-      # *Warning*: only one <tt>after_xxx_commit</tt> shortcut can call any given method.
       def after_destroy_commit(*args, &block)
         set_options_for_callbacks!(args, on: :destroy, **prepend_option)
         set_callback(:commit, :after, *args, &block)
@@ -397,19 +424,22 @@ module ActiveRecord
     #
     # This method is available within the context of an ActiveRecord::Base
     # instance.
-    def with_transaction_returning_status
+    def with_transaction_returning_status # :nodoc:
       self.class.with_connection do |connection|
-        status = nil
-        ensure_finalize = !connection.transaction_open?
+        connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
+          status = nil
+          ensure_finalize = !connection.transaction_open?
 
-        connection.transaction do
-          add_to_transaction(ensure_finalize || has_transactional_callbacks?)
-          remember_transaction_record_state
+          connection.transaction do
+            add_to_transaction(ensure_finalize || has_transactional_callbacks?)
+            remember_transaction_record_state
 
-          status = yield
-          raise ActiveRecord::Rollback unless status
+            status = yield
+            raise ActiveRecord::Rollback unless status
+          end
+          @_last_transaction_return_status = status
+          status
         end
-        status
       end
     end
 
@@ -424,6 +454,7 @@ module ActiveRecord
       def init_internals
         super
         @_start_transaction_state = nil
+        @_last_transaction_return_status = nil
         @_committed_already_called = nil
         @_new_record_before_last_commit = nil
       end

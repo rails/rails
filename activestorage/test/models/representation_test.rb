@@ -42,8 +42,7 @@ class ActiveStorage::RepresentationTest < ActiveSupport::TestCase
 
   test "representing an unrepresentable blob" do
     blob = create_blob
-
-    assert_raises ActiveStorage::UnrepresentableError do
+    assert_raises ActiveStorage::UnrepresentableError, match: /blob with ID=\d+ and content_type=text\/plain/ do
       blob.representation resize_to_limit: [100, 100]
     end
   end

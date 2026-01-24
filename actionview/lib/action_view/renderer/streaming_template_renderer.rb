@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "fiber"
-
 module ActionView
   # == TODO
   #
@@ -19,23 +17,30 @@ module ActionView
       def each(&block)
         begin
           @start.call(block)
-        rescue Exception => exception
-          log_error(exception)
+        rescue => error
+          log_error(error)
           block.call ActionView::Base.streaming_completion_on_exception
         end
         self
       end
 
-      private
-        # This is the same logging logic as in ShowExceptions middleware.
-        def log_error(exception)
-          logger = ActionView::Base.logger
-          return unless logger
+      # Returns the complete body as a string.
+      def body
+        buffer = String.new
+        each { |part| buffer << part }
+        buffer
+      end
 
-          message = +"\n#{exception.class} (#{exception.message}):\n"
-          message << exception.annotated_source_code.to_s if exception.respond_to?(:annotated_source_code)
-          message << "  " << exception.backtrace.join("\n  ")
-          logger.fatal("#{message}\n\n")
+      private
+        def log_error(error)
+          if ActiveSupport.error_reporter
+            ActiveSupport.error_reporter.report(error)
+          elsif logger = ActionView::Base.logger
+            message = +"\n#{error.class} (#{error.message}):\n"
+            message << error.annotated_source_code.to_s if error.respond_to?(:annotated_source_code)
+            message << "  " << error.backtrace.join("\n  ")
+            logger.fatal("#{message}\n\n")
+          end
         end
     end
 
@@ -43,7 +48,7 @@ module ActionView
     # object that responds to each. This object is initialized with a block
     # that knows how to render the template.
     def render_template(view, template, layout_name = nil, locals = {}) # :nodoc:
-      return [super.body] unless layout_name && template.supports_streaming?
+      return [super.body] unless template.supports_streaming?
 
       locals ||= {}
       layout   = find_layout(layout_name, locals.keys, [formats.first])

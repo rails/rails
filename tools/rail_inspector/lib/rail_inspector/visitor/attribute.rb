@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
-require "set"
-require "syntax_tree"
+require "prism"
 
 module RailInspector
   module Visitor
-    class Attribute < SyntaxTree::Visitor
+    class Attribute < Prism::Visitor
       attr_reader :attribute_map
 
       def initialize
@@ -14,17 +13,16 @@ module RailInspector
       end
 
       def with_namespace(node)
-        @namespace_stack << node.constant.constant.value
+        @namespace_stack << node.constant_path.name
         visit_child_nodes(node)
         @namespace_stack.pop
       end
 
-      visit_method alias_method :visit_module, :with_namespace
+      alias visit_class_node with_namespace
+      alias visit_module_node with_namespace
 
-      visit_method alias_method :visit_class, :with_namespace
-
-      visit_method def visit_command(node)
-        attr_access = node.message.value
+      def visit_call_node(node)
+        attr_access = node.name
         return unless ATTRIBUTE_METHODS.include?(attr_access)
 
         full_namespace = @namespace_stack.join("::")
@@ -32,13 +30,13 @@ module RailInspector
         @attribute_map[full_namespace] ||= {}
         @attribute_map[full_namespace][attr_access] ||= Set.new
 
-        attributes = node.arguments.parts.map { |p| p.value.value }
+        attributes = node.arguments.arguments.map { |p| p.value }
 
         @attribute_map[full_namespace][attr_access].merge(attributes)
       end
 
       private
-        ATTRIBUTE_METHODS = %w[attr_accessor attr_reader attr_writer]
+        ATTRIBUTE_METHODS = %i[attr_accessor attr_reader attr_writer]
     end
   end
 end

@@ -37,9 +37,16 @@ module ActionDispatch
       def parameter_filtered_location
         uri = URI.parse(location)
         unless uri.query.nil? || uri.query.empty?
-          uri.query.gsub!(FilterParameters::PAIR_RE) do
-            request.parameter_filter.filter($1 => $2).first.join("=")
+          parts = uri.query.split(/([&;])/)
+          filtered_parts = parts.map do |part|
+            if part.include?("=")
+              key, value = part.split("=", 2)
+              request.parameter_filter.filter(key => value).first.join("=")
+            else
+              part
+            end
           end
+          uri.query = filtered_parts.join("")
         end
         uri.to_s
       rescue URI::Error

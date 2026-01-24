@@ -27,7 +27,9 @@ class ActiveRecord::Encryption::EncryptableRecordApiTest < ActiveRecord::Encrypt
   end
 
   test "encrypt won't fail for classes without attributes to encrypt" do
-    posts(:welcome).encrypt
+    assert_nothing_raised do
+      posts(:welcome).encrypt
+    end
   end
 
   test "decrypt decrypts encrypted attributes" do

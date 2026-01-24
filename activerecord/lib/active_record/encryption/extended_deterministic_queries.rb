@@ -41,6 +41,8 @@ module ActiveRecord
       module EncryptedQuery # :nodoc:
         class << self
           def process_arguments(owner, args, check_for_additional_values)
+            owner = owner.model if owner.is_a?(Relation)
+
             return args if owner.deterministic_encrypted_attributes&.empty?
 
             if args.is_a?(Array) && (options = args.first).is_a?(Hash)
@@ -102,12 +104,12 @@ module ActiveRecord
         end
 
         def scope_for_create
-          return super unless klass.deterministic_encrypted_attributes&.any?
+          return super unless model.deterministic_encrypted_attributes&.any?
 
           scope_attributes = super
           wheres = where_values_hash
 
-          klass.deterministic_encrypted_attributes.each do |attribute_name|
+          model.deterministic_encrypted_attributes.each do |attribute_name|
             attribute_name = attribute_name.to_s
             values = wheres[attribute_name]
             if values.is_a?(Array) && values[1..].all?(AdditionalValue)

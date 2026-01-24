@@ -24,6 +24,7 @@ module MessagePackSharedSerializerTests
         15  => Pathname,
         16  => Regexp,
         17  => ActiveSupport::HashWithIndifferentAccess,
+        18  => ActiveSupport::SafeBuffer,
         127 => Object,
       }
 

@@ -2,8 +2,6 @@
 
 # :markup: markdown
 
-require "strscan"
-
 module ActionDispatch
   module Journey # :nodoc:
     module GTG # :nodoc:
@@ -16,7 +14,13 @@ module ActionDispatch
       end
 
       class Simulator # :nodoc:
-        INITIAL_STATE = [ [0, nil] ].freeze
+        STATIC_TOKENS = Array.new(64)
+        STATIC_TOKENS[".".ord] = "."
+        STATIC_TOKENS["/".ord] = "/"
+        STATIC_TOKENS["?".ord] = "?"
+        STATIC_TOKENS.freeze
+
+        INITIAL_STATE = [0, nil].freeze
 
         attr_reader :tt
 
@@ -25,21 +29,38 @@ module ActionDispatch
         end
 
         def memos(string)
-          input = StringScanner.new(string)
           state = INITIAL_STATE
-          start_index = 0
 
-          while sym = input.scan(%r([/.?]|[^/.?]+))
-            end_index = start_index + sym.length
+          pos = 0
+          eos = string.bytesize
 
-            state = tt.move(state, string, start_index, end_index)
+          while pos < eos
+            start_index = pos
+            pos += 1
 
-            start_index = end_index
+            if (token = STATIC_TOKENS[string.getbyte(start_index)])
+              state = tt.move(state, string, token, start_index, false)
+            else
+              while pos < eos && STATIC_TOKENS[string.getbyte(pos)].nil?
+                pos += 1
+              end
+
+              token = string.byteslice(start_index, pos - start_index)
+              state = tt.move(state, string, token, start_index, true)
+            end
           end
 
-          acceptance_states = state.each_with_object([]) do |s_d, memos|
-            s, idx = s_d
-            memos.concat(tt.memo(s)) if idx.nil? && tt.accepting?(s)
+          acceptance_states = []
+          states_count = state.size
+          i = 0
+          while i < states_count
+            if state[i + 1].nil?
+              s = state[i]
+              if tt.accepting?(s)
+                acceptance_states.concat(tt.memo(s))
+              end
+            end
+            i += 2
           end
 
           acceptance_states.empty? ? yield : acceptance_states

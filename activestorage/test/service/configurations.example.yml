@@ -23,9 +23,3 @@
 #   bucket:
 #   iam: false
 #   gsa_email: "foobar@baz.iam.gserviceaccount.com"
-#
-# azure:
-#   service: AzureStorage
-#   storage_account_name: ""
-#   storage_access_key: ""
-#   container: ""

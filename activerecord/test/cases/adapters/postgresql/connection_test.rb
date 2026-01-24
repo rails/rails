@@ -53,41 +53,41 @@ module ActiveRecord
       NonExistentTable.establish_connection(params)
 
       # Verify the connection param has been applied.
-      expect = NonExistentTable.lease_connection.query("show geqo").first.first
-      assert_equal "off", expect
+      actual = NonExistentTable.lease_connection.select_value("show geqo")
+      assert_equal "off", actual
     ensure
       NonExistentTable.remove_connection
     end
 
     def test_reset
-      @connection.query("ROLLBACK")
-      @connection.query("SET geqo TO off")
+      @connection.query_command("ROLLBACK")
+      @connection.query_command("SET geqo TO off")
 
       # Verify the setting has been applied.
-      expect = @connection.query("show geqo").first.first
-      assert_equal "off", expect
+      actual = @connection.select_value("show geqo")
+      assert_equal "off", actual
 
       @connection.reset!
 
       # Verify the setting has been cleared.
-      expect = @connection.query("show geqo").first.first
-      assert_equal "on", expect
+      actual = @connection.select_value("show geqo")
+      assert_equal "on", actual
     end
 
     def test_reset_with_transaction
-      @connection.query("ROLLBACK")
-      @connection.query("SET geqo TO off")
+      @connection.query_command("ROLLBACK")
+      @connection.query_command("SET geqo TO off")
 
       # Verify the setting has been applied.
-      expect = @connection.query("show geqo").first.first
-      assert_equal "off", expect
+      actual = @connection.select_value("show geqo")
+      assert_equal "off", actual
 
-      @connection.query("BEGIN")
+      @connection.query_command("BEGIN")
       @connection.reset!
 
       # Verify the setting has been cleared.
-      expect = @connection.query("show geqo").first.first
-      assert_equal "on", expect
+      actual = @connection.select_value("show geqo")
+      assert_equal "on", actual
     end
 
     def test_tables_logs_name
@@ -130,11 +130,22 @@ module ActiveRecord
       def test_statement_key_is_logged
         bind = Relation::QueryAttribute.new(nil, 1, Type::Value.new)
         @connection.exec_query("SELECT $1::integer", "SQL", [bind], prepare: true)
-        name = @subscriber.payloads.last[:statement_name]
-        assert name
+
+        payload = @subscriber.payloads.find { |p| p[:sql] == "SELECT $1::integer" }
+        name = payload[:statement_name]
+        assert_not_nil name
+
         res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(1)")
         plan = res.column_types["QUERY PLAN"].deserialize res.rows.first.first
         assert_operator plan.length, :>, 0
+      end
+    end
+
+    def test_prepare_false_with_binds
+      @connection.stub(:prepared_statements, false) do
+        bind = Relation::QueryAttribute.new(nil, 42, Type::Value.new)
+        result = @connection.exec_query("SELECT $1::integer", "SQL", [bind], prepare: false)
+        assert_equal [[42]], result.rows
       end
     end
 
@@ -167,29 +178,32 @@ module ActiveRecord
     def test_set_session_variable_nil
       run_without_connection do |orig_connection|
         # This should be a no-op that does not raise an error
-        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: nil }))
+        assert_nothing_raised do
+          ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: nil }))
+        end
       end
     end
 
     def test_set_session_variable_default
       run_without_connection do |orig_connection|
         # This should execute a query that does not raise an error
-        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: :default }))
+        assert_nothing_raised do
+          ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: :default }))
+        end
       end
     end
 
     def test_set_session_timezone
       run_without_connection do |orig_connection|
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { timezone: "America/New_York" }))
-        assert_equal "America/New_York", ActiveRecord::Base.lease_connection.query_value("SHOW TIME ZONE")
+        assert_equal "America/New_York", ActiveRecord::Base.lease_connection.select_value("SHOW TIME ZONE")
       end
     end
 
     def test_get_and_release_advisory_lock
       lock_id = 5295901941911233559
       list_advisory_locks = <<~SQL
-        SELECT locktype,
-              (classid::bigint << 32) | objid::bigint AS lock_id
+        SELECT (classid::bigint << 32) | objid::bigint AS lock_id
         FROM pg_locks
         WHERE locktype = 'advisory'
       SQL
@@ -197,15 +211,15 @@ module ActiveRecord
       got_lock = @connection.get_advisory_lock(lock_id)
       assert got_lock, "get_advisory_lock should have returned true but it didn't"
 
-      advisory_lock = @connection.query(list_advisory_locks).find { |l| l[1] == lock_id }
-      assert advisory_lock,
+      advisory_locks = @connection.select_values(list_advisory_locks)
+      assert_includes advisory_locks, lock_id,
         "expected to find an advisory lock with lock_id #{lock_id} but there wasn't one"
 
       released_lock = @connection.release_advisory_lock(lock_id)
       assert released_lock, "expected release_advisory_lock to return true but it didn't"
 
-      advisory_locks = @connection.query(list_advisory_locks).select { |l| l[1] == lock_id }
-      assert_empty advisory_locks,
+      advisory_locks = @connection.select_values(list_advisory_locks)
+      assert_not_includes advisory_locks, lock_id,
         "expected to have released advisory lock with lock_id #{lock_id} but it was still held"
     end
 

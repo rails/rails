@@ -18,8 +18,8 @@ module ActionDispatch
   # 2616](https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2) requires.
   # Some Rack servers simply drop preceding headers, and only report the value
   # that was [given in the last
-  # header](https://andre.arko.net/2011/12/26/repeated-headers-and-ruby-web-server
-  # s). If you are behind multiple proxy servers (like NGINX to HAProxy to
+  # header](https://andre.arko.net/2011/12/26/repeated-headers-and-ruby-web-servers).
+  # If you are behind multiple proxy servers (like NGINX to HAProxy to
   # Unicorn) then you should test your Rack server to make sure your data is good.
   #
   # IF YOU DON'T USE A PROXY, THIS MAKES YOU VULNERABLE TO IP SPOOFING. This
@@ -44,6 +44,8 @@ module ActionDispatch
       "10.0.0.0/8",     # private IPv4 range 10.x.x.x
       "172.16.0.0/12",  # private IPv4 range 172.16.0.0 .. 172.31.255.255
       "192.168.0.0/16", # private IPv4 range 192.168.x.x
+      "169.254.0.0/16", # link-local IPv4 range 169.254.x.x
+      "fe80::/10",      # link-local IPv6 range fe80::/10
     ].map { |proxy| IPAddr.new(proxy) }
 
     attr_reader :check_ip, :proxies
@@ -117,21 +119,20 @@ module ActionDispatch
       # instead, so we check that too.
       #
       # As discussed in [this post about Rails IP
-      # Spoofing](https://web.archive.org/web/20170626095448/https://blog.gingerlime.c
-      # om/2012/rails-ip-spoofing-vulnerabilities-and-protection/), while the first IP
-      # in the list is likely to be the "originating" IP, it could also have been set
-      # by the client maliciously.
+      # Spoofing](https://web.archive.org/web/20170626095448/https://blog.gingerlime.com/2012/rails-ip-spoofing-vulnerabilities-and-protection/),
+      # while the first IP in the list is likely to be the "originating" IP, it
+      # could also have been set by the client maliciously.
       #
       # In order to find the first address that is (probably) accurate, we take the
       # list of IPs, remove known and trusted proxies, and then take the last address
       # left, which was presumably set by one of those proxies.
       def calculate_ip
         # Set by the Rack web server, this is a single value.
-        remote_addr = ips_from(@req.remote_addr).last
+        remote_addr = sanitize_ips(ips_from(@req.remote_addr)).last
 
         # Could be a CSV list and/or repeated headers that were concatenated.
-        client_ips    = ips_from(@req.client_ip).reverse!
-        forwarded_ips = ips_from(@req.x_forwarded_for).reverse!
+        client_ips    = sanitize_ips(ips_from(@req.client_ip)).reverse!
+        forwarded_ips = sanitize_ips(@req.forwarded_for || []).reverse!
 
         # `Client-Ip` and `X-Forwarded-For` should not, generally, both be set. If they
         # are both set, it means that either:
@@ -151,7 +152,8 @@ module ActionDispatch
           # We don't know which came from the proxy, and which from the user
           raise IpSpoofAttackError, "IP spoofing attack?! " \
             "HTTP_CLIENT_IP=#{@req.client_ip.inspect} " \
-            "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}"
+            "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}" \
+            " HTTP_FORWARDED=" + @req.forwarded_for.map { "for=#{_1}" }.join(", ").inspect if @req.forwarded_for.any?
         end
 
         # We assume these things about the IP headers:
@@ -177,7 +179,10 @@ module ActionDispatch
       def ips_from(header) # :doc:
         return [] unless header
         # Split the comma-separated list into an array of strings.
-        ips = header.strip.split(/[,\s]+/)
+        header.strip.split(/[,\s]+/)
+      end
+
+      def sanitize_ips(ips) # :doc:
         ips.select! do |ip|
           # Only return IPs that are valid according to the IPAddr#new method.
           range = IPAddr.new(ip).to_range

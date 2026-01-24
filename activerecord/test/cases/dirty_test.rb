@@ -620,7 +620,6 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_datetime_attribute_can_be_updated_with_fractional_seconds
-    skip "Fractional seconds are not supported" unless supports_datetime_with_precision?
     in_time_zone "Paris" do
       target = Class.new(ActiveRecord::Base)
       target.table_name = "topics"
@@ -946,13 +945,11 @@ class DirtyTest < ActiveRecord::TestCase
       aircraft = Aircraft.new(name: "Boeing")
       assert_equal "Boeing", aircraft.name
 
-      time_before_saving = Time.now
       aircraft.save!
-      time_after_saving = Time.now
       aircraft.reload
 
       assert_equal "Boeing", aircraft.name
-      assert_includes time_before_saving - 1..time_after_saving + 1, aircraft.manufactured_at
+      assert_in_delta Time.now, aircraft.manufactured_at, 1.1
     end
   end
 
@@ -969,6 +966,20 @@ class DirtyTest < ActiveRecord::TestCase
 
       assert_equal "Boeing2", aircraft.name
       assert_equal manufactured_at.utc.strftime("%Y-%m-%d %H:%M:%S"), aircraft.manufactured_at.strftime("%Y-%m-%d %H:%M:%S")
+    end
+  end
+
+  if current_adapter?(:PostgreSQLAdapter) && supports_identity_columns?
+    test "partial insert off with changed composite identity primary key attribute" do
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "cpk_postgresql_identity_table"
+      end
+
+      with_partial_writes(klass, false) do
+        record = klass.create!(another_id: 10)
+        assert_equal 10, record.another_id
+        assert_not_nil record.id
+      end
     end
   end
 

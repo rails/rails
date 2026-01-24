@@ -2,7 +2,6 @@
 
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/blank"
-require "logger"
 require "active_support/logger"
 
 module ActiveSupport
@@ -112,6 +111,11 @@ module ActiveSupport
       def self.extended(base)
         base.tag_stack = TagStack.new
       end
+    end
+
+    # Returns an `ActiveSupport::Logger` that has already been wrapped with tagged logging concern.
+    def self.logger(*args, **kwargs)
+      new ActiveSupport::Logger.new(*args, **kwargs)
     end
 
     def self.new(logger)

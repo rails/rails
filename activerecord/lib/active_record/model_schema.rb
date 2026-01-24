@@ -48,7 +48,7 @@ module ActiveRecord
     # way of creating a namespace for tables in a shared database. By default, the prefix is the
     # empty string.
     #
-    # If you are organising your models within modules you can add a prefix to the models within
+    # If you are organizing your models within modules you can add a prefix to the models within
     # a namespace by defining a singleton method in the parent module called table_name_prefix which
     # returns your chosen prefix.
 
@@ -65,7 +65,7 @@ module ActiveRecord
     # Works like +table_name_prefix=+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
     # "people_basecamp"). By default, the suffix is the empty string.
     #
-    # If you are organising your models within modules, you can add a suffix to the models within
+    # If you are organizing your models within modules, you can add a suffix to the models within
     # a namespace by defining a singleton method in the parent module called table_name_suffix which
     # returns your chosen suffix.
 
@@ -113,17 +113,19 @@ module ActiveRecord
     # :singleton-method: implicit_order_column
     # :call-seq: implicit_order_column
     #
-    # The name of the column records are ordered by if no explicit order clause
+    # The name of the column(s) records are ordered by if no explicit order clause
     # is used during an ordered finder call. If not set the primary key is used.
 
     ##
     # :singleton-method: implicit_order_column=
     # :call-seq: implicit_order_column=(column_name)
     #
-    # Sets the column to sort records by when no explicit order clause is used
-    # during an ordered finder call. Useful when the primary key is not an
-    # auto-incrementing integer, for example when it's a UUID. Records are subsorted
-    # by the primary key if it exists to ensure deterministic results.
+    # Sets the column(s) to sort records by when no explicit order clause is used
+    # during an ordered finder call. Useful for models where the primary key isn't an
+    # auto-incrementing integer (such as UUID).
+    #
+    # By default, records are subsorted by primary key to ensure deterministic results.
+    # To disable this subsort behavior, set `implicit_order_column` to `["column_name", nil]`.
 
     ##
     # :singleton-method: immutable_strings_by_default=
@@ -146,6 +148,11 @@ module ActiveRecord
     # your own model for something else, you can set +inheritance_column+:
     #
     #     self.inheritance_column = 'zoink'
+    #
+    # If you wish to disable single-table inheritance altogether you can set
+    # +inheritance_column+ to +nil+
+    #
+    #     self.inheritance_column = nil
 
     ##
     # :singleton-method: inheritance_column=
@@ -174,6 +181,7 @@ module ActiveRecord
       self.protected_environments = ["production"]
 
       self.ignored_columns = [].freeze
+      self.only_columns = [].freeze
 
       delegate :type_for_attribute, :column_for_attribute, to: :class
 
@@ -271,15 +279,14 @@ module ActiveRecord
         end
 
         @table_name        = value
-        @quoted_table_name = nil
         @arel_table        = nil
         @sequence_name     = nil unless @explicit_sequence_name
         @predicate_builder = nil
       end
 
-      # Returns a quoted version of the table name, used to construct SQL statements.
+      # Returns a quoted version of the table name.
       def quoted_table_name
-        @quoted_table_name ||= adapter_class.quote_table_name(table_name)
+        adapter_class.quote_table_name(table_name)
       end
 
       # Computes the table name, (re)sets it internally, and returns it.
@@ -328,6 +335,12 @@ module ActiveRecord
         @ignored_columns || superclass.ignored_columns
       end
 
+      # The list of columns names the model should allow. Only columns are used to define
+      # attribute accessors, and are referenced in SQL queries.
+      def only_columns
+        @only_columns || superclass.only_columns
+      end
+
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
       #
@@ -360,8 +373,15 @@ module ActiveRecord
       #   user = Project.create!(name: "First Project")
       #   user.category # => raises NoMethodError
       def ignored_columns=(columns)
+        check_model_columns(@only_columns.present?)
         reload_schema_from_cache
         @ignored_columns = columns.map(&:to_s).freeze
+      end
+
+      def only_columns=(columns)
+        check_model_columns(@ignored_columns.present?)
+        reload_schema_from_cache
+        @only_columns = columns.map(&:to_s).freeze
       end
 
       def sequence_name
@@ -374,7 +394,7 @@ module ActiveRecord
 
       def reset_sequence_name # :nodoc:
         @explicit_sequence_name = false
-        @sequence_name          = lease_connection.default_sequence_name(table_name, primary_key)
+        @sequence_name          = with_connection { |c| c.default_sequence_name(table_name, primary_key) }
       end
 
       # Sets the name of the sequence to use when generating ids to the given
@@ -399,13 +419,13 @@ module ActiveRecord
       # Determines if the primary key values should be selected from their
       # corresponding sequence before the insert statement.
       def prefetch_primary_key?
-        lease_connection.prefetch_primary_key?(table_name)
+        with_connection { |c| c.prefetch_primary_key?(table_name) }
       end
 
       # Returns the next value that will be used as the primary key on
       # an insert statement.
       def next_sequence_value
-        lease_connection.next_sequence_value(sequence_name)
+        with_connection { |c| c.next_sequence_value(sequence_name) }
       end
 
       # Indicates whether the table associated with this class exists
@@ -426,14 +446,13 @@ module ActiveRecord
       end
 
       def columns
-        load_schema unless @columns
         @columns ||= columns_hash.values.freeze
       end
 
-      def _returning_columns_for_insert # :nodoc:
+      def _returning_columns_for_insert(connection) # :nodoc:
         @_returning_columns_for_insert ||= begin
           auto_populated_columns = columns.filter_map do |c|
-            c.name if lease_connection.return_value_after_insert?(c)
+            c.name if connection.return_value_after_insert?(c)
           end
 
           auto_populated_columns.empty? ? Array(primary_key) : auto_populated_columns
@@ -498,7 +517,7 @@ module ActiveRecord
       # when just after creating a table you want to populate it with some default
       # values, e.g.:
       #
-      #  class CreateJobLevels < ActiveRecord::Migration[7.2]
+      #  class CreateJobLevels < ActiveRecord::Migration[8.2]
       #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id
@@ -518,7 +537,7 @@ module ActiveRecord
       #    end
       #  end
       def reset_column_information
-        lease_connection.clear_cache!
+        connection_pool.active_connection&.clear_cache!
         ([self] + descendants).each(&:undefine_attribute_methods)
         schema_cache.clear_data_source_cache!(table_name)
 
@@ -526,7 +545,9 @@ module ActiveRecord
         initialize_find_by_cache
       end
 
-      def load_schema # :nodoc:
+      # Load the model's schema information either from the schema cache
+      # or directly from the database.
+      def load_schema
         return if schema_loaded?
         @load_schema_monitor.synchronize do
           return if schema_loaded?
@@ -572,6 +593,7 @@ module ActiveRecord
           child_class.reload_schema_from_cache(false)
           child_class.class_eval do
             @ignored_columns = nil
+            @only_columns = nil
           end
         end
 
@@ -585,8 +607,14 @@ module ActiveRecord
           end
 
           columns_hash = schema_cache.columns_hash(table_name)
-          columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
+          if only_columns.present?
+            columns_hash = columns_hash.slice(*only_columns)
+          elsif ignored_columns.present?
+            columns_hash = columns_hash.except(*ignored_columns)
+          end
           @columns_hash = columns_hash.freeze
+
+          _default_attributes # Precompute to cache DB-dependent attribute types
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
@@ -613,13 +641,17 @@ module ActiveRecord
         end
 
         def type_for_column(column)
-          type = lease_connection.lookup_cast_type_from_column(column)
+          type = column.cast_type
 
           if immutable_strings_by_default && type.respond_to?(:to_immutable_string)
             type = type.to_immutable_string
           end
 
           type
+        end
+
+        def check_model_columns(columns_present)
+          raise ArgumentError, "You can not use both only_columns and ignored_columns in the same model." if columns_present
         end
     end
   end

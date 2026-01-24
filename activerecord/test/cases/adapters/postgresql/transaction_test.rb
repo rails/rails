@@ -164,7 +164,7 @@ module ActiveRecord
             latch.count_down
             sleep(0.5)
             conn = Sample.lease_connection
-            pid = conn.query_value("SELECT pid FROM pg_stat_activity WHERE query LIKE '% FOR UPDATE'")
+            pid = conn.select_value("SELECT pid FROM pg_stat_activity WHERE query LIKE '% FOR UPDATE'")
             conn.execute("SELECT pg_cancel_backend(#{pid})")
           end
         end
@@ -181,6 +181,9 @@ module ActiveRecord
     end
 
     test "raises Interrupt when canceling statement via interrupt" do
+      if PG.library_version >= 18_00_00 && Gem::Version.new(PG::VERSION) < Gem::Version.new("1.6.0")
+        skip "PG::Connection#cancel should not run when libpq of PostgreSQL #{PG.library_version / 10000} with pg gem version #{PG::VERSION}"
+      end
       start_time = Time.now
       thread = Thread.new do
         Sample.transaction do

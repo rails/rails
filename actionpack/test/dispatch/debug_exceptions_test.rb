@@ -45,14 +45,25 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
 
     def raise_nested_exceptions
-      raise "First error"
-    rescue
-      begin
-        raise "Second error"
-      rescue
-        raise "Third error"
-      end
+      raise_nested_exceptions_third
     end
+
+    def raise_nested_exceptions_first
+      raise "First error"
+    end
+
+    def raise_nested_exceptions_second
+      raise_nested_exceptions_first
+    rescue
+      raise "Second error"
+    end
+
+    def raise_nested_exceptions_third
+      raise_nested_exceptions_second
+    rescue
+      raise "Third error"
+    end
+
 
     def call(env)
       env["action_dispatch.show_detailed_exceptions"] = @detailed
@@ -75,8 +86,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise ActionController::UnknownHttpMethod
       when "/not_implemented"
         raise ActionController::NotImplemented
-      when "/unprocessable_entity"
-        raise ActionController::InvalidAuthenticityToken
       when "/invalid_mimetype"
         raise ActionDispatch::Http::MimeNegotiation::InvalidType
       when "/not_found_original_exception"
@@ -170,6 +179,15 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       get "/pass", headers: { "action_dispatch.show_exceptions" => :all }
     end
     assert boomer.closed, "Expected to close the response body"
+  end
+
+  test "returns empty body on HEAD cascade pass" do
+    @app = DevelopmentApp
+
+    head "/pass"
+
+    assert_response 404
+    assert_equal "", body
   end
 
   test "displays routes in a table when a RoutingError occurs" do
@@ -279,6 +297,47 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/ActionController::ParameterMissing/, body)
   end
 
+  test "rescue with text error and markdown format when text/markdown is preferred" do
+    @app = DevelopmentApp
+
+    get "/", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 500
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/RuntimeError/, body)
+    assert_match(/puke/, body)
+
+    get "/not_found", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 404
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/#{AbstractController::ActionNotFound.name}/, body)
+
+    get "/method_not_allowed", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::MethodNotAllowed/, body)
+
+    get "/unknown_http_method", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::UnknownHttpMethod/, body)
+
+    get "/bad_request", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::BadRequest/, body)
+
+    get "/parameter_missing", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::ParameterMissing/, body)
+  end
+
   test "rescue with JSON error for JSON API request" do
     @app = ApiApp
 
@@ -383,7 +442,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/", params: { "foo" => "bar" }, headers: { "action_dispatch.show_exceptions" => :all,
       "action_dispatch.parameter_filter" => [:foo] }
     assert_response 500
-    assert_match("&quot;foo&quot;=&gt;&quot;[FILTERED]&quot;", body)
+
+    assert_match(ERB::Util.html_escape({ "foo" => "[FILTERED]" }.inspect[1..-2]), body)
   end
 
   test "show registered original exception if the last exception is TemplateError" do
@@ -395,7 +455,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match %r{Showing <i>.*test/dispatch/debug_exceptions_test.rb</i>}, body
   end
 
-  test "show the last exception and cause even when the cause is mapped to resque_responses" do
+  test "show the last exception and cause even when the cause is mapped to rescue_responses" do
     @app = DevelopmentApp
 
     get "/cause_mapped_to_rescue_responses", headers: { "action_dispatch.show_exceptions" => :all }
@@ -447,7 +507,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     })
     assert_response 500
 
-    assert_includes(body, CGI.escapeHTML(PP.pp(params, +"", 200)))
+    assert_includes(body, ERB::Util.html_escape(PP.pp(params, +"", 200)))
   end
 
   test "sets the HTTP charset parameter" do
@@ -627,11 +687,81 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     get "/nested_exceptions", headers: env
     assert_response 500
     log = output.rewind && output.read
-    assert_includes log, <<~MSG
-      Causes:
-      RuntimeError (Second error)
-      RuntimeError (First error)
+
+    # Splitting into paragraphs to be easier to see difference/error when there is one
+    paragraphs = log.split(/\n\s*\n/)
+
+    assert_includes(paragraphs[0], <<~MSG.strip)
+      RuntimeError (Third error)
+      Caused by: RuntimeError (Second error)
+      Caused by: RuntimeError (First error)
     MSG
+
+    assert_includes(paragraphs[1], <<~MSG.strip)
+      Information for: RuntimeError (Third error):
+    MSG
+
+    if RUBY_VERSION >= "3.4"
+      # Changes to the format of exception backtraces
+      # https://bugs.ruby-lang.org/issues/16495 (use single quote instead of backtrace)
+      # https://bugs.ruby-lang.org/issues/20275 (don't have entry for rescue in)
+      # And probably more, they now show the class too
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[2]
+        \\A.*in '.*raise_nested_exceptions_third'
+        .*in '.*raise_nested_exceptions'
+      REGEX
+
+      assert_includes(paragraphs[3], <<~MSG.strip)
+        Information for cause: RuntimeError (Second error):
+      MSG
+
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[4]
+        \\A.*in '.*raise_nested_exceptions_second'
+        .*in '.*raise_nested_exceptions_third'
+        .*in '.*raise_nested_exceptions'
+      REGEX
+
+
+      assert_includes(paragraphs[5], <<~MSG.strip)
+        Information for cause: RuntimeError (First error):
+      MSG
+
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[6]
+        \\A.*in '.*raise_nested_exceptions_first'
+        .*in '.*raise_nested_exceptions_second'
+        .*in '.*raise_nested_exceptions_third'
+        .*in '.*raise_nested_exceptions'
+      REGEX
+    else
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[2]
+        \\A.*in `rescue in raise_nested_exceptions_third'
+        .*in `raise_nested_exceptions_third'
+        .*in `raise_nested_exceptions'
+      REGEX
+
+      assert_includes(paragraphs[3], <<~MSG.strip)
+        Information for cause: RuntimeError (Second error):
+      MSG
+
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[4]
+        \\A.*in `rescue in raise_nested_exceptions_second'
+        .*in `raise_nested_exceptions_second'
+        .*in `raise_nested_exceptions_third'
+        .*in `raise_nested_exceptions'
+      REGEX
+
+
+      assert_includes(paragraphs[5], <<~MSG.strip)
+        Information for cause: RuntimeError (First error):
+      MSG
+
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[6]
+        \\A.*in `raise_nested_exceptions_first'
+        .*in `raise_nested_exceptions_second'
+        .*in `raise_nested_exceptions_third'
+        .*in `raise_nested_exceptions'
+      REGEX
+    end
   end
 
   test "display backtrace when error type is SyntaxError" do
@@ -641,7 +771,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_select "#Application-Trace-0" do
-      assert_select "code", /syntax error, unexpected/
+      assert_select "code", /syntax error, unexpected|syntax errors found/
     end
   end
 
@@ -668,7 +798,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_select "#Application-Trace-0" do
-      assert_select "code", /syntax error, unexpected/
+      assert_select "code", /syntax error, unexpected|syntax errors found/
     end
     assert_match %r{Showing <i>.*test/dispatch/debug_exceptions_test.rb</i>}, body
   end
@@ -751,28 +881,50 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         # Possible Ruby 3.4-dev bug: https://bugs.ruby-lang.org/issues/19117#note-45
         # assert application trace refers to line that raises the last exception
         assert_select "#Application-Trace-0" do
-          assert_select "code a:first", %r{in '.*raise_nested_exceptions'}
+          assert_select "code a:first", %r{in '.*raise_nested_exceptions_third'}
         end
 
         # assert the second application trace refers to the line that raises the second exception
         assert_select "#Application-Trace-1" do
-          assert_select "code a:first", %r{in '.*raise_nested_exceptions'}
+          assert_select "code a:first", %r{in '.*raise_nested_exceptions_second'}
         end
       else
         # assert application trace refers to line that raises the last exception
         assert_select "#Application-Trace-0" do
-          assert_select "code a:first", %r{in [`']rescue in rescue in .*raise_nested_exceptions'}
+          assert_select "code a:first", %r{in [`']rescue in .*raise_nested_exceptions_third'}
         end
 
         # assert the second application trace refers to the line that raises the second exception
         assert_select "#Application-Trace-1" do
-          assert_select "code a:first", %r{in [`']rescue in .*raise_nested_exceptions'}
+          assert_select "code a:first", %r{in [`']rescue in .*raise_nested_exceptions_second'}
         end
       end
 
       # assert the third application trace refers to the line that raises the first exception
       assert_select "#Application-Trace-2" do
-        assert_select "code a:first", %r{in [`'].*raise_nested_exceptions'}
+        assert_select "code a:first", %r{in [`'].*raise_nested_exceptions_first'}
+      end
+    end
+  end
+
+  test "shows the link to edit the file in the editor" do
+    @app = DevelopmentApp
+    ActiveSupport::Editor.stub(:current, ActiveSupport::Editor.find("atom")) do
+      get "/actionable_error"
+
+      assert_select "code a.edit-icon"
+      assert_includes body, "atom://core/open"
+    end
+  end
+
+  test "editor can handle syntax errors" do
+    @app = DevelopmentApp
+    ActiveSupport::Editor.stub(:current, ActiveSupport::Editor.find("atom")) do
+      get "/syntax_error_into_view"
+
+      assert_response 500
+      assert_select "#Application-Trace-0" do
+        assert_select "code", /syntax error, unexpected|syntax errors found/
       end
     end
   end
@@ -824,5 +976,38 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_response 500
     assert_select "#container p", /Showing #{__FILE__} where line #\d+ raised/
     assert_select "#container code", /undefined local variable or method ['`]string”'/
+  end
+
+  test "includes copy button in error pages" do
+    @app = DevelopmentApp
+
+    get "/", headers: { "action_dispatch.show_exceptions" => :all }
+    assert_response 500
+
+    assert_match %r{<button onclick="copyAsText\.bind\(this\)\(\)">Copy as text</button>}, body
+    assert_match %r{<script type="text/plain" id="exception-message-for-copy">.*RuntimeError \(puke}m, body
+  end
+
+  test "copy button not shown for XHR requests" do
+    @app = DevelopmentApp
+
+    get "/", headers: {
+      "action_dispatch.show_exceptions" => :all,
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
+    }
+
+    assert_response 500
+    assert_no_match %r{<button}, body
+    assert_no_match %r{<script}, body
+  end
+
+  test "exception message includes causes for nested exceptions" do
+    @app = DevelopmentApp
+
+    get "/nested_exceptions", headers: { "action_dispatch.show_exceptions" => :all }
+
+    script_content = body[%r{<script type="text/plain" id="exception-message-for-copy">(.*?)</script>}m, 1]
+    assert_match %r{Third error}, script_content
+    assert_match %r{Caused by:.*Second error}m, script_content
   end
 end

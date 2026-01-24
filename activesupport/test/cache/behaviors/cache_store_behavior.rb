@@ -647,6 +647,26 @@ module CacheStoreBehavior
     end
   end
 
+  def test_fetch_race_condition_protection
+    time = Time.now
+    key = SecureRandom.uuid
+    value = SecureRandom.uuid
+    expires_in = 60
+
+    @cache.write(key, value, expires_in:)
+    Time.stub(:now, time + expires_in + 1) do
+      fetched_value = @cache.fetch(key, expires_in:, race_condition_ttl: 10) do
+        SecureRandom.uuid
+      end
+      assert_not_equal fetched_value, value
+      assert_not_nil fetched_value
+    end
+
+    Time.stub(:now, time + 2 * expires_in) do
+      assert_not_nil @cache.read(key)
+    end
+  end
+
   def test_fetch_multi_race_condition_protection
     time = Time.now
     key = SecureRandom.uuid
@@ -720,6 +740,26 @@ module CacheStoreBehavior
         "bar"
       end
     end
+  end
+
+  def test_configuring_store_with_raw
+    cache = lookup_store(raw: true)
+    cache.write("foo", "bar")
+    assert_equal "bar", cache.read("foo")
+  end
+
+  def test_max_key_size
+    cache = lookup_store(max_key_size: 64)
+    key = "foobar" * 20
+    cache.write(key, "bar")
+    assert_equal "bar", cache.read(key)
+  end
+
+  def test_max_key_size_disabled
+    cache = lookup_store(max_key_size: false)
+    key = "a" * 1000
+    cache.write(key, "bar")
+    assert_equal "bar", cache.read(key)
   end
 
   private

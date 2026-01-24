@@ -25,6 +25,8 @@ module ActionController
         raise ArgumentError, "#{status.inspect} is not a valid value for `status`."
       end
 
+      raise ::AbstractController::DoubleRenderError if response_body
+
       status ||= :ok
 
       if options
@@ -41,7 +43,7 @@ module ActionController
 
       if include_content?(response_code)
         unless self.media_type
-          self.content_type = content_type || ((f = formats) && Mime[f.first]) || Mime[:html]
+          self.content_type = content_type || ((f = formats) && Mime[f.first]) || :html
         end
 
         response.charset = false

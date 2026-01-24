@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Action View Overview
 ====================
@@ -86,8 +86,8 @@ has a `.erb` extension, it uses embedded Ruby to build an HTML response. If the
 template has a `.jbuilder` extension, it uses the
 [Jbuilder](https://github.com/rails/jbuilder) gem to build a JSON response. And
 a template with a `.builder` extension uses the
-[`Builder::XmlMarkup`](https://github.com/jimweirich/builder) library to build
-an XML response.
+[`Builder::XmlMarkup`](https://github.com/rails/builder) library to build an XML
+response.
 
 Rails uses the file extension to distinguish among multiple template systems.
 For example, an HTML file using the ERB template system will have `.html.erb` as
@@ -213,8 +213,7 @@ would produce something like:
 </div>
 ```
 
-See [Builder documentation](https://github.com/jimweirich/builder) for more
-examples.
+See [Builder documentation](https://github.com/rails/builder) for more examples.
 
 ### Template Compilation
 
@@ -525,6 +524,8 @@ view, starting with a value of `0` on the first render.
 This also works when the local variable name is changed using the `as:` option.
 So if you did `as: :item`, the counter variable would be `item_counter`.
 
+NOTE: When rendering collections with instances of different models, the counter variable increments for each partial, regardless of the class of the model being rendered.
+
 Note: The following two sections, [Strict Locals](#strict-locals) and [Local
 Assigns with Pattern Matching](#local-assigns-with-pattern-matching) are more
 advanced features of using partials, included here for completeness.
@@ -600,22 +601,48 @@ enables compact partial-local default variable assignments:
 <% end %>
 ```
 
-INFO: By default, partials will accept any `locals` as keyword arguments. To
-define what `locals` a partial accepts, use a `locals:` magic comment. To learn
-more, read about [Strict Locals](#strict-locals).
-
 [local_assigns]:
     https://api.rubyonrails.org/classes/ActionView/Template.html#method-i-local_assigns
 
 ### Strict Locals
 
-Action View partials will accept any number of `locals` as keyword arguments.
+Action View partials are compiled into regular Ruby methods under the hood.
+Because it is impossible in Ruby to dynamically create local variables, every single combination of `locals` passed to
+a partial requires compiling another version:
+
+```html+erb
+<%# app/views/articles/show.html.erb %>
+<%= render partial: "article", layout: "box", locals: { article: @article } %>
+<%= render partial: "article", layout: "box", locals: { article: @article, theme: "dark" } %>
+```
+
+The above snippet will cause the partial to be compiled twice, taking more time and using more memory.
+
+```ruby
+def _render_template_2323231_article_show(buffer, local_assigns, article:)
+  # ...
+end
+
+def _render_template_3243454_article_show(buffer, local_assigns, article:, theme:)
+  # ...
+end
+```
+
+When the number of combinations is small, it's not really a problem, but if it's large it can waste
+a sizeable amount of memory and take a long time to compile. To counter act this you can use
+strict locals to define the compiled partial signature, and ensure only a single version of the partial is compiled:
+
+```html+erb
+<%# locals: (article:, theme: "light") -%>
+...
+```
+
 You can enforce how many and which `locals` a template accepts, set default
-values, and more with a `locals:` magic comment.
+values, and more with a `locals:` signature, using the same syntax as Ruby method signatures.
 
-Here are some examples of the `locals:` magic comment:
+Here are some examples of the `locals:` signature:
 
-```erb
+```html+erb
 <%# app/views/messages/_message.html.erb %>
 
 <%# locals: (message:) -%>
@@ -641,15 +668,14 @@ If a default value is set then it can be used if `message` is not passed in
 ```
 
 Rendering the partial without a `:message` local variable uses the default value
-set in the `locals:` magic comment:
+set in the `locals:` signature:
 
 ```ruby
 render "messages/message"
 # => "Hello, world!"
 ```
 
-Rendering the partial with local variables not specified in the `local:` magic
-comment will also raise an exception:
+Rendering the partial with local variables not specified in the `local:` signature will also raise an exception:
 
 ```ruby
 render "messages/message", unknown_local: "will raise"
@@ -683,12 +709,22 @@ render "messages/message", unknown_local: "will raise"
 # => ActionView::Template::Error: no locals accepted for app/views/messages/_message.html.erb
 ```
 
-Action View will process the `locals:` magic comment in any templating engine
-that supports `#`-prefixed comments, and will read the magic comment from any
+Action View will process the `locals:` signature in any templating engine
+that supports `#`-prefixed comments, and will read the signature from any
 line in the partial.
 
 CAUTION: Only keyword arguments are supported. Defining positional or block
 arguments will raise an Action View Error at render-time.
+
+The `local_assigns` method does not contain default values specified in the
+`local:` signature. To access a local variable with a default value that
+is named the same as a reserved Ruby keyword, like `class` or `if`, the values
+can be accessed through `binding.local_variable_get`:
+
+```erb
+<%# locals: (class: "message") %>
+<div class="<%= binding.local_variable_get(:class) %>">...</div>
+```
 
 Layouts
 -------
@@ -756,7 +792,7 @@ Let's say you're displaying an article on a page which should be wrapped in a
 `div` for display purposes. First, you'll create a new `Article`:
 
 ```ruby
-Article.create(body: 'Partial Layouts are cool!')
+Article.create(body: "Partial Layouts are cool!")
 ```
 
 In the `show` template, you'll render the `_article` partial wrapped in the
@@ -847,5 +883,5 @@ directory. For example, setting `I18n.locale = :de` and creating
 `public/500.de.html` and `public/404.de.html` would allow you to have localized
 rescue pages.
 
-You can read more about the Rails Internationalization (I18n) API
-[here](i18n.html).
+See the [Rails Internationalization (I18n) API documentation](i18n.html) for
+more details.

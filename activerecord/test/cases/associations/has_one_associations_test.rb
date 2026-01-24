@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
 require "models/developer"
 require "models/computer"
 require "models/project"
@@ -20,6 +21,9 @@ require "models/club"
 require "models/membership"
 require "models/parrot"
 require "models/cpk"
+require "models/room"
+require "models/user"
+require "models/dats"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -493,8 +497,10 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_proxy_should_respond_to_private_methods_via_send
-    accounts(:signals37).send(:private_method)
-    companies(:first_firm).account.send(:private_method)
+    assert_nothing_raised do
+      accounts(:signals37).send(:private_method)
+      companies(:first_firm).account.send(:private_method)
+    end
   end
 
   def test_save_of_record_with_loaded_has_one
@@ -804,6 +810,28 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_no_queries { new_club.save }
   end
 
+  def test_has_one_double_belongs_to_destroys_both_from_either_end
+    landlord = User.create!
+    tenant = User.create!
+    room = Room.create!(landlord: landlord, tenant: tenant)
+
+    landlord.destroy!
+
+    assert_predicate(room, :destroyed?)
+    assert_predicate(landlord, :destroyed?)
+    assert_predicate(tenant, :destroyed?)
+
+    landlord = User.create!
+    tenant = User.create!
+    room = Room.create!(landlord: landlord, tenant: tenant)
+
+    tenant.destroy!
+
+    assert_predicate(room, :destroyed?)
+    assert_predicate(tenant, :destroyed?)
+    assert_predicate(landlord, :destroyed?)
+  end
+
   class SpecialBook < ActiveRecord::Base
     self.table_name = "books"
     belongs_to :author, class_name: "SpecialAuthor"
@@ -939,5 +967,167 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
       Association Cpk::BrokenOrderWithNonCpkBooks#book primary key [\"shop_id\", \"status\"]
       doesn't match with foreign key broken_order_with_non_cpk_books_id. Please specify query_constraints, or primary_key and foreign_key values.
     MESSAGE
+  end
+end
+
+class AsyncHasOneAssociationsTest < ActiveRecord::TestCase
+  include WaitForAsyncTestHelper
+
+  self.use_transactional_tests = false
+
+  fixtures :companies, :accounts
+
+  unless in_memory_db?
+    def test_async_load_has_one
+      firm = companies(:first_firm)
+      first_account = Account.find(1)
+
+      firm.association(:account).async_load_target
+      wait_for_async_query
+
+      events = []
+      callback = -> (event) do
+        events << event unless event.payload[:name] == "SCHEMA"
+      end
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        firm.account
+      end
+
+      assert_no_queries do
+        assert_equal first_account, firm.account
+        assert_equal first_account.credit_limit, firm.account.credit_limit
+      end
+
+      assert_equal 1, events.size
+      assert_equal true, events.first.payload[:async]
+    end
+  end
+end
+
+class DeprecatedHasOneAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :cars
+
+  def create_bulb!
+    @bulb = @car.create_bulb!(name: "for has_one deprecated test suite")
+  end
+
+  def modify_bulb_name_directly_in_the_database(bulb)
+    new_name = "#{bulb.name} edited"
+    DATS::Bulb.connection.execute("UPDATE bulbs SET name = '#{new_name}'")
+    new_name
+  end
+
+  setup do
+    @model = DATS::Car
+    @car = @model.first
+  end
+
+  test "<association>" do
+    create_bulb!
+
+    assert_not_deprecated_association(:bulb) do
+      @car.bulb
+    end
+
+    assert_deprecated_association(:deprecated_bulb, context: context_for_method(:deprecated_bulb)) do
+      assert_equal @bulb, @car.deprecated_bulb
+    end
+  end
+
+  test "<association>=" do
+    bulb = DATS::Bulb.new
+
+    assert_not_deprecated_association(:bulb) do
+      @car.bulb = bulb
+    end
+
+    assert_deprecated_association(:deprecated_bulb, context: context_for_method(:deprecated_bulb=)) do
+      @car.deprecated_bulb = bulb
+    end
+    assert_same bulb, @car.deprecated_bulb
+  end
+
+  test "reload_<association>" do
+    create_bulb!
+
+    assert_not_deprecated_association(:bulb) do
+      @car.reload_bulb
+    end
+
+    deprecated_bulb = @car.deprecated_bulb # caches the associated object
+    new_name = modify_bulb_name_directly_in_the_database(deprecated_bulb)
+
+    assert_deprecated_association(:deprecated_bulb, context: context_for_method(:reload_deprecated_bulb)) do
+      assert_equal new_name, @car.reload_deprecated_bulb.name
+    end
+  end
+
+  test "reset_<association>" do
+    create_bulb!
+
+    assert_not_deprecated_association(:bulb) do
+      @car.reset_bulb
+    end
+
+    deprecated_bulb = @car.deprecated_bulb # caches the associated object
+    new_name = modify_bulb_name_directly_in_the_database(deprecated_bulb)
+
+    assert_deprecated_association(:deprecated_bulb, context: context_for_method(:reset_deprecated_bulb)) do
+      @car.reset_deprecated_bulb
+    end
+    assert_equal new_name, @car.deprecated_bulb.name
+  end
+
+  test "build_<association>" do
+    assert_not_deprecated_association(:bulb) do
+      @car.build_bulb
+    end
+
+    assert_deprecated_association(:deprecated_bulb, context: context_for_method(:build_deprecated_bulb)) do
+      assert_instance_of DATS::Bulb, @car.build_deprecated_bulb
+    end
+  end
+
+  test "create_<association>" do
+    assert_not_deprecated_association(:bulb) do
+      @car.create_bulb
+    end
+
+    assert_deprecated_association(:deprecated_bulb, context: context_for_method(:create_deprecated_bulb)) do
+      assert_predicate @car.create_deprecated_bulb, :persisted?
+    end
+  end
+
+  test "create_<association>!" do
+    assert_not_deprecated_association(:bulb) do
+      @car.create_bulb!
+    end
+
+    assert_deprecated_association(:deprecated_bulb, context: context_for_method(:create_deprecated_bulb!)) do
+      @car.create_deprecated_bulb!
+    end
+    assert_predicate @car.deprecated_bulb, :persisted?
+  end
+
+  test "parent destroy (not deprecated)" do
+    create_bulb!
+
+    assert_not_deprecated_association(:bulb) do
+      @car.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+
+  test "parent destroy (deprecated)" do
+    create_bulb!
+
+    deprecated_bulb = @car.deprecated_bulb
+    assert_deprecated_association(:deprecated_bulb, context: context_for_dependent) do
+      @car.destroy
+    end
+    assert_predicate @car, :destroyed?
+    assert_predicate deprecated_bulb, :destroyed?
   end
 end

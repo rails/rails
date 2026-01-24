@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
 require "active_support/descendants_tracker"
@@ -143,7 +142,9 @@ module Rails
           app.routes.prepend do
             get "/rails/info/properties" => "rails/info#properties", internal: true
             get "/rails/info/routes"     => "rails/info#routes",     internal: true
+            get "/rails/info/notes"      => "rails/info#notes",      internal: true
             get "/rails/info"            => "rails/info#index",      internal: true
+            get ".well-known/appspecific/com.chrome.devtools.json" => "rails/devtools#show",      internal: true
           end
 
           routes_reloader.run_after_load_paths = -> do
@@ -159,7 +160,6 @@ module Rails
       initializer :set_routes_reloader_hook do |app|
         reloader = routes_reloader
         reloader.eager_load = app.config.eager_load
-        reloader.execute
         reloaders << reloader
 
         app.reloader.to_run do
@@ -177,7 +177,7 @@ module Rails
           ActiveSupport.run_load_hooks(:after_routes_loaded, self)
         end
 
-        ActiveSupport.run_load_hooks(:after_routes_loaded, self)
+        reloader.execute_unless_loaded if !app.routes.is_a?(Engine::LazyRouteSet) || app.config.eager_load
       end
 
       # Set clearing dependencies after the finisher hook to ensure paths
@@ -225,6 +225,13 @@ module Rails
           end
         else
           ActiveSupport::DescendantsTracker.disable_clear!
+        end
+      end
+
+      initializer :enable_yjit do
+        if config.yjit && defined?(RubyVM::YJIT.enable)
+          options = config.yjit.is_a?(Hash) ? config.yjit : {}
+          RubyVM::YJIT.enable(**options)
         end
       end
     end

@@ -55,6 +55,10 @@ class DigestUUIDExt < ActiveSupport::TestCase
     end
   end
 
+  def test_nil_uuid
+    assert_equal "00000000-0000-0000-0000-000000000000", Digest::UUID.nil_uuid
+  end
+
   def test_invalid_hash_class
     assert_raise ArgumentError do
       Digest::UUID.uuid_from_hash(OpenSSL::Digest::SHA256, Digest::UUID::OID_NAMESPACE, "1.2.3")

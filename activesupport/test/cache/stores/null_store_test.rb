@@ -40,9 +40,26 @@ class NullStoreTest < ActiveSupport::TestCase
     assert_nil @cache.increment("name")
   end
 
+  def test_increment_with_options
+    time = Time.now
+    @cache.increment("name", expires_in: 1.second)
+    Time.stub(:now, time + 2.seconds) do
+      assert_nil @cache.read("name")
+    end
+  end
+
   def test_decrement
     @cache.write("name", 1, raw: true)
-    assert_nil @cache.increment("name")
+    assert_nil @cache.decrement("name")
+  end
+
+  def test_decrement_with_options
+    time = Time.now
+    @cache.write("name", 1, raw: true)
+    @cache.decrement("name", expires_in: 1.second)
+    Time.stub(:now, time + 2.seconds) do
+      assert_nil @cache.read("name")
+    end
   end
 
   def test_delete_matched
@@ -68,7 +85,7 @@ class NullStoreTest < ActiveSupport::TestCase
       assert_nil @cache.read("foo")
 
       @cache.read_multi("foo", "bar")
-      assert_equal({ "foo" => nil, "bar" => nil }, @cache.read_multi("foo", "bar"))
+      assert_equal({}, @cache.read_multi("foo", "bar"))
     end
   end
 end

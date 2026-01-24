@@ -93,7 +93,13 @@ module ActiveRecord
           @through_scope = scope
           record = super
 
-          inverse = source_reflection.inverse_of
+          inverse =
+            if source_reflection.polymorphic?
+              source_reflection.polymorphic_inverse_of(record.class)
+            else
+              source_reflection.inverse_of
+            end
+
           if inverse
             if inverse.collection?
               record.send(inverse.name) << build_through_record(record)
@@ -140,7 +146,7 @@ module ActiveRecord
 
           case method
           when :destroy
-            if scope.klass.primary_key
+            if scope.model.primary_key
               count = scope.destroy_all.count(&:destroyed?)
             else
               scope.each(&:_run_destroy_callbacks)
@@ -216,7 +222,8 @@ module ActiveRecord
           end
         end
 
-        def find_target
+        def find_target(async: false)
+          raise NotImplementedError, "No async loading for HasManyThroughAssociation yet" if async
           return [] unless target_reflection_has_associated_record?
           return scope.to_a if disable_joins
           super

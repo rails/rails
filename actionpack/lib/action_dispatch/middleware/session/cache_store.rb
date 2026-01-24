@@ -18,11 +18,16 @@ module ActionDispatch
     # *   `expire_after`  - The length of time a session will be stored before
     #     automatically expiring. By default, the `:expires_in` option of the cache
     #     is used.
+    # *   `check_collisions`  - Check if newly generated session ids aren't already in use.
+    #     If for some reason 128 bits of randomness aren't considered secure enough to avoid
+    #     collisions, this option can be enabled to ensure newly generated ids aren't in use.
+    #     By default, it is set to `false` to avoid additional cache write operations.
     #
     class CacheStore < AbstractSecureStore
       def initialize(app, options = {})
         @cache = options[:cache] || Rails.cache
         options[:expire_after] ||= @cache.options[:expires_in]
+        @check_collisions = options[:check_collisions] || false
         super
       end
 
@@ -60,6 +65,18 @@ module ActionDispatch
 
         def get_session_with_fallback(sid)
           @cache.read(cache_key(sid.private_id)) || @cache.read(cache_key(sid.public_id))
+        end
+
+        def generate_sid
+          if @check_collisions
+            loop do
+              sid = super
+              key = cache_key(sid.private_id)
+              break sid if @cache.write(key, {}, unless_exist: true, expires_in: default_options[:expire_after])
+            end
+          else
+            super
+          end
         end
     end
   end

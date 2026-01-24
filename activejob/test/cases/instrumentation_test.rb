@@ -12,41 +12,28 @@ class InstrumentationTest < ActiveSupport::TestCase
   end
 
   test "perform_now emits perform events" do
-    events = subscribed(/perform.*\.active_job/) { HelloJob.perform_now("World!") }
+    events = capture_notifications(/perform.*\.active_job/) { HelloJob.perform_now("World!") }
+
     assert_equal 2, events.size
-    assert_equal "perform_start.active_job", events[0].first
-    assert_equal "perform.active_job", events[1].first
+    assert_equal "perform_start.active_job", events[0].name
+    assert_equal "perform.active_job", events[1].name
   end
 
   test "perform_later emits an enqueue event" do
-    events = subscribed("enqueue.active_job") { HelloJob.perform_later("World!") }
-    assert_equal 1, events.size
+    assert_notifications_count("enqueue.active_job", 1) { HelloJob.perform_later("World!") }
   end
 
-  test "retry emits an enqueue retry event" do
-    events = subscribed("enqueue_retry.active_job") do
-      perform_enqueued_jobs { RetryJob.perform_later("DefaultsError", 2) }
+  unless adapter_is?(:inline, :sneakers)
+    test "retry emits an enqueue retry event" do
+      assert_notifications_count("enqueue_retry.active_job", 1) { RetryJob.perform_later("DefaultsError", 2) }
     end
-    assert_equal 1, events.size
-  end
 
-  test "retry exhaustion emits a retry_stopped event" do
-    events = subscribed("retry_stopped.active_job") do
-      perform_enqueued_jobs { RetryJob.perform_later("CustomCatchError", 6) }
+    test "retry exhaustion emits a retry_stopped event" do
+      assert_notifications_count("retry_stopped.active_job", 1) { RetryJob.perform_later("CustomCatchError", 6) }
     end
-    assert_equal 1, events.size
   end
 
   test "discard emits a discard event" do
-    events = subscribed("discard.active_job") do
-      perform_enqueued_jobs { RetryJob.perform_later("DiscardableError", 2) }
-    end
-    assert_equal 1, events.size
-  end
-
-  def subscribed(name, &block)
-    [].tap do |events|
-      ActiveSupport::Notifications.subscribed(-> (*args) { events << args }, name, &block)
-    end
+    assert_notifications_count("discard.active_job", 1) { RetryJob.perform_later("DiscardableError", 6) }
   end
 end

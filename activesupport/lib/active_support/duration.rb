@@ -371,8 +371,8 @@ module ActiveSupport
     #   1.year.to_i     # => 31556952
     #
     # In such cases, Ruby's core
-    # Date[https://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html] and
-    # Time[https://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html] should be used for precision
+    # Date[https://docs.ruby-lang.org/en/master/Date.html] and
+    # Time[https://docs.ruby-lang.org/en/master/Time.html] should be used for precision
     # date and time arithmetic.
     def to_i
       @value.to_i
@@ -491,17 +491,21 @@ module ActiveSupport
         if @parts.empty?
           time.since(sign * value)
         else
-          @parts.inject(time) do |t, (type, number)|
-            if type == :seconds
-              t.since(sign * number)
-            elsif type == :minutes
-              t.since(sign * number * 60)
-            elsif type == :hours
-              t.since(sign * number * 3600)
-            else
-              t.advance(type => sign * number)
-            end
+          @parts.each do |type, number|
+            t = time
+            time =
+              if type == :seconds
+                t.since(sign * number)
+              elsif type == :minutes
+                t.since(sign * number * 60)
+              elsif type == :hours
+                t.since(sign * number * 3600)
+              else
+                t.advance(type => sign * number)
+              end
           end
+
+          time
         end
       end
 

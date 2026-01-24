@@ -22,12 +22,12 @@ module ActiveRecord
 
       def add_reflection(ar, name, reflection)
         ar.clear_reflections_cache
-        name = -name.to_s
+        name = name.to_sym
         ar._reflections = ar._reflections.except(name).merge!(name => reflection)
       end
 
       def add_aggregate_reflection(ar, name, reflection)
-        ar.aggregate_reflections = ar.aggregate_reflections.merge(-name.to_s => reflection)
+        ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_sym => reflection)
       end
 
       private
@@ -68,7 +68,7 @@ module ActiveRecord
       #   Account.reflect_on_aggregation(:balance) # => the balance AggregateReflection
       #
       def reflect_on_aggregation(aggregation)
-        aggregate_reflections[aggregation.to_s]
+        aggregate_reflections[aggregation.to_sym]
       end
 
       # Returns a Hash of name of the reflection as the key and an AssociationReflection as the value.
@@ -76,6 +76,10 @@ module ActiveRecord
       #   Account.reflections # => {"balance" => AggregateReflection}
       #
       def reflections
+        normalized_reflections.stringify_keys
+      end
+
+      def normalized_reflections # :nodoc:
         @__reflections ||= begin
           ref = {}
 
@@ -84,13 +88,13 @@ module ActiveRecord
 
             if parent_reflection
               parent_name = parent_reflection.name
-              ref[parent_name.to_s] = parent_reflection
+              ref[parent_name] = parent_reflection
             else
               ref[name] = reflection
             end
           end
 
-          ref
+          ref.freeze
         end
       end
 
@@ -105,7 +109,7 @@ module ActiveRecord
       #   Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
       #
       def reflect_on_all_associations(macro = nil)
-        association_reflections = reflections.values
+        association_reflections = normalized_reflections.values
         association_reflections.select! { |reflection| reflection.macro == macro } if macro
         association_reflections
       end
@@ -116,16 +120,18 @@ module ActiveRecord
       #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
       #
       def reflect_on_association(association)
-        reflections[association.to_s]
+        normalized_reflections[association.to_sym]
       end
 
       def _reflect_on_association(association) # :nodoc:
-        _reflections[association.to_s]
+        _reflections[association.to_sym]
       end
 
       # Returns an array of AssociationReflection objects for all associations which have <tt>:autosave</tt> enabled.
       def reflect_on_all_autosave_associations
-        reflections.values.select { |reflection| reflection.options[:autosave] }
+        reflections = normalized_reflections.values
+        reflections.select! { |reflection| reflection.options[:autosave] }
+        reflections
       end
 
       def clear_reflections_cache # :nodoc:
@@ -192,7 +198,7 @@ module ActiveRecord
       end
 
       def join_scope(table, foreign_table, foreign_klass)
-        predicate_builder = predicate_builder(table)
+        predicate_builder = klass.predicate_builder.with(TableMetadata.new(klass, table))
         scope_chain_items = join_scopes(table, predicate_builder)
         klass_scope       = klass_join_scope(table, predicate_builder)
 
@@ -218,7 +224,7 @@ module ActiveRecord
         klass_scope
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
+      def join_scopes(table, predicate_builder = nil, klass = self.klass, record = nil) # :nodoc:
         if scope
           [scope_for(build_scope(table, predicate_builder, klass), record)]
         else
@@ -226,7 +232,7 @@ module ActiveRecord
         end
       end
 
-      def klass_join_scope(table, predicate_builder) # :nodoc:
+      def klass_join_scope(table, predicate_builder = nil) # :nodoc:
         relation = build_scope(table, predicate_builder)
         klass.scope_for_association(relation)
       end
@@ -327,12 +333,8 @@ module ActiveRecord
         collect_join_chain
       end
 
-      def build_scope(table, predicate_builder = predicate_builder(table), klass = self.klass)
-        Relation.create(
-          klass,
-          table: table,
-          predicate_builder: predicate_builder
-        )
+      def build_scope(table, predicate_builder = nil, klass = self.klass)
+        Relation.create(klass, table:, predicate_builder:)
       end
 
       def strict_loading?
@@ -351,10 +353,6 @@ module ActiveRecord
         end
 
       private
-        def predicate_builder(table)
-          PredicateBuilder.new(TableMetadata.new(klass, table))
-        end
-
         def primary_key(klass)
           klass.primary_key || raise(UnknownPrimaryKey.new(klass))
         end
@@ -422,7 +420,19 @@ module ActiveRecord
       # a new association object. Use +build_association+ or +create_association+
       # instead. This allows plugins to hook into association object creation.
       def klass
-        @klass ||= compute_class(class_name)
+        @klass ||= _klass(class_name)
+      end
+
+      def _klass(class_name) # :nodoc:
+        if active_record.name.demodulize == class_name
+          begin
+            return compute_class("::#{class_name}")
+          rescue
+            # Ignored
+          end
+        end
+
+        compute_class(class_name)
       end
 
       def compute_class(name)
@@ -510,16 +520,27 @@ module ActiveRecord
 
       def initialize(name, scope, options, active_record)
         super
+
+        @validated = false
         @type = -(options[:foreign_type]&.to_s || "#{options[:as]}_type") if options[:as]
         @foreign_type = -(options[:foreign_type]&.to_s || "#{name}_type") if options[:polymorphic]
         @join_table = nil
         @foreign_key = nil
         @association_foreign_key = nil
         @association_primary_key = nil
+        if options[:query_constraints]
+          raise ConfigurationError, <<~MSG.squish
+            Setting `query_constraints:` option on `#{active_record}.#{macro} :#{name}` is not allowed.
+            To get the same behavior, use the `foreign_key` option instead.
+          MSG
+        end
+
         # If the foreign key is an array, set query constraints options and don't use the foreign key
         if options[:foreign_key].is_a?(Array)
           options[:query_constraints] = options.delete(:foreign_key)
         end
+
+        @deprecated = !!options[:deprecated]
 
         ensure_option_not_given_as_class!(:class_name)
       end
@@ -529,7 +550,9 @@ module ActiveRecord
         if polymorphic?
           key = [key, owner._read_attribute(@foreign_type)]
         end
-        klass.cached_find_by_statement(key, &block)
+        klass.with_connection do |connection|
+          klass.cached_find_by_statement(connection, key, &block)
+        end
       end
 
       def join_table
@@ -539,12 +562,12 @@ module ActiveRecord
       def foreign_key(infer_from_inverse_of: true)
         @foreign_key ||= if options[:foreign_key]
           if options[:foreign_key].is_a?(Array)
-            options[:foreign_key].map { |fk| fk.to_s.freeze }.freeze
+            options[:foreign_key].map { |fk| -fk.to_s.freeze }.freeze
           else
             options[:foreign_key].to_s.freeze
           end
         elsif options[:query_constraints]
-          options[:query_constraints].map { |fk| fk.to_s.freeze }.freeze
+          options[:query_constraints].map { |fk| -fk.to_s.freeze }.freeze
         else
           derived_fk = derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of)
 
@@ -552,7 +575,12 @@ module ActiveRecord
             derived_fk = derive_fk_query_constraints(derived_fk)
           end
 
-          derived_fk
+          if derived_fk.is_a?(Array)
+            derived_fk.map! { |fk| -fk.freeze }
+            derived_fk.freeze
+          else
+            -derived_fk.freeze
+          end
         end
       end
 
@@ -596,6 +624,8 @@ module ActiveRecord
       end
 
       def check_validity!
+        return if @validated
+
         check_validity_of_inverse!
 
         if !polymorphic? && (klass.composite_primary_key? || active_record.composite_primary_key?)
@@ -605,6 +635,8 @@ module ActiveRecord
             raise CompositePrimaryKeyMismatchError.new(self)
           end
         end
+
+        @validated = true
       end
 
       def check_eager_loadable!
@@ -722,6 +754,10 @@ module ActiveRecord
         Array(options[:extend])
       end
 
+      def deprecated?
+        @deprecated
+      end
+
       private
         # Attempts to find the inverse association name automatically.
         # If it cannot find a suitable inverse association name, it returns
@@ -741,21 +777,9 @@ module ActiveRecord
 
             begin
               reflection = klass._reflect_on_association(inverse_name)
-              if !reflection
+              if !reflection && active_record.automatically_invert_plural_associations
                 plural_inverse_name = ActiveSupport::Inflector.pluralize(inverse_name)
                 reflection = klass._reflect_on_association(plural_inverse_name)
-
-                if reflection && !active_record.automatically_invert_plural_associations
-                  ActiveRecord.deprecator.warn(
-                    "The `#{active_record.name}##{name}` inverse association could have been automatically" \
-                    " inferred as `#{klass.name}##{plural_inverse_name}` but wasn't because `automatically_invert_plural_associations`" \
-                    " is disabled.\n\n" \
-                    "If automatic inference is intended, you can consider enabling" \
-                    " `config.active_record.automatically_invert_plural_associations`.\n\n" \
-                    "If automatic inference is not intended, you can silence this warning by defining the association with `inverse_of: nil`."
-                  )
-                  reflection = nil
-                end
               end
             rescue NameError => error
               raise unless error.name.to_s == class_name
@@ -967,6 +991,8 @@ module ActiveRecord
 
       def initialize(delegate_reflection)
         super()
+
+        @validated = false
         @delegate_reflection = delegate_reflection
         @klass = delegate_reflection.options[:anonymous_class]
         @source_reflection_name = delegate_reflection.options[:source]
@@ -979,7 +1005,7 @@ module ActiveRecord
       end
 
       def klass
-        @klass ||= delegate_reflection.compute_class(class_name)
+        @klass ||= delegate_reflection._klass(class_name)
       end
 
       # Returns the source of the through reflection. It checks both a singularized
@@ -1000,6 +1026,8 @@ module ActiveRecord
       #   # => <ActiveRecord::Reflection::BelongsToReflection: @name=:tag, @active_record=Tagging, @plural_name="tags">
       #
       def source_reflection
+        return unless source_reflection_name
+
         through_reflection.klass._reflect_on_association(source_reflection_name)
       end
 
@@ -1052,7 +1080,7 @@ module ActiveRecord
         source_reflection.scopes + super
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
+      def join_scopes(table, predicate_builder = nil, klass = self.klass, record = nil) # :nodoc:
         source_reflection.join_scopes(table, predicate_builder, klass, record) + super
       end
 
@@ -1128,6 +1156,8 @@ module ActiveRecord
       end
 
       def check_validity!
+        return if @validated
+
         if through_reflection.nil?
           raise HasManyThroughAssociationNotFoundError.new(active_record, self)
         end
@@ -1157,7 +1187,7 @@ module ActiveRecord
         end
 
         if parent_reflection.nil?
-          reflections = active_record.reflections.keys.map(&:to_sym)
+          reflections = active_record.normalized_reflections.keys
 
           if reflections.index(through_reflection.name) > reflections.index(name)
             raise HasManyThroughOrderError.new(active_record.name, self, through_reflection)
@@ -1165,6 +1195,8 @@ module ActiveRecord
         end
 
         check_validity_of_inverse!
+
+        @validated = true
       end
 
       def constraints
@@ -1183,6 +1215,10 @@ module ActiveRecord
 
       def add_as_through(seed)
         collect_join_reflections(seed + [self])
+      end
+
+      def deprecated_nested_reflections
+        @deprecated_nested_reflections ||= collect_deprecated_nested_reflections
       end
 
       protected
@@ -1209,6 +1245,19 @@ module ActiveRecord
           options[:source_type] || source_reflection.class_name
         end
 
+        def collect_deprecated_nested_reflections
+          result = []
+          [through_reflection, source_reflection].each do |reflection|
+            result << reflection if reflection.deprecated?
+            # Both the through and the source reflections could be through
+            # themselves. Nesting can go an arbitrary number of levels down.
+            if reflection.through_reflection?
+              result.concat(reflection.deprecated_nested_reflections)
+            end
+          end
+          result
+        end
+
         delegate_methods = AssociationReflection.public_instance_methods -
           public_instance_methods
 
@@ -1225,8 +1274,11 @@ module ActiveRecord
         @previous_reflection = previous_reflection
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
-        scopes = @previous_reflection.join_scopes(table, predicate_builder, klass, record) + super
+      def join_scopes(table, predicate_builder = nil, klass = self.klass, record = nil) # :nodoc:
+        scopes = super
+        unless @previous_reflection.through_reflection?
+          scopes += @previous_reflection.join_scopes(table, predicate_builder, klass, record)
+        end
         scopes << build_scope(table, predicate_builder, klass).instance_exec(record, &source_type_scope)
       end
 

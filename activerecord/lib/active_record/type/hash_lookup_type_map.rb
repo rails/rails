@@ -26,6 +26,7 @@ module ActiveRecord
         if block
           @mapping[key] = block
         else
+          value.freeze
           @mapping[key] = proc { value }
         end
         @cache.clear
@@ -50,7 +51,7 @@ module ActiveRecord
 
       private
         def perform_fetch(type, *args, &block)
-          @mapping.fetch(type, block).call(type, *args)
+          @mapping.fetch(type, block).call(type, *args).freeze
         end
     end
   end

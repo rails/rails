@@ -23,14 +23,16 @@ module Arel
         Nodes::Avg,
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
-          op = klass.new(:a, "z")
+          op = klass.new(:a)
           @visitor.accept op, Collectors::PlainString.new
+          pass
         end
       end
 
       def test_named_function
         func = Nodes::NamedFunction.new "omg", "omg"
         @visitor.accept func, Collectors::PlainString.new
+        pass
       end
 
       # unary ops
@@ -48,6 +50,7 @@ module Arel
         define_method("test_#{klass.name.gsub('::', '_')}") do
           op = klass.new(:a)
           @visitor.accept op, Collectors::PlainString.new
+          pass
         end
       end
 
@@ -73,6 +76,7 @@ module Arel
         define_method("test_#{klass.name.gsub('::', '_')}") do
           binary = klass.new(:a, :b)
           @visitor.accept binary, Collectors::PlainString.new
+          pass
         end
       end
 
@@ -84,6 +88,7 @@ module Arel
         define_method("test_#{klass.name.gsub('::', '_')}") do
           binary = klass.new([:a, :b])
           @visitor.accept binary, Collectors::PlainString.new
+          pass
         end
       end
 

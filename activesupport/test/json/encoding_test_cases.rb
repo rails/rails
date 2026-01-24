@@ -56,6 +56,16 @@ module JSONTest
     end
   end
 
+  class CustomNumericFixed < Numeric
+    def initialize(str)
+      @str = str
+    end
+
+    def as_json
+      ::JSON::Fragment.new(@str)
+    end
+  end
+
   module EncodingTestCases
     TrueTests     = [[ true,  %(true)  ]]
     FalseTests    = [[ false, %(false) ]]
@@ -68,7 +78,8 @@ module JSONTest
                      [ BigDecimal("0.0") / BigDecimal("0.0"),  %(null) ],
                      [ BigDecimal("2.5"), %("#{BigDecimal('2.5')}") ],
                      [ RomanNumeral.new("MCCCXXXVII"), %("MCCCXXXVII") ],
-                     [ [CustomNumeric.new("123")], %([123]) ]
+                     [ [CustomNumeric.new("123")], %([123]) ],
+                     [ [CustomNumericFixed.new("123")], %([123]) ],
     ]
 
     StringTests   = [[ "this is the <string>",     %("this is the \\u003cstring\\u003e")],
@@ -81,8 +92,7 @@ module JSONTest
                      [ [1, "a", :b, nil, false], %([1,\"a\",\"b\",null,false]) ]]
 
     HashTests     = [[ { foo: "bar" }, %({\"foo\":\"bar\"}) ],
-                     [ { 1 => 1, 2 => "a", 3 => :b, 4 => nil, 5 => false }, %({\"1\":1,\"2\":\"a\",\"3\":\"b\",\"4\":null,\"5\":false}) ],
-                     [ { "a" => 1, :a => 2, :c => { "b" => 3, :b => 4 } }, %({\"a\":2,\"c\":{\"b\":4}}) ]]
+                     [ { 1 => 1, 2 => "a", 3 => :b, 4 => nil, 5 => false }, %({\"1\":1,\"2\":\"a\",\"3\":\"b\",\"4\":null,\"5\":false}) ]]
 
     RangeTests    = [[ 1..2,     %("1..2")],
                      [ 1...2,    %("1...2")],
@@ -114,7 +124,9 @@ module JSONTest
 
     PathnameTests = [[ Pathname.new("lib/index.rb"), %("lib/index.rb") ]]
 
-    IPAddrTests   = [[  IPAddr.new("127.0.0.1"), %("127.0.0.1") ]]
+    IPAddrTests       = [[ IPAddr.new("127.0.0.1"), %("127.0.0.1") ]]
+    IPAddrv4CidrTests = [[ IPAddr.new("192.0.2.0/24"), %("192.0.2.0/24") ]]
+    IPAddrv6CidrTests = [[ IPAddr.new("2001:db8::/48"), %("2001:db8::/48") ]]
 
     DateTests     = [[ Date.new(2005, 2, 1), %("2005/02/01") ]]
     TimeTests     = [[ Time.utc(2005, 2, 1, 15, 15, 10), %("2005/02/01 15:15:10 +0000") ]]

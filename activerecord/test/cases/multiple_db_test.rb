@@ -9,8 +9,8 @@ class MultipleDbTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   def setup
-    @courses  = create_fixtures("courses") { Course.retrieve_connection }
-    @colleges = create_fixtures("colleges") { College.retrieve_connection }
+    @courses  = create_fixtures("courses")
+    @colleges = create_fixtures("colleges")
     @entrants = create_fixtures("entrants")
   end
 

@@ -86,6 +86,19 @@ class AttributeAssignmentTest < ActiveModel::TestCase
     assert_equal "hz", error.attribute
   end
 
+  test "assign non-existing attribute by overriding #attribute_writer_missing" do
+    model_class = Class.new(Model) do
+      attr_accessor :assigned_attributes
+
+      def attribute_writer_missing(name, value) = @assigned_attributes[name] = value
+    end
+    model = model_class.new(assigned_attributes: {})
+
+    model.assign_attributes unknown: "attribute"
+
+    assert_equal({ "unknown" => "attribute" }, model.assigned_attributes)
+  end
+
   test "assign private attribute" do
     model = Model.new
     assert_raises(ActiveModel::UnknownAttributeError) do
@@ -134,5 +147,15 @@ class AttributeAssignmentTest < ActiveModel::TestCase
   test "assigning no attributes should not raise, even if the hash is un-permitted" do
     model = Model.new
     assert_nil model.assign_attributes(ProtectedParams.new({}))
+  end
+
+  test "passing an object with each_pair but without each" do
+    model = Model.new
+    h = { name: "hello", description: "world" }
+    h.instance_eval { undef :each }
+    model.assign_attributes(h)
+
+    assert_equal "hello", model.name
+    assert_equal "world", model.description
   end
 end

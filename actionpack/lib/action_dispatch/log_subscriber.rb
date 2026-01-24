@@ -1,25 +1,38 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
-  class LogSubscriber < ActiveSupport::LogSubscriber
+  class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
+    class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
+
+    self.namespace = "action_dispatch"
+
     def redirect(event)
-      payload = event.payload
+      payload = event[:payload]
 
       info { "Redirected to #{payload[:location]}" }
 
+      if ActionDispatch.verbose_redirect_logs
+        info { "↳ #{payload[:source_location]}" }
+      end
+
       info do
         status = payload[:status]
+        status_name = payload[:status_name]
 
-        message = +"Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms"
+        message = +"Completed #{status} #{status_name} in #{payload[:duration_ms].round}ms"
         message << "\n\n" if defined?(Rails.env) && Rails.env.development?
 
         message
       end
     end
-    subscribe_log_level :redirect, :info
+    event_log_level :redirect, :info
+
+    def self.default_logger
+      ActionController::Base.logger
+    end
   end
 end
 
-ActionDispatch::LogSubscriber.attach_to :action_dispatch
+ActiveSupport.event_reporter.subscribe(
+  ActionDispatch::LogSubscriber.new, &ActionDispatch::LogSubscriber.subscription_filter
+)

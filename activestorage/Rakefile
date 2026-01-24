@@ -4,11 +4,14 @@ require "bundler/setup"
 require "bundler/gem_tasks"
 require "rake/testtask"
 
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
+
 Rake::TestTask.new do |t|
   t.libs << "app/controllers"
   t.libs << "test"
   t.test_files = FileList["test/**/*_test.rb"]
   t.verbose = true
+  t.options = "--profile" if ENV["CI"]
   t.warning = true
 end
 
@@ -22,6 +25,14 @@ if ENV["encrypted_0fb9444d0374_key"] && ENV["encrypted_0fb9444d0374_iv"]
   task test: config_file
 end
 
-task :package
+namespace :test do
+  task isolated: :railties
+
+  task :railties do
+    ["active_storage/engine"].all? do |railtie|
+      sh(Gem.ruby, "-r", railtie, "-e", "'OK'")
+    end || raise("Failures")
+  end
+end
 
 task default: :test

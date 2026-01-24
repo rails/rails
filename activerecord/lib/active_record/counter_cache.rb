@@ -17,7 +17,7 @@ module ActiveRecord
       #
       # ==== Parameters
       #
-      # * +id+ - The id of the object you wish to reset a counter on.
+      # * +id+ - The id of the object you wish to reset a counter on or an array of ids.
       # * +counters+ - One or more association counters to reset. Association name or counter name can be given.
       # * <tt>:touch</tt> - Touch timestamp columns when updating.
       #   Pass +true+ to touch +updated_at+ and/or +updated_on+. Pass a symbol to
@@ -28,13 +28,25 @@ module ActiveRecord
       #   # For the Post with id #1, reset the comments_count
       #   Post.reset_counters(1, :comments)
       #
-      #   # Like above, but also touch the +updated_at+ and/or +updated_on+
+      #   # For posts with ids #1 and #2, reset the comments_count
+      #   Post.reset_counters([1, 2], :comments)
+      #
+      #   # Like above, but also touch the updated_at and/or updated_on
       #   # attributes.
       #   Post.reset_counters(1, :comments, touch: true)
       def reset_counters(id, *counters, touch: nil)
-        object = find(id)
+        ids = if composite_primary_key?
+          if id.first.is_a?(Array)
+            id
+          else
+            [id]
+          end
+        else
+          Array(id)
+        end
 
-        updates = {}
+        updates = Hash.new { |h, k| h[k] = {} }
+
         counters.each do |counter_association|
           has_many_association = _reflect_on_association(counter_association)
           unless has_many_association
@@ -48,14 +60,22 @@ module ActiveRecord
             has_many_association = has_many_association.through_reflection
           end
 
+          counter_association = counter_association.to_sym
           foreign_key  = has_many_association.foreign_key.to_s
           child_class  = has_many_association.klass
           reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
 
-          count_was = object.send(counter_name)
-          count = object.send(counter_association).count(:all)
-          updates[counter_name] = count if count != count_was
+          counts =
+            unscoped
+              .joins(counter_association)
+              .where(primary_key => ids)
+              .group(primary_key)
+              .count(:all)
+
+          ids.each do |id|
+            updates[id].merge!(counter_name => counts[id] || 0)
+          end
         end
 
         if touch
@@ -63,10 +83,15 @@ module ActiveRecord
           names = Array.wrap(names)
           options = names.extract_options!
           touch_updates = touch_attributes_with_time(*names, **options)
-          updates.merge!(touch_updates)
+
+          updates.each_value do |record_updates|
+            record_updates.merge!(touch_updates)
+          end
         end
 
-        unscoped.where(primary_key => [object.id]).update_all(updates) if updates.any?
+        updates.each do |id, record_updates|
+          unscoped.where(primary_key => [id]).update_all(record_updates)
+        end
 
         true
       end

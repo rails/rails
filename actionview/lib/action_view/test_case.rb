@@ -60,7 +60,56 @@ module ActionView
       include ActiveSupport::Testing::ConstantLookup
 
       delegate :lookup_context, to: :controller
-      attr_accessor :controller, :request, :output_buffer, :rendered
+      attr_accessor :controller, :request, :output_buffer
+
+      # Returns the content rendered by the last +render+ call.
+      #
+      # The returned object behaves like a string but also exposes a number of methods
+      # that allows you to parse the content string in formats registered using
+      # <tt>.register_parser</tt>.
+      #
+      # By default includes the following parsers:
+      #
+      # +.html+
+      #
+      # Parse the <tt>rendered</tt> content String into HTML. By default, this means
+      # a <tt>Nokogiri::XML::Node</tt>.
+      #
+      #   test "renders HTML" do
+      #     article = Article.create!(title: "Hello, world")
+      #
+      #     render partial: "articles/article", locals: { article: article }
+      #
+      #     assert_pattern { rendered.html.at("main h1") => { content: "Hello, world" } }
+      #   end
+      #
+      # To parse the rendered content into a <tt>Capybara::Simple::Node</tt>,
+      # re-register an <tt>:html</tt> parser with a call to
+      # <tt>Capybara.string</tt>:
+      #
+      #   register_parser :html, -> rendered { Capybara.string(rendered) }
+      #
+      #   test "renders HTML" do
+      #     article = Article.create!(title: "Hello, world")
+      #
+      #     render partial: article
+      #
+      #     rendered.html.assert_css "h1", text: "Hello, world"
+      #   end
+      #
+      # +.json+
+      #
+      # Parse the <tt>rendered</tt> content String into JSON. By default, this means
+      # a <tt>ActiveSupport::HashWithIndifferentAccess</tt>.
+      #
+      #   test "renders JSON" do
+      #     article = Article.create!(title: "Hello, world")
+      #
+      #     render formats: :json, partial: "articles/article", locals: { article: article }
+      #
+      #     assert_pattern { rendered.json => { title: "Hello, world" } }
+      #   end
+      attr_accessor :rendered
 
       module ClassMethods
         def inherited(descendant) # :nodoc:
@@ -171,8 +220,8 @@ module ActionView
           # Almost a duplicate from ActionController::Helpers
           methods.flatten.each do |method|
             _helpers_for_modification.module_eval <<~end_eval, __FILE__, __LINE__ + 1
-              def #{method}(...)                    # def current_user(*args, &block)
-                _test_case.send(:'#{method}', ...)  #   _test_case.send(:'current_user', *args, &block)
+              def #{method}(...)                    # def current_user(...)
+                _test_case.send(:'#{method}', ...)  #   _test_case.send(:'current_user', ...)
               end                                   # end
             end_eval
           end
@@ -243,57 +292,6 @@ module ActionView
         @_rendered_views ||= RenderedViewsCollection.new
       end
 
-      ##
-      # :method: rendered
-      #
-      # Returns the content rendered by the last +render+ call.
-      #
-      # The returned object behaves like a string but also exposes a number of methods
-      # that allows you to parse the content string in formats registered using
-      # <tt>.register_parser</tt>.
-      #
-      # By default includes the following parsers:
-      #
-      # +.html+
-      #
-      # Parse the <tt>rendered</tt> content String into HTML. By default, this means
-      # a <tt>Nokogiri::XML::Node</tt>.
-      #
-      #   test "renders HTML" do
-      #     article = Article.create!(title: "Hello, world")
-      #
-      #     render partial: "articles/article", locals: { article: article }
-      #
-      #     assert_pattern { rendered.html.at("main h1") => { content: "Hello, world" } }
-      #   end
-      #
-      # To parse the rendered content into a <tt>Capybara::Simple::Node</tt>,
-      # re-register an <tt>:html</tt> parser with a call to
-      # <tt>Capybara.string</tt>:
-      #
-      #   register_parser :html, -> rendered { Capybara.string(rendered) }
-      #
-      #   test "renders HTML" do
-      #     article = Article.create!(title: "Hello, world")
-      #
-      #     render partial: article
-      #
-      #     rendered.html.assert_css "h1", text: "Hello, world"
-      #   end
-      #
-      # +.json+
-      #
-      # Parse the <tt>rendered</tt> content String into JSON. By default, this means
-      # a <tt>ActiveSupport::HashWithIndifferentAccess</tt>.
-      #
-      #   test "renders JSON" do
-      #     article = Article.create!(title: "Hello, world")
-      #
-      #     render formats: :json, partial: "articles/article", locals: { article: article }
-      #
-      #     assert_pattern { rendered.json => { title: "Hello, world" } }
-      #   end
-
       def _routes
         @controller._routes if @controller.respond_to?(:_routes)
       end
@@ -301,7 +299,6 @@ module ActionView
       class RenderedViewContent < String # :nodoc:
       end
 
-      # Need to experiment if this priority is the best one: rendered => output_buffer
       class RenderedViewsCollection
         def initialize
           @rendered_views ||= Hash.new { |hash, key| hash[key] = [] }
@@ -399,6 +396,7 @@ module ActionView
         :@view_flow,
         :@_subscribers,
         :@html_document,
+        :@__leak_checker_before_env,
       ]
 
       def _user_defined_ivars

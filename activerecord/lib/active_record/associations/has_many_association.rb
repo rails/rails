@@ -35,10 +35,10 @@ module ActiveRecord
           unless target.empty?
             association_class = target.first.class
             if association_class.query_constraints_list
-              primary_key_column = association_class.query_constraints_list.map(&:to_sym)
+              primary_key_column = association_class.query_constraints_list
               ids = target.collect { |assoc| primary_key_column.map { |col| assoc.public_send(col) } }
             else
-              primary_key_column = association_class.primary_key.to_sym
+              primary_key_column = association_class.primary_key
               ids = target.collect { |assoc| assoc.public_send(primary_key_column) }
             end
 

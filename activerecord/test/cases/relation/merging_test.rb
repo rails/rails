@@ -94,7 +94,6 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     assert_equal [david, bob], mary_and_bob.merge(Author.where(id: [david, bob]))
 
-
     assert_equal [mary, bob], david_and_mary.merge(mary_and_bob)
     assert_equal [mary], david_and_mary.and(mary_and_bob)
     assert_equal authors, david_and_mary.or(mary_and_bob)
@@ -139,7 +138,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
     non_mary_and_bob = Author.where.not(id: [mary, bob])
 
-    author_id = Author.lease_connection.quote_table_name("authors.id")
+    author_id = quote_table_name("authors.id")
     assert_queries_match(/WHERE #{Regexp.escape(author_id)} NOT IN \((\?|\W?\w?\d), \g<1>\)\z/) do
       assert_equal [david], non_mary_and_bob.merge(non_mary_and_bob)
     end
@@ -362,6 +361,14 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
     comment_2.ratings.create!
 
     assert_equal dev.ratings, [rating_1]
+  end
+
+  test "merging where relation having arel equality with null relation" do
+    arel_predicate = Arel::Nodes::NamedFunction.new("ABS", [Post.arel_table[:tags_count]]).eq(0)
+    arel_relation = Post.where(arel_predicate)
+    relation = arel_relation.merge(arel_relation.none)
+    sql = relation.to_sql
+    assert_match("AND", sql)
   end
 
   if ActiveRecord::Base.lease_connection.supports_common_table_expressions?

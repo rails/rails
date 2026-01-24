@@ -65,14 +65,14 @@ module ActionDispatch
       alias :params :parameters
 
       def path_parameters=(parameters) # :nodoc:
-        delete_header("action_dispatch.request.parameters")
+        @env.delete("action_dispatch.request.parameters")
 
         parameters = Request::Utils.set_binary_encoding(self, parameters, parameters[:controller], parameters[:action])
         # If any of the path parameters has an invalid encoding then raise since it's
         # likely to trigger errors further on.
         Request::Utils.check_param_encoding(parameters)
 
-        set_header PARAMETERS_KEY, parameters
+        @env[PARAMETERS_KEY] = parameters
       rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
         raise ActionController::BadRequest.new("Invalid path parameters: #{e.message}")
       end
@@ -82,7 +82,7 @@ module ActionDispatch
       #
       #     { action: "my_action", controller: "my_controller" }
       def path_parameters
-        get_header(PARAMETERS_KEY) || set_header(PARAMETERS_KEY, {})
+        @env[PARAMETERS_KEY] ||= {}
       end
 
       private

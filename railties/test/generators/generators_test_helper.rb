@@ -28,9 +28,6 @@ module GeneratorsTestHelper
 
       setup { Rails.application.config.root = Pathname("../fixtures").expand_path(__dir__) }
 
-      setup { @original_rakeopt, ENV["RAKEOPT"] = ENV["RAKEOPT"], "--silent" }
-      teardown { ENV["RAKEOPT"] = @original_rakeopt }
-
       begin
         base.tests Rails::Generators.const_get(base.name.delete_suffix("Test"))
       rescue
@@ -62,9 +59,12 @@ module GeneratorsTestHelper
 
   def copy_routes
     routes = File.expand_path("../../lib/rails/generators/rails/app/templates/config/routes.rb.tt", __dir__)
+    routes = evaluate_template(routes, {
+      options: ActiveSupport::OrderedOptions.new
+    })
     destination = File.join(destination_root, "config")
     FileUtils.mkdir_p(destination)
-    FileUtils.cp routes, File.join(destination, "routes.rb")
+    File.write File.join(destination, "routes.rb"), routes
   end
 
   def copy_gemfile(*gemfile_entries)
@@ -73,6 +73,13 @@ module GeneratorsTestHelper
     gemfile = evaluate_template(gemfile, locals)
     destination = File.join(destination_root)
     File.write File.join(destination, "Gemfile"), gemfile
+  end
+
+  def copy_application_system_test_case
+    content = File.read(File.expand_path("../fixtures/test/application_system_test_case.rb", __dir__))
+    destination = File.join(destination_root, "test")
+    mkdir_p(destination)
+    File.write File.join(destination, "application_system_test_case.rb"), content
   end
 
   def copy_dockerfile
@@ -125,20 +132,34 @@ module GeneratorsTestHelper
   def assert_devcontainer_json_file
     assert_file ".devcontainer/devcontainer.json" do |content|
       yield JSON.load(content)
+    rescue JSON::ParserError
+      puts "Failed to parse JSON: #{content}"
+      raise
+    end
+  end
+
+  def run_app_update(app_root = destination_root, flags: "--force")
+    Dir.chdir(app_root) do
+      gemfile_contents = File.read("Gemfile")
+      gemfile_contents.sub!(/^(gem "rails").*/, "\\1, path: #{File.expand_path("../../..", __dir__).inspect}")
+      File.write("Gemfile", gemfile_contents)
+
+      silence_stream($stdout) do
+        Bundler.with_unbundled_env {
+          system("bin/rails app:update #{flags}", exception: true)
+        }
+      end
     end
   end
 
   private
     def gemfile_locals
       {
-        gem_ruby_version: RUBY_VERSION,
         rails_prerelease: false,
         skip_active_storage: true,
         depend_on_bootsnap: false,
         depends_on_system_test: false,
         options: ActiveSupport::OrderedOptions.new,
-        skip_sprockets: false,
-        bundler_windows_platforms: "windows",
       }
     end
 end

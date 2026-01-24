@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   rails:
     build:
@@ -12,15 +10,14 @@ services:
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
 
-    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
-    networks:
-      - default
-
     depends_on:
       - postgres
-      - mariadb
+      - mysql
       - redis
       - memcached
+
+    environment:
+      MYSQL_CODESPACES: "1"
 
     # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
     # (Adding the "ports" property to this file will not forward from a Codespace.)
@@ -28,30 +25,24 @@ services:
   postgres:
     image: postgres:latest
     restart: unless-stopped
-    networks:
-      - default
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD: postgres
 
-  mariadb:
-    image: mariadb:latest
+  mysql:
+    image: mysql:latest
     restart: unless-stopped
-    networks:
-      - default
     volumes:
-      - mariadb-data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
     environment:
-      MARIADB_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
 
   redis:
-    image: redis:latest
+    image: valkey/valkey:8
     restart: unless-stopped
-    networks:
-      - default
     volumes:
       - redis-data:/data
 
@@ -59,13 +50,8 @@ services:
     image: memcached:latest
     restart: unless-stopped
     command: ["-m", "1024"]
-    networks:
-      - default
-
-networks:
-  default:
 
 volumes:
   postgres-data:
-  mariadb-data:
+  mysql-data:
   redis-data:

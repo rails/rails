@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "ripper"
+require "prism"
 
 module Rails
   # Implements the logic behind +Rails::Command::NotesCommand+. See <tt>rails notes --help</tt> for usage information.
@@ -16,24 +16,13 @@ module Rails
     # Wraps a regular expression that will be tested against each of the source
     # file's comments.
     class ParserExtractor < Struct.new(:pattern)
-      class Parser < Ripper
-        attr_reader :comments, :pattern
-
-        def initialize(source, pattern:)
-          super(source)
-          @pattern = pattern
-          @comments = []
-        end
-
-        def on_comment(value)
-          @comments << Annotation.new(lineno, $1, $2) if value =~ pattern
-        end
-      end
-
       def annotations(file)
-        contents = File.read(file, encoding: Encoding::BINARY)
-        parser = Parser.new(contents, pattern: pattern).tap(&:parse)
-        parser.error? ? [] : parser.comments
+        result = Prism.parse_file(file)
+        return [] unless result.success?
+
+        result.comments.filter_map do |comment|
+          Annotation.new(comment.location.start_line, $1, $2) if comment.location.slice =~ pattern
+        end
       end
     end
 
@@ -90,8 +79,12 @@ module Rails
         PatternExtractor.new(/#\s*(#{tag}):?\s*(.*)$/)
       end
 
-      register_extensions("css", "js") do |tag|
+      register_extensions("js") do |tag|
         PatternExtractor.new(/\/\/\s*(#{tag}):?\s*(.*)$/)
+      end
+
+      register_extensions("css") do |tag|
+        PatternExtractor.new(/\/\*\s*(#{tag}):?\s*(.*?)(?:\*\/)?$/)
       end
 
       register_extensions("erb") do |tag|
@@ -188,7 +181,7 @@ module Rails
       results.keys.sort.each do |file|
         puts "#{file}:"
         results[file].each do |note|
-          puts "  * #{note.to_s(options)}"
+          puts "  * #{note.to_s(options).strip}"
         end
         puts
       end

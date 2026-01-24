@@ -39,7 +39,7 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
   end
 
   test "deliver_now! should call after_deliver callback" do
-    CallbackMailer.test_message.deliver_now
+    CallbackMailer.test_message.deliver_now!
 
     assert_kind_of CallbackMailer, CallbackMailer.after_deliver_instance
   end

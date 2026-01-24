@@ -4,7 +4,11 @@ require "abstract_unit"
 require "rails/engine"
 require "controller/fake_controllers"
 
-class SecureArticlesController < ArticlesController; end
+class SecureArticlesController < ArticlesController
+  def index
+    render(inline: "")
+  end
+end
 class BlockArticlesController < ArticlesController; end
 class QueryArticlesController < ArticlesController; end
 
@@ -67,6 +71,10 @@ module RoutingAssertionsSharedTests
       mount root_engine => "/"
 
       get "/shelf/foo", controller: "query_articles", action: "index"
+
+      get "*path", to: "symbols#index", constraints: ->(request) do
+        request.fullpath == "/request_mutated"
+      end
     end
   end
 
@@ -177,6 +185,10 @@ module RoutingAssertionsSharedTests
     assert_recognizes({ controller: "query_articles", action: "index" }, "/shelf/foo")
   end
 
+  def test_assert_recognizes_doesnt_mutate_request
+    assert_recognizes({ controller: "symbols", action: "index", path: "request_mutated" }, "/request_mutated")
+  end
+
   def test_assert_routing
     assert_routing("/articles", controller: "articles", action: "index")
   end
@@ -276,6 +288,20 @@ class RoutingAssertionsControllerTest < ActionController::TestCase
 
   class WithRoutingTest < ActionController::TestCase
     include RoutingAssertionsSharedTests::WithRoutingSharedTests
+
+    test "with_routing routes are reachable" do
+      @controller = SecureArticlesController.new
+
+      with_routing do |routes|
+        routes.draw do
+          get :new_route, to: "secure_articles#index"
+        end
+
+        get :index
+
+        assert_predicate(response, :ok?)
+      end
+    end
   end
 end
 
@@ -295,6 +321,18 @@ class RoutingAssertionsIntegrationTest < ActionDispatch::IntegrationTest
 
   class WithRoutingTest < ActionDispatch::IntegrationTest
     include RoutingAssertionsSharedTests::WithRoutingSharedTests
+
+    test "with_routing routes are reachable" do
+      with_routing do |routes|
+        routes.draw do
+          get :new_route, to: "secure_articles#index"
+        end
+
+        get "/new_route"
+
+        assert_predicate(response, :ok?)
+      end
+    end
   end
 
   class WithRoutingSettingsTest < ActionDispatch::IntegrationTest
@@ -311,5 +349,56 @@ class RoutingAssertionsIntegrationTest < ActionDispatch::IntegrationTest
       assert_predicate integration_session, :https?
       assert_equal "newhost.com", integration_session.host
     end
+  end
+end
+
+class WithRoutingResetTest < ActionDispatch::IntegrationTest
+  test "with_routing doesn't rebuild the middleware stack" do
+    middleware = Class.new do
+      def initialize(app)
+        @app = app
+        @config = {}
+
+        yield(@config)
+      end
+
+      def call(env)
+        [200, { Rack::CONTENT_TYPE => "text/plain; charset=UTF-8" }, [@config[:foo]]]
+      end
+    end
+
+    middleware_config = nil
+
+    @app = self.class.build_app do |middleware_stack|
+      middleware_stack.use middleware do |config|
+        middleware_config = config
+      end
+    end
+    @app.routes.draw do
+      get("/purchase", to: "store#purchase")
+    end
+
+    middleware_config[:foo] = "bar"
+
+    # Ensure the middleware is properly configured before calling `with_routing`
+    get "/purchase"
+    assert_response(:ok)
+    assert_equal("bar", response.body)
+
+    with_routing do |route_set|
+      route_set.draw do
+        get "/purchase", to: "store#purchase"
+      end
+
+      # Ensure the middleware is properly configured inside `with_routing`
+      get "/purchase"
+      assert_response(:ok)
+      assert_equal("bar", response.body)
+    end
+
+    # Ensure the middleware is properly configured after `with_routing`
+    get "/purchase"
+    assert_response(:ok)
+    assert_equal("bar", response.body)
   end
 end

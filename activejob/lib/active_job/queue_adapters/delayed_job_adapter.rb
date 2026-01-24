@@ -16,12 +16,11 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :delayed_job
     class DelayedJobAdapter < AbstractAdapter
-      def initialize(enqueue_after_transaction_commit: false)
-        @enqueue_after_transaction_commit = enqueue_after_transaction_commit
-      end
-
-      def enqueue_after_transaction_commit? # :nodoc:
-        @enqueue_after_transaction_commit
+      def check_adapter
+        ActiveJob.deprecator.warn <<~MSG.squish
+          The built-in `delayed_job` adapter is deprecated and will be removed in Rails 9.0.
+          Please upgrade `delayed_job` gem to version 4.2.0 or later to use the `delayed_job` gem's adapter.
+        MSG
       end
 
       def enqueue(job) # :nodoc:

@@ -32,6 +32,15 @@ module ActiveSupport
         self
       end
 
+      def prepend(**options, &block)
+        raise ArgumentError, "Options cannot be specified when using a block" if block && !options.empty?
+        changing_configuration!
+
+        @rotate_options.unshift(block || options)
+
+        self
+      end
+
       def rotate_defaults
         rotate()
       end

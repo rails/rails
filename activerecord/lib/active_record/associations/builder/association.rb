@@ -19,7 +19,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     self.extensions = []
 
     VALID_OPTIONS = [
-      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading, :query_constraints
+      :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading, :query_constraints, :deprecated
     ].freeze # :nodoc:
 
     def self.build(model, name, scope, options, &block)
@@ -30,10 +30,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
 
       reflection = create_reflection(model, name, scope, options, &block)
-      define_accessors model, reflection
-      define_callbacks model, reflection
-      define_validations model, reflection
-      define_change_tracking_methods model, reflection
+      define_accessors(model, reflection)
+      define_callbacks(model, reflection)
+      define_validations(model, reflection)
+      define_change_tracking_methods(model, reflection)
       reflection
     end
 
@@ -71,6 +71,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.define_extensions(model, name)
+      # noop
     end
 
     def self.define_callbacks(model, reflection)
@@ -81,7 +82,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
 
       Association.extensions.each do |extension|
-        extension.build model, reflection
+        extension.build(model, reflection)
       end
     end
 
@@ -101,7 +102,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_readers(mixin, name)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}
-          association(:#{name}).reader
+          association = association(:#{name})
+          deprecated_associations_api_guard(association, __method__)
+          association.reader
         end
       CODE
     end
@@ -109,7 +112,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_writers(mixin, name)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}=(value)
-          association(:#{name}).writer(value)
+          association = association(:#{name})
+          deprecated_associations_api_guard(association, __method__)
+          association.writer(value)
         end
       CODE
     end
@@ -131,14 +136,21 @@ module ActiveRecord::Associations::Builder # :nodoc:
         err_message = "A valid destroy_association_async_job is required to use `dependent: :destroy_async` on associations"
         raise ActiveRecord::ConfigurationError, err_message
       end
-      unless valid_dependent_options.include? dependent
+      unless valid_dependent_options.include?(dependent)
         raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{dependent}"
       end
     end
 
     def self.add_destroy_callbacks(model, reflection)
-      name = reflection.name
-      model.before_destroy(->(o) { o.association(name).handle_dependency })
+      if reflection.deprecated?
+        # If :dependent is set, destroying the record has a side effect that
+        # would no longer happen if the association is removed.
+        model.before_destroy do
+          report_deprecated_association(reflection, context: ":dependent has a side effect here")
+        end
+      end
+
+      model.before_destroy(->(o) { o.association(reflection.name).handle_dependency })
     end
 
     def self.add_after_commit_jobs_callback(model, dependent)

@@ -38,14 +38,11 @@ module ActionController # :nodoc:
           define_method(type) do
             request.flash[type]
           end
+          private type
           helper_method(type) if respond_to?(:helper_method)
 
           self._flash_types += [type]
         end
-      end
-
-      def action_methods # :nodoc:
-        @action_methods ||= super - _flash_types.map(&:to_s).to_set
       end
     end
 

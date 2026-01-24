@@ -9,12 +9,16 @@ require "rails/test_unit/test_parser"
 
 module Rails
   module TestUnit
-    class InvalidTestError < StandardError
+    class InvalidTestError < ArgumentError
       def initialize(path, suggestion)
-        super(<<~MESSAGE.squish)
+        super(<<~MESSAGE.rstrip)
           Could not load test file: #{path}.
           #{suggestion}
         MESSAGE
+      end
+
+      def backtrace(*args)
+        []
       end
     end
 
@@ -22,6 +26,7 @@ module Rails
       TEST_FOLDERS = [:models, :helpers, :channels, :controllers, :mailers, :integration, :jobs, :mailboxes]
       PATH_ARGUMENT_PATTERN = %r"^(?!/.+/$)[.\w]*[/\\]"
       mattr_reader :filters, default: []
+      mattr_reader :load_test_files, default: false
 
       class << self
         def attach_before_load_options(opts)
@@ -48,25 +53,34 @@ module Rails
           success || exit(false)
         end
 
-        def run(argv = [])
-          load_tests(argv)
-
+        def run(args = [])
           require "active_support/testing/autorun"
+
+          @@load_test_files = true
+
+          at_exit do
+            ARGV.replace(args)
+          end
         end
 
         def load_tests(argv)
           patterns = extract_filters(argv)
           tests = list_tests(patterns)
           tests.to_a.each do |path|
-            require File.expand_path(path)
+            abs_path = File.expand_path(path)
+            require abs_path
           rescue LoadError => exception
-            all_tests = list_tests([default_test_glob])
-            corrections = DidYouMean::SpellChecker.new(dictionary: all_tests).correct(path)
+            if exception.path == abs_path
+              all_tests = list_tests([default_test_glob])
+              corrections = DidYouMean::SpellChecker.new(dictionary: all_tests).correct(path)
 
-            if corrections.empty?
-              raise exception
+              if corrections.empty?
+                raise exception
+              end
+              raise(InvalidTestError.new(path, DidYouMean::Formatter.message_for(corrections)), cause: nil)
+            else
+              raise
             end
-            raise InvalidTestError.new(path, DidYouMean::Formatter.message_for(corrections))
           end
         end
 
@@ -84,8 +98,6 @@ module Rails
           def extract_filters(argv)
             # Extract absolute and relative paths but skip -n /.*/ regexp filters.
             argv.filter_map do |path|
-              next unless path_argument?(path)
-
               path = path.tr("\\", "/")
               case
               when /(:\d+(-\d+)?)+$/.match?(path)
@@ -120,6 +132,7 @@ module Rails
           def list_tests(patterns)
             tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
             tests.exclude(default_test_exclude_glob) if patterns.empty?
+            tests.exclude(%r{test/isolation/assets/node_modules})
             tests
           end
 

@@ -22,7 +22,7 @@ class ActiveStorage::FilenameTest < ActiveSupport::TestCase
   end
 
   test "sanitize" do
-    "%$|:;/\t\r\n\\".each_char do |character|
+    "%$|:;/<>?*\"\t\r\n\\".each_char do |character|
       filename = ActiveStorage::Filename.new("foo#{character}bar.pdf")
       assert_equal "foo-bar.pdf", filename.sanitized
       assert_equal "foo-bar.pdf", filename.to_s
@@ -52,6 +52,12 @@ class ActiveStorage::FilenameTest < ActiveSupport::TestCase
 
   test "compare sanitized" do
     assert_operator ActiveStorage::Filename.new("foo-bar.pdf"), :==, ActiveStorage::Filename.new("foo\tbar.pdf")
+  end
+
+  test "String equality" do
+    assert_operator "foo-bar.pdf", :===, ActiveStorage::Filename.new("foo-bar.pdf")
+    assert_equal "foo-bar.pdf", ActiveStorage::Filename.new("foo-bar.pdf")
+    assert_pattern { ActiveStorage::Filename.new("foo-bar.pdf") => "foo-bar.pdf" }
   end
 
   test "encoding to json" do

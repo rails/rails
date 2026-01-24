@@ -66,6 +66,9 @@ module ApplicationTests
     end
 
     test "integration test" do
+      routes <<~'RUBY'
+        get "/posts" => "posts#index"
+      RUBY
       controller "posts", <<-RUBY
         class PostsController < ActionController::Base
         end
@@ -345,43 +348,44 @@ Expected: ["id", "name"]
       assert_unsuccessful_run "models/user_test.rb", "SCHEMA LOADED!"
     end
 
-    def test_actionable_command_line_error_with_tty
-      rails "generate", "scaffold", "user", "name:string"
-      app_file "config/initializers/thor_yes.rb", <<-RUBY
-        Rails::Command::Base.class_eval <<-INITIALIZER
-          def yes?(statement, color = nil)
-            raise ArgumentError unless statement == "Run pending migrations? [Yn]"
-            true
-          end
+    test "database-dependent attribute types are resolved when parallel tests are run in eager load context" do
+      use_postgresql
+      rails "db:drop", "db:create"
 
-          def tty?
-            true
+      output = rails("generate", "model", "user")
+      version = output.match(/(\d+)_create_users\.rb/)[1]
+
+      app_file "db/schema.rb", <<~RUBY
+        ActiveRecord::Schema.define(version: #{version}) do
+          create_enum "user_favorite_color", ["red", "green", "blue"]
+
+          create_table :users do |t|
+            t.enum :favorite_color, enum_type: :user_favorite_color
           end
-        INITIALIZER
+        end
       RUBY
 
-      run_test_file("models/user_test.rb").tap do |output|
-        assert_match "Migrations are pending. To resolve this issue, run:", output
-        assert_match "CreateUsers: migrating", output
-        assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
-      end
-    end
-
-    def test_actionable_command_line_without_tty
-      rails "generate", "scaffold", "user", "name:string"
-      app_file "config/initializers/thor_yes.rb", <<-RUBY
-        Rails::Command::Base.class_eval <<-INITIALIZER
-          def tty?
-            false
-          end
-        INITIALIZER
+      app_file "config/initializers/enable_eager_load.rb", <<~RUBY
+        Rails.application.config.eager_load = true
       RUBY
 
-      run_test_file("models/user_test.rb").tap do |output|
-        assert_match "Migrations are pending. To resolve this issue, run:", output
-        assert_no_match "CreateUsers: migrating", output
-        assert_no_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", output
-      end
+      app_file "test/models/user_test.rb", <<~RUBY
+        require "test_helper"
+        class UserTest < ActiveSupport::TestCase
+          ENV.delete("PARALLEL_WORKERS")
+          parallelize threshold: 1, workers: 2
+
+          2.times do |i|
+            test "favorite_color uses database type (worker \#{i})" do
+              assert_instance_of ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Enum, User.type_for_attribute("favorite_color")
+            end
+          end
+        end
+      RUBY
+
+      assert_successful_test_run "models/user_test.rb"
+    ensure
+      rails "db:drop" rescue nil
     end
 
     private

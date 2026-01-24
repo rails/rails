@@ -102,6 +102,23 @@ module ActiveSupport
           assert(false, message)
         end
       end
+
+      # Captures reported errors from within the block that match the given
+      # error class.
+      #
+      #   reports = capture_error_reports(IOError) do
+      #     Rails.error.report(IOError.new("Oops"))
+      #     Rails.error.report(IOError.new("Oh no"))
+      #     Rails.error.report(StandardError.new)
+      #   end
+      #
+      #   assert_equal 2, reports.size
+      #   assert_equal "Oops", reports.first.error.message
+      #   assert_equal "Oh no", reports.last.error.message
+      def capture_error_reports(error_class = StandardError, &block)
+        reports = ErrorCollector.record(&block)
+        reports.select { |r| error_class === r.error }
+      end
     end
   end
 end

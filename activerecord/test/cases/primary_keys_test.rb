@@ -241,8 +241,6 @@ class PrimaryKeysTest < ActiveRecord::TestCase
   end
 
   def test_create_without_primary_key_no_extra_query
-    skip if current_adapter?(:OracleAdapter)
-
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "dashboards"
     end
@@ -256,6 +254,17 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     end
     dashboard = klass.new
     assert_raises(ActiveModel::MissingAttributeError) { dashboard.id = "1" }
+  end
+
+  def test_reconfiguring_primary_key_resets_composite_primary_key
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "cpk_books"
+    end
+
+    assert_predicate klass, :composite_primary_key?
+
+    klass.primary_key = :id
+    assert_not_predicate klass, :composite_primary_key?
   end
 
   def composite_primary_key_is_false_for_a_non_cpk_model
@@ -353,7 +362,7 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
     assert_no_match %r{t\.index \["code"\]}, schema
   end
 
-  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && supports_datetime_with_precision?
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     test "schema typed primary key column" do
       @connection.create_table(:scheduled_logs, id: :timestamp, precision: 6, force: true)
       schema = dump_table_schema("scheduled_logs")
@@ -457,15 +466,13 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_derives_composite_primary_key
-    def test_primary_key_issues_warning
-      model = Class.new(ActiveRecord::Base) do
-        def self.table_name
-          "uber_barcodes"
-        end
+    model = Class.new(ActiveRecord::Base) do
+      def self.table_name
+        "uber_barcodes"
       end
-
-      assert_equal ["region", "code"], model.primary_key
     end
+
+    assert_equal ["region", "code"], model.primary_key
   end
 
   def test_collectly_dump_composite_primary_key
@@ -510,7 +517,6 @@ class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_primary_key_integer_with_default_nil
-    skip if current_adapter?(:SQLite3Adapter)
     @connection.create_table(:int_defaults, id: :integer, default: nil, force: true)
     schema = dump_table_schema "int_defaults"
     assert_match %r{create_table "int_defaults", id: :integer, default: nil}, schema

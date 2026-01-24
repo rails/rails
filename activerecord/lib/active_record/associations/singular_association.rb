@@ -18,6 +18,7 @@ module ActiveRecord
       def reset
         super
         @target = nil
+        @future_target = nil
       end
 
       # Implements the writer method, e.g. foo.bar= for Foo.belongs_to :bar
@@ -43,11 +44,15 @@ module ActiveRecord
           super.except!(*Array(klass.primary_key))
         end
 
-        def find_target
+        def find_target(async: false)
           if disable_joins
-            scope.first
+            if async
+              scope.load_async.then(&:first)
+            else
+              scope.first
+            end
           else
-            super.first
+            super.then(&:first)
           end
         end
 

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/digest"
+
 module ActiveRecord
   module ConnectionAdapters
     # = Active Record Connection Adapters Transaction State
@@ -89,7 +91,9 @@ module ActiveRecord
         raise InstrumentationAlreadyStartedError.new("Called start on an already started transaction") if @started
         @started = true
 
-        @payload = @base_payload.dup
+        ActiveSupport::Notifications.instrument("start_transaction.active_record", @base_payload)
+
+        @payload = @base_payload.dup # We dup because the payload for a given event is mutated later to add the outcome.
         @handle = ActiveSupport::Notifications.instrumenter.build_handle("transaction.active_record", @payload)
         @handle.start
       end
@@ -104,11 +108,11 @@ module ActiveRecord
     end
 
     class NullTransaction # :nodoc:
-      def initialize; end
       def state; end
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
+      def isolation; nil; end
       def add_record(record, _ = true); end
       def restartable?; false; end
       def dirty?; false; end
@@ -118,19 +122,49 @@ module ActiveRecord
       def materialized?; false; end
       def before_commit; yield; end
       def after_commit; yield; end
-      def after_rollback; end # noop
+      def after_rollback; end
+      def user_transaction; ActiveRecord::Transaction::NULL_TRANSACTION; end
+      def isolation=(_); end
     end
 
-    class Transaction < ActiveRecord::Transaction # :nodoc:
-      attr_reader :connection, :state, :savepoint_name, :isolation_level
-      attr_accessor :written
+    class Transaction # :nodoc:
+      class Callback # :nodoc:
+        def initialize(event, callback)
+          @event = event
+          @callback = callback
+        end
+
+        def before_commit
+          @callback.call if @event == :before_commit
+        end
+
+        def after_commit
+          @callback.call if @event == :after_commit
+        end
+
+        def after_rollback
+          @callback.call if @event == :after_rollback
+        end
+      end
+
+      attr_reader :connection, :state, :savepoint_name, :isolation_level, :user_transaction
 
       delegate :invalidate!, :invalidated?, to: :@state
+
+      # Returns the isolation level if it was explicitly set, nil otherwise
+      def isolation
+        @isolation_level
+      end
+
+      def isolation=(isolation) # :nodoc:
+        @isolation_level = isolation
+      end
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         super()
         @connection = connection
         @state = TransactionState.new
+        @callbacks = nil
         @records = nil
         @isolation_level = isolation
         @materialized = false
@@ -138,7 +172,8 @@ module ActiveRecord
         @run_commit_callbacks = run_commit_callbacks
         @lazy_enrollment_records = nil
         @dirty = false
-        @instrumenter = TransactionInstrumenter.new(connection: connection)
+        @user_transaction = joinable ? ActiveRecord::Transaction.new(self) : ActiveRecord::Transaction::NULL_TRANSACTION
+        @instrumenter = TransactionInstrumenter.new(connection: connection, transaction: @user_transaction)
       end
 
       def dirty!
@@ -149,6 +184,14 @@ module ActiveRecord
         @dirty
       end
 
+      def open?
+        !closed?
+      end
+
+      def closed?
+        @state.finalized?
+      end
+
       def add_record(record, ensure_finalize = true)
         @records ||= []
         if ensure_finalize
@@ -157,6 +200,30 @@ module ActiveRecord
           @lazy_enrollment_records ||= ObjectSpace::WeakMap.new
           @lazy_enrollment_records[record] = record
         end
+      end
+
+      def before_commit(&block)
+        if @state.finalized?
+          raise ActiveRecordError, "Cannot register callbacks on a finalized transaction"
+        end
+
+        (@callbacks ||= []) << Callback.new(:before_commit, block)
+      end
+
+      def after_commit(&block)
+        if @state.finalized?
+          raise ActiveRecordError, "Cannot register callbacks on a finalized transaction"
+        end
+
+        (@callbacks ||= []) << Callback.new(:after_commit, block)
+      end
+
+      def after_rollback(&block)
+        if @state.finalized?
+          raise ActiveRecordError, "Cannot register callbacks on a finalized transaction"
+        end
+
+        (@callbacks ||= []) << Callback.new(:after_rollback, block)
       end
 
       def records
@@ -269,8 +336,11 @@ module ActiveRecord
 
       def full_rollback?; true; end
       def joinable?; @joinable; end
-      def closed?; false; end
-      def open?; !closed?; end
+
+      protected
+        def append_callbacks(callbacks) # :nodoc:
+          (@callbacks ||= []).concat(callbacks)
+        end
 
       private
         def unique_records
@@ -326,7 +396,7 @@ module ActiveRecord
         @parent.state.add_child(@state)
       end
 
-      delegate :materialize!, :materialized?, :restart, to: :@parent
+      delegate :materialize!, :materialized?, :restart, :isolation, to: :@parent
 
       def rollback
         @state.rollback!
@@ -345,6 +415,7 @@ module ActiveRecord
       def initialize(connection, savepoint_name, parent_transaction, **options)
         super(connection, **options)
 
+        @parent_transaction = parent_transaction
         parent_transaction.state.add_child(@state)
 
         if isolation_level
@@ -352,6 +423,15 @@ module ActiveRecord
         end
 
         @savepoint_name = savepoint_name
+      end
+
+      # Delegates to parent transaction's isolation level
+      def isolation
+        @parent_transaction.isolation
+      end
+
+      def isolation=(isolation) # :nodoc:
+        @parent_transaction.isolation = isolation
       end
 
       def materialize!
@@ -388,10 +468,14 @@ module ActiveRecord
     # = Active Record Real \Transaction
     class RealTransaction < Transaction
       def materialize!
-        if isolation_level
-          connection.begin_isolated_db_transaction(isolation_level)
+        if joinable?
+          if isolation_level
+            connection.begin_isolated_db_transaction(isolation_level)
+          else
+            connection.begin_db_transaction
+          end
         else
-          connection.begin_db_transaction
+          connection.begin_deferred_transaction(isolation_level)
         end
 
         super
@@ -412,13 +496,19 @@ module ActiveRecord
       end
 
       def rollback
-        connection.rollback_db_transaction if materialized?
+        if materialized?
+          connection.rollback_db_transaction
+          connection.reset_isolation_level if isolation_level
+        end
         @state.full_rollback!
         @instrumenter.finish(:rollback) if materialized?
       end
 
       def commit
-        connection.commit_db_transaction if materialized?
+        if materialized?
+          connection.commit_db_transaction
+          connection.reset_isolation_level if isolation_level
+        end
         @state.full_commit!
         @instrumenter.finish(:commit) if materialized?
       end
@@ -550,10 +640,11 @@ module ActiveRecord
       end
 
       def within_new_transaction(isolation: nil, joinable: true)
+        isolation ||= @connection.pool.pool_transaction_isolation_level
         @connection.lock.synchronize do
           transaction = begin_transaction(isolation: isolation, joinable: joinable)
           begin
-            yield transaction
+            yield transaction.user_transaction
           rescue Exception => error
             rollback_transaction
             after_failure_actions(transaction, error)

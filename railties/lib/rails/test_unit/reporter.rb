@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/class/attribute"
 require "minitest"
 
 module Rails
   class TestUnitReporter < Minitest::StatisticsReporter
-    class_attribute :app_root
-    class_attribute :executable, default: "bin/rails test"
+    @app_root = ENV["RAILS_TEST_PWD"]
+    singleton_class.attr_accessor :app_root
+
+    @executable = ENV.fetch("RAILS_TEST_EXECUTABLE", "bin/rails test")
+    singleton_class.attr_accessor :executable
 
     def prerecord(test_class, test_name)
       super
@@ -60,7 +62,7 @@ module Rails
 
     def relative_path_for(file)
       if app_root
-        file.sub(/^#{app_root}\/?/, "")
+        File.expand_path(file).sub(/^#{app_root}\/?/, "")
       else
         file
       end
@@ -86,15 +88,19 @@ module Rails
           result.method(result.name).source_location
         end
 
-        "#{executable} #{relative_path_for(location)}:#{line}"
+        "#{self.class.executable} #{relative_path_for(location)}:#{line}"
       end
 
       def app_root
         @app_root ||= self.class.app_root ||
-          if defined?(ENGINE_ROOT)
+          if ENV["RAILS_TEST_PWD"]
+            ENV["RAILS_TEST_PWD"]
+          elsif defined?(ENGINE_ROOT)
             ENGINE_ROOT
           elsif Rails.respond_to?(:root)
             Rails.root
+          else
+            Dir.pwd
           end
       end
 

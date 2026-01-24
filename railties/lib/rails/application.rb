@@ -2,15 +2,16 @@
 
 require "yaml"
 require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifiers"
-require "active_support/deprecation"
+require "active_support/combined_configuration"
+require "active_support/env_configuration"
+require "active_support/dot_env_configuration"
 require "active_support/encrypted_configuration"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
+require "active_support/parameter_filter"
 require "rails/engine"
-require "rails/secrets"
 require "rails/autoloaders"
 
 module Rails
@@ -104,7 +105,7 @@ module Rails
     delegate :default_url_options, :default_url_options=, to: :routes
 
     INITIAL_VARIABLES = [:config, :railties, :routes_reloader, :reloaders,
-                         :routes, :helpers, :app_env_config, :secrets] # :nodoc:
+                         :routes, :helpers, :app_env_config] # :nodoc:
 
     def initialize(initial_variable_values = {}, &block)
       super()
@@ -118,6 +119,8 @@ module Rails
       @message_verifiers = nil
       @deprecators       = nil
       @ran_load_hooks    = false
+      @revision          = nil
+      @revision_initialized = false
 
       @executor          = Class.new(ActiveSupport::Executor)
       @reloader          = Class.new(ActiveSupport::Reloader)
@@ -133,6 +136,13 @@ module Rails
     # Returns true if the application is initialized.
     def initialized?
       @initialized
+    end
+
+    # Returns the dasherized application name.
+    #
+    #   MyApp::Application.new.name => "my-app"
+    def name
+      self.class.name.underscore.dasherize.delete_suffix("/application")
     end
 
     def run_load_hooks! # :nodoc:
@@ -151,7 +161,15 @@ module Rails
 
     # Reload application routes regardless if they changed or not.
     def reload_routes!
-      routes_reloader.reload!
+      if routes_reloader.execute_unless_loaded
+        routes_reloader.loaded = false
+      else
+        routes_reloader.reload!
+      end
+    end
+
+    def reload_routes_unless_loaded # :nodoc:
+      initialized? && routes_reloader.execute_unless_loaded
     end
 
     # Returns a key generator (ActiveSupport::CachingKeyGenerator) for a
@@ -208,17 +226,20 @@ module Rails
     # It is recommended not to use the same verifier for different things, so you can get different
     # verifiers passing the +verifier_name+ argument.
     #
+    # For instance, +ActiveStorage::Blob.signed_id_verifier+ is implemented using this feature, which assures that
+    # the IDs strings haven't been tampered with and are safe to use in a finder.
+    #
+    # See the ActiveSupport::MessageVerifier documentation for more information.
+    #
     # ==== Parameters
     #
     # * +verifier_name+ - the name of the message verifier.
     #
     # ==== Examples
     #
-    #     message = Rails.application.message_verifier('sensitive_data').generate('my sensible data')
-    #     Rails.application.message_verifier('sensitive_data').verify(message)
-    #     # => 'my sensible data'
-    #
-    # See the ActiveSupport::MessageVerifier documentation for more information.
+    #     message = Rails.application.message_verifier('my_purpose').generate('data to sign against tampering')
+    #     Rails.application.message_verifier('my_purpose').verify(message)
+    #     # => 'data to sign against tampering'
     def message_verifier(verifier_name)
       message_verifiers[verifier_name]
     end
@@ -275,7 +296,6 @@ module Rails
       yaml = name.is_a?(Pathname) ? name : Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
 
       if yaml.exist?
-        require "erb"
         all_configs    = ActiveSupport::ConfigurationFile.parse(yaml).deep_symbolize_keys
         config, shared = all_configs[env.to_sym], all_configs[:shared]
 
@@ -375,7 +395,35 @@ module Rails
       self.class.isolate_namespace(mod)
     end
 
+
+    # Returns the application's revision (deployment identifier).
+    # Useful for error reporting and deployment verification.
+    #
+    # Set via config.revision (string) or REVISION file.
+    # Always either a String or +nil+.
+    def revision
+      unless @revision_initialized
+        @revision = begin
+          root.join("REVISION").read.strip.presence
+        rescue SystemCallError
+          r, w = IO.pipe
+          success = system("git", "-C", root.to_s, "rev-parse", "HEAD", in: File::NULL, err: File::NULL, out: w)
+          w.close
+          rev = r.read.strip
+          r.close
+          rev if success
+        end
+        @revision_initialized = true
+      end
+      @revision
+    end
+
     ## Rails internal API
+
+    def revision=(rev) # :nodoc:
+      @revision = rev&.to_s
+      @revision_initialized = true
+    end
 
     # This method is called just after an application inherits from Rails::Application,
     # allowing the developer to load classes in lib and use them during application
@@ -403,7 +451,7 @@ module Rails
     end
 
     def routes_reloader # :nodoc:
-      @routes_reloader ||= RoutesReloader.new
+      @routes_reloader ||= RoutesReloader.new(file_watcher: config.file_watcher)
     end
 
     # Returns an array of file paths appended with a hash of
@@ -439,67 +487,104 @@ module Rails
     end
 
     attr_writer :config
-
-    def secrets
-      Rails.deprecator.warn(<<~MSG.squish)
-        `Rails.application.secrets` is deprecated in favor of `Rails.application.credentials` and will be removed in Rails 7.2.
-      MSG
-      @secrets ||= begin
-        secrets = ActiveSupport::OrderedOptions.new
-        files = config.paths["config/secrets"].existent
-        files = files.reject { |path| path.end_with?(".enc") } unless config.read_encrypted_secrets
-        secrets.merge! Rails::Secrets.parse(files, env: Rails.env)
-
-        # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
-        secrets.secret_key_base ||= config.secret_key_base
-
-        secrets
-      end
-    end
-
-    attr_writer :secrets, :credentials
+    attr_writer :credentials
 
     # The secret_key_base is used as the input secret to the application's key generator, which in turn
     # is used to create all ActiveSupport::MessageVerifier and ActiveSupport::MessageEncryptor instances,
     # including the ones that sign and encrypt cookies.
     #
-    # In development and test, this is randomly generated and stored in a
-    # temporary file in <tt>tmp/local_secret.txt</tt>.
+    # We look for it first in <tt>ENV["SECRET_KEY_BASE"]</tt>, then in
+    # +credentials.secret_key_base+. For most applications, the correct place
+    # to store it is in the encrypted credentials file.
     #
-    # You can also set <tt>ENV["SECRET_KEY_BASE_DUMMY"]</tt> to trigger the use of a randomly generated
-    # secret_key_base that's stored in a temporary file. This is useful when precompiling assets for
-    # production as part of a build step that otherwise does not need access to the production secrets.
+    # In development and test, if the secret_key_base is still empty, it is
+    # randomly generated and stored in a temporary file in
+    # <tt>tmp/local_secret.txt</tt>.
+    #
+    # Generating a random secret_key_base and storing it in
+    # <tt>tmp/local_secret.txt</tt> can also be triggered by setting
+    # <tt>ENV["SECRET_KEY_BASE_DUMMY"]</tt>. This is useful when precompiling
+    # assets for production as part of a build step that otherwise does not
+    # need access to the production secrets.
     #
     # Dockerfile example: <tt>RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile</tt>.
-    #
-    # In all other environments, we look for it first in <tt>ENV["SECRET_KEY_BASE"]</tt>,
-    # then +credentials.secret_key_base+, and finally +secrets.secret_key_base+. For most applications,
-    # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
-      config.secret_key_base ||=
-        if ENV["SECRET_KEY_BASE_DUMMY"]
-          generate_local_secret
-        else
-          validate_secret_key_base(
-            ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || begin
-              secret_skb = secrets_secret_key_base
+      config.secret_key_base
+    end
 
-              if secret_skb && secret_skb.equal?(config.secret_key_base)
-                config.secret_key_base
-              elsif secret_skb
-                Rails.deprecator.warn(<<~MSG.squish)
-                  Your `secret_key_base` is configured in `Rails.application.secrets`,
-                  which is deprecated in favor of `Rails.application.credentials` and
-                  will be removed in Rails 7.2.
-                MSG
+    # Returns an ActiveSupport::CombinedConfiguration instance that combines
+    # access to the encrypted credentials available via #credentials and keys
+    # used for the same purpose in ENV.
+    #
+    # In the development environment, .env variables are also included, and looked up
+    # after ENV and before the encrypted credentials.
+    #
+    # This allows application creds to be accessed in a uniform way regardless of where
+    # they're being provided. You don't have to change app code when you move from ENV
+    # to encrypted credentials or vice versa.
+    #
+    # Examples:
+    #
+    #   Rails.app.creds.require(:db_password)
+    #   Rails.app.creds.require(:aws, :access_key_id)
+    #   Rails.app.creds.option(:cache_host, default: "cache-host-1")
+    #   Rails.app.creds.option(:cache_host, default: -> { HostProvider.cache })
+    def creds
+      if Rails.env.development?
+        @creds ||= ActiveSupport::CombinedConfiguration.new(envs, dotenvs, credentials)
+      else
+        @creds ||= ActiveSupport::CombinedConfiguration.new(envs, credentials)
+      end
+    end
 
-                secret_skb
-              elsif Rails.env.local?
-                generate_local_secret
-              end
-            end
-          )
-        end
+    # Allows for a custom combined configuration to be used for creds.
+    #
+    # Example adding a OnePassword backend between ENVS and encrypted credentials:
+    #
+    #   Rails.app.creds = ActiveSupport::CombinedConfiguration.new \
+    #     Rails.app.envs, OnePasswordConfiguration.new, Rails.app.credentials
+    attr_writer :creds
+
+    # Returns an ActiveSupport::EnvConfiguration instance that provides
+    # access to the ENV variables through symbol-based lookup with explicit methods
+    # for required and optional values. This is the same interface offered by #credentials
+    # and can be accessed in a combined manner via #creds.
+    #
+    # Examples:
+    #
+    #   Rails.app.envs.require(:db_password) # ENV,fetch("DB_PASSWORD")
+    #   Rails.app.envs.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
+    #   Rails.app.envs.option(:cache_host) # ENV["CACHE_HOST"]
+    #   Rails.app.envs.option(:cache_host, default: "cache-host-1") # ENV.fetch("CACHE_HOST", "cache-host-1")
+    #   Rails.app.envs.option(:cache_host, default: -> { HostProvider.cache }) # ENV.fetch("CACHE_HOST") { HostProvider.cache }
+    def envs
+      @envs ||= ActiveSupport::EnvConfiguration.new
+    end
+
+    # Returns an ActiveSupport::DotEnvConfiguration instance that provides
+    # access to the variables in +.env+ through symbol-based lookup with explicit methods
+    # for required and optional values. This is the same interface offered by #envs
+    # and can be accessed in a combined manner via #creds.
+    #
+    # The +.env+ file format supports:
+    # - Lines with KEY=value pairs
+    # - Comments starting with #
+    # - Empty lines (ignored)
+    # - Quoted values (single or double quotes)
+    # - Variable interpolation with ${VAR} syntax
+    # - Command execution with $(command) syntax
+    #
+    # Examples:
+    #
+    #   Rails.app.dotenvs.require(:db_password) # DB_PASSWORD from .env
+    #   Rails.app.dotenvs.require(:aws, :access_key_id) # AWS__ACCESS_KEY_ID from .env
+    #   Rails.app.dotenvs.option(:cache_host) # CACHE_HOST from .env or nil
+    #   Rails.app.dotenvs.option(:cache_host, default: "cache-host-1") # CACHE_HOST from .env or "cache-host-1"
+    #   Rails.app.dotenvs.option(:cache_host, default: -> { HostProvider.cache }) # CACHE_HOST from .env or HostProvider.cache
+    #
+    # In development mode, this configuration backend is automatically part of `Rails.app.creds`.
+    def dotenvs(path = Rails.root.join(".env"))
+      @dotenvs ||= ActiveSupport::DotEnvConfiguration.new(path)
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for the
@@ -516,6 +601,8 @@ module Rails
     # +config.credentials.key_path+ will point to either
     # <tt>config/credentials/#{environment}.key</tt> for the current
     # environment, or +config/master.key+ if that file does not exist.
+    #
+    # Is best used via #creds to ensure that values can be overwritten via ENV (or .env in dev).
     def credentials
       @credentials ||= encrypted(config.credentials.content_path, key_path: config.credentials.key_path)
     end
@@ -636,7 +723,7 @@ module Rails
     end
 
     def railties_initializers(current) # :nodoc:
-      initializers = []
+      initializers = Initializable::Collection.new
       ordered_railties.reverse.flatten.each do |r|
         if r == self
           initializers += current
@@ -652,45 +739,22 @@ module Rails
       default_stack.build_stack
     end
 
-    def validate_secret_key_base(secret_key_base)
-      if secret_key_base.is_a?(String) && secret_key_base.present?
-        secret_key_base
-      elsif secret_key_base
-        raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
-      else
-        raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `bin/rails credentials:edit`"
-      end
-    end
-
     def ensure_generator_templates_added
       configured_paths = config.generators.templates
       configured_paths.unshift(*(paths["lib/templates"].existent - configured_paths))
     end
 
     private
-      def generate_local_secret
-        if config.secret_key_base.nil?
-          key_file = Rails.root.join("tmp/local_secret.txt")
-
-          if File.exist?(key_file)
-            config.secret_key_base = File.binread(key_file)
-          elsif secrets_secret_key_base
-            config.secret_key_base = secrets_secret_key_base
-          else
-            random_key = SecureRandom.hex(64)
-            FileUtils.mkdir_p(key_file.dirname)
-            File.binwrite(key_file, random_key)
-            config.secret_key_base = File.binread(key_file)
-          end
-        end
-
-        config.secret_key_base
+      def missing_environment_file
+        raise "Rails environment has been set to #{Rails.env} but config/environments/#{Rails.env}.rb does not exist."
       end
 
-      def secrets_secret_key_base
-        Rails.deprecator.silence do
-          secrets.secret_key_base
-        end
+      def any_environment_files?
+        paths["config/environments"]
+          .paths
+          .flat_map { |path| [path, *path.glob("*.rb")] }
+          .select(&:file?)
+          .any?
       end
 
       def build_request(env)

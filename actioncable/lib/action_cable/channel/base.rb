@@ -2,7 +2,6 @@
 
 # :markup: markdown
 
-require "set"
 require "active_support/rescuable"
 require "active_support/parameter_filter"
 
@@ -133,7 +132,11 @@ module ActionCable
               # Except for public instance methods of Base and its ancestors
               ActionCable::Channel::Base.public_instance_methods(true) +
               # Be sure to include shadowed public instance methods of this class
-              public_instance_methods(false)).uniq.map(&:to_s)
+              public_instance_methods(false) -
+              # Except the internal methods
+              internal_methods).uniq
+
+            methods.map!(&:name)
             methods.to_set
           end
         end
@@ -151,6 +154,10 @@ module ActionCable
             super
             clear_action_methods!
           end
+
+          def internal_methods
+            super
+          end
       end
 
       def initialize(connection, identifier, params = {})
@@ -166,6 +173,7 @@ module ActionCable
 
         @reject_subscription = nil
         @subscription_confirmation_sent = nil
+        @unsubscribed = false
 
         delegate_connection_identifiers
       end
@@ -201,9 +209,14 @@ module ActionCable
       # cleanup with callbacks. This method is not intended to be called directly by
       # the user. Instead, override the #unsubscribed callback.
       def unsubscribe_from_channel # :nodoc:
+        @unsubscribed = true
         run_callbacks :unsubscribe do
           unsubscribed
         end
+      end
+
+      def unsubscribed? # :nodoc:
+        @unsubscribed
       end
 
       private
@@ -309,7 +322,7 @@ module ActionCable
           unless subscription_confirmation_sent?
             logger.debug "#{self.class.name} is transmitting the subscription confirmation"
 
-            ActiveSupport::Notifications.instrument("transmit_subscription_confirmation.action_cable", channel_class: self.class.name) do
+            ActiveSupport::Notifications.instrument("transmit_subscription_confirmation.action_cable", channel_class: self.class.name, identifier: @identifier) do
               connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:confirmation]
               @subscription_confirmation_sent = true
             end
@@ -324,7 +337,7 @@ module ActionCable
         def transmit_subscription_rejection
           logger.debug "#{self.class.name} is transmitting the subscription rejection"
 
-          ActiveSupport::Notifications.instrument("transmit_subscription_rejection.action_cable", channel_class: self.class.name) do
+          ActiveSupport::Notifications.instrument("transmit_subscription_rejection.action_cable", channel_class: self.class.name, identifier: @identifier) do
             connection.transmit identifier: @identifier, type: ActionCable::INTERNAL[:message_types][:rejection]
           end
         end

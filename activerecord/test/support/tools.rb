@@ -30,7 +30,7 @@ Rails::TestUnit::Runner.singleton_class.prepend Module.new {
  }
 
 ActiveSupport::TestCase.extend Rails::LineFiltering
-Rails::TestUnitReporter.app_root = COMPONENT_ROOT
+Rails::TestUnitReporter.app_root ||= COMPONENT_ROOT
 Rails::TestUnitReporter.executable = "bin/test"
 
 Rails::TestUnit::Runner.parse_options(ARGV)

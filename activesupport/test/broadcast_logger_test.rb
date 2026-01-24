@@ -268,14 +268,28 @@ module ActiveSupport
       assert(logger.foo)
     end
 
-    test "calling a method that accepts a block" do
-      logger = BroadcastLogger.new(CustomLogger.new)
-
-      called = false
-      logger.bar do
-        called = true
+    test "methods are called on each logger" do
+      calls = 0
+      loggers = [CustomLogger.new, FakeLogger.new, CustomLogger.new].each do |logger|
+        logger.define_singleton_method(:special_method) do
+          calls += 1
+        end
       end
-      assert(called)
+      logger = BroadcastLogger.new(*loggers)
+      logger.special_method
+      assert_equal(3, calls)
+    end
+
+    test "calling a method that accepts a block is yielded only once" do
+      called = 0
+      logger.info do
+        called += 1
+        "Hello"
+      end
+
+      assert_equal 1, called, "block should be called just once"
+      assert_equal [[::Logger::INFO, "Hello", nil]], log1.adds
+      assert_equal [[::Logger::INFO, "Hello", nil]], log2.adds
     end
 
     test "calling a method that accepts args" do
@@ -300,6 +314,30 @@ module ActiveSupport
       assert_equal ::Logger::WARN, duplicate.broadcasts.sole.level
       assert_not_same logger, duplicate.broadcasts.sole
       assert_same logger, broadcast_logger.broadcasts.sole
+    end
+
+    test "logging always returns true" do
+      assert_equal true, @logger.info("Hello")
+      assert_equal true, @logger.error("Hello")
+    end
+
+    Logger::Severity.constants.each do |level_name|
+      method = level_name.downcase
+      level = Logger::Severity.const_get(level_name)
+
+      test "##{method} delegates keyword arguments to loggers" do
+        logger = BroadcastLogger.new(KwargsAcceptingLogger.new)
+
+        logger.public_send(method, "Hello", foo: "bar")
+        assert_equal [[level, "#{{ foo: "bar" }} Hello", nil]], logger.broadcasts.sole.adds
+      end
+    end
+
+    test "#add delegates keyword arguments to the loggers" do
+      logger = BroadcastLogger.new(KwargsAcceptingLogger.new)
+
+      logger.add(::Logger::INFO, "Hello", foo: "bar")
+      assert_equal [[::Logger::INFO, "#{{ foo: "bar" }} Hello", nil]], logger.broadcasts.sole.adds
     end
 
     class CustomLogger
@@ -332,27 +370,27 @@ module ActiveSupport
         true
       end
 
-      def debug(message, &block)
+      def debug(message = nil, &block)
         add(::Logger::DEBUG, message, &block)
       end
 
-      def info(message, &block)
+      def info(message = nil, &block)
         add(::Logger::INFO, message, &block)
       end
 
-      def warn(message, &block)
+      def warn(message = nil, &block)
         add(::Logger::WARN, message, &block)
       end
 
-      def error(message, &block)
+      def error(message = nil, &block)
         add(::Logger::ERROR, message, &block)
       end
 
-      def fatal(message, &block)
+      def fatal(message = nil, &block)
         add(::Logger::FATAL, message, &block)
       end
 
-      def unknown(message, &block)
+      def unknown(message = nil, &block)
         add(::Logger::UNKNOWN, message, &block)
       end
 
@@ -361,7 +399,28 @@ module ActiveSupport
       end
 
       def add(message_level, message = nil, progname = nil, &block)
-        @adds << [message_level, message, progname] if message_level >= local_level
+        @adds << [message_level, block_given? ? block.call : message, progname] if message_level >= local_level
+        true
+      end
+
+      def debug?
+        level <= ::Logger::DEBUG
+      end
+
+      def info?
+        level <= ::Logger::INFO
+      end
+
+      def warn?
+        level <= ::Logger::WARN
+      end
+
+      def error?
+        level <= ::Logger::ERROR
+      end
+
+      def fatal?
+        level <= ::Logger::FATAL
       end
 
       def close
@@ -375,6 +434,20 @@ module ActiveSupport
       # LoggerSilence includes LoggerThreadSafeLevel which defines these as
       # methods, so we need to redefine them
       attr_accessor :level, :local_level
+    end
+
+    class KwargsAcceptingLogger < CustomLogger
+      Logger::Severity.constants.each do |level_name|
+        method = level_name.downcase
+        define_method(method) do |message, **kwargs|
+          add(Logger::Severity.const_get(level_name), "#{kwargs.inspect} #{message}")
+        end
+      end
+
+      def add(severity, message = nil, **kwargs)
+        return super(severity, "#{kwargs.inspect} #{message}") if kwargs.present?
+        super
+      end
     end
   end
 end

@@ -1,4 +1,4 @@
-require:
+plugins:
   - rubocop-minitest
   - rubocop-packaging
   - rubocop-performance
@@ -6,7 +6,6 @@ require:
   - rubocop-md
 
 AllCops:
-  TargetRubyVersion: 3.1
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
@@ -15,7 +14,6 @@ AllCops:
     - '**/tmp/**/*'
     - '**/templates/**/*'
     - '**/vendor/**/*'
-    - 'actionpack/lib/action_dispatch/journey/parser.rb'
     - 'actionmailbox/test/dummy/**/*'
     - 'activestorage/test/dummy/**/*'
     - 'actiontext/test/dummy/**/*'
@@ -217,11 +215,19 @@ Layout/TrailingWhitespace:
 Style/RedundantPercentQ:
   Enabled: true
 
+Lint/NestedMethodDefinition:
+  Enabled: true
+
 Lint/AmbiguousOperator:
   Enabled: true
 
 Lint/AmbiguousRegexpLiteral:
   Enabled: true
+
+Lint/Debugger:
+  Enabled: true
+  DebuggerRequires:
+    - debug
 
 Lint/DuplicateRequire:
   Enabled: true
@@ -249,6 +255,9 @@ Lint/RedundantCopDisableDirective:
   Enabled: true
 
 Lint/RedundantCopEnableDirective:
+  Enabled: true
+
+Lint/RedundantRequireStatement:
   Enabled: true
 
 Lint/RedundantStringCoercion:
@@ -322,6 +331,9 @@ Style/OpenStructUse:
 Style/ArrayIntersect:
   Enabled: true
 
+Style/KeywordArgumentsMerging:
+  Enabled: true
+
 Performance/BindCall:
   Enabled: true
 
@@ -370,7 +382,7 @@ Performance/RedundantStringChars:
 Performance/StringInclude:
   Enabled: true
 
-Minitest/AssertPredicate:
+Minitest/AssertNil:
   Enabled: true
 
 Minitest/AssertRaisesWithRegexpArgument:

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 API Documentation Guidelines
 ============================
@@ -342,7 +342,7 @@ class Array
   # Calls +to_param+ on all its elements and joins the result with
   # slashes. This is used by +url_for+ in Action Pack.
   def to_param
-    collect { |e| e.to_param }.join '/'
+    collect { |e| e.to_param }.join "/"
   end
 end
 ```

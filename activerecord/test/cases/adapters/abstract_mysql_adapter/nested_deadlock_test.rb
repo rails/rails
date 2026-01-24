@@ -48,7 +48,7 @@ module ActiveRecord
               Sample.transaction(requires_new: true) do
                 assert_current_transaction_is_savepoint_transaction
                 s1.lock!
-                barrier.wait
+                barrier.wait(30)
                 s2.update value: 1
               end
             end
@@ -60,7 +60,7 @@ module ActiveRecord
               Sample.transaction(requires_new: true) do
                 assert_current_transaction_is_savepoint_transaction
                 s2.lock!
-                barrier.wait
+                barrier.wait(30)
                 s1.update value: 2
               end
             end
@@ -91,7 +91,7 @@ module ActiveRecord
           Sample.transaction(requires_new: true) do
             assert_current_transaction_is_savepoint_transaction
             s1.lock!
-            barrier.wait
+            barrier.wait(30)
             s2.update value: 4
 
           rescue ActiveRecord::Deadlocked
@@ -113,7 +113,7 @@ module ActiveRecord
           Sample.transaction(requires_new: true) do
             assert_current_transaction_is_savepoint_transaction
             s2.lock!
-            barrier.wait
+            barrier.wait(30)
             s1.update value: 3
           rescue ActiveRecord::Deadlocked
             deadlocks += 1
@@ -143,7 +143,7 @@ module ActiveRecord
             Sample.transaction(requires_new: true) do
               assert_current_transaction_is_savepoint_transaction
               s1.lock!
-              barrier.wait
+              barrier.wait(30)
               s2.update value: 4
             end
           rescue ActiveRecord::Deadlocked
@@ -160,7 +160,7 @@ module ActiveRecord
             Sample.transaction(requires_new: true) do
               assert_current_transaction_is_savepoint_transaction
               s2.lock!
-              barrier.wait
+              barrier.wait(30)
               s1.update value: 3
             end
           rescue ActiveRecord::Deadlocked

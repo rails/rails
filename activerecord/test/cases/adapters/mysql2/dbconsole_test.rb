@@ -63,6 +63,17 @@ module ActiveRecord
         end
       end
 
+      def test_mysql_can_use_alternative_cli
+        ActiveRecord.database_cli[:mysql] = "mycli"
+        config = make_db_config(adapter: "mysql2", database: "db", database_cli: "mycli")
+
+        assert_find_cmd_and_exec_called_with(["mycli", "db"]) do
+          Mysql2Adapter.dbconsole(config)
+        end
+      ensure
+        ActiveRecord.database_cli[:mysql] = %w[mysql mysql5]
+      end
+
       private
         def make_db_config(config)
           ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", config)

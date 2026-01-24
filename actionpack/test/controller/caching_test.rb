@@ -255,18 +255,9 @@ Ciao
   end
 
   def test_fragment_cache_instrumentation
-    payload = nil
-
-    subscriber = proc do |event|
-      payload = event.payload
-    end
-
-    ActiveSupport::Notifications.subscribed(subscriber, "read_fragment.action_controller") do
+    assert_notification("read_fragment.action_controller", controller: "functional_caching", action: "inline_fragment_cached") do
       get :inline_fragment_cached
     end
-
-    assert_equal "functional_caching", payload[:controller]
-    assert_equal "inline_fragment_cached", payload[:action]
   end
 
   def test_html_formatted_fragment_caching
@@ -423,7 +414,7 @@ class CollectionCacheTest < ActionController::TestCase
 
     get :index_ordered
     assert_equal 3, @controller.partial_rendered_times
-    assert_select ":root", "david, 1\n  david, 2\n  david, 3"
+    assert_select ":root", html: "<body><p>david, 1\n  david, 2\n  david, 3\n\n</p></body>"
   end
 
   def test_explicit_render_call_with_options

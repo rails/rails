@@ -1,0 +1,13 @@
+# frozen_string_literal: true
+
+require "minitest/test_task"
+
+Minitest::TestTask.create
+
+task default: :test
+
+require "releaser"
+
+root    = File.expand_path("../..", __dir__)
+version = File.read("#{root}/RAILS_VERSION").strip
+Releaser.new(root, version)

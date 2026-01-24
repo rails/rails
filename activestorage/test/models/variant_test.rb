@@ -158,7 +158,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "variation of invariable blob" do
-    assert_raises ActiveStorage::InvariableError do
+    assert_raises ActiveStorage::InvariableError, match: /blob with ID=\d+ and content_type=application\/pdf/ do
       create_file_blob(filename: "report.pdf", content_type: "application/pdf").variant(resize_to_limit: [100, 100])
     end
   end
@@ -257,7 +257,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     process_variants_with :mini_magick do
       blob = create_file_blob(filename: "racecar.jpg")
       assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
-        blob.variant(saver: { "-write": "/tmp/file.erb" }).processed
+        blob.variant(resize: { "-write": "/tmp/file.erb" }).processed
       end
     end
   end
@@ -266,11 +266,11 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     process_variants_with :mini_magick do
       blob = create_file_blob(filename: "racecar.jpg")
       assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
-        blob.variant(saver: { "something": { "-write": "/tmp/file.erb" } }).processed
+        blob.variant(resize: { "something": { "-write": "/tmp/file.erb" } }).processed
       end
 
       assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
-        blob.variant(saver: { "something": ["-write", "/tmp/file.erb"] }).processed
+        blob.variant(resize: { "something": ["-write", "/tmp/file.erb"] }).processed
       end
     end
   end
@@ -295,11 +295,21 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
 
   private
     def process_variants_with(processor)
-      previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, processor
+      previous_transformer = ActiveStorage.variant_transformer
+      ActiveStorage.variant_transformer =
+        case processor
+        when :vips
+          ActiveStorage::Transformers::Vips
+        when :mini_magick
+          ActiveStorage::Transformers::ImageMagick
+        else
+          raise "#{processor.inspect} is not a valid image transformer"
+        end
+
       yield
     rescue LoadError
       ENV["BUILDKITE"] ? raise : skip("Variant processor #{processor.inspect} is not installed")
     ensure
-      ActiveStorage.variant_processor = previous_processor
+      ActiveStorage.variant_transformer = previous_transformer
     end
 end

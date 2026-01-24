@@ -30,7 +30,7 @@ module ActiveModel
       # of the model, and is used to a generate unique DOM id for the object.
       def test_to_key
         assert_respond_to model, :to_key
-        def model.persisted?() false end
+        def_method(model, :persisted?) { false }
         assert model.to_key.nil?, "to_key should return nil when `persisted?` returns false"
       end
 
@@ -45,8 +45,8 @@ module ActiveModel
       # any of the possible implementation strategies on the implementer.
       def test_to_param
         assert_respond_to model, :to_param
-        def model.to_key() [1] end
-        def model.persisted?() false end
+        def_method(model, :to_key) { [1] }
+        def_method(model, :persisted?) { false }
         assert model.to_param.nil?, "to_param should return nil when `persisted?` returns false"
       end
 
@@ -105,6 +105,10 @@ module ActiveModel
       end
 
       private
+        def def_method(receiver, name, &block)
+          ::Object.instance_method(:define_singleton_method).bind_call(receiver, name, &block)
+        end
+
         def model
           assert_respond_to @model, :to_model
           @model.to_model

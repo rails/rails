@@ -27,14 +27,14 @@ class TagHelperTest < ActionView::TestCase
   end
 
   def test_tag_builder_void_tag_with_forced_content
-    assert_deprecated(ActionView.deprecator) do
-      assert_equal "<br>some content</br>", tag.br("some content")
+    assert_raises(ArgumentError) do
+      tag.br("some content")
     end
   end
 
   def test_tag_builder_void_tag_with_empty_content
-    assert_deprecated(ActionView.deprecator) do
-      assert_equal "<br></br>", tag.br("")
+    assert_raises(ArgumentError) do
+      tag.br("")
     end
   end
 
@@ -519,6 +519,10 @@ class TagHelperTest < ActionView::TestCase
   def test_content_tag_with_data_attributes
     assert_dom_equal '<p data-number="1" data-string="hello" data-string-with-quotes="double&quot;quote&quot;party&quot;">limelight</p>',
       content_tag("p", "limelight", data: { number: 1, string: "hello", string_with_quotes: 'double"quote"party"' })
+  end
+
+  def test_content_tag_with_both_argument_and_block
+    assert_dom_equal "<p>limelight shines!</p>", tag.p("limelight") { " shines!" }
   end
 
   def test_tag_builder_with_data_attributes

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "rails"
 require "global_id/railtie"
 require "active_job"
 
@@ -19,29 +20,36 @@ module ActiveJob
     end
 
     initializer "active_job.custom_serializers" do |app|
-      config.after_initialize do
+      ActiveSupport.on_load(:active_job_arguments) do
         custom_serializers = app.config.active_job.custom_serializers
         ActiveJob::Serializers.add_serializers custom_serializers
       end
     end
 
     initializer "active_job.enqueue_after_transaction_commit" do |app|
-      if config.active_job.key?(:enqueue_after_transaction_commit)
-        enqueue_after_transaction_commit = config.active_job.delete(:enqueue_after_transaction_commit)
-
+      ActiveSupport.on_load(:active_job) do
         ActiveSupport.on_load(:active_record) do
-          ActiveSupport.on_load(:active_job) do
-            include EnqueueAfterTransactionCommit
+          ActiveJob::Base.include EnqueueAfterTransactionCommit
 
-            ActiveJob::Base.enqueue_after_transaction_commit = enqueue_after_transaction_commit
+          if app.config.active_job.key?(:enqueue_after_transaction_commit)
+            ActiveJob::Base.enqueue_after_transaction_commit =
+              app.config.active_job.enqueue_after_transaction_commit
           end
+        end
+      end
+    end
+
+    initializer "active_job.action_controller_parameters" do |app|
+      ActiveSupport.on_load(:active_job) do
+        ActiveSupport.on_load(:action_controller) do
+          ActiveJob::Serializers.add_serializers ActiveJob::Serializers::ActionControllerParametersSerializer
         end
       end
     end
 
     initializer "active_job.set_configs" do |app|
       options = app.config.active_job
-      options.queue_adapter ||= :async
+      options.queue_adapter ||= (Rails.env.test? ? :test : :async)
 
       config.after_initialize do
         options.each do |k, v|
@@ -56,7 +64,9 @@ module ActiveJob
         # Configs used in other initializers
         options = options.except(
           :log_query_tags_around_perform,
-          :custom_serializers
+          :custom_serializers,
+          # This config can't be applied globally, so we need to remove otherwise it will be applied to `ActiveJob::Base`.
+          :enqueue_after_transaction_commit
         )
 
         options.each do |k, v|
@@ -93,7 +103,9 @@ module ActiveJob
         app.config.active_record.query_log_tags |= [:job]
 
         ActiveSupport.on_load(:active_record) do
-          ActiveRecord::QueryLogs.taggings[:job] = ->(context) { context[:job].class.name if context[:job] }
+          ActiveRecord::QueryLogs.taggings = ActiveRecord::QueryLogs.taggings.merge(
+            job: ->(context) { context[:job].class.name if context[:job] }
+          )
         end
       end
     end

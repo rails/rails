@@ -45,7 +45,7 @@ module ActiveRecord
         attr_reader :uri
 
         def uri_parser
-          @uri_parser ||= URI::Parser.new
+          @uri_parser ||= URI::RFC2396_Parser.new
         end
 
         # Converts the query parameters of the URI into a hash.
@@ -81,7 +81,9 @@ module ActiveRecord
 
         def resolved_adapter
           adapter = uri.scheme && @uri.scheme.tr("-", "_")
-          adapter = ActiveRecord.protocol_adapters[adapter] || adapter
+          if adapter && ActiveRecord.protocol_adapters[adapter]
+            adapter = ActiveRecord.protocol_adapters[adapter]
+          end
           adapter
         end
 

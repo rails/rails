@@ -4,9 +4,10 @@ require "bigdecimal"
 require "date"
 require "ipaddr"
 require "pathname"
-require "uri/generic"
+require "uri"
 require "msgpack/bigint"
 require "active_support/hash_with_indifferent_access"
+require "active_support/core_ext/string/output_safety"
 require "active_support/time"
 
 module ActiveSupport
@@ -102,6 +103,10 @@ module ActiveSupport
           packer: method(:write_hash_with_indifferent_access),
           unpacker: method(:read_hash_with_indifferent_access),
           recursive: true
+
+        registry.register_type 18, ActiveSupport::SafeBuffer,
+          packer: :to_s,
+          unpacker: :new
       end
 
       def install_unregistered_type_error(registry)

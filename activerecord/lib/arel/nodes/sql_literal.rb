@@ -19,7 +19,7 @@ module Arel # :nodoc: all
         coder.scalar = self.to_s
       end
 
-      def fetch_attribute
+      def fetch_attribute(&)
       end
 
       def +(other)

@@ -245,7 +245,7 @@ class DateTimePrecisionTest < ActiveRecord::TestCase
       assert_match %r{t\.datetime\s+"updated_at",\s+precision: nil,\s+null: false$}, output
     end
 
-    if current_adapter?(:PostgreSQLAdapter, :SQLServerAdapter)
+    if current_adapter?(:PostgreSQLAdapter)
       def test_datetime_precision_with_zero_should_be_dumped
         @connection.create_table(:foos, force: true) do |t|
           t.timestamps precision: 0

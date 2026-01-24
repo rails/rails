@@ -53,7 +53,13 @@ module ActionDispatch
   eager_autoload do
     autoload_under "http" do
       autoload :ContentSecurityPolicy
+      autoload :InvalidParameterError, "action_dispatch/http/param_error"
+      autoload :ParamBuilder
+      autoload :ParamError
+      autoload :ParameterTypeError, "action_dispatch/http/param_error"
+      autoload :ParamsTooDeepError, "action_dispatch/http/param_error"
       autoload :PermissionsPolicy
+      autoload :QueryParser
       autoload :Request
       autoload :Response
     end
@@ -131,6 +137,14 @@ module ActionDispatch
   end
 
   autoload :SystemTestCase, "action_dispatch/system_test_case"
+
+  ##
+  # :singleton-method:
+  #
+  # Specifies if the methods calling redirects in controllers and routes should
+  #  be logged below their relevant log lines. Defaults to false.
+  singleton_class.attr_accessor :verbose_redirect_logs
+  self.verbose_redirect_logs = false
 
   def eager_load!
     super

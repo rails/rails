@@ -103,14 +103,14 @@ class IntegrationTest < ActiveRecord::TestCase
   end
 
   def test_param_delimiter_changes_delimiter_used_in_to_param
-    Cpk::Order.with(param_delimiter: ",") do
+    Cpk::Order.stub(:param_delimiter, ",") do
       assert_equal("1,123", Cpk::Order.new(id: [1, 123]).to_param)
     end
   end
 
   def test_param_delimiter_is_defined_per_class
-    Cpk::Order.with(param_delimiter: ",") do
-      Cpk::Book.with(param_delimiter: ";") do
+    Cpk::Order.stub(:param_delimiter, ",") do
+      Cpk::Book.stub(:param_delimiter, ";") do
         assert_equal("1,123", Cpk::Order.new(id: [1, 123]).to_param)
         assert_equal("1;123", Cpk::Book.new(id: [1, 123]).to_param)
       end
@@ -174,7 +174,6 @@ class IntegrationTest < ActiveRecord::TestCase
   end
 
   def test_cache_key_format_is_precise_enough
-    skip("Subsecond precision is not supported") unless supports_datetime_with_precision?
     dev = Developer.first
     key = dev.cache_key
     travel_to dev.updated_at + 0.000001 do
@@ -191,7 +190,6 @@ class IntegrationTest < ActiveRecord::TestCase
   end
 
   def test_cache_version_format_is_precise_enough
-    skip("Subsecond precision is not supported") unless supports_datetime_with_precision?
     with_cache_versioning do
       dev = Developer.first
       version = dev.cache_version.to_param

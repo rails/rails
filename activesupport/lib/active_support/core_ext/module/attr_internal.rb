@@ -24,14 +24,13 @@ class Module
 
     def attr_internal_naming_format=(format)
       if format.start_with?("@")
-        ActiveSupport.deprecator.warn <<~MESSAGE
-          Setting `attr_internal_naming_format` with a `@` prefix is deprecated and will be removed in Rails 7.2.
+        raise ArgumentError, <<~MESSAGE.squish
+          Setting `attr_internal_naming_format` with a `@` prefix is not supported.
 
           You can simply replace #{format.inspect} by #{format.delete_prefix("@").inspect}.
         MESSAGE
-
-        format = format.delete_prefix("@")
       end
+
       @attr_internal_naming_format = format
     end
   end

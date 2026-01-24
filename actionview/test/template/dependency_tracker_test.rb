@@ -3,11 +3,6 @@
 require "abstract_unit"
 require "action_view/dependency_tracker"
 
-require "action_view/render_parser/prism_render_parser"
-
-require "ripper"
-require "action_view/render_parser/ripper_render_parser"
-
 class NeckbeardTracker
   def self.call(name, template)
     ["foo/#{name}"]
@@ -118,6 +113,29 @@ module SharedTrackerTests
     assert_equal [], tracker.dependencies
   end
 
+  def test_finds_no_dependency_when_render_is_not_a_ruby_call
+    template = FakeTemplate.new("<div class='render foo'>", :erb)
+    tracker = make_tracker("resources/_resource", template)
+
+    assert_equal [], tracker.dependencies
+  end
+
+  def test_find_dependencies_and_respect_erb_tag_boundaries
+    template = FakeTemplate.new("<p>Hello</p> <% link_to abc %> <%= render 'single/quote' %>", :erb)
+    tracker = make_tracker("resources/_resource", template)
+
+    assert_equal ["single/quote"], tracker.dependencies
+  end
+
+  def test_find_all_dependencies_and_respect_erb_tag_boundaries
+    template = FakeTemplate.new("<p>Hello</p> <%=
+      render object: @all_posts,
+             partial: 'posts' %> <% link_to abc %> <%= render 'single/quote' %>", :erb)
+    tracker = make_tracker("resources/_resource", template)
+
+    assert_equal ["resources/posts", "single/quote"], tracker.dependencies
+  end
+
   def test_finds_dependency_on_multiline_render_calls
     template = FakeTemplate.new("<%=
       render object: @all_posts,
@@ -223,19 +241,58 @@ module SharedTrackerTests
 
     assert_equal ["single/\#{quote}"], tracker.dependencies
   end
+
+  def test_dependencies_with_interpolation_are_resolved_with_view_paths
+    view_paths = ActionView::PathSet.new([File.expand_path("../fixtures/digestor", __dir__)])
+
+    template = FakeTemplate.new(%q{
+      <%= render "events/#{quote}" %>
+    }, :erb)
+
+    tracker = make_tracker("interpolation/_string", template, view_paths)
+
+    assert_equal ["events/_completed", "events/_event", "events/index"], tracker.dependencies
+  end
+
+  def test_dependencies_with_interpolation_non_trailing
+    view_paths = ActionView::PathSet.new([File.expand_path("../fixtures/digestor", __dir__)])
+
+    template = FakeTemplate.new(%q{
+      <%= render "#{type}/comments" %>
+    }, :erb)
+
+    tracker = make_tracker("interpolation/_string", template, view_paths)
+
+    assert_equal [ "*/comments" ], tracker.dependencies
+  end
+
+  def test_dependencies_with_interpolation_expr
+    view_paths = ActionView::PathSet.new([File.expand_path("../fixtures/digestor", __dir__)])
+
+    template = FakeTemplate.new(%q{
+      <%= render "orders/#{variable || "default"}" %>
+    }, :erb)
+
+    tracker = make_tracker("interpolation/_string", template, view_paths)
+
+    # unsupported
+    assert_equal [], tracker.dependencies
+  end
 end
 
 class ERBTrackerTest < ActiveSupport::TestCase
   include SharedTrackerTests
 
-  def make_tracker(name, template)
-    ActionView::DependencyTracker::ERBTracker.new(name, template)
+  def make_tracker(name, template, view_paths = nil)
+    ActionView::DependencyTracker::ERBTracker.new(name, template, view_paths)
   end
 end
 
-module RubyTrackerTests
-  def make_tracker(name, template)
-    ActionView::DependencyTracker::RubyTracker.new(name, template, parser_class: parser_class)
+class RubyTrackerTest < Minitest::Test
+  include SharedTrackerTests
+
+  def make_tracker(name, template, view_paths = nil)
+    ActionView::DependencyTracker::RubyTracker.new(name, template, view_paths)
   end
 
   def test_dependencies_skip_unknown_options
@@ -263,23 +320,5 @@ module RubyTrackerTests
     tracker = make_tracker("messages/show", template)
 
     assert_equal [], tracker.dependencies
-  end
-end
-
-class RipperRubyTrackerTest < ActiveSupport::TestCase
-  include SharedTrackerTests
-  include RubyTrackerTests
-
-  def parser_class
-    ActionView::RenderParser::RipperRenderParser
-  end
-end
-
-class PrismRubyTrackerTest < ActiveSupport::TestCase
-  include SharedTrackerTests
-  include RubyTrackerTests
-
-  def parser_class
-    ActionView::RenderParser::PrismRenderParser
   end
 end

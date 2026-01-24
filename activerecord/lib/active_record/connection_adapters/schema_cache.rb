@@ -232,11 +232,7 @@ module ActiveRecord
           if filename.include?(".dump")
             Marshal.load(file)
           else
-            if YAML.respond_to?(:unsafe_load)
-              YAML.unsafe_load(file)
-            else
-              YAML.load(file)
-            end
+            YAML.unsafe_load(file)
           end
         end
       end
@@ -271,10 +267,10 @@ module ActiveRecord
       end
 
       def encode_with(coder) # :nodoc:
-        coder["columns"]          = @columns.sort.to_h
+        coder["columns"]          = @columns.sort.to_h.transform_values { _1.sort_by(&:name) }
         coder["primary_keys"]     = @primary_keys.sort.to_h
         coder["data_sources"]     = @data_sources.sort.to_h
-        coder["indexes"]          = @indexes.sort.to_h
+        coder["indexes"]          = @indexes.sort.to_h.transform_values { _1.sort_by(&:name) }
         coder["version"]          = @version
       end
 
@@ -434,9 +430,7 @@ module ActiveRecord
         end
 
         def ignored_table?(table_name)
-          ActiveRecord.schema_cache_ignored_tables.any? do |ignored|
-            ignored === table_name
-          end
+          ActiveRecord.schema_cache_ignored_table?(table_name)
         end
 
         def derive_columns_hash_and_deduplicate_values

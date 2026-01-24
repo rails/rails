@@ -7,6 +7,7 @@ module MailExt
     setup do
       @mail = Mail.new \
         from: "sally@example.com",
+        reply_to: "sarah@example.com",
         to: "david@basecamp.com",
         cc: "jason@basecamp.com",
         bcc: "andrea@basecamp.com",
@@ -16,6 +17,10 @@ module MailExt
 
     test "from address uses address object" do
       assert_equal "example.com", @mail.from_address.domain
+    end
+
+    test "reply to address uses address object" do
+      assert_equal "example.com", @mail.reply_to_address.domain
     end
 
     test "recipients include everyone from to, cc, bcc, x-original-to, and x-forwarded-to" do

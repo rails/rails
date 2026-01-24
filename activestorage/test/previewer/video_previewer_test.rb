@@ -16,7 +16,7 @@ class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase
       image = MiniMagick::Image.read(attachable[:io])
       assert_equal 640, image.width
       assert_equal 480, image.height
-      assert_equal "image/jpeg", image.mime_type
+      assert_equal "image/jpeg", Marcel::Magic.by_extension(image.type).type
     end
   end
 

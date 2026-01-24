@@ -8,7 +8,6 @@
 #
 # It is also good to know what is the bare minimum to get
 # Rails booted up.
-require "active_support/testing/strict_warnings"
 require "fileutils"
 require "shellwords"
 
@@ -34,7 +33,6 @@ require "active_support/core_ext/object/blank"
 require "active_support/testing/isolation"
 require "active_support/core_ext/kernel/reporting"
 require "tmpdir"
-require "rails/secrets"
 
 module TestHelpers
   module Paths
@@ -106,7 +104,11 @@ module TestHelpers
   module Generation
     # Build an application by invoking the generator and going through the whole stack.
     def build_app(options = {})
-      @prev_rails_env = ENV["RAILS_ENV"]
+      @prev_rails_app_class ||= Rails.app_class
+      @prev_rails_application ||= Rails.application
+      Rails.app_class = Rails.application = nil
+
+      @prev_rails_env ||= ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
 
       FileUtils.rm_rf(app_path)
@@ -116,13 +118,6 @@ module TestHelpers
       unless options[:initializers]
         Dir["#{app_path}/config/initializers/**/*.rb"].each do |initializer|
           File.delete(initializer)
-        end
-      end
-
-      routes = File.read("#{app_path}/config/routes.rb")
-      if routes =~ /(\n\s*end\s*)\z/
-        File.open("#{app_path}/config/routes.rb", "w") do |f|
-          f.puts $` + "\nActionDispatch.deprecator.silence { match ':controller(/:action(/:id))(.:format)', via: :all }\n" + $1
         end
       end
 
@@ -146,10 +141,23 @@ module TestHelpers
       add_to_env_config :development, "config.action_view.annotate_rendered_view_with_filenames = false"
 
       remove_from_env_config("development", "config.generators.apply_rubocop_autocorrect_after_generate!")
+      add_to_env_config :production, "config.log_level = :error"
+    end
+
+    def reset_environment_configs
+      Dir["#{app_path}/config/environments/*.rb"].each do |path|
+        File.write(path, "")
+      end
     end
 
     def teardown_app
-      ENV["RAILS_ENV"] = @prev_rails_env if @prev_rails_env
+      if @prev_rails_env
+        ENV["RAILS_ENV"] = @prev_rails_env
+      else
+        ENV.delete("RAILS_ENV")
+      end
+      Rails.app_class = @prev_rails_app_class if @prev_rails_app_class
+      Rails.application = @prev_rails_application if @prev_rails_application
       FileUtils.rm_rf(tmp_path)
     end
 
@@ -157,7 +165,7 @@ module TestHelpers
       <<-YAML
         default: &default
           adapter: sqlite3
-          pool: 5
+          max_connections: 5
           timeout: 5000
         development:
           <<: *default
@@ -175,7 +183,7 @@ module TestHelpers
       <<-YAML
         default: &default
           adapter: sqlite3
-          pool: 5
+          max_connections: 5
           timeout: 5000
           variables:
             statement_timeout: 1000
@@ -263,7 +271,7 @@ module TestHelpers
       @app.config.eager_load = false
       @app.config.session_store :cookie_store, key: "_myapp_session"
       @app.config.active_support.deprecation = :log
-      @app.config.log_level = :info
+      @app.config.log_level = :error
       @app.config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
 
       yield @app if block_given?
@@ -477,6 +485,14 @@ module TestHelpers
       app_file("app/controllers/#{name}_controller.rb", contents)
     end
 
+    def routes(routes)
+      app_file("config/routes.rb", <<~RUBY)
+        Rails.application.routes.draw do
+          #{routes}
+        end
+      RUBY
+    end
+
     def use_frameworks(arr)
       to_remove = [:actionmailer, :activerecord, :activestorage, :activejob, :actionmailbox] - arr
 
@@ -494,7 +510,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: postgresql
-            pool: 5
+            max_connections: 5
           development:
             primary:
               <<: *default
@@ -510,7 +526,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: postgresql
-            pool: 5
+            max_connections: 5
           development:
             <<: *default
             database: #{database_name}_development
@@ -530,8 +546,11 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: mysql2
-            pool: 5
+            max_connections: 5
             username: root
+          <% if ENV['MYSQL_CODESPACES'] %>
+            password: 'root'
+          <% end %>
           <% if ENV['MYSQL_HOST'] %>
             host: <%= ENV['MYSQL_HOST'] %>
           <% end %>
@@ -553,8 +572,11 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: mysql2
-            pool: 5
+            max_connections: 5
             username: root
+          <% if ENV['MYSQL_CODESPACES'] %>
+            password: 'root'
+          <% end %>
           <% if ENV['MYSQL_HOST'] %>
             host: <%= ENV['MYSQL_HOST'] %>
           <% end %>
@@ -588,6 +610,14 @@ class ActiveSupport::TestCase
   include TestHelpers::Reload
   include ActiveSupport::Testing::Stream
   include ActiveSupport::Testing::MethodCallAssertions
+
+  private
+    def with_env(env)
+      env.each { |k, v| ENV[k.to_s] = v }
+      yield
+    ensure
+      env.each_key { |k| ENV.delete k.to_s }
+    end
 end
 
 # Create a scope and build a fixture rails app
@@ -609,20 +639,13 @@ Module.new do
     f.puts 'require "rails/all"'
   end
 
-  assets_path = "#{RAILS_FRAMEWORK_ROOT}/railties/test/isolation/assets"
-  unless Dir.exist?("#{assets_path}/node_modules")
-    Dir.chdir(assets_path) do
-      sh "yarn install"
-    end
-  end
-
   FileUtils.mkdir_p "#{app_template_path}/app/javascript"
   File.write("#{app_template_path}/app/javascript/application.js", "\n")
 
   # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
   # app-specific one: we don't want to require every gem that lists.
   contents = File.read("#{app_template_path}/config/application.rb")
-  contents.sub!(/^Bundler\.require.*/, "%w(sprockets/railtie importmap-rails).each { |r| require r }")
+  contents.sub!(/^Bundler\.require.*/, "%w(propshaft importmap-rails).each { |r| require r }")
   File.write("#{app_template_path}/config/application.rb", contents)
 
   require "rails"
@@ -637,7 +660,6 @@ Module.new do
   require "action_cable"
   require "action_mailbox"
   require "action_text"
-  require "sprockets"
 
   require "action_view/helpers"
   require "action_dispatch/routing/route_set"

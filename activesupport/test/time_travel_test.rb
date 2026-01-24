@@ -35,9 +35,7 @@ class TimeTravelTest < ActiveSupport::TestCase
       assert_equal expected_time.to_datetime.to_fs(:db), DateTime.now.to_fs(:db)
 
       assert_equal expected_time.to_fs(:db), Time.new.to_fs(:db)
-      if RUBY_VERSION >= "3.2"
-        assert_not_equal expected_time.to_fs(:db), Time.new(precision: 3).to_fs(:db)
-      end
+      assert_not_equal expected_time.to_fs(:db), Time.new(precision: 3).to_fs(:db)
     ensure
       travel_back
     end
@@ -53,18 +51,14 @@ class TimeTravelTest < ActiveSupport::TestCase
         assert_equal expected_time.to_datetime.to_fs(:db), DateTime.now.to_fs(:db)
 
         assert_equal expected_time.to_fs(:db), Time.new.to_fs(:db)
-        if RUBY_VERSION >= "3.2"
-          assert_not_equal expected_time.to_fs(:db), Time.new(precision: 3).to_fs(:db)
-          assert_equal Time.new("2000-12-31 23:59:59.567"), Time.new("2000-12-31 23:59:59.56789", precision: 3)
-        end
+        assert_not_equal expected_time.to_fs(:db), Time.new(precision: 3).to_fs(:db)
+        assert_equal Time.new("2000-12-31 23:59:59.567"), Time.new("2000-12-31 23:59:59.56789", precision: 3)
       end
 
       assert_not_equal expected_time.to_fs(:db), Time.now.to_fs(:db)
       assert_not_equal expected_time.to_date, Date.today
       assert_not_equal expected_time.to_datetime.to_fs(:db), DateTime.now.to_fs(:db)
-      if RUBY_VERSION >= "3.2"
-        assert_equal Time.new("2000-12-31 23:59:59.567"), Time.new("2000-12-31 23:59:59.56789", precision: 3)
-      end
+      assert_equal Time.new("2000-12-31 23:59:59.567"), Time.new("2000-12-31 23:59:59.56789", precision: 3)
     end
   end
 
@@ -76,9 +70,7 @@ class TimeTravelTest < ActiveSupport::TestCase
       assert_equal expected_time, Time.now
       assert_equal expected_time, Time.new
       assert_not_equal expected_time, Time.new(2004, 11, 25)
-      if RUBY_VERSION >= "3.2"
-        assert_not_equal expected_time, Time.new(precision: 3)
-      end
+      assert_not_equal expected_time, Time.new(precision: 3)
       assert_equal Date.new(2004, 11, 24), Date.today
       assert_equal expected_time.to_datetime, DateTime.now
     ensure
@@ -93,9 +85,7 @@ class TimeTravelTest < ActiveSupport::TestCase
       travel_to expected_time do
         assert_equal expected_time, Time.now
         assert_equal expected_time, Time.new
-        if RUBY_VERSION >= "3.2"
-          assert_not_equal expected_time, Time.new(precision: 3)
-        end
+        assert_not_equal expected_time, Time.new(precision: 3)
         assert_not_equal expected_time, Time.new(2004, 11, 25)
         assert_equal Date.new(2004, 11, 24), Date.today
         assert_equal expected_time.to_datetime, DateTime.now
@@ -168,6 +158,20 @@ class TimeTravelTest < ActiveSupport::TestCase
 
           travel_to "2004-11-24 01:04:44" do
             assert_equal expected_time.to_fs(:db), Time.zone.now.to_fs(:db)
+          end
+        end
+      end
+    end
+  end
+
+  def test_time_helper_travel_to_with_string_and_milliseconds
+    with_env_tz "US/Eastern" do
+      with_tz_default ActiveSupport::TimeZone["UTC"] do
+        Time.stub(:now, Time.now) do
+          expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+
+          travel_to "2004-11-24T01:04:44.123-05:00" do
+            assert_equal expected_time, Time.zone.now
           end
         end
       end
@@ -330,13 +334,101 @@ class TimeTravelTest < ActiveSupport::TestCase
     end
   end
 
+  def test_time_helper_travel_to_with_datetime_and_usec
+    with_env_tz "US/Eastern" do
+      with_tz_default ActiveSupport::TimeZone["UTC"] do
+        Time.stub(:now, Time.now) do
+          duration_usec = 0.1.seconds
+          traveled_time = DateTime.iso8601("2004-11-24T01:04:44.000-05:00") + duration_usec
+          expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+
+          assert_nothing_raised do
+            travel_to traveled_time
+
+            assert_equal expected_time, Time.zone.now
+
+            travel_back
+          end
+        ensure
+          travel_back
+        end
+      end
+    end
+  end
+
+  def test_time_helper_travel_to_with_datetime_and_usec_true
+    with_env_tz "US/Eastern" do
+      with_tz_default ActiveSupport::TimeZone["UTC"] do
+        Time.stub(:now, Time.now) do
+          duration_usec = 0.1.seconds
+          traveled_time = DateTime.iso8601("2004-11-24T01:04:44.000-05:00") + duration_usec
+          expected_time = Time.new(2004, 11, 24, 1, 4, 44) + duration_usec
+
+          assert_nothing_raised do
+            travel_to traveled_time, with_usec: true
+
+            assert_equal expected_time, Time.now
+
+            travel_back
+          end
+        ensure
+          travel_back
+        end
+      end
+    end
+  end
+
+  def test_time_helper_travel_to_with_string_and_usec
+    with_tz_default ActiveSupport::TimeZone["UTC"] do
+      Time.stub(:now, Time.now) do
+        duration_usec = 0.1.seconds
+        traveled_time = Time.new(2004, 11, 24, 1, 4, 44) + duration_usec
+        expected_time = Time.new(2004, 11, 24, 1, 4, 44)
+
+        assert_nothing_raised do
+          travel_to traveled_time.iso8601(3)
+
+          assert_equal expected_time, Time.now
+
+          travel_back
+        end
+      ensure
+        travel_back
+      end
+    end
+  end
+
+  def  test_time_helper_travel_to_with_string_and_usec_true
+    with_tz_default ActiveSupport::TimeZone["UTC"] do
+      Time.stub(:now, Time.now) do
+        duration_usec = 0.1.seconds
+        expected_time = Time.new(2004, 11, 24, 1, 4, 44) + duration_usec
+
+        assert_nothing_raised do
+          travel_to expected_time.iso8601(3), with_usec: true
+
+          assert_equal expected_time.to_f, Time.now.to_f
+
+          travel 0.5, with_usec: true
+
+          assert_equal((expected_time + 0.5).to_f, Time.now.to_f)
+
+          travel_back
+        end
+      ensure
+        travel_back
+      end
+    end
+  end
+
   def test_time_helper_freeze_time_with_usec_true
     # repeatedly test in case Time.now happened to actually be 0 usec
-    assert_predicate 9.times, :any? do
+    checks = 9.times.map do
       freeze_time(with_usec: true) do
         Time.now.usec != 0
       end
     end
+    assert_predicate checks, :any?
   end
 
   def test_time_helper_travel_with_subsequent_block
@@ -388,6 +480,16 @@ class TimeTravelTest < ActiveSupport::TestCase
   def test_time_helper_freeze_time
     expected_time = Time.now
     freeze_time
+    sleep(1)
+
+    assert_equal expected_time.to_fs(:db), Time.now.to_fs(:db)
+  ensure
+    travel_back
+  end
+
+  def test_time_helper_freeze_time_with_time_arg
+    expected_time = Time.now + 1.day
+    freeze_time expected_time
     sleep(1)
 
     assert_equal expected_time.to_fs(:db), Time.now.to_fs(:db)
