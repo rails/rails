@@ -350,7 +350,7 @@ WARNING: Never modify a migration file after it's been run in production.
 Instead, create a new migration to make further changes. This ensures all
 environments can be updated consistently.
 
-EDGE CASE: If you must rollback a migration that has already been deployed,
+CAUTION: If you must rollback a migration that has already been deployed,
 test the rollback thoroughly in a staging environment first. Some migrations
 (like those dropping columns) may cause data loss that cannot be recovered.
 Always backup production data before running migrations.
