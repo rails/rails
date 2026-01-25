@@ -285,6 +285,16 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("json_html_api", ActiveSupport::Inflector.underscore("JSONHTMLAPI"))
   end
 
+  def test_overlapping_acronyms
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.acronym "USD"
+      inflect.acronym "USDC"
+    end
+
+    assert_equal "usd", "USD".underscore
+    assert_equal "usdc", "USDC".underscore
+  end
+
   def test_underscore
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(underscore, ActiveSupport::Inflector.underscore(camel))
