@@ -131,5 +131,39 @@ class TestDatabasesTest < ActiveRecord::TestCase
       ActiveRecord::Base.establish_connection(:arunit)
       ENV["RAILS_ENV"] = previous_env
     end
+
+    def test_create_and_load_schema_skips_renaming_databases_with_database_tasks_false
+      previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit"
+      prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, {
+        "arunit" => {
+          "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+          "external" => { "adapter" => "sqlite3", "database" => "external_db", "database_tasks" => false }
+        }
+      }
+
+      idx = 42
+      external_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "external", include_hidden: true)
+      original_external_database = external_db_config.database
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, nil) do
+        ActiveSupport::Testing::Parallelization.after_fork_hooks.each { |cb| cb.call(idx) }
+      end
+
+      # Primary should be renamed
+      assert_equal(
+        "test/db/primary.sqlite3_#{idx}",
+        ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").database
+      )
+
+      # External should NOT be renamed since database_tasks: false
+      assert_equal(
+        original_external_database,
+        ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "external", include_hidden: true).database
+      )
+    ensure
+      ActiveRecord::Base.configurations = prev_configs
+      ActiveRecord::Base.establish_connection(:arunit)
+      ENV["RAILS_ENV"] = previous_env
+    end
   end
 end

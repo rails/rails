@@ -1,3 +1,11 @@
+*   Fix database renaming for external databases during parallelized tests.
+
+    When using external databases (i.e., those not managed by Rails), parallelized tests
+    would attempt to rename these databases. This change skips the renaming behavior for
+    databases with `database_tasks` set to `false`.
+
+    *Sean Hogge*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before

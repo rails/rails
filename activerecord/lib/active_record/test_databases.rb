@@ -20,9 +20,14 @@ module ActiveRecord
       old, ENV["VERBOSE"] = ENV["VERBOSE"], "false"
 
       ActiveRecord::Base.configurations.configs_for(env_name: env_name, include_hidden: true).each do |db_config|
+        # Skip databases with database_tasks: false (e.g., external databases)
+        # NOTE: replicas return false when calling `database_tasks?`, so we need to check the configuration hash directly.
+        next if db_config.configuration_hash[:database_tasks] == false
+
         db_config._database = "#{db_config.database}_#{i}"
 
-        if db_config.database_tasks?
+        # Replicas don't need schema reconstruction - they share the primary's database
+        unless db_config.replica?
           ActiveRecord::Tasks::DatabaseTasks.reconstruct_from_schema(db_config, nil)
         end
       end
