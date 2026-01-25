@@ -107,6 +107,38 @@ class ConcernTest < ActiveSupport::TestCase
     end
   end
 
+  def test_class_methods_block_preserves_inherited_class_methods
+    foo = Module.new do
+      def self.included(base)
+        base.extend(ClassMethods)
+      end
+    end
+    foo.const_set(:ClassMethods, Module.new do
+      def greet
+        "hello"
+      end
+    end)
+
+    bar = Module.new do
+      extend ActiveSupport::Concern
+      include foo
+
+      class_methods do
+      end
+
+      included do
+        @greeted = greet
+      end
+    end
+
+    klass = Class.new do
+      include bar
+    end
+
+    assert_equal "hello", klass.greet
+    assert_equal "hello", klass.instance_variable_get(:@greeted)
+  end
+
   def test_included_block_is_ran
     @klass.include(Baz)
     assert_equal true, @klass.included_ran
