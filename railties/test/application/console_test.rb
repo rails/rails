@@ -191,6 +191,18 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "Rails.application.executor.active?", "false"
   end
 
+  def test_console_query_cache_disabled_by_default
+    spawn_console
+
+    write_prompt "ActiveRecord::Base.connection_pool.query_cache_enabled", "=> false"
+  end
+
+  def test_console_query_cache_option
+    spawn_console "--query-cache"
+
+    write_prompt "ActiveRecord::Base.connection_pool.query_cache_enabled", "=> true"
+  end
+
   def test_app_helper_method
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do

@@ -5,6 +5,12 @@
 
     *David Lowenfels*
 
+*   Disable the Active Record query cache in the console by default when using the executor.
+
+    The query cache is now off by default in the console. Pass `--query-cache` to enable it for the session.
+
+    *Cam Allen*
+
 *   Console `reload!` will reset the console's executor, when present.
 
     *Ben Sheldon*
