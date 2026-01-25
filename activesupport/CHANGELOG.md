@@ -1,3 +1,16 @@
+*   Fix inflections to better handle overlapping acronyms.
+
+    ```ruby
+    ActiveSupport::Inflector.inflections(:en) do |inflect|
+      inflect.acronym "USD"
+      inflect.acronym "USDC"
+    end
+
+    "USDC".underscore # => "usdc"
+    ```
+
+    *Said Kaldybaev*
+
 *   Silence Dalli 4.0+ warning when using `ActiveSupport::Cache::MemCacheStore`.
 
     *zzak*
