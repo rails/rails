@@ -101,6 +101,64 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     end
   end
 
+  test "groups filters correctly based on -g/--group flags" do
+    group_ci = proc do
+      step "Setup", "true"
+
+      group "lint" do
+        step "RuboCop", "true"
+      end
+
+      group "backend" do
+        group "unit" do
+          group "models" do
+            step "User model", "true"
+          end
+        end
+        group "integration" do
+          step "API", "true"
+        end
+      end
+
+      group "frontend" do
+        step "Jest", "true"
+      end
+    end
+
+    no_filter = run_ci_block([], &group_ci)
+    assert_match(/Group: lint/, no_filter)
+    assert_match(/Group: backend/, no_filter)
+    assert_match(/Group: frontend/, no_filter)
+    assert_match(/Setup passed/, no_filter)
+    assert_match(/Jest passed/, no_filter)
+
+    top_level_filter = run_ci_block(["-g", "lint"], &group_ci)
+    assert_match(/Group: lint/, top_level_filter)
+    assert_match(/RuboCop passed/, top_level_filter)
+    assert_no_match(/Setup/, top_level_filter)
+    assert_no_match(/Group: backend/, top_level_filter)
+
+    long_flag = run_ci_block(["--group", "lint"], &group_ci)
+    assert_match(/Group: lint/, long_flag)
+
+    nested_filter = run_ci_block(["-g", "models"], &group_ci)
+    assert_match(/Group: models/, nested_filter)
+    assert_match(/User model passed/, nested_filter)
+    assert_no_match(/Group: unit/, nested_filter)
+    assert_no_match(/Group: backend/, nested_filter)
+
+    parent_filter = run_ci_block(["-g", "backend"], &group_ci)
+    assert_match(/Group: backend/, parent_filter)
+    assert_match(/Group: unit/, parent_filter)
+    assert_match(/Group: models/, parent_filter)
+    assert_no_match(/Group: lint/, parent_filter)
+
+    multiple_filters = run_ci_block(["-g", "lint,frontend"], &group_ci)
+    assert_match(/Group: lint/, multiple_filters)
+    assert_match(/Group: frontend/, multiple_filters)
+    assert_no_match(/Group: backend/, multiple_filters)
+  end
+
   private
     def with_argv(argv)
       original_argv = ARGV.dup
@@ -109,5 +167,11 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
       yield
     ensure
       ARGV.replace(original_argv)
+    end
+
+    def run_ci_block(argv, &block)
+      with_argv(argv) do
+        capture_io { @CI.report("CI", &block) }
+      end.to_s
     end
 end

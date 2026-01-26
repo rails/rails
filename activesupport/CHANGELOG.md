@@ -1,3 +1,15 @@
+*   Add group based filtering using `bin/ci -g/--group` to `ActiveSupport::ContinuousIntegration`.
+
+    Example:
+    ```ruby
+    group "lint" do
+      step "Rubocop", "bin/rubocop"
+      step "Biome", "bin/biome"
+    end
+    ```
+
+    *Harsh Deep*
+
 *   Add `ActiveSupport::CombinedConfiguration` to offer interchangeable access to configuration provided by
     either ENV or encrypted credentials. Used by Rails to first look at ENV, then look in encrypted credentials,
     but can be configured separately with any number of API-compatible backends in a first-look order.
