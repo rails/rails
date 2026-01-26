@@ -58,6 +58,23 @@ class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
     end
   end
 
+  test "when ruby-vips is not installed" do
+    stub_const(ActiveStorage, :VIPS_AVAILABLE, false) do
+      blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+
+      output = StringIO.new
+      logger = ActiveSupport::Logger.new(output)
+
+      ActiveStorage.with(logger: logger) do
+        analyze_with_vips do
+          blob.analyze
+        end
+      end
+
+      assert_includes output.string, "Skipping image analysis because the ruby-vips gem isn't installed"
+    end
+  end
+
   private
     def analyze_with_vips
       previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, :vips

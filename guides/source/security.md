@@ -182,6 +182,12 @@ class User < ApplicationRecord
 end
 ```
 
+NOTE: `has_secure_password` adds the following validations automatically:<br/><br/>
+- Password must be present on creation<br/>
+- Password length should be less than or equal to 72 bytes<br/>
+- Confirmation of password (using a XXX_confirmation attribute)<br/><br/>
+However it doesn't validate the minimum length or the complexity of the password, you need to define validation for those yourself.
+
 #### `authenticate_by`
 
 The
@@ -545,7 +551,7 @@ document.head.querySelector("meta[name=csrf-token]")?.content
 It is common to use persistent cookies to store user information, with `cookies.permanent` for example. In this case, the cookies will not be cleared and the out of the box CSRF protection will not be effective. If you are using a different cookie store than the session for this information, you must handle what to do with it yourself:
 
 ```ruby
-rescue_from ActionController::InvalidAuthenticityToken do |exception|
+rescue_from ActionController::InvalidCrossOriginRequest do |exception|
   sign_out_user # Example method that will destroy the user cookies
 end
 ```
@@ -1301,12 +1307,6 @@ all domains.
 
 [`X-Frame-Options`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
 
-#### `X-XSS-Protection`
-
-A [deprecated legacy
-header](https://owasp.org/www-project-secure-headers/#x-xss-protection), set to
-`0` in Rails by default to disable problematic legacy XSS auditors.
-
 #### `X-Content-Type-Options`
 
 The [`X-Content-Type-Options`][] header is set to `nosniff` in Rails by default.
@@ -1335,7 +1335,6 @@ These headers are configured by default as follows:
 ```ruby
 config.action_dispatch.default_headers = {
   "X-Frame-Options" => "SAMEORIGIN",
-  "X-XSS-Protection" => "0",
   "X-Content-Type-Options" => "nosniff",
   "X-Permitted-Cross-Domain-Policies" => "none",
   "Referrer-Policy" => "strict-origin-when-cross-origin"

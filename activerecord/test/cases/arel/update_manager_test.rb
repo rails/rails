@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 require_relative "helper"
+require_relative "support/tree_manager_behavior"
 
 module Arel
   class UpdateManagerTest < Arel::Spec
+    include TreeManagerBehavior
+
     it "should not quote sql literals" do
       table = Table.new(:users)
       um = Arel::UpdateManager.new
@@ -167,5 +170,10 @@ module Arel
         _(@um.key).must_equal @table[:foo]
       end
     end
+
+    private
+      def build_manager(table = nil)
+        Arel::UpdateManager.new(table)
+      end
   end
 end

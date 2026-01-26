@@ -20,7 +20,7 @@ Rake::TestTask.new do |t|
 end
 
 namespace :test do
-  task :isolated do
+  task isolated: :railties do
     Dir.glob("test/**/*_test.rb").all? do |file|
       sh(Gem.ruby, "-w", "-Ilib:test", file)
     end || raise("Failures")
@@ -29,6 +29,12 @@ namespace :test do
   task :integration do
     system(Hash[*Base64.decode64(ENV.fetch("ENCODED", "")).split(/[ =]/)], "yarn", "test")
     exit($?.exitstatus) unless $?.success?
+  end
+
+  task :railties do
+    ["action_cable/engine"].all? do |railtie|
+      sh(Gem.ruby, "-r", railtie, "-e", "'OK'")
+    end || raise("Failures")
   end
 end
 

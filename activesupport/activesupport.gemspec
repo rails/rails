@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "A toolkit of support libraries and Ruby core extensions extracted from the Rails framework."
   s.description = "A toolkit of support libraries and Ruby core extensions extracted from the Rails framework. Rich support for multibyte strings, internationalization, time zones, and testing."
 
-  s.required_ruby_version = ">= 3.2.0"
+  s.required_ruby_version = ">= 3.3.0"
 
   s.license = "MIT"
 
@@ -42,8 +42,9 @@ Gem::Specification.new do |s|
   s.add_dependency "base64"
   s.add_dependency "drb"
   s.add_dependency "bigdecimal"
+  s.add_dependency "json"
+  s.add_dependency "psych", ">= 4"
   s.add_dependency "logger", ">= 1.4.2"
   s.add_dependency "securerandom", ">= 0.3"
   s.add_dependency "uri", ">= 0.13.1"
-  s.add_dependency "benchmark", ">= 0.3"
 end

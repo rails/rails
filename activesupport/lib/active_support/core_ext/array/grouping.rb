@@ -60,6 +60,12 @@ class Array
   #   ["4", "5"]
   #   ["6", "7"]
   def in_groups(number, fill_with = nil, &block)
+    if number.to_i <= 0
+      raise ArgumentError,
+        "Number of groups must be a positive integer, was #{number.inspect}"
+    end
+
+    number = number.to_i
     # size.div number gives minor group size;
     # size % number gives how many objects need extra accommodation;
     # each group hold either division or division + 1 items.

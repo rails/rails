@@ -258,7 +258,6 @@
       description: This guide covers using multiple databases in your application.
     -
       name: Active Record Encryption
-      work_in_progress: true
       url: active_record_encryption.html
       description: This guide covers encrypting your database information using Active Record.
     -
@@ -282,20 +281,17 @@
       url: generators.html
       description: This guide covers the process of adding a brand new generator to your extension or providing an alternative to an element of a built-in Rails generator (such as providing alternative test stubs for the scaffold generator).
     -
-      name: Getting Started with Engines
+      name: Rails Engines Overview
       url: engines.html
       description: >
-        Engines can be considered miniature applications that provide
+        Engines are packaged like miniature applications that provide
         additional functionality to their host applications. In this guide you
         will learn how to create your own engine and integrate it with a host
         application.
-      work_in_progress: true
-
     -
       name: Threading and Code Execution in Rails
       url: threading_and_code_execution.html
       description: This guide describes the considerations needed and tools available when working directly with concurrency in a Rails application.
-      work_in_progress: true
 -
   name: Contributing
   documents:
@@ -331,10 +327,14 @@
         This guide provides steps to be followed when you upgrade your
         applications to a newer version of Ruby on Rails.
     -
-      name: Version 8.1 - ?
+      name: Version 8.2 - ?
+      url: 8_2_release_notes.html
+      description: Release notes for Rails 8.2.
+      work_in_progress: true
+    -
+      name: Version 8.1 - October 2025
       url: 8_1_release_notes.html
       description: Release notes for Rails 8.1.
-      work_in_progress: true
     -
       name: Version 8.0 - November 2024
       url: 8_0_release_notes.html

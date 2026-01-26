@@ -9,7 +9,7 @@ module ActionMailer
       exception = event.payload[:exception_object]
       payload = {
         message_id: event.payload[:message_id],
-        duration: event.duration.round(2),
+        duration_ms: event.duration.round(2),
         mail: event.payload[:mail],
         perform_deliveries: event.payload[:perform_deliveries],
       }
@@ -28,7 +28,7 @@ module ActionMailer
       emit_debug_event("action_mailer.processed",
         mailer: event.payload[:mailer],
         action: event.payload[:action],
-        duration: event.duration.round(2),
+        duration_ms: event.duration.round(2),
       )
     end
     debug_only :process

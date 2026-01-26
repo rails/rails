@@ -84,6 +84,7 @@ module ActiveSupport
         return @__en_instance__ ||= new if locale == :en
 
         I18n.fallbacks[locale].each do |k|
+          return @__en_instance__ if k == :en && @__en_instance__
           return @__instance__[k] if @__instance__.key?(k)
         end
         instance(locale)
@@ -264,7 +265,8 @@ module ActiveSupport
 
       private
         def define_acronym_regex_patterns
-          @acronym_regex             = @acronyms.empty? ? /(?=a)b/ : /#{@acronyms.values.join("|")}/
+          sorted_acronyms = @acronyms.empty? ? [] : @acronyms.values.sort_by { |a| -a.length }
+          @acronym_regex             = sorted_acronyms.empty? ? /(?=a)b/ : /#{sorted_acronyms.join("|")}/
           @acronyms_camelize_regex   = /^(?:#{@acronym_regex}(?=\b|[A-Z_])|\w)/
           @acronyms_underscore_regex = /(?:(?<=([A-Za-z\d]))|\b)(#{@acronym_regex})(?=\b|[^a-z])/
         end

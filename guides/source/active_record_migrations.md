@@ -15,6 +15,7 @@ After reading this guide, you will know:
 * How to change existing migrations and update your schema.
 * How migrations relate to `schema.rb`.
 * How to maintain referential integrity.
+* How to customize migration behavior with swappable strategies.
 
 --------------------------------------------------------------------------------
 
@@ -42,7 +43,7 @@ of your database. Here's an example of a migration:
 
 ```ruby
 # db/migrate/20240502100843_create_products.rb
-class CreateProducts < ActiveRecord::Migration[8.1]
+class CreateProducts < ActiveRecord::Migration[8.2]
   def change
     create_table :products do |t|
       t.string :name
@@ -62,9 +63,9 @@ These special columns are automatically managed by Active Record if they exist.
 
 ```ruby
 # db/schema.rb
-ActiveRecord::Schema[8.1].define(version: 2024_05_02_100843) do
+ActiveRecord::Schema[8.2].define(version: 2024_05_02_100843) do
   # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
+  enable_extension "pg_catalog.plpgsql"
 
   create_table "products", force: :cascade do |t|
     t.string "name"
@@ -112,6 +113,9 @@ another application or generating a file yourself, be aware of its position in
 the order. You can read more about how the timestamps are used in the [Rails
 Migration Version Control section](#rails-migration-version-control).
 
+NOTE: You can override the directory that migrations are stored in by setting the
+`migrations_paths` option in your `config/database.yml`.
+
 When generating a migration, Active Record automatically prepends the current
 timestamp to the file name of the migration. For example, running the command
 below will create an empty migration file whereby the filename is made up of a
@@ -123,7 +127,7 @@ $ bin/rails generate migration AddPartNumberToProducts
 
 ```ruby
 # db/migrate/20240502101659_add_part_number_to_products.rb
-class AddPartNumberToProducts < ActiveRecord::Migration[8.1]
+class AddPartNumberToProducts < ActiveRecord::Migration[8.2]
   def change
   end
 end
@@ -150,7 +154,7 @@ $ bin/rails generate migration CreateProducts name:string part_number:string
 generates
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[8.1]
+class CreateProducts < ActiveRecord::Migration[8.2]
   def change
     create_table :products do |t|
       t.string :name
@@ -161,6 +165,8 @@ class CreateProducts < ActiveRecord::Migration[8.1]
   end
 end
 ```
+
+NOTE: If you don't specify a type for a field (e.g., `name` instead of `name:string`), Rails will default to type `string`.
 
 The generated file with its contents is just a starting point, and you can add
 or remove from it as you see fit by editing the
@@ -180,12 +186,18 @@ $ bin/rails generate migration AddPartNumberToProducts part_number:string
 This will generate the following migration:
 
 ```ruby
-class AddPartNumberToProducts < ActiveRecord::Migration[8.1]
+class AddPartNumberToProducts < ActiveRecord::Migration[8.2]
   def change
     add_column :products, :part_number, :string
   end
 end
 ```
+
+NOTE: Rails infers the target table from the migration name when it matches the
+`add_<columns>_to_<table>` or `remove_<columns>_from_<table>` patterns. Using a
+name such as `AddPartNumberToProducts` lets the generator configure
+`add_column :products, ...` automatically. For more on these conventions, run
+`bin/rails generate migration --help` to see the generator usage and examples.
 
 If you'd like to add an index on the new column, you can do that as well.
 
@@ -197,7 +209,7 @@ This will generate the appropriate [`add_column`][] and [`add_index`][]
 statements:
 
 ```ruby
-class AddPartNumberToProducts < ActiveRecord::Migration[8.1]
+class AddPartNumberToProducts < ActiveRecord::Migration[8.2]
   def change
     add_column :products, :part_number, :string
     add_index :products, :part_number
@@ -215,7 +227,7 @@ This will generate a schema migration which adds two additional columns to the
 `products` table.
 
 ```ruby
-class AddDetailsToProducts < ActiveRecord::Migration[8.1]
+class AddDetailsToProducts < ActiveRecord::Migration[8.2]
   def change
     add_column :products, :part_number, :string
     add_column :products, :price, :decimal
@@ -236,7 +248,7 @@ $ bin/rails generate migration RemovePartNumberFromProducts part_number:string
 This will generate the appropriate [`remove_column`][] statements:
 
 ```ruby
-class RemovePartNumberFromProducts < ActiveRecord::Migration[8.1]
+class RemovePartNumberFromProducts < ActiveRecord::Migration[8.2]
   def change
     remove_column :products, :part_number, :string
   end
@@ -265,7 +277,7 @@ $ bin/rails generate migration AddUserRefToProducts user:references
 generates the following [`add_reference`][] call:
 
 ```ruby
-class AddUserRefToProducts < ActiveRecord::Migration[8.1]
+class AddUserRefToProducts < ActiveRecord::Migration[8.2]
   def change
     add_reference :products, :user, null: false, foreign_key: true
   end
@@ -302,7 +314,7 @@ $ bin/rails generate migration CreateJoinTableUserProduct user product
 will produce the following migration:
 
 ```ruby
-class CreateJoinTableUserProduct < ActiveRecord::Migration[8.1]
+class CreateJoinTableUserProduct < ActiveRecord::Migration[8.2]
   def change
     create_join_table :users, :products do |t|
       # t.index [:user_id, :product_id]
@@ -336,7 +348,7 @@ $ bin/rails generate model Product name:string description:text
 This will create a migration that looks like this:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[8.1]
+class CreateProducts < ActiveRecord::Migration[8.2]
   def change
     create_table :products do |t|
       t.string :name
@@ -367,7 +379,7 @@ $ bin/rails generate migration AddDetailsToProducts 'price:decimal{5,2}' supplie
 will produce a migration that looks like this
 
 ```ruby
-class AddDetailsToProducts < ActiveRecord::Migration[8.1]
+class AddDetailsToProducts < ActiveRecord::Migration[8.2]
   def change
     add_column :products, :price, :decimal, precision: 5, scale: 2
     add_reference :products, :supplier, polymorphic: true
@@ -385,7 +397,7 @@ $ bin/rails generate migration AddEmailToUsers email:string!
 will produce this migration
 
 ```ruby
-class AddEmailToUsers < ActiveRecord::Migration[8.1]
+class AddEmailToUsers < ActiveRecord::Migration[8.2]
   def change
     add_column :users, :email, :string, null: false
   end
@@ -458,7 +470,7 @@ you. You can change the name of the column with the `:primary_key` option, like
 below:
 
 ```ruby
-class CreateUsers < ActiveRecord::Migration[8.1]
+class CreateUsers < ActiveRecord::Migration[8.2]
   def change
     create_table :users, primary_key: "user_id" do |t|
       t.string :username
@@ -484,7 +496,7 @@ You can also pass an array to `:primary_key` for a composite primary key. Read
 more about [composite primary keys](active_record_composite_primary_keys.html).
 
 ```ruby
-class CreateUsers < ActiveRecord::Migration[8.1]
+class CreateUsers < ActiveRecord::Migration[8.2]
   def change
     create_table :users, primary_key: [:id, :name] do |t|
       t.string :name
@@ -498,7 +510,7 @@ end
 If you don't want a primary key at all, you can pass the option `id: false`.
 
 ```ruby
-class CreateUsers < ActiveRecord::Migration[8.1]
+class CreateUsers < ActiveRecord::Migration[8.2]
   def change
     create_table :users, id: false do |t|
       t.string :username
@@ -546,7 +558,7 @@ with large databases. Currently only the MySQL and PostgreSQL adapters support
 comments.
 
 ```ruby
-class AddDetailsToProducts < ActiveRecord::Migration[8.1]
+class AddDetailsToProducts < ActiveRecord::Migration[8.2]
   def change
     add_column :products, :price, :decimal, precision: 8, scale: 2, comment: "The price of the product in USD"
     add_column :products, :stock_quantity, :integer, comment: "The current stock quantity of the product"
@@ -694,7 +706,8 @@ Column modifiers can be applied when creating or changing a column:
 * `default`      Allows to set a default value on the column. Note that if you
   are using a dynamic value (such as a date), the default will only be
   calculated the first time (i.e. on the date the migration is applied). Use
-  `nil` for `NULL`.
+  `nil` for `NULL`. Depending on your database, existing records may not
+  receive the default value.
 * `limit`        Sets the maximum number of characters for a `string` column and
   the maximum number of bytes for `text/binary/integer` columns.
 * `null`         Allows or disallows `NULL` values in the column.
@@ -819,7 +832,7 @@ You can create a table with a composite primary key by passing the
 `:primary_key` option to `create_table` with an array value:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[8.1]
+class CreateProducts < ActiveRecord::Migration[8.2]
   def change
     create_table :products, primary_key: [:customer_id, :product_sku] do |t|
       t.integer :customer_id
@@ -840,7 +853,7 @@ If the helpers provided by Active Record aren't enough, you can use the
 [`execute`][] method to execute SQL commands. For example,
 
 ```ruby
-class UpdateProductPrices < ActiveRecord::Migration[8.1]
+class UpdateProductPrices < ActiveRecord::Migration[8.2]
   def up
     execute "UPDATE products SET price = 'free'"
   end
@@ -961,7 +974,7 @@ how to reverse, then you can use `reversible` to specify what to do when running
 a migration and what else to do when reverting it.
 
 ```ruby
-class ChangeProductsPrice < ActiveRecord::Migration[8.1]
+class ChangeProductsPrice < ActiveRecord::Migration[8.2]
   def change
     reversible do |direction|
       change_table :products do |t|
@@ -980,7 +993,7 @@ to an integer when the migration is reverted. Notice the block being passed to
 Alternatively, you can use `up` and `down` instead of `change`:
 
 ```ruby
-class ChangeProductsPrice < ActiveRecord::Migration[8.1]
+class ChangeProductsPrice < ActiveRecord::Migration[8.2]
   def up
     change_table :products do |t|
       t.change :price, :string
@@ -1001,7 +1014,7 @@ ActiveRecord methods. You can use [`reversible`][] to specify what to do when
 running a migration and what else to do when reverting it. For example:
 
 ```ruby
-class ExampleMigration < ActiveRecord::Migration[8.1]
+class ExampleMigration < ActiveRecord::Migration[8.2]
   def change
     create_table :distributors do |t|
       t.string :zipcode
@@ -1052,7 +1065,7 @@ reverse order they were made in the `up` method. The example in the `reversible`
 section is equivalent to:
 
 ```ruby
-class ExampleMigration < ActiveRecord::Migration[8.1]
+class ExampleMigration < ActiveRecord::Migration[8.2]
   def up
     create_table :distributors do |t|
       t.string :zipcode
@@ -1089,7 +1102,7 @@ In such cases, you can raise `ActiveRecord::IrreversibleMigration` in your
 `down` block.
 
 ```ruby
-class IrreversibleMigrationExample < ActiveRecord::Migration[8.1]
+class IrreversibleMigrationExample < ActiveRecord::Migration[8.2]
   def up
     drop_table :example_table
   end
@@ -1111,7 +1124,7 @@ You can use Active Record's ability to rollback migrations using the
 ```ruby
 require_relative "20121212123456_example_migration"
 
-class FixupExampleMigration < ActiveRecord::Migration[8.1]
+class FixupExampleMigration < ActiveRecord::Migration[8.2]
   def change
     revert ExampleMigration
 
@@ -1129,7 +1142,7 @@ For example, let's imagine that `ExampleMigration` is committed and it is later
 decided that a Distributors view is no longer needed.
 
 ```ruby
-class DontUseDistributorsViewMigration < ActiveRecord::Migration[8.1]
+class DontUseDistributorsViewMigration < ActiveRecord::Migration[8.2]
   def change
     revert do
       # copy-pasted code from ExampleMigration
@@ -1254,7 +1267,7 @@ these situations you can turn the automatic transactions off with
 `disable_ddl_transaction!`:
 
 ```ruby
-class ChangeEnum < ActiveRecord::Migration[8.1]
+class ChangeEnum < ActiveRecord::Migration[8.2]
   disable_ddl_transaction!
 
   def up
@@ -1277,13 +1290,12 @@ The `bin/rails db:prepare` command is similar to `bin/rails db:setup`, but it
 operates idempotently, so it can safely be called several times, but it will
 only perform the necessary tasks once.
 
-* If the database has not been created yet, the command will run as the
-  `bin/rails db:setup` does.
-* If the database exists but the tables have not been created, the command will
-  load the schema, run any pending migrations, dump the updated schema, and
-  finally load the seed data. See the [Seeding Data
-  documentation](#migrations-and-seed-data) for more details.
-* If the database and tables exist, the command will do nothing.
+* If the database has not been created yet, the command behaves the same as
+  `bin/rails db:setup`.
+* If the database exists but the tables are missing, the command additionally
+  loads the schema.
+* If tables already exist, the command runs any pending migrations and dumps the
+  updated schema.
 
 Once the database and tables exist, the `db:prepare` task will not try to reload
 the seed data, even if the previously loaded seed data or the existing seed file
@@ -1377,7 +1389,7 @@ Several methods are provided in migrations that allow you to control all this:
 For example, take the following migration:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[8.1]
+class CreateProducts < ActiveRecord::Migration[8.2]
   def change
     suppress_messages do
       create_table :products do |t|
@@ -1516,7 +1528,7 @@ look at this file you'll find that it looks an awful lot like one very big
 migration:
 
 ```ruby
-ActiveRecord::Schema[8.1].define(version: 2008_09_06_171750) do
+ActiveRecord::Schema[8.2].define(version: 2008_09_06_171750) do
   create_table "authors", force: true do |t|
     t.string   "name"
     t.datetime "created_at"
@@ -1614,7 +1626,7 @@ modify data. This is useful in an existing database that can't be destroyed and
 recreated, such as a production database.
 
 ```ruby
-class AddInitialProducts < ActiveRecord::Migration[8.1]
+class AddInitialProducts < ActiveRecord::Migration[8.2]
   def up
     5.times do |i|
       Product.create(name: "Product ##{i}", description: "A product.")
@@ -1749,7 +1761,7 @@ to enable the pgcrypto extension to access the `gen_random_uuid()` function.
     ```
 
     ```ruby
-    class CreateAuthors < ActiveRecord::Migration[8.1]
+    class CreateAuthors < ActiveRecord::Migration[8.2]
       def change
         create_table :authors, id: :uuid do |t|
           t.timestamps
@@ -1804,3 +1816,124 @@ Instead, consider using the
 gem provides a framework for creating and managing data migrations and other
 maintenance tasks in a way that is safe and easy to manage without interfering
 with schema migrations.
+
+Customizing Migration Behavior with Swappable Strategies
+--------------------------------------------------------
+
+Rails allows you to customize how migrations execute by using **migration
+strategies**. A migration strategy is an object that sits between your migration
+and the connection, giving you control over how schema changes are applied to
+the database.
+
+By default, Rails uses [`ActiveRecord::Migration::DefaultStrategy`][], which
+executes migrations by sending method calls directly to the connection.
+However, you can replace this with your own strategy to modify, validate,
+or even prevent certain migration operations. Migration strategies are
+especially useful when you need different migration behavior across
+environments. For example, production migrations may require:
+
+* **Safety and Validation**: Prevent dangerous operations like dropping tables
+  or removing columns in production environments.
+* **Online Schema Changes**: Integrate with tools that perform schema
+  changes without downtime (e.g., `pt-online-schema-change`, `gh-ost`).
+* **Centralized Management**: Submit migrations to a centralized service
+  rather than executing them directly, useful in large-scale deployments.
+
+### Configuring a Global Migration Strategy
+
+To customize how migrations are executed, you can define your own migration
+strategy by subclassing [`ActiveRecord::Migration::DefaultStrategy`][]. This
+default class automatically forwards all migration methods to the underlying
+database connection, so you only need to override the methods you want to
+customize.
+
+For example, to prevent dropping tables in production:
+
+```ruby
+class CustomMigrationStrategy < ActiveRecord::Migration::DefaultStrategy
+  def drop_table(table_name, **options)
+    raise "Dropping tables is not allowed in production!"
+  end
+end
+```
+
+You can override any schema statement method your application needs, such as:
+
+- `create_table`
+- `drop_table`
+- `add_column`
+- `remove_column`
+- `add_index`
+- `remove_index`
+- Or any other method from
+  [`ActiveRecord::ConnectionAdapters::SchemaStatements`][]
+
+You can also subclass [`ActiveRecord::Migration::ExecutionStrategy`][], the base
+strategy class. This is useful if you want to define all migration behavior from
+scratch, without having any methods forwarded to the connection.
+
+Once you've defined your custom strategy, make it the default for migrations across
+all database connections by setting [`config.active_record.migration_strategy`][].
+For example, to set a custom strategy in production:
+
+```ruby
+# config/environments/production.rb
+Rails.application.configure do
+  config.active_record.migration_strategy = CustomMigrationStrategy
+end
+```
+
+All migrations methods will be sent to your custom strategy in production.
+
+### Configuring Per-Adapter Migration Strategies
+
+If you're working with multiple database systems, a single global strategy is
+likely insufficient: you may need to tailor migration behavior according to the
+database. Active Record allows you to configure migration strategies on a
+per-adapter basis. For example, suppose your application has a MySQL database,
+`primary`, and a PostgreSQL database, `animals`:
+
+```yaml
+  primary:
+    database: my_primary_database
+    username: root
+    password: <%= ENV['ROOT_PASSWORD'] %>
+    adapter: trilogy
+  animals:
+    database: my_animals_database
+    username: animals_root
+    password: <%= ENV['ANIMALS_ROOT_PASSWORD'] %>
+    adapter: postgresql
+    migrations_paths: db/animals_migrate
+```
+
+You can configure a `migration_strategy` on each adapter class:
+
+```ruby
+# config/initializers/migration_strategies.rb
+if Rails.env.production?
+  ActiveSupport.on_load(:active_record_trilogyadapter) do
+    ActiveRecord::ConnectionAdapters::Trilogy.migration_strategy =
+      MySQLMigrationStrategy
+  end
+
+  ActiveSupport.on_load(:active_record_postgresqladapter) do
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy =
+      PostgreSQLMigrationStrategy
+  end
+end
+```
+
+Migrations running against `primary` will use `MySQLMigrationStrategy`, and
+migrations running against `animals` will use `PostgreSQLMigrationStrategy`.
+The adapter-specific strategy takes precedence over any globally-configured
+stategy.
+
+[`ActiveRecord::Migration::DefaultStrategy`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Migration/DefaultStrategy.html
+[`ActiveRecord::Migration::ExecutionStrategy`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Migration/ExecutionStrategy.html
+[`config.active_record.migration_strategy`]:
+    configuring.html#config-active-record-migration-strategy
+[`ActiveRecord::ConnectionAdapters::SchemaStatements`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html

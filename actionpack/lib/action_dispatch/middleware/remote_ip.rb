@@ -44,6 +44,8 @@ module ActionDispatch
       "10.0.0.0/8",     # private IPv4 range 10.x.x.x
       "172.16.0.0/12",  # private IPv4 range 172.16.0.0 .. 172.31.255.255
       "192.168.0.0/16", # private IPv4 range 192.168.x.x
+      "169.254.0.0/16", # link-local IPv4 range 169.254.x.x
+      "fe80::/10",      # link-local IPv6 range fe80::/10
     ].map { |proxy| IPAddr.new(proxy) }
 
     attr_reader :check_ip, :proxies
@@ -150,7 +152,8 @@ module ActionDispatch
           # We don't know which came from the proxy, and which from the user
           raise IpSpoofAttackError, "IP spoofing attack?! " \
             "HTTP_CLIENT_IP=#{@req.client_ip.inspect} " \
-            "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}"
+            "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}" \
+            " HTTP_FORWARDED=" + @req.forwarded_for.map { "for=#{_1}" }.join(", ").inspect if @req.forwarded_for.any?
         end
 
         # We assume these things about the IP headers:

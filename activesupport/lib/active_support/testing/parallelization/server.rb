@@ -10,9 +10,8 @@ module ActiveSupport
 
       class Server
         include DRb::DRbUndumped
-
-        def initialize
-          @queue = Queue.new
+        def initialize(distributor:)
+          @distributor = distributor
           @active_workers = Concurrent::Map.new
           @worker_pids = Concurrent::Map.new
           @in_flight = Concurrent::Map.new
@@ -31,14 +30,15 @@ module ActiveSupport
 
         def <<(o)
           o[2] = DRbObject.new(o[2]) if o
-          @queue << o
+          @distributor.add_test(o)
         end
 
-        def pop
-          if test = @queue.pop
+        def pop(worker_id)
+          if test = @distributor.take(worker_id: worker_id)
             @in_flight[[test[0].to_s, test[1]]] = test
-            test
           end
+
+          test
         end
 
         def start_worker(worker_id, worker_pid)
@@ -53,8 +53,7 @@ module ActiveSupport
 
         def remove_dead_workers(dead_pids)
           dead_pids.each do |dead_pid|
-            worker_id = @worker_pids.key(dead_pid)
-            if worker_id
+            if worker_id = @worker_pids.key(dead_pid)
               @active_workers.delete(worker_id)
               @worker_pids.delete(worker_id)
             end
@@ -66,21 +65,18 @@ module ActiveSupport
         end
 
         def interrupt
-          @queue.clear
+          @distributor.interrupt
         end
 
         def shutdown
           # Wait for initial queue to drain
-          while @queue.length != 0
+          while @distributor.pending?
             sleep 0.1
           end
 
-          @queue.close
+          @distributor.close
 
-          # Wait until all workers have finished
-          while active_workers?
-            sleep 0.1
-          end
+          wait_for_active_workers
 
           @in_flight.values.each do |(klass, name, reporter)|
             result = Minitest::Result.from(klass.new(name))
@@ -91,7 +87,20 @@ module ActiveSupport
               reporter.record(result)
             end
           end
+        rescue Interrupt
+          warn "Interrupted. Exiting..."
+
+          @distributor.close
+
+          wait_for_active_workers
         end
+
+        private
+          def wait_for_active_workers
+            while active_workers?
+              sleep 0.1
+            end
+          end
       end
     end
   end

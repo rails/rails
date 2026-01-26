@@ -40,7 +40,7 @@ then you will see:
 
 ```bash
 $ ls -F test
-controllers/                     helpers/                         mailers/                         fixtures/                        integration/                     models/                          test_helper.rb
+controllers/  fixtures/  helpers/  integration/  mailers/  models/  test_helper.rb
 ```
 
 ### Test Directories
@@ -57,25 +57,28 @@ outcomes.
 The `integration` directory is reserved for [tests that cover
 interactions between controllers](#integration-testing).
 
-The `system` test directory holds [system tests](#system-testing), which are
+[Fixtures](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html)
+are a way of mocking up data to use in your tests, so that you don't have to use
+'real' data. They are stored in the `fixtures` directory, and you can read more
+about them in the [Fixtures](#fixtures) section below.
+
+The `test_helper.rb` file holds the default configuration for your tests.
+
+When you first [generate system tests](#generating-system-tests), a `system`
+directory and an `application_system_test_case.rb` file will be created.
+
+The `system` directory holds [system tests](#system-testing), which are
 used for full browser testing of your application. System tests allow you to
 test your application the way your users experience it and help you test your
 JavaScript as well. System tests inherit from
 [Capybara](https://github.com/teamcapybara/capybara) and perform in-browser
 tests for your application.
 
-[Fixtures](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html)
-are a way of mocking up data to use in your tests, so that you don't have to use
-'real' data. They are stored in the `fixtures` directory, and you can read more
-about them in the [Fixtures](#fixtures) section below.
+The `application_system_test_case.rb` file holds the default configuration for your
+system tests.
 
 A `jobs` directory will also be created for your job tests when you first
 [generate a job](active_job_basics.html#create-the-job).
-
-The `test_helper.rb` file holds the default configuration for your tests.
-
-The `application_system_test_case.rb` holds the default configuration for your
-system tests.
 
 ### The Test Environment
 
@@ -404,8 +407,6 @@ specify to make your test failure messages clearer.
 | `assert_not_operator(obj1, operator, [obj2], [msg])`           | Ensures that `obj1.operator(obj2)` is false.|
 | `assert_predicate(obj, predicate, [msg])`                      | Ensures that `obj.predicate` is true, e.g. `assert_predicate str, :empty?`|
 | `assert_not_predicate(obj, predicate, [msg])`                  | Ensures that `obj.predicate` is false, e.g. `assert_not_predicate str, :empty?`|
-| `assert_error_reported(class) { block }`                       | Ensures that the error class has been reported, e.g. `assert_error_reported IOError { Rails.error.report(IOError.new("Oops")) }`|
-| `assert_no_error_reported { block }`                           | Ensures that no errors have been reported, e.g. `assert_no_error_reported { perform_service }`|
 | `flunk([msg])`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
 The above are a subset of assertions that minitest supports. For an exhaustive
@@ -439,6 +440,8 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 | [`assert_no_queries(include_schema: false, &block)`][] | Asserts that `&block` generates no SQL queries.|
 | [`assert_queries_match(pattern, count: nil, include_schema: false, &block)`][] | Asserts that `&block` generates SQL queries that match the pattern.|
 | [`assert_no_queries_match(pattern, &block)`][] | Asserts that `&block` generates no SQL queries that match the pattern.|
+| [`assert_error_reported(class) { block }`][] | Asserts that the error class has been reported, e.g. `assert_error_reported IOError { Rails.error.report(IOError.new("Oops")) }`|
+| [`assert_no_error_reported { block }`][] | Asserts that no errors have been reported, e.g. `assert_no_error_reported { perform_service }`|
 
 [`assert_difference(expressions, difference = 1, message = nil) {...}`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_difference
 [`assert_no_difference(expressions, message = nil, &block)`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_difference
@@ -454,6 +457,8 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 [`assert_no_queries(include_schema: false, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_no_queries
 [`assert_queries_match(pattern, count: nil, include_schema: false, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_queries_match
 [`assert_no_queries_match(pattern, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_no_queries_match
+[`assert_error_reported(class) { block }`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/ErrorReporterAssertions.html#method-i-assert_error_reported
+[`assert_no_error_reported { block }`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/ErrorReporterAssertions.html#method-i-assert_no_error_reported
 
 You'll see the usage of some of these assertions in the next chapter.
 
@@ -1449,23 +1454,24 @@ generate system tests in two ways:
 
 1. **When scaffolding**, explicitly enable system tests:
 
-   ```bash
-   $ bin/rails generate scaffold Article title:string body:text --system-tests=true
-   ```
+    ```bash
+    $ bin/rails generate scaffold Article title:string body:text --system-tests=true
+    ```
 
 2. **Generate system tests independently** for critical features:
 
-   ```bash
-   $ bin/rails generate system_test articles
-   ```
+    ```bash
+    $ bin/rails generate system_test articles
+    ```
 
 Rails system tests are stored in the `test/system` directory in your
 application. To generate a system test skeleton, run the following command:
 
 ```bash
 $ bin/rails generate system_test users
-      invoke test_unit
-      create test/system/users_test.rb
+      invoke  test_unit
+      create    test/application_system_test_case.rb
+      create    test/system/users_test.rb
 ```
 
 Here's what a freshly generated system test looks like:
@@ -1491,7 +1497,7 @@ the default settings.
 Rails makes changing the default settings for system tests very simple. All the
 setup is abstracted away so you can focus on writing your tests.
 
-When you generate a new application or scaffold, an
+When you generate system tests, an
 `application_system_test_case.rb` file is created in the test directory. This is
 where all the configuration for your system tests should live.
 
@@ -1605,6 +1611,7 @@ command you should see:
 
 ```
       invoke  test_unit
+      create    test/application_system_test_case.rb
       create    test/system/articles_test.rb
 ```
 
@@ -2206,6 +2213,36 @@ You have been invited.
 Cheers!
 ```
 
+When testing multi-part emails with both HTML *and* text parts, use the
+[`assert_part`](https://api.rubyonrails.org/classes/ActionMailer/TestCase/Behavior.html#method-i-assert_part)
+assertion. When testing emails with HTML parts, use the assertions provided by [Rails::Dom::Testing](https://github.com/rails/rails-dom-testing).
+
+```ruby
+require "test_helper"
+
+class UserMailerTest < ActionMailer::TestCase
+  test "invite" do
+    # Create the email and store it for further assertions
+    email = UserMailer.create_invite("me@example.com",
+                                     "friend@example.com", Time.now)
+
+    # Test the body of the sent email's text part
+    assert_part :text, email do |text|
+      assert_includes text, "Hi friend@example.com"
+      assert_includes text, "You have been invited."
+      assert_includes text, "Cheers!"
+    end
+
+    # Test the body of the sent email's HTML part
+    assert_part :html, email do |html|
+      assert_dom html, "h1", text: "Hi friend@example.com"
+      assert_dom html, "p", text: "You have been invited."
+      assert_dom html, "p", text: "Cheers!"
+    end
+  end
+end
+```
+
 #### Configuring the Delivery Method for Test
 
 The line `ActionMailer::Base.delivery_method = :test` in
@@ -2650,6 +2687,25 @@ workers a test run should use:
 $ PARALLEL_WORKERS=15 bin/rails test
 ```
 
+#### Reproducing Flaky Parallel Tests
+
+Whether using processes or threads, tests are distributed to workers in
+round-robin order, so given the same `--seed` value and worker count, each
+worker runs the same sequence of tests. This makes flaky tests caused by
+parallel test interdependence easier to reproduce: re-run with the same seed
+and worker count to get the same distribution.
+
+This deterministic assignment can make test runtime uneven when one worker
+happens to get most of the slow tests. Enable `work_stealing` to allow idle
+workers to steal tests from busy workers, improving load balance at the cost
+of less reproducible test distribution:
+
+```ruby
+class ActiveSupport::TestCase
+  parallelize(workers: :number_of_processors, work_stealing: true)
+end
+```
+
 When parallelizing tests, Active Record automatically handles creating a
 database and loading the schema into the database for each process. The
 databases will be suffixed with the number corresponding to the worker. For
@@ -2748,6 +2804,9 @@ class ActiveSupport::TestCase
   parallelize threshold: 100
 end
 ```
+
+NOTE: Setting the `PARALLEL_WORKERS` environment variable will bypass the
+threshold check, enabling parallelization regardless of test count.
 
 Testing Eager Loading
 ---------------------

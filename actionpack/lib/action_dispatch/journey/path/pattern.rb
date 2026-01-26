@@ -6,6 +6,14 @@ module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
       class Pattern # :nodoc:
+        REGEXP_CACHE = {}
+
+        class << self
+          def dedup_regexp(regexp)
+            REGEXP_CACHE[regexp.source] ||= regexp
+          end
+        end
+
         attr_reader :ast, :names, :requirements, :anchored, :spec
 
         def initialize(ast, requirements, separators, anchored)
@@ -74,7 +82,7 @@ module ActionDispatch
           end
 
           def accept(node)
-            %r{\A#{visit node}\Z}
+            Pattern.dedup_regexp(%r{\A#{visit node}\Z})
           end
 
           def visit_CAT(node)
@@ -117,7 +125,7 @@ module ActionDispatch
         class UnanchoredRegexp < AnchoredRegexp # :nodoc:
           def accept(node)
             path = visit node
-            path == "/" ? %r{\A/} : %r{\A#{path}(?:\b|\Z|/)}
+            path == "/" ? %r{\A/} : Pattern.dedup_regexp(%r{\A#{path}(?:\b|\Z|/)})
           end
         end
 
@@ -176,7 +184,7 @@ module ActionDispatch
 
         def requirements_for_missing_keys_check
           @requirements_for_missing_keys_check ||= requirements.transform_values do |regex|
-            /\A#{regex}\Z/
+            Pattern.dedup_regexp(/\A#{regex}\Z/)
           end
         end
 
@@ -193,7 +201,7 @@ module ActionDispatch
                 node = node.to_sym
 
                 if @requirements.key?(node)
-                  re = /#{Regexp.union(@requirements[node])}|/
+                  re = Pattern.dedup_regexp(/#{Regexp.union(@requirements[node])}|/)
                   offsets.push((re.match("").length - 1) + offsets.last)
                 else
                   offsets << offsets.last

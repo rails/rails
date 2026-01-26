@@ -70,6 +70,23 @@ class ActiveStorage::Analyzer::ImageAnalyzer::ImageMagickTest < ActiveSupport::T
     end
   end
 
+  test "when image_magick is not installed" do
+    stub_const(ActiveStorage, :MINIMAGICK_AVAILABLE, false) do
+      blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+
+      output = StringIO.new
+      logger = ActiveSupport::Logger.new(output)
+
+      ActiveStorage.with(logger: logger) do
+        analyze_with_image_magick do
+          blob.analyze
+        end
+      end
+
+      assert_includes output.string, "Skipping image analysis because the mini_magick gem isn't installed"
+    end
+  end
+
   private
     def analyze_with_image_magick
       previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, :mini_magick

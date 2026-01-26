@@ -520,6 +520,23 @@ EXPECTED
     end
   end
 
+  def test_no_nesting_error_on_consecutive_encoding_calls
+    hash = { a: 1 }
+    assert_equal '{"a":1}', ActiveSupport::JSON.encode(hash)
+
+    # We simulate a circular reference
+    circular_array = []
+    circular_array << circular_array
+
+    assert_raise(SystemStackError, JSON::NestingError) do
+      ActiveSupport::JSON.encode(circular_array)
+    end
+
+    # We should be able to continue to generate JSONs as usual after
+    # encountering a JSON::NestingError
+    assert_equal '{"a":1}', ActiveSupport::JSON.encode(hash)
+  end
+
   private
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort

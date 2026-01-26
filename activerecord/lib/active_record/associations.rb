@@ -1030,9 +1030,9 @@ module ActiveRecord
       # associated records themselves, you can always do something along the lines of
       # <tt>person.tasks.each(&:destroy)</tt>.
       #
-      # == Deprecated Associations
+      # == Deprecated \Associations
       #
-      # Associations can be marked as deprecated by passing <tt>deprecated: true</tt>:
+      # \Associations can be marked as deprecated by passing <tt>deprecated: true</tt>:
       #
       #     has_many :posts, deprecated: true
       #
@@ -1843,7 +1843,7 @@ module ActiveRecord
         # The join table should not have a primary key or a model associated with it. You must manually generate the
         # join table with a migration such as this:
         #
-        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[8.1]
+        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[8.2]
         #     def change
         #       create_join_table :developers, :projects
         #     end

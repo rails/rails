@@ -11,6 +11,7 @@ require "active_support/test_case"
 require "active_support/core_ext/object/try"
 require "active_support/testing/autorun"
 require "image_processing/mini_magick"
+require "webmock/minitest"
 
 require "active_support/current_attributes/test_helper"
 require "active_record/testing/query_assertions"
@@ -22,6 +23,8 @@ ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 ActiveStorage::FixtureSet.file_fixture_path = File.expand_path("fixtures/files", __dir__)
+
+WebMock.disable!
 
 class ActiveSupport::TestCase
   self.file_fixture_path = ActiveStorage::FixtureSet.file_fixture_path
@@ -56,7 +59,7 @@ class ActiveSupport::TestCase
     def directly_upload_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", record: nil)
       file = file_fixture(filename)
       byte_size = file.size
-      checksum = ActiveStorage.checksum_implementation.file(file).base64digest
+      checksum = OpenSSL::Digest::MD5.file(file).base64digest
 
       create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record).tap do |blob|
         service = ActiveStorage::Blob.service.try(:primary) || ActiveStorage::Blob.service
@@ -129,37 +132,59 @@ class User < ActiveRecord::Base
   has_one_attached :avatar_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
   end
-  has_one_attached :avatar_with_preprocessed do |attachable|
-    attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
+  has_one_attached :avatar_with_immediate_variants do |attachable|
+    attachable.variant :immediate_thumb, resize_to_limit: [1, 1], process: :immediately
   end
-  has_one_attached :avatar_with_conditional_preprocessed do |attachable|
-    attachable.variant :proc, resize_to_limit: [2, 2],
-      preprocessed: ->(user) { user.name == "transform via proc" }
-    attachable.variant :method, resize_to_limit: [3, 3],
-      preprocessed: :should_preprocessed?
+  has_one_attached :avatar_with_later_variants do |attachable|
+    attachable.variant :later_thumb, resize_to_limit: [2, 2], process: :later
+  end
+  has_one_attached :avatar_with_lazy_variants do |attachable|
+    attachable.variant :lazy_thumb, resize_to_limit: [3, 3], process: :lazily
+    attachable.variant :default_thumb, resize_to_limit: [4, 4]
+  end
+  ActiveStorage.deprecator.silence do
+    has_one_attached :avatar_with_preprocessed do |attachable|
+      attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
+    end
+    has_one_attached :avatar_with_conditional_preprocessed do |attachable|
+      attachable.variant :proc, resize_to_limit: [2, 2],
+        preprocessed: ->(user) { user.name == "transform via proc" }
+      attachable.variant :method, resize_to_limit: [3, 3],
+        preprocessed: :should_preprocessed?
+    end
   end
   has_one_attached :intro_video
   has_one_attached :name_pronunciation_audio
+  has_one_attached :avatar_with_immediate_analysis, analyze: :immediately
+  has_one_attached :avatar_with_later_analysis, analyze: :later
+  has_one_attached :avatar_with_lazy_analysis, analyze: :lazily
 
   has_many_attached :highlights
   has_many_attached :vlogs, dependent: false, service: :local
   has_many_attached :highlights_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
   end
-  has_many_attached :highlights_with_preprocessed do |attachable|
-    attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
+  has_many_attached :highlights_with_immediate_variants do |attachable|
+    attachable.variant :immediate_thumb, resize_to_limit: [1, 1], process: :immediately
   end
-  has_many_attached :highlights_with_conditional_preprocessed do |attachable|
-    attachable.variant :proc, resize_to_limit: [2, 2],
-      preprocessed: ->(user) { user.name == "transform via proc" }
-    attachable.variant :method, resize_to_limit: [3, 3],
-      preprocessed: :should_preprocessed?
+  ActiveStorage.deprecator.silence do
+    has_many_attached :highlights_with_preprocessed do |attachable|
+      attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
+    end
+    has_many_attached :highlights_with_conditional_preprocessed do |attachable|
+      attachable.variant :proc, resize_to_limit: [2, 2],
+        preprocessed: ->(user) { user.name == "transform via proc" }
+      attachable.variant :method, resize_to_limit: [3, 3],
+        preprocessed: :should_preprocessed?
+    end
   end
   has_one_attached :resume do |attachable|
     attachable.variant :preview, resize_to_fill: [400, 400]
   end
-  has_one_attached :resume_with_preprocessing do |attachable|
-    attachable.variant :preview, resize_to_fill: [400, 400], preprocessed: true
+  ActiveStorage.deprecator.silence do
+    has_one_attached :resume_with_preprocessing do |attachable|
+      attachable.variant :preview, resize_to_fill: [400, 400], preprocessed: true
+    end
   end
 
   after_commit :increment_callback_counter

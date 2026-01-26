@@ -1,33 +1,26 @@
-*   Generalize `:rich_text_area` Capybara selector
+*   Install generator now detects which JS package manager to use when
+    installing javascript dependencies for the editor.
 
-    Prepare for more Action Text-capable WYSIWYG editors by making
-    `:rich_text_area` rely on the presence of `[role="textbox"]` and
-    `[contenteditable]` HTML attributes rather than a `<trix-editor>` element.
+    *David Lowenfels*
 
-    *Sean Doyle*
+*   Deprecate Trix-specific classes, modules, and methods
 
-## Rails 8.1.0.beta1 (September 04, 2025) ##
-
-*   Forward `fill_in_rich_text_area` options to Capybara
-
-    ```ruby
-    fill_in_rich_textarea "Rich text editor", id: "trix_editor_1", with: "Hello world!"
-    ```
+    * `ActionText::Attachable#to_trix_content_attachment_partial_path`. Override
+      `#to_editor_content_attachment_partial_path` instead.
+    * `ActionText::Attachments::TrixConversion`
+    * `ActionText::Content#to_trix_html`.
+    * `ActionText::RichText#to_trix_html`.
+    * `ActionText::TrixAttachment`
 
     *Sean Doyle*
 
-*   Attachment upload progress accounts for server processing time.
+*   Validate `RemoteImage` URLs at creation time.
 
-    *Jeremy Daer*
-
-*   The Trix dependency is now satisfied by a gem, `action_text-trix`, rather than vendored
-    files. This allows applications to bump Trix versions independently of Rails
-    releases. Effectively this also upgrades Trix to `>= 2.1.15`.
+    `RemoteImage.from_node` now validates the URL before creating a `RemoteImage` object, using the
+    same regex that `AssetUrlHelper` uses during rendering. URLs like "image.png" that would
+    previously have been passed to the asset pipeline and raised a `ActionView::Template::Error` are
+    rejected early, and gracefully fail by resulting in a `MissingAttachable`.
 
     *Mike Dalessio*
 
-*   Change `ActionText::RichText#embeds` assignment from `before_save` to `before_validation`
-
-    *Sean Doyle*
-
-Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actiontext/CHANGELOG.md) for previous changes.
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/actiontext/CHANGELOG.md) for previous changes.

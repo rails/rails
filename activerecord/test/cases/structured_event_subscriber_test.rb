@@ -53,12 +53,14 @@ module ActiveRecord
     end
 
     def test_basic_query_logging
-      assert_event_reported("active_record.sql", payload: {
+      event = assert_event_reported("active_record.sql", payload: {
         name: "Developer Load",
         sql: /SELECT .*?FROM .?developers.?/i,
       }) do
         Developer.all.load
       end
+
+      assert(event[:payload][:duration_ms] > 0)
     end
 
     def test_async_query

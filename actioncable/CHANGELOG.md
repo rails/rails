@@ -1,11 +1,6 @@
-## Rails 8.1.0.beta1 (September 04, 2025) ##
+*   Channel generator now detects which JS package manager to use when
+    installing javascript dependencies.
 
-*   Allow passing composite channels to `ActionCable::Channel#stream_for` – e.g. `stream_for [ group, group.owner ]`
+    *David Lowenfels*
 
-    *hey-leon*
-
-*   Allow setting nil as subscription connection identifier for Redis.
-
-    *Nguyen Nguyen*
-
-Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actioncable/CHANGELOG.md) for previous changes.
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/actioncable/CHANGELOG.md) for previous changes.

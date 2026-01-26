@@ -117,10 +117,6 @@ module Rails
             action_controller.forgery_protection_origin_check = true
           end
 
-          if respond_to?(:active_support)
-            active_support.to_time_preserves_timezone = :offset
-          end
-
           if respond_to?(:active_record)
             active_record.belongs_to_required_by_default = true
           end
@@ -338,10 +334,6 @@ module Rails
         when "8.0"
           load_defaults "7.2"
 
-          if respond_to?(:active_support)
-            active_support.to_time_preserves_timezone = :zone
-          end
-
           if respond_to?(:action_dispatch)
             action_dispatch.strict_freshness = true
           end
@@ -374,6 +366,35 @@ module Rails
 
           if respond_to?(:action_view)
             action_view.remove_hidden_field_autocomplete = true
+          end
+        when "8.2"
+          load_defaults "8.1"
+
+          if respond_to?(:action_controller)
+            action_controller.forgery_protection_verification_strategy = :header_only
+            action_controller.default_protect_from_forgery_with = :exception
+          end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.default_headers = {
+              "X-Frame-Options" => "SAMEORIGIN",
+              "X-Content-Type-Options" => "nosniff",
+              "X-Permitted-Cross-Domain-Policies" => "none",
+              "Referrer-Policy" => "strict-origin-when-cross-origin"
+            }
+          end
+
+          if respond_to?(:active_record)
+            active_record.postgresql_adapter_decode_bytea = true
+            active_record.postgresql_adapter_decode_money = true
+          end
+
+          if respond_to?(:active_storage)
+            active_storage.analyze = :immediately
+          end
+
+          if respond_to?(:active_job)
+            active_job.enqueue_after_transaction_commit = true
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
@@ -522,11 +543,11 @@ module Rails
       end
 
       def colorize_logging
-        ActiveSupport::LogSubscriber.colorize_logging
+        ActiveSupport.colorize_logging
       end
 
       def colorize_logging=(val)
-        ActiveSupport::LogSubscriber.colorize_logging = val
+        ActiveSupport.colorize_logging = val
         generators.colorize_logging = val
       end
 
@@ -548,10 +569,14 @@ module Rails
         elsif new_secret_key_base.is_a?(String) && new_secret_key_base.present?
           @secret_key_base = new_secret_key_base
         elsif new_secret_key_base
-          raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
+          raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String, got: #{new_secret_key_base.inspect}`"
         else
           raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `bin/rails credentials:edit`"
         end
+      end
+
+      def revision=(val)
+        Rails.application.revision = val
       end
 
       # Specifies what class to use to store the session. Possible values
@@ -663,13 +688,18 @@ module Rails
         def generate_local_secret
           key_file = root.join("tmp/local_secret.txt")
 
-          unless File.exist?(key_file)
-            random_key = SecureRandom.hex(64)
-            FileUtils.mkdir_p(key_file.dirname)
-            File.binwrite(key_file, random_key)
+          random_key = begin
+            File.binread(key_file)
+          rescue SystemCallError
+            nil
           end
 
-          File.binread(key_file)
+          return random_key if random_key.present?
+
+          random_key = SecureRandom.hex(64)
+          FileUtils.mkdir_p(key_file.dirname)
+          File.binwrite(key_file, random_key)
+          random_key
         end
     end
   end

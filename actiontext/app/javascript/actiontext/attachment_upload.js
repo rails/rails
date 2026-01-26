@@ -1,22 +1,24 @@
 import { DirectUpload, dispatchEvent } from "@rails/activestorage"
 
 export class AttachmentUpload {
-  constructor(attachment, element) {
+  constructor(attachment, element, file = attachment.file) {
     this.attachment = attachment
     this.element = element
-    this.directUpload = new DirectUpload(attachment.file, this.directUploadUrl, this)
+    this.directUpload = new DirectUpload(file, this.directUploadUrl, this)
+    this.file = file
   }
 
   start() {
-    this.directUpload.create(this.directUploadDidComplete.bind(this))
-    this.dispatch("start")
+    return new Promise((resolve, reject) => {
+      this.directUpload.create((error, attributes) => this.directUploadDidComplete(error, attributes, resolve, reject))
+      this.dispatch("start")
+    })
   }
 
   directUploadWillStoreFileWithXHR(xhr) {
     xhr.upload.addEventListener("progress", event => {
       // Scale upload progress to 0-90% range
       const progress = (event.loaded / event.total) * 90
-      this.attachment.setUploadProgress(progress)
       if (progress) {
         this.dispatch("progress", { progress: progress })
       }
@@ -39,7 +41,6 @@ export class AttachmentUpload {
       const responseProgress = Math.min(elapsed / estimatedResponseTime, 1)
       progress = 90 + (responseProgress * 9) // 90% to 99%
 
-      this.attachment.setUploadProgress(progress)
       this.dispatch("progress", { progress })
 
       // Continue until response arrives or we hit 99%
@@ -50,7 +51,6 @@ export class AttachmentUpload {
 
     // Stop simulation when response arrives
     xhr.addEventListener("loadend", () => {
-      this.attachment.setUploadProgress(100)
       this.dispatch("progress", { progress: 100 })
     })
 
@@ -59,7 +59,7 @@ export class AttachmentUpload {
 
   estimateResponseTime() {
     // Base estimate: 1 second for small files, scaling up for larger files
-    const fileSize = this.attachment.file.size
+    const fileSize = this.file.size
     const MB = 1024 * 1024
 
     if (fileSize < MB) {
@@ -71,11 +71,11 @@ export class AttachmentUpload {
     }
   }
 
-  directUploadDidComplete(error, attributes) {
+  directUploadDidComplete(error, attributes, resolve, reject) {
     if (error) {
-      this.dispatchError(error)
+      this.dispatchError(error, reject)
     } else {
-      this.attachment.setAttributes({
+      resolve({
         sgid: attributes.attachable_sgid,
         url: this.createBlobUrl(attributes.signed_id, attributes.filename)
       })
@@ -94,10 +94,10 @@ export class AttachmentUpload {
     return dispatchEvent(this.element, `direct-upload:${name}`, { detail })
   }
 
-  dispatchError(error) {
+  dispatchError(error, reject) {
     const event = this.dispatch("error", { error })
     if (!event.defaultPrevented) {
-      alert(error);
+      reject(error)
     }
   }
 

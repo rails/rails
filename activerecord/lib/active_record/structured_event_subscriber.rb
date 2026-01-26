@@ -12,7 +12,7 @@ module ActiveRecord
 
       emit_debug_event("active_record.strict_loading_violation",
         owner: owner.name,
-        class: reflection.klass.name,
+        class: reflection.polymorphic? ? nil : reflection.klass.name,
         name: reflection.name,
       )
     end
@@ -51,6 +51,7 @@ module ActiveRecord
         cached: payload[:cached],
         lock_wait: payload[:lock_wait],
         binds: binds,
+        duration_ms: event.duration.round(2),
       )
     end
     debug_only :sql

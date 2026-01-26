@@ -1,97 +1,115 @@
-*   Add structured events for Active Storage:
-    - `active_storage.service_upload`
-    - `active_storage.service_download`
-    - `active_storage.service_streaming_download`
-    - `active_storage.preview`
-    - `active_storage.service_delete`
-    - `active_storage.service_delete_prefixed`
-    - `active_storage.service_exist`
-    - `active_storage.service_url`
-    - `active_storage.service_mirror`
+*   Restore ADC when signing URLs with IAM for GCS
 
-    *Gannon McGibbon*
-
-*   Allow analyzers and variant transformer to be fully configurable
+    ADC was previously used for automatic authorization when signing URLs with IAM.
+    Now it is again, but the auth client is memoized so that new credentials are only
+    requested when the current ones expire. Other auth methods can now be used
+    instead by setting the authorization on `ActiveStorage::Service::GCSService#iam_client`.
 
     ```ruby
-    # ActiveStorage.analyzers can be set to an empty array:
-    config.active_storage.analyzers = []
-    # => ActiveStorage.analyzers = []
-
-    # or use custom analyzer:
-    config.active_storage.analyzers = [ CustomAnalyzer ]
-    # => ActiveStorage.analyzers = [ CustomAnalyzer ]
+    ActiveStorage::Blob.service.iam_client.authorization = Google::Auth::ImpersonatedServiceAccountCredentials.new(options)
     ```
 
-    If no configuration is provided, it will use the default analyzers.
+    This is safer than setting `Google::Apis::RequestOptions.default.authorization`
+    because it only applies to Active Storage and does not affect other Google API
+    clients.
 
-    You can also disable variant processor to remove warnings on startup about missing gems.
+    *Justin Malčić*
+
+*   Move responsibility for checksums storage service
+
+    The storage service should implement calculating and
+    validating checksums.
+
+    *Matt Pasquini*
+
+*   Analyze attachments before validation
+
+    Attachment metadata (width, height, duration, etc.) is now available for
+    model validations:
 
     ```ruby
-    config.active_storage.variant_processor = :disabled
+    class User < ApplicationRecord
+      has_one_attached :avatar
+
+      validate :validate_avatar_dimensions, if: -> { avatar.attached? }
+
+      def validate_avatar_dimensions
+        if avatar.metadata[:width] < 200 || avatar.metadata[:height] < 200
+          errors.add(:avatar, "must be at least 200x200")
+        end
+      end
+    end
     ```
 
-    *zzak*, *Alexandre Ruban*
+    Configure when analysis is performed:
 
-## Rails 8.1.0.beta1 (September 04, 2025) ##
-
-*   Remove deprecated `:azure` storage service.
-
-    *Rafael Mendonça França*
-
-*   Remove unnecessary calls to the GCP metadata server.
-
-    Calling Google::Auth.get_application_default triggers an explicit call to
-    the metadata server - given it was being called for significant number of
-    file operations, it can lead to considerable tail latencies and even metadata
-    server overloads. Instead, it's preferable (and significantly more efficient)
-    that applications use:
+    * `analyze: :immediately` (default in 8.2) - Analyze before validation
+    * `analyze: :later` - Analyze after upload from local IO or via background job
+    * `analyze: :lazily` - Skip automatic analysis; analyze on-demand
 
     ```ruby
-    Google::Apis::RequestOptions.default.authorization = Google::Auth.get_application_default(...)
+    has_one_attached :document, analyze: :later
+    has_many_attached :files, analyze: :lazily
+
+    # Or set the global default:
+    config.active_storage.analyze = :later
     ```
 
-    In the cases applications do not set that, the GCP libraries automatically determine credentials.
-
-    This also enables using credentials other than those of the associated GCP
-    service account like when using impersonation.
-
-    *Alex Coomans*
-
-*   Direct upload progress accounts for server processing time.
+    Direct uploads bypass the server so the file isn't locally available
+    for analysis. In this case, `:immediately` falls back to `:later`,
+    analyzing via background job after upload completes. Metadata isn't
+    available for validation; validate on the client side instead.
 
     *Jeremy Daer*
 
-*   Delegate `ActiveStorage::Filename#to_str` to `#to_s`
+*   Use local files for immediate variant processing and analysis
 
-    Supports checking String equality:
+    `process: :immediately` variants and blob analysis use local files
+    directly instead of re-downloading after upload.
+
+    Applies when attaching uploadable io, not when attaching an existing Blob.
+
+    *Jeremy Daer*
+
+*   Introduce `ActiveStorage::Attachment` upload callbacks
+
+    `after_upload` fires after an attachment's blob is uploaded, enabling
+    analysis and processing to run deterministically rather than assuming
+    after-commit callback execution ordering.
 
     ```ruby
-    filename = ActiveStorage::Filename.new("file.txt")
-    filename == "file.txt" # => true
-    filename in "file.txt" # => true
-    "file.txt" == filename # => true
+    ActiveStorage::Attachment.after_upload do
+      # Your custom logic here
+    end
     ```
 
-    *Sean Doyle*
+    *Jeremy Daer*
 
-*   Add support for alternative MD5 implementation through `config.active_storage.checksum_implementation`.
+*   Introduce immediate variants that are generated immediately on attachment
 
-    Also automatically degrade to using the slower `Digest::MD5` implementation if `OpenSSL::Digest::MD5`
-    is found to be disabled because of OpenSSL FIPS mode.
+    The new `process` option determines when variants are created:
 
-    *Matt Pasquini*, *Jean Boussier*
+    - `:lazily` (default) - Variants are created dynamically when requested
+    - `:later` (replaces `preprocessed: true`) - Variants are created after attachment, in a background job
+    - `:immediately` (new) - Variants are created along with the attachment
 
-*   A Blob will no longer autosave associated Attachment.
+    ```ruby
+    has_one_attached :avatar do |attachable|
+      attachable.variant :thumb, resize_to_limit: [100, 100], process: :immediately
+    end
+    ```
 
-    This fixes an issue where a record with an attachment would have
-    its dirty attributes reset, preventing your `after commit` callbacks
-    on that record to behave as expected.
+    The `preprocessed: true` option is deprecated in favor of `process: :later`.
 
-    Note that this change doesn't require any changes on your application
-    and is supposed to be internal. Active Storage Attachment will continue
-    to be autosaved (through a different relation).
+    *Tom Rossi*
 
-    *Edouard-chin*
+*   Make `Variant#processed?` and `VariantWithRecord#processed?` public so apps can check variant generation status.
 
-Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activestorage/CHANGELOG.md) for previous changes.
+    *Tom Rossi*
+
+*   `ActiveStorage::Blob#open` can now be used without passing a block, like `Tempfile.open`. When using this form the
+    returned temporary file must be unlinked manually.
+
+    *Bart de Water*
+
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activestorage/CHANGELOG.md) for previous changes.

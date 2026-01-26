@@ -134,6 +134,23 @@ class RequestIP < BaseRequestTest
     assert_match(/HTTP_CLIENT_IP="2\.2\.2\.2"/, e.message)
   end
 
+  test "remote ip spoof detection with both headers" do
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "1.1.1.1",
+                           "HTTP_FORWARDED"       => "for=2.2.2.2, for=3.3.3.3",
+                           "HTTP_CLIENT_IP"       => "127.0.0.1"
+    e = assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
+      request.remote_ip
+    }
+    assert_match(/IP spoofing attack/, e.message)
+    assert_match(/HTTP_X_FORWARDED_FOR="1\.1\.1\.1"/, e.message)
+    if Rack.release < "3"
+      assert_match(/HTTP_FORWARDED="for=1\.1\.1\.1"/, e.message)
+    else
+      assert_match(/HTTP_FORWARDED="for=2\.2\.2\.2, for=3\.3\.3\.3"/, e.message)
+    end
+    assert_match(/HTTP_CLIENT_IP="127\.0\.0\.1"/, e.message)
+  end
+
   test "remote ip with spoof detection disabled" do
     request = stub_request "HTTP_X_FORWARDED_FOR" => "1.1.1.1",
                            "HTTP_CLIENT_IP"       => "2.2.2.2",
@@ -153,19 +170,19 @@ class RequestIP < BaseRequestTest
     request = stub_request "REMOTE_ADDR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
     assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7334", request.remote_ip
 
-    request = stub_request "REMOTE_ADDR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329,2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+    request = stub_request "REMOTE_ADDR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7335,2001:0db8:85a3:0000:0000:8a2e:0370:7334"
     assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7334", request.remote_ip
 
     request = stub_request "REMOTE_ADDR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
-                           "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329"
-    assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
+                           "HTTP_X_FORWARDED_FOR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7335"
+    assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7335", request.remote_ip
 
     request = stub_request "REMOTE_ADDR" => "::1",
-                           "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329"
-    assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
+                           "HTTP_X_FORWARDED_FOR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7335"
+    assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7335", request.remote_ip
 
-    request = stub_request "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329,unknown"
-    assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7335,unknown"
+    assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7335", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "[fe80:0000:0000:0000:0202:b3ff:fe1e:8329]:3000,unknown"
     assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
@@ -173,14 +190,14 @@ class RequestIP < BaseRequestTest
     request = stub_request "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329,::1"
     assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
 
-    request = stub_request "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329, ::1, ::1"
-    assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7335, ::1, ::1"
+    assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7335", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "unknown,::1"
     assert_equal "::1", request.remote_ip
 
-    request = stub_request "HTTP_X_FORWARDED_FOR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7334, fe80:0000:0000:0000:0202:b3ff:fe1e:8329, ::1, fc00::, fc01::, fdff"
-    assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7334, 2001:0db8:85a3:0000:0000:8a2e:0370:7335, ::1, fc00::, fc01::, fdff"
+    assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7335", request.remote_ip
 
     request = stub_request "HTTP_X_FORWARDED_FOR" => "FE00::, FDFF::"
     assert_equal "FE00::", request.remote_ip
@@ -190,21 +207,21 @@ class RequestIP < BaseRequestTest
   end
 
   test "remote ip v6 spoof detection" do
-    request = stub_request "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329",
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7335",
                            "HTTP_CLIENT_IP"       => "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
     e = assert_raise(ActionDispatch::RemoteIp::IpSpoofAttackError) {
       request.remote_ip
     }
     assert_match(/IP spoofing attack/, e.message)
-    assert_match(/HTTP_X_FORWARDED_FOR="fe80:0000:0000:0000:0202:b3ff:fe1e:8329"/, e.message)
+    assert_match(/HTTP_X_FORWARDED_FOR="2001:0db8:85a3:0000:0000:8a2e:0370:7335"/, e.message)
     assert_match(/HTTP_CLIENT_IP="2001:0db8:85a3:0000:0000:8a2e:0370:7334"/, e.message)
   end
 
   test "remote ip v6 spoof detection disabled" do
-    request = stub_request "HTTP_X_FORWARDED_FOR" => "fe80:0000:0000:0000:0202:b3ff:fe1e:8329",
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7335",
                            "HTTP_CLIENT_IP"       => "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
                            :ip_spoofing_check     => false
-    assert_equal "fe80:0000:0000:0000:0202:b3ff:fe1e:8329", request.remote_ip
+    assert_equal "2001:0db8:85a3:0000:0000:8a2e:0370:7335", request.remote_ip
   end
 
   test "remote ip with user specified trusted proxies String" do
@@ -1483,6 +1500,38 @@ class RequestSession < BaseRequestTest
 
     assert_not_predicate(ActionDispatch::Request::Session.find(@request), :enabled?)
     assert_instance_of(ActionDispatch::Request::Session::Options, ActionDispatch::Request::Session::Options.find(@request))
+  end
+end
+
+class RequestBearerToken < BaseRequestTest
+  test "bearer_token returns token from Authorization header" do
+    request = stub_request("HTTP_AUTHORIZATION" => "Bearer my-secret-token")
+    assert_equal "my-secret-token", request.bearer_token
+  end
+
+  test "bearer_token returns nil when no Authorization header" do
+    request = stub_request
+    assert_nil request.bearer_token
+  end
+
+  test "bearer_token returns nil when Authorization header is not Bearer" do
+    request = stub_request("HTTP_AUTHORIZATION" => "Basic dXNlcjpwYXNzd29yZA==")
+    assert_nil request.bearer_token
+  end
+
+  test "bearer_token handles empty Authorization header" do
+    request = stub_request("HTTP_AUTHORIZATION" => "")
+    assert_nil request.bearer_token
+  end
+
+  test "bearer_token handles Bearer with no token" do
+    request = stub_request("HTTP_AUTHORIZATION" => "Bearer ")
+    assert_nil request.bearer_token
+  end
+
+  test "bearer_token returns token via X-HTTP_AUTHORIZATION header" do
+    request = stub_request("X-HTTP_AUTHORIZATION" => "Bearer my-secret-token")
+    assert_equal "my-secret-token", request.bearer_token
   end
 end
 

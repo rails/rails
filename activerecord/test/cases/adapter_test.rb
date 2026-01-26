@@ -517,6 +517,37 @@ module ActiveRecord
       @connection.disable_query_cache!
     end
 
+    def test_empty_all_tables
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.empty_all_tables
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+    end
+
+    def test_empty_all_tables_with_query_cache
+      @connection.enable_query_cache!
+
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.empty_all_tables
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+      @connection.disable_query_cache!
+    end
+
     # test resetting sequences in odd tables in PostgreSQL
     if ActiveRecord::Base.lease_connection.respond_to?(:reset_pk_sequence!)
       require "models/movie"
@@ -636,6 +667,17 @@ module ActiveRecord
         assert_not_predicate @connection, :active?
       end
 
+      test "active? on a 'clean' recently-used but now-failed connection detects but doesn't fix the problem" do
+        remote_disconnect @connection
+        @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Clean did not verify / fix the connection
+        assert_not_predicate @connection, :active?
+
+        # And nor did the above active? check
+        assert_not_predicate @connection, :active?
+      end
+
       test "verify! restores after remote disconnection" do
         remote_disconnect @connection
         @connection.verify!
@@ -671,9 +713,6 @@ module ActiveRecord
         remote_disconnect @connection
 
         @connection.clean! # this simulates a fresh checkout from the pool
-
-        # Clean did not verify / fix the connection
-        assert_not_predicate @connection, :active?
 
         # Because the query cannot be retried, and we (mistakenly) believe the
         # connection is still good, the query will fail. This is what we want,

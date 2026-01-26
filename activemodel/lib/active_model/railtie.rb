@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_model"
 require "rails"
+require "active_model"
 
 module ActiveModel
   class Railtie < Rails::Railtie # :nodoc:

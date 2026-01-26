@@ -16,7 +16,7 @@ module Rails
       include AppName
       include BundleHelper
 
-      NODE_LTS_VERSION = "20.11.1"
+      NODE_LTS_VERSION = "22.21.1"
       BUN_VERSION = "1.0.1"
 
       JAVASCRIPT_OPTIONS = %w( importmap bun webpack esbuild rollup )
@@ -293,7 +293,7 @@ module Rails
       end
 
       def web_server_gemfile_entry # :doc:
-        GemfileEntry.new "puma", ">= 5.0", "Use the Puma web server [https://github.com/puma/puma]"
+        GemfileEntry.new "puma", ">= 7.1", "Use the Puma web server [https://github.com/puma/puma]"
       end
 
       def asset_pipeline_gemfile_entry
@@ -536,6 +536,10 @@ module Rails
         using_js_runtime? && %w[bun].include?(options[:javascript])
       end
 
+      def using_css_bundling?
+        css_gemfile_entry&.name == "cssbundling-rails"
+      end
+
       def capture_command(command, pattern = nil)
         output = `#{command}`
         if pattern
@@ -627,6 +631,9 @@ module Rails
 
           packages << "python-is-python3"
         end
+
+        # ActiveStorage preview support
+        packages << "libvips" unless skip_active_storage?
 
         packages.compact.sort
       end
@@ -765,6 +772,19 @@ module Rails
 
       def jruby?
         defined?(JRUBY_VERSION)
+      end
+
+      def version_manager_ruby_version
+        return ENV["RBENV_VERSION"] if ENV["RBENV_VERSION"]
+        return ENV["rvm_ruby_string"] if ENV["rvm_ruby_string"]
+
+        version = if RUBY_ENGINE == "ruby"
+          Gem.ruby_version.to_s.sub(/\.([a-zA-Z])/, '-\1')
+        else
+          RUBY_ENGINE_VERSION
+        end
+
+        "#{RUBY_ENGINE}-#{version}"
       end
 
       def empty_directory_with_keep_file(destination, config = {})

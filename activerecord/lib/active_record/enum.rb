@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
@@ -318,7 +317,7 @@ module ActiveRecord
 
               # scope :not_active, -> { where.not(status: 0) }
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
-              klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
+              klass.scope "not_#{value_method_name}", -> { where(predicate_builder[name, value, :is_distinct_from]) }
             end
           end
       end
@@ -349,10 +348,10 @@ module ActiveRecord
 
           values.each_value do |value|
             case value
-            when String, Integer, true, false, nil
+            when String, Integer, Float, true, false, nil
               # noop
             else
-              raise ArgumentError, "Enum values #{values} must be only booleans, integers, symbols or strings, got: #{value.class}"
+              raise ArgumentError, "Enum values #{values} must be only booleans, integers, floats, symbols or strings, got: #{value.class}"
             end
           end
 

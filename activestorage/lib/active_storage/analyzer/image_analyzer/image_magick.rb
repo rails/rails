@@ -3,7 +3,9 @@
 begin
   gem "mini_magick"
   require "mini_magick"
+  ActiveStorage::MINIMAGICK_AVAILABLE = true # :nodoc:
 rescue LoadError => error
+  ActiveStorage::MINIMAGICK_AVAILABLE = false # :nodoc:
   raise error unless error.message.include?("mini_magick")
 end
 
@@ -17,6 +19,11 @@ module ActiveStorage
 
     private
       def read_image
+        unless MINIMAGICK_AVAILABLE
+          logger.error "Skipping image analysis because the mini_magick gem isn't installed"
+          return {}
+        end
+
         download_blob_to_tempfile do |file|
           image = instrument("mini_magick") do
             MiniMagick::Image.new(file.path)

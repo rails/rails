@@ -6,6 +6,10 @@ require "rake/testtask"
 task default: :test
 
 ENV["RAILS_MINITEST_PLUGIN"] = "true"
+if ENV["BUILDKITE"]
+  ENV["RAILS_TEST_PWD"] = File.expand_path("../../", __FILE__)
+  ENV["RAILS_TEST_EXECUTABLE"] = "bin/test"
+end
 
 desc "Run all unit tests"
 task test: "test:isolated"
@@ -21,7 +25,10 @@ namespace :test do
       "test/application/test_test.rb" => 25,
       "test/application/configuration_test.rb" => 106,
       "test/generators/app_generator_test.rb" => 150,
-      "test/application/rake/dbs_test.rb" => 82,
+      "test/application/rake/dbs_test.rb" => 300,
+      "test/application/rake/dbs_schema_test.rb" => 500,
+      "test/application/rake/dbs_setup_test.rb" => 350,
+      "test/application/rake/dbs_postgresql_test.rb" => 150,
       "test/application/rake_test.rb" => 33,
       "test/generators/plugin_generator_test.rb" => 37,
       "test/railties/engine_test.rb" => 39,
@@ -157,6 +164,12 @@ namespace :test do
   ensure
     output_file&.close
     output_file&.unlink
+
+    # Clear ARGV to prevent Minitest from trying to parse rake options like --trace
+    # at exit. The abstract_unit.rb requires active_support/testing/autorun which
+    # calls Minitest.autorun, setting up an at_exit hook that would fail on
+    # unrecognized options.
+    ARGV.clear
   end
 end
 

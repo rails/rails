@@ -55,6 +55,7 @@ module ActiveStorage
 
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers,  default: []
+  mattr_accessor :analyze,    default: :later
 
   mattr_accessor :paths, default: {}
 
@@ -361,15 +362,6 @@ module ActiveStorage
   mattr_accessor :resolve_model_to_route, default: :rails_storage_redirect
 
   mattr_accessor :track_variants, default: false
-
-  singleton_class.attr_accessor :checksum_implementation
-  @checksum_implementation = OpenSSL::Digest::MD5
-  begin
-    @checksum_implementation.hexdigest("test")
-  rescue # OpenSSL may have MD5 disabled
-    require "digest/md5"
-    @checksum_implementation = Digest::MD5
-  end
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 

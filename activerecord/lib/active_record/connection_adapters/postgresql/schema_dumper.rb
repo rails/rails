@@ -42,6 +42,7 @@ module ActiveRecord
                 types.sort.each do |name, values|
                   stream.puts "  create_enum #{relation_name(name).inspect}, #{values.inspect}"
                 end
+                stream.puts
               end
             end
           end
@@ -153,6 +154,8 @@ module ActiveRecord
           def relation_name(name)
             if @dump_schemas.size == 1
               name
+            elsif name.include?(".")
+              name  # Already schema-qualified, don't add another prefix
             else
               "#{schema_name}.#{name}"
             end

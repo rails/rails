@@ -43,6 +43,16 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_pluralize_with_i18n_fallbacks_to_en
+    original_fallbacks = I18n.fallbacks
+    I18n.fallbacks = I18n::Locale::Fallbacks.new(custom: :en)
+
+    assert_equal "applicants", ActiveSupport::Inflector.pluralize("applicant", :custom)
+    assert_equal "days", ActiveSupport::Inflector.pluralize("day", :custom)
+  ensure
+    I18n.fallbacks = original_fallbacks
+  end
+
   test "uncountability of ascii word" do
     word = "HTTP"
     ActiveSupport::Inflector.inflections do |inflect|
@@ -275,6 +285,16 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("json_html_api", ActiveSupport::Inflector.underscore("JSONHTMLAPI"))
   end
 
+  def test_overlapping_acronyms
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.acronym "USD"
+      inflect.acronym "USDC"
+    end
+
+    assert_equal "usd", "USD".underscore
+    assert_equal "usdc", "USDC".underscore
+  end
+
   def test_underscore
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(underscore, ActiveSupport::Inflector.underscore(camel))
@@ -428,6 +448,11 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("lax roundtrip to sfo", capitalize: false))
     assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("Lax Roundtrip To Sfo"))
     assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("Lax Roundtrip To Sfo", capitalize: false))
+  end
+
+  def test_humanize_with_international_characters
+    assert_equal("Áéíóú", ActiveSupport::Inflector.humanize("áÉÍÓÚ"))
+    assert_equal("Абвгде", ActiveSupport::Inflector.humanize("аБВГДЕ"))
   end
 
   def test_constantize

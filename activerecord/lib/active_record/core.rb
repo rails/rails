@@ -856,7 +856,7 @@ module ActiveRecord
         self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
       end
 
-      class InspectionMask < DelegateClass(::String)
+      class InspectionMask < ActiveSupport::Delegation::DelegateClass(::String)
         def pretty_print(pp)
           pp.text __getobj__
         end

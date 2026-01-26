@@ -148,7 +148,6 @@ module ActiveRecord
       end
 
       attr_reader :connection, :state, :savepoint_name, :isolation_level, :user_transaction
-      attr_accessor :written
 
       delegate :invalidate!, :invalidated?, to: :@state
 

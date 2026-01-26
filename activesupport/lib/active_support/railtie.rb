@@ -82,6 +82,7 @@ module ActiveSupport
     initializer "active_support.set_filter_parameters" do |app|
       config.after_initialize do
         ActiveSupport.filter_parameters += Rails.application.config.filter_parameters
+        ActiveSupport.event_reporter.reload_payload_filter
       end
     end
 
@@ -116,10 +117,6 @@ module ActiveSupport
       require "active_support/core_ext/time/zones"
       Time.zone_default = Time.find_zone!(app.config.time_zone)
       config.eager_load_namespaces << TZInfo
-    end
-
-    initializer "active_support.to_time_preserves_timezone" do |app|
-      ActiveSupport.to_time_preserves_timezone = app.config.active_support.to_time_preserves_timezone
     end
 
     # Sets the default week start

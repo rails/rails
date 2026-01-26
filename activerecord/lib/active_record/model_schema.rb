@@ -517,7 +517,7 @@ module ActiveRecord
       # when just after creating a table you want to populate it with some default
       # values, e.g.:
       #
-      #  class CreateJobLevels < ActiveRecord::Migration[8.1]
+      #  class CreateJobLevels < ActiveRecord::Migration[8.2]
       #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id
@@ -640,9 +640,8 @@ module ActiveRecord
           end
         end
 
-        def type_for_column(connection, column)
-          # TODO: Remove the need for a connection after we release 8.1.
-          type = column.fetch_cast_type(connection)
+        def type_for_column(column)
+          type = column.cast_type
 
           if immutable_strings_by_default && type.respond_to?(:to_immutable_string)
             type = type.to_immutable_string

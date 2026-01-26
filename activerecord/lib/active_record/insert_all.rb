@@ -34,12 +34,11 @@ module ActiveRecord
 
       @scope_attributes = relation.scope_for_create.except(@model.inheritance_column)
       @keys |= @scope_attributes.keys
-      @keys = @keys.to_set
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
 
-      @unique_by = find_unique_index_for(@unique_by)
+      @unique_by = find_unique_index_for(@unique_by) if @on_duplicate != :raise
 
       configure_on_duplicate_update_logic
       ensure_valid_options_for_connection!
@@ -59,7 +58,7 @@ module ActiveRecord
     end
 
     def primary_keys
-      Array(@model.schema_cache.primary_keys(model.table_name))
+      Array(@connection.schema_cache.primary_keys(model.table_name))
     end
 
     def skip_duplicates?
@@ -71,10 +70,14 @@ module ActiveRecord
     end
 
     def map_key_with_value
+      timestamps_to_merge = model.all_timestamp_attributes_in_model if record_timestamps?
+
       inserts.map do |attributes|
-        attributes = attributes.stringify_keys
         attributes.merge!(@scope_attributes)
-        attributes.reverse_merge!(timestamps_for_create) if record_timestamps?
+
+        timestamps_to_merge&.each do |attribute|
+          attributes[attribute] = connection.high_precision_current_timestamp if !attributes.key?(attribute)
+        end
 
         verify_attributes(attributes)
 
@@ -91,9 +94,9 @@ module ActiveRecord
     # TODO: Consider renaming this method, as it only conditionally extends keys, not always
     def keys_including_timestamps
       @keys_including_timestamps ||= if record_timestamps?
-        keys + model.all_timestamp_attributes_in_model
+        (keys | model.all_timestamp_attributes_in_model).sort!
       else
-        keys
+        keys.sort!
       end
     end
 
@@ -132,7 +135,7 @@ module ActiveRecord
         end
 
         if update_only.present?
-          @updatable_columns = Array(update_only)
+          @updatable_columns = Array(update_only).map(&:to_s)
           @on_duplicate = :update
         elsif custom_update_sql_provided?
           @update_sql = on_duplicate
@@ -167,7 +170,7 @@ module ActiveRecord
       end
 
       def unique_indexes
-        @model.schema_cache.indexes(model.table_name).select(&:unique)
+        @connection.schema_cache.indexes(model.table_name).select(&:unique)
       end
 
       def ensure_valid_options_for_connection!
@@ -204,7 +207,7 @@ module ActiveRecord
 
 
       def verify_attributes(attributes)
-        if keys_including_timestamps != attributes.keys.to_set
+        if keys_including_timestamps != attributes.keys.sort!
           raise ArgumentError, "All objects being inserted must have the same keys"
         end
       end
@@ -216,10 +219,6 @@ module ActiveRecord
                              "SQL) called: #{value}. " \
                              "Known-safe values can be passed " \
                              "by wrapping them in Arel.sql()."
-      end
-
-      def timestamps_for_create
-        model.all_timestamp_attributes_in_model.index_with(connection.high_precision_current_timestamp)
       end
 
       class Builder # :nodoc:
@@ -237,11 +236,12 @@ module ActiveRecord
 
         def values_list
           types = extract_types_for(keys_including_timestamps)
+          pks = primary_keys
 
           values_list = insert_all.map_key_with_value do |key, value|
             if Arel::Nodes::SqlLiteral === value
               value
-            elsif primary_keys.include?(key) && value.nil?
+            elsif pks.include?(key) && value.nil?
               connection.default_insert_value(model.columns_hash[key])
             else
               ActiveModel::Type::SerializeCastValue.serialize(type = types[key], type.cast(value))
@@ -286,7 +286,7 @@ module ActiveRecord
 
           model.timestamp_attributes_for_update_in_model.filter_map do |column_name|
             if touch_timestamp_attribute?(column_name)
-              "#{column_name}=(CASE WHEN (#{updatable_columns.map(&block).join(" AND ")}) THEN #{model.quoted_table_name}.#{column_name} ELSE #{connection.high_precision_current_timestamp} END),"
+              "#{column_name}=(CASE WHEN (#{updatable_columns.map(&block).join(" AND ")}) THEN #{model.quoted_table_name}.#{column_name} ELSE #{connection.high_precision_current_timestamp} END), "
             end
           end.join
         end

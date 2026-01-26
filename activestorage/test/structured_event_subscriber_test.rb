@@ -10,76 +10,92 @@ module ActiveStorage
     include ActiveSupport::Testing::EventReporterAssertions
 
     test "service_upload" do
-      assert_event_reported("active_storage.service_upload", payload: { key: /.*/, checksum: /.*/ }) do
+      event = assert_event_reported("active_storage.service_upload", payload: { key: /.*/, checksum: /.*/ }) do
         User.create!(name: "Test", avatar: { io: StringIO.new, filename: "avatar.jpg" })
       end
+
+      assert(event[:payload][:duration_ms] > 0)
     end
 
     test "service_download" do
       blob = create_blob(filename: "avatar.jpg")
       user = User.create!(name: "Test", avatar: blob)
 
-      assert_event_reported("active_storage.service_download", payload: { key: user.avatar.key }) do
+      event = assert_event_reported("active_storage.service_download", payload: { key: user.avatar.key }) do
         user.avatar.download
       end
+
+      assert(event[:payload][:duration_ms] > 0)
     end
 
     test "service_streaming_download" do
       blob = create_blob(filename: "avatar.jpg")
       user = User.create!(name: "Test", avatar: blob)
 
-      assert_event_reported("active_storage.service_streaming_download", payload: { key: user.avatar.key }) do
+      event = assert_event_reported("active_storage.service_streaming_download", payload: { key: user.avatar.key }) do
         user.avatar.download { }
       end
+
+      assert(event[:payload][:duration_ms] > 0)
     end
 
     test "preview" do
       blob = create_file_blob(filename: "cropped.pdf", content_type: "application/pdf")
       user = User.create!(name: "Test", avatar: blob)
 
-      assert_event_reported("active_storage.preview", payload: { key: user.avatar.key }) do
+      event = assert_event_reported("active_storage.preview", payload: { key: user.avatar.key }) do
         user.avatar.preview(resize_to_limit: [640, 280]).processed
       end
+
+      assert(event[:payload][:duration_ms] > 0)
     end
 
     test "service_delete" do
       blob = create_blob(filename: "avatar.jpg")
       user = User.create!(name: "Test", avatar: blob)
 
-      assert_event_reported("active_storage.service_delete", payload: { key: user.avatar.key }) do
+      event = assert_event_reported("active_storage.service_delete", payload: { key: user.avatar.key }) do
         user.avatar.purge
       end
+
+      assert(event[:payload][:duration_ms] > 0)
     end
 
     test "service_delete_prefixed" do
       blob = create_file_blob(fixture: "colors.bmp")
       user = User.create!(name: "Test", avatar: blob)
 
-      assert_event_reported("active_storage.service_delete_prefixed", payload: { prefix: /variants\/.*/ }) do
+      event = assert_event_reported("active_storage.service_delete_prefixed", payload: { prefix: /variants\/.*/ }) do
         user.avatar.purge
       end
+
+      assert(event[:payload][:duration_ms] > 0)
     end
 
     test "service_exist" do
       blob = create_blob(filename: "avatar.jpg")
       user = User.create!(name: "Test", avatar: blob)
 
-      with_debug_event_reporting do
+      event = with_debug_event_reporting do
         assert_event_reported("active_storage.service_exist", payload: { key: /.*/, exist: true }) do
           user.avatar.service.exist? user.avatar.key
         end
       end
+
+      assert(event[:payload][:duration_ms] > 0)
     end
 
     test "service_url" do
       blob = create_blob(filename: "avatar.jpg")
       user = User.create!(name: "Test", avatar: blob)
 
-      with_debug_event_reporting do
+      event = with_debug_event_reporting do
         assert_event_reported("active_storage.service_url", payload: { key: /.*/, url: /.*/ }) do
           user.avatar.url
         end
       end
+
+      assert(event[:payload][:duration_ms] > 0)
     end
 
     test "service_mirror" do
@@ -98,11 +114,13 @@ module ActiveStorage
       service = ActiveStorage::Service.configure :mirror, config
       service.upload blob.key, StringIO.new(blob.download), checksum: blob.checksum
 
-      with_debug_event_reporting do
+      event = with_debug_event_reporting do
         assert_event_reported("active_storage.service_mirror", payload: { key: /.*/, url: /.*/ }) do
           service.mirror blob.key, checksum: blob.checksum
         end
       end
+
+      assert(event[:payload][:duration_ms] > 0)
     end
   end
 end

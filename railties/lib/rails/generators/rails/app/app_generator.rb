@@ -196,6 +196,12 @@ module Rails
       master_key_generator.add_master_key_file_silently
     end
 
+    def env
+      return if options[:pretend] || options[:dummy_app]
+
+      template "env", ".env"
+    end
+
     def credentials
       return if options[:pretend] || options[:dummy_app]
 
@@ -255,9 +261,10 @@ module Rails
     end
 
     def system_test
-      empty_directory_with_keep_file "test/system"
-
-      template "test/application_system_test_case.rb"
+      if devcontainer? && depends_on_system_test?
+        empty_directory_with_keep_file "test/system"
+        template "test/application_system_test_case.rb"
+      end
     end
 
     def tmp
@@ -283,6 +290,7 @@ module Rails
         dev: options[:dev],
         node: using_node?,
         app_name: app_name,
+        app_folder: File.basename(app_path),
         skip_solid: options[:skip_solid],
         pretend: options[:pretend]
       }
@@ -425,7 +433,8 @@ module Rails
         build(:master_key)
       end
 
-      def create_credentials
+      def create_creds
+        build(:env)
         build(:credentials)
         build(:credentials_diff_enroll)
       end
@@ -474,7 +483,7 @@ module Rails
       end
 
       def create_system_test_files
-        build(:system_test) if depends_on_system_test?
+        build(:system_test)
       end
 
       def create_storage_files

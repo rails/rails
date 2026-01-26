@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "rails"
 require "global_id/railtie"
 require "active_job"
 
@@ -19,7 +20,7 @@ module ActiveJob
     end
 
     initializer "active_job.custom_serializers" do |app|
-      ActiveSupport.on_load(:active_job) do
+      ActiveSupport.on_load(:active_job_arguments) do
         custom_serializers = app.config.active_job.custom_serializers
         ActiveJob::Serializers.add_serializers custom_serializers
       end
@@ -29,6 +30,11 @@ module ActiveJob
       ActiveSupport.on_load(:active_job) do
         ActiveSupport.on_load(:active_record) do
           ActiveJob::Base.include EnqueueAfterTransactionCommit
+
+          if app.config.active_job.key?(:enqueue_after_transaction_commit)
+            ActiveJob::Base.enqueue_after_transaction_commit =
+              app.config.active_job.enqueue_after_transaction_commit
+          end
         end
       end
     end

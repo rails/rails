@@ -718,6 +718,26 @@ module ActiveRecord
         ActiveRecord::Base.clear_cache!
       end
 
+      def test_remove_foreign_key_on_7_0
+        connection.create_table(:sub_testings) do |t|
+          t.references :testing, foreign_key: true, type: :bigint
+        end
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) do
+          def up
+            remove_foreign_key :sub_testings, column: "testing_id"
+          end
+        end
+
+        ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+
+        foreign_keys = @connection.foreign_keys("sub_testings")
+        assert_equal 0, foreign_keys.size
+      ensure
+        connection.drop_table(:sub_testings, if_exists: true)
+        ActiveRecord::Base.clear_cache!
+      end
+
       private
         def precision_implicit_default
           if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
