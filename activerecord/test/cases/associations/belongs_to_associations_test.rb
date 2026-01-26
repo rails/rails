@@ -269,6 +269,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_type_mismatch
     assert_raise(ActiveRecord::AssociationTypeMismatch) { Account.find(1).firm = 1 }
     assert_raise(ActiveRecord::AssociationTypeMismatch) { Account.find(1).firm = Project.find(1) }
+    assert_raise(ActiveRecord::AssociationTypeMismatch) { Comment.find(1).author = 1 }
   end
 
   def test_raises_type_mismatch_with_namespaced_class

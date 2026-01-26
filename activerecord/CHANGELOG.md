@@ -1,3 +1,7 @@
+*   Better error message when assigning a non-model to a polymorphic association.
+
+    *Christian Schmidt*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before
