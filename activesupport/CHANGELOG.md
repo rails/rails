@@ -4,7 +4,7 @@
     ActiveSupport::Inflector.inflections(:en) do |inflect|
       inflect.acronym "USD"
       inflect.acronym "USDC"
-    end 
+    end
 
     "USDC".underscore # => "usdc"
     ```
