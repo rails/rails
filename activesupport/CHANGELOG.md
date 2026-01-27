@@ -1,3 +1,16 @@
+*   Fix inflections to better handle overlapping acronyms.
+
+    ```ruby
+    ActiveSupport::Inflector.inflections(:en) do |inflect|
+      inflect.acronym "USD"
+      inflect.acronym "USDC"
+    end
+
+    "USDC".underscore # => "usdc"
+    ```
+
+    *Said Kaldybaev*
+
 *   Add `ActiveSupport::CombinedConfiguration` to offer interchangeable access to configuration provided by
     either ENV or encrypted credentials. Used by Rails to first look at ENV, then look in encrypted credentials,
     but can be configured separately with any number of API-compatible backends in a first-look order.
