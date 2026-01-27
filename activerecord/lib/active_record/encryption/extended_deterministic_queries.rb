@@ -28,6 +28,7 @@ module ActiveRecord
         ActiveRecord::Relation.prepend(RelationQueries)
         ActiveRecord::Base.include(CoreQueries)
         ActiveRecord::Encryption::EncryptedAttributeType.prepend(ExtendedEncryptableType)
+        ActiveModel::Attributes::Normalization::NormalizedValueType.prepend(ExtendedEncryptableType)
       end
 
       # When modifying this file run performance tests in
@@ -88,7 +89,7 @@ module ActiveRecord
 
             def additional_values_for(value, type)
               type.previous_types.collect do |additional_type|
-                AdditionalValue.new(value, additional_type)
+                AdditionalValue.new(type.cast(value), additional_type)
               end
             end
         end

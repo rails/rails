@@ -89,6 +89,20 @@ class EncryptedBookWithSerializedSecondBinary < ActiveRecord::Base
   serialize :logo, coder: JSON
 end
 
+class EncryptedBookWithNormalizedName < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  encrypts :name, deterministic: true
+  normalizes :name, with: ->(value) { value.to_s.downcase }
+end
+
+class EncryptedBookWithNormalizedNameReversed < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  normalizes :name, with: ->(value) { value.to_s.downcase }
+  encrypts :name, deterministic: true
+end
+
 class EncryptedBookWithCustomCompressor < ActiveRecord::Base
   module CustomCompressor
     def self.deflate(value)

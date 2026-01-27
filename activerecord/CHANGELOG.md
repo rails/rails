@@ -1,3 +1,10 @@
+*   Fix `extend_queries` with `support_unencrypted_data` when combined with `normalizes`.
+
+    When using `encrypts` with `normalizes` on the same attribute, queries now correctly
+    include the plaintext value, allowing records with unencrypted data to be found.
+
+    *Péter Bence Márföldi*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before
