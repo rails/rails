@@ -1,3 +1,13 @@
+*   Pass sql query to query log tags.
+
+    ```ruby
+    config.active_record.query_log_tags = [
+      sql_length: ->(context) { context[:sql].length }
+    ]
+    ```
+
+    *fatkodima*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before

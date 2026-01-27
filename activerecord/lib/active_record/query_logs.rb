@@ -141,7 +141,7 @@ module ActiveRecord
       end
 
       def call(sql, connection) # :nodoc:
-        comment = self.comment(connection)
+        comment = self.comment(sql, connection)
 
         if comment.blank?
           sql
@@ -194,16 +194,16 @@ module ActiveRecord
 
         # Returns an SQL comment +String+ containing the query log tags.
         # Sets and returns a cached comment if <tt>cache_query_log_tags</tt> is +true+.
-        def comment(connection)
+        def comment(sql, connection)
           if cache_query_log_tags
-            self.cached_comment ||= uncached_comment(connection)
+            self.cached_comment ||= uncached_comment(sql, connection)
           else
-            uncached_comment(connection)
+            uncached_comment(sql, connection)
           end
         end
 
-        def uncached_comment(connection)
-          content = tag_content(connection)
+        def uncached_comment(sql, connection)
+          content = tag_content(sql, connection)
 
           if content.present?
             "/*#{escape_sql_comment(content)}*/"
@@ -223,8 +223,9 @@ module ActiveRecord
           comment
         end
 
-        def tag_content(connection)
+        def tag_content(sql, connection)
           context = ActiveSupport::ExecutionContext.to_h
+          context[:sql] = sql
           context[:connection] ||= connection
 
           pairs = @handlers.filter_map do |(key, handler)|
