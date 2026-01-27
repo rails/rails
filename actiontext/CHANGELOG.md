@@ -1,4 +1,4 @@
-*   Make `ActionText::Attachable#read_attribute_for_serialization` public
+*   Make `ActionText::Attachable#read_attribute_for_serialization` public.
 
     *Sally Hall*
 
