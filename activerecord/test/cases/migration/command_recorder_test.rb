@@ -279,6 +279,24 @@ module ActiveRecord
         end
       end
 
+      if ActiveRecord::Base.lease_connection.supports_index_comments?
+        def test_invert_change_index_comment
+          assert_raises(ActiveRecord::IrreversibleMigration) do
+            @recorder.inverse_of :change_index_comment, ["index_name", "comment"]
+          end
+        end
+
+        def test_invert_change_index_comment_with_from_and_to
+          change = @recorder.inverse_of :change_index_comment, ["index_name", from: "old_value", to: "new_value"]
+          assert_equal [:change_index_comment, ["index_name", from: "new_value", to: "old_value"]], change
+        end
+
+        def test_invert_change_index_comment_with_from_and_to_with_nil
+          change = @recorder.inverse_of :change_index_comment, ["index_name", from: nil, to: "new_value"]
+          assert_equal [:change_index_comment, ["index_name", from: "new_value", to: nil]], change
+        end
+      end
+
       def test_invert_change_column_null
         add = @recorder.inverse_of :change_column_null, [:table, :column, true]
         assert_equal [:change_column_null, [:table, :column, false]], add

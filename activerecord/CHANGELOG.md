@@ -1,3 +1,11 @@
+*   Add `change_index_comment` and improve PostgreSQL index comment support.
+
+    This change introduces a dedicated API for adding, updating, and removing
+    index comments, making index comments reversible in migrations and consistent
+    with existing table and column comment APIs.
+
+    *Tobias Egli*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before

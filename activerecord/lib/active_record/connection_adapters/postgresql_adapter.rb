@@ -271,6 +271,10 @@ module ActiveRecord
         true
       end
 
+      def supports_index_comments?
+        true
+      end
+
       def supports_savepoints?
         true
       end
