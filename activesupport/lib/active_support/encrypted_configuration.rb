@@ -6,6 +6,7 @@ require "active_support/ordered_options"
 require "active_support/core_ext/object/inclusion"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/object/blank"
 
 module ActiveSupport
   # = Encrypted Configuration
@@ -58,43 +59,47 @@ module ActiveSupport
       @options = nil
     end
 
-    # Find the referenced key
-    # Raises +KeyError+ if not found.
+    # Find singular or nested keys.
+    # Raises +KeyError+ if not found or blank.
+    #
+    # Given configuration:
+    #   db_host: "db.example.com"
+    #   db_port: ""
+    #   database:
+    #     host: "db.example.com"
     #
     # Examples:
-    #
-    #   require(:db_host)         # => ENV.fetch("DB_HOST")
-    #   require(:database, :host) # => ENV.fetch("DATABASE__HOST")
+    #   require(:db_host)         # => "db.example.com"
+    #   require(:database, :host) # => "db.example.com"
+    #   require(:missing)         # => KeyError
+    #   require(:db_port)         # => KeyError (blank values are treated as missing)
     def require(*key)
-      value = dig(*key)
-
-      if !value.nil?
-        value
-      else
-        raise KeyError, "Missing key: #{key.inspect}"
-      end
+      dig(*key).presence || raise(KeyError, "Missing key: #{key.inspect}")
     end
 
-    # Find a upcased and double-underscored-joined string-version of the +key+ in ENV.
-    # Returns nil if the key isn't found or the value of default when passed If default is
-    # a block, it's called first.
+    # Find singular or nested keys.
+    # Returns +nil+ if the key isn't found.
+    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or blank value.
+    #
+    # Given configuration:
+    #   db_host: "db.example.com"
+    #   db_port: ""
+    #   database:
+    #     host: "db.example.com"
     #
     # Examples:
-    #
-    #   config.option(:db_host)                                    # => ENV["DB_HOST"]
-    #   config.option(:database, :host)                            # => ENV["DATABASE__HOST"]
-    #   config.option(:database, :host, default: "missing")        # => ENV.fetch("DATABASE__HOST", "missing")
-    #   config.option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST", default.call)
+    #   option(:db_host)                              # => "db.example.com"
+    #   option(:database, :host)                      # => "db.example.com"
+    #   option(:missing)                              # => nil
+    #   option(:missing, default: "localhost")        # => "localhost"
+    #   option(:missing, default: -> { "localhost" }) # => "localhost"
+    #   option(:db_port, default: 5432)               # => 5432 (blank values use default)
     def option(*key, default: nil)
-      value = dig(*key)
-
-      if !value.nil?
-        value
-      elsif default.respond_to?(:call)
-        default.call
-      else
-        default
-      end
+      dig(*key).presence || if default.respond_to?(:call)
+                              default.call
+                            else
+                              default
+                            end
     end
 
     # Reload the cached values in case any of them changed or new ones were added during runtime.

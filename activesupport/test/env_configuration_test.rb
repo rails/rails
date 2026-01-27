@@ -76,6 +76,26 @@ class EnvConfigurationTest < ActiveSupport::TestCase
     end
   end
 
+  test "require blank key raises key error" do
+    set_env("BLANK" => "") do
+      assert_raises(KeyError) do
+        @config.require(:blank)
+      end
+    end
+  end
+
+  test "option blank key returns default" do
+    set_env("BLANK" => "") do
+      assert_equal "default", @config.option(:blank, default: "default")
+    end
+  end
+
+  test "option blank key without default returns nil" do
+    set_env("BLANK" => "") do
+      assert_nil @config.option(:blank)
+    end
+  end
+
   test "inspect does not show ENV variable values but shows keys as symbols" do
     secret = "something_secret"
     set_env("SECRET_TOKEN" => secret) do

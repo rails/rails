@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/enumerable"
+require "active_support/core_ext/object/blank"
 
 module ActiveSupport
   # Allows for configuration keys to be pulled from multiple backends. Keys are pulled in first-found order from
@@ -13,34 +14,60 @@ module ActiveSupport
       @configurations = configurations
     end
 
-    # Find singular or nested keys across all backends. If no backend holds the key, it raises +KeyError+.
+    # Find singular or nested keys across all backends.
+    # Raises +KeyError+ if no backend holds the key or if the value is blank.
     #
-    # Examples of Rails-configured access:
+    # Given ENV:
+    #   DB_HOST: "env.example.com"
+    #   DATABASE__HOST: "env.example.com"
     #
-    #   require(:db_host)         # => ENV["DB_HOST"] || Rails.app.credentials.require(:db_host)
-    #   require(:database, :host) # => ENV["DATABASE__HOST"] || Rails.app.credentials.require(:database, :host)
+    # And credentials:
+    #   database:
+    #     host: "creds.example.com"
+    #   api_key: "secret"
+    #   api_host: ""
+    #
+    # Examples:
+    #   require(:db_host)         # => "env.example.com" (from ENV)
+    #   require(:database, :host) # => "env.example.com" (ENV overrides credentials)
+    #   require(:api_key)         # => "secret" (from credentials)
+    #   require(:missing)         # => KeyError
+    #   require(:api_host)        # => KeyError (blank values are treated as missing)
     def require(*key)
       @configurations.each do |config|
         value = config.option(*key)
-        return value unless value.nil?
+        return value if value.present?
       end
 
       raise KeyError, "Missing key: #{key.inspect}"
     end
 
-    # Find singular or nested keys across all backends. If no backend holds the key, +nil+ is returned.
-    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key.
+    # Find singular or nested keys across all backends.
+    # Returns +nil+ if no backend holds the key.
+    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or blank value.
+    #
+    # Given ENV:
+    #   DB_HOST: "env.example.com"
+    #   DATABASE__HOST: "env.example.com"
+    #
+    # And credentials:
+    #   database:
+    #     host: "creds.example.com"
+    #   api_key: "secret"
+    #   api_host: ""
     #
     # Examples:
-    #
-    #   option(:db_host)                             # => ENV["DB_HOST"] || Rails.app.credentials.option(:db_host)
-    #   option(:database, :host)                     # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host)
-    #   option(:database, :host, default: "missing") # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host) || "missing"
-    #   option(:database, :host, default: -> { "missing" }) # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host) || "missing"
+    #   option(:db_host)                              # => "env.example.com" (from ENV)
+    #   option(:database, :host)                      # => "env.example.com" (ENV overrides credentials)
+    #   option(:api_key)                              # => "secret" (from credentials)
+    #   option(:missing)                              # => nil
+    #   option(:missing, default: "localhost")        # => "localhost"
+    #   option(:missing, default: -> { "localhost" }) # => "localhost"
+    #   option(:api_host, default: "api.example.com") # => "api.example.com" (blank values use default)
     def option(*key, default: nil)
       @configurations.each do |config|
         value = config.option(*key)
-        return value unless value.nil?
+        return value if value.present?
       end
 
       default.respond_to?(:call) ? default.call : default

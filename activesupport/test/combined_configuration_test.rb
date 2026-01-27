@@ -24,7 +24,7 @@ class CombinedConfigurationTest < ActiveSupport::TestCase
       available_in_all: "cred",
       available_in_dotenv_and_cred: "cred",
       only_in_credentials: "cred",
-      false: false,
+      blank_in_credentials: "",
       nested: {
         available_in_all: "cred",
         available_in_dotenv_and_cred: "cred",
@@ -115,14 +115,6 @@ class CombinedConfigurationTest < ActiveSupport::TestCase
     assert_equal "dotenv", @combined.require(:nested, :available_in_dotenv_and_cred)
   end
 
-  test "require key with a false value" do
-    assert_equal false, @combined.require(:false)
-  end
-
-  test "option key with a false value" do
-    assert_equal false, @combined.option(:false)
-  end
-
   test "require with missing key raises key error" do
     assert_raise(KeyError, match: "Missing key: [:gone]") do
       @combined.require(:gone)
@@ -133,6 +125,20 @@ class CombinedConfigurationTest < ActiveSupport::TestCase
     assert_raise(KeyError, match: "Missing key: [:gone, :missing]") do
       @combined.require(:gone, :missing)
     end
+  end
+
+  test "require with blank value in credentials raises key error" do
+    assert_raise(KeyError, match: "Missing key: [:blank_in_credentials]") do
+      @combined.require(:blank_in_credentials)
+    end
+  end
+
+  test "option with blank value in credentials returns default" do
+    assert_equal "default", @combined.option(:blank_in_credentials, default: "default")
+  end
+
+  test "option with blank value in credentials without default returns nil" do
+    assert_nil @combined.option(:blank_in_credentials)
   end
 
   test "inspect does not show configuration values but shows keys as symbols" do
