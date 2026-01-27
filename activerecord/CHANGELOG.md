@@ -1,3 +1,13 @@
+*   Pass sql query to query log tags.
+
+    ```ruby
+    config.active_record.query_log_tags = [
+      sql_length: ->(context) { context[:sql].length }
+    ]
+    ```
+
+    *fatkodima*
+
 *   Speedup `ActiveRecord::Migration.maintain_test_schema!` when using multiple databases.
 
     Previously, Active Record would inneficiently connect twice to each databases, now it only
