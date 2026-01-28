@@ -7,6 +7,7 @@ require "active_support/core_ext/object/try"
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/postgresql/column"
+require "active_record/connection_adapters/postgresql/configuration_parameters"
 require "active_record/connection_adapters/postgresql/database_statements"
 require "active_record/connection_adapters/postgresql/explain_pretty_printer"
 require "active_record/connection_adapters/postgresql/oid"
@@ -202,6 +203,7 @@ module ActiveRecord
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
+      include PostgreSQL::ConfigurationParameters
 
       def supports_bulk_alter?
         true
@@ -443,7 +445,7 @@ module ActiveRecord
       end
 
       def set_standard_conforming_strings
-        query_command("SET standard_conforming_strings = on", "SCHEMA")
+        ensure_parameter("standard_conforming_strings", "on")
       end
 
       def supports_ddl_transactions?
@@ -1029,11 +1031,13 @@ module ActiveRecord
         def configure_connection
           super
 
-          if @config[:encoding]
-            @raw_connection.set_client_encoding(@config[:encoding])
+          set_client_encoding
+          ensure_parameter("client_min_messages", @config[:min_messages] || "warning") do |value|
+            self.client_min_messages = value
           end
-          self.client_min_messages = @config[:min_messages] || "warning"
-          self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
+          ensure_parameter("search_path", @config[:schema_search_path] || @config[:schema_order]) do |value|
+            self.schema_search_path = value
+          end
 
           unless ActiveRecord.db_warnings_action.nil?
             @raw_connection.set_notice_receiver do |result|
@@ -1047,19 +1051,18 @@ module ActiveRecord
           # Use standard-conforming strings so we don't have to do the E'...' dance.
           set_standard_conforming_strings
 
-          variables = @config.fetch(:variables, {}).stringify_keys
-
           # Set interval output format to ISO 8601 for ease of parsing by ActiveSupport::Duration.parse
-          query_command("SET intervalstyle = iso_8601", "SCHEMA")
+          ensure_parameter("intervalstyle", "iso_8601")
 
           # SET statements from :variables config hash
           # https://www.postgresql.org/docs/current/static/sql-set.html
+          variables = @config.fetch(:variables, {}).stringify_keys
           variables.map do |k, v|
             if v == ":default" || v == :default
               # Sets the value to the global or compile default
-              query_command("SET SESSION #{k} TO DEFAULT", "SCHEMA")
+              set_parameter(k, :default)
             elsif !v.nil?
-              query_command("SET SESSION #{k} TO #{quote(v)}", "SCHEMA")
+              ensure_parameter(k, v)
             end
           end
 
@@ -1082,13 +1085,28 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection
           # to return TIMESTAMP WITH ZONE types in UTC.
           if default_timezone == :utc
-            intent = QueryIntent.new(adapter: self, processed_sql: "SET SESSION timezone TO 'UTC'", name: "SCHEMA")
-            intent.execute!
-            intent.finish
+            # For simplicity, ignore UTC aliases (e.g., UCT, Zulu, GMT, GMT0, ...).
+            is_utc = parameter_set_to_any?("timezone", %w[UTC Etc/UTC])
+            set_parameter("timezone", "UTC") unless is_utc
           else
-            intent = QueryIntent.new(adapter: self, processed_sql: "SET SESSION timezone TO DEFAULT", name: "SCHEMA")
-            intent.execute!
-            intent.finish
+            set_parameter("timezone", :default)
+          end
+        end
+
+        def set_client_encoding
+          return unless @config[:encoding]
+
+          normalized_encoding = @config[:encoding].upcase
+
+          # For simplicity, handle only the common 'unicode' alias.
+          # See https://www.postgresql.org/docs/current/multibyte.html#CHARSET-TABLE
+          normalized_encoding = "UTF8" if normalized_encoding == "UNICODE"
+
+          # PostgreSQL accepts loose input forms like 'utf@8'. We assume
+          # canonical form for simplicity.
+          # See https://github.com/postgres/postgres/blob/master/src/common/encnames.c
+          if @raw_connection.get_client_encoding != normalized_encoding
+            @raw_connection.set_client_encoding(normalized_encoding)
           end
         end
 
