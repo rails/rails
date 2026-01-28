@@ -64,6 +64,13 @@ module ActiveModel
       forced_changes[attr_name] = fetch_value(attr_name)
     end
 
+    def merge_attributes_changes!(target_attributes)
+      self.class.new(target_attributes).changes.each do |attr_name, value|
+        @attributes.write_from_user(attr_name, value.last)
+      end
+      self
+    end
+
     private
       attr_reader :attributes
 
