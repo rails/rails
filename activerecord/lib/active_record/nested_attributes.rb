@@ -461,9 +461,9 @@ module ActiveRecord
 
       # Assigns the given attributes to the collection association.
       #
-      # Hashes with an <tt>:id</tt> value matching an existing associated record
-      # will update that record. Hashes without an <tt>:id</tt> value will build
-      # a new record for the association. Hashes with a matching <tt>:id</tt>
+      # Hashes with values matching the primary key of an existing associated record
+      # will update that record. Hashes without matching primary keys will build
+      # a new record for the association. Hashes with a matching primary key
       # value and a <tt>:_destroy</tt> key set to a truthy value will mark the
       # matched record for destruction.
       #
@@ -508,12 +508,27 @@ module ActiveRecord
         end
 
         association = association(association_name)
+        klass = association.klass
+        primary_key = klass.primary_key
 
         existing_records = if association.loaded?
           association.target
         else
-          attribute_ids = attributes_collection.filter_map { |a| a["id"] || a[:id] }
-          attribute_ids.empty? ? [] : association.scope.where(association.klass.primary_key => attribute_ids)
+          attribute_ids = attributes_collection.filter_map do |attributes|
+            if explicit_id = attributes["id"] || attributes[:id]
+              Array(explicit_id)
+            else
+              Array(primary_key).map do |pk|
+                if association.reflection.foreign_key == pk
+                  association.owner.id
+                else
+                  attributes[pk.to_s] || attributes[pk.to_sym]
+                end
+              end.flatten
+            end
+          end
+          attribute_ids.flatten! unless klass.composite_primary_key?
+          attribute_ids.empty? ? [] : association.scope.where(primary_key => attribute_ids)
         end
 
         records = attributes_collection.map do |attributes|
@@ -522,16 +537,29 @@ module ActiveRecord
           end
           attributes = attributes.with_indifferent_access
 
-          if attributes["id"].blank?
+          id = if explicit_id = attributes["id"] || attributes[:id]
+            Array(explicit_id)
+          else
+            Array(primary_key).map do |pk|
+              if association.reflection.foreign_key == pk
+                association.owner.id
+              else
+                attributes[pk.to_s] || attributes[pk.to_sym]
+              end
+            end.flatten
+          end
+          id = id.first if id.one?
+
+          if Array(id).any?(&:blank?)
             unless reject_new_record?(association_name, attributes)
               association.reader.build(attributes.except(*UNASSIGNABLE_KEYS))
             end
-          elsif existing_record = find_record_by_id(association.klass, existing_records, attributes["id"])
+          elsif existing_record = find_record_by_id(klass, existing_records, id)
             unless call_reject_if(association_name, attributes)
               # Make sure we are operating on the actual object which is in the association's
               # proxy_target array (either by finding it, or adding it if not found)
               # Take into account that the proxy_target may have changed due to callbacks
-              target_record = find_record_by_id(association.klass, association.target, attributes["id"])
+              target_record = find_record_by_id(klass, association.target, id)
               if target_record
                 existing_record = target_record
               else
@@ -542,7 +570,7 @@ module ActiveRecord
               existing_record
             end
           else
-            raise_nested_attributes_record_not_found!(association_name, attributes["id"])
+            raise_nested_attributes_record_not_found!(association_name, id)
           end
         end
 

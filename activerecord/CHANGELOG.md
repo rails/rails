@@ -1,3 +1,33 @@
+*   `accepts_nested_attributes_for_collection_association` will use the class's `primary_key` definition as the way to find existing objects and determine create/update/destroy behavior, rather than relying on the presence on an `id` field. This change will better support composite keys by allowing the generation of forms with all the necessary attributes to construct the object's intended primary key before it is persisted.
+
+        # Given the following class, existing records and attribute payload
+        def Membership < ActiveRecord::Base
+            belongs_to :person
+            belongs_to :group
+            self.primary_key = [:person_id, :group_id]
+            validates :group, uniqueness: { scope: :person_id }
+        end
+
+        Membership(person_id: 2, group_id: 1, active: false)
+        Membership(person_id: 3, group_id: 1, active: false)
+
+        assign_nested_attributes_for_collection_association(:membership, {
+          '1' => { person_id: '1', group_id: '1', _destroy: false }, # intended create
+          '2' => { person_id: '2', group_id: '1', active: true, _destroy: false }, # intended update
+          '3' => { person_id: '3', group_id: '1', _destroy: true } # intended delete
+        })
+        
+        # before
+        1. Will create the membership with person_id: 1, group_id: 1
+        1. Will attempt to create membership with person_id: 2, group_id: 1 due to missing "id" field, fail uniqueness validation, and roll back the transaction
+        1. would fail to delete membership with person_id: 3 group_id: 1 because 
+        no attribute named "id" provided.
+        
+        # after
+        Creates, updates, and deletes records as intended.
+
+    *aseroff*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before
