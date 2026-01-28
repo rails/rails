@@ -1,3 +1,33 @@
+*   Fix `strict_loading!(false)` to override the `strict_loading: true` option
+    in association macros.
+
+    Previously, when `strict_loading: true` was set on an association (e.g.,
+    `has_many :comments, strict_loading: true`), calling `strict_loading!(false)`
+    on the owner record had no effect - the association would still raise
+    `StrictLoadingViolationError` when lazily loaded.
+
+    Now, explicitly setting `strict_loading!(false)` on the owner takes precedence
+    over the association macro's `strict_loading: true` setting. This also fixes
+    strict loading violations on fixture records, which have `@strict_loading = false`
+    set explicitly.
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      has_many :comments, strict_loading: true
+    end
+
+    post = Post.first
+    post.comments.to_a # => StrictLoadingViolationError (association macro setting)
+
+    post.strict_loading!(false)
+    post.comments.to_a # => OK (explicit setting takes precedence)
+    ```
+
+    Fixes #56373.
+    Fixes #56014.
+
+    *Yuji Teshima*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before

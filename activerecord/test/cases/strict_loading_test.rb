@@ -499,6 +499,16 @@ class StrictLoadingTest < ActiveRecord::TestCase
     assert_nothing_raised { developer.strict_loading_mentor }
   end
 
+  def test_disabling_strict_loading_belongs_to_relation
+    mentor = Mentor.create!(name: "Mentor")
+
+    Developer.first.update_column(:mentor_id, mentor.id)
+    developer = Developer.first
+    developer.strict_loading!(false)
+
+    assert_nothing_raised { developer.strict_loading_mentor }
+  end
+
   def test_does_not_raise_on_eager_loading_a_belongs_to_relation_if_strict_loading_by_default
     with_strict_loading_by_default(Developer) do
       mentor = Mentor.create!(name: "Mentor")
@@ -537,6 +547,14 @@ class StrictLoadingTest < ActiveRecord::TestCase
   def test_does_not_raise_on_eager_loading_a_strict_loading_has_one_relation
     Ship.first.update_column(:developer_id, Developer.first.id)
     developer = Developer.includes(:strict_loading_ship).first
+
+    assert_nothing_raised { developer.strict_loading_ship }
+  end
+
+  def test_disabling_strict_loading_has_one_relation
+    Ship.first.update_column(:developer_id, Developer.first.id)
+    developer = Developer.first
+    developer.strict_loading!(false)
 
     assert_nothing_raised { developer.strict_loading_ship }
   end
@@ -778,5 +796,46 @@ class StrictLoadingFixturesTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::StrictLoadingViolationError) do
       StrictZine.first.interests.to_a
     end
+  end
+end
+
+class StrictLoadingAssociationMacroTest < ActiveRecord::TestCase
+  fixtures :developers, :ships
+
+  test "strict_loading!(false) disables strict loading on belongs_to associations with strict_loading: true" do
+    mentor = Mentor.create!(name: "Mentor")
+
+    Developer.first.update_column(:mentor_id, mentor.id)
+    developer = Developer.first
+    developer.strict_loading!(false)
+
+    assert_nothing_raised { developer.strict_loading_mentor }
+  end
+
+  test "strict_loading!(false) disables strict loading on has_one associations with strict_loading: true" do
+    Ship.first.update_column(:developer_id, Developer.first.id)
+    developer = Developer.first
+    developer.strict_loading!(false)
+
+    assert_nothing_raised { developer.strict_loading_ship }
+  end
+
+  test "strict_loading!(false) disables strict loading on has_many associations with strict_loading: true" do
+    developer = Developer.first
+    AuditLog.create!(developer: developer, message: "test")
+    developer.strict_loading!(false)
+
+    assert_nothing_raised { developer.strict_loading_opt_audit_logs.to_a }
+  end
+
+  test "strict loading violations are ignored on fixtures when strict_loading is set via association macro" do
+    # Fixtures have @strict_loading = false set explicitly, so they should ignore
+    # the association macro's strict_loading: true setting
+    mentor = Mentor.create!(name: "Mentor")
+    Developer.where(id: developers(:david).id).update_all(mentor_id: mentor.id)
+
+    developer = developers(:david)
+
+    assert_nothing_raised { developer.strict_loading_mentor }
   end
 end

@@ -286,8 +286,20 @@ module ActiveRecord
 
           return unless owner.validation_context.nil?
 
+          # Check owner's explicit strict_loading setting (tri-state)
+          # If explicitly set to false, it takes precedence over association macro setting
+          strict_loading = owner.instance_variable_get(:@strict_loading)
+          unless strict_loading.nil?
+            return false if strict_loading == false
+            # strict_loading is explicitly true, but association macro can override it
+            return reflection.strict_loading? if reflection.options.key?(:strict_loading)
+            return !owner.strict_loading_n_plus_one_only?
+          end
+
+          # @strict_loading is undefined, use association macro setting if present
           return reflection.strict_loading? if reflection.options.key?(:strict_loading)
 
+          # Fall back to strict_loading_by_default
           owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
         end
 
