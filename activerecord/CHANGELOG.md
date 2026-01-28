@@ -1,3 +1,18 @@
+*   Fix duplicate `after_commit` callback registration for `dependent: :destroy_async` in class inheritance.
+
+    When a parent class and its subclass both declared associations with
+    `dependent: :destroy_async`, the `after_commit` callback that processes
+    async destroy jobs was being registered multiple times, causing
+    `DestroyAssociationAsyncJob` to be enqueued multiple times for the same
+    destruction.
+
+    This fix ensures the callback is only registered once in the parent class
+    and properly inherited by subclasses.
+
+    Fixes #56610.
+
+    *Yuji Teshima*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before

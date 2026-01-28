@@ -22,3 +22,11 @@ class BookDestroyAsyncWithScopedTags < ActiveRecord::Base
   has_many :taggings, as: :taggable, class_name: "Tagging"
   has_many :tags, -> { where name: "Der be rum" }, through: :taggings, dependent: :destroy_async
 end
+
+# Subclass of BookDestroyAsync with its own destroy_async association
+# Used to test that after_commit callback is not registered multiple times
+# when both parent and child classes have destroy_async associations
+class BookDestroyAsyncWithTags < BookDestroyAsync
+  has_many :taggings, as: :taggable, class_name: "Tagging"
+  has_many :tags, through: :taggings, dependent: :destroy_async
+end
