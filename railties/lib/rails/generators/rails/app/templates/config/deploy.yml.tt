@@ -23,6 +23,9 @@ servers:
 # proxy:
 #   ssl: true
 #   host: app.example.com
+<% if skip_thruster? -%>
+#   app_port: 3000
+<% end -%>
 
 # Where you keep your container images.
 registry:
