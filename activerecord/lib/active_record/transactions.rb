@@ -424,13 +424,13 @@ module ActiveRecord
     #
     # This method is available within the context of an ActiveRecord::Base
     # instance.
-    def with_transaction_returning_status # :nodoc:
+    def with_transaction_returning_status(requires_new: false) # :nodoc:
       self.class.with_connection do |connection|
         connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
           status = nil
           ensure_finalize = !connection.transaction_open?
 
-          connection.transaction do
+          connection.transaction(requires_new: requires_new) do
             add_to_transaction(ensure_finalize || has_transactional_callbacks?)
             remember_transaction_record_state
 
