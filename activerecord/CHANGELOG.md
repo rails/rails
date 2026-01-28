@@ -16,13 +16,12 @@
           '2' => { person_id: '2', group_id: '1', active: true, _destroy: false }, # intended update
           '3' => { person_id: '3', group_id: '1', _destroy: true } # intended delete
         })
-        
+
         # before
         1. Will create the membership with person_id: 1, group_id: 1
         1. Will attempt to create membership with person_id: 2, group_id: 1 due to missing "id" field, fail uniqueness validation, and roll back the transaction
-        1. would fail to delete membership with person_id: 3 group_id: 1 because 
-        no attribute named "id" provided.
-        
+        1. would fail to delete membership with person_id: 3 group_id: 1 because no attribute named "id" provided.
+
         # after
         Creates, updates, and deletes records as intended.
 
