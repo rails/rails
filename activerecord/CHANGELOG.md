@@ -1,3 +1,7 @@
+*   Bump the minimum PostgreSQL version to 10.0.
+
+    *Yasuo Honda*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before
