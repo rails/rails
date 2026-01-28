@@ -81,7 +81,7 @@ module ActiveRecord
 
         verify_attributes(attributes)
 
-        keys_including_timestamps.map do |key|
+        sorted_keys.map do |key|
           yield key, attributes[key]
         end
       end
@@ -91,9 +91,8 @@ module ActiveRecord
       @record_timestamps
     end
 
-    # TODO: Consider renaming this method, as it only conditionally extends keys, not always
-    def keys_including_timestamps
-      @keys_including_timestamps ||= if record_timestamps?
+    def sorted_keys
+      @sorted_keys ||= if record_timestamps?
         (keys | model.all_timestamp_attributes_in_model).sort!
       else
         keys.sort!
@@ -207,7 +206,7 @@ module ActiveRecord
 
 
       def verify_attributes(attributes)
-        if keys_including_timestamps != attributes.keys.sort!
+        if sorted_keys != attributes.keys.sort!
           raise ArgumentError, "All objects being inserted must have the same keys"
         end
       end
@@ -224,7 +223,7 @@ module ActiveRecord
       class Builder # :nodoc:
         attr_reader :model
 
-        delegate :skip_duplicates?, :update_duplicates?, :keys, :keys_including_timestamps, :record_timestamps?, :primary_keys, to: :insert_all
+        delegate :skip_duplicates?, :update_duplicates?, :keys, :sorted_keys, :record_timestamps?, :primary_keys, to: :insert_all
 
         def initialize(insert_all)
           @insert_all, @model, @connection = insert_all, insert_all.model, insert_all.connection
@@ -235,7 +234,7 @@ module ActiveRecord
         end
 
         def values_list
-          types = extract_types_for(keys_including_timestamps)
+          types = extract_types_for(sorted_keys)
           pks = primary_keys
 
           values_list = insert_all.map_key_with_value do |key, value|
@@ -305,7 +304,7 @@ module ActiveRecord
           end
 
           def columns_list
-            format_columns(insert_all.keys_including_timestamps)
+            format_columns(insert_all.sorted_keys)
           end
 
           def extract_types_for(keys)
