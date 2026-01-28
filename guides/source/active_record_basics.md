@@ -541,7 +541,7 @@ book = Book.find_by(title: "The Lord of the Rings")
 book.update(title: "The Lord of the Rings: The Fellowship of the Ring")
 ```
 
-the `update` results in the following SQL:
+The `update` results in the following SQL:
 
 ```sql
 /* Note that `updated_at` is automatically set. */
