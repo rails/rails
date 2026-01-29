@@ -38,17 +38,28 @@ RUN apt-get update -qq && \
 <% if using_node? -%>
 # Install JavaScript dependencies
 ARG NODE_VERSION=<%= node_version %>
+<% if using_yarn? -%>
 ARG YARN_VERSION=<%= dockerfile_yarn_version %>
+<% end -%>
 ENV PATH=/usr/local/node/bin:$PATH
-<% if yarn_through_corepack? -%>
+<% if using_yarn? && yarn_through_corepack? -%>
 RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
     /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
     rm -rf /tmp/node-build-master
 RUN corepack enable && yarn set version $YARN_VERSION
-<% else -%>
+<% elsif using_yarn? -%>
 RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
     /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
     npm install -g yarn@$YARN_VERSION && \
+    rm -rf /tmp/node-build-master
+<% elsif using_pnpm? -%>
+RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
+    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
+    npm install -g pnpm && \
+    rm -rf /tmp/node-build-master
+<% else -%>
+RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
+    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
     rm -rf /tmp/node-build-master
 <% end -%>
 
@@ -69,16 +80,10 @@ RUN bundle install && \
     # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
     bundle exec bootsnap precompile -j 1 --gemfile<% end %>
 
-<% if using_node? -%>
+<% if using_js_runtime? -%>
 # Install node modules
-COPY package.json yarn.lock ./
-RUN yarn install --immutable
-
-<% end -%>
-<% if using_bun? -%>
-# Install node modules
-COPY package.json bun.lock* ./
-RUN bun install --frozen-lockfile
+COPY package.json <%= package_lockfile %><%= using_bun? ? "*" : "" %> ./
+RUN <%= package_install_command %>
 
 <% end -%>
 # Copy application code
