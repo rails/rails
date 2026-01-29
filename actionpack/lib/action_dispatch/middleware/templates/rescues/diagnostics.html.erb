@@ -21,8 +21,8 @@
 
   <% @exception_wrapper.wrapped_causes.each.with_index(1) do |wrapper, index| %>
     <div class="details">
-      <a class="summary" href="#" onclick="return toggle(<%= wrapper.exception_id %>)">
-        <%= wrapper.exception_class_name %>: <%= h wrapper.message %>
+      <a class="summary" href="#" onclick="return toggle(<%= wrapper.exception_id %>, this)">
+        <span><%= wrapper.exception_class_name %>: <%= h wrapper.message %></span>
       </a>
     </div>
 
