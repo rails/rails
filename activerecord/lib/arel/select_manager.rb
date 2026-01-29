@@ -167,11 +167,11 @@ module Arel # :nodoc: all
       self
     end
 
-    def distinct_on(value)
-      if value
-        @ctx.set_quantifier = Arel::Nodes::DistinctOn.new(value)
+    def distinct_on(*columns)
+      @ctx.set_quantifier = if columns.compact_blank.empty? # For backwards compatibility
+        nil
       else
-        @ctx.set_quantifier = nil
+        Arel::Nodes::DistinctOn.new columns
       end
       self
     end
