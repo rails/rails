@@ -1,3 +1,14 @@
+*   Fix credentials being cached with nil key during `load_database_yaml`.
+
+    When `database.yml` references `Rails.application.credentials`, the credentials
+    were incorrectly cached during early rake task loading before environment files
+    set `config.credentials.key_path`. This caused credential lookups to return nil,
+    breaking database connections for apps using custom credential key paths.
+
+    This has been an issue since Rails 7.1.0 when `DummyConfig` was introduced.
+
+    *Arian Faurtosh*
+
 *   Enable Ruby `frozen_string_literal` by default.
 
     New Rails apps now include a `config/bootsnap.rb` file that enables frozen string
