@@ -1049,6 +1049,34 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
   end
 end
 
+class TestNestedAttributesWithCompositePrimaryKey < ActiveRecord::TestCase
+  def setup
+    @member_1 = Cpk::Member.create!(name: "Member 1")
+    @group = Cpk::Group.create!(name: "Group A")
+    @group.group_members.create!(member_id: @member_1.id, active: false)
+  end
+
+  def test_should_find_and_update_existing_records_without_id_attribute_using_composite_primary_key
+    @group.update(
+      group_members_attributes: {
+        "0" => { member_id: @member_1.id, active: true, _destroy: false }
+      }
+    )
+
+    assert Cpk::GroupMember.find([@group.id, @member_1.id]).active
+  end
+
+  def test_should_find_and_destroy_existing_records_without_id_attribute_using_composite_primary_key
+    assert_difference("Cpk::GroupMember.count", -1) do
+      @group.update(
+        group_members_attributes: {
+          "0" => { member_id: @member_1.id, _destroy: true }
+        }
+      )
+    end
+  end
+end
+
 class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
 
