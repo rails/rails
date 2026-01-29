@@ -316,6 +316,10 @@ module ActiveRecord
         end
       end
 
+      def requires_referential_integrity_at_definition?
+        true
+      end
+
       def index_algorithms
         { concurrently: "CONCURRENTLY" }
       end
