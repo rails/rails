@@ -1,3 +1,25 @@
+*   Add support for scoped preloading with `preload`.
+
+    You can now apply scopes (including `select`) to preloaded associations
+    using a lambda or an `ActiveRecord::Relation`:
+
+    ```ruby
+    User.preload(posts: -> { select(:id, :title) })
+    # SELECT "users".* FROM "users"
+    # SELECT "posts"."id", "posts"."title", "posts"."user_id" FROM "posts" WHERE ...
+    ```
+
+    Required columns (primary key, foreign key, type columns for STI/polymorphic)
+    are automatically included even if not specified in `select`.
+
+    For nested associations with scopes, use the `:scope` key:
+
+    ```ruby
+    User.preload(posts: { scope: -> { where(published: true) }, comments: :author })
+    ```
+
+    *Italo Brandao*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before

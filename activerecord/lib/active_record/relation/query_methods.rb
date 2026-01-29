@@ -319,6 +319,29 @@ module ActiveRecord
     #   # SELECT "addresses".* FROM "addresses" WHERE "addresses"."id" IN (1,2,3,4,5)
     #   # SELECT "friends".* FROM "friends" WHERE "friends"."user_id" IN (1,2,3,4,5)
     #   # SELECT ...
+    #
+    # == Scoped Preloading
+    #
+    # You can apply scopes (including +select+) to preloaded associations using
+    # a lambda or an ActiveRecord::Relation:
+    #
+    #   User.preload(posts: -> { select(:id, :title) })
+    #   # SELECT "users".* FROM "users"
+    #   # SELECT "posts"."id", "posts"."title", "posts"."user_id" FROM "posts" WHERE "posts"."user_id" IN (...)
+    #
+    # Note: Required columns (primary key, foreign key, type columns for STI/polymorphic)
+    # are automatically included even if not specified in +select+.
+    #
+    # You can combine scopes with nested associations using the +:scope+ key:
+    #
+    #   User.preload(posts: { scope: -> { where(published: true).select(:id, :title) }, comments: :author })
+    #
+    # Or use multiple associations with different scopes:
+    #
+    #   User.preload(
+    #     posts: -> { select(:id, :title) },
+    #     comments: -> { where(visible: true) }
+    #   )
     def preload(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.preload!(*args)
