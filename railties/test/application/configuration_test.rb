@@ -2424,6 +2424,25 @@ module ApplicationTests
       end
     end
 
+    test "load_database_yaml does not cache credentials with nil key" do
+      app_file "config/database.yml", <<-YAML
+        development:
+          adapter: sqlite3
+          database: db/development.sqlite3
+        production:
+          adapter: postgresql
+          url: <%= Rails.application.credentials.dig(:database_url) %>
+      YAML
+
+      app "production"
+
+      Rails.application.with(credentials: nil) do
+        Rails.application.config.load_database_yaml
+        assert_nil Rails.application.instance_variable_get(:@credentials),
+          "Credentials should not be cached during load_database_yaml"
+      end
+    end
+
     test "raises with proper error message if no database configuration found" do
       FileUtils.rm("#{app_path}/config/database.yml")
       err = assert_raises RuntimeError do

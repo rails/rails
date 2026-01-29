@@ -465,12 +465,16 @@ module Rails
         if path = paths["config/database"].existent.first
           require "rails/application/dummy_config"
           original_rails_config = Rails.application.config
+          # Use instance_variable_get to avoid triggering lazy initialization which would cache credentials
+          original_credentials = Rails.application.instance_variable_get(:@credentials)
 
           begin
             Rails.application.config = DummyConfig.new(original_rails_config)
+            Rails.application.credentials = DummyConfig.new(nil)
             ActiveSupport::ConfigurationFile.parse(Pathname.new(path))
           ensure
             Rails.application.config = original_rails_config
+            Rails.application.credentials = original_credentials
           end
         else
           {}
