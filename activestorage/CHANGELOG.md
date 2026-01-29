@@ -1,3 +1,13 @@
+*   Proxy controllers take the `urls_expire_in` setting into account for
+    Cache-Control headers
+
+    Proxy controllers for files and their representations now limit cache
+    max-age to the value set in `urls_expire_in`. Like before this change, the
+    cache validity is still "forever" when `urls_expire_in` is not set (which,
+    by default, it isn't).
+
+    *Alexander Gitter*
+
 *   Restore ADC when signing URLs with IAM for GCS
 
     ADC was previously used for automatic authorization when signing URLs with IAM.

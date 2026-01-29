@@ -163,6 +163,7 @@ class ActiveStorage::Blobs::ExpiringProxyControllerTest < ActionDispatch::Integr
   test "signed ID within expiration date" do
     get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"))
     assert_response :success
+    assert_equal "max-age=60, public, immutable", response.headers["Cache-Control"]
   end
 
   test "Expired signed ID" do
