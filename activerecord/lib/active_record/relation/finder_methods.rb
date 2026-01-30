@@ -665,8 +665,35 @@ module ActiveRecord
             self
           end
         else
-          self
+          # Append _order_columns as secondary sort for deterministic ordering
+          # when explicit order values exist but may have ties
+          columns_to_add = _order_columns - _existing_order_columns
+          if columns_to_add.any?
+            order(columns_to_add.map { |column| table[column].asc })
+          else
+            self
+          end
         end
+      end
+
+      # Extract column names that are already present in order_values
+      def _existing_order_columns
+        order_values.flat_map do |order_value|
+          case order_value
+          when Arel::Nodes::Ordering
+            order_value.expr.name.to_s if order_value.expr.respond_to?(:name)
+          when Arel::Attribute
+            order_value.name.to_s
+          when String
+            order_value.split(",").filter_map { |expr| extract_column_name_from(expr) }
+          end
+        end.compact
+      end
+
+      # Extract the column name from a single string order expression, ignoring
+      # any table qualifier and trailing direction, e.g. `"pets.name desc"` => `"name"`.
+      def extract_column_name_from(string)
+        string.sub(/\s+(?:asc|desc)\s*\z/i, "")[/(\w+)\W*\z/, 1]
       end
 
       def _order_columns
