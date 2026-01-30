@@ -9,6 +9,8 @@ module ActiveModel
 
     config.active_model = ActiveSupport::OrderedOptions.new
 
+    guard_load_hooks(:active_model, :active_model_error, :active_model_secure_password, :active_model_translation)
+
     initializer "active_model.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_model] = ActiveModel.deprecator
     end
