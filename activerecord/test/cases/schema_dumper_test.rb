@@ -483,7 +483,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{create_table "string_key_objects", id: false}, output
   end
 
-  if ActiveRecord::Base.lease_connection.supports_foreign_keys?
+  if ActiveRecord::Base.lease_connection.requires_referential_integrity_at_definition?
     def test_foreign_keys_are_dumped_at_the_bottom_to_circumvent_dependency_issues
       output = standard_dump
       assert_match(/^\s+add_foreign_key "fk_test_has_fk"[^\n]+\n\s+add_foreign_key "lessons_students"/, output)
