@@ -8,6 +8,20 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
   include ActiveSupport::Testing::MethodCallAssertions
 
+  class ShardedRecord < ActiveRecord::Base
+    self.abstract_class = true
+
+    connects_to shards: {
+      default: { writing: :primary, reading: :replica },
+      sharded: { writing: :primary, reading: :replica }
+    }
+  end
+
+  class ShardedUser < ShardedRecord
+    self.table_name = "users"
+    has_one_attached :avatar
+  end
+
   setup do
     @user = User.create!(name: "Josh")
   end
@@ -197,6 +211,43 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
     @user.save!
     assert ActiveStorage::Blob.service.exist?(@user.avatar.key)
+  end
+
+  test "uploads the file when attaching in a sharded connected_to block" do
+    sharded_user_id = nil
+    previous_setting = ShardedUser.run_commit_callbacks_on_first_saved_instances_in_transaction
+    ShardedUser.run_commit_callbacks_on_first_saved_instances_in_transaction = false
+    tempfile = Tempfile.new("sharded-avatar")
+    tempfile.write(SecureRandom.hex(10))
+    tempfile.rewind
+
+    ShardedRecord.connected_to(role: :writing, shard: :sharded) do
+      unless ShardedRecord.connection.table_exists?(:users)
+        ShardedRecord.connection.create_table(:users) do |t|
+          t.string :name
+          t.timestamps
+        end
+      end
+
+      ShardedUser.transaction do
+        sharded_user_id = ShardedUser.create!(
+          name: "Sharded",
+          avatar: { io: tempfile, filename: "sharded-avatar.txt", content_type: "text/plain" }
+        ).id
+
+        # Ensure commit callbacks run on a different instance.
+        ShardedUser.find(sharded_user_id).touch
+      end
+    end
+
+    ShardedRecord.connected_to(role: :writing, shard: :sharded) do
+      sharded_user = ShardedUser.find(sharded_user_id)
+      assert ActiveStorage::Blob.service.exist?(sharded_user.avatar.blob.key),
+        "File should be uploaded for sharded connections"
+    end
+  ensure
+    ShardedUser.run_commit_callbacks_on_first_saved_instances_in_transaction = previous_setting
+    tempfile.close!
   end
 
   test "unsuccessfully updating an existing record to attach a new blob from an uploaded file" do
