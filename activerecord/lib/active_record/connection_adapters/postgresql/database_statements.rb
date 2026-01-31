@@ -15,7 +15,8 @@ module ActiveRecord
           intent = internal_build_intent(sql, name, allow_retry:, materialize_transactions:)
           intent.execute!
           result = intent.raw_result
-          result.map_types!(@type_map_for_results).values
+          result.map_types!(@type_map_for_results) if @type_map_for_results
+          result.values
         end
 
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
