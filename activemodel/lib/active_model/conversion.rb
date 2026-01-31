@@ -116,6 +116,14 @@ module ActiveModel
           "#{collection}/#{element}"
         end
       end
+
+      def param_to_id(param)
+        param&.include?(param_delimiter) ? param.split(param_delimiter) : param
+      end
+    
+      def id_to_param(id)
+        id.is_a?(Array) ? id.join(param_delimiter) : id
+      end
     end
   end
 end
