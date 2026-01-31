@@ -1591,6 +1591,111 @@ class PreloaderTest < ActiveRecord::TestCase
     result = Author.includes(books: [], published_author: { books: [] }).last
     assert_equal [PublishedBook], result.published_author.books.map(&:class)
   end
+
+  def test_preload_with_lambda_select_scope
+    author = authors(:david)
+
+    assert_queries_count(2) do
+      result = Author.where(id: author.id).preload(posts: -> { select(:id, :title, :author_id) }).to_a
+      assert_equal 1, result.size
+    end
+
+    author = Author.where(id: author.id).preload(posts: -> { select(:id, :title, :author_id) }).first
+    assert_predicate author.posts, :loaded?
+    assert author.posts.any?
+
+    # Verify only selected columns are loaded
+    post = author.posts.first
+    assert post.has_attribute?(:id)
+    assert post.has_attribute?(:title)
+    assert post.has_attribute?(:author_id)
+  end
+
+  def test_preload_with_lambda_where_and_select
+    author = authors(:david)
+
+    Author.where(id: author.id).preload(posts: -> { where(id: 1).select(:id, :title, :author_id) }).first.tap do |a|
+      assert_predicate a.posts, :loaded?
+      assert_equal [posts(:welcome)], a.posts
+    end
+  end
+
+  def test_preload_with_relation_scope
+    author = authors(:david)
+
+    Author.where(id: author.id).preload(posts: Post.select(:id, :title, :author_id)).first.tap do |a|
+      assert_predicate a.posts, :loaded?
+      assert a.posts.any?
+    end
+  end
+
+  def test_preload_with_multiple_associations_different_scopes
+    author = authors(:david)
+
+    assert_queries_count(3) do
+      Author.where(id: author.id).preload(
+        posts: -> { select(:id, :title, :author_id) },
+        comments: -> { select(:id, :body, :post_id) }
+      ).to_a
+    end
+
+    author = Author.where(id: author.id).preload(
+      posts: -> { select(:id, :title, :author_id) },
+      comments: -> { select(:id, :body, :post_id) }
+    ).first
+
+    assert_predicate author.posts, :loaded?
+    assert_predicate author.comments, :loaded?
+  end
+
+  def test_preload_auto_includes_foreign_key
+    author = authors(:david)
+
+    # User only selects id and title, but author_id should be auto-included
+    Author.where(id: author.id).preload(posts: -> { select(:id, :title) }).first.tap do |a|
+      assert_predicate a.posts, :loaded?
+      # Should work even though author_id wasn't explicitly selected
+      assert a.posts.all? { |p| p.author_id == author.id }
+    end
+  end
+
+  def test_preload_scope_with_through_association
+    author = authors(:david)
+
+    # Author has_many :comments, through: :posts
+    Author.where(id: author.id).preload(comments: -> { select(:id, :body, :post_id) }).first.tap do |a|
+      assert_predicate a.comments, :loaded?
+      assert a.comments.any?
+    end
+  end
+
+  def test_preload_nested_associations_with_scopes
+    author = authors(:david)
+
+    # Using scope: key for nested with scope
+    Author.where(id: author.id).preload(
+      posts: {
+        scope: -> { select(:id, :title, :author_id) },
+        comments: -> { select(:id, :body, :post_id) }
+      }
+    ).first.tap do |a|
+      assert_predicate a.posts, :loaded?
+      post = a.posts.first
+      assert_predicate post.comments, :loaded? if post
+    end
+  end
+
+  def test_preload_with_strict_loading_and_scope
+    author = authors(:david)
+
+    result = Author.strict_loading.where(id: author.id).preload(posts: -> { select(:id, :title, :author_id) }).first
+    assert_predicate result.posts, :loaded?
+
+    # Should still enforce strict loading on non-preloaded associations
+    assert_raises(ActiveRecord::StrictLoadingViolationError) do
+      result.posts.first.comments.to_a
+    end
+  end
 end
 
 class GeneratedMethodsTest < ActiveRecord::TestCase
