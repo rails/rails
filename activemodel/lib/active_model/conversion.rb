@@ -118,11 +118,11 @@ module ActiveModel
       end
 
       def param_to_id(param)
-        param&.include?(param_delimiter) ? param.split(param_delimiter) : param
+        param&.split(param_delimiter)
       end
     
       def id_to_param(id)
-        id.is_a?(Array) ? id.join(param_delimiter) : id
+        id ? Array(id).join(param_delimiter) : nil
       end
     end
   end
