@@ -8,6 +8,7 @@ require "tsort"
 require "uri"
 require "rails/generators"
 require "rails/generators/bundle_helper"
+require "rails/generators/js_package_manager"
 require "active_support/core_ext/array/extract_options"
 
 module Rails
@@ -21,6 +22,8 @@ module Rails
 
       JAVASCRIPT_OPTIONS = %w( importmap bun webpack esbuild rollup )
       CSS_OPTIONS = %w( tailwind bootstrap bulma postcss sass )
+      PACKAGE_MANAGER_OPTIONS = %w( yarn npm pnpm )
+      MANAGERS = JsPackageManager::MANAGERS
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -534,6 +537,35 @@ module Rails
 
       def using_bun?
         using_js_runtime? && %w[bun].include?(options[:javascript])
+      end
+
+      def package_manager
+        return :bun if using_bun?
+        (options[:package_manager] || "yarn").to_sym
+      end
+
+      def using_yarn?
+        package_manager == :yarn
+      end
+
+      def using_npm?
+        package_manager == :npm
+      end
+
+      def using_pnpm?
+        package_manager == :pnpm
+      end
+
+      def package_install_command
+        MANAGERS.dig(package_manager, :install)
+      end
+
+      def package_lockfile
+        MANAGERS.dig(package_manager, :lockfile)
+      end
+
+      def package_audit_command
+        MANAGERS.dig(package_manager, :audit)
       end
 
       def using_css_bundling?
