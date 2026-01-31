@@ -129,6 +129,22 @@ class TagHelperTest < ActionView::TestCase
       tag.p(disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true, allowpaymentrequest: true, nomodule: true, playsinline: true)
   end
 
+  def test_tag_options_boolean_attribute_with_string_value
+    assert_dom_equal '<p multiple="custom-value" disabled="until-found" />', tag("p", multiple: "custom-value", disabled: "until-found")
+  end
+
+  def test_tag_builder_options_boolean_attribute_with_string_value
+    assert_dom_equal '<p multiple="custom-value" disabled="until-found"></p>', tag.p(multiple: "custom-value", disabled: "until-found")
+  end
+
+  def test_tag_options_boolean_attribute_with_false
+    assert_dom_equal "<p />", tag("p", disabled: false, multiple: false, readonly: false)
+  end
+
+  def test_tag_builder_options_boolean_attribute_with_false
+    assert_dom_equal "<p></p>", tag.p(disabled: false, multiple: false, readonly: false)
+  end
+
   def test_tag_builder_with_options_builds_p_elements
     html = tag.with_options(id: "with-options") { |t| t.p("content") }
 

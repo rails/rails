@@ -262,9 +262,12 @@ module ActionView
                 output << prefix_tag_option(key, k, v, escape)
               end
             elsif type == :boolean
-              if value
+              if value == true
                 output << sep
                 output << boolean_tag_option(key)
+              elsif value
+                output << sep
+                output << tag_option(key, value, escape)
               end
             elsif !value.nil?
               output << sep
