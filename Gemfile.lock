@@ -439,7 +439,7 @@ GEM
       multi_json (~> 1.0)
       redis-namespace (~> 1.6)
       sinatra (>= 0.9.2)
-    resque-scheduler (4.7.0)
+    resque-scheduler (4.10.2)
       mono_logger (~> 1.0)
       redis (>= 3.3)
       resque (>= 1.27)
