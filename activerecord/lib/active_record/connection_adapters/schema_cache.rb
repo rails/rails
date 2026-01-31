@@ -225,6 +225,12 @@ module ActiveRecord
 
     # = Active Record Connection Adapters Schema Cache
     class SchemaCache
+      class << self
+        attr_accessor :schema_cache_dump_order
+      end
+
+      self.schema_cache_dump_order = :database
+
       def self._load_from(filename) # :nodoc:
         return unless File.file?(filename)
 
@@ -267,11 +273,16 @@ module ActiveRecord
       end
 
       def encode_with(coder) # :nodoc:
-        coder["columns"]          = @columns.sort.to_h.transform_values { _1.sort_by(&:name) }
-        coder["primary_keys"]     = @primary_keys.sort.to_h
-        coder["data_sources"]     = @data_sources.sort.to_h
-        coder["indexes"]          = @indexes.sort.to_h.transform_values { _1.sort_by(&:name) }
-        coder["version"]          = @version
+        if self.class.schema_cache_dump_order == :sorted
+          coder["columns"] = @columns.sort.to_h.transform_values { _1.sort_by(&:name) }
+          coder["indexes"] = @indexes.sort.to_h.transform_values { _1.sort_by(&:name) }
+        else
+          coder["columns"] = @columns.to_h
+          coder["indexes"] = @indexes.to_h
+        end
+        coder["primary_keys"] = @primary_keys.sort.to_h
+        coder["data_sources"] = @data_sources.sort.to_h
+        coder["version"]      = @version
       end
 
       def init_with(coder) # :nodoc:
