@@ -7,8 +7,8 @@ This guide explains how to handle essential asset management tasks.
 
 After reading this guide, you will know:
 
-* What is an asset pipeline.
-* The main features of Propshaft, and how to set it up.
+* What an asset pipeline is.
+* The main features of Propshaft, and how to set them up.
 * How to migrate from Sprockets to Propshaft.
 * How to use other libraries for more advanced asset management.
 
@@ -150,10 +150,12 @@ dependencies:
 
 ### Asset Organization
 
-Propshaft organizes assets within the `app/assets` directory, which includes
-subdirectories like `images`, `javascripts`, and `stylesheets`. You can place
-your JavaScript, CSS, image files, and other assets into these directories, and
-Propshaft will manage them during the precompilation process.
+Propshaft organizes assets within the `app/assets` directory. While it includes
+default subdirectories like `images`, `javascripts`, and `stylesheets`,
+Propshaft will automatically manage any subdirectory you create within
+`app/assets` (such as `app/assets/videos`). You can place your JavaScript, CSS,
+image files, and other assets into these directories, and Propshaft will manage
+them during the precompilation process.
 
 You can also specify additional asset paths for Propshaft to search by modifying
 `config.assets.paths` in your `config/initializers/assets.rb` file. For example:
