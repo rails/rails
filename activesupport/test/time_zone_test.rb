@@ -771,7 +771,7 @@ class TimeZoneTest < ActiveSupport::TestCase
     zone2 = ActiveSupport::TimeZone["Eastern Time (US & Canada)"] # offset -0500
     assert zone1 < zone2
     assert zone2 > zone1
-    assert zone1 == zone1
+    assert_equal zone1, zone1
   end
 
   def test_zone_match
