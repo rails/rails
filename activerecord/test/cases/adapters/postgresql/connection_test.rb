@@ -232,6 +232,12 @@ module ActiveRecord
       end
     end
 
+    def test_supports_supports_pgcrypto_uuid_is_deprecated
+      assert_deprecated(ActiveRecord.deprecator) do
+        @connection.supports_pgcrypto_uuid?
+      end
+    end
+
     private
       def cause_server_side_disconnect
         unless @connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
