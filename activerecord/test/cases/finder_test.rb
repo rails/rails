@@ -27,6 +27,8 @@ require "models/non_primary_key"
 require "models/clothing_item"
 require "models/cpk"
 require "models/edge"
+require "models/owner"
+require "models/pet"
 require "support/stubs/strong_parameters"
 require "support/async_helper"
 
@@ -35,7 +37,7 @@ class FinderTest < ActiveRecord::TestCase
 
   fixtures :companies, :topics, :entrants, :developers, :developers_projects,
     :posts, :comments, :accounts, :authors, :author_addresses, :customers,
-    :categories, :categorizations, :cars, :clothing_items, :cpk_books, :cpk_reviews
+    :categories, :categorizations, :cars, :clothing_items, :cpk_books, :cpk_reviews, :owners, :pets
 
   def test_find_by_id_with_hash
     assert_nothing_raised do
@@ -1011,7 +1013,7 @@ class FinderTest < ActiveRecord::TestCase
       Topic.second_to_last
     end
 
-    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.updated_at"))} DESC LIMIT/i) do
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.updated_at"))} DESC, #{Regexp.escape(quote_table_name("topics.id"))} DESC LIMIT/i) do
       Topic.order(:updated_at).second_to_last
     end
   end
@@ -1034,6 +1036,29 @@ class FinderTest < ActiveRecord::TestCase
       Topic.delete_all
       Topic.last!
     end
+  end
+
+  def test_last_and_first_returns_the_right_data_even_without_loading_all_data_first
+    assert_equal 2, owners(:loretta).pets.count, "sanity check"
+    assert_equal ["pets.name desc"], owners(:loretta).pets.order_values
+
+    owner = owners(:loretta)
+    relation = owner.pets
+    first_pet = relation.first
+    last_pet = relation.last
+    assert_not_equal first_pet.id, last_pet.id
+  end
+
+  def test_last_and_first_returns_the_right_data_when_preloading_all_data_first
+    assert_equal 2, owners(:loretta).pets.count, "sanity check"
+    assert_equal ["pets.name desc"], owners(:loretta).pets.order_values
+
+    owner = owners(:loretta)
+    relation = owner.pets
+    _ids = relation.map(&:id)
+    first_pet = relation.first
+    last_pet = relation.last
+    assert_not_equal first_pet.id, last_pet.id
   end
 
   def test_take_and_first_and_last_with_integer_should_use_sql_limit

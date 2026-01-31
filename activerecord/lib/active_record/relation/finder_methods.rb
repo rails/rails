@@ -661,7 +661,26 @@ module ActiveRecord
             self
           end
         else
-          self
+          # Append _order_columns as secondary sort for deterministic ordering
+          # when explicit order values exist but may have ties
+          columns_to_add = _order_columns - _existing_order_columns
+          if columns_to_add.any?
+            order(columns_to_add.map { |column| table[column].asc })
+          else
+            self
+          end
+        end
+      end
+
+      # Extract column names that are already present in order_values
+      def _existing_order_columns
+        order_values.filter_map do |order_value|
+          case order_value
+          when Arel::Nodes::Ordering
+            order_value.expr.name.to_s if order_value.expr.respond_to?(:name)
+          when Arel::Attribute
+            order_value.name.to_s
+          end
         end
       end
 
