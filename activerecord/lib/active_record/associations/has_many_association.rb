@@ -34,11 +34,18 @@ module ActiveRecord
 
           unless target.empty?
             association_class = target.first.class
+            primary_key_column = association_class.query_constraints_list || association_class.primary_key
+
+            if primary_key_column.blank?
+              raise UnknownPrimaryKey.new(
+                association_class,
+                "ActiveRecord cannot destroy associated records asynchronously without a primary key. Add a primary key or use dependent: :delete_all."
+              )
+            end
+
             if association_class.query_constraints_list
-              primary_key_column = association_class.query_constraints_list
               ids = target.collect { |assoc| primary_key_column.map { |col| assoc.public_send(col) } }
             else
-              primary_key_column = association_class.primary_key
               ids = target.collect { |assoc| assoc.public_send(primary_key_column) }
             end
 
