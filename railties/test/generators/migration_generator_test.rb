@@ -295,6 +295,15 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_primary_key_default_to_create_table_migration
+    run_generator ["create_books", "--primary_key_type=uuid", "--primary_key_default=uuidv7()"]
+    assert_migration "db/migrate/create_books.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :books, id: :uuid, default: -> \{ "uuidv7\(\)" \}/, change)
+      end
+    end
+  end
+
   def test_add_migration_with_references_options_when_primary_key_uuid
     migration = "add_references_to_books"
     run_generator [migration, "author:belongs_to", "--primary_key_type=uuid"]

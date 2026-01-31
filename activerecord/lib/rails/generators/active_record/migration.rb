@@ -19,7 +19,13 @@ module ActiveRecord
       private
         def primary_key_type
           key_type = options[:primary_key_type]
-          ", id: :#{key_type}" if key_type
+          return unless key_type
+
+          result = ", id: :#{key_type}"
+          if options[:primary_key_default]
+            result += ", default: -> { \"#{options[:primary_key_default]}\" }"
+          end
+          result
         end
 
         def foreign_key_type
