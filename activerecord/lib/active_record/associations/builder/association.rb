@@ -157,7 +157,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       if dependent == :destroy_async
         mixin = model.generated_association_methods
 
-        unless mixin.method_defined?(:_after_commit_jobs)
+        unless model.method_defined?(:_after_commit_jobs)
           model.after_commit(-> do
             _after_commit_jobs.each do |job_class, job_arguments|
               job_class.perform_later(**job_arguments)

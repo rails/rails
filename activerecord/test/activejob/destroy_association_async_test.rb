@@ -438,4 +438,29 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     Tag.delete_all
     BookDestroyAsync.delete_all
   end
+
+  test "subclass with destroy_async does not register duplicate after_commit callback" do
+    # BookDestroyAsync (parent) has: tags, essays, content with destroy_async
+    # BookDestroyAsyncWithTags (child) also has: tags with destroy_async
+    # The after_commit callback should only be registered once in the parent,
+    # not again in the child class
+
+    parent_callbacks = BookDestroyAsync._commit_callbacks.select do |callback|
+      callback.filter.is_a?(Proc) &&
+        callback.filter.source_location&.first&.include?("associations/builder/association.rb")
+    end
+
+    child_callbacks = BookDestroyAsyncWithTags._commit_callbacks.select do |callback|
+      callback.filter.is_a?(Proc) &&
+        callback.filter.source_location&.first&.include?("associations/builder/association.rb")
+    end
+
+    # Both parent and child should have exactly 1 after_commit callback for destroy_async
+    assert_equal 1, parent_callbacks.size, "Parent class should have exactly 1 destroy_async callback"
+    assert_equal 1, child_callbacks.size, "Child class should have exactly 1 destroy_async callback (inherited from parent)"
+
+    # The callback should be the same object (inherited, not duplicated)
+    assert_equal parent_callbacks.first.filter.object_id, child_callbacks.first.filter.object_id,
+      "Child class should inherit the same callback from parent, not register a new one"
+  end
 end
