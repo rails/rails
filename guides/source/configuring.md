@@ -285,6 +285,14 @@ Specifies whether or not to use ANSI color codes when logging information. Defau
 
 Is a flag. If `true` then any error will cause detailed debugging information to be dumped in the HTTP response, and the `Rails::Info` controller will show the application runtime context in `/rails/info/properties`. `true` by default in the development and test environments, and `false` in production. For finer-grained control, set this to `false` and implement `show_detailed_exceptions?` in controllers to specify which requests should provide debugging information on errors.
 
+SECURITY WARNING: Never set this to `true` in production. Detailed error pages can
+expose sensitive information like database schema, environment variables, and
+internal application structure to attackers.
+
+CONFIGURATION DEPENDENCY: This setting interacts with `config.action_dispatch.show_exceptions`.
+If `show_exceptions` is false, `consider_all_requests_local` has no effect. In
+production, both should typically be false for security.
+
 #### `config.console`
 
 Allows you to set the class that will be used as console when you run `bin/rails console`. It's best to run it in the `console` block:
@@ -342,6 +350,11 @@ Sets the format used in responses when errors occur in the development environme
 #### `config.disable_sandbox`
 
 Controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to `false`.
+
+SECURITY NOTE: Consider setting this to `true` in production environments to prevent
+accidental data modifications during debugging sessions. Sandbox mode allows
+reading data but prevents writes, but it's safer to disable console access
+entirely in production.
 
 #### `config.dom_testing_default_html_version`
 
@@ -464,6 +477,10 @@ Defines the formatter of the Rails logger. This option defaults to an instance o
 #### `config.log_level`
 
 Defines the verbosity of the Rails logger. This option defaults to `:debug` for all environments except production, where it defaults to `:info`. The available log levels are: `:debug`, `:info`, `:warn`, `:error`, `:fatal`, and `:unknown`.
+
+SECURITY NOTE: Be cautious with `:debug` level in production. Debug logs may contain
+sensitive information like parameter values, database queries with real data,
+and internal application state that could be useful to attackers.
 
 #### `config.log_tags`
 
