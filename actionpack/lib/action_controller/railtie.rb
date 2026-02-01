@@ -89,7 +89,8 @@ module ActionController
           :action_on_unpermitted_parameters,
           :always_permitted_parameters,
           :wrap_parameters_by_default,
-          :live_streaming_excluded_keys
+          :live_streaming_excluded_keys,
+          :rescue_from_event_backtrace
         )
 
         filtered_options.each do |k, v|
@@ -155,6 +156,12 @@ module ActionController
     initializer "action_controller.backtrace_cleaner" do
       ActiveSupport.on_load(:action_controller) do
         ActionController::LogSubscriber.backtrace_cleaner = Rails.backtrace_cleaner
+      end
+    end
+
+    initializer "action_controller.structured_event_subscriber" do |app|
+      ActiveSupport.on_load(:action_controller) do
+        ActionController::StructuredEventSubscriber._rescue_from_event_backtrace = app.config.action_controller.rescue_from_event_backtrace
       end
     end
   end
