@@ -82,4 +82,48 @@ class ConversionTest < ActiveModel::TestCase
   ensure
     Contact.param_delimiter = old_contact_delimiter
   end
+
+  test "param_to_key returns nil for nil param" do
+    assert_nil Contact.param_to_key(nil)
+  end
+
+  test "key_to_param returns nil for nil key" do
+    assert_nil Contact.key_to_param(nil)
+  end
+
+  test "key_to_param returns nil for key with nil element" do
+    assert_nil Contact.key_to_param([1, nil])
+  end
+
+  test "simple id roundtrip: key_to_param and param_to_key" do
+    key = ["1"]
+    param = Contact.key_to_param(key)
+    assert_equal "1", param
+    assert_equal key, Contact.param_to_key(param)
+  end
+
+  test "composite id roundtrip: key_to_param and param_to_key" do
+    key = ["1", "2"]
+    param = Contact.key_to_param(key)
+    assert_equal "1-2", param
+    assert_equal key, Contact.param_to_key(param)
+  end
+
+  test "custom param_delimiter roundtrip" do
+    old_delimiter = Contact.param_delimiter
+    Contact.param_delimiter = "_"
+    key = ["1", "2"]
+    param = Contact.key_to_param(key)
+    assert_equal "1_2", param
+    assert_equal key, Contact.param_to_key(param)
+  ensure
+    Contact.param_delimiter = old_delimiter
+  end
+
+  test "param_to_key splits on param_delimiter: ids containing delimiter are split" do
+    # With default delimiter "-", a param "a-b" is parsed as two segments.
+    # Avoid using the delimiter character in a single id to prevent ambiguity.
+    assert_equal ["a", "b"], Contact.param_to_key("a-b")
+    assert_equal ["1", "2", "3"], Contact.param_to_key("1-2-3")
+  end
 end
