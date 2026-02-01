@@ -28,7 +28,14 @@ module ActiveModel
       ##
       # :singleton-method:
       #
-      # Accepts a string that will be used as a delimiter of object's key values in the `to_param` method.
+      # Accepts a string that will be used as a delimiter of object's key values in the `to_param` method,
+      # and when parsing params back with +param_to_key+. Default is <tt>"-"</tt>.
+      #
+      # Note: Parsing by splitting on +param_delimiter+ is ambiguous if a single id can contain the
+      # delimiter. For example, with the default <tt>"-"</tt>, an id of <tt>"a-b"</tt> would be
+      # serialized as <tt>"a-b"</tt>, and <tt>param_to_key("a-b")</tt> would return <tt>["a", "b"]</tt>,
+      # not <tt>["a-b"]</tt>. Avoid using delimiter characters in composite key segments, or use a
+      # custom delimiter that does not appear in your ids.
       class_attribute :param_delimiter, instance_reader: false, default: "-"
     end
 
@@ -88,7 +95,7 @@ module ActiveModel
     #   person = Person.new(1)
     #   person.to_param # => "1"
     def to_param
-      (persisted? && (key = to_key) && key.all?) ? key.join(self.class.param_delimiter) : nil
+      persisted? ? self.class.key_to_param(to_key) : nil
     end
 
     # Returns a +string+ identifying the path associated with the object.
@@ -115,6 +122,29 @@ module ActiveModel
           collection = ActiveSupport::Inflector.tableize(name)
           "#{collection}/#{element}"
         end
+      end
+
+      # Converts a param string (e.g. from a URL or form) back into a key array using the
+      # class's +param_delimiter+. Returns +nil+ when +param+ is +nil+.
+      #
+      #   Person.param_to_key("1")           # => ["1"]
+      #   Person.param_to_key("1-2")         # => ["1", "2"]
+      #   Person.param_to_key(nil)           # => nil
+      #
+      # See +param_delimiter+ for the note on ambiguity when a single id contains the delimiter.
+      def param_to_key(param)
+        param&.split(param_delimiter)
+      end
+
+      # Converts a key array (e.g. from +to_key+) into a param string using the class's
+      # +param_delimiter+. Returns +nil+ when +key+ is not a non-empty array of all truthy elements.
+      #
+      #   Person.key_to_param([1])           # => "1"
+      #   Person.key_to_param([1, 2])        # => "1-2"
+      #   Person.key_to_param(nil)           # => nil
+      #   Person.key_to_param([1, nil])      # => nil
+      def key_to_param(key)
+        (key.is_a?(Array) && key.all?) ? key.join(param_delimiter) : nil
       end
     end
   end
