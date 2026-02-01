@@ -133,14 +133,19 @@ module ActiveRecord
         WeakThreadKeyMap = ObjectSpace::WeakKeyMap
       else
         class WeakThreadKeyMap # :nodoc:
-          # FIXME: On 3.3 we could use ObjectSpace::WeakKeyMap
-          # but it currently causes GC crashes: https://github.com/byroot/rails/pull/3
+          # Fallback for Ruby 3.3.0-3.3.4 where WeakKeyMap had a
+          # use-after-free bug (https://bugs.ruby-lang.org/issues/20688).
+          # Can be removed when minimum Ruby is raised to 3.3.5+.
+          CLEANUP_INTERVAL = 100
+
           def initialize
             @map = {}
+            @counter = 0
           end
 
           def clear
             @map.clear
+            @counter = 0
           end
 
           def [](key)
@@ -148,7 +153,10 @@ module ActiveRecord
           end
 
           def []=(key, value)
-            @map.select! { |c, _| c&.alive? }
+            @counter += 1
+            if (@counter % CLEANUP_INTERVAL).zero?
+              @map.select! { |c, _| c&.alive? }
+            end
             @map[key] = value
           end
         end
