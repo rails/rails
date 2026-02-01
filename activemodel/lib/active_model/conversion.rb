@@ -120,7 +120,7 @@ module ActiveModel
       def param_to_key(param)
         param&.split(param_delimiter)
       end
-    
+
       def key_to_param(key)
         (key.is_a?(Array) && key.all?) ? key.join(param_delimiter) : nil
       end
