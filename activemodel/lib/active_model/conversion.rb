@@ -117,12 +117,12 @@ module ActiveModel
         end
       end
 
-      def param_to_id(param)
+      def param_to_key(param)
         param&.split(param_delimiter)
       end
     
-      def id_to_param(id)
-        id ? Array(id).join(param_delimiter) : nil
+      def key_to_param(key)
+        key ? Array(key).join(param_delimiter) : nil
       end
     end
   end
