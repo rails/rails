@@ -430,7 +430,7 @@ module ActiveRecord
           status = nil
           ensure_finalize = !connection.transaction_open?
 
-          connection.transaction do
+          connection.transaction(**save_transaction_options(connection)) do
             add_to_transaction(ensure_finalize || has_transactional_callbacks?)
             remember_transaction_record_state
 
@@ -457,6 +457,32 @@ module ActiveRecord
         @_last_transaction_return_status = nil
         @_committed_already_called = nil
         @_new_record_before_last_commit = nil
+      end
+
+      # Returns the transaction options to use when +save+, +destroy+, +touch+,
+      # and other persistence methods open a transaction. Override this method
+      # to customize transaction behavior, for example to set a specific
+      # isolation level.
+      #
+      # The +connection+ parameter provides access to the current database
+      # connection, allowing conditional logic based on connection state
+      # (e.g., whether a transaction is already open).
+      #
+      # Returns an empty hash by default, which uses standard transaction defaults.
+      #
+      #   class Account < ApplicationRecord
+      #     private
+      #       def save_transaction_options(connection)
+      #         if connection.transaction_open?
+      #           {}
+      #         else
+      #           { isolation: :read_committed }
+      #         end
+      #       end
+      #   end
+      #
+      def save_transaction_options(connection)
+        {}
       end
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
