@@ -1,3 +1,7 @@
+*   Add `unique_by` option to `insert_all!`.
+
+    *Chedli Bourguiba*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before
