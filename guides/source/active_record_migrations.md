@@ -1927,7 +1927,7 @@ end
 Migrations running against `primary` will use `MySQLMigrationStrategy`, and
 migrations running against `animals` will use `PostgreSQLMigrationStrategy`.
 The adapter-specific strategy takes precedence over any globally-configured
-stategy.
+strategy.
 
 [`ActiveRecord::Migration::DefaultStrategy`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Migration/DefaultStrategy.html
