@@ -1049,6 +1049,83 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
   end
 end
 
+class TestNestedAttributesWithCompositePrimaryKey < ActiveRecord::TestCase
+  def setup
+    @member_1 = Cpk::Member.create!(name: "Member 1")
+    @member_2 = Cpk::Member.create!(name: "Member 2")
+    @group = Cpk::Group.create!(name: "Group A")
+    @group.group_members.create!(member: @member_1, active: false)
+  end
+
+  def test_should_create_without_id_attribute_using_composite_primary_key
+    assert_difference("Cpk::GroupMember.count") do
+      @group.update(
+        group_members_attributes: {
+          "0" => { member_id: @member_2.id, _destroy: false }
+        }
+      )
+    end
+  end
+
+  def test_should_find_and_update_existing_records_without_id_attribute_using_composite_primary_key
+    @group.update(
+      group_members_attributes: {
+        "0" => { member_id: @member_1.id, active: true, _destroy: false }
+      }
+    )
+
+    assert Cpk::GroupMember.find([@group.id, @member_1.id]).active
+  end
+
+  def test_should_find_and_destroy_existing_records_without_id_attribute_using_composite_primary_key
+    assert_difference("Cpk::GroupMember.count", -1) do
+      @group.update(
+        group_members_attributes: {
+          "0" => { member_id: @member_1.id, _destroy: true }
+        }
+      )
+    end
+  end
+end
+
+class TestNestedAttributesWithCompositePrimaryKeyAndCustomFK < ActiveRecord::TestCase
+  def setup
+    @member = Cpk::MemberCustomFK.create!(uuid: SecureRandom.uuid, name: "Alice")
+    @new_member = Cpk::MemberCustomFK.create!(uuid: SecureRandom.uuid, name: "Bob")
+    @group = Cpk::GroupCustomFK.create!(name: "Admins")
+    @group.group_members.create!(member_uuid: @member.uuid)
+  end
+
+  def test_should_create_records_without_id_attribute_using_composite_primary_key_and_custom_foreign_key
+    assert_difference("Cpk::GroupMemberCustomFK.count") do
+      @group.update(
+        group_members_attributes: {
+          "0" => { member_uuid: @new_member.uuid, _destroy: false }
+        }
+      )
+    end
+  end
+
+  def test_should_find_and_update_existing_records_without_id_attribute_using_composite_primary_key_and_custom_foreign_key
+    @group.update(
+      group_members_attributes: {
+        "0" => { member_uuid: @member.uuid, active: true, _destroy: false }
+      }
+    )
+    assert Cpk::GroupMemberCustomFK.find([@group.id, @member.uuid]).active
+  end
+
+  def test_should_find_and_destroy_existing_records_without_id_attribute_using_composite_primary_key_and_custom_foreign_key
+    assert_difference("Cpk::GroupMemberCustomFK.count", -1) do
+      @group.update(
+        group_members_attributes: {
+          "0" => { member_uuid: @member.uuid, _destroy: true }
+        }
+      )
+    end
+  end
+end
+
 class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
 

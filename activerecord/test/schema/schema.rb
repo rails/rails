@@ -332,6 +332,31 @@ ActiveRecord::Schema.define do
     t.integer :rating
   end
 
+  create_table :cpk_groups, force: true do |t|
+    t.string :name, null: false
+  end
+
+  create_table :cpk_members, force: true do |t|
+    t.string :name, null: false
+  end
+
+  create_table :cpk_groups_members, primary_key: [:group_id, :member_id], force: true do |t|
+    t.integer :group_id, null: false
+    t.integer :member_id, null: false
+    t.boolean :active
+  end
+
+  create_table :cpk_members_custom_fk, id: false, primary_key: :uuid, force: true do |t|
+    t.string :name, null: false
+    t.string :uuid, null: false
+  end
+
+  create_table :cpk_groups_members_custom_fk, primary_key: [:group_id, :member_uuid], force: true do |t|
+    t.integer :group_id, null: false
+    t.string  :member_uuid, null: false
+    t.boolean :active
+  end
+
   create_table :paragraphs, force: true do |t|
     t.references :book
   end
