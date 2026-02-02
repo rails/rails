@@ -129,6 +129,14 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_passes_sql_to_context
+    ActiveRecord::QueryLogs.tags = [ sql_length: ->(context) { context[:sql].length } ]
+
+    assert_queries_match("SELECT 1 /*sql_length:8*/") do
+      ActiveRecord::Base.lease_connection.execute "SELECT 1"
+    end
+  end
+
   def test_resets_cache_on_context_update
     ActiveRecord::QueryLogs.cache_query_log_tags = true
     ActiveSupport::ExecutionContext[:temporary] = "value"
