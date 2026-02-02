@@ -1,3 +1,7 @@
+*   Make `ActionText::Attachable#read_attribute_for_serialization` public.
+
+    *Sally Hall*
+
 *   Install generator now detects which JS package manager to use when
     installing javascript dependencies for the editor.
 

@@ -1,3 +1,9 @@
+*   Make `event_backtrace` attribute in `rescue_from_handled.action_controller` notifications the full backtrace, when `config.action_controller.rescue_from_event_backtrace` is `:array`.
+
+    This also affects `action_controller.rescue_from_handled` events.
+
+    *zzak*
+
 *   Avoid loading `ActionController::Live` early in initializer, and introduce
     `action_controller_live` load hook.
 

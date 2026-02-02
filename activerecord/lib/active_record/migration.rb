@@ -707,11 +707,31 @@ module ActiveRecord
       end
 
       def load_schema_if_pending!
-        if any_schema_needs_update?
-          load_schema!
+        any_schema_needs_update = false
+        pending_migrations = []
+
+        db_configs_in_current_env.each do |db_config|
+          ActiveRecord::PendingMigrationConnection.with_temporary_pool(db_config) do |pool|
+            any_schema_needs_update ||= schema_needs_update?(db_config, pool)
+
+            pending = pool.migration_context.open.pending_migrations
+            pending_migrations.concat(pending)
+          end
         end
 
-        check_pending_migrations
+        if any_schema_needs_update
+          load_schema!
+
+          pending_migrations = []
+          db_configs_in_current_env.each do |db_config|
+            ActiveRecord::PendingMigrationConnection.with_temporary_pool(db_config) do |pool|
+              pending = pool.migration_context.open.pending_migrations
+              pending_migrations.concat(pending)
+            end
+          end
+        end
+
+        check_pending_migrations(pending_migrations)
       end
 
       def maintain_test_schema! # :nodoc:
@@ -736,8 +756,8 @@ module ActiveRecord
         @disable_ddl_transaction = true
       end
 
-      def check_pending_migrations # :nodoc:
-        migrations = pending_migrations
+      def check_pending_migrations(migrations = nil) # :nodoc:
+        migrations ||= pending_migrations
 
         if migrations.any?
           raise ActiveRecord::PendingMigrationError.new(pending_migrations: migrations)
@@ -745,10 +765,8 @@ module ActiveRecord
       end
 
       private
-        def any_schema_needs_update?
-          !db_configs_in_current_env.all? do |db_config|
-            Tasks::DatabaseTasks.schema_up_to_date?(db_config)
-          end
+        def schema_needs_update?(db_config, pool)
+          !Tasks::DatabaseTasks.schema_up_to_date?(db_config, pool: pool)
         end
 
         def db_configs_in_current_env
