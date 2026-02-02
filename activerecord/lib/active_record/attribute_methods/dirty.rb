@@ -251,11 +251,17 @@ module ActiveRecord
             changed_attribute_names_to_save
           else
             attribute_names.reject do |attr_name|
-              if column_for_attribute(attr_name).auto_populated?
-                !attribute_changed?(attr_name)
-              end
+              next false unless column_for_attribute(attr_name).auto_populated?
+              next false if user_provided_nil?(attr_name)
+
+              !attribute_changed?(attr_name)
             end
           end
+        end
+
+        def user_provided_nil?(attr_name)
+          attribute_came_from_user?(attr_name) &&
+            _read_attribute(attr_name).nil?
         end
     end
   end
