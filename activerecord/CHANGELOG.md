@@ -1,3 +1,10 @@
+*   Speedup `ActiveRecord::Migration.maintain_test_schema!` when using multiple databases.
+
+    Previously, Active Record would inneficiently connect twice to each databases, now it only
+    connects once per database to reverify the schema.
+
+    *Iliana Hadzhiatanasova*
+
 *   Add `unique_by` option to `insert_all!`.
 
     *Chedli Bourguiba*
