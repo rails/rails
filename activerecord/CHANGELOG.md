@@ -1,3 +1,24 @@
+*   Fix explicit `nil` values being ignored for nullable columns with default functions when `partial_inserts = false`.
+
+    Previously, explicitly setting a nullable column to `nil` would be ignored and the
+    database default function would be used instead.
+
+    ```ruby
+    # Schema: nullable column with default function
+    t.timestamp :perform_at, default: -> { "CURRENT_TIMESTAMP" }
+
+    class Model < ApplicationRecord
+      self.partial_inserts = false
+    end
+
+    # Before
+    Model.create!(perform_at: nil).perform_at # => CURRENT_TIMESTAMP
+    # After
+    Model.create!(perform_at: nil).perform_at # => nil
+    ```
+
+    *Max Romaniv*
+
 *   Pass sql query to query log tags.
 
     ```ruby
