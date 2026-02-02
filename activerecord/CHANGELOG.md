@@ -1,3 +1,9 @@
+*   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
+
+    This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.
+
+    *Sorah Fukumori*
+
 *   Add `implicit_persistence_transaction` hook for customizing transaction behavior.
 
     A new protected method `implicit_persistence_transaction` has been added that wraps

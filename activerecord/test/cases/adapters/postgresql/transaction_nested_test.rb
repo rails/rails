@@ -50,29 +50,25 @@ module ActiveRecord
         after = Concurrent::CyclicBarrier.new(2)
 
         thread = Thread.new do
-          with_warning_suppression do
-            Sample.transaction(isolation: :serializable, requires_new: false) do
-              make_parent_transaction_dirty
-              Sample.transaction(requires_new: true) do
-                assert_current_transaction_is_savepoint_transaction
-                before.wait
-                Sample.create value: Sample.sum(:value)
-                after.wait
-              end
+          Sample.transaction(isolation: :serializable, requires_new: false) do
+            make_parent_transaction_dirty
+            Sample.transaction(requires_new: true) do
+              assert_current_transaction_is_savepoint_transaction
+              before.wait
+              Sample.create value: Sample.sum(:value)
+              after.wait
             end
           end
         end
 
         begin
-          with_warning_suppression do
-            Sample.transaction(isolation: :serializable, requires_new: false) do
-              make_parent_transaction_dirty
-              Sample.transaction(requires_new: true) do
-                assert_current_transaction_is_savepoint_transaction
-                before.wait
-                Sample.create value: Sample.sum(:value)
-                after.wait
-              end
+          Sample.transaction(isolation: :serializable, requires_new: false) do
+            make_parent_transaction_dirty
+            Sample.transaction(requires_new: true) do
+              assert_current_transaction_is_savepoint_transaction
+              before.wait
+              Sample.create value: Sample.sum(:value)
+              after.wait
             end
           end
         ensure
@@ -88,32 +84,28 @@ module ActiveRecord
       Sample.create value: 1
 
       thread = Thread.new do
-        with_warning_suppression do
-          Sample.transaction(isolation: :serializable, requires_new: false) do
-            Sample.update_all value: 2
-            start_right.set
-            commit_left.wait(1)
-          end
-          finish_right.set
+        Sample.transaction(isolation: :serializable, requires_new: false) do
+          Sample.update_all value: 2
+          start_right.set
+          commit_left.wait(1)
         end
+        finish_right.set
       end
 
       begin
-        with_warning_suppression do
-          start_right.wait
-          Sample.transaction(isolation: :serializable, requires_new: false) do
-            make_parent_transaction_dirty
-            assert_raises(ActiveRecord::SerializationFailure) do
-              Sample.transaction(requires_new: true) do
-                assert_current_transaction_is_savepoint_transaction
-                Sample.create value: 3
-                commit_left.set
-                finish_right.wait(2)
-                Sample.update_all value: 4
-              end
+        start_right.wait
+        Sample.transaction(isolation: :serializable, requires_new: false) do
+          make_parent_transaction_dirty
+          assert_raises(ActiveRecord::SerializationFailure) do
+            Sample.transaction(requires_new: true) do
+              assert_current_transaction_is_savepoint_transaction
+              Sample.create value: 3
+              commit_left.set
+              finish_right.wait(2)
+              Sample.update_all value: 4
             end
-            Bit.create value: 1
           end
+          Bit.create value: 1
         end
       ensure
         thread.join
@@ -123,104 +115,91 @@ module ActiveRecord
     end
 
     test "deadlock raises Deadlocked inside nested SavepointTransaction" do
-      with_warning_suppression do
-        connections = Concurrent::Set.new
-        assert_raises(ActiveRecord::Deadlocked) do
-          barrier = Concurrent::CyclicBarrier.new(2)
-
-          s1 = Sample.create value: 1
-          s2 = Sample.create value: 2
-
-          thread = Thread.new do
-            connections.add Sample.lease_connection
-            Sample.transaction(requires_new: false) do
-              make_parent_transaction_dirty
-              Sample.transaction(requires_new: true) do
-                assert_current_transaction_is_savepoint_transaction
-                s1.lock!
-                barrier.wait
-                s2.update value: 1
-              end
-            end
-          end
-
-          begin
-            connections.add Sample.lease_connection
-            Sample.transaction(requires_new: false) do
-              make_parent_transaction_dirty
-              Sample.transaction(requires_new: true) do
-                assert_current_transaction_is_savepoint_transaction
-                s2.lock!
-                barrier.wait
-                s1.update value: 2
-              end
-            end
-          ensure
-            thread.join
-          end
-        end
-        assert connections.all?(&:active?)
-      end
-    end
-
-    test "deadlock inside nested SavepointTransaction is recoverable" do
-      with_warning_suppression do
+      connections = Concurrent::Set.new
+      assert_raises(ActiveRecord::Deadlocked) do
         barrier = Concurrent::CyclicBarrier.new(2)
-        deadlocks = 0
 
         s1 = Sample.create value: 1
         s2 = Sample.create value: 2
 
         thread = Thread.new do
+          connections.add Sample.lease_connection
           Sample.transaction(requires_new: false) do
             make_parent_transaction_dirty
-            begin
-              Sample.transaction(requires_new: true) do
-                assert_current_transaction_is_savepoint_transaction
-                s1.lock!
-                barrier.wait
-                s2.update value: 4
-              end
-            rescue ActiveRecord::Deadlocked
-              deadlocks += 1
+            Sample.transaction(requires_new: true) do
+              assert_current_transaction_is_savepoint_transaction
+              s1.lock!
+              barrier.wait
+              s2.update value: 1
             end
-            s2.update value: 10
           end
         end
 
         begin
+          connections.add Sample.lease_connection
           Sample.transaction(requires_new: false) do
             make_parent_transaction_dirty
-            begin
-              Sample.transaction(requires_new: true) do
-                assert_current_transaction_is_savepoint_transaction
-                s2.lock!
-                barrier.wait
-                s1.update value: 3
-              end
-            rescue ActiveRecord::Deadlocked
-              deadlocks += 1
+            Sample.transaction(requires_new: true) do
+              assert_current_transaction_is_savepoint_transaction
+              s2.lock!
+              barrier.wait
+              s1.update value: 2
             end
-            s1.update value: 10
           end
         ensure
           thread.join
         end
-        assert_equal 1, deadlocks
-        assert_equal [10, 10], Sample.pluck(:value)
       end
+      assert connections.all?(&:active?)
+    end
+
+    test "deadlock inside nested SavepointTransaction is recoverable" do
+      barrier = Concurrent::CyclicBarrier.new(2)
+      deadlocks = 0
+
+      s1 = Sample.create value: 1
+      s2 = Sample.create value: 2
+
+      thread = Thread.new do
+        Sample.transaction(requires_new: false) do
+          make_parent_transaction_dirty
+          begin
+            Sample.transaction(requires_new: true) do
+              assert_current_transaction_is_savepoint_transaction
+              s1.lock!
+              barrier.wait
+              s2.update value: 4
+            end
+          rescue ActiveRecord::Deadlocked
+            deadlocks += 1
+          end
+          s2.update value: 10
+        end
+      end
+
+      begin
+        Sample.transaction(requires_new: false) do
+          make_parent_transaction_dirty
+          begin
+            Sample.transaction(requires_new: true) do
+              assert_current_transaction_is_savepoint_transaction
+              s2.lock!
+              barrier.wait
+              s1.update value: 3
+            end
+          rescue ActiveRecord::Deadlocked
+            deadlocks += 1
+          end
+          s1.update value: 10
+        end
+      ensure
+        thread.join
+      end
+      assert_equal 1, deadlocks
+      assert_equal [10, 10], Sample.pluck(:value)
     end
 
     private
-      def with_warning_suppression
-        log_level = ActiveRecord::Base.lease_connection.client_min_messages
-        ActiveRecord::Base.lease_connection.client_min_messages = "error"
-        yield
-      ensure
-        ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
-        ActiveRecord::Base.lease_connection.client_min_messages = log_level
-      end
-
       # These tests are coordinating a controlled sequence of accesses to rows in `samples` table under serializable isolation.
       # We need to run a query to dirty our transaction, but must avoid touching `samples` rows
       # because otherwise our no-op query becomes an active participant of the test setup
