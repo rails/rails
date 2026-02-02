@@ -508,8 +508,15 @@ module ActiveRecord
         end
 
         association = association(association_name)
+        reflection = association.reflection
         klass = association.klass
         primary_key = klass.primary_key
+        owner_pk = begin
+          reflection.active_record_primary_key
+        rescue ActiveRecord::UnknownPrimaryKey
+          []
+        end
+        owner_pk_value = owner_pk.is_a?(Array) ? owner_pk.map { |k| association.owner.public_send(k).to_s } : association.owner.public_send(owner_pk)
 
         existing_records = if association.loaded?
           association.target
@@ -519,8 +526,8 @@ module ActiveRecord
               Array(explicit_id)
             else
               Array(primary_key).map do |pk|
-                if association.reflection.foreign_key == pk
-                  association.owner.id
+                if reflection.foreign_key == pk
+                  owner_pk_value
                 else
                   attributes[pk.to_s] || attributes[pk.to_sym]
                 end
@@ -541,8 +548,8 @@ module ActiveRecord
             Array(explicit_id)
           else
             Array(primary_key).map do |pk|
-              if association.reflection.foreign_key == pk
-                association.owner.id
+              if reflection.foreign_key == pk
+                owner_pk_value
               else
                 attributes[pk.to_s] || attributes[pk.to_sym]
               end
@@ -550,11 +557,7 @@ module ActiveRecord
           end
           id = id.first if id.one?
 
-          if Array(id).any?(&:blank?)
-            unless reject_new_record?(association_name, attributes)
-              association.reader.build(attributes.except(*UNASSIGNABLE_KEYS))
-            end
-          elsif existing_record = find_record_by_id(klass, existing_records, id)
+          if existing_record = find_record_by_id(klass, existing_records, id)
             unless call_reject_if(association_name, attributes)
               # Make sure we are operating on the actual object which is in the association's
               # proxy_target array (either by finding it, or adding it if not found)
@@ -570,7 +573,13 @@ module ActiveRecord
               existing_record
             end
           else
-            raise_nested_attributes_record_not_found!(association_name, id)
+            if explicit_id
+              raise_nested_attributes_record_not_found!(association_name, id)
+            else
+              unless reject_new_record?(association_name, attributes)
+                association.reader.build(attributes.except(*UNASSIGNABLE_KEYS))
+              end
+            end
           end
         end
 
