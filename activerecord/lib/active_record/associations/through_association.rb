@@ -116,11 +116,21 @@ module ActiveRecord
         def build_record(attributes)
           if source_reflection.collection?
             inverse = source_reflection.inverse_of
-            target = through_association.target
 
-            if inverse && target && !target.is_a?(Array)
-              Array(target.id).zip(Array(inverse.foreign_key)).map do |primary_key_value, foreign_key_column|
-                attributes[foreign_key_column] = primary_key_value
+            if inverse
+              target = through_association.target
+
+              primary_key_values =
+                if target && !target.is_a?(Array)
+                  Array(target.id)
+                elsif through_reflection.belongs_to? && foreign_key_present?
+                  Array(through_reflection.foreign_key).map { |foreign_key_column| owner[foreign_key_column] }
+                end
+
+              if primary_key_values
+                Array(inverse.foreign_key).zip(primary_key_values).each do |foreign_key_column, primary_key_value|
+                  attributes[foreign_key_column] ||= primary_key_value
+                end
               end
             end
           end
