@@ -1,0 +1,395 @@
+$ gem install actionpack
+
+diff --git a/$ gem install actionpack b/$ gem install actionpack
+new file mode 100644
+index 0000000000000..135150097dadd
+--- /dev/null
++++ b/$ gem install actionpack
+@@ -0,0 +1 @@
++$ gem install actionpack
+diff --git a/.github/workflows/gem-push.yml b/.github/workflows/gem-push.yml
+new file mode 100644
+index 0000000000000..5d926ac4cd7ba
+--- /dev/null
++++ b/.github/workflows/gem-push.yml
+@@ -0,0 +1,45 @@
++name: Ruby Gem
++
++on:
+
+push:
+branches: [ "main" ]
+pull_request:
+branches: [ "main" ]
++jobs:
+
+build:
+name: Build + Publish
+runs-on: ubuntu-latest
+permissions:
+ contents: read
+ packages: write
+steps:
+uses: actions/checkout@v3
+name: Set up Ruby 2.6
+ uses: actions/setup-ruby@v1
+ with:
+   ruby-version: 2.6.x
+name: Publish to GPR
+ run: |
+   mkdir -p $HOME/.gem
+   touch $HOME/.gem/credentials
+   chmod 0600 $HOME/.gem/credentials
+   printf -- "---\n:github: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+   gem build *.gemspec
+   gem push --KEY github --host https://rubygems.pkg.github.com/${OWNER} *.gem
+ env:
+   GEM_HOST_API_KEY: "Bearer ${{secrets.GITHUB_TOKEN}}"
+   OWNER: ${{ github.repository_owner }}
+name: Publish to RubyGems
+ run: |
+   mkdir -p $HOME/.gem
+   touch $HOME/.gem/credentials
+   chmod 0600 $HOME/.gem/credentials
+   printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+   gem build *.gemspec
+   gem push *.gem
+ env:
+   GEM_HOST_API_KEY: "${{secrets.RUBYGEMS_AUTH_TOKEN}}"
+diff --git a/.github/workflows/npm-publish-github-packages.yml b/.github/workflows/npm-publish-github-packages.yml
+new file mode 100644
+index 0000000000000..47a37f98c8c15
+--- /dev/null
++++ b/.github/workflows/npm-publish-github-packages.yml
+@@ -0,0 +1,36 @@
++# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
++# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
++
++name: Node.js Package
++
++on:
+
+release:
+types: [created]
++jobs:
+
+build:
+runs-on: ubuntu-latest
+steps:
+ - uses: actions/checkout@v3
+ - uses: actions/setup-node@v3
+   with:
+     node-version: 16
+ - run: npm ci
+ - run: npm test
+publish-gpr:
+needs: build
+runs-on: ubuntu-latest
+permissions:
+ contents: read
+ packages: write
+steps:
+ - uses: actions/checkout@v3
+ - uses: actions/setup-node@v3
+   with:
+     node-version: 16
+     registry-url: https://npm.pkg.github.com/
+ - run: npm ci
+ - run: npm publish
+   env:
+     NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+diff --git a/.github/workflows/rubyonrails.yml b/.github/workflows/rubyonrails.yml
+new file mode 100644
+index 0000000000000..fcd7381db0675
+--- /dev/null
++++ b/.github/workflows/rubyonrails.yml
+@@ -0,0 +1,58 @@
++# This workflow uses actions that are not certified by GitHub. They are
++# provided by a third-party and are governed by separate terms of service,
++# privacy policy, and support documentation.
++#
++# This workflow will install a prebuilt Ruby version, install dependencies, and
++# run tests and linters.
++name: "Ruby on Rails CI"
++on:
+
+push:
+branches: [ "main" ]
+pull_request:
+branches: [ "main" ]
++jobs:
+test:
+runs-on: ubuntu-latest
+services:
+ postgres:
+   image: postgres:11-alpine
+   ports:
+     - "5432:5432"
+   env:
+     POSTGRES_DB: rails_test
+     POSTGRES_USER: rails
+     POSTGRES_PASSWORD: password
+env:
+ RAILS_ENV: test
+ DATABASE_URL: "postgres://rails:password@localhost:5432/rails_test"
+steps:
+ - name: Checkout code
+   uses: actions/checkout@v3
+ # Add or replace dependency steps here
+ - name: Install Ruby and gems
+   uses: ruby/setup-ruby@0a29871fe2b0200a17a4497bae54fe5df0d973aa # v1.115.3
+   with:
+     bundler-cache: true
+ # Add or replace database setup steps here
+ - name: Set up database schema
+   run: bin/rails db:schema:load
+ # Add or replace test runners here
+ - name: Run tests
+   run: bin/rake
+lint:
+runs-on: ubuntu-latest
+steps:
+ - name: Checkout code
+   uses: actions/checkout@v3
+ - name: Install Ruby and gems
+   uses: ruby/setup-ruby@0a29871fe2b0200a17a4497bae54fe5df0d973aa # v1.115.3
+   with:
+     bundler-cache: true
+ # Add or replace any other lints here
+ - name: Security audit dependencies
+   run: bin/bundler-audit --update
+ - name: Security audit application code
+   run: bin/brakeman -q -w2
+ - name: Lint Ruby files
+   run: bin/rubocop --parallel
+diff --git a/Rubocop.yml b/Rubocop.yml
+new file mode 100644
+index 0000000000000..becaac016d325
+--- /dev/null
++++ b/Rubocop.yml
+@@ -0,0 +1,111 @@
++AllCops:
+
+TargetRubyVersion: 2.2
+RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
+to ignore them, so only the ones explicitly set in this file are enabled.
+DisabledByDefault: true
+Exclude:
+'/templates//*'
+'/vendor//*'
+'actionpack/lib/action_dispatch/journey/parser.rb'
++# Prefer &&/|| over and/or.
++Style/AndOr:
+Enabled: true
++# Do not use braces for hash literals when they are the last argument of a
++# method call.
++Style/BracesAroundHashParameters:
+Enabled: true
++# Align when with case.
++Layout/CaseIndentation:
+Enabled: true
++# Align comments with method definitions.
++Layout/CommentIndentation:
+Enabled: true
++Layout/EmptyLineAfterMagicComment:
+Enabled: true
++# In a regular class definition, no empty lines around the body.
++Layout/EmptyLinesAroundClassBody:
+Enabled: true
++# In a regular method definition, no empty lines around the body.
++Layout/EmptyLinesAroundMethodBody:
+Enabled: true
++# In a regular module definition, no empty lines around the body.
++Layout/EmptyLinesAroundModuleBody:
+Enabled: true
++Layout/FirstParameterIndentation:
+Enabled: true
++# Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
++Style/HashSyntax:
+Enabled: true
++# Method definitions after private or protected isolated calls need one
++# extra level of indentation.
++Layout/IndentationConsistency:
+Enabled: true
+EnforcedStyle: rails
++# Two spaces, no tabs (for indentation).
++Layout/IndentationWidth:
+Enabled: true
++Layout/SpaceAfterColon:
+Enabled: true
++Layout/SpaceAfterComma:
+Enabled: true
++Layout/SpaceAroundEqualsInParameterDefault:
+Enabled: true
++Layout/SpaceAroundKeyword:
+Enabled: true
++Layout/SpaceAroundOperators:
+Enabled: true
++Layout/SpaceBeforeFirstArg:
+Enabled: true
++# Defining a method with parameters needs parentheses.
++Style/MethodDefParentheses:
+Enabled: true
++Style/FrozenStringLiteralComment:
+Enabled: true
+EnforcedStyle: always
+Exclude:
+'railties/**/*'
+'actionview/test/**/*.builder'
+'actionview/test/**/*.ruby'
+'actionpack/test/**/*.builder'
+'actionpack/test/**/*.ruby'
++# Use foo {} not foo{}.
++Layout/SpaceBeforeBlockBraces:
+Enabled: true
++# Use foo { bar } not foo {bar}.
++Layout/SpaceInsideBlockBraces:
+Enabled: true
++# Use { a: 1 } not {a:1}.
++Layout/SpaceInsideHashLiteralBraces:
+Enabled: true
++Layout/SpaceInsideParens:
+Enabled: true
++# Check quotes usage according to lint rule below.
++Style/StringLiterals:
+Enabled: true
+EnforcedStyle: double_quotes
++# Detect hard tabs, no hard tabs.
++Layout/Tab:
+Enabled: true
++# Blank lines should not have any spaces.
++Layout/TrailingBlankLines:
+Enabled: true
++# No trailing whitespace.
++Layout/TrailingWhitespace:
+Enabled: true
++# Use quotes for string literals when they are enough.
++Style/UnneededPercentQ:
+Enabled: true
++# Align end with the matching keyword or starting expression except for
++# assignments, where it should be aligned with the LHS.
++Lint/EndAlignment:
+Enabled: true
+EnforcedStyleAlignWith: variable
++# Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
++Lint/RequireParentheses:
+Enabled: true
+2
++railties/Rakefile
++@@ -1,3 +1,5 @@
++# frozen_string_literal: true
++require "rake/t
+diff --git "a/config/require "rails/all"" "b/config/require \"rails/all\""
+new file mode 100644
+index 0000000000000..e2d55470d6022
+--- /dev/null
++++ "b/config/require "rails/all"" @@ -0,0 +1,36 @@ +Configuring Rails Application +Rails offers four standard spots to place initialization code: +* config/application.rb+* Environment-specific configuration files +* Initializers +* After-initializers +Running Code Before Rails +------------------------- +In the rare event that your application needs to run some code before Rails itself is loaded, put it above the call torequire "rails/all"inconfig/application.rb. +Configuring Rails Components +---------------------------- +In general, the work of configuring Rails means configuring the components of Rails, as well as configuring Rails itself. The configuration file config/application.rband environment-specific configuration files (such asconfig/environments/production.rb) allow you to specify the various settings that you want to pass down to all of the components. +For example, you could add this setting to config/application.rbfile: +```ruby +config.time_zone = 'Central Time (US & Canada)' +``` +This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the sameconfigobject inconfig/application.rb: +```ruby +config.active_record.schema_format = :ruby +``` +Rails will use that particular setting to configure Active Record. +WARNING: Use the public configuration methods over calling directly to the associated class. e.g. Rails.application.config.action_mailer.optionsinstead ofActionMailer::Base.options`.
++NOTE: If you need to apply configuration directly to a class, use a lazy load hook in an initializer to avoid autoloading the class before initialization has completed. This will break because autoloading during initialization cannot be safely repeated when the app reloads.
++initializer 'active_record.initialize_timezone' do
+
+ActiveSupport.on_load(:active_record) do
+self.time_zone_aware_attributes = true
+self.default_timezone = :utc
+end
++end
++initializer "action_text.renderer" do
+ActiveSupport.on_load(:action_controller_base) do
+ActiveSupport.on_load(:action_text_content) do
+ self.default_renderer = Class.new(ActionController::Base).renderer
+end
+end
++end
+diff --git a/config/application.rb b/config/application.rb
+new file mode 100644
+index 0000000000000..299f3e5d9a06f
+--- /dev/null
++++ b/config/application.rb
+@@ -0,0 +1,3 @@
++Environment-specific configuration files
++* Initializers
++* After-initializers
+diff --git a/abstract_unit b/abstract_unit
+new file mode 100644
+index 0000000000000..de6e335b2208b
+--- /dev/null
++++ b/abstract_unit
+@@ -0,0 +1,84 @@
++# frozen_string_literal: true
++require_relative "abstract_unit"
++module ActiveSupport
+class BroadcastLoggerTest < TestCase
+attr_reader :logger, :log1, :log2
+setup do
+ @log1 = FakeLogger.new
+ @log2 = FakeLogger.new
+ @log1.extend Logger.broadcast @log2
+ @logger = @log1
+end
+Logger::Severity.constants.each do |level_name|
+ method = level_name.downcase
+ level = Logger::Severity.const_get(level_name)
+ test "##{method} adds the message to all loggers" do
+   logger.public_send(method, "msg")
+   assert_equal [level, "msg", nil], log1.adds.first
+   assert_equal [level, "msg", nil], log2.adds.first
+ end
+end
+test "#close broadcasts to all loggers" do
+ logger.close
+ assert log1.closed, "should be closed"
+ assert log2.closed, "should be closed"
+end
+test "#<< shovels the value into all loggers" do
+ logger << "foo"
+ assert_equal %w{ foo }, log1.chevrons
+ assert_equal %w{ foo }, log2.chevrons
+end
+test "#level= assigns the level to all loggers" do
+ assert_equal ::Logger::DEBUG, logger.level
+ logger.level = ::Logger::FATAL
+ assert_equal ::Logger::FATAL, log1.level
+ assert_equal ::Logger::FATAL, log2.level
+end
+test "#progname= assigns to all the loggers" do
+ assert_nil logger.progname
+ logger.progname = ::Logger::FATAL
+ assert_equal ::Logger::FATAL, log1.progname
+ assert_equal ::Logger::FATAL, log2.progname
+end
+test "#formatter= assigns to all the loggers" do
+ assert_nil logger.formatter
+ logger.formatter = ::Logger::FATAL
+ assert_equal ::Logger::FATAL, log1.formatter
+ assert_equal ::Logger::FATAL, log2.formatter
+end
+test "#local_level= assigns the local_level to all loggers" do
+ assert_equal ::Logger::DEBUG, logger.local_level
+ logger.local_level = ::Logger::FATAL
+ assert_equal ::Logger::FATAL, log1.local_level
+ assert_equal ::Logger::FATAL, log2.local_level
+end
+test "#silence does not break custom loggers" do
+ new_logger = FakeLogger.new
+ custom_logger = CustomLogger.new
+ assert_respond_to new_logger, :silence
+ assert_not_respond_to custom_logger, :silence
+ custom_logger.extend(Logger.broadcast(new_logger))
+ custom_logger.silence do
++@@ -115,8 +118,6 @@ class BroadcastLoggerTest < TestCase
+
+end
+class CustomLogger
+ include ActiveSupport::LoggerSilence
+ attr_reader :adds, :closed, :chevrons
+ attr_accessor :level, :progname, :formatter, :local_level
++@@ -168,6 +169,11 @@ def close
+
+end
+class FakeLogger < CustomLogger
+ include ActiveSupport::LoggerSilence
+ # LoggerSilence includes LoggerThreadSafeLevel which defines these as
+ # methods, so we need to redefine them
+ attr_accessor :level, :local_level
+end
+end
++end 
