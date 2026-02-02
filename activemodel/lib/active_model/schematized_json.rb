@@ -60,7 +60,7 @@ module ActiveModel
         schema.keys.each do |schema_key|
           define_method(schema_key)       { public_send(attr).public_send(schema_key) }
           define_method("#{schema_key}?") { public_send(attr).public_send("#{schema_key}?") }
-          define_method("#{schema_key}=") { |value| send(attr).public_send("#{schema_key}=", value) }
+          define_method("#{schema_key}=") { |value| public_send(attr).public_send("#{schema_key}=", value) }
         end
       end
     end
