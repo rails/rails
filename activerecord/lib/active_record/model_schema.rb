@@ -640,7 +640,7 @@ module ActiveRecord
           end
         end
 
-        def type_for_column(connection, column)
+        def type_for_column(column)
           type = column.cast_type
 
           if immutable_strings_by_default && type.respond_to?(:to_immutable_string)

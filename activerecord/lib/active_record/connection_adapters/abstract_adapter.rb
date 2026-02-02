@@ -1063,7 +1063,7 @@ module ActiveRecord
         #
         def with_raw_connection(allow_retry: false, materialize_transactions: true)
           @lock.synchronize do
-            connect! if @raw_connection.nil? && reconnect_can_restore_state?
+            connect! if !connected? && reconnect_can_restore_state?
 
             self.materialize_transactions if materialize_transactions
 

@@ -399,7 +399,7 @@ module Rails
     # Returns the application's revision (deployment identifier).
     # Useful for error reporting and deployment verification.
     #
-    # Set via config.revision (string or proc) or REVISION file.
+    # Set via config.revision (string) or REVISION file.
     # Always either a String or +nil+.
     def revision
       unless @revision_initialized

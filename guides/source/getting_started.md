@@ -1854,7 +1854,7 @@ submitted, so we'll update the permitted params to include description in
 We also need to update the show view to display the description in
 `app/views/products/show.html.erb`:
 
-```erb#3
+```erb#4
 <%# app/views/products/show.html.erb%>
 <% cache @product do %>
   <h1><%= @product.name %></h1>
