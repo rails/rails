@@ -1,0 +1,4 @@
+bin/rails g controller admin/users --parent=admin_controller
+class Admin::UsersController < AdminController
+  # ...
+end

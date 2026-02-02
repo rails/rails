@@ -1,0 +1,10 @@
+diff --git a/--parent b/--parent
+new file mode 100644
+index 000000000000..8f14fc204154
+--- /dev/null
++++ b/--parent
+@@ -0,0 +1,4 @@
++bin/rails g controller admin/users --parent=admin_controller
++class Admin::UsersController < AdminController
++  # ...
++end
