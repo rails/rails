@@ -1057,6 +1057,16 @@ class TestNestedAttributesWithCompositePrimaryKey < ActiveRecord::TestCase
     @group.group_members.create!(member: @member_1, active: false)
   end
 
+  def test_should_create_without_id_attribute_using_composite_primary_key
+    assert_difference("Cpk::GroupMember.count") do
+      @group.update(
+        group_members_attributes: {
+          "0" => { member_id: @member_2.id, _destroy: false }
+        }
+      )
+    end
+  end
+
   def test_should_find_and_update_existing_records_without_id_attribute_using_composite_primary_key
     @group.update(
       group_members_attributes: {
@@ -1087,7 +1097,7 @@ class TestNestedAttributesWithCompositePrimaryKeyAndCustomFK < ActiveRecord::Tes
   end
 
   def test_should_create_records_without_id_attribute_using_composite_primary_key_and_custom_foreign_key
-    assert_difference("Cpk::GroupMemberCustomFK.count", 1) do
+    assert_difference("Cpk::GroupMemberCustomFK.count") do
       @group.update(
         group_members_attributes: {
           "0" => { member_uuid: @new_member.uuid, _destroy: false }
