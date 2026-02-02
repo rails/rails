@@ -2221,7 +2221,7 @@ This is mainly for compatibility when upgrading Rails applications, otherwise yo
 Configures the `event_backtrace` attribute in the payload of `rescue_from_handled.action_controller` notifications, and `action_controller.rescue_from_handled` events.
 
 * `:array` - Stores the backtrace as an array of strings.
-* `nil` - Stores the backtrace as the the first string of the backtrace, stripping the `Rails.root` from the controller path.
+* `nil` - Stores the backtrace as the first string of the backtrace, stripping the `Rails.root` from the controller path.
 
 The default value depends on the `config.load_defaults` target version:
 
