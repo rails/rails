@@ -1777,6 +1777,10 @@ Here, the `type` field is crucial for STI as it stores the model name (`Car`,
 `Motorcycle`, or `Bicycle`). STI requires this field to differentiate between
 the different models stored in the same table.
 
+NOTE: The STI base class must not be declared as an abstract class. If
+`abstract_class = true` is set on the parent model, Active Record will not
+apply STI semantics, and the `type` column will not be set automatically.
+
 ### Generating Child Models
 
 Next, we generate the `Car`, `Motorcycle`, and `Bicycle` models that inherit
