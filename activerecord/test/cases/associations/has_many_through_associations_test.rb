@@ -1705,6 +1705,19 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal(chapter.book, book)
   end
 
+  def test_assign_attributes_with_ids_does_not_persist_join_records_before_save
+    rosa = Person.create!(first_name: "Rosa")
+    post1 = Post.create!(author_id: 1, title: "Mochi's Diary", body: "Me gusta el perro Mochí... simo")
+    post2 = Post.create!(author_id: 1, title: "Running with Jorge", body: "Next marathon in Madrid!")
+    initial_reader_count = Reader.count
+
+    rosa.assign_attributes(post_ids: [post1.id, post2.id])
+    assert_equal initial_reader_count, Reader.count, "Join records should not persist during assign_attributes"
+
+    assert rosa.save
+    assert_equal initial_reader_count + 2, Reader.count, "Join records should persist after successful save"
+  end
+
   private
     def make_model(name)
       Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }

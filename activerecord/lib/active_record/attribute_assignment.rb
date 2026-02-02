@@ -2,10 +2,15 @@
 
 module ActiveRecord
   module AttributeAssignment
+    def assigning_attributes? # :nodoc:
+      @_assigning_attributes == true
+    end
+
     private
       def _assign_attributes(attributes)
         multi_parameter_attributes = nested_parameter_attributes = nil
 
+        @_assigning_attributes = true
         attributes.each do |k, v|
           key = k.to_s
 
@@ -20,6 +25,8 @@ module ActiveRecord
 
         assign_nested_parameter_attributes(nested_parameter_attributes) if nested_parameter_attributes
         assign_multiparameter_attributes(multi_parameter_attributes) if multi_parameter_attributes
+      ensure
+        @_assigning_attributes = false
       end
 
       # Assign any deferred nested attributes after the base attributes have been set.
