@@ -363,9 +363,6 @@ module Rails
 
           if respond_to?(:action_view)
             action_view.render_tracker = :ruby
-          end
-
-          if respond_to?(:action_view)
             action_view.remove_hidden_field_autocomplete = true
           end
         when "8.2"
@@ -374,6 +371,7 @@ module Rails
           if respond_to?(:action_controller)
             action_controller.forgery_protection_verification_strategy = :header_only
             action_controller.default_protect_from_forgery_with = :exception
+            action_controller.rescue_from_event_backtrace = :array
           end
 
           if respond_to?(:action_dispatch)

@@ -164,7 +164,6 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, intent)
-            update_typemap_for_default_timezone
             result = if intent.prepare
               begin
                 stmt_key = prepare_statement(intent.processed_sql, intent.binds, raw_connection)
