@@ -10,7 +10,7 @@
 
 *   Speedup `ActiveRecord::Migration.maintain_test_schema!` when using multiple databases.
 
-    Previously, Active Record would ineficiently connect twice to each database, now it only
+    Previously, Active Record would inefficiently connect twice to each database, now it only
     connects once per database to reverify the schema.
 
     *Iliana Hadzhiatanasova*
