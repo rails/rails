@@ -6,9 +6,18 @@ require_relative "../behaviors"
 require "dalli"
 
 class MemCacheStoreTest < ActiveSupport::TestCase
+  # Avoid deprecation warnings when Dalli::Client#alive! forwards to #alive?
+  class SafeDalliClient < Dalli::Client
+    def alive!
+      return alive? if respond_to?(:alive?)
+
+      super
+    end
+  end
+
   # Emulates a latency on Dalli's back-end for the key latency to facilitate
   # connection pool testing.
-  class SlowDalliClient < Dalli::Client
+  class SlowDalliClient < SafeDalliClient
     def get(key, options = {})
       if /latency/.match?(key)
         sleep 3
@@ -431,12 +440,16 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
 
     def emulating_unavailability
+      old_client = Dalli.send(:remove_const, :Client)
       old_server = Dalli::Protocol.send(:remove_const, :Binary)
+      Dalli.const_set(:Client, SafeDalliClient)
       Dalli::Protocol.const_set(:Binary, UnavailableDalliServer)
 
       yield ActiveSupport::Cache::MemCacheStore.new
     ensure
       Dalli::Protocol.send(:remove_const, :Binary)
+      Dalli.send(:remove_const, :Client)
+      Dalli.const_set(:Client, old_client)
       Dalli::Protocol.const_set(:Binary, old_server)
     end
 
