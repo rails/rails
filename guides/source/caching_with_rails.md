@@ -692,7 +692,15 @@ If neither are specified, it will assume memcached is running on localhost on th
 config.cache_store = :mem_cache_store # Will fallback to $MEMCACHE_SERVERS, then 127.0.0.1:11211
 ```
 
-See the [`Dalli::Client` documentation](https://www.rubydoc.info/gems/dalli/Dalli/Client#initialize-instance_method) for supported address types.
+You can configure the protocol used to communicate with memcached:
+
+```ruby
+config.cache_store = :mem_cache_store, "cache.example.com", protocol: :meta
+```
+
+The `:meta` protocol is recommended for memcached 1.6+ and will be required in Dalli 5.0. The binary protocol remains the default for backward compatibility.
+
+See the [`Dalli::Client` documentation](https://www.rubydoc.info/gems/dalli/Dalli/Client#initialize-instance_method) for supported address types and additional options.
 
 The [`write`][ActiveSupport::Cache::MemCacheStore#write] (and `fetch`) method on this cache accepts additional options that take advantage of features specific to memcached.
 
