@@ -816,6 +816,12 @@ module ActiveRecord
         false
       end
 
+      def verify
+        return if @verified
+        return if (last_activity = seconds_since_last_activity) && last_activity < verify_timeout
+        verify!
+      end
+
       # Checks whether the connection to the database is still active (i.e. not stale).
       # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
