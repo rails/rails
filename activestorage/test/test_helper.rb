@@ -158,6 +158,8 @@ class User < ActiveRecord::Base
   has_one_attached :avatar_with_immediate_analysis, analyze: :immediately
   has_one_attached :avatar_with_later_analysis, analyze: :later
   has_one_attached :avatar_with_lazy_analysis, analyze: :lazily
+  has_one_attached :public_avatar, publicly_accessible: true
+  has_one_attached :conditional_public_avatar, publicly_accessible: ->(attachment) { attachment.record.name == "PublicUser" }
 
   has_many_attached :highlights
   has_many_attached :vlogs, dependent: false, service: :local

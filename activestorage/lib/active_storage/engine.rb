@@ -153,6 +153,7 @@ module ActiveStorage
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
         ActiveStorage.analyze = app.config.active_storage.analyze || :later
         ActiveStorage.streaming_chunk_max_size = app.config.active_storage.streaming_chunk_max_size || 100.megabytes
+        ActiveStorage.blobs_always_publicly_accessible = app.config.active_storage.blobs_always_publicly_accessible != false
       end
     end
 
