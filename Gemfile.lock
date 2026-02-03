@@ -181,7 +181,8 @@ GEM
     crass (1.0.6)
     cssbundling-rails (1.4.1)
       railties (>= 6.0.0)
-    dalli (3.2.8)
+    dalli (4.0.0)
+      logger
     dante (0.2.0)
     dartsass-rails (0.5.1)
       railties (>= 6.0.0)
@@ -394,11 +395,11 @@ GEM
     parser (3.3.9.0)
       ast (~> 2.4.1)
       racc
-    pg (1.6.2)
-    pg (1.6.2-aarch64-linux)
-    pg (1.6.2-arm64-darwin)
-    pg (1.6.2-x86_64-darwin)
-    pg (1.6.2-x86_64-linux)
+    pg (1.6.3)
+    pg (1.6.3-aarch64-linux)
+    pg (1.6.3-arm64-darwin)
+    pg (1.6.3-x86_64-darwin)
+    pg (1.6.3-x86_64-linux)
     pp (0.6.2)
       prettyprint
     prettyprint (0.2.0)
@@ -714,7 +715,6 @@ DEPENDENCIES
   rack (~> 3.0)
   rack-cache (~> 1.2)
   rails!
-  rake (>= 13)
   redcarpet (~> 3.6.1)
   redis (>= 4.0.1)
   redis-namespace
@@ -757,4 +757,4 @@ DEPENDENCIES
   websocket-client-simple
 
 BUNDLED WITH
-   2.7.2
+  4.0.4

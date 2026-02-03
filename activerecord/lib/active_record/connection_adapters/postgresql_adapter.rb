@@ -373,13 +373,13 @@ module ActiveRecord
       end
 
       def connected?
-        !(@raw_connection.nil? || @raw_connection.finished?)
+        !(@raw_connection.nil? || @raw_connection.finished? || @raw_connection.status != PG::CONNECTION_OK)
       end
 
       # Is this connection alive and ready for queries?
       def active?
         @lock.synchronize do
-          return false unless @raw_connection
+          return false unless connected?
           @raw_connection.query ";"
           verified!
         end
