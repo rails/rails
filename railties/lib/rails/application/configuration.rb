@@ -395,6 +395,10 @@ module Rails
           if respond_to?(:active_job)
             active_job.enqueue_after_transaction_commit = true
           end
+
+          if respond_to?(:active_support)
+            active_support.default_memcache_options = { protocol: :meta }
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

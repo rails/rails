@@ -176,5 +176,13 @@ module ActiveSupport
           app.config.active_support.use_message_serializer_for_metadata
       end
     end
+
+    initializer "active_support.set_default_memcache_options", before: :initialize_cache do |app|
+      ActiveSupport.on_load(:active_support_cache_mem_cache_store) do
+        if default_options = app.config.active_support.default_memcache_options
+          ActiveSupport::Cache::MemCacheStore.default_memcache_options = default_options
+        end
+      end
+    end
   end
 end

@@ -3331,6 +3331,22 @@ module ApplicationTests
       assert_not ActiveJob.verbose_enqueue_logs
     end
 
+    test "config.active_support.default_memcache_options defaults to { protocol: :meta } for new apps" do
+      app "development"
+
+      require "active_support/cache"
+      assert_equal({ protocol: :meta }, ActiveSupport::Cache::MemCacheStore.default_memcache_options)
+    end
+
+    test "config.active_support.default_memcache_options can be configured" do
+      add_to_config "config.active_support.default_memcache_options = { protocol: :binary }"
+
+      app "development"
+
+      require "active_support/cache"
+      assert_equal({ protocol: :binary }, ActiveSupport::Cache::MemCacheStore.default_memcache_options)
+    end
+
     test "config.active_job.enqueue_after_transaction_commit defaults to true for new apps" do
       app "production"
 

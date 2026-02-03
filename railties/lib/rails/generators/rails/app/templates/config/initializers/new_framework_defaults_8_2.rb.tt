@@ -101,3 +101,14 @@
 # Otherwise, when set to `nil`, only the first string of the backtrace is included, stripping the `Rails.root` from the controller path.
 #++
 # Rails.application.config.action_controller.rescue_from_event_backtrace = :array
+
+###
+# Use meta protocol for MemCacheStore instead of deprecated binary protocol.
+#
+# Dalli 4.1.0+ deprecates the binary protocol in favor of the meta protocol,
+# which will be required in Dalli 5.0. The meta protocol requires memcached 1.6+.
+#
+# When enabled, all MemCacheStore instances will use `protocol: :meta` by default.
+# You can still override this per-store by passing `protocol: :binary` explicitly.
+#++
+# Rails.application.config.active_support.default_memcache_options = { protocol: :meta }

@@ -5,6 +5,14 @@ require "active_support/cache"
 require "dalli"
 
 class CacheStoreSettingTest < ActiveSupport::TestCase
+  def setup
+    ActiveSupport::Cache::MemCacheStore.default_memcache_options = { protocol: :meta }
+  end
+
+  def teardown
+    ActiveSupport::Cache::MemCacheStore.default_memcache_options = {}
+  end
+
   def test_memory_store_gets_created_if_no_arguments_passed_to_lookup_store_method
     store = ActiveSupport::Cache.lookup_store
     assert_kind_of(ActiveSupport::Cache::MemoryStore, store)
@@ -28,7 +36,7 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
   end
 
   def test_mem_cache_fragment_cache_store
-    assert_called_with(Dalli::Client, :new, [%w[localhost], { compress: false, serializer: Marshal }]) do
+    assert_called_with(Dalli::Client, :new, [%w[localhost], { compress: false, serializer: Marshal, protocol: :meta }]) do
       store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", pool: false
       assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
     end
@@ -44,14 +52,14 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
   end
 
   def test_mem_cache_fragment_cache_store_with_multiple_servers
-    assert_called_with(Dalli::Client, :new, [%w[localhost 192.168.1.1], { compress: false, serializer: Marshal }]) do
+    assert_called_with(Dalli::Client, :new, [%w[localhost 192.168.1.1], { compress: false, serializer: Marshal, protocol: :meta }]) do
       store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", "192.168.1.1", pool: false
       assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
     end
   end
 
   def test_mem_cache_fragment_cache_store_with_options
-    assert_called_with(Dalli::Client, :new, [%w[localhost 192.168.1.1], { timeout: 10, compress: false, serializer: Marshal }]) do
+    assert_called_with(Dalli::Client, :new, [%w[localhost 192.168.1.1], { timeout: 10, compress: false, serializer: Marshal, protocol: :meta }]) do
       store = ActiveSupport::Cache.lookup_store :mem_cache_store, "localhost", "192.168.1.1", namespace: "foo", timeout: 10, pool: false
       assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
       assert_equal "foo", store.options[:namespace]

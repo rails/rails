@@ -29,12 +29,24 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  if Dalli::Protocol.const_defined?(:Meta)
+    class UnavailableDalliMetaServer < Dalli::Protocol::Meta
+      def alive? # before https://github.com/petergoldstein/dalli/pull/863
+        false
+      end
+
+      def ensure_connected! # after https://github.com/petergoldstein/dalli/pull/863
+        false
+      end
+    end
+  end
+
   if ENV["BUILDKITE"]
     MEMCACHE_UP = true
   else
     begin
       servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
-      ss = Dalli::Client.new(servers, serializer: Marshal).stats
+      ss = Dalli::Client.new(servers, serializer: Marshal, protocol: :meta).stats
       raise Dalli::DalliError unless ss[servers] || ss[servers + ":11211"]
 
       MEMCACHE_UP = true
@@ -55,6 +67,8 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def setup
     skip "memcache server is not up" unless MEMCACHE_UP
 
+    ActiveSupport::Cache::MemCacheStore.default_memcache_options = { protocol: :meta }
+
     @namespace = "test-#{Random.rand(16**32).to_s(16)}"
     @cache = lookup_store(expires_in: 60)
     @peek = lookup_store
@@ -62,6 +76,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   def teardown
+    ActiveSupport::Cache::MemCacheStore.default_memcache_options = {}
     @cache.clear
   end
 
@@ -431,13 +446,24 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
 
     def emulating_unavailability
-      old_server = Dalli::Protocol.send(:remove_const, :Binary)
+      old_binary_server = Dalli::Protocol.send(:remove_const, :Binary)
       Dalli::Protocol.const_set(:Binary, UnavailableDalliServer)
+
+      old_meta_server = nil
+      if Dalli::Protocol.const_defined?(:Meta) && defined?(UnavailableDalliMetaServer)
+        old_meta_server = Dalli::Protocol.send(:remove_const, :Meta)
+        Dalli::Protocol.const_set(:Meta, UnavailableDalliMetaServer)
+      end
 
       yield ActiveSupport::Cache::MemCacheStore.new
     ensure
       Dalli::Protocol.send(:remove_const, :Binary)
-      Dalli::Protocol.const_set(:Binary, old_server)
+      Dalli::Protocol.const_set(:Binary, old_binary_server)
+
+      if old_meta_server
+        Dalli::Protocol.send(:remove_const, :Meta)
+        Dalli::Protocol.const_set(:Meta, old_meta_server)
+      end
     end
 
     def servers(cache = @cache)

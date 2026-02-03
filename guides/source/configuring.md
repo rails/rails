@@ -68,6 +68,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 - [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
+- [`config.active_support.default_memcache_options`](#config-active-support-default-memcache-options): `{ protocol: :meta }`
 
 #### Default Values for Target Version 8.1
 
@@ -3098,6 +3099,19 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.0                   | `true`               |
+
+#### `config.active_support.default_memcache_options`
+
+Sets default options that are merged with user-provided options when creating `MemCacheStore` instances.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `{}`                 |
+| 8.2                   | `{ protocol: :meta }` |
+
+When set to `{ protocol: :meta }`, all `MemCacheStore` instances will use the meta protocol by default. The meta protocol is recommended for memcached 1.6+ and will be required in Dalli 5.0.
 
 #### `ActiveSupport::Logger.silencer`
 

@@ -33,6 +33,10 @@ module ActiveSupport
       # not be allowed to get down to the Dalli client
       OVERRIDDEN_OPTIONS = UNIVERSAL_OPTIONS
 
+      # Default options for MemCacheStore that are merged with user-provided options.
+      # These defaults are applied when creating a new MemCacheStore instance.
+      cattr_accessor :default_memcache_options, default: {}
+
       # Advertise cache versioning support.
       def self.supports_cache_versioning?
         true
@@ -85,7 +89,7 @@ module ActiveSupport
           raise ArgumentError, "First argument must be an empty array, address, or array of addresses."
         end
 
-        @mem_cache_options = options.dup
+        @mem_cache_options = self.class.default_memcache_options.merge(options.dup)
         # The value "compress: false" prevents duplicate compression within Dalli.
         @mem_cache_options[:compress] = false
         (OVERRIDDEN_OPTIONS - %i(compress)).each { |name| @mem_cache_options.delete(name) }
@@ -288,3 +292,5 @@ module ActiveSupport
     end
   end
 end
+
+ActiveSupport.run_load_hooks(:active_support_cache_mem_cache_store, ActiveSupport::Cache::MemCacheStore)
