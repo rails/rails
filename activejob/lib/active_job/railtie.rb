@@ -10,6 +10,7 @@ module ActiveJob
     config.active_job = ActiveSupport::OrderedOptions.new
     config.active_job.custom_serializers = []
     config.active_job.log_query_tags_around_perform = true
+    config.active_job.protect_retry_arguments = false
 
     initializer "active_job.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_job] = ActiveJob.deprecator
@@ -76,6 +77,10 @@ module ActiveJob
           elsif respond_to? k
             send(k, v)
           end
+        end
+
+        if app.config.active_job.key?(:protect_retry_arguments)
+          ActiveJob::Base.protect_retry_arguments = app.config.active_job.protect_retry_arguments
         end
       end
 
