@@ -498,7 +498,7 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder, &block)
       coder = LegacyYamlAdapter.convert(coder)
-      attributes = self.class.yaml_encoder.decode(coder)
+      attributes = ActiveModel::AttributeSet::YAMLEncoder.decode(coder, self.class.attribute_types)
       init_with_attributes(attributes, coder["new_record"], &block)
     end
 
@@ -586,7 +586,7 @@ module ActiveRecord
     #   Post.new.encode_with(coder)
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
-      self.class.yaml_encoder.encode(@attributes, coder)
+      ActiveModel::AttributeSet::YAMLEncoder.encode(@attributes, coder, self.class.attribute_types)
       coder["new_record"] = new_record?
       coder["active_record_yaml_version"] = 2
     end
