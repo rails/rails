@@ -552,7 +552,7 @@ end
 
 You can pass the `:comment` option with any description for the table that will
 be stored in the database itself and can be viewed with database administration
-tools, such as MySQL Workbench or PgAdmin III. Comments can help team members to
+tools, such as MySQL Workbench or pgAdmin. Comments can help team members to
 better understand the data model and to generate documentation in applications
 with large databases. Currently only the MySQL and PostgreSQL adapters support
 comments.
@@ -780,7 +780,7 @@ add_foreign_key :articles, :authors
 
 The [`add_foreign_key`][] call adds a new constraint to the `articles` table.
 The constraint guarantees that a row in the `authors` table exists where the
-`id` column matches the `articles.author_id` to ensure all reviewers listed in
+`id` column matches the `articles.author_id` to ensure all authors listed in
 the articles table are valid authors listed in the authors table.
 
 NOTE: When using `references` in a migration, you are creating a new column in
@@ -1927,7 +1927,7 @@ end
 Migrations running against `primary` will use `MySQLMigrationStrategy`, and
 migrations running against `animals` will use `PostgreSQLMigrationStrategy`.
 The adapter-specific strategy takes precedence over any globally-configured
-stategy.
+strategy.
 
 [`ActiveRecord::Migration::DefaultStrategy`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Migration/DefaultStrategy.html

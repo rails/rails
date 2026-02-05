@@ -111,6 +111,26 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal %w[ id ], result.columns
   end
 
+  def test_insert_all_bang_accepts_unique_by
+    skip unless supports_insert_conflict_target?
+
+    assert_difference "Book.count", +1 do
+      Book.insert_all! [{ name: "UniqueBy", author_id: 1, isbn: "unique-by-insert-all-bang" }], unique_by: :isbn
+    end
+  end
+
+  def test_insert_all_bang_with_unique_by_raises_on_duplicate
+    skip unless supports_insert_conflict_target?
+
+    # `books.isbn` unique index is partial: it only applies when `published_on` is NOT NULL.
+    published_on = Time.now.utc
+    Book.create!(name: "Existing", author_id: 1, isbn: "unique-by-insert-all-bang-duplicate", published_on: published_on)
+
+    assert_raises ActiveRecord::RecordNotUnique do
+      Book.insert_all! [{ name: "Duplicate", author_id: 1, isbn: "unique-by-insert-all-bang-duplicate", published_on: published_on }], unique_by: :isbn
+    end
+  end
+
   def test_insert_all_returns_nothing_if_returning_is_empty
     skip unless supports_insert_returning?
 

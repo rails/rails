@@ -2039,7 +2039,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       assert strategy.called
     end
 
-    test "migration uses adapter-specific stategy over global strategy" do
+    test "migration uses adapter-specific strategy over global strategy" do
       ActiveRecord.migration_strategy = TestStrategy
       @connection.class.migration_strategy = AlternateStrategy
       migration = TestMigration.new("TestMigration", 1)
