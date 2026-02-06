@@ -571,6 +571,8 @@ module ActiveRecord
             SQL
           end
 
+          return nil if result.nil? || result.empty?
+
           pk = result.shift
           if result.last
             [pk, PostgreSQL::Name.new(*result)]
