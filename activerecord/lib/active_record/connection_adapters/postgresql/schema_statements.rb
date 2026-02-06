@@ -577,7 +577,8 @@ module ActiveRecord
           else
             [pk, nil]
           end
-        rescue
+        rescue ActiveRecord::StatementInvalid => e
+          Rails.logger.warn("[ActiveRecord] Failed to lookup pk_and_sequence_for(#{table}): #{e.inspect}")
           nil
         end
 
