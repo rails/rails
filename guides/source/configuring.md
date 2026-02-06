@@ -544,7 +544,7 @@ Causes the app to not boot if a master key hasn't been made available through `E
 #### `config.revision`
 
 Sets the application revision for deployment tracking and error reporting. Must be a string.
-When not set, Rails first tries reading from a `REVISION` file in the application root, and if absent
+When not set, Rails first checks `ENV["REVISION"]`, then tries reading from a `REVISION` file in the application root, and if both are absent
 it attempts to get the current commit from the local git repository (default: `nil`).
 
 ```ruby
