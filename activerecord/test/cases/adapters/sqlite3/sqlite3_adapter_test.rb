@@ -514,10 +514,18 @@ module ActiveRecord
           sql = "INSERT INTO ex (number) VALUES (10)"
           name = "foo"
 
+          tables_query = ["SELECT name FROM pragma_table_list WHERE schema <> 'temp' AND name NOT IN ('sqlite_sequence', 'sqlite_schema') AND type IN ('table','view')", "SCHEMA", []]
           pragma_query = ["PRAGMA table_xinfo(\"ex\")", "SCHEMA", []]
           schema_query = ["SELECT sql FROM (SELECT * FROM sqlite_master UNION ALL SELECT * FROM sqlite_temp_master) WHERE type = 'table' AND name = 'ex'", "SCHEMA", []]
           modified_insert_query = [(sql + ' RETURNING "id"'), name, []]
-          assert_logged [pragma_query, schema_query, modified_insert_query] do
+
+          # First insert after with_example_table has reset the schema cache
+          assert_logged [tables_query, pragma_query, schema_query, modified_insert_query] do
+            @conn.insert(sql, name)
+          end
+
+          # Subsequent inserts don't need extra schema queries
+          assert_logged [modified_insert_query] do
             @conn.insert(sql, name)
           end
         end

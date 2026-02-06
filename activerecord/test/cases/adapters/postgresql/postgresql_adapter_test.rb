@@ -262,6 +262,21 @@ module ActiveRecord
         assert_equal expect.to_i, result.rows.first.first
       end
 
+      def test_insert_uses_schema_cache_with_insert_returning_disabled
+        connection = connection_without_insert_returning
+
+        # First call might need to populate the schema cache
+        connection.insert("INSERT INTO postgresql_partitioned_table_parent (number) VALUES (0)")
+
+        # We expect:
+        # 1. INSERT
+        # 2. SELECT pg_get_serial_sequence (ideally this would cached, but it's currently not)
+        # 3. SELECT currval
+        assert_queries_count(3, include_schema: true) do
+          connection.insert("INSERT INTO postgresql_partitioned_table_parent (number) VALUES (1)")
+        end
+      end
+
       def test_serial_sequence
         assert_equal "public.accounts_id_seq",
           @connection.serial_sequence("accounts", "id")

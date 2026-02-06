@@ -22,9 +22,20 @@
         add_foreign_key "test_schema.cross_schema_fk_table", "test_schema2.referenced_table"
 
     *Chiperific*
+
+*   Pass sql query to query log tags.
+
+    ```ruby
+    config.active_record.query_log_tags = [
+      sql_length: ->(context) { context[:sql].length }
+    ]
+    ```
+
+    *fatkodima*
+
 *   Speedup `ActiveRecord::Migration.maintain_test_schema!` when using multiple databases.
 
-    Previously, Active Record would inneficiently connect twice to each databases, now it only
+    Previously, Active Record would inefficiently connect twice to each database, now it only
     connects once per database to reverify the schema.
 
     *Iliana Hadzhiatanasova*

@@ -53,7 +53,7 @@ module ActiveRecord
             unless sequence_name
               table_ref = extract_table_ref_from_insert_sql(intent.raw_sql)
               if table_ref
-                pk = primary_key(table_ref) if pk.nil?
+                pk = schema_cache.primary_keys(table_ref) if pk.nil?
                 pk = suppress_composite_primary_key(pk)
                 sequence_name = default_sequence_name(table_ref, pk)
               end
