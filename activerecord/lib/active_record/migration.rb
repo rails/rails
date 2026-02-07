@@ -1369,7 +1369,7 @@ module ActiveRecord
     end
 
     def protected_environment? # :nodoc:
-      ActiveRecord::Base.protected_environments.include?(last_stored_environment) if last_stored_environment
+      ActiveRecord.protected_environments.include?(last_stored_environment) if last_stored_environment
     end
 
     def last_stored_environment # :nodoc:

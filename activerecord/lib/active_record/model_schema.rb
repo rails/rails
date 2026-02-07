@@ -178,8 +178,6 @@ module ActiveRecord
         alias_method :inheritance_column=, :real_inheritance_column=
       end
 
-      self.protected_environments = ["production"]
-
       self.ignored_columns = [].freeze
       self.only_columns = [].freeze
 
@@ -313,7 +311,14 @@ module ActiveRecord
       # The array of names of environments where destructive actions should be prohibited. By default,
       # the value is <tt>["production"]</tt>.
       def protected_environments
-        if defined?(@protected_environments)
+        ActiveRecord.deprecator.warn <<~MSG
+          ActiveRecord::Base.protected_environments is deprecated in favor of
+          ActiveRecord.protected_environments and will be removed in Rails 9.0.
+        MSG
+
+        if self == ActiveRecord::Base
+          ActiveRecord.protected_environments
+        elsif defined?(@protected_environments)
           @protected_environments
         else
           superclass.protected_environments
@@ -322,7 +327,16 @@ module ActiveRecord
 
       # Sets an array of names of environments where destructive actions should be prohibited.
       def protected_environments=(environments)
-        @protected_environments = environments.map(&:to_s)
+        ActiveRecord.deprecator.warn <<~MSG
+          ActiveRecord::Base.protected_environments= is deprecated in favor of
+          ActiveRecord.protected_environments= and will be removed in Rails 9.0.
+        MSG
+
+        if self == ActiveRecord::Base
+          ActiveRecord.protected_environments = environments
+        else
+          @protected_environments = environments.map(&:to_s)
+        end
       end
 
       def real_inheritance_column=(value) # :nodoc:
