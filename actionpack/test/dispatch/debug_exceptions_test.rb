@@ -128,6 +128,9 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         rescue Exception
           raise ActionView::Template::Error.new(template)
         end
+      when "/valid_request"
+        req.request_method # raises UnknownHttpMethod for invalid methods
+        [200, { "content-type" => "text/plain" }, ["OK"]]
       else
         raise "puke!"
       end
@@ -245,6 +248,12 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_response 406
     assert_match(/<body>/, body)
     assert_match(/ActionDispatch::Http::MimeNegotiation::InvalidType/, body)
+  end
+
+  test "rescue with 405 for actual invalid HTTP method" do
+    @app = DevelopmentApp
+    process(:INVALID_METHOD, "/valid_request", headers: { "action_dispatch.show_exceptions" => :all })
+    assert_response 405
   end
 
   test "rescue with text error for xhr request" do
