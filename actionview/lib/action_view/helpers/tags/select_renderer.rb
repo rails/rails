@@ -38,7 +38,7 @@ module ActionView
           def add_options(option_tags, options, value = nil)
             if options[:include_blank]
               content = (options[:include_blank] if options[:include_blank].is_a?(String))
-              label = (" " unless content)
+              label = (raw("&nbsp;") unless content)
               option_tags = tag_builder.option(content, value: "", label: label) + "\n" + option_tags
             end
 
