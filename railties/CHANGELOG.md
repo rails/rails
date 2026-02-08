@@ -1,3 +1,7 @@
+*   Always include `tzinfo-data` gem in the Gemfile
+
+    *Ali Ismayilov*
+
 *   `Rails.app.revision` now checks `ENV["REVISION"]` before falling back to the `REVISION` file or git.
 
     *Jonathan Baker*
