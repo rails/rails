@@ -63,7 +63,10 @@ export class BlobRecord {
   }
 
   requestDidError(event) {
-    this.callback(`Error creating Blob for "${this.file.name}". Status: ${this.status}`)
+    this.callback({
+      xhr: this.xhr,
+      message: `Error creating Blob for "${this.file.name}". Status: ${this.status}`
+    })
   }
 
   toJSON() {
