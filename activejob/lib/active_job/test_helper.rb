@@ -617,10 +617,10 @@ module ActiveJob
     #
     # If queue_adapter_for_test is overridden to return a different adapter,
     # +perform_enqueued_jobs+ will merely execute the block.
-    def perform_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil, &block)
+    def perform_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil, maximum_side_effects: nil, &block)
       unless block_given?
         require_active_job_test_adapter!("perform_enqueued_jobs (without a block)")
-        return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at)
+        return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at, maximum_side_effects: maximum_side_effects)
       end
 
       return _assert_nothing_raised_or_warn("perform_enqueued_jobs", &block) unless using_test_adapter?
@@ -633,6 +633,7 @@ module ActiveJob
       old_reject = queue_adapter.reject
       old_queue = queue_adapter.queue
       old_at = queue_adapter.at
+      old_maximum_side_effects_override = queue_adapter.maximum_side_effects_override
 
       begin
         queue_adapter.perform_enqueued_jobs = true
@@ -641,6 +642,8 @@ module ActiveJob
         queue_adapter.reject = except
         queue_adapter.queue = queue
         queue_adapter.at = at
+        queue_adapter.maximum_side_effects_override = maximum_side_effects
+        queue_adapter.reset_performed_jobs_count!
 
         _assert_nothing_raised_or_warn("perform_enqueued_jobs", &block)
       ensure
@@ -650,6 +653,7 @@ module ActiveJob
         queue_adapter.reject = old_reject
         queue_adapter.queue = old_queue
         queue_adapter.at = old_at
+        queue_adapter.maximum_side_effects_override = old_maximum_side_effects_override
       end
     end
 
@@ -721,12 +725,22 @@ module ActiveJob
         jobs_with(performed_jobs, only: only, except: except, queue: queue, &block)
       end
 
-      def flush_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil)
-        enqueued_jobs_with(only: only, except: except, queue: queue, at: at) do |payload|
-          queue_adapter.enqueued_jobs.delete(payload)
-          queue_adapter.performed_jobs << payload
-          instantiate_job(payload, skip_deserialize_arguments: true).perform_now
-        end.count
+      def flush_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil, maximum_side_effects: nil)
+        old_maximum_side_effects_override = queue_adapter.maximum_side_effects_override
+
+        begin
+          queue_adapter.maximum_side_effects_override = maximum_side_effects
+          queue_adapter.reset_performed_jobs_count!
+
+          enqueued_jobs_with(only: only, except: except, queue: queue, at: at) do |payload|
+            queue_adapter.track_job_execution!
+            queue_adapter.enqueued_jobs.delete(payload)
+            queue_adapter.performed_jobs << payload
+            instantiate_job(payload, skip_deserialize_arguments: true).perform_now
+          end.count
+        ensure
+          queue_adapter.maximum_side_effects_override = old_maximum_side_effects_override
+        end
       end
 
       def prepare_args_for_assertion(args)
