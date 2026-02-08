@@ -3290,6 +3290,29 @@ module ApplicationTests
       assert_equal OpenSSL::Digest::SHA256, ActiveSupport::KeyGenerator.hash_digest_class
     end
 
+    test "key_generator respects hash_digest_class even when accessed in an initializer before config is applied" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/repro.rb", <<-RUBY
+        Rails.application.key_generator
+      RUBY
+
+      app_file "config/initializers/custom_key_generator_digest_class.rb", <<-RUBY
+        Rails.application.config.active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
+      RUBY
+
+      app "development"
+      salt = "test_salt"
+
+      expected_key = ActiveSupport::KeyGenerator.new(
+        app.secret_key_base,
+        iterations: 1000,
+        hash_digest_class: OpenSSL::Digest::SHA256
+      ).generate_key(salt)
+
+      assert_equal expected_key, app.key_generator.generate_key(salt)
+    end
+
     test "ActiveSupport.test_parallelization_threshold can be configured via config.active_support.test_parallelization_threshold" do
       remove_from_config '.*config\.load_defaults.*\n'
 
