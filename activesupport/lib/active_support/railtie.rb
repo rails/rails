@@ -159,6 +159,7 @@ module ActiveSupport
         if klass = app.config.active_support.key_generator_hash_digest_class
           ActiveSupport::KeyGenerator.hash_digest_class = klass
         end
+        app.send(:key_generator_hash_digest_class_applied!)
       end
     end
 

@@ -3290,6 +3290,56 @@ module ApplicationTests
       assert_equal OpenSSL::Digest::SHA256, ActiveSupport::KeyGenerator.hash_digest_class
     end
 
+    test "key_generator raises when accessed before initialization with key_generator_hash_digest_class configured" do
+      add_to_config <<-RUBY
+        config.active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
+      RUBY
+
+      require "#{app_path}/config/application"
+
+      error = assert_raises(RuntimeError) do
+        Rails.application.key_generator
+      end
+      assert_match(/Cannot call.*key_generator.*before/, error.message)
+    end
+
+    test "key_generator does not raise when accessed before initialization without key_generator_hash_digest_class configured" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      require "#{app_path}/config/application"
+
+      assert_nothing_raised do
+        Rails.application.key_generator
+      end
+    end
+
+    test "key_generator raises when accessed from an initializer with key_generator_hash_digest_class configured" do
+      add_to_config <<-RUBY
+        config.active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
+      RUBY
+
+      app_file "config/initializers/eager_key.rb", <<-RUBY
+        Rails.application.key_generator
+      RUBY
+
+      error = assert_raises(RuntimeError) do
+        app "development"
+      end
+      assert_match(/Cannot call.*key_generator.*before/, error.message)
+    end
+
+    test "key_generator works normally after initialization with key_generator_hash_digest_class configured" do
+      add_to_config <<-RUBY
+        config.active_support.key_generator_hash_digest_class = OpenSSL::Digest::SHA256
+      RUBY
+
+      app "development"
+
+      assert_nothing_raised do
+        Rails.application.key_generator
+      end
+    end
+
     test "ActiveSupport.test_parallelization_threshold can be configured via config.active_support.test_parallelization_threshold" do
       remove_from_config '.*config\.load_defaults.*\n'
 
