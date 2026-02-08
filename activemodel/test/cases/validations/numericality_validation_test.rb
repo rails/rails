@@ -237,6 +237,36 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_valid_values([1, 2, 3])
   end
 
+  def test_validates_numericality_with_in_using_proc
+    Topic.define_method(:approved_range) { 2..4 }
+    Topic.validates_numericality_of :approved, in: Proc.new(&:approved_range)
+
+    assert_invalid_values([1, 5])
+    assert_valid_values([2, 3, 4])
+  ensure
+    Topic.remove_method :approved_range
+  end
+
+  def test_validates_numericality_with_in_using_symbol
+    Topic.define_method(:approved_range) { 2..4 }
+    Topic.validates_numericality_of :approved, in: :approved_range
+
+    assert_invalid_values([1, 5])
+    assert_valid_values([2, 3, 4])
+  ensure
+    Topic.remove_method :approved_range
+  end
+
+  def test_validates_numericality_with_in_using_proc_must_return_range
+    Topic.define_method(:approved_range) { 123 }
+    Topic.validates_numericality_of :approved, in: Proc.new(&:approved_range)
+
+    topic = Topic.new title: "numeric test", content: "whatever", approved: 10
+    assert_raise(ArgumentError) { topic.valid? }
+  ensure
+    Topic.remove_method :approved_range
+  end
+
   def test_validates_numericality_with_other_than_using_string_value
     Topic.validates_numericality_of :approved, other_than: 0
 
