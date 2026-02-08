@@ -6,7 +6,21 @@ module ActiveRecord
     class BelongsToPolymorphicAssociation < BelongsToAssociation # :nodoc:
       def klass
         type = owner[reflection.foreign_type]
-        type.presence && owner.class.polymorphic_class_for(type)
+        klass = type.presence && owner.class.polymorphic_class_for(type)
+
+        if klass && !(klass < Base)
+          raise NameError, "'#{type}' is not a valid #{reflection.foreign_type}"
+        end
+
+        klass
+      end
+
+      def build_record(attributes)
+        unless klass
+          raise NameError, "Cannot build polymorphic association `#{reflection.name}' when `#{reflection.foreign_type}' is empty"
+        end
+
+        super
       end
 
       def target_changed?
