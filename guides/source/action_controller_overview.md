@@ -364,6 +364,15 @@ explicitly permitted. This means you will need to decide which attributes to
 permit for mass update and declare them in the controller. This is a security
 practice to prevent users from accidentally updating sensitive model attributes.
 
+WARNING: Never use `params` directly in model operations without Strong Parameters.
+This is a major security vulnerability that can allow attackers to modify any
+attribute on your models, including sensitive ones like admin flags or passwords.
+
+COMMON MISTAKE: Developers sometimes think `params[:user]` is safe because it
+only contains user-related data. However, attackers can send additional
+parameters like `user[admin]=true` to gain privileges. Always use `permit` or
+`expect` to explicitly whitelist allowed parameters.
+
 In addition, parameters can be marked as required and the request will result in
 a 400 Bad Request being returned if not all required parameters are passed in.
 
@@ -651,6 +660,10 @@ data. The signed cookie jar appends a cryptographic signature on the cookie
 values to protect their integrity. The encrypted cookie jar encrypts the values
 in addition to signing them, so that they cannot be read by the user.
 
+TIP: Always use encrypted cookies for sensitive data. Signed cookies protect
+against tampering but don't hide the content. Encrypted cookies provide both
+tamper protection and confidentiality.
+
 Refer to the [API
 documentation](https://api.rubyonrails.org/classes/ActionDispatch/Cookies.html)
 for more details.
@@ -696,6 +709,11 @@ While cookies are stored client-side, session data is stored server-side (in
 memory, a database, or a cache), and the duration is usually temporary and tied
 to the user's session (e.g. until they close the browser). An example use case
 for session is storing sensitive data like user authentication.
+
+SECURITY NOTE: Never store sensitive information like passwords or credit card
+details in sessions. Sessions are more secure than cookies but can still be
+compromised. Use them only for non-sensitive user state like authentication
+tokens or UI preferences.
 
 In a Rails application, the session is available in the controller and the view.
 
