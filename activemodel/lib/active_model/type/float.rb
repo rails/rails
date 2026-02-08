@@ -57,7 +57,8 @@ module ActiveModel
           when "Infinity" then ::Float::INFINITY
           when "-Infinity" then -::Float::INFINITY
           when "NaN" then ::Float::NAN
-          else value.to_f
+          else
+            Float(value) rescue nil
           end
         end
     end
