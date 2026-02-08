@@ -14,7 +14,7 @@ module ActiveModel
     class Boolean < Value
       include Helpers::Immutable
       FALSE_VALUES = [
-        false, 0,
+        false, 0, 0.0,
         "0", :"0",
         "f", :f,
         "F", :F,
