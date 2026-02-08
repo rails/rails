@@ -178,6 +178,11 @@ $ bin/rails db:create
 
 This will initially create the application's database.
 
+NOTE: Rails creates separate databases for each environment (development, test,
+and production). The `db:create` command creates all three databases. In
+development, you'll work with the development database, while tests run against
+the test database to keep your data isolated.
+
 ```bash
 $ bin/rails server
 ```
@@ -339,7 +344,16 @@ Its output looks like this:
 ```
 
 TIP: If you make a mistake, you can run `bin/rails db:rollback` to undo the last
-migration.
+migration. This is crucial for maintaining database integrity during development.
+
+WARNING: Never modify a migration file after it's been run in production.
+Instead, create a new migration to make further changes. This ensures all
+environments can be updated consistently.
+
+CAUTION: If you must rollback a migration that has already been deployed,
+test the rollback thoroughly in a staging environment first. Some migrations
+(like those dropping columns) may cause data loss that cannot be recovered.
+Always backup production data before running migrations.
 
 Rails Console
 -------------
@@ -1330,6 +1344,10 @@ with our `Product` data even though it wasn't able to be saved in the database.
 
 We also set the HTTP status to 422 Unprocessable Entity to tell the browser this
 POST request failed and to handle it accordingly.
+
+TIP: Always check for validation errors in your forms. The `@product.errors`
+object contains detailed information about what went wrong. Use
+`@product.errors.full_messages` to get user-friendly error messages for display.
 
 ### Editing Products
 
@@ -2746,8 +2764,13 @@ guides.
 Testing
 -------
 
-Rails comes with a robust test suite. Let's write a test to ensure that the
-correct number of emails are sent when a product is back in stock.
+Rails comes with a robust test suite that helps ensure your application works
+as expected and prevents regressions when making changes. Testing is a crucial
+part of Rails development - many developers follow Test-Driven Development (TDD)
+where they write tests before implementing features.
+
+Let's write a test to ensure that the correct number of emails are sent when a
+product is back in stock.
 
 ### Fixtures
 
