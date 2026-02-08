@@ -65,7 +65,13 @@ module ActionDispatch
             content_type = Mime[:text]
           end
 
-          if request.head?
+          begin
+            head_request = request.head?
+          rescue ActionController::UnknownHttpMethod
+            head_request = false
+          end
+
+          if head_request
             render(wrapper.status_code, "", content_type)
           elsif api_request?(content_type)
             render_for_api_request(content_type, wrapper)
