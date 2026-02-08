@@ -1049,6 +1049,35 @@ class TestNestedAttributesWithNonStandardPrimaryKeys < ActiveRecord::TestCase
   end
 end
 
+class TestNestedAttributesTransactionRollback < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  def teardown
+    Ship.connection.disable_referential_integrity do
+      Ship.delete_all
+      Pirate.delete_all
+    end
+  end
+
+  def test_update_with_nested_attributes_inside_transaction_rolls_back_side_effects
+    skip unless supports_savepoints?
+
+    pirate = Pirate.create!(catchphrase: "Stop wastin' me time", ship_attributes: { name: "Black Pearl" })
+    ship = pirate.ship
+
+    Pirate.transaction do
+      assert_not pirate.update(catchphrase: nil, ship_attributes: { name: "Flying Dutchman" })
+    end
+
+    pirate.reload
+    ship.reload
+
+    assert_not_nil pirate.ship
+    assert_equal ship.id, pirate.ship.id
+    assert_equal pirate.id, ship.pirate_id
+  end
+end
+
 class TestHasOneAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
 
