@@ -833,6 +833,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_kamal_deploy_yml_adds_app_port_to_proxy_when_thruster_is_skipped
+    generator [destination_root], ["--skip-thruster"]
+    run_generator_instance
+
+    assert_file "config/deploy.yml" do |content|
+      assert_match(%r{app_port: 3000}, content)
+    end
+  end
+
   def test_usage_read_from_file
     assert_called(File, :read, returns: "USAGE FROM FILE") do
       assert_equal "USAGE FROM FILE", Rails::Generators::AppGenerator.desc
