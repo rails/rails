@@ -153,7 +153,7 @@ Here is a sample HTML template that can be used for the welcome email:
 <h1>Welcome to example.com, <%= @user.name %></h1>
 <p>
   You have successfully signed up to example.com,
-  your username is: <%= @user.login %>.<br>
+  your username is: <%= @user.name %>.<br>
 </p>
 <p>
   To log in to the site, just follow this link: <%= link_to 'login', login_url %>.
@@ -176,7 +176,7 @@ Welcome to example.com, <%= @user.name %>
 ===============================================
 
 You have successfully signed up to example.com,
-your username is: <%= @user.login %>.
+your username is: <%= @user.name %>.
 
 To log in to the site, just follow this link: <%= @url %>.
 
