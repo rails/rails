@@ -1069,6 +1069,91 @@ module ActiveRecord
       end
     end
 
+    def test_connection_failure_while_enqueuing_replays_unsynced_window
+      # Tests that when the connection breaks after some queries have been
+      # enqueued but before the pipeline is synced/flushed, all previously
+      # queued intents are transparently replayed on a new connection.
+      #
+      # This is distinct from the drain-phase tests (like
+      # test_multiple_retryable_pipelined_queries_all_recover) where the
+      # connection dies while we're reading results. Here the connection
+      # breaks while we're still writing queries into the pipeline.
+      #
+      # The setup: enqueue two queries, break the connection by closing
+      # the underlying socket fd, then enqueue a third. The third enqueue
+      # (or the subsequent flush) should detect the broken connection,
+      # reconnect, and replay all three queries on the new connection.
+      #
+      # All intents use allow_retry: false to verify that replay works
+      # based on the unsynced window status (no sync boundary was crossed,
+      # so the server definitively did not execute any of these queries),
+      # independent of the per-intent allow_retry flag.
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.materialize_transactions
+        initial_pid = conn.select_value("SELECT pg_backend_pid()")
+
+        conn.enter_pipeline_mode
+
+        intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n",
+          name: "TEST",
+          allow_retry: false
+        )
+        intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 2 AS n",
+          name: "TEST",
+          allow_retry: false
+        )
+
+        intent1.execute!
+        intent2.execute!
+
+        # Close the underlying socket to simulate a connection break.
+        raw_conn = conn.instance_variable_get(:@raw_connection)
+        previous_stderr = $stderr
+        begin
+          $stderr = StringIO.new  # suppress libpq warnings about the fd
+          fd = raw_conn.socket
+        ensure
+          $stderr = previous_stderr
+        end
+        IO.for_fd(fd).close
+
+        # Enqueueing another query should trigger error detection,
+        # reconnect, and replay the entire unsynced window.
+        intent3 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 3 AS n",
+          name: "TEST",
+          allow_retry: false
+        )
+        intent3.execute!
+
+        assert_equal [[1]], intent1.cast_result.rows
+        assert conn.pipeline_active?
+        assert_equal [[2]], intent2.cast_result.rows
+        assert_equal [[3]], intent3.cast_result.rows
+
+        new_pid = conn.select_value("SELECT pg_backend_pid()")
+        assert_not_equal initial_pid, new_pid
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
     def test_server_aborted_query_reruns_on_demand_outside_transaction
       # When a SQL error aborts subsequent queries in a pipeline and
       # there's no enclosing transaction, the aborted queries can

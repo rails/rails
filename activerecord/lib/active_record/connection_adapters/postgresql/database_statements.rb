@@ -157,7 +157,7 @@ module ActiveRecord
             end
 
             start_intent_log(intent)
-            with_raw_connection(allow_retry: false, materialize_transactions: false, pipeline_mode: true) do |_conn|
+            with_raw_connection(allow_retry: true, materialize_transactions: false, pipeline_mode: true) do |_conn|
               # Initialize retry state for this pipelined query
               intent.initialize_retry_state(
                 retries: intent.allow_retry ? connection_retries : 0,

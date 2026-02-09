@@ -1088,6 +1088,7 @@ module ActiveRecord
 
             retries_available = allow_retry ? connection_retries : 0
             deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
+            replay_intents = nil
 
             begin
               # Handle pipeline mode: explicit request, or restore original state
@@ -1098,6 +1099,12 @@ module ActiveRecord
               elsif !was_in_pipeline && pipeline_active?
                 # Nested queries entered pipeline mode - exit to restore state
                 exit_pipeline_mode
+              end
+
+              # Re-queue any intents saved for replay from a previous attempt
+              if replay_intents
+                replay_intents.each { |intent| pipeline_add_query(intent) }
+                replay_intents = nil
               end
 
               # Lock pipelining while yielding to prevent nested queries from changing mode
@@ -1122,7 +1129,9 @@ module ActiveRecord
                   retry
                 when :retry_after_reconnect
                   retries_available -= 1
-                  abandon_pipelined_intents(translated_exception)
+                  replay_intents = pipeline_mode &&
+                    abandon_pipelined_intents(translated_exception, allow_recovery: true)
+                  abandon_pipelined_intents(translated_exception) unless replay_intents
                   reconnect!(restore_transactions: true)
                   # Only allowed to reconnect once, because reconnect! has its own retry loop
                   reconnectable = false
