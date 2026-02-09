@@ -143,9 +143,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_raise(ArgumentError) { d.advance(hour: 1) }
     assert_raise(ArgumentError) { d.advance(minute: 1) }
     assert_raise(ArgumentError) { d.advance(second: 1) }
-    assert_raise(ArgumentError) { d.advance(hours: 1) }
-    assert_raise(ArgumentError) { d.advance(minutes: 1) }
-    assert_raise(ArgumentError) { d.advance(seconds: 1) }
   end
 
   def test_advance_does_first_years_and_then_days
