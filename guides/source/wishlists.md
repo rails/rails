@@ -1100,7 +1100,7 @@ Since this is the admin area, we will want to add filters to subscribers too.
 
 In `app/models/subscriber.rb`, let's add the `filter_by` class method:
 
-```ruby
+```ruby#5-9
 class Subscriber < ApplicationRecord
   belongs_to :product
   generates_token_for :unsubscribe

@@ -51,6 +51,16 @@
 # Rails.application.config.action_controller.default_protect_from_forgery_with = :exception
 
 ###
+# Remove the default X-XSS-Protection headers since all browsers have removed support for it years ago.
+#++
+# config.action_dispatch.default_headers = {
+#   "X-Frame-Options" => "SAMEORIGIN",
+#   "X-Content-Type-Options" => "nosniff",
+#   "X-Permitted-Cross-Domain-Policies" => "none",
+#   "Referrer-Policy" => "strict-origin-when-cross-origin"
+# }
+
+###
 # Controls whether the PostgresqlAdapter should decode bytea and money columns automatically with manual queries.
 #
 # Example:
@@ -83,3 +93,11 @@
 #  - :lazily - Skip automatic analysis; analyze on-demand
 #++
 # Rails.application.config.active_storage.analyze = :immediately
+
+# Controls whether the `rescue_from_handled.action_controller` notification payload includes the full backtrace.
+#
+# When set to `:array`, the full backtrace is included as an array of strings.
+#
+# Otherwise, when set to `nil`, only the first string of the backtrace is included, stripping the `Rails.root` from the controller path.
+#++
+# Rails.application.config.action_controller.rescue_from_event_backtrace = :array

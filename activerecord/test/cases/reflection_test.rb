@@ -29,7 +29,7 @@ require "models/drink_designer"
 require "models/recipe"
 require "models/user_with_invalid_relation"
 require "models/hardback"
-require "models/sharded/comment"
+require "models/sharded"
 require "models/admin"
 require "models/admin/user"
 require "models/user"
@@ -682,6 +682,14 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_association_primary_key_uses_explicit_primary_key_option_as_first_priority
     actual = Sharded::Comment.reflect_on_association(:blog_post_by_id).association_primary_key
     assert_equal "id", actual
+  end
+
+  def test_through_reflection_association_primary_key_with_composite_key
+    reflection = Sharded::Blog.reflect_on_association(:comments_via_posts)
+    actual = reflection.association_primary_key
+
+    assert_kind_of Array, actual
+    assert_equal ["blog_id", "id"], actual
   end
 
   def test_belongs_to_reflection_with_query_constraints_infers_correct_foreign_key

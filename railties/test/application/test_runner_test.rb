@@ -1014,6 +1014,7 @@ module ApplicationTests
       app_file "config/environments/test.rb", <<-RUBY
         Rails.application.configure do
           config.action_controller.allow_forgery_protection = true
+          config.action_controller.forgery_protection_verification_strategy = :header_or_legacy_token
           config.action_dispatch.show_exceptions = :none
         end
       RUBY

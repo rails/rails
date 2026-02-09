@@ -202,7 +202,7 @@ interchangeably as keys.
 [Composite key parameters](active_record_composite_primary_keys.html) contain
 multiple values in one parameter separated by a delimiter (e.g., an underscore).
 Therefore, you will need to extract each value so that you can pass them to
-Active Record. You can use the `extract_value`  method to do that.
+Active Record. You can use the `extract_value` method to do that.
 
 For example, given the following controller:
 
@@ -1168,7 +1168,7 @@ class ActionDurationCallback
 end
 ```
 
-In above example, the `ActionDurationCallback`'s method is not run in the scope
+In the above example, the `ActionDurationCallback`'s method is not run in the scope
 of the controller but gets `controller` as an argument.
 
 In general, the class being used for a `*_action` callback must implement a
