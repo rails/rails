@@ -1,3 +1,16 @@
+*   Add `config.active_record.schema_cache_dump_order` to control the order of columns
+    and indexes in schema cache dump files.
+
+    When set to `:database` (the default), columns and indexes are written in the order returned by
+    the database. When set to `:sorted`, they are sorted alphabetically for deterministic output.
+
+    In Rails 8.1 ([#54960](https://github.com/rails/rails/pull/54960)) the behavior changed from
+    "database order" to "sorted order" which impacted the results of some queries (e.g., queries
+    using `pluck("*")`). This configuration option now requires developers to opt-in to the sorted
+    dump file.
+
+    *Mike Dalessio*
+
 *   Pass sql query to query log tags.
 
     ```ruby

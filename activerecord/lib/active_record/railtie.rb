@@ -29,6 +29,7 @@ module ActiveRecord
 
     config.active_record.use_schema_cache_dump = true
     config.active_record.check_schema_cache_dump_version = true
+    config.active_record.schema_cache_dump_order = :database
     config.active_record.maintain_test_schema = true
     config.active_record.has_many_inversing = false
     config.active_record.query_log_tags_enabled = false
@@ -143,6 +144,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
       ActiveRecord::ConnectionAdapters::SchemaReflection.use_schema_cache_dump = active_record_config.use_schema_cache_dump
       ActiveRecord::ConnectionAdapters::SchemaReflection.check_schema_cache_dump_version = active_record_config.check_schema_cache_dump_version
+      ActiveRecord::ConnectionAdapters::SchemaCache.schema_cache_dump_order = active_record_config.schema_cache_dump_order
     end
 
     initializer "active_record.define_attribute_methods" do |app|
@@ -240,6 +242,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :sqlite3_adapter_strict_strings_by_default,
           :check_schema_cache_dump_version,
           :use_schema_cache_dump,
+          :schema_cache_dump_order,
           :postgresql_adapter_decode_dates,
           :postgresql_adapter_decode_money,
           :postgresql_adapter_decode_bytea,
