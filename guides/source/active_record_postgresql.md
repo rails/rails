@@ -539,6 +539,8 @@ To configure `timestamp with time zone` as your new timestamp default data type,
 # config/application.rb
 ActiveSupport.on_load(:active_record_postgresqladapter) do
   self.datetime_type = :timestamptz
+  # If you are adding this to an existing application with an existing database, add this line:
+  ActiveRecord::Base.time_zone_aware_types << :timestamp
 end
 ```
 
