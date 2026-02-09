@@ -804,11 +804,14 @@ module ActiveRecord
       end
     end
 
-    def test_non_retryable_synced_intent_prevents_transparent_replay
-      # When a synced intent does not have allow_retry, transparent replay
-      # is not possible. The synced intent gets ConnectionFailed (fate
-      # unknown), while other intents retry individually or re-execute
-      # on demand.
+    def test_pipeline_aborted_intent_reexecutes_despite_allow_retry_false
+      # When the server sends PGRES_PIPELINE_ABORTED, we trust it: the
+      # query was definitively not executed. Re-execution via the not_run
+      # path is safe regardless of allow_retry.
+      #
+      # This is distinct from the abandon path (socket close, no server
+      # response) where synced non-retryable intents get ConnectionFailed
+      # because fate is unknown. See test_synced_non_retryable_intent_blocks_replay.
       pool_config = ActiveRecord::Base.connection_pool.db_config
       test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
         ActiveRecord::ConnectionAdapters::PoolConfig.new(
@@ -836,7 +839,7 @@ module ActiveRecord
           adapter: conn,
           raw_sql: "SELECT 2 AS n",
           name: "TEST",
-          allow_retry: false  # blocks transparent replay
+          allow_retry: false
         )
 
         intent1.execute!
@@ -844,18 +847,148 @@ module ActiveRecord
 
         @connection.execute("SELECT pg_terminate_backend(#{initial_pid})")
 
-        # intent1 is retryable, so it retries individually and succeeds
+        # intent1 retries via ensure_result (retryable connection error)
         assert_equal [[1]], intent1.cast_result.rows
 
-        # intent2 was synced but not retryable - server may have executed
-        # it, so it gets ConnectionFailed
-        assert_raises(ActiveRecord::ConnectionFailed) do
-          intent2.cast_result
-        end
+        # intent2 got PIPELINE_ABORTED - the server confirms it was not
+        # executed. Re-executes on demand despite allow_retry: false.
+        assert_equal [[2]], intent2.cast_result.rows
 
         new_pid = conn.select_value("SELECT pg_backend_pid()")
         assert_not_equal initial_pid, new_pid
       ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
+    def test_successful_non_retryable_intent_does_not_block_batch_replay
+      # When a fast query succeeds and a slow query gets AdminShutdown,
+      # the successful intent's allow_retry: false should not prevent
+      # batch replay of the failed retryable intent. The replay decision
+      # should only consider intents that actually failed or were not run.
+      #
+      # Uses connection_retries: 0 to disable individual retry in
+      # ensure_result, making batch replay the only recovery path.
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_config = pool_config.configuration_hash.merge(connection_retries: 0)
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", test_config),
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.materialize_transactions
+        initial_pid = conn.select_value("SELECT pg_backend_pid()")
+
+        conn.enter_pipeline_mode
+
+        # Fast query, non-retryable - completes before the kill
+        intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n",
+          name: "TEST",
+          allow_retry: false
+        )
+        # Slow query, retryable - server dies while processing
+        intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 2 AS n FROM pg_sleep(2)",
+          name: "TEST",
+          allow_retry: true
+        )
+
+        intent1.execute!
+        intent2.execute!
+        conn.pipeline_sync
+
+        @connection.execute("SELECT pg_terminate_backend(#{initial_pid})")
+
+        # intent1 succeeded before the kill
+        assert_equal [[1]], intent1.cast_result.rows
+
+        # intent2 should recover via batch replay, not blocked by
+        # intent1's allow_retry: false
+        assert_equal [[2]], intent2.cast_result.rows
+
+        new_pid = conn.select_value("SELECT pg_backend_pid()")
+        assert_not_equal initial_pid, new_pid
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
+    def test_successful_intent_not_replayed_during_batch_recovery
+      # When a retryable INSERT succeeds and is committed (via a
+      # completed sync group), it must not be re-executed during batch
+      # replay of a later failed intent. Replaying a committed write
+      # would double-execute it.
+      #
+      # Setup: intent1 (INSERT) in sync group 1 - committed before the
+      # kill. intent2 (slow SELECT) in sync group 2 - killed mid-flight.
+      # Batch replay should recover intent2 without touching intent1.
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.materialize_transactions
+
+        conn.execute("CREATE TABLE IF NOT EXISTS pipeline_replay_write_test (val int)")
+        conn.execute("TRUNCATE pipeline_replay_write_test")
+
+        initial_pid = conn.select_value("SELECT pg_backend_pid()")
+
+        conn.enter_pipeline_mode
+
+        # Sync group 1: retryable INSERT - fast, committed at sync point
+        intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "INSERT INTO pipeline_replay_write_test VALUES (1)",
+          name: "TEST",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+        intent1.execute!
+        conn.pipeline_sync
+
+        # Sync group 2: slow retryable query - server dies during sleep
+        intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n FROM pg_sleep(2)",
+          name: "TEST",
+          allow_retry: true
+        )
+        intent2.execute!
+
+        @connection.execute("SELECT pg_terminate_backend(#{initial_pid})")
+
+        # intent2 recovers via batch replay
+        assert_equal [[1]], intent2.cast_result.rows
+
+        # intent1 already succeeded
+        assert_equal 1, intent1.affected_rows
+
+        # The INSERT was committed by sync group 1 and NOT replayed -
+        # exactly one row, not two.
+        count = conn.select_value("SELECT COUNT(*) FROM pipeline_replay_write_test")
+        assert_equal 1, count
+
+        new_pid = conn.select_value("SELECT pg_backend_pid()")
+        assert_not_equal initial_pid, new_pid
+      ensure
+        conn&.execute("DROP TABLE IF EXISTS pipeline_replay_write_test") rescue nil
         test_pool.disconnect! rescue nil
       end
     end
@@ -1146,6 +1279,75 @@ module ActiveRecord
         assert conn.pipeline_active?
         assert_equal [[2]], intent2.cast_result.rows
         assert_equal [[3]], intent3.cast_result.rows
+
+        new_pid = conn.select_value("SELECT pg_backend_pid()")
+        assert_not_equal initial_pid, new_pid
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
+    def test_synced_non_retryable_intent_blocks_replay
+      # When a synced intent is non-retryable, full replay is blocked.
+      # The retryable intent recovers via individual retry; the
+      # non-retryable one gets ConnectionFailed (fate unknown).
+      #
+      # Uses socket close for deterministic sync boundary placement,
+      # unlike the pg_terminate_backend variant which is timing-dependent.
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.materialize_transactions
+        initial_pid = conn.select_value("SELECT pg_backend_pid()")
+
+        conn.enter_pipeline_mode
+
+        intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n",
+          name: "TEST",
+          allow_retry: true
+        )
+        intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 2 AS n",
+          name: "TEST",
+          allow_retry: false  # blocks full replay
+        )
+
+        intent1.execute!
+        intent2.execute!
+
+        # Sync succeeds - both intents are now "synced"
+        conn.pipeline_sync
+
+        # Close socket after sync boundary is established
+        raw_conn = conn.instance_variable_get(:@raw_connection)
+        previous_stderr = $stderr
+        begin
+          $stderr = StringIO.new
+          fd = raw_conn.socket
+        ensure
+          $stderr = previous_stderr
+        end
+        IO.for_fd(fd).close
+
+        # intent1 is retryable - retries individually and succeeds
+        assert_equal [[1]], intent1.cast_result.rows
+
+        # intent2 was synced but not retryable - gets ConnectionFailed
+        assert_raises(ActiveRecord::ConnectionFailed) do
+          intent2.cast_result
+        end
 
         new_pid = conn.select_value("SELECT pg_backend_pid()")
         assert_not_equal initial_pid, new_pid

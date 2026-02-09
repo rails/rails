@@ -105,6 +105,7 @@ module ActiveRecord
         @lock_wait = nil
         @event_buffer = nil
         @log_handle = nil
+        @finalized = false
 
         # Retry tracking state (initialized when execution begins)
         @retries_remaining = nil
@@ -256,60 +257,22 @@ module ActiveRecord
 
         # Logging outside lock to avoid blocking other threads
         adapter.finish_intent_log(self)
+        @finalized = true
       end
 
       # Deliver a failure to this intent.
-      # Handles retry logic internally - if retriable, will attempt again.
-      # Otherwise marks as permanent failure with logging and transaction dirtying.
+      # Records the error; does not log. Logging is deferred to the
+      # final outcome in ensure_result (success via deliver_result, or
+      # permanent failure just before raising).
       def deliver_failure(exception)
-        should_finish_log = false
-
         adapter.lock.synchronize do
           @error = exception
 
-          if retriable?
-            action = adapter.send(:classify_retry_action, exception, reconnectable: @reconnectable)
-            if action
-              consume_retry
-              reset_for_retry
-
-              case action
-              when :retry_query
-                adapter.send(:backoff, adapter.send(:connection_retries) - @retries_remaining)
-              when :retry_after_reconnect
-                replayable = adapter.send(:abandon_pipelined_intents, exception, allow_recovery: true)
-                adapter.reconnect!(restore_transactions: true)
-                @reconnectable = false
-
-                if replayable
-                  # All intents are eligible for replay. Re-enter pipeline
-                  # mode and re-queue everything, preserving original order:
-                  # self was shifted off @pending_intents before deliver_failure
-                  # was called, so it precedes the replayable intents.
-                  # consume_pipeline will drain the replayed results.
-                  adapter.enter_pipeline_mode
-                  adapter.pipeline_add_query(self)
-                  replayable.each { |intent| adapter.pipeline_add_query(intent) }
-                  adapter.pipeline_sync
-                  return
-                end
-              end
-
-              adapter.perform_sync_attempt(self)
-              return
-            end
-          end
-
-          # Permanent failure
           adapter.send(:mark_connection_unhealthy_unless_query_error, exception)
           adapter.send(:dirty_current_transaction) if @materialize_transactions
 
           @raw_result_available = true
-          should_finish_log = true
         end
-
-        # Logging outside lock to avoid blocking other threads
-        adapter.finish_intent_log(self, exception: exception) if should_finish_log
       end
 
       # Mark this intent as not run, with an explicit reason and reset policy.
@@ -357,6 +320,7 @@ module ActiveRecord
         @raw_result = nil
         @raw_result_available = false
         @error = nil
+        @not_run_reason = nil
       end
 
       # Check if result has been populated yet (without blocking)
@@ -391,8 +355,34 @@ module ActiveRecord
           end
         end
 
-        # Raise any error captured during deferred execution
-        raise @error if @error
+        # Retry loop for retryable errors. deliver_failure records the
+        # error; we handle reconnect and re-execution here, mirroring
+        # what with_raw_connection does for synchronous queries.
+        while @error && retriable?
+          action = adapter.send(:classify_retry_action, @error, reconnectable: @reconnectable)
+          break unless action
+
+          consume_retry
+          reset_for_retry
+
+          case action
+          when :retry_query
+            adapter.send(:backoff, adapter.send(:connection_retries) - @retries_remaining)
+          when :retry_after_reconnect
+            adapter.reconnect!(restore_transactions: true)
+            @reconnectable = false
+          end
+
+          adapter.perform_sync_attempt(self)
+        end
+
+        if @error
+          unless @finalized
+            adapter.finish_intent_log(self, exception: @error)
+            @finalized = true
+          end
+          raise @error
+        end
 
         # Check if the result contains an error (for pipelined queries)
         # Pipeline results defer errors until the result is accessed.
