@@ -61,7 +61,8 @@ module ActiveRecord
         :create_enum, :drop_enum, :rename_enum, :add_enum_value, :rename_enum_value,
         :create_schema, :drop_schema,
         :create_virtual_table, :drop_virtual_table,
-        :enable_index, :disable_index
+        :enable_index, :disable_index,
+        :update, :insert, :delete
       ]
       include JoinTable
 
