@@ -36,8 +36,14 @@ module ActiveRecord
           reflection.polymorphic_inverse_of(record.class)
         end
 
+        # Raises ActiveRecord::AssociationTypeMismatch unless +record+ is an
+        # ActiveRecord model class. Meant to be used as a safety check when
+        # you are about to assign an associated record.
         def raise_on_type_mismatch!(record)
-          # A polymorphic association cannot have a type mismatch, by definition
+          unless record.is_a?(Base)
+            message = "ActiveRecord::Base expected, got #{record.inspect} which is an instance of #{record.class}"
+            raise ActiveRecord::AssociationTypeMismatch, message
+          end
         end
 
         def stale_state
