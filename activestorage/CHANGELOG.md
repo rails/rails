@@ -112,4 +112,8 @@
 
     *Bart de Water*
 
+*   `ActiveStorage.adapters.XMLHttpRequest` can be used in client side to customize the XMLHttpRequest adapter used by `ActiveStorage::DirectUpload`.
+
+    *Radamés Roriz*
+
 Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activestorage/CHANGELOG.md) for previous changes.

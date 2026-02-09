@@ -1,3 +1,5 @@
+import adapters from "./adapters"
+
 export class BlobUpload {
   constructor(blob) {
     this.blob = blob
@@ -5,7 +7,7 @@ export class BlobUpload {
 
     const { url, headers } = blob.directUploadData
 
-    this.xhr = new XMLHttpRequest
+    this.xhr = new adapters.XMLHttpRequest()
     this.xhr.open("PUT", url, true)
     this.xhr.responseType = "text"
     for (const key in headers) {
