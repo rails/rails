@@ -1411,3 +1411,55 @@ class PageDumpIntegrationTest < ActionDispatch::IntegrationTest
   end
 end
 # rubocop:enable Lint/Debugger
+
+class RouteGenerationTest < ActionDispatch::IntegrationTest
+  module Admin
+    class Engine < ::Rails::Engine
+      isolate_namespace RouteGenerationTest::Admin
+
+      routes.draw do
+        resource :dashboard, only: [:show]
+      end
+    end
+
+    class DashboardsController < ActionController::Base
+      def show
+        render plain: user.dashboard_path
+      end
+    end
+  end
+
+  module User
+    class Engine < ::Rails::Engine
+      isolate_namespace RouteGenerationTest::User
+
+      routes.draw do
+        resource :dashboard, only: [:show]
+      end
+    end
+
+    class DashboardsController < ActionController::Base
+      def show
+        render plain: "User Dashboard"
+      end
+    end
+  end
+
+  with_routing do |routes|
+    routes.draw do
+      mount RouteGenerationTest::Admin::Engine => "/admin", as: :admin
+      mount RouteGenerationTest::User::Engine  => "/",      as: :user
+    end
+  end
+
+  test "should not change route generation" do
+    assert_equal "/admin/dashboard", admin.dashboard_path
+    assert_equal "/dashboard",       user.dashboard_path
+
+    get admin.dashboard_path
+    assert_response :success
+    assert_equal "/dashboard", @response.body
+
+    assert_equal "/dashboard", user.dashboard_path
+  end
+end

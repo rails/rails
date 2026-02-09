@@ -314,6 +314,37 @@ module ActionDispatch
       #     session.host! "www.example.com"
       alias :host! :host=
 
+      class SessionTarget
+        def initialize(session)
+          @session = session
+        end
+
+        def target
+          @session.controller || @session
+        end
+
+        def method_missing(name, *args, &blk)
+          if target.respond_to?(name, true)
+            target.__send__(name, *args, &blk)
+          else
+            super
+          end
+        end
+
+        def respond_to_missing?(name, include_private = false)
+          target.respond_to?(name, include_private) || super
+        end
+      end
+
+      module DynamicRoutesContext
+        private
+          def _routes_context
+            @_dynamic_routes_context ||= SessionTarget.new(self)
+          end
+      end
+
+      prepend(DynamicRoutesContext)
+
       private
         def _mock_session
           @_mock_session ||= Rack::MockSession.new(@app, host)
