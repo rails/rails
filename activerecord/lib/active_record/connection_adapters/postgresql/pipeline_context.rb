@@ -56,8 +56,22 @@ module ActiveRecord
             return unless pipeline_active?
 
             @pending_intents ||= []
-            @pending_intents << SyncIntent.new
 
+            # Probe the connection before recording a sync marker. Flush
+            # sends any buffered query data, then consume_input reads from
+            # the socket - either will raise on a dead connection while we
+            # still know no sync has been sent. (Flush alone isn't enough:
+            # libpq may have eagerly sent query data during send_query_params,
+            # leaving the write buffer empty. consume_input always has
+            # something to check on the read side.)
+            #
+            # If these probes succeed, we record the SyncIntent - the server
+            # may have received the queries. Then pipeline_sync sends the
+            # actual sync message. If *that* fails, the marker stays:
+            # conservatively assuming the sync might have reached the wire.
+            @raw_connection.flush
+            @raw_connection.consume_input
+            @pending_intents << SyncIntent.new
             @raw_connection.pipeline_sync
           end
         end
