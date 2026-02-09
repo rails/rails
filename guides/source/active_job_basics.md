@@ -786,6 +786,25 @@ Please note that when enqueuing jobs in bulk using `perform_all_later`,
 callbacks such as `around_enqueue` will not be triggered on the individual jobs.
 See [Bulk Enqueuing Callbacks](#bulk-enqueue-callbacks).
 
+### Halting Callbacks
+
+A callback that `throws :abort` will [halt the callback chain](https://api.rubyonrails.org/classes/ActiveSupport/Callbacks.html)
+and skip the execution of any subsequent before, around and after callbacks:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_as :default
+
+  before_enqueue do
+    throw :abort if ENV.fetch("DISABLE_GUESTS_CLEANUP_JOB", false)
+  end
+
+  def perform
+    # Do something later
+  end
+end
+```
+
 Bulk Enqueuing
 --------------
 
