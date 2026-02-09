@@ -360,6 +360,7 @@ module ActiveStorage
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
   mattr_accessor :draw_routes, default: true
   mattr_accessor :resolve_model_to_route, default: :rails_storage_redirect
+  mattr_accessor :skip_default_direct_uploads_routes, default: false
 
   mattr_accessor :track_variants, default: false
 
