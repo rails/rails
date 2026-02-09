@@ -55,7 +55,7 @@ module ActionView
     config.after_initialize do |app|
       button_to_generates_button_tag = app.config.action_view.delete(:button_to_generates_button_tag)
       unless button_to_generates_button_tag.nil?
-        ActionView::Helpers::UrlHelper.button_to_generates_button_tag = button_to_generates_button_tag
+        ActionView::Helpers::NavigationHelper.button_to_generates_button_tag = button_to_generates_button_tag
       end
     end
 
