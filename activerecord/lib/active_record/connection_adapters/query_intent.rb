@@ -349,6 +349,9 @@ module ActiveRecord
         if @not_run_reason
           if @not_run_resettable
             reset_for_rerun
+            adapter.send(:ensure_connection_ready,
+              allow_retry: @allow_retry,
+              materialize_transactions: @materialize_transactions)
             adapter.perform_sync_attempt(self)
           else
             raise ActiveRecord::QueryNotRun.new("Query was not run due to pipeline failure (#{@not_run_reason})")
@@ -369,10 +372,12 @@ module ActiveRecord
           when :retry_query
             adapter.send(:backoff, adapter.send(:connection_retries) - @retries_remaining)
           when :retry_after_reconnect
-            adapter.reconnect!(restore_transactions: true)
             @reconnectable = false
           end
 
+          adapter.send(:ensure_connection_ready,
+            allow_retry: @allow_retry,
+            materialize_transactions: @materialize_transactions)
           adapter.perform_sync_attempt(self)
         end
 

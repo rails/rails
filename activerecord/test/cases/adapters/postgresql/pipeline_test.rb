@@ -1356,6 +1356,96 @@ module ActiveRecord
       end
     end
 
+    def test_ensure_result_avoids_reconnect_storm
+      # When a non-retryable synced intent blocks batch replay, retryable
+      # intents fall back to individual retry in ensure_result. Without
+      # the needs_reconnect? check, each retryable intent independently
+      # calls reconnect!, tearing down the connection the previous intent
+      # just established.
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.materialize_transactions
+        initial_pid = conn.select_value("SELECT pg_backend_pid()")
+
+        reconnect_count = 0
+        original_reconnect = conn.method(:reconnect!)
+        conn.define_singleton_method(:reconnect!) do |**kwargs|
+          reconnect_count += 1
+          original_reconnect.call(**kwargs)
+        end
+
+        conn.enter_pipeline_mode
+
+        intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n",
+          name: "TEST",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+        intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 2 AS n",
+          name: "TEST",
+          allow_retry: false,  # blocks batch replay
+          materialize_transactions: false
+        )
+        intent3 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 3 AS n",
+          name: "TEST",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+
+        intent1.execute!
+        intent2.execute!
+        intent3.execute!
+
+        # Sync then close socket - all three intents are synced
+        conn.pipeline_sync
+
+        raw_conn = conn.instance_variable_get(:@raw_connection)
+        previous_stderr = $stderr
+        begin
+          $stderr = StringIO.new
+          fd = raw_conn.socket
+        ensure
+          $stderr = previous_stderr
+        end
+        IO.for_fd(fd).close
+
+        # intent1 retries individually and reconnects
+        assert_equal [[1]], intent1.cast_result.rows
+
+        # intent2 is non-retryable - gets ConnectionFailed
+        assert_raises(ActiveRecord::ConnectionFailed) { intent2.cast_result }
+
+        # intent3 retries individually - should NOT reconnect again
+        assert_equal [[3]], intent3.cast_result.rows
+
+        new_pid = conn.select_value("SELECT pg_backend_pid()")
+        assert_not_equal initial_pid, new_pid
+
+        # The storm: without the fix, this is 2 (one per retryable intent).
+        # With the fix, it should be 1.
+        assert_equal 1, reconnect_count,
+          "Expected a single reconnect, got #{reconnect_count} (reconnect storm)"
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
     def test_server_aborted_query_reruns_on_demand_outside_transaction
       # When a SQL error aborts subsequent queries in a pipeline and
       # there's no enclosing transaction, the aborted queries can

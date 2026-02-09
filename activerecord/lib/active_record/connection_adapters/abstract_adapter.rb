@@ -193,6 +193,7 @@ module ActiveRecord
         @raw_connection_dirty = false
         @last_activity = nil
         @verified = false
+        @needs_reconnect = false
         @pipelining_locked = false
 
         @pool_jitter = rand * max_jitter
@@ -739,6 +740,7 @@ module ActiveRecord
             @allow_preconnect = false
 
             reconnect
+            @needs_reconnect = false
 
             enable_lazy_transactions!
             @raw_connection_dirty = false
@@ -778,6 +780,7 @@ module ActiveRecord
           @connected_since = nil
           @last_activity = nil
           @verified = false
+          @needs_reconnect = false
         end
       end
 
@@ -841,12 +844,13 @@ module ActiveRecord
       # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
       def verify!
-        unless active?
+        if @needs_reconnect || !active?
           @lock.synchronize do
             if @unconfigured_connection
               attempt_configure_connection do
                 @raw_connection = @unconfigured_connection
                 @unconfigured_connection = nil
+                @needs_reconnect = false
                 configure_connection
                 @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
                 @verified = true
@@ -878,6 +882,10 @@ module ActiveRecord
 
       def verified? # :nodoc:
         @verified
+      end
+
+      def needs_reconnect? # :nodoc:
+        @needs_reconnect
       end
 
       # Provides access to the underlying database driver for this adapter. For
@@ -1196,6 +1204,7 @@ module ActiveRecord
           unless retryable_query_error?(exception)
             @last_activity = nil
             @verified = false
+            @needs_reconnect = true
           end
         end
 
@@ -1209,7 +1218,11 @@ module ActiveRecord
             # Recently used, assume still good
             true
           elsif reconnectable
-            if allow_retry
+            if @needs_reconnect
+              # Connection has been flagged for replacement; must verify
+              # before use even though we could retry on failure
+              false
+            elsif allow_retry
               # Not sure about connection, but can retry if it fails
               true
             else
