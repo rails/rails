@@ -1,3 +1,16 @@
+*   Raise when `key_generator` is accessed before `key_generator_hash_digest_class` is applied.
+
+    Calling `Rails.application.key_generator` during eager loading silently
+    returned an instance configured with the wrong digest class (SHA1 instead
+    of SHA256), because `key_generator_hash_digest_class` is only applied in
+    an `after_initialize` callback. The memoized instance then poisoned all
+    subsequent key derivations for the process.
+
+    The key generator now raises if accessed before the digest class has been
+    applied and a custom digest class is configured.
+
+    *Daniel López Prat*
+
 *   `Rails.app.revision` now checks `ENV["REVISION"]` before falling back to the `REVISION` file or git.
 
     *Jonathan Baker*
