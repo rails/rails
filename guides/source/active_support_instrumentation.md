@@ -3,623 +3,1144 @@
 Active Support Instrumentation
 ==============================
 
-Active Support is a part of core Rails that provides Ruby language extensions, utilities, and other things. One of the things it includes is an instrumentation API that can be used inside an application to measure certain actions that occur within Ruby code, such as those inside a Rails application or the framework itself. It is not limited to Rails, however. It can be used independently in other Ruby scripts if desired.
+[Active Support](https://api.rubyonrails.org/classes/ActiveSupport.html) is a
+core component of Ruby on Rails, offering a wide range of Ruby language
+extensions and utility classes.
 
-In this guide, you will learn how to use the Active Support's instrumentation API to measure events inside of Rails and other Ruby code.
+One of its key features is the Instrumentation API, which is described in
+further detail in this guide. You will learn:
 
-After reading this guide, you will know:
-
-* What instrumentation can provide.
-* How to add a subscriber to a hook.
-* The hooks inside the Rails framework for instrumentation.
-* How to build a custom instrumentation implementation.
+* About Instrumentation
+* How to instrument your own events.
+* How to subscribe to events.
+* The built-in instrumentation events available inside Rails.
 
 --------------------------------------------------------------------------------
 
 Introduction to Instrumentation
 -------------------------------
 
-The instrumentation API provided by Active Support allows developers to provide hooks which other developers may hook into. There are [several of these](#rails-framework-hooks) within the Rails framework. With this API, developers can choose to be notified when certain events occur inside their application or another piece of Ruby code.
+The Instrumentation API provides a way to instrument code and subscribe to
+events that occur in your application. Instrumentation means wrapping a block of
+code so that, when it runs, an event is emitted with a name and optional
+payload. Any subscribers listening for that event will then be notified and can
+react, for example, they can log information, benchmark, or perform some other
+action. This makes it possible to observe behavior within the Rails framework,
+in your own code, or even in standalone Ruby scripts. There are a few parts that
+are vital to understanding the Instrumentation API: events and subscribers.
 
-For example, there is [a hook](#sql-active-record) provided within Active Record that is called every time Active Record uses an SQL query on a database. This hook could be **subscribed** to, and used to track the number of queries during a certain action. There's [another hook](#process-action-action-controller) around the processing of an action of a controller. This could be used, for instance, to track how long a specific action has taken.
+NOTE: The Instrumentation API is intended for framework code, not application
+code. For application-level event reporting, use [Active Support Structured
+Events](active_support_structured_events.html) instead.
 
-You are even able to [create your own events](#creating-custom-events) inside your application which you can later subscribe to.
+### Events
+
+An event is a record of something that has happened, and is emitted when an
+instrumented block of code is called. Events have a name and optional data
+(called the payload).
+
+For example, when Active Record executes a SQL query, it instruments the
+`sql.active_record` event. This event has the name `sql.active_record` and
+includes data such as the SQL statement, bind parameters, and connection
+information in its payload.
+
+
+```ruby
+sql_counter = 0
+ActiveSupport::Notifications.subscribe "sql.active_record" do |event|
+   sql_counter += 1
+end
+```
+
+Similarly, when a controller action finishes processing, it instruments the
+`process_action.action_controller` event. This event includes data such as the
+controller name, action name, and request information in its payload.
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
+   Rails.logger.info "Duration: #{event.duration}"
+end
+```
+
+You can read more about creating your own events and subscribing to events in
+the [Instrumenting Events section](#instrumenting-events) and [Subscribing to an
+Event section](#subscribing-to-an-event) respectively.
+
+### Subscribers
+
+A subscriber is the object that is used to subscribe to events. It is used to
+listen to events and perform some action when an event is emitted.
+
+For example, if you want to subscribe to the `process_action.action_controller`
+event and benchmark it, then you can create a subscriber that listens to that
+event. The subscriber will then be able to perform other actions when the event
+is emitted, such as logging the duration of the action.
+
+A single event can have multiple subscribers. You can read more about
+subscribers in the [Subscribing to an Event section](#subscribing-to-an-event).
+
+Instrumenting Events
+--------------------
+
+Rails provides built-in events which you can read more about in the [Rails
+Framework Instrumentation section](#rails-framework-instrumentation). However,
+there may be instances where you might want to instrument your own event.
+
+To instrument a custom event, you can call
+[`ActiveSupport::Notifications.instrument`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-instrument)
+with the `name` of your custom event, a `payload` which is a hash containing
+information about the event, and an optional block.
+
+```ruby
+ActiveSupport::Notifications.instrument "publish.posts", { title: "My Post", author: "John Doe" } do
+  # Publish the post here
+end
+```
+
+TIP: When defining your own event names, follow Rails conventions. The
+recommended format used for [Rails Framework
+Instrumentation](#rails-framework-instrumentation) is: `<action>.<component>`,
+where `<action>` describes what happened (e.g., `service_delete`,
+`start_transaction`) and `<component>` is the framework or library name (e.g.,
+`active_record`, `active_storage`). Hence, if you want to instrument an event
+when a post is published in a blogging application, you could use the event name
+`publish.posts`.
+
+When given a block (like the example above), Active Support measures the block's
+execution, i.e. the start time, end time, and duration, and then emits the event
+with that data plus your payload. The event is emitted after the block
+completes.
+
+You can also instrument an event without a block:
+
+```ruby
+ActiveSupport::Notifications.instrument "my.custom.event", this: "data"
+```
+
+In this case, no code is measured. The event is emitted immediately with the
+payload you provide to notify subscribers that something happened, without
+executing or measuring a block of code.
+
+Once you've emitted an event, you can subscribe to it as described at the end of
+the [Subscribing to an Event section](#subscribing-to-an-event).
 
 Subscribing to an Event
 -----------------------
 
-Use [`ActiveSupport::Notifications.subscribe`][] with a block to listen to any notification. Depending on the amount of
-arguments the block takes, you will receive different data.
+As mentioned [in the introduction](#introduction-to-instrumentation), an event
+is generated when code within the Rails framework instruments an event or when
+[you've instrumented your own event](#instrumenting-events). You can subscribe
+to these events by using the
+[`ActiveSupport::Notifications.subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-subscribe)
+method.
 
-The first way to subscribe to an event is to use a block with a single argument. The argument will be an instance of
-[`ActiveSupport::Notifications::Event`][].
+To do this, call the `ActiveSupport::Notifications.subscribe` method with the
+name of the event you want to subscribe to, and a block. This block will be
+called when the event is emitted.
+
+In the example below, the block takes a _single_ argument `event`, where `event`
+is an instance of
+[`ActiveSupport::Notifications::Event`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications/Event.html).
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
-  event.name        # => "process_action.action_controller"
-  event.duration    # => 10 (in milliseconds)
-  event.allocations # => 1826
-  event.payload     # => {:extra=>information}
-
-  Rails.logger.info "#{event} Received!"
+  Rails.logger.info "#{event.name}" # process_action.action_controller
+  Rails.logger.info "#{event.duration}" # 10 (in milliseconds)
+  Rails.logger.info "#{event.allocations}" # 1826
+  Rails.logger.info "#{event.payload}" # {:extra=>information}
 end
 ```
 
-If you don't need all the data recorded by an Event object, you can also specify a
-block that takes the following five arguments:
-
-* Name of the event
-* Time when it started
-* Time when it finished
-* A unique ID for the instrumenter that fired the event
-* The payload for the event
+If you don't need all the data recorded by an `Event` object, you can specify a
+block with the following arguments instead:
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, payload|
-  # your own custom stuff
-  Rails.logger.info "#{name} Received! (started: #{started}, finished: #{finished})" # process_action.action_controller Received! (started: 2019-05-05 13:43:57 -0800, finished: 2019-05-05 13:43:58 -0800)
+  Rails.logger.info "name: #{name}" # process_action.action_controller
+  Rails.logger.info "started: #{started}" #   2025-10-13 10:00:40 -0700
+  Rails.logger.info "finished: #{finished}"   # 2025-10-13 10:00:50 -0700
+  Rails.logger.info "unique_id: #{unique_id}" # a3f2e9...
+  Rails.logger.info "payload: #{payload}" # {:extra=>information}
 end
 ```
 
-If you are concerned about the accuracy of `started` and `finished` to compute a precise elapsed time, then use [`ActiveSupport::Notifications.monotonic_subscribe`][]. The given block would receive the same arguments as above, but the `started` and `finished` will have values with an accurate monotonic time instead of wall-clock time.
+If you are concerned about the accuracy of `started` and `finished` to compute a
+precise elapsed time, then use
+[`ActiveSupport::Notifications.monotonic_subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-monotonic_subscribe).
+The given block will receive the same arguments as above, but the `started` and
+`finished` values will have an accurate monotonic time instead of wall-clock
+time.
 
 ```ruby
 ActiveSupport::Notifications.monotonic_subscribe "process_action.action_controller" do |name, started, finished, unique_id, payload|
-  # your own custom stuff
   duration = finished - started # 1560979.429234 - 1560978.425334
   Rails.logger.info "#{name} Received! (duration: #{duration})" # process_action.action_controller Received! (duration: 1.0039)
 end
 ```
 
-You may also subscribe to events matching a regular expression. This enables you to subscribe to
-multiple events at once. Here's how to subscribe to everything from `ActionController`:
+### Subscribing to a Custom Event
+
+In the case of subscribing to a custom event, you can use the methods as
+described above, but with the `name` of your custom event instead. For example:
 
 ```ruby
-ActiveSupport::Notifications.subscribe(/action_controller/) do |event|
-  # inspect all ActionController events
+ActiveSupport::Notifications.subscribe "my.custom.event" do |event|
+  Rails.logger.info "#{event.name}" # my.custom.event
 end
 ```
 
-[`ActiveSupport::Notifications::Event`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications/Event.html
-[`ActiveSupport::Notifications.monotonic_subscribe`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-monotonic_subscribe
-[`ActiveSupport::Notifications.subscribe`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-subscribe
+### Subscribing to Multiple Events
 
-Rails Framework Hooks
----------------------
+You may also subscribe to events matching a regular expression. This enables you
+to subscribe to multiple events at once. Here's how to subscribe to everything
+from `ActionController`:
 
-Within the Ruby on Rails framework, there are a number of hooks provided for common events. These events and their payloads are detailed below.
+```ruby
+ActiveSupport::Notifications.subscribe(/action_controller/) do |**args|
+  Rails.logger.info "#{args}"
+end
+```
+
+In your Rails log, you'll see one line for each ActionController event. Example:
+
+```bash
+INFO -- : {:name=>"start_processing.action_controller", :id=>"a3f2e9...", :payload=>{:controller=>"PostsController", :action=>"index", :params=>{"controller"=>"posts", "action"=>"index"}, :format=>:html, :method=>"GET", :path=>"/posts"}}
+INFO -- : {:name=>"process_action.action_controller", :id=>"a3f2e9...", :payload=>{:controller=>"PostsController", :action=>"index", :status=>200, :view_runtime=>12.34, :db_runtime=>3.21}}
+```
+
+### Subscribing to a Single Event using Multiple Subscribers
+
+You can subscribe to a single event using multiple subscribers. This is useful
+if you want to subscribe to an event from multiple sources.
+
+For example, you may want to subscribe to a `publish.posts` event from multiple
+sources to kick off a background job to send an email to the post author, and to
+also log the event.
+
+
+Rails Framework Instrumentation
+----------------------------------
+
+Within the Ruby on Rails framework, there are a number of built-in
+instrumentation points for common operations.
+
+Each heading below lists the event name you can subscribe to, explains how the
+event is triggered, and displays a corresponding example `event.payload` from
+the subscribed event.
+
+To subscribe to a specific event, use
+[`ActiveSupport::Notifications.subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-subscribe).
+For example:
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
+  Rails.logger.info event.name         # "process_action.action_controller"
+  Rails.logger.info event.duration     # 10 (in milliseconds)
+  Rails.logger.info event.allocations  # 1826
+  Rails.logger.info event.payload
+  # {
+  #   controller: "PostsController",
+  #   action: "index",
+  #   params: {"action" => "index", "controller" => "posts"},
+  #   headers: #<ActionDispatch::Http::Headers:0x...>,
+  #   format: :html,
+  #   method: "GET",
+  #   path: "/posts",
+  #   request: #<ActionDispatch::Request:0x...>,
+  #   response: #<ActionDispatch::Response:0x...>,
+  #   status: 200,
+  #   view_runtime: 46.848,
+  #   db_runtime: 0.157
+  # }
+end
+```
+
+NOTE: `event.payload` is a hash with the payload of the event. Below we describe
+the keys, and examples values that you can expect to see in the payload.
+
+Read more about subscribing to the event in [Subscribing to an
+Event](#subscribing-to-an-event).
 
 ### Action Cable
 
 #### `perform_action.action_cable`
 
-| Key              | Value                     |
-| ---------------- | ------------------------- |
-| `:channel_class` | Name of the channel class |
-| `:action`        | The action                |
-| `:data`          | A hash of data            |
+The event is emitted when a channel action is invoked.
+
+For example:
+
+```ruby
+# Client sends: { "action":"speak", "message":"Hi" }
+class ChatChannel < ApplicationCable::Channel
+  def speak(data) = Message.create!(text: data["message"])
+end
+```
+
+The event payload includes the following keys:
+
+| Payload Key      | Description               | Example Value         |
+| ---------------- | ------------------------- | --------------------- |
+| `:channel_class` | Name of the channel class | `"ChatChannel"`       |
+| `:action`        | The action                | `"speak"`             |
+| `:data`          | A hash of data            | `{ "message"=>"Hi" }` |
 
 #### `transmit.action_cable`
 
-| Key              | Value                     |
-| ---------------- | ------------------------- |
-| `:channel_class` | Name of the channel class |
-| `:data`          | A hash of data            |
-| `:via`           | Via                       |
+The event is emitted when a message is transmitted from a channel.
+
+For example:
+
+```ruby
+class ChatChannel < ApplicationCable::Channel
+  def subscribed
+    transmit(ok: true)
+  end
+end
+```
+
+The event payload includes the following keys:
+
+| Payload Key      | Description               | Example Value    |
+| ---------------- | ------------------------- | ---------------- |
+| `:channel_class` | Name of the channel class | `"ChatChannel"`  |
+| `:data`          | A hash of data            | `{ "ok"=>true }` |
+| `:via`           | Via                       | `"websocket"`    |
 
 #### `transmit_subscription_confirmation.action_cable`
 
-| Key              | Value                     |
-| ---------------- | ------------------------- |
-| `:channel_class` | Name of the channel class |
+The event is emitted when a subscription confirmation is sent to a client.
+
+For example:
+
+```ruby
+class ChatChannel < ApplicationCable::Channel
+  def subscribed
+    confirm
+  end
+end
+```
+
+The event payload includes the following keys:
+
+| Payload Key      | Description               | Example Value   |
+| ---------------- | ------------------------- | --------------- |
+| `:channel_class` | Name of the channel class | `"ChatChannel"` |
 
 #### `transmit_subscription_rejection.action_cable`
 
-| Key              | Value                     |
-| ---------------- | ------------------------- |
-| `:channel_class` | Name of the channel class |
+The event is emitted when a subscription rejection is sent to a client.
+
+For example:
+
+```ruby
+class ChatChannel < ApplicationCable::Channel
+  def subscribed
+    reject
+  end
+end
+```
+
+The event payload includes the following keys:
+
+| Payload Key      | Description               | Example Value   |
+| ---------------- | ------------------------- | --------------- |
+| `:channel_class` | Name of the channel class | `"ChatChannel"` |
 
 #### `broadcast.action_cable`
 
-| Key             | Value                |
-| --------------- | -------------------- |
-| `:broadcasting` | A named broadcasting |
-| `:message`      | A hash of message    |
-| `:coder`        | The coder            |
+The event is emitted when a broadcast is published to a stream.
+
+For example:
+
+```ruby
+ActionCable.server.broadcast("chat_room_1", text: "Hello")
+```
+
+The event payload includes the following keys:
+
+| Payload Key     | Description                    | Example Value           |
+| --------------- | ------------------------------ | ----------------------- |
+| `:broadcasting` | Named broadcasting             | `"chat_room_1"`         |
+| `:message`      | A hash containing message data | `{ "text"=>"Hello" }`   |
+| `:coder`        | The coder                      | `"ActiveSupport::JSON"` |
 
 ### Action Controller
 
 #### `start_processing.action_controller`
 
-| Key           | Value                                                     |
-| ------------- | --------------------------------------------------------- |
-| `:controller` | The controller name                                       |
-| `:action`     | The action                                                |
-| `:request`    | The [`ActionDispatch::Request`][] object                  |
-| `:params`     | Hash of request parameters without any filtered parameter |
-| `:headers`    | Request headers                                           |
-| `:format`     | html/js/json/xml etc                                      |
-| `:method`     | HTTP request verb                                         |
-| `:path`       | Request path                                              |
+The event is emitted when a controller begins handling a request, before the
+action is invoked.
+
+For example:
 
 ```ruby
-{
-  controller: "PostsController",
-  action: "new",
-  params: { "action" => "new", "controller" => "posts" },
-  headers: #<ActionDispatch::Http::Headers:0x0055a67a519b88>,
-  format: :html,
-  method: "GET",
-  path: "/posts/new"
-}
+class PostsController < ApplicationController
+  # triggered before the action is invoked
+  def new
+    # ...
+  end
+end
 ```
+
+The event payload includes the following keys:
+
+| Payload Key   | Description                                               | Example Value                             |
+| ------------- | --------------------------------------------------------- | ----------------------------------------- |
+| `:controller` | The controller name                                       | `"PostsController"`                       |
+| `:action`     | The action                                                | `"new"`                                   |
+| `:request`    | The [`ActionDispatch::Request`][] object                  | `#<ActionDispatch::Request ...>`          |
+| `:params`     | Hash of request parameters without any filtered parameter | `{"controller"=>"posts","action"=>"new"}` |
+| `:headers`    | Request headers                                           | `#<ActionDispatch::Http::Headers ...>`    |
+| `:format`     | html/js/json/xml etc                                      | `:html`                                   |
+| `:method`     | HTTP request verb                                         | `"GET"`                                   |
+| `:path`       | Request path                                              | `"/posts/new"`                            |
 
 #### `process_action.action_controller`
 
-| Key             | Value                                                     |
-| --------------- | --------------------------------------------------------- |
-| `:controller`   | The controller name                                       |
-| `:action`       | The action                                                |
-| `:params`       | Hash of request parameters without any filtered parameter |
-| `:headers`      | Request headers                                           |
-| `:format`       | html/js/json/xml etc                                      |
-| `:method`       | HTTP request verb                                         |
-| `:path`         | Request path                                              |
-| `:request`      | The [`ActionDispatch::Request`][] object                  |
-| `:response`     | The [`ActionDispatch::Response`][] object                 |
-| `:status`       | HTTP status code                                          |
-| `:view_runtime` | Amount spent in view in ms                                |
-| `:db_runtime`   | Amount spent executing database queries in ms             |
+The event is emitted when a controller action finishes processing (after filters
+and action execution, before the response is committed).
+
+For example:
 
 ```ruby
-{
-  controller: "PostsController",
-  action: "index",
-  params: {"action" => "index", "controller" => "posts"},
-  headers: #<ActionDispatch::Http::Headers:0x0055a67a519b88>,
-  format: :html,
-  method: "GET",
-  path: "/posts",
-  request: #<ActionDispatch::Request:0x00007ff1cb9bd7b8>,
-  response: #<ActionDispatch::Response:0x00007f8521841ec8>,
-  status: 200,
-  view_runtime: 46.848,
-  db_runtime: 0.157
-}
+class PostsController < ApplicationController
+  def index
+    @posts = Post.limit(10)
+    render :index        # event fires as the action finishes, before commit
+  end
+end
 ```
+
+The event payload includes the following keys:
+
+| Payload Key     | Description                                               | Example Value                               |
+| --------------- | --------------------------------------------------------- | ------------------------------------------- |
+| `:controller`   | The controller name                                       | `"PostsController"`                         |
+| `:action`       | The action                                                | `"index"`                                   |
+| `:params`       | Hash of request parameters without any filtered parameter | `{"controller"=>"posts","action"=>"index"}` |
+| `:headers`      | Request headers                                           | `#<ActionDispatch::Http::Headers ...>`      |
+| `:format`       | html/js/json/xml etc                                      | `:html`                                     |
+| `:method`       | HTTP request verb                                         | `"GET"`                                     |
+| `:path`         | Request path                                              | `"/posts"`                                  |
+| `:request`      | The [`ActionDispatch::Request`][] object                  | `#<ActionDispatch::Request ...>`            |
+| `:response`     | The [`ActionDispatch::Response`][] object                 | `#<ActionDispatch::Response ...>`           |
+| `:status`       | HTTP status code                                          | `200`                                       |
+| `:view_runtime` | Amount spent in view in ms                                | `46.848`                                    |
+| `:db_runtime`   | Amount spent executing database queries in ms             | `0.157`                                     |
 
 #### `send_file.action_controller`
 
-| Key     | Value                     |
-| ------- | ------------------------- |
-| `:path` | Complete path to the file |
+The event is emitted when a controller streams or sends a file with `send_file`.
 
-Additional keys may be added by the caller.
+For example:
+
+```ruby
+class ReportsController < ApplicationController
+  def download
+    send_file "/var/app/exports/report.csv",
+      filename: "report.csv",
+      disposition: "attachment"
+  end
+end
+```
+
+The event payload includes the file path plus any options you
+pass to send_file.
+
+| Payload Key | Description               | Example Value                   |
+| ----------- | ------------------------- | ------------------------------- |
+| `:path`     | Complete path to the file | `"/var/app/exports/report.csv"` |
+
+In this case, the payload will always contain the `:path` key, but will also
+contain the `:filename`, and `:disposition` keys which are passed to the
+`send_file` method.
 
 #### `send_data.action_controller`
 
-`ActionController` does not add any specific information to the payload. All options are passed through to the payload.
+The event is emitted when a controller sends raw data with `send_data`.
+
+For example:
+
+```ruby
+class ReportsController < ApplicationController
+  def download
+    send_data "Hello, world!",
+      filename: "report.txt",
+      type: "text/plain",
+      disposition: "attachment"
+  end
+end
+```
+
+`ActionController` does not add any specific information to the payload. All
+options that you pass into `send_data` are passed through to the payload. Hence,
+in the example above, the payload will contain the keys `:filename`, `:type`,
+and `:disposition`.
 
 #### `redirect_to.action_controller`
 
-| Key         | Value                                    |
-| ----------- | ---------------------------------------- |
-| `:status`   | HTTP response code                       |
-| `:location` | URL to redirect to                       |
-| `:request`  | The [`ActionDispatch::Request`][] object |
+The event is emitted when a redirect response is issued by a controller using
+`redirect_to`.
+
+For example:
 
 ```ruby
-{
-  status: 302,
-  location: "http://localhost:3000/posts/new",
-  request: <ActionDispatch::Request:0x00007ff1cb9bd7b8>
-}
+class PostsController < ApplicationController
+  def old
+    redirect_to posts_url
+  end
+end
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description                       | Example Value                       |
+| ----------- | --------------------------------- | ----------------------------------- |
+| `:status`   | HTTP response code                | `302`                               |
+| `:location` | URL to redirect to                | `"http://localhost:3000/posts/new"` |
+| `:request`  | The [`ActionDispatch::Request`][] | `#<ActionDispatch::Request ...>`    |
 
 #### `halted_callback.action_controller`
 
-| Key       | Value                         |
-| --------- | ----------------------------- |
-| `:filter` | Filter that halted the action |
+The event is emitted when a before/around/after callback halts the action chain.
+
+For example:
 
 ```ruby
-{
-  filter: ":halting_filter"
-}
+class PostsController < ApplicationController
+  before_action :require_login
+end
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description                     | Example Value      |
+| ----------- | ------------------------------- | ------------------ |
+| `:filter`   | Callback that halted the action | `":require_login"` |
 
 #### `unpermitted_parameters.action_controller`
 
-| Key           | Value                                                                         |
-| ------------- | ----------------------------------------------------------------------------- |
-| `:keys`       | The unpermitted keys                                                          |
-| `:context`    | Hash with the following keys: `:controller`, `:action`, `:params`, `:request` |
+The event is emitted when strong parameters filtering detects unpermitted keys.
+
+For example:
+
+```ruby
+class UsersController < ApplicationController
+  def create
+    # params = { user: { name: "Ada", admin: true } }
+    permitted = params.require(:user).permit(:name) # :admin is unpermitted
+    User.create!(permitted)
+  end
+end
+# => triggers unpermitted_parameters.action_controller
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description                                               | Example Value                            |
+| ----------- | --------------------------------------------------------- | ---------------------------------------- |
+| `:keys`     | The unpermitted keys                                      | `["admin"]`                              |
+| `:context`  | Hash with `:controller`, `:action`, `:params`, `:request` | `{ controller: "UsersController", ... }` |
 
 #### `send_stream.action_controller`
 
-| Key            | Value                                    |
-| -------------- | ---------------------------------------- |
-| `:filename`    | The filename                             |
-| `:type`        | HTTP content type                        |
-| `:disposition` | HTTP content disposition                 |
+The event is emitted when a controller streams data with `send_stream`.
+
+For example:
 
 ```ruby
-{
-  filename: "subscribers.csv",
-  type: "text/csv",
-  disposition: "attachment"
-}
+class SubscribersController < ApplicationController
+  def download
+    send_stream(filename: "subscribers.csv") do |stream|
+      # ...
+    end
+  end
+end
 ```
+
+The event payload includes the following keys:
+
+| Payload Key    | Description              | Example Value       |
+| -------------- | ------------------------ | ------------------- |
+| `:filename`    | The filename             | `"subscribers.csv"` |
+| `:type`        | HTTP content type        | `"text/csv"`        |
+| `:disposition` | HTTP content disposition | `"attachment"`      |
 
 #### `rate_limit.action_controller`
 
-| Key          | Value                                         |
-| ------------ | --------------------------------------------- |
-| `:request`   | The [`ActionDispatch::Request`][] object      |
-| `:count`     | Number of requests made                       |
-| `:to`        | Maximum number of requests allowed            |
-| `:within`    | Time window for the rate limit                |
-| `:by`        | Identifier for the rate limit (e.g. IP)       |
-| `:name`      | Name of the rate limit                        |
-| `:scope`     | Scope of the rate limit                       |
-| `:cache_key` | The cache key used for storing the rate limit |
+The event is emitted when a request is throttled/limited by an Action Controller
+rate limit.
+
+For example:
+
+```ruby
+class PostsController < ApplicationController
+  rate_limit to: 100, within: 1.minute
+end
+```
+
+The event payload includes the following keys:
+
+| Payload Key  | Description                              | Example Value                    |
+| ------------ | ---------------------------------------- | -------------------------------- |
+| `:request`   | The [`ActionDispatch::Request`][] object | `#<ActionDispatch::Request ...>` |
+| `:count`     | Number of requests made                  | `101`                            |
+| `:to`        | Maximum number of requests allowed       | `100`                            |
+| `:within`    | Time window for the rate limit           | `60.seconds`                     |
+| `:by`        | Identifier for the rate limit (e.g. IP)  | `"203.0.113.7"`                  |
+| `:name`      | Name of the rate limit                   | `"api_read"`                     |
+| `:scope`     | Scope of the rate limit                  | `"users#index"`                  |
+| `:cache_key` | Cache key used for the rate limit        | `"rate:api_read:203.0.113.7"`    |
 
 ### Action Controller: Caching
 
 #### `write_fragment.action_controller`
 
-| Key    | Value            |
-| ------ | ---------------- |
-| `:key` | The complete key |
+The event is emitted when a fragment is written to the cache.
+
+For example:
 
 ```ruby
-{
-  key: 'posts/1-dashboard-view'
-}
+class DashboardsController < ApplicationController
+  def show
+    write_fragment("dashboards/#{params[:id]}", render_to_string(:show))
+  end
+end
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description      | Example Value              |
+| ----------- | ---------------- | -------------------------- |
+| `:key`      | The complete key | `"posts/1-dashboard-view"` |
 
 #### `read_fragment.action_controller`
 
-| Key    | Value            |
-| ------ | ---------------- |
-| `:key` | The complete key |
+The event is emitted when a fragment is read from the cache.
+
+For example:
 
 ```ruby
-{
-  key: 'posts/1-dashboard-view'
-}
+class DashboardsController < ApplicationController
+  def show
+    if fragment = read_fragment("dashboards/#{params[:id]}")
+      render html: fragment.html_safe and return
+    end
+    # ...
+  end
+end
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description      | Example Value              |
+| ----------- | ---------------- | -------------------------- |
+| `:key`      | The complete key | `"posts/1-dashboard-view"` |
 
 #### `expire_fragment.action_controller`
 
-| Key    | Value            |
-| ------ | ---------------- |
-| `:key` | The complete key |
+The event is emitted when a cached fragment is expired.
+
+For example:
 
 ```ruby
-{
-  key: 'posts/1-dashboard-view'
-}
+expire_fragment("dashboards/#{params[:id]}")
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description      | Example Value              |
+| ----------- | ---------------- | -------------------------- |
+| `:key`      | The complete key | `"posts/1-dashboard-view"` |
 
 #### `exist_fragment?.action_controller`
 
-| Key    | Value            |
-| ------ | ---------------- |
-| `:key` | The complete key |
+The event is emitted when checking whether a fragment exists.
+
+For example:
 
 ```ruby
-{
-  key: 'posts/1-dashboard-view'
-}
+fragment_exist?("dashboards/#{params[:id]}")
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description      | Example Value              |
+| ----------- | ---------------- | -------------------------- |
+| `:key`      | The complete key | `"posts/1-dashboard-view"` |
 
 ### Action Dispatch
 
 #### `process_middleware.action_dispatch`
 
-| Key           | Value                  |
-| ------------- | ---------------------- |
-| `:middleware` | Name of the middleware |
+The event is emitted when a Rack middleware is invoked in the stack.
+
+For example:
+
+```ruby
+# config/application.rb
+config.middleware.use Class.new {
+  def initialize(app) = @app = app
+  def call(env)
+    # event fires when the middleware is invoked
+    @app.call(env)
+  end
+}
+```
+
+The event payload includes the following keys:
+
+| Payload Key   | Description            | Example Value     |
+| ------------- | ---------------------- | ----------------- |
+| `:middleware` | Name of the middleware | `"Rack::Runtime"` |
 
 #### `redirect.action_dispatch`
 
-| Key         | Value                                    |
-| ------------------ | ---------------------------------------- |
-| `:status`          | HTTP response code                       |
-| `:location`        | URL to redirect to                       |
-| `:request`         | The [`ActionDispatch::Request`][] object |
-| `:source_location` | Source location of redirect in routes    |
+The event is emitted when Action Dispatch builds a low-level redirect response.
+
+For example:
+
+```ruby
+# config/routes.rb
+Rails.application.routes.draw do
+  get "/old", to: redirect("/new")
+end
+```
+
+The event payload includes the following keys:
+
+| Payload Key        | Description                              | Example Value                    |
+| ------------------ | ---------------------------------------- | -------------------------------- |
+| `:status`          | HTTP response code                       | `302`                            |
+| `:location`        | URL to redirect to                       | `"https://example.com/sign_in"`  |
+| `:request`         | The [`ActionDispatch::Request`][] object | `#<ActionDispatch::Request ...>` |
+| `:source_location` | Source location of redirect in routes    | `"config/routes.rb:10"`          |
 
 #### `request.action_dispatch`
 
-| Key         | Value                                    |
-| ----------- | ---------------------------------------- |
-| `:request`  | The [`ActionDispatch::Request`][] object |
+The event is emitted when a request object is initialized/processed at the
+Action Dispatch layer.
 
-[`ActionDispatch::Request`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html
-[`ActionDispatch::Response`]: https://api.rubyonrails.org/classes/ActionDispatch/Response.html
+For example:
+
+```ruby
+class PeekRequest
+  def initialize(app) = @app = app
+  def call(env)
+    req = ActionDispatch::Request.new(env) # builds the request object
+    @app.call(env)
+  end
+end
+Rails.application.config.middleware.use PeekRequest
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description                       | Example Value                    |
+| ----------- | --------------------------------- | -------------------------------- |
+| `:request`  | The [`ActionDispatch::Request`][] | `#<ActionDispatch::Request ...>` |
 
 ### Action Mailbox
 
 #### `process.action_mailbox`
 
-| Key              | Value                                                  |
-| -----------------| ------------------------------------------------------ |
-| `:mailbox`       | Instance of the Mailbox class inheriting from [`ActionMailbox::Base`][] |
-| `:inbound_email` | Hash with data about the inbound email being processed |
+The event is emitted when an inbound email is dispatched to a mailbox for
+processing.
+
+For example:
 
 ```ruby
-{
-  mailbox: #<RepliesMailbox:0x00007f9f7a8388>,
-  inbound_email: {
-    id: 1,
-    message_id: "0CB459E0-0336-41DA-BC88-E6E28C697DDB@37signals.com",
-    status: "processing"
-  }
-}
+# app/mailboxes/replies_mailbox.rb
+class RepliesMailbox < ApplicationMailbox
+  def process
+    # handle inbound email...
+  end
+end
+# An inbound email routed to RepliesMailbox -> triggers process.action_mailbox
 ```
 
-[`ActionMailbox::Base`]: https://api.rubyonrails.org/classes/ActionMailbox/Base.html
+The event payload includes the following keys:
+
+| Payload Key      | Description                                                     | Example Value                                        |
+| ---------------- | --------------------------------------------------------------- | ---------------------------------------------------- |
+| `:mailbox`       | Instance of a Mailbox inheriting from [`ActionMailbox::Base`][] | `#<RepliesMailbox ...>`                              |
+| `:inbound_email` | Hash describing the inbound email being processed               | `{ id: 1, message_id: "...", status: "processing" }` |
+
+[`ActionMailbox::Base`]:
+    https://api.rubyonrails.org/classes/ActionMailbox/Base.html
 
 ### Action Mailer
 
 #### `deliver.action_mailer`
 
-| Key                   | Value                                                |
-| --------------------- | ---------------------------------------------------- |
-| `:mailer`             | Name of the mailer class                             |
-| `:message_id`         | ID of the message, generated by the Mail gem         |
-| `:subject`            | Subject of the mail                                  |
-| `:to`                 | To address(es) of the mail                           |
-| `:from`               | From address of the mail                             |
-| `:bcc`                | BCC addresses of the mail                            |
-| `:cc`                 | CC addresses of the mail                             |
-| `:date`               | Date of the mail                                     |
-| `:mail`               | The encoded form of the mail                         |
-| `:perform_deliveries` | Whether delivery of this message is performed or not |
+The event is emitted when a mail is delivered (after the message is generated
+and delivery is attempted).
+
+For example:
 
 ```ruby
-{
-  mailer: "Notification",
-  message_id: "4f5b5491f1774_181b23fc3d4434d38138e5@mba.local.mail",
-  subject: "Rails Guides",
-  to: ["users@rails.com", "dhh@rails.com"],
-  from: ["me@rails.com"],
-  date: Sat, 10 Mar 2012 14:18:09 +0100,
-  mail: "...", # omitted for brevity
-  perform_deliveries: true
-}
+UserMailer.welcome(current_user).deliver_now
 ```
+
+The event payload includes the following keys:
+
+| Payload Key           | Description                   | Example Value                 |
+| --------------------- | ----------------------------- | ----------------------------- |
+| `:mailer`             | Name of the mailer class      | `"Notification"`              |
+| `:message_id`         | ID of the message (Mail gem)  | `"<abc@host>"`                |
+| `:subject`            | Subject of the mail           | `"Welcome to the community!"` |
+| `:to`                 | To address(es)                | `["users@example.com"]`       |
+| `:from`               | From address                  | `["me@example.com"]`          |
+| `:bcc`                | BCC addresses                 | `["bcc@example.com"]`         |
+| `:cc`                 | CC addresses                  | `["cc@example.com"]`          |
+| `:date`               | Date of the mail              | `Fri, 21 Nov 2025 ...`        |
+| `:mail`               | Encoded form of the mail      | Omitted...                    |
+| `:perform_deliveries` | Whether delivery is performed | `true`                        |
 
 #### `process.action_mailer`
 
-| Key           | Value                    |
-| ------------- | ------------------------ |
-| `:mailer`     | Name of the mailer class |
-| `:action`     | The action               |
-| `:args`       | The arguments            |
+The event is emitted when a mailer action is invoked to build a message.
+
+For example:
 
 ```ruby
-{
-  mailer: "Notification",
-  action: "welcome_email",
-  args: []
-}
+UserMailer.welcome(current_user) # building the message triggers process.action_mailer
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description              | Example Value     |
+| ----------- | ------------------------ | ----------------- |
+| `:mailer`   | Name of the mailer class | `"Notification"`  |
+| `:action`   | The action               | `"welcome_email"` |
+| `:args`     | The arguments            | `[#<User ...>]`   |
 
 ### Action View
 
 #### `render_template.action_view`
 
-| Key           | Value                              |
-| ------------- | ---------------------------------- |
-| `:identifier` | Full path to template              |
-| `:layout`     | Applicable layout                  |
-| `:locals`     | Local variables passed to template |
+The event is emitted when a full template (with optional layout) is rendered.
+
+For example:
 
 ```ruby
-{
-  identifier: "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
-  layout: "layouts/application",
-  locals: { foo: "bar" }
-}
+render :index, layout: "application", locals: { post: @post }
 ```
+
+The event payload includes the following keys:
+
+| Payload Key   | Description                        | Example Value                          |
+| ------------- | ---------------------------------- | -------------------------------------- |
+| `:identifier` | Full path to template              | `".../app/views/posts/index.html.erb"` |
+| `:layout`     | Applicable layout                  | `"layouts/application"`                |
+| `:locals`     | Local variables passed to template | `{ post: @post }`                      |
 
 #### `render_partial.action_view`
 
-| Key           | Value                              |
-| ------------- | ---------------------------------- |
-| `:identifier` | Full path to template              |
-| `:locals`     | Local variables passed to template |
+The event is emitted when a partial is rendered.
 
-```ruby
-{
-  identifier: "/Users/adam/projects/notifications/app/views/posts/_form.html.erb",
-  locals: { foo: "bar" }
-}
+For example:
+
+```erb
+<%= render "form", post: @post %>
 ```
+
+The event payload includes the following keys:
+
+| Payload Key   | Description                        | Example Value                          |
+| ------------- | ---------------------------------- | -------------------------------------- |
+| `:identifier` | Full path to template              | `".../app/views/posts/_form.html.erb"` |
+| `:locals`     | Local variables passed to template | `{ post: @post }`                      |
 
 #### `render_collection.action_view`
 
-| Key           | Value                                 |
-| ------------- | ------------------------------------- |
-| `:identifier` | Full path to template                 |
-| `:count`      | Size of collection                    |
-| `:cache_hits` | Number of partials fetched from cache |
+The event is emitted when a collection of partials is rendered.
 
-The `:cache_hits` key is only included if the collection is rendered with `cached: true`.
+For example:
 
-```ruby
-{
-  identifier: "/Users/adam/projects/notifications/app/views/posts/_post.html.erb",
-  count: 3,
-  cache_hits: 0
-}
+```erb
+<%= render partial: "post", collection: @posts, cached: true %>
 ```
+
+The event payload includes the keys below; some appear only in
+certain conditions (noted).
+
+| Payload Key   | Description                           | Example Value                          |
+| ------------- | ------------------------------------- | -------------------------------------- |
+| `:identifier` | Full path to template                 | `".../app/views/posts/_post.html.erb"` |
+| `:count`      | Size of collection                    | `3`                                    |
+| `:cache_hits` | Number of partials fetched from cache | `0`                                    |
+
+`:cache_hits` appears only when rendered with `cached: true`.
 
 #### `render_layout.action_view`
 
-| Key           | Value                 |
-| ------------- | --------------------- |
-| `:identifier` | Full path to template |
+The event is emitted when a layout is rendered around content.
 
+For example:
 
 ```ruby
-{
-  identifier: "/Users/adam/projects/notifications/app/views/layouts/application.html.erb"
-}
+render inline: "<p>Hello</p>", layout: "marketing"
 ```
+
+The event payload includes the following keys:
+
+| Payload Key   | Description           | Example Value                                  |
+| ------------- | --------------------- | ---------------------------------------------- |
+| `:identifier` | Full path to template | `".../app/views/layouts/application.html.erb"` |
+
+[`ActionDispatch::Request`]:
+    https://api.rubyonrails.org/classes/ActionDispatch/Request.html
+[`ActionDispatch::Response`]:
+    https://api.rubyonrails.org/classes/ActionDispatch/Response.html
 
 ### Active Job
 
+```ruby
+class MyJob < ApplicationJob
+  queue_as :default
+  retry_on Timeout::Error, wait: 30.seconds, attempts: 2
+
+  def perform(arg)
+    # work...
+  end
+end
+```
+
 #### `enqueue_at.active_job`
 
-| Key          | Value                                  |
-| ------------ | -------------------------------------- |
-| `:adapter`   | QueueAdapter object processing the job |
-| `:job`       | Job object                             |
+The event is emitted when a job is scheduled to run at a future time.
+
+For example:
+
+```ruby
+MyJob.set(wait_until: 1.hour.from_now).perform_later("hello")
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description                     | Example Value                      |
+| ----------- | ------------------------------- | ---------------------------------- |
+| `:adapter`  | QueueAdapter processing the job | `#<ActiveJob::QueueAdapters::...>` |
+| `:job`      | Job object                      | `#<MyJob ...>`                     |
 
 #### `enqueue.active_job`
 
-| Key          | Value                                  |
-| ------------ | -------------------------------------- |
-| `:adapter`   | QueueAdapter object processing the job |
-| `:job`       | Job object                             |
+The event is emitted when a job is enqueued to run as soon as possible.
+
+For example:
+
+```ruby
+MyJob.perform_later("now")
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description                     | Example Value  |
+| ----------- | ------------------------------- | -------------- |
+| `:adapter`  | QueueAdapter processing the job | `#<...>`       |
+| `:job`      | Job object                      | `#<MyJob ...>` |
 
 #### `enqueue_retry.active_job`
 
-| Key          | Value                                  |
-| ------------ | -------------------------------------- |
-| `:job`       | Job object                             |
-| `:adapter`   | QueueAdapter object processing the job |
-| `:error`     | The error that caused the retry        |
-| `:wait`      | The delay of the retry                 |
+The event is emitted when a job is scheduled for retry due to an error.
+
+For example:
+
+```ruby
+MyJob.perform_later("fail to retry")
+# inside perform, raise Timeout::Error => Active Job schedules retry
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description                     | Example Value           |
+| ----------- | ------------------------------- | ----------------------- |
+| `:job`      | Job object                      | `#<MyJob ...>`          |
+| `:adapter`  | QueueAdapter processing the job | `#<...>`                |
+| `:error`    | The error that caused the retry | `#<Timeout::Error ...>` |
+| `:wait`     | The delay of the retry          | `30.seconds`            |
 
 #### `enqueue_all.active_job`
 
-| Key          | Value                                  |
-| ------------ | -------------------------------------- |
-| `:adapter`   | QueueAdapter object processing the job |
-| `:jobs`      | An array of Job objects                |
+The event is emitted when multiple jobs are enqueued together.
+
+For example:
+
+```ruby
+jobs = [ MyJob.new, MyJob.new ]
+ActiveJob::Base.enqueue_all(jobs) # when supported by the adapter
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description                     | Example Value           |
+| ----------- | ------------------------------- | ----------------------- |
+| `:adapter`  | QueueAdapter processing the job | `#<...>`                |
+| `:jobs`     | An array of Job objects         | `[ #<MyJob ...>, ... ]` |
 
 #### `perform_start.active_job`
 
-| Key          | Value                                  |
-| ------------ | -------------------------------------- |
-| `:adapter`   | QueueAdapter object processing the job |
-| `:job`       | Job object                             |
+The event is emitted when job execution starts (on the worker).
+
+For example:
+
+```ruby
+MyJob.perform_now # Fired on the worker right before perform begins
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description                     | Example Value  |
+| ----------- | ------------------------------- | -------------- |
+| `:adapter`  | QueueAdapter processing the job | `#<...>`       |
+| `:job`      | Job object                      | `#<MyJob ...>` |
 
 #### `perform.active_job`
 
-| Key           | Value                                         |
-| ------------- | --------------------------------------------- |
-| `:adapter`    | QueueAdapter object processing the job        |
-| `:job`        | Job object                                    |
-| `:db_runtime` | Amount spent executing database queries in ms |
+The event is emitted when job execution finishes (on the worker).
+
+For example:
+
+```ruby
+MyJob.perform_now # Fired after perform finishes (success or handled failure)
+```
+
+The event payload includes the following keys:
+
+| Payload Key   | Description                             | Example Value  |
+| ------------- | --------------------------------------- | -------------- |
+| `:adapter`    | QueueAdapter processing the job         | `#<...>`       |
+| `:job`        | Job object                              | `#<MyJob ...>` |
+| `:db_runtime` | Amount spent executing DB queries in ms | `12.34`        |
 
 #### `retry_stopped.active_job`
 
-| Key          | Value                                  |
-| ------------ | -------------------------------------- |
-| `:adapter`   | QueueAdapter object processing the job |
-| `:job`       | Job object                             |
-| `:error`     | The error that caused the retry        |
+The event is emitted when the retry mechanism stops retrying a job.
+
+For example:
+
+```ruby
+# After exhausting retries (per retry_on), the job stops retrying
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description                     | Example Value           |
+| ----------- | ------------------------------- | ----------------------- |
+| `:adapter`  | QueueAdapter processing the job | `#<...>`                |
+| `:job`      | Job object                      | `#<MyJob ...>`          |
+| `:error`    | The error that caused the retry | `#<Timeout::Error ...>` |
 
 #### `discard.active_job`
 
-| Key          | Value                                  |
-| ------------ | -------------------------------------- |
-| `:adapter`   | QueueAdapter object processing the job |
-| `:job`       | Job object                             |
-| `:error`     | The error that caused the discard      |
+The event is emitted when a job is discarded (will no longer be retried).
+
+For example:
+
+```ruby
+class MyJob < ApplicationJob
+  discard_on StandardError
+end
+MyJob.perform_later("oops") # error -> discarded
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description                       | Example Value          |
+| ----------- | --------------------------------- | ---------------------- |
+| `:adapter`  | QueueAdapter processing the job   | `#<...>`               |
+| `:job`      | Job object                        | `#<MyJob ...>`         |
+| `:error`    | The error that caused the discard | `#<StandardError ...>` |
 
 ### Active Record
 
 #### `sql.active_record`
 
-| Key                  | Value                                                  |
-| -------------------- | ------------------------------------------------------ |
-| `:sql`               | SQL statement                                          |
-| `:name`              | Name of the operation                                  |
-| `:binds`             | Bind parameters                                        |
-| `:type_casted_binds` | Typecasted bind parameters                             |
-| `:async`             | `true` if query is loaded asynchronously               |
-| `:allow_retry`       | `true` if the query can be automatically retried       |
-| `:connection`        | Connection object                                      |
-| `:transaction`       | Current transaction, if any                            |
-| `:affected_rows`     | Number of rows affected by the query                   |
-| `:row_count`         | Number of rows returned by the query                   |
-| `:cached`            | `true` is added when result comes from the query cache |
-| `:statement_name`    | SQL Statement name (Postgres only)                     |
+The event is emitted when Active Record executes an SQL statement.
 
-Adapters may add their own data as well.
+For example:
 
 ```ruby
-{
-  sql: "SELECT \"posts\".* FROM \"posts\" ",
-  name: "Post Load",
-  binds: [<ActiveModel::Attribute::WithCastValue:0x00007fe19d15dc00>],
-  type_casted_binds: [11],
-  async: false,
-  allow_retry: true,
-  connection: <ActiveRecord::ConnectionAdapters::SQLite3Adapter:0x00007f9f7a838850>,
-  transaction: <ActiveRecord::ConnectionAdapters::RealTransaction:0x0000000121b5d3e0>
-  affected_rows: 0
-  row_count: 5,
-  statement_name: nil,
-}
+Post.where(published: true).limit(5).to_a
 ```
 
-If the query is not executed in the context of a transaction, `:transaction` is `nil`.
+The event payload typically includes the keys below, but
+adapters/services may add more keys to the payload.
+
+| Payload Key          | Description                                      | Example Value                                       |
+| -------------------- | ------------------------------------------------ | --------------------------------------------------- |
+| `:sql`               | SQL statement                                    | `"SELECT \"posts\".* FROM \"posts\""`               |
+| `:name`              | Name of the operation                            | `"Post Load"`                                       |
+| `:binds`             | Bind parameters                                  | `[ #<ActiveModel::Attribute::WithCastValue ...> ]`  |
+| `:type_casted_binds` | Typecasted bind parameters                       | `[11]`                                              |
+| `:async`             | `true` if query is loaded asynchronously         | `false`                                             |
+| `:allow_retry`       | `true` if the query can be automatically retried | `true`                                              |
+| `:connection`        | Connection object                                | `#<ActiveRecord::ConnectionAdapters::...>`          |
+| `:transaction`       | Current transaction, if any                      | `#<ActiveRecord::ConnectionAdapters::...>` or `nil` |
+| `:affected_rows`     | Number of rows affected by the query             | `0`                                                 |
+| `:row_count`         | Number of rows returned by the query             | `5`                                                 |
+| `:cached`            | `true` when result comes from the query cache    | `false`                                             |
+| `:statement_name`    | SQL statement name (Postgres only)               | `nil`                                               |
 
 #### `strict_loading_violation.active_record`
 
-This event is only emitted when [`config.active_record.action_on_strict_loading_violation`][] is set to `:log`.
+The event is emitted when a lazily loaded association is accessed on a model
+with `strict_loading`, and
+[`config.active_record.action_on_strict_loading_violation`][] is set to `:log`.
 
-| Key           | Value                                            |
-| ------------- | ------------------------------------------------ |
-| `:owner`      | Model with `strict_loading` enabled              |
-| `:reflection` | Reflection of the association that tried to load |
+For example:
 
-[`config.active_record.action_on_strict_loading_violation`]: configuring.html#config-active-record-action-on-strict-loading-violation
+```ruby
+user = User.strict_loading.first
+user.posts.to_a  # lazy load => triggers strict_loading_violation (when config logs)
+```
+
+The event payload includes the following keys:
+
+| Payload Key   | Description                                      | Example Value                     |
+| ------------- | ------------------------------------------------ | --------------------------------- |
+| `:owner`      | Model with `strict_loading` enabled              | `#<User id: 1 ...>`               |
+| `:reflection` | Reflection of the association that tried to load | `#<ActiveRecord::Reflection ...>` |
+
+[`config.active_record.action_on_strict_loading_violation`]:
+    configuring.html#config-active-record-action-on-strict-loading-violation
 
 #### `instantiation.active_record`
 
-| Key              | Value                                     |
-| ---------------- | ----------------------------------------- |
-| `:record_count`  | Number of records that instantiated       |
-| `:class_name`    | Record's class                            |
+The event is emitted when Active Record instantiates model objects from query
+results.
+
+For example:
 
 ```ruby
-{
-  record_count: 1,
-  class_name: "User"
-}
+User.all.to_a
 ```
+
+The event payload includes the following keys:
+
+| Payload Key     | Description                    | Example Value |
+| --------------- | ------------------------------ | ------------- |
+| `:record_count` | Number of records instantiated | `1`           |
+| `:class_name`   | Record's class                 | `"User"`      |
 
 #### `start_transaction.active_record`
 
-This event is emitted when a transaction has been started.
+The event is emitted when Active Record starts a database transaction (on first
+DB interaction inside a `transaction` block).
 
-| Key                  | Value                                                |
-| -------------------- | ---------------------------------------------------- |
-| `:transaction`       | Transaction object                                   |
-| `:connection`        | Connection object                                    |
-
-Please, note that Active Record does not create the actual database transaction
-until needed:
+For example:
 
 ```ruby
 ActiveRecord::Base.transaction do
   # We are inside the block, but no event has been triggered yet.
 
   # The following line makes Active Record start the transaction.
-  User.count # Event fired here.
+  User.count # Event fired here
 end
 ```
 
-Remember that ordinary nested calls do not create new transactions:
+Ordinary nested calls do not create new transactions:
 
 ```ruby
 ActiveRecord::Base.transaction do |t1|
@@ -632,8 +1153,8 @@ ActiveRecord::Base.transaction do |t1|
 end
 ```
 
-However, if `requires_new: true` is passed, you get an event for the nested
-transaction too. This might be a savepoint under the hood:
+However, if `requires_new: true` is passed, an event is emitted for the nested
+transaction too.
 
 ```ruby
 ActiveRecord::Base.transaction do |t1|
@@ -644,16 +1165,37 @@ ActiveRecord::Base.transaction do |t1|
 end
 ```
 
+NOTE:  Active Record does not create the actual database transaction until
+needed.
+
+
+The event payload includes the following keys:
+
+| Payload Key    | Description        | Example Value                              |
+| -------------- | ------------------ | ------------------------------------------ |
+| `:transaction` | Transaction object | `#<ActiveRecord::ConnectionAdapters::...>` |
+| `:connection`  | Connection object  | `#<ActiveRecord::ConnectionAdapters::...>` |
+
 #### `transaction.active_record`
 
-This event is emitted when a database transaction finishes. The state of the
+The event is emitted when a database transaction finishes. The state of the
 transaction can be found in the `:outcome` key.
 
-| Key                  | Value                                                |
-| -------------------- | ---------------------------------------------------- |
-| `:transaction`       | Transaction object                                   |
-| `:outcome`           | `:commit`, `:rollback`, `:restart`, or `:incomplete` |
-| `:connection`        | Connection object                                    |
+For example:
+
+```ruby
+ActiveRecord::Base.transaction do
+  # work...
+end # commit/rollback => triggers transaction.active_record with :outcome
+```
+
+The event payload includes the following keys:
+
+| Payload Key    | Description                                          | Example Value          |
+| -------------- | ---------------------------------------------------- | ---------------------- |
+| `:transaction` | Transaction object                                   | `#<ActiveRecord::...>` |
+| `:outcome`     | `:commit`, `:rollback`, `:restart`, or `:incomplete` | `:commit`              |
+| `:connection`  | Connection object                                    | `#<ActiveRecord::...>` |
 
 In practice, you cannot do much with the transaction object, but it may still be
 helpful for tracing database activity. For example, by tracking
@@ -661,353 +1203,583 @@ helpful for tracing database activity. For example, by tracking
 
 #### `deprecated_association.active_record`
 
-This event is emitted when a deprecated association is accessed, and the
+The event is emitted when a deprecated association is accessed, and the
 configured deprecated associations mode is `:notify`.
 
-| Key                  | Value                                                |
-| -------------------- | ---------------------------------------------------- |
-| `:reflection`        | The reflection of the association                    |
-| `:message`           | A descriptive message about the access               |
-| `:location`          | The application-level location of the access         |
-| `:backtrace`         | Only present if the option `:backtrace` is true      |
+For example:
 
-The `:location` is a `Thread::Backtrace::Location` object, and `:backtrace`, if
-present, is an array of `Thread::Backtrace::Location` objects. These are
-computed using the Active Record backtrace cleaner. In Rails applications, this
-is the same as `Rails.backtrace_cleaner`.
+```ruby
+# config/initializers/active_record_deprecations.rb
+ActiveRecord.deprecate_associations = :notify
+
+# app/models/book.rb
+class Book < ApplicationRecord
+  has_many :authors, deprecated: "Use `writers` instead"
+  has_many :writers, class_name: "Author"
+end
+
+Book.first.authors # triggers deprecated_association.active_record
+```
+
+The event payload includes the following keys:
+
+| Payload Key   | Description                                | Example Value                            |
+| ------------- | ------------------------------------------ | ---------------------------------------- |
+| `:reflection` | The reflection of the association          | `#<ActiveRecord::Reflection ...>`        |
+| `:message`    | Descriptive message about the access       | `"authors is deprecated"`                |
+| `:location`   | Application-level location of the access   | `#<Thread::Backtrace::Location ...>`     |
+| `:backtrace`  | Present if the `:backtrace` option is true | `[ #<Thread::Backtrace::Location ...> ]` |
+
+`:location` and `:backtrace` are computed using the Active Record backtrace
+cleaner. In Rails applications, this is the same as `Rails.backtrace_cleaner.
 
 ### Active Storage
 
 #### `preview.active_storage`
 
-| Key          | Value               |
-| ------------ | ------------------- |
-| `:key`       | Secure token        |
+The event is emitted when a preview is generated for a blob.
+
+For example:
+
+```ruby
+blob = ActiveStorage::Blob.find(params[:id])
+blob.preview(resize_to_limit: [200, 200]).processed
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description     | Example Value    |
+| ----------- | --------------- | ---------------- |
+| `:key`      | Key of the blob | `"secure_token"` |
 
 #### `transform.active_storage`
 
+The event is emitted when a variant/representation transformation is performed.
+
+For example:
+
+```ruby
+current_user.avatar.variant(resize_to_limit: [300, 300]).processed
+```
+
+The event payload has no additional standard keys documented.
+
 #### `analyze.active_storage`
 
-| Key          | Value                          |
-| ------------ | ------------------------------ |
-| `:analyzer`  | Name of analyzer e.g., ffprobe |
+The event is emitted when a blob is analyzed to extract metadata.
+
+For example:
+
+```ruby
+blob = ActiveStorage::Blob.find(params[:id])
+blob.analyze
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description                     | Example Value |
+| ----------- | ------------------------------- | ------------- |
+| `:analyzer` | Name of analyzer (e.g. ffprobe) | `"ffprobe"`   |
 
 ### Active Storage: Storage Service
 
 #### `service_upload.active_storage`
 
-| Key          | Value                        |
-| ------------ | ---------------------------- |
-| `:key`       | Secure token                 |
-| `:service`   | Name of the service          |
-| `:checksum`  | Checksum to ensure integrity |
+The event is emitted when a blob is uploaded to a storage service.
+
+For example:
+
+```ruby
+current_user.avatar.attach(io: File.open("/path/pic.jpg"), filename: "pic.jpg")
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description            | Example Value    |
+| ----------- | ---------------------- | ---------------- |
+| `:key`      | Key of the blob        | `"secure_token"` |
+| `:service`  | Name of the service    | `"S3"`           |
+| `:checksum` | Checksum for integrity | `"md5:..."`      |
 
 #### `service_streaming_download.active_storage`
 
-| Key          | Value               |
-| ------------ | ------------------- |
-| `:key`       | Secure token        |
-| `:service`   | Name of the service |
+The event is emitted when a blob is streamed from a storage service.
+
+For example:
+
+```ruby
+send_data current_user.avatar.download, disposition: :inline
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description         | Example Value    |
+| ----------- | ------------------- | ---------------- |
+| `:key`      | Key of the blob     | `"secure_token"` |
+| `:service`  | Name of the service | `"S3"`           |
 
 #### `service_download_chunk.active_storage`
 
-| Key          | Value                           |
-| ------------ | ------------------------------- |
-| `:key`       | Secure token                    |
-| `:service`   | Name of the service             |
-| `:range`     | Byte range attempted to be read |
+The event is emitted when a chunked download reads a byte range from a storage
+service.
+
+For example:
+
+```ruby
+current_user.avatar.service.download_chunk(current_user.avatar.key, 0..1_048_575)
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description          | Example Value    |
+| ----------- | -------------------- | ---------------- |
+| `:key`      | Key of the blob      | `"secure_token"` |
+| `:service`  | Name of the service  | `"S3"`           |
+| `:range`    | Byte range attempted | `"0-1048575"`    |
 
 #### `service_download.active_storage`
 
-| Key          | Value               |
-| ------------ | ------------------- |
-| `:key`       | Secure token        |
-| `:service`   | Name of the service |
+The event is emitted when a blob is downloaded from a storage service.
+
+For example:
+
+```ruby
+current_user.avatar.download
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description         | Example Value    |
+| ----------- | ------------------- | ---------------- |
+| `:key`      | Key of the blob     | `"secure_token"` |
+| `:service`  | Name of the service | `"S3"`           |
 
 #### `service_delete.active_storage`
 
-| Key          | Value               |
-| ------------ | ------------------- |
-| `:key`       | Secure token        |
-| `:service`   | Name of the service |
+The event is emitted when a blob is deleted from a storage service.
+
+For example:
+
+```ruby
+current_user.avatar.purge
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description         | Example Value    |
+| ----------- | ------------------- | ---------------- |
+| `:key`      | Key of the blob     | `"secure_token"` |
+| `:service`  | Name of the service | `"S3"`           |
 
 #### `service_delete_prefixed.active_storage`
 
-| Key          | Value               |
-| ------------ | ------------------- |
-| `:prefix`    | Key prefix          |
-| `:service`   | Name of the service |
+The event is emitted when all blobs with a given key prefix are deleted.
+
+For example:
+
+```ruby
+ActiveStorage::Blob.service.delete_prefixed("tmp/")
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description     | Example Value |
+| ----------- | --------------- | ------------- |
+| `:prefix`   | Key prefix      | `"tmp/"`      |
+| `:service`  | Name of service | `"S3"`        |
 
 #### `service_exist.active_storage`
 
-| Key          | Value                       |
-| ------------ | --------------------------- |
-| `:key`       | Secure token                |
-| `:service`   | Name of the service         |
-| `:exist`     | File or blob exists or not  |
+The event is emitted when existence of a blob is checked in a storage service.
+
+For example:
+
+```ruby
+ActiveStorage::Blob.service.exist?(blob.key)
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description             | Example Value    |
+| ----------- | ----------------------- | ---------------- |
+| `:key`      | Key of the blob         | `"secure_token"` |
+| `:service`  | Name of the service     | `"S3"`           |
+| `:exist`    | File/blob exists or not | `true`           |
 
 #### `service_url.active_storage`
 
-| Key          | Value               |
-| ------------ | ------------------- |
-| `:key`       | Secure token        |
-| `:service`   | Name of the service |
-| `:url`       | Generated URL       |
+The event is emitted when a URL is generated for a blob/object.
+
+For example:
+
+```ruby
+ActiveStorage::Blob.service.url(blob.key)
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description         | Example Value            |
+| ----------- | ------------------- | ------------------------ |
+| `:key`      | Key of the blob     | `"secure_token"`         |
+| `:service`  | Name of the service | `"S3"`                   |
+| `:url`      | Generated URL       | `"https://s3.../abc123"` |
 
 #### `service_update_metadata.active_storage`
 
-This event is only emitted when using the Google Cloud Storage service.
+The event is emitted when object metadata is updated in the storage service
+(Google Cloud Storage only).
 
-| Key             | Value                            |
-| --------------- | -------------------------------- |
-| `:key`          | Secure token                     |
-| `:service`      | Name of the service              |
-| `:content_type` | HTTP `Content-Type` field        |
-| `:disposition`  | HTTP `Content-Disposition` field |
+For example:
+
+```ruby
+ActiveStorage::Blob.service.update_metadata(
+  blob.key, content_type: "image/png", disposition: "inline"
+)
+```
+
+The event payload includes the following keys:
+
+| Payload Key     | Description                | Example Value    |
+| --------------- | -------------------------- | ---------------- |
+| `:key`          | Key of the blob            | `"secure_token"` |
+| `:service`      | Name of the service        | `"GCS"`          |
+| `:content_type` | HTTP `Content-Type`        | `"image/png"`    |
+| `:disposition`  | HTTP `Content-Disposition` | `"inline"`       |
 
 ### Active Support: Caching
 
 #### `cache_read.active_support`
 
-| Key                | Value                   |
-| ------------------ | ----------------------- |
-| `:key`             | Key used in the store   |
-| `:store`           | Name of the store class |
-| `:hit`             | If this read is a hit   |
-| `:super_operation` | `:fetch` if a read is done with [`fetch`][ActiveSupport::Cache::Store#fetch] |
+The event is emitted when a read is performed against the cache store.
+
+For example:
+
+```ruby
+Rails.cache.read("user:1:settings")
+```
+
+The event payload includes the following keys:
+
+| Payload Key        | Description                         | Example Value                 |
+| ------------------ | ----------------------------------- | ----------------------------- |
+| `:key`             | Key used in the store               | `"user:1:settings"`           |
+| `:store`           | Name of the store class             | `"ActiveSupport::Cache::..."` |
+| `:hit`             | If this read is a hit               | `true`                        |
+| `:super_operation` | `:fetch` if the read is via `fetch` | `:fetch`                      |
 
 #### `cache_read_multi.active_support`
 
-| Key                | Value                   |
-| ------------------ | ----------------------- |
-| `:key`             | Keys used in the store  |
-| `:store`           | Name of the store class |
-| `:hits`            | Keys of cache hits      |
-| `:super_operation` | `:fetch_multi` if a read is done with [`fetch_multi`][ActiveSupport::Cache::Store#fetch_multi] |
+The event is emitted when multiple keys are read from the cache.
+
+For example:
+
+```ruby
+Rails.cache.read_multi("u:1", "u:2")
+```
+
+The event payload includes the following keys:
+
+| Payload Key        | Description                                                                    | Example Value                 |
+| ------------------ | ------------------------------------------------------------------------------ | ----------------------------- |
+| `:key`             | Keys used in the store                                                         | `["u:1","u:2"]`               |
+| `:store`           | Name of the store class                                                        | `"ActiveSupport::Cache::..."` |
+| `:hits`            | Keys of cache hits                                                             | `["u:1"]`                     |
+| `:super_operation` | `:fetch_multi` if via [`fetch_multi`][ActiveSupport::Cache::Store#fetch_multi] | `:fetch_multi`                |
 
 #### `cache_generate.active_support`
 
-This event is only emitted when [`fetch`][ActiveSupport::Cache::Store#fetch] is called with a block.
+The event is emitted when a cached value is generated during
+[`fetch`][ActiveSupport::Cache::Store#fetch] with a block.
 
-| Key      | Value                   |
-| -------- | ----------------------- |
-| `:key`   | Key used in the store   |
-| `:store` | Name of the store class |
-
-Options passed to `fetch` will be merged with the payload when writing to the store.
+For example:
 
 ```ruby
-{
-  key: "name-of-complicated-computation",
-  store: "ActiveSupport::Cache::MemCacheStore"
-}
+Rails.cache.fetch("expensive:calc") { do_expensive_work }
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description             | Example Value                           |
+| ----------- | ----------------------- | --------------------------------------- |
+| `:key`      | Key used in the store   | `"expensive:calc"`                      |
+| `:store`    | Name of the store class | `"ActiveSupport::Cache::MemCacheStore"` |
+
+Options passed to `fetch` will be merged with the payload when writing to the
+store.
 
 #### `cache_fetch_hit.active_support`
 
-This event is only emitted when [`fetch`][ActiveSupport::Cache::Store#fetch] is called with a block.
+The event is emitted when `fetch` with a block returns a cached value.
 
-| Key      | Value                   |
-| -------- | ----------------------- |
-| `:key`   | Key used in the store   |
-| `:store` | Name of the store class |
-
-Options passed to `fetch` will be merged with the payload.
+For example:
 
 ```ruby
-{
-  key: "name-of-complicated-computation",
-  store: "ActiveSupport::Cache::MemCacheStore"
-}
+Rails.cache.fetch("expensive:calc") { do_expensive_work } # cache hit
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description             | Example Value                           |
+| ----------- | ----------------------- | --------------------------------------- |
+| `:key`      | Key used in the store   | `"expensive:calc"`                      |
+| `:store`    | Name of the store class | `"ActiveSupport::Cache::MemCacheStore"` |
 
 #### `cache_write.active_support`
 
-| Key      | Value                   |
-| -------- | ----------------------- |
-| `:key`   | Key used in the store   |
-| `:store` | Name of the store class |
+The event is emitted when a value is written to the cache.
+
+For example:
+
+```ruby
+Rails.cache.write("expensive:calc", 42)
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description             | Example Value                           |
+| ----------- | ----------------------- | --------------------------------------- |
+| `:key`      | Key used in the store   | `"expensive:calc"`                      |
+| `:store`    | Name of the store class | `"ActiveSupport::Cache::MemCacheStore"` |
 
 Cache stores may add their own data as well.
 
-```ruby
-{
-  key: "name-of-complicated-computation",
-  store: "ActiveSupport::Cache::MemCacheStore"
-}
-```
-
 #### `cache_write_multi.active_support`
 
-| Key      | Value                                |
-| -------- | ------------------------------------ |
-| `:key`   | Keys and values written to the store |
-| `:store` | Name of the store class              |
+The event is emitted when multiple values are written to the cache.
 
+For example:
+
+```ruby
+Rails.cache.write_multi("a" => 1, "b" => 2)
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description                          | Example Value                 |
+| ----------- | ------------------------------------ | ----------------------------- |
+| `:key`      | Keys and values written to the store | `{ "a"=>1, "b"=>2 }`          |
+| `:store`    | Name of the store class              | `"ActiveSupport::Cache::..."` |
 
 #### `cache_increment.active_support`
 
-| Key       | Value                   |
-| --------- | ----------------------- |
-| `:key`    | Key used in the store   |
-| `:store`  | Name of the store class |
-| `:amount` | Increment amount        |
+The event is emitted when a counter is incremented in the cache.
+
+For example:
 
 ```ruby
-{
-  key: "bottles-of-beer",
-  store: "ActiveSupport::Cache::RedisCacheStore",
-  amount: 99
-}
+Rails.cache.increment("bottles-of-water", 5)
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description             | Example Value                             |
+| ----------- | ----------------------- | ----------------------------------------- |
+| `:key`      | Key used in the store   | `"bottles-of-water"`                      |
+| `:store`    | Name of the store class | `"ActiveSupport::Cache::RedisCacheStore"` |
+| `:amount`   | Increment amount        | `99`                                      |
 
 #### `cache_decrement.active_support`
 
-| Key       | Value                   |
-| --------- | ----------------------- |
-| `:key`    | Key used in the store   |
-| `:store`  | Name of the store class |
-| `:amount` | Decrement amount        |
+The event is emitted when a counter is decremented in the cache.
+
+For example:
 
 ```ruby
-{
-  key: "bottles-of-beer",
-  store: "ActiveSupport::Cache::RedisCacheStore",
-  amount: 1
-}
+Rails.cache.decrement("bottles-of-water", 1)
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description             | Example Value                             |
+| ----------- | ----------------------- | ----------------------------------------- |
+| `:key`      | Key used in the store   | `"bottles-of-water"`                      |
+| `:store`    | Name of the store class | `"ActiveSupport::Cache::RedisCacheStore"` |
+| `:amount`   | Decrement amount        | `1`                                       |
 
 #### `cache_delete.active_support`
 
-| Key      | Value                   |
-| -------- | ----------------------- |
-| `:key`   | Key used in the store   |
-| `:store` | Name of the store class |
+The event is emitted when a key is deleted from the cache.
+
+For example:
 
 ```ruby
-{
-  key: "name-of-complicated-computation",
-  store: "ActiveSupport::Cache::MemCacheStore"
-}
+Rails.cache.delete("expensive:calc")
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description             | Example Value                           |
+| ----------- | ----------------------- | --------------------------------------- |
+| `:key`      | Key used in the store   | `"expensive:calc"`                      |
+| `:store`    | Name of the store class | `"ActiveSupport::Cache::MemCacheStore"` |
 
 #### `cache_delete_multi.active_support`
 
-| Key      | Value                   |
-| -------- | ----------------------- |
-| `:key`   | Keys used in the store  |
-| `:store` | Name of the store class |
+The event is emitted when multiple keys are deleted from the cache.
+
+For example:
+
+```ruby
+Rails.cache.delete_multi("a", "b", "c")
+```
+
+The event payload includes the following keys:
+
+| Payload Key | Description        | Example Value                 |
+| ----------- | ------------------ | ----------------------------- |
+| `:key`      | Keys used in store | `["a","b","c"]`               |
+| `:store`    | Name of the store  | `"ActiveSupport::Cache::..."` |
 
 #### `cache_delete_matched.active_support`
 
-This event is only emitted when using [`RedisCacheStore`][ActiveSupport::Cache::RedisCacheStore],
-[`FileStore`][ActiveSupport::Cache::FileStore], or [`MemoryStore`][ActiveSupport::Cache::MemoryStore].
+The event is emitted when keys matching a pattern are deleted (supported by
+`RedisCacheStore`, `FileStore`, `MemoryStore`).
 
-| Key      | Value                   |
-| -------- | ----------------------- |
-| `:key`   | Key pattern used        |
-| `:store` | Name of the store class |
+For example:
 
 ```ruby
-{
-  key: "posts/*",
-  store: "ActiveSupport::Cache::RedisCacheStore"
-}
+Rails.cache.delete_matched("posts/*")
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description       | Example Value                             |
+| ----------- | ----------------- | ----------------------------------------- |
+| `:key`      | Key pattern       | `"posts/*"`                               |
+| `:store`    | Name of the store | `"ActiveSupport::Cache::RedisCacheStore"` |
 
 #### `cache_cleanup.active_support`
 
-This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::MemoryStore].
+The event is emitted when `MemoryStore` performs a full cleanup.
 
-| Key      | Value                                         |
-| -------- | --------------------------------------------- |
-| `:store` | Name of the store class                       |
-| `:size`  | Number of entries in the cache before cleanup |
+For example:
 
 ```ruby
-{
-  store: "ActiveSupport::Cache::MemoryStore",
-  size: 9001
-}
+Rails.cache.cleanup
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description                      | Example Value                         |
+| ----------- | -------------------------------- | ------------------------------------- |
+| `:store`    | Name of the store class          | `"ActiveSupport::Cache::MemoryStore"` |
+| `:size`     | Number of entries before cleanup | `9001`                                |
 
 #### `cache_prune.active_support`
 
-This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::MemoryStore].
+The event is emitted when `MemoryStore` prunes entries to reduce size.
 
-| Key      | Value                                         |
-| -------- | --------------------------------------------- |
-| `:store` | Name of the store class                       |
-| `:key`   | Target size (in bytes) for the cache          |
-| `:from`  | Size (in bytes) of the cache before prune     |
+For example:
 
 ```ruby
-{
-  store: "ActiveSupport::Cache::MemoryStore",
-  key: 5000,
-  from: 9001
-}
+Rails.cache.prune(5.megabytes)
 ```
+
+The event payload includes the following keys:
+
+| Payload Key | Description             | Example Value                         |
+| ----------- | ----------------------- | ------------------------------------- |
+| `:store`    | Name of the store class | `"ActiveSupport::Cache::MemoryStore"` |
+| `:key`      | Target size (in bytes)  | `5000`                                |
+| `:from`     | Size (in bytes) before  | `9001`                                |
 
 #### `cache_exist?.active_support`
 
-| Key      | Value                   |
-| -------- | ----------------------- |
-| `:key`   | Key used in the store   |
-| `:store` | Name of the store class |
+The event is emitted when existence of a key is checked in the cache.
+
+For example:
 
 ```ruby
-{
-  key: "name-of-complicated-computation",
-  store: "ActiveSupport::Cache::MemCacheStore"
-}
+Rails.cache.exist?("expensive:calc")
 ```
 
-[ActiveSupport::Cache::FileStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/FileStore.html
-[ActiveSupport::Cache::MemCacheStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemCacheStore.html
-[ActiveSupport::Cache::MemoryStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemoryStore.html
-[ActiveSupport::Cache::RedisCacheStore]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/RedisCacheStore.html
-[ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
-[ActiveSupport::Cache::Store#fetch_multi]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch_multi
+The event payload includes the following keys:
+
+| Payload Key | Description             | Example Value                           |
+| ----------- | ----------------------- | --------------------------------------- |
+| `:key`      | Key used in the store   | `"expensive:calc"`                      |
+| `:store`    | Name of the store class | `"ActiveSupport::Cache::MemCacheStore"` |
+
+[ActiveSupport::Cache::FileStore]:
+    https://api.rubyonrails.org/classes/ActiveSupport/Cache/FileStore.html
+[ActiveSupport::Cache::MemCacheStore]:
+    https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemCacheStore.html
+[ActiveSupport::Cache::MemoryStore]:
+    https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemoryStore.html
+[ActiveSupport::Cache::RedisCacheStore]:
+    https://api.rubyonrails.org/classes/ActiveSupport/Cache/RedisCacheStore.html
+[ActiveSupport::Cache::Store#fetch]:
+    https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
+[ActiveSupport::Cache::Store#fetch_multi]:
+    https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch_multi
 
 ### Active Support: Messages
 
 #### `message_serializer_fallback.active_support`
 
-| Key             | Value                         |
-| --------------- | ----------------------------- |
-| `:serializer`   | Primary (intended) serializer |
-| `:fallback`     | Fallback (actual) serializer  |
-| `:serialized`   | Serialized string             |
-| `:deserialized` | Deserialized value            |
+The event is emitted when the configured primary message serializer fails and
+Active Support falls back to a different serializer.
+
+For example:
 
 ```ruby
-{
-  serializer: :json_allow_marshal,
-  fallback: :marshal,
-  serialized: "\x04\b{\x06I\"\nHello\x06:\x06ETI\"\nWorld\x06;\x00T",
-  deserialized: { "Hello" => "World" },
-}
+ActiveSupport::MessageEncryptor.default_message_serializer = :json_allow_marshal
+key = ActiveSupport::KeyGenerator.new("secret").generate_key("salt", 32)
+enc = ActiveSupport::MessageEncryptor.new(key)
+enc.encrypt_and_sign(Object.new) # not JSON-serializable -> falls back
 ```
+
+The event payload includes the following keys:
+
+| Payload Key     | Description        | Example Value                                          |
+| --------------- | ------------------ | ------------------------------------------------------ |
+| `:serializer`   | Primary (intended) | `:json_allow_marshal`                                  |
+| `:fallback`     | Fallback (actual)  | `:marshal`                                             |
+| `:serialized`   | Serialized string  | `\x04\b{\x06I\"\nHello\x06:\x06ETI\"\nWorld\x06;\x00T` |
+| `:deserialized` | Deserialized value | `{ "Hello"=>"World" }`                                 |
 
 ### Rails
 
 #### `deprecation.rails`
 
-| Key                    | Value                                                 |
-| ---------------------- | ------------------------------------------------------|
-| `:message`             | The deprecation warning                               |
-| `:callstack`           | Where the deprecation came from                       |
-| `:gem_name`            | Name of the gem reporting the deprecation             |
-| `:deprecation_horizon` | Version where the deprecated behavior will be removed |
+The event is emitted when Rails emits a deprecation warning.
+
+For example:
+
+```ruby
+ActiveSupport::Deprecation.warn("X is deprecated")
+```
+
+The event payload includes the following keys:
+
+| Payload Key            | Description                                      | Example Value               |
+| ---------------------- | ------------------------------------------------ | --------------------------- |
+| `:message`             | The deprecation warning                          | `"X is deprecated..."`      |
+| `:callstack`           | Where the deprecation came from                  | `[ ".../file.rb:42", ... ]` |
+| `:gem_name`            | Name of the gem reporting the deprecation        | `"rails"`                   |
+| `:deprecation_horizon` | Version where the deprecated behavior is removed | `"8.0"`                     |
 
 ### Railties
 
 #### `load_config_initializer.railties`
 
-| Key            | Value                                               |
-| -------------- | --------------------------------------------------- |
-| `:initializer` | Path of loaded initializer in `config/initializers` |
+The event is emitted when an initializer file in `config/initializers` is loaded
+during boot.
+
+For example:
+
+```ruby
+# config/initializers/timezone.rb
+Rails.application.config.time_zone = "Pretoria"
+# Loaded during boot -> triggers load_config_initializer.railties
+```
+
+The event payload includes the following keys:
+
+| Payload Key    | Description                    | Example Value                       |
+| -------------- | ------------------------------ | ----------------------------------- |
+| `:initializer` | Path of the loaded initializer | `"config/initializers/timezone.rb"` |
+
 
 Exceptions
 ----------
@@ -1015,48 +1787,7 @@ Exceptions
 If an exception happens during any instrumentation, the payload will include
 information about it.
 
-| Key                 | Value                                                          |
+| Key                 | Description                                                    |
 | ------------------- | -------------------------------------------------------------- |
 | `:exception`        | An array of two elements. Exception class name and the message |
 | `:exception_object` | The exception object                                           |
-
-Creating Custom Events
-----------------------
-
-Adding your own events is easy as well. Active Support will take care of
-all the heavy lifting for you. Simply call [`ActiveSupport::Notifications.instrument`][] with a `name`, `payload`, and a block.
-The notification will be sent after the block returns. Active Support will generate the start and end times,
-and add the instrumenter's unique ID. All data passed into the `instrument` call will make
-it into the payload.
-
-Here's an example:
-
-```ruby
-ActiveSupport::Notifications.instrument "my.custom.event", this: :data do
-  # do your custom stuff here
-end
-```
-
-Now you can listen to this event with:
-
-```ruby
-ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, finished, unique_id, data|
-  puts data.inspect # {:this=>:data}
-end
-```
-
-You may also call `instrument` without passing a block. This lets you leverage the
-instrumentation infrastructure for other messaging uses.
-
-```ruby
-ActiveSupport::Notifications.instrument "my.custom.event", this: :data
-
-ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, finished, unique_id, data|
-  puts data.inspect # {:this=>:data}
-end
-```
-
-You should follow Rails conventions when defining your own events. The format is: `event.library`.
-If your application is sending Tweets, you should create an event named `tweet.twitter`.
-
-[`ActiveSupport::Notifications.instrument`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-instrument
