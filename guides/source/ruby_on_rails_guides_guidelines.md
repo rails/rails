@@ -154,6 +154,35 @@ class Product < ApplicationRecord
 end
 ```
 
+Pictures
+--------
+
+If you want to include pictures in your guide, place them in the `images` folder
+and reference them like this:
+
+```markdown
+![Alt text for the image](images/image_filename.png)
+```
+
+If you wish to support auto switching between light and dark mode images, you can
+use the following syntax:
+
+```markdown
+<picture class="[picture-class-optional]">
+  <source srcset="images/[guide-title]/[your-img]-dark.jpg" media="(prefers-color-scheme:dark)">
+  <img src="images/[guide-title]/[your-img]-light.jpg">
+</picture>
+```
+
+If you have a single `SVG` image that works well in both light and dark modes automatically, you can include it as follows:
+
+```markdown
+![Alt text for the image](images/image_filename.svg)
+```
+
+See can [check this image](https://guides.rubyonrails.org/getting_started.html#model-view-controller-basics)
+for example. Try switching your system to dark mode to see the effect.
+
 Notes, Tips and Warnings
 ------------------------
 
@@ -180,6 +209,25 @@ clarify an important item.
 For example, a section describing locale files could have the following `NOTE`:
 
 NOTE: You need to restart the server when you add new locale files.
+
+#### Code References
+
+When mentioning a class, module, or method inside a NOTE, use the following format.
+Rails Guides will automatically replace `relative/path/to/file.rb` with the corresponding path in the `rails/rails` GitHub repository.
+
+```markdown
+NOTE: Defined in `relative/path/to/file.rb`.
+```
+
+**Example**:
+
+```markdown
+NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
+```
+
+The result won’t be wrapped in a decorative container; instead, it will render as:
+
+NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
 
 ### TIP
 
