@@ -1417,4 +1417,15 @@ class TimeExtMarshalingTest < ActiveSupport::TestCase
   def test_last_quarter_on_31st
     assert_equal Time.local(2004, 2, 29), Time.local(2004, 5, 31).last_quarter
   end
+
+  def test_advance_with_invalid_keys
+    t = Time.local(2005, 2, 28, 15, 15, 10)
+    assert_raise(ArgumentError) { t.advance(year: 1) }
+    assert_raise(ArgumentError) { t.advance(month: 1) }
+    assert_raise(ArgumentError) { t.advance(week: 1) }
+    assert_raise(ArgumentError) { t.advance(day: 1) }
+    assert_raise(ArgumentError) { t.advance(hour: 1) }
+    assert_raise(ArgumentError) { t.advance(minute: 1) }
+    assert_raise(ArgumentError) { t.advance(second: 1) }
+  end
 end

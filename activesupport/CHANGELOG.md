@@ -1,3 +1,15 @@
+*   Raise `ArgumentError` if invalid options are passed to `advance`.
+
+    Previously, passing unsupported keys (e.g., `year: 1` instead of `years: 1`) to `advance` would be silently ignored.
+    Now, `Date#advance`, `Time#advance`, `DateTime#advance`, and `ActiveSupport::TimeWithZone#advance` will raise `ArgumentError` for unknown keys.
+
+    ```ruby
+    Time.current.advance(year: 1)
+    # => ArgumentError: Unknown key: :year. Valid keys are: :years, :months, :weeks, :days, :hours, :minutes, :seconds
+    ```
+
+    *Jay Dorsey*
+
 *   Fix inflections to better handle overlapping acronyms.
 
     ```ruby

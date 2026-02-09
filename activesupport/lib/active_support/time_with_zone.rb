@@ -6,6 +6,7 @@ require "active_support/duration"
 require "active_support/values/time_zone"
 require "active_support/core_ext/object/acts_like"
 require "active_support/core_ext/date_and_time/compatibility"
+require "active_support/core_ext/hash/keys"
 
 module ActiveSupport
   # = Active Support \Time With Zone
@@ -436,6 +437,7 @@ module ActiveSupport
     #   now.advance(months: 1)  # => Tue, 02 Dec 2014 01:26:28.558049687 EST -05:00
     #   now.advance(years: 1)   # => Mon, 02 Nov 2015 01:26:28.558049687 EST -05:00
     def advance(options)
+      options.assert_valid_keys(:years, :months, :weeks, :days, :hours, :minutes, :seconds)
       # If we're advancing a value of variable length (i.e., years, weeks, months, days), advance from #time,
       # otherwise advance from #utc, for accuracy when moving across DST boundaries
       if options.values_at(:years, :weeks, :months, :days).any?
