@@ -969,6 +969,30 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  test "partial insert off with explicit nil for nullable default function attribute" do
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && ActiveRecord::Base.lease_connection.database_version < "8.0"
+      skip "MySQL < 8.0 does not preserve explicit NULL for timestamp defaults"
+    end
+
+    with_partial_writes Aircraft, false do
+      aircraft = Aircraft.create!(name: "Boeing7", manufactured_at: nil)
+      aircraft.reload
+
+      assert_equal "Boeing7", aircraft.name
+      assert_nil aircraft.manufactured_at, "Explicitly set nil should be preserved in database"
+    end
+  end
+
+  test "partial insert off with unset nullable default function attribute" do
+    with_partial_writes Aircraft, false do
+      aircraft = Aircraft.create!(name: "Boeing9")
+      aircraft.reload
+
+      assert_equal "Boeing9", aircraft.name
+      assert_not_nil aircraft.manufactured_at, "Unset attribute should use database default"
+    end
+  end
+
   if current_adapter?(:PostgreSQLAdapter) && supports_identity_columns?
     test "partial insert off with changed composite identity primary key attribute" do
       klass = Class.new(ActiveRecord::Base) do
