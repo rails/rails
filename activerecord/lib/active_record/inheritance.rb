@@ -58,6 +58,7 @@ module ActiveRecord
         end
 
         if _has_attribute?(inheritance_column)
+          # Single table inheritance is being used. Determine the appropriate class to instantiate.
           subclass = subclass_from_attributes(attributes)
 
           if subclass.nil? && scope_attributes = current_scope&.scope_for_create
@@ -67,12 +68,26 @@ module ActiveRecord
           if subclass.nil? && base_class?
             subclass = subclass_from_attributes(column_defaults)
           end
-        end
 
-        if subclass && subclass != self
-          subclass.new(attributes, &block)
+          if subclass && subclass != self
+            subclass.new(attributes, &block)
+          else
+            super
+          end
         else
-          super
+          if @_redefined_new
+            super
+          elsif method(:new).unbind != ActiveRecord::Base.method(:new).unbind
+            # The class redefines `new`, so we can't optimize.
+            @_redefined_new = true
+            super
+          else
+            # Redefine `new` to be the C method `Class.new`, and dispatch to it.
+            # This eliminates the overhead of the checks in this method, and on Ruby 4.0 takes
+            # advantage of the fast path optimization.
+            define_singleton_method(:new, Class.instance_method(:new))
+            new(attributes, &block)
+          end
         end
       end
 
@@ -267,6 +282,7 @@ module ActiveRecord
         end
 
         def set_base_class # :nodoc:
+          @_redefined_new = nil
           @base_class = if self == Base
             self
           else
