@@ -1,3 +1,8 @@
+*   Fix `ActionView::TestCase#render` to reset `rendered`.
+    The behavior was changed when memoization was added in #51093. Now it once again conforms to the documentation.
+
+    *Jeroen Versteeg*
+
 *   Fix tag parameter content being overwritten instead of combined with tag block content.
     Before `tag.div("Hello ") { "World" }` would just return `<div>World</div>`, now it returns `<div>Hello World</div>`.
 
