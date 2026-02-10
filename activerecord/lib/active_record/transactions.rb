@@ -397,6 +397,7 @@ module ActiveRecord
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks: true) # :nodoc:
+      _compute_committed_changes
       @_start_transaction_state = nil
       if should_run_callbacks
         @_committed_already_called = true
@@ -479,6 +480,40 @@ module ActiveRecord
         end
       end
 
+      # Compute the cumulative changes across the entire transaction by comparing
+      # the attributes snapshot from the start of the transaction against the
+      # current attributes. This is used to populate +committed_changes+ for
+      # +after_commit+ callbacks.
+      #
+      # We intentionally avoid calling +value+ / +fetch_value+ on current
+      # attributes because that triggers +has_been_read?+, which in turn
+      # causes +changed_in_place?+ to return true for types where the raw
+      # database representation differs from the deserialized Ruby object
+      # (e.g. datetime columns). Instead we compare at the serialized
+      # (database) level and deserialize through the type directly.
+      def _compute_committed_changes
+        return unless @_start_transaction_state
+
+        snapshot_attributes = @_start_transaction_state[:attributes]
+        changes = {}.with_indifferent_access
+
+        @attributes.keys.each do |attr_name|
+          snapshot_attr = snapshot_attributes[attr_name]
+          current_attr = @attributes[attr_name]
+
+          old_raw = snapshot_attr.original_value_for_database
+          new_raw = current_attr.value_before_type_cast
+
+          unless old_raw == new_raw
+            old_value = snapshot_attr.original_value
+            new_value = current_attr.type.deserialize(new_raw)
+            changes[attr_name] = [old_value, new_value]
+          end
+        end
+
+        @_committed_changes = changes
+      end
+
       # Clear the new record state and id of a record.
       def clear_transaction_record_state
         return unless @_start_transaction_state
@@ -500,6 +535,7 @@ module ActiveRecord
             end
             @mutations_from_database = nil
             @mutations_before_last_save = nil
+            @_committed_changes = nil
             if self.class.composite_primary_key?
               if restore_state[:id] != @primary_key.map { |col| @attributes.fetch_value(col) }
                 @primary_key.zip(restore_state[:id]).each do |col, val|

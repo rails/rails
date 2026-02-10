@@ -1,3 +1,34 @@
+*   Add `committed_changes` methods for tracking cumulative attribute changes
+    across an entire transaction.
+
+    New methods available in `after_commit` callbacks:
+
+    - `committed_changes` - Returns a hash of all changes across the transaction.
+    - `committed_changes?` - Returns whether any attributes changed.
+    - `committed_change_to_attribute(attr)` - Returns `[old, new]` for an attribute.
+    - `committed_change_to_attribute?(attr)` - Returns whether an attribute changed.
+    - `attribute_before_last_commit(attr)` - Returns the pre-transaction value of
+      any attribute, even those that didn't change.
+
+    Unlike `saved_change_to_*` methods which only reflect the most recent save,
+    these methods track cumulative changes across all saves within the transaction.
+
+    ```ruby
+    class User < ApplicationRecord
+      after_commit :sync_changes, on: :update
+
+      private
+        def sync_changes
+          if committed_change_to_attribute?(:email)
+            old_email, new_email = committed_change_to_attribute(:email)
+            ExternalService.update_email(old_email, new_email)
+          end
+        end
+    end
+    ```
+
+    *Lucas Campanari*
+
 *   Add `implicit_persistence_transaction` hook for customizing transaction behavior.
 
     A new protected method `implicit_persistence_transaction` has been added that wraps
