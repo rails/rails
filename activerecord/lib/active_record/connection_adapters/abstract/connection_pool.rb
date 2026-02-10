@@ -468,9 +468,15 @@ module ActiveRecord
             @connections.each do |conn|
               if conn.in_use?
                 conn.steal!
-                checkin conn
+
+                ActiveSupport.error_reporter.handle(source: "active_record.connection_pool") do
+                  checkin conn
+                end
               end
-              conn.disconnect!
+
+              ActiveSupport.error_reporter.handle(source: "active_record.connection_pool") do
+                conn.disconnect!
+              end
             end
             @connections = []
             @leases.clear
