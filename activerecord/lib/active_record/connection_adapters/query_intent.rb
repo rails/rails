@@ -71,7 +71,8 @@ module ActiveRecord
       attr_reader :arel, :name, :prepare, :allow_retry, :allow_async,
                   :materialize_transactions, :batch, :pool, :session, :lock_wait,
                   :retries_remaining, :retry_deadline, :error, :reconnectable,
-                  :event_buffer, :not_run_reason
+                  :event_buffer, :not_run_reason, :finalized
+      alias_method :finalized?, :finalized
       attr_writer :raw_sql, :session
       attr_accessor :adapter, :binds, :ran_async, :notification_payload, :log_handle
 
@@ -262,9 +263,12 @@ module ActiveRecord
           @raw_result_available = true
         end
 
-        # Logging outside lock to avoid blocking other threads
-        adapter.finish_intent_log(self)
+        # Logging outside lock to avoid blocking other threads.
+        # Set @finalized before finish_intent_log: the handle's state
+        # changes to :finished even if a subscriber raises, so our
+        # flag must reflect that to prevent double-finish in the sweep.
         @finalized = true
+        adapter.finish_intent_log(self)
       end
 
       # Deliver a failure to this intent.
@@ -400,8 +404,8 @@ module ActiveRecord
 
         if @error
           unless @finalized
-            adapter.finish_intent_log(self, exception: @error)
             @finalized = true
+            adapter.finish_intent_log(self, exception: @error)
           end
           raise @error
         end

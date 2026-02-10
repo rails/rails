@@ -1678,6 +1678,78 @@ module ActiveRecord
       end
     end
 
+    def test_unfinalized_intent_logs_closed_at_checkin
+      # When pipelined intents are never accessed (ensure_result never
+      # called), their sql.active_record notifications are started but
+      # not finished. The checkin sweep should close them, recording
+      # the appropriate final state - errors for failed intents, clean
+      # close for not-run intents.
+      events = []
+      callback = ->(name, start, finish, id, payload) { events << payload }
+
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.connect!
+        conn.materialize_transactions
+
+        ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+          conn.enter_pipeline_mode
+
+          intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+            adapter: conn,
+            raw_sql: "SELECT * FROM nonexistent_table_xyz",
+            name: "FAILED_UNCONSUMED"
+          )
+          intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+            adapter: conn,
+            raw_sql: "SELECT 1 AS n",
+            name: "ABORTED_UNCONSUMED"
+          )
+
+          intent1.execute!
+          intent2.execute!
+
+          conn.flush_pipeline
+
+          # Neither intent is accessed - both have open logs
+          assert intent1.log_handle, "Failed intent should have a log handle"
+          assert_not intent1.finalized?, "Failed intent should not be finalized"
+          assert intent2.log_handle, "Not-run intent should have a log handle"
+          assert_not intent2.finalized?, "Not-run intent should not be finalized"
+
+          # Check in triggers finalize_remaining_intents
+          test_pool.checkin(conn)
+        end
+
+        # Failed intent's notification should record its error
+        failed_event = events.find { |e| e[:name] == "FAILED_UNCONSUMED" }
+        assert failed_event, "Failed intent notification should be finalized at checkin"
+        assert failed_event[:exception], "Failed intent should be logged with its error"
+        assert_match(/nonexistent_table_xyz/, failed_event[:exception].last)
+
+        # Server-aborted intent's notification should record QueryNotRun.
+        # Until the sweep, not_run is non-terminal (the caller might still
+        # access the result, triggering re-execution). At sweep time, that
+        # possibility is foreclosed and the log should reflect the failure.
+        aborted_event = events.find { |e| e[:name] == "ABORTED_UNCONSUMED" }
+        assert aborted_event, "Server-aborted intent notification should be finalized at checkin"
+        assert aborted_event[:exception], "Not-run intent should be logged with QueryNotRun at sweep"
+        assert_equal "ActiveRecord::QueryNotRun", aborted_event[:exception].first
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
     def test_server_aborted_query_reruns_on_demand_outside_transaction
       # When a SQL error aborts subsequent queries in a pipeline and
       # there's no enclosing transaction, the aborted queries can

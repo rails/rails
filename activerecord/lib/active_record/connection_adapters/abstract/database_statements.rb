@@ -700,6 +700,7 @@ module ActiveRecord
         handle = instr.build_handle("sql.active_record", payload)
         handle.start
         intent.log_handle = handle
+        @unfinalized_intents << intent
       end
 
       # Finish logging for an intent. Stops timing and publishes the notification.
@@ -715,6 +716,27 @@ module ActiveRecord
         end
 
         handle.finish
+      end
+
+      # Close out any intent logs that were started but never finalized.
+      # This handles intents that never reached ensure_result - e.g.
+      # because an earlier intent raised and unwound the stack past them.
+      def finalize_remaining_intents # :nodoc:
+        intents = @unfinalized_intents
+        @unfinalized_intents = []
+
+        intents.each do |intent|
+          next if intent.finalized?
+
+          exception = intent.error
+          if exception.nil? && intent.not_run_reason
+            exception = ActiveRecord::QueryNotRun.new(
+              "Query was not run due to pipeline failure (#{intent.not_run_reason})"
+            )
+          end
+
+          finish_intent_log(intent, exception: exception)
+        end
       end
 
       private
