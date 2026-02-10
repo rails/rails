@@ -33,6 +33,18 @@ module ActiveRecord
     #   person.saved_change_to_name    # => ["Allison", "Alice"]
     #   person.name_before_last_save   # => "Allison"
     #
+    # After the transaction is committed:
+    #
+    #   person.committed_change_to_name?   # => true
+    #   person.committed_change_to_name    # => ["Allison", "Alice"]
+    #   person.name_before_last_commit     # => "Allison"
+    #   person.committed_changes           # => {"name"=>["Allison", "Alice"]}
+    #
+    # The +committed_change_to_*+ methods track cumulative changes across all
+    # saves within a transaction, making them ideal for use in +after_commit+
+    # callbacks. The +saved_change_to_*+ methods, by contrast, only reflect
+    # the most recent save.
+    #
     # Similar to ActiveModel::Dirty, methods can be invoked as
     # +saved_change_to_name?+ or by passing an argument to the generic method
     # <tt>saved_change_to_attribute?("name")</tt>.
@@ -54,6 +66,11 @@ module ActiveRecord
         attribute_method_prefix("saved_change_to_", parameters: false)
         attribute_method_suffix("_before_last_save", parameters: false)
 
+        # Attribute methods for "changed during the last committed transaction?"
+        attribute_method_affix(prefix: "committed_change_to_", suffix: "?", parameters: "**options")
+        attribute_method_prefix("committed_change_to_", parameters: false)
+        attribute_method_suffix("_before_last_commit", parameters: false)
+
         # Attribute methods for "will change if I call save?"
         attribute_method_affix(prefix: "will_save_change_to_", suffix: "?", parameters: "**options")
         attribute_method_suffix("_change_to_be_saved", "_in_database", parameters: false)
@@ -64,6 +81,7 @@ module ActiveRecord
         super.tap do
           @mutations_before_last_save = nil
           @mutations_from_database = nil
+          @_committed_changes = nil
         end
       end
 
@@ -117,6 +135,82 @@ module ActiveRecord
       # Returns a hash containing all the changes that were just saved.
       def saved_changes
         mutations_before_last_save.changes
+      end
+
+      # Did this attribute change during the last committed transaction?
+      #
+      # This method is useful in +after_commit+ callbacks to determine if an
+      # attribute was changed at any point during the transaction that was just
+      # committed. Unlike +saved_change_to_attribute?+, which only reflects
+      # the most recent save, this method tracks the cumulative changes across
+      # all saves within the transaction.
+      #
+      # It can be invoked as +committed_change_to_name?+ instead of
+      # <tt>committed_change_to_attribute?("name")</tt>.
+      #
+      # ==== Options
+      #
+      # [+from+]
+      #   When specified, this method will return false unless the original
+      #   value at the start of the transaction is equal to the given value.
+      #
+      # [+to+]
+      #   When specified, this method will return false unless the value
+      #   committed to the database is equal to the given value.
+      def committed_change_to_attribute?(attr_name, **options)
+        attr_name = attr_name.to_s
+        return false unless @_committed_changes&.key?(attr_name)
+        change = @_committed_changes[attr_name]
+        (options.key?(:from) ? change[0] == _type_cast_for_committed(attr_name, options[:from]) : true) &&
+          (options.key?(:to) ? change[1] == _type_cast_for_committed(attr_name, options[:to]) : true)
+      end
+
+      # Returns the change to an attribute during the last committed
+      # transaction. If the attribute was changed, the result will be an array
+      # containing the original value at the start of the transaction and the
+      # final committed value.
+      #
+      # This method is useful in +after_commit+ callbacks, to see the full
+      # change in an attribute across the entire transaction. It can be
+      # invoked as +committed_change_to_name+ instead of
+      # <tt>committed_change_to_attribute("name")</tt>.
+      def committed_change_to_attribute(attr_name)
+        @_committed_changes&.[](attr_name.to_s)
+      end
+
+      # Returns the original value of an attribute before the last committed
+      # transaction.
+      #
+      # This method is useful in +after_commit+ callbacks to get the original
+      # value of an attribute before the transaction that was just committed.
+      # It can be invoked as +name_before_last_commit+ instead of
+      # <tt>attribute_before_last_commit("name")</tt>.
+      #
+      # Unlike +committed_change_to_attribute+, which only returns values for
+      # attributes that changed, this method returns the pre-transaction value
+      # for any attribute. For attributes that were not changed during the
+      # transaction, it returns the current value (which is the same as the
+      # pre-transaction value).
+      def attribute_before_last_commit(attr_name)
+        attr_name = attr_name.to_s
+        if @_committed_changes&.key?(attr_name)
+          @_committed_changes[attr_name].first
+        elsif @_committed_changes
+          _read_attribute(attr_name)
+        end
+      end
+
+      # Did the last committed transaction have any changes?
+      def committed_changes?
+        @_committed_changes.present?
+      end
+
+      # Returns a hash containing all the changes that were committed in the
+      # last transaction. The hash keys are the attribute names, and the hash
+      # values are arrays containing the original value at the start of the
+      # transaction and the final committed value.
+      def committed_changes
+        @_committed_changes || {}.with_indifferent_access
       end
 
       # Will this attribute change the next time we save?
@@ -197,8 +291,13 @@ module ActiveRecord
           super
           @mutations_before_last_save = nil
           @mutations_from_database = nil
+          @_committed_changes = nil
           @_touch_attr_names = nil
           @_skip_dirty_tracking = nil
+        end
+
+        def _type_cast_for_committed(attr_name, value)
+          @attributes[attr_name].type_cast(value)
         end
 
         def _touch_row(attribute_names, time)
