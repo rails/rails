@@ -1801,6 +1801,274 @@ module ActiveRecord
     end
   end
 
+  class PostgresqlPipelineDeferredReleaseTest < ActiveRecord::PostgreSQLTestCase
+    self.use_transactional_tests = false
+
+    def setup
+      super
+      @connection = ActiveRecord::Base.lease_connection
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      @test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+    end
+
+    def teardown
+      @test_pool.disconnect! rescue nil
+      super
+    end
+
+    def test_connection_held_when_pipeline_pending
+      # When a with_connection block exits while pipeline queries are
+      # pending, the connection must stay leased (not returned to pool).
+      intent = nil
+
+      @test_pool.with_connection do |conn|
+        conn.connect!
+        conn.enter_pipeline_mode
+
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n",
+          name: "TEST",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+        intent.execute!
+
+        assert conn.pipeline_pending?, "Pipeline should have pending intents"
+      end
+
+      # Connection should still be in use - not returned to pool
+      assert_equal 0, @test_pool.num_available_in_queue,
+        "Connection should not be available in pool while pipeline is pending"
+
+      conn = @test_pool.connections.first
+      assert_predicate conn, :in_use?,
+        "Connection should still be in use"
+      assert conn.deferred_pool_release,
+        "Connection should be marked for deferred release"
+
+      # Clean up: access the result to drain pipeline, then release
+      assert_equal [[1]], intent.cast_result.rows
+    end
+
+    def test_connection_released_when_subsequent_block_drains_pipeline
+      # After a deferred release, entering a second with_connection that
+      # drains the pipeline should release the connection on block exit.
+      intent = nil
+
+      @test_pool.with_connection do |conn|
+        conn.connect!
+        conn.enter_pipeline_mode
+
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 42 AS n",
+          name: "TEST",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+        intent.execute!
+      end
+
+      # Connection deferred - still in use
+      conn = @test_pool.connections.first
+      assert_predicate conn, :in_use?
+
+      # Second block accesses the result, draining the pipeline
+      @test_pool.with_connection do |conn2|
+        assert_equal conn, conn2, "Should reuse the same connection"
+        assert_equal [[42]], intent.cast_result.rows
+        assert_not conn2.pipeline_pending?, "Pipeline should be drained"
+      end
+
+      # Now the connection should be released
+      assert_not_predicate conn, :in_use?,
+        "Connection should be released after pipeline drained in subsequent block"
+    end
+
+    def test_connection_released_when_pipeline_drains_outside_block
+      # When the pipeline drains outside any with_connection block
+      # (e.g., by accessing intent results directly), the connection
+      # should be released via maybe_deferred_release.
+      intent = nil
+
+      @test_pool.with_connection do |conn|
+        conn.connect!
+        conn.enter_pipeline_mode
+
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 99 AS n",
+          name: "TEST",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+        intent.execute!
+      end
+
+      conn = @test_pool.connections.first
+      assert_predicate conn, :in_use?
+
+      # Access result outside any with_connection block - triggers
+      # flush_pipeline → maybe_deferred_release
+      assert_equal [[99]], intent.cast_result.rows
+
+      assert_not_predicate conn, :in_use?,
+        "Connection should be released after pipeline drains outside block"
+    end
+
+    def test_nested_with_connection_does_not_release_at_inner_exit
+      # Pipeline drains in inner block, but connection should not be
+      # released until the outer block exits.
+      intent = nil
+
+      @test_pool.with_connection do |outer_conn|
+        outer_conn.connect!
+        outer_conn.enter_pipeline_mode
+
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: outer_conn,
+          raw_sql: "SELECT 7 AS n",
+          name: "TEST",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+        intent.execute!
+
+        # Inner block drains the pipeline
+        @test_pool.with_connection do |inner_conn|
+          assert_equal outer_conn, inner_conn
+          assert_equal [[7]], intent.cast_result.rows
+          assert_not inner_conn.pipeline_pending?
+        end
+
+        # After inner block exits, connection should still be held
+        # (depth > 0 at inner exit, but now we're back in outer)
+        assert_predicate outer_conn, :in_use?,
+          "Connection should NOT be released at inner block exit"
+      end
+
+      # After outer block exits, connection should be released
+      conn = @test_pool.connections.first
+      assert_not_predicate conn, :in_use?,
+        "Connection should be released after outer block exits"
+    end
+
+    def test_request_end_flushes_and_releases_deferred_connection
+      # Simulating request end: pool.release_connection should flush
+      # the pipeline and return the connection to the pool.
+      @test_pool.with_connection do |conn|
+        conn.connect!
+        conn.enter_pipeline_mode
+
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n",
+          name: "TEST",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+        intent.execute!
+      end
+
+      conn = @test_pool.connections.first
+      assert_predicate conn, :in_use?
+
+      # release_connection is what ExecutorHooks.complete calls
+      @test_pool.release_connection
+
+      assert_not_predicate conn, :in_use?,
+        "Connection should be released after release_connection"
+    end
+
+    def test_lease_connection_not_affected_by_deferred_release
+      # lease_connection makes the lease sticky. Deferred release
+      # logic should not interfere with sticky leases.
+      conn = @test_pool.lease_connection
+      conn.connect!
+
+      @test_pool.with_connection do |wc_conn|
+        assert_equal conn, wc_conn, "Should reuse leased connection"
+
+        wc_conn.enter_pipeline_mode
+
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: wc_conn,
+          raw_sql: "SELECT 1 AS n",
+          name: "TEST",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+        intent.execute!
+      end
+
+      # Connection should still be in use (sticky via lease_connection)
+      assert_predicate conn, :in_use?,
+        "Sticky connection should remain leased"
+
+      # Clean up: drain pipeline and release
+      conn.flush_pipeline
+      conn.exit_pipeline_mode
+      @test_pool.release_connection
+    end
+
+    def test_no_deferred_release_when_pipeline_not_pending
+      # Normal case: when pipeline is not pending (or not active),
+      # with_connection should release normally.
+      @test_pool.with_connection do |conn|
+        result = conn.select_value("SELECT 1")
+        assert_equal 1, result
+      end
+
+      conn = @test_pool.connections.first
+      assert_not_predicate conn, :in_use?,
+        "Connection should be released normally when no pipeline is pending"
+      assert_not conn.deferred_pool_release,
+        "Deferred flag should not be set"
+    end
+
+    def test_deferred_release_does_not_make_connection_permanently_sticky
+      # After pipeline drains and connection is released, a subsequent
+      # with_connection should be able to check out and release normally.
+      intent = nil
+
+      @test_pool.with_connection do |conn|
+        conn.connect!
+        conn.enter_pipeline_mode
+
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n",
+          name: "TEST",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+        intent.execute!
+      end
+
+      # Drain outside block
+      intent.cast_result
+
+      conn = @test_pool.connections.first
+      assert_not_predicate conn, :in_use?
+
+      # A subsequent with_connection should check out and release normally
+      @test_pool.with_connection do |conn2|
+        conn2.select_value("SELECT 1")
+      end
+
+      assert_not_predicate conn, :in_use?,
+        "Connection should not become permanently sticky after deferred release"
+    end
+  end
+
   class PostgresqlPipelineBatchSemanticsTest < ActiveRecord::PostgreSQLTestCase
     self.use_transactional_tests = false
 

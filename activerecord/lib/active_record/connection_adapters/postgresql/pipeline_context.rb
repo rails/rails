@@ -211,6 +211,8 @@ module ActiveRecord
               return
             end
           end
+        ensure
+          maybe_deferred_release
         end
 
         def consume_pipeline

@@ -453,16 +453,34 @@ module ActiveRecord
 
         if lease.connection
           begin
+            lease.connection.increment_with_connection_depth
             yield lease.connection
           ensure
+            conn = lease.connection
+            conn&.decrement_with_connection_depth
             lease.sticky = sticky_was if prevent_permanent_checkout && !sticky_was
+            if conn&.with_connection_depth == 0 &&
+               conn&.deferred_pool_release &&
+               !conn&.pipeline_pending?
+              conn.deferred_pool_release = false
+              release_connection(lease) unless lease.sticky
+            end
           end
         else
           begin
-            yield lease.connection = checkout
+            conn = lease.connection = checkout
+            conn.increment_with_connection_depth
+            yield conn
           ensure
+            conn = lease.connection
+            conn&.decrement_with_connection_depth
             lease.sticky = sticky_was if prevent_permanent_checkout && !sticky_was
-            release_connection(lease) unless lease.sticky
+            if conn&.pipeline_pending?
+              conn.deferred_pool_release = true
+            else
+              conn&.deferred_pool_release = false
+              release_connection(lease) unless lease.sticky
+            end
           end
         end
       end
