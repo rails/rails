@@ -521,7 +521,16 @@ module ActiveRecord
               @connections.each do |conn|
                 if conn.in_use?
                   conn.steal!
-                  checkin conn
+                  begin
+                    checkin conn
+                  rescue
+                    # Checkin may fail if the connection is dead (e.g.
+                    # broken socket with active pipeline mode). That's
+                    # fine during disconnect - we're tearing down the
+                    # pool. What matters is that disconnect! below gets
+                    # called so the raw connection is properly closed
+                    # and its file descriptor freed.
+                  end
                 end
                 conn.disconnect!
               end
