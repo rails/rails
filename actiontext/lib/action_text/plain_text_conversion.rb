@@ -41,7 +41,7 @@ module ActionText
         "#{remove_trailing_newlines(plain_text_for_child_values(child_values))}\n\n"
       end
 
-      %i[ h1 p ].each do |element|
+      %i[ h1 h2 h3 h4 h5 h6 p table ].each do |element|
         alias_method :"plain_text_for_#{element}_node", :plain_text_for_block
       end
 
@@ -121,6 +121,18 @@ module ActionText
         else
           text
         end
+      end
+
+      def plain_text_for_tr_node(node, child_values)
+        "#{plain_text_for_child_values(child_values).strip}\n"
+      end
+
+      def plain_text_for_table_cell(node, child_values)
+        "#{plain_text_for_child_values(child_values).strip} "
+      end
+
+      %i[ th td ].each do |element|
+        alias_method :"plain_text_for_#{element}_node", :plain_text_for_table_cell
       end
 
       class BottomUpReducer # :nodoc:
