@@ -101,6 +101,30 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     end
   end
 
+  test "unsubscribe from non-existent subscription" do
+    run_in_eventmachine do
+      setup_connection
+
+      assert_nothing_raised do
+        @subscriptions.remove("identifier" => @chat_identifier)
+      end
+      assert_empty @subscriptions.identifiers
+    end
+  end
+
+  test "perform action on non-existent subscription" do
+    run_in_eventmachine do
+      setup_connection
+
+      data = { "content" => "Hello World!", "action" => "speak" }
+
+      error = assert_raises(RuntimeError) do
+        @subscriptions.perform_action("identifier" => @chat_identifier, "data" => ActiveSupport::JSON.encode(data))
+      end
+      assert_match(/Unable to find subscription/, error.message)
+    end
+  end
+
   test "message command" do
     run_in_eventmachine do
       setup_connection
