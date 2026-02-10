@@ -1209,6 +1209,51 @@ database record. It can influence the flow and predictability of callback
 sequences, leading to potential inconsistencies in application logic following
 the transaction.
 
+### Tracking Changes in `after_commit`
+
+Inside `after_commit` callbacks, you can use the `committed_changes` methods to
+inspect what changed during the entire transaction. These methods track the
+cumulative changes across all saves within the transaction, unlike the
+`saved_change_to_*` methods which only reflect the most recent save.
+
+The available methods are:
+
+| Method | Purpose |
+|---|---|
+| `committed_changes` | Hash of all changes across the transaction |
+| `committed_changes?` | Whether the transaction changed any attributes |
+| `committed_change_to_attribute(attr)` | The `[old, new]` pair for a specific attribute |
+| `committed_change_to_attribute?(attr)` | Whether the attribute changed during the transaction |
+| `attribute_before_last_commit(attr)` | The pre-transaction value of any attribute (even unchanged ones) |
+
+For example:
+
+```ruby
+class User < ApplicationRecord
+  after_commit :sync_to_external_service, on: :update
+
+  private
+    def sync_to_external_service
+      if committed_change_to_attribute?(:email)
+        old_email, new_email = committed_change_to_attribute(:email)
+        ExternalService.update_email(old_email, new_email)
+      end
+    end
+end
+```
+
+The distinction between `saved_change_to_*` and `committed_change_to_*` matters
+when a transaction includes multiple saves. For example, if a record's `name`
+changes from `"Alice"` to `"Bob"` in one save, then from `"Bob"` to `"Carol"` in
+a second save within the same transaction:
+
+* `saved_change_to_name` returns `["Bob", "Carol"]` (the most recent save only)
+* `committed_change_to_name` returns `["Alice", "Carol"]` (the full transaction)
+
+NOTE: `attribute_before_last_commit` returns the pre-transaction value for _any_
+attribute, not just ones that changed. For unchanged attributes, this is the same
+as the current value.
+
 ### Aliases for `after_commit`
 
 Using the `after_commit` callback only on create, update, or destroy is common.

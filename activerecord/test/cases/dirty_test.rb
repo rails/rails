@@ -993,6 +993,119 @@ class DirtyTest < ActiveRecord::TestCase
     assert parrot.breed_changed?(from: 0, to: 1)
   end
 
+  test "committed_change_to_attribute? returns whether a change occurred in the last transaction" do
+    person = Person.create!(first_name: "Sean")
+
+    assert_predicate person, :committed_change_to_first_name?
+    assert_not_predicate person, :committed_change_to_gender?
+    assert person.committed_change_to_first_name?(from: nil, to: "Sean")
+    assert person.committed_change_to_first_name?(from: nil)
+    assert person.committed_change_to_first_name?(to: "Sean")
+    assert_not person.committed_change_to_first_name?(from: "Jim", to: "Sean")
+    assert_not person.committed_change_to_first_name?(from: "Jim")
+    assert_not person.committed_change_to_first_name?(to: "Jim")
+  end
+
+  test "committed_change_to_attribute returns the change that occurred in the last transaction" do
+    person = Person.create!(first_name: "Sean", gender: "M")
+
+    assert_equal [nil, "Sean"], person.committed_change_to_first_name
+    assert_equal [nil, "M"], person.committed_change_to_gender
+
+    person.update(first_name: "Jim")
+
+    assert_equal ["Sean", "Jim"], person.committed_change_to_first_name
+    assert_nil person.committed_change_to_gender
+  end
+
+  test "attribute_before_last_commit returns the original value before the transaction" do
+    person = Person.create!(first_name: "Sean", gender: "M")
+
+    assert_nil person.first_name_before_last_commit
+    assert_nil person.gender_before_last_commit
+
+    person.update(first_name: "Jim")
+
+    assert_equal "Sean", person.first_name_before_last_commit
+    assert_equal "M", person.gender_before_last_commit
+  end
+
+  test "committed_changes? returns whether the last transaction changed anything" do
+    person = Person.create!(first_name: "Sean")
+
+    assert_predicate person, :committed_changes?
+
+    person.save
+
+    assert_not_predicate person, :committed_changes?
+  end
+
+  test "committed_changes returns a hash of all the changes that occurred in the transaction" do
+    person = Person.create!(first_name: "Sean", gender: "M")
+
+    assert_equal [nil, "Sean"], person.committed_changes[:first_name]
+    assert_equal [nil, "M"], person.committed_changes[:gender]
+    assert_equal %w(id first_name gender created_at updated_at).sort, person.committed_changes.keys.sort
+
+    travel(1.second) do
+      person.update(first_name: "Jim")
+    end
+
+    assert_equal ["Sean", "Jim"], person.committed_changes[:first_name]
+    assert_equal %w(first_name lock_version updated_at).sort, person.committed_changes.keys.sort
+  end
+
+  test "committed_changes tracks cumulative changes across multiple saves in a transaction" do
+    person = Person.create!(first_name: "Sean")
+
+    Person.transaction do
+      person.update!(first_name: "Intermediate")
+      person.update!(first_name: "Jim")
+    end
+
+    # committed_changes spans the full transaction: Sean -> Jim
+    assert_equal ["Sean", "Jim"], person.committed_change_to_first_name
+    assert person.committed_change_to_first_name?(from: "Sean", to: "Jim")
+  end
+
+  test "committed_changes is empty when attribute is changed back to original value" do
+    person = Person.create!(first_name: "Sean")
+
+    Person.transaction do
+      person.update!(first_name: "Jim")
+      person.update!(first_name: "Sean")
+    end
+
+    assert_not person.committed_change_to_first_name?
+    assert_nil person.committed_change_to_first_name
+  end
+
+  test "committed_changes detects change when a later save modifies a different attribute in the same transaction" do
+    person = Person.create!(first_name: "Sean", gender: "M")
+
+    Person.transaction do
+      person.update!(first_name: "Jim")
+      person.update!(gender: "F")
+    end
+
+    # committed_changes sees both attributes changed
+    assert person.committed_change_to_first_name?
+    assert person.committed_change_to_gender?
+    assert_equal ["Sean", "Jim"], person.committed_change_to_first_name
+    assert_equal ["M", "F"], person.committed_change_to_gender
+  end
+
+  test "committed_changes is cleared on reload" do
+    person = Person.create!(first_name: "Sean")
+
+    assert_predicate person, :committed_changes?
+
+    person.reload
+
+    assert_not_predicate person, :committed_changes?
+    assert_empty person.committed_changes
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old_inserts = klass.partial_inserts?
