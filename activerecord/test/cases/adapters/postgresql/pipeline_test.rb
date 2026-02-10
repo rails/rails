@@ -1446,6 +1446,121 @@ module ActiveRecord
       end
     end
 
+    def test_reconnectable_preserved_across_retry_in_ensure_result
+      # When ensure_result retries a pipelined query via execute_intent,
+      # the intent's @reconnectable flag must be preserved. The retry
+      # loop sets @reconnectable = false after the first reconnect
+      # attempt; initialize_retry_state's idempotent guard prevents
+      # execute_intent from resetting it to true on re-execution.
+      #
+      # Without this, connection_retries: 2 would allow the retry loop
+      # to reconnect twice (reconnect → fail → reconnect → fail) instead
+      # of giving up after the first reconnect fails.
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_config = pool_config.configuration_hash.merge(connection_retries: 2)
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", test_config),
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.connect!
+        conn.materialize_transactions
+
+        conn.enter_pipeline_mode
+
+        # Non-retryable intent blocks batch replay in flush_pipeline,
+        # forcing intent2 to retry individually in ensure_result
+        intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n",
+          name: "TEST",
+          allow_retry: false,
+          materialize_transactions: false
+        )
+        intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 2 AS n",
+          name: "TEST",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+
+        intent1.execute!
+        intent2.execute!
+        conn.pipeline_sync
+
+        # Close socket - both intents are synced, connection is dead
+        raw_conn = conn.instance_variable_get(:@raw_connection)
+        previous_stderr = $stderr
+        begin
+          $stderr = StringIO.new
+          fd = raw_conn.socket
+        ensure
+          $stderr = previous_stderr
+        end
+        IO.for_fd(fd).close
+
+        assert_raises(ActiveRecord::ConnectionFailed) { intent1.cast_result }
+
+        # intent2 has a connection error from flush_pipeline's abandon.
+        # Verify initial state: reconnectable is true (from pipeline
+        # initialization), retries_remaining is 2.
+        assert intent2.reconnectable, "Should start reconnectable"
+        assert_equal 2, intent2.retries_remaining
+
+        # Intercept execute_intent to simulate what it does - call
+        # initialize_retry_state (the method under test) - then deliver
+        # a connection error. This exercises whether the idempotent
+        # guard preserves @reconnectable = false set by the retry loop.
+        #
+        # We cap at 5 invocations as a safety valve; without the
+        # idempotent guard this would infinite-loop (retries_remaining
+        # reset each time).
+        original_execute_intent = conn.method(:execute_intent)
+        reconnectable_after_init = []
+        conn.define_singleton_method(:execute_intent) do |i|
+          if i.equal?(intent2)
+            # Simulate the initialize_retry_state call that execute_intent makes
+            i.initialize_retry_state(
+              retries: i.allow_retry ? connection_retries : 0,
+              deadline: retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline,
+              reconnectable: send(:reconnect_can_restore_state?)
+            )
+            reconnectable_after_init << i.reconnectable
+
+            if reconnectable_after_init.size >= 5
+              # Safety: break infinite loop by making intent non-retriable
+              i.instance_variable_set(:@retries_remaining, 0)
+            end
+
+            i.deliver_failure(ActiveRecord::ConnectionFailed.new("Connection lost again"))
+            return
+          end
+          original_execute_intent.call(i)
+        end
+
+        assert_raises(ActiveRecord::ConnectionFailed) do
+          intent2.cast_result
+        end
+
+        # With the idempotent guard: execute_intent is called once,
+        # @reconnectable stays false, classify_retry_action returns nil,
+        # loop breaks. Without it: @reconnectable resets to true each
+        # time, causing repeated reconnect attempts.
+        assert_equal [false], reconnectable_after_init,
+          "@reconnectable should be preserved as false across re-execution; " \
+          "got #{reconnectable_after_init.inspect} (multiple calls = retry state leaked)"
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
     def test_server_aborted_query_reruns_on_demand_outside_transaction
       # When a SQL error aborts subsequent queries in a pipeline and
       # there's no enclosing transaction, the aborted queries can

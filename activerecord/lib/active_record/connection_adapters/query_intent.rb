@@ -292,6 +292,8 @@ module ActiveRecord
       # Initialize retry tracking state from adapter configuration.
       # Called when beginning execution attempts.
       def initialize_retry_state(retries:, deadline:, reconnectable:)
+        return if @retries_remaining
+
         @retries_remaining = retries
         @retry_deadline = deadline
         @reconnectable = reconnectable
@@ -339,46 +341,48 @@ module ActiveRecord
         if @session
           # Async was scheduled: wait for result (sets lock_wait)
           execute_or_wait
-        elsif !@raw_result_available
-          # Result not available - flush pipeline to get it
-          flush_pipelined_result(adapter)
         end
 
-        @event_buffer&.flush
-
-        if @not_run_reason
-          if @not_run_resettable
-            reset_for_rerun
-            adapter.send(:ensure_connection_ready,
-              allow_retry: @allow_retry,
-              materialize_transactions: @materialize_transactions)
-            adapter.perform_sync_attempt(self)
-          else
-            raise ActiveRecord::QueryNotRun.new("Query was not run due to pipeline failure (#{@not_run_reason})")
-          end
-        end
-
-        # Retry loop for retryable errors. deliver_failure records the
-        # error; we handle reconnect and re-execution here, mirroring
-        # what with_raw_connection does for synchronous queries.
-        while @error && retriable?
-          action = adapter.send(:classify_retry_action, @error, reconnectable: @reconnectable)
-          break unless action
-
-          consume_retry
-          reset_for_retry
-
-          case action
-          when :retry_query
-            adapter.send(:backoff, adapter.send(:connection_retries) - @retries_remaining)
-          when :retry_after_reconnect
-            @reconnectable = false
+        loop do
+          unless @raw_result_available
+            # Result not available - flush pipeline to get it
+            flush_pipelined_result(adapter)
           end
 
-          adapter.send(:ensure_connection_ready,
-            allow_retry: @allow_retry,
-            materialize_transactions: @materialize_transactions)
-          adapter.perform_sync_attempt(self)
+          @event_buffer&.flush
+
+          if @not_run_reason
+            if @not_run_resettable
+              reset_for_rerun
+              adapter.execute_intent(self)
+              next
+            else
+              raise ActiveRecord::QueryNotRun.new("Query was not run due to pipeline failure (#{@not_run_reason})")
+            end
+          end
+
+          # Retry loop for retryable errors. deliver_failure records the
+          # error; we handle reconnect and re-execution here, mirroring
+          # what with_raw_connection does for synchronous queries.
+          if @error && retriable?
+            action = adapter.send(:classify_retry_action, @error, reconnectable: @reconnectable)
+            if action
+              consume_retry
+              reset_for_retry
+
+              case action
+              when :retry_query
+                adapter.send(:backoff, adapter.send(:connection_retries) - @retries_remaining)
+              when :retry_after_reconnect
+                @reconnectable = false
+              end
+
+              adapter.execute_intent(self)
+              next
+            end
+          end
+
+          break
         end
 
         if @error

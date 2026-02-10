@@ -678,6 +678,8 @@ module ActiveRecord
       # Start logging for an intent. Creates a notification handle and starts timing.
       # The handle is stored on the intent for later finishing.
       def start_intent_log(intent) # :nodoc:
+        return if intent.log_handle
+
         payload = {
           sql:               intent.processed_sql,
           name:              intent.name,
