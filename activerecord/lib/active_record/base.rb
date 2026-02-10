@@ -11,6 +11,7 @@ require "active_record/relation/delegation"
 require "active_record/attributes"
 require "active_record/type_caster"
 require "active_record/database_configurations"
+require "active_record/associations/counter_cache_registration"
 
 module ActiveRecord # :nodoc:
   # = Active Record
@@ -315,6 +316,7 @@ module ActiveRecord # :nodoc:
     include Callbacks
     include Timestamp
     include Associations
+    include Associations::CounterCacheRegistration
     include SecurePassword
     include AutosaveAssociation
     include NestedAttributes
