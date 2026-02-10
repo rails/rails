@@ -1048,6 +1048,28 @@ module ActionView
           end
         end
 
+        def token_tag(token = nil, form_options: {})
+          if token != false && defined?(protect_against_forgery?) && protect_against_forgery?
+            token =
+              if token == true || token.nil?
+                form_authenticity_token(form_options: form_options.merge(authenticity_token: token))
+              else
+                token
+              end
+            options = { type: "hidden", name: request_forgery_protection_token.to_s, value: token }
+            options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
+            tag(:input, **options)
+          else
+            ""
+          end
+        end
+
+        def method_tag(method)
+          options = { type: "hidden", name: "_method", value: method.to_s }
+          options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
+          tag("input", **options)
+        end
+
         def form_tag_html(html_options)
           extra_tags = extra_tags_for_form(html_options)
           html = tag(:form, html_options, true) + extra_tags
