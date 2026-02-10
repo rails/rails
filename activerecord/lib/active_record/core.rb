@@ -347,7 +347,11 @@ module ActiveRecord
       # Returns columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes
         if @filter_attributes.nil?
-          superclass.filter_attributes
+          if superclass <= Base
+            superclass.filter_attributes
+          else
+            nil
+          end
         else
           @filter_attributes
         end
@@ -356,9 +360,15 @@ module ActiveRecord
       # Specifies columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes=(filter_attributes)
         @inspection_filter = nil
-        @filter_attributes = filter_attributes
+        previous = if @filter_attributes
+          self.filter_attributes
+        else
+          Base.filter_attributes
+        end
+        changes = @filter_attributes = filter_attributes
 
-        FilterAttributeHandler.sensitive_attribute_was_declared(self, filter_attributes)
+        changes -= previous if previous
+        FilterAttributeHandler.sensitive_attribute_was_declared(self, changes)
       end
 
       def inspection_filter # :nodoc:
