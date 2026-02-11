@@ -165,8 +165,14 @@ module ActionCable
         send_async :handle_close
       end
 
-      def inspect # :nodoc:
-        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+      if RUBY_VERSION >= "4.0"
+        def instance_variables_to_inspect # :nodoc:
+          [].freeze
+        end
+      else
+        def inspect # :nodoc:
+          "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+        end
       end
 
       private

@@ -1056,8 +1056,14 @@ module ActionController
       dup
     end
 
-    def inspect
-      "#<#{self.class} #{@parameters} permitted: #{@permitted}>"
+    if RUBY_VERSION >= "4.0"
+      def instance_variables_to_inspect # :nodoc:
+        [:@parameters, :@permitted]
+      end
+    else
+      def inspect
+        "#<#{self.class} #{@parameters} permitted: #{@permitted}>"
+      end
     end
 
     def self.hook_into_yaml_loading # :nodoc:

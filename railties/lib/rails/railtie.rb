@@ -284,8 +284,14 @@ module Rails
       end
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}>"
+    if RUBY_VERSION >= "4.0"
+      def instance_variables_to_inspect # :nodoc:
+        [].freeze
+      end
+    else
+      def inspect # :nodoc:
+        "#<#{self.class.name}>"
+      end
     end
 
     def configure(&block) # :nodoc:

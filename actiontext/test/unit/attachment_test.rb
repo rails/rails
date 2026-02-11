@@ -95,6 +95,16 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
     assert_equal "pages/page", attachable.to_editor_content_attachment_partial_path
   end
 
+  test "inspect shows attachable" do
+    attachment = ActionText::Attachment.from_attachable(attachable)
+
+    if RUBY_VERSION >= "4.0"
+      assert_match(/\A#<ActionText::Attachment:0x[0-9a-f]+ @attachable=/, attachment.inspect)
+    else
+      assert_match(/\A#<ActionText::Attachment attachable=/, attachment.inspect)
+    end
+  end
+
   private
     def attachment_from_html(html)
       ActionText::Content.new(html).attachments.first

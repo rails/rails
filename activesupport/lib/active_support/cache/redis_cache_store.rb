@@ -170,8 +170,14 @@ module ActiveSupport
         super(universal_options)
       end
 
-      def inspect
-        "#<#{self.class} options=#{options.inspect} redis=#{redis.inspect}>"
+      if RUBY_VERSION >= "4.0"
+        def instance_variables_to_inspect # :nodoc:
+          [:@options, :@redis]
+        end
+      else
+        def inspect
+          "#<#{self.class} options=#{options.inspect} redis=#{redis.inspect}>"
+        end
       end
 
       # Cache Store API implementation.

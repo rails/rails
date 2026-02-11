@@ -42,8 +42,14 @@ module ActiveSupport
       OpenSSL::PKCS5.pbkdf2_hmac(@secret, salt, @iterations, key_size, @hash_digest_class.new)
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+    if RUBY_VERSION >= "4.0"
+      def instance_variables_to_inspect # :nodoc:
+        [].freeze
+      end
+    else
+      def inspect # :nodoc:
+        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+      end
     end
   end
 

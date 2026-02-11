@@ -98,8 +98,14 @@ module ActiveSupport
         end
       end
 
-      def inspect # :nodoc:
-        "#<#{self.class.name} cache_path=#{@cache_path}, options=#{@options.inspect}>"
+      if RUBY_VERSION >= "4.0"
+        def instance_variables_to_inspect # :nodoc:
+          [:@cache_path, :@options]
+        end
+      else
+        def inspect # :nodoc:
+          "#<#{self.class.name} cache_path=#{@cache_path}, options=#{@options.inspect}>"
+        end
       end
 
       private

@@ -485,10 +485,16 @@ module ActiveModel
       Error.generate_message(attribute, type, @base, options)
     end
 
-    def inspect # :nodoc:
-      inspection = @errors.inspect
+    if RUBY_VERSION >= "4.0"
+      def instance_variables_to_inspect # :nodoc:
+        [:@errors]
+      end
+    else
+      def inspect # :nodoc:
+        inspection = @errors.inspect
 
-      "#<#{self.class.name} #{inspection}>"
+        "#<#{self.class.name} #{inspection}>"
+      end
     end
 
     private
