@@ -2,6 +2,7 @@
 
 require "date"
 require "active_support/duration"
+require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/object/acts_like"
 require "active_support/core_ext/date/zones"
 require "active_support/core_ext/time/zones"
@@ -125,6 +126,7 @@ class Date
   #   # => Mon, 01 Nov 2004
   #
   def advance(options)
+    options.assert_valid_keys(:years, :months, :weeks, :days, :hours, :minutes, :seconds)
     d = self
 
     d = d >> options[:years] * 12 if options[:years]

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "date"
+require "active_support/core_ext/hash/keys"
 
 class DateTime
   class << self
@@ -80,6 +81,7 @@ class DateTime
   # largest to smallest. This order can affect the result around the end of a
   # month.
   def advance(options)
+    options.assert_valid_keys(:years, :months, :weeks, :days, :hours, :minutes, :seconds)
     unless options[:weeks].nil?
       options[:weeks], partial_weeks = options[:weeks].divmod(1)
       options[:days] = options.fetch(:days, 0) + 7 * partial_weeks

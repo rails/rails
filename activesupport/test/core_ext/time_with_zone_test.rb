@@ -739,6 +739,16 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "1999-12-31 19:00:30.000000000 EST -05:00", @twz.advance(seconds: 30).inspect
   end
 
+  def test_advance_with_invalid_keys
+    assert_raise(ArgumentError) { @twz.advance(year: 1) }
+    assert_raise(ArgumentError) { @twz.advance(month: 1) }
+    assert_raise(ArgumentError) { @twz.advance(week: 1) }
+    assert_raise(ArgumentError) { @twz.advance(day: 1) }
+    assert_raise(ArgumentError) { @twz.advance(hour: 1) }
+    assert_raise(ArgumentError) { @twz.advance(minute: 1) }
+    assert_raise(ArgumentError) { @twz.advance(second: 1) }
+  end
+
   def test_beginning_of_year
     assert_equal "1999-12-31 19:00:00.000000000 EST -05:00", @twz.inspect
     assert_equal "1999-01-01 00:00:00.000000000 EST -05:00", @twz.beginning_of_year.inspect

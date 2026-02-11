@@ -134,6 +134,17 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2005, 2, 28), Date.new(2004, 2, 29).advance(years: 1) # leap day plus one year
   end
 
+  def test_advance_with_invalid_keys
+    d = Date.new(2005, 2, 28)
+    assert_raise(ArgumentError) { d.advance(year: 1) }
+    assert_raise(ArgumentError) { d.advance(month: 1) }
+    assert_raise(ArgumentError) { d.advance(week: 1) }
+    assert_raise(ArgumentError) { d.advance(day: 1) }
+    assert_raise(ArgumentError) { d.advance(hour: 1) }
+    assert_raise(ArgumentError) { d.advance(minute: 1) }
+    assert_raise(ArgumentError) { d.advance(second: 1) }
+  end
+
   def test_advance_does_first_years_and_then_days
     assert_equal Date.new(2012, 2, 29), Date.new(2011, 2, 28).advance(years: 1, days: 1)
     # If day was done first we would jump to 2012-03-01 instead.

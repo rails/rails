@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/duration"
+require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/time/conversions"
 require "active_support/time_with_zone"
 require "active_support/core_ext/time/zones"
@@ -192,6 +193,7 @@ class Time
   # largest to smallest. This order can affect the result around the end of a
   # month.
   def advance(options)
+    options.assert_valid_keys(:years, :months, :weeks, :days, :hours, :minutes, :seconds)
     unless options[:weeks].nil?
       options[:weeks], partial_weeks = options[:weeks].divmod(1)
       options[:days] = options.fetch(:days, 0) + 7 * partial_weeks
