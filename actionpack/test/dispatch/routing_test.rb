@@ -3897,6 +3897,40 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "sessions#sort", @response.body
   end
 
+  def test_parameterize_args_raises_on_non_emptyable_value
+    # Use a custom RouteSet without default_url_options to ensure the optimized helper is used
+    routes = ActionDispatch::Routing::RouteSet.new
+    routes.draw do
+      get "/users/:id", to: "users#show", as: :user
+    end
+    @app = RoutedRackApp.new routes
+
+    # Create a class that doesn't respond to empty?
+    non_emptyable_class = Class.new do
+      def initialize(id)
+        @id = id
+      end
+
+      def to_param
+        self  # Return self, not a string
+      end
+
+      def to_s
+        "custom_object_#{@id}"
+      end
+    end
+
+    non_emptyable_object = non_emptyable_class.new(212)
+
+    begin
+      generated_path = @app.routes.url_helpers.user_path(non_emptyable_object)
+      assert_equal "/users/custom_object_212", generated_path,
+                   "URL helper should generate path with object's string representation"
+    rescue NoMethodError => e
+      flunk e.message
+    end
+  end
+
 private
   def draw(&block)
     self.class.stub_controllers do |routes|
