@@ -263,11 +263,23 @@ module ActiveRecord
             @key_conversion_required
           end
 
-          def derive_key(owner, key)
+          # `key` can be the real column *or* an `alias_attribute`.  Because
+          # `_read_attribute` bypasses alias resolution we translate any alias
+          # into the underlying column name before reading.
+          def derive_key(record, key)
             if key.is_a?(Array)
-              key.map { |k| convert_key(owner._read_attribute(k)) }
+              key.map { |k| convert_key(record._read_attribute(resolve_alias(record, k))) }
             else
-              convert_key(owner._read_attribute(key))
+              convert_key(record._read_attribute(resolve_alias(record, key)))
+            end
+          end
+
+          def resolve_alias(record, attr_name)
+            klass = record.class
+            if klass.attribute_alias?(attr_name.to_s)
+              klass.attribute_aliases[attr_name.to_s]
+            else
+              attr_name
             end
           end
 
