@@ -293,6 +293,16 @@ module ActiveRecord
       assert_equal 3, relation.where(id: post.id).pluck(:id).size
     end
 
+    def test_relation_merging_with_joins_and_unscope_on_merged_relation
+      post1 = Post.create!(title: "foo", body: "foo body")
+      post1.comments.create!(body: "foo comment 1")
+      post2 = Post.create!(title: "bar", body: "bar body")
+      post2.comments.create!(body: "bar comment 1")
+
+      relation = Post.where(body: "foo body").joins(:comments).merge(Comment.where("1=0").unscope(:where))
+      assert_equal 1, relation.count
+    end
+
     def test_merge_raises_with_invalid_argument
       assert_raises ArgumentError do
         relation = Relation.new(FakeKlass)

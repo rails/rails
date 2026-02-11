@@ -52,10 +52,12 @@ module ActiveRecord
       NORMAL_VALUES = Relation::VALUE_METHODS - Relation::CLAUSE_METHODS -
                       [
                         :select, :includes, :preload, :joins, :left_outer_joins,
-                        :order, :reverse_order, :lock, :create_with, :reordering
+                        :order, :reverse_order, :lock, :create_with, :reordering, :unscope
                       ]
 
       def merge
+        merge_unscope_values
+
         NORMAL_VALUES.each do |name|
           value = values[name]
           # The unless clause is here mostly for performance reasons (since the `send` call might be moderately
@@ -81,6 +83,14 @@ module ActiveRecord
       end
 
       private
+        def merge_unscope_values
+          return if other.unscope_values.empty?
+
+          if other.table == relation.table
+            relation.unscope!(*other.unscope_values)
+          end
+        end
+
         def merge_select_values
           return if other.select_values.empty?
 
