@@ -155,7 +155,7 @@
         if (this.webSocket) {
           this.uninstallEventHandlers();
         }
-        this.webSocket = new adapters.WebSocket(this.consumer.url, socketProtocols);
+        this.webSocket = new adapters.WebSocket(this.consumer.url, socketProtocols, {headers:this.consumer.headers});
         this.installEventHandlers();
         this.monitor.start();
         return true;
@@ -440,8 +440,9 @@
     }
   }
   class Consumer {
-    constructor(url) {
+    constructor(url, headers = {}) {
       this._url = url;
+      this.headers = headers;
       this.subscriptions = new Subscriptions(this);
       this.connection = new Connection(this);
       this.subprotocols = [];
@@ -483,8 +484,8 @@
       return url;
     }
   }
-  function createConsumer(url = getConfig("url") || INTERNAL.default_mount_path) {
-    return new Consumer(url);
+  function createConsumer(url = getConfig("url") || INTERNAL.default_mount_path, headers) {
+    return new Consumer(url, headers);
   }
   function getConfig(name) {
     const element = document.head.querySelector(`meta[name='action-cable-${name}']`);
