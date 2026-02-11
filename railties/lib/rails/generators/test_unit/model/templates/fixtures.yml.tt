@@ -1,4 +1,8 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+<% if class_name.include?("::") -%>
+_fixture:
+  model_class: <%= class_name %>
+<% end -%>
 <% unless attributes.empty? -%>
 <% %w(one two).each do |name| %>
 <%= name %>:
