@@ -1,3 +1,24 @@
+*   Support DISTINCT ON queries across all databases
+
+    PostgreSQL uses native `DISTINCT ON` syntax for optimal performance.
+    Other databases (MySQL, SQLite) use `ROW_NUMBER()` window functions
+    to achieve equivalent behavior.
+
+    ```ruby
+    User.distinct_on(:name)
+
+    # PostgreSQL:
+    #=> SELECT DISTINCT ON (name) * FROM users
+
+    # MySQL/SQLite:
+    #=> SELECT * FROM (
+    #     SELECT *, ROW_NUMBER() OVER (PARTITION BY name ORDER BY ...) AS __ar_row_num__
+    #     FROM users
+    #   ) __ar_distinct_on__ WHERE __ar_row_num__ = 1
+    ```
+
+    *Ali Ismayilov*, *Claude Sonnet 4.5*
+
 *   Add `implicit_persistence_transaction` hook for customizing transaction behavior.
 
     A new protected method `implicit_persistence_transaction` has been added that wraps
@@ -42,27 +63,6 @@
 *   Add `unique_by` option to `insert_all!`.
 
     *Chedli Bourguiba*
-
-*   Support DISTINCT ON queries across all databases
-
-    PostgreSQL uses native `DISTINCT ON` syntax for optimal performance.
-    Other databases (MySQL, SQLite) use `ROW_NUMBER()` window functions
-    to achieve equivalent behavior.
-
-    ```ruby
-    User.distinct_on(:name)
-
-    # PostgreSQL:
-    #=> SELECT DISTINCT ON (name) * FROM users
-
-    # MySQL/SQLite:
-    #=> SELECT * FROM (
-    #     SELECT *, ROW_NUMBER() OVER (PARTITION BY name ORDER BY ...) AS __ar_row_num__
-    #     FROM users
-    #   ) __ar_distinct_on__ WHERE __ar_row_num__ = 1
-    ```
-
-    *Ali Ismayilov*, *Claude*
 
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
