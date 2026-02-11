@@ -3,6 +3,7 @@
 require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/object/deep_dup"
+require "active_support/inspect_backport"
 require "active_model/error"
 require "active_model/nested_error"
 
@@ -485,13 +486,13 @@ module ActiveModel
       Error.generate_message(attribute, type, @base, options)
     end
 
-    def inspect # :nodoc:
-      inspection = @errors.inspect
-
-      "#<#{self.class.name} #{inspection}>"
-    end
+    include ActiveSupport::InspectBackport if RUBY_VERSION < "4"
 
     private
+      def instance_variables_to_inspect
+        [:@errors].freeze
+      end
+
       def normalize_arguments(attribute, type, **options)
         # Evaluate proc first
         if type.respond_to?(:call)

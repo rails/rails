@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/file/atomic"
+require "active_support/inspect_backport"
 require "active_support/core_ext/string/conversions"
 require "uri/common"
 
@@ -98,11 +99,13 @@ module ActiveSupport
         end
       end
 
-      def inspect # :nodoc:
-        "#<#{self.class.name} cache_path=#{@cache_path}, options=#{@options.inspect}>"
-      end
+      include ActiveSupport::InspectBackport if RUBY_VERSION < "4"
 
       private
+        def instance_variables_to_inspect
+          [:@cache_path, :@options].freeze
+        end
+
         def read_entry(key, **options)
           if payload = read_serialized_entry(key, **options)
             entry = deserialize_entry(payload)

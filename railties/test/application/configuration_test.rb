@@ -1655,7 +1655,10 @@ module ApplicationTests
       app "development"
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
-      assert_equal "#<ActionController::Parameters #{{ "title" => "foo" }} permitted: false>", last_response.body
+
+      assert_match(/ActionController::Parameters/, last_response.body)
+      assert_match(/@parameters=.*"title" => "foo"/, last_response.body)
+      assert_match(/@permitted=false/, last_response.body)
     end
 
     test "config.action_controller.permit_all_parameters = true" do

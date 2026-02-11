@@ -3,6 +3,7 @@
 require "openssl"
 require "base64"
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/inspect_backport"
 require "active_support/messages/codec"
 require "active_support/messages/rotator"
 require "active_support/message_verifier"
@@ -261,11 +262,13 @@ module ActiveSupport
       deserialize_with_metadata(decrypt(verify(message)), **options)
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-    end
+    include ActiveSupport::InspectBackport if RUBY_VERSION < "4"
 
     private
+      def instance_variables_to_inspect
+        [].freeze
+      end
+
       def sign(data)
         @verifier ? @verifier.create_message(data) : data
       end

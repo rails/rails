@@ -2,6 +2,7 @@
 
 require "ipaddr"
 require "active_support/core_ext/array/wrap"
+require "active_support/inspect_backport"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
 require "active_support/configuration_file"
@@ -648,9 +649,7 @@ module Rails
         f
       end
 
-      def inspect # :nodoc:
-        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-      end
+      include ActiveSupport::InspectBackport if RUBY_VERSION < "4"
 
       class Custom # :nodoc:
         def initialize
@@ -675,6 +674,10 @@ module Rails
       end
 
       private
+        def instance_variables_to_inspect
+          [].freeze
+        end
+
         def credentials_defaults
           content_path = root.join("config/credentials/#{Rails.env}.yml.enc")
           content_path = root.join("config/credentials.yml.enc") if !content_path.exist?

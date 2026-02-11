@@ -3,6 +3,7 @@
 # :markup: markdown
 
 require "active_support/core_ext/object/try"
+require "active_support/inspect_backport"
 
 module ActionText
   # # Action Text Attachment
@@ -128,11 +129,13 @@ module ActionText
       to_html
     end
 
-    def inspect
-      "#<#{self.class.name} attachable=#{attachable.inspect}>"
-    end
+    include ActiveSupport::InspectBackport if RUBY_VERSION < "4"
 
     private
+      def instance_variables_to_inspect
+        [:@attachable].freeze
+      end
+
       def node_attributes
         @node_attributes ||= ATTRIBUTES.to_h { |name| [ name.underscore, node[name] ] }.compact
       end

@@ -3,6 +3,7 @@
 require "rails/initializable"
 require "active_support/descendants_tracker"
 require "active_support/inflector"
+require "active_support/inspect_backport"
 require "active_support/core_ext/module/introspection"
 require "active_support/logger"
 
@@ -284,9 +285,7 @@ module Rails
       end
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}>"
-    end
+    include ActiveSupport::InspectBackport if RUBY_VERSION < "4"
 
     def configure(&block) # :nodoc:
       instance_eval(&block)
@@ -326,6 +325,10 @@ module Rails
       end
 
     private
+      def instance_variables_to_inspect
+        [].freeze
+      end
+
       # run `&block` in every registered block in `#register_block_for`
       def each_registered_block(type, &block)
         klass = self.class

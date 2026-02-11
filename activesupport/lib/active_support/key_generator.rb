@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/inspect_backport"
 require "concurrent/map"
 require "openssl"
 
@@ -42,9 +43,12 @@ module ActiveSupport
       OpenSSL::PKCS5.pbkdf2_hmac(@secret, salt, @iterations, key_size, @hash_digest_class.new)
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-    end
+    include ActiveSupport::InspectBackport if RUBY_VERSION < "4"
+
+    private
+      def instance_variables_to_inspect
+        [].freeze
+      end
   end
 
   # = Caching Key Generator
