@@ -39,14 +39,19 @@ module ActiveSupport
         version = dump_version(entry.version) if entry.version
         version_length = version&.bytesize || -1
 
-        packed = SIGNATURE.b
-        packed << [type, expires_at, version_length].pack(PACKED_TEMPLATE)
-        packed << version if version
-        packed << payload
+        header = [type, expires_at, version_length].pack(PACKED_TEMPLATE)
+
+        "#{SIGNATURE}#{header}#{version}#{payload}".freeze
       end
 
       def load(dumped)
-        return @serializer.load(dumped) if !signature?(dumped)
+        unless signature?(dumped)
+          return begin
+            @serializer.load(dumped)
+          rescue => error
+            ActiveSupport.error_reporter.report(error, source: "active_support.cache")
+          end
+        end
 
         type = dumped.unpack1(PACKED_TYPE_TEMPLATE)
         expires_at = dumped.unpack1(PACKED_EXPIRES_AT_TEMPLATE)
@@ -64,6 +69,7 @@ module ActiveSupport
 
       private
         SIGNATURE = "\x00\x11".b.freeze
+        EMPTY_BINARY_STRING = "".b.freeze
 
         OBJECT_DUMP_TYPE = 0x01
 
@@ -105,7 +111,12 @@ module ActiveSupport
 
           def value
             if !@resolved
-              @value = @serializer.load(@compressor ? @compressor.inflate(@value) : @value)
+              @value = begin
+                @serializer.load(@compressor ? @compressor.inflate(@value) : @value)
+              rescue => error
+                ActiveSupport.error_reporter.report(error, source: "active_support.cache")
+                raise DeserializationError, error.message
+              end
               @resolved = true
             end
             @value

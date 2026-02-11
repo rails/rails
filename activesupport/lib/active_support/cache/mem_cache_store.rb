@@ -8,7 +8,6 @@ rescue LoadError => e
 end
 
 require "connection_pool"
-require "delegate"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/numeric/time"

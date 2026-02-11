@@ -166,6 +166,16 @@ module ActiveRecord
         assert_equal 0, @cache.size
       end
 
+      def test_insert_uses_schema_cache_for_primary_key
+        # First call might need to populate the schema cache
+        @connection.insert("INSERT INTO courses (name) VALUES ('Prepopulate')")
+
+        # With cache available, insert should not make additional schema queries
+        assert_queries_count(1, include_schema: true) do
+          @connection.insert("INSERT INTO courses (name) VALUES ('INSERT only')")
+        end
+      end
+
       def test_marshal_dump_and_load_with_ignored_tables
         assert_not ActiveRecord.schema_cache_ignored_table?("professors")
 

@@ -62,6 +62,7 @@ Below are the default values associated with each target version. In cases of co
 
 - [`config.action_controller.default_protect_from_forgery_with`](#config-action-controller-default-protect-from-forgery-with): `:exception`
 - [`config.action_controller.forgery_protection_verification_strategy`](#config-action-controller-forgery-protection-verification-strategy): `:header_only`
+- [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
@@ -542,7 +543,7 @@ Causes the app to not boot if a master key hasn't been made available through `E
 #### `config.revision`
 
 Sets the application revision for deployment tracking and error reporting. Must be a string.
-When not set, Rails first tries reading from a `REVISION` file in the application root, and if absent
+When not set, Rails first checks `ENV["REVISION"]`, then tries reading from a `REVISION` file in the application root, and if both are absent
 it attempts to get the current commit from the local git repository (default: `nil`).
 
 ```ruby
@@ -2193,6 +2194,20 @@ This is mainly for compatibility when upgrading Rails applications, otherwise yo
 | --------------------- | -------------------- |
 | (original)            | `true`               |
 | 8.1                   | `false`              |
+
+#### `config.action_controller.rescue_from_event_backtrace`
+
+Configures the `event_backtrace` attribute in the payload of `rescue_from_handled.action_controller` notifications, and `action_controller.rescue_from_handled` events.
+
+* `:array` - Stores the backtrace as an array of strings.
+* `nil` - Stores the backtrace as the first string of the backtrace, stripping the `Rails.root` from the controller path.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `nil`                |
+| 8.2                   | `:array`             |
 
 ### Configuring Action Dispatch
 

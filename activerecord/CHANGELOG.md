@@ -74,6 +74,51 @@
 
     *Kazakbai Bolotbek_uulu*
 
+*   Add `implicit_persistence_transaction` hook for customizing transaction behavior.
+
+    A new protected method `implicit_persistence_transaction` has been added that wraps
+    persistence operations (`save`, `destroy`, `touch`) in a transaction. This method can be
+    overridden in models to customize transaction behavior, such as setting a specific isolation
+    level or skipping transaction creation when one is already open.
+
+    Example skipping transaction creation if one is already open:
+
+    ```ruby
+    class Account < ApplicationRecord
+      private
+        def implicit_persistence_transaction(connection, &block)
+          if connection.transaction_open?
+            yield
+          else
+            super
+          end
+        end
+    end
+    ```
+
+    *Israel P Valverde*
+
+*   Pass sql query to query log tags.
+
+    ```ruby
+    config.active_record.query_log_tags = [
+      sql_length: ->(context) { context[:sql].length }
+    ]
+    ```
+
+    *fatkodima*
+
+*   Speedup `ActiveRecord::Migration.maintain_test_schema!` when using multiple databases.
+
+    Previously, Active Record would inefficiently connect twice to each database, now it only
+    connects once per database to reverify the schema.
+
+    *Iliana Hadzhiatanasova*
+
+*   Add `unique_by` option to `insert_all!`.
+
+    *Chedli Bourguiba*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before
