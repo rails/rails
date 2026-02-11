@@ -106,7 +106,7 @@ jobs:
         run: <%= test_command %>
 
       - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: screenshots
