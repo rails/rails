@@ -53,6 +53,9 @@ module ActiveRecord
 
       include ActiveModel::Dirty
 
+      EMPTY_HASH = {}.with_indifferent_access.freeze
+      private_constant :EMPTY_HASH
+
       included do
         if self < ::ActiveRecord::Timestamp
           raise "You cannot include Dirty after Timestamp"
@@ -210,7 +213,7 @@ module ActiveRecord
       # values are arrays containing the original value at the start of the
       # transaction and the final committed value.
       def committed_changes
-        @_committed_changes || {}.with_indifferent_access
+        @_committed_changes || EMPTY_HASH
       end
 
       # Will this attribute change the next time we save?
