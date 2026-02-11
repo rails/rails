@@ -1314,4 +1314,79 @@ class CommittedChangesInAfterCommitCallbacksTest < ActiveRecord::TestCase
     assert topic.committed_changes_log.key?("updated_at")
     assert_not topic.committed_changes_log.key?("title")
   end
+
+  def test_committed_changes_when_same_record_updated_in_rolled_back_savepoint
+    topic = TopicWithCommittedChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+
+    TopicWithCommittedChanges.transaction do
+      topic.update!(title: "Updated")
+      TopicWithCommittedChanges.transaction(requires_new: true) do
+        topic.update!(author_name: "Bob")
+        raise ActiveRecord::Rollback
+      end
+    end
+
+    # The outer transaction changed title from "Original" to "Updated".
+    # The savepoint changed author_name but was rolled back.
+    # committed_changes should include the title change from the outer transaction.
+    assert_equal ["Original", "Updated"], topic.committed_title_change_log
+    assert_equal ["Original", "Updated"], topic.committed_changes_log["title"]
+  end
+
+  def test_committed_changes_is_empty_inside_after_rollback_callback
+    committed_changes_in_rollback = nil
+    committed_changes_present_in_rollback = nil
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      after_rollback do
+        committed_changes_in_rollback = committed_changes.dup
+        committed_changes_present_in_rollback = committed_changes?
+      end
+    end
+
+    topic = klass.create!(title: "Original", written_on: Date.today)
+    topic.reload # Clear committed_changes from the create
+
+    klass.transaction do
+      topic.update!(title: "Should be rolled back")
+      raise ActiveRecord::Rollback
+    end
+
+    assert_empty committed_changes_in_rollback,
+      "committed_changes should be empty inside after_rollback since nothing was committed"
+    assert_not committed_changes_present_in_rollback,
+      "committed_changes? should be false inside after_rollback"
+  end
+
+  def test_committed_change_to_attribute_inside_after_update_commit
+    committed_title_change_in_callback = nil
+    committed_title_detected_in_callback = nil
+    committed_changes_in_callback = nil
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      after_update_commit do
+        committed_title_change_in_callback = committed_change_to_title
+        committed_title_detected_in_callback = committed_change_to_title?
+        committed_changes_in_callback = committed_changes.dup
+      end
+    end
+
+    topic = klass.create!(title: "Original", written_on: Date.today)
+
+    klass.transaction do
+      topic.update!(title: "Intermediate")
+      topic.update!(title: "Final")
+    end
+
+    assert committed_title_detected_in_callback,
+      "committed_change_to_title? should be true inside after_update_commit"
+    assert_equal ["Original", "Final"], committed_title_change_in_callback,
+      "committed_change_to_title should span the full transaction inside after_update_commit"
+    assert committed_changes_in_callback.key?("title"),
+      "committed_changes should include title inside after_update_commit"
+  end
 end
