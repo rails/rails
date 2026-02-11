@@ -1006,6 +1006,16 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not person.committed_change_to_first_name?(to: "Jim")
   end
 
+  test "committed_change_to_attribute? properly type casts enum values" do
+    parrot = LiveParrot.create!(name: "Scipio", breed: :african)
+
+    parrot.update!(breed: :australian)
+
+    assert parrot.committed_change_to_breed?(from: "african", to: "australian")
+    assert parrot.committed_change_to_breed?(from: :african, to: :australian)
+    assert parrot.committed_change_to_breed?(from: 0, to: 1)
+  end
+
   test "committed_change_to_attribute returns the change that occurred in the last transaction" do
     person = Person.create!(first_name: "Sean", gender: "M")
 
