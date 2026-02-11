@@ -379,6 +379,24 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_queries_count(1) { assert_equal 11, posts.count(:all) }
   end
 
+  def test_count_with_eager_loading_and_custom_order_from_child_association
+    comments = Comment.includes(:post).order("posts.id")
+    assert_queries_count(1) { assert_equal 12, comments.count }
+    assert_queries_count(1) { assert_equal 12, comments.count(:all) }
+  end
+
+  def test_count_with_eager_loading_and_custom_select_and_order_from_child_association
+    comments = Comment.includes(:post).order("posts.id").select(:type)
+    assert_queries_count(1) { assert_equal 12, comments.count }
+    assert_queries_count(1) { assert_equal 12, comments.count(:all) }
+  end
+
+  def test_count_with_eager_loading_and_custom_order_and_distinct_from_child_association
+    comments = Comment.includes(:post).order("posts.id").distinct
+    assert_queries_count(1) { assert_equal 12, comments.count }
+    assert_queries_count(1) { assert_equal 12, comments.count(:all) }
+  end
+
   def test_distinct_count_all_with_custom_select_and_order
     accounts = Account.distinct.select("credit_limit % 10").order(Arel.sql("credit_limit % 10"))
     assert_queries_count(1) { assert_equal 3, accounts.count(:all) }
