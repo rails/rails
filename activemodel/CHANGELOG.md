@@ -1,3 +1,14 @@
+*   Fix `NoMethodError` when deserialising `Type::Integer` objects marshalled under Rails 8.0.
+
+    The performance optimisation that replaced `@range` with `@max`/`@min`
+    broke Marshal compatibility. Objects serialised under 8.0 (with `@range`)
+    and deserialised under 8.1 (expecting `@max`/`@min`) would crash with
+    `undefined method '<=' for nil` because `Marshal.load` restores instance
+    variables without calling `initialize`.
+
+    *Edward Woodcock*
+
+
 ## Rails 8.1.2 (January 08, 2026) ##
 
 *   No changes.
