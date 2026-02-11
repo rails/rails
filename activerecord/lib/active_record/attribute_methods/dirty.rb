@@ -300,7 +300,7 @@ module ActiveRecord
         end
 
         def _type_cast_for_committed(attr_name, value)
-          @attributes[attr_name].type_cast(value)
+          @attributes[attr_name].type.cast(value)
         end
 
         def _touch_row(attribute_names, time)
