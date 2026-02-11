@@ -102,6 +102,10 @@ module ActiveModel
 
       private
         def out_of_range?(value)
+          if @max.nil?
+            @max = max_value
+            @min = min_value
+          end
           value && (@max <= value || @min > value)
         end
 
