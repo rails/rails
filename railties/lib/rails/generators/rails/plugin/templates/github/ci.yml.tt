@@ -43,7 +43,7 @@ jobs:
     <%- if options[:database] == "sqlite3" -%>
     # services:
     #  redis:
-    #    image: valkey/valkey:8
+    #    image: valkey/valkey:9
     #    ports:
     #      - 6379:6379
     #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
@@ -69,7 +69,7 @@ jobs:
       <%- end -%>
 
       # redis:
-      #   image: valkey/valkey:8
+      #   image: valkey/valkey:9
       #   ports:
       #     - 6379:6379
       #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5

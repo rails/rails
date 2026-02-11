@@ -1537,7 +1537,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "redis"
 
       expected_redis_config = {
-        "image" => "valkey/valkey:8",
+        "image" => "valkey/valkey:9",
         "restart" => "unless-stopped",
         "volumes" => ["redis-data:/data"]
       }
