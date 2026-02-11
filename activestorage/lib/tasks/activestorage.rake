@@ -7,9 +7,9 @@ namespace :active_storage do
   desc "Copy over the migration needed to the application"
   task install: :environment do
     if Rake::Task.task_defined?("active_storage:install:migrations")
-      Rake::Task["active_storage:install:migrations"].invoke
+      Rails::Command.invoke :generate, ["active_storage:install"]
     else
-      Rake::Task["app:active_storage:install:migrations"].invoke
+      Rails::Command.invoke :generate, ["active_storage:install", "--within-engine"]
     end
   end
 
@@ -18,9 +18,9 @@ namespace :active_storage do
     ENV["MIGRATIONS_PATH"] = "db/update_migrate"
 
     if Rake::Task.task_defined?("active_storage:install")
-      Rake::Task["active_storage:install"].invoke
+      Rails::Command.invoke :generate, ["active_storage:install", "--skip-test-framework"]
     else
-      Rake::Task["app:active_storage:install"].invoke
+      Rails::Command.invoke :generate, ["active_storage:install", "--within-engine", "--skip-test-framework"]
     end
   end
 end
