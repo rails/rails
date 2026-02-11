@@ -414,6 +414,9 @@ module ActiveRecord
           if reflection_fk.is_a?(Array)
             reflection_pk = Array(reflection.association_primary_key)
 
+            return false unless reflection_fk.all? { |key| owner._has_attribute?(key) }
+            return false unless reflection_pk.all? { |key| record._has_attribute?(key) }
+
             owner_fk_values = reflection_fk.map { |key| owner.read_attribute(key) }
             record_pk_values = reflection_pk.map { |key| record.read_attribute(key) }
 
