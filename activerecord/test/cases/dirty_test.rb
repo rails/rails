@@ -1116,6 +1116,21 @@ class DirtyTest < ActiveRecord::TestCase
     assert_empty person.committed_changes
   end
 
+  test "destroy with no prior attribute changes returns empty committed_changes" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+    end
+
+    record = klass.create!(title: "To Be Destroyed", written_on: Date.today)
+    record.reload # clear committed_changes from the create
+
+    record.destroy
+
+    assert_empty record.committed_changes,
+      "committed_changes should be empty after destroy with no prior attribute changes"
+    assert_not record.committed_changes?
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old_inserts = klass.partial_inserts?
