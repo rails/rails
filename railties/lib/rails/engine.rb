@@ -593,10 +593,6 @@ module Rails
       config.eager_load_paths.freeze
     end
 
-    initializer :make_routes_lazy, before: :bootstrap_hook do |app|
-      config.route_set_class = LazyRouteSet if Rails.env.local?
-    end
-
     initializer :add_routing_paths do |app|
       routing_paths = paths["config/routes.rb"].existent
       external_paths = self.paths["config/routes"].paths
