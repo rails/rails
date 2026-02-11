@@ -642,6 +642,30 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     assert_equal(["has already been taken"], item2.errors[:id])
   end
+
+  def test_warning_when_case_sensitive_true_on_citext_column
+    mock_citext = Class.new(ActiveRecord::Type::String) do
+      def type; :citext; end
+      def case_sensitive?; false; end
+    end.new
+
+    original_method = Topic.method(:type_for_attribute)
+    Topic.stub(:type_for_attribute, ->(attr) { attr.to_s == "title" ? mock_citext : original_method.call(attr) }) do
+      Topic.validates :title, uniqueness: { case_sensitive: true }
+      validator = Topic.validators_on(:title).first
+
+      warning = "WARNING: 'Topic' validates uniqueness of 'title' with `case_sensitive: true`, " \
+                "but the column type is 'citext' (case-insensitive). "
+
+      validator.stub(:build_relation, Topic.none) do
+        assert_called_with(Topic.logger, :warn, [warning]) do
+          Topic.new(title: "test").valid?
+        end
+      end
+    ensure
+      Topic.clear_validators!
+    end
+  end
 end
 
 class UniquenessValidationWithIndexTest < ActiveRecord::TestCase
