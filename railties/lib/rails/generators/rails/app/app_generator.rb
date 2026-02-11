@@ -641,7 +641,8 @@ module Rails
       end
 
       def prepare!
-        handle_version_request!(@argv.first)
+        return handle_version_request!(@argv.first) if ["--version", "-v"].include?(@argv.first)
+
         handle_invalid_command!(@argv.first, @argv) do
           handle_rails_rc!(@argv.drop(1))
         end
@@ -659,17 +660,16 @@ module Rails
 
       private
         def handle_version_request!(argument)
-          if ["--version", "-v"].include?(argument)
-            require "rails/version"
-            puts "Rails #{Rails::VERSION::STRING}"
-            exit(0)
-          end
+          require "rails/version"
+          puts "Rails #{Rails::VERSION::STRING}"
+          exit(0)
         end
 
         def handle_invalid_command!(argument, argv)
           if argument == "new"
             yield
           else
+            puts "command not found: #{argument}"
             ["--help"] + argv.drop(1)
           end
         end
