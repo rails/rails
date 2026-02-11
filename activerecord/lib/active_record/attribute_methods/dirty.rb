@@ -163,9 +163,18 @@ module ActiveRecord
       def committed_change_to_attribute?(attr_name, **options)
         attr_name = attr_name.to_s
         return false unless @_committed_changes&.key?(attr_name)
+
         change = @_committed_changes[attr_name]
-        (options.key?(:from) ? change[0] == _type_cast_for_committed(attr_name, options[:from]) : true) &&
-          (options.key?(:to) ? change[1] == _type_cast_for_committed(attr_name, options[:to]) : true)
+
+        if options.key?(:from)
+          return false unless change[0] == _type_cast_for_committed(attr_name, options[:from])
+        end
+
+        if options.key?(:to)
+          return false unless change[1] == _type_cast_for_committed(attr_name, options[:to])
+        end
+
+        true
       end
 
       # Returns the change to an attribute during the last committed
