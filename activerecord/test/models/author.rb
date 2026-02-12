@@ -154,6 +154,7 @@ class Author < ActiveRecord::Base
 
   has_many :author_favorites
   has_many :favorite_authors, -> { order("name") }, through: :author_favorites
+  has_many :favorite_non_bob_authors, -> { where.not(name: "Bob").order("name") }, through: :author_favorites, source: :favorite_author
 
   has_many :taggings,        through: :posts, source: :taggings
   has_many :taggings_2,      through: :posts, source: :tagging
