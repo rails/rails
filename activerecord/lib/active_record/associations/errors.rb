@@ -174,6 +174,9 @@ module ActiveRecord
     end
   end
 
+  class AssociationModelTypeError < ActiveRecordError # :nodoc:
+  end
+
   class ThroughCantAssociateThroughHasOneOrManyReflection < ActiveRecordError # :nodoc:
     def initialize(owner = nil, reflection = nil)
       if owner && reflection
