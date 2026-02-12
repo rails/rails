@@ -321,6 +321,41 @@ module ActiveRecord
         assert_not connection.index_exists?("testings", "last_name", nulls_not_distinct: true)
       end
 
+      def test_add_index_with_expression
+        skip("current adapter does not support expression indexes") unless supports_expression_index?
+        name = "testings_index_with_expression"
+
+        connection.add_index("testings", "(lower(last_name))", name:)
+        assert connection.index_exists?("testings", name:)
+        connection.remove_index("testings", name:)
+        assert_not connection.index_exists?("testings", name:)
+      end
+
+      def test_add_index_with_expression_using_array_syntax
+        skip("current adapter does not support expression indexes") unless supports_expression_index?
+        name = "testings_index_with_expression_using_array_syntax"
+
+        connection.add_index("testings", ["(lower(last_name))"], name:)
+        assert connection.index_exists?("testings", name:)
+        connection.remove_index("testings", name:)
+        assert_not connection.index_exists?("testings", name:)
+
+        connection.add_index("testings", ["(lower(last_name))", "first_name"], name:)
+        assert connection.index_exists?("testings", name:)
+        connection.remove_index("testings", name:)
+        assert_not connection.index_exists?("testings", name:)
+
+        connection.add_index("testings", [:first_name, "(lower(last_name))"], name:)
+        assert connection.index_exists?("testings", name:)
+        connection.remove_index("testings", name:)
+        assert_not connection.index_exists?("testings", name:)
+
+        connection.add_index("testings", ["(lower(last_name))", "(upper(first_name))"], name:)
+        assert connection.index_exists?("testings", name:)
+        connection.remove_index("testings", name:)
+        assert_not connection.index_exists?("testings", name:)
+      end
+
       if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
         def test_index_visibility_through_add_index
           connection.add_index(:testings, :foo, enabled: false)
