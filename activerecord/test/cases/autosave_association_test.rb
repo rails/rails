@@ -45,6 +45,14 @@ require "models/human"
 require "models/face"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
+  module ShipExtension
+    def self.prepended(base)
+      base.class_eval do
+        has_many :treasures, autosave: true
+      end
+    end
+  end
+
   def test_autosave_works_even_when_other_callbacks_update_the_parent_model
     reference = Class.new(ActiveRecord::Base) do
       self.table_name = "references"
@@ -168,6 +176,14 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
 
     assert_not_predicate ship, :valid?
     assert_equal 1, ship.errors[:name].length
+  end
+
+  def test_autosave_association_save_method_callbacks_can_be_overridden
+    ship_with_overridden_save_method = Class.new(Ship) do
+      self.prepend(ShipExtension)
+    end
+
+    assert_equal true, ship_with_overridden_save_method.reflect_on_association(:treasures).options[:autosave]
   end
 
   private
