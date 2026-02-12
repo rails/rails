@@ -295,6 +295,14 @@ class NameWithAnonymousClassTest < ActiveModel::TestCase
     model_name = ActiveModel::Name.new(Class.new, nil, "Anonymous")
     assert_equal "Anonymous", model_name
   end
+
+  def test_human_with_count
+    model_name = ActiveModel::Name.new(Class.new, nil, "UntranslatedModel")
+
+    assert_equal "Untranslated models", model_name.human(count: 0)
+    assert_equal "Untranslated model", model_name.human(count: 1)
+    assert_equal "Untranslated models", model_name.human(count: 2)
+  end
 end
 
 class NamingMethodDelegationTest < ActiveModel::TestCase
