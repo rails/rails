@@ -1254,6 +1254,18 @@ class CommittedChangesInAfterCommitCallbacksTest < ActiveRecord::TestCase
     assert_not topic.committed_changes_log.key?("title")
   end
 
+  def test_committed_changes_reflects_saved_value_not_unsaved_dirty_value
+    topic = TopicWithCommittedChanges.create!(title: "Original", written_on: Date.today)
+    topic.reload
+
+    TopicWithCommittedChanges.transaction do
+      topic.update!(title: "Saved")
+      topic.title = "Not Saved" # dirty but never persisted
+    end
+
+    assert_equal ["Original", "Saved"], topic.committed_title_change_log
+  end
+
   def test_committed_changes_unaffected_by_savepoint_rollback
     topic = TopicWithCommittedChanges.create!(title: "Original", written_on: Date.today)
 

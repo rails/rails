@@ -502,7 +502,7 @@ module ActiveRecord
           current_attr = @attributes[attr_name]
 
           old_raw = snapshot_attr.original_value_for_database
-          new_raw = current_attr.value_before_type_cast
+          new_raw = current_attr.original_value_for_database
 
           unless old_raw == new_raw
             old_value = snapshot_attr.original_value
