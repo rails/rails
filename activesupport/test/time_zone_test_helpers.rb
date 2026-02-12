@@ -10,6 +10,7 @@ module TimeZoneTestHelpers
   end
 
   def with_env_tz(new_tz = "US/Eastern")
+    new_tz = new_tz.tzinfo.canonical_identifier if new_tz.is_a? ActiveSupport::TimeZone
     old_tz, ENV["TZ"] = ENV["TZ"], new_tz
     yield
   ensure
