@@ -73,10 +73,10 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   test "resized variation of PSD blob" do
     blob = create_file_blob(filename: "icon.psd", content_type: "image/vnd.adobe.photoshop")
     variant = blob.variant(resize_to_limit: [20, 20]).processed
-    assert_match(/icon\.png/, variant.url)
+    assert_match(/icon\.webp/, variant.url)
 
     image = read_image(variant)
-    assert_equal "PNG", image.type
+    assert_equal "WEBP", image.type
     assert_equal 20, image.width
     assert_equal 20, image.height
   end
@@ -84,10 +84,10 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   test "resized variation of ICO blob" do
     blob = create_file_blob(filename: "favicon.ico", content_type: "image/vnd.microsoft.icon")
     variant = blob.variant(resize_to_limit: [20, 20]).processed
-    assert_match(/icon\.png/, variant.url)
+    assert_match(/icon\.webp/, variant.url)
 
     image = read_image(variant)
-    assert_equal "PNG", image.type
+    assert_equal "WEBP", image.type
     assert_equal 20, image.width
     assert_equal 20, image.height
   end
@@ -95,10 +95,10 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   test "resized variation of TIFF blob" do
     blob = create_file_blob(filename: "racecar.tif")
     variant = blob.variant(resize_to_limit: [50, 50]).processed
-    assert_match(/racecar\.png/, variant.url)
+    assert_match(/racecar\.webp/, variant.url)
 
     image = read_image(variant)
-    assert_equal "PNG", image.type
+    assert_equal "WEBP", image.type
     assert_equal 50, image.width
     assert_equal 33, image.height
   end
@@ -106,10 +106,10 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   test "resized variation of BMP blob" do
     blob = create_file_blob(filename: "colors.bmp", content_type: "image/bmp")
     variant = blob.variant(resize_to_limit: [15, 15]).processed
-    assert_match(/colors\.png/, variant.url)
+    assert_match(/colors\.webp/, variant.url)
 
     image = read_image(variant)
-    assert_equal "PNG", image.type
+    assert_equal "WEBP", image.type
     assert_equal 15, image.width
     assert_equal 8, image.height
   end
@@ -141,20 +141,20 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
-  test "PNG variation of JPEG blob with lowercase format" do
+  test "WEBP variation of JPEG blob with lowercase format" do
     blob = create_file_blob(filename: "racecar.jpg")
-    variant = blob.variant(format: :png).processed
-    assert_equal "racecar.png", variant.filename.to_s
-    assert_equal "image/png", variant.content_type
-    assert_equal "PNG", read_image(variant).type
+    variant = blob.variant(format: :webp).processed
+    assert_equal "racecar.webp", variant.filename.to_s
+    assert_equal "image/webp", variant.content_type
+    assert_equal "WEBP", read_image(variant).type
   end
 
-  test "PNG variation of JPEG blob with uppercase format" do
+  test "WEBP variation of JPEG blob with uppercase format" do
     blob = create_file_blob(filename: "racecar.jpg")
-    variant = blob.variant(format: "PNG").processed
-    assert_equal "racecar.png", variant.filename.to_s
-    assert_equal "image/png", variant.content_type
-    assert_equal "PNG", read_image(variant).type
+    variant = blob.variant(format: "WEBP").processed
+    assert_equal "racecar.webp", variant.filename.to_s
+    assert_equal "image/webp", variant.content_type
+    assert_equal "WEBP", read_image(variant).type
   end
 
   test "variation of invariable blob" do
@@ -219,7 +219,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
 
     assert_nil blob.send(:format)
-    assert_equal :png, blob.send(:default_variant_format)
+    assert_equal :webp, blob.send(:default_variant_format)
   end
 
   test "variations with dangerous argument string raise UnsupportedImageProcessingArgument" do
