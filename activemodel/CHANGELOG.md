@@ -1,3 +1,12 @@
+*   Add `ActiveModel::Errors#slice` and `#except` to filter errors by attribute.
+
+    ```ruby
+    user.errors.slice(:email, :name)
+    user.errors.except(:base, :admin)
+    ```
+
+    *Said Kaldybaev*
+
 *   Add `has_json` and `has_delegated_json` to provide schema-enforced access to JSON attributes.
 
     ```ruby

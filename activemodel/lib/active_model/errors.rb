@@ -190,6 +190,20 @@ module ActiveModel
       }
     end
 
+    # Returns a new +Errors+ containing only the errors for the given attributes.
+    #
+    #   person.errors.slice(:name, :email)
+    def slice(*attributes)
+      filter_errors(attributes.flatten.map!(&:to_sym), keep: true)
+    end
+
+    # Returns a new +Errors+ excluding errors for the given attributes.
+    #
+    #   person.errors.except(:email)
+    def except(*attributes)
+      filter_errors(attributes.flatten.map!(&:to_sym), keep: false)
+    end
+
     # Returns +true+ if the error messages include an error for the given key
     # +attribute+, +false+ otherwise.
     #
@@ -499,6 +513,19 @@ module ActiveModel
         end
 
         [attribute.to_sym, type, options]
+      end
+
+      def filter_errors(attributes, keep:)
+        filtered = self.class.new(@base)
+
+        @errors.each do |error|
+          included = attributes.include?(error.attribute)
+          next unless keep ? included : !included
+
+          filtered.import(error)
+        end
+
+        filtered
       end
   end
 
