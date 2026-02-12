@@ -18,9 +18,9 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     assert_not @CI.success?
   end
 
-  test "report with only successful steps combined gives success" do
+  test "run with only successful steps combined gives success" do
     output = capture_io do
-      @CI.report("CI") do
+      @CI.run("CI", nil) do
         step "Success!", "true"
         step "Success again!", "true"
       end
@@ -30,11 +30,13 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     assert @CI.success?
   end
 
-  test "report with successful and failed steps combined gives failure" do
+  test "run with successful and failed steps combined gives failure" do
     output = capture_io do
-      @CI.report("CI") do
-        step "Success!", "true"
-        step "Failed!", "false"
+      assert_raises(SystemExit) do
+        @CI.run("CI", nil) do
+          step "Success!", "true"
+          step "Failed!", "false"
+        end
       end
     end.to_s
 
@@ -42,13 +44,15 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     assert_not @CI.success?
   end
 
-  test "report with successful and failed steps combined presents a failure summary" do
+  test "run with successful and failed steps combined presents a failure summary" do
     output = capture_io do
-      @CI.report("CI") do
-        step "Success!", "true"
-        step "Failed!", "false"
-        step "Also success!", "true"
-        step "Also failed!", "false"
+      assert_raises(SystemExit) do
+        @CI.run("CI", nil) do
+          step "Success!", "true"
+          step "Failed!", "false"
+          step "Also success!", "true"
+          step "Also failed!", "false"
+        end
       end
     end.to_s
 
@@ -58,10 +62,12 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     assert_match(/↳ Also failed! failed/, output)
   end
 
-  test "report with only one failing step does not print a failure summary" do
+  test "run with only one failing step does not print a failure summary" do
     output = capture_io do
-      @CI.report("CI") do
-        step "Failed!", "false"
+      assert_raises(SystemExit) do
+        @CI.run("CI", nil) do
+          step "Failed!", "false"
+        end
       end
     end.to_s
 
@@ -83,15 +89,171 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     assert_equal "\e[1;31m\n\nThis sucks\e[0m\n\e[1;90mBut such is the life of programming sometimes\n\e[0m\n", output
   end
 
+  test "sequential group with all passing steps" do
+    output = capture_io do
+      @CI.group("Checks") do
+        step "Pass 1", "true"
+        step "Pass 2", "true"
+      end
+    end.to_s
+
+    assert @CI.success?
+    assert_match(/Pass 1 passed/, output)
+    assert_match(/Pass 2 passed/, output)
+  end
+
+  test "sequential group with a failing step" do
+    output = capture_io do
+      @CI.group("Checks") do
+        step "Pass", "true"
+        step "Fail", "false"
+      end
+    end.to_s
+
+    assert_not @CI.success?
+    assert_match(/Fail failed/, output)
+  end
+
+  test "parallel group with all passing steps" do
+    output = capture_io do
+      @CI.group("Checks", parallel: 2) do
+        step "Pass 1", "true"
+        step "Pass 2", "true"
+      end
+    end.to_s
+
+    assert @CI.success?
+    assert_match(/Pass 1 passed/, output)
+    assert_match(/Pass 2 passed/, output)
+  end
+
+  test "parallel group with a failing step" do
+    output = capture_io do
+      @CI.group("Checks", parallel: 2) do
+        step "Pass", "true"
+        step "Fail", "false"
+      end
+    end.to_s
+
+    assert_not @CI.success?
+    assert_match(/Fail failed/, output)
+  end
+
+  test "parallel group provides a tty via pty" do
+    begin
+      require "pty"
+    rescue LoadError
+      skip "PTY not available"
+    end
+
+    output = capture_io do
+      @CI.group("Checks", parallel: 2) do
+        step "TTY", "sh", "-c", "test -t 1"
+      end
+    end.to_s
+
+    assert_match(/TTY passed/, output)
+  end
+
+  test "parallel group falls back to open3 when pty is unavailable" do
+    assert_called_on_instance_of(ActiveSupport::ContinuousIntegration::Group, :pty_available?, returns: false) do
+      output = capture_io do
+        @CI.group("Checks", parallel: 2) do
+          step "TTY", "sh", "-c", "test -t 1"
+        end
+      end.to_s
+
+      assert_match(/TTY failed/, output)
+    end
+  end
+
+  test "parallel group timing" do
+    capture_io do
+      started = Time.now.to_f
+      @CI.group("Checks", parallel: 2) do
+        step "Sleep 1", "sleep 0.2"
+        step "Sleep 2", "sleep 0.2"
+      end
+      elapsed = Time.now.to_f - started
+
+      assert elapsed < 0.35, "Expected parallel execution to complete in ~0.2s, took #{elapsed}s"
+    end
+
+    assert @CI.success?
+  end
+
+  test "sub-groups cannot be parallelized" do
+    exception = assert_raises ArgumentError do
+      capture_io do
+        @CI.group("Outer", parallel: 2) do
+          group "Inner", parallel: 2 do
+            step "Test", "true"
+          end
+        end
+      end
+    end
+    assert_equal "Sub-groups cannot be parallelized. Remove the `parallel:` option from the \"Inner\" group.", exception.message
+  end
+
+  test "nested group within sequential group" do
+    output = capture_io do
+      @CI.group("Outer") do
+        step "Style", "true"
+        group "Tests" do
+          step "Unit", "true"
+          step "System", "true"
+        end
+      end
+    end.to_s
+
+    assert @CI.success?
+    assert_match(/Unit passed/, output)
+    assert_match(/System passed/, output)
+  end
+
+  test "nested group within parallel group" do
+    output = capture_io do
+      @CI.group("Checks", parallel: 2) do
+        step "Style", "true"
+        group "Tests" do
+          step "Unit", "true"
+          step "System", "true"
+        end
+      end
+    end.to_s
+
+    assert @CI.success?
+    assert_match(/Style passed/, output)
+    assert_match(/Unit passed/, output)
+    assert_match(/System passed/, output)
+  end
+
   %w[-f --fail-fast].each do |flag|
-    test "report aborts immediately on failure with #{flag} flag" do
+    test "run aborts immediately on failure with #{flag} flag" do
       output = with_argv([flag]) do
         capture_io do
           assert_raises SystemExit do
-            @CI.report("CI") do
+            @CI.run("CI", nil) do
               step "Success!", "true"
               step "Failed!", "false"
               step "Should not run", "true"
+            end
+          end
+        end
+      end.to_s
+
+      assert_no_match(/Should not run/, output)
+    end
+
+    test "parallel group stops launching new steps with #{flag} flag" do
+      output = with_argv([flag]) do
+        capture_io do
+          assert_raises SystemExit do
+            @CI.run("CI", nil) do
+              group "Checks", parallel: 1 do
+                step "Fail", "false"
+                step "Should not run", "true"
+              end
             end
           end
         end
