@@ -1,17 +1,23 @@
-*   Add `committed_changes` methods for tracking cumulative attribute changes
+*   Add `transaction_changes` methods for tracking cumulative attribute changes
     across an entire transaction.
 
-    New methods available in `after_commit` callbacks:
+    New methods available in any callback phase (`before_save`, `after_save`,
+    `after_commit`), as well as for cross-model access within the same
+    transaction:
 
-    - `committed_changes` - Returns a hash of all changes across the transaction.
-    - `committed_changes?` - Returns whether any attributes changed.
-    - `committed_change_to_attribute(attr)` - Returns `[old, new]` for an attribute.
-    - `committed_change_to_attribute?(attr)` - Returns whether an attribute changed.
-    - `attribute_before_last_commit(attr)` - Returns the pre-transaction value of
-      any attribute, even those that didn't change.
+    - `transaction_changes` - Returns a hash of all cumulative changes across
+      the transaction.
+    - `transaction_changes?` - Returns whether any attributes changed.
+    - `transaction_change_to_attribute(attr)` - Returns `[old, new]` for an
+      attribute.
+    - `transaction_change_to_attribute?(attr)` - Returns whether an attribute
+      changed during the transaction.
+    - `attribute_before_transaction(attr)` - Returns the pre-transaction value
+      of any attribute, even those that didn't change.
 
     Unlike `saved_change_to_*` methods which only reflect the most recent save,
     these methods track cumulative changes across all saves within the transaction.
+    During `before_save` / `before_update`, pending unsaved changes are included.
 
     ```ruby
     class User < ApplicationRecord
@@ -19,8 +25,8 @@
 
       private
         def sync_changes
-          if committed_change_to_attribute?(:email)
-            old_email, new_email = committed_change_to_attribute(:email)
+          if transaction_change_to_attribute?(:email)
+            old_email, new_email = transaction_change_to_attribute(:email)
             ExternalService.update_email(old_email, new_email)
           end
         end
