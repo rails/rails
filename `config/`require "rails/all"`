@@ -1,0 +1,36 @@
+Configuring Rails Application 
+Rails offers four standard spots to place initialization code:
+* `config/application.rb`
+* Environment-specific configuration files
+* Initializers
+* After-initializers
+Running Code Before Rails
+-------------------------
+In the rare event that your application needs to run some code before Rails itself is loaded, put it above the call to `require "rails/all"` in `config/application.rb`.
+Configuring Rails Components
+----------------------------
+In general, the work of configuring Rails means configuring the components of Rails, as well as configuring Rails itself. The configuration file `config/application.rb` and environment-specific configuration files (such as `config/environments/production.rb`) allow you to specify the various settings that you want to pass down to all of the components.
+For example, you could add this setting to `config/application.rb` file:
+```ruby
+config.time_zone = 'Central Time (US & Canada)'
+```
+This is a setting for Rails itself. If you want to pass settings to individual Rails components, you can do so via the same `config` object in `config/application.rb`:
+```ruby
+config.active_record.schema_format = :ruby
+```
+Rails will use that particular setting to configure Active Record.
+WARNING: Use the public configuration methods over calling directly to the associated class. e.g. `Rails.application.config.action_mailer.options` instead of `ActionMailer::Base.options`.
+NOTE: If you need to apply configuration directly to a class, use a [lazy load hook](https://api.rubyonrails.org/classes/ActiveSupport/LazyLoadHooks.html) in an initializer to avoid autoloading the class before initialization has completed. This will break because autoloading during initialization cannot be safely repeated when the app reloads.
+initializer 'active_record.initialize_timezone' do
+  ActiveSupport.on_load(:active_record) do
+    self.time_zone_aware_attributes = true
+    self.default_timezone = :utc
+  end
+end
+initializer "action_text.renderer" do
+  ActiveSupport.on_load(:action_controller_base) do
+    ActiveSupport.on_load(:action_text_content) do
+      self.default_renderer = Class.new(ActionController::Base).renderer
+    end
+  end
+end
