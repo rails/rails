@@ -6,6 +6,7 @@ require "active_support/ordered_options"
 require "active_support/core_ext/object/inclusion"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/object/blank"
 
 module ActiveSupport
   # = Encrypted Configuration
@@ -59,52 +60,42 @@ module ActiveSupport
     end
 
     # Find singular or nested keys.
-    # Raises +KeyError+ if not found or nil.
+    # Raises +KeyError+ if not found or blank.
     #
     # Given configuration:
-    #   db_port: null
+    #   db_port: ""
     #   database:
     #     host: "db.example.com"
     #
     # Examples:
     #   require(:database, :host) # => "db.example.com"
     #   require(:missing)         # => KeyError
-    #   require(:db_port)         # => KeyError (nil values are treated as missing)
+    #   require(:db_port)         # => KeyError (blank values are treated as missing)
     def require(*key)
-      value = dig(*key)
-
-      if !value.nil?
-        value
-      else
-        raise KeyError, "Missing key: #{key.inspect}"
-      end
+      dig(*key).presence || raise(KeyError, "Missing key: #{key.inspect}")
     end
 
     # Find singular or nested keys.
     # Returns +nil+ if the key isn't found.
-    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or nil value.
+    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or blank value.
     #
     # Given configuration:
-    #   db_port: null
+    #   db_port: ""
     #   database:
     #     host: "db.example.com"
     #
     # Examples:
-    #   option(:database, :host)               # => "db.example.com"
-    #   option(:missing)                       # => nil
+    #   option(:database, :host)                      # => "db.example.com"
+    #   option(:missing)                              # => nil
     #   option(:missing, default: "localhost")        # => "localhost"
     #   option(:missing, default: -> { "localhost" }) # => "localhost"
-    #   option(:db_port, default: 5432)               # => 5432 (nil values use default)
+    #   option(:db_port, default: 5432)               # => 5432 (blank values use default)
     def option(*key, default: nil)
-      value = dig(*key)
-
-      if !value.nil?
-        value
-      elsif default.respond_to?(:call)
-        default.call
-      else
-        default
-      end
+      dig(*key).presence || if default.respond_to?(:call)
+                              default.call
+                            else
+                              default
+                            end
     end
 
     # Reload the cached values in case any of them changed or new ones were added during runtime.
