@@ -1,3 +1,18 @@
+*   Fix `JSONGemCoderEncoder` to correctly serialize custom object hash keys.
+
+    When hash keys are custom objects whose `as_json` returns a Hash,
+    the encoder now calls `to_s` on the original key object instead of
+    on the `as_json` result.
+
+    Before:
+        hash = {CustomKey.new(123) => "value"}
+        hash.to_json  # => {"{:id=>123}":"value"}
+
+    After:
+        hash.to_json  # => {"custom_123":"value"}
+
+    *Dan Sharp*
+
 *   Fix inflections to better handle overlapping acronyms.
 
     ```ruby
