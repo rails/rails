@@ -1,3 +1,8 @@
+*   Fix `ActiveStorage::Blob` content type predicate methods to handle `nil`.
+
+    *Daichi KUDO*
+
+
 ## Rails 8.0.4 (October 28, 2025) ##
 
 *   No changes.
