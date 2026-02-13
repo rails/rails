@@ -462,9 +462,17 @@ Rails works around this issue by emulating other methods over POST through a com
 
 In this case, the "Update" button will be treated as `PATCH` and the "Delete" button will be treated as `DELETE`.
 
+NOTE: If you're not using [JavaScript][js-guide], the per-form CSRF validation will raise a `ActionController::InvalidAuthenticityToken` error when clicking the `formmethod` button.<br>
+To avoid this either: disable per-form validation globally with [`config.action_controller.per_form_csrf_tokens = false`][per-form-csrf-tokens],
+add a `<%= hidden_field_tag :authenticity_token, form_authenticity_token %>` in the form,
+or use `form_with(authenticity_token: form_authenticity_token)`.
+
 [formmethod]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod
 [button-name]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-name
 [button-value]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-value
+[js-guide]: https://guides.rubyonrails.org/working_with_javascript_in_rails.html
+[per-form-csrf-tokens]: https://guides.rubyonrails.org/configuring.html#config-action-controller-per-form-csrf-tokens
+
 
 Making Select Boxes with Ease
 -----------------------------
