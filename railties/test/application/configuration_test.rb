@@ -3795,7 +3795,9 @@ module ApplicationTests
     test "Rails.application.config.action_mailer.smtp_settings = nil fallback to ActionMailer::Base.smtp_settings" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config <<-RUBY
-        ActionMailer::Base.smtp_settings = { domain: "example.com" }
+        ActiveSupport.on_load(:action_mailer) do
+          self.smtp_settings = { domain: "example.com" }
+        end
         config.load_defaults "7.0"
       RUBY
 
