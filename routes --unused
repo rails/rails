@@ -1,0 +1,7 @@
+> bin/rails routes --unused
+
+Found 2 unused routes:
+
+Prefix Verb URI Pattern    Controller#Action
+   one GET  /one(.:format) action#one
+   two GET  /two(.:format) action#two
