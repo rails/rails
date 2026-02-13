@@ -1,0 +1,6 @@
+> bin/rails routes --grep /cats/1
+Prefix Verb   URI Pattern         Controller#Action
+   cat GET    /cats/:id(.:format) cats#show
+       PATCH  /cats/:id(.:format) cats#update
+       PUT    /cats/:id(.:format) cats#update
+       DELETE /cats/:id(.:format) cats#destroy
