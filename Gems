@@ -1,0 +1,16 @@
+# gem-name version-to-bundle repository-url [optional-commit-hash-to-test-or-defaults-to-v-version]
+minitest        5.16.3  https://github.com/seattlerb/minitest
+power_assert    2.0.2   https://github.com/ruby/power_assert
+rake            13.0.6  https://github.com/ruby/rake
+test-unit       3.5.5   https://github.com/test-unit/test-unit
+rexml           3.2.5   https://github.com/ruby/rexml
+rss             0.2.9   https://github.com/ruby/rss
+net-ftp         0.2.0   https://github.com/ruby/net-ftp
+net-imap        0.3.1   https://github.com/ruby/net-imap
+net-pop         0.1.2   https://github.com/ruby/net-pop
+net-smtp        0.3.2   https://github.com/ruby/net-smtp
+matrix          0.4.2   https://github.com/ruby/matrix
+prime           0.1.2   https://github.com/ruby/prime
+rbs             2.7.0   https://github.com/ruby/rbs
+typeprof        0.21.3  https://github.com/ruby/typeprof
+debug           1.6.2   https://github.com/ruby/debug           19b4dde3308f532943e4234d1588d4fa26c52345
