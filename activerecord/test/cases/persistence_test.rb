@@ -491,6 +491,32 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_empty reply.attributes_in_database
   end
 
+  def test_becomes_default_attribute_value
+    company = Company.new
+
+    client = company.becomes(SpecialClient)
+
+    assert_equal "Special", client.firm_name
+  end
+
+  def test_becomes_maintains_assigned_over_default
+    company = Company.new
+    company.firm_name = "Consultant"
+
+    client = company.becomes(SpecialClient)
+
+    assert_equal "Consultant", client.firm_name
+  end
+
+  def test_becomes_maintains_drity_nil_assignment_over_default
+    company = Company.create!(name: "Company A", firm_name: "Consultant")
+    company.firm_name = nil
+
+    client = company.becomes(SpecialClient)
+
+    assert_nil client.firm_name
+  end
+
   def test_becomes_includes_changed_attributes
     company = Company.new(name: "37signals")
     client = company.becomes(Client)
