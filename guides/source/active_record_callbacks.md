@@ -1209,48 +1209,77 @@ database record. It can influence the flow and predictability of callback
 sequences, leading to potential inconsistencies in application logic following
 the transaction.
 
-### Tracking Changes in `after_commit`
+### Tracking Changes Across a Transaction
 
-Inside `after_commit` callbacks, you can use the `committed_changes` methods to
-inspect what changed during the entire transaction. These methods track the
-cumulative changes across all saves within the transaction, unlike the
-`saved_change_to_*` methods which only reflect the most recent save.
+You can use the `transaction_changes` methods to inspect what changed during
+an entire transaction. These methods track cumulative changes across all saves
+within the transaction, and work in any callback phase (`before_save`,
+`after_save`, `after_commit`), as well as for cross-model access within the
+same transaction. Unlike the `saved_change_to_*` methods which only reflect
+the most recent save, `transaction_change_to_*` methods reflect all saves
+within the transaction.
 
 The available methods are:
 
 | Method | Purpose |
 |---|---|
-| `committed_changes` | Hash of all changes across the transaction |
-| `committed_changes?` | Whether the transaction changed any attributes |
-| `committed_change_to_attribute(attr)` | The `[old, new]` pair for a specific attribute |
-| `committed_change_to_attribute?(attr)` | Whether the attribute changed during the transaction |
-| `attribute_before_last_commit(attr)` | The pre-transaction value of any attribute (even unchanged ones) |
+| `transaction_changes` | Hash of all cumulative changes across the transaction |
+| `transaction_changes?` | Whether the transaction changed any attributes |
+| `transaction_change_to_attribute(attr)` | The `[old, new]` pair for a specific attribute |
+| `transaction_change_to_attribute?(attr)` | Whether the attribute changed during the transaction |
+| `attribute_before_transaction(attr)` | The pre-transaction value of any attribute (even unchanged ones) |
 
-For example:
+Like `saved_change_to_*`, per-attribute convenience methods are also generated
+for every attribute. For example, an `email` attribute generates
+`transaction_change_to_email?`, `transaction_change_to_email`, and
+`email_before_transaction`.
+
+The distinction between `saved_change_to_*` and `transaction_change_to_*` matters
+when a transaction includes multiple saves. Consider a scenario where a user's
+email is updated in one save, and then an unrelated attribute is updated in a
+second save within the same transaction:
 
 ```ruby
 class User < ApplicationRecord
-  after_commit :sync_to_external_service, on: :update
+  after_commit :sync_email, on: :update
 
   private
-    def sync_to_external_service
-      if committed_change_to_attribute?(:email)
-        old_email, new_email = committed_change_to_attribute(:email)
+    def sync_email
+      # saved_change_to_email? would be FALSE here because the last save
+      # only changed the name, not the email. But the email DID change
+      # earlier in the same transaction.
+      if transaction_change_to_email?
+        old_email, new_email = transaction_change_to_email
         ExternalService.update_email(old_email, new_email)
       end
     end
 end
 ```
 
-The distinction between `saved_change_to_*` and `committed_change_to_*` matters
-when a transaction includes multiple saves. For example, if a record's `name`
-changes from `"Alice"` to `"Bob"` in one save, then from `"Bob"` to `"Carol"` in
-a second save within the same transaction:
+```ruby
+User.transaction do
+  user.update!(email: "new@example.com")
+  user.update!(name: "New Name")
+end
+# saved_change_to_email? => false (last save only changed name)
+# transaction_change_to_email? => true (email changed during the transaction)
+```
+
+More generally, if a record's `name` changes from `"Alice"` to `"Bob"` in one
+save, then from `"Bob"` to `"Carol"` in a second save within the same
+transaction:
 
 * `saved_change_to_name` returns `["Bob", "Carol"]` (the most recent save only)
-* `committed_change_to_name` returns `["Alice", "Carol"]` (the full transaction)
+* `transaction_change_to_name` returns `["Alice", "Carol"]` (the full transaction)
 
-NOTE: `attribute_before_last_commit` returns the pre-transaction value for _any_
+NOTE: During `before_save` and `before_update` callbacks, pending unsaved changes
+are included in `transaction_changes`. In `after_save`, `after_commit`, and other
+post-save callbacks, only persisted changes are reflected.
+
+NOTE: If an attribute is changed and then changed back to its original value
+within the same transaction, it will not appear in `transaction_changes`.
+
+NOTE: `attribute_before_transaction` returns the pre-transaction value for _any_
 attribute, not just ones that changed. For unchanged attributes, this is the same
 as the current value.
 
