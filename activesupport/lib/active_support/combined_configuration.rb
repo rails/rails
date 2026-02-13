@@ -17,7 +17,6 @@ module ActiveSupport
     # Raises +KeyError+ if no backend holds the key or if the value is nil.
     #
     # Given ENV:
-    #   DB_HOST: "env.example.com"
     #   DATABASE__HOST: "env.example.com"
     #
     # And credentials:
@@ -27,7 +26,6 @@ module ActiveSupport
     #   api_host: null
     #
     # Examples:
-    #   require(:db_host)         # => "env.example.com" (from ENV)
     #   require(:database, :host) # => "env.example.com" (ENV overrides credentials)
     #   require(:api_key)         # => "secret" (from credentials)
     #   require(:missing)         # => KeyError
@@ -46,7 +44,6 @@ module ActiveSupport
     # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or nil value.
     #
     # Given ENV:
-    #   DB_HOST: "env.example.com"
     #   DATABASE__HOST: "env.example.com"
     #
     # And credentials:
@@ -56,9 +53,7 @@ module ActiveSupport
     #   api_host: null
     #
     # Examples:
-    #   option(:db_host)                              # => "env.example.com" (from ENV)
     #   option(:database, :host)                      # => "env.example.com" (ENV overrides credentials)
-    #   option(:api_key)                              # => "secret" (from credentials)
     #   option(:missing)                              # => nil
     #   option(:missing, default: "localhost")        # => "localhost"
     #   option(:missing, default: -> { "localhost" }) # => "localhost"

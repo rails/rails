@@ -62,13 +62,11 @@ module ActiveSupport
     # Raises +KeyError+ if not found or nil.
     #
     # Given configuration:
-    #   db_host: "db.example.com"
     #   db_port: null
     #   database:
     #     host: "db.example.com"
     #
     # Examples:
-    #   require(:db_host)         # => "db.example.com"
     #   require(:database, :host) # => "db.example.com"
     #   require(:missing)         # => KeyError
     #   require(:db_port)         # => KeyError (nil values are treated as missing)
@@ -87,15 +85,13 @@ module ActiveSupport
     # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or nil value.
     #
     # Given configuration:
-    #   db_host: "db.example.com"
     #   db_port: null
     #   database:
     #     host: "db.example.com"
     #
     # Examples:
-    #   option(:db_host)                              # => "db.example.com"
-    #   option(:database, :host)                      # => "db.example.com"
-    #   option(:missing)                              # => nil
+    #   option(:database, :host)               # => "db.example.com"
+    #   option(:missing)                       # => nil
     #   option(:missing, default: "localhost")        # => "localhost"
     #   option(:missing, default: -> { "localhost" }) # => "localhost"
     #   option(:db_port, default: 5432)               # => 5432 (nil values use default)

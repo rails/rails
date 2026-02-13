@@ -46,7 +46,6 @@ module ActiveSupport
     #
     # Examples:
     #   option(:db_host)                              # => "env.example.com"
-    #   option(:database, :host)                      # => "env.example.com"
     #   option(:missing)                              # => nil
     #   option(:missing, default: "localhost")        # => "localhost"
     #   option(:missing, default: -> { "localhost" }) # => "localhost"
