@@ -222,7 +222,7 @@ jobs:
         run: bin/rails <%= "db:test:prepare " unless skip_active_record? %>test:system
 
       - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: screenshots
