@@ -77,10 +77,12 @@ module ActiveModel
       defaults << options[:default] if options[:default]
       defaults << MISSING_TRANSLATION unless raise_on_missing
 
+      capitalize_missing_translation = options.delete(:_capitalize) { true }
       translation = I18n.translate(defaults.shift, count: 1, raise: raise_on_missing, **options, default: defaults)
       if translation == MISSING_TRANSLATION
-        translation = attribute.present? ? attribute.humanize : namespace.humanize
+        translation = (attribute.presence || namespace).humanize(capitalize: capitalize_missing_translation)
       end
+
       translation
     end
   end
