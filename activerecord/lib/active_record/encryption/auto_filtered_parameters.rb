@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Encryption
-    class AutoFilteredParameters
+    class AutoFilteredParameters # :nodoc:
       def initialize(app)
         @app = app
         @attributes_by_class = Concurrent::Map.new
