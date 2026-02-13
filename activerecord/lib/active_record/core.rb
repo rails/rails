@@ -347,7 +347,11 @@ module ActiveRecord
       # Returns columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes
         if @filter_attributes.nil?
-          superclass.filter_attributes
+          if superclass <= Base
+            superclass.filter_attributes
+          else
+            nil
+          end
         else
           @filter_attributes
         end
@@ -356,9 +360,15 @@ module ActiveRecord
       # Specifies columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes=(filter_attributes)
         @inspection_filter = nil
-        @filter_attributes = filter_attributes
+        previous = if @filter_attributes
+          self.filter_attributes
+        else
+          Base.filter_attributes
+        end
+        changes = @filter_attributes = filter_attributes
 
-        FilterAttributeHandler.sensitive_attribute_was_declared(self, filter_attributes)
+        changes -= previous if previous
+        FilterAttributeHandler.sensitive_attribute_was_declared(self, changes)
       end
 
       def inspection_filter # :nodoc:
@@ -498,7 +508,7 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder, &block)
       coder = LegacyYamlAdapter.convert(coder)
-      attributes = self.class.yaml_encoder.decode(coder)
+      attributes = ActiveModel::AttributeSet::YAMLEncoder.decode(coder, self.class.attribute_types)
       init_with_attributes(attributes, coder["new_record"], &block)
     end
 
@@ -586,7 +596,7 @@ module ActiveRecord
     #   Post.new.encode_with(coder)
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
-      self.class.yaml_encoder.encode(@attributes, coder)
+      ActiveModel::AttributeSet::YAMLEncoder.encode(@attributes, coder, self.class.attribute_types)
       coder["new_record"] = new_record?
       coder["active_record_yaml_version"] = 2
     end

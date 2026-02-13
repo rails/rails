@@ -30,38 +30,6 @@ class QueuingTest < ActiveSupport::TestCase
     end
   end
 
-  if adapter_is?(:sidekiq)
-    test "should supply a wrapped class name to Sidekiq" do
-      Sidekiq::Testing.fake! do
-        ::HelloJob.perform_later
-        hash = ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper.jobs.first
-        assert_equal "Sidekiq::ActiveJob::Wrapper", hash["class"]
-        assert_equal "HelloJob", hash["wrapped"]
-      end
-    end
-
-    test "should access provider_job_id inside Sidekiq job" do
-      Sidekiq::Testing.inline! do
-        job = ::ProviderJidJob.perform_later
-        assert_equal "Provider Job ID: #{job.provider_job_id}", JobBuffer.last_value
-      end
-    end
-
-    test "should interrupt jobs" do
-      ContinuableTestJob.perform_later @id
-      wait_for_jobs_to_finish_for(1.seconds)
-
-      jobs_manager.stop_workers
-      wait_for_jobs_to_finish_for(1.seconds)
-      assert_not job_executed
-      assert continuable_job_started
-
-      jobs_manager.start_workers
-      wait_for_jobs_to_finish_for(10.seconds)
-      assert job_executed
-    end
-  end
-
   if adapter_is?(:delayed_job)
     test "should supply a wrapped class name to DelayedJob" do
       ::HelloJob.perform_later
@@ -106,7 +74,7 @@ class QueuingTest < ActiveSupport::TestCase
     pass
   end
 
-  if adapter_is?(:async, :delayed_job, :sidekiq, :queue_classic)
+  if adapter_is?(:async, :delayed_job, :queue_classic)
     test "should supply a provider_job_id when available for immediate jobs" do
       test_job = TestJob.perform_later @id
       assert test_job.provider_job_id, "Provider job id should be set by provider"

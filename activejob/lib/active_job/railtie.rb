@@ -11,6 +11,8 @@ module ActiveJob
     config.active_job.custom_serializers = []
     config.active_job.log_query_tags_around_perform = true
 
+    guard_load_hooks(:active_job, :active_job_arguments, :active_job_continuable, :active_job_test_case)
+
     initializer "active_job.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_job] = ActiveJob.deprecator
     end

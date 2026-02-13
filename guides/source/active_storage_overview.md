@@ -168,6 +168,7 @@ amazon:
   secret_access_key: <%= Rails.app.credentials.dig(:aws, :secret_access_key) %>
   region: "" # e.g. 'us-east-1'
   bucket: your_own_bucket-<%= Rails.env %>
+  default_digest_type: :md5 # or :sha256
   http_open_timeout: 0
   http_read_timeout: 0
   retry_limit: 0

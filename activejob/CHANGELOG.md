@@ -1,3 +1,45 @@
+*   Deprecate built-in `queue_classic` Active Job adapter.
+
+    *Harun Sabljaković, Wojciech Wnętrzak*
+
+*   Allow `retry_on` `wait` procs to accept the error as a second argument.
+
+    Procs with arity 1 continue to receive only the execution count.
+
+    ```ruby
+    class RemoteServiceJob < ActiveJob::Base
+      retry_on CustomError, wait: ->(executions, error) { error.retry_after || executions * 2 }
+
+      def perform
+        # ...
+      end
+    end
+    ```
+
+    *JP Camara*
+
+*   Deprecate built-in `resque` adapter.
+
+    If you're using this adapter, upgrade to `resque` 3.0 or later to use the `resque` gem's adapter.
+
+    *zzak, Wojciech Wnętrzak*
+
+*   Remove deprecated `sidekiq` Active Job adapter.
+
+    The adapter is available in the `sidekiq` gem.
+
+    *Wojciech Wnętrzak*
+
+*   Deprecate built-in `delayed_job` adapter.
+
+    If you're using this adapter, upgrade to `delayed_job` 4.2.0 or later to use the `delayed_job` gem's adapter.
+
+    *Dino Maric, David Genord II, Wojciech Wnętrzak*
+
+*   Deprecate built-in `backburner` adapter.
+
+    *Dino Maric, Nathan Esquenazi, Earlopain*
+
 *   Jobs are now enqueued after transaction commit.
 
     This fixes that jobs would surprisingly run against uncommitted and

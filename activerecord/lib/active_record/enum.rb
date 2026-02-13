@@ -348,10 +348,10 @@ module ActiveRecord
 
           values.each_value do |value|
             case value
-            when String, Integer, true, false, nil
+            when String, Integer, Float, true, false, nil
               # noop
             else
-              raise ArgumentError, "Enum values #{values} must be only booleans, integers, symbols or strings, got: #{value.class}"
+              raise ArgumentError, "Enum values #{values} must be only booleans, integers, floats, symbols or strings, got: #{value.class}"
             end
           end
 

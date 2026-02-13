@@ -137,6 +137,61 @@ module ActiveRecord
         end
       end
 
+      def test_schema_search_path_is_reapplied_after_reconnect
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(schema_search_path: "public,foo")
+        )
+
+        connection.connect!
+
+        assert_equal "public, foo", connection.select_value("SHOW search_path")
+
+        connection.reconnect!
+
+        assert_equal "public, foo", connection.select_value("SHOW search_path")
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_schema_search_path_is_reapplied_after_reset
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(schema_search_path: "public,foo")
+        )
+
+        connection.connect!
+
+        assert_equal "public, foo", connection.select_value("SHOW search_path")
+
+        connection.reset!
+
+        assert_equal "public, foo", connection.select_value("SHOW search_path")
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_schema_search_path_uses_parameter_status_on_pg18
+        skip "parameter_status('search_path') requires PostgreSQL 18+" unless @connection.database_version >= 18_00_00
+
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+        begin
+          log = capture_sql(include_schema: true) do
+            connection.connect!
+            connection.schema_search_path
+          end
+
+          assert_not log.any? { |sql| sql.include?("SHOW search_path") },
+                     "Expected no 'SHOW search_path' query, but found one in: #{log.inspect}"
+        ensure
+          connection.disconnect!
+        end
+      end
+
       def test_database_exists_returns_false_when_the_database_does_not_exist
         config = { database: "non_extant_database", adapter: "postgresql" }
         assert_not ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(config),
@@ -205,6 +260,21 @@ module ActiveRecord
         end
         expect = connection.select_value("select max(id) from postgresql_partitioned_table_parent")
         assert_equal expect.to_i, result.rows.first.first
+      end
+
+      def test_insert_uses_schema_cache_with_insert_returning_disabled
+        connection = connection_without_insert_returning
+
+        # First call might need to populate the schema cache
+        connection.insert("INSERT INTO postgresql_partitioned_table_parent (number) VALUES (0)")
+
+        # We expect:
+        # 1. INSERT
+        # 2. SELECT pg_get_serial_sequence (ideally this would cached, but it's currently not)
+        # 3. SELECT currval
+        assert_queries_count(3, include_schema: true) do
+          connection.insert("INSERT INTO postgresql_partitioned_table_parent (number) VALUES (1)")
+        end
       end
 
       def test_serial_sequence

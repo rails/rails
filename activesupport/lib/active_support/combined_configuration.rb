@@ -71,5 +71,23 @@ module ActiveSupport
     def reload
       @configurations.each { |config| config.try(:reload) }
     end
+
+    # Returns a unique array of all symbolized keys available across all backend configurations.
+    #
+    # Examples of Rails-configured access:
+    #
+    #   ENV["DB_HOST"] = "localhost"
+    #   Rails.app.credentials # has keys [:secret_key_base, :aws]
+    #
+    #   Rails.app.creds.keys
+    #   # => [:db_host, :secret_key_base, :aws]
+    #
+    def keys
+      @configurations.flat_map(&:keys).uniq
+    end
+
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} keys=#{keys.inspect}>"
+    end
   end
 end

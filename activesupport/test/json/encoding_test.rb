@@ -115,6 +115,34 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal %w( "$" "A" "A0" "A0B" "_" "a" "0" "1" ).sort, object_keys(ActiveSupport::JSON.encode(values))
   end
 
+  def test_hash_with_object_keys_that_have_complex_as_json
+    skip "JSONGemCoderEncoder not available" unless defined?(ActiveSupport::JSON::Encoding::JSONGemCoderEncoder)
+
+    # Define CustomKey inline (typically this will be a full Class)
+    custom_key_class = Struct.new(:id) do
+      def to_s
+        "custom_#{id}"
+      end
+
+      def as_json(options = nil)
+        { id: id, metadata: { created_at: Time.now.iso8601 } }
+      end
+    end
+
+    key = custom_key_class.new(123)
+    hash = { key => "some_value" }
+
+    assert_equal "custom_123", key.to_s
+    assert_instance_of Hash, key.as_json
+
+    # When serializing to JSON, the key should be converted via to_s
+    json = hash.to_json
+    parsed = JSON.parse(json)
+
+    assert_equal "some_value", parsed["custom_123"]
+  end
+
+
   def test_hash_should_allow_key_filtering_with_only
     assert_equal %({"a":1}), ActiveSupport::JSON.encode({ "a" => 1, :b => 2, :c => 3 }, { only: "a" })
   end

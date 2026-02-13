@@ -118,28 +118,6 @@ module ActiveRecord
         end
       end
 
-      def test_yaml_load_8_0_dump_without_cast_type_still_get_the_right_one
-        cache = load_bound_reflection(schema_dump_8_0_path)
-
-        if current_adapter?(:PostgreSQLAdapter)
-          assert_queries_count(include_schema: true) do
-            columns = cache.columns_hash("courses")
-            assert_equal 3, columns.size
-            cast_type = columns["name"].fetch_cast_type(@connection)
-            assert_not_nil cast_type, "expected cast_type to be present"
-            assert_equal :string, cast_type.type
-          end
-        else
-          assert_no_queries do
-            columns = cache.columns_hash("courses")
-            assert_equal 3, columns.size
-            cast_type = columns["name"].fetch_cast_type(@connection)
-            assert_not_nil cast_type, "expected cast_type to be present"
-            assert_equal :string, cast_type.type
-          end
-        end
-      end
-
       def test_primary_key_for_existent_table
         assert_equal "id", @cache.primary_keys("courses")
       end
@@ -186,6 +164,16 @@ module ActiveRecord
         @cache.clear!
 
         assert_equal 0, @cache.size
+      end
+
+      def test_insert_uses_schema_cache_for_primary_key
+        # First call might need to populate the schema cache
+        @connection.insert("INSERT INTO courses (name) VALUES ('Prepopulate')")
+
+        # With cache available, insert should not make additional schema queries
+        assert_queries_count(1, include_schema: true) do
+          @connection.insert("INSERT INTO courses (name) VALUES ('INSERT only')")
+        end
       end
 
       def test_marshal_dump_and_load_with_ignored_tables
@@ -358,10 +346,6 @@ module ActiveRecord
         def schema_dump_5_1_path
           "#{ASSETS_ROOT}/schema_dump_5_1.yml"
         end
-
-        def schema_dump_8_0_path
-          "#{ASSETS_ROOT}/schema_dump_8_0.yml"
-        end
     end
 
     module DumpAndLoadTests
@@ -393,7 +377,7 @@ module ActiveRecord
 
           assert_no_queries(include_schema: true) do
             assert_equal 3, cache.columns("courses").size
-            assert_equal 3, cache.columns("courses").map { |column| column.fetch_cast_type(@pool.lease_connection) }.compact.size
+            assert_equal 3, cache.columns("courses").map { |column| column.cast_type }.compact.size
             assert_equal 3, cache.columns_hash("courses").size
             assert cache.data_source_exists?("courses")
             assert_equal "id", cache.primary_keys("courses")
@@ -417,7 +401,7 @@ module ActiveRecord
 
           assert_no_queries(include_schema: true) do
             assert_equal 3, cache.columns(@pool, "courses").size
-            assert_equal 3, cache.columns(@pool, "courses").map { |column| column.fetch_cast_type(@pool.lease_connection) }.compact.size
+            assert_equal 3, cache.columns(@pool, "courses").map { |column| column.cast_type }.compact.size
             assert_equal 3, cache.columns_hash(@pool, "courses").size
             assert cache.data_source_exists?(@pool, "courses")
             assert_equal "id", cache.primary_keys(@pool, "courses")
@@ -429,7 +413,7 @@ module ActiveRecord
 
           assert_no_queries(include_schema: true) do
             assert_equal 3, cache.columns("courses").size
-            assert_equal 3, cache.columns("courses").map { |column| column.fetch_cast_type(@pool.lease_connection) }.compact.size
+            assert_equal 3, cache.columns("courses").map { |column| column.cast_type }.compact.size
             assert_equal 3, cache.columns_hash("courses").size
             assert cache.data_source_exists?("courses")
             assert_equal "id", cache.primary_keys("courses")

@@ -21,8 +21,7 @@ module ApplicationTests
         "db/database_url_db.sqlite3"
       end
 
-      def set_database_url
-        ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
+      def delete_database_config!
         # ensure it's using the DATABASE_URL
         FileUtils.rm_rf("#{app_path}/config/database.yml")
       end
@@ -48,13 +47,15 @@ module ApplicationTests
 
       test "db:create and db:drop with database URL" do
         require "#{app_path}/config/environment"
-        set_database_url
-        db_create_and_drop database_url_db_name
+        delete_database_config!
+        with_env DATABASE_URL: "sqlite3:#{database_url_db_name}" do
+          db_create_and_drop database_url_db_name
+        end
       end
 
       test "db:create and db:drop with database URL don't use YAML DBs" do
         require "#{app_path}/config/environment"
-        set_database_url
+        delete_database_config!
 
         File.write("#{app_path}/config/database.yml", <<~YAML)
           test:
@@ -66,10 +67,12 @@ module ApplicationTests
             database: storage/development.sqlite3
         YAML
 
-        with_rails_env "development" do
-          db_create_and_drop database_url_db_name do
-            assert_not File.exist?("#{app_path}/storage/test.sqlite3")
-            assert_not File.exist?("#{app_path}/storage/development.sqlite3")
+        with_env DATABASE_URL: "sqlite3:#{database_url_db_name}" do
+          with_rails_env "development" do
+            db_create_and_drop database_url_db_name do
+              assert_not File.exist?("#{app_path}/storage/test.sqlite3")
+              assert_not File.exist?("#{app_path}/storage/development.sqlite3")
+            end
           end
         end
       end
@@ -199,7 +202,6 @@ module ApplicationTests
 
       def with_database_existing
         Dir.chdir(app_path) do
-          set_database_url
           rails "db:create"
           yield
           rails "db:drop"
@@ -207,15 +209,17 @@ module ApplicationTests
       end
 
       test "db:create failure because database exists" do
-        with_database_existing do
-          output = rails("db:create")
-          assert_match(/already exists/, output)
+        delete_database_config!
+        with_env DATABASE_URL: "sqlite3:#{database_url_db_name}" do
+          with_database_existing do
+            output = rails("db:create")
+            assert_match(/already exists/, output)
+          end
         end
       end
 
       def with_bad_permissions
         Dir.chdir(app_path) do
-          set_database_url
           FileUtils.chmod("-w", "db")
           yield
           FileUtils.chmod("+w", "db")
@@ -224,19 +228,25 @@ module ApplicationTests
 
       unless Process.uid.zero?
         test "db:create failure because bad permissions" do
-          with_bad_permissions do
-            output = rails("db:create", allow_failure: true)
-            assert_match("Couldn't create '#{database_url_db_name}' database. Please check your configuration.", output)
-            assert_equal 1, $?.exitstatus
+          delete_database_config!
+          with_env DATABASE_URL: "sqlite3:#{database_url_db_name}" do
+            with_bad_permissions do
+              output = rails("db:create", allow_failure: true)
+              assert_match("Couldn't create '#{database_url_db_name}' database. Please check your configuration.", output)
+              assert_equal 1, $?.exitstatus
+            end
           end
         end
 
         test "db:drop failure because bad permissions" do
-          with_database_existing do
-            with_bad_permissions do
-              output = rails("db:drop", allow_failure: true)
-              assert_match(/Couldn't drop/, output)
-              assert_equal 1, $?.exitstatus
+          delete_database_config!
+          with_env DATABASE_URL: "sqlite3:#{database_url_db_name}" do
+            with_database_existing do
+              with_bad_permissions do
+                output = rails("db:drop", allow_failure: true)
+                assert_match(/Couldn't drop/, output)
+                assert_equal 1, $?.exitstatus
+              end
             end
           end
         end

@@ -140,8 +140,20 @@ module ActiveSupport
       @config ||= deep_symbolize_keys(deserialize(read))
     end
 
+    # Returns an array of symbolized keys from the decrypted configuration.
+    #
+    #   my_config = ActiveSupport::EncryptedConfiguration.new(...)
+    #   my_config.read # => "some_secret: 123\nsome_namespace:\n  another_secret: 456"
+    #
+    #   my_config.keys
+    #   # => [:some_secret, :some_namespace]
+    #
+    def keys
+      config.keys
+    end
+
     def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} keys=#{keys.inspect}>"
     end
 
     private

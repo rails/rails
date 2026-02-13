@@ -679,8 +679,7 @@ module ActiveRecord
 
             columns.map do |name, column|
               if fixture.key?(name)
-                # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
-                with_yaml_fallback(column.fetch_cast_type(self).serialize(fixture[name]))
+                with_yaml_fallback(column.cast_type.serialize(fixture[name]))
               else
                 default_insert_value(column)
               end
@@ -740,7 +739,7 @@ module ActiveRecord
             if pk.nil?
               # Extract the table from the insert sql. Yuck.
               table_ref = extract_table_ref_from_insert_sql(sql)
-              pk = primary_key(table_ref) if table_ref
+              pk = schema_cache.primary_keys(table_ref) if table_ref
             end
 
             returning_columns = returning || Array(pk)

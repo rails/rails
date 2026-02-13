@@ -459,10 +459,6 @@ module ActiveRecord
         end
       end
 
-      def yaml_encoder # :nodoc:
-        @yaml_encoder ||= ActiveModel::AttributeSet::YAMLEncoder.new(attribute_types)
-      end
-
       # Returns the column object for the named attribute.
       # Returns an ActiveRecord::ConnectionAdapters::NullColumn if the
       # named attribute does not exist.
@@ -578,7 +574,6 @@ module ActiveRecord
           @columns_hash = nil
           @schema_loaded = false
           @attribute_names = nil
-          @yaml_encoder = nil
           if recursive
             subclasses.each do |descendant|
               descendant.send(:reload_schema_from_cache)
@@ -640,9 +635,8 @@ module ActiveRecord
           end
         end
 
-        def type_for_column(connection, column)
-          # TODO: Remove the need for a connection after we release 8.1.
-          type = column.fetch_cast_type(connection)
+        def type_for_column(column)
+          type = column.cast_type
 
           if immutable_strings_by_default && type.respond_to?(:to_immutable_string)
             type = type.to_immutable_string

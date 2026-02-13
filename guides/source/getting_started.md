@@ -72,7 +72,7 @@ TIP: Any commands prefaced with a dollar sign `$` should be run in the terminal.
 
 For this project, you will need:
 
-* Ruby 3.2 or newer
+* Ruby 3.3 or newer
 * Rails 8.2.0 or newer
 * A code editor
 
@@ -1854,7 +1854,7 @@ submitted, so we'll update the permitted params to include description in
 We also need to update the show view to display the description in
 `app/views/products/show.html.erb`:
 
-```erb#3
+```erb#4
 <%# app/views/products/show.html.erb%>
 <% cache @product do %>
   <h1><%= @product.name %></h1>

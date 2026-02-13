@@ -383,9 +383,9 @@ $ bundle exec rake activerecord:postgresql:test
 $ bundle exec rake activerecord:integration
 
 # Active Job adapters
-$ bundle exec rake activejob:sidekiq:test
-$ bundle exec rake activejob:sidekiq:isolated
-$ bundle exec rake activejob:sidekiq:integration
+$ bundle exec rake activejob:async:test
+$ bundle exec rake activejob:async:isolated
+$ bundle exec rake activejob:async:integration
 
 # All Active Job integration tests
 $ bundle exec rake activejob:integration
