@@ -1,0 +1,47 @@
+From 5a3561bc0596910b1ac24325f099bd757f74cca7 Mon Sep 17 00:00:00 2001
+From: Richard <113485471+dsuprmajstc93r@users.noreply.github.com>
+Date: Sun, 23 Oct 2022 11:20:47 -0600
+Subject: [PATCH 1/2] Create --parent
+
+---
+ --parent | 4 ++++
+ 1 file changed, 4 insertions(+)
+ create mode 100644 --parent
+
+diff --git a/--parent b/--parent
+new file mode 100644
+index 000000000000..8f14fc204154
+--- /dev/null
++++ b/--parent
+@@ -0,0 +1,4 @@
++bin/rails g controller admin/users --parent=admin_controller
++class Admin::UsersController < AdminController
++  # ...
++end
+
+From 66742755e4e3f9b31ec531f88edd2e9a469e6671 Mon Sep 17 00:00:00 2001
+From: Richard <113485471+dsuprmajstc93r@users.noreply.github.com>
+Date: Sun, 23 Oct 2022 11:23:12 -0600
+Subject: [PATCH 2/2] Create .diff
+
+---
+ .diff | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+ create mode 100644 .diff
+
+diff --git a/.diff b/.diff
+new file mode 100644
+index 000000000000..638d086551a6
+--- /dev/null
++++ b/.diff
+@@ -0,0 +1,10 @@
++diff --git a/--parent b/--parent
++new file mode 100644
++index 000000000000..8f14fc204154
++--- /dev/null
+++++ b/--parent
++@@ -0,0 +1,4 @@
+++bin/rails g controller admin/users --parent=admin_controller
+++class Admin::UsersController < AdminController
+++  # ...
+++end
