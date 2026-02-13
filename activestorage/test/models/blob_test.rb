@@ -161,6 +161,21 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_not_predicate blob, :audio?
   end
 
+  test "blob type methods return false for nil content type" do
+    blob = create_blob_before_direct_upload(
+      filename: "unknown_file",
+      byte_size: 100,
+      checksum: "test_checksum",
+      content_type: nil
+    )
+
+    assert_nil blob.content_type
+    assert_not_predicate blob, :image?
+    assert_not_predicate blob, :video?
+    assert_not_predicate blob, :audio?
+    assert_not_predicate blob, :text?
+  end
+
   test "download yields chunks" do
     blob   = create_blob data: "a" * 5.0625.megabytes
     chunks = []

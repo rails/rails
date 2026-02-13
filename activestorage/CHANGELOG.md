@@ -1,3 +1,8 @@
+*   Fix `ActiveStorage::Blob` content type predicate methods to handle `nil`.
+
+    *Daichi KUDO*
+
+
 ## Rails 8.1.2 (January 08, 2026) ##
 
 *   Restore ADC when signing URLs with IAM for GCS
