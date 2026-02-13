@@ -56,6 +56,8 @@ module ApplicationTests
           Created database 'app_development'
           Created database 'app_test'
 
+          == Setup test environment ==
+
           == Removing old logs and tempfiles ==
         OUTPUT
       end
