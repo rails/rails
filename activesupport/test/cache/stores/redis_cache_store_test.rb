@@ -207,14 +207,14 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       redis_backend(@cache_no_ttl) { |r| r.set "#{@namespace}:jar", 10 }
       @cache_no_ttl.increment "jar", 1
       redis_backend(@cache_no_ttl) do |r|
-        assert r.get("#{@namespace}:jar").to_i == 11
+        assert_equal 11, r.get("#{@namespace}:jar").to_i
         assert r.ttl("#{@namespace}:jar") < 0
       end
 
       # new key
       @cache_no_ttl.increment "kar", 1
       redis_backend(@cache_no_ttl) do |r|
-        assert r.get("#{@namespace}:kar").to_i == 1
+        assert_equal 1, r.get("#{@namespace}:kar").to_i
         assert r.ttl("#{@namespace}:kar") < 0
       end
     end
@@ -246,14 +246,14 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       redis_backend(@cache_no_ttl) { |r| r.set "#{@namespace}:jar", 10 }
       @cache_no_ttl.decrement "jar", 1
       redis_backend(@cache_no_ttl) do |r|
-        assert r.get("#{@namespace}:jar").to_i == 9
+        assert_equal 9, r.get("#{@namespace}:jar").to_i
         assert r.ttl("#{@namespace}:jar") < 0
       end
 
       # new key
       @cache_no_ttl.decrement "kar", 1
       redis_backend(@cache_no_ttl) do |r|
-        assert r.get("#{@namespace}:kar").to_i == -1
+        assert_equal(-1, r.get("#{@namespace}:kar").to_i)
         assert r.ttl("#{@namespace}:kar") < 0
       end
     end

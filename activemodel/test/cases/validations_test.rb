@@ -272,7 +272,7 @@ class ValidationsTest < ActiveModel::TestCase
 
     # If block should fire
     assert t.invalid?(:update)
-    assert t.author_name == "bad"
+    assert_equal "bad", t.author_name
   end
 
   def test_invalid_should_be_the_opposite_of_valid
