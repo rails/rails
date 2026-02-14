@@ -170,6 +170,10 @@ module ActionView
       # as a +proc+, that will be called for each member of the +collection+ to
       # retrieve the value/text.
       #
+      # The members of +collection+ may also be grouped by a key (as by +Enumerable#group_by+), and an
+      # <tt><optgroup></tt> tag will be rendered for each group, using each group's key as the +label+
+      # attribute.
+      #
       # Example object structure for use with this method:
       #
       #   class Post < ActiveRecord::Base
@@ -179,21 +183,43 @@ module ActionView
       #   class Author < ActiveRecord::Base
       #     has_many :posts
       #
-      #     def name_with_initial
-      #       "#{first_name.first}. #{last_name}"
+      #     def full_name
+      #       "#{first_name} #{last_name}"
+      #     end
+      #
+      #     def first_initial
+      #       first_name.first
       #     end
       #   end
       #
       # Sample usage (selecting the associated Author for an instance of Post, <tt>@post</tt>):
       #
-      #   collection_select(:post, :author_id, Author.all, :id, :name_with_initial, prompt: true)
+      #   collection_select(:post, :author_id, Author.all, :id, :full_name, prompt: true)
       #
       # If <tt>@post.author_id</tt> is already <tt>1</tt>, this would return:
+      #
       #   <select name="post[author_id]" id="post_author_id">
       #     <option value="">Please select</option>
-      #     <option value="1" selected="selected">D. Heinemeier Hansson</option>
-      #     <option value="2">D. Thomas</option>
-      #     <option value="3">M. Clark</option>
+      #     <option value="1" selected="selected">David Heinemeier Hansson</option>
+      #     <option value="2">Dave Thomas</option>
+      #     <option value="3">Mike Clark</option>
+      #   </select>
+      #
+      # Choices may also be grouped by a key:
+      #
+      #   collection_select(:post, :author_id, Author.order(:first_name).group_by(&:first_initial), :id, :full_name, prompt: true)
+      #
+      # In the same context, this would return:
+      #
+      #   <select name="post[author_id]" id="post_author_id">
+      #     <option value="">Please select</option>
+      #     <optgroup label="D">
+      #       <option value="2">Dave Thomas</option>
+      #       <option value="1" selected="selected">David Heinemeier Hansson</option>
+      #     </optgroup>
+      #     <optgroup label="M">
+      #       <option value="3">Mike Clark</option>
+      #     </optgroup>
       #   </select>
       def collection_select(object, method, collection, value_method, text_method, options = {}, html_options = {})
         Tags::CollectionSelect.new(object, method, self, collection, value_method, text_method, options, html_options).render
