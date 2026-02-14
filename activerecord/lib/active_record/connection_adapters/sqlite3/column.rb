@@ -46,7 +46,8 @@ module ActiveRecord
         def ==(other)
           other.is_a?(Column) &&
             super &&
-            auto_increment? == other.auto_increment?
+            auto_increment? == other.auto_increment? &&
+            virtual? == other.virtual?
         end
         alias :eql? :==
 
@@ -54,7 +55,8 @@ module ActiveRecord
           Column.hash ^
             super.hash ^
             auto_increment?.hash ^
-            rowid.hash
+            rowid.hash ^
+            virtual?.hash
         end
       end
     end
