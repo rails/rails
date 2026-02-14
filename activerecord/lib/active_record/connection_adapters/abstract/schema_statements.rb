@@ -1782,11 +1782,14 @@ module ActiveRecord
         end
 
         def index_column_names(column_names)
-          if expression_column_name?(column_names)
-            column_names
-          else
-            Array(column_names)
-          end
+          column_names = Array(column_names)
+          return column_names.join(", ") if has_expression_column_name?(column_names)
+
+          column_names
+        end
+
+        def has_expression_column_name?(column_names)
+          column_names.any? { |name| expression_column_name?(name) }
         end
 
         def index_name_options(column_names)

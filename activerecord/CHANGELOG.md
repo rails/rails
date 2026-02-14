@@ -1,3 +1,19 @@
+*   Fix handling of expressions in array syntax for `add_index`.
+
+    This change allows passing expressions in array syntax for `add_index` method.
+    For example, `add_index :users, [ "lower(email)" ]` now works the same as
+    `add_index :users, "lower(email)"`.
+
+    ```ruby
+    # This now works properly:
+    add_index :users, [ "lower(email)" ]
+
+    # As does this:
+    add_index :users, [ "lower(email)", :status ]
+    ```
+
+    *Alexandre Camillo*
+
 *   Add `implicit_persistence_transaction` hook for customizing transaction behavior.
 
     A new protected method `implicit_persistence_transaction` has been added that wraps
