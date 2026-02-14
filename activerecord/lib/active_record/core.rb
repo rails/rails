@@ -696,7 +696,9 @@ module ActiveRecord
 
     # Returns +true+ if the record is in strict_loading mode.
     def strict_loading?
-      @strict_loading
+      return @strict_loading if defined?(@strict_loading)
+
+      self.class.strict_loading_by_default
     end
 
     # Sets the record to strict_loading mode. This will raise an error
@@ -855,7 +857,6 @@ module ActiveRecord
         klass = self.class
 
         @primary_key         = klass.primary_key
-        @strict_loading      = klass.strict_loading_by_default
         @strict_loading_mode = klass.strict_loading_mode
 
         klass.define_attribute_methods
