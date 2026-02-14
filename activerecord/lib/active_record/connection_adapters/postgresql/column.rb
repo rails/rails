@@ -75,11 +75,13 @@ module ActiveRecord
         alias :eql? :==
 
         def hash
-          Column.hash ^
-            super.hash ^
-            identity?.hash ^
-            serial?.hash ^
-            virtual?.hash
+          [
+            Column,
+            super,
+            @identity,
+            @serial,
+            @virtual,
+          ].hash
         end
       end
     end
