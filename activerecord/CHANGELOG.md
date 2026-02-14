@@ -1,3 +1,14 @@
+*   Fix column deduplication for SQLite3 and PostgreSQL virtual (generated) columns.
+
+    `Column#==` and `Column#hash` now account for `virtual?` so that the
+    `Deduplicable` registry does not treat a generated column and a regular
+    column with the same name and type as identical. Previously, if a
+    generated column was registered first, a regular column on a different
+    table could be deduplicated to the generated instance, silently
+    excluding it from INSERT/UPDATE statements.
+
+    *Jay Huber*
+
 *   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
 
         # before
