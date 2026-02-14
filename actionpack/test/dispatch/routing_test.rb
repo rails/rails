@@ -5163,7 +5163,7 @@ class FlashRedirectTest < ActionDispatch::IntegrationTest
     ActiveSupport::KeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33", iterations: 1000)
   )
   Rotations = ActiveSupport::Messages::RotationConfiguration.new
-  SIGNED_COOKIE_SALT = "signed cookie"
+  ENCRYPTED_COOKIE_SALT = "encrypted cookie"
   ENCRYPTED_SIGNED_COOKIE_SALT = "signed encrypted cookie"
 
   class KeyGeneratorMiddleware
@@ -5174,7 +5174,7 @@ class FlashRedirectTest < ActionDispatch::IntegrationTest
     def call(env)
       env["action_dispatch.key_generator"] ||= Generator
       env["action_dispatch.cookies_rotations"] ||= Rotations
-      env["action_dispatch.signed_cookie_salt"] = SIGNED_COOKIE_SALT
+      env["action_dispatch.encrypted_cookie_salt"] = ENCRYPTED_COOKIE_SALT
       env["action_dispatch.encrypted_signed_cookie_salt"] = ENCRYPTED_SIGNED_COOKIE_SALT
 
       @app.call(env)
