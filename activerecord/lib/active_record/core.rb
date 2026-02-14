@@ -653,7 +653,7 @@ module ActiveRecord
       id = self.id
 
       if self.class.composite_primary_key? ? primary_key_values_present? : id
-        self.class.hash ^ id.hash
+        [self.class, id].hash
       else
         super
       end

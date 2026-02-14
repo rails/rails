@@ -52,11 +52,13 @@ module ActiveRecord
         alias :eql? :==
 
         def hash
-          Column.hash ^
-            super.hash ^
-            auto_increment?.hash ^
-            rowid.hash ^
-            virtual?.hash
+          [
+            Column,
+            super,
+            @auto_increment,
+            @rowid,
+            @virtual,
+          ].hash
         end
       end
     end
