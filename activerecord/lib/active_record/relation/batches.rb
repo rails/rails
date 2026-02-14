@@ -484,6 +484,7 @@ module ActiveRecord
               # batch size.
               break
             elsif remaining < batch_limit
+              batch_limit = remaining
               relation = relation.limit(remaining)
             end
           end
