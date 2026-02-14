@@ -833,7 +833,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_gitignore_appends_storage_entries_when_active_storage_is_skippped
+  def test_gitignore_appends_storage_entries_when_active_storage_is_skipped
     generator [destination_root], ["--skip-active-storage"]
     run_generator_instance
 
@@ -1391,7 +1391,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_dockerignore_appends_storage_entries_when_active_storage_is_skippped
+  def test_dockerignore_appends_storage_entries_when_active_storage_is_skipped
     generator [destination_root], ["--skip-active-storage"]
     run_generator_instance
 
