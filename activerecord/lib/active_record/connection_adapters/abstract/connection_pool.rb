@@ -1272,6 +1272,16 @@ module ActiveRecord
 
         def checkout_and_verify(c)
           c.clean!
+
+          # Any leased connection must be in @connections otherwise
+          # some methods like #connected? won't behave correctly.
+          synchronize do
+            unless @connections.include?(c)
+              @connections << c
+            end
+          end
+
+          c
         rescue Exception
           remove c
           c.disconnect!
