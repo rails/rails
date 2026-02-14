@@ -1,3 +1,28 @@
+*   Fix PostgreSQL schema dumping to emit all foreign keys after all tables.
+
+        # before
+        create_table "aaa.cross_schema_fk_table", force: :cascade do |t|
+          t.integer "referenced_table_id"
+        end
+        # foreign key is emitted before the referenced table
+        add_foreign_key "aaa.cross_schema_fk_table", "bbb.referenced_table"
+
+        create_table "bbb.referenced_table", force: :cascade do |t|
+        end
+
+        # after
+        create_table "test_schema.cross_schema_fk_table", force: :cascade do |t|
+          t.integer "referenced_table_id"
+        end
+
+        create_table "test_schema2.referenced_table", force: :cascade do |t|
+        end
+
+        # all tables are emitted before the foreign keys
+        add_foreign_key "test_schema.cross_schema_fk_table", "test_schema2.referenced_table"
+
+    *Chiperific*
+
 *   Add `implicit_persistence_transaction` hook for customizing transaction behavior.
 
     A new protected method `implicit_persistence_transaction` has been added that wraps

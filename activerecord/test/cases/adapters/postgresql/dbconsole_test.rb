@@ -10,10 +10,14 @@ module ActiveRecord
 
       ENV_VARS = %w(PGUSER PGHOST PGPORT PGPASSWORD PGSSLMODE PGSSLCERT PGSSLKEY PGSSLROOTCERT PGOPTIONS)
 
-      def run(*)
-        preserve_pg_env do
-          super
-        end
+      def setup
+        super
+        @old_pg_env_values = ENV_VARS.index_with { |var| ENV[var] }
+      end
+
+      def teardown
+        @old_pg_env_values.each { |var, value| ENV[var] = value }
+        super
       end
 
       def test_postgresql
@@ -90,13 +94,6 @@ module ActiveRecord
       end
 
       private
-        def preserve_pg_env
-          old_values = ENV_VARS.map { |var| ENV[var] }
-          yield
-        ensure
-          ENV_VARS.zip(old_values).each { |var, value| ENV[var] = value }
-        end
-
         def make_db_config(config)
           ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", config)
         end
