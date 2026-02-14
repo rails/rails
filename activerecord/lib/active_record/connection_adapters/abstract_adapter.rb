@@ -611,6 +611,10 @@ module ActiveRecord
         false
       end
 
+      def supports_native_distinct_on?
+        false
+      end
+
       def return_value_after_insert?(column) # :nodoc:
         column.auto_populated?
       end
