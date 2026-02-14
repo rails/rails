@@ -1,3 +1,21 @@
+*   Allow to pass array values to `in_order_of`
+
+    Passing arrays allows to group records and order those groups with another query:
+
+    ```rb
+    Posts
+      .in_order_of(:state, [[:published, :canceled], :archived])
+      .order(created_at: :desc)
+    # =>
+    # SELECT "posts".* FROM "posts" WHERE "posts"."state" IN (1, 2, 3)
+    # ORDER BY CASE
+    #   WHEN "posts"."state" IN (1, 2) THEN 1
+    #   WHEN "posts"."state" = 3 THEN 2
+    #  END ASC, "posts"."created_at" DESC
+    ```
+
+    *Markus Doits*
+
 *   Add `implicit_persistence_transaction` hook for customizing transaction behavior.
 
     A new protected method `implicit_persistence_transaction` has been added that wraps
