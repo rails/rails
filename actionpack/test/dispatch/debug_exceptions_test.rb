@@ -247,6 +247,12 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/ActionDispatch::Http::MimeNegotiation::InvalidType/, body)
   end
 
+  test "rescue with 405 for actual invalid HTTP method" do
+    @app = DevelopmentApp
+    process(:INVALID_METHOD, "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => :all })
+    assert_response 405
+  end
+
   test "rescue with text error for xhr request" do
     @app = DevelopmentApp
     xhr_request_env = { "action_dispatch.show_exceptions" => :all, "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest" }
