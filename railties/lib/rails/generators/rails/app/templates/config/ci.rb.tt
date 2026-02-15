@@ -9,8 +9,8 @@ CI.run do
 <% unless options.skip_bundler_audit? -%>
   step "Security: Gem audit", "bin/bundler-audit"
 <% end -%>
-<% if using_node? -%>
-  step "Security: Yarn vulnerability audit", "yarn audit"
+<% if using_js_runtime? && package_audit_command -%>
+  step "Security: Package vulnerability audit", "<%= package_audit_command %>"
 <% end -%>
 <% if using_importmap? -%>
   step "Security: Importmap vulnerability audit", "bin/importmap audit"
