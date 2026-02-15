@@ -94,6 +94,16 @@ module ActiveRecord
           end
         end
 
+        def triggers(table_name)
+          query_values(<<~SQL, "SCHEMA")
+            SELECT sql FROM sqlite_master
+            WHERE type = 'trigger' AND tbl_name = #{quote(table_name)}
+            UNION ALL
+            SELECT sql FROM sqlite_temp_master
+            WHERE type = 'trigger' AND tbl_name = #{quote(table_name)}
+          SQL
+        end
+
         def add_check_constraint(table_name, expression, **options)
           alter_table(table_name) do |definition|
             definition.check_constraint(expression, **options)

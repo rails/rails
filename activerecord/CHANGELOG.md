@@ -1,3 +1,13 @@
+*   SQLite3: Preserve triggers on a table when altering it.
+
+    Previously, triggers on a SQLite3 table were silently dropped when
+    the table was altered (e.g., adding/removing columns, foreign keys).
+    This happened because SQLite requires table recreation for many ALTER
+    operations, and triggers are automatically dropped when the original
+    table is dropped.
+
+    *Viacheslav Nepomniashchikh*
+
 *   Add `implicit_persistence_transaction` hook for customizing transaction behavior.
 
     A new protected method `implicit_persistence_transaction` has been added that wraps

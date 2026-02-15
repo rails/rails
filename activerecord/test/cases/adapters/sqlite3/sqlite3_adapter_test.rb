@@ -1327,6 +1327,129 @@ module ActiveRecord
         conn.disconnect! if conn
       end
 
+      def test_alter_table_preserves_triggers
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :posts do |t|
+          t.string :title, null: false
+          t.string :subtitle
+          t.integer :view_count, default: 0
+        end
+
+        conn.execute(<<~SQL)
+          CREATE TRIGGER increment_view_count AFTER INSERT ON posts
+          BEGIN
+            UPDATE posts SET view_count = view_count + 1 WHERE id = NEW.id;
+          END
+        SQL
+
+        trigger_count_before = conn.select_value("SELECT COUNT(*) FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'posts'")
+        assert_equal 1, trigger_count_before
+
+        conn.remove_column :posts, :subtitle
+
+        trigger_count_after = conn.select_value("SELECT COUNT(*) FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'posts'")
+        assert_equal 1, trigger_count_after, "Trigger was dropped when column was removed!"
+
+        trigger_name = conn.select_value("SELECT name FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'posts'")
+        assert_equal "increment_view_count", trigger_name
+      ensure
+        conn.disconnect! if conn
+      end
+
+      def test_alter_table_preserves_triggers_on_remove_column
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :posts do |t|
+          t.string :title, null: false
+          t.string :subtitle
+          t.integer :view_count, default: 0
+        end
+
+        conn.execute(<<~SQL)
+          CREATE TRIGGER increment_view_count AFTER INSERT ON posts
+          BEGIN
+            UPDATE posts SET view_count = view_count + 1 WHERE id = NEW.id;
+          END
+        SQL
+
+        conn.remove_column :posts, :subtitle
+
+        trigger_count = conn.select_value("SELECT COUNT(*) FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'posts'")
+        assert_equal 1, trigger_count, "Trigger was dropped when column was removed!"
+      ensure
+        conn.disconnect! if conn
+      end
+
+      def test_alter_table_preserves_multiple_triggers
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :posts do |t|
+          t.string :title, null: false
+          t.string :subtitle
+          t.integer :view_count, default: 0
+          t.string :updated_by
+        end
+
+        conn.execute(<<~SQL)
+          CREATE TRIGGER increment_view_count AFTER INSERT ON posts
+          BEGIN
+            UPDATE posts SET view_count = view_count + 1 WHERE id = NEW.id;
+          END
+        SQL
+
+        conn.execute(<<~SQL)
+          CREATE TRIGGER track_updates AFTER UPDATE ON posts
+          BEGIN
+            UPDATE posts SET updated_by = 'system' WHERE id = NEW.id;
+          END
+        SQL
+
+        trigger_count_before = conn.select_value("SELECT COUNT(*) FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'posts'")
+        assert_equal 2, trigger_count_before
+
+        conn.remove_column :posts, :subtitle
+
+        trigger_count_after = conn.select_value("SELECT COUNT(*) FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'posts'")
+        assert_equal 2, trigger_count_after, "Triggers were dropped when column was removed!"
+
+        trigger_names = conn.select_values("SELECT name FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'posts' ORDER BY name")
+        assert_equal ["increment_view_count", "track_updates"], trigger_names
+      ensure
+        conn.disconnect! if conn
+      end
+
+      def test_alter_table_preserves_trigger_with_add_foreign_key
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :authors do |t|
+          t.string :name, null: false
+        end
+
+        conn.create_table :posts do |t|
+          t.string :title, null: false
+          t.integer :author_id
+          t.integer :view_count, default: 0
+        end
+
+        conn.execute(<<~SQL)
+          CREATE TRIGGER increment_view_count AFTER INSERT ON posts
+          BEGIN
+            UPDATE posts SET view_count = view_count + 1 WHERE id = NEW.id;
+          END
+        SQL
+
+        conn.add_foreign_key :posts, :authors
+
+        trigger_count = conn.select_value("SELECT COUNT(*) FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'posts'")
+        assert_equal 1, trigger_count, "Trigger was dropped when foreign key was added!"
+
+        fk_count = conn.foreign_keys(:posts).size
+        assert_equal 1, fk_count, "Foreign key was not added!"
+      ensure
+        conn.disconnect! if conn
+      end
+
       private
         def with_rails_root(&block)
           mod = Module.new do
