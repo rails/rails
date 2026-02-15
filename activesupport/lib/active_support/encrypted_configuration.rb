@@ -49,6 +49,12 @@ module ActiveSupport
       end
     end
 
+    class DecryptionError < RuntimeError
+      def initialize(content_path)
+        super "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
+      end
+    end
+
     delegate_missing_to :options
 
     def initialize(config_path:, key_path:, env_key:, raise_if_missing_key:)
@@ -118,6 +124,8 @@ module ActiveSupport
     rescue ActiveSupport::EncryptedFile::MissingContentError
       # Allow a config to be started without a file present
       ""
+    rescue ActiveSupport::MessageEncryptor::InvalidMessage
+      raise DecryptionError.new(content_path)
     end
 
     def validate! # :nodoc:
