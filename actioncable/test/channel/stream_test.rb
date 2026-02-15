@@ -5,6 +5,7 @@ require "minitest/mock"
 require "stubs/test_connection"
 require "stubs/room"
 require "concurrent/atomic/cyclic_barrier"
+require "concurrent"
 
 module ActionCable::StreamTests
   class Connection < ActionCable::Connection::Base
@@ -52,6 +53,49 @@ module ActionCable::StreamTests
     end
   end
 
+  class StreamHandlerOverrideChannel < ActionCable::Channel::Base
+    attr_reader :handled_message, :stream_handler_args, :stream_handler_ran
+    attr_accessor :handled_event
+
+    def subscribed
+      stream_from "stream_handler_override", coder: DummyEncoder do |message|
+        @handled_message = message
+        handled_event&.set
+      end
+    end
+
+    private
+      def stream_handler(broadcasting, user_handler, coder: nil)
+        @stream_handler_args = { broadcasting: broadcasting, user_handler: user_handler, coder: coder }
+        handler = super
+
+        -> message do
+          @stream_handler_ran = true
+          handler.call(message)
+        end
+      end
+  end
+
+  class DefaultStreamHandlerOverrideChannel < ActionCable::Channel::Base
+    attr_reader :handled_message, :default_handler_args
+    attr_accessor :handled_event
+
+    def subscribed
+      stream_from "default_stream_handler_override", coder: DummyEncoder
+    end
+
+    private
+      def default_stream_handler(broadcasting, coder:)
+        @default_handler_args = { broadcasting: broadcasting, coder: coder }
+        decoder = stream_decoder(coder: coder)
+
+        -> message do
+          @handled_message = decoder.call(message)
+          handled_event&.set
+        end
+      end
+  end
+
   class StreamTest < ActionCable::TestCase
     test "streaming start and stop" do
       run_in_eventmachine do
@@ -73,6 +117,28 @@ module ActionCable::StreamTests
       end
     end
 
+    test "stream_handler override receives coder and wraps the user handler" do
+      run_in_eventmachine do
+        connection = TestConnection.new
+
+        handled = Concurrent::Event.new
+        channel = StreamHandlerOverrideChannel.new connection, "{id: 1}"
+        channel.handled_event = handled
+        channel.subscribe_to_channel
+        wait_for_async
+
+        handler = subscribers_of(connection)["stream_handler_override"].first
+        handler.call("payload")
+        assert handled.wait(2), "Stream handler did not process the message in time"
+
+        assert_equal "stream_handler_override", channel.stream_handler_args[:broadcasting]
+        assert_instance_of Proc, channel.stream_handler_args[:user_handler]
+        assert_equal DummyEncoder, channel.stream_handler_args[:coder]
+        assert channel.stream_handler_ran
+        assert_equal({ foo: "decoded" }, channel.handled_message)
+      end
+    end
+
     test "stream from non-string channel" do
       run_in_eventmachine do
         connection = TestConnection.new
@@ -91,6 +157,26 @@ module ActionCable::StreamTests
         end
 
         assert pubsub.verify
+      end
+    end
+
+    test "default_stream_handler override receives coder and handles messages" do
+      run_in_eventmachine do
+        connection = TestConnection.new
+
+        handled = Concurrent::Event.new
+        channel = DefaultStreamHandlerOverrideChannel.new connection, "{id: 1}"
+        channel.handled_event = handled
+        channel.subscribe_to_channel
+        wait_for_async
+
+        handler = subscribers_of(connection)["default_stream_handler_override"].first
+        handler.call("payload")
+        assert handled.wait(2), "Default stream handler did not process the message in time"
+
+        assert_equal "default_stream_handler_override", channel.default_handler_args[:broadcasting]
+        assert_equal DummyEncoder, channel.default_handler_args[:coder]
+        assert_equal({ foo: "decoded" }, channel.handled_message)
       end
     end
 
