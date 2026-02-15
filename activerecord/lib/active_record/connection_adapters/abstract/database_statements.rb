@@ -68,7 +68,7 @@ module ActiveRecord
       end
 
       # Returns an ActiveRecord::Result instance.
-      def select_all(arel, name = nil, binds = [], preparable: nil, async: false, allow_retry: false)
+      def select_all(arel, name = nil, binds = [], preparable: nil, async: false, allow_retry: false, filter: nil)
         arel = arel_from_relation(arel)
         intent = QueryIntent.new(
           adapter: self,
@@ -77,7 +77,8 @@ module ActiveRecord
           binds: binds,
           prepare: preparable,
           allow_async: async,
-          allow_retry: allow_retry
+          allow_retry: allow_retry,
+          filter: filter,
         )
 
         intent.execute!
@@ -654,7 +655,7 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        def internal_build_intent(sql, name = "SQL", binds = [], prepare: false, allow_retry: false, materialize_transactions: true, &block)
+        def internal_build_intent(sql, name = "SQL", binds = [], prepare: false, allow_retry: false, materialize_transactions: true, filter: nil, &block)
           QueryIntent.new(
             adapter: self,
             raw_sql: sql,
@@ -662,7 +663,8 @@ module ActiveRecord
             binds: binds,
             prepare: prepare,
             allow_retry: allow_retry,
-            materialize_transactions: materialize_transactions
+            materialize_transactions: materialize_transactions,
+            filter: filter,
           )
         end
 

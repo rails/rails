@@ -8,7 +8,6 @@ module ActiveRecord
     extend ActiveSupport::Autoload
 
     eager_autoload do
-      autoload :AutoFilteredParameters
       autoload :Cipher
       autoload :Config
       autoload :Configurable

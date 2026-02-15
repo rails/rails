@@ -51,7 +51,7 @@ module ApplicationTests
         self.filter_attributes += [:special_attr]
       end
 
-      assert_includes Rails.application.config.filter_parameters, "message.special_attr"
+      assert_includes ActiveSupport.filter_parameters, "message.special_attr"
     end
 
     test "filter_parameters include filter_attributes for AR::Base subclasses" do
@@ -65,7 +65,7 @@ module ApplicationTests
 
       Message.filter_attributes += [ :special_attr ]
 
-      assert_includes Rails.application.config.filter_parameters, "message.special_attr"
+      assert_includes ActiveSupport.filter_parameters, "message.special_attr"
     end
 
     test "filter_parameters are inherited from AR parent classes" do
@@ -86,7 +86,7 @@ module ApplicationTests
           self.filter_attributes += [ "digits" ]
         end
 
-        assert_equal ["generic_filtered", "credit_card.expires_at", "credit_card.digits"], Rails.application.config.filter_parameters
+        assert_equal ["generic_filtered", "expires_at", "credit_card.digits"], ActiveSupport.filter_parameters
       ensure
         ActiveRecord::Base.filter_attributes = previous_attributes
         Rails.application.config.filter_parameters = previous_filter_parameters

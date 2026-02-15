@@ -366,9 +366,19 @@ module ActiveRecord
           Base.filter_attributes
         end
         changes = @filter_attributes = filter_attributes
-
         changes -= previous if previous
-        FilterAttributeHandler.sensitive_attribute_was_declared(self, changes)
+        changes.each do |attribute|
+          param = filter_param(attribute)
+          ActiveSupport.filter_parameters << param unless param.in?(ActiveSupport.filter_parameters) || attribute.in?(ActiveSupport.filter_parameters)
+        end
+      end
+
+      def filter_param(attribute) # :nodoc:
+        if self == Base || abstract_class? || !name
+          attribute
+        else
+          "#{model_name.element}.#{attribute}"
+        end
       end
 
       def inspection_filter # :nodoc:

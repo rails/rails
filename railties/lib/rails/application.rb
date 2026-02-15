@@ -775,11 +775,10 @@ module Rails
 
       def filter_parameters
         if config.precompile_filter_parameters
-          config.filter_parameters.replace(
-            ActiveSupport::ParameterFilter.precompile_filters(config.filter_parameters)
-          )
+          ActiveSupport.filter_parameters =
+            ActiveSupport::ParameterFilter.precompile_filters(ActiveSupport.filter_parameters)
         end
-        config.filter_parameters
+        ActiveSupport.filter_parameters
       end
   end
 end
