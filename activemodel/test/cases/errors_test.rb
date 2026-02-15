@@ -748,6 +748,10 @@ class ErrorsTest < ActiveModel::TestCase
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:base)
 
-    assert_equal(%(#<ActiveModel::Errors [#{errors.first.inspect}]>), errors.inspect)
+    if RUBY_VERSION >= "4.0"
+      assert_match(/\A#<ActiveModel::Errors:0x[0-9a-f]+ @errors=\[#<ActiveModel::Error/, errors.inspect)
+    else
+      assert_equal(%(#<ActiveModel::Errors [#{errors.first.inspect}]>), errors.inspect)
+    end
   end
 end

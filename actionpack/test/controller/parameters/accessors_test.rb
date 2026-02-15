@@ -410,18 +410,31 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
       },
     }
 
-    assert_equal(
-      "#<ActionController::Parameters #{hash} permitted: false>",
-      @params.inspect
-    )
+    if RUBY_VERSION >= "4.0"
+      assert_match(/\A#<ActionController::Parameters:0x[0-9a-f]+ @parameters=/, @params.inspect)
+      assert_match(/@permitted=false/, @params.inspect)
+    else
+      assert_equal(
+        "#<ActionController::Parameters #{hash} permitted: false>",
+        @params.inspect
+      )
+    end
   end
 
   test "inspect prints updated permitted flag in the output" do
-    assert_match(/permitted: false/, @params.inspect)
+    if RUBY_VERSION >= "4.0"
+      assert_match(/@permitted=false/, @params.inspect)
 
-    @params.permit!
+      @params.permit!
 
-    assert_match(/permitted: true/, @params.inspect)
+      assert_match(/@permitted=true/, @params.inspect)
+    else
+      assert_match(/permitted: false/, @params.inspect)
+
+      @params.permit!
+
+      assert_match(/permitted: true/, @params.inspect)
+    end
   end
 
   test "#dig delegates the dig method to its values" do

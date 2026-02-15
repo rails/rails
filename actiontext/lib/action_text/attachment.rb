@@ -128,8 +128,14 @@ module ActionText
       to_html
     end
 
-    def inspect
-      "#<#{self.class.name} attachable=#{attachable.inspect}>"
+    if RUBY_VERSION >= "4.0"
+      def instance_variables_to_inspect # :nodoc:
+        [:@attachable]
+      end
+    else
+      def inspect
+        "#<#{self.class.name} attachable=#{attachable.inspect}>"
+      end
     end
 
     private

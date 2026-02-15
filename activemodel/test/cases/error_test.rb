@@ -252,4 +252,15 @@ class ErrorTest < ActiveModel::TestCase
 
     assert_equal({ error: :invalid, foo: :bar }, error.details)
   end
+
+  test "inspect" do
+    person = Person.new
+    error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+
+    if RUBY_VERSION >= "4.0"
+      assert_match(/\A#<ActiveModel::Error:0x[0-9a-f]+ @attribute=:name, @type=:too_short, @options=#{Regexp.escape({ count: 5 }.inspect)}>\z/, error.inspect)
+    else
+      assert_equal "#<ActiveModel::Error attribute=name, type=too_short, options=#{({ count: 5 }).inspect}>", error.inspect
+    end
+  end
 end

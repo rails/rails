@@ -128,6 +128,19 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
+    test "inspect shows options and redis" do
+      store = build(url: REDIS_URL)
+
+      if RUBY_VERSION >= "4.0"
+        assert_match(/@options=/, store.inspect)
+        assert_match(/@redis=/, store.inspect)
+        assert_match(/\A#<ActiveSupport::Cache::RedisCacheStore:0x[0-9a-f]+/, store.inspect)
+      else
+        assert_match(/redis=/, store.inspect)
+        assert_match(/\A#<ActiveSupport::Cache::RedisCacheStore options=/, store.inspect)
+      end
+    end
+
     private
       def build(**kwargs)
         ActiveSupport::Cache::RedisCacheStore.new(pool: false, **kwargs).tap(&:redis)

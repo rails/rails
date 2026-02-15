@@ -195,8 +195,14 @@ module ActiveModel
       attributes_for_hash.hash
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name} attribute=#{@attribute}, type=#{@type}, options=#{@options.inspect}>"
+    if RUBY_VERSION >= "4.0"
+      def instance_variables_to_inspect # :nodoc:
+        [:@attribute, :@type, :@options]
+      end
+    else
+      def inspect # :nodoc:
+        "#<#{self.class.name} attribute=#{@attribute}, type=#{@type}, options=#{@options.inspect}>"
+      end
     end
 
     protected

@@ -34,8 +34,14 @@ module ActiveSupport
       def delete_matched(matcher, options = nil)
       end
 
-      def inspect # :nodoc:
-        "#<#{self.class.name} options=#{@options.inspect}>"
+      if RUBY_VERSION >= "4.0"
+        def instance_variables_to_inspect # :nodoc:
+          [:@options]
+        end
+      else
+        def inspect # :nodoc:
+          "#<#{self.class.name} options=#{@options.inspect}>"
+        end
       end
 
       private

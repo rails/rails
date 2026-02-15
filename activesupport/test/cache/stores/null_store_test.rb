@@ -68,6 +68,18 @@ class NullStoreTest < ActiveSupport::TestCase
     assert_nil @cache.read("name")
   end
 
+  def test_inspect_shows_options
+    expected_options = @cache.options.inspect
+
+    if RUBY_VERSION >= "4.0"
+      assert_match(/\A#<ActiveSupport::Cache::NullStore:0x[0-9a-f]+/, @cache.inspect)
+      assert_match("@options=#{expected_options}", @cache.inspect)
+    else
+      assert_match("ActiveSupport::Cache::NullStore", @cache.inspect)
+      assert_match("options=#{expected_options}", @cache.inspect)
+    end
+  end
+
   def test_local_store_strategy
     @cache.with_local_cache do
       @cache.write("name", "value")
