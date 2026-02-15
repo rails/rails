@@ -1,3 +1,17 @@
+*   Add `delete: true` option to `Rails.cache.read` for atomic read-and-delete (only supported by Redis cache store).
+
+    Uses the Redis [GETDEL](https://redis.io/docs/latest/commands/getdel/) command to atomically return a cached value and remove
+    it in a single operation. Useful for single-use values like OTP codes or
+    one-time tokens.
+
+    ```ruby
+    Rails.cache.write("otp", "123456")
+    Rails.cache.read("otp", delete: true)  # => "123456"
+    Rails.cache.read("otp")                # => nil
+    ```
+
+    *Glauco Custodio*
+
 *   Removed the deprecated `ActiveSupport::Multibyte::Chars` class.
 
     As well as `String#mb_chars`

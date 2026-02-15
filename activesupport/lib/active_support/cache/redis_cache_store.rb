@@ -34,6 +34,13 @@ module ActiveSupport
     # * +read_multi+ and +write_multi+ support for Redis mget/mset. Use
     #   +Redis::Distributed+ 4.0.1+ for distributed mget support.
     # * +delete_matched+ support for Redis KEYS globs.
+    # * +read+ supports <tt>delete: true</tt> to atomically read and delete
+    #   a cache entry using the Redis +GETDEL+ command.
+    #
+    #     cache.write("greeting", "hello")
+    #     cache.read("greeting", delete: true)  # => "hello"
+    #     cache.read("greeting")                 # => nil
+    #
     class RedisCacheStore < Store
       DEFAULT_REDIS_OPTIONS = {
         connect_timeout:    1,
@@ -342,7 +349,7 @@ module ActiveSupport
 
         def read_serialized_entry(key, raw: false, **options)
           failsafe :read_entry do
-            redis.then { |c| c.get(key) }
+            redis.then { |c| options[:delete] ? c.getdel(key) : c.get(key) }
           end
         end
 
