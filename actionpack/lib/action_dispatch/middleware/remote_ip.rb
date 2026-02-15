@@ -166,7 +166,7 @@ module ActionDispatch
 
         # If every single IP option is in the trusted list, return the IP that's
         # furthest away
-        filter_proxies(ips + [remote_addr]).first || ips.last || remote_addr
+        first_non_proxy(ips + [remote_addr]) || ips.last || remote_addr
       end
 
       # Memoizes the value returned by #calculate_ip and returns it for
@@ -194,9 +194,12 @@ module ActionDispatch
         ips
       end
 
-      def filter_proxies(ips) # :doc:
-        ips.reject do |ip|
-          @proxies.any? { |proxy| proxy === ip }
+      def first_non_proxy(ips) # :doc:
+        ips.find do |ip|
+          return unless ip
+
+          ip = IPAddr.new(ip) if @proxies.all?(IPAddr)
+          @proxies.none? { |proxy| proxy === ip }
         end
       end
     end
