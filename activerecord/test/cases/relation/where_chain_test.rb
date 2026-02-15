@@ -9,10 +9,12 @@ require "models/comment"
 require "models/categorization"
 require "models/book"
 require "models/cpk"
+require "models/person"
+require "models/friendship"
 
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
-    fixtures :posts, :comments, :authors, :humans, :essays, :author_addresses, :books
+    fixtures :posts, :comments, :authors, :humans, :essays, :author_addresses, :books, :people, :friendships
 
     def test_associated_with_association
       Post.where.associated(:author).tap do |relation|
@@ -130,6 +132,31 @@ module ActiveRecord
       Comment.where.missing(:children).tap do |relation|
         assert_includes     relation, comments(:more_greetings)
         assert_not_includes relation, comments(:greetings)
+      end
+    end
+
+    def test_missing_with_self_referential_has_many_through
+      # Person has_many :followers, through: :friendships
+      # This is a self-join: Person -> Friendship -> Person
+      # Michael (id: 1) has followers via the friendship fixture
+      # David (id: 2) and Susan (id: 3) have no followers
+      Person.where.missing(:followers).tap do |relation|
+        assert_not_includes relation, people(:michael)
+        assert_includes     relation, people(:david)
+        assert_includes     relation, people(:susan)
+      end
+    end
+
+    def test_missing_with_self_referential_has_many
+      # Person has_many :agents, class_name: "Person", foreign_key: "primary_contact_id"
+      # This is a direct self-join without :through
+      # Michael is primary_contact for nobody
+      # David is primary_contact for Michael and Susan
+      # Susan is primary_contact for David
+      Person.where.missing(:agents).tap do |relation|
+        assert_includes     relation, people(:michael)
+        assert_not_includes relation, people(:david)
+        assert_not_includes relation, people(:susan)
       end
     end
 
