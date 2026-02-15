@@ -11,7 +11,7 @@ module ActiveRecord # :nodoc:
     end
 
     def serializable_hash(options = nil)
-      if self.class._has_attribute?(self.class.inheritance_column)
+      if self.class._has_attribute?(self.class.inheritance_column) && (self.class.exclude_inheritance_column_from_serializable_hash || include_root_in_json)
         options = options ? options.dup : {}
 
         options[:except] = Array(options[:except]).map(&:to_s)

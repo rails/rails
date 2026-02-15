@@ -3153,6 +3153,28 @@ module ApplicationTests
       assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_bytea
     end
 
+    test "exclude_inheritance_column_from_serializable_hash is false by default for new apps" do
+      app "development"
+
+      assert_equal false, ActiveRecord::Base.exclude_inheritance_column_from_serializable_hash
+    end
+
+    test "exclude_inheritance_column_from_serializable_hash is true by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      app "development"
+
+      assert_equal true, ActiveRecord::Base.exclude_inheritance_column_from_serializable_hash
+    end
+
+    test "exclude_inheritance_column_from_serializable_hash can be configured via config.active_record.exclude_inheritance_column_from_serializable_hash" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config "config.active_record.exclude_inheritance_column_from_serializable_hash = false"
+
+      app "development"
+
+      assert_equal false, ActiveRecord::Base.exclude_inheritance_column_from_serializable_hash
+    end
+
     test "SQLite3Adapter.strict_strings_by_default is true by default for new apps" do
       app_file "config/initializers/active_record.rb", <<~RUBY
         ActiveSupport.on_load(:active_record) do

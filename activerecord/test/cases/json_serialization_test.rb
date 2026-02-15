@@ -135,14 +135,14 @@ class JsonSerializationTest < ActiveRecord::TestCase
     assert_no_match %r{age}, json
   end
 
-  def test_does_not_include_inheritance_column_from_sti
+  def test_excludes_inheritance_column_from_sti_by_default
     @contact = ContactSti.new(@contact.attributes)
     assert_equal "ContactSti", @contact.type
 
     json = @contact.to_json
     assert_match %r{"name":"Konata Izumi"}, json
-    assert_no_match %r{type}, json
-    assert_no_match %r{ContactSti}, json
+    assert_no_match %r{"type"}, json
+    assert_no_match %r{"ContactSti"}, json
   end
 
   def test_serializable_hash_with_default_except_option_and_excluding_inheritance_column_from_sti
@@ -156,8 +156,46 @@ class JsonSerializationTest < ActiveRecord::TestCase
     json = @contact.to_json
     assert_match %r{"name":"Konata Izumi"}, json
     assert_no_match %r{age}, json
-    assert_no_match %r{type}, json
-    assert_no_match %r{ContactSti}, json
+    assert_no_match %r{"type"}, json
+    assert_no_match %r{"ContactSti"}, json
+  end
+
+  def test_inheritance_column_is_included_when_exclude_disabled
+    @contact = ContactSti.new(@contact.attributes)
+    assert_equal "ContactSti", @contact.type
+
+    original_setting = ContactSti.exclude_inheritance_column_from_serializable_hash
+    ContactSti.exclude_inheritance_column_from_serializable_hash = false
+
+    begin
+      set_include_root_in_json(false) do
+        json = @contact.to_json
+        assert_match %r{"name":"Konata Izumi"}, json
+        assert_match %r{"type":"ContactSti"}, json
+      end
+    ensure
+      ContactSti.exclude_inheritance_column_from_serializable_hash = original_setting
+    end
+  end
+
+  def test_inheritance_column_is_excluded_when_include_root_true_even_with_exclude_disabled
+    @contact = ContactSti.new(@contact.attributes)
+    assert_equal "ContactSti", @contact.type
+
+    original_setting = ContactSti.exclude_inheritance_column_from_serializable_hash
+    ContactSti.exclude_inheritance_column_from_serializable_hash = false
+
+    begin
+      set_include_root_in_json(true) do
+        json = @contact.to_json
+        assert_match %r{"contact_sti":\{}, json
+        assert_match %r{"name":"Konata Izumi"}, json
+        assert_no_match %r{"type"}, json
+        assert_no_match %r{"ContactSti"}, json
+      end
+    ensure
+      ContactSti.exclude_inheritance_column_from_serializable_hash = original_setting
+    end
   end
 
   def test_serializable_hash_should_not_modify_options_in_argument
