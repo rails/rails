@@ -8,6 +8,7 @@
 # {Authenticated Controllers}[https://guides.rubyonrails.org/active_storage_overview.html#authenticated-controllers].
 class ActiveStorage::Blobs::RedirectController < ActiveStorage::BaseController
   include ActiveStorage::SetBlob
+  include ActiveStorage::EnsureBlobAccessible
 
   def show
     expires_in ActiveStorage.service_urls_expire_in

@@ -65,6 +65,59 @@ class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDi
     assert_response :not_found
   end
 
+  test "showing variant with blobs not publicly accessible" do
+    ActiveStorage.stub(:blobs_always_publicly_accessible, false) do
+      get rails_blob_representation_proxy_url(
+        filename: @blob.filename,
+        signed_blob_id: @blob.signed_id,
+        variation_key: ActiveStorage::Variation.encode(@transformations))
+    end
+
+    assert_response :forbidden
+  end
+
+  test "showing variant with attachment publicly accessible" do
+    user = User.create!(name: "John")
+    user.public_avatar.attach(@blob)
+
+    ActiveStorage.stub(:blobs_always_publicly_accessible, false) do
+      get rails_blob_representation_proxy_url(
+        filename: @blob.filename,
+        signed_blob_id: @blob.signed_id,
+        variation_key: ActiveStorage::Variation.encode(@transformations))
+
+      assert_response :ok
+    end
+  end
+
+  test "showing variant with conditional publicly accessible attachment that matches" do
+    user = User.create!(name: "PublicUser")
+    user.conditional_public_avatar.attach(@blob)
+
+    ActiveStorage.stub(:blobs_always_publicly_accessible, false) do
+      get rails_blob_representation_proxy_url(
+        filename: @blob.filename,
+        signed_blob_id: @blob.signed_id,
+        variation_key: ActiveStorage::Variation.encode(@transformations))
+
+      assert_response :ok
+    end
+  end
+
+  test "showing variant with conditional publicly accessible attachment that does not match" do
+    user = User.create!(name: "PrivateUser")
+    user.conditional_public_avatar.attach(@blob)
+
+    ActiveStorage.stub(:blobs_always_publicly_accessible, false) do
+      get rails_blob_representation_proxy_url(
+        filename: @blob.filename,
+        signed_blob_id: @blob.signed_id,
+        variation_key: ActiveStorage::Variation.encode(@transformations))
+
+      assert_response :forbidden
+    end
+  end
+
   test "sessions are disabled" do
     get rails_blob_representation_proxy_url(
       disposition: :attachment,
