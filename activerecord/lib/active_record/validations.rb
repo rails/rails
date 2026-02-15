@@ -67,7 +67,12 @@ module ActiveRecord
     # \Validations with no <tt>:on</tt> option will run no matter the context. \Validations with
     # some <tt>:on</tt> option will only run in the specified context.
     def valid?(context = nil)
-      context ||= default_validation_context
+      context ||= if custom_validation_context?
+        validation_context
+      else
+        default_validation_context
+      end
+
       output = super(context)
       errors.empty? && output
     end
