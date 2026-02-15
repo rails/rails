@@ -1,3 +1,9 @@
+*   Add `rfind` delegation to ActiveRecord::Relation.
+
+    Ruby 4.0 adds `Array.rfind` method, add delegate similar to `reverse`, and `rindex`.
+
+    *markokajzer*
+
 *   Add `implicit_persistence_transaction` hook for customizing transaction behavior.
 
     A new protected method `implicit_persistence_transaction` has been added that wraps

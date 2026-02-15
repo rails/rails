@@ -19,6 +19,10 @@ module ActiveRecord
       :intersect?
     ]
 
+    if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("4.0")
+      ARRAY_DELEGATES << :rfind
+    end
+
     ARRAY_DELEGATES.each do |method|
       define_method "test_delegates_#{method}_to_Array" do
         assert_respond_to target, method

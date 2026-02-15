@@ -102,6 +102,10 @@ module ActiveRecord
              :to_sentence, :to_fs, :to_formatted_s, :as_json,
              :shuffle, :split, :slice, :index, :rindex, to: :records
 
+    if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("4.0")
+      delegate :rfind, to: :records
+    end
+
     delegate :primary_key, :with_connection, :connection, :table_name, :transaction, :sanitize_sql_like, :unscoped, :name, to: :model
 
     module ClassSpecificRelation # :nodoc:
