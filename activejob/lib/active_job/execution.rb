@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/rescuable"
+require "active_support/core_ext/object/deep_dup"
 
 module ActiveJob
   # = Active Job \Execution
@@ -12,6 +13,10 @@ module ActiveJob
   module Execution
     extend ActiveSupport::Concern
     include ActiveSupport::Rescuable
+
+    included do
+      class_attribute :protect_retry_arguments, instance_accessor: false, default: false
+    end
 
     # Includes methods for executing and performing jobs instantly.
     module ClassMethods
@@ -65,7 +70,12 @@ module ActiveJob
       def _perform_job
         ActiveSupport::ExecutionContext[:job] = self
         run_callbacks :perform do
-          perform(*arguments)
+          if self.class.protect_retry_arguments
+            protected_arguments = arguments.map(&:deep_dup)
+            perform(*protected_arguments)
+          else
+            perform(*arguments)
+          end
         end
       end
   end
