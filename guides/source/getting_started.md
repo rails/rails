@@ -1896,7 +1896,7 @@ end
 Then we can add a file upload field to our product form before the submit
 button:
 
-```erb#4-7
+```erb#5-8
 <%# app/views/products/_form.html.erb %>
 <%= form_with model: product do |form| %>
   <%# ... %>
@@ -2087,7 +2087,7 @@ $ bin/rails db:migrate
 We'll need to add the inventory count to the product form in
 `app/views/products/_form.html.erb`.
 
-```erb#4-7
+```erb#5-8
 <%# app/views/products/_form.html.erb %>
 <%= form_with model: product do |form| %>
   <%# ... %>
@@ -2174,7 +2174,7 @@ A Product, however, can have many subscribers, so we then add
 second part of this association between the two models. This tells Rails how to
 join queries between the two database tables.
 
-```ruby#2
+```ruby#3
 # app/models/product.rb
 class Product < ApplicationRecord
   has_many :subscribers, dependent: :destroy
@@ -2302,7 +2302,7 @@ method.
 
 Update this method to mail to a subscriber's email address.
 
-```ruby#7-10
+```ruby#8-11
 # app/mailers/product_mailer.rb
 class ProductMailer < ApplicationMailer
   # Subject can be set in your I18n file at config/locales/en.yml
@@ -2517,7 +2517,7 @@ A subscriber may want to unsubscribe at some point, so let's build that next.
 First, we need a route for unsubscribing that will be the URL we include in
 emails.
 
-```ruby#6
+```ruby#7
 # config/routes.rb
 Rails.application.routes.draw do
   # ...
