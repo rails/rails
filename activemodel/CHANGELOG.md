@@ -1,3 +1,10 @@
+*   Add `param_to_key` and `key_to_param` to `ActiveModel::Conversion` for round-tripping
+    between param strings and key arrays depending on class `param_delimiter`.
+
+    Changes instance method `to_param` to rely on `self.class.key_to_param` method.
+
+    *Andrei Makarov*, *Andrii Furmanets*
+
 *   Add `has_json` and `has_delegated_json` to provide schema-enforced access to JSON attributes.
 
     ```ruby
