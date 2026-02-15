@@ -303,7 +303,7 @@ module Rails
         run_generator
 
         assert_devcontainer_json_file do |devcontainer_json|
-          assert_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
+          assert_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/docker-in-docker:2"
           assert_equal "$KAMAL_REGISTRY_PASSWORD", devcontainer_json["containerEnv"]["KAMAL_REGISTRY_PASSWORD"]
         end
       end
@@ -312,7 +312,7 @@ module Rails
         run_generator ["--skip-kamal"]
 
         assert_devcontainer_json_file do |devcontainer_json|
-          assert_not_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
+          assert_not_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/docker-in-docker:2"
           assert_not_includes devcontainer_json["containerEnv"].keys, "KAMAL_REGISTRY_PASSWORD"
         end
       end
