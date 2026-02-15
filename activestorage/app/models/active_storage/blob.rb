@@ -195,22 +195,22 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   # Returns true if the content_type of this blob is in the image range, like image/png.
   def image?
-    content_type.start_with?("image")
+    content_type&.start_with?("image")
   end
 
   # Returns true if the content_type of this blob is in the audio range, like audio/mpeg.
   def audio?
-    content_type.start_with?("audio")
+    content_type&.start_with?("audio")
   end
 
   # Returns true if the content_type of this blob is in the video range, like video/mp4.
   def video?
-    content_type.start_with?("video")
+    content_type&.start_with?("video")
   end
 
   # Returns true if the content_type of this blob is in the text range, like text/plain.
   def text?
-    content_type.start_with?("text")
+    content_type&.start_with?("text")
   end
 
   # Returns the URL of the blob on the service. This returns a permanent URL for public files, and returns a

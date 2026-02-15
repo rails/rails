@@ -24,24 +24,31 @@ module ActiveSupport
     # Find an upcased and double-underscored-joined string-version of the +key+ in ENV.
     # Raises +KeyError+ if not found.
     #
-    # Examples:
+    # Given ENV:
+    #   DB_HOST: "env.example.com"
+    #   DATABASE__HOST: "env.example.com"
     #
-    #   require(:db_host)         # => ENV.fetch("DB_HOST")
-    #   require(:database, :host) # => ENV.fetch("DATABASE__HOST")
+    # Examples:
+    #   require(:db_host)         # => "env.example.com"
+    #   require(:database, :host) # => "env.example.com"
+    #   require(:missing)         # => KeyError
     def require(*key)
       @envs.fetch envify(*key)
     end
 
     # Find an upcased and double-underscored-joined string-version of the +key+ in ENV.
-    # Returns +nil+ if the key isn't found or the value of +default+ when passed.
-    # If +default+ is a callable, it's called first.
+    # Returns +nil+ if the key isn't found.
+    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key.
+    #
+    # Given ENV:
+    #   DB_HOST: "env.example.com"
+    #   DATABASE__HOST: "env.example.com"
     #
     # Examples:
-    #
-    #   option(:db_host)                                    # => ENV["DB_HOST"]
-    #   option(:database, :host)                            # => ENV["DATABASE__HOST"]
-    #   option(:database, :host, default: "missing")        # => ENV.fetch("DATABASE__HOST", "missing")
-    #   option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST") { default.call }
+    #   option(:db_host)                              # => "env.example.com"
+    #   option(:missing)                              # => nil
+    #   option(:missing, default: "localhost")        # => "localhost"
+    #   option(:missing, default: -> { "localhost" }) # => "localhost"
     def option(*key, default: nil)
       if default.respond_to?(:call)
         @envs.fetch(envify(*key)) { default.call }

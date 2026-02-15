@@ -109,5 +109,30 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
       fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :virtual_columns).first
       assert_equal 2, fixtures.size
     end
+
+    def test_virtual_column_does_not_deduplicate_with_regular_column
+      @connection.create_table :regular_columns, force: true do |t|
+        t.string :name
+      end
+
+      regular_model = Class.new(ActiveRecord::Base) { self.table_name = "regular_columns" }
+
+      # Ensure deduplication has seen the virtual column first
+      VirtualColumn.columns_hash
+
+      regular_col = regular_model.columns_hash["name"]
+      virtual_col = VirtualColumn.columns_hash["upper_name"]
+
+      assert_predicate virtual_col, :virtual?
+      assert_not_predicate regular_col, :virtual?
+      assert_not_equal regular_col, virtual_col
+
+      # The regular column must not be excluded from inserts
+      record = regular_model.create!(name: "hello")
+      record.reload
+      assert_equal "hello", record.name
+    ensure
+      @connection.drop_table :regular_columns, if_exists: true
+    end
   end
 end

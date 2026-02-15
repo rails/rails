@@ -69,15 +69,19 @@ module ActiveRecord
           other.is_a?(Column) &&
             super &&
             identity? == other.identity? &&
-            serial? == other.serial?
+            serial? == other.serial? &&
+            virtual? == other.virtual?
         end
         alias :eql? :==
 
         def hash
-          Column.hash ^
-            super.hash ^
-            identity?.hash ^
-            serial?.hash
+          [
+            Column,
+            super,
+            @identity,
+            @serial,
+            @virtual,
+          ].hash
         end
       end
     end
