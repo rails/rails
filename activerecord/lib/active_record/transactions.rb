@@ -389,6 +389,7 @@ module ActiveRecord
     end
 
     def before_committed! # :nodoc:
+      apply_transaction_mutations_before_last_save!
       _run_before_commit_callbacks
     end
 
@@ -409,6 +410,7 @@ module ActiveRecord
     # Call the #after_rollback callbacks. The +force_restore_state+ argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
     def rolledback!(force_restore_state: false, should_run_callbacks: true) # :nodoc:
+      apply_transaction_mutations_before_last_save!
       if should_run_callbacks
         _run_rollback_callbacks
       end
