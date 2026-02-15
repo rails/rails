@@ -181,6 +181,11 @@ module ActiveRecord
 
           having_clause = relation.having_clause.merge(other.having_clause)
           relation.having_clause = having_clause unless having_clause.empty?
+
+          no_clause_merged = [where_clause.empty?, having_clause.empty?, !replace_from_clause?].all?
+          unless no_clause_merged || relation.klass.base_class == other.klass.base_class
+            relation.references_values |= [*other.references_values, Arel.sql(other.table.name)]
+          end
         end
 
         def replace_from_clause?
