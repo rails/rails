@@ -6,8 +6,14 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
   def setup
     ActiveRecord::Base.lease_connection.materialize_transactions
 
+    @executed_sql = []
+
+    executed_sql = @executed_sql
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
-      def execute(sql, name = nil) sql end
+      define_method(:execute) do |sql, name = nil|
+        executed_sql << sql
+        sql
+      end
     end
   end
 
@@ -76,6 +82,14 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
 
     expected = %(CREATE INDEX IF NOT EXISTS "index_people_on_last_name" ON "people" ("last_name"))
     assert_equal expected, add_index(:people, :last_name, if_not_exists: true)
+
+    add_index(:people, :last_name, comment: "test comment")
+    assert_equal %(CREATE INDEX "index_people_on_last_name" ON "people" ("last_name")), @executed_sql[-2]
+    assert_equal %(COMMENT ON INDEX "index_people_on_last_name" IS 'test comment'), @executed_sql[-1]
+
+    add_index("second_schema.people", :id, comment: "test comment")
+    assert_equal %(CREATE INDEX "index_people_on_id" ON "second_schema"."people" ("id")), @executed_sql[-2]
+    assert_equal %(COMMENT ON INDEX "second_schema"."index_people_on_id" IS 'test comment'), @executed_sql[-1]
 
     if supports_nulls_not_distinct?
       expected = %(CREATE INDEX "index_people_on_last_name" ON "people" ("last_name") NULLS NOT DISTINCT)
