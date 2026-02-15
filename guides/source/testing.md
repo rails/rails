@@ -91,6 +91,11 @@ modify our test environment by changing the options found in
 
 NOTE: Your tests are run under `RAILS_ENV=test`. This is set by Rails automatically.
 
+IMPORTANT: Each test should be isolated and not depend on data from other tests.
+Rails uses database transactions to clean up test data, but external services,
+file system changes, or global state may persist between tests. Use setup/teardown
+methods to ensure proper test isolation.
+
 ### Writing Your First Test
 
 We introduced the `bin/rails generate model` command in the [Getting Started

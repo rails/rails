@@ -395,6 +395,11 @@ attributes manually set after creation. The `new` method will return a new,
 non-persisted object, while `create` will save the object to the database and
 return it.
 
+NOTE: Use `create` when you want to save immediately, `new` followed by `save`
+when you need to perform additional operations before saving. Both methods will
+run validations and callbacks unless you use the bang versions (`create!`, `save!`)
+which raise exceptions on validation failure.
+
 For example, given a `Book` model with attributes of `title` and `author`, the
 `create` method call will create an object and save a new record to the
 database:
@@ -541,6 +546,10 @@ book = Book.find_by(title: "The Lord of the Rings")
 book.update(title: "The Lord of the Rings: The Fellowship of the Ring")
 ```
 
+Both `save` and `update` return `false` if validation fails. Use `save!` or `update!`
+to raise an exception instead. Always check the return value or catch exceptions
+when updating records in production code.
+
 the `update` results in the following SQL:
 
 ```sql
@@ -575,6 +584,10 @@ The `destroy` results in this SQL:
 DELETE FROM "books" WHERE "books"."id" = ?  [["id", 104]]
 ```
 
+**Important difference**: `destroy` runs callbacks and validations, while `delete`
+bypasses them entirely. Use `destroy` for normal operations, `delete` only when
+you specifically need to skip callbacks (rare cases).
+
 If you'd like to delete several records in bulk, you may use `destroy_by`
 or `destroy_all` method:
 
@@ -592,6 +605,41 @@ validations**, you can delete records directly from the database using `delete` 
 ```ruby
 Book.find_by(title: "The Lord of the Rings").delete
 Book.delete_all
+```
+
+WARNING: `delete_all` and `delete` methods skip callbacks and validations. This
+can lead to orphaned records and data integrity issues. Use with extreme caution.
+
+Transactions
+------------
+
+Transactions ensure data integrity by grouping multiple database operations.
+If any operation fails, all changes are rolled back.
+
+```ruby
+Book.transaction do
+  book = Book.create!(title: "Transaction Book")
+  author = Author.create!(name: "Author Name")
+  # If either operation fails, both are rolled back
+end
+```
+
+Use transactions when you need multiple operations to succeed or fail together,
+such as transferring money between accounts or creating related records.
+
+**CAUTION:** Transactions don't automatically handle exceptions from non-database
+operations. If you call external APIs or perform file operations within a
+transaction, failures won't trigger rollback. Use proper error handling:
+
+```ruby
+Book.transaction do
+  book = Book.create!(title: "Book")
+  # External API call that might fail
+  ExternalService.notify(book)
+rescue ExternalService::Error
+  # Transaction will be rolled back due to the exception
+  raise ActiveRecord::Rollback
+end
 ```
 
 Validations

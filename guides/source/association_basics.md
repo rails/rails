@@ -99,6 +99,10 @@ class Author < ApplicationRecord
   has_many :books, dependent: :destroy
 end
 
+# Common mistake: using dependent: :delete_all vs :destroy
+# :delete_all - faster, skips callbacks and validations
+# :destroy - slower, runs callbacks and validations (recommended for data integrity)
+
 class Book < ApplicationRecord
   belongs_to :author
 end
