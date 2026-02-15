@@ -2174,7 +2174,7 @@ A Product, however, can have many subscribers, so we then add
 second part of this association between the two models. This tells Rails how to
 join queries between the two database tables.
 
-```ruby#2
+```ruby#3
 # app/models/product.rb
 class Product < ApplicationRecord
   has_many :subscribers, dependent: :destroy
