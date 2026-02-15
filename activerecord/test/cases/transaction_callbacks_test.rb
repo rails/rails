@@ -1085,3 +1085,460 @@ class SetCallbackTest < ActiveRecord::TestCase
     assert_equal expected_history, TopicWithCallbacksOnUpdate.history
   end
 end
+
+class TransactionChangesInAfterCommitCallbacksTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  class TopicWithTransactionChanges < ActiveRecord::Base
+    self.table_name = :topics
+
+    attr_accessor :transaction_changes_log, :transaction_title_change_log
+
+    after_commit do
+      self.transaction_changes_log = transaction_changes.dup
+      self.transaction_title_change_log = transaction_change_to_title
+    end
+  end
+
+  def test_transaction_changes_tracks_full_transaction_with_multiple_saves
+    topic = TopicWithTransactionChanges.create!(title: "Original", written_on: Date.today)
+
+    TopicWithTransactionChanges.transaction do
+      topic.update!(title: "Intermediate")
+      topic.update!(title: "Final")
+    end
+
+    assert_equal ["Original", "Final"], topic.transaction_title_change_log
+    assert_equal ["Original", "Final"], topic.transaction_changes_log["title"]
+  end
+
+  def test_transaction_changes_with_single_save_in_transaction
+    topic = TopicWithTransactionChanges.create!(title: "Original", written_on: Date.today)
+
+    topic.update!(title: "Updated")
+
+    assert_equal ["Original", "Updated"], topic.transaction_title_change_log
+    assert_equal ["Original", "Updated"], topic.transaction_changes_log["title"]
+  end
+
+  def test_transaction_changes_omits_attribute_changed_back_to_original
+    topic = TopicWithTransactionChanges.create!(title: "Original", written_on: Date.today)
+
+    TopicWithTransactionChanges.transaction do
+      topic.update!(title: "Temporary")
+      topic.update!(title: "Original")
+    end
+
+    assert_nil topic.transaction_title_change_log
+    assert_not topic.transaction_changes_log.key?("title")
+  end
+
+  def test_transaction_changes_for_create_in_transaction
+    topic = TopicWithTransactionChanges.create!(title: "Brand New", written_on: Date.today)
+
+    assert_equal [nil, "Brand New"], topic.transaction_title_change_log
+  end
+
+  def test_transaction_changes_for_create_and_update_in_same_transaction
+    topic = nil
+
+    TopicWithTransactionChanges.transaction do
+      topic = TopicWithTransactionChanges.create!(title: "Created", written_on: Date.today)
+      topic.update!(title: "Then Updated")
+    end
+
+    assert_equal [nil, "Then Updated"], topic.transaction_title_change_log
+  end
+
+  def test_transaction_changes_not_affected_by_rollback
+    topic = TopicWithTransactionChanges.create!(title: "Original", written_on: Date.today)
+
+    # Clear transaction changes from the create
+    topic.reload
+
+    assert_not topic.transaction_changes?
+
+    TopicWithTransactionChanges.transaction do
+      topic.update!(title: "Should be rolled back")
+      raise ActiveRecord::Rollback
+    end
+
+    assert_not topic.transaction_changes?
+  end
+
+  def test_transaction_changes_with_from_and_to_options_in_callback
+    result = {}
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      after_commit do
+        result[:from_original] = transaction_change_to_title?(from: "Start")
+        result[:to_final] = transaction_change_to_title?(to: "End")
+        result[:wrong_from] = transaction_change_to_title?(from: "Middle")
+        result[:full_match] = transaction_change_to_title?(from: "Start", to: "End")
+      end
+    end
+
+    topic = klass.create!(title: "Start", written_on: Date.today)
+
+    klass.transaction do
+      topic.update!(title: "Middle")
+      topic.update!(title: "End")
+    end
+
+    assert result[:from_original], "should match from: 'Start'"
+    assert result[:to_final], "should match to: 'End'"
+    assert_not result[:wrong_from], "should not match from: 'Middle' (intermediate value)"
+    assert result[:full_match], "should match from: 'Start', to: 'End'"
+  end
+
+  def test_transaction_change_fires_callback_when_later_save_changes_different_attribute_in_same_transaction
+    callback_called = false
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      after_commit :on_title_change, on: :update, if: :transaction_change_to_title?
+
+      define_method(:on_title_change) do
+        callback_called = true
+      end
+    end
+
+    topic = klass.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+    callback_called = false
+
+    klass.transaction do
+      topic.update!(title: "Updated")
+      topic.update!(author_name: "Bob")
+    end
+
+    assert callback_called,
+      "after_commit with if: :transaction_change_to_title? should fire " \
+      "even when the last save only changed a different attribute"
+  end
+
+  def test_transaction_changes_differ_from_saved_changes_across_multiple_saves
+    saved_changes_log = nil
+    transaction_changes_log = nil
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      after_commit do
+        saved_changes_log = saved_changes.dup
+        transaction_changes_log = transaction_changes.dup
+      end
+    end
+
+    topic = klass.create!(title: "Original", written_on: Date.today)
+
+    klass.transaction do
+      topic.update!(title: "Intermediate")
+      topic.update!(title: "Final")
+    end
+
+    # saved_changes only reflects the last save: Intermediate -> Final
+    assert_equal ["Intermediate", "Final"], saved_changes_log["title"]
+    # transaction_changes reflects the full transaction: Original -> Final
+    assert_equal ["Original", "Final"], transaction_changes_log["title"]
+  end
+
+  def test_transaction_changes_is_empty_for_destroyed_record_with_no_attribute_changes
+    topic = TopicWithTransactionChanges.create!(title: "To Be Destroyed", written_on: Date.today)
+    topic.reload
+
+    topic.destroy
+
+    assert_not topic.transaction_changes_log.key?("title")
+  end
+
+  def test_transaction_changes_reflects_saved_value_not_unsaved_dirty_value
+    topic = TopicWithTransactionChanges.create!(title: "Original", written_on: Date.today)
+    topic.reload
+
+    TopicWithTransactionChanges.transaction do
+      topic.update!(title: "Saved")
+      topic.title = "Not Saved" # dirty but never persisted
+    end
+
+    assert_equal ["Original", "Saved"], topic.transaction_title_change_log
+  end
+
+  def test_transaction_changes_unaffected_by_savepoint_rollback
+    topic = TopicWithTransactionChanges.create!(title: "Original", written_on: Date.today)
+
+    TopicWithTransactionChanges.transaction do
+      topic.update!(title: "Updated")
+
+      TopicWithTransactionChanges.transaction(requires_new: true) do
+        TopicWithTransactionChanges.create!(title: "Doomed", written_on: Date.today)
+        raise ActiveRecord::Rollback
+      end
+    end
+
+    assert_equal ["Original", "Updated"], topic.transaction_title_change_log
+  end
+
+  def test_transaction_change_to_detects_earlier_save_even_when_last_save_changed_different_attribute
+    saved_detected = false
+    transaction_detected = false
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      after_commit do
+        saved_detected = saved_change_to_title?
+        transaction_detected = transaction_change_to_title?
+      end
+    end
+
+    topic = klass.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+
+    klass.transaction do
+      topic.update!(title: "Updated")
+      topic.update!(author_name: "Bob")
+    end
+
+    assert_not saved_detected,
+      "saved_change_to_title? should be false because the last save only changed author_name"
+    assert transaction_detected,
+      "transaction_change_to_title? should be true because title changed during the transaction"
+  end
+
+  def test_attribute_before_transaction_returns_current_value_for_unchanged_attribute
+    topic = TopicWithTransactionChanges.create!(title: "Title", author_name: "Alice", written_on: Date.today)
+
+    topic.update!(title: "New Title")
+
+    # author_name wasn't changed, so before_transaction returns the current value
+    assert_equal "Alice", topic.author_name_before_transaction
+  end
+
+  def test_transaction_changes_includes_timestamp_after_touch
+    topic = TopicWithTransactionChanges.create!(title: "Original", written_on: Date.today)
+    topic.reload # clear transaction_changes from the create
+
+    travel(1.second) do
+      topic.touch
+    end
+
+    assert topic.transaction_changes_log.key?("updated_at")
+    assert_not topic.transaction_changes_log.key?("title")
+  end
+
+  def test_transaction_changes_when_same_record_updated_in_rolled_back_savepoint
+    topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+
+    TopicWithTransactionChanges.transaction do
+      topic.update!(title: "Updated")
+
+      TopicWithTransactionChanges.transaction(requires_new: true) do
+        topic.update!(author_name: "Bob")
+        raise ActiveRecord::Rollback
+      end
+    end
+
+    # The outer transaction changed title from "Original" to "Updated".
+    # The savepoint changed author_name but was rolled back.
+    # transaction_changes should include the title change from the outer transaction.
+    assert_equal ["Original", "Updated"], topic.transaction_title_change_log
+    assert_equal ["Original", "Updated"], topic.transaction_changes_log["title"]
+    assert_nil topic.transaction_changes_log["author_name"]
+  end
+
+  def test_transaction_changes_is_empty_inside_after_rollback_callback
+    transaction_changes_in_rollback = nil
+    transaction_changes_present_in_rollback = nil
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      after_rollback do
+        transaction_changes_in_rollback = transaction_changes.dup
+        transaction_changes_present_in_rollback = transaction_changes?
+      end
+    end
+
+    topic = klass.create!(title: "Original", written_on: Date.today)
+    topic.reload # Clear transaction_changes from the create
+
+    klass.transaction do
+      topic.update!(title: "Should be rolled back")
+      raise ActiveRecord::Rollback
+    end
+
+    assert_empty transaction_changes_in_rollback,
+      "transaction_changes should be empty inside after_rollback since nothing was committed"
+    assert_not transaction_changes_present_in_rollback,
+      "transaction_changes? should be false inside after_rollback"
+  end
+
+  def test_transaction_change_to_attribute_inside_after_update_commit
+    transaction_title_change_in_callback = nil
+    transaction_title_detected_in_callback = nil
+    transaction_changes_in_callback = nil
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      after_update_commit do
+        transaction_title_change_in_callback = transaction_change_to_title
+        transaction_title_detected_in_callback = transaction_change_to_title?
+        transaction_changes_in_callback = transaction_changes.dup
+      end
+    end
+
+    topic = klass.create!(title: "Original", written_on: Date.today)
+
+    klass.transaction do
+      topic.update!(title: "Intermediate")
+      topic.update!(title: "Final")
+    end
+
+    assert transaction_title_detected_in_callback,
+      "transaction_change_to_title? should be true inside after_update_commit"
+    assert_equal ["Original", "Final"], transaction_title_change_in_callback,
+      "transaction_change_to_title should span the full transaction inside after_update_commit"
+    assert transaction_changes_in_callback.key?("title"),
+      "transaction_changes should include title inside after_update_commit"
+  end
+end
+
+class TransactionChangesTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  def test_transaction_changes_in_after_save_with_single_save
+    txn_changes_in_callback = nil
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      after_save do
+        txn_changes_in_callback = transaction_changes.dup
+      end
+    end
+
+    topic = klass.create!(title: "Original", written_on: Date.today)
+    txn_changes_in_callback = nil # clear from create
+
+    topic.update!(title: "Updated")
+
+    assert_equal ["Original", "Updated"], txn_changes_in_callback["title"]
+  end
+
+  def test_transaction_changes_in_before_save_includes_pending_changes
+    txn_changes_in_callback = nil
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      before_save do
+        txn_changes_in_callback = transaction_changes.dup
+      end
+    end
+
+    topic = klass.create!(title: "Original", written_on: Date.today)
+    txn_changes_in_callback = nil
+
+    topic.update!(title: "Updated")
+
+    assert_equal ["Original", "Updated"], txn_changes_in_callback["title"]
+  end
+
+  def test_transaction_changes_in_before_update_includes_pending_changes
+    txn_changes_in_callback = nil
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      before_update do
+        txn_changes_in_callback = transaction_changes.dup
+      end
+    end
+
+    topic = klass.create!(title: "Original", written_on: Date.today)
+    txn_changes_in_callback = nil
+
+    topic.update!(title: "Updated")
+
+    assert_equal ["Original", "Updated"], txn_changes_in_callback["title"]
+  end
+
+  def test_transaction_changes_in_before_save_with_prior_save_in_transaction
+    txn_changes_in_before_save = nil
+    save_count = 0
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      before_save do
+        save_count += 1
+        txn_changes_in_before_save = transaction_changes.dup if save_count == 2
+      end
+    end
+
+    topic = klass.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+    save_count = 0
+
+    klass.transaction do
+      topic.update!(title: "Intermediate")
+      topic.update!(title: "Final")
+    end
+
+    assert_equal ["Original", "Final"], txn_changes_in_before_save["title"]
+  end
+
+  def test_transaction_changes_omits_pending_attribute_changed_back_to_original
+    txn_changes_in_callback = nil
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      before_save do
+        txn_changes_in_callback = transaction_changes.dup
+      end
+    end
+
+    topic = klass.create!(title: "Original", written_on: Date.today)
+    txn_changes_in_callback = nil
+
+    topic.title = "Temporary"
+    topic.title = "Original"
+    topic.save!
+
+    assert_not txn_changes_in_callback.key?("title"),
+      "transaction_changes should not include a pending change back to the original value"
+  end
+
+  def test_transaction_changes_cross_model_access
+    product_txn_changes = nil
+
+    publication_klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      attr_accessor :related_record
+
+      after_save do
+        product_txn_changes = related_record.transaction_changes.dup if related_record
+      end
+    end
+
+    product_klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+    end
+
+    product = product_klass.create!(title: "Original Product", written_on: Date.today)
+    publication = publication_klass.create!(title: "Publication", written_on: Date.today)
+    publication.related_record = product
+
+    product_klass.transaction do
+      product.update!(title: "Updated Product")
+      publication.update!(title: "Updated Publication")
+    end
+
+    assert_equal ["Original Product", "Updated Product"], product_txn_changes["title"],
+      "cross-model transaction_changes should reflect the other model's saved changes"
+  end
+end
