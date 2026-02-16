@@ -11,4 +11,6 @@
 
     *Jarrett Lusso*
 
+*   Set `multiple: true` automatically on form fields if the corresponding model has `has_many_attached`
+
 Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/actionview/CHANGELOG.md) for previous changes.
