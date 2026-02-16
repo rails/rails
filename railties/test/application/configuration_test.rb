@@ -4947,7 +4947,7 @@ module ApplicationTests
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "7.0"'
       app_file "config/initializers/01_configure_database.rb", <<-RUBY
-        ActiveSupport.on_load(:axtive_record) do
+        ActiveSupport.on_load(:active_record) do
           ActiveRecord::Base.connected?
         end
       RUBY
