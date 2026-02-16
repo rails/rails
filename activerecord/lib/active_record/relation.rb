@@ -1311,7 +1311,7 @@ module ActiveRecord
       readonly_value
     end
 
-    def values
+    def values # :nodoc:
       @values.dup
     end
 

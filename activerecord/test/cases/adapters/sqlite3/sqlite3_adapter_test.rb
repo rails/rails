@@ -514,10 +514,18 @@ module ActiveRecord
           sql = "INSERT INTO ex (number) VALUES (10)"
           name = "foo"
 
+          tables_query = ["SELECT name FROM pragma_table_list WHERE schema <> 'temp' AND name NOT IN ('sqlite_sequence', 'sqlite_schema') AND type IN ('table','view')", "SCHEMA", []]
           pragma_query = ["PRAGMA table_xinfo(\"ex\")", "SCHEMA", []]
           schema_query = ["SELECT sql FROM (SELECT * FROM sqlite_master UNION ALL SELECT * FROM sqlite_temp_master) WHERE type = 'table' AND name = 'ex'", "SCHEMA", []]
           modified_insert_query = [(sql + ' RETURNING "id"'), name, []]
-          assert_logged [pragma_query, schema_query, modified_insert_query] do
+
+          # First insert after with_example_table has reset the schema cache
+          assert_logged [tables_query, pragma_query, schema_query, modified_insert_query] do
+            @conn.insert(sql, name)
+          end
+
+          # Subsequent inserts don't need extra schema queries
+          assert_logged [modified_insert_query] do
             @conn.insert(sql, name)
           end
         end
@@ -1101,6 +1109,16 @@ module ActiveRecord
         with_example_table("id integer, shop_id integer, PRIMARY KEY (shop_id, id)", "cpk_table") do
           assert_not @conn.columns("cpk_table").any?(&:rowid)
         end
+      end
+
+      def test_rowid_changes_column_equality
+        cast_type = @conn.lookup_cast_type("integer")
+        type_metadata = SqlTypeMetadata.new(sql_type: "integer", type: :integer)
+
+        rowid_column = SQLite3::Column.new("id", cast_type, nil, type_metadata, true, nil, rowid: true)
+        regular_column = SQLite3::Column.new("id", cast_type, nil, type_metadata, true, nil, rowid: false)
+
+        assert_not_equal rowid_column, regular_column
       end
 
       def test_sqlite_extensions_are_constantized_for_the_client_constructor

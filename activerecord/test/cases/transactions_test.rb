@@ -1794,4 +1794,38 @@ class ConcurrentTransactionTest < ActiveRecord::TestCase
       assert_equal original_salary, Developer.find(1).salary
     end
   end
+
+  def test_implicit_persistence_transaction_is_called
+    calls = []
+    topic_class = Class.new(Topic) {
+      define_method(:implicit_persistence_transaction) do |connection, &block|
+        calls << :called
+        super(connection, &block)
+      end
+    }
+
+    topic_class.create!(title: "Test Topic")
+    assert_equal [:called], calls
+  end
+
+  def test_implicit_persistence_transaction_is_called_when_in_nested_transaction
+    topic_class = Class.new(Topic) {
+      define_method(:implicit_persistence_transaction) do |connection, &block|
+        # Custom implementation that skips transaction if already open
+        if connection.current_transaction.open?
+          block.call
+        else
+          super(connection, &block)
+        end
+      end
+    }
+
+    topic1 = topic_class.create!(title: "Test Topic 1")
+    assert topic1.persisted?
+
+    topic2 = topic_class.transaction do
+      topic_class.create!(title: "Test Topic 2")
+    end
+    assert topic2.persisted?
+  end
 end

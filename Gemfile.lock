@@ -181,7 +181,7 @@ GEM
     crass (1.0.6)
     cssbundling-rails (1.4.1)
       railties (>= 6.0.0)
-    dalli (4.0.0)
+    dalli (5.0.0)
       logger
     dante (0.2.0)
     dartsass-rails (0.5.1)
@@ -687,7 +687,7 @@ DEPENDENCIES
   capybara (>= 3.39)
   connection_pool
   cssbundling-rails
-  dalli (>= 3.0.1)
+  dalli
   dartsass-rails
   debug (>= 1.1.0)
   google-cloud-storage (~> 1.11)
@@ -757,4 +757,4 @@ DEPENDENCIES
   websocket-client-simple
 
 BUNDLED WITH
-  4.0.4
+  4.0.6

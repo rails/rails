@@ -52,6 +52,11 @@ when "run-user-commands"
 when "sh"
   service_id, _, _ = Open3.capture3("#{DOCKER} ps -q -f name=#{info["service"]}")
   system "#{DOCKER} exec #{env} -w #{working_dir} -it #{service_id.chomp} /bin/bash"
+when "exec"
+  service_id, _, _ = Open3.capture3("#{DOCKER} ps -q -f name=#{info["service"]}")
+  cmd = ARGV[1..].join(" ")
+  env_args = info["containerEnv"].flat_map { |k, v| ["-e", "#{k}=#{v}"] }
+  system DOCKER, "exec", *env_args, "-w", working_dir, service_id.chomp, "/bin/bash", "-c", "eval \"$(~/.local/bin/mise activate bash)\" && #{cmd}"
 when "down"
   compose_file = File.expand_path(".devcontainer/#{info["dockerComposeFile"]}")
   system DOCKER, "compose", "-f", compose_file, "down", "-v"

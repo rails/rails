@@ -739,7 +739,7 @@ module ActiveRecord
             if pk.nil?
               # Extract the table from the insert sql. Yuck.
               table_ref = extract_table_ref_from_insert_sql(sql)
-              pk = primary_key(table_ref) if table_ref
+              pk = schema_cache.primary_keys(table_ref) if table_ref
             end
 
             returning_columns = returning || Array(pk)

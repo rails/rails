@@ -1,3 +1,7 @@
+*   `Rails.app.revision` now checks `ENV["REVISION"]` before falling back to the `REVISION` file or git.
+
+    *Jonathan Baker*
+
 *   Detect JavaScript package manager from lockfiles in generators.
 
     Rails generators now automatically detect bun, pnpm, npm, or yarn by looking

@@ -19,7 +19,15 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
-  class UnavailableDalliServer < Dalli::Protocol::Binary
+  if Dalli::VERSION >= "5."
+    DALLI_PROTOCOL = Dalli::Protocol::Meta
+    DALLI_PROTOCOL_NAME = :Meta
+  else
+    DALLI_PROTOCOL = Dalli::Protocol::Binary
+    DALLI_PROTOCOL_NAME = :Binary
+  end
+
+  class UnavailableDalliServer < DALLI_PROTOCOL
     def alive? # before https://github.com/petergoldstein/dalli/pull/863
       false
     end
@@ -420,24 +428,14 @@ class MemCacheStoreTest < ActiveSupport::TestCase
       [:mem_cache_store]
     end
 
-    def emulating_latency
-      old_client = Dalli.send(:remove_const, :Client)
-      Dalli.const_set(:Client, SlowDalliClient)
-
-      yield
-    ensure
-      Dalli.send(:remove_const, :Client)
-      Dalli.const_set(:Client, old_client)
+    def emulating_latency(&block)
+      stub_const(Dalli, :Client, SlowDalliClient, &block)
     end
 
     def emulating_unavailability
-      old_server = Dalli::Protocol.send(:remove_const, :Binary)
-      Dalli::Protocol.const_set(:Binary, UnavailableDalliServer)
-
-      yield ActiveSupport::Cache::MemCacheStore.new
-    ensure
-      Dalli::Protocol.send(:remove_const, :Binary)
-      Dalli::Protocol.const_set(:Binary, old_server)
+      stub_const(Dalli::Protocol, DALLI_PROTOCOL_NAME, UnavailableDalliServer) do
+        yield ActiveSupport::Cache::MemCacheStore.new
+      end
     end
 
     def servers(cache = @cache)
