@@ -599,6 +599,34 @@ module ActionView
         url_string == request_uri
       end
 
+      # True if the current request URI was generated within the given +namespace+.
+      #
+      # ==== Examples
+      # Let's say we're in the <tt>http://www.example.com/admin/users</tt> action.
+      #
+      #   current_namespace?('admin')
+      #   # => true
+      #
+      #   current_namespace?('users')
+      #   # => false
+      #
+      #   current_namespace?('admin/users')
+      #   # => true
+      #
+      #   current_namespace?('admin/users/1')
+      #   # => true
+      def current_namespace?(namespace)
+        unless request
+          raise "You cannot use helpers that need to determine the current " \
+                "namespace unless your view context provides a Request object " \
+                "in a #request method"
+        end
+
+        return false unless request.get? || request.head?
+
+        request.path.match?(%r{/#{namespace}/})
+      end
+
       # Creates an SMS anchor link tag to the specified +phone_number+. When the
       # link is clicked, the default SMS messaging app is opened ready to send a
       # message to the linked phone number. If the +body+ option is specified,
