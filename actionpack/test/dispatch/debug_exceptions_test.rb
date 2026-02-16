@@ -215,7 +215,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/<body>/, body)
     assert_match(/ActionController::MethodNotAllowed/, body)
 
-    get "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => :all }
+    process :unknown, "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 405
     assert_match(/<body>/, body)
     assert_match(/ActionController::UnknownHttpMethod/, body)
@@ -267,7 +267,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal "text/plain", response.media_type
     assert_match(/ActionController::MethodNotAllowed/, body)
 
-    get "/unknown_http_method", headers: xhr_request_env
+    process :unknown, "/unknown_http_method", headers: xhr_request_env
     assert_response 405
     assert_no_match(/<body>/, body)
     assert_equal "text/plain", response.media_type
@@ -308,7 +308,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal "application/json", response.media_type
     assert_match(/ActionController::MethodNotAllowed/, body)
 
-    get "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => :all }, as: :json
+    process :unknown, "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => :all }, as: :json
     assert_response 405
     assert_no_match(/<body>/, body)
     assert_equal "application/json", response.media_type
