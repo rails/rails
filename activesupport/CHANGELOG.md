@@ -1,3 +1,16 @@
+*   Removed the deprecated `ActiveSupport::Multibyte::Chars` class.
+
+    As well as `String#mb_chars`
+
+    *Jean Boussier*
+
+*   Changed `ActiveSupport::EventReporter#subscribe` to only provide the event name during filtering.
+
+    Otherwise the event reporter would need to always build the expensive payload even when there is
+    no active subscriber, which is very wasteful.
+
+    *Jean Boussier*
+
 *   Fix inflections to better handle overlapping acronyms.
 
     ```ruby
