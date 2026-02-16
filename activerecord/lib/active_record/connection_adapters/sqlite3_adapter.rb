@@ -617,6 +617,7 @@ module ActiveRecord
           table_name,
           foreign_keys = foreign_keys(table_name),
           check_constraints = check_constraints(table_name),
+          triggers = triggers(table_name),
           **options
         )
           altered_table_name = "a#{table_name}"
@@ -642,6 +643,7 @@ module ActiveRecord
             transaction do
               move_table(table_name, altered_table_name, options.merge(temporary: true))
               move_table(altered_table_name, table_name, &caller)
+              triggers.each { |trigger_sql| execute(trigger_sql) if trigger_sql.present? }
             end
           end
         end
