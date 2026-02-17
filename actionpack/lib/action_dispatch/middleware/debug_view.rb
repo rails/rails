@@ -53,9 +53,27 @@ module ActionDispatch
       lines = []
       wrapper = @exception_wrapper
 
+      if wrapper.nil?
+        lines << "Issue summary:"
+        lines << "- Exception: (unavailable)"
+        lines << "- Request: (unavailable)"
+        lines << "Task for the AI agent:"
+        lines << "1) Explain the likely root cause in plain language."
+        lines << "2) Suggest a fix with file and line references."
+        lines << "3) Call out tests to add or update."
+        return lines.join("\n")
+      end
+
       lines << "Issue summary:"
       lines << "- Exception: #{wrapper.exception_class_name}: #{wrapper.message}"
-      lines << "- Request: #{@request.request_method} #{@request.fullpath}"
+      request_method = begin
+        @request.request_method
+      rescue ActionDispatch::Http::Parameters::ParseError, ActionDispatch::Http::Request::InvalidMethod
+        "UNKNOWN"
+      rescue StandardError
+        "UNKNOWN"
+      end
+      lines << "- Request: #{request_method} #{@request.fullpath}"
 
       if params_valid? && @request.parameters["controller"]
         action = @request.parameters["action"]
