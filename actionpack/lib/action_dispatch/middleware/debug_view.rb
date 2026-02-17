@@ -45,6 +45,53 @@ module ActionDispatch
       object.to_hash.sort_by { |k, _| k.to_s }.map { |k, v| "#{k}: #{v.inspect rescue $!.message}" }.join("\n")
     end
 
+    def ai_prompt_title
+      "Prompt for AI agents"
+    end
+
+    def ai_prompt_text
+      lines = []
+      wrapper = @exception_wrapper
+
+      lines << "Issue summary:"
+      lines << "- Exception: #{wrapper.exception_class_name}: #{wrapper.message}"
+      lines << "- Request: #{@request.request_method} #{@request.fullpath}"
+
+      if params_valid? && @request.parameters["controller"]
+        action = @request.parameters["action"]
+        controller = @request.parameters["controller"]
+        lines << "- Controller/action: #{controller}##{action}"
+      end
+
+      if params_valid?
+        lines << "Parameters (filtered):"
+        debug_params(@request.filtered_parameters).each_line do |line|
+          lines << "  #{line.rstrip}"
+        end
+      end
+
+      rails_version = defined?(Rails) && Rails.respond_to?(:version) ? Rails.version : "unknown"
+      rails_env = defined?(Rails) && Rails.respond_to?(:env) ? Rails.env : "unknown"
+      lines << "Environment:"
+      lines << "  Rails #{rails_version} on Ruby #{RUBY_VERSION} (#{rails_env})"
+
+      trace = wrapper.exception_trace.map(&:to_s)
+      trace = trace.first(5)
+      lines << "Relevant backtrace:"
+      if trace.empty?
+        lines << "  (no backtrace available)"
+      else
+        trace.each { |entry| lines << "  #{entry}" }
+      end
+
+      lines << "Task for the AI agent:"
+      lines << "1) Explain the likely root cause in plain language."
+      lines << "2) Suggest a fix with file and line references."
+      lines << "3) Call out tests to add or update."
+
+      lines.join("\n")
+    end
+
     def render(*)
       logger = ActionView::Base.logger
 
