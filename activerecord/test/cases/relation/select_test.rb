@@ -215,5 +215,106 @@ module ActiveRecord
 
       assert_equal "`select' with block doesn't take arguments.", error.message
     end
+
+    # select_also tests
+
+    def test_select_also_appends_to_default_star
+      sql = Post.select_also("LENGTH(title) AS title_length").to_sql
+      assert_match %r{SELECT "posts"\.\*, LENGTH\(title\) AS title_length FROM}i, sql
+    end
+
+    def test_select_also_with_explicit_select
+      q = -> name { Regexp.escape(quote_table_name(name)) }
+      sql = Post.select(:id).select_also(:title).to_sql
+      assert_match %r{SELECT #{q["posts.id"]}, #{q["posts.title"]} FROM}i, sql
+    end
+
+    def test_select_also_deduplicates_with_select
+      q = -> name { Regexp.escape(quote_table_name(name)) }
+      sql = Post.select(:id, :title).select_also(:title).to_sql
+      # title should appear only once
+      assert_match %r{SELECT #{q["posts.id"]}, #{q["posts.title"]} FROM}i, sql
+      assert_equal 1, sql.scan(quote_table_name("posts.title")).count
+    end
+
+    def test_select_also_preserves_caller_columns_with_joined_scope
+      # A scope that joins another table and adds a computed column.
+      # Using select here would lose the caller's columns.
+      post = Post.left_joins(:comments)
+        .group(:id)
+        .select_also("COUNT(comments.id) AS comments_count")
+        .first
+
+      # All original columns are still accessible (via default *)
+      assert_equal "Welcome to the weblog", post.title
+      # The extra computed column is also accessible
+      assert_not_nil post.comments_count
+    end
+
+    def test_select_also_composes_with_caller_select
+      # Caller specifies explicit columns AND a scope adds extra columns
+      post = Post.select(:id, :title, :legacy_comments_count)
+        .left_joins(:comments)
+        .group(:id)
+        .select_also("COUNT(comments.id) AS comments_count")
+        .first
+
+      assert_equal "Welcome to the weblog", post.title
+      assert_not_nil post.comments_count
+    end
+
+    def test_select_also_with_hash_argument
+      post = Post.select_also("UPPER(title)" => :upper_title).first
+      assert_equal "WELCOME TO THE WEBLOG", post.upper_title
+      assert_equal "Welcome to the weblog", post.title
+    end
+
+    def test_select_also_chainable
+      sql = Post.select_also("1 AS one").select_also("2 AS two").to_sql
+      assert_match %r{SELECT "posts"\.\*, 1 AS one, 2 AS two FROM}i, sql
+    end
+
+    def test_select_also_unscope
+      sql = Post.select_also(:title).unscope(:select_also).to_sql
+      assert_match %r{SELECT "posts"\.\* FROM}i, sql
+    end
+
+    def test_select_also_without_arguments
+      error = assert_raises(ArgumentError) { Post.select_also }
+      assert_equal "Call `select_also' with at least one field.", error.message
+    end
+
+    def test_reselect_clears_select_but_keeps_select_also
+      q = -> name { Regexp.escape(quote_table_name(name)) }
+      sql = Post.select(:id).select_also(:title).reselect(:body).to_sql
+      assert_match %r{SELECT #{q["posts.body"]}, #{q["posts.title"]} FROM}i, sql
+    end
+
+    def test_select_also_with_enumerate_columns_in_select_statements
+      original_value = Post.enumerate_columns_in_select_statements
+      Post.enumerate_columns_in_select_statements = true
+      sql = Post.select_also("LENGTH(title) AS title_length").to_sql
+      Post.column_names.each do |column_name|
+        assert_includes sql, column_name
+      end
+      assert_includes sql, "LENGTH(title) AS title_length"
+    ensure
+      Post.enumerate_columns_in_select_statements = original_value
+    end
+
+    def test_select_also_via_merge
+      sql = Post.all.merge(Post.select_also("LENGTH(title) AS title_length")).to_sql
+      assert_match %r{SELECT "posts"\.\*, LENGTH\(title\) AS title_length FROM}i, sql
+    end
+
+    def test_select_also_via_merge_from_different_model
+      posts = Post.select(:id, :title).joins(:comments)
+      comments = Comment.where(body: "Thank you for the welcome")
+
+      post = posts.merge(comments.select_also("comments.body AS comment_body")).first
+      assert_equal 1, post.id
+      assert_equal "Welcome to the weblog", post.title
+      assert_equal "Thank you for the welcome", post.comment_body
+    end
   end
 end
