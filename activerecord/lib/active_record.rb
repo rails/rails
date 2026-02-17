@@ -68,6 +68,7 @@ module ActiveRecord
   autoload :QueryCache
   autoload :QueryLogs
   autoload :Querying
+  autoload :RolePinning
   autoload :ReadonlyAttributes
   autoload :RecordInvalid, "active_record/validations"
   autoload :Reflection
@@ -272,6 +273,47 @@ module ActiveRecord
 
   singleton_class.attr_accessor :reading_role
   self.reading_role = :reading
+
+  ##
+  # :singleton-method: query_role_resolver
+  # A callable used to resolve the role for per-query connection checkout.
+  #
+  # The resolver is called with the query type, model class, and current role and
+  # should return the role to use for checkout, or +nil+ to keep the current role.
+  #
+  #   ActiveRecord::Base.query_role_resolver = ->(query_type, model, current_role) do
+  #     case query_type
+  #     when :read then :reading
+  #     when :write then :writing
+  #     else current_role
+  #     end
+  #   end
+  singleton_class.attr_accessor :query_role_resolver
+  self.query_role_resolver = nil
+
+  ##
+  # :singleton-method: pin_role_on_write
+  # Controls whether writes pin subsequent queries to the writing role within
+  # the current executor scope.
+  #
+  # Accepted values:
+  #
+  # * +nil+ / +false+ - disables role pinning.
+  # * +true+ - pins for the remainder of the current request/job scope.
+  # * Numeric-like (e.g. +2+, +2.seconds+) - pins for that many seconds after each write.
+  #
+  # The pin is tracked in +ActiveSupport::IsolatedExecutionState+ and scoped by
+  # +ActiveSupport::Executor+ hooks. Time-based values use +CLOCK_MONOTONIC+ to
+  # avoid wall-clock drift.
+  #
+  # @example Pin reads to primary for 2 seconds after each write
+  #   ActiveRecord.query_role_resolver = ->(query_type, _model, current_role) {
+  #     query_type == :read ? :reading : current_role
+  #   }
+  #
+  #   ActiveRecord.pin_role_on_write = 2.seconds
+  singleton_class.attr_accessor :pin_role_on_write
+  self.pin_role_on_write = nil
 
   ##
   # :singleton-method: async_query_executor

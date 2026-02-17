@@ -375,7 +375,7 @@ module ActiveRecord
       return false if relation.where_clause.contradiction?
 
       skip_query_cache_if_necessary do
-        with_connection do |c|
+        with_connection(query_type: :read) do |c|
           c.select_rows(relation.arel, "#{model.name} Exists?").size == 1
         end
       end
@@ -472,7 +472,7 @@ module ActiveRecord
             )
           )
           relation = skip_query_cache_if_necessary do
-            model.with_connection do |c|
+            model.with_connection(query_type: :read) do |c|
               c.distinct_relation_for_primary_key(relation)
             end
           end

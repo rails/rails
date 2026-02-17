@@ -313,6 +313,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
       ActiveRecord::QueryCache.install_executor_hooks
       ActiveRecord::AsynchronousQueriesTracker.install_executor_hooks
       ActiveRecord::ConnectionAdapters::ConnectionPool.install_executor_hooks
+      ActiveRecord::RolePinning.install_executor_hooks
     end
 
     initializer "active_record.add_watchable_files" do |app|
