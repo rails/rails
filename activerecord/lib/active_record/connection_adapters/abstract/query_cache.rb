@@ -260,7 +260,7 @@ module ActiveRecord
         pool.clear_query_cache
       end
 
-      def select_all(arel, name = nil, binds = [], preparable: nil, async: false, allow_retry: false) # :nodoc:
+      def select_all(arel, name = nil, binds = [], preparable: nil, async: false, allow_retry: false, filter: nil) # :nodoc:
         arel = arel_from_relation(arel)
 
         # If arel is locked this is a SELECT ... FOR UPDATE or somesuch.
@@ -269,10 +269,10 @@ module ActiveRecord
           sql, binds, preparable, allow_retry = to_sql_and_binds(arel, binds, preparable, allow_retry)
 
           if async
-            result = lookup_sql_cache(sql, name, binds) || super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry)
+            result = lookup_sql_cache(sql, name, binds) || super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry, filter: filter)
             FutureResult.wrap(result)
           else
-            cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry) }
+            cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry, filter: filter) }
           end
         else
           super

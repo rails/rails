@@ -65,7 +65,7 @@ module ActiveRecord
     end
 
     def _query_by_sql(connection, sql, binds = [], preparable: nil, async: false, allow_retry: false) # :nodoc:
-      connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable, async: async, allow_retry: allow_retry)
+      connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable, async: async, allow_retry: allow_retry, filter: inspection_filter)
     end
 
     def _load_from_sql(result_set, &block) # :nodoc:

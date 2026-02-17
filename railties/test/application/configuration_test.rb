@@ -646,7 +646,7 @@ module ApplicationTests
 
       assert_not_empty Rails.application.env_config["action_dispatch.parameter_filter"]
 
-      Rails.application.config.filter_parameters << "baz.qux"
+      ActiveSupport.filter_parameters << "baz.qux"
 
       assert_includes Rails.application.env_config["action_dispatch.parameter_filter"], "baz.qux"
     end

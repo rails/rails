@@ -29,13 +29,13 @@ module ActiveRecord
         end
       end
 
-      attr_reader :arel, :name, :prepare, :allow_retry, :allow_async,
+      attr_reader :arel, :name, :prepare, :allow_retry, :allow_async, :filter,
                   :materialize_transactions, :batch, :pool, :session, :lock_wait
       attr_writer :raw_sql, :session
       attr_accessor :adapter, :binds, :ran_async, :notification_payload
 
       def initialize(adapter:, arel: nil, raw_sql: nil, processed_sql: nil, name: "SQL", binds: [], prepare: false, allow_async: false,
-                     allow_retry: false, materialize_transactions: true, batch: false)
+                     allow_retry: false, filter: nil, materialize_transactions: true, batch: false)
         if arel.nil? && raw_sql.nil? && processed_sql.nil?
           raise ArgumentError, "One of arel, raw_sql, or processed_sql must be provided"
         end
@@ -49,6 +49,7 @@ module ActiveRecord
         @allow_async = allow_async
         @ran_async = nil
         @allow_retry = allow_retry
+        @filter = filter
         @materialize_transactions = materialize_transactions
         @batch = batch
         @processed_sql = processed_sql
@@ -79,6 +80,7 @@ module ActiveRecord
           prepare: prepare,
           allow_async: allow_async,
           allow_retry: allow_retry,
+          filter: filter,
           materialize_transactions: materialize_transactions,
           batch: batch,
           type_casted_binds: type_casted_binds,

@@ -32,6 +32,10 @@ module ActiveRecord
         end
       end
 
+      def can_add_filter_parameter?(name)
+        add_to_filter_parameters && !name.in?(excluded_from_filter_parameters)
+      end
+
       %w(key_derivation_salt primary_key deterministic_key).each do |key|
         silence_redefinition_of_method "has_#{key}?"
         define_method("has_#{key}?") do
