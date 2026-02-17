@@ -68,8 +68,6 @@ module ActionDispatch
       lines << "- Exception: #{wrapper.exception_class_name}: #{wrapper.message}"
       request_method = begin
         @request.request_method
-      rescue ActionDispatch::Http::Parameters::ParseError, ActionDispatch::Http::Request::InvalidMethod
-        "UNKNOWN"
       rescue StandardError
         "UNKNOWN"
       end
