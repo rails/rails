@@ -605,11 +605,19 @@ module ActiveRecord
       # Final wrapper around the subclass-specific +perform_query+. Populates the calling
       # intent's raw_result.
       def execute_intent(intent) # :nodoc:
-        materialize_transactions if intent.materialize_transactions
-        should_dirty = intent.materialize_transactions
+        should_dirty = false
+
+        if intent.materialize_transactions
+          # These can raise locally (e.g., ReadOnlyError). Validate before BEGIN.
+          intent.processed_sql
+          intent.type_casted_binds
+          materialize_transactions
+        end
+
         log(intent) do |notification_payload|
           intent.notification_payload = notification_payload
           with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: false) do |conn|
+            should_dirty = intent.materialize_transactions
             result = perform_query(conn, intent)
             intent.raw_result = result
             handle_warnings(result, intent.processed_sql)
