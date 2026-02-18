@@ -5,7 +5,7 @@ Getting Started with Dev Containers
 
 After reading this guide, you will know:
 
-* How to create a new Rails application with the `rails-new` tool.
+* How to create a new Rails application with the `rails new` tool.
 * How to begin working with your application in a development container.
 
 --------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ Setup and Installation
 ----------------------
 
 To get set up, you will need to install the relevant tools; Docker, VS Code and
-`rails-new`. We'll go into details about each one below.
+`rails new`. We'll go into details about each one below.
 
 ### Installing Docker
 
