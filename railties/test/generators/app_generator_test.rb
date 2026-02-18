@@ -327,6 +327,52 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_skip_brakeman_and_rubocop_together
+    run_generator [destination_root, "--skip-brakeman", "--skip-rubocop"]
+
+    FileUtils.cd(destination_root) do
+      assert_not File.exist?("bin/brakeman")
+      assert_not File.exist?("bin/rubocop")
+      run_app_update
+      assert_not File.exist?("bin/brakeman"), "bin/brakeman should remain absent after update"
+      assert_not File.exist?("bin/rubocop"), "bin/rubocop should remain absent after update"
+    end
+  end
+
+  def test_app_update_preserves_all_skip_gem_options_together
+    run_generator [destination_root, "--skip-brakeman", "--skip-bundler-audit", "--skip-rubocop", "--skip-thruster"]
+
+    FileUtils.cd(destination_root) do
+      assert_not File.exist?("bin/brakeman")
+      assert_not File.exist?("bin/bundler-audit")
+      assert_not File.exist?("bin/rubocop")
+      assert_not File.exist?("bin/thrust")
+      run_app_update
+      assert_not File.exist?("bin/brakeman"), "bin/brakeman should remain absent after update"
+      assert_not File.exist?("bin/bundler-audit"), "bin/bundler-audit should remain absent after update"
+      assert_not File.exist?("bin/rubocop"), "bin/rubocop should remain absent after update"
+      assert_not File.exist?("bin/thrust"), "bin/thrust should remain absent after update"
+    end
+  end
+
+  def test_app_update_is_idempotent
+    run_generator
+
+    FileUtils.cd(destination_root) do
+      run_app_update
+
+      config_after_first_update = File.read("config/application.rb")
+      boot_after_first_update = File.read("config/boot.rb")
+
+      run_app_update
+
+      assert_equal config_after_first_update, File.read("config/application.rb"),
+        "config/application.rb should not change on second update"
+      assert_equal boot_after_first_update, File.read("config/boot.rb"),
+        "config/boot.rb should not change on second update"
+    end
+  end
+
   def test_app_update_preserves_skip_test
     run_generator [ destination_root, "--skip-test" ]
 
