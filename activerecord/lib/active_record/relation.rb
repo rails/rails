@@ -1510,7 +1510,9 @@ module ActiveRecord
       def references_eager_loaded_tables?
         joined_tables = build_joins([]).flat_map do |join|
           if join.is_a?(Arel::Nodes::StringJoin)
-            tables_in_string(join.left)
+            join_left = join.left
+            join_left = join_left.left if join_left.is_a?(Arel::Nodes::And)
+            tables_in_string(join_left)
           else
             join.left.name
           end

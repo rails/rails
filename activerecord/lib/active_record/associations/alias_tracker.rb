@@ -36,7 +36,9 @@ module ActiveRecord
             name_escaped ||= Regexp.escape(name)
 
             # Table names + table aliases
-            join.left.scan(
+            join_left = join.left
+            join_left = join_left.left if join_left.is_a?(Arel::Nodes::And)
+            join_left.scan(
               /JOIN(?:\s+\w+)?\s+(?:\S+\s+)?(?:#{quoted_name_escaped}|#{name_escaped})\sON/i
             ).size
           elsif join.is_a?(Arel::Nodes::Join)
