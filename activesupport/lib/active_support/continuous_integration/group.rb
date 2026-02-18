@@ -32,6 +32,7 @@ module ActiveSupport
         @mutex = Mutex.new
         @running = {}
         @progress_visible = false
+        @log_files = []
       end
 
       def run
@@ -52,6 +53,7 @@ module ActiveSupport
         end
       ensure
         Signal.trap("INT", previous_trap || "-")
+        @log_files.each { |path| File.delete(path) if File.exist?(path) }
       end
 
       private
@@ -108,6 +110,7 @@ module ActiveSupport
 
         def capture_output(command)
           log_path = Dir::Tmpname.create(["ci-", ".log"]) { }
+          @mutex.synchronize { @log_files << log_path }
 
           success = spawn_process(command) do |output|
             File.open(log_path, "w") do |f|

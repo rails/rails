@@ -273,6 +273,20 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     end
   end
 
+  test "parallel group cleans up temp files on completion" do
+    temp_files_before = Dir.glob(File.join(Dir.tmpdir, "ci-*.log"))
+
+    capture_io do
+      @CI.group("Checks", parallel: 2) do
+        step "Pass", "true"
+        step "Fail", "false"
+      end
+    end
+
+    temp_files_after = Dir.glob(File.join(Dir.tmpdir, "ci-*.log"))
+    assert_equal temp_files_before, temp_files_after
+  end
+
   %w[-f --fail-fast].each do |flag|
     test "run aborts immediately on failure with #{flag} flag" do
       output = with_argv([flag]) do
