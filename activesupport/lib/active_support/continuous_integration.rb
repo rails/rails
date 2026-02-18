@@ -79,12 +79,14 @@ module ActiveSupport
     #   step "Setup", "bin/setup"
     #   step "Single test", "bin/rails", "test", "--name", "test_that_is_one"
     def step(title, *command)
-      Signal.trap("INT") { abort colorize("\n❌ #{title} interrupted", :error) }
+      previous_trap = Signal.trap("INT") { abort colorize("\n❌ #{title} interrupted", :error) }
       report_step(title, command) do
         started = Time.now.to_f
         [system(*command), Time.now.to_f - started]
       end
       abort if failing_fast?
+    ensure
+      Signal.trap("INT", previous_trap || "-")
     end
 
     # Declare a group of steps that can be run in parallel. Steps within the group are collected first,
@@ -185,7 +187,7 @@ module ActiveSupport
       end
 
       def execute(title, &block)
-        Signal.trap("INT") { abort colorize("\n❌ #{title} interrupted", :error) }
+        previous_trap = Signal.trap("INT") { abort colorize("\n❌ #{title} interrupted", :error) }
 
         seconds = timing { instance_eval(&block) }
 
@@ -201,7 +203,7 @@ module ActiveSupport
 
         [success?, seconds]
       ensure
-        Signal.trap("INT", "-")
+        Signal.trap("INT", previous_trap || "-")
       end
 
       def result_line(title, success, seconds)

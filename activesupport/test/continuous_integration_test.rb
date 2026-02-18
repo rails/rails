@@ -228,6 +228,34 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     assert_match(/System passed/, output)
   end
 
+  test "step restores previous signal handler" do
+    custom_handler = proc { }
+    Signal.trap("INT", custom_handler)
+
+    capture_io { @CI.step "Pass", "true" }
+
+    current = Signal.trap("INT", "DEFAULT")
+    assert_equal custom_handler, current
+  ensure
+    Signal.trap("INT", "DEFAULT")
+  end
+
+  test "parallel group restores previous signal handler" do
+    custom_handler = proc { }
+    Signal.trap("INT", custom_handler)
+
+    capture_io do
+      @CI.group("Checks", parallel: 2) do
+        step "Pass", "true"
+      end
+    end
+
+    current = Signal.trap("INT", "DEFAULT")
+    assert_equal custom_handler, current
+  ensure
+    Signal.trap("INT", "DEFAULT")
+  end
+
   %w[-f --fail-fast].each do |flag|
     test "run aborts immediately on failure with #{flag} flag" do
       output = with_argv([flag]) do

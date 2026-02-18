@@ -35,7 +35,7 @@ module ActiveSupport
       end
 
       def run
-        Signal.trap("INT") { abort @ci.colorize("\n❌ #{@running.keys.join(', ')} interrupted", :error) }
+        previous_trap = Signal.trap("INT") { abort @ci.colorize("\n❌ #{@running.keys.join(', ')} interrupted", :error) }
 
         queue = Queue.new
         @tasks.each { |task| queue << task }
@@ -49,8 +49,8 @@ module ActiveSupport
             end
           end.each(&:join)
         end
-
-        Signal.trap("INT", "-")
+      ensure
+        Signal.trap("INT", previous_trap || "-")
       end
 
       private
