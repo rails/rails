@@ -118,8 +118,8 @@ module ActiveSupport
           end
 
           [success, log_path]
-        rescue Errno::ENOENT
-          File.write(log_path, "Command not found: #{command.join(" ")}\n")
+        rescue SystemCallError => e
+          File.write(log_path, "#{e.message}: #{command.join(" ")}\n")
           [false, log_path]
         end
 

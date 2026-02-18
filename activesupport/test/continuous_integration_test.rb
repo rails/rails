@@ -256,6 +256,23 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     Signal.trap("INT", "DEFAULT")
   end
 
+  test "parallel group handles spawn errors as failed steps" do
+    Dir.mktmpdir do |dir|
+      script = File.join(dir, "nope.sh")
+      File.write(script, "#!/bin/sh\nexit 0")
+      File.chmod(0o000, script)
+
+      output = capture_io do
+        @CI.group("Checks", parallel: 2) do
+          step "No permission", script
+        end
+      end.to_s
+
+      assert_not @CI.success?
+      assert_match(/No permission failed/, output)
+    end
+  end
+
   %w[-f --fail-fast].each do |flag|
     test "run aborts immediately on failure with #{flag} flag" do
       output = with_argv([flag]) do
