@@ -37,7 +37,8 @@ module ActiveSupport
       def run
         Signal.trap("INT") { abort @ci.colorize("\n❌ #{@running.keys.join(', ')} interrupted", :error) }
 
-        queue = Queue.new(@tasks)
+        queue = Queue.new
+        @tasks.each { |task| queue << task }
 
         with_progress do
           @parallel.times.map do
