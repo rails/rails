@@ -124,7 +124,7 @@ module ActiveStorage
           end
         end
 
-        ActiveStorage.paths             = app.config.active_storage.paths || {}
+        ActiveStorage.paths = app.config.active_storage.paths || {}
         ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
 
         ActiveStorage.supported_image_processing_methods += app.config.active_storage.supported_image_processing_methods || []
