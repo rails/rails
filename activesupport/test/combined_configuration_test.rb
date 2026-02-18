@@ -24,6 +24,7 @@ class CombinedConfigurationTest < ActiveSupport::TestCase
       available_in_all: "cred",
       available_in_dotenv_and_cred: "cred",
       only_in_credentials: "cred",
+      false: false,
       blank_in_credentials: "",
       nested: {
         available_in_all: "cred",
@@ -113,6 +114,20 @@ class CombinedConfigurationTest < ActiveSupport::TestCase
 
   test "read nested key present in dotenv and credentials returns dotenv" do
     assert_equal "dotenv", @combined.require(:nested, :available_in_dotenv_and_cred)
+  end
+
+  test "require key with a false value" do
+    assert_equal false, @combined.require(:false)
+  end
+
+  test "option key with a false value" do
+    assert_equal false, @combined.option(:false)
+  end
+
+  test "option key with a false value does not trigger default" do
+    called = false
+    assert_equal false, @combined.option(:false, default: -> { called = true; "default" })
+    assert_equal false, called
   end
 
   test "require with missing key raises key error" do

@@ -15,7 +15,7 @@ module ActiveSupport
     end
 
     # Find singular or nested keys across all backends.
-    # Raises +KeyError+ if no backend holds the key or if the value is blank.
+    # Raises +KeyError+ if no backend holds the key or if the value is +blank?+ (except +false+).
     #
     # Given ENV:
     #   DATABASE__HOST: "env.example.com"
@@ -30,11 +30,11 @@ module ActiveSupport
     #   require(:database, :host) # => "env.example.com" (ENV overrides credentials)
     #   require(:api_key)         # => "secret" (from credentials)
     #   require(:missing)         # => KeyError
-    #   require(:api_host)        # => KeyError (blank values are treated as missing)
+    #   require(:api_host)        # => KeyError (+blank?+ values (except +false+) are treated as missing)
     def require(*key)
       @configurations.each do |config|
         value = config.option(*key)
-        return value if value.present?
+        return value if value.present? || value == false
       end
 
       raise KeyError, "Missing key: #{key.inspect}"
@@ -42,7 +42,8 @@ module ActiveSupport
 
     # Find singular or nested keys across all backends.
     # Returns +nil+ if no backend holds the key.
-    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or blank value.
+    # If a +default+ value is defined, it (or its callable value) will be returned on
+    # a missing key or +blank?+ value (except +false+).
     #
     # Given ENV:
     #   DATABASE__HOST: "env.example.com"
@@ -58,11 +59,11 @@ module ActiveSupport
     #   option(:missing)                              # => nil
     #   option(:missing, default: "localhost")        # => "localhost"
     #   option(:missing, default: -> { "localhost" }) # => "localhost"
-    #   option(:api_host, default: "api.example.com") # => "api.example.com" (blank values use default)
+    #   option(:api_host, default: "api.example.com") # => "api.example.com" (+blank?+ values (except +false+) use default)
     def option(*key, default: nil)
       @configurations.each do |config|
         value = config.option(*key)
-        return value if value.present?
+        return value if value.present? || value == false
       end
 
       default.respond_to?(:call) ? default.call : default

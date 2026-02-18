@@ -60,7 +60,7 @@ module ActiveSupport
     end
 
     # Find singular or nested keys.
-    # Raises +KeyError+ if not found or blank.
+    # Raises +KeyError+ if not found or +blank?+ (except +false+).
     #
     # Given configuration:
     #   db_port: ""
@@ -70,14 +70,20 @@ module ActiveSupport
     # Examples:
     #   require(:database, :host) # => "db.example.com"
     #   require(:missing)         # => KeyError
-    #   require(:db_port)         # => KeyError (blank values are treated as missing)
+    #   require(:db_port)         # => KeyError (+blank?+ values (except +false+) are treated as missing)
     def require(*key)
-      dig(*key).presence || raise(KeyError, "Missing key: #{key.inspect}")
+      value = dig(*key)
+      if value.present? || value == false
+        value
+      else
+        raise KeyError, "Missing key: #{key.inspect}"
+      end
     end
 
     # Find singular or nested keys.
     # Returns +nil+ if the key isn't found.
-    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or blank value.
+    # If a +default+ value is defined, it (or its callable value) will be returned on
+    # a missing key or +blank?+ value (except +false+).
     #
     # Given configuration:
     #   db_port: ""
@@ -89,13 +95,16 @@ module ActiveSupport
     #   option(:missing)                              # => nil
     #   option(:missing, default: "localhost")        # => "localhost"
     #   option(:missing, default: -> { "localhost" }) # => "localhost"
-    #   option(:db_port, default: 5432)               # => 5432 (blank values use default)
+    #   option(:db_port, default: 5432)               # => 5432 (+blank?+ values (except +false+) use default)
     def option(*key, default: nil)
-      dig(*key).presence || if default.respond_to?(:call)
-                              default.call
-                            else
-                              default
-                            end
+      value = dig(*key)
+      if value.present? || value == false
+        value
+      elsif default.respond_to?(:call)
+        default.call
+      else
+        default
+      end
     end
 
     # Reload the cached values in case any of them changed or new ones were added during runtime.
