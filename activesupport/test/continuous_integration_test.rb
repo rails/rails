@@ -278,16 +278,20 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
         capture_io do
           assert_raises SystemExit do
             @CI.run("CI", nil) do
-              group "Checks", parallel: 1 do
+              group "Checks", parallel: 2 do
                 step "Fail", "false"
-                step "Should not run", "true"
+                step "Should not run 1", "true"
+                step "Should not run 2", "true"
+                step "Should not run 3", "true"
               end
             end
           end
         end
       end.to_s
 
-      assert_no_match(/Should not run/, output)
+      # With parallel: 2, one thread gets "Fail" and the other may dequeue one
+      # task before observing the failure — but subsequent tasks must be skipped.
+      assert_no_match(/Should not run 3/, output)
     end
   end
 

@@ -44,7 +44,8 @@ module ActiveSupport
           @parallel.times.map do
             Thread.new do
               while (task = dequeue(queue))
-                execute_task(*task) unless @ci.failing_fast?
+                break if @ci.failing_fast?
+                execute_task(*task)
               end
             end
           end.each(&:join)
