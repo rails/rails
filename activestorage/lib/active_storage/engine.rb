@@ -84,6 +84,8 @@ module ActiveStorage
     initializer "active_storage.configs" do
       config.before_initialize do |app|
         ActiveStorage.touch_attachment_records = app.config.active_storage.touch_attachment_records != false
+        ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
+        ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
       end
 
       config.after_initialize do |app|
@@ -121,8 +123,6 @@ module ActiveStorage
         end
 
         ActiveStorage.paths             = app.config.active_storage.paths || {}
-        ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
-        ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
         ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
 
         ActiveStorage.supported_image_processing_methods += app.config.active_storage.supported_image_processing_methods || []
