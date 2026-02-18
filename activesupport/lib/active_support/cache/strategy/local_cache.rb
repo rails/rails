@@ -158,13 +158,19 @@ module ActiveSupport
         private
           def read_serialized_entry(key, raw: false, **options)
             if cache = local_cache
-              hit = true
-              entry = cache.fetch_entry(key) do
-                hit = false
-                super
+              if options[:delete]
+                entry = super
+                cache.delete_entry(key)
+                entry
+              else
+                hit = true
+                entry = cache.fetch_entry(key) do
+                  hit = false
+                  super
+                end
+                options[:event][:store] = cache.class.name if hit && options[:event]
+                entry
               end
-              options[:event][:store] = cache.class.name if hit && options[:event]
-              entry
             else
               super
             end

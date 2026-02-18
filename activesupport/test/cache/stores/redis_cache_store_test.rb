@@ -515,4 +515,81 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
   end
+
+  class ReadDeleteTest < StoreTest
+    test "read with delete: true returns the value and removes the key" do
+      @cache.write("foo", "bar")
+      assert_equal "bar", @cache.read("foo", delete: true)
+      assert_nil @cache.read("foo")
+    end
+
+    test "read with delete: true returns nil for missing key" do
+      assert_nil @cache.read("missing", delete: true)
+    end
+
+    test "read with delete: true removes the key from redis" do
+      @cache.write("foo", "bar")
+      @cache.read("foo", delete: true)
+      redis_backend do |r|
+        assert_not r.exists?("#{@namespace}:foo")
+      end
+    end
+
+    test "read with delete: true works with raw values" do
+      @cache.write("foo", "bar", raw: true)
+      assert_equal "bar", @cache.read("foo", raw: true, delete: true)
+      assert_nil @cache.read("foo", raw: true)
+    end
+
+    test "read without delete option still works normally" do
+      @cache.write("foo", "bar")
+      assert_equal "bar", @cache.read("foo")
+      assert_equal "bar", @cache.read("foo")
+    end
+
+    test "read with delete: true on expired entry returns nil" do
+      @cache.write("foo", "bar", expires_in: 1)
+      travel(2.seconds) do
+        assert_nil @cache.read("foo", delete: true)
+      end
+    end
+
+    test "read with delete: true returns value and clears local cache" do
+      @cache.with_local_cache do
+        @cache.write("foo", "bar")
+        assert_equal "bar", @cache.read("foo", delete: true)
+        assert_nil @cache.read("foo")
+      end
+    end
+
+    test "read with delete: true clears remote cache within local cache scope" do
+      @cache.with_local_cache do
+        @cache.write("foo", "bar")
+        assert_equal "bar", @cache.read("foo", delete: true)
+      end
+      # After local cache scope ends, remote should also be gone
+      assert_nil @cache.read("foo")
+    end
+
+    test "read with delete: true bypasses stale local cache" do
+      @cache.with_local_cache do
+        @cache.write("foo", "bar")
+        # Overwrite in remote behind local cache's back
+        @cache.send(:bypass_local_cache) { @cache.write("foo", "baz") }
+        # Without delete, local cache returns stale value
+        assert_equal "bar", @cache.read("foo")
+        # With delete, it should bypass local cache and hit remote
+        assert_equal "baz", @cache.read("foo", delete: true)
+        # Both local and remote should be cleared
+        assert_nil @cache.read("foo")
+      end
+    end
+
+    def redis_backend(cache = @cache)
+      cache.redis.with do |r|
+        yield r if block_given?
+        return r
+      end
+    end
+  end
 end
