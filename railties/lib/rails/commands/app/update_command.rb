@@ -88,10 +88,7 @@ module Rails
           end
 
           def skip_gem?(gem_name)
-            gem gem_name
-            false
-          rescue LoadError
-            true
+            !defined?(Bundler) || !Bundler.locked_gems&.specs&.any? { |s| s.name == gem_name }
           end
       end
     end
