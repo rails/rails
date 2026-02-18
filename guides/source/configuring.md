@@ -755,9 +755,18 @@ It is included in the development environment by default with the following conf
 Rails.application.config.hosts = [
   IPAddr.new("0.0.0.0/0"),        # All IPv4 addresses.
   IPAddr.new("::/0"),             # All IPv6 addresses.
-  "localhost",                    # The localhost reserved domain.
+  ".localhost",                   # localhost and *.localhost are natively supported without needing to modify /etc/hosts
+  ".test",                        # to use test or myapp.test domains, add them to /ets/hosts (wildcard not supported)
   ENV["RAILS_DEVELOPMENT_HOSTS"]  # Additional comma-separated hosts for development.
 ]
+```
+
+As noted above, `localhost` and `*.localhost` are natively supported domains for local dev.
+Your computer will also point `*.*.localhost` at your local machine, but this sub sub domain
+isn't supported by the default config above. To support this pattern, do this:
+
+```ruby
+Rails.application.config.hosts << /.*\.*\.localhost/
 ```
 
 In other environments `Rails.application.config.hosts` is empty and no
