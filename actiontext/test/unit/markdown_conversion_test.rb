@@ -308,6 +308,27 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "special markdown characters in text are escaped" do
+    assert_converted_to(
+      "Use \\*asterisks\\* and \\_underscores\\_",
+      "<p>Use *asterisks* and _underscores_</p>"
+    )
+  end
+
+  test "backslashes in text are escaped" do
+    assert_converted_to(
+      "path\\\\to\\\\file",
+      "<p>path\\to\\file</p>"
+    )
+  end
+
+  test "brackets in text are preserved" do
+    assert_converted_to(
+      "not a [link]",
+      "<p>not a [link]</p>"
+    )
+  end
+
   private
     def assert_converted_to(markdown, html)
       assert_equal markdown, ActionText::Content.new(html).to_markdown

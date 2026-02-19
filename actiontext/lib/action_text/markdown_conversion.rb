@@ -67,7 +67,11 @@ module ActionText
       end
 
       def markdown_for_text_node(node, _child_values)
-        remove_trailing_newlines(node.text)
+        escape_markdown_chars(remove_trailing_newlines(node.text))
+      end
+
+      def escape_markdown_chars(text)
+        text.gsub(/(?=[\\*_`~])/, "\\")
       end
 
       def markdown_for_div_node(node, child_values)
