@@ -5,6 +5,7 @@
 module ActionText
   module PlainTextConversion
     extend self
+    include NodeConversion
 
     def node_to_plain_text(node)
       BottomUpReducer.new(node).reduce do |n, child_values|
@@ -46,7 +47,7 @@ module ActionText
       end
 
       def plain_text_for_list(node, child_values)
-        "#{break_if_nested_list(node, plain_text_for_block(node, child_values))}"
+        break_if_nested_list(node, plain_text_for_block(node, child_values))
       end
 
       %i[ ul ol ].each do |element|
@@ -71,11 +72,11 @@ module ActionText
 
       def plain_text_for_blockquote_node(node, child_values)
         text = plain_text_for_block(node, child_values)
-        return "“”" if text.blank?
+        return "\u201C\u201D" if text.blank?
 
         text = text.dup
-        text.insert(text.rindex(/\S/) + 1, "”")
-        text.insert(text.index(/\S/), "“")
+        text.insert(text.rindex(/\S/) + 1, "\u201D")
+        text.insert(text.index(/\S/), "\u201C")
         text
       end
 
@@ -87,68 +88,13 @@ module ActionText
         "#{indentation}#{bullet} #{text}\n"
       end
 
-      def remove_trailing_newlines(text)
-        text.chomp("")
-      end
-
       def bullet_for_li_node(node)
         if list_node_name_for_li_node(node) == "ol"
           index = node.parent.elements.index(node)
           "#{index + 1}."
         else
-          "•"
+          "\u2022"
         end
-      end
-
-      def list_node_name_for_li_node(node)
-        node.ancestors.lazy.map(&:name).grep(/^[uo]l$/).first
-      end
-
-      def indentation_for_li_node(node)
-        depth = list_node_depth_for_node(node)
-        if depth > 1
-          "  " * (depth - 1)
-        end
-      end
-
-      def list_node_depth_for_node(node)
-        node.ancestors.map(&:name).grep(/^[uo]l$/).count
-      end
-
-      def break_if_nested_list(node, text)
-        if list_node_depth_for_node(node) > 0
-          "\n#{text}"
-        else
-          text
-        end
-      end
-
-      class BottomUpReducer # :nodoc:
-        def initialize(node)
-          @node = node
-          @values = {}
-        end
-
-        def reduce(&block)
-          traverse_bottom_up(@node) do |n|
-            child_values = @values.values_at(*n.children)
-            @values[n] = block.call(n, child_values)
-          end
-          @values[@node]
-        end
-
-        private
-          def traverse_bottom_up(node, &block)
-            call_stack, processing_stack = [ node ], []
-
-            until call_stack.empty?
-              node = call_stack.pop
-              processing_stack.push(node)
-              call_stack.concat node.children
-            end
-
-            processing_stack.reverse_each(&block)
-          end
       end
   end
 end

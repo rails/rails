@@ -132,6 +132,15 @@ module ActionText
       render_attachments(with_full_attributes: false, &:to_plain_text).fragment.to_plain_text
     end
 
+    # Returns a Markdown version of the markup contained by the content,
+    # with HTML tags converted to their Markdown equivalents.
+    #
+    #     content = ActionText::Content.new("<h1>Funny times!</h1>")
+    #     content.to_markdown # => "# Funny times!"
+    def to_markdown
+      render_attachments(with_full_attributes: false, &:to_markdown).fragment.to_markdown
+    end
+
     def to_trix_html
       to_editor_html
     end

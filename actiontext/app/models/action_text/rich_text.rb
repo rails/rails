@@ -76,6 +76,15 @@ module ActionText
       body&.to_plain_text.to_s
     end
 
+    # Returns a Markdown version of the markup contained by the `body` attribute,
+    # with HTML tags converted to their Markdown equivalents.
+    #
+    #     message = Message.create!(content: "<h1>Funny times!</h1>")
+    #     message.content.to_markdown # => "# Funny times!"
+    def to_markdown
+      body&.to_markdown.to_s
+    end
+
     # Returns the `body` attribute in a format that makes it editable in the Trix
     # editor. Previews of attachments are rendered inline.
     #

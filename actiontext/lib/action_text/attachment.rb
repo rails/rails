@@ -115,6 +115,18 @@ module ActionText
       end
     end
 
+    # Converts the attachment to Markdown.
+    #
+    # The presentation can be overridden by implementing the
+    # `attachable_markdown_representation` method.
+    def to_markdown
+      if respond_to?(:attachable_markdown_representation)
+        attachable_markdown_representation(caption)
+      else
+        caption.to_s
+      end
+    end
+
     # Converts the attachment to HTML.
     #
     #     attachable = Person.create! name: "Javan"

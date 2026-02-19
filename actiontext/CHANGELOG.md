@@ -1,3 +1,15 @@
+*   Add `to_markdown` for converting rich text to Markdown.
+
+    Adds `to_markdown` across the Action Text stack (`Content`, `Fragment`,
+    `RichText`, `Attachment`) following the same pattern as `to_plain_text`.
+    Converts HTML elements to their Markdown equivalents (headings, bold,
+    italic, links, code blocks, lists, blockquotes, etc.).
+
+        message = Message.create!(content: "<h1>Hello!</h1><p>How are <strong>you</strong>?</p>")
+        message.content.to_markdown # => "# Hello!\n\nHow are **you**?"
+
+    *Yaroslav Shmarov*
+
 *   Make `ActionText::Attachable#read_attribute_for_serialization` public.
 
     *Sally Hall*

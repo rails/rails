@@ -24,6 +24,8 @@ module ActionText
   autoload :Fragment
   autoload :FixtureSet
   autoload :HtmlConversion
+  autoload :MarkdownConversion
+  autoload :NodeConversion
   autoload :PlainTextConversion
   autoload :Registry
   autoload :Rendering
