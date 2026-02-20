@@ -366,6 +366,58 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end
 
+  def test_sql_events_do_not_overlap
+    events = []
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+      events << event
+    end
+
+    Topic.transaction { Topic.first }
+
+    assert_equal 3, events.size
+    begin_event, select_event, commit_event = events
+
+    assert begin_event.payload[:sql].start_with?("BEGIN")
+    assert select_event.payload[:sql].start_with?("SELECT")
+    assert commit_event.payload[:sql].start_with?("COMMIT")
+
+    assert_operator begin_event.time, :<=, begin_event.end
+    assert_operator begin_event.end, :<=, select_event.time
+    assert_operator select_event.time, :<=, select_event.end
+    assert_operator select_event.end, :<=, commit_event.time
+    assert_operator commit_event.time, :<=, commit_event.end
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
+  def test_sql_events_do_not_overlap_with_savepoints
+    events = []
+    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+      events << event
+    end
+
+    Topic.transaction do
+      Topic.count
+      Topic.transaction(requires_new: true) { Topic.first }
+    end
+
+    assert_equal 6, events.size
+    begin_event, count_event, savepoint_event, select_event, release_event, commit_event = events
+
+    assert begin_event.payload[:sql].start_with?("BEGIN")
+    assert count_event.payload[:sql].start_with?("SELECT")
+    assert savepoint_event.payload[:sql].start_with?("SAVEPOINT")
+    assert select_event.payload[:sql].start_with?("SELECT")
+    assert release_event.payload[:sql].start_with?("RELEASE")
+    assert commit_event.payload[:sql].start_with?("COMMIT")
+
+    events.each_cons(2) do |a, b|
+      assert_operator a.end, :<=, b.time
+    end
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
   def test_transaction_instrumentation_on_failed_commit
     topic = topics(:fifth)
 

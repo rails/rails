@@ -75,6 +75,7 @@ module ActionView
 
       def start(name, id, payload)
         ActiveSupport.event_reporter.debug("action_view.render_start",
+          filter_payload: false,
           is_layout: name == "render_layout.action_view",
           identifier: from_rails_root(payload[:identifier]),
           layout: from_rails_root(payload[:layout]),

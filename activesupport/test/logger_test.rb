@@ -9,7 +9,9 @@ require "tmpdir"
 require "concurrent/atomics"
 
 class LoggerTest < ActiveSupport::TestCase
-  include MultibyteTestHelpers
+  # We use Symbol#to_s to create these strings so warnings are emitted if they are mutated
+  UNICODE_STRING = :"こにちわ".to_s
+  BYTE_STRING = "\270\236\010\210\245".b.freeze
 
   Logger = ActiveSupport::Logger
 

@@ -25,10 +25,8 @@ module ActiveRecord
         end
       end
 
-      JSON_ENCODER = ActiveSupport::JSON::Encoding.json_encoder.new(escape: false)
-
       def serialize(value)
-        JSON_ENCODER.encode(value) unless value.nil?
+        ActiveSupport::JSON::Encoding.encode_without_escape(value) unless value.nil?
       end
 
       def changed_in_place?(raw_old_value, new_value)
