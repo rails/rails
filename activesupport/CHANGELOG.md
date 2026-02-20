@@ -1,3 +1,13 @@
+*   Add `start_day` argument to `this_week?` for consistency with `all_week`
+
+    `this_week?` now accepts an optional `start_day` argument, matching the
+    existing interface of `all_week`, `beginning_of_week`, and `end_of_week`.
+
+        date.this_week?              # Uses Date.beginning_of_week (default)
+        date.this_week?(:sunday)     # Checks against Sun-Sat week
+
+    *Kenta Ishizaki*
+
 *   Add `group` method to `ActiveSupport::ContinuousIntegration` for parallel step execution.
 
     Groups collect steps and run them concurrently using a thread pool, reducing CI times
