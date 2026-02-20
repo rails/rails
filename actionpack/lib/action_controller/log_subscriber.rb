@@ -2,18 +2,13 @@
 
 module ActionController
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
-    INTERNAL_PARAMS = %w(controller action format _method only_path)
-
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 
     self.namespace = "action_controller"
 
     def request_started(event)
       payload = event[:payload]
-      params = {}
-      payload[:params].each_pair do |k, v|
-        params[k] = v unless INTERNAL_PARAMS.include?(k)
-      end
+      params  = payload[:params]
       format  = payload[:format]
       format  = format.to_s.upcase if format.is_a?(Symbol)
       format  = "*/*" if format.nil?
@@ -54,6 +49,10 @@ module ActionController
       exception_class = event[:payload][:exception_class]
       exception_message = event[:payload][:exception_message]
       exception_backtrace = event[:payload][:exception_backtrace]
+      if exception_backtrace.is_a?(Array)
+        exception_backtrace = exception_backtrace&.first
+        exception_backtrace = exception_backtrace&.delete_prefix("#{Rails.root}/") if defined?(Rails.root) && Rails.root
+      end
       info { "rescue_from handled #{exception_class} (#{exception_message}) - #{exception_backtrace}" }
     end
     event_log_level :rescue_from_handled, :info

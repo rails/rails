@@ -73,14 +73,14 @@ module ActiveSupport
     # * +caller_depth+ - Stack depth for source location (default: 1)
     # * +kwargs+ - Additional payload data merged with the payload hash
     def emit_event(name, payload = nil, caller_depth: 1, **kwargs)
-      ActiveSupport.event_reporter.notify(name, payload, caller_depth: caller_depth + 1, **kwargs)
+      ActiveSupport.event_reporter.notify(name, payload, caller_depth: caller_depth + 1, filter_payload: false, **kwargs)
     rescue => e
       handle_event_error(name, e)
     end
 
     # Like +emit_event+, but only emits when the event reporter is in debug mode
     def emit_debug_event(name, payload = nil, caller_depth: 1, **kwargs)
-      ActiveSupport.event_reporter.debug(name, payload, caller_depth: caller_depth + 1, **kwargs)
+      ActiveSupport.event_reporter.debug(name, payload, caller_depth: caller_depth + 1, filter_payload: false, **kwargs)
     rescue => e
       handle_event_error(name, e)
     end

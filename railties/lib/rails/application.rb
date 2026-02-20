@@ -399,12 +399,13 @@ module Rails
     # Returns the application's revision (deployment identifier).
     # Useful for error reporting and deployment verification.
     #
-    # Set via config.revision (string) or REVISION file.
+    # Set via config.revision (string), ENV["REVISION"], or REVISION file.
     # Always either a String or +nil+.
     def revision
       unless @revision_initialized
         @revision = begin
-          root.join("REVISION").read.strip.presence
+          ENV["REVISION"].presence ||
+            root.join("REVISION").read.strip.presence
         rescue SystemCallError
           r, w = IO.pipe
           success = system("git", "-C", root.to_s, "rev-parse", "HEAD", in: File::NULL, err: File::NULL, out: w)

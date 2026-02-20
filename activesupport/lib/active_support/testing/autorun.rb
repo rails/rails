@@ -7,4 +7,5 @@ require "minitest"
 # be removable after the version bump, though it currently safeguards
 # against issues in environments with multiple versions installed.
 Minitest.load :rails if Minitest.respond_to? :load
+Minitest.load :server if Minitest.respond_to? :load
 Minitest.autorun

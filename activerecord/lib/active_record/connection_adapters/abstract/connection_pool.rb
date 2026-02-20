@@ -375,7 +375,6 @@ module ActiveRecord
 
         @pinned_connection.lock_thread = ActiveSupport::IsolatedExecutionState.context if lock_thread
         @pinned_connection.pinned = true
-        @pinned_connection.verify! # eagerly validate the connection
         @pinned_connection.begin_transaction joinable: false, _lazy: false
       end
 
@@ -634,7 +633,7 @@ module ActiveRecord
           synchronize do
             # The pinned connection may have been cleaned up before we synchronized, so check if it is still present
             if @pinned_connection
-              @pinned_connection.verify!
+              @pinned_connection.verify
 
               # Any leased connection must be in @connections otherwise
               # some methods like #connected? won't behave correctly

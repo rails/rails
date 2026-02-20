@@ -1059,6 +1059,7 @@ module ActiveRecord
       #   Add an appropriate foreign key constraint. Defaults to false, pass true
       #   to add. In case the join table can't be inferred from the association
       #   pass <tt>:to_table</tt> with the appropriate table name.
+      #   For other available options, see #add_foreign_key.
       # [<tt>:polymorphic</tt>]
       #   Whether an additional +_type+ column should be added. Defaults to false.
       # [<tt>:null</tt>]

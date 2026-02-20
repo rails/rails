@@ -110,6 +110,8 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_via_to_sql_with_complicating_connection
+    skip "PostgreSQL 19+ no longer allows setting standard_conforming_strings to OFF" if @connection.database_version >= 19_00_00
+
     Thread.new do
       other_conn = ActiveRecord::Base.lease_connection
       other_conn.execute("SET standard_conforming_strings = off")

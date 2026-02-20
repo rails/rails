@@ -143,6 +143,40 @@ module ActiveModel
           type.serialize_cast_value(2147483648)
         end
       end
+
+      test "deserialising type without @max/@min" do
+        type = Integer.new
+
+        # Simulate a Marshal-loaded object from Rails
+        # 8.0 which has @range but not @max/@min
+        type.remove_instance_variable(:@max)
+        type.remove_instance_variable(:@min)
+        type.instance_variable_set(
+          :@range,
+          type.send(:min_value)...type.send(:max_value)
+        )
+
+        assert_equal 42, type.serialize(42)
+        assert_equal(-1, type.serialize(-1))
+        assert_nil type.serialize(nil)
+
+        assert_raises(ActiveModel::RangeError) do
+          type.serialize(2**31)
+        end
+      end
+
+      test "Marshal round-trip preserves behaviour" do
+        type = Integer.new
+        restored = Marshal.load(Marshal.dump(type))
+
+        assert_equal 42, restored.serialize(42)
+        assert_equal(-1, restored.serialize(-1))
+        assert_nil restored.serialize(nil)
+
+        assert_raises(ActiveModel::RangeError) do
+          restored.serialize(2**31)
+        end
+      end
     end
   end
 end

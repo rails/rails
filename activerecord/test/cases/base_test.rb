@@ -1176,6 +1176,20 @@ class BasicsTest < ActiveRecord::TestCase
       end
     end
 
+    def test_switching_default_time_zone_with_find_by_sql
+      with_env_tz do
+        with_timezone_config default: :utc do
+          default = Default.create!
+          assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
+
+          ActiveRecord.default_timezone = :local
+
+          time = Default.find_by_sql("SELECT * FROM defaults WHERE id = #{default.id}").first.fixed_time
+          assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), time
+        end
+      end
+    end
+
     def test_mutating_time_objects
       with_env_tz do
         with_timezone_config default: :local do

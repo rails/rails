@@ -24,7 +24,7 @@ module Rails
                     :content_security_policy_nonce_auto,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
-                    :dom_testing_default_html_version, :yjit
+                    :dom_testing_default_html_version, :yjit, :action_on_early_load_hook
 
       attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
@@ -85,6 +85,7 @@ module Rails
         @server_timing                           = false
         @dom_testing_default_html_version        = :html4
         @yjit                                    = false
+        @action_on_early_load_hook               = :log
       end
 
       # Loads default configuration values for a target version. This includes
@@ -363,9 +364,6 @@ module Rails
 
           if respond_to?(:action_view)
             action_view.render_tracker = :ruby
-          end
-
-          if respond_to?(:action_view)
             action_view.remove_hidden_field_autocomplete = true
           end
         when "8.2"
@@ -374,6 +372,7 @@ module Rails
           if respond_to?(:action_controller)
             action_controller.forgery_protection_verification_strategy = :header_only
             action_controller.default_protect_from_forgery_with = :exception
+            action_controller.rescue_from_event_backtrace = :array
           end
 
           if respond_to?(:action_dispatch)

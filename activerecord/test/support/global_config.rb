@@ -7,7 +7,9 @@ module ARTest
     def self.apply
       Thread.abort_on_exception = true
 
-      ActiveRecord.deprecator.debug = true
+      ActiveRecord.deprecator.behavior = :raise
+      ActiveModel.deprecator.behavior = :raise
+
       ActiveRecord.permanent_connection_checkout = :disallowed
       ActiveRecord::Delegation::DelegateCache.delegate_base_methods = false
       ActiveRecord::Relation.remove_method(:klass)

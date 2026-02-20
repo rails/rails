@@ -8,6 +8,70 @@
     once, with subsequent loggers receiving the cached result.
 
     *Quint Pieters*
+    
+*   Add `group` method to `ActiveSupport::ContinuousIntegration` for parallel step execution.
+
+    Groups collect steps and run them concurrently using a thread pool, reducing CI times
+    by running independent checks in parallel. Sub-groups run sequentially within a single
+    parallel slot allowing dependent steps to be grouped together.
+
+    ```ruby
+    CI.run do
+      step "Setup", "bin/setup --skip-server"
+
+      group "Checks", parallel: 2 do
+        step "Style: Ruby", "bin/rubocop"
+        step "Security: Brakeman", "bin/brakeman --quiet"
+        step "Security: Gem audit", "bin/bundler-audit"
+
+        group "Tests" do
+          step "Tests: Rails", "bin/rails test"
+          step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant"
+        end
+      end
+    end
+    ```
+
+    *Donal McBreen*
+
+*   Introduce `this_week?`, `this_month?`, and `this_year?` methods to Date/Time
+
+    Similar to `today?`, `tomorrow?`, and `yesterday?`, these methods are useful to
+    query time instances against the current period.
+
+    ```ruby
+    unless post.created_at.this_week?
+      link_to "See week recap", week_recap_path(date)
+    end
+    ```
+
+    *Matheus Richard*
+
+*   Removed the deprecated `ActiveSupport::Multibyte::Chars` class.
+
+    As well as `String#mb_chars`
+
+    *Jean Boussier*
+
+*   Changed `ActiveSupport::EventReporter#subscribe` to only provide the event name during filtering.
+
+    Otherwise the event reporter would need to always build the expensive payload even when there is
+    no active subscriber, which is very wasteful.
+
+    *Jean Boussier*
+
+*   Fix inflections to better handle overlapping acronyms.
+
+    ```ruby
+    ActiveSupport::Inflector.inflections(:en) do |inflect|
+      inflect.acronym "USD"
+      inflect.acronym "USDC"
+    end
+
+    "USDC".underscore # => "usdc"
+    ```
+
+    *Said Kaldybaev*
 
 *   Add `ActiveSupport::CombinedConfiguration` to offer interchangeable access to configuration provided by
     either ENV or encrypted credentials. Used by Rails to first look at ENV, then look in encrypted credentials,

@@ -219,8 +219,8 @@ module ActiveRecord
 
       deprecate :exec_insert, :exec_delete, :exec_update, deprecator: ActiveRecord.deprecator
 
-      def exec_insert_all(sql, name) # :nodoc:
-        intent = internal_build_intent(sql, name)
+      def exec_insert_all(inserter, name) # :nodoc:
+        intent = internal_build_intent(inserter.to_sql, name)
         intent.execute!
         intent.cast_result
       end
@@ -605,14 +605,26 @@ module ActiveRecord
       # Final wrapper around the subclass-specific +perform_query+. Populates the calling
       # intent's raw_result.
       def execute_intent(intent) # :nodoc:
+        should_dirty = false
+
+        if intent.materialize_transactions
+          # These can raise locally (e.g., ReadOnlyError). Validate before BEGIN.
+          intent.processed_sql
+          intent.type_casted_binds
+          materialize_transactions
+        end
+
         log(intent) do |notification_payload|
           intent.notification_payload = notification_payload
-          with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: intent.materialize_transactions) do |conn|
+          with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: false) do |conn|
+            should_dirty = intent.materialize_transactions
             result = perform_query(conn, intent)
             intent.raw_result = result
             handle_warnings(result, intent.processed_sql)
           end
         end
+      ensure
+        dirty_current_transaction if should_dirty
       end
 
       # Executes SQL statements in the context of this connection without
@@ -739,7 +751,7 @@ module ActiveRecord
             if pk.nil?
               # Extract the table from the insert sql. Yuck.
               table_ref = extract_table_ref_from_insert_sql(sql)
-              pk = primary_key(table_ref) if table_ref
+              pk = schema_cache.primary_keys(table_ref) if table_ref
             end
 
             returning_columns = returning || Array(pk)

@@ -8,7 +8,6 @@ rescue LoadError => e
 end
 
 require "connection_pool"
-require "delegate"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/numeric/time"
@@ -90,6 +89,9 @@ module ActiveSupport
         # The value "compress: false" prevents duplicate compression within Dalli.
         @mem_cache_options[:compress] = false
         (OVERRIDDEN_OPTIONS - %i(compress)).each { |name| @mem_cache_options.delete(name) }
+        # Set the default serializer for Dalli to prevent warning about
+        # inheriting the default serializer.
+        @mem_cache_options[:serializer] = Marshal
         @data = self.class.build_mem_cache(*(addresses + [@mem_cache_options]))
       end
 

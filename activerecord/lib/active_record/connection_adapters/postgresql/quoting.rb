@@ -191,6 +191,11 @@ module ActiveRecord
           super(query_value("SELECT #{quote(sql_type)}::regtype::oid").to_i)
         end
 
+        def type_casted_binds(binds) # :nodoc:
+          update_typemap_for_default_timezone
+          super
+        end
+
         private
           def encode_array(array_data)
             encoder = array_data.encoder
