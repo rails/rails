@@ -168,6 +168,20 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "tables are formatted" do
+    assert_converted_to(
+      "Greeting Greeted\nHello World\nHey You",
+      "<table><th>Greeting</th><th>Greeted</th><tr><td>Hello</td><td>World</td></tr><tr><td>Hey</td><td>You</td></tr></table>"
+    )
+  end
+
+  test "headings are formatted" do
+    assert_converted_to(
+      "HELLO!!!\n\nHELLO!\n\nHello!\n\nHey\n\nhey\n\nhi",
+      "<h1>HELLO!!!</h1><h2>HELLO!</h2><h3>Hello!</h3><h4>Hey</h4><h5>hey</h5><h6>hi</h6>"
+    )
+  end
+
   private
     def assert_converted_to(plain_text, html)
       assert_equal plain_text, ActionText::Content.new(html).to_plain_text
