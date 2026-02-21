@@ -1,3 +1,23 @@
+*   Add `ActionController::CurrentTimezone` to set the request timezone from a browser cookie.
+
+    Include it in any controller and set the cookie from JavaScript:
+
+    ```js
+    document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone}`
+    ```
+
+    ```ruby
+    class ApplicationController < ActionController::Base
+      include ActionController::CurrentTimezone
+    end
+    ```
+
+    The cookie name defaults to `:timezone` but is configurable via `timezone_cookie_name`.
+    The resolved timezone is exposed as a `timezone_from_cookie` helper and included in
+    ETag computation so timezone-dependent responses are cached separately per timezone.
+
+    *Thiago Youssef*
+
 *   Make `event_backtrace` attribute in `rescue_from_handled.action_controller` notifications the full backtrace, when `config.action_controller.rescue_from_event_backtrace` is `:array`.
 
     This also affects `action_controller.rescue_from_handled` events.
