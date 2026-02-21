@@ -168,6 +168,61 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     ActionText::ContentHelper.allowed_attributes = old_attrs
   end
 
+  test "extra_allowed_tags permits additional tags on top of defaults" do
+    html = "<div>safe<s>strikethrough</s></div>"
+
+    rendered_without_extra = content_from_html(html).to_rendered_html_with_layout
+    assert_not_includes rendered_without_extra, "<s>"
+
+    with_extra_allowed_tags(["s"]) do
+      rendered_with_extra = content_from_html(html).to_rendered_html_with_layout
+      assert_includes rendered_with_extra, "<s>"
+    end
+  end
+
+  test "extra_allowed_attributes permits additional attributes on top of defaults" do
+    html = "<div data-custom='value' onclick='bad()'>safe</div>"
+
+    rendered_without_extra = content_from_html(html).to_rendered_html_with_layout
+    assert_not_includes rendered_without_extra, "data-custom"
+
+    with_extra_allowed_attributes(["data-custom"]) do
+      rendered_with_extra = content_from_html(html).to_rendered_html_with_layout
+      assert_includes rendered_with_extra, "data-custom"
+      assert_not_includes rendered_with_extra, "onclick"
+    end
+  end
+
+  test "extra_allowed_tags are also added when allowed_tags is explicitly set" do
+    with_extra_allowed_tags(["s"]) do
+      old_tags = ActionText::ContentHelper.allowed_tags
+      ActionText::ContentHelper.allowed_tags = ["div"]
+
+      html = "<div>safe<s>extra</s></div>"
+      rendered = content_from_html(html).to_rendered_html_with_layout
+
+      assert_includes rendered, "<div"
+      assert_includes rendered, "<s>"
+    ensure
+      ActionText::ContentHelper.allowed_tags = old_tags
+    end
+  end
+
+  test "extra_allowed_attributes are also added when allowed_attributes is explicitly set" do
+    with_extra_allowed_attributes(["data-custom"]) do
+      old_attrs = ActionText::ContentHelper.allowed_attributes
+      ActionText::ContentHelper.allowed_attributes = ["class"]
+
+      html = "<div class='foo' data-custom='bar'>safe</div>"
+      rendered = content_from_html(html).to_rendered_html_with_layout
+
+      assert_includes rendered, "class"
+      assert_includes rendered, "data-custom"
+    ensure
+      ActionText::ContentHelper.allowed_attributes = old_attrs
+    end
+  end
+
   test "sanitizes attachment markup for Trix" do
     html = '<action-text-attachment content="<img src=\&quot;.\&quot; onerror=alert>"></action-text-attachment>'
     trix_html = '<figure data-trix-attachment="{&quot;content&quot;:&quot;<img src=\\&quot;\\\\%22.\\\\%22\\&quot;>&quot;}"></figure>'
@@ -260,5 +315,21 @@ class ActionText::ContentTest < ActiveSupport::TestCase
       yield
     ensure
       ActionText::Attachment.tag_name = previous_tag_name
+    end
+
+    def with_extra_allowed_tags(tags)
+      previous = ActionText::ContentHelper.extra_allowed_tags
+      ActionText::ContentHelper.extra_allowed_tags = tags
+      yield
+    ensure
+      ActionText::ContentHelper.extra_allowed_tags = previous
+    end
+
+    def with_extra_allowed_attributes(attributes)
+      previous = ActionText::ContentHelper.extra_allowed_attributes
+      ActionText::ContentHelper.extra_allowed_attributes = attributes
+      yield
+    ensure
+      ActionText::ContentHelper.extra_allowed_attributes = previous
     end
 end
