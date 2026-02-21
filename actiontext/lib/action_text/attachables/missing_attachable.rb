@@ -21,6 +21,10 @@ module ActionText
         end
       end
 
+      def attachable_plain_text_representation(caption = nil)
+        "☒"
+      end
+
       def attachable_markdown_representation(caption = nil)
         "☒"
       end
