@@ -68,12 +68,26 @@ module ActionText
     #     message.content.to_plain_text # => "Funny times!"
     #
     # NOTE: that the returned string is not HTML safe and should not be rendered in
-    # browsers.
+    # browsers without additional sanitization.
     #
     #     message = Message.create!(content: "&lt;script&gt;alert()&lt;/script&gt;")
     #     message.content.to_plain_text # => "<script>alert()</script>"
     def to_plain_text
       body&.to_plain_text.to_s
+    end
+
+    # Returns a Markdown version of the markup contained by the `body` attribute.
+    #
+    #     message = Message.create!(content: "<h1>Funny times!</h1>")
+    #     message.content.to_markdown # => "# Funny times!"
+    #
+    #     message = Message.create!(content: "<p>Hello <strong>world</strong></p>")
+    #     message.content.to_markdown # => "Hello **world**"
+    #
+    # NOTE: that the returned string is not HTML safe and should not be rendered in
+    # browsers without additional sanitization.
+    def to_markdown
+      body&.to_markdown.to_s
     end
 
     # Returns the `body` attribute in a format that makes it editable in the Trix

@@ -115,6 +115,44 @@ module ActionText
       end
     end
 
+    # Converts the attachment to Markdown.
+    #
+    #     attachable = ActiveStorage::Blob.find_by filename: "racecar.jpg"
+    #     attachment = ActionText::Attachment.from_attachable(attachable)
+    #     attachment.to_markdown # => "[racecar.jpg]"
+    #
+    # Use the `caption` when set:
+    #
+    #     attachment = ActionText::Attachment.from_attachable(attachable, caption: "Vroom vroom")
+    #     attachment.to_markdown # => "[Vroom vroom]"
+    #
+    # Remote images are rendered as Markdown images:
+    #
+    #     content = ActionText::Content.new('<action-text-attachment content-type="image/jpeg" url="https://example.com/photo.jpg" caption="A photo"></action-text-attachment>')
+    #     content.to_markdown # => "![A photo](https://example.com/photo.jpg)"
+    #
+    # The presentation can be overridden by implementing the
+    # `attachable_markdown_representation` method:
+    #
+    #     class Person < ApplicationRecord
+    #       include ActionText::Attachable
+    #
+    #       def attachable_markdown_representation(caption)
+    #         "[@#{name}](#{Rails.application.routes.url_helpers.person_url(self)})"
+    #       end
+    #     end
+    #
+    #     attachable = Person.create! name: "Javan"
+    #     attachment = ActionText::Attachment.from_attachable(attachable)
+    #     attachment.to_markdown # => "[@Javan](http://example.com/people/1)"
+    def to_markdown
+      if respond_to?(:attachable_markdown_representation)
+        attachable_markdown_representation(caption)
+      else
+        caption.to_s
+      end
+    end
+
     # Converts the attachment to HTML.
     #
     #     attachable = Person.create! name: "Javan"
