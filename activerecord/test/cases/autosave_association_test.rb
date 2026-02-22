@@ -1179,6 +1179,90 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
 
     assert_equal 1, post.categories.reload.length
   end
+
+  def test_autosave_new_record_with_after_create_callback_does_not_duplicate_has_many_through_join_rows
+    with_has_many_inversing do
+      audit_class = Class.new(ActiveRecord::Base) do
+        self.table_name = "tags"
+        def self.name; "AutosaveAudit"; end
+      end
+
+      audit_assignment_class = Class.new(ActiveRecord::Base) do
+        self.table_name = "taggings"
+        def self.name; "AutosaveAuditAssignment"; end
+
+        belongs_to :audit, foreign_key: :tag_id, anonymous_class: audit_class
+        belongs_to :item,
+          polymorphic: true,
+          foreign_key: :taggable_id,
+          foreign_type: :taggable_type
+      end
+
+      role_class = Class.new(ActiveRecord::Base) do
+        self.table_name = "readers"
+        def self.name; "AutosaveMembership"; end
+      end
+
+      user_class = Class.new(ActiveRecord::Base) do
+        self.table_name = "people"
+        def self.name; "AutosaveUser"; end
+
+        has_many :roles,
+          foreign_key: :person_id,
+          anonymous_class: role_class,
+          inverse_of: :user
+        has_many :audit_assignments,
+          -> { where(taggable_type: "AutosaveUser") },
+          foreign_key: :taggable_id,
+          anonymous_class: audit_assignment_class,
+          inverse_of: :item
+        has_many :audits,
+          through: :audit_assignments,
+          source: :audit,
+          anonymous_class: audit_class
+      end
+
+      group_class = Class.new(ActiveRecord::Base) do
+        self.table_name = "posts"
+        def self.name; "AutosaveGroup"; end
+
+        has_many :roles,
+          foreign_key: :post_id,
+          anonymous_class: role_class,
+          inverse_of: :group
+      end
+
+      user_class.class_eval do
+        has_many :groups,
+          through: :roles,
+          source: :group,
+          anonymous_class: group_class
+      end
+
+      role_class.class_eval do
+        belongs_to :user,
+          foreign_key: :person_id,
+          anonymous_class: user_class,
+          inverse_of: :roles
+        belongs_to :group,
+          foreign_key: :post_id,
+          anonymous_class: group_class,
+          inverse_of: :roles
+
+        after_create do
+          audit = audit_class.new(name: "User added to group")
+          user.audits << audit
+        end
+      end
+
+      group = group_class.create!(title: "Administrators", body: "Bug reproduction group")
+      user = user_class.new(first_name: "Admin", groups: [group])
+
+      assert_difference -> { audit_assignment_class.count }, 1 do
+        user.save!
+      end
+    end
+  end
 end
 
 class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
