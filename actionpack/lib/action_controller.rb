@@ -49,7 +49,7 @@ module ActionController
     autoload :Logging
     autoload :MimeResponds
     autoload :ParamsWrapper
-    autoload :CurrentTimezone
+    autoload :CurrentTimeZone
     autoload :RateLimiting
     autoload :Redirecting
     autoload :Renderers

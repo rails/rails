@@ -1,20 +1,22 @@
-*   Add `ActionController::CurrentTimezone` to set the request timezone from a browser cookie.
+*   Add `ActionController::CurrentTimeZone` to set the request time zone from a callable.
 
-    Include it in any controller and set the cookie from JavaScript:
+    Include it in any controller and call `set_current_time_zone_from` with a callable
+    that returns the time zone string. A common pattern is reading from a browser cookie
+    set via JavaScript:
 
     ```js
-    document.cookie = `timezone=${Intl.DateTimeFormat().resolvedOptions().timeZone}`
+    document.cookie = `time_zone=${Intl.DateTimeFormat().resolvedOptions().timeZone}`
     ```
 
     ```ruby
     class ApplicationController < ActionController::Base
-      include ActionController::CurrentTimezone
+      include ActionController::CurrentTimeZone
+      set_current_time_zone_from -> { cookies[:time_zone] }
     end
     ```
 
-    The cookie name defaults to `:timezone` but is configurable via `timezone_cookie_name`.
-    The resolved timezone is exposed as a `timezone_from_cookie` helper and included in
-    ETag computation so timezone-dependent responses are cached separately per timezone.
+    The callable is evaluated in the context of each request's controller instance,
+    so it has access to cookies, params, session, and any controller methods.
 
     *Thiago Youssef*
 
