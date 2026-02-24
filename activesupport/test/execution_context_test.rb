@@ -44,4 +44,21 @@ class ExecutionContextTest < ActiveSupport::TestCase
     context[:foo] = 43
     assert_equal 42, ActiveSupport::ExecutionContext.to_h[:foo]
   end
+
+  test "#pop clears the stack" do
+    ActiveSupport::ExecutionContext[:foo] = 42
+    ActiveSupport::ExecutionContext.pop
+
+    assert_equal 0, ActiveSupport::ExecutionContext.to_h.size
+  end
+
+  test "#pop when nestable clears the stack" do
+    ActiveSupport::ExecutionContext.nestable = true
+    ActiveSupport::ExecutionContext[:bar] = 42
+    ActiveSupport::ExecutionContext.pop
+
+    assert_equal 0, ActiveSupport::ExecutionContext.to_h.size
+  ensure
+    ActiveSupport::ExecutionContext.nestable = false # reset
+  end
 end

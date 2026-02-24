@@ -20,7 +20,7 @@ module ActiveSupport
 
       def pop
         @current_attributes_instances = @stack.pop
-        @store = @stack.pop
+        @store = @stack.pop || {}
         self
       end
     end
