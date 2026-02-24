@@ -1,3 +1,7 @@
+*   Fix support for table names containing hyphens.
+
+    *Evgeniy Demin*
+
 *   Improve PostgreSQLAdapter resilience to Timeout.timeout.
 
     Better handle asynchronous exceptions being thrown inside
