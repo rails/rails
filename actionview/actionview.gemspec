@@ -37,7 +37,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "builder",       "~> 3.1"
   s.add_dependency "erubi",         "~> 1.11"
-  s.add_dependency "rails-html-sanitizer", "~> 1.6"
+  s.add_dependency "rails-html-sanitizer", "~> 1.7"
   s.add_dependency "rails-dom-testing", "~> 2.2"
 
   s.add_development_dependency "actionpack",  version

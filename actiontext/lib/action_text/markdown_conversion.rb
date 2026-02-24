@@ -1,15 +1,35 @@
 # frozen_string_literal: true
 
+require "uri"
+
 # :markup: markdown
 
 module ActionText
+  # # Action Text Markdown Conversion
+  #
+  # Converts an HTML fragment into a Markdown string. Used by `ActionText::Content#to_markdown`
+  # and `ActionText::Fragment#to_markdown` to produce Markdown representations of rich text.
   module MarkdownConversion
     extend self
 
+    # Converts a Nokogiri HTML +node+ into a Markdown string.
+    #
+    #     node = Nokogiri::HTML4.fragment("<p>Hello <strong>world</strong></p>")
+    #     MarkdownConversion.node_to_markdown(node) # => "Hello **world**"
     def node_to_markdown(node)
       BottomUpReducer.new(node).reduce do |n, child_values|
         markdown_for_node(n, child_values)
       end.strip
+    end
+
+    # Returns a Markdown link: +[title](url)+. Escapes brackets and backslashes
+    # in +title+, and percent-encodes characters in +url+ that would break the
+    # link syntax.
+    #
+    #     MarkdownConversion.markdown_link("photo", "https://example.com/photo_(large).png")
+    #     # => "[photo](https://example.com/photo_%28large%29.png)"
+    def markdown_link(title, url)
+      "[#{escape_link_text(title)}](#{encode_href(url)})"
     end
 
     private
@@ -17,8 +37,8 @@ module ActionText
       ITALIC_TAGS = %w[i em].freeze
       LIST_BULLET = /\A(-|\d+\.) /
       LIST_INDENT = "  "
-      PROTOCOL_REGEXP = /\A([a-zA-Z][a-zA-Z\d+\-.]*):/ # RFC 3986 scheme syntax
-      private_constant :BOLD_TAGS, :ITALIC_TAGS, :LIST_BULLET, :LIST_INDENT, :PROTOCOL_REGEXP
+      ENCODE_HREF_CHARS = /[() <>\n\r\t]/
+      private_constant :BOLD_TAGS, :ITALIC_TAGS, :LIST_BULLET, :LIST_INDENT, :ENCODE_HREF_CHARS
 
       def markdown_for_node(node, child_values)
         if node.text?
@@ -72,12 +92,14 @@ module ActionText
         if node.parent&.name == "pre"
           inner
         else
-          "`#{inner}`"
+          inline_code(inner)
         end
       end
 
       def visit_pre(_node, child_values)
-        "```\n#{join_children(child_values).strip}\n```\n\n"
+        inner = join_children(child_values).delete_prefix("\n").delete_suffix("\n")
+        fence = code_fence(inner)
+        "#{fence}\n#{inner}\n#{fence}\n\n"
       end
 
       def visit_p(_node, child_values)
@@ -111,8 +133,8 @@ module ActionText
 
       def visit_a(node, child_values)
         inner = join_children(child_values)
-        if (href = node["href"]) && allowed_href_protocol?(href)
-          "[#{inner}](#{href})"
+        if (href = node["href"]) && Rails::HTML::Sanitizer.allowed_uri?(href)
+          markdown_link(inner, href)
         else
           inner
         end
@@ -162,14 +184,6 @@ module ActionText
         row = "| #{cells.join(" | ")} |\n"
         separator = "| #{Array.new(cells.size, "---").join(" | ")} |\n"
         "#{row}#{separator}"
-      end
-
-      def allowed_href_protocol?(href)
-        if (match = href.match(PROTOCOL_REGEXP))
-          match[1].downcase.in?(Loofah::HTML5::SafeList::ALLOWED_PROTOCOLS)
-        else
-          true # relative URL, no protocol
-        end
       end
 
       def list_item_lines(list_node, child_values, prefix:)
@@ -246,6 +260,21 @@ module ActionText
         "#{leading}#{marker}#{inner}#{marker}#{trailing}"
       end
 
+      def code_fence(content)
+        max_run = content.scan(/`{3,}/).map(&:length).max || 0
+        "`" * [3, max_run + 1].max
+      end
+
+      def inline_code(content)
+        max_run = content.scan(/`+/).map(&:length).max || 0
+        fence = "`" * [1, max_run + 1].max
+        if content.start_with?("`") || content.end_with?("`")
+          "#{fence} #{content} #{fence}"
+        else
+          "#{fence}#{content}#{fence}"
+        end
+      end
+
       def significant_whitespace?(node)
         node.previous_sibling&.text? && node.next_sibling&.text?
       end
@@ -258,6 +287,14 @@ module ActionText
           current = current.parent
         end
         false
+      end
+
+      def encode_href(href)
+        URI::RFC2396_PARSER.escape(href, ENCODE_HREF_CHARS)
+      end
+
+      def escape_link_text(text)
+        text.gsub(/[\\\[\]]/) { |c| "\\#{c}" }
       end
   end
 end

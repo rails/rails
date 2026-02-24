@@ -34,6 +34,18 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_converted_to("`hello`", "<code>hello</code>")
   end
 
+  test "<code> tags containing backticks are fenced with double backticks" do
+    assert_converted_to("``foo`bar``", "<code>foo`bar</code>")
+  end
+
+  test "<code> tags with leading backtick are space-padded" do
+    assert_converted_to("`` `leading ``", "<code>`leading</code>")
+  end
+
+  test "<code> tags with trailing backtick are space-padded" do
+    assert_converted_to("`` trailing` ``", "<code>trailing`</code>")
+  end
+
   test "nested <strong> and <em> tags produce bold italic" do
     assert_converted_to("***hello***", "<strong><em>hello</em></strong>")
   end
@@ -125,6 +137,27 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_converted_to("```\nhello\n```", "<pre><code>hello</code></pre>")
   end
 
+  test "<pre> preserves inner blank lines" do
+    assert_converted_to(
+      "```\n\nblank first line\n```",
+      "<pre><code>\n\nblank first line\n</code></pre>"
+    )
+  end
+
+  test "<pre> preserves leading and trailing spaces on lines" do
+    assert_converted_to(
+      "```\n  indented\nline  \n```",
+      "<pre><code>  indented\nline  </code></pre>"
+    )
+  end
+
+  test "<pre> containing triple backticks uses longer fence" do
+    assert_converted_to(
+      "````\n```\nsome code\n```\n````",
+      "<pre><code>```\nsome code\n```</code></pre>"
+    )
+  end
+
   test "<pre> followed by <p> has blank line separator" do
     assert_converted_to(
       "```\nhello\n```\n\nworld",
@@ -210,6 +243,77 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<a> tags with parentheses in href are encoded" do
+    assert_converted_to(
+      "[Rust](https://en.wikipedia.org/wiki/Rust_%28programming_language%29)",
+      '<a href="https://en.wikipedia.org/wiki/Rust_(programming_language)">Rust</a>'
+    )
+  end
+
+  test "<a> tags with spaces in href are encoded" do
+    assert_converted_to(
+      "[link](https://example.com/path%20with%20spaces)",
+      '<a href="https://example.com/path with spaces">link</a>'
+    )
+  end
+
+  test "<a> tags with angle brackets in href are encoded" do
+    assert_converted_to(
+      "[link](https://example.com/a%3Cb%3Ec)",
+      '<a href="https://example.com/a<b>c">link</a>'
+    )
+  end
+
+  test "<a> tags with newlines in href are encoded" do
+    assert_converted_to(
+      "[link](https://example.com/a%0Ab)",
+      "<a href=\"https://example.com/a\nb\">link</a>"
+    )
+  end
+
+  test "<a> tags with carriage returns in href are encoded" do
+    # Nokogiri normalizes \r to \n in attribute values
+    assert_converted_to(
+      "[link](https://example.com/a%0Ab)",
+      "<a href=\"https://example.com/a\rb\">link</a>"
+    )
+  end
+
+  test "<a> tags with tabs in href are encoded" do
+    assert_converted_to(
+      "[link](https://example.com/a%09b)",
+      "<a href=\"https://example.com/a\tb\">link</a>"
+    )
+  end
+
+  test "<a> tags with already-encoded parentheses in href are not double-encoded" do
+    assert_converted_to(
+      "[link](https://example.com/foo%28bar%29)",
+      '<a href="https://example.com/foo%28bar%29">link</a>'
+    )
+  end
+
+  test "<a> tags with bracket injection in link text are escaped" do
+    assert_converted_to(
+      "[text\\](https://evil.com)](https://example.com)",
+      '<a href="https://example.com">text](https://evil.com)</a>'
+    )
+  end
+
+  test "<a> tags with backslash+bracket injection in link text are escaped" do
+    assert_converted_to(
+      "[text\\\\\\](https://evil.com)](https://example.com)",
+      '<a href="https://example.com">text\](https://evil.com)</a>'
+    )
+  end
+
+  test "<a> tags with data:image href are converted to links" do
+    assert_converted_to(
+      "[img](data:image/png;base64,abc123)",
+      '<a href="data:image/png;base64,abc123">img</a>'
+    )
+  end
+
   test "<a> tags without href pass through content" do
     assert_converted_to("**click here**", "<a><strong>click here</strong></a>")
   end
@@ -232,6 +336,30 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
 
   test "<a> tags with javascript: href pass through content without link" do
     assert_converted_to("click here", '<a href="javascript:alert(1)">click here</a>')
+  end
+
+  test "<a> tags with javascript: href obfuscated by leading space" do
+    assert_converted_to("click here", '<a href=" javascript:alert(1)">click here</a>')
+  end
+
+  test "<a> tags with javascript: href obfuscated by leading tab" do
+    assert_converted_to("click here", '<a href="	javascript:alert(1)">click here</a>')
+  end
+
+  test "<a> tags with javascript: href obfuscated by HTML entity encoding" do
+    assert_converted_to("click here", '<a href="&#106;avascript:alert(1)">click here</a>')
+  end
+
+  test "<a> tags with javascript: href obfuscated by entity-encoded colon" do
+    assert_converted_to("click here", '<a href="javascript&#58;alert(1)">click here</a>')
+  end
+
+  test "<a> tags with JAVASCRIPT: href (uppercase) pass through content without link" do
+    assert_converted_to("click here", '<a href="JAVASCRIPT:alert(1)">click here</a>')
+  end
+
+  test "<a> tags with javascript: href obfuscated by newline" do
+    assert_converted_to("click here", '<a href="&#10;javascript:alert(1)">click here</a>')
   end
 
   test "<table> with <thead> is converted to markdown table" do
@@ -332,6 +460,20 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "image attachment with parentheses in URL is encoded" do
+    assert_converted_to(
+      "![Photo](https://example.com/photo_%28large%29.png)",
+      '<action-text-attachment content-type="image/png" url="https://example.com/photo_(large).png" caption="Photo"></action-text-attachment>'
+    )
+  end
+
+  test "image attachment with bracket injection in caption is escaped" do
+    assert_converted_to(
+      '![evil\](https://evil.com)!\[x](https://example.com/photo.png)',
+      '<action-text-attachment content-type="image/png" url="https://example.com/photo.png" caption="evil](https://evil.com)![x"></action-text-attachment>'
+    )
+  end
+
   test "image attachment without caption falls back to Image alt text" do
     assert_converted_to(
       "![Image](https://example.com/photo.jpg)",
@@ -395,7 +537,6 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
       '<action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment> <action-text-attachment content-type="image/jpeg" url="https://example.com/b.jpg" caption="B"></action-text-attachment>'
     )
   end
-
 
   test "Fragment#to_markdown memoizes the result" do
     fragment = ActionText::Fragment.from_html("<p><strong>hello</strong></p>")
