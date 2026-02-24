@@ -139,7 +139,7 @@ module ActionText
     #       include ActionText::Attachable
     #
     #       def attachable_markdown_representation(caption)
-    #         "[@#{name}](#{Rails.application.routes.url_helpers.person_url(self)})"
+    #         MarkdownConversion.markdown_link("@#{name}", Rails.application.routes.url_helpers.person_url(self))
     #       end
     #     end
     #

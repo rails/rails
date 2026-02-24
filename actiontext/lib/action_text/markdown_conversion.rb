@@ -9,6 +9,12 @@ module ActionText
   #
   # Converts an HTML fragment into a Markdown string. Used by `ActionText::Content#to_markdown`
   # and `ActionText::Fragment#to_markdown` to produce Markdown representations of rich text.
+  #
+  # Example: `<h1>Release Notes</h1>` => `# Release Notes`, a markdown heading.
+  #
+  # Note that this converter escapes text nodes so it won't render as markdown.
+  #
+  # Example: `<p># Release Notes</p>` => `\# Release Notes`, not a heading.
   module MarkdownConversion
     extend self
 
@@ -29,7 +35,16 @@ module ActionText
     #     MarkdownConversion.markdown_link("photo", "https://example.com/photo_(large).png")
     #     # => "[photo](https://example.com/photo_%28large%29.png)"
     def markdown_link(title, url)
-      "[#{escape_link_text(title)}](#{encode_href(url)})"
+      "[#{escape_markdown_text(title)}](#{encode_href(url)})"
+    end
+
+    # Backslash-escapes CommonMark metacharacters in +text+ so they are treated
+    # as literal characters by Markdown renderers.
+    #
+    #     MarkdownConversion.escape_markdown_text("**Important**")
+    #     # => "\\*\\*Important\\*\\*"
+    def escape_markdown_text(text)
+      text.gsub(MARKDOWN_METACHARACTERS) { |c| "\\#{c}" }
     end
 
     private
@@ -38,14 +53,31 @@ module ActionText
       LIST_BULLET = /\A(-|\d+\.) /
       LIST_INDENT = "  "
       ENCODE_HREF_CHARS = /[() <>\n\r\t]/
-      private_constant :BOLD_TAGS, :ITALIC_TAGS, :LIST_BULLET, :LIST_INDENT, :ENCODE_HREF_CHARS
+      MARKDOWN_METACHARACTERS = /
+        [\\`*_{}\[\]|~<>]     # metacharacters that should be escaped generally
+        | \A\#(?=[\s\#]|\z)   # leading hash before space or another hash: ATX heading
+        | \A=(?=[=\s]|\z)     # leading equals before space or another equals: setext heading
+        | \A-                 # leading hyphen: list item, thematic break, or setext heading
+        | \A\+(?=\s|\z)       # leading plus before space: list item
+        | \A\d+\K\.(?=\s|\z)  # leading "1." with trailing space: ordered list item (only the dot is matched)
+      /x
+      SKIP_ESCAPING_PARENTS = %w[ action-text-markdown code pre ].freeze
+      INLINE_ELEMENTS = %w[
+        action-text-markdown
+        a abbr b bdi bdo cite code data dfn em i kbd mark q
+        rp rt ruby s samp small span strong sub sup time u var
+      ].freeze
+      private_constant :BOLD_TAGS, :ITALIC_TAGS, :LIST_BULLET, :LIST_INDENT, :ENCODE_HREF_CHARS,
+        :MARKDOWN_METACHARACTERS, :SKIP_ESCAPING_PARENTS, :INLINE_ELEMENTS
 
       def markdown_for_node(node, child_values)
         if node.text?
           if node.content.blank? && !significant_whitespace?(node)
             ""
-          else
+          elsif skip_markdown_escaping?(node)
             node.content
+          else
+            escape_markdown_text(node.content)
           end
         elsif node.element?
           method_name = :"visit_#{node.name.tr("-", "_")}"
@@ -134,7 +166,7 @@ module ActionText
       def visit_a(node, child_values)
         inner = join_children(child_values)
         if (href = node["href"]) && Rails::HTML::Sanitizer.allowed_uri?(href)
-          markdown_link(inner, href)
+          "[#{inner}](#{encode_href(href)})"
         else
           inner
         end
@@ -160,6 +192,12 @@ module ActionText
 
       def visit_hr(_node, _child_values)
         "---\n\n"
+      end
+
+      # Attachment markdown is wrapped in <action-text-markdown> by Content#to_markdown so it passes
+      # through without text escaping.
+      def visit_action_text_markdown(_node, child_values)
+        join_children(child_values)
       end
 
       # Avoid including content from elements that aren't meaningful for markdown output
@@ -276,7 +314,12 @@ module ActionText
       end
 
       def significant_whitespace?(node)
-        node.previous_sibling&.text? && node.next_sibling&.text?
+        significant_inline_sibling?(node.previous_sibling) &&
+          significant_inline_sibling?(node.next_sibling)
+      end
+
+      def significant_inline_sibling?(sibling)
+        sibling&.text? || sibling&.name&.in?(INLINE_ELEMENTS)
       end
 
       def ancestor_named?(node, names, max_depth:)
@@ -293,8 +336,8 @@ module ActionText
         URI::RFC2396_PARSER.escape(href, ENCODE_HREF_CHARS)
       end
 
-      def escape_link_text(text)
-        text.gsub(/[\\\[\]]/) { |c| "\\#{c}" }
+      def skip_markdown_escaping?(node)
+        node.parent&.name.in?(SKIP_ESCAPING_PARENTS)
       end
   end
 end

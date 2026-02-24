@@ -61,7 +61,7 @@ module ActionText
         end
 
         def attachable_markdown_representation(caption = nil)
-          "[#{caption || filename}]"
+          "[#{MarkdownConversion.escape_markdown_text((caption || filename).to_s)}]"
         end
 
         def to_trix_content_attachment_partial_path

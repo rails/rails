@@ -143,7 +143,11 @@ module ActionText
     # NOTE: that the returned string is not HTML safe and should not be rendered in
     # browsers without additional sanitization.
     def to_markdown
-      render_attachments(with_full_attributes: false, &:to_markdown).fragment.to_markdown
+      render_attachments(with_full_attributes: false) { |attachment|
+        ActionText::HtmlConversion.create_element("action-text-markdown").tap do |node|
+          node.content = attachment.to_markdown
+        end
+      }.fragment.to_markdown
     end
 
     def to_trix_html

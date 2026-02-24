@@ -3,12 +3,143 @@
 require "test_helper"
 
 class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
+  # --- Text tests ---
+
   test "plain text passes through unchanged" do
     assert_converted_to(
       "hello world",
       "hello world"
     )
+    assert_converted_to(
+      "hello world",
+      "<p>hello world</p>"
+    )
   end
+
+  test "empty content" do
+    assert_converted_to("", "")
+  end
+
+  test "leading and trailing whitespace is stripped" do
+    assert_converted_to("hello", "<p>  hello  </p>")
+  end
+
+  test "HTML entities are decoded" do
+    assert_converted_to(
+      'asdf \< asdf & asdf \> asdf',
+      "<p>asdf &lt; asdf &amp; asdf &gt; asdf</p>"
+    )
+  end
+
+  test "text escaping: angle bracket (HTML block)" do
+    assert_converted_to('\<!-- hidden --\>', "<p>&lt;!-- hidden --&gt;</p>")
+  end
+
+  test "text escaping: backslash (escape character)" do
+    assert_converted_to('a \\\\ b', '<p>a \\ b</p>')
+  end
+
+  test "text escaping: backtick (code span)" do
+    assert_converted_to('a \\` b', "<p>a ` b</p>")
+  end
+
+  test "text escaping: asterisk (emphasis)" do
+    assert_converted_to('\\*not italic\\*', "<p>*not italic*</p>")
+    assert_converted_to('\\*\\*not bold\\*\\*', "<p>**not bold**</p>")
+  end
+
+  test "text escaping: underscore (emphasis)" do
+    assert_converted_to('\\_not italic\\_', "<p>_not italic_</p>")
+    assert_converted_to('\\_\\_not bold\\_\\_', "<p>__not bold__</p>")
+  end
+
+  test "text escaping: curly braces (reserved for extensions)" do
+    assert_converted_to('\\{attr\\}', "<p>{attr}</p>")
+  end
+
+  test "text escaping: square brackets (link text)" do
+    assert_converted_to('\\[not a link\\]', "<p>[not a link]</p>")
+  end
+
+  test "text escaping: parentheses are not escaped because bracket escaping prevents link syntax" do
+    assert_converted_to("(aside)", "<p>(aside)</p>")
+    assert_converted_to("f(x)", "<p>f(x)</p>")
+  end
+
+  test "text escaping: hash (ATX heading)" do
+    assert_converted_to('\# not a heading', "<p># not a heading</p>")
+    assert_converted_to('\## not a heading', "<p>## not a heading</p>")
+    assert_converted_to('\#', "<p>#</p>")
+    assert_converted_to("> \\# not a heading", "<blockquote># not a heading</blockquote>")
+  end
+
+  test "text escaping: hash is not escaped in normal prose" do
+    assert_converted_to("C# is a language", "<p>C# is a language</p>")
+    assert_converted_to("issue #123", "<p>issue #123</p>")
+    assert_converted_to("#hashtag", "<p>#hashtag</p>")
+  end
+
+  test "text escaping: plus (unordered list item)" do
+    assert_converted_to('\+ not a list', "<p>+ not a list</p>")
+  end
+
+  test "text escaping: plus is not escaped in normal prose" do
+    assert_converted_to("C++ is a language", "<p>C++ is a language</p>")
+    assert_converted_to("a + b = c", "<p>a + b = c</p>")
+    assert_converted_to("+1 for this", "<p>+1 for this</p>")
+  end
+
+  test "text escaping: hyphen (list item, thematic break, setext heading)" do
+    assert_converted_to('\- not a list', "<p>- not a list</p>")
+    assert_converted_to('\---', "<p>---</p>")
+    assert_converted_to("> \\- not a list", "<blockquote>- not a list</blockquote>")
+    assert_converted_to('> \---', "<blockquote>---</blockquote>")
+  end
+
+  test "text escaping: equals (setext heading)" do
+    assert_converted_to('\===', "<p>===</p>")
+    assert_converted_to('\=', "<p>=</p>")
+    assert_converted_to('> \===', "<blockquote>===</blockquote>")
+  end
+
+  test "text escaping: equals is not escaped in normal prose" do
+    assert_converted_to("a = b", "<p>a = b</p>")
+    assert_converted_to("a == b", "<p>a == b</p>")
+    assert_converted_to("=foo", "<p>=foo</p>")
+  end
+
+  test "text escaping: hyphen is not escaped in normal prose" do
+    assert_converted_to("well-known fact", "<p>well-known fact</p>")
+    assert_converted_to("foo -- bar", "<p>foo -- bar</p>")
+    assert_converted_to("foo --- bar", "<p>foo --- bar</p>")
+  end
+
+  test "text escaping: dot (ordered list item)" do
+    assert_converted_to('1\. not a list', "<p>1. not a list</p>")
+    assert_converted_to('1\.', "<p>1.</p>")
+  end
+
+  test "text escaping: dot is not escaped in normal prose" do
+    assert_converted_to("end of sentence. start of next", "<p>end of sentence. start of next</p>")
+    assert_converted_to("e.g. for example", "<p>e.g. for example</p>")
+    assert_converted_to("Agent 007. Licensed to kill.", "<p>Agent 007. Licensed to kill.</p>")
+    assert_converted_to("3.1 this is not a list item", "<p>3.1 this is not a list item</p>")
+  end
+
+  test "text escaping: pipe (table delimiter)" do
+    assert_converted_to('a \\| b', "<p>a | b</p>")
+  end
+
+  test "text escaping: tilde (strikethrough)" do
+    assert_converted_to('\\~\\~not struck\\~\\~', "<p>~~not struck~~</p>")
+  end
+
+  test "text escaping: greater-than (block quote)" do
+    assert_converted_to('\> not a quote', "<p>> not a quote</p>")
+    assert_converted_to('\> not a quote', "<p>&gt; not a quote</p>")
+  end
+
+  # --- Tag tests ---
 
   test "<strong> tags are converted to bold" do
     assert_converted_to("**hello**", "<strong>hello</strong>")
@@ -295,14 +426,14 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
 
   test "<a> tags with bracket injection in link text are escaped" do
     assert_converted_to(
-      "[text\\](https://evil.com)](https://example.com)",
+      '[text\](https://evil.com)](https://example.com)',
       '<a href="https://example.com">text](https://evil.com)</a>'
     )
   end
 
   test "<a> tags with backslash+bracket injection in link text are escaped" do
     assert_converted_to(
-      "[text\\\\\\](https://evil.com)](https://example.com)",
+      '[text\\\\\](https://evil.com)](https://example.com)',
       '<a href="https://example.com">text\](https://evil.com)</a>'
     )
   end
@@ -402,21 +533,6 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
-  test "empty content" do
-    assert_converted_to("", "")
-  end
-
-  test "leading and trailing whitespace is stripped" do
-    assert_converted_to("hello", "<p>  hello  </p>")
-  end
-
-  test "HTML entities are decoded" do
-    assert_converted_to(
-      "asdf < asdf & asdf > asdf",
-      "<p>asdf &lt; asdf &amp; asdf &gt; asdf</p>"
-    )
-  end
-
   test "unknown elements pass through their content" do
     assert_converted_to("hello", "<asdf>hello</asdf>")
   end
@@ -453,6 +569,57 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "attachment with surrounding text" do
+    assert_converted_to(
+      "Hello world! ![Cat](http://example.com/cat.jpg)",
+      'Hello world! <action-text-attachment url="http://example.com/cat.jpg" content-type="image/jpeg" caption="Cat"></action-text-attachment>'
+    )
+  end
+
+  test "multiple attachments separated by whitespace preserve the whitespace" do
+    assert_converted_to(
+      "![A](https://example.com/a.jpg) ![B](https://example.com/b.jpg)",
+      '<action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment> <action-text-attachment content-type="image/jpeg" url="https://example.com/b.jpg" caption="B"></action-text-attachment>'
+    )
+  end
+
+  test "multiple attachments and text separated by whitespace preserve the whitespace" do
+    assert_converted_to(
+      "![A](https://example.com/a.jpg) and ![B](https://example.com/b.jpg)",
+      '<action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment> and <action-text-attachment content-type="image/jpeg" url="https://example.com/b.jpg" caption="B"></action-text-attachment>'
+    )
+  end
+
+  test "attachment with whitespace before inline element preserves the whitespace" do
+    assert_converted_to(
+      "![A](https://example.com/a.jpg) **bold**",
+      '<action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment> <strong>bold</strong>'
+    )
+  end
+
+  test "inline element with whitespace before attachment preserves the whitespace" do
+    assert_converted_to(
+      "**bold** ![A](https://example.com/a.jpg)",
+      '<strong>bold</strong> <action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment>'
+    )
+  end
+
+  test "non-core inline element preserves surrounding whitespace" do
+    assert_converted_to(
+      "hello world",
+      "hello <abbr>world</abbr>"
+    )
+  end
+
+  test "unknown element with blank whitespace node drops it (block-like default)" do
+    assert_converted_to(
+      "helloworld",
+      "<abbr>hello</abbr> <custom-widget>world</custom-widget>"
+    )
+  end
+
+  # --- Attachment tests ---
+
   test "image attachment with caption is converted to markdown image" do
     assert_converted_to(
       "![A photo](https://example.com/photo.png)",
@@ -471,6 +638,13 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_converted_to(
       '![evil\](https://evil.com)!\[x](https://example.com/photo.png)',
       '<action-text-attachment content-type="image/png" url="https://example.com/photo.png" caption="evil](https://evil.com)![x"></action-text-attachment>'
+    )
+  end
+
+  test "image attachment with emphasis markers in caption is escaped" do
+    assert_converted_to(
+      '![photo \*large\*](https://example.com/photo.png)',
+      '<action-text-attachment content-type="image/png" url="https://example.com/photo.png" caption="photo *large*"></action-text-attachment>'
     )
   end
 
@@ -493,17 +667,16 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
-  test "attachment with surrounding text" do
-    assert_converted_to(
-      "Hello world! ![Cat](http://example.com/cat.jpg)",
-      'Hello world! <action-text-attachment url="http://example.com/cat.jpg" content-type="image/jpeg" caption="Cat"></action-text-attachment>'
-    )
-  end
-
   test "ActiveStorage blob attachment is converted to markdown with caption" do
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
     assert_equal "[Captioned]", ActionText::Content.new(html).to_markdown
+  end
+
+  test "ActiveStorage blob attachment with metacharacters in caption is escaped" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo *large*"></action-text-attachment>)
+    assert_equal '[photo \*large\*]', ActionText::Content.new(html).to_markdown
   end
 
   test "ActiveStorage blob attachment without caption uses filename" do
@@ -519,6 +692,26 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_equal "☒", ActionText::Content.new(html).to_markdown
   end
 
+  test "image attachment with angle brackets in caption is not mangled" do
+    assert_converted_to(
+      '![photo \<large\>](https://example.com/photo.png)',
+      '<action-text-attachment content-type="image/png" url="https://example.com/photo.png" caption="photo &lt;large&gt;"></action-text-attachment>'
+    )
+  end
+
+  test "ActiveStorage blob attachment with angle brackets in caption" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo <large>"></action-text-attachment>)
+    assert_equal '[photo \<large\>]', ActionText::Content.new(html).to_markdown
+  end
+
+  # --- Fragment and Rich Text tests ---
+
+  test "Fragment#to_markdown memoizes the result" do
+    fragment = ActionText::Fragment.from_html("<p><strong>hello</strong></p>")
+    assert_same fragment.to_markdown, fragment.to_markdown
+  end
+
   test "RichText#to_markdown" do
     assert_equal "**hello**", ActionText::RichText.new(body: "<p><strong>hello</strong></p>").to_markdown
   end
@@ -529,18 +722,6 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
 
   test "RichText#to_markdown handles nil body" do
     assert_equal "", ActionText::RichText.new(body: nil).to_markdown
-  end
-
-  test "multiple attachments separated by whitespace preserve the whitespace" do
-    assert_converted_to(
-      "![A](https://example.com/a.jpg) ![B](https://example.com/b.jpg)",
-      '<action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment> <action-text-attachment content-type="image/jpeg" url="https://example.com/b.jpg" caption="B"></action-text-attachment>'
-    )
-  end
-
-  test "Fragment#to_markdown memoizes the result" do
-    fragment = ActionText::Fragment.from_html("<p><strong>hello</strong></p>")
-    assert_same fragment.to_markdown, fragment.to_markdown
   end
 
   private
