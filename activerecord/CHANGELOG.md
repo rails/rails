@@ -1,3 +1,14 @@
+*   Preserve triggers on SQLite3 tables during `alter_table` operations.
+
+    Previously, schema migration operations that internally recreate the table (e.g.,
+    `remove_column`, `change_column`, `add_column` with `null: false`) would silently
+    drop all triggers defined on that table. Foreign keys and check constraints were
+    already preserved, but triggers were not.
+
+    Fixes #56810.
+
+    *hammadxcm*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.

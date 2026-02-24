@@ -620,6 +620,7 @@ module ActiveRecord
           **options
         )
           altered_table_name = "a#{table_name}"
+          triggers = trigger_definitions(table_name)
 
           caller = lambda do |definition|
             rename = options[:rename] || {}
@@ -642,6 +643,10 @@ module ActiveRecord
             transaction do
               move_table(table_name, altered_table_name, options.merge(temporary: true))
               move_table(altered_table_name, table_name, &caller)
+
+              triggers.each do |trigger_sql|
+                execute(trigger_sql)
+              end
             end
           end
         end

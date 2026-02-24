@@ -118,6 +118,20 @@ module ActiveRecord
         end
 
         private
+          # Returns an array of CREATE TRIGGER SQL statements defined on +table_name+.
+          # Used by +alter_table+ to preserve triggers across table recreation.
+          def trigger_definitions(table_name)
+            query_values(<<~SQL)
+              SELECT sql
+              FROM sqlite_master
+              WHERE type = 'trigger' AND tbl_name = #{quote(table_name)}
+              UNION ALL
+              SELECT sql
+              FROM sqlite_temp_master
+              WHERE type = 'trigger' AND tbl_name = #{quote(table_name)}
+            SQL
+          end
+
           def valid_table_definition_options
             super + [:rename]
           end

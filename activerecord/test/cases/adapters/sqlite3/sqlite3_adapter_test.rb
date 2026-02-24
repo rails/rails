@@ -1323,6 +1323,72 @@ module ActiveRecord
         conn.disconnect! if conn
       end
 
+      def test_alter_table_preserves_triggers
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :posts do |t|
+          t.string :title, null: false
+          t.string :subtitle
+          t.integer :view_count, default: 0
+        end
+
+        conn.execute(<<~SQL)
+          CREATE TRIGGER increment_view_count AFTER INSERT ON posts
+          BEGIN
+            UPDATE posts SET view_count = view_count + 1 WHERE id = NEW.id;
+          END
+        SQL
+
+        assert_equal 1, conn.select_value(
+          "SELECT COUNT(*) FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'posts'"
+        )
+
+        conn.remove_column :posts, :subtitle
+
+        assert_equal 1, conn.select_value(
+          "SELECT COUNT(*) FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'posts'"
+        ), "Trigger should survive ALTER TABLE via remove_column"
+
+        conn.execute("INSERT INTO posts (id, title) VALUES (1, 'Hello')")
+        assert_equal 1, conn.select_value("SELECT view_count FROM posts WHERE id = 1"),
+          "Trigger should still function after ALTER TABLE"
+      ensure
+        conn.disconnect! if conn
+      end
+
+      def test_alter_table_preserves_multiple_triggers
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :posts do |t|
+          t.string :title, null: false
+          t.string :subtitle
+          t.integer :view_count, default: 0
+          t.integer :edit_count, default: 0
+        end
+
+        conn.execute(<<~SQL)
+          CREATE TRIGGER increment_view_count AFTER INSERT ON posts
+          BEGIN
+            UPDATE posts SET view_count = view_count + 1 WHERE id = NEW.id;
+          END
+        SQL
+
+        conn.execute(<<~SQL)
+          CREATE TRIGGER increment_edit_count AFTER UPDATE OF title ON posts
+          BEGIN
+            UPDATE posts SET edit_count = edit_count + 1 WHERE id = NEW.id;
+          END
+        SQL
+
+        conn.remove_column :posts, :subtitle
+
+        assert_equal 2, conn.select_value(
+          "SELECT COUNT(*) FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'posts'"
+        ), "All triggers should survive ALTER TABLE"
+      ensure
+        conn.disconnect! if conn
+      end
+
       def test_rename_table_with_cascade_fk_preserves_referencing_data
         conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
 
