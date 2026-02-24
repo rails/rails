@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/string/output_safety"
+require "active_support/html_safe_translation"
 
 module ActiveModel
   # = Active \Model \Error
@@ -54,10 +56,15 @@ module ActiveModel
         base: base,
       })
 
-      I18n.t(defaults.shift,
+      html_safe = message.html_safe?
+      attr_name = ERB::Util.html_escape(attr_name) if html_safe
+
+      format = I18n.t(defaults.shift,
         default:  defaults,
         attribute: attr_name,
         message:   message)
+
+      html_safe ? format.html_safe : format
     end
 
     def self.generate_message(attribute, type, base, options) # :nodoc:
@@ -82,7 +89,7 @@ module ActiveModel
         defaults << :"#{i18n_scope}.errors.messages.#{type}"
 
         catch(:exception) do
-          translation = I18n.translate(defaults.first, **options, default: defaults.drop(1), throw: true)
+          translation = ActiveSupport::HtmlSafeTranslation.translate(defaults.first, **options, default: defaults.drop(1), throw: true)
           return translation unless translation.nil?
         end unless options[:message]
       else
@@ -96,7 +103,7 @@ module ActiveModel
       defaults = options.delete(:message) if options[:message]
       options[:default] = defaults
 
-      I18n.translate(key, **options)
+      ActiveSupport::HtmlSafeTranslation.translate(key, **options)
     end
 
     def initialize(base, attribute, type = :invalid, **options)

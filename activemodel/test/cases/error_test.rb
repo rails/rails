@@ -222,7 +222,64 @@ class ErrorTest < ActiveModel::TestCase
     assert_equal "foo.base press the button", error.full_message
   end
 
-  # details
+  test "generate_message with _html suffix returns html_safe string" do
+    I18n.backend.store_translations(:en, errors: { messages: { invalid_html: "<em>is not valid</em>" } })
+    error = ActiveModel::Error.new(Person.new, :name, :invalid_html)
+
+    assert_predicate error.message, :html_safe?
+    assert_equal "<em>is not valid</em>", error.message
+  end
+
+  test "generate_message with _html suffix HTML-escapes interpolation values" do
+    I18n.backend.store_translations(:en, errors: { messages: { bad_value_html: "must not be %{value}" } })
+    person = Person.new
+    person.name = "<script>alert(1)</script>"
+    error = ActiveModel::Error.new(person, :name, :bad_value_html)
+
+    assert_predicate error.message, :html_safe?
+    assert_includes error.message, "&lt;script&gt;alert(1)&lt;/script&gt;"
+    assert_not_includes error.message, "<script>"
+  end
+
+  test "generate_message with _html suffix via i18n_scope returns html_safe string" do
+    I18n.backend.store_translations(:en, activemodel: { errors: { models: { 'error_test/manager': {
+      attributes: { name: { taken_html: "is <em>already taken</em>" } } } } } })
+    error = ActiveModel::Error.new(Manager.new, :name, :taken_html)
+    assert_predicate error.message, :html_safe?
+    assert_equal "is <em>already taken</em>", error.message
+  end
+
+  test "generate_message without _html suffix does not return html_safe string" do
+    error = ActiveModel::Error.new(Person.new, :name, :blank)
+    assert_not_predicate error.message, :html_safe?
+  end
+
+  test "full_message HTML-escapes the attribute name when message is html_safe" do
+    message = "<em>is not valid</em>".html_safe
+
+    person_class = Class.new do
+      extend ActiveModel::Naming
+
+      def self.name
+        "HtmlAttrPerson"
+      end
+
+      def self.human_attribute_name(attr, options = {})
+        "<b>Name</b>"
+      end
+
+      def self.lookup_ancestors
+        [self]
+      end
+    end
+
+    person = person_class.new
+    result = ActiveModel::Error.full_message(:name, message, person)
+    assert_predicate result, :html_safe?
+    assert_includes result, "&lt;b&gt;Name&lt;/b&gt;"
+    assert_not_includes result, "<b>Name</b>"
+    assert_includes result, "<em>is not valid</em>"
+  end
 
   test "details which ignores callback and message options" do
     person = Person.new

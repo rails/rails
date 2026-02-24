@@ -1,3 +1,24 @@
+*   Support html-safe error messages in Active Model.
+
+    Validation error message keys ending in `_html` now have their
+    interpolation values HTML-escaped and the resulting message marked as
+    `html_safe`, consistent with the existing convention in Action View
+    and Action Controller translation helpers.
+
+    ```yaml
+    en:
+      errors:
+        messages:
+          taken_html: "has <em>already</em> been taken"
+    ```
+
+    ```ruby
+    model.errors.add(:name, :taken_html)
+    model.errors.messages.first.html_safe? # => true
+    ```
+
+    *Matheus Richard*
+
 *   Add `has_json` and `has_delegated_json` to provide schema-enforced access to JSON attributes.
 
     ```ruby
