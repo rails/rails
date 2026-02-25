@@ -1,3 +1,7 @@
+*   Fix Ruby 4.0 delegator warning when calling inspect on ActiveRecord::Type::Serialized.
+
+    *Hammad Khan*
+
 *   Fix support for table names containing hyphens.
 
     *Evgeniy Demin*
