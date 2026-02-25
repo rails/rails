@@ -1,3 +1,7 @@
+*   Fix Ruby 4.0 delegator warning when calling inspect on attributes.
+
+    *Hammad Khan*
+
 *   Fix `NoMethodError` when deserialising `Type::Integer` objects marshalled under Rails 8.0.
 
     The performance optimisation that replaced `@range` with `@max`/`@min`
