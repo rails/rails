@@ -62,7 +62,7 @@ module ActiveSupport
         ActiveSupport.test_order ||= :random
       end
 
-      if Minitest.respond_to? :run_order # MT6 API change
+      if Minitest::Runnable.respond_to? :run_order # MT6 API change
         def run_order # :nodoc:
           test_order
         end
