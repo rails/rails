@@ -617,7 +617,7 @@ Create `show` next at `app/views/wishlists/show.html.erb`:
 <% end %>
 
 <h3><%= pluralize @wishlist.products_count, "Product" %></h3>
-<% @wishlist.wishlist_products.includes(:product).each do %>
+<% @wishlist.wishlist_products.includes(:product).each do |it| %>
   <div>
     <%= link_to it.product.name, it.product %>
     <small>Added <%= l it.created_at, format: :long %></small>
