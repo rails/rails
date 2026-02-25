@@ -1,3 +1,25 @@
+*   Add `ActionController::CurrentTimeZone` to set the request time zone from a callable.
+
+    Include it in any controller and call `set_current_time_zone_from` with a callable
+    that returns the time zone string. A common pattern is reading from a browser cookie
+    set via JavaScript:
+
+    ```js
+    document.cookie = `time_zone=${Intl.DateTimeFormat().resolvedOptions().timeZone}`
+    ```
+
+    ```ruby
+    class ApplicationController < ActionController::Base
+      include ActionController::CurrentTimeZone
+      set_current_time_zone_from -> { cookies[:time_zone] }
+    end
+    ```
+
+    The callable is evaluated in the context of each request's controller instance,
+    so it has access to cookies, params, session, and any controller methods.
+
+    *Thiago Youssef*
+
 *   Add `RAILS_HOST_APP_PATH` environment variable to support editor links in devcontainer/Docker environments.
 
     When Rails runs inside a container, file paths in error pages are container-internal paths
