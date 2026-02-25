@@ -14,6 +14,7 @@ require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/numeric/time"
 require "active_support/digest"
+require "active_support/inspect_backport"
 
 module ActiveSupport
   module Cache
@@ -170,9 +171,7 @@ module ActiveSupport
         super(universal_options)
       end
 
-      def inspect
-        "#<#{self.class} options=#{options.inspect} redis=#{redis.inspect}>"
-      end
+      ActiveSupport::InspectBackport.apply(self)
 
       # Cache Store API implementation.
       #
@@ -322,6 +321,10 @@ module ActiveSupport
       end
 
       private
+        def instance_variables_to_inspect
+          [:@options, :@redis].freeze
+        end
+
         def pipeline_entries(entries, &block)
           redis.then { |c|
             if c.is_a?(Redis::Distributed)

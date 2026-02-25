@@ -1923,15 +1923,53 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "protected environments by default is an array with production" do
-    assert_equal ["production"], ActiveRecord::Base.protected_environments
+    assert_equal ["production"], ActiveRecord.protected_environments
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      assert_equal ["production"], ActiveRecord::Base.protected_environments
+    end
   end
 
   def test_protected_environments_are_stored_as_an_array_of_string
-    previous_protected_environments = ActiveRecord::Base.protected_environments
-    ActiveRecord::Base.protected_environments = [:staging, "production"]
-    assert_equal ["staging", "production"], ActiveRecord::Base.protected_environments
+    previous_protected_environments = ActiveRecord.protected_environments
+
+    ActiveRecord.protected_environments = [:staging, "production"]
+
+    assert_equal ["staging", "production"], ActiveRecord.protected_environments
+    assert_deprecated(ActiveRecord.deprecator) do
+      assert_equal ["staging", "production"], ActiveRecord::Base.protected_environments
+    end
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      ActiveRecord::Base.protected_environments = [:prod, :staging]
+    end
+
+    assert_equal ["prod", "staging"], ActiveRecord.protected_environments
+    assert_deprecated(ActiveRecord.deprecator) do
+      assert_equal ["prod", "staging"], ActiveRecord::Base.protected_environments
+    end
   ensure
-    ActiveRecord::Base.protected_environments = previous_protected_environments
+    ActiveRecord.protected_environments = previous_protected_environments
+  end
+
+  def test_deprecated_protected_environments_on_subclasses
+    model = Class.new(ActiveRecord::Base)
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      assert_equal ["production"], model.protected_environments
+    end
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      model.protected_environments = [:prod]
+    end
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      assert_equal ["prod"], model.protected_environments
+    end
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      assert_equal ["production"], ActiveRecord::Base.protected_environments
+    end
   end
 
   test "#present? and #blank? on ActiveRecord::Base classes" do

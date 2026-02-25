@@ -44,6 +44,10 @@ module ActionText
         "[#{caption || "Image"}]"
       end
 
+      def attachable_markdown_representation(caption)
+        "!#{MarkdownConversion.markdown_link(caption || "Image", url)}"
+      end
+
       def to_partial_path
         "action_text/attachables/remote_image"
       end

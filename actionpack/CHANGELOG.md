@@ -19,6 +19,27 @@
     so it has access to cookies, params, session, and any controller methods.
 
     *Thiago Youssef*
+    
+*   Add `RAILS_HOST_APP_PATH` environment variable to support editor links in devcontainer/Docker environments.
+
+    When Rails runs inside a container, file paths in error pages are container-internal paths
+    that don't exist on the host machine. Setting `RAILS_HOST_APP_PATH` to the host's application
+    path enables proper translation of container paths to host paths for editor links.
+
+    Example in `.devcontainer/devcontainer.json`:
+
+    ```json
+    {
+      "containerEnv": {
+        "EDITOR": "code",
+        "RAILS_HOST_APP_PATH": "${localWorkspaceFolder}"
+      }
+    }
+    ```
+
+    This allows the "open in editor" feature to work correctly when developing in containers.
+
+    *Victor Cobos*
 
 *   Make `event_backtrace` attribute in `rescue_from_handled.action_controller` notifications the full backtrace, when `config.action_controller.rescue_from_event_backtrace` is `:array`.
 

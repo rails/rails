@@ -67,10 +67,12 @@ module ActiveRecord
           if subclass.nil? && base_class?
             subclass = subclass_from_attributes(column_defaults)
           end
-        end
 
-        if subclass && subclass != self
-          subclass.new(attributes, &block)
+          if subclass && subclass != self
+            subclass.new(attributes, &block)
+          else
+            super
+          end
         else
           super
         end
@@ -236,6 +238,19 @@ module ActiveRecord
       end
 
       protected
+        def load_schema! # :nodoc:
+          super
+          optimize_new_allocation
+        end
+
+        def reload_schema_from_cache(*) # :nodoc:
+          if @_new_optimized
+            singleton_class.remove_method(:new)
+            @_new_optimized = false
+          end
+          super
+        end
+
         # Returns the class type of the record using the current module as a prefix. So descendants of
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
@@ -267,6 +282,7 @@ module ActiveRecord
         end
 
         def set_base_class # :nodoc:
+          @_new_optimized = false
           @base_class = if self == Base
             self
           else
@@ -283,6 +299,14 @@ module ActiveRecord
         end
 
       private
+        def optimize_new_allocation
+          return if _has_attribute?(inheritance_column)
+          return if method(:new).unbind != ActiveRecord::Base.method(:new).unbind
+
+          @_new_optimized = true
+          define_singleton_method(:new, Class.instance_method(:new))
+        end
+
         def inherited(subclass)
           super
           subclass.set_base_class

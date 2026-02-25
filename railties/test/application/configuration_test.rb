@@ -1655,7 +1655,12 @@ module ApplicationTests
       app "development"
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
-      assert_equal "#<ActionController::Parameters #{{ "title" => "foo" }} permitted: false>", last_response.body
+
+      if RUBY_VERSION < "3.4"
+        assert_match('#<ActionController::Parameters {"title"=>"foo"} permitted: false>', last_response.body)
+      else
+        assert_match('#<ActionController::Parameters {"title" => "foo"} permitted: false>', last_response.body)
+      end
     end
 
     test "config.action_controller.permit_all_parameters = true" do

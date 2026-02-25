@@ -21,6 +21,10 @@ module ActionText
         end
       end
 
+      def attachable_markdown_representation(caption = nil)
+        "☒"
+      end
+
       def model
         @sgid&.model_name.to_s.safe_constantize
       end
