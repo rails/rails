@@ -19,7 +19,7 @@
     so it has access to cookies, params, session, and any controller methods.
 
     *Thiago Youssef*
-    
+
 *   Add `RAILS_HOST_APP_PATH` environment variable to support editor links in devcontainer/Docker environments.
 
     When Rails runs inside a container, file paths in error pages are container-internal paths
