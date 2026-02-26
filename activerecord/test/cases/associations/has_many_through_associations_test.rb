@@ -1745,13 +1745,22 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     person_klass.has_many :posts, through: :readers
 
     person = person_klass.first
-    all_binds = capture_sql_and_binds { person.posts.to_a }.flat_map { |_, binds| binds }
+    expected = person.id * 1000
 
-    # The bind value for readers.person_id must be serialized using the join
-    # model's custom attribute type. With the custom type, serialize(person.id)
-    # returns person.id * 1000. Without the fix, the raw person.id is used instead.
-    assert_includes all_binds, person.id * 1000,
-      "has_many :through should use the join model's attribute type to serialize the FK bind value"
+    queries = capture_sql_and_binds { person.posts.to_a }
+    all_binds = queries.flat_map { |_, binds| binds }
+    all_sqls   = queries.map(&:first)
+
+    # The FK bind value for readers.person_id must be serialized using the join
+    # model's custom attribute type: serialize(person.id) == person.id * 1000.
+    # Without the fix the raw person.id is used.
+    # The value appears in bind params (prepared_statements: true) or inlined in
+    # the SQL string (prepared_statements: false, the default for MySQL tests).
+    assert(
+      all_binds.include?(expected) || all_sqls.any? { |sql| sql.include?(expected.to_s) },
+      "Expected join model's custom attribute type to be used (value #{expected}) " \
+      "but found binds=#{all_binds.inspect}"
+    )
   end
 
   private
