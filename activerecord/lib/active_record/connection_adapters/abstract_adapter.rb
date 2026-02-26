@@ -188,6 +188,10 @@ module ActiveRecord
           @config.fetch(:advisory_locks, true)
         )
 
+        @sql_notifications = self.class.type_cast_config_to_boolean(
+          @config.fetch(:sql_notifications, true)
+        )
+
         @default_timezone = self.class.validate_default_timezone(@config[:default_timezone])
 
         @raw_connection_dirty = false
@@ -263,6 +267,10 @@ module ActiveRecord
 
       def prepared_statements_disabled_cache # :nodoc:
         ActiveSupport::IsolatedExecutionState[:active_record_prepared_statements_disabled_cache] ||= Set.new
+      end
+
+      def sql_notifications?
+        @sql_notifications
       end
 
       class Version
@@ -1261,7 +1269,11 @@ module ActiveRecord
         end
 
         def instrumenter # :nodoc:
-          ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] ||= ActiveSupport::Notifications.instrumenter
+          if sql_notifications?
+            ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] ||= ActiveSupport::Notifications.instrumenter
+          else
+            ActiveSupport::Notifications.null_instrumenter
+          end
         end
 
         def translate_exception(exception, message:, sql:, binds:)

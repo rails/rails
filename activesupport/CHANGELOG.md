@@ -1,3 +1,12 @@
+*   Add `ActiveSupport::Notifications::NullInstrumenter`, a stateless no-op
+    instrumenter that executes blocks without publishing any notifications.
+
+    Available via `ActiveSupport::Notifications.null_instrumenter`, this is
+    useful for suppressing instrumentation on specific components, such as
+    database connections that don't need SQL notification overhead.
+
+    *Rosa Gutierrez*
+
 *   Add `group` method to `ActiveSupport::ContinuousIntegration` for parallel step execution.
 
     Groups collect steps and run them concurrently using a thread pool, reducing CI times
