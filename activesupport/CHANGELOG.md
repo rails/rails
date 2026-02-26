@@ -1,3 +1,12 @@
+*   Add `ActiveSupport::Notifications::NullInstrumenter`, a stateless no-op
+    instrumenter that executes blocks without publishing any notifications.
+
+    Available via `ActiveSupport::Notifications.null_instrumenter`, this is
+    useful for suppressing instrumentation on specific components, such as
+    database connections that don't need SQL notification overhead.
+
+    *Rosa Gutierrez*
+
 *   `ActiveSupport::Cache::RedisCacheStore` entirely reimplemented.
 
     Now depends on the much lighter `redis-client >= 0.28.0` instead of `redis >= 4.0.1`.
