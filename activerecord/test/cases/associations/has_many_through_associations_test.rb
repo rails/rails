@@ -1716,6 +1716,44 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [[comment.blog_id, comment.id]], ids
   end
 
+  def test_has_many_through_uses_join_model_attribute_type_for_scope
+    # A custom type that multiplies the serialized integer by 1000.
+    # This verifies that Rails uses the join model's declared attribute type
+    # (correct: binds person.id * 1000) rather than falling back to a default
+    # type resolved from the target model (bug: binds raw person.id).
+    custom_type = Class.new(ActiveRecord::Type::Integer) do
+      def serialize(value)
+        serialized = super
+        serialized.nil? ? nil : serialized * 1000
+      end
+    end
+
+    person_klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+      def self.name; "Person"; end
+    end
+
+    reader_klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "readers"
+      def self.name; "Reader"; end
+      attribute :person_id, custom_type.new
+      belongs_to :person, anonymous_class: person_klass
+      belongs_to :post
+    end
+
+    person_klass.has_many :readers, anonymous_class: reader_klass
+    person_klass.has_many :posts, through: :readers
+
+    person = person_klass.first
+    all_binds = capture_sql_and_binds { person.posts.to_a }.flat_map { |_, binds| binds }
+
+    # The bind value for readers.person_id must be serialized using the join
+    # model's custom attribute type. With the custom type, serialize(person.id)
+    # returns person.id * 1000. Without the fix, the raw person.id is used instead.
+    assert_includes all_binds, person.id * 1000,
+      "has_many :through should use the join model's attribute type to serialize the FK bind value"
+  end
+
   private
     def make_model(name)
       Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
