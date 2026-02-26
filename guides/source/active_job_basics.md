@@ -528,6 +528,10 @@ end
 # on your staging environment
 ```
 
+NOTE: `config.active_job.queue_name_prefix` only changes the queue name that
+Active Job enqueues to. Configure your queuing backend to process the resulting
+queue names (including the prefix).
+
 You can also configure the prefix on a per job basis.
 
 ```ruby
@@ -599,8 +603,9 @@ MyJob.set(queue: :another_queue).perform_later(record)
 ```
 
 NOTE: If you choose to use an [alternate queuing
-backend](#alternate-queuing-backends) you may need to specify the queues to
-listen to.
+backend](#alternate-queuing-backends), configure its workers to listen to the
+queue names Active Job enqueues, including any prefix from
+`config.active_job.queue_name_prefix`.
 
 [`config.active_job.queue_name_delimiter`]:
     configuring.html#config-active-job-queue-name-delimiter
