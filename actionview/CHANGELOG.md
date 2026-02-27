@@ -1,3 +1,7 @@
+*   Fix collection caching to only forward `expires_in` argument if explicitly set.
+
+    *Pieter Visser*
+
 *   Fix `file_field` to join mime types with a comma when provided as Array
 
     ```ruby
