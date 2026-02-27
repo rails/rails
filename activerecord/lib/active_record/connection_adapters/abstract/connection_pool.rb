@@ -526,7 +526,7 @@ module ActiveRecord
                 end
                 conn.disconnect!
               end
-              @connections = []
+              @connections = @pinned_connection ? [@pinned_connection] : []
               @leases.clear
               @available.clear
 
