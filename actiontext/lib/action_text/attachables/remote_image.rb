@@ -44,7 +44,7 @@ module ActionText
         "[#{caption || "Image"}]"
       end
 
-      def attachable_markdown_representation(caption)
+      def attachable_markdown_representation(caption, attachment_links: false)
         "!#{MarkdownConversion.markdown_link(caption || "Image", url)}"
       end
 

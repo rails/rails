@@ -21,7 +21,7 @@ module ActionText
         content_instance.fragment.source
       end
 
-      def attachable_markdown_representation(caption)
+      def attachable_markdown_representation(caption, attachment_links: false)
         content_instance.fragment.to_markdown
       end
 

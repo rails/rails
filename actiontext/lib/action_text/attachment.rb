@@ -118,6 +118,8 @@ module ActionText
 
     # Converts the attachment to Markdown.
     #
+    # By default, ActiveStorage blob attachments render as bracketed text:
+    #
     #     attachable = ActiveStorage::Blob.find_by filename: "racecar.jpg"
     #     attachment = ActionText::Attachment.from_attachable(attachable)
     #     attachment.to_markdown # => "[racecar.jpg]"
@@ -127,18 +129,27 @@ module ActionText
     #     attachment = ActionText::Attachment.from_attachable(attachable, caption: "Vroom vroom")
     #     attachment.to_markdown # => "[Vroom vroom]"
     #
-    # Remote images are rendered as Markdown images:
+    # When +attachment_links+ is true and a rendering context is available (e.g., controller or
+    # mailer action), ActiveStorage blob attachments generate Markdown links with URLs.
+    #
+    #     # Image blob
+    #     attachment.to_markdown(attachment_links: true) # => "![racecar.jpg](http://example.com/rails/active_storage/blobs/...)"
+    #
+    #     # Non-image blob
+    #     attachment.to_markdown(attachment_links: true) # => "[report.pdf](http://example.com/rails/active_storage/blobs/...)"
+    #
+    # Remote images always render as Markdown links regardless of +attachment_links+:
     #
     #     content = ActionText::Content.new('<action-text-attachment content-type="image/jpeg" url="https://example.com/photo.jpg" caption="A photo"></action-text-attachment>')
     #     content.to_markdown # => "![A photo](https://example.com/photo.jpg)"
     #
-    # The presentation can be overridden by implementing the
-    # `attachable_markdown_representation` method:
+    # The presentation can be overridden by implementing the `attachable_markdown_representation`
+    # method:
     #
     #     class Person < ApplicationRecord
     #       include ActionText::Attachable
     #
-    #       def attachable_markdown_representation(caption)
+    #       def attachable_markdown_representation(caption, attachment_links: false)
     #         MarkdownConversion.markdown_link("@#{name}", Rails.application.routes.url_helpers.person_url(self))
     #       end
     #     end
@@ -146,9 +157,9 @@ module ActionText
     #     attachable = Person.create! name: "Javan"
     #     attachment = ActionText::Attachment.from_attachable(attachable)
     #     attachment.to_markdown # => "[@Javan](http://example.com/people/1)"
-    def to_markdown
+    def to_markdown(attachment_links: false)
       if respond_to?(:attachable_markdown_representation)
-        attachable_markdown_representation(caption)
+        attachable_markdown_representation(caption, attachment_links: attachment_links)
       else
         caption.to_s
       end

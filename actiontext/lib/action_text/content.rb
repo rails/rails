@@ -140,12 +140,16 @@ module ActionText
     #     content = ActionText::Content.new("<p>Hello <strong>world</strong></p>")
     #     content.to_markdown # => "Hello **world**"
     #
+    # When +attachment_links+ is true, ActiveStorage blob attachments generate Markdown links with
+    # URLs. This requires a rendering context (e.g., controller or mailer action) and will raise if
+    # URL generation fails.
+    #
     # NOTE: that the returned string is not HTML safe and should not be rendered in
     # browsers without additional sanitization.
-    def to_markdown
+    def to_markdown(attachment_links: false)
       render_attachments(with_full_attributes: false) { |attachment|
         ActionText::HtmlConversion.create_element("action-text-markdown").tap do |node|
-          node.content = attachment.to_markdown
+          node.content = attachment.to_markdown(attachment_links: attachment_links)
         end
       }.fragment.to_markdown
     end

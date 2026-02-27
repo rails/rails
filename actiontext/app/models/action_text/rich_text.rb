@@ -84,10 +84,14 @@ module ActionText
     #     message = Message.create!(content: "<p>Hello <strong>world</strong></p>")
     #     message.content.to_markdown # => "Hello **world**"
     #
+    # When +attachment_links+ is true, ActiveStorage blob attachments generate Markdown links with
+    # URLs. This requires a rendering context (e.g., controller or mailer action) and will raise if
+    # URL generation fails.
+    #
     # NOTE: that the returned string is not HTML safe and should not be rendered in
     # browsers without additional sanitization.
-    def to_markdown
-      body&.to_markdown.to_s
+    def to_markdown(attachment_links: false)
+      body&.to_markdown(attachment_links: attachment_links).to_s
     end
 
     # Returns the `body` attribute in a format that makes it editable in the Trix

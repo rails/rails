@@ -25,7 +25,7 @@ module ActionText
         "☒"
       end
 
-      def attachable_markdown_representation(caption = nil)
+      def attachable_markdown_representation(caption = nil, attachment_links: false)
         "☒"
       end
 

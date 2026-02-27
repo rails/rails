@@ -569,41 +569,6 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
-  test "attachment with surrounding text" do
-    assert_converted_to(
-      "Hello world! ![Cat](http://example.com/cat.jpg)",
-      'Hello world! <action-text-attachment url="http://example.com/cat.jpg" content-type="image/jpeg" caption="Cat"></action-text-attachment>'
-    )
-  end
-
-  test "multiple attachments separated by whitespace preserve the whitespace" do
-    assert_converted_to(
-      "![A](https://example.com/a.jpg) ![B](https://example.com/b.jpg)",
-      '<action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment> <action-text-attachment content-type="image/jpeg" url="https://example.com/b.jpg" caption="B"></action-text-attachment>'
-    )
-  end
-
-  test "multiple attachments and text separated by whitespace preserve the whitespace" do
-    assert_converted_to(
-      "![A](https://example.com/a.jpg) and ![B](https://example.com/b.jpg)",
-      '<action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment> and <action-text-attachment content-type="image/jpeg" url="https://example.com/b.jpg" caption="B"></action-text-attachment>'
-    )
-  end
-
-  test "attachment with whitespace before inline element preserves the whitespace" do
-    assert_converted_to(
-      "![A](https://example.com/a.jpg) **bold**",
-      '<action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment> <strong>bold</strong>'
-    )
-  end
-
-  test "inline element with whitespace before attachment preserves the whitespace" do
-    assert_converted_to(
-      "**bold** ![A](https://example.com/a.jpg)",
-      '<strong>bold</strong> <action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment>'
-    )
-  end
-
   test "non-core inline element preserves surrounding whitespace" do
     assert_converted_to(
       "hello world",
@@ -620,42 +585,84 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
 
   # --- Attachment tests ---
 
-  test "image attachment with caption is converted to markdown image" do
+  test "RemoteImage attachment with surrounding text" do
+    assert_converted_to(
+      "Hello world! ![Cat](http://example.com/cat.jpg)",
+      'Hello world! <action-text-attachment url="http://example.com/cat.jpg" content-type="image/jpeg" caption="Cat"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachments separated by whitespace preserve the whitespace" do
+    assert_converted_to(
+      "![A](https://example.com/a.jpg) ![B](https://example.com/b.jpg)",
+      '<action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment> <action-text-attachment content-type="image/jpeg" url="https://example.com/b.jpg" caption="B"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachments and text separated by whitespace preserve the whitespace" do
+    assert_converted_to(
+      "![A](https://example.com/a.jpg) and ![B](https://example.com/b.jpg)",
+      '<action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment> and <action-text-attachment content-type="image/jpeg" url="https://example.com/b.jpg" caption="B"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment with whitespace before inline element preserves the whitespace" do
+    assert_converted_to(
+      "![A](https://example.com/a.jpg) **bold**",
+      '<action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment> <strong>bold</strong>'
+    )
+  end
+
+  test "RemoteImage attachment with whitespace before attachment preserves the whitespace" do
+    assert_converted_to(
+      "**bold** ![A](https://example.com/a.jpg)",
+      '<strong>bold</strong> <action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment with caption is converted to markdown image" do
     assert_converted_to(
       "![A photo](https://example.com/photo.png)",
       '<action-text-attachment content-type="image/png" url="https://example.com/photo.png" caption="A photo"></action-text-attachment>'
     )
   end
 
-  test "image attachment with parentheses in URL is encoded" do
+  test "RemoteImage attachment with parentheses in URL is encoded" do
     assert_converted_to(
       "![Photo](https://example.com/photo_%28large%29.png)",
       '<action-text-attachment content-type="image/png" url="https://example.com/photo_(large).png" caption="Photo"></action-text-attachment>'
     )
   end
 
-  test "image attachment with bracket injection in caption is escaped" do
+  test "RemoteImage attachment with bracket injection in caption is escaped" do
     assert_converted_to(
       '![evil\](https://evil.com)!\[x](https://example.com/photo.png)',
       '<action-text-attachment content-type="image/png" url="https://example.com/photo.png" caption="evil](https://evil.com)![x"></action-text-attachment>'
     )
   end
 
-  test "image attachment with emphasis markers in caption is escaped" do
+  test "RemoteImage attachment with emphasis markers in caption is escaped" do
     assert_converted_to(
       '![photo \*large\*](https://example.com/photo.png)',
       '<action-text-attachment content-type="image/png" url="https://example.com/photo.png" caption="photo *large*"></action-text-attachment>'
     )
   end
 
-  test "image attachment without caption falls back to Image alt text" do
+  test "RemoteImage attachment with angle brackets in caption is escaped" do
+    assert_converted_to(
+      "![photo \\<large\\>](https://example.com/photo.png)",
+      '<action-text-attachment content-type="image/png" url="https://example.com/photo.png" caption="photo &lt;large&gt;"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment without caption falls back to Image alt text" do
     assert_converted_to(
       "![Image](https://example.com/photo.jpg)",
       '<action-text-attachment content-type="image/jpeg" url="https://example.com/photo.jpg" filename="photo.jpg"></action-text-attachment>'
     )
   end
 
-  test "content attachment HTML is converted to markdown" do
+  test "Content attachment HTML is converted to markdown" do
     assert_converted_to(
       "**hello**",
       '<action-text-attachment content-type="text/html" content="<strong>hello</strong>"></action-text-attachment>'
@@ -667,42 +674,183 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
-  test "ActiveStorage blob attachment is converted to markdown with caption" do
+  test "Blob image without :attachment_links uses caption" do
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
-    assert_equal "[Captioned]", ActionText::Content.new(html).to_markdown
+
+    assert_converted_to("[Captioned]", html)
   end
 
-  test "ActiveStorage blob attachment with metacharacters in caption is escaped" do
+  test "Blob image with attachment_links: true uses caption" do
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
-    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo *large*"></action-text-attachment>)
-    assert_equal '[photo \*large\*]', ActionText::Content.new(html).to_markdown
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_converted_to("![Captioned](#{url})", html, attachment_links: true)
+    end
   end
 
-  test "ActiveStorage blob attachment without caption uses filename" do
+  test "Blob image without :attachment_links uses filename" do
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
-    assert_equal "[racecar.jpg]", ActionText::Content.new(html).to_markdown
+
+    assert_converted_to("[racecar.jpg]", html)
   end
 
-  test "missing attachable is converted to ☒" do
+  test "Blob image with attachment_links: true uses filename" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_converted_to("![racecar.jpg](#{url})", html, attachment_links: true)
+    end
+  end
+
+  test "Blob without :attachment_links uses caption" do
+    blob = create_file_blob(filename: "report.txt", content_type: "text/plain")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    assert_converted_to("[Captioned]", html)
+  end
+
+  test "Blob with attachment_links: true uses caption" do
+    blob = create_file_blob(filename: "report.txt", content_type: "text/plain")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_converted_to("[Captioned](#{url})", html, attachment_links: true)
+    end
+  end
+
+  test "Blob without :attachment_links uses filename" do
+    blob = create_file_blob(filename: "report.txt", content_type: "text/plain")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
+
+    assert_converted_to("[report.txt]", html)
+  end
+
+  test "Blob with attachment_links: true uses filename" do
+    blob = create_file_blob(filename: "report.txt", content_type: "text/plain")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_converted_to("[report.txt](#{url})", html, attachment_links: true)
+    end
+  end
+
+  test "Blob image without :attachment_links escapes metacharacters in caption" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo *large*"></action-text-attachment>)
+
+    assert_converted_to("[photo \\*large\\*]", html)
+  end
+
+  test "Blob image with attachment_links: true escapes metacharacters in caption" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo *large*"></action-text-attachment>)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_converted_to("![photo \\*large\\*](#{url})", html, attachment_links: true)
+    end
+  end
+
+  test "Blob image without :attachment_links escapes angle brackets in caption" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo <large>"></action-text-attachment>)
+    html2 = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo &lt;large&gt;"></action-text-attachment>)
+
+    assert_converted_to("[photo \\<large\\>]", html)
+    assert_converted_to("[photo \\<large\\>]", html2)
+  end
+
+  test "Blob image with attachment_links: true escapes angle brackets in caption" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo <large>"></action-text-attachment>)
+    html2 = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo &lt;large&gt;"></action-text-attachment>)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_converted_to("![photo \\<large\\>](#{url})", html, attachment_links: true)
+      assert_converted_to("![photo \\<large\\>](#{url})", html2, attachment_links: true)
+    end
+  end
+
+  test "Blob image with mailer renderer and attachment_links: true generates markdown link" do
+    original_default_url_options = ActionMailer::Base.default_url_options
+    ActionMailer::Base.default_url_options = { host: "example.com" }
+
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    mailer = MessagesMailer.new
+    ActionText::Content.with_renderer(mailer) do
+      url = mailer.url_for(blob)
+      assert_converted_to("![Captioned](#{url})", html, attachment_links: true)
+    end
+  ensure
+    ActionMailer::Base.default_url_options = original_default_url_options
+  end
+
+  test "Blob image with attachment_links: true raises when mailer missing host" do
+    original_default_url_options = ActionMailer::Base.default_url_options
+    ActionMailer::Base.default_url_options = {}
+
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    mailer = MessagesMailer.new
+    ActionText::Content.with_renderer(mailer) do
+      assert_raises(ArgumentError) do
+        ActionText::Content.new(html).to_markdown(attachment_links: true)
+      end
+      assert_converted_to("[Captioned]", html)
+    end
+  ensure
+    ActionMailer::Base.default_url_options = original_default_url_options
+  end
+
+  test "Blob image with attachment_links: true raises when no renderer" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    error = assert_raises(ArgumentError) do
+      ActionText::Content.new(html).to_markdown(attachment_links: true)
+    end
+    assert_match(/rendering context/, error.message)
+    assert_converted_to("[Captioned]", html)
+  end
+
+  test "Blob image with renderer uses bracketed title by default" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    with_controller_renderer do
+      assert_converted_to("[Captioned]", html)
+    end
+  end
+
+  test "Blob image with attachment_links: true propagates script_name from request" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Photo"></action-text-attachment>)
+
+    with_controller_renderer(script_name: "/myapp") do |controller|
+      url = controller.url_for(blob)
+      assert_match %r{/myapp/rails/active_storage/blobs/}, url
+      assert_converted_to("![Photo](#{url})", html, attachment_links: true)
+    end
+  end
+
+  test "Blob missing attachable is converted to ☒" do
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
     blob.destroy!
-    assert_equal "☒", ActionText::Content.new(html).to_markdown
-  end
 
-  test "image attachment with angle brackets in caption is not mangled" do
-    assert_converted_to(
-      '![photo \<large\>](https://example.com/photo.png)',
-      '<action-text-attachment content-type="image/png" url="https://example.com/photo.png" caption="photo &lt;large&gt;"></action-text-attachment>'
-    )
-  end
-
-  test "ActiveStorage blob attachment with angle brackets in caption" do
-    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
-    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo <large>"></action-text-attachment>)
-    assert_equal '[photo \<large\>]', ActionText::Content.new(html).to_markdown
+    assert_converted_to("☒", html)
   end
 
   # --- Fragment and Rich Text tests ---
@@ -716,6 +864,16 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_equal "**hello**", ActionText::RichText.new(body: "<p><strong>hello</strong></p>").to_markdown
   end
 
+  test "RichText#to_markdown with attachment_links: true" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    body = ActionText::Content.new.append_attachables(blob)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_equal "![racecar.jpg](#{url})", ActionText::RichText.new(body: body).to_markdown(attachment_links: true)
+    end
+  end
+
   test "RichText#to_markdown handles blank body" do
     assert_equal "", ActionText::RichText.new(body: "").to_markdown
   end
@@ -725,7 +883,19 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
   end
 
   private
-    def assert_converted_to(expected_markdown, html)
-      assert_equal expected_markdown, ActionText::Content.new(html).to_markdown
+    def assert_converted_to(expected_markdown, html, **options)
+      assert_equal expected_markdown, ActionText::Content.new(html).to_markdown(**options)
+    end
+
+    def with_controller_renderer(script_name: "")
+      controller = MessagesController.new
+      request = ActionDispatch::TestRequest.create("SCRIPT_NAME" => script_name)
+      request.routes = Rails.application.routes
+      controller.set_request!(request)
+      controller.set_response!(ActionDispatch::TestResponse.new)
+
+      ActionText::Content.with_renderer(controller) do
+        yield controller
+      end
     end
 end
