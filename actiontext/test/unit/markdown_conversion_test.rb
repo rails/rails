@@ -161,6 +161,10 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_converted_to("~~hello~~", "<s>hello</s>")
   end
 
+  test "<del> tags are converted to strikethrough" do
+    assert_converted_to("~~hello~~", "<del>hello</del>")
+  end
+
   test "<code> tags are converted to inline code" do
     assert_converted_to("`hello`", "<code>hello</code>")
   end
@@ -218,10 +222,82 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
-  test "<p> tags are separated by two new lines" do
+  test "inline siblings preserve whitespace between them" do
+    assert_converted_to(
+      "**before** ~~middle~~ *after*",
+      "<p><strong>before</strong> <del>middle</del> <em>after</em></p>"
+    )
+    assert_converted_to(
+      "**bold** *italic* ~~struck~~ `code`",
+      "<p><strong>bold</strong> <em>italic</em> <s>struck</s> <code>code</code></p>"
+    )
+    assert_converted_to(
+      "**bold** *italic* ~~struck~~ `code`",
+      "<p><b>bold</b> <i>italic</i> <del>struck</del> <code>code</code></p>"
+    )
+  end
+
+  test "<div> passes through content" do
+    assert_converted_to("hello", "<div>  hello  </div>")
+  end
+
+  test "<span> passes through content" do
+    assert_converted_to("hello", "<span>  hello  </span>")
+  end
+
+  test "Lexxy-style <p> tags are separated by two new lines" do
     assert_converted_to(
       "hello\n\nworld",
       "<p>hello</p><p>world</p>"
+    )
+  end
+
+  test "Lexxy-style pretty-printed <p> tags do not leak indentation into markdown" do
+    assert_converted_to(
+      "hello\n\nworld",
+      <<~HTML
+        <p>
+          hello
+        </p>
+        <p>
+          world
+        </p>
+      HTML
+    )
+  end
+
+  test "Trix-style <div> blocks with <br> line breaks do not get additional newlines" do
+    assert_converted_to(
+      "Line one.\n\n**Subject header**\n\nLine two.",
+      "<div>Line one.<br><br></div><div><strong>Subject header<br></strong><br></div><div>Line two.<br><br></div><div><br></div>"
+    )
+  end
+
+  test "Trix-style pretty-printed HTML does not leak indentation into markdown" do
+    assert_converted_to(
+      "Line one.\n\n**Subject header**\n\nLine two.",
+      <<~HTML
+        <div>
+          Line one.
+          <br>
+          <br>
+        </div>
+        <div>
+          <strong>
+            Subject header
+            <br>
+          </strong>
+          <br>
+        </div>
+        <div>
+          Line two.
+          <br>
+          <br>
+        </div>
+        <div>
+          <br>
+        </div>
+      HTML
     )
   end
 
@@ -535,14 +611,6 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
 
   test "unknown elements pass through their content" do
     assert_converted_to("hello", "<asdf>hello</asdf>")
-  end
-
-  test "<div> passes through content" do
-    assert_converted_to("hello", "<div>  hello  </div>")
-  end
-
-  test "<span> passes through content" do
-    assert_converted_to("hello", "<span>  hello  </span>")
   end
 
   test "<script> tags are ignored" do

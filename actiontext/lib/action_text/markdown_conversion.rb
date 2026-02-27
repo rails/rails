@@ -64,11 +64,14 @@ module ActionText
       SKIP_ESCAPING_PARENTS = %w[ action-text-markdown code pre ].freeze
       INLINE_ELEMENTS = %w[
         action-text-markdown
-        a abbr b bdi bdo cite code data dfn em i kbd mark q
+        a abbr b bdi bdo cite code data del dfn em i kbd mark q
         rp rt ruby s samp small span strong sub sup time u var
       ].freeze
+      LEADING_PRETTY_PRINT_WHITESPACE = /\A\s*\n\s*/
+      TRAILING_PRETTY_PRINT_WHITESPACE = /\s*\n\s*\z/
       private_constant :BOLD_TAGS, :ITALIC_TAGS, :LIST_BULLET, :LIST_INDENT, :ENCODE_HREF_CHARS,
-        :MARKDOWN_METACHARACTERS, :SKIP_ESCAPING_PARENTS, :INLINE_ELEMENTS
+        :MARKDOWN_METACHARACTERS, :SKIP_ESCAPING_PARENTS, :INLINE_ELEMENTS,
+        :LEADING_PRETTY_PRINT_WHITESPACE, :TRAILING_PRETTY_PRINT_WHITESPACE
 
       def markdown_for_node(node, child_values)
         if node.text?
@@ -77,7 +80,7 @@ module ActionText
           elsif skip_markdown_escaping?(node)
             node.content
           else
-            escape_markdown_text(node.content)
+            escape_markdown_text(strip_pretty_print_indentation(node))
           end
         elsif node.element?
           method_name = :"visit_#{node.name.tr("-", "_")}"
@@ -118,6 +121,7 @@ module ActionText
       def visit_s(_node, child_values)
         "~~#{join_children(child_values)}~~"
       end
+      alias_method :visit_del, :visit_s
 
       def visit_code(node, child_values)
         inner = join_children(child_values)
@@ -136,6 +140,13 @@ module ActionText
 
       def visit_p(_node, child_values)
         "#{join_children(child_values)}\n\n"
+      end
+
+      # Trix uses <div> as its default block element and represents newlines as <br> tags
+      # (see piece_view.js and block_view.js in the Trix source). Unlike <p>, we don't append
+      # paragraph-separating newlines here because the <br> children already provide spacing.
+      def visit_div(_node, child_values)
+        join_children(child_values)
       end
 
       def visit__heading(_node, child_values, level)
@@ -313,12 +324,21 @@ module ActionText
         end
       end
 
-      def significant_whitespace?(node)
-        significant_inline_sibling?(node.previous_sibling) &&
-          significant_inline_sibling?(node.next_sibling)
+      def strip_pretty_print_indentation(node)
+        content = node.content
+        return content unless content.include?("\n")
+
+        content
+          .sub(LEADING_PRETTY_PRINT_WHITESPACE, inline_sibling?(node.previous_sibling) ? " " : "")
+          .sub(TRAILING_PRETTY_PRINT_WHITESPACE, inline_sibling?(node.next_sibling) ? " " : "")
       end
 
-      def significant_inline_sibling?(sibling)
+      def significant_whitespace?(node)
+        inline_sibling?(node.previous_sibling) &&
+          inline_sibling?(node.next_sibling)
+      end
+
+      def inline_sibling?(sibling)
         sibling&.text? || sibling&.name&.in?(INLINE_ELEMENTS)
       end
 
