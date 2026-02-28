@@ -1,0 +1,7 @@
+diff --git a/$ gem install actionpack b/$ gem install actionpack
+new file mode 100644
+index 0000000000000..135150097dadd
+--- /dev/null
++++ b/$ gem install actionpack	
+@@ -0,0 +1 @@
++$ gem install actionpack
