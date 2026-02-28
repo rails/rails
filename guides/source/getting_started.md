@@ -1855,7 +1855,7 @@ We also need to update the show view to display the description in
 `app/views/products/show.html.erb`:
 
 ```erb#4
-<%# app/views/products/show.html.erb%>
+<%# app/views/products/show.html.erb %>
 <% cache @product do %>
   <h1><%= @product.name %></h1>
   <%= @product.description %>
