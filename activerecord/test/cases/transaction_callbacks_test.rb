@@ -1541,4 +1541,35 @@ class TransactionChangesTest < ActiveRecord::TestCase
     assert_equal ["Original Product", "Updated Product"], product_txn_changes["title"],
       "cross-model transaction_changes should reflect the other model's saved changes"
   end
+
+  def test_transaction_changes_does_not_deserialize_nil_database_values
+    sentinel_type = Class.new(ActiveModel::Type::String) do
+      def deserialize(value)
+        value.nil? ? "SENTINEL_NIL_DESERIALIZED" : super
+      end
+    end
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+      attribute :author_name, sentinel_type.new, default: "default_author"
+
+      attr_accessor :transaction_changes_log
+
+      after_commit do
+        self.transaction_changes_log = transaction_changes.dup
+      end
+    end
+
+    topic = klass.create!(title: "Hello", written_on: Date.today)
+
+    assert_equal [nil, "default_author"], topic.transaction_changes_log["author_name"],
+      "a nil original database value should not be passed through deserialize"
+
+    topic.reload
+
+    topic.update!(author_name: nil)
+
+    assert_equal ["default_author", nil], topic.transaction_changes_log["author_name"],
+      "a nil new database value should not be passed through deserialize"
+  end
 end

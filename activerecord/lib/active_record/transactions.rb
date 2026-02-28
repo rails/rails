@@ -510,8 +510,9 @@ module ActiveRecord
           new_raw = current_attr.original_value_for_database
 
           unless old_raw == new_raw
-            old_value = snapshot_attr.original_value
-            new_value = current_attr.type.deserialize(new_raw)
+            type = current_attr.type
+            old_value = old_raw.nil? ? nil : type.deserialize(old_raw)
+            new_value = new_raw.nil? ? nil : type.deserialize(new_raw)
             changes[attr_name] = [old_value, new_value]
           end
         end
@@ -540,7 +541,8 @@ module ActiveRecord
           if old_raw == pending_raw
             changes.delete(attr_name)
           else
-            changes[attr_name] = [snapshot_attr.original_value, pending_new_value]
+            old_value = old_raw.nil? ? nil : snapshot_attr.type.deserialize(old_raw)
+            changes[attr_name] = [old_value, pending_new_value]
           end
         end
 
