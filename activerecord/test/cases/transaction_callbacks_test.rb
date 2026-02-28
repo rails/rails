@@ -1348,6 +1348,7 @@ class TransactionChangesInAfterCommitCallbacksTest < ActiveRecord::TestCase
     assert_nil topic.transaction_changes_log["author_name"]
   end
 
+
   def test_transaction_changes_is_empty_inside_after_rollback_callback
     transaction_changes_in_rollback = nil
     transaction_changes_present_in_rollback = nil
