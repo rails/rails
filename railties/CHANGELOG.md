@@ -1,3 +1,10 @@
+*   Add `--package-manager` option to `rails new`.
+
+    Allows selecting yarn (default), npm, or pnpm when generating a new application.
+    Updates `bin/setup`, `Dockerfile`, and `config/ci.rb` to use the selected manager.
+
+    *David Lowenfels*
+
 *   `Rails.app.revision` now checks `ENV["REVISION"]` before falling back to the `REVISION` file or git.
 
     *Jonathan Baker*
