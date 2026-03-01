@@ -19,5 +19,5 @@ gem "rubocop-rails-omakase", require: false
 <% end -%>
 <% if RUBY_PLATFORM.match?(/mingw|mswin|java/) -%>
 
-gem "tzinfo-data", platforms: %i[ windows jruby ]
+gem "tzinfo-data"
 <% end -%>
