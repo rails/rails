@@ -212,7 +212,7 @@ module ActiveRecord
       end
 
       def supports_partitioned_indexes?
-        database_version >= 11_00_00 # >= 11.0
+        true
       end
 
       def supports_partial_index?
@@ -220,7 +220,7 @@ module ActiveRecord
       end
 
       def supports_index_include?
-        database_version >= 11_00_00 # >= 11.0
+        true
       end
 
       def supports_expression_index?
@@ -276,7 +276,7 @@ module ActiveRecord
       end
 
       def supports_restart_db_transaction?
-        database_version >= 12_00_00 # >= 12.0
+        true
       end
 
       def supports_insert_returning?
@@ -284,18 +284,18 @@ module ActiveRecord
       end
 
       def supports_insert_on_conflict?
-        database_version >= 9_05_00 # >= 9.5
+        true
       end
       alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
       alias supports_insert_conflict_target? supports_insert_on_conflict?
 
       def supports_virtual_columns?
-        database_version >= 12_00_00 # >= 12.0
+        true
       end
 
       def supports_identity_columns? # :nodoc:
-        database_version >= 10_00_00 # >= 10.0
+        true
       end
 
       def supports_nulls_not_distinct?
@@ -303,7 +303,7 @@ module ActiveRecord
       end
 
       def supports_native_partitioning? # :nodoc:
-        database_version >= 10_00_00 # >= 10.0
+        true
       end
 
       if PG::Connection.method_defined?(:close_prepared) # pg 1.6.0 & libpq 17
@@ -471,7 +471,7 @@ module ActiveRecord
       end
 
       def supports_pgcrypto_uuid?
-        database_version >= 9_04_00 # >= 9.4
+        true
       end
 
       def supports_optimizer_hints?
@@ -643,10 +643,6 @@ module ActiveRecord
 
       # Rename enum value on an existing enum type.
       def rename_enum_value(type_name, **options)
-        unless database_version >= 10_00_00 # >= 10.0
-          raise ArgumentError, "Renaming enum values is only supported in PostgreSQL 10 or later"
-        end
-
         from = options.fetch(:from) { raise ArgumentError, ":from is required" }
         to = options.fetch(:to) { raise ArgumentError, ":to is required" }
 
@@ -706,8 +702,8 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < 9_03_00 # < 9.3
-          raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 9.3."
+        if database_version < 14_00_00 # < 14.0
+          raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 14."
         end
       end
 
@@ -1115,8 +1111,8 @@ module ActiveRecord
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment,
-                     #{supports_identity_columns? ? 'attidentity' : quote('')} AS identity,
-                     #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated
+                     attidentity AS identity,
+                     attgenerated as attgenerated
                 FROM pg_attribute a
                 LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
                 LEFT JOIN pg_type t ON a.atttypid = t.oid

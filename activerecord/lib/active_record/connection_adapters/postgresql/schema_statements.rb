@@ -178,7 +178,7 @@ module ActiveRecord
 
           options[:options] = "INHERITS (#{inherited_table_names.join(", ")})" if inherited_table_names
 
-          if !options[:options] && supports_native_partitioning?
+          if !options[:options]
             partition_definition = table_partition_definition(table_name)
 
             options[:options] = "PARTITION BY #{partition_definition}" if partition_definition

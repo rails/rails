@@ -389,11 +389,9 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
       assert @connection.index_name_exists?(TABLE_NAME, INDEX_E_NAME)
       assert_not @connection.index_name_exists?(TABLE_NAME, "missing_index")
 
-      if supports_partitioned_indexes?
-        create_partitioned_table
-        create_partitioned_table_index
-        assert @connection.index_name_exists?(PARTITIONED_TABLE, PARTITIONED_TABLE_INDEX)
-      end
+      create_partitioned_table
+      create_partitioned_table_index
+      assert @connection.index_name_exists?(PARTITIONED_TABLE, PARTITIONED_TABLE_INDEX)
     end
 
     assert @connection.index_name_exists?("#{SCHEMA_NAME}.#{TABLE_NAME}", INDEX_A_NAME)
@@ -415,12 +413,10 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     indexes = @connection.indexes("#{SCHEMA_NAME}.#{TABLE_NAME}")
     assert_equal 5, indexes.size
 
-    if supports_partitioned_indexes?
-      create_partitioned_table
-      create_partitioned_table_index
-      indexes = @connection.indexes("#{SCHEMA_NAME}.#{PARTITIONED_TABLE}")
-      assert_equal 1, indexes.size
-    end
+    create_partitioned_table
+    create_partitioned_table_index
+    indexes = @connection.indexes("#{SCHEMA_NAME}.#{PARTITIONED_TABLE}")
+    assert_equal 1, indexes.size
   end
 
   def test_with_uppercase_index_name
@@ -430,13 +426,11 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
       assert_nothing_raised { @connection.remove_index "things", name: "things_Index" }
     end
 
-    if supports_partitioned_indexes?
-      create_partitioned_table
-      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+    create_partitioned_table
+    @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
 
-      with_schema_search_path SCHEMA_NAME do
-        assert_nothing_raised { @connection.remove_index PARTITIONED_TABLE, name: "#{PARTITIONED_TABLE}_Index" }
-      end
+    with_schema_search_path SCHEMA_NAME do
+      assert_nothing_raised { @connection.remove_index PARTITIONED_TABLE, name: "#{PARTITIONED_TABLE}_Index" }
     end
   end
 
@@ -453,21 +447,19 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.execute "CREATE INDEX \"things_Index\" ON #{SCHEMA_NAME}.things (name)"
     assert_raises(ArgumentError) { @connection.remove_index "#{SCHEMA2_NAME}.things", name: "#{SCHEMA_NAME}.things_Index" }
 
-    if supports_partitioned_indexes?
-      create_partitioned_table
+    create_partitioned_table
 
-      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
-      assert_nothing_raised { @connection.remove_index PARTITIONED_TABLE, name: "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}_Index" }
+    @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+    assert_nothing_raised { @connection.remove_index PARTITIONED_TABLE, name: "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}_Index" }
 
-      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
-      assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}", name: "#{PARTITIONED_TABLE}_Index" }
+    @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+    assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}", name: "#{PARTITIONED_TABLE}_Index" }
 
-      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
-      assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}", name: "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}_Index" }
+    @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+    assert_nothing_raised { @connection.remove_index "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}", name: "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}_Index" }
 
-      @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
-      assert_raises(ArgumentError) { @connection.remove_index "#{SCHEMA2_NAME}.#{PARTITIONED_TABLE}", name: "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}_Index" }
-    end
+    @connection.execute "CREATE INDEX \"#{PARTITIONED_TABLE}_Index\" ON #{SCHEMA_NAME}.#{PARTITIONED_TABLE} (logdate, city_id)"
+    assert_raises(ArgumentError) { @connection.remove_index "#{SCHEMA2_NAME}.#{PARTITIONED_TABLE}", name: "#{SCHEMA_NAME}.#{PARTITIONED_TABLE}_Index" }
   end
 
   def test_primary_key_with_schema_specified
@@ -871,11 +863,7 @@ class SchemaIndexIncludeColumnsTest < ActiveRecord::PostgreSQLTestCase
 
   def test_schema_dumps_index_included_columns
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_include_index/).first.strip
-    if ActiveRecord::Base.lease_connection.supports_index_include?
-      assert_equal 't.index ["firm_id", "type"], name: "company_include_index", include: ["name", "account_id"]', index_definition
-    else
-      assert_equal 't.index ["firm_id", "type"], name: "company_include_index"', index_definition
-    end
+    assert_equal 't.index ["firm_id", "type"], name: "company_include_index", include: ["name", "account_id"]', index_definition
   end
 end
 
@@ -939,8 +927,6 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_list_partition_options_is_dumped
-    skip("current adapter doesn't support native partitioning") unless supports_native_partitioning?
-
     options = "PARTITION BY LIST (kind)"
 
     @connection.create_table "trains", id: false, options: options do |t|
@@ -954,8 +940,6 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_range_partition_options_is_dumped
-    skip("current adapter doesn't support native partitioning") unless supports_native_partitioning?
-
     options = "PARTITION BY RANGE (created_at)"
 
     @connection.create_table "trains", id: false, options: options do |t|

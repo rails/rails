@@ -450,37 +450,35 @@ module ActiveRecord
         end
       end
 
-      if supports_index_include?
-        def test_include_index
-          with_example_table do
-            @connection.add_index "ex", %w{ id }, name: "include", include: :number
-            index = @connection.indexes("ex").find { |idx| idx.name == "include" }
-            assert_equal ["number"], index.include
-          end
+      def test_include_index
+        with_example_table do
+          @connection.add_index "ex", %w{ id }, name: "include", include: :number
+          index = @connection.indexes("ex").find { |idx| idx.name == "include" }
+          assert_equal ["number"], index.include
         end
+      end
 
-        def test_include_multiple_columns_index
-          with_example_table do
-            @connection.add_index "ex", %w{ id }, name: "include", include: [:number, :data]
-            index = @connection.indexes("ex").find { |idx| idx.name == "include" }
-            assert_equal ["number", "data"], index.include
-          end
+      def test_include_multiple_columns_index
+        with_example_table do
+          @connection.add_index "ex", %w{ id }, name: "include", include: [:number, :data]
+          index = @connection.indexes("ex").find { |idx| idx.name == "include" }
+          assert_equal ["number", "data"], index.include
         end
+      end
 
-        def test_include_keyword_column_name
-          with_example_table("id integer, timestamp integer") do
-            @connection.add_index "ex", :id, name: "include", include: [:timestamp]
-            index = @connection.indexes("ex").find { |idx| idx.name == "include" }
-            assert_equal ["timestamp"], index.include
-          end
+      def test_include_keyword_column_name
+        with_example_table("id integer, timestamp integer") do
+          @connection.add_index "ex", :id, name: "include", include: [:timestamp]
+          index = @connection.indexes("ex").find { |idx| idx.name == "include" }
+          assert_equal ["timestamp"], index.include
         end
+      end
 
-        def test_include_escaped_quotes_column_name
-          with_example_table(%{id integer, "I""like""quotes" integer}) do
-            @connection.add_index "ex", :id, name: "include", include: [:"I\"like\"quotes"]
-            index = @connection.indexes("ex").find { |idx| idx.name == "include" }
-            assert_equal ["I\"like\"quotes"], index.include
-          end
+      def test_include_escaped_quotes_column_name
+        with_example_table(%{id integer, "I""like""quotes" integer}) do
+          @connection.add_index "ex", :id, name: "include", include: [:"I\"like\"quotes"]
+          index = @connection.indexes("ex").find { |idx| idx.name == "include" }
+          assert_equal ["I\"like\"quotes"], index.include
         end
       end
 

@@ -1,3 +1,7 @@
+*   Drop support for end-of-life PostgreSQL 13 and older.
+
+    *Ali Ismayilov*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.
