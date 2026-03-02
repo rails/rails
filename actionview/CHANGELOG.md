@@ -1,3 +1,7 @@
+*   Fix encoding errors for string locals containing non-ASCII characters.
+
+    *Kataoka Katsuki*
+
 *   Fix collection caching to only forward `expires_in` argument if explicitly set.
 
     *Pieter Visser*
