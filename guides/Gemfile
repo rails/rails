@@ -1,0 +1,26 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+gem "dartsass-rails"
+gem "importmap-rails", ">= 1.2.3"
+
+gem "sdoc", "~> 2.6.4"
+gem "redcarpet", "~> 3.6.1", platforms: :ruby
+gem "w3c_validators", "~> 1.3.6"
+gem "rouge"
+gem "rubyzip", "~> 2.0"
+gem "mdl", "!= 0.13.0", require: false
+
+# Fixes https://github.com/ruby/openssl/issues/949
+gem "openssl", ">= 4.0.0"
+
+group :development do
+  gem "rack", "~> 3.0"
+  gem "rackup", "~> 2.1"
+  gem "puma"
+end
+
+group :test do
+  gem "minitest", "~> 6.0"
+end

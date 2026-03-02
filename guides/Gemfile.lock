@@ -1,0 +1,315 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    actionpack (8.1.2)
+      actionview (= 8.1.2)
+      activesupport (= 8.1.2)
+      nokogiri (>= 1.8.5)
+      rack (>= 2.2.4)
+      rack-session (>= 1.0.1)
+      rack-test (>= 0.6.3)
+      rails-dom-testing (~> 2.2)
+      rails-html-sanitizer (~> 1.6)
+      useragent (~> 0.16)
+    actionview (8.1.2)
+      activesupport (= 8.1.2)
+      builder (~> 3.1)
+      erubi (~> 1.11)
+      rails-dom-testing (~> 2.2)
+      rails-html-sanitizer (~> 1.6)
+    activesupport (8.1.2)
+      base64
+      bigdecimal
+      concurrent-ruby (~> 1.0, >= 1.3.1)
+      connection_pool (>= 2.2.5)
+      drb
+      i18n (>= 1.6, < 2)
+      json
+      logger (>= 1.4.2)
+      minitest (>= 5.1)
+      securerandom (>= 0.3)
+      tzinfo (~> 2.0, >= 2.0.5)
+      uri (>= 0.13.1)
+    base64 (0.3.0)
+    bigdecimal (4.0.1)
+    builder (3.3.0)
+    chef-utils (18.6.2)
+      concurrent-ruby
+    concurrent-ruby (1.3.6)
+    connection_pool (3.0.2)
+    crass (1.0.6)
+    dartsass-rails (0.5.1)
+      railties (>= 6.0.0)
+      sass-embedded (~> 1.63)
+    date (3.5.1)
+    drb (2.2.3)
+    erb (6.0.2)
+    erubi (1.13.1)
+    google-protobuf (4.34.0)
+      bigdecimal
+      rake (~> 13.3)
+    google-protobuf (4.34.0-aarch64-linux-gnu)
+      bigdecimal
+      rake (~> 13.3)
+    google-protobuf (4.34.0-aarch64-linux-musl)
+      bigdecimal
+      rake (~> 13.3)
+    google-protobuf (4.34.0-arm64-darwin)
+      bigdecimal
+      rake (~> 13.3)
+    google-protobuf (4.34.0-x86_64-darwin)
+      bigdecimal
+      rake (~> 13.3)
+    google-protobuf (4.34.0-x86_64-linux-gnu)
+      bigdecimal
+      rake (~> 13.3)
+    google-protobuf (4.34.0-x86_64-linux-musl)
+      bigdecimal
+      rake (~> 13.3)
+    i18n (1.14.8)
+      concurrent-ruby (~> 1.0)
+    importmap-rails (2.2.0)
+      actionpack (>= 6.0.0)
+      activesupport (>= 6.0.0)
+      railties (>= 6.0.0)
+    io-console (0.8.2)
+    irb (1.17.0)
+      pp (>= 0.6.0)
+      prism (>= 1.3.0)
+      rdoc (>= 4.0.0)
+      reline (>= 0.4.2)
+    json (2.18.1)
+    kramdown (2.5.1)
+      rexml (>= 3.3.9)
+    kramdown-parser-gfm (1.1.0)
+      kramdown (~> 2.0)
+    logger (1.7.0)
+    loofah (2.25.0)
+      crass (~> 1.0.2)
+      nokogiri (>= 1.12.0)
+    mdl (0.12.0)
+      kramdown (~> 2.3)
+      kramdown-parser-gfm (~> 1.1)
+      mixlib-cli (~> 2.1, >= 2.1.1)
+      mixlib-config (>= 2.2.1, < 4)
+      mixlib-shellout
+    minitest (6.0.2)
+      drb (~> 2.0)
+      prism (~> 1.5)
+    mixlib-cli (2.1.8)
+    mixlib-config (3.0.27)
+      tomlrb
+    mixlib-shellout (3.3.4)
+      chef-utils
+    nio4r (2.7.5)
+    nokogiri (1.19.1-aarch64-linux-gnu)
+      racc (~> 1.4)
+    nokogiri (1.19.1-aarch64-linux-musl)
+      racc (~> 1.4)
+    nokogiri (1.19.1-arm-linux-gnu)
+      racc (~> 1.4)
+    nokogiri (1.19.1-arm-linux-musl)
+      racc (~> 1.4)
+    nokogiri (1.19.1-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.19.1-x86_64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.19.1-x86_64-linux-gnu)
+      racc (~> 1.4)
+    nokogiri (1.19.1-x86_64-linux-musl)
+      racc (~> 1.4)
+    openssl (4.0.1)
+    pp (0.6.3)
+      prettyprint
+    prettyprint (0.2.0)
+    prism (1.9.0)
+    psych (5.3.1)
+      date
+      stringio
+    puma (7.2.0)
+      nio4r (~> 2.0)
+    racc (1.8.1)
+    rack (3.2.5)
+    rack-session (2.1.1)
+      base64 (>= 0.1.0)
+      rack (>= 3.0.0)
+    rack-test (2.2.0)
+      rack (>= 1.3)
+    rackup (2.3.1)
+      rack (>= 3)
+    rails-dom-testing (2.3.0)
+      activesupport (>= 5.0.0)
+      minitest
+      nokogiri (>= 1.6)
+    rails-html-sanitizer (1.7.0)
+      loofah (~> 2.25)
+      nokogiri (>= 1.15.7, != 1.16.7, != 1.16.6, != 1.16.5, != 1.16.4, != 1.16.3, != 1.16.2, != 1.16.1, != 1.16.0.rc1, != 1.16.0)
+    railties (8.1.2)
+      actionpack (= 8.1.2)
+      activesupport (= 8.1.2)
+      irb (~> 1.13)
+      rackup (>= 1.0.0)
+      rake (>= 12.2)
+      thor (~> 1.0, >= 1.2.2)
+      tsort (>= 0.2)
+      zeitwerk (~> 2.6)
+    rake (13.3.1)
+    rdoc (7.2.0)
+      erb
+      psych (>= 4.0.0)
+      tsort
+    redcarpet (3.6.1)
+    reline (0.6.3)
+      io-console (~> 0.5)
+    rexml (3.4.4)
+    rouge (4.6.1)
+    rubyzip (2.4.1)
+    sass-embedded (1.97.3-aarch64-linux-gnu)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.97.3-aarch64-linux-musl)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.97.3-arm-linux-gnueabihf)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.97.3-arm-linux-musleabihf)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.97.3-arm64-darwin)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.97.3-x86_64-darwin)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.97.3-x86_64-linux-gnu)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.97.3-x86_64-linux-musl)
+      google-protobuf (~> 4.31)
+    sdoc (2.6.5)
+      rdoc (>= 5.0)
+    securerandom (0.4.1)
+    stringio (3.2.0)
+    thor (1.5.0)
+    tomlrb (2.0.3)
+    tsort (0.2.0)
+    tzinfo (2.0.6)
+      concurrent-ruby (~> 1.0)
+    uri (1.1.1)
+    useragent (0.16.11)
+    w3c_validators (1.3.7)
+      json (>= 1.8)
+      nokogiri (~> 1.6)
+      rexml (~> 3.2)
+    zeitwerk (2.7.5)
+
+PLATFORMS
+  aarch64-linux-gnu
+  aarch64-linux-musl
+  arm-linux-gnu
+  arm-linux-gnueabihf
+  arm-linux-musl
+  arm-linux-musleabihf
+  arm64-darwin
+  x86_64-darwin
+  x86_64-linux-gnu
+  x86_64-linux-musl
+
+DEPENDENCIES
+  dartsass-rails
+  importmap-rails (>= 1.2.3)
+  mdl (!= 0.13.0)
+  minitest (~> 6.0)
+  openssl (>= 4.0.0)
+  puma
+  rack (~> 3.0)
+  rackup (~> 2.1)
+  redcarpet (~> 3.6.1)
+  rouge
+  rubyzip (~> 2.0)
+  sdoc (~> 2.6.4)
+  w3c_validators (~> 1.3.6)
+
+CHECKSUMS
+  actionpack (8.1.2) sha256=ced74147a1f0daafaa4bab7f677513fd4d3add574c7839958f7b4f1de44f8423
+  actionview (8.1.2) sha256=80455b2588911c9b72cec22d240edacb7c150e800ef2234821269b2b2c3e2e5b
+  activesupport (8.1.2) sha256=88842578ccd0d40f658289b0e8c842acfe9af751afee2e0744a7873f50b6fdae
+  base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
+  bigdecimal (4.0.1) sha256=8b07d3d065a9f921c80ceaea7c9d4ae596697295b584c296fe599dd0ad01c4a7
+  builder (3.3.0) sha256=497918d2f9dca528fdca4b88d84e4ef4387256d984b8154e9d5d3fe5a9c8835f
+  chef-utils (18.6.2) sha256=d4d0a08fc2d0fd1c490dba4f09dcd6b4e6ddc5c594231c05ff87d2e54a13834a
+  concurrent-ruby (1.3.6) sha256=6b56837e1e7e5292f9864f34b69c5a2cbc75c0cf5338f1ce9903d10fa762d5ab
+  connection_pool (3.0.2) sha256=33fff5ba71a12d2aa26cb72b1db8bba2a1a01823559fb01d29eb74c286e62e0a
+  crass (1.0.6) sha256=dc516022a56e7b3b156099abc81b6d2b08ea1ed12676ac7a5657617f012bd45d
+  dartsass-rails (0.5.1) sha256=f19510fb1b29c76c1739a06954d615f1d20ad653b6fc668dd7c68542bb303a1a
+  date (3.5.1) sha256=750d06384d7b9c15d562c76291407d89e368dda4d4fff957eb94962d325a0dc0
+  drb (2.2.3) sha256=0b00d6fdb50995fe4a45dea13663493c841112e4068656854646f418fda13373
+  erb (6.0.2) sha256=9fe6264d44f79422c87490a1558479bd0e7dad4dd0e317656e67ea3077b5242b
+  erubi (1.13.1) sha256=a082103b0885dbc5ecf1172fede897f9ebdb745a4b97a5e8dc63953db1ee4ad9
+  google-protobuf (4.34.0) sha256=bffaea30fbe2807c80667a78953b15645b3bef62b25c10ca187e4418119be531
+  google-protobuf (4.34.0-aarch64-linux-gnu) sha256=0ab8a8a97976a2265d647e69b3ff1980c89184abdaf06d36091856c5ab37cc55
+  google-protobuf (4.34.0-aarch64-linux-musl) sha256=0632a86df6d320eac3b335bd779499d43ad8ee6d1f8c8494b773ed5d3d5c6ab4
+  google-protobuf (4.34.0-arm64-darwin) sha256=f83967a8095a9da676b79ba372c58fef2ca3878428bd40febfce65b3752c90d1
+  google-protobuf (4.34.0-x86_64-darwin) sha256=4a5b67281993345adca54bb32947f25a289597eafaa240e5b714d0a740f99321
+  google-protobuf (4.34.0-x86_64-linux-gnu) sha256=bbb333fbe79c16f35a2e2154cf29f3ce26f60390dba286b339861206d5435ef9
+  google-protobuf (4.34.0-x86_64-linux-musl) sha256=0b75858a388b17e73aa4176df2e722762dbc92551b7075fdc562d33c1c6de0b0
+  i18n (1.14.8) sha256=285778639134865c5e0f6269e0b818256017e8cde89993fdfcbfb64d088824a5
+  importmap-rails (2.2.0) sha256=91bf0067c872dda551999a4fed82b386161d1e21eda04a3fe16ea1e8aba8dd35
+  io-console (0.8.2) sha256=d6e3ae7a7cc7574f4b8893b4fca2162e57a825b223a177b7afa236c5ef9814cc
+  irb (1.17.0) sha256=168c4ddb93d8a361a045c41d92b2952c7a118fa73f23fe14e55609eb7a863aae
+  json (2.18.1) sha256=fe112755501b8d0466b5ada6cf50c8c3f41e897fa128ac5d263ec09eedc9f986
+  kramdown (2.5.1) sha256=87bbb6abd9d3cebe4fc1f33e367c392b4500e6f8fa19dd61c0972cf4afe7368c
+  kramdown-parser-gfm (1.1.0) sha256=fb39745516427d2988543bf01fc4cf0ab1149476382393e0e9c48592f6581729
+  logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
+  loofah (2.25.0) sha256=df5ed7ac3bac6a4ec802df3877ee5cc86d027299f8952e6243b3dac446b060e6
+  mdl (0.12.0) sha256=66718347ba0ad8126173f431bb99028b0300196f9b9ba90802a221ebd51364be
+  minitest (6.0.2) sha256=db6e57956f6ecc6134683b4c87467d6dd792323c7f0eea7b93f66bd284adbc3d
+  mixlib-cli (2.1.8) sha256=e6f27be34d580f6ed71731ca46b967e57793a627131c1f6e1ed2dad39ea3bdf9
+  mixlib-config (3.0.27) sha256=d7748b1898e4f16502afec1de00b5ad65c6de405114b1b0c65ec61b1a9100148
+  mixlib-shellout (3.3.4) sha256=f7dbde9f69612e431aac7dbd0cf5c9ec6895fe272092ef67dbb08b7a6868378b
+  nio4r (2.7.5) sha256=6c90168e48fb5f8e768419c93abb94ba2b892a1d0602cb06eef16d8b7df1dca1
+  nokogiri (1.19.1-aarch64-linux-gnu) sha256=cfdb0eafd9a554a88f12ebcc688d2b9005f9fce42b00b970e3dc199587b27f32
+  nokogiri (1.19.1-aarch64-linux-musl) sha256=1e2150ab43c3b373aba76cd1190af7b9e92103564063e48c474f7600923620b5
+  nokogiri (1.19.1-arm-linux-gnu) sha256=0a39ed59abe3bf279fab9dd4c6db6fe8af01af0608f6e1f08b8ffa4e5d407fa3
+  nokogiri (1.19.1-arm-linux-musl) sha256=3a18e559ee499b064aac6562d98daab3d39ba6cbb4074a1542781b2f556db47d
+  nokogiri (1.19.1-arm64-darwin) sha256=dfe2d337e6700eac47290407c289d56bcf85805d128c1b5a6434ddb79731cb9e
+  nokogiri (1.19.1-x86_64-darwin) sha256=7093896778cc03efb74b85f915a775862730e887f2e58d6921e3fa3d981e68bf
+  nokogiri (1.19.1-x86_64-linux-gnu) sha256=1a4902842a186b4f901078e692d12257678e6133858d0566152fe29cdb98456a
+  nokogiri (1.19.1-x86_64-linux-musl) sha256=4267f38ad4fc7e52a2e7ee28ed494e8f9d8eb4f4b3320901d55981c7b995fc23
+  openssl (4.0.1) sha256=e27974136b7b02894a1bce46c5397ee889afafe704a839446b54dc81cb9c5f7d
+  pp (0.6.3) sha256=2951d514450b93ccfeb1df7d021cae0da16e0a7f95ee1e2273719669d0ab9df6
+  prettyprint (0.2.0) sha256=2bc9e15581a94742064a3cc8b0fb9d45aae3d03a1baa6ef80922627a0766f193
+  prism (1.9.0) sha256=7b530c6a9f92c24300014919c9dcbc055bf4cdf51ec30aed099b06cd6674ef85
+  psych (5.3.1) sha256=eb7a57cef10c9d70173ff74e739d843ac3b2c019a003de48447b2963d81b1974
+  puma (7.2.0) sha256=bf8ef4ab514a4e6d4554cb4326b2004eba5036ae05cf765cfe51aba9706a72a8
+  racc (1.8.1) sha256=4a7f6929691dbec8b5209a0b373bc2614882b55fc5d2e447a21aaa691303d62f
+  rack (3.2.5) sha256=4cbd0974c0b79f7a139b4812004a62e4c60b145cba76422e288ee670601ed6d3
+  rack-session (2.1.1) sha256=0b6dc07dea7e4b583f58a48e8b806d4c9f1c6c9214ebc202ec94562cbea2e4e9
+  rack-test (2.2.0) sha256=005a36692c306ac0b4a9350355ee080fd09ddef1148a5f8b2ac636c720f5c463
+  rackup (2.3.1) sha256=6c79c26753778e90983761d677a48937ee3192b3ffef6bc963c0950f94688868
+  rails-dom-testing (2.3.0) sha256=8acc7953a7b911ca44588bf08737bc16719f431a1cc3091a292bca7317925c1d
+  rails-html-sanitizer (1.7.0) sha256=28b145cceaf9cc214a9874feaa183c3acba036c9592b19886e0e45efc62b1e89
+  railties (8.1.2) sha256=1289ece76b4f7668fc46d07e55cc992b5b8751f2ad85548b7da351b8c59f8055
+  rake (13.3.1) sha256=8c9e89d09f66a26a01264e7e3480ec0607f0c497a861ef16063604b1b08eb19c
+  rdoc (7.2.0) sha256=8650f76cd4009c3b54955eb5d7e3a075c60a57276766ebf36f9085e8c9f23192
+  redcarpet (3.6.1) sha256=d444910e6aa55480c6bcdc0cdb057626e8a32c054c29e793fa642ba2f155f445
+  reline (0.6.3) sha256=1198b04973565b36ec0f11542ab3f5cfeeec34823f4e54cebde90968092b1835
+  rexml (3.4.4) sha256=19e0a2c3425dfbf2d4fc1189747bdb2f849b6c5e74180401b15734bc97b5d142
+  rouge (4.6.1) sha256=5075346d5797d6864be93f7adc75a16047a7dbfa572c63c502419ffa582c77de
+  rubyzip (2.4.1) sha256=8577c88edc1fde8935eb91064c5cb1aef9ad5494b940cf19c775ee833e075615
+  sass-embedded (1.97.3-aarch64-linux-gnu) sha256=81915bb19ce7e224eae534e75e828f4ab5acddcb17e54da0b5ef91d932462836
+  sass-embedded (1.97.3-aarch64-linux-musl) sha256=508c92fa2f9e58f9072325e02f011bd22c7e428465c67fafaee570d0bc40563b
+  sass-embedded (1.97.3-arm-linux-gnueabihf) sha256=ce443b57f3d7f03740267cf0f2cdff13e8055dd5938488967746f29f230222da
+  sass-embedded (1.97.3-arm-linux-musleabihf) sha256=be3972424616f916ce1f4f41228266d57339e490dfd7ca0cea5588579564d4c0
+  sass-embedded (1.97.3-arm64-darwin) sha256=8897d3503efe75c30584070a7104095545f5157665029aeb9bff3fa533a73861
+  sass-embedded (1.97.3-x86_64-darwin) sha256=578f167907ee2a4d355a5a40bcf35d2e3eb90c87008dcd9ce31a2c4a877697f6
+  sass-embedded (1.97.3-x86_64-linux-gnu) sha256=173a4d0dbe2fffdf7482bd3e82fb597dfc658c18d1e8fd746aa7d5077ed4e850
+  sass-embedded (1.97.3-x86_64-linux-musl) sha256=fcc0dcb253ef174ea25283f8781ce9ce95a492663f4bdbb1d66bfae99267a9f7
+  sdoc (2.6.5) sha256=7998b61c10775ee3179ccb0253774332d139e2c0649c251091f5868107a09b86
+  securerandom (0.4.1) sha256=cc5193d414a4341b6e225f0cb4446aceca8e50d5e1888743fac16987638ea0b1
+  stringio (3.2.0) sha256=c37cb2e58b4ffbd33fe5cd948c05934af997b36e0b6ca6fdf43afa234cf222e1
+  thor (1.5.0) sha256=e3a9e55fe857e44859ce104a84675ab6e8cd59c650a49106a05f55f136425e73
+  tomlrb (2.0.3) sha256=c2736acf24919f793334023a4ff396c0647d93fce702a73c9d348deaa815d4f7
+  tsort (0.2.0) sha256=9650a793f6859a43b6641671278f79cfead60ac714148aabe4e3f0060480089f
+  tzinfo (2.0.6) sha256=8daf828cc77bcf7d63b0e3bdb6caa47e2272dcfaf4fbfe46f8c3a9df087a829b
+  uri (1.1.1) sha256=379fa58d27ffb1387eaada68c749d1426738bd0f654d812fcc07e7568f5c57c6
+  useragent (0.16.11) sha256=700e6413ad4bb954bb63547fa098dddf7b0ebe75b40cc6f93b8d54255b173844
+  w3c_validators (1.3.7) sha256=2785f8138ad4d6c2cf9f2a49693390cc55a815a51f1b0ff40e35eed4ff8be746
+  zeitwerk (2.7.5) sha256=d8da92128c09ea6ec62c949011b00ed4a20242b255293dd66bf41545398f73dd
+
+BUNDLED WITH
+  4.0.6
