@@ -40,6 +40,20 @@ class ActiveStorage::Representations::RedirectControllerWithVariantsTest < Actio
 
     assert_response :not_found
   end
+
+  test "returns a 404 if the file is not found" do
+    mock_download = lambda do |_|
+      raise ActiveStorage::FileNotFoundError
+    end
+
+    @blob.service.stub(:download, mock_download) do
+      get rails_blob_representation_url(
+        filename: @blob.filename,
+        signed_blob_id: @blob.signed_id,
+        variation_key: ActiveStorage::Variation.encode(resize_to_limit: [100, 100]))
+    end
+    assert_response :not_found
+  end
 end
 
 class ActiveStorage::Representations::RedirectControllerWithVariantsWithStrictLoadingTest < ActionDispatch::IntegrationTest

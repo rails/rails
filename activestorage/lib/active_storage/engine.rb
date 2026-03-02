@@ -30,6 +30,10 @@ module ActiveStorage
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
     config.active_storage.precompile_assets = true
 
+    config.action_dispatch.rescue_responses.merge!(
+      "ActiveStorage::FileNotFoundError" => :not_found
+    )
+
     config.active_storage.variable_content_types = %w(
       image/png
       image/gif
