@@ -7,7 +7,7 @@ module ActionView
   class Template
     extend ActiveSupport::Autoload
 
-    STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*?)\)(?=\s*-?%>|\s*$)/m
+    STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*?)\)(?=\s*[-,]|\s*%>|\s*$)/m
 
     # === Encodings in ActionView::Template
     #
