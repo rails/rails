@@ -154,9 +154,20 @@ module ActiveStorage
 
         before_validation { attachment_changes[name.to_s]&.analyze }
 
-        after_save { attachment_changes[name.to_s]&.save }
+        after_save do
+          if (change = attachment_changes[name.to_s])
+            change.save
+            Attached::Model.track_pending_attachment_changes(self, @attachment_changes)
+          end
+        end
 
-        after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
+        after_commit(on: %i[ create update ]) do
+          change = attachment_changes.delete(name.to_s)
+          change ||= Attached::Model.delete_pending_attachment_change(self, name.to_s)
+          change.try(:upload)
+        end
+
+        after_rollback { Attached::Model.clear_pending_attachment_changes(self) }
 
         reflection = ActiveRecord::Reflection.create(
           :has_one_attached,
@@ -268,9 +279,20 @@ module ActiveStorage
 
         before_validation { attachment_changes[name.to_s]&.analyze }
 
-        after_save { attachment_changes[name.to_s]&.save }
+        after_save do
+          if (change = attachment_changes[name.to_s])
+            change.save
+            Attached::Model.track_pending_attachment_changes(self, @attachment_changes)
+          end
+        end
 
-        after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
+        after_commit(on: %i[ create update ]) do
+          change = attachment_changes.delete(name.to_s)
+          change ||= Attached::Model.delete_pending_attachment_change(self, name.to_s)
+          change.try(:upload)
+        end
+
+        after_rollback { Attached::Model.clear_pending_attachment_changes(self) }
 
         reflection = ActiveRecord::Reflection.create(
           :has_many_attached,
@@ -285,6 +307,30 @@ module ActiveStorage
     end
 
     class << self
+      def track_pending_attachment_changes(record, changes) # :nodoc:
+        return unless changes&.any? && record.persisted?
+
+        pending_attachment_changes[record_key(record)] = changes
+      end
+
+      def delete_pending_attachment_change(record, name) # :nodoc:
+        return unless record.persisted?
+
+        key = record_key(record)
+        changes = pending_attachment_changes[key]
+        return unless changes
+
+        change = changes.delete(name.to_s)
+        pending_attachment_changes.delete(key) if changes.empty?
+        change
+      end
+
+      def clear_pending_attachment_changes(record) # :nodoc:
+        return unless record.persisted?
+
+        pending_attachment_changes.delete(record_key(record))
+      end
+
       def validate_service_configuration(service_name, model_class, association_name) # :nodoc:
         if service_name
           ActiveStorage::Blob.services.fetch(service_name) do
@@ -296,6 +342,15 @@ module ActiveStorage
       end
 
       private
+        def pending_attachment_changes
+          ActiveSupport::IsolatedExecutionState[:active_storage_pending_attachment_changes] ||= {}
+        end
+
+        def record_key(record)
+          pool = record.class.connection_pool
+          [record.class.name, Array(record.id), pool.role, pool.shard]
+        end
+
         def validate_global_service_configuration(model_class)
           if model_class.connected? && ActiveStorage::Blob.table_exists? && Rails.configuration.active_storage.service.nil?
             raise RuntimeError, "Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config/environments/#{Rails.env}.rb"
@@ -318,7 +373,10 @@ module ActiveStorage
     end
 
     def reload(*) # :nodoc:
-      super.tap { @attachment_changes = nil }
+      super.tap do
+        @attachment_changes = nil
+        ActiveStorage::Attached::Model.clear_pending_attachment_changes(self)
+      end
     end
   end
 end
