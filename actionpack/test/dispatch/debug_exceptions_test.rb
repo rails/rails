@@ -1010,4 +1010,118 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match %r{Third error}, script_content
     assert_match %r{Caused by:.*Second error}m, script_content
   end
+
+  test "translate_path_for_editor returns original path when RAILS_HOST_APP_PATH is not set" do
+    debug_view = ActionDispatch::DebugView.new({})
+    path = "/workspaces/rails/app/models/user.rb"
+
+    stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, nil) do
+      result = debug_view.send(:translate_path_for_editor, path)
+      assert_equal path, result
+    end
+  end
+
+  test "translate_path_for_editor returns original path when RAILS_HOST_APP_PATH is empty string" do
+    debug_view = ActionDispatch::DebugView.new({})
+    path = "/workspaces/rails/app/models/user.rb"
+
+    stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "") do
+      result = debug_view.send(:translate_path_for_editor, path)
+      assert_equal path, result
+    end
+  end
+
+  test "translate_path_for_editor translates paths within Rails.root when RAILS_HOST_APP_PATH is set" do
+    debug_view = ActionDispatch::DebugView.new({})
+
+    Rails.stub :root, Pathname.new("/workspaces/rails") do
+      path = "/workspaces/rails/app/models/user.rb"
+
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal "/host/myapp/app/models/user.rb", result
+      end
+    end
+  end
+
+  test "translate_path_for_editor handles paths with trailing separator in Rails.root" do
+    debug_view = ActionDispatch::DebugView.new({})
+
+    Rails.stub :root, Pathname.new("/workspaces/rails/") do
+      path = "/workspaces/rails/app/controllers/application_controller.rb"
+
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal "/host/myapp/app/controllers/application_controller.rb", result
+      end
+    end
+  end
+
+  test "translate_path_for_editor returns original path for files outside Rails.root" do
+    debug_view = ActionDispatch::DebugView.new({})
+
+    Rails.stub :root, Pathname.new("/workspaces/rails") do
+      path = "/usr/lib/ruby/some_gem.rb"
+
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal path, result
+      end
+    end
+  end
+
+  test "translate_path_for_editor returns original path when path is similar but not child of Rails.root" do
+    debug_view = ActionDispatch::DebugView.new({})
+
+    Rails.stub :root, Pathname.new("/workspaces/app") do
+      # Path starts with Rails.root but isn't actually a child
+      path = "/workspaces/app2/models/user.rb"
+
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal path, result
+      end
+    end
+  end
+
+  test "translate_path_for_editor handles nested paths correctly" do
+    debug_view = ActionDispatch::DebugView.new({})
+
+    Rails.stub :root, Pathname.new("/workspaces/rails") do
+      path = "/workspaces/rails/app/views/layouts/application.html.erb"
+
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/Users/developer/projects/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal "/Users/developer/projects/myapp/app/views/layouts/application.html.erb", result
+      end
+    end
+  end
+
+  test "translate_path_for_editor returns original path when Rails is not defined" do
+    debug_view = ActionDispatch::DebugView.new({})
+    path = "/workspaces/rails/app/models/user.rb"
+
+    # Temporarily hide Rails constant
+    rails_backup = Rails
+    Object.send(:remove_const, :Rails)
+
+    stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+      result = debug_view.send(:translate_path_for_editor, path)
+      assert_equal path, result
+    end
+  ensure
+    ::Rails = rails_backup
+  end
+
+  test "translate_path_for_editor returns original path when Rails.root is nil" do
+    debug_view = ActionDispatch::DebugView.new({})
+    path = "/workspaces/rails/app/models/user.rb"
+
+    Rails.stub :root, nil do
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal path, result
+      end
+    end
+  end
 end

@@ -1,3 +1,28 @@
+*   Add `group` method to `ActiveSupport::ContinuousIntegration` for parallel step execution.
+
+    Groups collect steps and run them concurrently using a thread pool, reducing CI times
+    by running independent checks in parallel. Sub-groups run sequentially within a single
+    parallel slot allowing dependent steps to be grouped together.
+
+    ```ruby
+    CI.run do
+      step "Setup", "bin/setup --skip-server"
+
+      group "Checks", parallel: 2 do
+        step "Style: Ruby", "bin/rubocop"
+        step "Security: Brakeman", "bin/brakeman --quiet"
+        step "Security: Gem audit", "bin/bundler-audit"
+
+        group "Tests" do
+          step "Tests: Rails", "bin/rails test"
+          step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant"
+        end
+      end
+    end
+    ```
+
+    *Donal McBreen*
+
 *   Introduce `this_week?`, `this_month?`, and `this_year?` methods to Date/Time
 
     Similar to `today?`, `tomorrow?`, and `yesterday?`, these methods are useful to

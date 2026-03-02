@@ -5,7 +5,6 @@
 module ActionText
   module PlainTextConversion
     extend self
-    include NodeConversion
 
     def node_to_plain_text(node)
       BottomUpReducer.new(node).reduce do |n, child_values|
@@ -94,6 +93,29 @@ module ActionText
           "#{index + 1}."
         else
           "\u2022"
+        end
+      end
+
+      def list_node_name_for_li_node(node)
+        node.ancestors.lazy.map(&:name).grep(/^[uo]l$/).first
+      end
+
+      def indentation_for_li_node(node)
+        depth = list_node_depth_for_node(node)
+        if depth > 1
+          "  " * (depth - 1)
+        end
+      end
+
+      def list_node_depth_for_node(node)
+        node.ancestors.map(&:name).grep(/^[uo]l$/).count
+      end
+
+      def break_if_nested_list(node, text)
+        if list_node_depth_for_node(node) > 0
+          "\n#{text}"
+        else
+          text
         end
       end
   end

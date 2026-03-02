@@ -1621,6 +1621,28 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_locally_rejected_query_does_not_materialize_or_dirty_transaction
+    ActiveRecord::Base.transaction do
+      connection = ActiveRecord::Base.lease_connection
+      ActiveRecord::Base.while_preventing_writes do
+        assert_raises(ActiveRecord::ReadOnlyError) { Topic.create!(title: "test") }
+      end
+      assert_not connection.current_transaction.materialized?
+      assert_not connection.current_transaction.dirty?
+    end
+  end
+
+  def test_failed_materialization_does_not_dirty_transaction
+    ActiveRecord::Base.transaction do
+      connection = ActiveRecord::Base.lease_connection
+      connection.stub(:begin_db_transaction, -> (*) { raise ActiveRecord::ConnectionFailed, "connection lost" }) do
+        raised = assert_raises(ActiveRecord::ConnectionFailed) { Topic.first }
+        assert_equal "connection lost", raised.message
+      end
+      assert_not connection.current_transaction.dirty?
+    end
+  end
+
   private
     def assert_array_match(expected, actual, message = nil)
       deviations = actual.dup

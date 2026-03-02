@@ -575,6 +575,26 @@ module ActionController
       assert_stream_closed
     end
 
+    def test_isolated_state_with_isolation_level_fiber
+      previous_level = ActiveSupport::IsolatedExecutionState.isolation_level
+      ActiveSupport::IsolatedExecutionState.isolation_level = :fiber
+
+      @controller.tc = self
+      ActiveSupport::IsolatedExecutionState[:raw_isolated_state] = "buffy"
+
+      get :raw_isolated_state
+      assert_equal "buffy".inspect, response.body
+      assert_stream_closed
+
+      ActiveSupport::IsolatedExecutionState.clear
+
+      get :isolated_state
+      assert_equal nil.inspect, response.body
+      assert_stream_closed
+    ensure
+      ActiveSupport::IsolatedExecutionState.isolation_level = previous_level
+    end
+
     def test_connected_to_stack_not_inherited
       original = @controller.class.live_streaming_excluded_keys
       @controller.class.live_streaming_excluded_keys = [:active_record_connected_to_stack]

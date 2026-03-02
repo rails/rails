@@ -10,6 +10,7 @@ require "action_view/base"
 module ActionDispatch
   class DebugView < ActionView::Base # :nodoc:
     RESCUES_TEMPLATE_PATHS = [File.expand_path("templates", __dir__)]
+    HOST_APP_PATH = ENV["RAILS_HOST_APP_PATH"]
 
     def initialize(assigns)
       paths = RESCUES_TEMPLATE_PATHS.dup
@@ -61,7 +62,7 @@ module ActionDispatch
         absolute_path = location&.absolute_path
 
         if absolute_path && line && File.exist?(absolute_path)
-          editor.url_for(absolute_path, line)
+          editor.url_for(translate_path_for_editor(absolute_path), line)
         end
       end
     end
@@ -75,5 +76,21 @@ module ActionDispatch
     rescue ActionController::BadRequest
       false
     end
+
+    private
+      def translate_path_for_editor(absolute_path)
+        path = absolute_path.to_s
+        return path if HOST_APP_PATH.blank?
+        return path unless defined?(Rails) && Rails.respond_to?(:root) && Rails.root
+
+        app_root = Rails.root.to_s
+
+        prefix = app_root.end_with?(File::SEPARATOR) ? app_root : "#{app_root}#{File::SEPARATOR}"
+        return path unless path.start_with?(prefix)
+
+        relative = path.delete_prefix(prefix)
+
+        File.join(HOST_APP_PATH, relative)
+      end
   end
 end

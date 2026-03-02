@@ -17,6 +17,7 @@ module ActionText
   autoload :AttachmentGallery
   autoload :Attachment
   autoload :Attribute
+  autoload :BottomUpReducer
   autoload :Configurator
   autoload :Content
   autoload :Editor
@@ -25,7 +26,6 @@ module ActionText
   autoload :FixtureSet
   autoload :HtmlConversion
   autoload :MarkdownConversion
-  autoload :NodeConversion
   autoload :PlainTextConversion
   autoload :Registry
   autoload :Rendering

@@ -40,6 +40,12 @@ class FileStoreTest < ActiveSupport::TestCase
   include CacheInstrumentationBehavior
   include CacheLoggingBehavior
 
+  def test_inspect_shows_cache_path_and_options
+    assert_match(/\A#<ActiveSupport::Cache::FileStore:0x[0-9a-f]+/, @cache.inspect)
+    assert_match(/@cache_path=/, @cache.inspect)
+    assert_match(/@options=/, @cache.inspect)
+  end
+
   def test_clear
     gitkeep = File.join(cache_dir, ".gitkeep")
     keep = File.join(cache_dir, ".keep")

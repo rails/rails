@@ -1,14 +1,22 @@
-*   Add `to_markdown` for converting rich text to Markdown.
+*   Render `MissingAttachable` as "☒" in plain text.
 
-    Adds `to_markdown` across the Action Text stack (`Content`, `Fragment`,
-    `RichText`, `Attachment`) following the same pattern as `to_plain_text`.
-    Converts HTML elements to their Markdown equivalents (headings, bold,
-    italic, links, code blocks, lists, blockquotes, etc.).
+    Previously, `Content#to_plain_text` would replace a `MissingAttachable` with a blank string.
+    Now it renders the same "☒" character used in the HTML representation.
 
-        message = Message.create!(content: "<h1>Hello!</h1><p>How are <strong>you</strong>?</p>")
-        message.content.to_markdown # => "# Hello!\n\nHow are **you**?"
+    *Mike Dalessio*
 
-    *Yaroslav Shmarov*
+*   Add `to_markdown` to Action Text, mirroring `to_plain_text`.
+
+    Converts rich text content to Markdown, supporting headings, bold, italic,
+    strikethrough, inline code, code blocks, blockquotes, ordered and unordered
+    lists, links, tables, and attachments. Custom attachment representations can be
+    provided by implementing `attachable_markdown_representation` on the
+    attachable model.
+
+        message = Message.create!(content: "<h1>Hello</h1><p>This is <strong>bold</strong></p>")
+        message.content.to_markdown # => "# Hello\n\nThis is **bold**"
+
+    *Mike Dalessio*
 
 *   Make `ActionText::Attachable#read_attribute_for_serialization` public.
 

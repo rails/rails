@@ -320,6 +320,25 @@ module ActionView
       end
     end
 
+    def test_render_start_does_not_filter_payload
+      old_filter_parameters = ActiveSupport.filter_parameters
+      ActiveSupport.filter_parameters = [:identifier]
+      ActiveSupport.event_reporter.reload_payload_filter
+
+      Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+        with_debug_event_reporting do
+          event = assert_event_reported("action_view.render_start", payload: { identifier: "test/hello_world.erb" }) do
+            @view.render(template: "test/hello_world")
+          end
+
+          assert_equal "test/hello_world.erb", event[:payload][:identifier]
+        end
+      end
+    ensure
+      ActiveSupport.filter_parameters = old_filter_parameters
+      ActiveSupport.event_reporter.reload_payload_filter
+    end
+
     def test_render_collection_with_cached_set
       Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
         set_view_cache_dependencies
