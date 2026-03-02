@@ -370,6 +370,12 @@ module ActionView
 
         return if @strict_locals.nil? # Magic comment not found
 
+        # Tag with the assumed encoding before encode! runs, same as
+        # encode! does for the source itself (see above).
+        if @strict_locals.encoding == Encoding::BINARY
+          @strict_locals.force_encoding(Encoding.default_external)
+        end
+
         @strict_locals = "**nil" if @strict_locals.blank?
       end
 
