@@ -63,7 +63,7 @@ import ReactDOM from "react-dom"
 ```
 
 Adding npm Packages with JavaScript Bundlers
---------
+--------------------------------------------
 
 Import maps are the default for new Rails applications, but if you prefer traditional JavaScript
 bundling, you can create new Rails applications with your choice of
@@ -338,8 +338,8 @@ import { FetchRequest } from '@rails/request.js'
 
 ....
 
-async myMethod () {
-  const request = new FetchRequest('post', 'localhost:3000/posts', {
+async function myMethod () {
+  const request = new FetchRequest('post', 'http://localhost:3000/posts', {
     body: JSON.stringify({ name: 'Request.JS' })
   })
   const response = await request.perform()

@@ -72,7 +72,7 @@ TIP: Any commands prefaced with a dollar sign `$` should be run in the terminal.
 
 For this project, you will need:
 
-* Ruby 3.2 or newer
+* Ruby 3.3 or newer
 * Rails 8.2.0 or newer
 * A code editor
 
@@ -1714,9 +1714,13 @@ http://localhost:3000/session/new and you'll see the New link on the index page.
 Optionally, you can include a link to this route in the navbar to add a Login
 link if not authenticated.
 
-```erb
-<%# app/views/products/index.html.erb %>
-<%= link_to "Login", new_session_path unless authenticated? %>
+```erb#5
+<%# app/views/layouts/application.html.erb %>
+<nav>
+  <%= link_to "Home", root_path %>
+  <%= button_to "Log out", session_path, method: :delete if authenticated? %>
+  <%= link_to "Login", new_session_path unless authenticated? %>
+</nav>
 ```
 
 You can also update the Edit and Delete links on the
@@ -1850,7 +1854,7 @@ submitted, so we'll update the permitted params to include description in
 We also need to update the show view to display the description in
 `app/views/products/show.html.erb`:
 
-```erb#3
+```erb#4
 <%# app/views/products/show.html.erb%>
 <% cache @product do %>
   <h1><%= @product.name %></h1>
@@ -1892,7 +1896,7 @@ end
 Then we can add a file upload field to our product form before the submit
 button:
 
-```erb#4-7
+```erb#5-8
 <%# app/views/products/_form.html.erb %>
 <%= form_with model: product do |form| %>
   <%# ... %>
@@ -2083,7 +2087,7 @@ $ bin/rails db:migrate
 We'll need to add the inventory count to the product form in
 `app/views/products/_form.html.erb`.
 
-```erb#4-7
+```erb#5-8
 <%# app/views/products/_form.html.erb %>
 <%= form_with model: product do |form| %>
   <%# ... %>
@@ -2170,7 +2174,7 @@ A Product, however, can have many subscribers, so we then add
 second part of this association between the two models. This tells Rails how to
 join queries between the two database tables.
 
-```ruby#2
+```ruby#3
 # app/models/product.rb
 class Product < ApplicationRecord
   has_many :subscribers, dependent: :destroy
@@ -2298,7 +2302,7 @@ method.
 
 Update this method to mail to a subscriber's email address.
 
-```ruby#7-10
+```ruby#8-11
 # app/mailers/product_mailer.rb
 class ProductMailer < ApplicationMailer
   # Subject can be set in your I18n file at config/locales/en.yml
@@ -2513,7 +2517,7 @@ A subscriber may want to unsubscribe at some point, so let's build that next.
 First, we need a route for unsubscribing that will be the URL we include in
 emails.
 
-```ruby#6
+```ruby#7
 # config/routes.rb
 Rails.application.routes.draw do
   # ...

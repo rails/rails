@@ -3,3 +3,6 @@ hello_alice:
 
 hello_world:
   subject: "A greeting"
+
+racecar:
+  subject: "A racecar"

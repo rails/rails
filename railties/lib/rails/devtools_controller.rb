@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/digest/uuid"
+
 class Rails::DevtoolsController < ActionController::Base # :nodoc:
   def show
     root_path = Rails.root.to_s
-    hash = Digest::SHA1.hexdigest(root_path)
-    uuid = "#{hash[0..7]}-#{hash[8..11]}-#{hash[12..15]}-#{hash[16..19]}-#{hash[20..31]}"
+    uuid = Digest::UUID.uuid_v5(Digest::UUID::DNS_NAMESPACE, Rails.root.to_s)
 
     render json: {
       "workspace": {

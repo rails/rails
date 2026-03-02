@@ -3,10 +3,8 @@
 source "https://rubygems.org"
 gemspec
 
-gem "minitest"
-
-# We need a newish Rake since Active Job sets its test tasks' descriptions.
-gem "rake", ">= 13"
+gem "minitest", "~> 6.0"
+gem "minitest-mock"
 
 gem "releaser", path: "tools/releaser"
 
@@ -71,7 +69,7 @@ group :doc do
 end
 
 # Active Support
-gem "dalli", ">= 3.0.1"
+gem "dalli"
 gem "listen", "~> 3.3", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
@@ -98,7 +96,6 @@ gem "useragent", require: false
 group :job do
   gem "resque", require: false
   gem "resque-scheduler", require: false
-  gem "sidekiq", require: false
   gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "backburner", require: false
@@ -132,8 +129,6 @@ local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  gem "minitest-bisect", require: false
-  gem "minitest-ci", require: false
   gem "minitest-retry"
 
   platforms :mri do

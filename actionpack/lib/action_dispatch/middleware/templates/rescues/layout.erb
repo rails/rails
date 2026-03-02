@@ -129,6 +129,20 @@
       text-decoration: none;
       background: #C52F24;
       border-bottom: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    a.summary::before {
+      content: "▶";
+      font-size: 0.9em;
+      transition: transform 0.2s ease;
+      display: inline-block;
+    }
+
+    a.summary.expanded::before {
+      transform: rotate(90deg);
     }
 
     .details pre {
@@ -298,8 +312,11 @@
   </style>
 
   <script>
-    var toggle = function(id) {
+    var toggle = function(id, element) {
       document.getElementById(id).classList.toggle('hidden');
+      if (element) {
+        element.classList.toggle('expanded');
+      }
       return false;
     }
     var show = function(id) {

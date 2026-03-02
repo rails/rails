@@ -16,7 +16,7 @@ module ActiveRecord
         end
 
         def to_s
-          parts.join SEPARATOR
+          [@schema, @identifier].compact.join(SEPARATOR)
         end
 
         def quoted
@@ -28,18 +28,19 @@ module ActiveRecord
         end
 
         def ==(o)
-          o.class == self.class && o.parts == parts
+          self.class == o.class &&
+            schema == o.schema &&
+            identifier == o.identifier
         end
         alias_method :eql?, :==
 
         def hash
-          parts.hash
+          [
+            Name,
+            @schema,
+            @identifier,
+          ].hash
         end
-
-        protected
-          def parts
-            @parts ||= [@schema, @identifier].compact
-          end
       end
 
       module Utils # :nodoc:

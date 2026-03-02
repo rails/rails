@@ -363,6 +363,14 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
     assert_equal dev.ratings, [rating_1]
   end
 
+  test "merging where relation having arel equality with null relation" do
+    arel_predicate = Arel::Nodes::NamedFunction.new("ABS", [Post.arel_table[:tags_count]]).eq(0)
+    arel_relation = Post.where(arel_predicate)
+    relation = arel_relation.merge(arel_relation.none)
+    sql = relation.to_sql
+    assert_match("AND", sql)
+  end
+
   if ActiveRecord::Base.lease_connection.supports_common_table_expressions?
     test "merging relation with common table expression" do
       posts_with_tags = Post.with(posts_with_tags: Post.where("tags_count > 0")).from("posts_with_tags AS posts")

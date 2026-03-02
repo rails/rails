@@ -62,7 +62,7 @@ module Rails
 
     def relative_path_for(file)
       if app_root
-        file.sub(/^#{app_root}\/?/, "")
+        File.expand_path(file).sub(/^#{app_root}\/?/, "")
       else
         file
       end

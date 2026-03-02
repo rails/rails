@@ -13,6 +13,23 @@ end
 class Rails::DummyController
 end
 
+module InspectorTestApp
+  class PostsController < ActionController::Base
+    def index
+    end
+
+    def show
+    end
+  end
+
+  module Admin
+    class UsersController < ActionController::Base
+      def index
+      end
+    end
+  end
+end
+
 module ActionDispatch
   module Routing
     class RoutesInspectorTest < ActiveSupport::TestCase
@@ -541,6 +558,131 @@ module ActionDispatch
           "Routes for Blog::Engine:",
           "No routes were found for this grep pattern.",
         ], output
+      end
+
+      def test_action_source_location_for_controller_action
+        @set.draw do
+          get "/posts", to: "inspector_test_app/posts#index"
+          get "/posts/:id", to: "inspector_test_app/posts#show"
+        end
+
+        routes = @set.routes.routes.map { |r| RouteWrapper.new(r) }
+        posts_index = routes.find { |r| r.reqs == "inspector_test_app/posts#index" }
+        posts_show = routes.find { |r| r.reqs == "inspector_test_app/posts#show" }
+
+        assert_match(/inspector_test\.rb:\d+/, posts_index.action_source_location)
+        assert_match(/inspector_test\.rb:\d+/, posts_show.action_source_location)
+        assert_not_equal posts_index.action_source_location, posts_show.action_source_location
+      end
+
+      def test_action_source_location_for_namespaced_controller
+        @set.draw do
+          get "/admin/users", to: "inspector_test_app/admin/users#index"
+        end
+
+        routes = @set.routes.routes.map { |r| RouteWrapper.new(r) }
+        admin_users_index = routes.find { |r| r.reqs == "inspector_test_app/admin/users#index" }
+
+        assert_match(/inspector_test\.rb:\d+/, admin_users_index.action_source_location)
+      end
+
+      def test_action_source_location_returns_nil_for_missing_controller
+        @set.draw do
+          get "/missing", to: "missing#index"
+        end
+
+        routes = @set.routes.routes.map { |r| RouteWrapper.new(r) }
+        missing = routes.find { |r| r.reqs == "missing#index" }
+
+        assert_nil missing.action_source_location
+      end
+
+      def test_action_source_location_returns_nil_for_missing_action
+        @set.draw do
+          get "/posts/missing", to: "inspector_test_app/posts#missing"
+        end
+
+        routes = @set.routes.routes.map { |r| RouteWrapper.new(r) }
+        missing = routes.find { |r| r.reqs == "inspector_test_app/posts#missing" }
+
+        assert_nil missing.action_source_location
+      end
+
+      def test_action_source_location_returns_nil_for_rack_app
+        @set.draw do
+          get "/health", to: proc { [200, {}, ["OK"]] }
+        end
+
+        routes = @set.routes.routes.map { |r| RouteWrapper.new(r) }
+        health = routes.first
+
+        assert_nil health.action_source_location
+      end
+
+      def test_action_source_location_returns_nil_for_dynamic_controller
+        @set.draw do
+          ActionDispatch.deprecator.silence do
+            get ":controller/:action"
+          end
+        end
+
+        routes = @set.routes.routes.map { |r| RouteWrapper.new(r) }
+        dynamic = routes.first
+
+        assert_nil dynamic.action_source_location
+      end
+
+      def test_action_source_location_included_in_to_h
+        @set.draw do
+          get "/posts", to: "inspector_test_app/posts#index"
+        end
+
+        routes = @set.routes.routes.map { |r| RouteWrapper.new(r) }
+        hash = routes.first.to_h
+
+        assert hash.key?(:action_source_location)
+        assert_match(/inspector_test\.rb:\d+/, hash[:action_source_location])
+
+        assert hash.key?(:action_source_file)
+        assert_match(/inspector_test\.rb/, hash[:action_source_file])
+
+        assert hash.key?(:action_source_line)
+        assert_kind_of Integer, hash[:action_source_line]
+      end
+
+      def test_action_source_file_and_line_returns_tuple
+        @set.draw do
+          get "/posts", to: "inspector_test_app/posts#index"
+        end
+
+        routes = @set.routes.routes.map { |r| RouteWrapper.new(r) }
+        route = routes.find { |r| r.reqs == "inspector_test_app/posts#index" }
+        file, line = route.action_source_file_and_line
+
+        assert_match(/inspector_test\.rb/, file)
+        assert_kind_of Integer, line
+      end
+
+      def test_action_source_file_and_line_returns_nil_for_missing_action
+        @set.draw do
+          get "/posts/missing", to: "inspector_test_app/posts#missing"
+        end
+
+        routes = @set.routes.routes.map { |r| RouteWrapper.new(r) }
+        route = routes.find { |r| r.reqs == "inspector_test_app/posts#missing" }
+
+        assert_nil route.action_source_file_and_line
+      end
+
+      def test_action_source_location_in_expanded_output
+        @set.draw do
+          get "/posts", to: "inspector_test_app/posts#index"
+        end
+
+        inspector = RoutesInspector.new(@set.routes)
+        output = inspector.format(ConsoleFormatter::Expanded.new(width: 23))
+
+        assert_match(/Action Location.*inspector_test\.rb:\d+/m, output)
       end
 
       private

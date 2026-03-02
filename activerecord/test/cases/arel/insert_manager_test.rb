@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 require_relative "helper"
+require_relative "support/tree_manager_behavior"
 
 module Arel
   class InsertManagerTest < Arel::Spec
+    include TreeManagerBehavior
+
     describe "insert" do
       it "can create a ValuesList node" do
         manager = Arel::InsertManager.new
@@ -231,5 +234,10 @@ module Arel
         }
       end
     end
+
+    private
+      def build_manager(table = nil)
+        Arel::InsertManager.new(table)
+      end
   end
 end

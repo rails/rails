@@ -680,8 +680,7 @@ module ActiveRecord
                 column_options[:stored] = column.virtual_stored?
                 column_options[:type] = column.type
               elsif column.has_default?
-                # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
-                default = column.fetch_cast_type(self).deserialize(column.default)
+                default = column.cast_type.deserialize(column.default)
                 default = -> { column.default_function } if default.nil?
 
                 unless column.auto_increment?

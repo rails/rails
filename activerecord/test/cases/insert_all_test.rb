@@ -111,6 +111,26 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal %w[ id ], result.columns
   end
 
+  def test_insert_all_bang_accepts_unique_by
+    skip unless supports_insert_conflict_target?
+
+    assert_difference "Book.count", +1 do
+      Book.insert_all! [{ name: "UniqueBy", author_id: 1, isbn: "unique-by-insert-all-bang" }], unique_by: :isbn
+    end
+  end
+
+  def test_insert_all_bang_with_unique_by_raises_on_duplicate
+    skip unless supports_insert_conflict_target?
+
+    # `books.isbn` unique index is partial: it only applies when `published_on` is NOT NULL.
+    published_on = Time.now.utc
+    Book.create!(name: "Existing", author_id: 1, isbn: "unique-by-insert-all-bang-duplicate", published_on: published_on)
+
+    assert_raises ActiveRecord::RecordNotUnique do
+      Book.insert_all! [{ name: "Duplicate", author_id: 1, isbn: "unique-by-insert-all-bang-duplicate", published_on: published_on }], unique_by: :isbn
+    end
+  end
+
   def test_insert_all_returns_nothing_if_returning_is_empty
     skip unless supports_insert_returning?
 
@@ -287,9 +307,26 @@ class InsertAllTest < ActiveRecord::TestCase
 
       Cart.upsert_all [{ id: 3, shop_id: 2, title: "My other cart" }], unique_by: [:shop_id, :id]
     end
+  end
+
+  def test_insert_all_bang_does_not_require_unique_index
+    skip unless supports_insert_conflict_target?
+
+    assert_difference "Cart.count", +1 do
+      Cart.insert_all! [{ id: 2, shop_id: 1, title: "My cart" }]
+    end
+  end
+
+  def test_insert_all_and_upsert_all_raises_when_no_unique_index_found_for_composite_primary_key
+    skip unless supports_insert_conflict_target?
 
     error = assert_raises ArgumentError do
-      Cart.insert_all! [{ id: 2, shop_id: 1, title: "My cart" }]
+      Cart.insert_all [{ id: 2, shop_id: 1, title: "My cart" }]
+    end
+    assert_match "No unique index found for id", error.message
+
+    error = assert_raises ArgumentError do
+      Cart.upsert_all [{ id: 2, shop_id: 1, title: "My cart" }]
     end
     assert_match "No unique index found for id", error.message
   end

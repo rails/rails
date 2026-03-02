@@ -142,7 +142,7 @@ module ActiveRecord
           recorder.reverting = @reverting
           yield recorder.delegate.update_table_definition(table_name, recorder)
           commands = recorder.commands
-          @commands << [:change_table, [table_name], -> t { bulk_change_table(table_name, commands) }]
+          @commands << [:change_table, [table_name], -> t { bulk_change_table(t.name, commands.reverse) }]
         else
           yield delegate.update_table_definition(table_name, self)
         end

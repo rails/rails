@@ -469,6 +469,11 @@ module ActionDispatch
       get_header("REDIRECT_X_HTTP_AUTHORIZATION")
     end
 
+    # Returns the bearer token embedded in the authorization header or nil if missing.
+    def bearer_token
+      authorization.to_s[/\ABearer (.+)\z/, 1]
+    end
+
     # True if the request came from localhost, 127.0.0.1, or ::1.
     def local?
       LOCALHOST.match?(remote_addr) && LOCALHOST.match?(remote_ip)

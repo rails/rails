@@ -45,7 +45,7 @@ class Time
   #   time.to_fs(:iso8601)      # => "2007-01-18T06:10:17-06:00"
   #
   # == Adding your own time formats to +to_fs+
-  # You can add your own formats to the Time::DATE_FORMATS hash.
+  # You can add your own formats to the +Time::DATE_FORMATS+ hash.
   # Use the format name as the hash key and either a strftime string
   # or Proc instance that takes a time argument as the value.
   #

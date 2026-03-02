@@ -7,7 +7,7 @@ module ActionView
   class Template
     extend ActiveSupport::Autoload
 
-    STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*)\)/
+    STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*?)\)(?=\s*-?%>|\s*$)/m
 
     # === Encodings in ActionView::Template
     #
@@ -366,9 +366,15 @@ module ActionView
     def strict_locals!
       if @strict_locals == NONE
         self.source.sub!(STRICT_LOCALS_REGEX, "")
-        @strict_locals = $1
+        @strict_locals = $1&.rstrip
 
         return if @strict_locals.nil? # Magic comment not found
+
+        # Tag with the assumed encoding before encode! runs, same as
+        # encode! does for the source itself (see above).
+        if @strict_locals.encoding == Encoding::BINARY
+          @strict_locals.force_encoding(Encoding.default_external)
+        end
 
         @strict_locals = "**nil" if @strict_locals.blank?
       end

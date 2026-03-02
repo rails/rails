@@ -667,6 +667,17 @@ module ActiveRecord
         assert_not_predicate @connection, :active?
       end
 
+      test "active? on a 'clean' recently-used but now-failed connection detects but doesn't fix the problem" do
+        remote_disconnect @connection
+        @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Clean did not verify / fix the connection
+        assert_not_predicate @connection, :active?
+
+        # And nor did the above active? check
+        assert_not_predicate @connection, :active?
+      end
+
       test "verify! restores after remote disconnection" do
         remote_disconnect @connection
         @connection.verify!
@@ -702,9 +713,6 @@ module ActiveRecord
         remote_disconnect @connection
 
         @connection.clean! # this simulates a fresh checkout from the pool
-
-        # Clean did not verify / fix the connection
-        assert_not_predicate @connection, :active?
 
         # Because the query cannot be retried, and we (mistakenly) believe the
         # connection is still good, the query will fail. This is what we want,

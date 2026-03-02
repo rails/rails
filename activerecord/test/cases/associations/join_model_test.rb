@@ -402,7 +402,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_find_conditions
-    options = { where: "comments.#{QUOTED_TYPE}='SpecialComment'", order: "comments.id" }
+    options = { where: "comments.#{ARTest::QUOTED_TYPE}='SpecialComment'", order: "comments.id" }
     assert_equal comments(:does_it_hurt), authors(:david).comments.merge(options).first
   end
 

@@ -165,7 +165,7 @@ config.action_mailbox.ingress = :mandrill
 ```
 
 [Configure
-Mandrill](https://mandrill.zendesk.com/hc/en-us/articles/205583197-Inbound-Email-Processing-Overview)
+Mandrill](https://mailchimp.com/developer/transactional/guides/set-up-inbound-email-processing/)
 to route inbound emails to `/rails/action_mailbox/mandrill/inbound_emails`. If
 your application lived at `https://example.com`, you would specify the
 fully-qualified URL

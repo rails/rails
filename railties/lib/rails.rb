@@ -46,6 +46,7 @@ module Rails
       @application ||= (app_class.instance if app_class)
     end
 
+    alias :app :application
     delegate :initialize!, :initialized?, to: :application
 
     # The Configuration instance used to configure the \Rails environment

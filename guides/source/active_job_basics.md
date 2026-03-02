@@ -1111,3 +1111,56 @@ If you need help figuring out where jobs are coming from, you can enable
 [verbose logging](debugging_rails_applications.html#verbose-enqueue-logs).
 
 
+TODO: review this from 'main' merge
+Active Job has other built-in adapters for multiple queuing backends (Resque, Delayed Job, and others). To get an up-to-date list of the adapters see
+the API Documentation for [`ActiveJob::QueueAdapters`][].
+
+[`ActiveJob::QueueAdapters`]:
+    https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html
+
+### Configuring the Backend
+
+You can change your queuing backend with [`config.active_job.queue_adapter`]:
+
+```ruby
+# config/application.rb
+module YourApp
+  class Application < Rails::Application
+    # Be sure to have the adapter's gem in your Gemfile
+    # and follow the adapter's specific installation
+    # and deployment instructions.
+    config.active_job.queue_adapter = :async
+  end
+end
+```
+
+You can also configure your backend on a per job basis:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  self.queue_adapter = :resque
+  # ...
+end
+
+# Now your job will use `resque` as its backend queue adapter, overriding the default Solid Queue adapter.
+```
+
+[`config.active_job.queue_adapter`]:
+    configuring.html#config-active-job-queue-adapter
+
+### Starting the Backend
+
+Since jobs run in parallel to your Rails application, most queuing libraries
+require that you start a library-specific queuing service (in addition to
+starting your Rails app) for the job processing to work. Refer to library
+documentation for instructions on starting your queue backend.
+
+Here is a noncomprehensive list of documentation:
+
+- [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
+- [Resque](https://github.com/resque/resque/wiki/ActiveJob)
+- [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
+- [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
+- [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
+- [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
+- [Good Job](https://github.com/bensheldon/good_job#readme)

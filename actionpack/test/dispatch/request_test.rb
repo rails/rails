@@ -1503,6 +1503,38 @@ class RequestSession < BaseRequestTest
   end
 end
 
+class RequestBearerToken < BaseRequestTest
+  test "bearer_token returns token from Authorization header" do
+    request = stub_request("HTTP_AUTHORIZATION" => "Bearer my-secret-token")
+    assert_equal "my-secret-token", request.bearer_token
+  end
+
+  test "bearer_token returns nil when no Authorization header" do
+    request = stub_request
+    assert_nil request.bearer_token
+  end
+
+  test "bearer_token returns nil when Authorization header is not Bearer" do
+    request = stub_request("HTTP_AUTHORIZATION" => "Basic dXNlcjpwYXNzd29yZA==")
+    assert_nil request.bearer_token
+  end
+
+  test "bearer_token handles empty Authorization header" do
+    request = stub_request("HTTP_AUTHORIZATION" => "")
+    assert_nil request.bearer_token
+  end
+
+  test "bearer_token handles Bearer with no token" do
+    request = stub_request("HTTP_AUTHORIZATION" => "Bearer ")
+    assert_nil request.bearer_token
+  end
+
+  test "bearer_token returns token via X-HTTP_AUTHORIZATION header" do
+    request = stub_request("X-HTTP_AUTHORIZATION" => "Bearer my-secret-token")
+    assert_equal "my-secret-token", request.bearer_token
+  end
+end
+
 class RequestCacheControlDirectives < BaseRequestTest
   test "lazily initializes cache_control_directives" do
     request = stub_request

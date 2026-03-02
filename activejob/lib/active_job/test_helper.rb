@@ -109,7 +109,7 @@ module ActiveJob
     #   end
     #
     # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
-    # a hash containing the job's class and it's argument are passed as argument.
+    # a hash containing the job's class and its argument are passed as argument.
     #
     # Asserts the number of times a job is enqueued to a specific queue by passing +:queue+ option.
     #
@@ -170,7 +170,7 @@ module ActiveJob
     #   end
     #
     # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
-    # a hash containing the job's class and it's argument are passed as argument.
+    # a hash containing the job's class and its argument are passed as argument.
     #
     # Asserts that no jobs are enqueued to a specific queue by passing +:queue+ option
     #

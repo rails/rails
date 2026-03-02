@@ -198,6 +198,37 @@ if SERVICE_CONFIGURATIONS[:gcs]
         assert_match(/storage\.googleapis\.com\/.*response-content-disposition=inline.*test\.txt.*response-content-type=text%2Fplain/,
           service.url(key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain"))
       end
+
+      test "default IAM client ADC" do
+        WebMock.enable!
+        config_with_adc = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ iam: true }) }
+        service = ActiveStorage::Service.configure(:gcs, config_with_adc)
+
+        stub_request(:post, "https://www.googleapis.com/oauth2/v4/token").to_return_json(body: {})
+        stub_request(:post, %r{https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/.*:signBlob})
+          .to_return_json(body: { "signedBlob" => "test_signed_blob" })
+        key = SecureRandom.base58(24)
+        service.url(key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
+        assert_requested :post, "https://www.googleapis.com/oauth2/v4/token"
+      ensure
+        WebMock.disable!
+      end
+
+      test "overridden IAM client credentials" do
+        WebMock.enable!
+        config_with_adc = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ iam: true }) }
+        service = ActiveStorage::Service.configure(:gcs, config_with_adc)
+                                        .tap { |client| client.iam_client.authorization = {} }
+
+        stub_request(:post, "https://www.googleapis.com/oauth2/v4/token").to_return_json(body: {})
+        stub_request(:post, %r{https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/.*:signBlob})
+          .to_return_json(body: { "signedBlob" => "test_signed_blob" })
+        key = SecureRandom.base58(24)
+        service.url(key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
+        assert_not_requested :post, "https://www.googleapis.com/oauth2/v4/token"
+      ensure
+        WebMock.disable!
+      end
     end
   end
 else

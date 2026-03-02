@@ -26,10 +26,12 @@ module ActiveRecord
         alias eql? ==
 
         def hash
-          TypeMetadata.hash ^
-            __getobj__.hash ^
-            oid.hash ^
-            fmod.hash
+          [
+            TypeMetadata,
+            __getobj__,
+            @oid,
+            @fmod,
+          ].hash
         end
 
         private

@@ -13,12 +13,20 @@ class Rails::Command::NotesTest < ActiveSupport::TestCase
     app_file "db/some_seeds.rb", "# FIXME: note in db directory"
     app_file "lib/some_file.rb", "# TODO: note in lib directory"
     app_file "test/some_test.rb", "\n" * 100 + "# FIXME: note in test directory"
+    app_file "app/assets/stylesheets/some_styles.css", "/* FIXME: CSS note in app/assets/stylesheets directory */"
+    app_file "app/javascripts/controllers/some_file.js", "// TODO: note in app/javascripts directory"
 
     app_file "some_other_dir/blah.rb", "# TODO: note in some_other directory"
 
     assert_equal <<~OUTPUT, run_notes_command
+      app/assets/stylesheets/some_styles.css:
+        * [  1] [FIXME] CSS note in app/assets/stylesheets directory
+
       app/controllers/some_controller.rb:
         * [  1] [OPTIMIZE] note in app directory
+
+      app/javascripts/controllers/some_file.js:
+        * [  1] [TODO] note in app/javascripts directory
 
       config/initializers/some_initializer.rb:
         * [  1] [TODO] note in config directory

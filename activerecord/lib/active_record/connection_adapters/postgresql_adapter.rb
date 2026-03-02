@@ -131,6 +131,24 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '2024-01-01'::date").class #=> Date
       class_attribute :decode_dates, default: false
 
+      ##
+      # :singleton-method:
+      # Toggles automatic decoding of money columns.
+      #
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '12.34'::money").class #=> String
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_money = true
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '12.34'::money").class #=> BigDecimal
+      class_attribute :decode_money, default: false
+
+      ##
+      # :singleton-method:
+      # Toggles automatic decoding of bytea columns.
+      #
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '\\x48656c6c6f'::bytea").class #=> String
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_bytea = true
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
+      class_attribute :decode_bytea, default: false
+
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigserial primary key",
         string:      { name: "character varying" },
@@ -355,13 +373,13 @@ module ActiveRecord
       end
 
       def connected?
-        !(@raw_connection.nil? || @raw_connection.finished?)
+        !(@raw_connection.nil? || @raw_connection.finished? || @raw_connection.status != PG::CONNECTION_OK)
       end
 
       # Is this connection alive and ready for queries?
       def active?
         @lock.synchronize do
-          return false unless @raw_connection
+          return false unless connected?
           @raw_connection.query ";"
           verified!
         end
@@ -393,6 +411,11 @@ module ActiveRecord
 
           super
         end
+      end
+
+      def clear_cache!(new_connection: false)
+        super
+        @schema_search_path = nil if new_connection
       end
 
       # Disconnects from the database if already connected. Otherwise, this
@@ -752,6 +775,25 @@ module ActiveRecord
             OID::Interval.new(precision: precision)
           end
         end
+
+        # Registers a callback to extend the type map during initialization.
+        # Useful for third-party gems that need to register custom SQL types.
+        #
+        #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.register_type_mapping do |type_map|
+        #     type_map.register_type("geometry") do |oid, fmod, sql_type|
+        #       MyGeometryType.new(sql_type)
+        #     end
+        #   end
+        #
+        def register_type_mapping(&block)
+          raise ArgumentError, "block required" unless block_given?
+          @@type_mapping_callbacks = [] unless defined?(@@type_mapping_callbacks)
+          @@type_mapping_callbacks << block
+        end
+
+        def clear_type_mapping_callbacks! # :nodoc:
+          @@type_mapping_callbacks = [] if defined?(@@type_mapping_callbacks)
+        end
       end
 
       private
@@ -765,6 +807,9 @@ module ActiveRecord
           self.class.register_class_with_precision m, "timestamptz", OID::TimestampWithTimeZone
 
           load_additional_types
+
+          @@type_mapping_callbacks = [] unless defined?(@@type_mapping_callbacks)
+          @@type_mapping_callbacks.each { |block| block.call(m) }
         end
 
         # Extracts the value from a PostgreSQL column default definition.
@@ -1021,6 +1066,8 @@ module ActiveRecord
           add_pg_encoders
           add_pg_decoders
 
+          schema_search_path # populate cache
+
           reload_type_map
         end
 
@@ -1157,6 +1204,8 @@ module ActiveRecord
             "timestamptz" => PG::TextDecoder::TimestampWithTimeZone,
           }
           coders_by_name["date"] = PG::TextDecoder::Date if decode_dates
+          coders_by_name["money"] = MoneyDecoder if decode_money
+          coders_by_name["bytea"] = decode_bytea ? ByteaDecoder : ByteaMarker
 
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
           query = <<~SQL % known_coder_types.join(", ")
@@ -1196,6 +1245,23 @@ module ActiveRecord
           end
         end
 
+        class ByteaMarker < PG::SimpleDecoder # :nodoc:
+          def decode(value, tuple = nil, field = nil)
+            return if value.nil?
+            value.instance_variable_set(:@ar_pg_bytea_decoded, false) if value.encoding == Encoding::BINARY
+            value
+          end
+        end
+
+        class ByteaDecoder < PG::SimpleDecoder # :nodoc:
+          def decode(value, tuple = nil, field = nil)
+            return if value.nil?
+            decoded = PG::Connection.unescape_bytea(value)
+            decoded.instance_variable_set(:@ar_pg_bytea_decoded, true)
+            decoded
+          end
+        end
+
         ActiveRecord::Type.add_modifier({ array: true }, OID::Array, adapter: :postgresql)
         ActiveRecord::Type.add_modifier({ range: true }, OID::Range, adapter: :postgresql)
         ActiveRecord::Type.register(:bit, OID::Bit, adapter: :postgresql)
@@ -1216,7 +1282,30 @@ module ActiveRecord
         ActiveRecord::Type.register(:uuid, OID::Uuid, adapter: :postgresql)
         ActiveRecord::Type.register(:vector, OID::Vector, adapter: :postgresql)
         ActiveRecord::Type.register(:xml, OID::Xml, adapter: :postgresql)
+
+        module ByteaDecodeDetection # :nodoc:
+          def unescape_bytea(string)
+            if string.instance_variable_get(:@ar_pg_bytea_decoded) == true
+              ActiveRecord.deprecator.warn(<<~MSG.squish)
+                unescape_bytea called on a query result value that has already been
+                automatically unescaped due to `config.active_record.postgresql_adapter_decode_bytea`.
+                In a future Rails release, this will double-unescape the value as
+                instructed, which could cause data corruption.
+              MSG
+
+              result = string.dup
+              result.remove_instance_variable(:@ar_pg_bytea_decoded)
+              return result
+            end
+
+            super
+          end
+        end
+
+        ::PG::Connection.singleton_class.prepend(ByteaDecodeDetection)
+        ::PG::Connection.prepend(ByteaDecodeDetection)
     end
+
     ActiveSupport.run_load_hooks(:active_record_postgresqladapter, PostgreSQLAdapter)
   end
 end

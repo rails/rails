@@ -25,8 +25,14 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
     debug_only :debug_only_event
   end
 
-  def setup
+  setup do
     @subscriber = TestSubscriber.new
+    @old_debug_mode = ActiveSupport.event_reporter.debug_mode?
+    ActiveSupport.event_reporter.debug_mode = false
+  end
+
+  teardown do
+    ActiveSupport.event_reporter.debug_mode = @old_debug_mode
   end
 
   def test_emit_event_calls_event_reporter_notify
@@ -108,5 +114,40 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
     end
   ensure
     ActiveSupport.event_reporter.subscribers.push(*old_subscribers)
+  end
+
+  def test_emit_event_does_not_filter_payload
+    old_filter_parameters = ActiveSupport.filter_parameters
+    ActiveSupport.filter_parameters = [:name, :url, :message, :description]
+    ActiveSupport.event_reporter.reload_payload_filter
+
+    event = assert_event_reported("test.event", payload: { name: "Person Load", url: "/test", message: "hello", description: "a thing" }) do
+      @subscriber.emit_event("test.event", name: "Person Load", url: "/test", message: "hello", description: "a thing")
+    end
+
+    assert_equal "Person Load", event[:payload][:name]
+    assert_equal "/test", event[:payload][:url]
+    assert_equal "hello", event[:payload][:message]
+    assert_equal "a thing", event[:payload][:description]
+  ensure
+    ActiveSupport.filter_parameters = old_filter_parameters
+    ActiveSupport.event_reporter.reload_payload_filter
+  end
+
+  def test_emit_debug_event_does_not_filter_payload
+    old_filter_parameters = ActiveSupport.filter_parameters
+    ActiveSupport.filter_parameters = [:name]
+    ActiveSupport.event_reporter.reload_payload_filter
+
+    with_debug_event_reporting do
+      event = assert_event_reported("test.debug", payload: { name: "Person Load" }) do
+        @subscriber.emit_debug_event("test.debug", name: "Person Load")
+      end
+
+      assert_equal "Person Load", event[:payload][:name]
+    end
+  ensure
+    ActiveSupport.filter_parameters = old_filter_parameters
+    ActiveSupport.event_reporter.reload_payload_filter
   end
 end

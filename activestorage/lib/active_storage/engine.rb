@@ -77,6 +77,8 @@ module ActiveStorage
 
     config.eager_load_namespaces << ActiveStorage
 
+    guard_load_hooks(:active_storage_record, :active_storage_attachment, :active_storage_blob, :active_storage_variant_record)
+
     initializer "active_storage.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_storage] = ActiveStorage.deprecator
     end
@@ -149,6 +151,7 @@ module ActiveStorage
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
         ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
+        ActiveStorage.analyze = app.config.active_storage.analyze || :later
       end
     end
 

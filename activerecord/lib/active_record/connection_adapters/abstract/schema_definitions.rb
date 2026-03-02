@@ -108,10 +108,6 @@ module ActiveRecord
       def aliased_types(name, fallback)
         "timestamp" == name ? :datetime : fallback
       end
-
-      def fetch_cast_type(connection)
-        cast_type
-      end
     end
 
     AddColumnDefinition = Struct.new(:column) # :nodoc:

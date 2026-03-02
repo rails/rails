@@ -10,7 +10,8 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     validates :depth, numericality: true
   end
 
-  setup do
+  def setup
+    super
     @connection = ActiveRecord::Base.lease_connection
     @connection.execute("set lc_monetary = 'C'")
     @connection.create_table("postgresql_moneys", force: true) do |t|
@@ -19,8 +20,9 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
-  teardown do
+  def teardown
     @connection.drop_table "postgresql_moneys", if_exists: true
+    super
   end
 
   def test_column

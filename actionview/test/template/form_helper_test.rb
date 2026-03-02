@@ -628,6 +628,25 @@ class FormHelperTest < ActionView::TestCase
     assert_equal({ class: "pix", direct_upload: true }, original_options)
   end
 
+  def test_file_field_with_accept_attribute
+    expected = '<input accept="image/*,video/*" type="file" name="import[file]" />'
+    assert_dom_equal expected, file_field("import", "file", { accept: ["image/*", "video/*"], id: nil })
+  end
+
+  def test_file_field_with_direct_upload_includes_checksum_algorithm
+    @controller = WithActiveStorageRoutesControllers.new
+
+    expected = '<input data-direct-upload-url="http://testtwo.host/rails/active_storage/direct_uploads" data-checksum-algorithm="sha256" type="file" name="import[file]" id="import_file" />'
+    assert_dom_equal expected, file_field("import", "file", direct_upload: true, data_checksum_algorithm: "sha256")
+  end
+
+  def test_file_field_with_direct_upload_defaults_checksum_algorithm_to_md5
+    @controller = WithActiveStorageRoutesControllers.new
+
+    expected = '<input data-direct-upload-url="http://testtwo.host/rails/active_storage/direct_uploads" type="file" name="import[file]" id="import_file" />'
+    assert_dom_equal expected, file_field("import", "file", direct_upload: true)
+  end
+
   def test_hidden_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="hidden" value="Hello World" autocomplete="off" />',

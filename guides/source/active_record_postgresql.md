@@ -524,7 +524,7 @@ Rails migrations with timestamps store the time a model was created or updated. 
 
 ```ruby
 # db/migrate/20241220144913_create_devices.rb
-create_table :post, id: :uuid do |t|
+create_table :posts, id: :uuid do |t|
   t.datetime :published_at
   # By default, Active Record will set the data type of this column to `timestamp without time zone`.
 end
@@ -840,7 +840,7 @@ ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ["--no-comments"]
 Explain
 -------
 
-Along with the standard [`explain`][explain-options] options, the PostgreSQL adapter supports [`buffers`][explain-analayze-buffers].
+Along with the standard [`explain`][explain-options] options, the PostgreSQL adapter supports [`buffers`][explain-analyze-buffers].
 
 ```ruby
 Company.where(id: owning_companies_ids).explain(:analyze, :buffers)
@@ -853,4 +853,4 @@ Company.where(id: owning_companies_ids).explain(:analyze, :buffers)
 See their documentation for more details.
 
 [explain-options]: active_record_querying.html#explain-options
-[explain-analayze-buffers]: https://www.postgresql.org/docs/current/sql-explain.html
+[explain-analyze-buffers]: https://www.postgresql.org/docs/current/sql-explain.html

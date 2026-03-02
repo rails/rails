@@ -4,6 +4,7 @@ require "cases/helper"
 require "support/ddl_helper"
 require "support/connection_helper"
 
+require "active_support/core_ext/object/with"
 require "active_support/error_reporter/test_helper"
 
 module ActiveRecord
@@ -136,6 +137,61 @@ module ActiveRecord
         end
       end
 
+      def test_schema_search_path_is_reapplied_after_reconnect
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(schema_search_path: "public,foo")
+        )
+
+        connection.connect!
+
+        assert_equal "public, foo", connection.select_value("SHOW search_path")
+
+        connection.reconnect!
+
+        assert_equal "public, foo", connection.select_value("SHOW search_path")
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_schema_search_path_is_reapplied_after_reset
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(schema_search_path: "public,foo")
+        )
+
+        connection.connect!
+
+        assert_equal "public, foo", connection.select_value("SHOW search_path")
+
+        connection.reset!
+
+        assert_equal "public, foo", connection.select_value("SHOW search_path")
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_schema_search_path_uses_parameter_status_on_pg18
+        skip "parameter_status('search_path') requires PostgreSQL 18+" unless @connection.database_version >= 18_00_00
+
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+        begin
+          log = capture_sql(include_schema: true) do
+            connection.connect!
+            connection.schema_search_path
+          end
+
+          assert_not log.any? { |sql| sql.include?("SHOW search_path") },
+                     "Expected no 'SHOW search_path' query, but found one in: #{log.inspect}"
+        ensure
+          connection.disconnect!
+        end
+      end
+
       def test_database_exists_returns_false_when_the_database_does_not_exist
         config = { database: "non_extant_database", adapter: "postgresql" }
         assert_not ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(config),
@@ -204,6 +260,21 @@ module ActiveRecord
         end
         expect = connection.select_value("select max(id) from postgresql_partitioned_table_parent")
         assert_equal expect.to_i, result.rows.first.first
+      end
+
+      def test_insert_uses_schema_cache_with_insert_returning_disabled
+        connection = connection_without_insert_returning
+
+        # First call might need to populate the schema cache
+        connection.insert("INSERT INTO postgresql_partitioned_table_parent (number) VALUES (0)")
+
+        # We expect:
+        # 1. INSERT
+        # 2. SELECT pg_get_serial_sequence (ideally this would cached, but it's currently not)
+        # 3. SELECT currval
+        assert_queries_count(3, include_schema: true) do
+          connection.insert("INSERT INTO postgresql_partitioned_table_parent (number) VALUES (1)")
+        end
       end
 
       def test_serial_sequence
@@ -775,6 +846,138 @@ module ActiveRecord
         date = connection.select_value("select '2024-01-01'::date")
         assert_equal "2024-01-01", date
         assert_equal String, date.class
+      end
+
+      def test_money_decoding_enabled
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+
+        PostgreSQLAdapter.with(decode_money: true) do
+          money = connection.select_value("select '12.34'::money")
+          assert_equal BigDecimal("12.34"), money
+          assert_equal BigDecimal, money.class
+        end
+      end
+
+      def test_money_decoding_disabled
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+
+        money = connection.select_value("select '12.34'::money")
+        assert_equal "$12.34", money
+        assert_equal String, money.class
+      end
+
+      def test_bytea_decoding_enabled
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+
+        PostgreSQLAdapter.with(decode_bytea: true) do
+          bytea = connection.select_value("select '\\x48656c6c6f'::bytea")
+          assert_equal "Hello", bytea
+          assert_equal Encoding::BINARY, bytea.encoding
+        end
+      end
+
+      def test_bytea_decoding_disabled
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+
+        bytea = connection.select_value("select '\\x48656c6c6f'::bytea")
+        assert_equal "\\x48656c6c6f", bytea
+        assert_equal Encoding::UTF_8, bytea.encoding
+      end
+
+      def test_bytea_unescape_after_decode_prevents_corruption
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+        PostgreSQLAdapter.with(decode_bytea: true) do
+          # Need fresh connection after changing decode_bytea setting
+          connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+
+          bytea = connection.select_value("select '\\x48656c6c6f'::bytea")
+          assert_equal "Hello", bytea
+          assert_equal Encoding::BINARY, bytea.encoding
+
+          # Attempting to unescape already-decoded data should prevent corruption
+          assert_deprecated(ActiveRecord.deprecator) do
+            unescaped = PG::Connection.unescape_bytea(bytea)
+            # Should return the already-decoded value, not corrupt it
+            assert_equal "Hello", unescaped
+            assert_equal Encoding::BINARY, unescaped.encoding
+          end
+        end
+      end
+
+      def test_bytea_unescape_normal_usage_still_works
+        encoded = "\\x48656c6c6f"
+
+        unescaped = PG::Connection.unescape_bytea(encoded)
+        assert_equal "Hello", unescaped
+        assert_equal Encoding::BINARY, unescaped.encoding
+      end
+
+      def test_bytea_marker_removed_by_type_system
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+
+        PostgreSQLAdapter.with(decode_bytea: true) do
+          connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+
+          bytea = connection.select_value("select '\\x48656c6c6f'::bytea")
+          assert bytea.instance_variable_defined?(:@ar_pg_bytea_decoded)
+
+          type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Bytea.new
+          processed = type.deserialize(bytea)
+
+          assert_not processed.instance_variable_defined?(:@ar_pg_bytea_decoded)
+        end
+      end
+
+      def test_bytea_warns_on_unmarked_binary_string
+        type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Bytea.new
+
+        encoded = "\\x48656c6c6f".b
+        assert_deprecated(ActiveRecord.deprecator, /Bytea column received a binary-encoded string/) do
+          result = type.deserialize(encoded)
+          assert_equal "Hello", result
+          assert_equal Encoding::BINARY, result.encoding
+        end
+      end
+
+      def test_bytea_marked_true_skips_decode
+        type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Bytea.new
+
+        decoded = "\\x48656c6c6f".b
+        decoded.instance_variable_set(:@ar_pg_bytea_decoded, true)
+
+        result = type.deserialize(decoded)
+        assert_equal "\\x48656c6c6f", result  # Should stay as-is, not become "Hello"
+        assert_equal Encoding::BINARY, result.encoding
+        assert_not result.instance_variable_defined?(:@ar_pg_bytea_decoded)
+      end
+
+      def test_bytea_marked_false_decodes_without_warning
+        type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Bytea.new
+
+        encoded = "\\x48656c6c6f".b
+        encoded.instance_variable_set(:@ar_pg_bytea_decoded, false)
+
+        result = type.deserialize(encoded)
+        assert_equal "Hello", result
+        assert_equal Encoding::BINARY, result.encoding
+        assert_not result.instance_variable_defined?(:@ar_pg_bytea_decoded)
+      end
+
+      def test_bytea_binary_data_marker_removed
+        type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Bytea.new
+
+        marked = "\\x48656c6c6f".b
+        marked.instance_variable_set(:@ar_pg_bytea_decoded, true)
+        data = ActiveModel::Type::Binary::Data.new(marked)
+
+        result = type.deserialize(data)
+        assert_equal "\\x48656c6c6f", result  # Should stay as-is, not become "Hello"
+        assert_not result.instance_variable_defined?(:@ar_pg_bytea_decoded)
       end
 
       def test_disable_extension_with_schema

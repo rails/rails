@@ -36,15 +36,13 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
     end
   end
 
-  class EnqueueAfterCommitJob < ActiveJob::Base
-    self.enqueue_after_transaction_commit = true
-
+  class TestJob < ActiveJob::Base
     def perform
       # noop
     end
   end
 
-  class ErrorEnqueueAfterCommitJob < EnqueueErrorJob
+  class ErrorTestJob < EnqueueErrorJob
     class EnqueueErrorAdapter
       def enqueue(...)
         raise ActiveJob::EnqueueError, "There was an error enqueuing the job"
@@ -56,16 +54,13 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
     end
 
     self.queue_adapter = EnqueueErrorAdapter.new
-    self.enqueue_after_transaction_commit = true
 
     def perform
       # noop
     end
   end
 
-  class EnqueueAfterCommitCallbackJob < ActiveJob::Base
-    self.enqueue_after_transaction_commit = true
-
+  class CallbackTestJob < ActiveJob::Base
     attr_reader :around_enqueue_called
 
     around_enqueue do |job, block|
@@ -81,8 +76,10 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
   test "#perform_later wait for transactions to complete before enqueuing the job" do
     fake_active_record = FakeActiveRecord.new
     stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+      TestJob.enqueue_after_transaction_commit = true
+
       assert_difference -> { fake_active_record.calls }, +1 do
-        EnqueueAfterCommitJob.perform_later
+        TestJob.perform_later
       end
     end
   end
@@ -90,8 +87,10 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
   test "#perform_later returns the Job instance even if it's delayed by `after_all_transactions_commit`" do
     fake_active_record = FakeActiveRecord.new(false)
     stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
-      job = EnqueueAfterCommitJob.perform_later
-      assert_instance_of EnqueueAfterCommitJob, job
+      TestJob.enqueue_after_transaction_commit = true
+
+      job = TestJob.perform_later
+      assert_instance_of TestJob, job
       assert_predicate job, :successfully_enqueued?
     end
   end
@@ -99,13 +98,15 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
   test "#perform_later yields the enqueued Job instance even if it's delayed by `after_all_transactions_commit`" do
     fake_active_record = FakeActiveRecord.new(false)
     stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+      TestJob.enqueue_after_transaction_commit = true
+
       called = false
-      job = EnqueueAfterCommitJob.perform_later do |yielded_job|
+      job = TestJob.perform_later do |yielded_job|
         called = true
-        assert_instance_of EnqueueAfterCommitJob, yielded_job
+        assert_instance_of TestJob, yielded_job
       end
       assert called, "#perform_later yielded the job"
-      assert_instance_of EnqueueAfterCommitJob, job
+      assert_instance_of TestJob, job
       assert_predicate job, :successfully_enqueued?
     end
   end
@@ -113,8 +114,10 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
   test "#perform_later assumes successful enqueue, but update status later" do
     fake_active_record = FakeActiveRecord.new(false)
     stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
-      job = ErrorEnqueueAfterCommitJob.perform_later
-      assert_instance_of ErrorEnqueueAfterCommitJob, job
+      ErrorTestJob.enqueue_after_transaction_commit = true
+
+      job = ErrorTestJob.perform_later
+      assert_instance_of ErrorTestJob, job
       assert_predicate job, :successfully_enqueued?
 
       fake_active_record.run_after_commit_callbacks
@@ -125,7 +128,9 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
   test "#perform_later defers enqueue callbacks until after commit" do
     fake_active_record = FakeActiveRecord.new(false)
     stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
-      job = EnqueueAfterCommitCallbackJob.perform_later
+      CallbackTestJob.enqueue_after_transaction_commit = true
+
+      job = CallbackTestJob.perform_later
       assert_not_predicate job, :around_enqueue_called
       fake_active_record.run_after_commit_callbacks
       assert_predicate job, :around_enqueue_called
@@ -135,8 +140,10 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
   test "ActiveJob.perform_all_later waits for transactions to complete before enqueuing jobs with `enqueue_after_transaction_commit`" do
     fake_active_record = FakeActiveRecord.new
     stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+      TestJob.enqueue_after_transaction_commit = true
+
       assert_difference -> { fake_active_record.calls }, +1 do
-        ActiveJob.perform_all_later(EnqueueAfterCommitJob.new, EnqueueAfterCommitJob.new)
+        ActiveJob.perform_all_later(TestJob.new, TestJob.new)
       end
     end
   end
@@ -144,9 +151,11 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
   test "ActiveJob.perform_all_later handles mixed jobs with and without `enqueue_after_transaction_commit`" do
     fake_active_record = FakeActiveRecord.new(false)
     stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+      TestJob.enqueue_after_transaction_commit = true
+
       # Mix of jobs with and without enqueue_after_transaction_commit
       immediate_job = ImmediateJob.new
-      deferred_job = EnqueueAfterCommitJob.new
+      deferred_job = TestJob.new
 
       assert_notification("enqueue_all.active_job", jobs: [immediate_job], enqueued_count: 1) do
         ActiveJob.perform_all_later([immediate_job, deferred_job])
@@ -156,5 +165,34 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
         fake_active_record.run_after_commit_callbacks
       end
     end
+  end
+
+  test "default value is false by default" do
+    job_class = Class.new do
+      include ActiveJob::Enqueuing
+    end
+
+    assert_equal false, job_class.enqueue_after_transaction_commit
+  end
+
+  test "can set enqueue_after_transaction_commit without ActiveRecord" do
+    original = TestJob.enqueue_after_transaction_commit
+
+    assert_nothing_raised do
+      TestJob.enqueue_after_transaction_commit = true
+    end
+  ensure
+    TestJob.enqueue_after_transaction_commit = original
+  end
+
+  test "base setting applies to existing subclasses" do
+    original = ActiveJob::Base.enqueue_after_transaction_commit
+    job_class = Class.new(ActiveJob::Base)
+
+    ActiveJob::Base.enqueue_after_transaction_commit = true
+
+    assert_equal true, job_class.enqueue_after_transaction_commit
+  ensure
+    ActiveJob::Base.enqueue_after_transaction_commit = original
   end
 end

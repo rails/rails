@@ -932,6 +932,18 @@ class EachTest < ActiveRecord::TestCase
       assert_equal limit, total
     end
 
+    test "in_batches should return limit records when limit is greater than batch size with use_ranges and load is #{load}" do
+      limit = 5
+      batch_size = 3
+      total = 0
+
+      Post.limit(limit).in_batches(of: batch_size, load: load, use_ranges: true) do |batch|
+        total += batch.count
+      end
+
+      assert_equal limit, total
+    end
+
     test "in_batches should return limit records when limit is a multiple of the batch size and load is #{load}" do
       limit      = 6
       batch_size = 3

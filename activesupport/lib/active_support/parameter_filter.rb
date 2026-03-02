@@ -54,17 +54,23 @@ module ActiveSupport
     #
     def self.precompile_filters(filters)
       filters, patterns = filters.partition { |filter| filter.is_a?(Proc) }
+      regexps, patterns = patterns.partition { |filter| filter.is_a?(Regexp) }
 
-      patterns.map! do |pattern|
-        pattern.is_a?(Regexp) ? pattern : "(?i:#{Regexp.escape pattern.to_s})"
+      patterns.map! do |p|
+        p.is_a?(Symbol) ? p.name : p.to_s
       end
 
-      deep_patterns = patterns.extract! { |pattern| pattern.to_s.include?("\\.") }
+      patterns.sort_by! { |p| [p.count("."), p.size] }
 
-      filters << Regexp.new(patterns.join("|")) if patterns.any?
-      filters << Regexp.new(deep_patterns.join("|")) if deep_patterns.any?
+      patterns.each do |pattern|
+        # Remove redundant patterns, e.g. it's pointless to search for `user.password` or `user.password_confirmation`
+        # if `password` is already a filter.
+        unless regexps.any? { |r| r.match?(pattern) }
+          regexps << Regexp.new(Regexp.escape(pattern), Regexp::IGNORECASE)
+        end
+      end
 
-      filters
+      filters << Regexp.union(regexps)
     end
 
     # Create instance with given filters. Supported type of filters are +String+, +Regexp+, and +Proc+.

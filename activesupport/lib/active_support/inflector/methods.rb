@@ -119,7 +119,7 @@ module ActiveSupport
     # The capitalization of the first word can be turned off by setting the
     # +:capitalize+ option to false (default is true).
     #
-    # The trailing '_id' can be kept and capitalized by setting the
+    # The trailing '_id' can be kept by setting the
     # optional parameter +keep_id_suffix+ to true (default is false).
     #
     #   humanize('employee_salary')                  # => "Employee salary"

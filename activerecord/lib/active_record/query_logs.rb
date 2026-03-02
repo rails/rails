@@ -47,6 +47,13 @@ module ActiveRecord
   # ActiveSupport::CurrentAttributes can be used to store application values. Tags with +nil+ values are
   # omitted from the query comment.
   #
+  # +context+ includes the following keys:
+  #
+  # * +controller+ - current Action Controller instance, if available
+  # * +job+ - current Active Job instance, if available
+  # * +connection+ - current database connection
+  # * +sql+ - current SQL query
+  #
   # Escaping is performed on the string returned, however untrusted user input should not be used.
   #
   # Example:
@@ -62,6 +69,17 @@ module ActiveRecord
   #         static: "value",
   #       },
   #     ]
+  #
+  # WARNING: SQL query can contain sensitive data and using +:sql+ directly as a query log tag
+  # is unsafe because it will log the query unfiltered.
+  #
+  # Example:
+  #
+  #     # unsafe
+  #     config.active_record.query_log_tags = [:sql]
+  #
+  #     # safe
+  #     config.active_record.query_log_tags = [sql_length: ->(context) { context[:sql].length } ]
   #
   # By default the name of the application, the name and action of the controller, or the name of the job are logged
   # using the {SQLCommenter}[https://open-telemetry.github.io/opentelemetry-sqlcommenter/] format. This can be changed
@@ -141,7 +159,7 @@ module ActiveRecord
       end
 
       def call(sql, connection) # :nodoc:
-        comment = self.comment(connection)
+        comment = self.comment(sql: sql, connection: connection)
 
         if comment.blank?
           sql
@@ -194,16 +212,16 @@ module ActiveRecord
 
         # Returns an SQL comment +String+ containing the query log tags.
         # Sets and returns a cached comment if <tt>cache_query_log_tags</tt> is +true+.
-        def comment(connection)
+        def comment(extra_context)
           if cache_query_log_tags
-            self.cached_comment ||= uncached_comment(connection)
+            self.cached_comment ||= uncached_comment(extra_context)
           else
-            uncached_comment(connection)
+            uncached_comment(extra_context)
           end
         end
 
-        def uncached_comment(connection)
-          content = tag_content(connection)
+        def uncached_comment(extra_context)
+          content = tag_content(extra_context)
 
           if content.present?
             "/*#{escape_sql_comment(content)}*/"
@@ -223,9 +241,9 @@ module ActiveRecord
           comment
         end
 
-        def tag_content(connection)
+        def tag_content(extra_context)
           context = ActiveSupport::ExecutionContext.to_h
-          context[:connection] ||= connection
+          context.reverse_merge!(extra_context)
 
           pairs = @handlers.filter_map do |(key, handler)|
             val = handler.call(context)

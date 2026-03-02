@@ -612,7 +612,7 @@ expression or a proc or lambda that returns one.
 
 The default error message is _"is invalid"_.
 
-WARNING. Use `\A` and `\z` to match the start and end of the string, `^` and `$`
+WARNING: Use `\A` and `\z` to match the start and end of the string, `^` and `$`
 match the start/end of a line. Due to frequent misuse of `^` and `$`, you need
 to pass the `multiline: true` option in case you use any of these two anchors in
 the provided regular expression. In most cases, you should be using `\A` and
@@ -1963,5 +1963,5 @@ config.action_view.field_error_proc = Proc.new { |html_tag, instance| content_ta
 
 You can customize this behavior by modifying the field_error_proc setting in
 your application configuration, allowing you to change how errors are presented
-in your forms. For more details,refer to the [Configuration Guide on
+in your forms. For more details, refer to the [Configuration Guide on
 field_error_proc](configuring.html#config-action-view-field-error-proc).

@@ -15,6 +15,7 @@ After reading this guide, you will know:
 * How to change existing migrations and update your schema.
 * How migrations relate to `schema.rb`.
 * How to maintain referential integrity.
+* How to customize migration behavior with swappable strategies.
 
 --------------------------------------------------------------------------------
 
@@ -551,7 +552,7 @@ end
 
 You can pass the `:comment` option with any description for the table that will
 be stored in the database itself and can be viewed with database administration
-tools, such as MySQL Workbench or PgAdmin III. Comments can help team members to
+tools, such as MySQL Workbench or pgAdmin. Comments can help team members to
 better understand the data model and to generate documentation in applications
 with large databases. Currently only the MySQL and PostgreSQL adapters support
 comments.
@@ -705,7 +706,8 @@ Column modifiers can be applied when creating or changing a column:
 * `default`      Allows to set a default value on the column. Note that if you
   are using a dynamic value (such as a date), the default will only be
   calculated the first time (i.e. on the date the migration is applied). Use
-  `nil` for `NULL`.
+  `nil` for `NULL`. Depending on your database, existing records may not
+  receive the default value.
 * `limit`        Sets the maximum number of characters for a `string` column and
   the maximum number of bytes for `text/binary/integer` columns.
 * `null`         Allows or disallows `NULL` values in the column.
@@ -778,7 +780,7 @@ add_foreign_key :articles, :authors
 
 The [`add_foreign_key`][] call adds a new constraint to the `articles` table.
 The constraint guarantees that a row in the `authors` table exists where the
-`id` column matches the `articles.author_id` to ensure all reviewers listed in
+`id` column matches the `articles.author_id` to ensure all authors listed in
 the articles table are valid authors listed in the authors table.
 
 NOTE: When using `references` in a migration, you are creating a new column in
@@ -1288,13 +1290,12 @@ The `bin/rails db:prepare` command is similar to `bin/rails db:setup`, but it
 operates idempotently, so it can safely be called several times, but it will
 only perform the necessary tasks once.
 
-* If the database has not been created yet, the command will run as the
-  `bin/rails db:setup` does.
-* If the database exists but the tables have not been created, the command will
-  load the schema, run any pending migrations, dump the updated schema, and
-  finally load the seed data. See the [Seeding Data
-  documentation](#migrations-and-seed-data) for more details.
-* If the database and tables exist, the command will do nothing.
+* If the database has not been created yet, the command behaves the same as
+  `bin/rails db:setup`.
+* If the database exists but the tables are missing, the command additionally
+  loads the schema.
+* If tables already exist, the command runs any pending migrations and dumps the
+  updated schema.
 
 Once the database and tables exist, the `db:prepare` task will not try to reload
 the seed data, even if the previously loaded seed data or the existing seed file
@@ -1815,3 +1816,124 @@ Instead, consider using the
 gem provides a framework for creating and managing data migrations and other
 maintenance tasks in a way that is safe and easy to manage without interfering
 with schema migrations.
+
+Customizing Migration Behavior with Swappable Strategies
+--------------------------------------------------------
+
+Rails allows you to customize how migrations execute by using **migration
+strategies**. A migration strategy is an object that sits between your migration
+and the connection, giving you control over how schema changes are applied to
+the database.
+
+By default, Rails uses [`ActiveRecord::Migration::DefaultStrategy`][], which
+executes migrations by sending method calls directly to the connection.
+However, you can replace this with your own strategy to modify, validate,
+or even prevent certain migration operations. Migration strategies are
+especially useful when you need different migration behavior across
+environments. For example, production migrations may require:
+
+* **Safety and Validation**: Prevent dangerous operations like dropping tables
+  or removing columns in production environments.
+* **Online Schema Changes**: Integrate with tools that perform schema
+  changes without downtime (e.g., `pt-online-schema-change`, `gh-ost`).
+* **Centralized Management**: Submit migrations to a centralized service
+  rather than executing them directly, useful in large-scale deployments.
+
+### Configuring a Global Migration Strategy
+
+To customize how migrations are executed, you can define your own migration
+strategy by subclassing [`ActiveRecord::Migration::DefaultStrategy`][]. This
+default class automatically forwards all migration methods to the underlying
+database connection, so you only need to override the methods you want to
+customize.
+
+For example, to prevent dropping tables in production:
+
+```ruby
+class CustomMigrationStrategy < ActiveRecord::Migration::DefaultStrategy
+  def drop_table(table_name, **options)
+    raise "Dropping tables is not allowed in production!"
+  end
+end
+```
+
+You can override any schema statement method your application needs, such as:
+
+- `create_table`
+- `drop_table`
+- `add_column`
+- `remove_column`
+- `add_index`
+- `remove_index`
+- Or any other method from
+  [`ActiveRecord::ConnectionAdapters::SchemaStatements`][]
+
+You can also subclass [`ActiveRecord::Migration::ExecutionStrategy`][], the base
+strategy class. This is useful if you want to define all migration behavior from
+scratch, without having any methods forwarded to the connection.
+
+Once you've defined your custom strategy, make it the default for migrations across
+all database connections by setting [`config.active_record.migration_strategy`][].
+For example, to set a custom strategy in production:
+
+```ruby
+# config/environments/production.rb
+Rails.application.configure do
+  config.active_record.migration_strategy = CustomMigrationStrategy
+end
+```
+
+All migrations methods will be sent to your custom strategy in production.
+
+### Configuring Per-Adapter Migration Strategies
+
+If you're working with multiple database systems, a single global strategy is
+likely insufficient: you may need to tailor migration behavior according to the
+database. Active Record allows you to configure migration strategies on a
+per-adapter basis. For example, suppose your application has a MySQL database,
+`primary`, and a PostgreSQL database, `animals`:
+
+```yaml
+  primary:
+    database: my_primary_database
+    username: root
+    password: <%= ENV['ROOT_PASSWORD'] %>
+    adapter: trilogy
+  animals:
+    database: my_animals_database
+    username: animals_root
+    password: <%= ENV['ANIMALS_ROOT_PASSWORD'] %>
+    adapter: postgresql
+    migrations_paths: db/animals_migrate
+```
+
+You can configure a `migration_strategy` on each adapter class:
+
+```ruby
+# config/initializers/migration_strategies.rb
+if Rails.env.production?
+  ActiveSupport.on_load(:active_record_trilogyadapter) do
+    ActiveRecord::ConnectionAdapters::Trilogy.migration_strategy =
+      MySQLMigrationStrategy
+  end
+
+  ActiveSupport.on_load(:active_record_postgresqladapter) do
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy =
+      PostgreSQLMigrationStrategy
+  end
+end
+```
+
+Migrations running against `primary` will use `MySQLMigrationStrategy`, and
+migrations running against `animals` will use `PostgreSQLMigrationStrategy`.
+The adapter-specific strategy takes precedence over any globally-configured
+strategy.
+
+[`ActiveRecord::Migration::DefaultStrategy`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Migration/DefaultStrategy.html
+[`ActiveRecord::Migration::ExecutionStrategy`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Migration/ExecutionStrategy.html
+[`config.active_record.migration_strategy`]:
+    configuring.html#config-active-record-migration-strategy
+[`ActiveRecord::ConnectionAdapters::SchemaStatements`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html

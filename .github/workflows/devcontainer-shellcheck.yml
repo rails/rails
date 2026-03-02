@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout (GitHub)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Lint Devcontainer Scripts
         run: |

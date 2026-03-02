@@ -302,6 +302,25 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert merged_params[:id]
   end
 
+  test "merge with block resolves conflicts" do
+    params1 = ActionController::Parameters.new(a: 1, b: 2).permit!
+    params2 = ActionController::Parameters.new(b: 3, c: 4).permit!
+    merged = params1.merge(params2) { |key, old_val, new_val| old_val + new_val }
+
+    assert_equal 1, merged[:a]
+    assert_equal 5, merged[:b]
+    assert_equal 4, merged[:c]
+  end
+
+  test "merge with block retains permitted status" do
+    params1 = ActionController::Parameters.new(a: 1, b: 2).permit!
+    params2 = ActionController::Parameters.new(b: 3).permit!
+    merged = params1.merge(params2) { |key, old_val, new_val| old_val }
+
+    assert_predicate merged, :permitted?
+    assert_equal 2, merged[:b]
+  end
+
   test "not permitted is sticky beyond merge!" do
     assert_not_predicate @params.merge!(a: "b"), :permitted?
   end
