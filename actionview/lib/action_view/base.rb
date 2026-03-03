@@ -179,6 +179,9 @@ module ActionView # :nodoc:
     # Annotate rendered view with file names
     cattr_accessor :annotate_rendered_view_with_filenames, default: false
 
+    # Precompile templates with strict locals at boot.
+    cattr_accessor :precompile_templates, default: false
+
     class_attribute :_routes
     class_attribute :logger
 

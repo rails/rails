@@ -87,9 +87,15 @@ module ActionView
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k, v|
           next if k == :render_tracker
+          next if k == :precompile_templates
           send "#{k}=", v
         end
       end
+    end
+
+    initializer "action_view.precompile_templates", before: :eager_load! do |app|
+      precompile = app.config.action_view.delete(:precompile_templates)
+      ActionView::Base.precompile_templates = precompile unless precompile.nil?
     end
 
     initializer "action_view.deprecator", before: :load_environment_config do |app|

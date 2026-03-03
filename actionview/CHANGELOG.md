@@ -1,3 +1,7 @@
+*   `ActionView::Base.precompile_templates` compiles templates with strict locals at boot to improve cold render times and allow more memory to be shared via CoW on forking web servers.
+
+    *Joel Hawksley*
+
 *   Fix tag parameter content being overwritten instead of combined with tag block content.
     Before `tag.div("Hello ") { "World" }` would just return `<div>World</div>`, now it returns `<div>Hello World</div>`.
 
