@@ -142,6 +142,10 @@ class DateTime
   end
   alias :at_end_of_day :end_of_day
 
+  def end_of_day_threshold
+    change(hour: 0, min: 0, sec: 0, usec: 0).advance(days: 1)
+  end
+
   # Returns a new DateTime representing the start of the hour (hh:00:00).
   def beginning_of_hour
     change(min: 0)
