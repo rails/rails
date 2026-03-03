@@ -13,6 +13,5 @@ class BinaryWithDecoderTest < BinaryTest
   def teardown
     super
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_bytea = false
-    ActiveRecord::Base.connection_pool.disconnect!
   end
 end
