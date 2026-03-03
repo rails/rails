@@ -503,11 +503,7 @@ module ActiveRecord
 
             def select_min_column_value_sql(sequence)
               quoted_sequence = @adapter.quote_table_name(sequence)
-              if @adapter.database_version >= 10_00_00
-                "SELECT seqmin FROM pg_sequence WHERE seqrelid = #{@adapter.quote(quoted_sequence)}::regclass"
-              else
-                "SELECT min_value FROM #{quoted_sequence}"
-              end
+              "SELECT seqmin FROM pg_sequence WHERE seqrelid = #{@adapter.quote(quoted_sequence)}::regclass"
             end
 
             def reset_sequence_sql(sequence, max_value, min_value)
