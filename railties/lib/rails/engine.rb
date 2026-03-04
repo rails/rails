@@ -601,7 +601,11 @@ module Rails
       routing_paths = paths["config/routes.rb"].existent
       external_paths = self.paths["config/routes"].paths
       routes.draw_paths.concat(external_paths)
-      app.routes.draw_paths.concat(external_paths)
+
+      # Concat engine draw paths to the app also.
+      # If this initializer is being called for the app, it's redundant, so
+      # skip.
+      app.routes.draw_paths.concat(external_paths) unless app == self
 
       if routes? || routing_paths.any?
         app.routes_reloader.paths.unshift(*routing_paths)
