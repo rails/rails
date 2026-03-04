@@ -1430,6 +1430,14 @@ end
 
 NOTE: Using [Direct Uploads](#direct-uploads) can sometimes result in a file that uploads, but never attaches to a record. Consider [purging unattached uploads](#purging-unattached-uploads).
 
+### Skipping Default Direct Uploads Routes
+
+Direct Uploads can be disabled by setting `ActiveStorage.skip_default_direct_uploads_routes` to `true` in the Rails configuration.
+
+```ruby
+config.active_storage.skip_default_direct_uploads_routes = true
+```
+
 Testing
 -------------------------------------------
 

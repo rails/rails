@@ -112,4 +112,8 @@
 
     *Bart de Water*
 
+*   Introduce `ActiveStorage.skip_default_direct_uploads_routes` to skip the default direct upload routes.
+
+    *Radamés Roriz*
+
 Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activestorage/CHANGELOG.md) for previous changes.

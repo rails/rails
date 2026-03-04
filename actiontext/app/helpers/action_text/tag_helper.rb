@@ -39,7 +39,7 @@ module ActionText
       options[:name]  ||= name
 
       options[:data] ||= {}
-      options[:data][:direct_upload_url] ||= main_app.rails_direct_uploads_url
+      options[:data][:direct_upload_url] ||= main_app.rails_direct_uploads_url if main_app.respond_to?(:rails_direct_uploads_url)
       options[:data][:blob_url_template] ||= main_app.rails_service_blob_url(":signed_id", ":filename")
 
       render RichText.editor.editor_tag(options)
