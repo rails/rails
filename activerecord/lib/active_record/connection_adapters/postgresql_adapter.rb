@@ -706,8 +706,8 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < 9_03_00 # < 9.3
-          raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 9.3."
+        if database_version < 9_05_00 # < 9.5
+          raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 9.5."
         end
       end
 
