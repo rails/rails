@@ -194,7 +194,7 @@ module ActiveRecord
       #   DiscussionBoard.decrement_counter(:posts_count, 5)
       #
       #   # Decrement the posts_count column for the record with an id of 5
-      #   by a specific amount.
+      #   # by a specific amount.
       #   DiscussionBoard.decrement_counter(:posts_count, 5, by: 3)
       #
       #   # Decrement the posts_count column for the record with an id of 5
