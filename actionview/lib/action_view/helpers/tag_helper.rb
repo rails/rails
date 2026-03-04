@@ -574,7 +574,7 @@ module ActionView
 
       private
         def ensure_valid_html5_tag_name(name)
-          raise ArgumentError, "Invalid HTML5 tag name: #{name.inspect}" unless /\A[a-zA-Z][^\s\/><]*\z/.match?(name)
+          raise ArgumentError, "Invalid HTML5 tag name: #{name.inspect}" unless /\A[a-zA-Z][a-zA-Z0-9:_-]*\z/.match?(name)
         end
         module_function :ensure_valid_html5_tag_name
 
