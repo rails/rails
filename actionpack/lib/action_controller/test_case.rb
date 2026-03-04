@@ -105,12 +105,14 @@ module ActionController
 
       if get?
         if query_string.blank?
-          self.query_string = non_path_parameters.to_query
+          self.query_string = normalize_non_path_parameters(non_path_parameters).to_query
         end
       else
-        if ENCODER.should_multipart?(non_path_parameters)
+        normalized_non_path_parameters = normalize_non_path_parameters(non_path_parameters)
+
+        if ENCODER.should_multipart?(normalized_non_path_parameters)
           self.content_type = ENCODER.content_type
-          data = ENCODER.build_multipart non_path_parameters
+          data = ENCODER.build_multipart normalized_non_path_parameters
         else
           fetch_header("CONTENT_TYPE") do |k|
             set_header k, "application/x-www-form-urlencoded"
@@ -124,10 +126,10 @@ module ActionController
           when :xml
             data = non_path_parameters.to_xml
           when :url_encoded_form
-            data = non_path_parameters.to_query
+            data = normalized_non_path_parameters.to_query
           else
             @custom_param_parsers[content_mime_type.symbol] = ->(_) { non_path_parameters }
-            data = non_path_parameters.to_query
+            data = normalized_non_path_parameters.to_query
           end
         end
 
@@ -176,6 +178,19 @@ module ActionController
     end.new
 
     private
+      def normalize_non_path_parameters(value)
+        case value
+        when Hash
+          value.transform_values { |nested_value| normalize_non_path_parameters(nested_value) }
+        when Array
+          value.map { |element| normalize_non_path_parameters(element) }
+        when nil
+          ""
+        else
+          value
+        end
+      end
+
       def params_parsers
         super.merge @custom_param_parsers
       end

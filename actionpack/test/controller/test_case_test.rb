@@ -517,6 +517,28 @@ class TestCaseTest < ActionController::TestCase
     )
   end
 
+  def test_nil_values_in_params_are_converted_to_empty_strings
+    params = {
+      foo: nil,
+      page: {
+        title: nil,
+        tags: [nil, "rails"]
+      }
+    }
+
+    get :test_params, params: params
+    parsed_params = JSON.parse(@response.body)
+    assert_equal "", parsed_params["foo"]
+    assert_equal "", parsed_params.dig("page", "title")
+    assert_equal ["", "rails"], parsed_params.dig("page", "tags")
+
+    post :test_params, params: params
+    parsed_params = JSON.parse(@response.body)
+    assert_equal "", parsed_params["foo"]
+    assert_equal "", parsed_params.dig("page", "title")
+    assert_equal ["", "rails"], parsed_params.dig("page", "tags")
+  end
+
   def test_query_param_named_action
     get :test_query_parameters, params: { action: "foobar" }
     parsed_params = JSON.parse(@response.body)
