@@ -1,3 +1,7 @@
+*   Bump the minimum PostgreSQL version to 9.5, due to usage of `array_position` function.
+
+    *Ivan Kuchin*
+
 *   Fix Ruby 4.0 delegator warning when calling inspect on ActiveRecord::Type::Serialized.
 
     *Hammad Khan*
