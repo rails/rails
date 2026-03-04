@@ -3,6 +3,11 @@
 module ActiveRecord
   module ConnectionAdapters
     class QueryIntent # :nodoc:
+      # Raised when attempting to deliver to or reset a finalized intent.
+      # This is an internal invariant violation - finalization is terminal.
+      class FinalizedError < ActiveRecordError # :nodoc:
+      end
+
       # Buffers instrumentation events during background execution for later publishing
       class EventBuffer
         def initialize(intent, instrumenter)
@@ -245,6 +250,8 @@ module ActiveRecord
       # Deliver a successful result to this intent.
       # Handles logging, transaction dirtying, and marks the intent complete.
       def deliver_result(value)
+        raise FinalizedError, "delivering result to a finalized intent" if @finalized
+
         adapter.lock.synchronize do
           @raw_result = value
           @error = nil
@@ -265,6 +272,8 @@ module ActiveRecord
       # final outcome in ensure_result (success via deliver_result, or
       # permanent failure just before raising).
       def deliver_failure(exception)
+        raise FinalizedError, "delivering failure to a finalized intent" if @finalized
+
         adapter.lock.synchronize do
           @error = exception
 
@@ -284,6 +293,8 @@ module ActiveRecord
       # today. A future manual batching API would set +resettable: false+ so
       # that callers observe QueryNotRun for server-aborted queries.
       def deliver_not_run(reason:, resettable: true)
+        raise FinalizedError, "delivering not_run to a finalized intent" if @finalized
+
         @not_run_reason = reason
         @not_run_resettable = resettable
         @raw_result_available = true
@@ -319,6 +330,8 @@ module ActiveRecord
 
       # Reset state to allow another attempt
       def reset_for_retry
+        raise FinalizedError, "resetting a finalized intent" if @finalized
+
         @raw_result = nil
         @raw_result_available = false
         @error = nil
@@ -424,6 +437,8 @@ module ActiveRecord
 
       private
         def reset_for_rerun
+          raise FinalizedError, "resetting a finalized intent for rerun" if @finalized
+
           @raw_result = nil
           @raw_result_available = false
           @error = nil
