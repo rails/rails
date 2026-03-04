@@ -1799,6 +1799,231 @@ module ActiveRecord
         test_pool.disconnect! rescue nil
       end
     end
+
+    def test_pipelined_intent_does_not_dirty_transaction_until_result_delivery
+      with_dedicated_connection do |conn|
+        with_rollback_transaction(conn) do
+          conn.enter_pipeline_mode
+
+          intent = build_intent(conn, "SELECT 1 AS n")
+          intent.execute!
+
+          assert_predicate conn.transaction_manager, :restorable?,
+            "Queued-but-unrun pipelined intent should not dirty transaction state"
+
+          assert_equal [[1]], intent.cast_result.rows
+
+          assert_not_predicate conn.transaction_manager, :restorable?,
+            "After result delivery, transaction should be dirty and non-restorable"
+        end
+      end
+    end
+
+    def test_unsynced_pipelined_queries_replay_in_clean_transaction
+      with_dedicated_connection do |conn|
+        initial_connection_id = connection_id_from_server(conn)
+
+        with_rollback_transaction(conn) do
+          conn.enter_pipeline_mode
+
+          intent1 = build_intent(conn, "SELECT 1 AS n", allow_retry: false, materialize_transactions: false)
+          intent2 = build_intent(conn, "SELECT 2 AS n", allow_retry: false, materialize_transactions: false)
+          intent1.execute!
+          intent2.execute!
+
+          close_client_socket(conn)
+
+          assert_equal [[1]], intent1.cast_result.rows
+          assert_equal [[2]], intent2.cast_result.rows
+          assert_connection_replaced(conn, initial_connection_id)
+        end
+      end
+    end
+
+    def test_synced_retryable_pipelined_queries_replay_in_clean_transaction
+      with_dedicated_connection do |conn|
+        initial_pid = connection_id_from_server(conn)
+
+        with_rollback_transaction(conn) do
+          conn.enter_pipeline_mode
+
+          intent1 = build_intent(conn, "SELECT 1 AS n", allow_retry: true, materialize_transactions: false)
+          intent2 = build_intent(conn, "SELECT 2 AS n", allow_retry: true, materialize_transactions: false)
+          intent1.execute!
+          intent2.execute!
+          conn.pipeline_sync
+
+          close_client_socket(conn)
+
+          assert_equal [[1]], intent1.cast_result.rows
+          assert_equal [[2]], intent2.cast_result.rows
+          assert_connection_replaced(conn, initial_pid)
+        end
+      end
+    end
+
+    def test_synced_non_retryable_intent_fails_in_clean_transaction
+      with_dedicated_connection do |conn|
+        initial_pid = connection_id_from_server(conn)
+
+        with_rollback_transaction(conn) do
+          conn.enter_pipeline_mode
+
+          retryable_intent = build_intent(conn, "SELECT 1 AS n", allow_retry: true, materialize_transactions: false)
+          non_retryable_intent = build_intent(conn, "SELECT 2 AS n", allow_retry: false, materialize_transactions: false)
+          retryable_intent.execute!
+          non_retryable_intent.execute!
+          conn.pipeline_sync
+
+          close_client_socket(conn)
+
+          assert_equal [[1]], retryable_intent.cast_result.rows
+          assert_raises(ActiveRecord::ConnectionFailed) { non_retryable_intent.cast_result }
+          assert_connection_replaced(conn, initial_pid)
+        end
+      end
+    end
+
+    def test_dirty_transaction_cannot_reconnect_during_pipeline_flush
+      with_dedicated_connection do |conn|
+        initial_connection_id = connection_id_from_server(conn)
+        invocations = 0
+
+        assert_raises(ActiveRecord::ConnectionFailed) do
+          conn.transaction do
+            invocations += 1
+
+            conn.select_value("SELECT 0")
+            assert_not_predicate conn.transaction_manager, :restorable?
+
+            conn.enter_pipeline_mode
+            intent = build_intent(conn, "SELECT 1 AS n FROM pg_sleep(2)", allow_retry: true)
+            intent.execute!
+
+            kill_connection_from_server(initial_connection_id, conn.pool)
+
+            intent.cast_result
+          end
+        end
+
+        assert_equal 1, invocations
+        assert_not_predicate conn, :active?
+        assert_equal 1, conn.select_value("SELECT 1")
+      end
+    end
+
+    def test_dirty_transaction_cannot_reconnect_after_synced_pipeline_failure
+      with_dedicated_connection do |conn|
+        invocations = 0
+        initial_connection_id = connection_id_from_server(conn)
+        reconnect_count = 0
+        original_reconnect = conn.method(:reconnect!)
+        conn.define_singleton_method(:reconnect!) do |**kwargs|
+          reconnect_count += 1
+          original_reconnect.call(**kwargs)
+        end
+
+        assert_raises(ActiveRecord::ConnectionFailed) do
+          conn.transaction do
+            invocations += 1
+
+            conn.select_value("SELECT 0")
+            assert_not_predicate conn.transaction_manager, :restorable?
+
+            conn.enter_pipeline_mode
+            intent = build_intent(conn, "SELECT 1 AS n FROM pg_sleep(2)", allow_retry: true)
+            intent.execute!
+            conn.pipeline_sync
+
+            kill_connection_from_server(initial_connection_id, conn.pool)
+            intent.cast_result
+          end
+        end
+
+        assert_equal 1, invocations
+        assert_equal 0, reconnect_count
+      end
+    end
+
+    def test_server_aborted_query_does_not_recover_inside_failed_transaction
+      with_dedicated_connection do |conn|
+        conn.transaction do
+          conn.enter_pipeline_mode
+
+          failing_intent = build_intent(conn, "SELECT * FROM nonexistent_table_xyz")
+          aborted_intent = build_intent(conn, "SELECT 2 AS n")
+          failing_intent.execute!
+          aborted_intent.execute!
+
+          conn.flush_pipeline
+
+          assert_raises(ActiveRecord::StatementInvalid) { failing_intent.cast_result }
+          assert_equal :server_aborted, aborted_intent.not_run_reason
+          assert_raises(ActiveRecord::StatementInvalid) { aborted_intent.cast_result }
+
+          raise ActiveRecord::Rollback
+        end
+      end
+    end
+
+    private
+      def with_dedicated_connection(connection_retries: nil)
+        pool_config = ActiveRecord::Base.connection_pool.db_config
+        db_config =
+          if connection_retries.nil?
+            pool_config
+          else
+            ActiveRecord::DatabaseConfigurations::HashConfig.new(
+              "test",
+              "primary",
+              pool_config.configuration_hash.merge(connection_retries: connection_retries)
+            )
+          end
+
+        test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+          ActiveRecord::ConnectionAdapters::PoolConfig.new(
+            ActiveRecord::Base,
+            db_config,
+            :writing,
+            :default
+          )
+        )
+
+        begin
+          conn = test_pool.checkout
+          conn.connect!
+          conn.materialize_transactions
+          yield conn
+        ensure
+          test_pool.disconnect! rescue nil
+        end
+      end
+
+      def with_rollback_transaction(conn)
+        conn.transaction do
+          yield
+          raise ActiveRecord::Rollback
+        end
+      end
+
+      def build_intent(conn, sql, allow_retry: false, materialize_transactions: true)
+        ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: sql,
+          name: "TEST",
+          allow_retry: allow_retry,
+          materialize_transactions: materialize_transactions
+        )
+      end
+
+      def assert_connection_replaced(conn, previous_pid)
+        assert_not_equal previous_pid, connection_id_from_server(conn)
+      end
+
+      def close_client_socket(conn)
+        raw_conn = conn.instance_variable_get(:@raw_connection)
+        raw_conn.socket_io.close
+      end
   end
 
   class PostgresqlPipelineDeferredReleaseTest < ActiveRecord::PostgreSQLTestCase

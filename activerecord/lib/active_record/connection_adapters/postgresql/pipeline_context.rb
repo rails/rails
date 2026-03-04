@@ -171,6 +171,7 @@ module ActiveRecord
                   e.result&.error_field(PG::PG_DIAG_SEVERITY_NONLOCALIZED) == "FATAL"
 
                 replayable = retryable_connection_error?(translated) &&
+                  reconnect_can_restore_state? &&
                   if server_fatal
                     abandon_pipelined_intents(translated, allow_recovery: true, all_unsynced: true, last_replayed_head: last_replayed_head)
                   else
@@ -198,7 +199,7 @@ module ActiveRecord
               # resolved intents keep their results.
               needs_replay = consumed&.select { |i| i.error || i.not_run_reason }
               if needs_replay&.any? { |i| i.error && retryable_connection_error?(i.error) }
-                if needs_replay.all?(&:allow_retry) && needs_replay.first != last_replayed_head
+                if reconnect_can_restore_state? && needs_replay.all?(&:allow_retry) && needs_replay.first != last_replayed_head
                   last_replayed_head = needs_replay.first
                   needs_replay.each(&:reset_for_retry)
                   reconnect!(restore_transactions: true)
