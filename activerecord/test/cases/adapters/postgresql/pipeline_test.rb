@@ -1561,6 +1561,123 @@ module ActiveRecord
       end
     end
 
+    def test_flush_pipeline_stops_replaying_when_no_progress
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.connect!
+        conn.materialize_transactions
+        conn.enter_pipeline_mode
+
+        self_destruct_sql = "SELECT pg_terminate_backend(pg_backend_pid()), pg_sleep(5)"
+
+        intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: self_destruct_sql,
+          name: "SELF_DESTRUCT",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+        intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n",
+          name: "BYSTANDER",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+
+        intent1.execute!
+        intent2.execute!
+
+        reconnect_count = 0
+        conn.define_singleton_method(:reconnect!) do |**kwargs|
+          super(**kwargs)
+          reconnect_count += 1
+        end
+
+        conn.flush_pipeline
+
+        assert_equal 1, reconnect_count,
+          "Expected one replay attempt; without the progress check this would loop forever"
+        assert intent1.raw_result_available?
+        assert intent2.raw_result_available?
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
+    def test_flush_pipeline_replays_successfully_after_transient_failure
+      pool_config = ActiveRecord::Base.connection_pool.db_config
+      test_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(
+        ActiveRecord::ConnectionAdapters::PoolConfig.new(
+          ActiveRecord::Base,
+          pool_config,
+          :writing,
+          :default
+        )
+      )
+
+      begin
+        conn = test_pool.checkout
+        conn.connect!
+        conn.materialize_transactions
+
+        original_pid = conn.execute("SELECT pg_backend_pid() AS pid").first["pid"]
+        conn.enter_pipeline_mode
+
+        # Self-destructs on first run, but not after reconnect (PID changes).
+        self_destruct_once_sql = "SELECT" \
+          " CASE WHEN pg_backend_pid() = #{original_pid}" \
+          " THEN pg_terminate_backend(pg_backend_pid()) ELSE true END," \
+          " CASE WHEN pg_backend_pid() = #{original_pid}" \
+          " THEN pg_sleep(5) END"
+
+        intent1 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: self_destruct_once_sql,
+          name: "SELF_DESTRUCT_ONCE",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+        intent2 = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: conn,
+          raw_sql: "SELECT 1 AS n",
+          name: "BYSTANDER",
+          allow_retry: true,
+          materialize_transactions: false
+        )
+
+        intent1.execute!
+        intent2.execute!
+
+        reconnect_count = 0
+        conn.define_singleton_method(:reconnect!) do |**kwargs|
+          super(**kwargs)
+          reconnect_count += 1
+        end
+
+        conn.flush_pipeline
+
+        assert_equal 1, reconnect_count
+        assert intent1.raw_result_available?
+        assert intent2.raw_result_available?
+        assert_nil intent1.error
+        assert_nil intent2.error
+        assert_equal 1, intent2.raw_result.first["n"].to_i
+      ensure
+        test_pool.disconnect! rescue nil
+      end
+    end
+
     def test_server_aborted_query_reruns_on_demand_outside_transaction
       # When a SQL error aborts subsequent queries in a pipeline and
       # there's no enclosing transaction, the aborted queries can

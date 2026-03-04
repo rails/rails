@@ -149,6 +149,13 @@ module ActiveRecord
             return unless pipeline_active?
             return unless pipeline_pending?
 
+            # Track which intent was at the head of the last replay
+            # attempt. If we come back around and the same intent is
+            # still leading, we're not making progress - give up.
+            # If the head has advanced (some intents succeeded), that's
+            # genuine progress and worth another attempt.
+            last_replayed_head = nil
+
             loop do
               begin
                 pipeline_sync
@@ -165,18 +172,22 @@ module ActiveRecord
 
                 replayable = retryable_connection_error?(translated) &&
                   if server_fatal
-                    abandon_pipelined_intents(translated, allow_recovery: true, all_unsynced: true)
+                    abandon_pipelined_intents(translated, allow_recovery: true, all_unsynced: true, last_replayed_head: last_replayed_head)
                   else
-                    abandon_pipelined_intents(translated, allow_recovery: true)
+                    abandon_pipelined_intents(translated, allow_recovery: true, last_replayed_head: last_replayed_head)
                   end
 
                 if replayable
+                  last_replayed_head = replayable.first
                   reconnect!(restore_transactions: true)
                   enter_pipeline_mode
                   replayable.each { |intent| pipeline_add_query(intent) }
                   next
                 end
 
+                # abandon_pipelined_intents already delivered terminal
+                # states if it was called (retryable error but recovery
+                # blocked). For non-retryable errors, abandon now.
                 abandon_pipelined_intents(translated)
                 return
               end
@@ -187,7 +198,8 @@ module ActiveRecord
               # resolved intents keep their results.
               needs_replay = consumed&.select { |i| i.error || i.not_run_reason }
               if needs_replay&.any? { |i| i.error && retryable_connection_error?(i.error) }
-                if needs_replay.all?(&:allow_retry)
+                if needs_replay.all?(&:allow_retry) && needs_replay.first != last_replayed_head
+                  last_replayed_head = needs_replay.first
                   needs_replay.each(&:reset_for_retry)
                   reconnect!(restore_transactions: true)
                   enter_pipeline_mode
@@ -259,7 +271,11 @@ module ActiveRecord
           # replay (synced intents must have allow_retry; unsynced are always
           # eligible), returns the intents instead of marking them so the
           # caller can reconnect and replay. Returns nil otherwise.
-          def abandon_pipelined_intents(connection_error = nil, allow_recovery: false, all_unsynced: false)
+          #
+          # +last_replayed_head+ gates progress: if the first intent in the
+          # replay list is the same as the last attempt, we're not making
+          # progress and fall through to deliver terminal states instead.
+          def abandon_pipelined_intents(connection_error = nil, allow_recovery: false, all_unsynced: false, last_replayed_head: nil)
             intents = @pending_intents
             @pending_intents = []
 
@@ -293,8 +309,10 @@ module ActiveRecord
 
             if allow_recovery && synced.all? { |i| i.allow_retry }
               all = synced + unsynced
-              all.each(&:reset_for_retry)
-              return all
+              if all.first != last_replayed_head
+                all.each(&:reset_for_retry)
+                return all
+              end
             end
 
             error = connection_error || ActiveRecord::ConnectionFailed.new("Connection lost during pipeline execution")
