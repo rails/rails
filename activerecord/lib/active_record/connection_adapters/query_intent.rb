@@ -268,7 +268,7 @@ module ActiveRecord
         adapter.lock.synchronize do
           @error = exception
 
-          adapter.send(:mark_connection_unhealthy_unless_query_error, exception)
+          adapter.send(:downgrade_connection_after_error, exception)
           adapter.send(:dirty_current_transaction) if @materialize_transactions
 
           @raw_result_available = true

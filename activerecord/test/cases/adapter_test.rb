@@ -979,15 +979,33 @@ module ActiveRecord
       end
 
       test "needs_reconnect? is set for connection errors" do
-        @connection.send(:mark_connection_unhealthy_unless_query_error,
+        @connection.send(:downgrade_connection_after_error,
           ActiveRecord::ConnectionFailed.new("connection lost"))
         assert_predicate @connection, :needs_reconnect?
       end
 
       test "needs_reconnect? is not set for retryable query errors" do
-        @connection.send(:mark_connection_unhealthy_unless_query_error,
+        @connection.send(:downgrade_connection_after_error,
           ActiveRecord::Deadlocked.new("deadlock detected"))
         assert_not_predicate @connection, :needs_reconnect?
+      end
+
+      test "needs_reconnect? is not set for statement errors" do
+        @connection.send(:downgrade_connection_after_error,
+          ActiveRecord::StatementInvalid.new("PG::UndefinedTable"))
+        assert_not_predicate @connection, :needs_reconnect?
+      end
+
+      test "query error does not force reconnect on next query" do
+        initial_connection_id = connection_id_from_server(@connection)
+
+        assert_raises(ActiveRecord::StatementInvalid) do
+          @connection.execute("SELECT * FROM nonexistent_table_abc")
+        end
+
+        @connection.execute("SELECT 1")
+
+        assert_equal initial_connection_id, connection_id_from_server(@connection)
       end
 
       test "reconnect! clears needs_reconnect?" do
@@ -1025,7 +1043,7 @@ module ActiveRecord
         connected_since_before = @connection.instance_variable_get(:@connected_since)
 
         # Simulate a connection error marking via the real mechanism
-        @connection.send(:mark_connection_unhealthy_unless_query_error,
+        @connection.send(:downgrade_connection_after_error,
           ActiveRecord::ConnectionFailed.new("connection lost"))
 
         # Use allow_retry: true to exercise the reconnectable+allow_retry

@@ -1147,7 +1147,7 @@ module ActiveRecord
                 end
               end
 
-              mark_connection_unhealthy_unless_query_error(translated_exception)
+              downgrade_connection_after_error(translated_exception)
 
               raise translated_exception
             ensure
@@ -1198,13 +1198,19 @@ module ActiveRecord
           end
         end
 
-        # Mark the connection as potentially broken after a non-retryable query error.
-        # This is shared logic used by both with_raw_connection and intent-driven execution.
-        def mark_connection_unhealthy_unless_query_error(exception)
+        # Flag the connection as potentially unhealthy after an error.
+        # Retryable query errors (deadlocks etc.) are expected and don't
+        # affect connection health. Other errors clear @verified to force
+        # an active? check on next use. Connection errors additionally
+        # set @needs_reconnect to force a full reconnect.
+        def downgrade_connection_after_error(exception)
           unless retryable_query_error?(exception)
             @last_activity = nil
             @verified = false
-            @needs_reconnect = true
+
+            if retryable_connection_error?(exception)
+              @needs_reconnect = true
+            end
           end
         end
 
