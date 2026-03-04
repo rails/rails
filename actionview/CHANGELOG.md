@@ -1,3 +1,9 @@
+*   Deprecate invalid options passed to `content_for`. Invalid options were previously silently
+    ignored. For example, `content_for :foo, fluhs: true { "bar" }` (note the typo) would not
+    flush content, with no indication of the mistake.
+
+    *Jeroen Versteeg*
+
 *   Fix tag parameter content being overwritten instead of combined with tag block content.
     Before `tag.div("Hello ") { "World" }` would just return `<div>World</div>`, now it returns `<div>Hello World</div>`.
 
