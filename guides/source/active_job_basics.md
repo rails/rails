@@ -21,22 +21,18 @@ What is Active Job?
 Active Job Rails framework allows you to declare background jobs and
 execute them on a queuing backend. It provides a consistent, high-level interface for common asynchronous tasks such as sending emails, processing data, generating reports, and running periodic maintenance work like data clean-up or billing.
 
-The goal of background jobs is to move long-running or non-critical work out of the request-response cycle and into a background queue (such as the default Solid Queue), and keep the web requests fast and responsive. This separation allows applications to perform work asynchronously, scale background processing independently, and execute multiple tasks in parallel without blocking user interactions.
+The goal of background jobs is to move long-running or non-critical work out of the HTTP request-response cycle and into a background queue (such as the default Solid Queue), and keep the web requests fast and responsive. This separation allows applications to perform work asynchronously, scale background processing independently, and execute multiple tasks in parallel without blocking user interactions.
 
 Creating Jobs
 -------------
 
-todo: emailing example
-One of the most common jobs in a modern web application is sending emails
-outside of the request-response cycle, so the user doesn't have to wait on it.
-Active Job is integrated with Action Mailer so you can easily send emails
-asynchronously:
+One of the most common jobs in a modern web application is sending emails to users. Active Job can do this outside of the request-response cycle, so the user doesn't have to wait on it. Active Job is integrated with Action Mailer so you can easily send emails asynchronously:
 
 ```ruby
 # If you want to send the email now use #deliver_now
 UserMailer.welcome(@user).deliver_now
 
-# If you want to send the email through Active Job use #deliver_later
+# If you want to send the email asynchronously use #deliver_later
 UserMailer.welcome(@user).deliver_later
 ```
 
@@ -55,7 +51,7 @@ create  app/jobs/guests_cleanup_job.rb
 ```
 
 If you don't want to use a generator, you can create your own file inside of
-`app/jobs` and define a class that it inherits from `ApplicationJob`.
+`app/jobs` and define a class that inherits from `ApplicationJob`.
 
 Here's what a job looks like:
 
@@ -72,7 +68,7 @@ end
 Note that you can define the `perform` method inside a job class with as many arguments as you want.
 
 If your application uses a custom abstract job base class instead of
-`ApplicationJob`, you can use the `--parent` option with the generator. The parent class must itself inherit from `ApplicationJob` but can be useful for grouping related functionality in one place.
+`ApplicationJob`, you can use the `--parent` option with the generator. The parent class must itself inherit from `ApplicationJob`. This can be useful for grouping related functionality in one place.
 
 For example, given a custom abstract job class:
 
@@ -121,7 +117,7 @@ GuestsCleanupJob.set(wait: 1.week).perform_later(guest)
 ```
 
 Note that `perform_now` and `perform_later` will call `perform` under the hood
-so you can pass as many arguments as defined in the latter.
+so you can pass as many arguments as defined in `peform`.
 
 ```ruby
 GuestsCleanupJob.perform_later(guest1, guest2, filter: "some_filter")
@@ -179,10 +175,11 @@ end
 
 This works with any class that mixes in `GlobalID::Identification`, which is mixed into Active Record by default.
 
+todo: verify code
 #### Add Custom Types by Defining Serializers
 
 You can extend the list of supported argument types by defining
-your own serializer for you custom types:
+your own serializer for your custom types:
 
 ```ruby
 # app/serializers/money_serializer.rb
@@ -209,7 +206,7 @@ class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
 end
 ```
 
-Once a serializer is defined, it needs to be added to of serializers Rails knows about:
+Once a serializer is defined, it needs to be added to the list of serializers Rails knows about:
 
 ```ruby
 # config/initializers/custom_serializers.rb
@@ -268,23 +265,20 @@ class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
   # ...
 end
-
-# Now your job will run on queue production_low_priority on your
-# production environment and on staging_low_priority
-# on your staging environment
 ```
+
+Now your job will run on queue `production_low_priority` on your
+production environment and on `staging_low_priority` on your staging environment.
 
 You can also configure the prefix on a per job basis.
 
 ```ruby
+# This will override the global prefix and this job won't be prefixed.
 class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
   self.queue_name_prefix = nil
   # ...
 end
-
-# Now your job's queue won't be prefixed, overriding what
-# was configured in `config.active_job.queue_name_prefix`.
 ```
 
 The default queue name prefix delimiter is '\_'.  This can be changed by setting
@@ -306,11 +300,9 @@ class GuestsCleanupJob < ApplicationJob
   queue_as :low_priority
   # ...
 end
-
-# Now your job will run on queue production.low_priority on your
-# production environment and on staging.low_priority
-# on your staging environment
 ```
+
+Now the queue will be named `production.low_priority` and `staging.low_priority`.
 
 To control the queue from the job level you can pass a block to `queue_as`. The
 block will be executed in the job context (so it can access `self.arguments`),
