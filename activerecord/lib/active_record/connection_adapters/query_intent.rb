@@ -316,8 +316,8 @@ module ActiveRecord
 
         def run_query!
           adapter.execute_intent(self)
-        rescue ::RangeError
-          @cast_result = ActiveRecord::Result.empty
+        rescue ::RangeError => error
+          @error = error
           @raw_result_available = true
         end
     end
