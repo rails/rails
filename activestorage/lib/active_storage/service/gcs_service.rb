@@ -152,6 +152,21 @@ module ActiveStorage
       @client ||= Google::Cloud::Storage.new(**@config.except(:bucket, :cache_control, :iam, :gsa_email))
     end
 
+    # Returns the IAM client used for direct uploads and signed URLs.
+    # By default, the authorization for the IAM client is set to
+    # {Application Default Credentials}[https://docs.cloud.google.com/docs/authentication/application-default-credentials],
+    # fetched once at instantiation time, then refreshed automatically when expired.
+    # This can be set to a different value to use other authorization methods.
+    #
+    #   ActiveStorage::Blob.service.iam_client.authorization = Google::Auth::ImpersonatedServiceAccountCredentials.new(options)
+    def iam_client
+      @iam_client ||= Google::Apis::IamcredentialsV1::IAMCredentialsService.new.tap do |client|
+        client.authorization ||= Google::Auth.get_application_default(["https://www.googleapis.com/auth/iam"])
+      rescue
+        nil
+      end
+    end
+
     private
       def private_url(key, expires_in:, filename:, content_type:, disposition:, **)
         args = {
@@ -208,19 +223,6 @@ module ActiveStorage
       def signer
         # https://googleapis.dev/ruby/google-cloud-storage/latest/Google/Cloud/Storage/Project.html#signed_url-instance_method
         lambda do |string_to_sign|
-          iam_client = Google::Apis::IamcredentialsV1::IAMCredentialsService.new
-
-          # We explicitly do not set iam_client.authorization so that it uses the
-          # credentials set by the application at Google::Apis::RequestOptions.default.authorization.
-          # If the application does not set it, the GCP libraries will automatically
-          # determine it on each call. This code previously explicitly set the
-          # authorization to Google::Auth.get_application_default which triggers
-          # an explicit call to the metadata server - given this lambda is called
-          # for a significant number of file operations, it can lead to considerable
-          # tail latencies and even metadata server overloads. Additionally, that
-          # prevented applications from being able to configure the credentials
-          # used to perform the signature operation.
-
           request = Google::Apis::IamcredentialsV1::SignBlobRequest.new(
             payload: string_to_sign
           )

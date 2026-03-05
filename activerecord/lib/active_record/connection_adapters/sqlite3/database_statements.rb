@@ -69,6 +69,23 @@ module ActiveRecord
           end
         end
 
+        def execute_batch(statements, name = nil, **kwargs) # :nodoc:
+          sql = combine_multi_statements(statements)
+          intent = QueryIntent.new(
+            adapter: self,
+            processed_sql: sql,
+            name: name,
+            batch: true,
+            binds: kwargs[:binds] || [],
+            prepare: kwargs[:prepare] || false,
+            allow_async: kwargs[:async] || false,
+            allow_retry: kwargs[:allow_retry] || false,
+            materialize_transactions: kwargs[:materialize_transactions] != false
+          )
+          intent.execute!
+          intent.finish
+        end
+
         private
           def internal_begin_transaction(mode, isolation)
             if isolation
@@ -141,23 +158,6 @@ module ActiveRecord
 
           def affected_rows(result)
             result&.affected_rows
-          end
-
-          def execute_batch(statements, name = nil, **kwargs)
-            sql = combine_multi_statements(statements)
-            intent = QueryIntent.new(
-              adapter: self,
-              processed_sql: sql,
-              name: name,
-              batch: true,
-              binds: kwargs[:binds] || [],
-              prepare: kwargs[:prepare] || false,
-              allow_async: kwargs[:async] || false,
-              allow_retry: kwargs[:allow_retry] || false,
-              materialize_transactions: kwargs[:materialize_transactions] != false
-            )
-            intent.execute!
-            intent.finish
           end
 
           def build_truncate_statement(table_name)

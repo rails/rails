@@ -645,6 +645,14 @@ module Arel # :nodoc: all
           end
         end
 
+        def visit_Arel_Nodes_CaseSensitiveEquality(o, collector)
+          visit @connection.case_sensitive_comparison(o.left, o.right), collector
+        end
+
+        def visit_Arel_Nodes_CaseInsensitiveEquality(o, collector)
+          visit @connection.case_insensitive_comparison(o.left, o.right), collector
+        end
+
         def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
           if o.right.nil?
             collector = visit o.left, collector

@@ -4,8 +4,7 @@ module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
     extend ActiveSupport::Concern
-    # :nodoc:
-    ACTIONS = [:create, :destroy, :update]
+    ACTIONS = [:create, :destroy, :update] # :nodoc:
 
     included do
       define_callbacks :commit, :rollback,
@@ -425,13 +424,13 @@ module ActiveRecord
     #
     # This method is available within the context of an ActiveRecord::Base
     # instance.
-    def with_transaction_returning_status
+    def with_transaction_returning_status # :nodoc:
       self.class.with_connection do |connection|
         connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
           status = nil
           ensure_finalize = !connection.transaction_open?
 
-          connection.transaction do
+          implicit_persistence_transaction(connection) do
             add_to_transaction(ensure_finalize || has_transactional_callbacks?)
             remember_transaction_record_state
 
@@ -541,6 +540,34 @@ module ActiveRecord
 
       def has_transactional_callbacks?
         !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_before_commit_callbacks.empty?
+      end
+
+      # Method called to execute persistence method operations (+save+, +destroy+, +touch+),
+      # creating a transaction on the provided +connection+.
+      #
+      # Override this method to customize transaction behavior, for example to set a specific
+      # isolation level.
+      #
+      # The +connection+ parameter provides access to the current database
+      # connection, allowing conditional logic based on connection state
+      # (e.g., whether a transaction is already open).
+      # The +block+ parameter contains the persistence operation to be executed.
+      #
+      # Example skipping transaction creation if one is already open:
+      #
+      #   class Account < ApplicationRecord
+      #     private
+      #       def implicit_persistence_transaction(connection, &block)
+      #         if connection.transaction_open?
+      #           yield
+      #         else
+      #           super
+      #         end
+      #       end
+      #   end
+      #
+      def implicit_persistence_transaction(connection, &block)
+        connection.transaction(&block)
       end
   end
 end

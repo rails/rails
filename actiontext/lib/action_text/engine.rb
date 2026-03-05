@@ -26,6 +26,11 @@ module ActionText
       #{root}/app/models
     )
 
+    guard_load_hooks(
+      :action_text_record, :action_text_rich_text, :action_text_content,
+      :action_text_encrypted_rich_text,
+    )
+
     initializer "action_text.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_text] = ActionText.deprecator
     end
@@ -53,6 +58,24 @@ module ActionText
 
         def attachable_plain_text_representation(caption = nil)
           "[#{caption || filename}]"
+        end
+
+        def attachable_markdown_representation(caption = nil, attachment_links: false)
+          title = (caption || filename).to_s
+
+          if attachment_links
+            renderer = ActionText::Content.renderer
+            raise ArgumentError, "attachment_links requires a rendering context" unless renderer
+
+            url = renderer.url_for(self)
+            if image?
+              "!#{MarkdownConversion.markdown_link(title, url)}"
+            else
+              MarkdownConversion.markdown_link(title, url)
+            end
+          else
+            "[#{MarkdownConversion.escape_markdown_text(title)}]"
+          end
         end
 
         def to_trix_content_attachment_partial_path

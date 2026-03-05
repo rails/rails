@@ -93,6 +93,11 @@ module Rails
       Rails.env
     end
 
+    # The application's revision (deployment identifier)
+    property "Application revision" do
+      Rails.app.revision
+    end
+
     # The name of the database adapter for the current environment.
     property "Database adapter" do
       ActiveRecord::Base.connection_pool.db_config.adapter

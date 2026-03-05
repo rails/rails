@@ -52,7 +52,7 @@ class Comment < ActiveRecord::Base
   end
 
   def self.search_by_type(q)
-    where("#{QUOTED_TYPE} = ?", q)
+    where("#{ARTest::QUOTED_TYPE} = ?", q)
   end
 
   def self.all_as_method

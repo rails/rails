@@ -151,11 +151,11 @@ module ActiveSupport
               "def #{method_name}(#{definition})" <<
               "  _ = #{receiver}" <<
               "  _.#{method}(#{definition})" <<
-              "rescue NoMethodError => e" <<
+              "rescue ::NoMethodError => e" <<
               "  if _.nil? && e.name == :#{method}" <<
-              "    raise ::ActiveSupport::DelegationError.nil_target(:#{method_name}, :'#{receiver}')" <<
+              "    ::Kernel.raise ::ActiveSupport::DelegationError.nil_target(:#{method_name}, :'#{receiver}')" <<
               "  else" <<
-              "    raise" <<
+              "    ::Kernel.raise" <<
               "  end" <<
               "end"
           end
@@ -168,49 +168,32 @@ module ActiveSupport
         target = target.to_s
         target = "self.#{target}" if RESERVED_METHOD_NAMES.include?(target) || target == "__target"
 
-        if allow_nil
-          owner.module_eval <<~RUBY, __FILE__, __LINE__ + 1
-            def respond_to_missing?(name, include_private = false)
-              # It may look like an oversight, but we deliberately do not pass
-              # +include_private+, because they do not get delegated.
-
-              return false if name == :marshal_dump || name == :_dump
-              #{target}.respond_to?(name) || super
-            end
-
-            def method_missing(method, ...)
-              __target = #{target}
-              if __target.nil? && !nil.respond_to?(method)
-                nil
-              elsif __target.respond_to?(method)
-                __target.public_send(method, ...)
-              else
-                super
-              end
-            end
-          RUBY
+        nil_behavior = if allow_nil
+          "nil"
         else
-          owner.module_eval <<~RUBY, __FILE__, __LINE__ + 1
-            def respond_to_missing?(name, include_private = false)
-              # It may look like an oversight, but we deliberately do not pass
-              # +include_private+, because they do not get delegated.
-
-              return false if name == :marshal_dump || name == :_dump
-              #{target}.respond_to?(name) || super
-            end
-
-            def method_missing(method, ...)
-              __target = #{target}
-              if __target.nil? && !nil.respond_to?(method)
-                raise ::ActiveSupport::DelegationError.nil_target(method, :'#{target}')
-              elsif __target.respond_to?(method)
-                __target.public_send(method, ...)
-              else
-                super
-              end
-            end
-          RUBY
+          "::Kernel.raise ::ActiveSupport::DelegationError.nil_target(method, :'#{target}')"
         end
+
+        owner.module_eval <<~RUBY, __FILE__, __LINE__ + 1
+          def respond_to_missing?(name, include_private = false)
+            # It may look like an oversight, but we deliberately do not pass
+            # +include_private+, because they do not get delegated.
+
+            return false if name == :marshal_dump || name == :_dump
+            #{target}.respond_to?(name) || super
+          end
+
+          def method_missing(method, ...)
+            __target = #{target}
+            if __target.nil? && !nil.respond_to?(method)
+              #{nil_behavior}
+            elsif __target.respond_to?(method)
+              __target.public_send(method, ...)
+            else
+              super
+            end
+          end
+        RUBY
       end
 
       def DelegateClass(superclass, &block)

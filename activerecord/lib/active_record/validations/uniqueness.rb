@@ -111,20 +111,15 @@ module ActiveRecord
 
       def build_relation(klass, attribute, value)
         relation = klass.unscoped
-        # TODO: Add case-sensitive / case-insensitive operators to Arel
-        # to no longer need to checkout a connection here.
-        comparison = klass.with_connection do |connection|
-          relation.bind_attribute(attribute, value) do |attr, bind|
-            return relation.none! if bind.unboundable?
+        comparison = relation.bind_attribute(attribute, value) do |attr, bind|
+          return relation.none! if bind.unboundable?
 
-            if !options.key?(:case_sensitive) || bind.nil?
-              connection.default_uniqueness_comparison(attr, bind)
-            elsif options[:case_sensitive]
-              connection.case_sensitive_comparison(attr, bind)
-            else
-              # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
-              connection.case_insensitive_comparison(attr, bind)
-            end
+          if !options.key?(:case_sensitive) || bind.nil?
+            attr.eq(bind)
+          elsif options[:case_sensitive]
+            attr.case_sensitive_eq(bind)
+          else
+            attr.case_insensitive_eq(bind)
           end
         end
 

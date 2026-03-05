@@ -507,7 +507,7 @@ class EnumTest < ActiveRecord::TestCase
       end
     end
 
-    assert_match(/must be only booleans, integers, symbols or strings/, e.message)
+    assert_match(/must be only booleans, integers, floats, symbols or strings/, e.message)
 
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
@@ -517,6 +517,19 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_match(/must be either a non-empty hash or an array\.$/, e.message)
+  end
+
+  test "enum with float values" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :rating, { low: 0.0, medium: 0.5, high: 1.0 }, prefix: true
+    end
+
+    instance = klass.new
+    instance.rating_medium!
+    assert_predicate instance, :rating_medium?
+    assert_equal 0.5, instance.rating_for_database
+    assert_equal "medium", instance.rating
   end
 
   test "reserved enum names" do

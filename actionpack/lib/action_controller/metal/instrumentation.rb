@@ -96,7 +96,7 @@ module ActionController
       #     def cleanup_view_runtime
       #       super - time_taken_in_something_expensive
       #     end
-      def cleanup_view_runtime # :doc:
+      def cleanup_view_runtime(&block) # :doc:
         yield
       end
 

@@ -32,7 +32,7 @@ services:
 
 <%- if options[:redis] -%>
   redis:
-    image: valkey/valkey:8
+    image: valkey/valkey:9
     restart: unless-stopped
     volumes:
     - redis-data:/data

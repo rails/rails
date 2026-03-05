@@ -1179,7 +1179,7 @@ SELECT * FROM authors WHERE id = 10 LIMIT 1
 SELECT * FROM books WHERE author_id = 10 ORDER BY year_published DESC
 ```
 
-You can using the `reorder` clause to specify a different way to order the books:
+You can use the `reorder` clause to specify a different way to order the books:
 
 ```ruby
 Author.find(10).books.reorder("year_published ASC")
@@ -1395,13 +1395,14 @@ end
 
 NOTE:  Note that your database must support the raw SQL, that you pass in to the `lock` method.
 
-If you already have an instance of your model, you can start a transaction and acquire the lock in one go using the following code:
+If you already have an instance of your model, you can start a transaction and acquire the lock in one go using the following code. The block receives the current transaction so you can register callbacks:
 
 ```ruby
 book = Book.first
-book.with_lock do
+book.with_lock do |transaction|
   # This block is called within a transaction,
   # book is already locked.
+  transaction.after_commit { puts "hello" }
   book.increment!(:views)
 end
 ```

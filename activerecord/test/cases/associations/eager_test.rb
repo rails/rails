@@ -91,7 +91,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_loading_conditions_with_or
     posts = authors(:david).posts.references(:comments).merge(
       includes: :comments,
-      where: "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE} = 'SpecialComment'"
+      where: "comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE} = 'SpecialComment'"
     ).to_a
     assert_nil posts.detect { |p| p.author_id != authors(:david).id },
       "expected to find only david's posts"
@@ -770,7 +770,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts =
       authors(:david).posts
         .includes(:comments)
-        .where("comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'")
+        .where("comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE}= 'SpecialComment'")
         .references(:comments)
         .limit(2)
         .to_a
@@ -778,7 +778,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     count =
       Post.includes(:comments, :author)
-        .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')")
+        .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE}= 'SpecialComment')")
         .references(:authors, :comments)
         .limit(2)
         .count
@@ -788,7 +788,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_has_many_and_limit_and_scoped_conditions_on_the_eagers
     posts = nil
     Post.includes(:comments)
-      .where("comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'")
+      .where("comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE}= 'SpecialComment'")
       .references(:comments)
       .scoping do
       posts = authors(:david).posts.limit(2).to_a
@@ -796,7 +796,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
 
     Post.includes(:comments, :author)
-      .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')")
+      .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE}= 'SpecialComment')")
       .references(:authors, :comments)
       .scoping do
       count = Post.limit(2).count

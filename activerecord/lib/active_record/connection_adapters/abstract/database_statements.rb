@@ -219,8 +219,8 @@ module ActiveRecord
 
       deprecate :exec_insert, :exec_delete, :exec_update, deprecator: ActiveRecord.deprecator
 
-      def exec_insert_all(sql, name) # :nodoc:
-        intent = internal_build_intent(sql, name)
+      def exec_insert_all(inserter, name) # :nodoc:
+        intent = internal_build_intent(inserter.to_sql, name)
         intent.execute!
         intent.cast_result
       end
@@ -605,13 +605,44 @@ module ActiveRecord
       # Final wrapper around the subclass-specific +perform_query+. Populates the calling
       # intent's raw_result.
       def execute_intent(intent) # :nodoc:
+        should_dirty = false
+
+        if intent.materialize_transactions
+          # These can raise locally (e.g., ReadOnlyError). Validate before BEGIN.
+          intent.processed_sql
+          intent.type_casted_binds
+          materialize_transactions
+        end
+
         log(intent) do |notification_payload|
           intent.notification_payload = notification_payload
-          with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: intent.materialize_transactions) do |conn|
+          with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: false) do |conn|
+            should_dirty = intent.materialize_transactions
             result = perform_query(conn, intent)
             intent.raw_result = result
             handle_warnings(result, intent.processed_sql)
           end
+        end
+      ensure
+        dirty_current_transaction if should_dirty
+      end
+
+      # Executes SQL statements in the context of this connection without
+      # returning a result.
+      def execute_batch(statements, name = nil, **kwargs) # :nodoc:
+        statements.each do |statement|
+          intent = QueryIntent.new(
+            adapter: self,
+            processed_sql: statement,
+            name: name,
+            binds: kwargs[:binds] || [],
+            prepare: kwargs[:prepare] || false,
+            allow_retry: kwargs[:allow_retry] || false,
+            materialize_transactions: kwargs[:materialize_transactions] != false,
+            batch: kwargs[:batch] || false
+          )
+          intent.execute!
+          intent.finish
         end
       end
 
@@ -647,23 +678,6 @@ module ActiveRecord
           )
         end
 
-        def execute_batch(statements, name = nil, **kwargs)
-          statements.each do |statement|
-            intent = QueryIntent.new(
-              adapter: self,
-              processed_sql: statement,
-              name: name,
-              binds: kwargs[:binds] || [],
-              prepare: kwargs[:prepare] || false,
-              allow_retry: kwargs[:allow_retry] || false,
-              materialize_transactions: kwargs[:materialize_transactions] != false,
-              batch: kwargs[:batch] || false
-            )
-            intent.execute!
-            intent.finish
-          end
-        end
-
         def build_fixture_sql(fixtures, table_name)
           columns = schema_cache.columns_hash(table_name).reject { |_, column| supports_virtual_columns? && column.virtual? }
 
@@ -677,8 +691,7 @@ module ActiveRecord
 
             columns.map do |name, column|
               if fixture.key?(name)
-                # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
-                with_yaml_fallback(column.fetch_cast_type(self).serialize(fixture[name]))
+                with_yaml_fallback(column.cast_type.serialize(fixture[name]))
               else
                 default_insert_value(column)
               end
@@ -738,7 +751,7 @@ module ActiveRecord
             if pk.nil?
               # Extract the table from the insert sql. Yuck.
               table_ref = extract_table_ref_from_insert_sql(sql)
-              pk = primary_key(table_ref) if table_ref
+              pk = schema_cache.primary_keys(table_ref) if table_ref
             end
 
             returning_columns = returning || Array(pk)
@@ -772,7 +785,7 @@ module ActiveRecord
         end
 
         def extract_table_ref_from_insert_sql(sql)
-          if sql =~ /into\s("[A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im
+          if sql =~ /into\s("[-A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im
             $1.delete('"').strip
           end
         end

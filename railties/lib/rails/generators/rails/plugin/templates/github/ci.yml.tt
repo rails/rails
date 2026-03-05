@@ -5,12 +5,15 @@ on:
   push:
     branches: [ <%= user_default_branch %> ]
 
+permissions:
+  contents: read
+
 jobs:
 <%- unless skip_rubocop? -%>
   lint:
     runs-on: ubuntu-latest
     env:
-      RUBY_VERSION: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
+      RUBY_VERSION: <%= version_manager_ruby_version %>
       RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
       - name: Checkout code
@@ -23,7 +26,7 @@ jobs:
           bundler-cache: true
 
       - name: Prepare RuboCop cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           DEPENDENCIES_HASH: ${{ hashFiles('**/.rubocop.yml', '**/.rubocop_todo.yml', 'Gemfile.lock') }}
         with:
@@ -43,7 +46,7 @@ jobs:
     <%- if options[:database] == "sqlite3" -%>
     # services:
     #  redis:
-    #    image: valkey/valkey:8
+    #    image: valkey/valkey:9
     #    ports:
     #      - 6379:6379
     #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
@@ -69,7 +72,7 @@ jobs:
       <%- end -%>
 
       # redis:
-      #   image: valkey/valkey:8
+      #   image: valkey/valkey:9
       #   ports:
       #     - 6379:6379
       #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
@@ -82,7 +85,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
+          ruby-version: <%= version_manager_ruby_version %>
           bundler-cache: true
       <%- if using_bun? -%>
 
@@ -106,7 +109,7 @@ jobs:
         run: <%= test_command %>
 
       - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: screenshots

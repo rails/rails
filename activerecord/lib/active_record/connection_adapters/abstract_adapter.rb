@@ -816,6 +816,12 @@ module ActiveRecord
         false
       end
 
+      def verify
+        return if @verified
+        return if (last_activity = seconds_since_last_activity) && last_activity < verify_timeout
+        verify!
+      end
+
       # Checks whether the connection to the database is still active (i.e. not stale).
       # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
@@ -875,10 +881,6 @@ module ActiveRecord
           @raw_connection_dirty = true
           conn
         end
-      end
-
-      def default_uniqueness_comparison(attribute, value) # :nodoc:
-        attribute.eq(value)
       end
 
       def case_sensitive_comparison(attribute, value) # :nodoc:
@@ -1060,7 +1062,7 @@ module ActiveRecord
         #
         def with_raw_connection(allow_retry: false, materialize_transactions: true)
           @lock.synchronize do
-            connect! if @raw_connection.nil? && reconnect_can_restore_state?
+            connect! if !connected? && reconnect_can_restore_state?
 
             self.materialize_transactions if materialize_transactions
 

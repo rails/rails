@@ -40,7 +40,7 @@ then you will see:
 
 ```bash
 $ ls -F test
-controllers/                     helpers/                         mailers/                         fixtures/                        integration/                     models/                          test_helper.rb
+controllers/  fixtures/  helpers/  integration/  mailers/  models/  test_helper.rb
 ```
 
 ### Test Directories
@@ -57,25 +57,28 @@ outcomes.
 The `integration` directory is reserved for [tests that cover
 interactions between controllers](#integration-testing).
 
-The `system` test directory holds [system tests](#system-testing), which are
+[Fixtures](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html)
+are a way of mocking up data to use in your tests, so that you don't have to use
+'real' data. They are stored in the `fixtures` directory, and you can read more
+about them in the [Fixtures](#fixtures) section below.
+
+The `test_helper.rb` file holds the default configuration for your tests.
+
+When you first [generate system tests](#generating-system-tests), a `system`
+directory and an `application_system_test_case.rb` file will be created.
+
+The `system` directory holds [system tests](#system-testing), which are
 used for full browser testing of your application. System tests allow you to
 test your application the way your users experience it and help you test your
 JavaScript as well. System tests inherit from
 [Capybara](https://github.com/teamcapybara/capybara) and perform in-browser
 tests for your application.
 
-[Fixtures](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html)
-are a way of mocking up data to use in your tests, so that you don't have to use
-'real' data. They are stored in the `fixtures` directory, and you can read more
-about them in the [Fixtures](#fixtures) section below.
+The `application_system_test_case.rb` file holds the default configuration for your
+system tests.
 
 A `jobs` directory will also be created for your job tests when you first
 [generate a job](active_job_basics.html#create-the-job).
-
-The `test_helper.rb` file holds the default configuration for your tests.
-
-The `application_system_test_case.rb` holds the default configuration for your
-system tests.
 
 ### The Test Environment
 
@@ -1451,23 +1454,24 @@ generate system tests in two ways:
 
 1. **When scaffolding**, explicitly enable system tests:
 
-   ```bash
-   $ bin/rails generate scaffold Article title:string body:text --system-tests=true
-   ```
+    ```bash
+    $ bin/rails generate scaffold Article title:string body:text --system-tests=true
+    ```
 
 2. **Generate system tests independently** for critical features:
 
-   ```bash
-   $ bin/rails generate system_test articles
-   ```
+    ```bash
+    $ bin/rails generate system_test articles
+    ```
 
 Rails system tests are stored in the `test/system` directory in your
 application. To generate a system test skeleton, run the following command:
 
 ```bash
 $ bin/rails generate system_test users
-      invoke test_unit
-      create test/system/users_test.rb
+      invoke  test_unit
+      create    test/application_system_test_case.rb
+      create    test/system/users_test.rb
 ```
 
 Here's what a freshly generated system test looks like:
@@ -1493,7 +1497,7 @@ the default settings.
 Rails makes changing the default settings for system tests very simple. All the
 setup is abstracted away so you can focus on writing your tests.
 
-When you generate a new application or scaffold, an
+When you generate system tests, an
 `application_system_test_case.rb` file is created in the test directory. This is
 where all the configuration for your system tests should live.
 
@@ -1607,6 +1611,7 @@ command you should see:
 
 ```
       invoke  test_unit
+      create    test/application_system_test_case.rb
       create    test/system/articles_test.rb
 ```
 
@@ -2799,6 +2804,9 @@ class ActiveSupport::TestCase
   parallelize threshold: 100
 end
 ```
+
+NOTE: Setting the `PARALLEL_WORKERS` environment variable will bypass the
+threshold check, enabling parallelization regardless of test count.
 
 Testing Eager Loading
 ---------------------

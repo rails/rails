@@ -3,7 +3,6 @@
 require "fileutils"
 require "digest/md5"
 require "rails/version" unless defined?(Rails::VERSION)
-require "open-uri"
 require "tsort"
 require "uri"
 require "rails/generators"
@@ -632,6 +631,9 @@ module Rails
           packages << "python-is-python3"
         end
 
+        # ActiveStorage preview support
+        packages << "libvips" unless skip_active_storage?
+
         packages.compact.sort
       end
 
@@ -769,6 +771,19 @@ module Rails
 
       def jruby?
         defined?(JRUBY_VERSION)
+      end
+
+      def version_manager_ruby_version
+        return ENV["RBENV_VERSION"] if ENV["RBENV_VERSION"]
+        return ENV["rvm_ruby_string"] if ENV["rvm_ruby_string"]
+
+        version = if RUBY_ENGINE == "ruby"
+          Gem.ruby_version.to_s.sub(/\.([a-zA-Z])/, '-\1')
+        else
+          RUBY_ENGINE_VERSION
+        end
+
+        "#{RUBY_ENGINE}-#{version}"
       end
 
       def empty_directory_with_keep_file(destination, config = {})

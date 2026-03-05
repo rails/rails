@@ -580,7 +580,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   def test_yaml_dumping_with_lock_column
     t1 = LockWithoutDefault.new
     payload = YAML.dump(t1)
-    t2 = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+    t2 = YAML.unsafe_load(payload)
 
     assert_equal t1.attributes, t2.attributes
   end

@@ -183,6 +183,14 @@ module ActiveJob
   #   See {ActiveJob::Exceptions#retry_job}[rdoc-ref:ActiveJob::Exceptions#retry_job] for available options.
   # * <tt>:resume_errors_after_advancing</tt> - Whether to resume errors after advancing the continuation.
   #   Defaults to +true+.
+  #
+  # Example:
+  #
+  #   class ProcessImportJob < ApplicationJob
+  #     self.max_resumptions = 3
+  #     self.resume_options = { wait: 1.seconds, queue: :resumed }
+  #     self.resume_errors_after_advancing = false
+  #   end
   class Continuation
     extend ActiveSupport::Autoload
 

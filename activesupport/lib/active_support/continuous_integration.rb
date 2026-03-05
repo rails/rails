@@ -27,7 +27,8 @@ module ActiveSupport
       title: "\033[1;35m",    # Purple
       subtitle: "\033[1;90m", # Medium Gray
       error: "\033[1;31m",    # Red
-      success: "\033[1;32m"   # Green
+      success: "\033[1;32m",  # Green
+      progress: "\033[1;36m"  # Cyan
     }
 
     attr_reader :results
@@ -55,12 +56,15 @@ module ActiveSupport
     #     end
     #   end
     def self.run(title = "Continuous Integration", subtitle = "Running tests, style checks, and security audits", &block)
-      new.tap do |ci|
-        ENV["CI"] = "true"
-        ci.heading title, subtitle, padding: false
-        ci.report(title, &block)
-        abort unless ci.success?
-      end
+      ENV["CI"] = "true"
+      new.tap { |ci| ci.run(title, subtitle, &block) }
+    end
+
+    def run(title, subtitle, &block)
+      heading title, subtitle, padding: false
+      success, seconds = execute(title, &block)
+      result_line(title, success, seconds)
+      abort unless success?
     end
 
     def initialize
@@ -75,8 +79,43 @@ module ActiveSupport
     #   step "Setup", "bin/setup"
     #   step "Single test", "bin/rails", "test", "--name", "test_that_is_one"
     def step(title, *command)
-      heading title, command.join(" "), type: :title
-      report(title) { results << [ system(*command), title ] }
+      previous_trap = Signal.trap("INT") { abort colorize("\n❌ #{title} interrupted", :error) }
+      report_step(title, command) do
+        started = Time.now.to_f
+        [system(*command), Time.now.to_f - started]
+      end
+      abort if failing_fast?
+    ensure
+      Signal.trap("INT", previous_trap || "-")
+    end
+
+    # Declare a group of steps that can be run in parallel. Steps within the group are collected first,
+    # then executed either concurrently (when +parallel+ > 1) or sequentially (when +parallel+ is 1).
+    #
+    # When running in parallel, each step's output is captured to avoid interleaving, and a progress
+    # display shows which steps are currently running.
+    #
+    # Sub-groups within a parallel group occupy a single parallel slot and run their steps sequentially.
+    #
+    # Examples:
+    #
+    #   group "Checks", parallel: 3 do
+    #     step "Style: Ruby", "bin/rubocop"
+    #     step "Security: Brakeman", "bin/brakeman --quiet"
+    #     step "Security: Gem audit", "bin/bundler-audit"
+    #   end
+    #
+    #   group "Tests" do
+    #     step "Unit tests", "bin/rails test"
+    #     step "System tests", "bin/rails test:system"
+    #   end
+    def group(name, parallel: 1, &block)
+      if parallel <= 1
+        instance_eval(&block)
+      else
+        Group.new(self, name, parallel: parallel, &block).run
+      end
+      abort if failing_fast?
     end
 
     # Returns true if all steps were successful.
@@ -115,41 +154,17 @@ module ActiveSupport
     end
 
     # :nodoc:
-    def report(title, &block)
-      Signal.trap("INT") { abort colorize("\n❌ #{title} interrupted", :error) }
-
-      ci = self.class.new
-      elapsed = timing { ci.instance_eval(&block) }
-
-      if ci.success?
-        echo "\n✅ #{title} passed in #{elapsed}", type: :success
-      else
-        echo "\n❌ #{title} failed in #{elapsed}", type: :error
-
-        abort if ci.fail_fast?
-
-        if ci.multiple_results?
-          ci.failures.each do |success, title|
-            unless success
-              echo "   ↳ #{title} failed", type: :error
-            end
-          end
-        end
-      end
-
-      results.concat ci.results
-    ensure
-      Signal.trap("INT", "-")
+    def report_step(title, command)
+      heading title, command.join(" "), type: :title
+      success, seconds = yield
+      result_line(title, success, seconds)
+      results << [success, title]
+      success
     end
 
     # :nodoc:
-    def failures
-      results.reject(&:first)
-    end
-
-    # :nodoc:
-    def multiple_results?
-      results.size > 1
+    def colorize(text, type)
+      "#{COLORS.fetch(type)}#{text}\033[0m"
     end
 
     # :nodoc:
@@ -157,16 +172,60 @@ module ActiveSupport
       ARGV.include?("-f") || ARGV.include?("--fail-fast")
     end
 
+    # :nodoc:
+    def failing_fast?
+      fail_fast? && failures.any?
+    end
+
     private
+      def failures
+        results.reject(&:first)
+      end
+
+      def multiple_results?
+        results.size > 1
+      end
+
+      def execute(title, &block)
+        previous_trap = Signal.trap("INT") { abort colorize("\n❌ #{title} interrupted", :error) }
+
+        seconds = timing { instance_eval(&block) }
+
+        unless success?
+          if multiple_results?
+            failures.each do |success, title|
+              unless success
+                echo "   ↳ #{title} failed", type: :error
+              end
+            end
+          end
+        end
+
+        [success?, seconds]
+      ensure
+        Signal.trap("INT", previous_trap || "-")
+      end
+
+      def result_line(title, success, seconds)
+        elapsed = format_elapsed(seconds)
+        if success
+          echo "\n✅ #{title} passed in #{elapsed}", type: :success
+        else
+          echo "\n❌ #{title} failed in #{elapsed}", type: :error
+        end
+      end
+
+      def format_elapsed(seconds)
+        min, sec = seconds.divmod(60)
+        "#{"#{min.to_i}m" if min > 0}%.2fs" % sec
+      end
+
       def timing
         started_at = Time.now.to_f
         yield
-        min, sec = (Time.now.to_f - started_at).divmod(60)
-        "#{"#{min}m" if min > 0}%.2fs" % sec
-      end
-
-      def colorize(text, type)
-        "#{COLORS.fetch(type)}#{text}\033[0m"
+        Time.now.to_f - started_at
       end
   end
 end
+
+require_relative "continuous_integration/group"

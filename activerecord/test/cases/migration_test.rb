@@ -1604,6 +1604,32 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
       assert_no_column Person, :column1
       assert_no_column Person, :column2
     end
+
+    def test_bulk_revert_with_table_name_prefix
+      ActiveRecord::Base.table_name_prefix = "prefix_"
+      @connection.create_table(:prefix_testings, force: true)
+
+      migration = Class.new(ActiveRecord::Migration::Current) {
+        def write(text = ""); end
+
+        def change
+          change_table :testings, bulk: true do |t|
+            t.column :foo, :string
+            t.column :bar, :string
+            t.index :foo
+          end
+        end
+      }.new
+
+      migration.migrate(:up)
+      assert @connection.column_exists?(:prefix_testings, :foo)
+
+      migration.migrate(:down)
+      assert_not @connection.column_exists?(:prefix_testings, :foo)
+    ensure
+      @connection.drop_table :prefix_testings, if_exists: true
+      ActiveRecord::Base.table_name_prefix = ""
+    end
   end
 end
 
@@ -2013,7 +2039,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       assert strategy.called
     end
 
-    test "migration uses adapter-specific stategy over global strategy" do
+    test "migration uses adapter-specific strategy over global strategy" do
       ActiveRecord.migration_strategy = TestStrategy
       @connection.class.migration_strategy = AlternateStrategy
       migration = TestMigration.new("TestMigration", 1)

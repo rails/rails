@@ -41,7 +41,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
 
   redis:
-    image: valkey/valkey:8
+    image: valkey/valkey:9
     restart: unless-stopped
     volumes:
       - redis-data:/data

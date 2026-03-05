@@ -1705,6 +1705,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal(chapter.book, book)
   end
 
+  def test_ids_reader_with_composite_primary_key_on_source
+    blog = Sharded::Blog.create!
+    post = Sharded::BlogPost.create!(blog_id: blog.id)
+    comment = Sharded::Comment.create!(blog_id: blog.id, blog_post_id: post.id)
+
+    ids = blog.comments_via_post_ids
+
+    assert_kind_of Array, ids
+    assert_equal [[comment.blog_id, comment.id]], ids
+  end
+
   private
     def make_model(name)
       Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }

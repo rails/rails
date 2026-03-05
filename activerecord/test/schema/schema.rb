@@ -92,6 +92,7 @@ ActiveRecord::Schema.define do
     t.references :author_address_extra
     t.string :organization_id
     t.string :owned_essay_id
+    t.integer :published_author_id
   end
 
   create_table :author_addresses, force: true do |t|
@@ -138,6 +139,7 @@ ActiveRecord::Schema.define do
     t.column :illustrator_visibility, :integer, **default_zero
     t.column :font_size, :integer, **default_zero
     t.column :difficulty, :integer, **default_zero
+    t.column :rating, :float
     t.column :cover, :string, default: "hard"
     t.column :symbol_status, :string, default: "proposed"
     t.string :isbn

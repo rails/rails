@@ -4,6 +4,7 @@
 
 require "abstract_controller/error"
 require "active_support/descendants_tracker"
+require "active_support/inspect_backport"
 require "active_support/core_ext/module/anonymous"
 require "active_support/core_ext/module/attr_internal"
 
@@ -196,11 +197,13 @@ module AbstractController
       @_config ||= self.class.config.inheritable_copy
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-    end
+    ActiveSupport::InspectBackport.apply(self)
 
     private
+      def instance_variables_to_inspect
+        [].freeze
+      end
+
       # Returns true if the name can be considered an action because it has a method
       # defined in the controller.
       #

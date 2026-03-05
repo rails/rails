@@ -56,6 +56,8 @@ class ClientTest < ActionCable::TestCase
   end
 
   def with_puma_server(rack_app = ActionCable.server, port = 3099)
+    original_rack_env = ENV["RACK_ENV"]
+
     opts = { min_threads: 1, max_threads: 4 }
     server = if Puma::Const::PUMA_VERSION >= "6"
       opts[:log_writer] = ::Puma::LogWriter.strings
@@ -92,6 +94,8 @@ class ClientTest < ActionCable::TestCase
         # Handle this as if it were the IOError: do the same as above.
         server.binder.close
       end
+
+      ENV["RACK_ENV"] = original_rack_env
     end
   end
 

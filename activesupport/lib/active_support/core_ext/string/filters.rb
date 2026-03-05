@@ -19,7 +19,9 @@ class String
   #   str.squish!                         # => "foo bar boo"
   #   str                                 # => "foo bar boo"
   def squish!
-    gsub!(/[[:space:]]+/, " ")
+    # Search for two or more `[[:space:]]` OR a single
+    # [[:space:]] that isn't `" "`.
+    gsub!(/([[:space:]]{2,}|[[[:space:]]&&[^ ]])/, " ")
     strip!
     self
   end

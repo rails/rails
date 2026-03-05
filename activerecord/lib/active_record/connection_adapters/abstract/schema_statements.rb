@@ -1059,6 +1059,7 @@ module ActiveRecord
       #   Add an appropriate foreign key constraint. Defaults to false, pass true
       #   to add. In case the join table can't be inferred from the association
       #   pass <tt>:to_table</tt> with the appropriate table name.
+      #   For other available options, see #add_foreign_key.
       # [<tt>:polymorphic</tt>]
       #   Whether an additional +_type+ column should be added. Defaults to false.
       # [<tt>:null</tt>]
@@ -1604,11 +1605,11 @@ module ActiveRecord
         non_combinable_operations = []
 
         operations.each do |command, args|
-          table, arguments = args.shift, args
+          args.shift # remove table_name
           method = :"#{command}_for_alter"
 
           if respond_to?(method, true)
-            sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
+            sqls, procs = Array(send(method, table_name, *args)).partition { |v| v.is_a?(String) }
             sql_fragments.concat(sqls)
             non_combinable_operations.concat(procs)
           else
@@ -1616,7 +1617,7 @@ module ActiveRecord
             non_combinable_operations.each(&:call)
             sql_fragments = []
             non_combinable_operations = []
-            send(command, table, *arguments)
+            send(command, table_name, *args)
           end
         end
 

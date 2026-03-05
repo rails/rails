@@ -883,7 +883,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       record = Topic.new(id: 1)
       record.written_on = "Jan 01 00:00:00 2014"
       payload = YAML.dump(record)
-      assert_equal record, YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+      assert_equal record, YAML.unsafe_load(payload)
     end
   ensure
     # NOTE: Reset column info because global topics

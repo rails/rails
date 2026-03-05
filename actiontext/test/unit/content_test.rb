@@ -88,6 +88,15 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_nil attachable.model
   end
 
+  test "converts missing attachables to plain text" do
+    file = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{file.attachable_sgid}"></action-text-attachment>)
+    file.destroy!
+    content = content_from_html(html)
+
+    assert_equal "☒", content.to_plain_text
+  end
+
   test "converts Trix-formatted attachments" do
     html = %Q(<figure data-trix-attachment='{"sgid":"123","contentType":"text/plain","width":100,"height":100}' data-trix-attributes='{"caption":"Captioned"}'></figure>)
     content = content_from_html(html)
