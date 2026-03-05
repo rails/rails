@@ -78,7 +78,7 @@ In a production environment you wouldn't use the local disk-based service. So, t
 config.active_storage.service = :amazon
 ```
 
-You can find detailed information about [configuring cloud services](#configure-cloud-services) in a later section.
+You can find detailed information about [configuring cloud services](#configuring-cloud-services) in a later section.
 
 ### Third Party Software
 
@@ -260,7 +260,7 @@ The above code resubmits the already-attached images back to Rails using hidden 
 
 [ActiveStorage::Blob#signed_id]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-signed_id
 
-### Attaching Files
+### Attaching Files From Disk
 
 Active Storage allows you to attach files that are not uploaded via a form. In
 order to attach a file that you generated on disk or downloaded from an URL, you
@@ -825,7 +825,7 @@ disabled using [`config.active_storage.track_variants`][].
 [`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
 [`with_all_variant_records`]: https://api.rubyonrails.org/classes/ActiveStorage/Attachment.html#method-c-with_all_variant_records
 
-Configure Cloud Services
+Configuring Cloud Services
 ------------------------
 
 Active Storage supports multiple cloud and local storage backends and each environment in your application can use a different one. All service configurations live in `config/storage.yml` file, where you define the connection details for each service your app might use. Once declared, services can be selected per-environment in `config/environments/*.rb` files.
