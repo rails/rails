@@ -109,7 +109,7 @@ module ActionDispatch # :nodoc:
       otp_credentials:           "otp-credentials",
       payment:                   "payment",
       picture_in_picture:        "picture-in-picture",
-      publickey_credentials_get: "publickey-credentials-get"
+      publickey_credentials_get: "publickey-credentials-get",
       screen_wake_lock:          "screen-wake-lock",
       serial:                    "serial",
       sync_xhr:                  "sync-xhr",
