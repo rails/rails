@@ -71,7 +71,7 @@ The services configured in the `config/storage.yml` file are then used in enviro
 config.active_storage.service = :local
 ```
 
-In a production environment you wouldn't use the local disk-based service. So, the `config/storage.yml` file is also where cloud services can be configured. For example, assuming there is a serviced called `amazon` in the `config/storage.yml` file, in order to use that service in production:
+The `config/storage.yml` file is also where cloud services can be configured. For example, assuming there is a serviced called `amazon` in the `config/storage.yml` file, in order to use that service in production:
 
 ```yml
 # config/environments/production.rb
