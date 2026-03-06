@@ -121,6 +121,10 @@ module ActionController
     class TestController < ActionController::Base
       include ActionController::Live
 
+      class << self
+        attr_accessor :before_live_thread_yield_latch, :release_live_thread_latch
+      end
+
       attr_accessor :latch, :tc, :error_latch
 
       def self.controller_path
@@ -338,6 +342,20 @@ module ActionController
         logger.info "Work complete"
         latch.count_down
       end
+
+      def delayed_commit
+        response.stream.write "hello"
+        response.stream.close
+      end
+
+      private
+        def new_controller_thread(&block)
+          super do
+            self.class.before_live_thread_yield_latch&.count_down
+            self.class.release_live_thread_latch&.wait
+            block.call
+          end
+        end
     end
 
     tests TestController
@@ -453,6 +471,53 @@ module ActionController
       res.each { }
       ActiveSupport::Dependencies.interlock.done_running
       pass
+    end
+
+    def test_waiting_for_live_commit_permits_unloads
+      @controller.class.before_live_thread_yield_latch = Concurrent::CountDownLatch.new
+      @controller.class.release_live_thread_latch = Concurrent::CountDownLatch.new
+
+      request = ActionController::TestRequest.create
+      response = ActionDispatch::TestResponse.create
+
+      request_thread = Thread.new do
+        ActiveSupport::Dependencies.interlock.running do
+          @controller.class.dispatch(:delayed_commit, request, response)
+        end
+      end
+
+      assert @controller.class.before_live_thread_yield_latch.wait(1), "live child thread did not start"
+
+      unload_acquired = Concurrent::CountDownLatch.new
+      release_unload = Concurrent::CountDownLatch.new
+
+      unload_thread = Thread.new do
+        ActiveSupport::Dependencies.interlock.unloading do
+          unload_acquired.count_down
+          release_unload.wait
+        end
+      end
+
+      @controller.class.release_live_thread_latch.count_down
+
+      assert unload_acquired.wait(1), "unload should acquire while the request waits for commit"
+
+      release_unload.count_down
+      assert request_thread.join(1), "request should complete once unload finishes"
+
+      assert_equal "hello", response.body
+    ensure
+      release_unload&.count_down
+      @controller.class.release_live_thread_latch&.count_down
+
+      unload_thread&.kill
+      request_thread&.kill
+
+      unload_thread&.join(1)
+      request_thread&.join(1)
+
+      @controller.class.before_live_thread_yield_latch = nil
+      @controller.class.release_live_thread_latch = nil
     end
 
     def test_async_stream
