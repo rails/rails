@@ -501,9 +501,7 @@ enqueue jobs one by one.
 Callbacks
 ---------
 
-Active Job provides hooks to trigger logic during the life cycle of a job. Like
-other callbacks in Rails, you can implement the callbacks as ordinary methods
-and use a macro-style class method to register them as callbacks:
+Active Job provides hooks to trigger logic during the life cycle of a job. Like other callbacks in Rails, you can implement them as ordinary methods and register them using a class-level method:
 
 ```ruby
 class GuestsCleanupJob < ApplicationJob
@@ -524,40 +522,67 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-The macro-style class methods can also receive a block. Consider using this
-style if the code inside your block is so short that it fits in a single line.
-For example, you could send metrics for every job enqueued:
+These class-level methods also accept a block, which works well when the callback logic is short enough to fit on a single line. For example, sending metrics for every enqueued job:
 
 ```ruby
 class ApplicationJob < ActiveJob::Base
-  before_enqueue { |job| $statsd.increment "#{job.class.name.underscore}.enqueue" }
+  before_enqueue {|job| $statsd.increment "{job.class.name.underscore}.enqueue"}
 end
 ```
 
 ### Available Callbacks
 
-* [`before_enqueue`][]
-* [`around_enqueue`][]
-* [`after_enqueue`][]
-* [`before_perform`][]
-* [`around_perform`][]
-* [`after_perform`][]
-* [`after_discard`][]
+There are several other callbacks that Active Job supports.
+
+* [`before_enqueue`][] runs before a job is enqueued.
+* [`around_enqueue`][] wraps the enqueuing process, allowing logic to run both before and after.
+* [`after_enqueue`][] runs after a job is enqueued.
+
+For example:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  before_enqueue { |job| Rails.logger.info "About to enqueue #{job.class.name}" }
+  around_enqueue { |job, block| block.call }
+  after_enqueue  { |job| Rails.logger.info "Successfully enqueued #{job.class.name}" }
+end
+```
+
+* [`before_perform`][] runs before a job is performed.
+* [`around_perform`][] wraps the perform process, allowing logic to run both before and after.
+* [`after_perform`][] runs after a job is performed.
+
+For example:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  before_perform { |job| Rails.logger.info "About to perform #{job.class.name}" }
+  around_perform { |job, block| block.call }
+  after_perform  { |job| Rails.logger.info "#{job.class.name} performed successfully" }
+end
+```
+
+Lastly, [`after_discard`][] runs when a job is discarded due to an unhandled exception:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  after_discard { |job, exception| Rails.logger.error "#{job.class.name} discarded: #{exception.message}" }
+end
+```
 
 [`before_enqueue`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_enqueue
+ https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_enqueue
 [`around_enqueue`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_enqueue
-[`after_enqueue`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_enqueue
+https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_enqueue
+[`after_enqueue`]:    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_enqueue
 [`before_perform`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_perform
+https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_perform
 [`around_perform`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_perform
+https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_perform
 [`after_perform`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_perform
+https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_perform
 [`after_discard`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html#method-i-after_discard
+https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html#method-i-after_discard
 
 Please note that when enqueuing jobs in bulk using `perform_all_later`,
 callbacks such as `around_enqueue` will not be triggered on the individual jobs.
