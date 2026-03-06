@@ -304,9 +304,9 @@ end
 
 Now the queue will be named `production.low_priority` and `staging.low_priority`.
 
-To control the queue from the job level you can pass a block to `queue_as`. The
+You can control the queue at the job level by passing a block to `queue_as`. The
 block will be executed in the job context (so it can access `self.arguments`),
-and it must return the queue name:
+and it's return value must be a queue name. For example:
 
 ```ruby
 class ProcessVideoJob < ApplicationJob
@@ -326,7 +326,8 @@ end
 ```
 
 ```ruby
-ProcessVideoJob.perform_later(Video.last)
+last_video = Video.last
+ProcessVideoJob.perform_later(last_video)
 ```
 
 If you want more control on what queue a job will be run you can pass a `:queue`
@@ -359,15 +360,14 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-Solid Queue, the default queuing backend, prioritizes jobs based on the order of
-the queues.  You can read more about it in the [Order of Queues
-section](#queue-order). If you're using Solid Queue, and both the order of the
-queues and the priority option are used, the queue order will take precedence,
-and the priority option will only apply within each queue.
+Solid Queue, the default queuing backend, prioritizes jobs based on the [order
+of the queues](#queue-order). If you're using Solid Queue with both queue order
+and priority option, the queue order will take precedence, and the priority
+option will only apply within each queue.
 
 Other queuing backends may allow jobs to be prioritized relative to others
-within the same queue or across multiple queues. Refer to the documentation of
-your backend for more information.
+within the same queue or across multiple queues. You can check the documentation
+of your backend for the specifics.
 
 Similar to `queue_as`, you can also pass a block to `queue_with_priority` to be
 evaluated in the job context:
@@ -390,7 +390,8 @@ end
 ```
 
 ```ruby
-ProcessVideoJob.perform_later(Video.last)
+last_video = Video.last
+ProcessVideoJob.perform_later(last_video)
 ```
 
 You can also pass a `:priority` option to `set`:
@@ -400,9 +401,9 @@ MyJob.set(priority: 50).perform_later(record)
 ```
 
 NOTE: If a lower priority number performs before or after a higher priority
-number depends on the adapter implementation. Refer to documentation of your
+number depends on the adapter implementation. Refer to the documentation of your
 backend for more information. Adapter authors are encouraged to treat a lower
-number as more important.
+number as more important, as a convention.
 
 [`queue_with_priority`]:
     https://api.rubyonrails.org/classes/ActiveJob/QueuePriority/ClassMethods.html#method-i-queue_with_priority
@@ -411,9 +412,9 @@ number as more important.
 
 You can enqueue multiple jobs at once using
 [`perform_all_later`](https://api.rubyonrails.org/classes/ActiveJob.html#method-c-perform_all_later).
-Bulk enqueuing reduces the number of round trips to the queue data store (like
-Redis or a database), making it a more performant operation than enqueuing the
-same jobs individually.
+Bulk enqueuing reduces the number of round trips to the queue data store (such
+as Redis or a database), making it a more performant operation than enqueuing
+the same jobs individually.
 
 The `perform_all_later` method accepts instantiated jobs as arguments (note that
 this is different from `perform_later`) and calls `perform` under the hood. The
@@ -490,9 +491,9 @@ Solid Queue, the default queue backend, supports bulk enqueuing using
 `enqueue_all`.
 
 [Other backends](#alternate-queuing-backends) like Sidekiq have a `push_bulk`
-method, which can push a large number of jobs to Redis and prevent the round
-trip network latency. GoodJob also supports bulk enqueuing with the
-`GoodJob::Bulk.enqueue` method.
+method, which the Sidekiq adapter users. internally to push a large number of
+jobs to Redis and prevent the round trip network latency. GoodJob also supports
+bulk enqueuing with the `GoodJob::Bulk.enqueue` method.
 
 If the queue backend does *not* support bulk enqueuing, `perform_all_later` will
 enqueue jobs one by one.
