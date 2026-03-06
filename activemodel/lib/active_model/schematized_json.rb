@@ -76,6 +76,10 @@ module ActiveModel
         new_data.each { |k, v| public_send "#{k}=", v }
       end
 
+      def to_h
+        @data
+      end
+
       private
         def method_missing(method_name, *args, **kwargs)
           key = method_name.to_s.remove(/(\?|=)/)
