@@ -208,6 +208,14 @@ module ActionDispatch
       assert_equal 400, wrapper.status_code
     end
 
+    test "#status_code walks ancestors to find registered parent exception" do
+      class CustomRoutingError < ActionController::RoutingError; end
+
+      exception = CustomRoutingError.new("")
+      wrapper = ExceptionWrapper.new(@cleaner, exception)
+      assert_equal 404, wrapper.status_code
+    end
+
     test "#rescue_response? returns false for an exception that's not in rescue_responses" do
       exception = RuntimeError.new
       wrapper = ExceptionWrapper.new(@cleaner, exception)
