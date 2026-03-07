@@ -1005,6 +1005,52 @@ to add authorization to every request header to get all the tests passing:
 post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello Rails" } }, headers: { Authorization: ActionController::HttpAuthentication::Basic.encode_credentials("dhh", "secret") }
 ```
 
+#### Asserting with Capybara
+
+By default, `ActionDispatch::IntegrationTest` cases use [rails-dom-testing][] assertions. To add support for [Capybara::Minitest::Assertions][] assertions, set `config.action_controller.html_assertions` when configuring your application:
+
+```ruby
+# config/application.rb
+module MyApp
+  class Application < Rails::Application
+    config.action_dispatch.html_assertions = :capybara
+
+    # …
+  end
+end
+
+# test/integration/blog_flow_test.rb
+require "test_helper"
+
+class BlogFlowTest < ActionDispatch::IntegrationTest
+  test "can see the welcome page" do
+    get "/"
+
+    assert_css "h1", text: "Welcome#index"
+  end
+end
+```
+
+In addition to CSS selector assertions, Capybara provides a wide range of [selectors][Capybara::Selector]:
+
+```ruby
+require "test_helper"
+
+class BlogFlowTest < ActionDispatch::IntegrationTest
+  test "can see the welcome page" do
+    get "/"
+
+    assert_selector :element, "h1", text: "Welcome#index"
+    asssert_link "About us", href: "/about"
+  end
+end
+```
+
+[rails-dom-testing]: https://github.com/rails/rails-dom-testing
+[Capybara::Minitest::Assertions]: https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions
+[Capybara::Selector]: https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Selector
+
+
 ### HTTP Request Types for Functional Tests
 
 If you're familiar with the HTTP protocol, you'll know that `get` is a type of
@@ -1980,6 +2026,34 @@ end
 
 More information about the assertions included by Capybara can be found in the
 [Capybara Assertions](#capybara-assertions) section.
+
+To configure **all** `ActionView::TestCase` tests to use Capybara assertions, set `config.action_view.html_assertions = :capybara`:
+
+```ruby
+# config/application.rb
+
+module MyApp
+  class Application < Rails::Application
+    config.action_view.html_assertions = :capybara
+
+    # …
+  end
+end
+
+# test/views/article_partial_test.rb
+
+require "test_helper"
+
+class ArticlePartialTest < ActionView::TestCase
+  test "renders a link to itself" do
+    article = Article.create! title: "Hello, world"
+
+    render "articles/article", article: article
+
+    assert_link article.title, href: article_url(article)
+  end
+end
+```
 
 ### Parsing View Content
 
