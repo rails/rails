@@ -1,3 +1,11 @@
+*   Map `ActiveStorage::FileNotFoundError` to HTTP 404 Not Found.
+
+    When a blob record exists but the backing file is missing from the storage
+    service, Active Storage now returns a 404 response instead of a 500 error.
+    This matches the existing behavior of `ActiveRecord::RecordNotFound`.
+
+    *Yaroslav Shmarov*
+
 *   Restore ADC when signing URLs with IAM for GCS
 
     ADC was previously used for automatic authorization when signing URLs with IAM.
