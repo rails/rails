@@ -409,11 +409,12 @@ module ActiveRecord
         end
 
         def matches_foreign_key?(record)
+          fk = Array(reflection.foreign_key)
           if foreign_key_for?(record)
-            record.read_attribute(reflection.foreign_key) == owner.id ||
-              (foreign_key_for?(owner) && owner.read_attribute(reflection.foreign_key) == record.id)
+            fk.map { |k| record.read_attribute(k) } == Array(owner.id) ||
+              (foreign_key_for?(owner) && fk.map { |k| owner.read_attribute(k) } == Array(record.id))
           else
-            owner.read_attribute(reflection.foreign_key) == record.id
+            fk.map { |k| owner.read_attribute(k) } == Array(record.id)
           end
         end
     end
