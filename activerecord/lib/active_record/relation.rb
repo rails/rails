@@ -271,7 +271,7 @@ module ActiveRecord
     # and failed due to validation errors it won't be persisted, you get what #create returns in
     # such situation.
     def create_or_find_by(attributes, &block)
-      with_connection do |connection|
+      with_connection(query_type: :write) do |connection|
         record = nil
         transaction(requires_new: true) do
           record = create(attributes, &block)
@@ -291,7 +291,7 @@ module ActiveRecord
     # {create!}[rdoc-ref:Persistence::ClassMethods#create!] so an exception
     # is raised if the created record is invalid.
     def create_or_find_by!(attributes, &block)
-      with_connection do |connection|
+      with_connection(query_type: :write) do |connection|
         record = nil
         transaction(requires_new: true) do
           record = create!(attributes, &block)
@@ -490,7 +490,7 @@ module ActiveRecord
       else
         collection = eager_loading? ? apply_join_dependency : self
 
-        with_connection do |c|
+        with_connection(query_type: :read) do |c|
           column = c.visitor.compile(table[timestamp_column])
           select_values = "COUNT(*) AS #{model.adapter_class.quote_column_name("size")}, MAX(%s) AS timestamp"
 
@@ -624,7 +624,7 @@ module ActiveRecord
         values = Arel.sql(model.sanitize_sql_for_assignment(updates, table.name))
       end
 
-      model.with_connection do |c|
+      model.with_connection(query_type: :write) do |c|
         arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
@@ -1053,7 +1053,7 @@ module ActiveRecord
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
       end
 
-      model.with_connection do |c|
+      model.with_connection(query_type: :write) do |c|
         arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
@@ -1168,7 +1168,7 @@ module ActiveRecord
     #
     #   ASYNC Post Load (0.0ms) (db time 2ms)  SELECT "posts".* FROM "posts" LIMIT 100
     def load_async
-      with_connection do |c|
+      with_connection(query_type: :read) do |c|
         return load if !c.async_enabled?
 
         unless loaded?
@@ -1246,7 +1246,7 @@ module ActiveRecord
           relation.to_sql
         end
       else
-        model.with_connection do |conn|
+        model.with_connection(query_type: :read) do |conn|
           conn.unprepared_statement { conn.to_sql(arel) }
         end
       end
@@ -1469,7 +1469,7 @@ module ActiveRecord
           if where_clause.contradiction?
             [].freeze
           elsif eager_loading?
-            model.with_connection do |c|
+            model.with_connection(query_type: :read) do |c|
               apply_join_dependency do |relation, join_dependency|
                 if relation.null_relation?
                   [].freeze
@@ -1481,7 +1481,7 @@ module ActiveRecord
               end
             end
           else
-            model.with_connection do |c|
+            model.with_connection(query_type: :read) do |c|
               model._query_by_sql(c, arel, async: async)
             end
           end

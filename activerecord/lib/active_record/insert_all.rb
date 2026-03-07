@@ -9,7 +9,7 @@ module ActiveRecord
 
     class << self
       def execute(relation, ...)
-        relation.model.with_connection do |c|
+        relation.model.with_connection(query_type: :write) do |c|
           new(relation, c, ...).execute
         end.tap { relation.reset }
       end

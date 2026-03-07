@@ -314,8 +314,24 @@ module ActiveRecord
     # back in.
     # If #connection is called inside the block, the connection won't be checked back in
     # unless the +prevent_permanent_checkout+ argument is set to +true+.
-    def with_connection(prevent_permanent_checkout: false, &block)
-      connection_pool.with_connection(prevent_permanent_checkout: prevent_permanent_checkout, &block)
+    #
+    # @param prevent_permanent_checkout [Boolean] whether to keep the connection from
+    #   being permanently checked out when +#connection+ is called in the block.
+    # @param query_type [Symbol, nil] the kind of query about to run. +:read+ and +:write+
+    #   are used by Active Record internals to allow role-aware pool selection before
+    #   checkout. +nil+ keeps current behavior.
+    # @yield [connection] a checked out connection from the selected pool.
+    # @return [Object] the block's return value.
+    #
+    # @example Route reads to a replica
+    #   ActiveRecord::Base.query_role_resolver = ->(query_type, _model, current_role) {
+    #     query_type == :read ? :reading : current_role
+    #   }
+    #
+    #   User.with_connection(query_type: :read) { |c| c.select_all("SELECT 1") }
+    def with_connection(prevent_permanent_checkout: false, query_type: nil, &block)
+      pool = resolve_pool_for_query(query_type)
+      pool.with_connection(prevent_permanent_checkout: prevent_permanent_checkout, &block)
     end
 
     attr_writer :connection_specification_name
@@ -390,6 +406,54 @@ module ActiveRecord
     end
 
     private
+      # Resolves the connection pool for a query before checkout.
+      #
+      # When role pinning is active (see +ActiveRecord.pin_role_on_write+),
+      # a +:write+ query sets or extends the pin window via
+      # +ActiveRecord::RolePinning.pin!+. While pinned, all queries are routed
+      # to the writing role pool regardless of the resolver. Once the pin
+      # expires (or the executor scope ends), the resolver regains control.
+      #
+      # @param query_type [Symbol, nil] the query kind for role resolution.
+      # @return [ActiveRecord::ConnectionAdapters::ConnectionPool] selected connection pool.
+      #
+      # @example Keep the current pool when resolver is disabled
+      #   ActiveRecord::Base.query_role_resolver = nil
+      #   resolve_pool_for_query(:read) # => current connection_pool
+      def resolve_pool_for_query(query_type)
+        current_pool = connection_pool
+
+        return current_pool unless query_type
+
+        if query_type == :write
+          ActiveRecord::RolePinning.pin!
+        end
+
+        if ActiveRecord::RolePinning.pinned?
+          return connection_handler.retrieve_connection_pool(
+            connection_specification_name,
+            role: ActiveRecord.writing_role,
+            shard: current_shard,
+            strict: false
+          ) || current_pool
+        end
+
+        resolver = ActiveRecord.query_role_resolver
+        return current_pool unless resolver
+        return current_pool if current_pool.active_connection?
+
+        resolved_role = resolver.call(query_type, self, current_role)
+        return current_pool unless resolved_role
+        return current_pool if resolved_role == current_role
+
+        connection_handler.retrieve_connection_pool(
+          connection_specification_name,
+          role: resolved_role,
+          shard: current_shard,
+          strict: false
+        ) || current_pool
+      end
+
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name
 

@@ -228,7 +228,7 @@ module ActiveRecord
     module ClassMethods
       # See the ConnectionAdapters::DatabaseStatements#transaction API docs.
       def transaction(**options, &block)
-        with_connection do |connection|
+        with_connection(query_type: :write) do |connection|
           connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
             connection.transaction(**options, &block)
           end
@@ -425,7 +425,7 @@ module ActiveRecord
     # This method is available within the context of an ActiveRecord::Base
     # instance.
     def with_transaction_returning_status # :nodoc:
-      self.class.with_connection do |connection|
+      self.class.with_connection(query_type: :write) do |connection|
         connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
           status = nil
           ensure_finalize = !connection.transaction_open?
@@ -533,7 +533,7 @@ module ActiveRecord
       # Add the record to the current transaction so that the #after_rollback and #after_commit
       # callbacks can be called.
       def add_to_transaction(ensure_finalize = true)
-        self.class.with_connection do |connection|
+        self.class.with_connection(query_type: :write) do |connection|
           connection.add_transaction_record(self, ensure_finalize)
         end
       end
