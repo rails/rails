@@ -33,6 +33,18 @@ class ModelTest < ActiveModel::TestCase
     attr_accessor :attr
   end
 
+  class ModelWithAttributes
+    include ActiveModel::Model
+    attribute :name, :string, default: "Anonymous"
+  end
+
+  def test_model_includes_attributes_by_default
+    object = ModelWithAttributes.new
+    assert_equal "Anonymous", object.name
+    object.name = "John"
+    assert_equal "John", object.name
+  end
+
   def setup
     @model = BasicModel.new
   end

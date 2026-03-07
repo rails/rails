@@ -39,9 +39,15 @@ module ActiveModel
   # For more detailed information on other functionalities available, please
   # refer to the specific modules included in +ActiveModel::Model+
   # (see below).
+  #
+  # +ActiveModel::Model+ includes:
+  # * +ActiveModel::API+
+  # * +ActiveModel::Attributes+
+  # * +ActiveModel::Access+
   module Model
     extend ActiveSupport::Concern
     include ActiveModel::API
+    include ActiveModel::Attributes
     include ActiveModel::Access
 
     ##
