@@ -84,6 +84,9 @@ Rails.application.configure do
   # Don't log any deprecations.
   config.active_support.report_deprecations = false
 
+  # Precompile templates with strict locals at boot.
+  config.action_view.precompile_templates = true
+
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 end

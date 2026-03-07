@@ -189,6 +189,38 @@ module ActionView
           const_set(:Types, implementation)
         end
       end
+
+      def precompile!
+        return unless ActionView::Base.precompile_templates
+
+        details = {
+          locale: I18n.available_locales,
+          handlers: ActionView::Template::Handlers.extensions,
+          formats: ActionView::Template::Types.symbols,
+          variants: :any
+        }
+        key = ActionView::LookupContext::DetailsKey.details_cache_key(details)
+
+        ActionController::Base.view_paths.each do |resolver|
+          next unless resolver.is_a?(ActionView::FileSystemResolver)
+
+          resolver.all_template_paths.each do |template_path|
+            templates = resolver.find_all(
+              template_path.name,
+              template_path.prefix,
+              template_path.partial?,
+              details,
+              key,
+              []
+            )
+
+            templates.each do |template|
+              next unless template.strict_locals?
+              template.send(:compile!, ActionController::Base.view_context_class)
+            end
+          end
+        end
+      end
     end
 
     attr_reader :identifier, :handler
