@@ -993,6 +993,203 @@ class DirtyTest < ActiveRecord::TestCase
     assert parrot.breed_changed?(from: 0, to: 1)
   end
 
+  test "transaction_change_to_attribute? returns whether a change occurred in the transaction" do
+    person = Person.create!(first_name: "Sean")
+
+    assert_predicate person, :transaction_change_to_first_name?
+    assert_not_predicate person, :transaction_change_to_gender?
+    assert person.transaction_change_to_first_name?(from: nil, to: "Sean")
+    assert person.transaction_change_to_first_name?(from: nil)
+    assert person.transaction_change_to_first_name?(to: "Sean")
+    assert_not person.transaction_change_to_first_name?(from: "Jim", to: "Sean")
+    assert_not person.transaction_change_to_first_name?(from: "Jim")
+    assert_not person.transaction_change_to_first_name?(to: "Jim")
+  end
+
+  test "transaction_change_to_attribute? properly type casts enum values" do
+    parrot = LiveParrot.create!(name: "Scipio", breed: :african)
+
+    parrot.update!(breed: :australian)
+
+    assert parrot.transaction_change_to_breed?(from: "african", to: "australian")
+    assert parrot.transaction_change_to_breed?(from: :african, to: :australian)
+    assert parrot.transaction_change_to_breed?(from: 0, to: 1)
+  end
+
+  test "transaction_change_to_attribute returns the change that occurred in the transaction" do
+    person = Person.create!(first_name: "Sean", gender: "M")
+
+    assert_equal [nil, "Sean"], person.transaction_change_to_first_name
+    assert_equal [nil, "M"], person.transaction_change_to_gender
+
+    person.update(first_name: "Jim")
+
+    assert_equal ["Sean", "Jim"], person.transaction_change_to_first_name
+    assert_nil person.transaction_change_to_gender
+  end
+
+  test "attribute_before_transaction returns the original value before the transaction" do
+    person = Person.create!(first_name: "Sean", gender: "M")
+
+    assert_nil person.first_name_before_transaction
+    assert_nil person.gender_before_transaction
+
+    person.update(first_name: "Jim")
+
+    assert_equal "Sean", person.first_name_before_transaction
+    assert_equal "M", person.gender_before_transaction
+  end
+
+  test "attribute_before_transaction returns current value for unchanged attribute" do
+    person = Person.create!(first_name: "Sean", gender: "M")
+
+    person.update!(first_name: "Jim")
+
+    # gender wasn't changed, so before_transaction returns the current value
+    assert_equal "M", person.gender_before_transaction
+  end
+
+  test "transaction_changes? returns whether the transaction changed anything" do
+    person = Person.create!(first_name: "Sean")
+
+    assert_predicate person, :transaction_changes?
+
+    person.save
+
+    assert_not_predicate person, :transaction_changes?
+  end
+
+  test "transaction_changes returns a hash of all the changes that occurred in the transaction" do
+    person = Person.create!(first_name: "Sean", gender: "M")
+
+    assert_equal [nil, "Sean"], person.transaction_changes[:first_name]
+    assert_equal [nil, "M"], person.transaction_changes[:gender]
+    assert_equal %w(id first_name gender created_at updated_at).sort, person.transaction_changes.keys.sort
+
+    travel(1.second) do
+      person.update(first_name: "Jim")
+    end
+
+    assert_equal ["Sean", "Jim"], person.transaction_changes[:first_name]
+    assert_equal %w(first_name lock_version updated_at).sort, person.transaction_changes.keys.sort
+  end
+
+  test "transaction_changes tracks cumulative changes across multiple saves in a transaction" do
+    person = Person.create!(first_name: "Sean")
+
+    Person.transaction do
+      person.update!(first_name: "Intermediate")
+      person.update!(first_name: "Jim")
+    end
+
+    # transaction_changes spans the full transaction: Sean -> Jim
+    assert_equal ["Sean", "Jim"], person.transaction_change_to_first_name
+    assert person.transaction_change_to_first_name?(from: "Sean", to: "Jim")
+  end
+
+  test "transaction_changes is empty when attribute is changed back to original value" do
+    person = Person.create!(first_name: "Sean")
+
+    Person.transaction do
+      person.update!(first_name: "Jim")
+      person.update!(first_name: "Sean")
+    end
+
+    assert_not person.transaction_change_to_first_name?
+    assert_nil person.transaction_change_to_first_name
+  end
+
+  test "transaction_changes detects change when a later save modifies a different attribute in the same transaction" do
+    person = Person.create!(first_name: "Sean", gender: "M")
+
+    Person.transaction do
+      person.update!(first_name: "Jim")
+      person.update!(gender: "F")
+    end
+
+    assert person.transaction_change_to_first_name?
+    assert person.transaction_change_to_gender?
+    assert_equal ["Sean", "Jim"], person.transaction_change_to_first_name
+    assert_equal ["M", "F"], person.transaction_change_to_gender
+  end
+
+  test "transaction_changes is cleared on reload" do
+    person = Person.create!(first_name: "Sean")
+
+    assert_predicate person, :transaction_changes?
+
+    person.reload
+
+    assert_not_predicate person, :transaction_changes?
+    assert_empty person.transaction_changes
+    assert_nil person.first_name_before_transaction
+  end
+
+  test "destroy with no prior attribute changes returns empty transaction_changes" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+    end
+
+    record = klass.create!(title: "To Be Destroyed", written_on: Date.today)
+    record.reload # clear transaction_changes from the create
+
+    record.destroy
+
+    assert_empty record.transaction_changes,
+      "transaction_changes should be empty after destroy with no prior attribute changes"
+    assert_not record.transaction_changes?
+  end
+
+  test "attribute_before_transaction is stable across multiple saves in a transaction" do
+    person = Person.create!(first_name: "Sean")
+
+    Person.transaction do
+      person.update!(first_name: "Intermediate")
+
+      assert_equal "Sean", person.first_name_before_transaction
+
+      person.update!(first_name: "Final")
+
+      assert_equal "Sean", person.first_name_before_transaction
+    end
+
+    assert_equal "Sean", person.first_name_before_transaction
+  end
+
+  test "transaction_changes includes prior attribute changes after destroy in same transaction" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+    end
+
+    record = klass.create!(title: "Original", written_on: Date.today)
+
+    klass.transaction do
+      record.update!(title: "Changed")
+      record.destroy
+    end
+
+    assert_equal ["Original", "Changed"], record.transaction_changes["title"]
+  end
+
+  test "transaction_changes unaffected by failed validation within transaction" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+      validates :first_name, presence: true
+    end
+
+    person = klass.create!(first_name: "Sean")
+
+    klass.transaction do
+      person.update!(first_name: "Jim")
+      person.update(first_name: nil)  # validation fails, returns false
+      person.update!(first_name: "Final")
+    end
+
+    # The failed save should not corrupt transaction_changes;
+    # transaction_changes spans the full transaction: Sean -> Final
+    assert_equal ["Sean", "Final"], person.transaction_changes[:first_name]
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old_inserts = klass.partial_inserts?

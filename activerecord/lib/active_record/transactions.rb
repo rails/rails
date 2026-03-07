@@ -397,6 +397,7 @@ module ActiveRecord
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks: true) # :nodoc:
+      _compute_committed_changes
       @_start_transaction_state = nil
       if should_run_callbacks
         @_committed_already_called = true
@@ -409,10 +410,12 @@ module ActiveRecord
     # Call the #after_rollback callbacks. The +force_restore_state+ argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
     def rolledback!(force_restore_state: false, should_run_callbacks: true) # :nodoc:
+      @_full_rollback = force_restore_state
       if should_run_callbacks
         _run_rollback_callbacks
       end
     ensure
+      @_full_rollback = false
       restore_transaction_record_state(force_restore_state)
       clear_transaction_record_state
       @_trigger_update_callback = @_trigger_destroy_callback = false if force_restore_state
@@ -435,6 +438,7 @@ module ActiveRecord
             remember_transaction_record_state
 
             status = yield
+            refresh_transaction_record_state if status
             raise ActiveRecord::Rollback unless status
           end
           @_last_transaction_return_status = status
@@ -467,16 +471,102 @@ module ActiveRecord
           previously_new_record: @previously_new_record,
           destroyed: @destroyed,
           attributes: @attributes,
+          attributes_stack: [],
           frozen?: frozen?,
           level: 0
         }
         @_start_transaction_state[:level] += 1
+        @_start_transaction_state[:attributes_stack] << @attributes.deep_dup
 
         if _committed_already_called
           @_new_record_before_last_commit = false
         else
           @_new_record_before_last_commit = @_start_transaction_state[:new_record]
         end
+      end
+
+      # After a successful save, update the top of the attributes stack to
+      # capture the actual persisted state (including values set by callbacks
+      # like timestamps). This keeps the stack accurate for computing
+      # transaction_changes without modifying @attributes on rollback.
+      def refresh_transaction_record_state
+        return unless @_start_transaction_state
+        stack = @_start_transaction_state[:attributes_stack]
+        stack[-1] = @attributes.deep_dup if stack && stack.any?
+      end
+
+      # Compute cumulative changes by comparing the initial transaction
+      # snapshot against a set of "current" attributes.
+      #
+      # We intentionally use +original_value_for_database+ on both sides
+      # rather than +value+ / +value_for_database+ because the latter
+      # triggers +has_been_read?+ and a deserialize round-trip that
+      # corrupts nil values for custom types. After +changes_applied+
+      # calls +forget_attribute_assignments+, +@attributes+ is replaced
+      # with fresh +FromDatabase+ attributes whose
+      # +original_value_for_database+ reflects the newly committed state.
+      def _changes_between(snapshot_attributes, current_attributes)
+        changes = {}.with_indifferent_access
+
+        current_attributes.keys.each do |attr_name|
+          snapshot_attr = snapshot_attributes[attr_name]
+          current_attr = current_attributes[attr_name]
+
+          old_raw = snapshot_attr.original_value_for_database
+          new_raw = current_attr.original_value_for_database
+
+          unless old_raw == new_raw
+            type = current_attr.type
+            old_value = old_raw.nil? ? nil : type.deserialize(old_raw)
+            new_value = new_raw.nil? ? nil : type.deserialize(new_raw)
+            changes[attr_name] = [old_value, new_value]
+          end
+        end
+
+        changes
+      end
+
+      # Cache the transaction diff for +transaction_changes+ / +after_commit+.
+      #
+      # Uses the attributes stack (last committed snapshot) rather than
+      # live +@attributes+ so that changes from rolled-back savepoints are
+      # correctly excluded. By commit time +refresh_transaction_record_state+
+      # has already updated the stack with post-save attributes.
+      def _compute_committed_changes
+        return if @_full_rollback
+        return unless @_start_transaction_state
+
+        committed = @_start_transaction_state[:attributes_stack]&.last || @attributes
+        @_committed_changes = _changes_between(@_start_transaction_state[:attributes], committed)
+      end
+
+      # Like +_compute_committed_changes+ but computed on-the-fly for
+      # +transaction_changes+ during save callbacks.
+      #
+      # Compares against live +@attributes+ (which is refreshed by
+      # +forget_attribute_assignments+ after each save) and overlays
+      # pending unsaved changes for +before_save+ / +before_update+.
+      def _compute_transaction_changes
+        return if @_full_rollback
+        return unless @_start_transaction_state
+
+        snapshot_attributes = @_start_transaction_state[:attributes]
+        changes = _changes_between(snapshot_attributes, @attributes)
+
+        changes_to_save.each do |attr_name, (_, pending_new_value)|
+          snapshot_attr = snapshot_attributes[attr_name]
+          old_raw = snapshot_attr.original_value_for_database
+          pending_raw = snapshot_attr.type.serialize(pending_new_value)
+
+          if old_raw == pending_raw
+            changes.delete(attr_name)
+          else
+            old_value = old_raw.nil? ? nil : snapshot_attr.type.deserialize(old_raw)
+            changes[attr_name] = [old_value, pending_new_value]
+          end
+        end
+
+        changes
       end
 
       # Clear the new record state and id of a record.
@@ -500,6 +590,8 @@ module ActiveRecord
             end
             @mutations_from_database = nil
             @mutations_before_last_save = nil
+            @_committed_changes = nil
+            @_start_transaction_state = nil
             if self.class.composite_primary_key?
               if restore_state[:id] != @primary_key.map { |col| @attributes.fetch_value(col) }
                 @primary_key.zip(restore_state[:id]).each do |col, val|
@@ -512,8 +604,15 @@ module ActiveRecord
               end
             end
             freeze if restore_state[:frozen?]
+          else
+            restore_savepoint_attributes(restore_state)
           end
         end
+      end
+
+      def restore_savepoint_attributes(restore_state)
+        stack = restore_state[:attributes_stack]
+        stack.pop if stack && stack.size > 0
       end
 
       # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.
