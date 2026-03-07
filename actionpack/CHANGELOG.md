@@ -1,3 +1,12 @@
+*   Match parent status codes for exception subclasses in `rescue_responses`.
+
+    Exception subclasses now inherit the HTTP status code of their nearest
+    registered ancestor instead of defaulting to 500. For example, a custom
+    error inheriting from `ActiveRecord::RecordNotFound` will correctly
+    return 404.
+
+    *Joseph Hale*
+
 *   Add `content_type` option to HTTP authentication methods.
 
     `request_http_basic_authentication`, `request_http_digest_authentication`,
