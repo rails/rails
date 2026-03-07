@@ -151,12 +151,24 @@ class TagHelperTest < ActionView::TestCase
     end
   end
 
+  def test_tag_with_dangerous_name_containing_less_than
+    assert_raise(ArgumentError, 'expected "asdf-<" to be invalid') do
+      tag("asdf-<")
+    end
+  end
+
   def test_tag_builder_with_dangerous_name
     INVALID_TAG_CHARS.each_char do |char|
       tag_name = "asdf-#{char}".to_sym
       assert_raise(ArgumentError, "expected #{tag_name.inspect} to be invalid") do
         tag.public_send(tag_name)
       end
+    end
+  end
+
+  def test_tag_builder_with_dangerous_name_containing_less_than
+    assert_raise(ArgumentError, 'expected :"asdf-<" to be invalid') do
+      tag.public_send(:"asdf-<")
     end
   end
 
