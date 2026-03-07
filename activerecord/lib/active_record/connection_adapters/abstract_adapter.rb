@@ -139,7 +139,7 @@ module ActiveRecord
 
       # Opens a database console session.
       def self.dbconsole(config, options = {})
-        raise NotImplementedError.new("#{self.class} should define `dbconsole` that accepts a db config and options to implement connecting to the db console")
+        raise NotImplementedError.new("#{self} should define `dbconsole` that accepts a db config and options to implement connecting to the db console")
       end
 
       def initialize(config_or_deprecated_connection, deprecated_logger = nil, deprecated_connection_options = nil, deprecated_config = nil) # :nodoc:
