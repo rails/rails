@@ -70,6 +70,12 @@ module ActiveRecord
         end
       end
 
+      def test_doesnt_error_when_a_reset_query_is_called_while_preventing_writes
+        ActiveRecord::Base.while_preventing_writes do
+          assert_equal [], @connection.execute("RESET standard_conforming_strings").entries
+        end
+      end
+
       def test_doesnt_error_when_a_read_query_with_leading_chars_is_called_while_preventing_writes
         with_example_table do
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")

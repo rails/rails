@@ -1,3 +1,18 @@
+*   Support PostgreSQL `RESET` on readonly queries.
+
+    ```ruby
+    ActiveRecord::Base.connected_to(role: :reading, prevent_writes: true) do
+      ActiveRecord::Base.with_connection do |c|
+        c.execute("SET statement_timeout = '7s'")
+        # some queries
+        c.execute("RESET statement_timeout")
+        # => no longer raises ActiveRecord::ReadOnlyError
+      end
+    end
+    ```
+
+    *Francesco Rodriguez*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.
