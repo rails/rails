@@ -28,14 +28,30 @@ module ActionText
       end.strip
     end
 
-    # Returns a Markdown link: +[title](url)+. Escapes brackets and backslashes
-    # in +title+, and percent-encodes characters in +url+ that would break the
-    # link syntax.
+    # Returns a Markdown link: +[title](url)+.
+    #
+    # Escapes metacharacters in +title+, and percent-encodes characters in +url+ that would break
+    # the link syntax.
     #
     #     MarkdownConversion.markdown_link("photo", "https://example.com/photo_(large).png")
     #     # => "[photo](https://example.com/photo_%28large%29.png)"
-    def markdown_link(title, url)
-      "[#{escape_markdown_text(title)}](#{encode_href(url)})"
+    #
+    # Pass <tt>image: true</tt> to produce an image link (+![title](url)+).
+    #
+    #     MarkdownConversion.markdown_link("photo", "https://example.com/photo.png", image: true)
+    #     # => "![photo](https://example.com/photo.png)"
+    #
+    # If the URI scheme is not allowed (per +Rails::HTML::Sanitizer.allowed_uri?+), returns the
+    # escaped title wrapped in escaped brackets (+\[title\]+).
+    #
+    #     MarkdownConversion.markdown_link("click", "javascript:alert(1)")
+    #     # => "\\[click\\]"
+    def markdown_link(title, url, image: false)
+      if Rails::HTML::Sanitizer.allowed_uri?(url)
+        "#{"!" if image}[#{escape_markdown_text(title)}](#{encode_href(url)})"
+      else
+        "\\[#{escape_markdown_text(title)}\\]"
+      end
     end
 
     # Backslash-escapes CommonMark metacharacters in +text+ so they are treated

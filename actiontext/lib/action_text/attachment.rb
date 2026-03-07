@@ -122,12 +122,12 @@ module ActionText
     #
     #     attachable = ActiveStorage::Blob.find_by filename: "racecar.jpg"
     #     attachment = ActionText::Attachment.from_attachable(attachable)
-    #     attachment.to_markdown # => "[racecar.jpg]"
+    #     attachment.to_markdown # => "\\[racecar.jpg\\]"
     #
     # Use the `caption` when set:
     #
     #     attachment = ActionText::Attachment.from_attachable(attachable, caption: "Vroom vroom")
-    #     attachment.to_markdown # => "[Vroom vroom]"
+    #     attachment.to_markdown # => "\\[Vroom vroom\\]"
     #
     # When +attachment_links+ is true and a rendering context is available (e.g., controller or
     # mailer action), ActiveStorage blob attachments generate Markdown links with URLs.
