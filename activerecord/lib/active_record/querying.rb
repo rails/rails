@@ -80,8 +80,10 @@ module ActiveRecord
       message_bus = ActiveSupport::Notifications.instrumenter
 
       payload = {
+        class: self,
+        class_name: name,
+        results: result_set,
         record_count: result_set.length,
-        class_name: name
       }
 
       message_bus.instrument("instantiation.active_record", payload) do
