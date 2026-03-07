@@ -1,3 +1,16 @@
+*   Raise when `key_generator` is accessed before `key_generator_hash_digest_class` is applied.
+
+    Calling `Rails.application.key_generator` during eager loading silently
+    returned an instance configured with the wrong digest class (SHA1 instead
+    of SHA256), because `key_generator_hash_digest_class` is only applied in
+    an `after_initialize` callback. The memoized instance then poisoned all
+    subsequent key derivations for the process.
+
+    The key generator now raises if accessed before the digest class has been
+    applied and a custom digest class is configured.
+
+    *Daniel López Prat*
+
 *   Avoid adding `Rack::Sendfile` to the middleware stack if `config.action_dispatch.x_sendfile_header` is `nil`.
 
     The middleware behave as a noop in such case so it's pointless to have it in the stack.
