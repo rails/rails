@@ -277,3 +277,6 @@
     *Thiago Youssef*
 
 Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/actionpack/CHANGELOG.md) for previous changes.
+*   Add an AI agent prompt block to debug exception pages to share structured context for troubleshooting.
+
+    *yottanami*
