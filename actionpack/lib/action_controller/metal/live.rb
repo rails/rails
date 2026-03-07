@@ -347,7 +347,9 @@ module ActionController
         end
       end
 
-      @_response.await_commit
+      ActiveSupport::Dependencies.interlock.permit_concurrent_unloads do
+        @_response.await_commit
+      end
 
       raise error if error
     end
