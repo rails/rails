@@ -39,9 +39,16 @@ module ActiveRecord
           RUBY
         end
 
+        def test_errors_if_uninitialized
+          create_migration "01", "create_foo"
+          assert_uninitialized_database
+        end
+
         def test_errors_if_pending
           create_migration "01", "create_foo"
-          assert_pending_migrations("01_create_foo.rb")
+          quietly { run_migrations }
+          create_migration "02", "create_bar"
+          assert_pending_migrations("02_create_bar.rb")
         end
 
         def test_checks_if_supported
@@ -65,10 +72,17 @@ module ActiveRecord
           assert_pending_migrations("01_create_foo.rb")
         end
 
-        def test_with_multiple_database
+        def test_with_multiple_database_uninitialized
           create_migration "01", "create_bar", database: :primary
           create_migration "02", "create_foo", database: :secondary
-          assert_pending_migrations("01_create_bar.rb", "02_create_foo.rb")
+          assert_uninitialized_database
+        end
+
+        def test_with_multiple_database_pending
+          create_migration "01", "create_bar", database: :primary
+          create_migration "02", "create_foo", database: :secondary
+
+          assert_uninitialized_database
 
           ActiveRecord::Base.establish_connection(:secondary)
           quietly { run_migrations }
@@ -77,6 +91,10 @@ module ActiveRecord
           quietly { run_migrations }
 
           assert_no_pending_migrations
+
+          create_migration "03", "create_baz", database: :primary
+          create_migration "04", "create_qux", database: :primary
+          assert_pending_migrations("03_create_baz.rb", "04_create_qux.rb")
         end
 
         def test_with_stdlib_logger
@@ -87,6 +105,18 @@ module ActiveRecord
         end
 
         private
+          def assert_uninitialized_database
+            2.times do
+              assert_raises ActiveRecord::UninitializedDatabaseError do
+                ActiveRecord::Migration.check_all_pending!
+              end
+
+              assert_raises ActiveRecord::UninitializedDatabaseError do
+                CheckPending.new(proc { flunk }).call({})
+              end
+            end
+          end
+
           def assert_pending_migrations(*expected_migrations)
             2.times do
               assert_raises ActiveRecord::PendingMigrationError do

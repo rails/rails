@@ -1,3 +1,9 @@
+*   Raise new `ActiveRecord::UninitializedDatabaseError` with a "Prepare database"
+    action (runs `bin/rails db:prepare`) when migration files exist but the database
+    has never been initialized, instead of `PendingMigrationError`.
+
+    *Ben Sheldon*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.
