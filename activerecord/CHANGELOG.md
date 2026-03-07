@@ -1,3 +1,19 @@
+*   Add `sql_notifications` connection configuration option to disable SQL
+    notifications for specific database connections.
+
+    Libraries like Solid Cache and Solid Queue that use separate database
+    connections via `connects_to` can suppress internal SQL notification
+    overhead by setting `sql_notifications: false` in `database.yml`:
+
+    ```yaml
+    cache:
+      adapter: postgresql
+      database: myapp_cache
+      sql_notifications: false
+    ```
+
+    *Rosa Gutierrez*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.
