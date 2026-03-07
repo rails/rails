@@ -1,3 +1,19 @@
+*   Add `select_also` to append columns to the SELECT clause without replacing the default selection.
+
+    `select_also` is useful when a scope or concern needs to include extra computed columns
+    or columns from joined tables alongside the normal set of model columns, without having
+    to explicitly specify `select('*', ...)` or worry about overwriting a caller's `select`.
+
+    ```ruby
+    Post.select_also("LENGTH(title) AS title_length")
+    # SELECT "posts".*, LENGTH(title) AS title_length FROM "posts"
+
+    Post.select(:id, :title).select_also("LENGTH(title) AS title_length")
+    # SELECT "posts"."id", "posts"."title", LENGTH(title) AS title_length FROM "posts"
+    ```
+
+    *Keenan Brock*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.
