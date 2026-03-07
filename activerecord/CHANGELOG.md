@@ -1,3 +1,21 @@
+*   Include record ID in error when uniqueness validation fails
+
+    When a uniqueness validation fails, the `errors.details` hash for the attribute
+    now includes an `:existing_id` key, holding the ID of the record that caused
+    the conflict.
+
+    ```ruby
+    # Before
+    errors.details[:name]
+    # => [{error: :taken, value: "John Doe"}]
+
+    # After
+    errors.details[:name]
+    # => [{error: :taken, value: "John Doe", existing_id: 123}]
+    ```
+
+    *Bruno Vicenzo*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.
