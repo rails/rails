@@ -275,6 +275,60 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
+  test "variations with @ file read syntax in string raise UnsupportedImageProcessingArgument" do
+    process_variants_with :mini_magick do
+      blob = create_file_blob(filename: "racecar.jpg")
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(label: "@/etc/passwd").processed
+      end
+    end
+  end
+
+  test "variations with @ file read syntax in array raise UnsupportedImageProcessingArgument" do
+    process_variants_with :mini_magick do
+      blob = create_file_blob(filename: "racecar.jpg")
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(resize: [100, "@/etc/passwd"]).processed
+      end
+    end
+  end
+
+  test "variations with @ file read syntax in hash value raise UnsupportedImageProcessingArgument" do
+    process_variants_with :mini_magick do
+      blob = create_file_blob(filename: "racecar.jpg")
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(draw: { text: "@/etc/passwd" }).processed
+      end
+    end
+  end
+
+  test "variations with @ file read syntax in nested array raise UnsupportedImageProcessingArgument" do
+    process_variants_with :mini_magick do
+      blob = create_file_blob(filename: "racecar.jpg")
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(resize: [100, ["@/etc/passwd"]]).processed
+      end
+    end
+  end
+
+  test "variations with @ file read syntax using draw operator raise UnsupportedImageProcessingArgument" do
+    process_variants_with :mini_magick do
+      blob = create_file_blob(filename: "racecar.jpg")
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(draw: "image over 0,0 0,0 '@/etc/passwd'").processed
+      end
+    end
+  end
+
+  test "variations with @ file read syntax in nested hash raise UnsupportedImageProcessingArgument" do
+    process_variants_with :mini_magick do
+      blob = create_file_blob(filename: "racecar.jpg")
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(draw: { "something": { text: "@/etc/shadow" } }).processed
+      end
+    end
+  end
+
   test "variations with unsupported methods raise UnsupportedImageProcessingMethod" do
     process_variants_with :mini_magick do
       blob = create_file_blob(filename: "racecar.jpg")
