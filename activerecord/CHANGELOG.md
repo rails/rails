@@ -1,3 +1,9 @@
+*   Revert alphabetical sorting of table columns inside `schema.rb`.
+
+    Alphabetical sorting of table columns inside the schema creates improper production tables when using `db:prepare`.
+
+    *Bert McCutchen*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.
