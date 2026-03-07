@@ -304,6 +304,8 @@ module ActiveRecord
               scope.merge!(preload_scope)
             end
 
+            scope.limit!(nil) if !reflection.collection? && scope.limit_value
+
             cascade_strict_loading(scope)
           end
 
