@@ -930,6 +930,16 @@ module ActiveRecord
         assert_not_equal initial_connection_id, connection_id_from_server(@connection)
       end
 
+      test "#exec_query is retryable" do
+        initial_connection_id = connection_id_from_server(@connection)
+
+        kill_connection_from_server(initial_connection_id)
+
+        @connection.exec_query("SELECT 1", allow_retry: true)
+
+        assert_not_equal initial_connection_id, connection_id_from_server(@connection)
+      end
+
       test "disconnect and recover on #configure_connection failure" do
         connection = ActiveRecord::Base.connection_pool.send(:new_connection)
 

@@ -169,11 +169,15 @@ module ActiveRecord
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
       #
+      # Setting +allow_retry+ to true causes the db to reconnect and retry
+      # executing the SQL statement in case of a connection-related exception.
+      # This option should only be enabled for known idempotent queries.
+      #
       # Note: the query is assumed to have side effects and the query cache
       # will be cleared. If the query is read-only, consider using #select_all
       # instead.
-      def exec_query(sql, name = "SQL", binds = [], prepare: false)
-        intent = internal_build_intent(sql, name, binds, prepare: prepare)
+      def exec_query(sql, name = "SQL", binds = [], prepare: false, allow_retry: false)
+        intent = internal_build_intent(sql, name, binds, prepare: prepare, allow_retry: allow_retry)
         intent.execute!
         intent.cast_result
       end
