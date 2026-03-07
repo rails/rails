@@ -204,7 +204,7 @@ user is successfully created.
 First, let's create a `User` scaffold:
 
 ```bash
-$ bin/rails generate scaffold user name email_address login
+$ bin/rails generate scaffold user name email_address:uniq login:uniq
 $ bin/rails db:migrate
 ```
 
