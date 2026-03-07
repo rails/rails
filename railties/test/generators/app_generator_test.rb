@@ -722,7 +722,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file ".github/workflows/ci.yml" do |content|
       assert_match(/db:test:prepare test/, content)
-      assert_match(/db:test:prepare test:system/, content)
+      assert_match(/#\s+run: bin\/rails db:test:prepare test:system/, content)
+      assert_no_match(/^\s+run: bin\/rails db:test:prepare test:system/, content)
     end
   end
 
@@ -733,7 +734,25 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file ".github/workflows/ci.yml" do |content|
       assert_no_match(/db:test:prepare/, content)
       assert_match(/bin\/rails test/, content)
-      assert_match(/bin\/rails test:system/, content)
+      assert_match(/#\s+run: bin\/rails test:system/, content)
+    end
+  end
+
+  def test_ci_workflow_includes_active_system_test_job_when_no_skip_system_test
+    run_generator [destination_root, "--no-skip-system-test"]
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_match(/^\s+system-test:/, content)
+      assert_match(/^\s+run: bin\/rails db:test:prepare test:system/, content)
+      assert_match(/screenshots/, content)
+    end
+  end
+
+  def test_ci_workflow_comments_out_system_test_job_by_default
+    run_generator
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_no_match(/^\s+system-test:/, content)
+      assert_match(/#\s+system-test:/, content)
+      assert_match(/Optional: Uncomment to enable system tests/, content)
     end
   end
 
