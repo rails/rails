@@ -341,6 +341,34 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal apple, citibank.firm
   end
 
+  def test_creating_the_polymorphic_belonging_object
+    sponsor = Sponsor.create
+    exception = assert_raise NameError do
+      sponsor.create_sponsorable(name: "Bert")
+    end
+    assert_equal "Cannot build polymorphic association `sponsorable' when `sponsorable_type' is empty", exception.message
+
+    sponsor.sponsorable_type = "foo"
+    exception = assert_raise NameError do
+      sponsor.create_sponsorable(name: "Bert")
+    end
+    assert_equal "wrong constant name foo", exception.message
+
+    sponsor.sponsorable_type = "Struct"
+    exception = assert_raise NameError do
+      sponsor.create_sponsorable(name: "Bert")
+    end
+    assert_equal "'Struct' is not a valid sponsorable_type", exception.message
+
+    sponsor.sponsorable_type = "Member"
+    member = sponsor.create_sponsorable(name: "Bert")
+    assert_instance_of Member, member
+    assert_equal "Bert", member.name
+    sponsor.save
+    sponsor.reload
+    assert_equal member, sponsor.sponsorable
+  end
+
   def test_creating_the_belonging_object_from_new_record
     citibank = Account.new("credit_limit" => 10)
     apple    = citibank.create_firm("name" => "Apple")
@@ -364,6 +392,33 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     apple    = citibank.build_firm("name" => "Apple")
     citibank.save
     assert_equal apple.id, citibank.firm_id
+  end
+
+  def test_building_the_polymorphic_belonging_object
+    sponsor = Sponsor.create
+    exception = assert_raise NameError do
+      sponsor.build_sponsorable(name: "Bert")
+    end
+    assert_equal "Cannot build polymorphic association `sponsorable' when `sponsorable_type' is empty", exception.message
+
+    sponsor.sponsorable_type = "foo"
+    exception = assert_raise NameError do
+      sponsor.build_sponsorable(name: "Bert")
+    end
+    assert_equal "wrong constant name foo", exception.message
+
+    sponsor.sponsorable_type = "Struct"
+    exception = assert_raise NameError do
+      sponsor.build_sponsorable(name: "Bert")
+    end
+    assert_equal "'Struct' is not a valid sponsorable_type", exception.message
+
+    sponsor.sponsorable_type = "Member"
+    member = sponsor.build_sponsorable(name: "Bert")
+    sponsor.save
+    assert_instance_of Member, sponsor.sponsorable
+    assert_equal member.id, sponsor.sponsorable.id
+    assert_equal "Bert", sponsor.sponsorable.name
   end
 
   def test_building_the_belonging_object_for_composite_primary_key
@@ -576,6 +631,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     sponsor.sponsorable = Member.new name: "Bert"
     assert_equal Member, sponsor.association(:sponsorable).klass
+
+    sponsor.sponsorable_type = "foo"
+    exception = assert_raise NameError do
+      sponsor.association(:sponsorable).klass
+    end
+    assert_equal "wrong constant name foo", exception.message
+
+    sponsor.sponsorable_type = "Struct"
+    exception = assert_raise NameError do
+      sponsor.association(:sponsorable).klass
+    end
+    assert_equal "'Struct' is not a valid sponsorable_type", exception.message
   end
 
   def test_with_polymorphic_and_condition

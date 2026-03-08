@@ -1,3 +1,27 @@
+*   Add constructors for polymorphic associations.
+
+    The constructors `build_association`, `create_association` and `create_association!`
+    now work for polymorphic associations as well, provided that the `association_type`
+    attribute has been populated in advance.
+
+    ```ruby
+    comment = Comment.new
+    comment.author_type = "AnonymousUser"
+    comment.build_author(ip: "192.0.2.4")
+    ```
+
+    This also allows polymorphic associations to be created via `accept_nested_attributes_for`.
+
+    ```ruby
+    Comment.create(
+      body: "I agree",
+      author_type: "AnonymousUser",
+      author_attributes: { ip: "192.0.2.4" }
+    )
+    ```
+
+    *Christian Schmidt*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.

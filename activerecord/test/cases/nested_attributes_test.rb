@@ -255,11 +255,18 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     @ship = @pirate.create_ship(name: "Nights Dirty Lightning")
   end
 
-  def test_should_raise_argument_error_if_trying_to_build_polymorphic_belongs_to
-    exception = assert_raise ArgumentError do
+  def test_should_raise_argument_error_if_trying_to_build_polymorphic_belongs_to_where_type_is_nil
+    exception = assert_raise NameError do
       Treasure.new(name: "pearl", looter_attributes: { catchphrase: "Arrr" })
     end
-    assert_equal "Cannot build association `looter'. Are you trying to build a polymorphic one-to-one association?", exception.message
+    assert_equal "Cannot build polymorphic association `looter' when `looter_type' is empty", exception.message
+  end
+
+  def test_should_raise_argument_error_if_trying_to_build_polymorphic_belongs_to_where_type_is_not_a_model
+    exception = assert_raise NameError do
+      Treasure.new(name: "pearl", looter_type: "Struct", looter_attributes: { catchphrase: "Arrr" })
+    end
+    assert_equal "'Struct' is not a valid looter_type", exception.message
   end
 
   def test_should_define_an_attribute_writer_method_for_the_association
@@ -272,6 +279,13 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 
     assert_not_predicate @pirate.ship, :persisted?
     assert_equal "Davy Jones Gold Dagger", @pirate.ship.name
+  end
+
+  def test_should_build_new_polymorphic_record_if_there_is_no_id
+    treasure = Treasure.new(name: "pearl", looter_type: "Pirate", looter_attributes: { catchphrase: "Arrr" })
+    assert_instance_of Pirate, treasure.looter
+    assert_not_predicate treasure.looter, :persisted?
+    assert_equal "Arrr", treasure.looter.catchphrase
   end
 
   def test_should_not_build_a_new_record_if_there_is_no_id_and_destroy_is_truthy
