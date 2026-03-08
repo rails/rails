@@ -157,7 +157,7 @@ block with the following arguments instead:
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, payload|
   Rails.logger.info "name: #{name}" # process_action.action_controller
-  Rails.logger.info "started: #{started}" #   2025-10-13 10:00:40 -0700
+  Rails.logger.info "started: #{started}" # 2025-10-13 10:00:40 -0700
   Rails.logger.info "finished: #{finished}"   # 2025-10-13 10:00:50 -0700
   Rails.logger.info "unique_id: #{unique_id}" # a3f2e9...
   Rails.logger.info "payload: #{payload}" # {:extra=>information}
