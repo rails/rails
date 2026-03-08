@@ -58,7 +58,7 @@ controller name, action name, and request information in its payload.
 
 ```ruby
 ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
-   Rails.logger.info "Duration: #{event.duration}"
+  Rails.logger.info "Duration: #{event.duration}"
 end
 ```
 
