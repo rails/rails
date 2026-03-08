@@ -526,6 +526,13 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal 50, client.extra_size
   end
 
+  def test_becomes_same_class_makes_clone
+    original = Company.new(name: "GrowingCompany")
+    clone = original.becomes(Company)
+    assert_instance_of Company, clone
+    assert_not_equal original.object_id, clone.object_id
+  end
+
   def test_delete_many
     original_count = Topic.count
     Topic.delete(deleting = [1, 2])

@@ -173,9 +173,11 @@ module ActiveRecord
       prevent_writes = true if role == ActiveRecord.reading_role
 
       append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: classes)
-      yield
-    ensure
-      connected_to_stack.pop
+      begin
+        yield
+      ensure
+        connected_to_stack.pop
+      end
     end
 
     # Passes the block to +connected_to+ for every +shard+ the
@@ -210,8 +212,13 @@ module ActiveRecord
     # is useful in cases you're using sharding to provide per-request
     # database isolation.
     def prohibit_shard_swapping(enabled = true)
+      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] ||= Set.new
       prev_value = ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping]
-      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] = enabled
+      if enabled
+        ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] = prev_value.dup.add(connection_specification_name)
+      else
+        ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] = prev_value.dup.delete(connection_specification_name)
+      end
       yield
     ensure
       ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] = prev_value
@@ -219,7 +226,7 @@ module ActiveRecord
 
     # Determine whether or not shard swapping is currently prohibited
     def shard_swapping_prohibited?
-      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping]
+      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping]&.include?(connection_specification_name)
     end
 
     # Prevent writing to the database regardless of role.
@@ -396,16 +403,18 @@ module ActiveRecord
         prevent_writes = true if role == ActiveRecord.reading_role
 
         append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
-        return_value = yield
-        return_value.load if return_value.is_a? ActiveRecord::Relation
-        return_value
-      ensure
-        self.connected_to_stack.pop
+        begin
+          return_value = yield
+          return_value.load if return_value.is_a? ActiveRecord::Relation
+          return_value
+        ensure
+          self.connected_to_stack.pop
+        end
       end
 
       def append_to_connected_to_stack(entry)
-        if shard_swapping_prohibited? && entry[:shard].present?
-          raise ArgumentError, "cannot swap `shard` while shard swapping is prohibited."
+        if entry[:shard].present? && entry[:klasses].any?(&:shard_swapping_prohibited?)
+          raise ShardSwapProhibitedError, "cannot swap `shard` while shard swapping is prohibited."
         end
 
         connected_to_stack << entry

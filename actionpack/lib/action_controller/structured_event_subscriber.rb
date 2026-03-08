@@ -4,6 +4,8 @@ module ActionController
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
     INTERNAL_PARAMS = %w(controller action format _method only_path)
 
+    class_attribute :_rescue_from_event_backtrace, instance_accessor: false, default: nil # :nodoc:
+
     def start_processing(event)
       payload = event.payload
       params = {}
@@ -46,10 +48,18 @@ module ActionController
 
     def rescue_from_callback(event)
       exception = event.payload[:exception]
+
+      if self.class._rescue_from_event_backtrace == :array
+        exception_backtrace = exception.backtrace
+      else
+        exception_backtrace = exception.backtrace&.first
+        exception_backtrace = exception_backtrace&.delete_prefix("#{Rails.root}/") if defined?(Rails.root) && Rails.root
+      end
+
       emit_event("action_controller.rescue_from_handled",
         exception_class: exception.class.name,
         exception_message: exception.message,
-        exception_backtrace: exception.backtrace&.first&.delete_prefix("#{Rails.root}/")
+        exception_backtrace:
       )
     end
 
@@ -65,6 +75,17 @@ module ActionController
       emit_event("action_controller.data_sent", filename: event.payload[:filename], duration_ms: event.duration.round(1))
     end
 
+    def open_redirect(event)
+      payload = event.payload
+
+      emit_event("action_controller.open_redirect",
+        location: payload[:location],
+        request_method: payload[:request]&.method,
+        request_path: payload[:request]&.path,
+        stacktrace: payload[:stack_trace],
+      )
+    end
+
     def unpermitted_parameters(event)
       unpermitted_keys = event.payload[:keys]
       context = event.payload[:context]
@@ -75,6 +96,26 @@ module ActionController
       )
     end
     debug_only :unpermitted_parameters
+
+    def csrf_token_fallback(event)
+      emit_csrf_event "action_controller.csrf_token_fallback", event.payload
+    end
+
+    def csrf_request_blocked(event)
+      emit_csrf_event "action_controller.csrf_request_blocked", event.payload
+    end
+
+    def csrf_javascript_blocked(event)
+      emit_csrf_event "action_controller.csrf_javascript_blocked", event.payload
+    end
+
+    private def emit_csrf_event(name, payload)
+      emit_event name,
+        controller: payload[:controller],
+        action: payload[:action],
+        sec_fetch_site: payload[:sec_fetch_site],
+        message: payload[:message]
+    end
 
     def write_fragment(event)
       fragment_cache(__method__, event)

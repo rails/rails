@@ -61,16 +61,44 @@ module ActionDispatch
         internal
       end
 
+      def action_source_location
+        file, line = action_source_file_and_line
+        return unless file
+
+        "#{file}:#{line}"
+      end
+
+      def action_source_file_and_line
+        return unless app.dispatcher?
+        return unless controller && action
+
+        controller_name = controller.to_s
+        action_name = action.to_s
+        return if controller_name.start_with?(":") || action_name.start_with?(":")
+
+        begin
+          controller_class = "#{controller_name.camelize}Controller".constantize
+          method = controller_class.instance_method(action_name.to_sym)
+          method.source_location
+        rescue NameError, TypeError
+          nil
+        end
+      end
+
       def engine?
         app.engine?
       end
 
       def to_h
+        file, line = action_source_file_and_line
         { name: name,
           verb: verb,
           path: path,
           reqs: reqs,
-          source_location: source_location }
+          source_location: source_location,
+          action_source_location: action_source_location,
+          action_source_file: file,
+          action_source_line: line }
       end
     end
 
@@ -269,8 +297,8 @@ module ActionDispatch
                 URI               | #{r[:path]}
                 Controller#Action | #{r[:reqs]}
               MESSAGE
-              source_location = "\nSource Location   | #{r[:source_location]}"
-              route_rows += source_location if r[:source_location].present?
+              route_rows += "\nSource Location   | #{r[:source_location]}" if r[:source_location].present?
+              route_rows += "\nAction Location   | #{r[:action_source_location]}" if r[:action_source_location].present?
               route_rows
             end
           end

@@ -8,6 +8,9 @@ module Rails
       class_option :app_name, type: :string, default: "rails_app",
                    desc: "Name of the app"
 
+      class_option :app_folder, type: :string, default: nil,
+                   desc: "The folder name where the app is generated"
+
       class_option :database, enum: Database::DATABASES, type: :string, default: "sqlite3",
                    desc: "Include configuration for selected database"
 
@@ -65,6 +68,10 @@ module Rails
 
         def app_name
           options[:app_name]
+        end
+
+        def app_folder
+          options[:app_folder] || app_name
         end
 
         def dependencies

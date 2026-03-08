@@ -46,16 +46,24 @@ module ActiveRecord
         def ==(other)
           other.is_a?(Column) &&
             super &&
-            auto_increment? == other.auto_increment?
+            auto_increment? == other.auto_increment? &&
+            rowid == other.rowid &&
+            generated_type == other.generated_type
         end
         alias :eql? :==
 
         def hash
-          Column.hash ^
-            super.hash ^
-            auto_increment?.hash ^
-            rowid.hash
+          [
+            Column,
+            super,
+            @auto_increment,
+            @rowid,
+            @generated_type,
+          ].hash
         end
+
+        protected
+          attr_reader :generated_type
       end
     end
   end

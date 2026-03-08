@@ -1179,7 +1179,7 @@ SELECT * FROM authors WHERE id = 10 LIMIT 1
 SELECT * FROM books WHERE author_id = 10 ORDER BY year_published DESC
 ```
 
-You can using the `reorder` clause to specify a different way to order the books:
+You can use the `reorder` clause to specify a different way to order the books:
 
 ```ruby
 Author.find(10).books.reorder("year_published ASC")
@@ -1395,13 +1395,14 @@ end
 
 NOTE:  Note that your database must support the raw SQL, that you pass in to the `lock` method.
 
-If you already have an instance of your model, you can start a transaction and acquire the lock in one go using the following code:
+If you already have an instance of your model, you can start a transaction and acquire the lock in one go using the following code. The block receives the current transaction so you can register callbacks:
 
 ```ruby
 book = Book.first
-book.with_lock do
+book.with_lock do |transaction|
   # This block is called within a transaction,
   # book is already locked.
+  transaction.after_commit { puts "hello" }
   book.increment!(:views)
 end
 ```
@@ -2031,6 +2032,55 @@ As you can see above the `default_scope` is being merged in both
 `scope` and `where` conditions.
 
 [`merge`]: https://api.rubyonrails.org/classes/ActiveRecord/SpawnMethods.html#method-i-merge
+
+### Block-Level Scoping
+
+The [`scoping`][] method allows you to temporarily apply the current relation’s conditions within a block.
+Any query executed inside the block will use the scope of the relation.
+
+#### Basic Usage
+
+```ruby
+Order.where(customer_id: 1).scoping do
+  Order.first
+end
+
+# SELECT "orders".* FROM "orders" WHERE "orders"."customer_id" = ? ORDER BY "orders"."id" ASC LIMIT ?  [["customer_id", 1], ["LIMIT", 1]]
+```
+
+In this example, the `customer_id: 1` condition is applied automatically because the block is executed within the relation’s scope.
+
+#### Applying Scope To All Queries In The Block
+
+By default, scoping applies only to finder methods (such as `first`, `last`, `where`, etc.).
+If you want the scope to affect all queries—including `update` and `delete` on individual records, you can pass the option `all_queries: true`.
+
+```ruby
+Order.where(customer_id: 1).scoping(all_queries: true) do
+  order = Order.first
+  order.update(status: :complete)
+end
+
+# Order Load (0.1ms)    SELECT "orders".* FROM "orders" WHERE "orders"."customer_id" = ? ORDER BY "orders"."id" ASC LIMIT ?  [["customer_id", 1], ["LIMIT", 1]]
+# TRANSACTION (0.0ms)   BEGIN immediate TRANSACTION
+# Order Update (0.1ms)  UPDATE "orders" SET "status" = ?, "updated_at" = ? WHERE "orders"."id" = ? AND "orders"."customer_id" = ?  [["status", 2], ["updated_at", "2025-11-25 11:26:16.089553"], ["id", 1], ["customer_id", 1]]
+# TRANSACTION (0.0ms)   COMMIT TRANSACTION
+```
+
+This will ensure that the `customer_id: 1` condition is applied to all queries executed within the block.
+
+Once a block has been entered with `all_queries: true`, nested blocks cannot disable it:
+
+```ruby
+Order.where(customer_id: 1).scoping(all_queries: true) do
+  # This will raise an ArgumentError:
+  Order.scoping(all_queries: false) do
+    # ...
+  end
+end
+```
+
+[`scoping`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-scoping
 
 ### Removing All Scoping
 

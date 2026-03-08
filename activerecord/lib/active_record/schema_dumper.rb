@@ -232,8 +232,8 @@ module ActiveRecord
       def indexes(table, stream)
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
-            table_name = remove_prefix_and_suffix(index.table).inspect
-            "  add_index #{([relation_name(table_name)] + index_parts(index)).join(', ')}"
+            table_name = remove_prefix_and_suffix(index.table)
+            "  add_index #{([relation_name(table_name).inspect] + index_parts(index)).join(', ')}"
           end
 
           stream.puts add_index_statements.sort.join("\n")

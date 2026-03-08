@@ -6,6 +6,7 @@ require "action_dispatch"
 require "action_dispatch/log_subscriber"
 require "action_dispatch/structured_event_subscriber"
 require "active_support/messages/rotation_configuration"
+require "rails/railtie"
 
 module ActionDispatch
   class Railtie < Rails::Railtie # :nodoc:
@@ -48,6 +49,11 @@ module ActionDispatch
     config.action_dispatch.cookies_rotations = ActiveSupport::Messages::RotationConfiguration.new
 
     config.eager_load_namespaces << ActionDispatch
+
+    guard_load_hooks(
+      :action_dispatch_response, :action_dispatch_system_test_case,
+      :action_dispatch_integration_test,
+    )
 
     initializer "action_dispatch.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_dispatch] = ActionDispatch.deprecator

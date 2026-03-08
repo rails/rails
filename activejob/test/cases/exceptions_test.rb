@@ -266,6 +266,20 @@ class ExceptionsTest < ActiveSupport::TestCase
       ], JobBuffer.values
     end
 
+    test "custom wait proc can use the error" do
+      travel_to Time.now
+
+      RetryJob.perform_later "RetryWaitIncludedInError", 3, :log_scheduled_at
+
+      assert_equal [
+        "Raised RetryWaitIncludedInError for the 1st time",
+        "Next execution scheduled at #{(Time.now + 11.seconds).to_f}",
+        "Raised RetryWaitIncludedInError for the 2nd time",
+        "Next execution scheduled at #{(Time.now + 12.seconds).to_f}",
+        "Successfully completed job"
+      ], JobBuffer.values
+    end
+
     test "use individual execution timers when calculating retry delay" do
       travel_to Time.now
 

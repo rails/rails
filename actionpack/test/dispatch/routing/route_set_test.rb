@@ -20,13 +20,13 @@ module ActionDispatch
       end
 
       test "not being empty when route is added" do
-        assert_predicate self, :empty?
+        assert_empty @set
 
         draw do
           get "foo", to: SimpleApp.new("foo#index")
         end
 
-        assert_not empty?
+        assert_not_empty @set
       end
 
       test "URL helpers are added when route is added" do

@@ -26,7 +26,7 @@ services:
     image: postgres:latest
     restart: unless-stopped
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: postgres
@@ -41,7 +41,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
 
   redis:
-    image: valkey/valkey:8
+    image: valkey/valkey:9
     restart: unless-stopped
     volumes:
       - redis-data:/data

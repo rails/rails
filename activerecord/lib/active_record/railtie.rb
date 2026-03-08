@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_record"
 require "rails"
+require "active_record"
 require "active_support/core_ext/object/try"
 require "active_model/railtie"
 
@@ -45,6 +45,12 @@ module ActiveRecord
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
     config.eager_load_namespaces << ActiveRecord
+
+    guard_load_hooks(
+      :active_record, :active_record_encryption, :active_record_fixture_set, :active_record_fixtures,
+      :active_record_mysql2adapter, :active_record_postgresqladapter, :active_record_sqlite3adapter,
+      :active_record_trilogyadapter,
+    )
 
     rake_tasks do
       namespace :db do
@@ -197,12 +203,16 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
-    initializer "active_record.postgresql_adapter_decode_dates" do
+    initializer "active_record.postgresql_adapter_decodes" do
       config.after_initialize do
-        if config.active_record.postgresql_adapter_decode_dates
-          ActiveSupport.on_load(:active_record_postgresqladapter) do
-            self.decode_dates = true
-          end
+        decode_bytea = config.active_record.postgresql_adapter_decode_bytea
+        decode_dates = config.active_record.postgresql_adapter_decode_dates
+        decode_money = config.active_record.postgresql_adapter_decode_money
+
+        ActiveSupport.on_load(:active_record_postgresqladapter) do
+          self.decode_bytea = true if decode_bytea
+          self.decode_dates = true if decode_dates
+          self.decode_money = true if decode_money
         end
       end
     end
@@ -237,6 +247,8 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :check_schema_cache_dump_version,
           :use_schema_cache_dump,
           :postgresql_adapter_decode_dates,
+          :postgresql_adapter_decode_money,
+          :postgresql_adapter_decode_bytea,
           :use_legacy_signed_id_verifier,
         )
 

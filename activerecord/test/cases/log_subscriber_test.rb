@@ -5,9 +5,12 @@ require "models/binary"
 require "models/developer"
 require "models/post"
 require "active_support/log_subscriber/test_helper"
+require "active_support/testing/event_reporter_assertions"
+require "active_record/log_subscriber"
+require "active_record/structured_event_subscriber"
 
 class LogSubscriberTest < ActiveRecord::TestCase
-  include ActiveSupport::LogSubscriber::TestHelper
+  include ActiveSupport::Testing::EventReporterAssertions
   include ActiveSupport::Logger::Severity
   REGEXP_CLEAR = Regexp.escape("\e[#{ActiveRecord::LogSubscriber::MODES[:clear]}m")
   REGEXP_BOLD = Regexp.escape("\e[#{ActiveRecord::LogSubscriber::MODES[:bold]}m")
@@ -23,7 +26,6 @@ class LogSubscriberTest < ActiveRecord::TestCase
       TRANSACTION: REGEXP_CYAN,
       OTHER: REGEXP_MAGENTA
   }
-  Event = Struct.new(:duration, :payload)
 
   class TestDebugLogSubscriber < ActiveRecord::LogSubscriber
     attr_reader :debugs
@@ -41,47 +43,52 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
   fixtures :posts
 
+  def run(*)
+    with_debug_event_reporting do
+      super
+    end
+  end
+
   def setup
-    @old_logger = ActiveRecord::Base.logger
+    super
+    ActiveSupport.colorize_logging = false
+    @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    @old_logger = ActiveRecord::LogSubscriber.logger
+    ActiveRecord::LogSubscriber.logger = @logger
+    TestDebugLogSubscriber.logger = @logger
     Developer.primary_key
     ActiveRecord::Base.lease_connection.materialize_transactions
-    super
-    ActiveRecord::LogSubscriber.attach_to(:active_record)
   end
 
   def teardown
     super
-    ActiveRecord::LogSubscriber.log_subscribers.pop
-    ActiveRecord::Base.logger = @old_logger
-  end
-
-  def set_logger(logger)
-    ActiveRecord::Base.logger = logger
+    ActiveRecord::LogSubscriber.logger = @old_logger
+    TestDebugLogSubscriber.logger = nil
+    ActiveSupport.colorize_logging = true
   end
 
   def test_schema_statements_are_ignored
     logger = TestDebugLogSubscriber.new
     assert_equal 0, logger.debugs.length
 
-    logger.sql(Event.new(0.9, sql: "hi mom!"))
+    logger.sql({ payload: { sql: "hi mom!", duration_ms: 0.9 } })
     assert_equal 1, logger.debugs.length
 
-    logger.sql(Event.new(0.9, sql: "hi mom!", name: "foo"))
+    logger.sql({ payload: { name: "foo", sql: "hi mom!", duration_ms: 0.9 } })
     assert_equal 2, logger.debugs.length
 
-    logger.sql(Event.new(0.9, sql: "hi mom!", name: "SCHEMA"))
+    logger.sql({ payload: { name: "SCHEMA", sql: "hi mom!", duration_ms: 0.9 } })
     assert_equal 2, logger.debugs.length
   end
 
   def test_sql_statements_are_not_squeezed
     logger = TestDebugLogSubscriber.new
-    logger.sql(Event.new(0.9, sql: "ruby   rails"))
+    logger.sql({ payload: { sql: "ruby   rails", duration_ms: 0.9 } })
     assert_match(/ruby   rails/, logger.debugs.first)
   end
 
   def test_basic_query_logging
     Developer.all.load
-    wait
     assert_equal 1, @logger.logged(:debug).size
     assert_match(/Developer Load/, @logger.logged(:debug).last)
     assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
@@ -89,68 +96,68 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
   def test_basic_query_logging_coloration
     logger = TestDebugLogSubscriber.new
-    logger.colorize_logging = true
+    ActiveSupport.colorize_logging = true
     SQL_COLORINGS.each do |verb, color_regex|
-      logger.sql(Event.new(0.9, sql: verb.to_s))
+      logger.sql({ payload: { sql: verb.to_s, duration_ms: 0.9 } })
       assert_match(/#{REGEXP_BOLD}#{color_regex}#{verb}#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
   end
 
   def test_logging_sql_coloration_disabled
     logger = TestDebugLogSubscriber.new
-    logger.colorize_logging = false
+    ActiveSupport.colorize_logging = false
 
     SQL_COLORINGS.each do |verb, color_regex|
-      logger.sql(Event.new(0.9, sql: verb.to_s))
+      logger.sql({ payload: { sql: verb.to_s, duration_ms: 0.9 } })
       assert_no_match(/#{REGEXP_BOLD}#{color_regex}#{verb}#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
   end
 
   def test_basic_payload_name_logging_coloration_generic_sql
     logger = TestDebugLogSubscriber.new
-    logger.colorize_logging = true
+    ActiveSupport.colorize_logging = true
     SQL_COLORINGS.each do |verb, _|
-      logger.sql(Event.new(0.9, sql: verb.to_s))
+      logger.sql({ payload: { sql: verb.to_s, duration_ms: 0.9 } })
       assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0\.9ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
 
-      logger.sql(Event.new(0.9, sql: verb.to_s, name: "SQL"))
+      logger.sql({ payload: { name: "SQL", sql: verb.to_s, duration_ms: 0.9 } })
       assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA}SQL \(0\.9ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
   end
 
   def test_basic_payload_name_logging_coloration_named_sql
     logger = TestDebugLogSubscriber.new
-    logger.colorize_logging = true
+    ActiveSupport.colorize_logging = true
     SQL_COLORINGS.each do |verb, _|
-      logger.sql(Event.new(0.9, sql: verb.to_s, name: "Model Load"))
+      logger.sql({ payload: { sql: verb.to_s, name: "Model Load", duration_ms: 0.9 } })
       assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}Model Load \(0\.9ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
 
-      logger.sql(Event.new(0.9, sql: verb.to_s, name: "Model Exists"))
+      logger.sql({ payload: { sql: verb.to_s, name: "Model Exists", duration_ms: 0.9 } })
       assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}Model Exists \(0\.9ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
 
-      logger.sql(Event.new(0.9, sql: verb.to_s, name: "ANY SPECIFIC NAME"))
+      logger.sql({ payload: { sql: verb.to_s, name: "ANY SPECIFIC NAME", duration_ms: 0.9 } })
       assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}ANY SPECIFIC NAME \(0\.9ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
   end
 
   def test_async_query
     logger = TestDebugLogSubscriber.new
-    logger.sql(Event.new(0.9, sql: "SELECT * from models", name: "Model Load", async: true, lock_wait: 0.01))
+    logger.sql({ payload: { sql: "SELECT * from models", name: "Model Load", async: true, lock_wait: 0.01, duration_ms: 0.9 } })
     assert_match(/ASYNC Model Load \(0\.0ms\) \(db time 0\.9ms\)  SELECT/i, logger.debugs.last)
   end
 
   def test_query_logging_coloration_with_nested_select
     logger = TestDebugLogSubscriber.new
-    logger.colorize_logging = true
+    ActiveSupport.colorize_logging = true
     SQL_COLORINGS.slice(:SELECT, :INSERT, :UPDATE, :DELETE).each do |verb, color_regex|
-      logger.sql(Event.new(0.9, sql: "#{verb} WHERE ID IN SELECT"))
+      logger.sql({ payload: { sql: "#{verb} WHERE ID IN SELECT", duration_ms: 0.9 } })
       assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0\.9ms\)#{REGEXP_CLEAR}  #{REGEXP_BOLD}#{color_regex}#{verb} WHERE ID IN SELECT#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
   end
 
   def test_query_logging_coloration_with_multi_line_nested_select
     logger = TestDebugLogSubscriber.new
-    logger.colorize_logging = true
+    ActiveSupport.colorize_logging = true
     SQL_COLORINGS.slice(:SELECT, :INSERT, :UPDATE, :DELETE).each do |verb, color_regex|
       sql = <<-EOS
         #{verb}
@@ -158,32 +165,31 @@ class LogSubscriberTest < ActiveRecord::TestCase
           SELECT ID FROM THINGS
         )
       EOS
-      logger.sql(Event.new(0.9, sql: sql))
+      logger.sql({ payload: { sql: sql, duration_ms: 0.9 } })
       assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0\.9ms\)#{REGEXP_CLEAR}  #{REGEXP_BOLD}#{color_regex}.*#{verb}.*#{REGEXP_CLEAR}/mi, logger.debugs.last)
     end
   end
 
   def test_query_logging_coloration_with_lock
     logger = TestDebugLogSubscriber.new
-    logger.colorize_logging = true
+    ActiveSupport.colorize_logging = true
     sql = <<-EOS
       SELECT * FROM
         (SELECT * FROM mytable FOR UPDATE) ss
       WHERE col1 = 5;
     EOS
-    logger.sql(Event.new(0.9, sql: sql))
+    logger.sql({ payload: { sql: sql, duration_ms: 0.9 } })
     assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0\.9ms\)#{REGEXP_CLEAR}  #{REGEXP_BOLD}#{SQL_COLORINGS[:LOCK]}.*FOR UPDATE.*#{REGEXP_CLEAR}/mi, logger.debugs.last)
 
     sql = <<-EOS
       LOCK TABLE films IN SHARE MODE;
     EOS
-    logger.sql(Event.new(0.9, sql: sql))
+    logger.sql({ payload: { sql: sql, duration_ms: 0.9 } })
     assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0\.9ms\)#{REGEXP_CLEAR}  #{REGEXP_BOLD}#{SQL_COLORINGS[:LOCK]}.*LOCK TABLE.*#{REGEXP_CLEAR}/mi, logger.debugs.last)
   end
 
   def test_exists_query_logging
     Developer.exists? 1
-    wait
     assert_equal 1, @logger.logged(:debug).size
     assert_match(/Developer Exists/, @logger.logged(:debug).last)
     assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
@@ -193,7 +199,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     ActiveRecord.verbose_query_logs = true
 
     logger = TestDebugLogSubscriber.new
-    logger.sql(Event.new(0, sql: "hi mom!"))
+    logger.sql({ payload: { sql: "hi mom!", duration_ms: 0 } })
     assert_equal 2, @logger.logged(:debug).size
     assert_match(/↳/, @logger.logged(:debug).last)
   ensure
@@ -206,7 +212,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     logger = TestDebugLogSubscriber.new
     def logger.query_source_location; nil; end
 
-    logger.sql(Event.new(0, sql: "hi mom!"))
+    logger.sql({ payload: { sql: "hi mom!", duration_ms: 0 } })
     assert_equal 1, @logger.logged(:debug).size
     assert_no_match(/↳/, @logger.logged(:debug).last)
   ensure
@@ -215,7 +221,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
   def test_verbose_query_logs_disabled_by_default
     logger = TestDebugLogSubscriber.new
-    logger.sql(Event.new(0, sql: "hi mom!"))
+    logger.sql({ payload: { sql: "hi mom!", duration_ms: 0 } })
     assert_no_match(/↳/, @logger.logged(:debug).last)
   end
 
@@ -224,7 +230,6 @@ class LogSubscriberTest < ActiveRecord::TestCase
       Developer.all.load
       Developer.all.load
     end
-    wait
     assert_equal 2, @logger.logged(:debug).size
     assert_match(/CACHE/, @logger.logged(:debug).last)
     assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
@@ -233,7 +238,6 @@ class LogSubscriberTest < ActiveRecord::TestCase
   def test_basic_query_doesnt_log_when_level_is_not_debug
     @logger.level = INFO
     Developer.all.load
-    wait
     assert_equal 0, @logger.logged(:debug).size
   end
 
@@ -243,26 +247,22 @@ class LogSubscriberTest < ActiveRecord::TestCase
       Developer.all.load
       Developer.all.load
     end
-    wait
     assert_equal 0, @logger.logged(:debug).size
   end
 
   if ActiveRecord::Base.lease_connection.prepared_statements
     def test_where_in_binds_logging_include_attribute_names
       Developer.where(id: [1, 2, 3, 4, 5]).load
-      wait
       assert_match(%{["id", 1], ["id", 2], ["id", 3], ["id", 4], ["id", 5]}, @logger.logged(:debug).last)
     end
 
     def test_binary_data_is_not_logged
       Binary.create(data: "some binary data")
-      wait
       assert_match(/<16 bytes of binary data>/, @logger.logged(:debug).join)
     end
 
     def test_binary_data_hash
       Binary.create(data: { a: 1 })
-      wait
       assert_match(/<(6|7) bytes of binary data>/, @logger.logged(:debug).join)
     end
   end

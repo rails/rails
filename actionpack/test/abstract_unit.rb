@@ -58,8 +58,9 @@ ActionPackTestSuiteUtils.require_helpers("#{__dir__}/fixtures/alternate_helpers"
 Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
-ActionController.deprecator.debug = true
-ActionDispatch.deprecator.debug = true
+ActionController.deprecator.behavior = :raise
+ActionDispatch.deprecator.behavior = :raise
+ActionView.deprecator.behavior = :raise
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
@@ -314,7 +315,7 @@ module RoutingTestHelpers
   end
 
   class TestSet < ActionDispatch::Routing::RouteSet
-    class Request < DelegateClass(ActionDispatch::Request)
+    class Request < ActiveSupport::Delegation::DelegateClass(ActionDispatch::Request)
       def initialize(target, helpers, block, strict)
         super(target)
         @helpers = helpers

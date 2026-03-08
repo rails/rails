@@ -2,6 +2,7 @@
 
 require_relative "abstract_unit"
 require "active_support/execution_context/test_helper"
+require "active_support/core_ext/object/with"
 
 class ExecutionContextTest < ActiveSupport::TestCase
   # ExecutionContext is automatically reset in Rails app via executor hooks set in railtie
@@ -25,6 +26,26 @@ class ExecutionContextTest < ActiveSupport::TestCase
 
     assert_equal "present", ActiveSupport::ExecutionContext.to_h[:direct_assignment]
     assert_equal "present", ActiveSupport::ExecutionContext.to_h[:multi_assignment]
+  end
+
+  test "#pop after #flush does not corrupt execution context" do
+    ActiveSupport::ExecutionContext.with(nestable: true) do
+      # simulate executor hooks from active_support/railtie.rb
+      executor = Class.new(ActiveSupport::Executor)
+
+      executor.to_run do
+        ActiveSupport::ExecutionContext.push
+      end
+      executor.to_complete do
+        ActiveSupport::ExecutionContext.pop
+      end
+      executor.wrap do
+        # simulate app.reloader.before_class_unload hooks from active_support/railtie.rb
+        ActiveSupport::ExecutionContext.flush
+      end
+
+      assert_equal({}, ActiveSupport::ExecutionContext.to_h)
+    end
   end
 
   test "#set coerce keys to symbol" do

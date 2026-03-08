@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
-require "active_model"
 require "rails"
+require "active_model"
 
 module ActiveModel
   class Railtie < Rails::Railtie # :nodoc:
     config.eager_load_namespaces << ActiveModel
 
     config.active_model = ActiveSupport::OrderedOptions.new
+
+    guard_load_hooks(:active_model, :active_model_error, :active_model_secure_password, :active_model_translation)
 
     initializer "active_model.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_model] = ActiveModel.deprecator

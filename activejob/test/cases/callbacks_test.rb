@@ -61,7 +61,7 @@ class CallbacksTest < ActiveSupport::TestCase
     assert_nil(job.flag)
   end
 
-  test "#perform does not run after_perform callbacks when swhen previous callbacks aborted" do
+  test "#perform does not run after_perform callbacks when previous callbacks aborted" do
     job = AbortBeforeEnqueueJob.new
     job.perform_now
 

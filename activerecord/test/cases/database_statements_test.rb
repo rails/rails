@@ -8,7 +8,9 @@ class DatabaseStatementsTest < ActiveRecord::TestCase
   end
 
   def test_exec_insert
-    result = @connection.exec_insert("INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)", nil, [])
+    result = assert_deprecated(ActiveRecord.deprecator) do
+      @connection.exec_insert("INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)", nil, [])
+    end
     assert_not_nil @connection.send(:last_inserted_id, result)
   end
 
@@ -18,6 +20,11 @@ class DatabaseStatementsTest < ActiveRecord::TestCase
 
   def test_create_should_return_the_inserted_id
     assert_not_nil return_the_inserted_id(method: :create)
+  end
+
+  def test_extract_table_ref_from_insert_sql_with_hyphen_in_table_name
+    sql = "INSERT INTO \"table-with-hyphen\" (column1, column2) VALUES (value1, value2)"
+    assert_equal "table-with-hyphen", @connection.send(:extract_table_ref_from_insert_sql, sql)
   end
 
   private

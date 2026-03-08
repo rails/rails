@@ -184,7 +184,7 @@ module ActionDispatch
       # Returns `true` if the session is mimicking a secure HTTPS request.
       #
       #     if session.https?
-      #       ...
+      #       # ...
       #     end
       def https?
         @https
@@ -203,7 +203,7 @@ module ActionDispatch
       # *   `env`: Additional env to pass, as a Hash. The headers will be merged into
       #     the Rack env hash.
       # *   `xhr`: Set to `true` if you want to make an Ajax request. Adds request
-      #     headers characteristic of XMLHttpRequest e.g. HTTP_X_REQUESTED_WITH. The
+      #     headers characteristic of `XMLHttpRequest`, e.g. `HTTP_X_REQUESTED_WITH`. The
       #     headers will be merged into the Rack env hash.
       # *   `as`: Used for encoding the request with different content type. Supports
       #     `:json` by default and will set the appropriate request headers. The
@@ -218,9 +218,10 @@ module ActionDispatch
       # This method returns the response status, after performing the request.
       # Furthermore, if this method was called from an ActionDispatch::IntegrationTest
       # object, then that object's `@response` instance variable will point to a
-      # Response object which one can use to inspect the details of the response.
+      # ActionDispatch::TestResponse object which one can use to inspect the details of the response.
       #
       # Example:
+      #
       #     process :get, '/author', params: { since: 201501011400 }
       def process(method, path, params: nil, headers: nil, env: nil, xhr: false, as: nil)
         request_encoder = RequestEncoder.encoder(as)

@@ -226,7 +226,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/<body>/, body)
     assert_match(/ActionController::MethodNotAllowed/, body)
 
-    get "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => :all }
+    process :unknown, "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 405
     assert_match(/<body>/, body)
     assert_match(/ActionController::UnknownHttpMethod/, body)
@@ -278,7 +278,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal "text/plain", response.media_type
     assert_match(/ActionController::MethodNotAllowed/, body)
 
-    get "/unknown_http_method", headers: xhr_request_env
+    process :unknown, "/unknown_http_method", headers: xhr_request_env
     assert_response 405
     assert_no_match(/<body>/, body)
     assert_equal "text/plain", response.media_type
@@ -294,6 +294,47 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_response 400
     assert_no_match(/<body>/, body)
     assert_equal "text/plain", response.media_type
+    assert_match(/ActionController::ParameterMissing/, body)
+  end
+
+  test "rescue with text error and markdown format when text/markdown is preferred" do
+    @app = DevelopmentApp
+
+    get "/", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 500
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/RuntimeError/, body)
+    assert_match(/puke/, body)
+
+    get "/not_found", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 404
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/#{AbstractController::ActionNotFound.name}/, body)
+
+    get "/method_not_allowed", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::MethodNotAllowed/, body)
+
+    process :unknown, "/unknown_http_method", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::UnknownHttpMethod/, body)
+
+    get "/bad_request", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::BadRequest/, body)
+
+    get "/parameter_missing", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
     assert_match(/ActionController::ParameterMissing/, body)
   end
 
@@ -319,7 +360,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal "application/json", response.media_type
     assert_match(/ActionController::MethodNotAllowed/, body)
 
-    get "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => :all }, as: :json
+    process :unknown, "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => :all }, as: :json
     assert_response 405
     assert_no_match(/<body>/, body)
     assert_equal "application/json", response.media_type
@@ -414,7 +455,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match %r{Showing <i>.*test/dispatch/debug_exceptions_test.rb</i>}, body
   end
 
-  test "show the last exception and cause even when the cause is mapped to resque_responses" do
+  test "show the last exception and cause even when the cause is mapped to rescue_responses" do
     @app = DevelopmentApp
 
     get "/cause_mapped_to_rescue_responses", headers: { "action_dispatch.show_exceptions" => :all }
@@ -876,6 +917,18 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "editor can handle syntax errors" do
+    @app = DevelopmentApp
+    ActiveSupport::Editor.stub(:current, ActiveSupport::Editor.find("atom")) do
+      get "/syntax_error_into_view"
+
+      assert_response 500
+      assert_select "#Application-Trace-0" do
+        assert_select "code", /syntax error, unexpected|syntax errors found/
+      end
+    end
+  end
+
   test "shows a buttons for every action in an actionable error" do
     @app = DevelopmentApp
     Rails.stub :root, Pathname.new(".") do
@@ -956,5 +1009,119 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     script_content = body[%r{<script type="text/plain" id="exception-message-for-copy">(.*?)</script>}m, 1]
     assert_match %r{Third error}, script_content
     assert_match %r{Caused by:.*Second error}m, script_content
+  end
+
+  test "translate_path_for_editor returns original path when RAILS_HOST_APP_PATH is not set" do
+    debug_view = ActionDispatch::DebugView.new({})
+    path = "/workspaces/rails/app/models/user.rb"
+
+    stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, nil) do
+      result = debug_view.send(:translate_path_for_editor, path)
+      assert_equal path, result
+    end
+  end
+
+  test "translate_path_for_editor returns original path when RAILS_HOST_APP_PATH is empty string" do
+    debug_view = ActionDispatch::DebugView.new({})
+    path = "/workspaces/rails/app/models/user.rb"
+
+    stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "") do
+      result = debug_view.send(:translate_path_for_editor, path)
+      assert_equal path, result
+    end
+  end
+
+  test "translate_path_for_editor translates paths within Rails.root when RAILS_HOST_APP_PATH is set" do
+    debug_view = ActionDispatch::DebugView.new({})
+
+    Rails.stub :root, Pathname.new("/workspaces/rails") do
+      path = "/workspaces/rails/app/models/user.rb"
+
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal "/host/myapp/app/models/user.rb", result
+      end
+    end
+  end
+
+  test "translate_path_for_editor handles paths with trailing separator in Rails.root" do
+    debug_view = ActionDispatch::DebugView.new({})
+
+    Rails.stub :root, Pathname.new("/workspaces/rails/") do
+      path = "/workspaces/rails/app/controllers/application_controller.rb"
+
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal "/host/myapp/app/controllers/application_controller.rb", result
+      end
+    end
+  end
+
+  test "translate_path_for_editor returns original path for files outside Rails.root" do
+    debug_view = ActionDispatch::DebugView.new({})
+
+    Rails.stub :root, Pathname.new("/workspaces/rails") do
+      path = "/usr/lib/ruby/some_gem.rb"
+
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal path, result
+      end
+    end
+  end
+
+  test "translate_path_for_editor returns original path when path is similar but not child of Rails.root" do
+    debug_view = ActionDispatch::DebugView.new({})
+
+    Rails.stub :root, Pathname.new("/workspaces/app") do
+      # Path starts with Rails.root but isn't actually a child
+      path = "/workspaces/app2/models/user.rb"
+
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal path, result
+      end
+    end
+  end
+
+  test "translate_path_for_editor handles nested paths correctly" do
+    debug_view = ActionDispatch::DebugView.new({})
+
+    Rails.stub :root, Pathname.new("/workspaces/rails") do
+      path = "/workspaces/rails/app/views/layouts/application.html.erb"
+
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/Users/developer/projects/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal "/Users/developer/projects/myapp/app/views/layouts/application.html.erb", result
+      end
+    end
+  end
+
+  test "translate_path_for_editor returns original path when Rails is not defined" do
+    debug_view = ActionDispatch::DebugView.new({})
+    path = "/workspaces/rails/app/models/user.rb"
+
+    # Temporarily hide Rails constant
+    rails_backup = Rails
+    Object.send(:remove_const, :Rails)
+
+    stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+      result = debug_view.send(:translate_path_for_editor, path)
+      assert_equal path, result
+    end
+  ensure
+    ::Rails = rails_backup
+  end
+
+  test "translate_path_for_editor returns original path when Rails.root is nil" do
+    debug_view = ActionDispatch::DebugView.new({})
+    path = "/workspaces/rails/app/models/user.rb"
+
+    Rails.stub :root, nil do
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal path, result
+      end
+    end
   end
 end

@@ -14,9 +14,15 @@ Rake::TestTask.new do |t|
 end
 
 namespace :test do
-  task :isolated do
+  task isolated: :railties do
     FileList["test/**/*_test.rb"].exclude("test/dummy/**/*").all? do |file|
       sh(Gem.ruby, "-w", "-Ilib", "-Itest", file)
+    end || raise("Failures")
+  end
+
+  task :railties do
+    ["action_mailbox/engine"].all? do |railtie|
+      sh(Gem.ruby, "-r", railtie, "-e", "'OK'")
     end || raise("Failures")
   end
 end

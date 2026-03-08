@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "strscan"
 require "erb"
 
 module ActiveSupport
@@ -159,7 +160,6 @@ class ERB
     # Tokenizes a line of ERB.  This is really just for error reporting and
     # nobody should use it.
     def self.tokenize(source) # :nodoc:
-      require "strscan"
       source = StringScanner.new(source.chomp)
       tokens = []
 

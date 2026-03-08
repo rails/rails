@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.summary     = "Library to release Rails"
   s.description = "A set of tasks to release Rails"
 
-  s.required_ruby_version = ">= 3.2.0"
+  s.required_ruby_version = ">= 3.3.0"
 
   s.license = "MIT"
 
@@ -23,5 +23,4 @@ Gem::Specification.new do |s|
 
   s.add_dependency "rake", "~> 13.0"
   s.add_dependency "minitest"
-  s.add_dependency "sigstore-cli"
 end

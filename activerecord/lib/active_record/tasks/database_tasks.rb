@@ -225,6 +225,13 @@ module ActiveRecord
         each_current_configuration(environment) { |db_config| drop(db_config) }
       end
 
+      def empty_all_tables(db_config)
+        with_temporary_connection(db_config) do |conn|
+          conn.empty_all_tables
+        end
+      end
+      private :empty_all_tables
+
       def truncate_tables(db_config)
         with_temporary_connection(db_config) do |conn|
           conn.truncate_tables(*conn.tables)
@@ -393,19 +400,19 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def schema_up_to_date?(configuration, _ = nil, file = nil)
+      def schema_up_to_date?(configuration, _ = nil, file = nil, pool: nil)
         db_config = resolve_configuration(configuration)
 
         file ||= schema_dump_path(db_config)
 
         return true unless file && File.exist?(file)
 
-        with_temporary_pool(db_config) do |pool|
-          internal_metadata = pool.internal_metadata
-          return false unless internal_metadata.enabled?
-          return false unless internal_metadata.table_exists?
-
-          internal_metadata[:schema_sha1] == schema_sha1(file)
+        if pool
+          check_schema_sha1(pool, file)
+        else
+          with_temporary_pool(db_config) do |pool|
+            check_schema_sha1(pool, file)
+          end
         end
       end
 
@@ -414,9 +421,9 @@ module ActiveRecord
 
         check_schema_file(file) if file
 
-        with_temporary_pool(db_config, clobber: true) do
-          if schema_up_to_date?(db_config, nil, file)
-            truncate_tables(db_config) unless ENV["SKIP_TEST_DATABASE_TRUNCATE"]
+        with_temporary_pool(db_config, clobber: true) do |pool|
+          if schema_up_to_date?(db_config, nil, file, pool: pool)
+            empty_all_tables(db_config)
           else
             purge(db_config)
             load_schema(db_config, db_config.schema_format, file)
@@ -474,7 +481,7 @@ module ActiveRecord
         filename = db_config.schema_dump(format)
         return unless filename
 
-        if File.dirname(filename) == ActiveRecord::Tasks::DatabaseTasks.db_dir
+        if Pathname.new(filename).absolute? || File.dirname(filename) == ActiveRecord::Tasks::DatabaseTasks.db_dir
           filename
         else
           File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
@@ -555,6 +562,14 @@ module ActiveRecord
       end
 
       private
+        def check_schema_sha1(pool, file)
+          internal_metadata = pool.internal_metadata
+          return false unless internal_metadata.enabled?
+          return false unless internal_metadata.table_exists?
+
+          internal_metadata[:schema_sha1] == schema_sha1(file)
+        end
+
         def with_temporary_pool(db_config, clobber: false)
           original_db_config = migration_class.connection_db_config
           pool = migration_class.connection_handler.establish_connection(db_config, clobber: clobber)

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/inspect_backport"
+
 module ActiveSupport
   module Cache
     # = Null \Cache \Store
@@ -34,11 +36,13 @@ module ActiveSupport
       def delete_matched(matcher, options = nil)
       end
 
-      def inspect # :nodoc:
-        "#<#{self.class.name} options=#{@options.inspect}>"
-      end
+      ActiveSupport::InspectBackport.apply(self)
 
       private
+        def instance_variables_to_inspect
+          [:@options].freeze
+        end
+
         def read_entry(key, **s)
           deserialize_entry(read_serialized_entry(key))
         end

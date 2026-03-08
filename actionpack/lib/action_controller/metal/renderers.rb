@@ -197,5 +197,10 @@ module ActionController
       self.content_type = :md if media_type.nil?
       md.respond_to?(:to_markdown) ? md.to_markdown : md
     end
+
+    add :svg do |svg, options|
+      self.content_type = :svg if media_type.nil?
+      svg.respond_to?(:to_svg) ? svg.to_svg : svg
+    end
   end
 end

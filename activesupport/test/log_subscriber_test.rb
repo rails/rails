@@ -56,13 +56,13 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_set_color_for_messages
-    ActiveSupport::LogSubscriber.colorize_logging = true
+    ActiveSupport.colorize_logging = true
     @log_subscriber.bar(nil)
     assert_equal "\e[31mcool\e[0m, \e[1m\e[34misn't it?\e[0m", @logger.logged(:info).last
   end
 
   def test_set_mode_for_messages
-    ActiveSupport::LogSubscriber.colorize_logging = true
+    ActiveSupport.colorize_logging = true
     @log_subscriber.baz(nil)
     assert_equal "\e[1;4m\e[32mrad\e[0m, \e[3m\e[33misn't it?\e[0m", @logger.logged(:info).last
   end

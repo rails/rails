@@ -85,10 +85,27 @@ class GroupingTest < ActiveSupport::TestCase
       (1..7).to_a.in_groups(3, false)
   end
 
-  def test_in_groups_invalid_argument
+  def test_in_groups_of_invalid_argument
     assert_raises(ArgumentError) { [].in_groups_of(0) }
     assert_raises(ArgumentError) { [].in_groups_of(-1) }
     assert_raises(ArgumentError) { [].in_groups_of(nil) }
+  end
+
+  def test_in_groups_invalid_argument
+    assert_raises(ArgumentError) { [].in_groups(0) }
+    assert_raises(ArgumentError) { [].in_groups(-1) }
+    assert_raises(ArgumentError) { [].in_groups(nil) }
+  end
+
+  def test_in_groups_of_with_float
+    result = [1, 2, 3, 4, 5].in_groups_of(2.9)
+    assert_equal [[1, 2], [3, 4], [5]], result
+  end
+
+  def test_in_groups_with_float
+    result = [1, 2, 3, 4, 5].in_groups(2.9)
+    assert_equal 2, result.size
+    assert_equal [[1, 2, 3], [4, 5, nil]], result
   end
 end
 

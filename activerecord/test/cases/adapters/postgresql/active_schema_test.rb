@@ -114,6 +114,18 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_drop_database_without_force
+    ActiveRecord::Base.lease_connection.stub(:database_version, 12_99_99) do
+      assert_equal %(DROP DATABASE IF EXISTS "development"), drop_database(:development)
+    end
+  end
+
+  def test_drop_database_with_force
+    ActiveRecord::Base.lease_connection.stub(:database_version, 13_00_00) do
+      assert_equal %(DROP DATABASE IF EXISTS "development" WITH (FORCE)), drop_database(:development)
+    end
+  end
+
   private
     def method_missing(...)
       ActiveRecord::Base.lease_connection.public_send(...)

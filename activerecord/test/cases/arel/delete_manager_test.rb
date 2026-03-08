@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 require_relative "helper"
+require_relative "support/tree_manager_behavior"
 
 module Arel
   class DeleteManagerTest < Arel::Spec
+    include TreeManagerBehavior
+
     it "handles limit properly" do
       table = Table.new(:users)
       dm = Arel::DeleteManager.new
@@ -43,5 +46,10 @@ module Arel
         _(dm.where(table[:id].eq(10))).must_equal dm
       end
     end
+
+    private
+      def build_manager(table = nil)
+        Arel::DeleteManager.new(table)
+      end
   end
 end

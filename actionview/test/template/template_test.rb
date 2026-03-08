@@ -220,6 +220,41 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "Hello", render
   end
 
+  def test_locals_with_parentheses
+    @template = new_template("<%# locals: (message: '(Hello)') -%>\n<%= message %>")
+    assert_equal "(Hello)", render
+
+    @template = new_template("<%# locals: (message: '(Hello') -%>\n<%= message %>")
+    assert_equal "(Hello", render
+
+    @template = new_template("<%# locals: (message: 'Hello)') -%>\n<%= message %>")
+    assert_equal "Hello)", render
+  end
+
+  def test_locals_can_spread_to_multiple_lines
+    template = <<~ERB.chomp
+        <%# locals: (arg_1:,
+                     arg_2: nil,
+                     arg_3: []) -%>
+        <%= arg_1 %><%= arg_2 %><%= arg_3 %>
+    ERB
+    @template = new_template(template)
+    assert_equal "First[]", render(arg_1: "First")
+  end
+
+  def test_locals_can_spread_to_multiple_lines_with_closing_parenthesis_on_diff_line
+    template = <<~ERB.chomp
+        <%# locals: (
+                      arg_1:,
+                      arg_2: nil,
+                      arg_3: []
+                     ) -%>
+        <%= arg_1 %><%= arg_2 %><%= arg_3 %>
+    ERB
+    @template = new_template(template)
+    assert_equal "First[]", render(arg_1: "First")
+  end
+
   def test_required_locals_must_be_specified
     error = assert_raises(ActionView::Template::Error) do
       @template = new_template("<%# locals: (message:) -%>")
@@ -301,6 +336,16 @@ class TestERBTemplate < ActiveSupport::TestCase
       assert_equal Encoding::UTF_8, render.encoding
       assert_match(/hello \u{fc}mlat\nHi!/, render)
     end
+  end
+
+  def test_strict_locals_with_non_ascii_default_values
+    # \xC3\xA9 = U+00E9 (e with acute), \xC3\xBC = U+00FC (u with diaeresis)
+    source = "<%# locals: (label: \"caf\xC3\xA9\") -%>\n<p><%= label %> \xC3\xBC</p>"
+    assert_equal Encoding::ASCII_8BIT, source.encoding
+
+    @template = new_template(source)
+    assert_equal Encoding::UTF_8, render.encoding
+    assert_equal "<p>caf\u{E9} \u{FC}</p>", render
   end
 
   def test_error_when_template_isnt_valid_utf8

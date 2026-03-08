@@ -396,6 +396,7 @@ module ActionView
         :@view_flow,
         :@_subscribers,
         :@html_document,
+        :@__leak_checker_before_env,
       ]
 
       def _user_defined_ivars

@@ -28,8 +28,10 @@ module ApplicationTests
 
     test "/rails/mailers is not accessible in production" do
       app("production")
-      get("/rails/mailers", {}, { "HTTPS" => "on" })
-      assert_equal 404, last_response.status
+      quietly do
+        get("/rails/mailers", {}, { "HTTPS" => "on" })
+        assert_equal 404, last_response.status
+      end
     end
 
     test "/rails/mailers is accessible with correct configuration" do
@@ -634,9 +636,11 @@ module ApplicationTests
     end
 
     test "preview does not leak I18n global setting changes" do
-      I18n.with_locale(:en) do
-        get "/rails/mailers/notifier/foo.txt?locale=ja"
-        assert_equal :en, I18n.locale
+      quietly do
+        I18n.with_locale(:en) do
+          get "/rails/mailers/notifier/foo.txt?locale=ja"
+          assert_equal :en, I18n.locale
+        end
       end
     end
 

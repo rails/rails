@@ -237,7 +237,7 @@ module ActiveRecord
       filename = "awesome-file.sql"
 
       open(filename, "w") { |f| f.puts("select datetime('now', 'localtime');") }
-      ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, "/rails/root"
+      quietly { ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, "/rails/root" }
       assert File.exist?(dbfile)
     ensure
       FileUtils.rm_f(filename)

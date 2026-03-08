@@ -132,8 +132,38 @@ module ActionText
       render_attachments(with_full_attributes: false, &:to_plain_text).fragment.to_plain_text
     end
 
+    # Returns a Markdown version of the markup contained by the content.
+    #
+    #     content = ActionText::Content.new("<h1>Funny times!</h1>")
+    #     content.to_markdown # => "# Funny times!"
+    #
+    #     content = ActionText::Content.new("<p>Hello <strong>world</strong></p>")
+    #     content.to_markdown # => "Hello **world**"
+    #
+    # When +attachment_links+ is true, ActiveStorage blob attachments generate Markdown links with
+    # URLs. This requires a rendering context (e.g., controller or mailer action) and will raise if
+    # URL generation fails.
+    #
+    # NOTE: that the returned string is not HTML safe and should not be rendered in
+    # browsers without additional sanitization.
+    def to_markdown(attachment_links: false)
+      render_attachments(with_full_attributes: false) { |attachment|
+        ActionText::HtmlConversion.create_element("action-text-markdown").tap do |node|
+          node.content = attachment.to_markdown(attachment_links: attachment_links)
+        end
+      }.fragment.to_markdown
+    end
+
     def to_trix_html
-      render_attachments(&:to_trix_attachment).to_html
+      to_editor_html
+    end
+    deprecate :to_trix_html, deprecator: ActionText.deprecator
+
+    def to_editor_html # :nodoc:
+      canonical_content = render_attachments(&:to_editor_attachment)
+      canonical_fragment = Fragment.wrap(canonical_content.fragment)
+
+      RichText.editor.as_editable(canonical_fragment).to_html
     end
 
     def to_html

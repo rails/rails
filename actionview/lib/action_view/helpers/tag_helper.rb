@@ -276,7 +276,11 @@ module ActionView
 
         private
           def tag_string(name, content = nil, options, escape: true, &block)
-            content = @view_context.capture(self, &block) if block
+            if content && block_given?
+              content += @view_context.capture(self, &block)
+            elsif block_given?
+              content = @view_context.capture(self, &block)
+            end
 
             content_tag_string(name, content, options, escape)
           end

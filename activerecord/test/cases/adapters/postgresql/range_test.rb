@@ -310,6 +310,31 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal_round_trip @first_range, :ts_range, nil...time
   end
 
+  def test_unbounded_tsrange_sql_values
+    time = Time.public_send(::ActiveRecord.default_timezone, 2010, 1, 1, 14, 30, 0)
+
+    @first_range.update(ts_range: time...nil)
+    @second_range.update(ts_range: time..nil)
+    @third_range.update(ts_range: nil...time)
+    @fourth_range.update(ts_range: nil..time)
+
+    result = @connection.execute(<<~SQL)
+      SELECT lower(ts_range) AS lower, upper(ts_range) AS upper
+      FROM postgresql_ranges
+      WHERE id IN (101, 102, 103, 104)
+      ORDER BY id
+    SQL
+
+    expected = [
+      { "lower" => time, "upper" => "infinity" },
+      { "lower" => time, "upper" => "infinity" },
+      { "lower" => "-infinity", "upper" => time },
+      { "lower" => "-infinity", "upper" => time }
+    ]
+
+    assert_equal expected, result.to_a
+  end
+
   def test_timezone_awareness_tsrange
     tz = "Pacific Time (US & Canada)"
 

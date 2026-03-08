@@ -20,6 +20,10 @@ module ActiveStorage
       ActiveStorage::Blob.none
     end
 
+    def analyze
+      # Nothing to analyze when deleting
+    end
+
     def save
       record.public_send("#{name}_attachments=", [])
     end

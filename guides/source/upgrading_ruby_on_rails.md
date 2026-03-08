@@ -20,9 +20,9 @@ The best way to be sure that your application still works after upgrading is to 
 
 Rails generally stays close to the latest released Ruby version when it's released:
 
-* Rails 8.0 requires Ruby 3.2.0 or newer.
+* Rails 8.0 and 8.1 require Ruby 3.2.0 or newer.
 * Rails 7.2 requires Ruby 3.1.0 or newer.
-* Rails 7.0 and 7.1 requires Ruby 2.7.0 or newer.
+* Rails 7.0 and 7.1 require Ruby 2.7.0 or newer.
 * Rails 6 requires Ruby 2.5.0 or newer.
 * Rails 5 requires Ruby 2.2.2 or newer.
 
@@ -204,6 +204,14 @@ Failure to do so will cause Rails to generate a new secret key in the new file `
 This will invalidate all existing sessions/cookies in development and test environments, and also cause other signatures derived from `secret_key_base` to break, such as Active Storage/Action Text attachments.
 
 Production and other environments are not affected.
+
+### New ActiveSupport::Cache serialization format
+
+A new 7.1 cache format is available which includes an optimization for bare string values such as view fragments.
+
+The 7.1 cache format is used by default for new apps, and existing apps can enable the format by setting `config.load_defaults 7.1` or by setting `config.active_support.cache_format_version = 7.1` in `config/application.rb` or a `config/environments/*.rb` file.
+
+Cache entries written using the 6.1 or 7.0 cache formats can be read when using the 7.1 format. To perform a rolling deploy of a Rails 7.1 upgrade, wherein servers that have not yet been upgraded must be able to read caches from upgraded servers, leave the cache format unchanged on the first deploy, then enable the 7.1 cache format on a subsequent deploy.
 
 ### Autoloaded paths are no longer in $LOAD_PATH
 

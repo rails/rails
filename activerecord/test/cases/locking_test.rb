@@ -580,7 +580,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   def test_yaml_dumping_with_lock_column
     t1 = LockWithoutDefault.new
     payload = YAML.dump(t1)
-    t2 = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+    t2 = YAML.unsafe_load(payload)
 
     assert_equal t1.attributes, t2.attributes
   end
@@ -812,6 +812,13 @@ class PessimisticLockingTest < ActiveRecord::TestCase
         assert_queries_match(/LIMIT \$?\d FOR UPDATE/i) do
           person.with_lock do
           end
+        end
+      end
+
+      def test_with_lock_yields_transaction
+        person = Person.find 1
+        person.with_lock do |transaction|
+          assert_equal Person.current_transaction, transaction
         end
       end
     end

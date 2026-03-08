@@ -34,11 +34,17 @@ end
 adapters = %w( mysql2 trilogy postgresql sqlite3 sqlite3_mem )
 
 namespace :test do
-  task :isolated do
+  task isolated: :railties do
     tasks = defined?(JRUBY_VERSION) ?
       %w(isolated_test_jdbcmysql isolated_test_jdbcsqlite3 isolated_test_jdbcpostgresql) :
       %w(isolated_test_mysql2 isolated_test_trilogy isolated_test_sqlite3 isolated_test_postgresql)
     run_without_aborting(*tasks)
+  end
+
+  task :railties do
+    ["active_record/railtie"].all? do |railtie|
+      sh(Gem.ruby, "-r", railtie, "-e", "'OK'")
+    end || raise("Failures")
   end
 
   desc "Run Active Job integration tests for all adapters"

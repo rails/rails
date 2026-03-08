@@ -214,4 +214,25 @@ class MemoryStorePruningTest < StoreTest
     assert_not_equal item.object_id, read_item.object_id
     assert_not_equal read_item.object_id, @cache.read(key).object_id
   end
+
+  def test_local_store_strategy
+    @cache.with_local_cache do
+      @cache.write("name", "value")
+      assert_equal "value", @cache.read("name")
+      @cache.delete("name")
+      assert_nil @cache.read("name")
+      @cache.write("name", "value")
+    end
+    assert_equal "value", @cache.read("name")
+  end
+
+  def test_local_store_repeated_reads
+    @cache.with_local_cache do
+      @cache.read("foo")
+      assert_nil @cache.read("foo")
+
+      @cache.read_multi("foo", "bar")
+      assert_equal({}, @cache.read_multi("foo", "bar"))
+    end
+  end
 end

@@ -430,6 +430,11 @@ module RenderTestCases
       @view.render(partial: "test/local_inspector", collection: [ Customer.new("mary") ])
   end
 
+  def test_render_partial_collection_with_block
+    assert_equal "Before\narg2,arg1\nAfterBefore\narg2,arg1\nAfter",
+      @view.render(layout: "test/layout_for_block_with_args", collection: [ Customer.new, Customer.new ], as: :customer) { |a, b| "#{b},#{a}" }
+  end
+
   def test_render_partial_collection_with_different_partials_still_provides_partial_iteration
     a = {}
     b = {}
@@ -917,6 +922,31 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     key = cache_key(customer, "test/_customer")
     @view.render(partial: "test/customer", collection: [customer], cached: { expires_in: 1.hour })
     assert_equal "Hello: jarrett", ActionView::PartialRenderer.collection_cache.read(key)
+
+    travel 2.hours
+
+    assert_nil ActionView::PartialRenderer.collection_cache.read(key)
+  end
+
+  test "collection caching with an expires_in set to nil does not expire" do
+    ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1.hour)
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
+    @view.render(partial: "test/customer", collection: [customer], cached: { expires_in: nil })
+    assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
+
+    travel 2.hours
+
+    assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
+  end
+
+  test "collection caching without expires_in does not overwrite the default expires_in of the cache store" do
+    ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1.hour)
+
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
+    @view.render(partial: "test/customer", collection: [customer], cached: true)
+    assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
 
     travel 2.hours
 

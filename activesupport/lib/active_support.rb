@@ -39,6 +39,7 @@ module ActiveSupport
   autoload :Concern
   autoload :CodeGenerator
   autoload :ActionableError
+  autoload :Configurable
   autoload :ConfigurationFile
   autoload :ContinuousIntegration
   autoload :CurrentAttributes
@@ -65,7 +66,7 @@ module ActiveSupport
     autoload :Benchmarkable
     autoload :Cache
     autoload :Callbacks
-    autoload :Configurable
+    autoload :ColorizeLogging
     autoload :ClassAttribute
     autoload :Deprecation
     autoload :Delegation
@@ -95,10 +96,6 @@ module ActiveSupport
   autoload :SafeBuffer, "active_support/core_ext/string/output_safety"
   autoload :TestCase
 
-  include Deprecation::DeprecatedConstantAccessor
-
-  deprecate_constant :Configurable, "class_attribute :config, default: {}", deprecator: ActiveSupport.deprecator
-
   def self.eager_load!
     super
 
@@ -116,6 +113,9 @@ module ActiveSupport
   singleton_class.attr_accessor :event_reporter # :nodoc:
 
   cattr_accessor :filter_parameters, default: [] # :nodoc:
+
+  @colorize_logging = true
+  singleton_class.attr_accessor :colorize_logging
 
   def self.cache_format_version
     Cache.format_version

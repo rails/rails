@@ -146,13 +146,15 @@ module ActiveSupport
       end
 
       # ruby/json 2.14.x yields non-String keys but doesn't let us know it's a key
-      if defined?(::JSON::Coder) && Gem::Version.new(::JSON::VERSION) >= Gem::Version.new("2.15")
+      if defined?(::JSON::Coder) && Gem::Version.new(::JSON::VERSION) >= Gem::Version.new("2.15.2")
         class JSONGemCoderEncoder # :nodoc:
           JSON_NATIVE_TYPES = [Hash, Array, Float, String, Symbol, Integer, NilClass, TrueClass, FalseClass, ::JSON::Fragment].freeze
           CODER = ::JSON::Coder.new do |value, is_key|
             json_value = value.as_json
+
             # Keep compatibility by calling to_s on non-String keys
-            next json_value.to_s if is_key
+            next value.to_s if is_key && !(String === json_value)
+
             # Handle objects returning self from as_json
             if json_value.equal?(value)
               next ::JSON::Fragment.new(::JSON.generate(json_value))

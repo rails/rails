@@ -5,6 +5,9 @@ on:
   push:
     branches: [ <%= user_default_branch %> ]
 
+permissions:
+  contents: read
+
 jobs:
 <%- unless skip_brakeman? && skip_bundler_audit? -%>
   scan_ruby:
@@ -12,22 +15,22 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
+      <%- unless skip_brakeman? -%>
 
-      <%- unless skip_brakeman? %>
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
-      <% end %>
-
+      <% end -%>
       <%- unless skip_bundler_audit? -%>
+
       - name: Scan for known security vulnerabilities in gems used
         run: bin/bundler-audit
-      <% end %>
+      <% end -%>
 
 <% end -%>
 <%- if using_importmap? -%>
@@ -36,7 +39,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -54,7 +57,7 @@ jobs:
       RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -62,7 +65,7 @@ jobs:
           bundler-cache: true
 
       - name: Prepare RuboCop cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           DEPENDENCIES_HASH: ${{ hashFiles('.ruby-version', '**/.rubocop.yml', '**/.rubocop_todo.yml', 'Gemfile.lock') }}
         with:
@@ -82,7 +85,7 @@ jobs:
     <%- if options[:database] == "sqlite3" -%>
     # services:
     #  redis:
-    #    image: valkey/valkey:8
+    #    image: valkey/valkey:9
     #    ports:
     #      - 6379:6379
     #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
@@ -108,7 +111,7 @@ jobs:
       <%- end -%>
 
       # redis:
-      #   image: valkey/valkey:8
+      #   image: valkey/valkey:9
       #   ports:
       #     - 6379:6379
       #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
@@ -121,7 +124,7 @@ jobs:
 
       <%- end -%>
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -129,7 +132,7 @@ jobs:
           bundler-cache: true
       <%- if using_bun? -%>
 
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: <%= dockerfile_bun_version %>
       <%- end -%>
@@ -155,7 +158,7 @@ jobs:
     <%- if options[:database] == "sqlite3" -%>
     # services:
     #  redis:
-    #    image: valkey/valkey:8
+    #    image: valkey/valkey:9
     #    ports:
     #      - 6379:6379
     #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
@@ -181,7 +184,7 @@ jobs:
       <%- end -%>
 
       # redis:
-      #   image: valkey/valkey:8
+      #   image: valkey/valkey:9
       #   ports:
       #     - 6379:6379
       #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
@@ -194,7 +197,7 @@ jobs:
 
       <%- end -%>
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -202,7 +205,7 @@ jobs:
           bundler-cache: true
       <%- if using_bun? -%>
 
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: <%= dockerfile_bun_version %>
       <%- end -%>
@@ -222,7 +225,7 @@ jobs:
         run: bin/rails <%= "db:test:prepare " unless skip_active_record? %>test:system
 
       - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: screenshots

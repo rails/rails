@@ -23,16 +23,64 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
      Rails.application = Rails.application.instance
    end
 
-  test "installs JavaScript dependencies" do
+  test "installs JavaScript dependencies with yarn by default" do
     FileUtils.touch("#{destination_root}/package.json")
 
     run_generator_instance
-    assert_match %r"yarn add @rails/actiontext trix", @run_commands.join("\n")
+    assert_includes @run_commands, "yarn add trix"
+    assert_includes @run_commands, "yarn add @rails/actiontext"
+  end
+
+  test "installs JavaScript dependencies with yarn when yarn.lock exists" do
+    FileUtils.touch("#{destination_root}/package.json")
+    FileUtils.touch("#{destination_root}/yarn.lock")
+
+    run_generator_instance
+    assert_includes @run_commands, "yarn add trix"
+    assert_includes @run_commands, "yarn add @rails/actiontext"
+  end
+
+  test "installs JavaScript dependencies with npm when package-lock.json exists" do
+    FileUtils.touch("#{destination_root}/package.json")
+    FileUtils.touch("#{destination_root}/package-lock.json")
+
+    run_generator_instance
+    assert_includes @run_commands, "npm install trix"
+    assert_includes @run_commands, "npm install @rails/actiontext"
+  end
+
+  test "installs JavaScript dependencies with pnpm when pnpm-lock.yaml exists" do
+    FileUtils.touch("#{destination_root}/package.json")
+    FileUtils.touch("#{destination_root}/pnpm-lock.yaml")
+
+    run_generator_instance
+    assert_includes @run_commands, "pnpm add trix"
+    assert_includes @run_commands, "pnpm add @rails/actiontext"
+  end
+
+  test "installs JavaScript dependencies with bun when bun.lockb exists" do
+    FileUtils.touch("#{destination_root}/package.json")
+    FileUtils.touch("#{destination_root}/bun.lockb")
+
+    run_generator_instance
+    assert_includes @run_commands, "bun add trix"
+    assert_includes @run_commands, "bun add @rails/actiontext"
+  end
+
+  test "installs JavaScript dependencies with bun when bun.lock exists" do
+    FileUtils.touch("#{destination_root}/package.json")
+    FileUtils.touch("#{destination_root}/bun.lock")
+
+    run_generator_instance
+    assert_includes @run_commands, "bun add trix"
+    assert_includes @run_commands, "bun add @rails/actiontext"
   end
 
   test "throws warning for missing entry point" do
     FileUtils.rm("#{destination_root}/app/javascript/application.js")
-    assert_match "You must import the @rails/actiontext and trix JavaScript modules", run_generator_instance
+    output = run_generator_instance
+    assert_match "You must import the @rails/actiontext JavaScript module", output
+    assert_match "You must import the trix JavaScript module", output
   end
 
   test "imports JavaScript dependencies in application.js" do
@@ -80,7 +128,7 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
       run_command_stub = -> (command, *) { @run_commands << command }
 
       generator.stub :run, run_command_stub do
-        with_database_configuration { super }
+        quietly { with_database_configuration { super } }
       end
     end
 end

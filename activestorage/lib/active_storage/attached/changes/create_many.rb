@@ -19,6 +19,10 @@ module ActiveStorage
       @blobs ||= subchanges.collect(&:blob)
     end
 
+    def analyze
+      subchanges.each(&:analyze)
+    end
+
     def upload
       pending_uploads.each(&:upload)
     end

@@ -66,7 +66,7 @@ module ActiveRecord
             if column.collation
               @table_collation_cache ||= {}
               @table_collation_cache[table_name] ||=
-                @connection.internal_exec_query("SHOW TABLE STATUS LIKE #{@connection.quote(table_name)}", "SCHEMA").first["Collation"]
+                @connection.query_one("SHOW TABLE STATUS LIKE #{@connection.quote(table_name)}")["Collation"]
               column.collation.inspect if column.collation != @table_collation_cache[table_name]
             end
           end
@@ -88,7 +88,7 @@ module ActiveRecord
               # Calling .inspect leads into issues with the query result
               # which already returns escaped quotes.
               # We remove the escape sequence from the result in order to deal with double escaping issues.
-              @connection.query_value(sql, "SCHEMA").gsub("\\'", "'").inspect
+              @connection.query_value(sql).gsub("\\'", "'").inspect
             end
           end
       end

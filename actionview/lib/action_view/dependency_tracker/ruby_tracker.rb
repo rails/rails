@@ -17,9 +17,8 @@ module ActionView
         true
       end
 
-      def initialize(name, template, view_paths = nil, parser_class: RenderParser::Default)
+      def initialize(name, template, view_paths = nil)
         @name, @template, @view_paths = name, template, view_paths
-        @parser_class = parser_class
       end
 
       private
@@ -30,7 +29,7 @@ module ActionView
 
           compiled_source = template.handler.call(template, template.source)
 
-          @parser_class.new(@name, compiled_source).render_calls.filter_map do |render_call|
+          RenderParser.new(@name, compiled_source).render_calls.filter_map do |render_call|
             render_call.gsub(%r|/_|, "/")
           end
         end

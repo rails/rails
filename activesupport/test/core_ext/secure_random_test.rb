@@ -69,4 +69,40 @@ class SecureRandomTest < ActiveSupport::TestCase
     assert_match(/^[a-z0-9]+$/, s1)
     assert_match(/^[a-z0-9]+$/, s2)
   end
+
+  def test_base32
+    s1 = SecureRandom.base32
+    s2 = SecureRandom.base32
+
+    assert_not_equal s1, s2
+    assert_equal 16, s1.length
+    assert_match(/^[A-Z0-9]+$/, s1)
+    assert_match(/^[A-Z0-9]+$/, s2)
+    assert_match(/^[^ILOU]+$/, s1)
+    assert_match(/^[^ILOU]+$/, s2)
+  end
+
+  def test_base32_with_length
+    s1 = SecureRandom.base32(24)
+    s2 = SecureRandom.base32(24)
+
+    assert_not_equal s1, s2
+    assert_equal 24, s1.length
+    assert_match(/^[A-Z0-9]+$/, s1)
+    assert_match(/^[A-Z0-9]+$/, s2)
+    assert_match(/^[^ILOU]+$/, s1)
+    assert_match(/^[^ILOU]+$/, s2)
+  end
+
+  def test_base32_with_nil
+    s1 = SecureRandom.base32(nil)
+    s2 = SecureRandom.base32(nil)
+
+    assert_not_equal s1, s2
+    assert_equal 16, s1.length
+    assert_match(/^[A-Z0-9]+$/, s1)
+    assert_match(/^[A-Z0-9]+$/, s2)
+    assert_match(/^[^ILOU]+$/, s1)
+    assert_match(/^[^ILOU]+$/, s2)
+  end
 end

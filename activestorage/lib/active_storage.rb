@@ -55,6 +55,7 @@ module ActiveStorage
 
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers,  default: []
+  mattr_accessor :analyze,    default: :later
 
   mattr_accessor :paths, default: {}
 
