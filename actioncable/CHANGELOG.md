@@ -1,3 +1,7 @@
+*   Respect calls to `#reject` in `#subscribe` and its callbacks.
+
+    *Joshua Young*
+
 *   Channel generator now detects which JS package manager to use when
     installing javascript dependencies.
 
