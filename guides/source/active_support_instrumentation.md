@@ -48,7 +48,7 @@ information in its payload.
 ```ruby
 sql_counter = 0
 ActiveSupport::Notifications.subscribe "sql.active_record" do |event|
-   sql_counter += 1
+  sql_counter += 1
 end
 ```
 
