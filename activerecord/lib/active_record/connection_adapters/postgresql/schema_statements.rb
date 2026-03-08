@@ -571,13 +571,16 @@ module ActiveRecord
             SQL
           end
 
+          return nil if result.nil? || result.empty?
+
           pk = result.shift
           if result.last
             [pk, PostgreSQL::Name.new(*result)]
           else
             [pk, nil]
           end
-        rescue
+        rescue ActiveRecord::StatementInvalid => e
+          ActiveRecord::Base.logger&.warn("[ActiveRecord] Failed to lookup pk_and_sequence_for(#{table}): #{e.inspect}")
           nil
         end
 
