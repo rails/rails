@@ -1189,7 +1189,7 @@ No CORS configuration is required for the Disk service since it shares your appâ
 | `direct-upload:before-blob-request` | `<input>` | `{id, file, xhr}` | Before making a request to your application for direct upload metadata. |
 | `direct-upload:before-storage-request` | `<input>` | `{id, file, xhr}` | Before making a request to store a file. |
 | `direct-upload:progress` | `<input>` | `{id, file, progress}` | As requests to store files progress. |
-| `direct-upload:error` | `<input>` | `{id, file, error}` | An error occurred. An `alert` will display unless this event is canceled. |
+| `direct-upload:error` | `<input>` | `{id, file, error, xhr}` | An error occurred. An `alert` will display unless this event is canceled. |
 | `direct-upload:end` | `<input>` | `{id, file}` | A direct upload has ended. |
 | `direct-uploads:end` | `<form>` | None | All direct uploads have ended. |
 
@@ -1230,10 +1230,12 @@ addEventListener("direct-upload:progress", event => {
 
 addEventListener("direct-upload:error", event => {
   event.preventDefault()
-  const { id, error } = event.detail
+  const { id, error, xhr } = event.detail
   const element = document.getElementById(`direct-upload-${id}`)
+  // Use the server's error response if provided
+  const errorMessage = xhr.response?.error || error
   element.classList.add("direct-upload--error")
-  element.setAttribute("title", error)
+  element.setAttribute("title", errorMessage)
 })
 
 addEventListener("direct-upload:end", event => {
