@@ -220,6 +220,9 @@ module ActionDispatch
         # which case we assume you're a browser and send HTML.
         BROWSER_LIKE_ACCEPTS = /,\s*\*\/\*|\*\/\*\s*,/
 
+        # Match Accept headers where markdown is explicitly preferred before other types
+        MARKDOWN_PREFERRED_ACCEPTS = /\A\s*text\/markdown\s*,/
+
         def params_readable?
           parameters[:format]
         rescue *RESCUABLE_MIME_FORMAT_ERRORS
@@ -228,7 +231,8 @@ module ActionDispatch
 
         def valid_accept_header
           (xhr? && (accept.present? || content_mime_type)) ||
-            (accept.present? && !accept.match?(BROWSER_LIKE_ACCEPTS))
+            (accept.present? && !accept.match?(BROWSER_LIKE_ACCEPTS)) ||
+            (accept.present? && accept.match?(MARKDOWN_PREFERRED_ACCEPTS))
         end
 
         def use_accept_header
