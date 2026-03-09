@@ -371,7 +371,7 @@ module ActiveRecord
   self.run_after_transaction_callbacks_in_order_defined = false
 
   singleton_class.attr_accessor :raise_on_missing_required_finder_order_columns
-  self.run_after_transaction_callbacks_in_order_defined = false
+  self.raise_on_missing_required_finder_order_columns = false
 
   singleton_class.attr_accessor :application_record_class
   self.application_record_class = nil
