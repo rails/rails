@@ -226,6 +226,9 @@ module ActiveRecord
   singleton_class.attr_accessor :database_cli
   self.database_cli = { postgresql: "psql", mysql: %w[mysql mysql5], sqlite: "sqlite3" }
 
+  singleton_class.attr_accessor :has_many_strict_replace
+  self.has_many_strict_replace = false
+
   singleton_class.attr_reader :default_timezone
 
   # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling

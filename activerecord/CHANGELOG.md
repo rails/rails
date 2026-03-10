@@ -1,3 +1,22 @@
+*   Add `config.active_record.has_many_strict_replace` and the `has_many`
+    `:strict_replace` option to opt into reloading persisted rows before
+    collection replacement.
+
+    When enabled, replacing a loaded `has_many` association uses the current persisted association
+    state instead of only the stale in-memory target, which avoids leaving concurrently inserted
+    associated records behind. This adds an extra SQL query and skips strict loading validation
+    for that internal refresh.
+
+    ```ruby
+    config.active_record.has_many_strict_replace = true
+    ```
+
+    ```ruby
+    has_many :payment_schedule_terms, strict_replace: true
+    ```
+
+    *Andrei Andriichuk*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.
