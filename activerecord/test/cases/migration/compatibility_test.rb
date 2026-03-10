@@ -738,6 +738,135 @@ module ActiveRecord
         ActiveRecord::Base.clear_cache!
       end
 
+      def test_exec_migration_extends_with_adapter_provided_compatibility_module
+        compat_hook_fired = false
+        adapter_compat_module = Module.new do
+          define_method(:compat_hook_sentinel) { compat_hook_fired = true }
+        end
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def version; 101 end
+          def change
+            compat_hook_sentinel
+          end
+        }.new
+
+        connection.stub(:migration_compatibility_module_for, adapter_compat_module) do
+          migration.exec_migration(connection, :up)
+        end
+
+        assert compat_hook_fired, "exec_migration should extend the migration with the module returned by migration_compatibility_module_for"
+      end
+
+      def test_migrate_override_still_receives_adapter_compatibility
+        compat_hook_fired = false
+        adapter_compat_module = Module.new do
+          define_method(:compat_hook_sentinel) { compat_hook_fired = true }
+        end
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def version; 201 end
+          def migrate(direction)
+            compat_hook_sentinel
+          end
+        }.new
+
+        connection.stub(:migration_compatibility_module_for, adapter_compat_module) do
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        end
+
+        assert compat_hook_fired, "Migrator should apply the adapter-specific compatibility module to migrations overriding #migrate so their behavior matches the #up/#down/#change path"
+      ensure
+        @schema_migration.delete_all_versions rescue nil
+      end
+
+      def test_migrate_override_through_migration_proxy_receives_adapter_compatibility
+        compat_hook_fired = false
+        adapter_compat_module = Module.new do
+          define_method(:compat_hook_sentinel) { compat_hook_fired = true }
+        end
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def version; 301 end
+          def migrate(direction)
+            compat_hook_sentinel
+          end
+        }.new
+
+        proxy = ActiveRecord::MigrationProxy.new("ProxyCompatTest", 301, "<test>", nil)
+        proxy.singleton_class.send(:define_method, :migration) { migration }
+
+        connection.stub(:migration_compatibility_module_for, adapter_compat_module) do
+          ActiveRecord::Migrator.new(:up, [proxy], @schema_migration, @internal_metadata).migrate
+        end
+
+        assert compat_hook_fired, "Migrator should unwrap MigrationProxy and apply the adapter-specific compatibility module to the underlying migration instance"
+      ensure
+        @schema_migration.delete_all_versions rescue nil
+      end
+
+      def test_user_class_override_runs_before_adapter_compatibility_module
+        marker = []
+        adapter_compat_module = Module.new do
+          define_method(:foo_marker) { marker << :adapter_compat }
+        end
+
+        user_migration = Class.new(ActiveRecord::Migration[7.0]) {
+          define_method(:foo_marker) { marker << :user_override }
+          def version; 401 end
+          def up
+            foo_marker
+          end
+        }.new
+
+        connection.stub(:migration_compatibility_module_for, adapter_compat_module) do
+          ActiveRecord::Migrator.new(:up, [user_migration], @schema_migration, @internal_metadata).migrate
+        end
+
+        assert_equal [:user_override], marker,
+          "Methods defined on the user's migration class should win over the adapter-specific compatibility module (matching the pre-refactor class-hierarchy order)."
+      ensure
+        @schema_migration.delete_all_versions rescue nil
+      end
+
+      def test_migration_compatibility_module_for_defaults_to_nil_on_abstract_adapter
+        adapter = ActiveRecord::ConnectionAdapters::AbstractAdapter.allocate
+        assert_nil adapter.migration_compatibility_module_for(ActiveRecord::Migration[7.0])
+      end
+
+      if defined?(ActiveRecord::ConnectionAdapters::PostgreSQL::MigrationCompatibility)
+        def test_postgresql_migration_compatibility_module_for_orders_by_class_hierarchy
+          pg = ActiveRecord::ConnectionAdapters::PostgreSQL::MigrationCompatibility
+
+          v5_0_mod = pg.module_for(ActiveRecord::Migration[5.0])
+          ancestors = v5_0_mod.ancestors
+          assert_operator ancestors.index(pg::V5_0), :<, ancestors.index(pg::V5_1)
+          assert_operator ancestors.index(pg::V5_1), :<, ancestors.index(pg::V6_1)
+          assert_operator ancestors.index(pg::V6_1), :<, ancestors.index(pg::V7_0)
+
+          v7_0_mod = pg.module_for(ActiveRecord::Migration[7.0])
+          assert_includes v7_0_mod.ancestors, pg::V7_0
+          assert_not_includes v7_0_mod.ancestors, pg::V6_1
+          assert_not_includes v7_0_mod.ancestors, pg::V5_1
+          assert_not_includes v7_0_mod.ancestors, pg::V5_0
+
+          assert_nil pg.module_for(ActiveRecord::Migration::Current)
+        end
+      end
+
+      if defined?(ActiveRecord::ConnectionAdapters::MySQL::MigrationCompatibility)
+        def test_mysql_migration_compatibility_module_for_orders_by_class_hierarchy
+          mysql = ActiveRecord::ConnectionAdapters::MySQL::MigrationCompatibility
+
+          v5_0_mod = mysql.module_for(ActiveRecord::Migration[5.0])
+          ancestors = v5_0_mod.ancestors
+          assert_operator ancestors.index(mysql::V5_0), :<, ancestors.index(mysql::V5_1)
+          assert_operator ancestors.index(mysql::V5_1), :<, ancestors.index(mysql::V7_0)
+
+          assert_nil mysql.module_for(ActiveRecord::Migration::Current)
+        end
+      end
+
       private
         def precision_implicit_default
           if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)

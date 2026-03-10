@@ -10,6 +10,7 @@ require "active_record/connection_adapters/sqlite3/schema_creation"
 require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
 require "active_record/connection_adapters/sqlite3/schema_statements"
+require "active_record/connection_adapters/sqlite3/migration_compatibility"
 
 gem "sqlite3", ">= 2.1"
 require "sqlite3"
@@ -192,6 +193,10 @@ module ActiveRecord
 
       def database_exists?
         @config[:database] == ":memory:" || File.exist?(@config[:database].to_s)
+      end
+
+      def migration_compatibility_module_for(migration_class) # :nodoc:
+        SQLite3::MigrationCompatibility.module_for(migration_class)
       end
 
       def supports_ddl_transactions?
