@@ -781,9 +781,20 @@ production:
       threads: 5
 ```
 
-With the above configuration, no jobs will be taken from `default` while `critical` has jobs waiting, and no jobs will be taken from `low` while either `critical` or `default` has jobs waiting. 
+With the above configuration, no jobs will be taken from `default` while `critical` has jobs waiting, and no jobs will be taken from `low` while either `critical` or `default` has jobs waiting. Solid Queue has strict ordering (unlike other queuing backend which may allow relative weights so that lower-priority queues still receive a proportional share of processing time). It is possible for lower queues to be starved if higher queues are consistently busy.
 
-Solid Queue has strict ordering (unlike other queuing backend which may allow relative weights so that lower-priority queues still receive a proportional share of processing time). It is possible for lower queues to be starved if higher queues are consistently busy.
+It is possible to use a wildcard `*` within queue names. For example if
+the worker is configured with `queues:[active_storage*, mailers]`, it will fetch
+jobs from queues starting with "active_storage", such as  the
+`active_storage_analyze` queue and `active_storage_transform` queue. Only when
+no jobs remain in the `active_storage`-prefixed queues will workers move on to
+the `mailers` queue.
+
+WARNING: Using wildcard queue names (e.g., `queues: active_storage*`) can slow
+down polling performance in SQLite and PostgreSQL due to the need for a
+`DISTINCT` query to identify all matching queues, which can be slow on large
+tables. For better performance, it’s best to specify exact queue
+names instead of using wildcards.
 
 #### Numeric Priorities
 
@@ -880,90 +891,11 @@ WARN: Concurrency controls are not compatible with bulk enqueuing via `perform_a
 
 ### Error handling and Monitoring
 
-### Monitoring with Mission Control
+Solid Queue raises `SolidQueue::Job::EnqueueError` when an Active Record error occurs during job enqueuing. This differs from `ActiveJob::EnqueueError`, which Active Job handles internally by making `perform_later` return `false`. The practical consequence is that errors become harder to handle for jobs enqueued by Rails internals or third-party gems like `Turbo::Streams::BroadcastJob`, since you don't control the call to `perform_later` in those cases. For recurring tasks, enqueue errors are logged but not raised. See [Errors When Enqueuing](https://github.com/rails/solid_queue?tab=readme-ov-file#errors-when-enqueuing) in the Solid Queue documentation for more detail.
 
-[Mission Control](https://github.com/rails/mission_control-jobs) is a tool that
-can help centralize the monitoring and management of failed jobs. It provides
-insights into job statuses, failure reasons, and retry behaviors, enabling you
-to track and resolve issues more effectively.
+If a worker process is killed unexpectedly — for example, with a `KILL` signal — any in-flight jobs are marked as failed, and errors such as `SolidQueue::Processes::ProcessExitError` or `SolidQueue::Processes::ProcessPrunedError` are raised. Heartbeat settings control how quickly Solid Queue detects and cleans up expired processes. See [Threads, Processes and Signals](https://github.com/rails/solid_queue?tab=readme-ov-file#threads-processes-and-signals) in the Solid Queue documentation for details on configuring this behavior.
 
-For instance, if a job fails to process a large file due to a timeout,
-`mission_control-jobs` allows you to inspect the failure, review the job’s
-arguments and execution history, and decide whether to retry, requeue, or
-discard it.
-
----
-
-### Queue Order
-
-As per the configuration options in the [Configuration section](#configuration),
-the `queues` configuration option will list the queues that workers will pick
-jobs from. In a list of queues, the order matters. Workers will pick jobs from
-the first queue in the list - once there are no more jobs in the first queue,
-only then will it move onto the second, and so on.
-
-```yaml
-# config/queue.yml
-production:
-  workers:
-    - queues:[active_storage*, mailers]
-      threads: 3
-      polling_interval: 5
-```
-
-In the above example, workers will fetch jobs from queues starting with
-"active_storage", like  the `active_storage_analyse` queue and
-`active_storage_transform` queue. Only when no jobs remain in the
-`active_storage`-prefixed queues will workers move on to the `mailers` queue.
-
-NOTE: The wildcard `*` (like at the end of "active_storage") is only allowed on
-its own or at the end of a queue name to match all queues with the same prefix.
-You can't specify queue names such as `*_some_queue`.
-
-WARNING: Using wildcard queue names (e.g., `queues: active_storage*`) can slow
-down polling performance in SQLite and PostgreSQL due to the need for a `DISTINCT`
-query to identify all matching queues, which can be slow on large tables in these RDBMS.
-For better performance, it’s best to specify exact queue names instead of using
-wildcards. Read more about this in [Queues specification and performance in the
-Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#queues-specification-and-performance)
-
-Active Job supports positive integer priorities when enqueuing jobs (see
-[Priority section](#priority)). Within a single queue, jobs are picked based on
-their priority (with lower integers being higher priority). However, when you
-have multiple queues, the order of the queues themselves takes priority.
-
-For example, if you have two queues, `production` and `background`, jobs in the
-`production` queue will always be processed first, even if some jobs in the
-`background` queue have a higher priority.
-
-### Threads, Processes, and Signals
-
-
-
-If a worker is killed unexpectedly (e.g., with a `KILL` signal), in-flight jobs
-are marked as failed, and errors like `SolidQueue::Processes::ProcessExitError`
-or `SolidQueue::Processes::ProcessPrunedError` are raised. Heartbeat settings
-help manage and detect expired processes. Read more about [Threads, Processes
-and Signals in the Solid Queue
-documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#threads-processes-and-signals).
-
-### Errors When Enqueuing
-
-Solid Queue raises a `SolidQueue::Job::EnqueueError` when Active Record errors
-occur during job enqueuing. This is different from the `ActiveJob::EnqueueError`
-raised by Active Job, which handles the error and makes `perform_later` return
-false. This makes error handling trickier for jobs enqueued by Rails or
-third-party gems like `Turbo::Streams::BroadcastJob`.
-
-For recurring tasks, any errors encountered while enqueuing are logged, but they
-won’t be raised. Read more about [Errors When Enqueuing in the Solid Queue
-documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#errors-when-enqueuing).
-
-### Error Reporting on Jobs
-
-If your error tracking service doesn’t automatically report job errors, you can
-manually hook into Active Job to report them. For example, you can add a
-`rescue_from` block in `ApplicationJob`:
+If your error tracking service doesn't automatically capture job errors, you can hook into Active Job's `rescue_from` in `ApplicationJob`:
 
 ```ruby
 class ApplicationJob < ActiveJob::Base
@@ -974,8 +906,7 @@ class ApplicationJob < ActiveJob::Base
 end
 ```
 
-If you use ActionMailer, you’ll need to handle errors for `MailDeliveryJob`
-separately:
+If your application uses Action Mailer, note that mailer delivery runs through `ActionMailer::MailDeliveryJob`, which inherits from `ApplicationJob` but needs to be handled separately:
 
 ```ruby
 class ApplicationMailer < ActionMailer::Base
@@ -985,6 +916,18 @@ class ApplicationMailer < ActionMailer::Base
   end
 end
 ```
+
+#### Monitoring with Mission Control
+
+[Mission Control](https://github.com/rails/mission_control-jobs) is a tool that
+can help centralize the monitoring and management of failed jobs. It provides
+insights into job statuses, failure reasons, and retry behaviors, enabling you
+to track and resolve issues more effectively.
+
+For instance, if a job fails to process a large file due to a timeout,
+`mission_control-jobs` allows you to inspect the failure, review the job’s
+arguments and execution history, and decide whether to retry, requeue, or
+discard it.
 
 ### Transactional Integrity on Jobs
 
