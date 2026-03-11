@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "timeout"
 require "rail_inspector/changelog"
 require "test/test_helpers/changelog_fixtures"
 
