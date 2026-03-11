@@ -246,6 +246,12 @@ module RailtiesTest
       assert_match(/undefined method [`']abc' for.*RailtiesTest::RailtieTest::Foo/, error.original_message)
     end
 
+    test "inspect does not show internals" do
+      class self.class::TestRailtie < Rails::Railtie; end
+
+      assert_match(/\A#<.*TestRailtie:0x[0-9a-f]+>\z/, self.class::TestRailtie.instance.inspect)
+    end
+
     test "rake environment can be called in the ralitie" do
       $ran_block = false
 

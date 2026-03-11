@@ -7,6 +7,12 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
   fixtures :topics
 
+  setup do
+    # Warm all lazy-loaded caches (columns, data sources, attribute methods) so no SCHEMA queries
+    # fire during the instrumented block in our tests below, which would be a source of flakes.
+    Topic.first
+  end
+
   def test_start_transaction_is_triggered_when_the_transaction_is_materialized
     transactions = []
     subscriber = ActiveSupport::Notifications.subscribe("start_transaction.active_record") do |event|

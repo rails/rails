@@ -179,6 +179,10 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/def create\n    end/, content)
       assert_no_match(/rate_limit/, content)
     end
+
+    assert_file "test/controllers/passwords_controller_test.rb" do |content|
+      assert_no_match(/assert_enqueued_email/, content)
+    end
   ensure
     ActionMailer.const_set(:Railtie, old_value)
   end

@@ -192,6 +192,19 @@ module ActiveRecord
   self.lazily_load_schema_cache = false
 
   ##
+  # :singlton-method: protected_environments
+  # The array of names of environments where destructive actions should be
+  # prohibited. By default, the value is <tt>["production"]</tt>.
+  singleton_class.attr_reader :protected_environments
+
+  # Sets an array of names of environments where destructive actions should be
+  # prohibited.
+  def self.protected_environments=(environments)
+    @protected_environments = environments.map(&:to_s)
+  end
+  self.protected_environments = ["production"]
+
+  ##
   # :singleton-method: schema_cache_ignored_tables
   # A list of tables or regex's to match tables to ignore when
   # dumping the schema cache. For example if this is set to +[/^_/]+
@@ -358,7 +371,7 @@ module ActiveRecord
   self.run_after_transaction_callbacks_in_order_defined = false
 
   singleton_class.attr_accessor :raise_on_missing_required_finder_order_columns
-  self.run_after_transaction_callbacks_in_order_defined = false
+  self.raise_on_missing_required_finder_order_columns = false
 
   singleton_class.attr_accessor :application_record_class
   self.application_record_class = nil

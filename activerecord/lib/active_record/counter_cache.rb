@@ -61,9 +61,9 @@ module ActiveRecord
           end
 
           counter_association = counter_association.to_sym
-          foreign_key  = has_many_association.foreign_key.to_s
+          foreign_key  = has_many_association.foreign_key
           child_class  = has_many_association.klass
-          reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
+          reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
 
           counts =
@@ -194,7 +194,7 @@ module ActiveRecord
       #   DiscussionBoard.decrement_counter(:posts_count, 5)
       #
       #   # Decrement the posts_count column for the record with an id of 5
-      #   by a specific amount.
+      #   # by a specific amount.
       #   DiscussionBoard.decrement_counter(:posts_count, 5, by: 3)
       #
       #   # Decrement the posts_count column for the record with an id of 5
@@ -239,17 +239,13 @@ module ActiveRecord
           counter_cached_association_names.each do |association_name|
             association = association(association_name)
 
-            unless destroyed_by_association && _foreign_keys_equal?(destroyed_by_association.foreign_key, association.reflection.foreign_key)
+            unless destroyed_by_association && destroyed_by_association.foreign_key == association.reflection.foreign_key
               association.decrement_counters
             end
           end
         end
 
         affected_rows
-      end
-
-      def _foreign_keys_equal?(fkey1, fkey2)
-        fkey1 == fkey2 || Array(fkey1).map(&:to_sym) == Array(fkey2).map(&:to_sym)
       end
   end
 end

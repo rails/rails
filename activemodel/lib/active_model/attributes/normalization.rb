@@ -183,6 +183,11 @@ module ActiveModel
           define_method(:inspect, Kernel.instance_method(:inspect))
 
           private
+            # Prevent Ruby 4.0 "delegator does not forward private method" warning.
+            # Kernel#inspect calls instance_variables_to_inspect which, without this,
+            # triggers Delegator#respond_to_missing? for a private method.
+            define_method(:instance_variables_to_inspect, Kernel.instance_method(:instance_variables))
+
             def normalize(value)
               normalizer.call(value) unless value.nil? && !normalize_nil?
             end
