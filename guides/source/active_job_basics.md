@@ -1000,49 +1000,42 @@ documentation.
 Alternate Queuing Backends
 --------------------------
 
-Active Job has other built-in adapters for multiple queuing backends (Sidekiq,
-Resque, Delayed Job, and others). To get an up-to-date list of the adapters see
-the API Documentation for [`ActiveJob::QueueAdapters`][].
+While Solid Queue is the default queuing backend in Rails 8, Active Job is designed to work seamlessly with different queuing backends. Switching to an alternative backend, such as Sidekiq, GoodJob, or Resque, requires only a configuration change (typically with no modifications to your job code), along with adding the queuing backend's adapter to your Gemfile.
 
-[`ActiveJob::QueueAdapters`]:
-    https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html
+You can get an up-to-date list of the adapters in the the API Documentation for
+[`ActiveJob::QueueAdapters`](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
-### Configuring the Backend
-
-You can change your queuing backend with [`config.active_job.queue_adapter`]:
+To switch backends globally, you can set `config.active_job.queue_adapter` in your application configuration:
 
 ```ruby
 # config/application.rb
 module YourApp
   class Application < Rails::Application
-    # Be sure to have the adapter's gem in your Gemfile
-    # and follow the adapter's specific installation
-    # and deployment instructions.
     config.active_job.queue_adapter = :sidekiq
   end
 end
 ```
 
-You can also configure your backend on a per job basis:
+You can also set the adapter per-environment, which is useful if you want to use Solid Queue in production but a simpler adapter in development:
 
 ```ruby
-class GuestsCleanupJob < ApplicationJob
-  self.queue_adapter = :resque
-  # ...
-end
-
-# Now your job will use `resque` as its backend queue adapter, overriding the default Solid Queue adapter.
+# config/environments/development.rb
+config.active_job.queue_adapter = :async
 ```
 
-[`config.active_job.queue_adapter`]:
-    configuring.html#config-active-job-queue-adapter
+If you want to migrate incrementally, you can set the adapter at the job class level. This is useful for moving one job at a time rather than switching everything at once:
 
-### Starting the Backend
+```ruby
+class MyJob < ApplicationJob
+  self.queue_adapter = :sidekiq
+end
+```
 
-Since jobs run in parallel to your Rails application, most queuing libraries
-require that you start a library-specific queuing service (in addition to
-starting your Rails app) for the job processing to work. Refer to library
-documentation for instructions on starting your queue backend.
+Each backend requires its own gem and typically its own process. Once you add the adapter's gem to your `Gemfile`, you can refer to the adapter's documentation for any additional setup — most backends require a separate worker process to be started alongside your Rails application, and some (like Sidekiq) require additional infrastructure such as Redis.
+
+NOTE: Switching backends doesn't migrate jobs already sitting in the old queue. You'll need to drain the old queue before switching, or run both backends in parallel temporarily to let existing jobs complete.
+
+TIP: If you use `config.active_job.queue_name_prefix`, make sure your new backend's worker configuration listens to the prefixed queue names, not the bare names.
 
 Here is a noncomprehensive list of documentation:
 
