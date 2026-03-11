@@ -591,14 +591,16 @@ See [Bulk Enqueuing Callbacks](#bulk-enqueue-callbacks).
 Job Continuations
 -----------------
 
-Jobs can be split into resumable steps using continuations. This is useful when
-a job may be interrupted - for example, during queue shutdown. When using
-continuations, the job can resume from the last completed step, avoiding the
-need to restart from the beginning.
+Active Job Continuations allow jobs to be split into resumable steps, so that long-running jobs can make progress after interruptions. When
+using continuations, the job automatically resumes from the last completed step,
+instead of restarting from the beginning.
 
-To use continuations, include the `ActiveJob::Continuable` module. You can then
-define each step using the `step` method inside the `perform` method. Each step can
-be declared with a block or by referencing a method name.
+To use continuations, include the `ActiveJob::Continuable` module in your Job
+class. You can then define each step inside the `perform` method using [`step`](https://api.rubyonrails.org/classes/ActiveJob/Continuation/Step.html) inside.
+
+Steps can use an optional [cursor](https://api.rubyonrails.org/classes/ActiveJob/Continuation.html#class-ActiveJob::Continuation-label-Cursors) to track progress *within* the step. The code in the step is responsible for using the cursor to continue from the appropriate location after an interruption.
+
+Steps are executed as soon as they are encountered. Code that is not part of a step will be executed on each job run. If a job is interrupted, previously completed steps will be skipped. If a step is in progress, it will be restarted or resumed with the last recorded cursor if using cursors.  For example:
 
 ```ruby
 class ProcessImportJob < ApplicationJob
@@ -613,11 +615,11 @@ class ProcessImportJob < ApplicationJob
       @import.initialize
     end
 
-    # Step with a cursor — progress is saved and resumed if the job is interrupted
+    # Step with a cursor
     step :process do |step|
       @import.records.find_each(start: step.cursor) do |record|
         record.process
-        step.advance! from: record.id
+        step.advance!
       end
     end
 
@@ -632,11 +634,13 @@ class ProcessImportJob < ApplicationJob
 end
 ```
 
-Each step runs sequentially. If the job is interrupted between steps, or within a
-step that uses a cursor, the job resumes from the last recorded position. This
-makes it easier to build long-running or multi-phase jobs that can safely pause
-and resume without losing progress.
-For more details, see [ActiveJob::Continuation](https://api.rubyonrails.org/classes/ActiveJob/Continuation.html).
+Each step can be declared with a block or by referencing a method name. The
+block will be called with the step object as an argument. Methods can either
+take no arguments or a single argument for the step object.
+
+Job Continuations make it easier to build long-running or multi-phase jobs that
+can safely pause and resume without losing progress. For more details, see
+[ActiveJob::Continuation](https://api.rubyonrails.org/classes/ActiveJob/Continuation.html).
 
 
 Default Backend: Solid Queue
