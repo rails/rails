@@ -726,12 +726,14 @@ development:
     migrations_paths: db/queue_migrate
 ```
 
-### Configuring Workers, Dispatchers, Supervisors
+### Workers, Dispatchers, Supervisors
 
-The configuration options for Solid Queue are defined in `config/queue.yml`.
-Here is an example of the default configuration:
+Solid Queue uses three types of processes to handle job queueing and execution. *Workers* poll queues for jobs that are ready to run and execute them. *Dispatchers* handle scheduled jobs — they check for jobs due to run in the future and move them into the ready queue for workers to pick up. Both workers and dispatchers are managed by a *Supervisor*, which forks and monitors them.
+
+When you run `bin/rails jobs`, you're starting the supervisor process, which in turn forks and manages the workers and dispatchers according to the configuration in `config/queue.yml`. Here is an example of the default configuration:
 
 ```yaml
+# config/queue.yml
 default: &default
   dispatchers:
     - polling_interval: 1
@@ -743,26 +745,9 @@ default: &default
       polling_interval: 0.1
 ```
 
-In order to understand the configuration options for Solid Queue, you must
-understand the different types of roles:
-
-- **Dispatchers**: They select jobs scheduled to run for the future. When it's
-  time for these jobs to run, dispatchers move them from the
-  `solid_queue_scheduled_executions` table to the `solid_queue_ready_executions`
-  table so workers can pick them up. They also manage concurrency-related
-  maintenance.
-- **Workers**: They pick up jobs that are ready to run. These jobs are taken
-  from the `solid_queue_ready_executions` table.
-- **Scheduler**: This takes care of recurring tasks, adding jobs to the queue
-  when they're due.
-- **Supervisor**: It oversees the whole system, managing workers and
-  dispatchers. It starts and stops them as needed, monitors their health, and
-  ensures everything runs smoothly.
-
-Everything is optional in the `config/queue.yml`. If no configuration is
+The configuration in `config/queue.yml` is optional. If no configuration is
 provided, Solid Queue will run with one dispatcher and one worker with default
-settings. Below are some of the configuration options you can set in
-`config/queue.yml`:
+settings. Below are some of the configuration options you can set along with their default values`:
 
 | **Option**                           | **Description**                                                                                     | **Default Value**                             |
 | ------------------------------------ | --------------------------------------------------------------------------------------------------- | --------------------------------------------- |
