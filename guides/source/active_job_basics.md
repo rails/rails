@@ -766,6 +766,26 @@ options](https://github.com/rails/solid_queue?tab=readme-ov-file#other-configura
 that can be set in `config/<environment>.rb` to further configure Solid Queue in
 your Rails Application.
 
+### Queue Order and Priority
+
+### Concurrency Controls
+
+### Error handling and Monitoring
+
+### Monitoring with Mission Control
+
+[Mission Control](https://github.com/rails/mission_control-jobs) is a tool that
+can help centralize the monitoring and management of failed jobs. It provides
+insights into job statuses, failure reasons, and retry behaviors, enabling you
+to track and resolve issues more effectively.
+
+For instance, if a job fails to process a large file due to a timeout,
+`mission_control-jobs` allows you to inspect the failure, review the job’s
+arguments and execution history, and decide whether to retry, requeue, or
+discard it.
+
+---
+
 ### Queue Order
 
 As per the configuration options in the [Configuration section](#configuration),
@@ -960,24 +980,10 @@ Each task specifies a `class` or `command` and a `schedule` (parsed using
 [Fugit](https://github.com/floraison/fugit)). You can also pass arguments to
 jobs, such as in the example for `MyJob` where `args` are passed. This can be
 passed as a single argument, a hash, or an array of arguments that can also
-include kwargs as the last element in the array. This allows jobs to run
-periodically at specified times.
+include key word arguments as the last element in the array.
 
-Read more about [Recurring Tasks in the Solid Queue
-documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#recurring-tasks).
-
-### Job Tracking and Management
-
-A tool like
-[`mission_control-jobs`](https://github.com/rails/mission_control-jobs) can help
-centralize the monitoring and management of failed jobs. It provides insights
-into job statuses, failure reasons, and retry behaviors, enabling you to track
-and resolve issues more effectively.
-
-For instance, if a job fails to process a large file due to a timeout,
-`mission_control-jobs` allows you to inspect the failure, review the job’s
-arguments and execution history, and decide whether to retry, requeue, or
-discard it.
+You can learn more about [Recurring Tasks](https://github.com/rails/solid_queue?tab=readme-ov-file#recurring-tasks) in the Solid Queue
+documentation.
 
 Alternate Queuing Backends
 --------------------------
