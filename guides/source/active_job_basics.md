@@ -646,72 +646,12 @@ can safely pause and resume without losing progress. For more details, see
 Default Backend: Solid Queue
 ------------------------------
 
-Solid Queue, which is enabled by default from Rails version 8.0 and onward, is a
-database-backed queuing system for Active Job, allowing you to queue large
-amounts of data without requiring additional dependencies such as Redis.
+Solid Queue is a database-backed queue backend built on Active Job and the default queue backend for Rails version 8.0 onwards. Rather than requiring a separate infrastructure dependency like Redis, Solid Queue uses your existing database to persist and process jobs. It supports delayed jobs, job priorities, concurrency controls, recurring jobs, and bulk enqueuing.
 
-Besides regular job enqueuing and processing, Solid Queue supports delayed jobs,
-concurrency controls, numeric priorities per job, priorities by queue order, and
-more.
+### Set Up and Default Configuration
 
-### Set Up
-
-#### Development
-
-In development, Rails provides an asynchronous in-process queuing system, which
-keeps the jobs in RAM. If the process crashes or the machine is reset, then all
-outstanding jobs are lost with the default async backend. This can be fine for
-smaller apps or non-critical jobs in development.
-
-However, if you use Solid Queue instead, you can configure it in the same way as
-in the production environment:
-
-```ruby
-# config/environments/development.rb
-config.active_job.queue_adapter = :solid_queue
-config.solid_queue.connects_to = { database: { writing: :queue } }
-```
-
-which sets the `:solid_queue` adapter as the default for Active Job in the
-development environment, and connects to the `queue` database for writing.
-
-Thereafter, you'd add `queue` to the development database configuration:
-
-```yaml
-# config/database.yml
-development:
-  primary:
-    <<: *default
-    database: storage/development.sqlite3
-  queue:
-    <<: *default
-    database: storage/development_queue.sqlite3
-    migrations_paths: db/queue_migrate
-```
-
-NOTE: The key `queue` from the database configuration needs to match the key
-used in the configuration for `config.solid_queue.connects_to`.
-
-You can then run `db:prepare` to ensure the `queue` database in `development` has all the required tables:
-
-```bash
-$ bin/rails db:prepare
-```
-
-TIP: You can find the default generated schema for the `queue` database in
-`db/queue_schema.rb`. They will contain tables like
-`solid_queue_ready_executions`, `solid_queue_scheduled_executions`, and more.
-
-Finally, to start the queue and start processing jobs you can run:
-
-```bash
-bin/jobs start
-```
-
-#### Production
-
-Solid Queue is already configured for the production environment. If you open
-`config/environments/production.rb`, you will see the following:
+Solid Queue is already configured for production by default. For example, if you
+open `config/environments/production.rb`, you will see the following:
 
 ```ruby
 # config/environments/production.rb
@@ -737,14 +677,56 @@ production:
     migrations_paths: db/queue_migrate
 ```
 
-Make sure you run `db:prepare` so your database is ready to use:
+NOTE: The key `queue` from the database configuration needs to match the key
+used in the configuration for `config.solid_queue.connects_to`.
+
+In order to start using Solid Queue, run `db:prepare` so your database has Solid Queue related tables:
 
 ```bash
 $ bin/rails db:prepare
 ```
 
+TIP: You can find the schema for the `queue` database in `db/queue_schema.rb`,
+which is generated automatically. It will contain tables like
+`solid_queue_jobs`, `solid_queue_recurring_executions`,
+`solid_queue_scheduled_executions`, and more.
 
-### Configuration
+Finally, to start the queue and start processing jobs you can run:
+
+```bash
+bin/jobs start
+```
+
+#### Development Environment
+
+For development environment, Rails provides an asynchronous in-process queuing
+system, which keeps the jobs in memory. With this default async adapter, if the
+process crashes or the machine is reset, then all outstanding jobs are lost.
+This can be acceptable for non-critical jobs in development.
+
+Alternatively, you can also use Solid Queue in development. It can be configured it in the same way as in the production environment:
+
+```ruby
+# config/environments/development.rb
+config.active_job.queue_adapter = :solid_queue
+config.solid_queue.connects_to = { database: { writing: :queue } }
+```
+
+Add `queue` to the development database configuration:
+
+```yaml
+# config/database.yml
+development:
+  primary:
+    <<: *default
+    database: storage/development.sqlite3
+  queue:
+    <<: *default
+    database: storage/development_queue.sqlite3
+    migrations_paths: db/queue_migrate
+```
+
+### Configuring Workers, Dispatchers, Supervisors
 
 The configuration options for Solid Queue are defined in `config/queue.yml`.
 Here is an example of the default configuration:
@@ -941,22 +923,24 @@ end
 
 ### Transactional Integrity on Jobs
 
-⚠️ Having your jobs in the same ACID-compliant database as your application data
+Having your jobs in the same ACID-compliant database as your application data
 enables a powerful yet sharp tool: taking advantage of transactional integrity
-to ensure some action in your app is not committed unless your job is also committed
-and vice versa, and ensuring that your job won't be enqueued until the transaction
-within which you're enqueuing it is committed. This can be very powerful and useful,
-but it can also backfire if you base some of your logic on this behavior,
-and in the future, you move to another active job backend, or if you simply move
-Solid Queue to its own database, and suddenly the behavior changes under you.
+to ensure some action in your app is not committed unless your job is also
+committed and vice versa, and ensuring that your job won't be enqueued until the
+transaction within which you're enqueuing it is committed. This can be very
+powerful and useful, but it can also backfire if you base some of your logic on
+this behavior, and in the future, you move to another active job backend, or if
+you simply move Solid Queue to its own database, and suddenly the behavior
+changes under you.
 
-Because this can be quite tricky and many people shouldn't need to worry about it,
-by default Solid Queue is configured in a different database as the main app.
+Because this can be quite tricky and many people shouldn't need to worry about
+it, by default Solid Queue is configured in a different database as the main
+app.
 
-However, if you use Solid Queue in the same database as your app, you can make sure you
-don't rely accidentally on transactional integrity with Active Job’s
-`enqueue_after_transaction_commit` option which can be enabled for individual jobs or
-all jobs through `ApplicationJob`:
+However, if you use Solid Queue in the same database as your app, you can make
+sure you don't rely accidentally on transactional integrity with Active Job’s
+`enqueue_after_transaction_commit` option which can be enabled for individual
+jobs or all jobs through `ApplicationJob`:
 
 ```ruby
 class ApplicationJob < ActiveJob::Base
