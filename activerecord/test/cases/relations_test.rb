@@ -1196,6 +1196,21 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_predicate no_posts, :loaded?
   end
 
+  def test_blank
+    posts = Post.all
+
+    assert_queries_count(1) { assert_equal false, posts.blank? }
+    assert_not_predicate posts, :loaded?
+
+    no_posts = posts.where(title: "")
+    assert_queries_count(1) { assert_equal true, no_posts.blank? }
+    assert_not_predicate no_posts, :loaded?
+
+    best_posts = posts.where(comments_count: 0)
+    best_posts.load # force load
+    assert_no_queries { assert_equal false, best_posts.blank? }
+  end
+
   def test_any
     posts = Post.all
 

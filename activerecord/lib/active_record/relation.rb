@@ -1304,7 +1304,7 @@ module ActiveRecord
 
     # Returns true if relation is blank.
     def blank?
-      records.blank?
+      empty?
     end
 
     def readonly?
