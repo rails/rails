@@ -931,24 +931,15 @@ discard it.
 
 ### Transactional Integrity on Jobs
 
-Having your jobs in the same ACID-compliant database as your application data
-enables a powerful yet sharp tool: taking advantage of transactional integrity
-to ensure some action in your app is not committed unless your job is also
-committed and vice versa, and ensuring that your job won't be enqueued until the
-transaction within which you're enqueuing it is committed. This can be very
-powerful and useful, but it can also backfire if you base some of your logic on
-this behavior, and in the future, you move to another active job backend, or if
-you simply move Solid Queue to its own database, and suddenly the behavior
-changes under you.
+Since Solid Queue can use the same database as your application, it can participate in the same ACID transactions as your application data. But this behavior comes with important nuances worth understanding before you rely on it.
 
-Because this can be quite tricky and many people shouldn't need to worry about
-it, by default Solid Queue is configured in a different database as the main
-app.
+When Solid Queue uses the same database as your application, job enqueuing happens inside the same transaction as any surrounding Active Record operations. This means a job won't be enqueued if the transaction rolls back, and the transaction won't commit unless the job enqueue also succeeds. This eliminates a class of race conditions common with Redis backends (e.g. a job running before the record it needs has been committed to the database).
 
-However, if you use Solid Queue in the same database as your app, you can make
-sure you don't rely accidentally on transactional integrity with Active Job’s
-`enqueue_after_transaction_commit` option which can be enabled for individual
-jobs or all jobs through `ApplicationJob`:
+However, Rails 8 configures Solid Queue on a *separate database by default*, precisely to avoid implicit coupling to this behavior. If you build logic that depends on transactional integrity and later move Solid Queue to its own database or switch to a different backend, that behavior silently disappears. The separate database default is the safer choice for most applications.
+
+#### Using `enqueue_after_transaction_commit`
+
+The recommended way to get transactional safety — without depending on both your app and Solid Queue sharing the same database — is to use `enqueue_after_transaction_commit`. This defers job enqueuing until the surrounding Active Record transaction successfully commits, and can be enabled per job or globally:
 
 ```ruby
 class ApplicationJob < ActiveJob::Base
@@ -956,9 +947,27 @@ class ApplicationJob < ActiveJob::Base
 end
 ```
 
-You can also configure Solid Queue to use the same database as your app while
-avoiding relying on transactional integrity by setting up a separate database
-connection for Solid Queue jobs. Read more about [Transactional Integrity in the
+With this setting, a job enqueued inside a transaction that rolls back will simply not be enqueued. This gives you the guarantee portably, regardless of whether Solid Queue shares a database with your app or not.
+
+#### Enqueuing from `after_commit` Callbacks
+
+If you prefer not to use `enqueue_after_transaction_commit`, the alternative is to always enqueue jobs from `after_commit` callbacks rather than from within transactions directly:
+
+```ruby
+after_commit :schedule_cleanup, on: :create
+
+def schedule_cleanup
+  GuestsCleanupJob.perform_later(self)
+end
+```
+
+This ensures the job is only enqueued once the relevant data is durably committed to the database.
+
+#### The Risk of Implicit Reliance
+
+The subtle danger is enqueuing a job inside a transaction without either of the above safeguards in place. In that case, the job may run before the data it needs is visible to other connections, or it may be enqueued even if the transaction rolls back. This is easy to overlook if you're accustomed to Redis-backed backends where this problem doesn't arise in the same form. If you're unsure whether your code relies on transactional integrity, enabling `enqueue_after_transaction_commit` globally in `ApplicationJob` is the safest default.
+
+You can read more about [Transactional Integrity in the
 Solid Queue
 documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#jobs-and-transactional-integrity)
 
