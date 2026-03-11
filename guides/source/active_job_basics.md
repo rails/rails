@@ -768,7 +768,115 @@ your Rails Application.
 
 ### Queue Order and Priority
 
+Solid Queue offers two distinct mechanisms for controlling the order in which jobs are processed: queue ordering and numeric priorities. Understanding how they interact is important for getting the behavior you expect.
+
+#### Queue Order
+
+Queue order is the primary way to prioritize work in Solid Queue. The order in which queues are listed in `config/queue.yml` for a worker determines the polling order. A worker will not pull jobs from a lower-priority queue until all higher-priority queues are empty:
+
+```yaml
+production:
+  workers:
+    - queues: [critical, default, low]
+      threads: 5
+```
+
+With the above configuration, no jobs will be taken from `default` while `critical` has jobs waiting, and no jobs will be taken from `low` while either `critical` or `default` has jobs waiting. 
+
+Solid Queue has strict ordering (unlike other queuing backend which may allow relative weights so that lower-priority queues still receive a proportional share of processing time). It is possible for lower queues to be starved if higher queues are consistently busy.
+
+#### Numeric Priorities
+
+Numeric priorities apply *within* a single queue. You can assign numeric priorities to jobs using `queue_with_priority`. Lower numbers indicate higher priority, with a default of 0:
+
+```ruby
+class CriticalReportJob < ApplicationJob
+  queue_as :default
+  queue_with_priority 0
+end
+
+class RoutineCleanupJob < ApplicationJob
+  queue_as :default
+  queue_with_priority 10
+end
+```
+
+When both jobs are in the `default` queue, `CriticalReportJob` will be picked up first. However, numeric priority only applies within a queue. It has no effect across queues. Queue order takes precedence, if you are using both mechanisms together.
+
+#### Polling Interval
+
+For Solid Queue the `polling_interval` setting for a worker directly affects how quickly it picks up new jobs. A high-priority queue paired with a slow polling interval may not feel very responsive in practice:
+
+```yaml
+production:
+  workers:
+    - queues: critical
+      threads: 5
+      polling_interval: 0.1  # Poll every 100ms — fast response
+    - queues: low
+      threads: 2
+      polling_interval: 10   # Poll every 10s — fine for low-priority work
+```
+
+Tuning `polling_interval` per worker is especially important for time-sensitive queues.
+
+#### Retries
+
+In Solid Queue, retries need to be configured explicitly using Active Job's `retry_on`:
+
+```ruby
+class ExternalApiJob < ApplicationJob
+  retry_on Net::TimeoutError, wait: :exponentially_longer, attempts: 5
+  retry_on ActiveRecord::Deadlocked, wait: 2.seconds, attempts: 3
+
+  def perform
+    # ...
+  end
+end
+```
+
+This can also be set globally in `ApplicationJob` if you want a default retry policy across all jobs. Failed jobs that aren't configured with `retry_on` will go straight to failed executions without retrying.
+
 ### Concurrency Controls
+
+Solid Queue extends Active Job with concurrency controls, allowing you to limit how many jobs of a certain type can run at the same time. This is useful for protecting shared resources, such as ensuring only one export job runs per account at a time, or capping the number of concurrent API calls to an external service.
+
+Concurrency controls are declared using `limits_concurrency` in your job class:
+
+```ruby
+class InvoiceExportJob < ApplicationJob
+  limits_concurrency to: 1, key: ->(account_id) { "invoice_export_#{account_id}" }, duration: 10.minutes
+
+  def perform(account_id)
+    # ...
+  end
+end
+```
+
+In the above example:
+- The `to` option sets the maximum number of jobs that can run concurrently.
+- The `key` lambda computes a concurrency key from the job's arguments. In the example above, the limit of 1 applies per account rather than globally. 
+- The `duration` option acts as a failsafe. So if a worker dies mid-job and fails to release its lock, any blocked jobs become candidates for release once duration has elapsed.
+
+When a job with concurrency controls is enqueued, Solid Queue checks a database-backed lock for the computed key. If the lock is available, the job is marked ready for execution. If not, the behavior depends on the `on_conflict:` option. If `on_conflict` is set to `:block` (the default), the job is held in a blocked state and marked ready only when a running job finishes. The other option is `:discard`, in which case the job is dropped entirely.
+
+You can also scope limits across *different* job classes using the `group:` option:
+
+```ruby
+class AnalyticsExportJob < ApplicationJob
+  limits_concurrency to: 1, key: ->(account_id) { account_id }, group: "account_exports", duration: 10.minutes
+end
+
+class InvoiceExportJob < ApplicationJob
+  limits_concurrency to: 1, key: ->(account_id) { account_id }, group: "account_exports", duration: 10.minutes
+end
+```
+
+In the above example, both job classes share the same concurrency limit per the "account_exports" group, which means only one export of either type will run at a time for a given account.
+
+NOTE: Concurrency controls do carry overhead since blocked executions must be tracked and locks created and updated. So they should be used sparingly. For simple throughput limiting, constraining the number of worker threads per queue is more efficient. 
+
+WARN: Concurrency controls are not compatible with bulk enqueuing via `perform_all_later`. Since concurrency-controlled jobs need to be enqueued one-by-one to respect the configured limits.
 
 ### Error handling and Monitoring
 
@@ -830,15 +938,7 @@ For example, if you have two queues, `production` and `background`, jobs in the
 
 ### Threads, Processes, and Signals
 
-In Solid Queue, parallelism is achieved through threads (configurable via the
-[`threads` parameter](#configuration)), processes (via the [`processes`
-parameter](#configuration)), or horizontal scaling. The supervisor manages
-processes and responds to the following signals:
 
-- **TERM, INT**: Starts graceful termination, sending a TERM signal and waiting
-  up to `SolidQueue.shutdown_timeout`. If not finished, a QUIT signal forces
-  processes to exit.
-- **QUIT**: Forces immediate termination of processes.
 
 If a worker is killed unexpectedly (e.g., with a `KILL` signal), in-flight jobs
 are marked as failed, and errors like `SolidQueue::Processes::ProcessExitError`
@@ -858,46 +958,6 @@ third-party gems like `Turbo::Streams::BroadcastJob`.
 For recurring tasks, any errors encountered while enqueuing are logged, but they
 won’t be raised. Read more about [Errors When Enqueuing in the Solid Queue
 documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#errors-when-enqueuing).
-
-### Concurrency Controls
-
-Solid Queue extends Active Job with concurrency controls, allowing you to limit
-how many jobs of a certain type or with specific arguments can run at the same
-time. If a job exceeds the limit, it will be blocked until another job finishes
-or the duration expires. For example:
-
-```ruby
-class MyJob < ApplicationJob
-  limits_concurrency to: 2, key: ->(contact) { contact.account }, duration: 5.minutes
-
-  def perform(contact)
-    # perform job logic
-  end
-end
-```
-
-In this example, only two `MyJob` instances for the same account will run
-concurrently. After that, other jobs will be blocked until one completes.
-
-The `group` parameter can be used to control concurrency across different job
-types. For instance, two different job classes that use the same group will have
-their concurrency limited together:
-
-```ruby
-class Box::MovePostingsByContactToDesignatedBoxJob < ApplicationJob
-  limits_concurrency key: ->(contact) { contact }, duration: 15.minutes, group: "ContactActions"
-end
-
-class Bundle::RebundlePostingsJob < ApplicationJob
-  limits_concurrency key: ->(bundle) { bundle.contact }, duration: 15.minutes, group: "ContactActions"
-end
-```
-
-This ensures that only one job for a given contact can run at a time, regardless
-of the job class.
-
-Read more about [Concurrency Controls in the Solid Queue
-documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#concurrency-controls).
 
 ### Error Reporting on Jobs
 
