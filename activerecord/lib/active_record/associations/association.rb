@@ -121,7 +121,7 @@ module ActiveRecord
       end
 
       def set_strict_loading(record)
-        if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
+        if owner.strict_loading_n_plus_one_only? && [:has_many, :has_and_belongs_to_many].include?(reflection.macro)
           record.strict_loading!
         else
           record.strict_loading!(false, mode: owner.strict_loading_mode)
