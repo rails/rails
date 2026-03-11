@@ -100,6 +100,7 @@ module ActiveRecord
 
           @pool.with_connection do |connection|
             return unless @mutex.try_lock
+            previous_instrumenter = ActiveSupport::IsolatedExecutionState[:active_record_instrumenter]
             begin
               if pending?
                 @event_buffer = EventBuffer.new(self, ActiveSupport::Notifications.instrumenter)
@@ -112,6 +113,7 @@ module ActiveRecord
             rescue => error
               @error = error
             ensure
+              ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = previous_instrumenter
               @mutex.unlock
             end
           end
