@@ -527,7 +527,9 @@ ActiveSupport::Inflector.inflections(:en) do |inflect|
 end
 ```
 
-Doing so affects how Active Support inflects globally. That may be fine in some applications, but you can also customize how to camelize individual basenames independently from Active Support by passing a collection of overrides to the default inflectors:
+WARNING: Custom inflection rules are global — they affect the entire Ruby process, including third-party gems. Avoid them unless absolutely necessary, especially for common terms like API, ID, or JSON. Prefer the scoped approaches below instead.
+
+You can customize how to camelize individual basenames independently from Active Support by passing a collection of overrides to the default inflectors:
 
 ```ruby
 Rails.autoloaders.each do |autoloader|
