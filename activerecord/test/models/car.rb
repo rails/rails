@@ -11,6 +11,7 @@ class Car < ActiveRecord::Base
   has_many :failed_bulbs, class_name: "FailedBulb", dependent: :destroy
   has_many :foo_bulbs, -> { where(name: "foo") }, class_name: "Bulb"
   has_many :awesome_bulbs, -> { awesome }, class_name: "Bulb"
+  has_many :strict_replace_bulbs, class_name: "Bulb", strict_replace: true
 
   has_one :bulb
 

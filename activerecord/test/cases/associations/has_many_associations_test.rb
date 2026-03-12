@@ -2699,6 +2699,68 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [bulb1, bulb3], result
   end
 
+  def test_replace_uses_loaded_target_by_default_when_records_are_added_after_the_association_was_loaded
+    car = Car.create!(name: "honda")
+    existing_bulb = car.bulbs.create!
+
+    car.bulbs.load
+    stale_bulb = Bulb.create!(car: car)
+    replacement_bulb = Bulb.new
+
+    car.bulbs = [replacement_bulb]
+
+    assert_equal [replacement_bulb], car.bulbs
+    assert_equal [replacement_bulb.id, stale_bulb.id].sort, car.reload.bulbs.pluck(Bulb.primary_key).sort
+    assert_nil existing_bulb.reload.car_id
+    assert_equal car.id, stale_bulb.reload.car_id
+  end
+
+  def test_replace_can_use_current_target_when_records_are_added_after_the_association_was_loaded
+    with_has_many_strict_replace do
+      car = Car.create!(name: "honda")
+      existing_bulb = car.bulbs.create!
+
+      car.bulbs.load
+      stale_bulb = Bulb.create!(car: car)
+      replacement_bulb = Bulb.new
+
+      car.bulbs = [replacement_bulb]
+
+      assert_equal [replacement_bulb], car.bulbs
+      assert_equal [replacement_bulb.id], car.reload.bulbs.pluck(Bulb.primary_key)
+      assert_nil existing_bulb.reload.car_id
+      assert_nil stale_bulb.reload.car_id
+    end
+  end
+
+  def test_replace_can_use_current_target_for_a_single_association
+    car = Car.create!(name: "honda")
+    existing_bulb = car.strict_replace_bulbs.create!
+
+    car.strict_replace_bulbs.load
+    stale_bulb = Bulb.create!(car: car)
+    replacement_bulb = Bulb.new
+
+    car.strict_replace_bulbs = [replacement_bulb]
+
+    assert_equal [replacement_bulb], car.strict_replace_bulbs
+    assert_equal [replacement_bulb.id], car.reload.strict_replace_bulbs.pluck(Bulb.primary_key)
+    assert_nil existing_bulb.reload.car_id
+    assert_nil stale_bulb.reload.car_id
+  end
+
+  private
+    def with_has_many_strict_replace
+      previous_value = ActiveRecord.has_many_strict_replace
+      ActiveRecord.has_many_strict_replace = true
+
+      yield
+    ensure
+      ActiveRecord.has_many_strict_replace = previous_value
+    end
+
+  public
+
   def test_collection_association_with_private_kernel_method
     firm = companies(:first_firm)
     assert_equal [accounts(:signals37)], firm.accounts.open
@@ -3203,7 +3265,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of,
       :strict_loading, :query_constraints, :deprecated, :autosave, :class_name, :before_add,
       :after_add, :before_remove, :after_remove, :extend, :counter_cache, :join_table,
-      :index_errors, :as, :through
+      :index_errors, :as, :through, :strict_replace
     MESSAGE
   end
 

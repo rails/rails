@@ -416,14 +416,20 @@ module ActiveRecord
         end
 
         def replace_records(new_target, original_target)
-          delete(difference(target, new_target))
+          current_target = replace_records_current_target
 
-          unless concat(difference(new_target, target))
+          delete(difference(current_target, new_target))
+
+          unless concat(difference(new_target, current_target))
             @target = original_target
             raise RecordNotSaved, "Failed to replace #{reflection.name} because one or more of the " \
                                   "new records could not be saved."
           end
 
+          target
+        end
+
+        def replace_records_current_target
           target
         end
 

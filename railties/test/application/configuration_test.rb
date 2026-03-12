@@ -2871,6 +2871,20 @@ module ApplicationTests
       assert_equal true, ActiveRecord::Base.has_many_inversing
     end
 
+    test "ActiveRecord.has_many_strict_replace is false by default" do
+      app "development"
+
+      assert_equal false, ActiveRecord.has_many_strict_replace
+    end
+
+    test "ActiveRecord.has_many_strict_replace can be configured via config.active_record.has_many_strict_replace" do
+      add_to_config "config.active_record.has_many_strict_replace = true"
+
+      app "development"
+
+      assert_equal true, ActiveRecord.has_many_strict_replace
+    end
+
     test "ActiveRecord::Base.automatic_scope_inversing is true by default for new apps" do
       app "development"
 
