@@ -1,3 +1,15 @@
+*   Restore previous instrumenter after `execute_or_skip`
+
+    `FutureResult#execute_or_skip` replaces the thread's instrumenter with an
+    `EventBuffer` to collect events published during async query execution.
+    If the global async executor is saturated and the `caller_runs` fallback
+    executes the task on the calling thread, we need to make sure the previous
+    instrumenter is restored or the stale `EventBuffer` would stay in place and
+    permanently swallow all subsequent `sql.active_record` notifications on
+    that thread.
+
+    *Rosa Gutierrez*
+
 *   Fix Ruby 4.0 delegator warning when calling inspect on ActiveRecord::Type::Serialized.
 
     *Hammad Khan*

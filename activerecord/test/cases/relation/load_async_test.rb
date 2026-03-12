@@ -194,6 +194,39 @@ module ActiveRecord
       end
     end
 
+    def test_execute_or_skip_does_not_contaminate_caller_thread_instrumenter
+      skip unless ActiveRecord::Base.connection.async_enabled?
+
+      begin
+        # Intercept schedule_query to run execute_or_skip on the current thread,
+        # simulating what happens when the async executor's caller_runs fallback
+        # policy triggers due to a saturated thread pool.
+        pool = Post.connection_pool
+        old_schedule_query = pool.method(:schedule_query)
+        pool.singleton_class.undef_method(:schedule_query)
+        pool.singleton_class.define_method(:schedule_query) do |future_result|
+          future_result.execute_or_skip
+        end
+
+        # This async query runs execute_or_skip on the current thread
+        Post.async_count
+
+        # After the async query completes, synchronous queries must still
+        # publish sql.active_record notifications
+        notification_called = false
+        ActiveSupport::Notifications.subscribed(->(*) { notification_called = true }, "sql.active_record") do
+          Post.count
+        end
+
+        assert notification_called,
+          "sql.active_record notification was not published after execute_or_skip ran on the caller thread"
+      ensure
+        pool.singleton_class.undef_method(:schedule_query)
+        pool.singleton_class.define_method(:schedule_query, old_schedule_query)
+        ActiveSupport::IsolatedExecutionState.delete(:active_record_instrumenter)
+      end
+    end
+
     def test_eager_loading_query
       expected_records = Post.where(author_id: 1).eager_load(:comments).to_a
 
