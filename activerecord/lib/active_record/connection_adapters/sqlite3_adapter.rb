@@ -345,7 +345,7 @@ module ActiveRecord
         exec_query "DROP INDEX #{quote_column_name(index_name)}"
       end
 
-      VIRTUAL_TABLE_REGEX = /USING\s+(\w+)\s*\((.+)\)/i
+      VIRTUAL_TABLE_REGEX = /USING\s+(\w+)\s*\((.*)\)/i
 
       # Returns a list of defined virtual tables
       def virtual_tables

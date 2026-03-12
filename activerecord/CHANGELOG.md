@@ -1,3 +1,13 @@
+*   Fix schema dump crash when SQLite3 virtual tables use empty parentheses.
+
+    Virtual table modules such as SpatiaLite's `VirtualSpatialIndex()` declare no
+    arguments inside the parentheses. This caused the schema dumper to crash when
+    running `db:migrate`. 
+
+    Fixes #56969.
+
+    *Hans Schnedlitz*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.

@@ -33,4 +33,13 @@ class SQLite3VirtualTableTest < ActiveRecord::SQLite3TestCase
   ensure
     $stdout = original
   end
+
+  def test_virtual_table_regex_parses_empty_parentheses
+    regex = ActiveRecord::ConnectionAdapters::SQLite3Adapter::VIRTUAL_TABLE_REGEX
+
+    _, module_name, arguments = "CREATE VIRTUAL TABLE t USING SomeModule()".match(regex).to_a
+    assert_equal "SomeModule", module_name
+    assert_equal "", arguments
+    assert_equal [], arguments.split(", ")
+  end
 end
