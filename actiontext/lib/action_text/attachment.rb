@@ -138,10 +138,15 @@ module ActionText
     #     # Non-image blob
     #     attachment.to_markdown(attachment_links: true) # => "[report.pdf](http://example.com/rails/active_storage/blobs/...)"
     #
-    # Remote images always render as Markdown links regardless of +attachment_links+:
+    # Remote images always render as Markdown image links when the URL scheme is allowed:
     #
     #     content = ActionText::Content.new('<action-text-attachment content-type="image/jpeg" url="https://example.com/photo.jpg" caption="A photo"></action-text-attachment>')
     #     content.to_markdown # => "![A photo](https://example.com/photo.jpg)"
+    #
+    # Remote images with a disallowed URL scheme render as escaped bracketed text:
+    #
+    #     content = ActionText::Content.new('<action-text-attachment content-type="image/jpeg" url="data:text/html,PAYLOAD" caption="Click"></action-text-attachment>')
+    #     content.to_markdown # => "\\[Click\\]"
     #
     # The presentation can be overridden by implementing the `attachable_markdown_representation`
     # method:
