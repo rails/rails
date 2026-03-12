@@ -889,7 +889,7 @@ NOTE: Concurrency controls do carry overhead since blocked executions must be tr
 
 WARN: Concurrency controls are not compatible with bulk enqueuing via `perform_all_later`. Since concurrency-controlled jobs need to be enqueued one-by-one to respect the configured limits.
 
-### Error handling and Monitoring
+### Error handling
 
 Solid Queue raises `SolidQueue::Job::EnqueueError` when an Active Record error occurs during job enqueuing. This differs from `ActiveJob::EnqueueError`, which Active Job handles internally by making `perform_later` return `false`. The practical consequence is that errors become harder to handle for jobs enqueued by Rails internals or third-party gems like `Turbo::Streams::BroadcastJob`, since you don't control the call to `perform_later` in those cases. For recurring tasks, enqueue errors are logged but not raised. See [Errors When Enqueuing](https://github.com/rails/solid_queue?tab=readme-ov-file#errors-when-enqueuing) in the Solid Queue documentation for more detail.
 
@@ -916,18 +916,6 @@ class ApplicationMailer < ActionMailer::Base
   end
 end
 ```
-
-#### Monitoring with Mission Control
-
-[Mission Control](https://github.com/rails/mission_control-jobs) is a tool that
-can help centralize the monitoring and management of failed jobs. It provides
-insights into job statuses, failure reasons, and retry behaviors, enabling you
-to track and resolve issues more effectively.
-
-For instance, if a job fails to process a large file due to a timeout,
-`mission_control-jobs` allows you to inspect the failure, review the job’s
-arguments and execution history, and decide whether to retry, requeue, or
-discard it.
 
 ### Transactional Integrity on Jobs
 
@@ -1047,11 +1035,26 @@ Here is a noncomprehensive list of documentation:
 - [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
 - [Good Job](https://github.com/bensheldon/good_job#readme)
 
-Handling Failed Jobs
---------------------
+Monitoring and Handling Failed Jobs
+-----------------------------------
+
+### Monitoring With Mission Control
+
+The [Mission Control](https://github.com/rails/mission_control-jobs) tool is a
+Rails-based frontend to Active Job adapters to help centralize the monitoring
+and management of failed jobs. It provides insights into job statuses, failure
+reasons, and retry behaviors, enabling you to track and resolve issues more
+effectively.
+
+For instance, if a job fails to process a large file due to a timeout,
+`mission_control-jobs` allows you to inspect the failure, review the job’s
+arguments and execution history, and decide whether to retry, requeue, or
+discard it.
+
+### Detecting Errors With `rescue_from`
 
 Exceptions raised during the execution of the job can be handled with
-[`rescue_from`][]:
+[`rescue_from`](https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from):
 
 ```ruby
 class GuestsCleanupJob < ApplicationJob
@@ -1070,8 +1073,8 @@ end
 If an exception from a job is not rescued, then the job is referred to as
 "failed".
 
-[`rescue_from`]:
-    https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from
+You can enable additional logging to figure out where jobs are coming from with
+[verbose logging](debugging_rails_applications.html#verbose-enqueue-logs).
 
 ### Retrying or Discarding Failed Jobs
 
@@ -1097,72 +1100,11 @@ end
 [`retry_on`]:
     https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html#method-i-retry_on
 
-### Deserialization
+### Missing Records
 
 GlobalID allows serializing full Active Record objects passed to `#perform`.
 
 If a passed record is deleted after the job is enqueued but before the
 `#perform` method is called Active Job will raise an
-[`ActiveJob::DeserializationError`][] exception.
+[`ActiveJob::DeserializationError`](https://api.rubyonrails.org/classes/ActiveJob/DeserializationError.html) exception.
 
-[`ActiveJob::DeserializationError`]:
-    https://api.rubyonrails.org/classes/ActiveJob/DeserializationError.html
-
-
-If you need help figuring out where jobs are coming from, you can enable
-[verbose logging](debugging_rails_applications.html#verbose-enqueue-logs).
-
-
-TODO: review this from 'main' merge
-Active Job has other built-in adapters for multiple queuing backends (Resque, Delayed Job, and others). To get an up-to-date list of the adapters see
-the API Documentation for [`ActiveJob::QueueAdapters`][].
-
-[`ActiveJob::QueueAdapters`]:
-    https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html
-
-### Configuring the Backend
-
-You can change your queuing backend with [`config.active_job.queue_adapter`]:
-
-```ruby
-# config/application.rb
-module YourApp
-  class Application < Rails::Application
-    # Be sure to have the adapter's gem in your Gemfile
-    # and follow the adapter's specific installation
-    # and deployment instructions.
-    config.active_job.queue_adapter = :async
-  end
-end
-```
-
-You can also configure your backend on a per job basis:
-
-```ruby
-class GuestsCleanupJob < ApplicationJob
-  self.queue_adapter = :resque
-  # ...
-end
-
-# Now your job will use `resque` as its backend queue adapter, overriding the default Solid Queue adapter.
-```
-
-[`config.active_job.queue_adapter`]:
-    configuring.html#config-active-job-queue-adapter
-
-### Starting the Backend
-
-Since jobs run in parallel to your Rails application, most queuing libraries
-require that you start a library-specific queuing service (in addition to
-starting your Rails app) for the job processing to work. Refer to library
-documentation for instructions on starting your queue backend.
-
-Here is a noncomprehensive list of documentation:
-
-- [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
-- [Resque](https://github.com/resque/resque/wiki/ActiveJob)
-- [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
-- [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
-- [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
-- [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
-- [Good Job](https://github.com/bensheldon/good_job#readme)
