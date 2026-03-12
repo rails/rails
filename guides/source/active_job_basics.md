@@ -175,18 +175,15 @@ end
 
 This works with any class that mixes in `GlobalID::Identification`, which is mixed into Active Record by default.
 
-todo: verify code
 #### Add Custom Types by Defining Serializers
 
-You can extend the list of supported argument types by defining
-your own serializer for your custom types:
+You can extend the list of supported argument types by defining your own serializer for your custom types. A serializer needs three methods: `serialize`, `deserialize`, and `klass`.
+
+The `serialize` method converts an object into a simpler representation using only supported types. The recommended approach is to return a Hash with string keys, calling `super` to let Active Job merge in the serializer's type information:
 
 ```ruby
 # app/serializers/money_serializer.rb
 class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
-  # Converts an object to a simpler representative using supported object types.
-  # The recommended representative is a Hash with a specific key. Keys can be of basic types only.
-  # You can call `super` to add the custom serializer type to the hash.
   def serialize(money)
     super(
       "amount" => money.amount,
@@ -194,17 +191,17 @@ class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
     )
   end
 
-  # Converts serialized value into a proper object.
   def deserialize(hash)
     Money.new(hash["amount"], hash["currency"])
   end
 
-  # Checks if an argument should be serialized by this serializer.
   def klass
     Money
   end
 end
 ```
+
+The `deserialize` method receives that hash and reconstructs the original object. The `klass` method returns the class this serializer handles so Active Job can use it to determine which serializer to apply to a given argument.
 
 Once a serializer is defined, it needs to be added to the list of serializers Rails knows about:
 
@@ -866,7 +863,7 @@ end
 
 In the above example:
 - The `to` option sets the maximum number of jobs that can run concurrently.
-- The `key` lambda computes a concurrency key from the job's arguments. In the example above, the limit of 1 applies per account rather than globally. 
+- The `key` lambda computes a concurrency key from the job's arguments. In the example above, the limit of 1 applies per account rather than globally.
 - The `duration` option acts as a failsafe. So if a worker dies mid-job and fails to release its lock, any blocked jobs become candidates for release once duration has elapsed.
 
 When a job with concurrency controls is enqueued, Solid Queue checks a database-backed lock for the computed key. If the lock is available, the job is marked ready for execution. If not, the behavior depends on the `on_conflict:` option. If `on_conflict` is set to `:block` (the default), the job is held in a blocked state and marked ready only when a running job finishes. The other option is `:discard`, in which case the job is dropped entirely.
@@ -885,7 +882,7 @@ end
 
 In the above example, both job classes share the same concurrency limit per the "account_exports" group, which means only one export of either type will run at a time for a given account.
 
-NOTE: Concurrency controls do carry overhead since blocked executions must be tracked and locks created and updated. So they should be used sparingly. For simple throughput limiting, constraining the number of worker threads per queue is more efficient. 
+NOTE: Concurrency controls do carry overhead since blocked executions must be tracked and locks created and updated. So they should be used sparingly. For simple throughput limiting, constraining the number of worker threads per queue is more efficient.
 
 WARN: Concurrency controls are not compatible with bulk enqueuing via `perform_all_later`. Since concurrency-controlled jobs need to be enqueued one-by-one to respect the configured limits.
 
