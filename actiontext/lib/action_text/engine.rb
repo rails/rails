@@ -68,13 +68,9 @@ module ActionText
             raise ArgumentError, "attachment_links requires a rendering context" unless renderer
 
             url = renderer.url_for(self)
-            if image?
-              "!#{MarkdownConversion.markdown_link(title, url)}"
-            else
-              MarkdownConversion.markdown_link(title, url)
-            end
+            MarkdownConversion.markdown_link(title, url, image: image?)
           else
-            "[#{MarkdownConversion.escape_markdown_text(title)}]"
+            "\\[#{MarkdownConversion.escape_markdown_text(title)}\\]"
           end
         end
 

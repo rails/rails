@@ -3,6 +3,30 @@
 require "test_helper"
 
 class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
+  test "escape_markdown_text escapes metacharacters" do
+    assert_equal '\\*\\*bold\\*\\* and \\[link\\](url)', ActionText::MarkdownConversion.escape_markdown_text("**bold** and [link](url)")
+  end
+
+  test "markdown_link escapes title text and encodes URL" do
+    assert_equal '[\\*\\*bold\\*\\*](https://example.com/a%20b)', ActionText::MarkdownConversion.markdown_link("**bold**", "https://example.com/a b")
+  end
+
+  test "markdown_link with disallowed URI scheme returns escaped title" do
+    assert_equal "\\[click here\\]", ActionText::MarkdownConversion.markdown_link("click here", "javascript:alert(1)")
+  end
+
+  test "markdown_link with image: true returns image syntax" do
+    assert_equal "![photo](https://example.com/photo.png)", ActionText::MarkdownConversion.markdown_link("photo", "https://example.com/photo.png", image: true)
+  end
+
+  test "markdown_link with image: true and disallowed URI scheme returns escaped title" do
+    assert_equal "\\[Image\\]", ActionText::MarkdownConversion.markdown_link("Image", "data:text/html,PAYLOAD", image: true)
+  end
+
+  test "markdown_link with allowed data:image URI produces image link" do
+    assert_equal "![photo](data:image/png;base64,abc)", ActionText::MarkdownConversion.markdown_link("photo", "data:image/png;base64,abc", image: true)
+  end
+
   # --- Text tests ---
 
   test "plain text passes through unchanged" do
@@ -723,6 +747,20 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "RemoteImage attachment with allowed data:image URI renders as image link" do
+    assert_converted_to(
+      "![Image](data:image/png;base64,abc)",
+      '<action-text-attachment content-type="image/png" url="data:image/png;base64,abc"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment with disallowed URI scheme omits the link" do
+    assert_converted_to(
+      "\\[Image\\]",
+      '<action-text-attachment content-type="image/jpeg" url="data:text/html,DANGEROUS_PAYLOAD"></action-text-attachment>'
+    )
+  end
+
   test "RemoteImage attachment without caption falls back to Image alt text" do
     assert_converted_to(
       "![Image](https://example.com/photo.jpg)",
@@ -746,7 +784,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
 
-    assert_converted_to("[Captioned]", html)
+    assert_converted_to("\\[Captioned\\]", html)
   end
 
   test "Blob image with attachment_links: true uses caption" do
@@ -763,7 +801,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
 
-    assert_converted_to("[racecar.jpg]", html)
+    assert_converted_to("\\[racecar.jpg\\]", html)
   end
 
   test "Blob image with attachment_links: true uses filename" do
@@ -780,7 +818,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "report.txt", content_type: "text/plain")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
 
-    assert_converted_to("[Captioned]", html)
+    assert_converted_to("\\[Captioned\\]", html)
   end
 
   test "Blob with attachment_links: true uses caption" do
@@ -797,7 +835,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "report.txt", content_type: "text/plain")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
 
-    assert_converted_to("[report.txt]", html)
+    assert_converted_to("\\[report.txt\\]", html)
   end
 
   test "Blob with attachment_links: true uses filename" do
@@ -814,7 +852,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo *large*"></action-text-attachment>)
 
-    assert_converted_to("[photo \\*large\\*]", html)
+    assert_converted_to("\\[photo \\*large\\*\\]", html)
   end
 
   test "Blob image with attachment_links: true escapes metacharacters in caption" do
@@ -832,8 +870,8 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo <large>"></action-text-attachment>)
     html2 = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo &lt;large&gt;"></action-text-attachment>)
 
-    assert_converted_to("[photo \\<large\\>]", html)
-    assert_converted_to("[photo \\<large\\>]", html2)
+    assert_converted_to("\\[photo \\<large\\>\\]", html)
+    assert_converted_to("\\[photo \\<large\\>\\]", html2)
   end
 
   test "Blob image with attachment_links: true escapes angle brackets in caption" do
@@ -876,7 +914,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
       assert_raises(ArgumentError) do
         ActionText::Content.new(html).to_markdown(attachment_links: true)
       end
-      assert_converted_to("[Captioned]", html)
+      assert_converted_to("\\[Captioned\\]", html)
     end
   ensure
     ActionMailer::Base.default_url_options = original_default_url_options
@@ -890,7 +928,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
       ActionText::Content.new(html).to_markdown(attachment_links: true)
     end
     assert_match(/rendering context/, error.message)
-    assert_converted_to("[Captioned]", html)
+    assert_converted_to("\\[Captioned\\]", html)
   end
 
   test "Blob image with renderer uses bracketed title by default" do
@@ -898,7 +936,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
 
     with_controller_renderer do
-      assert_converted_to("[Captioned]", html)
+      assert_converted_to("\\[Captioned\\]", html)
     end
   end
 
