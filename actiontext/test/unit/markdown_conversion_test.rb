@@ -23,6 +23,10 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_equal "\\[Image\\]", ActionText::MarkdownConversion.markdown_link("Image", "data:text/html,PAYLOAD", image: true)
   end
 
+  test "markdown_link with allowed data:image URI produces image link" do
+    assert_equal "![photo](data:image/png;base64,abc)", ActionText::MarkdownConversion.markdown_link("photo", "data:image/png;base64,abc", image: true)
+  end
+
   # --- Text tests ---
 
   test "plain text passes through unchanged" do
@@ -740,6 +744,13 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_converted_to(
       "![photo \\<large\\>](https://example.com/photo.png)",
       '<action-text-attachment content-type="image/png" url="https://example.com/photo.png" caption="photo &lt;large&gt;"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment with allowed data:image URI renders as image link" do
+    assert_converted_to(
+      "![Image](data:image/png;base64,abc)",
+      '<action-text-attachment content-type="image/png" url="data:image/png;base64,abc"></action-text-attachment>'
     )
   end
 
