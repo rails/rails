@@ -33,4 +33,13 @@ class SQLite3VirtualTableTest < ActiveRecord::SQLite3TestCase
   ensure
     $stdout = original
   end
+
+  def test_virtual_table_regex_matches_empty_parentheses
+    regex = ActiveRecord::ConnectionAdapters::SQLite3Adapter::VIRTUAL_TABLE_REGEX
+
+    match = "CREATE VIRTUAL TABLE foo USING bar()".match(regex)
+    assert_not_nil match
+    assert_equal "bar", match[1]
+    assert_equal "", match[2]
+  end
 end
