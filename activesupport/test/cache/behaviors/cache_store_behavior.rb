@@ -705,30 +705,30 @@ module CacheStoreBehavior
 
   def test_cache_hit_instrumentation
     key = "test_key"
-    @events = []
-    ActiveSupport::Notifications.subscribe("cache_read.active_support") { |event| @events << event }
+
     assert @cache.write(key, "1", raw: true)
-    assert @cache.fetch(key, raw: true) { }
-    assert_equal 1, @events.length
-    assert_equal "cache_read.active_support", @events[0].name
-    assert_equal :fetch, @events[0].payload[:super_operation]
-    assert @events[0].payload[:hit]
-  ensure
-    ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
+
+    events = capture_notifications("cache_read.active_support") do
+      assert @cache.fetch(key, raw: true) { }
+    end
+
+    assert_equal 1, events.length
+    assert_equal "cache_read.active_support", events[0].name
+    assert_equal :fetch, events[0].payload[:super_operation]
+    assert events[0].payload[:hit]
   end
 
   def test_cache_miss_instrumentation
-    @events = []
-    ActiveSupport::Notifications.subscribe(/^cache_(.*)\.active_support$/) { |event| @events << event }
-    assert_not @cache.fetch(SecureRandom.uuid) { }
-    assert_equal 3, @events.length
-    assert_equal "cache_read.active_support", @events[0].name
-    assert_equal "cache_generate.active_support", @events[1].name
-    assert_equal "cache_write.active_support", @events[2].name
-    assert_equal :fetch, @events[0].payload[:super_operation]
-    assert_not @events[0].payload[:hit]
-  ensure
-    ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
+    events = capture_notifications(/^cache_(.*)\.active_support$/) do
+      assert_not @cache.fetch(SecureRandom.uuid) { }
+    end
+
+    assert_equal 3, events.length
+    assert_equal "cache_read.active_support", events[0].name
+    assert_equal "cache_generate.active_support", events[1].name
+    assert_equal "cache_write.active_support", events[2].name
+    assert_equal :fetch, events[0].payload[:super_operation]
+    assert_not events[0].payload[:hit]
   end
 
   def test_setting_options_in_fetch_block_does_not_change_cache_options
