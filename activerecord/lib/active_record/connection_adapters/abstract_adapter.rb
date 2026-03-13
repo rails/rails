@@ -595,6 +595,10 @@ module ActiveRecord
         false
       end
 
+      def supports_insert_on_duplicate_update_if_dirty?
+        false
+      end
+
       def supports_insert_conflict_target?
         false
       end
@@ -917,7 +921,7 @@ module ActiveRecord
       # should be overridden by adapters to implement common features with
       # non-standard syntax like handling duplicates or returning values.
       def build_insert_sql(insert) # :nodoc:
-        if insert.skip_duplicates? || insert.update_duplicates?
+        if insert.skip_duplicates? || insert.update_duplicates? || insert.update_duplicates_if_dirty?
           raise NotImplementedError, "#{self.class} should define `build_insert_sql` to implement adapter-specific logic for handling duplicates during INSERT"
         end
 

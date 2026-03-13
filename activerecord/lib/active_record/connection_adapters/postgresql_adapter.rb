@@ -288,6 +288,7 @@ module ActiveRecord
       end
       alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
+      alias supports_insert_on_duplicate_update_if_dirty? supports_insert_on_conflict?
       alias supports_insert_conflict_target? supports_insert_on_conflict?
 
       def supports_virtual_columns?
@@ -691,7 +692,7 @@ module ActiveRecord
 
         if insert.skip_duplicates?
           sql << " ON CONFLICT #{insert.conflict_target} DO NOTHING"
-        elsif insert.update_duplicates?
+        elsif insert.update_duplicates? || insert.update_duplicates_if_dirty?
           sql << " ON CONFLICT #{insert.conflict_target} DO UPDATE SET "
           if insert.raw_update_sql?
             sql << insert.raw_update_sql
@@ -699,6 +700,11 @@ module ActiveRecord
             sql << insert.touch_model_timestamps_unless { |column| "#{insert.model.quoted_table_name}.#{column} IS NOT DISTINCT FROM excluded.#{column}" }
             sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
           end
+        end
+
+        if insert.update_duplicates_if_dirty?
+          sql << " WHERE "
+          sql << insert.updatable_columns.map { |column| "#{insert.model.quoted_table_name}.#{column} IS DISTINCT FROM excluded.#{column}" }.join(" OR ")
         end
 
         sql << " RETURNING #{insert.returning}" if insert.returning
