@@ -481,7 +481,9 @@ module ActiveRecord
     #   User.new(first_name: 'Jamie')
     def initialize(attributes = nil)
       @new_record = true
-      @attributes = self.class._default_attributes.deep_dup
+      @attributes = self.class.attributes_builder.build_from_initialize(
+        self.class._default_attributes
+      )
 
       init_internals
       initialize_internals_callback
