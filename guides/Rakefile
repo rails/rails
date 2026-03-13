@@ -64,7 +64,7 @@ namespace :guides do
     require "importmap/packager"
 
     packager = Importmap::Packager.new(vendor_path: "assets/javascripts")
-    imports = packager.import("@hotwired/turbo", from: "unpkg")
+    imports = packager.import("@hotwired/turbo", from: "unpkg")[:imports]
     imports.each do |package, url|
       umd_url = url.gsub("esm.js", "umd.js")
       puts %(Vendoring "#{package}" to #{packager.vendor_path}/#{package}.js via download from #{umd_url})
