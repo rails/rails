@@ -1,3 +1,7 @@
+*   Better error message when assigning a non-model to a polymorphic association.
+
+    *Christian Schmidt*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.
