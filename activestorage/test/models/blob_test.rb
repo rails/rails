@@ -84,6 +84,17 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal data, blob.download
   end
 
+  test "create_and_upload! with a path traversal key raises on Disk service" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      ActiveStorage::Blob.create_and_upload!(
+        key: "../../etc/passwd",
+        io: StringIO.new("malicious content"),
+        filename: "exploit.txt",
+        content_type: "text/plain"
+      )
+    end
+  end
+
   test "create_and_upload accepts a record for overrides" do
     assert_nothing_raised do
       create_blob(record: User.new)

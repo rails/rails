@@ -5,6 +5,19 @@
 
     *Gannon McGibbon*
 
+*   Prevent path traversal in `DiskService`.
+
+    `DiskService#path_for` now raises an `InvalidKeyError` when passed keys with dot segments (".",
+    ".."), or if the resolved path is outside the storage root directory.
+
+    `#path_for` also now consistently raises `InvalidKeyError` if the key is invalid in any way, for
+    example containing null bytes or having an incompatible encoding. Previously, the exception
+    raised may have been `ArgumentError` or `Encoding::CompatibilityError`.
+
+    `DiskController` now explicitly rescues `InvalidKeyError` with appropriate HTTP status codes.
+
+    *Mike Dalessio*
+
 *   Restore ADC when signing URLs with IAM for GCS
 
     ADC was previously used for automatic authorization when signing URLs with IAM.

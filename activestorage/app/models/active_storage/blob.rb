@@ -16,6 +16,9 @@
 # Blobs are intended to be immutable in as-so-far as their reference to a specific file goes. You're allowed to
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
+#
+# When using a custom +key+, the value is treated as trusted. Using untrusted user input
+# as the key may result in unexpected behavior.
 class ActiveStorage::Blob < ActiveStorage::Record
   MINIMUM_TOKEN_LENGTH = 28
 
@@ -103,6 +106,9 @@ class ActiveStorage::Blob < ActiveStorage::Record
     # be saved before the upload begins to prevent the upload clobbering another due to key collisions.
     # When providing a content type, pass <tt>identify: false</tt> to bypass
     # automatic content type inference.
+    #
+    # The optional +key+ parameter is treated as trusted. Using untrusted user input
+    # as the key may result in unexpected behavior.
     def create_and_upload!(key: nil, io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil)
       create_after_unfurling!(key: key, io: io, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, identify: identify).tap do |blob|
         blob.upload_without_unfurling(io)

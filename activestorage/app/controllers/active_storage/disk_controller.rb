@@ -17,6 +17,8 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
     end
   rescue Errno::ENOENT
     head :not_found
+  rescue ActiveStorage::InvalidKeyError
+    head :not_found
   end
 
   def update
@@ -31,6 +33,8 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
       head :not_found
     end
   rescue ActiveStorage::IntegrityError
+    head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
+  rescue ActiveStorage::InvalidKeyError
     head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
   end
 
