@@ -103,8 +103,10 @@ module ActiveRecord
             previous_instrumenter = ActiveSupport::IsolatedExecutionState[:active_record_instrumenter]
             begin
               if pending?
-                @event_buffer = EventBuffer.new(self, ActiveSupport::Notifications.instrumenter)
-                ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = @event_buffer
+                if connection.sql_notifications?
+                  @event_buffer = EventBuffer.new(self, ActiveSupport::Notifications.instrumenter)
+                  ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = @event_buffer
+                end
 
                 @adapter = connection
                 @ran_async = true

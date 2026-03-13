@@ -5,6 +5,33 @@ require "securerandom"
 
 module ActiveSupport
   module Notifications
+    # A no-op instrumenter that executes blocks without publishing any
+    # notifications. Useful for disabling instrumentation on specific
+    # connections or components.
+    #
+    # This is stateless and thread-safe, so a single instance can be shared.
+    #
+    #   ActiveSupport::Notifications.null_instrumenter.instrument("sql.active_record") do
+    #     # executes without any notification overhead
+    #   end
+    class NullInstrumenter
+      NULL_HANDLE = Object.new.tap do |handle|
+        def handle.start; end
+        def handle.finish; end
+      end
+
+      def instrument(name, payload = {})
+        yield payload if block_given?
+      end
+
+      def build_handle(name, payload)
+        NULL_HANDLE
+      end
+
+      def start(name, payload); end
+      def finish(name, payload); end
+    end
+
     # Instrumenters are stored in a thread local.
     class Instrumenter
       attr_reader :id
