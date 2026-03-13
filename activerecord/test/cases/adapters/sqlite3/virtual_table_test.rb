@@ -22,6 +22,12 @@ class SQLite3VirtualTableTest < ActiveRecord::SQLite3TestCase
     assert_includes output, 'create_virtual_table "searchables", "fts5", ["content", "meta UNINDEXED", "tokenize=\'porter ascii\'"]'
   end
 
+  def test_schema_dump_ignores_virtual_tables_in_ignore_tables
+    output = dump_all_table_schema(["searchables"])
+
+    assert_not_includes output, 'create_virtual_table "searchables"'
+  end
+
   def test_schema_load
     original, $stdout = $stdout, StringIO.new
 
