@@ -3219,6 +3219,9 @@ config.active_job.default_queue_name = :medium_priority
 
 Allows you to set an optional, non-blank, queue name prefix for all jobs. By default it is blank and not used.
 
+This only changes the queue name that Active Job enqueues to. Configure your
+queue backend separately so its workers listen to the resulting queue names.
+
 The following configuration would queue the given job on the `production_high_priority` queue when run in production:
 
 ```ruby
