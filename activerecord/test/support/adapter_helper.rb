@@ -152,9 +152,9 @@ module AdapterHelper
   def connection_id_from_server(connection)
     case connection.adapter_name
     when "Mysql2", "Trilogy"
-      connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
+      connection.select_value("SELECT CONNECTION_ID()")
     when "PostgreSQL"
-      connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
+      connection.select_value("SELECT pg_backend_pid()")
     else
       skip("connection_id_from_server unsupported")
     end

@@ -1,3 +1,8 @@
+*   Adapter `#exec_query` methods now accept an `allow_retry` option. When set to `true`, the SQL statement will be
+    retried, up to the database's configured `connection_retries` value, upon encountering connection-related errors.
+
+    *Adrianna Chang, Francesco Rodriguez*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.
