@@ -650,7 +650,7 @@ Solid Queue is a database-backed queue backend built on Active Job and the defau
 Solid Queue is already configured for production by default. For example, if you
 open `config/environments/production.rb`, you will see the following:
 
-```ruby
+```ruby#3
 # config/environments/production.rb
 # Replace the default in-process and non-durable queuing backend for Active Job.
 config.active_job.queue_adapter = :solid_queue
@@ -660,7 +660,7 @@ config.solid_queue.connects_to = { database: { writing: :queue } }
 Additionally, the database connection for the `queue` database is configured in
 `config/database.yml`:
 
-```yaml
+```yaml#8
 # config/database.yml
 # Store production database in the storage/ directory, which by default
 # is mounted as a persistent Docker volume in config/deploy.yml.
@@ -675,7 +675,7 @@ production:
 ```
 
 NOTE: The key `queue` from the database configuration needs to match the key
-used in the configuration for `config.solid_queue.connects_to`.
+used in the configuration for `config.solid_queue.connects_to` (as highlighted in the code snippets above).
 
 In order to start using Solid Queue, run `db:prepare` so your database has Solid Queue related tables:
 
@@ -697,13 +697,13 @@ bin/jobs start
 #### Development Environment
 
 For development environment, Rails provides an asynchronous in-process queuing
-system, which keeps the jobs in memory. With this default async adapter, if the
+backend, which keeps the jobs in memory. With this default async adapter, if the
 process crashes or the machine is reset, then all outstanding jobs are lost.
 This can be acceptable for non-critical jobs in development.
 
 Alternatively, you can also use Solid Queue in development. It can be configured it in the same way as in the production environment:
 
-```ruby
+```ruby#3
 # config/environments/development.rb
 config.active_job.queue_adapter = :solid_queue
 config.solid_queue.connects_to = { database: { writing: :queue } }
@@ -711,7 +711,7 @@ config.solid_queue.connects_to = { database: { writing: :queue } }
 
 Add `queue` to the development database configuration:
 
-```yaml
+```yaml#6
 # config/database.yml
 development:
   primary:
@@ -769,7 +769,7 @@ Solid Queue offers two distinct mechanisms for controlling the order in which jo
 
 #### Queue Order
 
-Queue order is the primary way to prioritize work in Solid Queue. The order in which queues are listed in `config/queue.yml` for a worker determines the polling order. A worker will not pull jobs from a lower-priority queue until all higher-priority queues are empty:
+Queue order is the primary way to prioritize work in Solid Queue. The order in which queues are listed in `config/queue.yml` for a worker determines the polling order. A worker will not pull jobs from a lower priority queue (listed later in the array) until all higher priority queues are empty:
 
 ```yaml
 production:
@@ -778,7 +778,9 @@ production:
       threads: 5
 ```
 
-With the above configuration, no jobs will be taken from `default` while `critical` has jobs waiting, and no jobs will be taken from `low` while either `critical` or `default` has jobs waiting. Solid Queue has strict ordering (unlike other queuing backend which may allow relative weights so that lower-priority queues still receive a proportional share of processing time). It is possible for lower queues to be starved if higher queues are consistently busy.
+With the above configuration, no jobs will be taken from the `default` queue while the `critical` queue has jobs waiting, and no jobs will be taken from `low` while either `critical` or `default` has jobs waiting. Solid Queue has strict ordering (unlike other queuing backend which may allow relative weights so that lower priority queues still receive a proportional share of processing time). It is possible for lower queues to be starved if higher queues are consistently busy.
+
+NOTE: One way to name queues is based on latency. So instead of "critical", "default", or "low", queues could be named "within_30_seconds", "within_5_minutes", and "within_1_hour". This can be enforced like a contract by configuring your queuing backend to notify your engineering team if a job sits in a given queue longer than the corresponding time. 
 
 It is possible to use a wildcard `*` within queue names. For example if
 the worker is configured with `queues:[active_storage*, mailers]`, it will fetch
