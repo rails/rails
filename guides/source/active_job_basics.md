@@ -358,7 +358,7 @@ end
 ```
 
 Solid Queue, the default queuing backend, prioritizes jobs based on the [order
-of the queues](#queue-order). If you're using Solid Queue with both queue order
+of the queues](#queue_order). If you're using Solid Queue with both queue order
 and priority option, the queue order will take precedence, and the priority
 option will only apply within each queue.
 
@@ -500,7 +500,7 @@ Callbacks
 
 Active Job provides hooks to trigger logic during the life cycle of a job. Like other callbacks in Rails, you can implement them as ordinary methods and register them using a class-level method:
 
-```ruby
+```ruby#4
 class GuestsCleanupJob < ApplicationJob
   queue_as :default
 
@@ -567,6 +567,10 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
+Please note that when enqueuing jobs in bulk using `perform_all_later`,
+callbacks such as `around_enqueue` will not be triggered on the individual jobs.
+See [Bulk Enqueuing Callbacks](#bulk-enqueue-callbacks).
+
 [`before_enqueue`]:
  https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_enqueue
 [`around_enqueue`]:
@@ -581,9 +585,23 @@ https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method
 [`after_discard`]:
 https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html#method-i-after_discard
 
-Please note that when enqueuing jobs in bulk using `perform_all_later`,
-callbacks such as `around_enqueue` will not be triggered on the individual jobs.
-See [Bulk Enqueuing Callbacks](#bulk-enqueue-callbacks).
+### Halting Callbacks
+
+You can halt the callback chain by throwing `:abort`. This works the same way as in Active Record and other Rails callbacks. For example, to prevent a job from being enqueued based on a condition:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  before_enqueue do |job|
+    throw :abort if ENV.fetch("DISABLE_GUESTS_CLEANUP_JOB", true)
+  end
+
+  def perform(guest)
+    # ...
+  end
+end
+```
+
+When `:abort` is thrown in a `before_enqueue` callback, the job will not be enqueued and `perform_later` will return `false`. When thrown in a `before_perform` callback, the job will not be performed. It will also skip the execution of any subsequent before, around and after callbacks
 
 Job Continuations
 -----------------
@@ -780,7 +798,7 @@ production:
 
 With the above configuration, no jobs will be taken from the `default` queue while the `critical` queue has jobs waiting, and no jobs will be taken from `low` while either `critical` or `default` has jobs waiting. Solid Queue has strict ordering (unlike other queuing backend which may allow relative weights so that lower priority queues still receive a proportional share of processing time). It is possible for lower queues to be starved if higher queues are consistently busy.
 
-NOTE: One way to name queues is based on latency. So instead of "critical", "default", or "low", queues could be named "within_30_seconds", "within_5_minutes", and "within_1_hour". This can be enforced like a contract by configuring your queuing backend to notify your engineering team if a job sits in a given queue longer than the corresponding time. 
+NOTE: One way to name queues is based on latency. So instead of "critical", "default", or "low", queues could be named "within_30_seconds", "within_5_minutes", and "within_1_hour". This can be enforced like a contract by configuring your queuing backend to notify your engineering team if a job sits in a given queue longer than the corresponding time.
 
 It is possible to use a wildcard `*` within queue names. For example if
 the worker is configured with `queues:[active_storage*, mailers]`, it will fetch
