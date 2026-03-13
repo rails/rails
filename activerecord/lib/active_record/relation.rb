@@ -51,8 +51,8 @@ module ActiveRecord
         end
     end
 
-    MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :left_outer_joins, :references,
+    MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :select_also,
+                            :group, :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope, :optimizer_hints, :annotate,
                             :with]
 
@@ -495,8 +495,7 @@ module ActiveRecord
           select_values = "COUNT(*) AS #{model.adapter_class.quote_column_name("size")}, MAX(%s) AS timestamp"
 
           if collection.has_limit_or_offset?
-            query = collection.select("#{column} AS collection_cache_key_timestamp")
-            query._select!(table[Arel.star]) if distinct_value && collection.select_values.empty?
+            query = collection.select_also("#{column} AS collection_cache_key_timestamp")
             subquery_alias = "subquery_for_cache_key"
             subquery_column = "#{subquery_alias}.collection_cache_key_timestamp"
             arel = query.build_subquery(subquery_alias, select_values % subquery_column)

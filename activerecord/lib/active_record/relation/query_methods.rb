@@ -430,6 +430,49 @@ module ActiveRecord
       self
     end
 
+    # Adds additional columns to the SELECT clause without replacing the
+    # default column selection. This is useful when you want to include
+    # extra computed columns or columns from joined tables alongside the
+    # normal set of columns, without having to explicitly specify
+    # <tt>select('*', ...)</tt> or <tt>select('posts.*', ...)</tt>.
+    #
+    # When no +select+ has been specified, the additional columns are
+    # appended to the default selection (e.g. <tt>SELECT "posts".*, extra_col</tt>).
+    # When a +select+ has already been specified, the additional columns
+    # are appended to that explicit selection.
+    #
+    #   Post.select_also("LENGTH(title) AS title_length")
+    #   # => SELECT "posts".*, LENGTH(title) AS title_length FROM "posts"
+    #
+    #   Post.select_also(posts: { title: :post_title })
+    #   # => SELECT "posts".*, "posts"."title" AS "post_title" FROM "posts"
+    #
+    #   Post.joins(:comments).select_also("COUNT(comments.id) AS comments_count").group("posts.id")
+    #   # => SELECT "posts".*, COUNT(comments.id) AS comments_count FROM "posts" ...
+    #
+    # When combined with +select+, the additional columns are appended:
+    #
+    #   Post.select(:title).select_also("LENGTH(title) AS title_length")
+    #   # => SELECT "posts"."title", LENGTH(title) AS title_length FROM "posts"
+    #
+    def select_also(*fields)
+      check_if_method_has_arguments!(__callee__, fields, "Call `select_also' with at least one field.")
+
+      fields = process_select_args(fields)
+      spawn._select_also!(*fields)
+    end
+
+    def _select_also!(*fields) # :nodoc:
+      self.select_also_values |= fields
+      self
+    end
+
+    # Same as #select_also but operates on relation in-place instead of copying.
+    def select_also!(*fields) # :nodoc:
+      fields = process_select_args(fields)
+      _select_also!(*fields)
+    end
+
     # Add a Common Table Expression (CTE) that you can then reference within another SELECT statement.
     #
     # Note: CTE's are only supported in MySQL for versions 8.0 and above. You will not be able to
@@ -765,7 +808,7 @@ module ActiveRecord
       self
     end
 
-    VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
+    VALID_UNSCOPING_VALUES = Set.new([:where, :select, :select_also, :group, :order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
                                      :includes, :eager_load, :preload, :from, :readonly,
                                      :having, :optimizer_hints, :with])
@@ -1897,11 +1940,11 @@ module ActiveRecord
 
       def build_select(arel)
         if select_values.any?
-          arel.project(*arel_columns(select_values))
+          arel.project(*arel_columns(select_values | select_also_values))
         elsif model.ignored_columns.any? || model.enumerate_columns_in_select_statements
-          arel.project(*model.column_names.map { |field| table[field] })
+          arel.project(*model.column_names.map { |field| table[field] }, *arel_columns(select_also_values))
         else
-          arel.project(table[Arel.star])
+          arel.project(table[Arel.star], *arel_columns(select_also_values))
         end
       end
 
