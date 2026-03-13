@@ -358,7 +358,7 @@ end
 ```
 
 Solid Queue, the default queuing backend, prioritizes jobs based on the [order
-of the queues](#queue_order). If you're using Solid Queue with both queue order
+of the queues](#queue-order). If you're using Solid Queue with both queue order
 and priority option, the queue order will take precedence, and the priority
 option will only apply within each queue.
 
@@ -523,7 +523,7 @@ These class-level methods also accept a block, which works well when the callbac
 
 ```ruby
 class ApplicationJob < ActiveJob::Base
-  before_enqueue {|job| $statsd.increment "{job.class.name.underscore}.enqueue"}
+  before_enqueue { |job| Rails.logger.info "Enqueuing #{job.class.name}" }
 end
 ```
 
