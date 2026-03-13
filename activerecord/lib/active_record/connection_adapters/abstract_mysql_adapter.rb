@@ -209,6 +209,29 @@ module ActiveRecord
         }
       end
 
+      # Returns the available lock options for MySQL DDL operations.
+      #
+      # MySQL supports the following lock modes:
+      # * <tt>:default</tt> - Let MySQL decide the lock level.
+      # * <tt>:none</tt> - Allow concurrent reads and writes (online DDL).
+      # * <tt>:shared</tt> - Allow concurrent reads but block writes.
+      # * <tt>:exclusive</tt> - Block all concurrent reads and writes.
+      def lock_options
+        {
+          default:   "LOCK = DEFAULT",
+          none:      "LOCK = NONE",
+          shared:    "LOCK = SHARED",
+          exclusive: "LOCK = EXCLUSIVE",
+        }
+      end
+
+      def lock_clause(lock) # :nodoc:
+        return unless lock
+        lock_options.fetch(lock) do
+          raise ArgumentError, "Lock must be one of the following: #{lock_options.keys.map(&:inspect).join(', ')}"
+        end
+      end
+
       # Must return the MySQL error number from the exception, if the exception has an
       # error number.
       def error_number(exception) # :nodoc:
@@ -401,8 +424,24 @@ module ActiveRecord
         change_column table_name, column_name, nil, comment: comment
       end
 
+      def add_column(table_name, column_name, type, **options) # :nodoc:
+        algorithm = index_algorithm(options.delete(:algorithm))
+        lock = lock_clause(options.delete(:lock))
+        add_column_def = build_add_column_definition(table_name, column_name, type, **options)
+        return unless add_column_def
+        sql = schema_creation.accept(add_column_def)
+        sql << ", #{algorithm}" if algorithm
+        sql << ", #{lock}" if lock
+        execute(sql)
+      end
+
       def change_column(table_name, column_name, type, **options) # :nodoc:
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_for_alter(table_name, column_name, type, **options)}")
+        algorithm = index_algorithm(options.delete(:algorithm))
+        lock = lock_clause(options.delete(:lock))
+        sql = +"ALTER TABLE #{quote_table_name(table_name)} #{change_column_for_alter(table_name, column_name, type, **options)}"
+        sql << ", #{algorithm}" if algorithm
+        sql << ", #{lock}" if lock
+        execute(sql)
       end
 
       # Builds a ChangeColumnDefinition object.
@@ -445,8 +484,13 @@ module ActiveRecord
         ChangeColumnDefinition.new(cd, column.name)
       end
 
-      def rename_column(table_name, column_name, new_column_name) # :nodoc:
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_for_alter(table_name, column_name, new_column_name)}")
+      def rename_column(table_name, column_name, new_column_name, **options) # :nodoc:
+        algorithm = index_algorithm(options.delete(:algorithm))
+        lock = lock_clause(options.delete(:lock))
+        sql = +"ALTER TABLE #{quote_table_name(table_name)} #{rename_column_for_alter(table_name, column_name, new_column_name)}"
+        sql << ", #{algorithm}" if algorithm
+        sql << ", #{lock}" if lock
+        execute(sql)
         rename_column_indexes(table_name, column_name, new_column_name)
       end
 
@@ -458,11 +502,35 @@ module ActiveRecord
       end
 
       def build_create_index_definition(table_name, column_name, **options) # :nodoc:
+        lock = lock_clause(options.delete(:lock))
         index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
 
         return if if_not_exists && index_exists?(table_name, column_name, name: index.name)
 
-        CreateIndexDefinition.new(index, algorithm)
+        CreateIndexDefinition.new(index, algorithm, if_not_exists, lock)
+      end
+
+      def remove_index(table_name, column_name = nil, **options) # :nodoc:
+        algorithm = index_algorithm(options.delete(:algorithm))
+        lock = lock_clause(options.delete(:lock))
+
+        return if options[:if_exists] && !index_exists?(table_name, column_name, **options)
+
+        index_name = index_name_for_remove(table_name, column_name, options)
+
+        if mariadb? && (algorithm || lock)
+          # MariaDB doesn't support ALGORITHM/LOCK on DROP INDEX,
+          # but does support them on ALTER TABLE ... DROP INDEX.
+          sql = +"ALTER TABLE #{quote_table_name(table_name)} DROP INDEX #{quote_column_name(index_name)}"
+          sql << ", #{algorithm}" if algorithm
+          sql << ", #{lock}" if lock
+        else
+          sql = +"DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
+          sql << " #{algorithm}" if algorithm
+          sql << " #{lock}" if lock
+        end
+
+        execute(sql)
       end
 
       def enable_index(table_name, index_name) # :nodoc:
@@ -920,15 +988,22 @@ module ActiveRecord
         end
 
         def add_index_for_alter(table_name, column_name, **options)
+          lock = lock_clause(options.delete(:lock))
           index, algorithm, _ = add_index_options(table_name, column_name, **options)
           algorithm = ", #{algorithm}" if algorithm
+          lock = ", #{lock}" if lock
 
-          "ADD #{schema_creation.accept(index)}#{algorithm}"
+          "ADD #{schema_creation.accept(index)}#{algorithm}#{lock}"
         end
 
         def remove_index_for_alter(table_name, column_name = nil, **options)
+          algorithm = index_algorithm(options.delete(:algorithm))
+          lock = lock_clause(options.delete(:lock))
           index_name = index_name_for_remove(table_name, column_name, options)
-          "DROP INDEX #{quote_column_name(index_name)}"
+          sql = +"DROP INDEX #{quote_column_name(index_name)}"
+          sql << ", #{algorithm}" if algorithm
+          sql << ", #{lock}" if lock
+          sql
         end
 
         def supports_insert_raw_alias_syntax?
