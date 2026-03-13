@@ -576,7 +576,7 @@ class InsertAllTest < ActiveRecord::TestCase
     Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }]
     ret = Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }], returning: :id
 
-    assert_equal ret.rows, [[101]]
+    assert_equal [[101]], ret.rows
   end
 
   def test_upsert_all_returns_row_when_values_do_not_change_and_timestamps_are_not_recorded
@@ -585,7 +585,7 @@ class InsertAllTest < ActiveRecord::TestCase
     Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }]
     ret = Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }], returning: :id, record_timestamps: false
 
-    assert_equal ret.rows, [[101]]
+    assert_equal [[101]], ret.rows
   end
 
   def test_upsert_all_touches_updated_at_and_updated_on_when_values_change
