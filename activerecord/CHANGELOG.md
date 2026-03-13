@@ -1,3 +1,7 @@
+*   Respect `ActiveRecord::SchemaDumper.ignore_tables` when dumping SQLite virtual tables.
+
+    *Hans Schnedlitz*
+
 *   Restore previous instrumenter after `execute_or_skip`
 
     `FutureResult#execute_or_skip` replaces the thread's instrumenter with an
