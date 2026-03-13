@@ -97,13 +97,14 @@ RUN bundle exec bootsnap precompile -j 1 app/ lib/
 <% end -%>
 <% unless options.api? || skip_asset_pipeline? -%>
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
+<% if using_node? || using_bun? -%>
+RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile && \
+    rm -rf node_modules
+<% else -%>
 RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
-
 <% end -%>
 
-<% if using_node? || using_bun? -%>
-RUN rm -rf node_modules
-<% end %>
+<% end -%>
 
 # Final stage for app image
 FROM base
