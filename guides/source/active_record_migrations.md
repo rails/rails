@@ -722,6 +722,24 @@ They need to be added separately using `add_index`.
 Some adapters may support additional options; see the adapter specific API docs
 for further information.
 
+For example, MySQL supports `algorithm` and `lock` options on column operations
+(`add_column`, `remove_column`, `change_column`, `rename_column`) and index
+operations (`add_index`, `remove_index`) to control how DDL statements are
+executed. This enables online schema changes without blocking reads or writes:
+
+```ruby
+add_column :users, :name, :string, algorithm: :instant, lock: :none
+add_index :users, :email, algorithm: :inplace, lock: :none
+```
+
+The MySQL `algorithm` option accepts `:default`, `:copy`, `:inplace`, or `:instant`.
+The `lock` option accepts `:default`, `:none`, `:shared`, or `:exclusive`.
+See the [MySQL documentation on Online DDL](https://dev.mysql.com/doc/refman/en/innodb-online-ddl-operations.html)
+for details on which algorithms and lock modes are supported for each operation.
+
+NOTE: PostgreSQL also supports the `algorithm` option on `add_index` and
+`remove_index` (e.g., `algorithm: :concurrently`), but does not support `lock`.
+
 NOTE: `default` cannot be specified via command line when generating migrations.
 
 ### References

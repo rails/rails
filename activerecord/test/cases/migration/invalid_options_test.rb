@@ -28,6 +28,10 @@ module ActiveRecord
           default_keys.concat([":enabled"])
         end
 
+        if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+          default_keys.concat([":lock"])
+        end
+
         "Unknown key: :#{key}. Valid keys are: #{default_keys.join(", ")}"
       end
 
