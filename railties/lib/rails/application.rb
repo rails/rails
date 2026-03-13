@@ -121,6 +121,7 @@ module Rails
       @ran_load_hooks    = false
       @revision          = nil
       @revision_initialized = false
+      @key_generator_hash_digest_class_applied = false
 
       @executor          = Class.new(ActiveSupport::Executor)
       @reloader          = Class.new(ActiveSupport::Reloader)
@@ -177,6 +178,18 @@ module Rails
     # calls with the same +secret_key_base+ will return the same key generator
     # instance.
     def key_generator(secret_key_base = self.secret_key_base)
+      if !@key_generator_hash_digest_class_applied && config.active_support.key_generator_hash_digest_class
+        raise <<~MSG.squish
+          Cannot call `Rails.application.key_generator` before the application
+          has finished initializing. The `key_generator_hash_digest_class`
+          configuration is applied during `after_initialize`, so accessing
+          the key generator earlier would produce keys derived with the wrong
+          digest (#{ActiveSupport::KeyGenerator.hash_digest_class} instead of
+          #{config.active_support.key_generator_hash_digest_class}). Use a
+          lazily-initialized method instead of a class-level constant.
+        MSG
+      end
+
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
       @key_generators[secret_key_base] ||= ActiveSupport::CachingKeyGenerator.new(
@@ -746,6 +759,10 @@ module Rails
     end
 
     private
+      def key_generator_hash_digest_class_applied! # :nodoc:
+        @key_generator_hash_digest_class_applied = true
+      end
+
       def missing_environment_file
         raise "Rails environment has been set to #{Rails.env} but config/environments/#{Rails.env}.rb does not exist."
       end
