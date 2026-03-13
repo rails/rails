@@ -12,7 +12,7 @@ module ActiveModel
 
     class_attribute :i18n_customize_full_message, default: false
 
-    def self.full_message(attribute, message, base) # :nodoc:
+    def self.full_message(attribute, message, base, raw_type = nil) # :nodoc:
       return message if attribute == :base
 
       base_class = base.class
@@ -28,6 +28,7 @@ module ActiveModel
         if namespace
           defaults = base_class.lookup_ancestors.map do |klass|
             [
+              :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.attributes.#{attribute_name}.#{raw_type}.format",
               :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.attributes.#{attribute_name}.format",
               :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.format",
             ]
@@ -35,6 +36,7 @@ module ActiveModel
         else
           defaults = base_class.lookup_ancestors.map do |klass|
             [
+              :"#{attributes_scope}.#{klass.model_name.i18n_key}.attributes.#{attribute_name}.#{raw_type}.format",
               :"#{attributes_scope}.#{klass.model_name.i18n_key}.attributes.#{attribute_name}.format",
               :"#{attributes_scope}.#{klass.model_name.i18n_key}.format",
             ]
@@ -77,8 +79,11 @@ module ActiveModel
         attribute = attribute.to_s.remove(/\[\d+\]/)
 
         defaults = base.class.lookup_ancestors.flat_map do |klass|
-          [ :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
-            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
+          [
+            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}.message",
+            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
+            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}"
+          ]
         end
         defaults << :"#{i18n_scope}.errors.messages.#{type}"
 
@@ -157,7 +162,7 @@ module ActiveModel
     #   error.full_message
     #   # => "Name is too short (minimum is 5 characters)"
     def full_message
-      self.class.full_message(attribute, message, @base)
+      self.class.full_message(attribute, message, @base, raw_type)
     end
 
     # See if error matches provided +attribute+, +type+, and +options+.
