@@ -62,7 +62,16 @@ module ActiveRecord
       schemas(stream)
       extensions(stream)
       types(stream)
-      tables(stream)
+      if @connection.requires_referential_integrity_at_definition?
+        tables(stream)
+        # emit add_foreign_key statements last to ensure all referenced tables are defined
+        foreign_keys(stream)
+      elsif @connection.supports_foreign_keys?
+        # emit the table and its foreign keys together
+        tables_and_foreign_keys(stream)
+      else
+        tables(stream)
+      end
       virtual_tables(stream)
       trailer(stream)
       stream
@@ -132,26 +141,21 @@ module ActiveRecord
       end
 
       def tables(stream)
-        sorted_tables = @connection.tables.sort
-
-        not_ignored_tables = sorted_tables.reject { |table_name| ignored?(table_name) }
-
         not_ignored_tables.each_with_index do |table_name, index|
           table(table_name, stream)
           stream.puts if index < not_ignored_tables.count - 1
         end
+      end
 
-        # dump foreign keys at the end to make sure all dependent tables exist.
-        if @connection.supports_foreign_keys?
-          foreign_keys_stream = StringIO.new
-          not_ignored_tables.each do |tbl|
-            foreign_keys(tbl, foreign_keys_stream)
+      def tables_and_foreign_keys(stream)
+        not_ignored_tables.each_with_index do |table_name, index|
+          table(table_name, stream)
+
+          if @connection.supports_foreign_keys?
+            foreign_keys(stream, [table_name])
           end
 
-          foreign_keys_string = foreign_keys_stream.string
-          stream.puts if foreign_keys_string.length > 0
-
-          stream.print foreign_keys_string
+          stream.puts if index < not_ignored_tables.count - 1
         end
       end
 
@@ -226,6 +230,10 @@ module ActiveRecord
         ensure
           self.table_name = nil
         end
+      end
+
+      def not_ignored_tables
+        @connection.tables.sort.reject { |table_name| ignored?(table_name) }
       end
 
       # Keep it for indexing materialized views
@@ -314,7 +322,19 @@ module ActiveRecord
         check_parts
       end
 
-      def foreign_keys(table, stream)
+      def foreign_keys(stream, tables = not_ignored_tables)
+        foreign_keys_stream = StringIO.new
+        tables.each do |tbl|
+          foreign_keys_for_table(tbl, foreign_keys_stream)
+        end
+
+        foreign_keys_string = foreign_keys_stream.string
+        stream.puts if foreign_keys_string.length > 0
+
+        stream.print foreign_keys_string
+      end
+
+      def foreign_keys_for_table(table, stream)
         if (foreign_keys = @connection.foreign_keys(table)).any?
           add_foreign_key_statements = foreign_keys.map do |foreign_key|
             parts = [
