@@ -183,6 +183,25 @@ module ActiveRecord
       end
   end
 
+  class UninitializedDatabaseError < MigrationError # :nodoc:
+    include ActiveSupport::ActionableError
+
+    action "Prepare database" do
+      ActiveRecord::Tasks::DatabaseTasks.prepare_all
+    end
+
+    def initialize(message = nil)
+      super(message || default_message)
+    end
+
+    private
+      def default_message
+        message = "Database is uninitialized. To resolve this issue, run:\n\n        bin/rails db:prepare"
+        message += " RAILS_ENV=#{::Rails.env}" if defined?(Rails.env) && !Rails.env.local?
+        message
+      end
+  end
+
   class ConcurrentMigrationError < MigrationError # :nodoc:
     DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running."
     RELEASE_LOCK_FAILED_MESSAGE = "Failed to release advisory lock"
@@ -688,12 +707,15 @@ module ActiveRecord
         delegate || superclass.nearest_delegate
       end
 
-      # Raises ActiveRecord::PendingMigrationError error if any migrations are pending
+      # Raises ActiveRecord::UninitializedDatabaseError if any database has not been initialized,
+      # or ActiveRecord::PendingMigrationError if any migrations are pending,
       # for all database configurations in an environment.
       def check_all_pending!
         pending_migrations = []
 
         ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: env) do |pool|
+          raise_if_uninitialized(pool)
+
           if pending = pool.migration_context.open.pending_migrations
             pending_migrations << pending
           end
@@ -757,6 +779,12 @@ module ActiveRecord
       end
 
       def check_pending_migrations(migrations = nil) # :nodoc:
+        ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|
+          ActiveRecord::PendingMigrationConnection.with_temporary_pool(db_config) do |pool|
+            raise_if_uninitialized(pool)
+          end
+        end
+
         migrations ||= pending_migrations
 
         if migrations.any?
@@ -765,6 +793,15 @@ module ActiveRecord
       end
 
       private
+
+        def raise_if_uninitialized(pool)
+          return if pool.schema_migration.table_exists?
+          migration_paths = Array(pool.db_config.migrations_paths || Migrator.migrations_paths)
+          if migration_paths.any? { |path| Dir["#{path}/**/[0-9]*_*.rb"].any? }
+            raise ActiveRecord::UninitializedDatabaseError
+          end
+        end
+
         def schema_needs_update?(db_config, pool)
           !Tasks::DatabaseTasks.schema_up_to_date?(db_config, pool: pool)
         end
