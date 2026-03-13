@@ -1903,13 +1903,9 @@ class AsyncBelongsToAssociationsTest < ActiveRecord::TestCase
       client.association(:firm).async_load_target
       wait_for_async_query
 
-      events = []
-      callback = -> (event) do
-        events << event unless event.payload[:name] == "SCHEMA"
-      end
-      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+      events = capture_notifications("sql.active_record") do
         client.firm
-      end
+      end.reject { |e| e.payload[:name] == "SCHEMA" }
 
       assert_no_queries do
         assert_equal first_firm, client.firm
