@@ -18,6 +18,17 @@
 
     *Mike Dalessio*
 
+*   Prevent glob injection in `DiskService#delete_prefixed`.
+
+    Escape glob metacharacters in the resolved path before passing to `Dir.glob`.
+
+    Note that this change breaks any existing code that is relying on `delete_prefixed` to expand
+    glob metacharacters. This change presumes that is unintended behavior (as other storage services
+    do not respect these metacharacters).
+
+    *Mike Dalessio*
+
+
 *   Restore ADC when signing URLs with IAM for GCS
 
     ADC was previously used for automatic authorization when signing URLs with IAM.
