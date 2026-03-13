@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "weakref"
+
 module ActiveSupport
   # = Lazy Load Hooks
   #
@@ -59,7 +61,8 @@ module ActiveSupport
     # * <tt>:run_once</tt> - Given +block+ will run only once.
     def on_load(name, options = {}, &block)
       @loaded[name].each do |base|
-        execute_hook(name, base, options, block)
+        execute_hook(name, base.__getobj__, options, block)
+      rescue WeakRef::RefError
       end
 
       @load_hooks[name] << [block, options]
@@ -73,9 +76,10 @@ module ActiveSupport
     # In the case of the above example, it will execute all hooks registered
     # for +:active_record+ within the class +ActiveRecord::Base+.
     def run_load_hooks(name, base = Object)
-      @loaded[name] << base
+      @loaded[name] << WeakRef.new(base)
       @load_hooks[name].each do |hook, options|
         execute_hook(name, base, options, hook)
+      rescue WeakRef::RefError
       end
     end
 
