@@ -9,6 +9,7 @@ After reading this guide you will know:
 
 * How to set up your application for multiple databases.
 * How automatic connection switching works.
+* How to use per-query role resolution and write-triggered role pinning.
 * How to use horizontal sharding for multiple databases.
 * What features are supported and what's still a work in progress.
 
@@ -408,6 +409,102 @@ ActiveRecord::Base.connected_to(role: :reading, prevent_writes: true) do
   # Rails will check each query to ensure it's a read query.
 end
 ```
+
+## Per-Query Role Resolution
+
+The automatic role switching middleware described above operates at the HTTP request level -- it
+chooses a role based on the request verb and a session timestamp. In some cases you may want
+finer-grained control, routing individual queries to the writer or a replica based on whether
+each query reads or writes.
+
+Active Record's `query_role_resolver` lets you provide a callable that is consulted before
+every connection checkout that carries a query type. The resolver receives three arguments:
+
+1. `query_type` -- `:read` or `:write`, reflecting the operation about to be performed.
+2. `model` -- the model class checking out the connection.
+3. `current_role` -- the role that would be used without the resolver.
+
+The resolver should return the role to use, or `nil` to keep the current role.
+
+### Setting Up the Resolver
+
+Add the resolver in an initializer:
+
+```ruby
+# config/initializers/multi_db.rb
+ActiveRecord.query_role_resolver = ->(query_type, _model, current_role) {
+  case query_type
+  when :read  then :reading
+  when :write then :writing
+  else current_role
+  end
+}
+```
+
+With this configuration, every `SELECT` issued by Active Record (e.g. `User.find`,
+`Post.where(...).to_a`) will check out a connection from the `:reading` pool, while
+`INSERT`, `UPDATE`, and `DELETE` operations will use the `:writing` pool -- all without
+wrapping code in `connected_to` blocks.
+
+NOTE: The resolver is only consulted when no connection is already leased. If a connection
+is checked out (for example, inside a transaction), subsequent queries reuse that connection
+regardless of what the resolver would return. This prevents accidentally switching roles
+mid-transaction.
+
+### Write-Triggered Role Pinning
+
+A common problem with read/write splitting is **stale reads**: a request writes data to the
+primary database, then immediately reads it back, but the replica hasn't replicated the change
+yet. The read returns stale data.
+
+`pin_role_on_write` solves this by automatically pinning all subsequent queries to the writing
+role after a write occurs. The resolver is bypassed while the pin is active. Pinning is scoped
+by `ActiveSupport::Executor`, so it is automatically cleared at the end of each request or job.
+
+You can configure pinning in two ways:
+
+**Pin for a fixed duration** -- After each write, pin to the primary for the specified number
+of seconds. If no further writes occur, reads revert to the replica once the window expires.
+Each additional write resets the timer.
+
+```ruby
+# config/initializers/multi_db.rb
+ActiveRecord.pin_role_on_write = 2.seconds
+```
+
+**Pin for the entire request** -- After any write, all remaining queries in the current
+request or job go to the primary.
+
+```ruby
+# config/initializers/multi_db.rb
+ActiveRecord.pin_role_on_write = true
+```
+
+When set to `nil` or `false` (the default), pinning is disabled.
+
+Here is a complete example combining both features:
+
+```ruby
+# config/initializers/multi_db.rb
+ActiveRecord.query_role_resolver = ->(query_type, _model, current_role) {
+  query_type == :read ? :reading : current_role
+}
+
+ActiveRecord.pin_role_on_write = 2.seconds
+```
+
+With this setup, a typical request behaves as follows:
+
+1. `User.find(1)` -- reads from the replica.
+2. `User.create!(name: "Ada")` -- writes to the primary; starts a 2-second pin.
+3. `User.last` -- within the pin window, reads from the primary (avoids stale read).
+4. *(2 seconds elapse with no further writes)*
+5. `User.count` -- pin has expired, reads from the replica again.
+
+At the end of the request the pin is cleared regardless of whether it has expired.
+
+TIP: Time-based pinning uses a monotonic clock (`Process::CLOCK_MONOTONIC`) internally so
+that pin expiry is not affected by system clock adjustments.
 
 ## Horizontal Sharding
 

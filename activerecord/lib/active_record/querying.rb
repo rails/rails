@@ -49,7 +49,7 @@ module ActiveRecord
     # Note that building your own SQL query string from user input {may expose your application to
     # injection attacks}[https://guides.rubyonrails.org/security.html#sql-injection].
     def find_by_sql(sql, binds = [], preparable: nil, allow_retry: false, &block)
-      result = with_connection do |c|
+      result = with_connection(query_type: :read) do |c|
         _query_by_sql(c, sql, binds, preparable: preparable, allow_retry: allow_retry)
       end
       _load_from_sql(result, &block)
@@ -57,7 +57,7 @@ module ActiveRecord
 
     # Same as #find_by_sql but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_find_by_sql(sql, binds = [], preparable: nil, allow_retry: false, &block)
-      with_connection do |c|
+      with_connection(query_type: :read) do |c|
         _query_by_sql(c, sql, binds, preparable: preparable, allow_retry: allow_retry, async: true)
       end.then do |result|
         _load_from_sql(result, &block)
@@ -107,14 +107,14 @@ module ActiveRecord
     #
     # * +sql+ - An SQL statement which should return a count query from the database, see the example above.
     def count_by_sql(sql)
-      with_connection do |c|
+      with_connection(query_type: :read) do |c|
         c.select_value(sanitize_sql(sql), "#{name} Count").to_i
       end
     end
 
     # Same as #count_by_sql but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_count_by_sql(sql)
-      with_connection do |c|
+      with_connection(query_type: :read) do |c|
         c.select_value(sanitize_sql(sql), "#{name} Count", async: true).then(&:to_i)
       end
     end

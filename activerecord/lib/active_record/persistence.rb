@@ -274,7 +274,7 @@ module ActiveRecord
         um.set(values.transform_keys { |name| arel_table[name] })
         um.wheres = constraints
 
-        with_connection do |c|
+        with_connection(query_type: :write) do |c|
           c.update(um, "#{self} Update")
         end
       end
@@ -292,7 +292,7 @@ module ActiveRecord
         dm = Arel::DeleteManager.new(arel_table)
         dm.wheres = constraints
 
-        with_connection do |c|
+        with_connection(query_type: :write) do |c|
           c.delete(dm, "#{self} Destroy")
         end
       end
@@ -953,7 +953,7 @@ module ActiveRecord
       def _create_record(attribute_names = self.attribute_names)
         attribute_names = attributes_for_create(attribute_names)
 
-        self.class.with_connection do |connection|
+        self.class.with_connection(query_type: :write) do |connection|
           returning_columns = self.class._returning_columns_for_insert(connection)
 
           returning_values = self.class._insert_record(

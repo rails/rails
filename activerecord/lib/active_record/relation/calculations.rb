@@ -322,7 +322,7 @@ module ActiveRecord
           if where_clause.contradiction? && !possible_aggregation?(column_names)
             ActiveRecord::Result.empty(async: @async)
           else
-            model.with_connection do |c|
+            model.with_connection(query_type: :read) do |c|
               c.select_all(relation.arel, "#{model.name} Pluck", async: @async)
             end
           end
@@ -399,7 +399,7 @@ module ActiveRecord
         ActiveRecord::Result.empty
       else
         skip_query_cache_if_necessary do
-          model.with_connection do |c|
+          model.with_connection(query_type: :read) do |c|
             c.select_all(relation, "#{model.name} Ids", async: @async)
           end
         end
@@ -508,7 +508,7 @@ module ActiveRecord
           end
         else
           skip_query_cache_if_necessary do
-            model.with_connection do |c|
+            model.with_connection(query_type: :read) do |c|
               c.select_all(query_builder, "#{model.name} #{operation.capitalize}", async: @async)
             end
           end
@@ -537,7 +537,7 @@ module ActiveRecord
         relation = except(:group).distinct!(false)
         group_fields = relation.arel_columns(group_fields)
 
-        model.with_connection do |connection|
+        model.with_connection(query_type: :read) do |connection|
           column_alias_tracker = ColumnAliasTracker.new(connection)
 
           group_aliases = group_fields.map { |field|

@@ -1,3 +1,25 @@
+*   Add `query_role_resolver` and `pin_role_on_write` for per-query read/write splitting.
+
+    `query_role_resolver` is a callable that receives the query type (`:read` / `:write`),
+    model class, and current role and returns which role pool to check a connection out from.
+    `pin_role_on_write` automatically pins subsequent queries to the writing role after a
+    write, preventing stale replica reads. Pinning is scoped by `ActiveSupport::Executor`
+    and supports time-based expiry or pinning for the full request.
+
+    ```ruby
+    ActiveRecord.query_role_resolver = ->(query_type, _model, current_role) {
+      query_type == :read ? :reading : current_role
+    }
+
+    # Pin to the primary for 2 seconds after each write:
+    ActiveRecord.pin_role_on_write = 2.seconds
+
+    # Or pin for the entire request:
+    ActiveRecord.pin_role_on_write = true
+    ```
+
+    *Thomas Dippel*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.
