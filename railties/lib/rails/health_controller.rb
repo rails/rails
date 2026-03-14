@@ -36,6 +36,7 @@ module Rails
   # gracefully.
   class HealthController < ActionController::Base
     rescue_from(Exception) { render_down }
+    rescue_from(ActionController::UnknownFormat) { head :not_acceptable }
 
     def show
       render_up
