@@ -22,7 +22,7 @@ Introduction to Instrumentation
 
 The Instrumentation API provides a way to instrument code and subscribe to
 events that occur in your application. Instrumentation means wrapping a block of
-code so that, when it runs, an event is emitted with a name and optional
+code so that, when it runs, its execution is measured and an event is emitted with a name and optional
 payload. Any subscribers listening for that event will then be notified and can
 react, for example, they can log information, benchmark, or perform some other
 action. This makes it possible to observe behavior within the Rails framework,
@@ -97,14 +97,10 @@ ActiveSupport::Notifications.instrument "publish.posts", { title: "My Post", aut
 end
 ```
 
-TIP: When defining your own event names, follow Rails conventions. The
-recommended format used for [Rails Framework
-Instrumentation](#rails-framework-instrumentation) is: `<action>.<component>`,
-where `<action>` describes what happened (e.g., `service_delete`,
-`start_transaction`) and `<component>` is the framework or library name (e.g.,
-`active_record`, `active_storage`). Hence, if you want to instrument an event
-when a post is published in a blogging application, you could use the event name
-`publish.posts`.
+INFO: Rails uses a convention for event names in the [Rails Framework
+Instrumentation](#rails-framework-instrumentation): `<action>.<component>`,
+where `<action>` describes what happened and `<component>` is the framework or
+library name, such as `process_action.action_controller`.
 
 When given a block (like the example above), Active Support measures the block's
 execution, i.e. the start time, end time, and duration, and then emits the event
