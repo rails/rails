@@ -19,7 +19,21 @@ class ModelTest < ActiveModel::TestCase
   class BasicModel
     include DefaultValue
     include ActiveModel::Model
+    self.filter_attributes = %w[
+      filtered_attr
+    ]
     attr_accessor :attr
+    attr_accessor :filtered_attr
+  end
+
+  class BasicModelAttributes
+    include DefaultValue
+    include ActiveModel::Model
+    self.filter_attributes = %w[
+      filtered_attr
+    ]
+    attribute :attr, :string
+    attribute :filtered_attr, :string
   end
 
   class BasicModelWithReversedMixins
@@ -74,6 +88,18 @@ class ModelTest < ActiveModel::TestCase
   def test_mixin_initializer_when_args_dont_exist
     assert_raises(ActiveModel::UnknownAttributeError) do
       SimpleModel.new(hello: "world")
+    end
+  end
+
+  def test_filtered_attributes_are_masked
+    [
+      BasicModel,
+      BasicModelAttributes,
+    ].each do |klass|
+      object = klass.new(attr: "value", filtered_attr: "filtered value")
+      assert_equal "value", object.attr
+      assert_equal "filtered value", object.filtered_attr
+      assert_equal %(<#{klass.name} attr="value", filtered_attr="[FILTERED]">), object.inspect
     end
   end
 
