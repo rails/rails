@@ -26,9 +26,30 @@ default: &default
   <%% end %>
 <% end %>
 
+<%- if options.skip_solid? -%>
 development:
   <<: *default
   database: <%= app_name %>_development
+<%- else -%>
+development:
+  primary: &primary_development
+    <<: *default
+    database: <%= app_name %>_development
+  cache:
+    <<: *primary_development
+    database: <%= app_name %>_development_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_development
+    database: <%= app_name %>_development_queue
+    migrations_paths: db/queue_migrate
+  <%- unless options.skip_action_cable? -%>
+  cable:
+    <<: *primary_development
+    database: <%= app_name %>_development_cable
+    migrations_paths: db/cable_migrate
+  <%- end -%>
+<%- end -%>
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
