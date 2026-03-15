@@ -7,6 +7,68 @@ class PermissionsPolicyTest < ActiveSupport::TestCase
     @policy = ActionDispatch::PermissionsPolicy.new
   end
 
+  def test_whitespace_validation
+    @policy.camera "https://example.com https://evil.com"
+
+    error = assert_raises(ActionDispatch::PermissionsPolicy::InvalidDirectiveError) do
+      @policy.build
+    end
+    assert_equal(<<~MSG.squish, error.message)
+      Invalid HTTP permissions policy camera: "https://example.com https://evil.com".
+      Directive values must not contain whitespace or semicolons.
+      Please use multiple arguments or other directive methods instead.
+    MSG
+  end
+
+  def test_semicolon_validation
+    @policy.camera "https://evil.com; geolocation *"
+
+    error = assert_raises(ActionDispatch::PermissionsPolicy::InvalidDirectiveError) do
+      @policy.build
+    end
+    assert_equal(<<~MSG.squish, error.message)
+      Invalid HTTP permissions policy camera: "https://evil.com; geolocation *".
+      Directive values must not contain whitespace or semicolons.
+      Please use multiple arguments or other directive methods instead.
+    MSG
+  end
+
+  def test_dynamic_source_semicolon_injection
+    params = { allowed_origin: "https://evil.com; geolocation *" }
+    request = Struct.new(:params).new(params)
+    controller = Struct.new(:request).new(request)
+
+    @policy.camera :self, -> { request.params[:allowed_origin] }
+    @policy.microphone :none
+
+    assert_raises(ActionDispatch::PermissionsPolicy::InvalidDirectiveError) do
+      @policy.build(controller)
+    end
+  end
+
+  def test_dynamic_source_whitespace_injection
+    params = { allowed_origin: "https://evil.com https://other.com" }
+    request = Struct.new(:params).new(params)
+    controller = Struct.new(:request).new(request)
+
+    @policy.camera :self, -> { request.params[:allowed_origin] }
+
+    assert_raises(ActionDispatch::PermissionsPolicy::InvalidDirectiveError) do
+      @policy.build(controller)
+    end
+  end
+
+  def test_dynamic_source_with_valid_input
+    params = { allowed_origin: "https://trusted.com" }
+    request = Struct.new(:params).new(params)
+    controller = Struct.new(:request).new(request)
+
+    @policy.camera :self, -> { request.params[:allowed_origin] }
+    @policy.microphone :none
+
+    assert_equal "camera 'self' https://trusted.com; microphone 'none'", @policy.build(controller)
+  end
+
   def test_mappings
     @policy.midi :self
     assert_equal "midi 'self'", @policy.build
