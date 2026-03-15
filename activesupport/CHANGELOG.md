@@ -95,6 +95,26 @@
 
     *Jason T Johnson*, *Jean Boussier*
 
+    **Note on overwrite precedence:**
+
+    This fix also changed the overwrite precedence when distinct keys are transformed into the same key.
+    The later key now overwrites the earlier one (matching standard Ruby `Hash` behavior).
+    Previously, the earlier key's value was preserved.
+
+    Before:
+
+    ```ruby
+    >> {XY: 1, xy: 2}.with_indifferent_access.transform_keys!(&:downcase)
+    => {"xy"=>1}
+    ```
+
+    After:
+
+    ```ruby
+    >> {XY: 1, xy: 2}.with_indifferent_access.transform_keys!(&:downcase)
+    => {"xy"=>2}
+    ```
+
 *   Fix `ActiveSupport::Cache::MemCacheStore#read_multi` to handle network errors.
 
     This method specifically wasn't handling network errors like other codepaths.
