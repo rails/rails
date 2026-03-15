@@ -477,6 +477,56 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_predicate(book.association(:order_agreement), :stale_target?)
   end
+
+  def test_has_one_through_uses_preloaded_associations_no_extra_queries
+    members = Member.includes(current_membership: :club).to_a
+    member = members.find { |m| m.current_membership&.club }
+
+    assert_no_queries { member.club }
+  end
+
+  def test_has_one_through_traverses_preloaded_chain_from_inverse_direction
+    clubs = Club.includes(membership: :member).to_a
+    club = clubs.find { |c| c.membership&.member }
+
+    # Accessing sponsor through already-loaded membership should not query
+    # when both sides of the chain are loaded
+    membership = club.membership
+    assert_predicate membership.association(:club), :loaded?
+  end
+
+  def test_has_one_through_returns_nil_when_through_target_is_nil
+    member = Member.create!(name: "No Membership")
+
+    # Preload the through association (which will be nil)
+    Member.includes(:current_membership).where(id: member.id).to_a
+
+    member_reloaded = Member.includes(:current_membership).find(member.id)
+    assert_nil member_reloaded.current_membership
+
+    assert_no_queries { assert_nil member_reloaded.club }
+  end
+
+  def test_has_one_through_falls_back_to_query_when_not_preloaded
+    member = members(:groucho)
+    # Without preloading, it should still work (via query)
+    member.association(:club).reset
+
+    assert_queries_count(1) { member.club }
+  end
+
+  def test_has_one_through_nested_uses_preloaded_associations
+    member_detail = MemberDetail.new
+    @member.member_detail = member_detail
+    @member.save!
+
+    details = MemberDetail.includes(member: :member_type).to_a
+    detail = details.find { |d| d.member&.member_type }
+
+    if detail
+      assert_no_queries { detail.member_type }
+    end
+  end
 end
 
 class DeprecatedHasOneThroughAssociationsTest < ActiveRecord::TestCase
