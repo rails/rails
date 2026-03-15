@@ -50,7 +50,7 @@ export class DirectUploadController {
   }
 
   dispatchError(error) {
-    const event = this.dispatch("error", { error })
+    const event = this.dispatch("error", { error: error.message, xhr: error.xhr })
     if (!event.defaultPrevented) {
       alert(error)
     }
