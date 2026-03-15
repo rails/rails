@@ -98,6 +98,7 @@ module ActionView
     super
     ActionView::Helpers.eager_load!
     ActionView::Template.eager_load!
+    ActionView::Template.precompile!
   end
 end
 
