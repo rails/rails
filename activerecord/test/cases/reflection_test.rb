@@ -700,6 +700,11 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal ["blog_id", "blog_post_id"], blog_post_foreign_key
   end
 
+  def test_has_many_foreign_key_derived_from_inverse_with_composite_foreign_key
+    reflection = Sharded::BlogPost.reflect_on_association(:comments_with_inverse)
+    assert_equal ["blog_id", "blog_post_id"], reflection.foreign_key
+  end
+
   def test_using_query_constraints_warns_about_changing_behavior
     has_many_expected_message = <<~MSG.squish
       Setting `query_constraints:` option on `Firm.has_many :clients` is not allowed.
