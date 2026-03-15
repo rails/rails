@@ -36,6 +36,12 @@ namespace :guides do
   desc "Lint guides, using `mdl` and check for broken links"
   task lint: ["lint:check_links", "lint:mdl"]
 
+  desc "Deletes the `output` directory"
+  task :clean do
+    output_dir = File.join(File.expand_path(__dir__), "output")
+    FileUtils.remove_dir(output_dir)
+  end
+
   namespace :lint do
     desc "Check links in generated HTML guides"
     task :check_links do
