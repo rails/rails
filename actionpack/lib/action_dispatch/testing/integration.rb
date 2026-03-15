@@ -351,25 +351,25 @@ module ActionDispatch
       end
 
       def integration_session
-        @integration_session ||= create_session(app)
+        @integration_session ||= create_session(@app || self.class.app || app)
       end
 
       # Reset the current session. This is useful for testing multiple sessions in a
       # single test case.
       def reset!
-        @integration_session = create_session(app)
+        @integration_session = create_session(@app || self.class.app || app)
       end
 
-      def create_session(app)
-        klass = APP_SESSIONS[app] ||= Class.new(Integration::Session) {
+      def create_session(rack_app)
+        klass = APP_SESSIONS[rack_app] ||= Class.new(Integration::Session) {
           # If the app is a Rails app, make url_helpers available on the session. This
           # makes app.url_for and app.foo_path available in the console.
-          if app.respond_to?(:routes) && app.routes.is_a?(ActionDispatch::Routing::RouteSet)
-            include app.routes.url_helpers
-            include app.routes.mounted_helpers
+          if rack_app.respond_to?(:routes) && rack_app.routes.is_a?(ActionDispatch::Routing::RouteSet)
+            include rack_app.routes.url_helpers
+            include rack_app.routes.mounted_helpers
           end
         }
-        klass.new(app)
+        klass.new(rack_app)
       end
 
       def remove! # :nodoc:
