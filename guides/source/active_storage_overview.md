@@ -805,6 +805,46 @@ implement your own authenticated controllers, based on the
 [`ActiveStorage::Representations::RedirectController`][] and
 [`ActiveStorage::Representations::ProxyController`][]
 
+#### Setting Access Control Globally
+
+To make all blobs require authentication, set:
+
+```ruby
+config.active_storage.blobs_always_publicly_accessible = false
+```
+
+This will cause all Active Storage URLs to return 403 Forbidden by default.
+
+#### Setting Access Control Per Attachment
+
+You can also control public access on a per-attachment basis using the
+`publicly_accessible` option:
+
+```ruby
+class User < ApplicationRecord
+  # This attachment is always publicly accessible
+  has_one_attached :avatar, publicly_accessible: true
+
+  # This attachment is conditionally publicly accessible
+  has_one_attached :profile_photo, publicly_accessible: ->(attachment) {
+    attachment.record.public_profile?
+  }
+
+  # This attachment requires authentication (default behavior)
+  has_one_attached :private_document
+end
+```
+
+When using a proc, it receives the attachment object and should return `true`
+to allow public access or `false` to require authentication. The attachment's
+record can be accessed via `attachment.record`.
+
+The `publicly_accessible` option works even when
+`config.active_storage.blobs_always_publicly_accessible` is set to `false`,
+allowing you to selectively make specific attachments public.
+
+#### Custom Authenticated Controllers
+
 To only allow an account to access their own logo you could do the following:
 
 ```ruby

@@ -1,3 +1,25 @@
+*   Add `publicly_accessible` option to `has_one_attached` and `has_many_attached`
+
+    If the newly added `config.active_storage.blobs_always_publicly_accessible` is set to `false`, you can now control
+    public access on a per-attachment basis using the `publicly_accessible` option.
+
+    ```ruby
+    class User < ApplicationRecord
+      # Always publicly accessible
+      has_one_attached :avatar, publicly_accessible: true
+
+      # Conditionally publicly accessible based on the attachment
+      has_one_attached :profile_photo, publicly_accessible: ->(attachment) {
+        attachment.record.public_profile?
+      }
+
+      # Requires authentication (default)
+      has_one_attached :private_document
+    end
+    ```
+
+    *Paul McMahon*
+
 *   Restore ADC when signing URLs with IAM for GCS
 
     ADC was previously used for automatic authorization when signing URLs with IAM.

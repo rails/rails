@@ -152,6 +152,7 @@ module ActiveStorage
         ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
         ActiveStorage.analyze = app.config.active_storage.analyze || :later
+        ActiveStorage.blobs_always_publicly_accessible = app.config.active_storage.blobs_always_publicly_accessible != false
       end
     end
 
