@@ -31,6 +31,16 @@ module ActiveRecord
                   bytea column received a binary string for unescaping. In Rails 8.3, binary strings
                   will be treated as already unescaped.
                 MSG
+
+                # If the string is already-decoded raw binary (e.g. after a cache
+                # round-trip that stripped the @ar_pg_bytea_decoded ivar),
+                # unescape_bytea raises ArgumentError on null bytes. Return the
+                # value as-is in that case, consistent with the planned 8.3 behavior.
+                begin
+                  return PG::Connection.unescape_bytea(value)
+                rescue ArgumentError
+                  return value
+                end
               end
 
             else
