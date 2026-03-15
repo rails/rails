@@ -155,6 +155,14 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(blog_post, comment.blog_post)
   end
 
+  def test_belongs_to_a_model_with_composite_primary_key_sets_inverse_of
+    order = cpk_orders(:cpk_groceries_order_1)
+    store_id, _order_id = order.id
+    book = order.books.create!(id: [store_id, 4], title: "Book")
+
+    assert_same book.order, book.order.books.first.order
+  end
+
   def test_belongs_to_a_cpk_model_by_id_attribute
     order = cpk_orders(:cpk_groceries_order_1)
     _order_shop_id, order_id = order.id
