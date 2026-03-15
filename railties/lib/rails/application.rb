@@ -176,11 +176,17 @@ module Rails
     # specified +secret_key_base+. The return value is memoized, so additional
     # calls with the same +secret_key_base+ will return the same key generator
     # instance.
+    #
+    # The cache key includes both the +secret_key_base+ and the current
+    # hash_digest_class to ensure that key generators are properly invalidated
+    # when the hash digest class changes.
     def key_generator(secret_key_base = self.secret_key_base)
       # number of iterations selected based on consultation with the google security
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
-      @key_generators[secret_key_base] ||= ActiveSupport::CachingKeyGenerator.new(
-        ActiveSupport::KeyGenerator.new(secret_key_base, iterations: 1000)
+      hash_digest_class = ActiveSupport::KeyGenerator.hash_digest_class
+      cache_key = [secret_key_base, hash_digest_class]
+      @key_generators[cache_key] ||= ActiveSupport::CachingKeyGenerator.new(
+        ActiveSupport::KeyGenerator.new(secret_key_base, iterations: 1000, hash_digest_class:)
       )
     end
 
