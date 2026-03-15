@@ -6,10 +6,11 @@ module ActiveRecord
       module ReferentialIntegrity # :nodoc:
         def disable_referential_integrity # :nodoc:
           original_exception = nil
+          table_names = schema_qualified_tables
 
           begin
             transaction(requires_new: true) do
-              execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
+              execute(table_names.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
             end
           rescue ActiveRecord::ActiveRecordError => e
             original_exception = e
@@ -32,7 +33,7 @@ Rails needs superuser privileges to disable referential integrity.
 
           begin
             transaction(requires_new: true) do
-              execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
+              execute(table_names.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
             end
           rescue ActiveRecord::ActiveRecordError
           end
@@ -63,6 +64,18 @@ Rails needs superuser privileges to disable referential integrity.
             execute(sql)
           end
         end
+
+        private
+          # Like `data_source_sql`, but returns schema-qualified names so that tables with the same name in multiple
+          # schemas in the search_path are handled correctly.
+          def schema_qualified_tables
+            scope = quoted_scope(nil, type: "BASE TABLE")
+            sql = +"SELECT n.nspname || '.' || c.relname FROM pg_class c "
+            sql << "LEFT JOIN pg_namespace n ON n.oid = c.relnamespace"
+            sql << " WHERE n.nspname = #{scope[:schema]}"
+            sql << " AND c.relkind IN (#{scope[:type] || "'r','p'"})"
+            query_values(sql)
+          end
       end
     end
   end
