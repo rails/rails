@@ -126,6 +126,23 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     assert_equal "Person", Person.model_name.human(default: :this_key_does_not_exist)
   end
 
+  def test_translated_model_name_with_count
+    I18n.backend.store_translations "en", activemodel: { models: { person: { one: "Person", other: "People" } } }
+    assert_equal "Person", Person.model_name.human
+    assert_equal "Person", Person.model_name.human(count: 1)
+    assert_equal "People", Person.model_name.human(count: 2)
+  end
+
+  def test_translated_model_name_with_count_defaults_to_one
+    I18n.backend.store_translations "en", activemodel: { models: { person: { one: "Person", other: "People" } } }
+    assert_equal "Person", Person.model_name.human
+  end
+
+  def test_translated_model_name_with_count_without_locale_entries
+    assert_equal "Person", Person.model_name.human(count: 1)
+    assert_equal "Person", Person.model_name.human(count: 2)
+  end
+
   def test_human_does_not_modify_options
     options = { default: "person model" }
     Person.model_name.human(options)

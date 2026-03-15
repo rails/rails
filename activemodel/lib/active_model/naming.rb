@@ -200,7 +200,7 @@ module ActiveModel
       defaults << options[:default] if options[:default]
       defaults << MISSING_TRANSLATION
 
-      translation = I18n.translate(key, scope: i18n_scope, count: 1, **options, default: defaults)
+      translation = I18n.translate(key, scope: i18n_scope, count: options.fetch(:count, 1), **options.except(:count, :default), default: defaults)
       translation = @human if translation == MISSING_TRANSLATION
       translation
     end
