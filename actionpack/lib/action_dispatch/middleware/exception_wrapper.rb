@@ -179,7 +179,8 @@ module ActionDispatch
     end
 
     def self.status_code_for_exception(class_name)
-      ActionDispatch::Response.rack_status_code(@@rescue_responses[class_name])
+      response = rescue_response_for_exception(class_name) || @@rescue_responses.default
+      ActionDispatch::Response.rack_status_code(response)
     end
 
     def show?(request)
@@ -198,7 +199,15 @@ module ActionDispatch
     end
 
     def rescue_response?
-      @@rescue_responses.key?(exception.class.name)
+      self.class.rescue_response_for_exception(exception.class.name).present?
+    end
+
+    def self.rescue_response_for_exception(class_name)
+      if @@rescue_responses.key?(class_name)
+        @@rescue_responses[class_name]
+      elsif (superclass_name = class_name&.safe_constantize&.superclass&.name)
+        @@rescue_responses[class_name] = rescue_response_for_exception(superclass_name)
+      end
     end
 
     def source_extracts
