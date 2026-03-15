@@ -28,6 +28,19 @@ module ActiveSupport
     # rule for cactus will now be the first of the pluralization and
     # singularization rules that is runs. This guarantees that your rules run
     # before any of the rules that may already have been loaded.
+    #
+    # <b>WARNING:</b> Custom inflection rules modify a process-wide singleton
+    # and affect every inflection method call (+camelize+, +classify+,
+    # +humanize+, +pluralize+, +singularize+, +titleize+, +underscore+) across
+    # the entire Ruby process, including inside third-party gems. This
+    # frequently breaks third-party code that relies on default inflections.
+    # Avoid custom inflection rules unless absolutely necessary, especially
+    # for common terms like API, ID, or JSON.
+    #
+    # If you only need custom inflections for autoloading, use Zeitwerk's
+    # built-in inflector instead — it has no global side effects. See the
+    # {Autoloading and Reloading Constants guide}[https://guides.rubyonrails.org/autoloading_and_reloading_constants.html#customizing-inflections]
+    # for details.
     class Inflections
       @__instance__ = Concurrent::Map.new
       @__en_instance__ = nil
@@ -280,6 +293,9 @@ module ActiveSupport
     #   ActiveSupport::Inflector.inflections(:en) do |inflect|
     #     inflect.uncountable 'rails'
     #   end
+    #
+    # <b>WARNING:</b> Custom rules affect the entire Ruby process, including
+    # third-party gems. See Inflections for details.
     def inflections(locale = :en)
       if block_given?
         yield Inflections.instance(locale)

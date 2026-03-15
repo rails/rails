@@ -1326,6 +1326,8 @@ ActiveSupport::Inflector.inflections do |inflect|
 end
 ```
 
+NOTE: Custom inflection rules are global — they affect the entire Ruby process, including third-party gems. Be cautious when adding rules for common terms.
+
 [`inflections`]: https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-inflections
 
 ### Renaming Default Route Parameter `id`
