@@ -3203,6 +3203,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "italians#painters", @response.body
   end
 
+  def test_lambda_mount_constraints_do_not_ignore_scoped_constraints
+    draw do
+      constraints ->(req) { false } do
+        mount lambda { |env| [200, {}, [env["REQUEST_METHOD"]]] },
+          at: "/test",
+          constraints: ->(req) { true }
+      end
+    end
+
+    get "/test"
+    assert_equal 404, status
+  end
+
   def test_custom_resource_actions_defined_using_string
     draw do
       resources :customers do
