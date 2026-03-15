@@ -160,9 +160,9 @@ module ActionController
   class Parameters
     include ActiveSupport::DeepMergeable
 
-    cattr_accessor :permit_all_parameters, instance_accessor: false, default: false
+    class_attribute :permit_all_parameters, instance_accessor: false, default: false
 
-    cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
+    class_attribute :action_on_unpermitted_parameters, instance_accessor: false
 
     ##
     # :method: deep_merge
