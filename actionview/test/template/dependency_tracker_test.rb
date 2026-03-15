@@ -220,6 +220,13 @@ module SharedTrackerTests
     ], tracker.dependencies
   end
 
+  def test_finds_no_dependency_for_component_new_calls
+    template = FakeTemplate.new('<%= render MyComponent.new(text: "Hello") %>', :erb)
+    tracker = make_tracker("components/_component", template)
+
+    assert_equal [], tracker.dependencies
+  end
+
   def test_finds_dependencies_with_bare_assoc_hash_on_constant
     template = FakeTemplate.new(%{
       <%= render SomeConstant.message(this: "that") %>
