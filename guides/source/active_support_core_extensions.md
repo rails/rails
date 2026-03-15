@@ -1781,12 +1781,16 @@ Specifically, it performs these transformations:
 The capitalization of the first word can be turned off by setting the
 `:capitalize` option to false (default is true).
 
+The trailing "_id" can be kept and capitalized by setting the optional
+parameter `keep_id_suffix` to true (default is true).
+
 ```ruby
-"name".humanize                         # => "Name"
-"author_id".humanize                    # => "Author"
-"author_id".humanize(capitalize: false) # => "author"
-"comments_count".humanize               # => "Comments count"
-"_id".humanize                          # => "Id"
+"name".humanize                            # => "Name"
+"author_id".humanize                       # => "Author"
+"author_id".humanize(capitalize: false)    # => "author"
+"comments_count".humanize                  # => "Comments count"
+"_id".humanize                             # => "Id"
+"author_id".humanize(keep_id_suffix: true) # => "Author id"
 ```
 
 If "SSL" was defined to be an acronym:
