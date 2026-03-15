@@ -197,11 +197,15 @@ module ActionCable
       # This method is called after subscription has been added to the connection and
       # confirms or rejects the subscription.
       def subscribe_to_channel
-        run_callbacks :subscribe do
-          subscribed
-        end
+        run_callbacks :subscribe, :before
+        return reject_subscription if subscription_rejected?
 
+        subscribed
         reject_subscription if subscription_rejected?
+
+        run_callbacks :subscribe, :after
+        return reject_subscription if subscription_rejected?
+
         ensure_confirmation_sent
       end
 
@@ -330,7 +334,11 @@ module ActionCable
         end
 
         def reject_subscription
-          connection.subscriptions.remove_subscription self
+          return if @_reject_subscription_called
+
+          @_reject_subscription_called = true
+
+          connection.subscriptions&.remove_subscription self
           transmit_subscription_rejection
         end
 
