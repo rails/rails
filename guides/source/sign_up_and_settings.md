@@ -1686,7 +1686,7 @@ test "sign up ignores admin attribute" do
     post sign_up_path, params: { user: { first_name: "Example", last_name: "User", email_address: "example@user.org", password: "password", password_confirmation: "password", admin: true } }
     assert_redirected_to root_path
   end
-  refute User.find_by(email_address: "example@user.org").admin?
+  assert_not User.find_by(email_address: "example@user.org").admin?
 end
 ```
 
@@ -1756,7 +1756,7 @@ two:
   last_name: Two
 ```
 
-This tests submits successful params, confirms the email is saved to the
+This test submits successful params, confirms the email is saved to the
 database, the user was redirected and the confirmation email was queued for
 delivery.
 
@@ -1879,7 +1879,7 @@ class SettingsTest < ActionDispatch::IntegrationTest
     sign_in_as users(:one)
     get settings_profile_path
     assert_dom "h4", "Account Settings"
-    assert_not_dom "a", "Store Settings"
+    assert_not_dom "h4", "Store Settings"
   end
 
   test "admin settings nav" do
@@ -1993,13 +1993,6 @@ your account.
 $ bin/kamal dbc
 UPDATE users SET admin=true WHERE users.email_address='you@example.org';
 .quit
-```
-
-Otherwise, you can use the Rails console to update your account.
-
-```bash
-$ bin/kamal console
-irb> User.find_by(email_address: "you@example.org").update(admin: true)
 ```
 
 You can now access the Store settings in production with your account.
