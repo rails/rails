@@ -27,7 +27,7 @@ module ActiveSupport::Dependencies::RequireDependency
         Guard the call with a version check just in case the parent application is using
         the classic autoloader:
 
-            require_dependency "some_file" unless Rails::VERSION::MAJOR >= 7
+            require_dependency "some_file" if Rails::VERSION::MAJOR < 7
     MSG
 
     filename = filename.to_path if filename.respond_to?(:to_path)

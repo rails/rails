@@ -23,7 +23,7 @@
       using the classic autoloader:
 
       ```ruby
-      require_dependency "some_file" unless Rails::VERSION::MAJOR >= 7
+      require_dependency "some_file" if Rails::VERSION::MAJOR < 7
       ```
 
     *Xavier Noria*
