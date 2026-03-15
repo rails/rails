@@ -57,10 +57,8 @@ module Rails
             say "File encrypted and saved."
             warn_if_encrypted_configuration_is_invalid
           end
-        rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+        rescue ActiveSupport::EncryptedFile::MissingKeyError, ActiveSupport::EncryptedConfiguration::DecryptionError => error
           say error.message
-        rescue ActiveSupport::MessageEncryptor::InvalidMessage
-          say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
         end
 
         def warn_if_encrypted_configuration_is_invalid
