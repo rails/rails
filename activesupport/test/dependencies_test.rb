@@ -3,18 +3,6 @@
 require_relative "abstract_unit"
 require "active_support/dependencies"
 
-module ModuleWithMissing
-  mattr_accessor :missing_count
-  def self.const_missing(name)
-    self.missing_count += 1
-    name
-  end
-end
-
-module ModuleWithConstant
-  InheritedConstant = "Hello"
-end
-
 class RequireDependencyTest < ActiveSupport::TestCase
   setup do
     @loaded_features_copy = $LOADED_FEATURES.dup

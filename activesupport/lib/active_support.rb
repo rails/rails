@@ -30,7 +30,6 @@ require "active_support/deprecator"
 require "active_support/logger"
 require "active_support/broadcast_logger"
 require "active_support/lazy_load_hooks"
-require "active_support/core_ext/date_and_time/compatibility"
 
 # :include: ../README.rdoc
 module ActiveSupport
@@ -102,9 +101,13 @@ module ActiveSupport
     NumberHelper.eager_load!
   end
 
-  cattr_accessor :test_order # :nodoc:
-  cattr_accessor :test_parallelization_threshold, default: 50 # :nodoc:
-  cattr_accessor :parallelize_test_databases, default: true # :nodoc:
+  singleton_class.attr_accessor :test_order # :nodoc:
+
+  @test_parallelization_threshold = 50
+  singleton_class.attr_accessor :test_parallelization_threshold # :nodoc:
+
+  @parallelize_test_databases = true
+  singleton_class.attr_accessor :parallelize_test_databases # :nodoc:
 
   @error_reporter = ActiveSupport::ErrorReporter.new
   singleton_class.attr_accessor :error_reporter # :nodoc:
@@ -140,13 +143,21 @@ module ActiveSupport
     @to_time_preserves_timezone = value
   end
 
-  def self.utc_to_local_returns_utc_offset_times
-    DateAndTime::Compatibility.utc_to_local_returns_utc_offset_times
-  end
-
-  def self.utc_to_local_returns_utc_offset_times=(value)
-    DateAndTime::Compatibility.utc_to_local_returns_utc_offset_times = value
-  end
+  # Change the output of <tt>ActiveSupport::TimeZone.utc_to_local</tt>.
+  #
+  # When +true+, it returns local times with a UTC offset, with +false+ local
+  # times are returned as UTC.
+  #
+  #   # Given this zone:
+  #   zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+  #
+  #   # With `utc_to_local_returns_utc_offset_times = false`, local time is converted to UTC:
+  #   zone.utc_to_local(Time.utc(2000, 1)) # => 1999-12-31 19:00:00 UTC
+  #
+  #   # With `utc_to_local_returns_utc_offset_times = true`, local time is returned with UTC offset:
+  #   zone.utc_to_local(Time.utc(2000, 1)) # => 1999-12-31 19:00:00 -0500
+  singleton_class.attr_accessor :utc_to_local_returns_utc_offset_times
+  @utc_to_local_returns_utc_offset_times = false
 end
 
 autoload :I18n, "active_support/i18n"

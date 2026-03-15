@@ -764,23 +764,12 @@ module CacheStoreBehavior
 
   private
     def with_raise_on_invalid_cache_expiration_time(new_value, &block)
-      old_value = ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
-      ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time = new_value
-
-      yield
-    ensure
-      ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time = old_value
+      @cache.with(raise_on_invalid_cache_expiration_time: new_value, &block)
     end
 
     def capture_logs(&block)
-      old_logger = ActiveSupport::Cache::Store.logger
       log = StringIO.new
-      ActiveSupport::Cache::Store.logger = ActiveSupport::Logger.new(log)
-      begin
-        yield
-        log.string
-      ensure
-        ActiveSupport::Cache::Store.logger = old_logger
-      end
+      @cache.with(logger: ActiveSupport::Logger.new(log), &block)
+      log.string
     end
 end

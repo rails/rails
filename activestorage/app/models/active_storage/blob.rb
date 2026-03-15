@@ -136,7 +136,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     end
 
     def scope_for_strict_loading # :nodoc:
-      if strict_loading_by_default? && ActiveStorage.track_variants
+      if self.strict_loading_by_default? && ActiveStorage.track_variants
         includes(
           variant_records: { image_attachment: :blob },
           preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
