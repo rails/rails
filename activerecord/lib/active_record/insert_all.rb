@@ -166,8 +166,10 @@ module ActiveRecord
 
         if index = unique_indexes.find { |i| match.include?(i.name) || Array(i.columns).sort == sorted_match }
           index
+        elsif unique_by.nil?
+          nil
         elsif match == primary_keys
-          unique_by.nil? ? nil : ActiveRecord::ConnectionAdapters::IndexDefinition.new(model.table_name, "#{model.table_name}_primary_key", true, match)
+          ActiveRecord::ConnectionAdapters::IndexDefinition.new(model.table_name, "#{model.table_name}_primary_key", true, match)
         else
           raise ArgumentError, "No unique index found for #{name_or_columns}"
         end

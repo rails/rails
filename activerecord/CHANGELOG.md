@@ -3,6 +3,20 @@
 
     *Joshua Young*
 
+*   Fix `insert_all` raising `ArgumentError: No unique index found for id`
+    when `unique_by` is not provided and the adapter's `indexes()` method
+    excludes primary key indexes (e.g. PostgreSQL).
+
+    When `unique_by` is nil, `find_unique_index_for` now returns `nil` early
+    instead of trying to match the primary key against `unique_indexes`.
+    This allows `insert_all` to generate `ON CONFLICT DO NOTHING` without a
+    conflict target, and `upsert_all` to fall back to `primary_keys` for
+    the conflict target.
+
+    Fixes #56953.
+
+    *Hammad Khan*
+
 *   Accept encryption credentials as ENV
 
     Taking advantage of Rails.apps.creds (#56455), the `primary_key`, `deterministic_key` and
