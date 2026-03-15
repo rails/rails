@@ -243,6 +243,13 @@ With the authentication generator configured as above, your application is ready
 for a more secure user authentication and password recovery process in just a
 few steps.
 
+NOTE: You may need to think about cleaning up stale session records. If a user
+deletes their cookies, or their browser removes them on exit, or the user never
+explicitly logs out on their different devices, stale sessions will accumulate in
+the database. Depending on your requirements there are several
+solutions. A simple solution is to add a line to the 'start_new_session_for(user)'
+method: 'user.sessions.where("created_at < ?", 1.month.ago).delete_all'.
+
 Sessions
 --------
 
