@@ -1097,4 +1097,32 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
       assert_not_includes output, 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema.test_schema2.referenced_table"'
     end
   end
+
+end
+
+class SchemaOpclassParsingTest < ActiveRecord::PostgreSQLTestCase
+  # When an extension is installed in a schema absent from dump_schemas (e.g.
+  # shared_extensions), within_each_schema restricts the search_path so PostgreSQL
+  # fully qualifies the opclass in pg_get_indexdef: "shared_extensions.gin_trgm_ops".
+  # The opclass regex must strip the schema prefix and return just the opclass symbol.
+  OPCLASS_REGEX = /(?<column>\w+)"?\s?(?<opclass>(?:\w+\.)?\w+_ops(_\w+)?)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/
+
+  def test_unqualified_opclass_is_parsed
+    opclasses = parse_opclasses("title gin_trgm_ops")
+    assert_equal({ "title" => :gin_trgm_ops }, opclasses)
+  end
+
+  def test_schema_qualified_opclass_is_stripped_to_simple_name
+    opclasses = parse_opclasses("title shared_extensions.gin_trgm_ops")
+    assert_equal({ "title" => :gin_trgm_ops }, opclasses)
+  end
+
+  private
+    def parse_opclasses(expressions)
+      {}.tap do |opclasses|
+        expressions.scan(OPCLASS_REGEX).each do |column, opclass, *|
+          opclasses[column] = opclass.split(".").last.to_sym if opclass
+        end
+      end
+    end
 end
