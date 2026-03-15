@@ -55,15 +55,10 @@ module ActiveRecord
         deferred_comments = post.comments.load_async
         assert_predicate deferred_comments, :scheduled?
 
-        events = []
-        callback = -> (event) do
-          events << event unless event.payload[:name] == "SCHEMA"
-        end
-
         wait_for_async_query
-        ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        events = capture_notifications("sql.active_record") do
           deferred_comments.to_a
-        end
+        end.reject { |e| e.payload[:name] == "SCHEMA" }
 
         assert_equal [["Comment Load", true]], events.map { |e| [e.payload[:name], e.payload[:async]] }
         assert_not_predicate post.comments, :loaded?
@@ -75,15 +70,10 @@ module ActiveRecord
         deferred_categories = post.scategories.load_async
         assert_predicate deferred_categories, :scheduled?
 
-        events = []
-        callback = -> (event) do
-          events << event unless event.payload[:name] == "SCHEMA"
-        end
-
         wait_for_async_query
-        ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        events = capture_notifications("sql.active_record") do
           deferred_categories.to_a
-        end
+        end.reject { |e| e.payload[:name] == "SCHEMA" }
 
         assert_equal [["Category Load", true]], events.map { |e| [e.payload[:name], e.payload[:async]] }
         assert_not_predicate post.scategories, :loaded?
@@ -181,12 +171,9 @@ module ActiveRecord
         Post.async_count
         latch1.wait
 
-        notification_called = false
-        ActiveSupport::Notifications.subscribed(->(*) { notification_called = true }, "sql.active_record") do
+        assert_notification("sql.active_record") do
           Post.count
         end
-
-        assert(notification_called)
       ensure
         latch2.count_down
         ActiveRecord::Base.connection.singleton_class.undef_method(:log)
@@ -213,13 +200,9 @@ module ActiveRecord
 
         # After the async query completes, synchronous queries must still
         # publish sql.active_record notifications
-        notification_called = false
-        ActiveSupport::Notifications.subscribed(->(*) { notification_called = true }, "sql.active_record") do
+        assert_notification("sql.active_record") do
           Post.count
         end
-
-        assert notification_called,
-          "sql.active_record notification was not published after execute_or_skip ran on the caller thread"
       ensure
         pool.singleton_class.undef_method(:schedule_query)
         pool.singleton_class.define_method(:schedule_query, old_schedule_query)
