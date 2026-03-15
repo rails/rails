@@ -1,3 +1,9 @@
+*   Revert alphabetical sorting of table columns inside `schema.rb`.
+
+    Alphabetical sorting of table columns inside the schema creates improper production tables when using `db:prepare`.
+
+    *Bert McCutchen*
+
 *   Support PostgreSQL `RESET` on readonly queries.
 
     ```ruby
