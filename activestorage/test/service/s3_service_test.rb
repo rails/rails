@@ -229,7 +229,7 @@ if SERVICE_CONFIGURATIONS[:s3]
         data = SecureRandom.bytes(8.megabytes)
 
         service.upload key, StringIO.new(data), checksum: OpenSSL::Digest::MD5.base64digest(data)
-        assert data == service.download(key)
+        assert_equal data, service.download(key)
       ensure
         service.delete key
       end
@@ -243,7 +243,7 @@ if SERVICE_CONFIGURATIONS[:s3]
         data = SecureRandom.bytes(3.megabytes)
 
         service.upload key, StringIO.new(data), checksum: OpenSSL::Digest::MD5.base64digest(data)
-        assert data == service.download(key)
+        assert_equal data, service.download(key)
       ensure
         service.delete key
       end
