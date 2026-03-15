@@ -317,22 +317,8 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
-  def test_insert_all_and_upsert_all_raises_when_no_unique_index_found_for_composite_primary_key
-    skip unless supports_insert_conflict_target?
-
-    error = assert_raises ArgumentError do
-      Cart.insert_all [{ id: 2, shop_id: 1, title: "My cart" }]
-    end
-    assert_match "No unique index found for id", error.message
-
-    error = assert_raises ArgumentError do
-      Cart.upsert_all [{ id: 2, shop_id: 1, title: "My cart" }]
-    end
-    assert_match "No unique index found for id", error.message
-  end
-
   def test_insert_all_and_upsert_all_works_with_composite_primary_keys_when_unique_by_is_not_provided
-    skip unless supports_insert_on_duplicate_skip? && !supports_insert_conflict_target?
+    skip unless supports_insert_on_duplicate_skip?
 
     assert_difference "Cart.count", 3 do
       Cart.insert_all [{ id: 1, shop_id: 1, title: "My cart" }]
@@ -340,6 +326,76 @@ class InsertAllTest < ActiveRecord::TestCase
       Cart.insert_all! [{ id: 2, shop_id: 1, title: "My cart 2" }]
 
       Cart.upsert_all [{ id: 3, shop_id: 2, title: "My other cart" }]
+    end
+  end
+
+  # Regression tests for https://github.com/rails/rails/issues/56953
+  # insert_all without unique_by should not raise "No unique index found for id"
+  # even when the adapter's indexes() method excludes primary key indexes.
+
+  def test_insert_all_without_unique_by_does_not_raise_on_standard_primary_key
+    skip unless supports_insert_on_duplicate_skip?
+
+    assert_difference "Book.count", +1 do
+      Book.insert_all [{ name: "Solid Cable Test", author_id: 1 }]
+    end
+  end
+
+  def test_insert_all_without_unique_by_skips_duplicates_on_standard_primary_key
+    skip unless supports_insert_on_duplicate_skip?
+
+    existing = Book.first
+    assert_no_difference "Book.count" do
+      Book.insert_all [{ id: existing.id, name: "Duplicate", author_id: 1 }]
+    end
+  end
+
+  def test_upsert_all_without_unique_by_updates_on_standard_primary_key
+    skip unless supports_insert_on_duplicate_update?
+
+    existing = Book.first
+    Book.upsert_all [{ id: existing.id, name: "Updated Title", author_id: 1 }]
+
+    assert_equal "Updated Title", existing.reload.name
+  end
+
+  def test_insert_all_without_unique_by_returns_nil_for_unique_by_attribute
+    skip unless supports_insert_on_duplicate_skip?
+
+    insert_all = ActiveRecord::InsertAll.new(
+      Book.all, Book.lease_connection,
+      [{ name: "Test", author_id: 1 }],
+      on_duplicate: :skip
+    )
+
+    assert_nil insert_all.unique_by
+  end
+
+  def test_insert_all_with_explicit_unique_by_still_raises_when_index_missing
+    skip unless supports_insert_conflict_target?
+
+    error = assert_raises ArgumentError do
+      Book.insert_all [{ name: "Test", author_id: 1 }], unique_by: :nonexistent_column
+    end
+    assert_match "No unique index found for nonexistent_column", error.message
+  end
+
+  def test_upsert_all_with_explicit_unique_by_still_raises_when_index_missing
+    skip unless supports_insert_conflict_target?
+
+    error = assert_raises ArgumentError do
+      Book.upsert_all [{ name: "Test", author_id: 1 }], unique_by: :nonexistent_column
+    end
+    assert_match "No unique index found for nonexistent_column", error.message
+  end
+
+  def test_insert_all_without_unique_by_on_composite_pk_skips_duplicates
+    skip unless supports_insert_on_duplicate_skip?
+
+    Cart.insert_all [{ id: 10, shop_id: 10, title: "Original" }]
+
+    assert_no_difference "Cart.count" do
+      Cart.insert_all [{ id: 10, shop_id: 10, title: "Duplicate" }]
     end
   end
 
@@ -492,13 +548,12 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal "Very fast", Speedometer.find("s3").name
   end
 
-  def test_upsert_all_updates_existing_record_by_configured_primary_key_fails_when_database_supports_insert_conflict_target
+  def test_upsert_all_fails_for_configured_primary_key_with_no_database_constraint
     skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target?
 
-    error = assert_raises ArgumentError do
+    assert_raises ActiveRecord::StatementInvalid do
       Speedometer.upsert_all [{ speedometer_id: "s1", name: "New Speedometer" }]
     end
-    assert_match "No unique index found for speedometer_id", error.message
   end
 
   def test_upsert_all_does_not_update_readonly_attributes
