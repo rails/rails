@@ -1716,6 +1716,53 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [[comment.blog_id, comment.id]], ids
   end
 
+  def test_has_many_through_uses_join_model_attribute_type_for_scope
+    # A custom type that multiplies the serialized integer by 1000.
+    # This verifies that Rails uses the join model's declared attribute type
+    # (correct: binds person.id * 1000) rather than falling back to a default
+    # type resolved from the target model (bug: binds raw person.id).
+    custom_type = Class.new(ActiveRecord::Type::Integer) do
+      def serialize(value)
+        serialized = super
+        serialized.nil? ? nil : serialized * 1000
+      end
+    end
+
+    person_klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+      def self.name; "Person"; end
+    end
+
+    reader_klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "readers"
+      def self.name; "Reader"; end
+      attribute :person_id, custom_type.new
+      belongs_to :person, anonymous_class: person_klass
+      belongs_to :post
+    end
+
+    person_klass.has_many :readers, anonymous_class: reader_klass
+    person_klass.has_many :posts, through: :readers
+
+    person = person_klass.first
+    expected = person.id * 1000
+
+    queries = capture_sql_and_binds { person.posts.to_a }
+    all_binds = queries.flat_map { |_, binds| binds }
+    all_sqls   = queries.map(&:first)
+
+    # The FK bind value for readers.person_id must be serialized using the join
+    # model's custom attribute type: serialize(person.id) == person.id * 1000.
+    # Without the fix the raw person.id is used.
+    # The value appears in bind params (prepared_statements: true) or inlined in
+    # the SQL string (prepared_statements: false, the default for MySQL tests).
+    assert(
+      all_binds.include?(expected) || all_sqls.any? { |sql| sql.include?(expected.to_s) },
+      "Expected join model's custom attribute type to be used (value #{expected}) " \
+      "but found binds=#{all_binds.inspect}"
+    )
+  end
+
   private
     def make_model(name)
       Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
