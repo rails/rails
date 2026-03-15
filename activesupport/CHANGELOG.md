@@ -1,3 +1,33 @@
+*   Deprecate `require_dependency`.
+
+    `require_dependency` is deprecated without replacement and will be removed in Rails 9.
+
+    - Recommendations for applications:
+
+        - If the call is an old one written in the days of the classic
+          autoloader to ensure a certain constant is loaded for constant lookup
+          to work as expected, you can simply remove it.
+
+        - In order to preload classes when the application boots, which may be
+          necessary for things like STIs or Kafka consumers, please check the
+          autoloading guide for modern approaches.
+
+    - Recommendations for engines that depend on Rails >= 7.0:
+
+      Same recommendations as for applications, since the classic autoloader is
+      no longer available starting with Rails 7.0.
+
+    - Recommendations for engines that support Rails < 7.0:
+
+      Guard the call with a version check just in case the parent application is
+      using the classic autoloader:
+
+      ```ruby
+      require_dependency "some_file" unless Rails::VERSION::MAJOR >= 7
+      ```
+
+    *Xavier Noria*
+
 *   Add `group` method to `ActiveSupport::ContinuousIntegration` for parallel step execution.
 
     Groups collect steps and run them concurrently using a thread pool, reducing CI times
