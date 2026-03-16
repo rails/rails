@@ -485,6 +485,27 @@ module ActiveRecord
         assert_nothing_raised { connection.drop_table(:nonexistent, :nonexistent_sobrinho, if_exists: true) }
       end
 
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_create_table_uses_batched_statements
+          connection.create_table :testings do |t|
+            t.column :foo, :string
+          end
+
+          assert_queries_count(1, include_schema: true) do
+            connection.create_table :testings, force: true do |t|
+              t.column :foo, :string
+              t.column :bar, :string
+              t.index :foo
+              t.index :bar
+            end
+          end
+
+          assert connection.table_exists?(:testings)
+          assert connection.index_exists?(:testings, :foo)
+          assert connection.index_exists?(:testings, :bar)
+        end
+      end
+
       private
         def testing_table_with_only_foo_attribute
           connection.create_table :testings, id: false do |t|
