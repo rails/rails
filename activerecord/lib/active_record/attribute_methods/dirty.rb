@@ -33,6 +33,20 @@ module ActiveRecord
     #   person.saved_change_to_name    # => ["Allison", "Alice"]
     #   person.name_before_last_save   # => "Allison"
     #
+    # During or after a transaction (in +before_save+, +after_save+,
+    # +after_commit+, or cross-model callbacks):
+    #
+    #   person.transaction_change_to_name?   # => true
+    #   person.transaction_change_to_name    # => ["Allison", "Alice"]
+    #   person.name_before_transaction       # => "Allison"
+    #   person.transaction_changes           # => {"name"=>["Allison", "Alice"]}
+    #
+    # The +transaction_change_to_*+ methods track cumulative changes across
+    # all saves within the current transaction, making them available in any
+    # callback phase (+before_save+, +after_save+, +after_commit+) and for
+    # cross-model access. The +saved_change_to_*+ methods, by contrast,
+    # only reflect the most recent save.
+    #
     # Similar to ActiveModel::Dirty, methods can be invoked as
     # +saved_change_to_name?+ or by passing an argument to the generic method
     # <tt>saved_change_to_attribute?("name")</tt>.
@@ -40,6 +54,9 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       include ActiveModel::Dirty
+
+      EMPTY_HASH = {}.with_indifferent_access.freeze
+      private_constant :EMPTY_HASH
 
       included do
         if self < ::ActiveRecord::Timestamp
@@ -54,6 +71,11 @@ module ActiveRecord
         attribute_method_prefix("saved_change_to_", parameters: false)
         attribute_method_suffix("_before_last_save", parameters: false)
 
+        # Attribute methods for "changed during the current transaction?"
+        attribute_method_affix(prefix: "transaction_change_to_", suffix: "?", parameters: "**options")
+        attribute_method_prefix("transaction_change_to_", parameters: false)
+        attribute_method_suffix("_before_transaction", parameters: false)
+
         # Attribute methods for "will change if I call save?"
         attribute_method_affix(prefix: "will_save_change_to_", suffix: "?", parameters: "**options")
         attribute_method_suffix("_change_to_be_saved", "_in_database", parameters: false)
@@ -64,6 +86,7 @@ module ActiveRecord
         super.tap do
           @mutations_before_last_save = nil
           @mutations_from_database = nil
+          @_committed_changes = nil
         end
       end
 
@@ -117,6 +140,108 @@ module ActiveRecord
       # Returns a hash containing all the changes that were just saved.
       def saved_changes
         mutations_before_last_save.changes
+      end
+
+      # Did this attribute change at any point during the current transaction?
+      #
+      # This method tracks cumulative changes across all saves within the
+      # current database transaction. It works in any callback phase:
+      # +before_save+, +after_save+, +before_update+, +after_update+, and
+      # +after_commit+. During +before_save+ / +before_update+, pending
+      # unsaved changes are included.
+      #
+      # It can also be used cross-model: one model's callback can read
+      # another model's +transaction_change_to_attribute?+ within the same
+      # transaction.
+      #
+      # It can be invoked as +transaction_change_to_name?+ instead of
+      # <tt>transaction_change_to_attribute?("name")</tt>.
+      #
+      # ==== Options
+      #
+      # [+from+]
+      #   When specified, this method will return false unless the original
+      #   value at the start of the transaction is equal to the given value.
+      #
+      # [+to+]
+      #   When specified, this method will return false unless the current
+      #   effective value is equal to the given value.
+      def transaction_change_to_attribute?(attr_name, **options)
+        attr_name = attr_name.to_s
+        txn_changes = transaction_changes
+        return false unless txn_changes.key?(attr_name)
+
+        change = txn_changes[attr_name]
+
+        if options.key?(:from)
+          return false unless change[0] == _type_cast_for_committed(attr_name, options[:from])
+        end
+
+        if options.key?(:to)
+          return false unless change[1] == _type_cast_for_committed(attr_name, options[:to])
+        end
+
+        true
+      end
+
+      # Returns the change to an attribute during the current transaction.
+      # If the attribute was changed, the result will be an array containing
+      # the original value at the start of the transaction and the current
+      # effective value (including pending unsaved changes).
+      #
+      # This method is useful in any callback phase during a transaction. It
+      # can be invoked as +transaction_change_to_name+ instead of
+      # <tt>transaction_change_to_attribute("name")</tt>.
+      def transaction_change_to_attribute(attr_name)
+        transaction_changes[attr_name.to_s]
+      end
+
+      # Returns the original value of an attribute before the current
+      # transaction started.
+      #
+      # This method is useful in any callback phase during a transaction to
+      # get the pre-transaction value of an attribute. It can be invoked as
+      # +name_before_transaction+ instead of
+      # <tt>attribute_before_transaction("name")</tt>.
+      #
+      # Returns the pre-transaction value for any attribute while a
+      # transaction is active. During +after_commit+ callbacks (where the
+      # transaction snapshot has already been cleared), falls back to the
+      # cached committed changes. Returns +nil+ when called outside any
+      # transaction context.
+      def attribute_before_transaction(attr_name)
+        attr_name = attr_name.to_s
+
+        if @_start_transaction_state
+          @_start_transaction_state[:attributes][attr_name]&.original_value
+        elsif @_committed_changes
+          if @_committed_changes.key?(attr_name)
+            @_committed_changes[attr_name].first
+          else
+            _read_attribute(attr_name)
+          end
+        end
+      end
+
+      # Were there any changes at any point during the current (or last
+      # committed) transaction?
+      def transaction_changes?
+        transaction_changes.present?
+      end
+
+      # Returns a hash containing all the cumulative changes within the
+      # current transaction. The hash keys are the attribute names, and the
+      # values are arrays containing the original value at the start of the
+      # transaction and the current effective value.
+      #
+      # This includes changes from all saves within the transaction. During
+      # +before_save+ / +before_update+, pending unsaved changes are also
+      # included. During +after_commit+ callbacks (where the transaction
+      # snapshot has already been cleared), falls back to the cached
+      # committed changes. Returns an empty hash when called outside any
+      # transaction context.
+      def transaction_changes
+        _compute_transaction_changes || @_committed_changes || EMPTY_HASH
       end
 
       # Will this attribute change the next time we save?
@@ -197,8 +322,13 @@ module ActiveRecord
           super
           @mutations_before_last_save = nil
           @mutations_from_database = nil
+          @_committed_changes = nil
           @_touch_attr_names = nil
           @_skip_dirty_tracking = nil
+        end
+
+        def _type_cast_for_committed(attr_name, value)
+          @attributes[attr_name].type.cast(value)
         end
 
         def _touch_row(attribute_names, time)
