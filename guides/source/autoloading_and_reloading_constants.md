@@ -529,7 +529,7 @@ end
 
 WARNING: Custom inflection rules are global — they affect the entire Ruby process, including third-party gems. Avoid them unless absolutely necessary, especially for common terms like API, ID, or JSON. Prefer the scoped approaches below instead.
 
-NOTE: Zeitwerk's inflector only affects autoloading. Other parts of Rails — such as routing (`namespace :api`), STI, and parameter wrapping — resolve constant names via `camelize` independently and will not reflect Zeitwerk's overrides. For example, `namespace :api` in routes will always look for `Api::`, regardless of Zeitwerk's configuration.
+NOTE: Zeitwerk's inflector only affects autoloading. Other parts of Rails — such as routing (`namespace :api`), STI, and parameter wrapping — resolve constant names via `camelize` independently and will not reflect Zeitwerk's overrides. For example, `namespace :api` in routes will always look for `Api::`, regardless of Zeitwerk's configuration. Also note that Zeitwerk's overrides apply to engine code as well, since engines share the application's autoloader — a [custom inflector](https://github.com/fxn/zeitwerk#custom-inflector) can scope overrides to your application paths only.
 
 You can customize how to camelize individual basenames independently from Active Support by passing a collection of overrides to the default inflectors:
 

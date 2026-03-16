@@ -38,7 +38,7 @@ module ActiveSupport
     # for common terms like API, ID, or JSON.
     #
     # If you only need custom inflections for autoloading, use Zeitwerk's
-    # built-in inflector instead — it has no global side effects. See the
+    # built-in inflector instead. See the
     # {Autoloading and Reloading Constants guide}[https://guides.rubyonrails.org/autoloading_and_reloading_constants.html#customizing-inflections]
     # for details.
     class Inflections
