@@ -3,6 +3,7 @@
   <h1>Blocked hosts: <%= @hosts.join(", ") %></h1>
 </header>
 <main role="main" id="container">
+  <%= render "rescues/ai_prompt" %>
   <h2>To allow requests to these hosts, make sure they are valid hostnames (containing only numbers, letters, dashes and dots), then add the following to your environment configuration:</h2>
   <pre>
   <% @hosts.each do |host| %>

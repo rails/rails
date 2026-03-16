@@ -247,6 +247,17 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/ActionDispatch::Http::MimeNegotiation::InvalidType/, body)
   end
 
+  test "includes an ai prompt in the html debug page" do
+    @app = DevelopmentApp
+
+    get "/", headers: { "action_dispatch.show_exceptions" => :all }
+
+    assert_select "section.ai-prompt h2", "Prompt for AI agents"
+    assert_select "textarea.ai-prompt__text", /RuntimeError/
+    assert_select "textarea.ai-prompt__text", /Request: GET \//
+    assert_select "textarea.ai-prompt__text", /Parameters \(filtered\):/
+  end
+
   test "rescue with text error for xhr request" do
     @app = DevelopmentApp
     xhr_request_env = { "action_dispatch.show_exceptions" => :all, "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest" }
