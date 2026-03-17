@@ -68,7 +68,7 @@ module ActiveRecord
       end
 
       # Returns an ActiveRecord::Result instance.
-      def select_all(arel, name = nil, binds = [], preparable: nil, async: false, allow_retry: false)
+      def select_all(arel, name = nil, binds = [], preparable: nil, async: false, allow_retry: false, pipeline: false)
         arel = arel_from_relation(arel)
         intent = QueryIntent.new(
           adapter: self,
@@ -77,12 +77,13 @@ module ActiveRecord
           binds: binds,
           prepare: preparable,
           allow_async: async,
+          prefer_pipeline: pipeline,
           allow_retry: allow_retry
         )
 
         intent.execute!
 
-        if async
+        if async || pipeline
           intent.future_result
         else
           intent.cast_result
@@ -91,13 +92,13 @@ module ActiveRecord
 
       # Returns a record hash with the column names as keys and column values
       # as values.
-      def select_one(arel, name = nil, binds = [], async: false)
-        select_all(arel, name, binds, async: async).then(&:first)
+      def select_one(arel, name = nil, binds = [], async: false, pipeline: false)
+        select_all(arel, name, binds, async: async, pipeline: pipeline).then(&:first)
       end
 
       # Returns a single value from a record
-      def select_value(arel, name = nil, binds = [], async: false)
-        select_rows(arel, name, binds, async: async).then { |rows| single_value_from_rows(rows) }
+      def select_value(arel, name = nil, binds = [], async: false, pipeline: false)
+        select_rows(arel, name, binds, async: async, pipeline: pipeline).then { |rows| single_value_from_rows(rows) }
       end
 
       # Returns an array of the values of the first column in a select:
@@ -108,8 +109,8 @@ module ActiveRecord
 
       # Returns an array of arrays containing the field values.
       # Order is the same as that returned by +columns+.
-      def select_rows(arel, name = nil, binds = [], async: false)
-        select_all(arel, name, binds, async: async).then(&:rows)
+      def select_rows(arel, name = nil, binds = [], async: false, pipeline: false)
+        select_all(arel, name, binds, async: async, pipeline: pipeline).then(&:rows)
       end
 
       def query_value(...) # :nodoc:
