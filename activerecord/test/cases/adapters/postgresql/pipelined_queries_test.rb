@@ -189,6 +189,32 @@ class PipelinedQueriesTest < ActiveRecord::PostgreSQLTestCase
     assert_equal [{ "n" => 2 }], future2.result.to_a
   end
 
+  def test_async_pipelines_when_async_disabled
+    @connection.stub(:async_enabled?, false) do
+      # Async-eligible queries pipeline when async isn't available
+      future1 = @connection.select_all("SELECT 1 AS n", "TEST", async: true)
+      future2 = @connection.select_all("SELECT 2 AS n", "TEST", async: true)
+
+      assert future1.pending?
+      assert future2.pending?
+      assert @connection.pipeline_active?
+
+      assert_equal [{ "n" => 1 }], future1.result.to_a
+      assert_equal [{ "n" => 2 }], future2.result.to_a
+    end
+  end
+
+  def test_async_non_pipelineable_query_falls_back_to_sync
+    @connection.stub(:async_enabled?, false) do
+      # A preparable query can't be pipelined, but async: true shouldn't
+      # raise - it should silently fall back to synchronous execution
+      result = @connection.select_all(Post.where(id: 1).arel, "TEST", async: true)
+      assert_not @connection.pipeline_active?
+      assert_not result.pending?
+      assert_kind_of ActiveRecord::Result, result.result
+    end
+  end
+
   def test_exclusion_checks_still_apply
     # Multi-statement SQL cannot be pipelined even with pipeline: true
     assert_raises(ArgumentError) do

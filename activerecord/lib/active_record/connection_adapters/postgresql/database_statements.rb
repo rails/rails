@@ -208,8 +208,9 @@ module ActiveRecord
             # Pipeline if already active (add to existing batch)
             return true if pipeline_active?
 
-            # Pipeline if explicitly requested by the caller
-            return true if intent.prefer_pipeline
+            # Pipeline if explicitly requested, or if the caller wanted
+            # deferred execution (async implies pipeline-eligible)
+            return true if intent.prefer_pipeline || intent.allow_async
 
             # Otherwise, don't pipeline by default
             ENV["AR_POSTGRESQL_PIPELINE"] == "1"
