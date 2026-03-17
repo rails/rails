@@ -50,7 +50,7 @@ module ActiveRecord
       message = +"#{model} "
       message << "Bulk " if inserts.many?
       message << (on_duplicate == :update ? "Upsert" : "Insert")
-      connection.exec_insert_all to_sql, message
+      connection.exec_insert_all self, message
     end
 
     def updatable_columns
@@ -98,6 +98,10 @@ module ActiveRecord
       else
         keys.sort!
       end
+    end
+
+    def to_sql
+      connection.build_insert_sql(ActiveRecord::InsertAll::Builder.new(self))
     end
 
     private
@@ -190,12 +194,6 @@ module ActiveRecord
           raise ArgumentError, "#{connection.class} does not support :unique_by"
         end
       end
-
-
-      def to_sql
-        connection.build_insert_sql(ActiveRecord::InsertAll::Builder.new(self))
-      end
-
 
       def readonly_columns
         primary_keys + model.readonly_attributes

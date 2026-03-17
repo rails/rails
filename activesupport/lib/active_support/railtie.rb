@@ -51,7 +51,7 @@ module ActiveSupport
     initializer "active_support.reset_execution_context" do |app|
       app.reloader.before_class_unload do
         ActiveSupport::CurrentAttributes.clear_all
-        ActiveSupport::ExecutionContext.clear
+        ActiveSupport::ExecutionContext.flush
         ActiveSupport.event_reporter.clear_context
       end
 

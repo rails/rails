@@ -91,7 +91,8 @@ module ActionController
   module Live
     extend ActiveSupport::Concern
 
-    mattr_accessor :live_streaming_excluded_keys, default: []
+    @live_streaming_excluded_keys = []
+    singleton_class.attr_accessor :live_streaming_excluded_keys
 
     included do
       class_attribute :live_streaming_excluded_keys, instance_accessor: false, default: Live.live_streaming_excluded_keys
@@ -308,6 +309,9 @@ module ActionController
       t1 = Thread.current
       locals = t1.keys.map { |key| [key, t1[key]] }
 
+      # The IsolatedExecutionState context may be a Fiber, not a Thread
+      context = ActiveSupport::IsolatedExecutionState.context
+
       error = nil
       # This processes the action in a child thread. It lets us return the response
       # code and headers back up the Rack stack, and still process the body in
@@ -320,7 +324,7 @@ module ActionController
           # from the main thread to the child thread. :'(
           locals.each { |k, v| t2[k] = v }
 
-          ActiveSupport::IsolatedExecutionState.share_with(t1, except: self.class.live_streaming_excluded_keys) do
+          ActiveSupport::IsolatedExecutionState.share_with(context, except: self.class.live_streaming_excluded_keys) do
             super(name)
           rescue => e
             if @_response.committed?

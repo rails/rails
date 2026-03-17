@@ -13,7 +13,7 @@ module ActionCable
     config.action_cable.precompile_assets = true
 
     guard_load_hooks(
-      :action_cable, :action_cable_channel, :action_cable_connection,
+      :action_cable_channel, :action_cable_connection,
       :action_cable_test_case, :action_cable_connection_test_case,
     )
 
@@ -88,15 +88,17 @@ module ActionCable
           end
         end
 
+        app.reloader.before_class_unload do
+          ActionCable.server.restart
+        end
+      end
+
+      ActiveSupport.on_load(:action_cable_channel) do
         wrap = lambda do |_, inner|
           app.executor.wrap(source: "application.action_cable", &inner)
         end
         ActionCable::Channel::Base.set_callback :subscribe, :around, prepend: true, &wrap
         ActionCable::Channel::Base.set_callback :unsubscribe, :around, prepend: true, &wrap
-
-        app.reloader.before_class_unload do
-          ActionCable.server.restart
-        end
       end
     end
   end

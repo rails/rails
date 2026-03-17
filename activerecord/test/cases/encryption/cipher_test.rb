@@ -62,4 +62,9 @@ class ActiveRecord::Encryption::CipherTest < ActiveRecord::EncryptionTestCase
     encrypted_text = @cipher.encrypt("Getting around with the ⚡️Go Menu", key: @key)
     assert_equal "Getting around with the ⚡️Go Menu", @cipher.decrypt(encrypted_text, key: @key)
   end
+
+  test "inspect does not show secrets" do
+    aes_cipher = ActiveRecord::Encryption::Cipher::Aes256Gcm.new(@key)
+    assert_match(/\A#<ActiveRecord::Encryption::Cipher::Aes256Gcm:0x[0-9a-f]+>\z/, aes_cipher.inspect)
+  end
 end

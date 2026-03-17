@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/inspect_backport"
 
 module ActiveModel
   # = Active \Model \Error
@@ -195,9 +196,12 @@ module ActiveModel
       attributes_for_hash.hash
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name} attribute=#{@attribute}, type=#{@type}, options=#{@options.inspect}>"
-    end
+    ActiveSupport::InspectBackport.apply(self)
+
+    private
+      def instance_variables_to_inspect
+        [:@attribute, :@type, :@options].freeze
+      end
 
     protected
       def attributes_for_hash

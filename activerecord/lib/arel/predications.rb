@@ -239,9 +239,7 @@ module Arel # :nodoc: all
     private
       def grouping_any(method_id, others, *extras)
         nodes = others.map { |expr| send(method_id, expr, *extras) }
-        Nodes::Grouping.new nodes.inject { |memo, node|
-          Nodes::Or.new([memo, node])
-        }
+        Nodes::Grouping.new Nodes::Or.new(nodes)
       end
 
       def grouping_all(method_id, others, *extras)

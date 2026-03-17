@@ -652,6 +652,13 @@ module ActiveRecord
       #
       #  # Ignores the method call if the column exists
       #  add_column(:shapes, :triangle, 'polygon', if_not_exists: true)
+      #
+      # ====== Creating a column with a specific algorithm and lock mode
+      #
+      #  add_column(:users, :age, :integer, algorithm: :instant, lock: :none)
+      #  # ALTER TABLE `users` ADD `age` int ALGORITHM = INSTANT LOCK = NONE
+      #
+      # Note: only supported by MySQL.
       def add_column(table_name, column_name, type, **options)
         add_column_def = build_add_column_definition(table_name, column_name, type, **options)
         return unless add_column_def
@@ -715,6 +722,12 @@ module ActiveRecord
       # if the column was already removed.
       #
       #   remove_column(:suppliers, :qualification, if_exists: true)
+      #
+      # Removes the column with a specific algorithm and lock mode:
+      #
+      #   remove_column(:suppliers, :qualification, algorithm: :inplace, lock: :none)
+      #
+      # Note: only supported by MySQL.
       def remove_column(table_name, column_name, type = nil, **options)
         return if options[:if_exists] == true && !column_exists?(table_name, column_name)
 
@@ -727,6 +740,11 @@ module ActiveRecord
       #   change_column(:suppliers, :name, :string, limit: 80)
       #   change_column(:accounts, :description, :text)
       #
+      # Changes the column with a specific algorithm and lock mode:
+      #
+      #   change_column(:suppliers, :name, :string, limit: 80, algorithm: :inplace, lock: :none)
+      #
+      # Note: only supported by MySQL.
       def change_column(table_name, column_name, type, **options)
         raise NotImplementedError, "change_column is not implemented"
       end
@@ -782,6 +800,11 @@ module ActiveRecord
       #
       #   rename_column(:suppliers, :description, :name)
       #
+      # Renames the column with a specific algorithm and lock mode:
+      #
+      #   rename_column(:suppliers, :description, :name, algorithm: :inplace, lock: :none)
+      #
+      # Note: only supported by MySQL.
       def rename_column(table_name, column_name, new_column_name)
         raise NotImplementedError, "rename_column is not implemented"
       end
@@ -932,6 +955,16 @@ module ActiveRecord
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       #
+      # ====== Creating an index with a specific lock mode
+      #
+      #  add_index(:developers, :name, lock: :none)
+      #  # CREATE INDEX `index_developers_on_name` ON `developers` (`name`) LOCK = NONE -- MySQL
+      #
+      #  add_index(:developers, :name, algorithm: :inplace, lock: :none)
+      #  # CREATE INDEX `index_developers_on_name` ON `developers` (`name`) ALGORITHM = INPLACE LOCK = NONE -- MySQL
+      #
+      # Note: only supported by MySQL.
+      #
       # ====== Creating an index that is not used by queries
       #
       #   add_index(:developers, :name, enabled: false)
@@ -995,6 +1028,11 @@ module ActiveRecord
       # Concurrently removing an index is not supported in a transaction.
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
+      #
+      # Removes the index with a specific algorithm and lock mode on MySQL:
+      #
+      #   remove_index :accounts, :branch_id, algorithm: :inplace, lock: :none
+      #
       def remove_index(table_name, column_name = nil, **options)
         return if options[:if_exists] && !index_exists?(table_name, column_name, **options)
 
@@ -1902,7 +1940,7 @@ module ActiveRecord
         alias :extract_new_comment_value :extract_new_default_value
 
         def can_remove_index_by_name?(column_name, options)
-          column_name.nil? && options.key?(:name) && options.except(:name, :algorithm).empty?
+          column_name.nil? && options.key?(:name) && options.except(:name, :algorithm, :lock).empty?
         end
 
         def reference_name_for_table(table_name)

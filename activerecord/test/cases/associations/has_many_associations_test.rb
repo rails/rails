@@ -3267,14 +3267,9 @@ class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
       firm.association(:clients).async_load_target
       wait_for_async_query
 
-      events = []
-      callback = -> (event) do
-        events << event unless event.payload[:name] == "SCHEMA"
-      end
-
-      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+      events = capture_notifications("sql.active_record") do
         assert_equal 3, firm.clients.size
-      end
+      end.reject { |e| e.payload[:name] == "SCHEMA" }
 
       assert_no_queries do
         assert_not_nil firm.clients[2]

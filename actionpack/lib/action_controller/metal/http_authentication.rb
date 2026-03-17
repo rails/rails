@@ -76,15 +76,15 @@ module ActionController
           # Enables HTTP Basic authentication.
           #
           # See ActionController::HttpAuthentication::Basic for example usage.
-          def http_basic_authenticate_with(name:, password:, realm: nil, **options)
+          def http_basic_authenticate_with(name:, password:, realm: nil, message: nil, content_type: nil, **options)
             raise ArgumentError, "Expected name: to be a String, got #{name.class}" unless name.is_a?(String)
             raise ArgumentError, "Expected password: to be a String, got #{password.class}" unless password.is_a?(String)
-            before_action(options) { http_basic_authenticate_or_request_with name: name, password: password, realm: realm }
+            before_action(options) { http_basic_authenticate_or_request_with name: name, password: password, realm: realm, message: message, content_type: content_type }
           end
         end
 
-        def http_basic_authenticate_or_request_with(name:, password:, realm: nil, message: nil)
-          authenticate_or_request_with_http_basic(realm, message) do |given_name, given_password|
+        def http_basic_authenticate_or_request_with(name:, password:, realm: nil, message: nil, content_type: nil)
+          authenticate_or_request_with_http_basic(realm, message, content_type) do |given_name, given_password|
             # This comparison uses & so that it doesn't short circuit and uses
             # `secure_compare` so that length information isn't leaked.
             ActiveSupport::SecurityUtils.secure_compare(given_name.to_s, name) &
@@ -92,16 +92,16 @@ module ActionController
           end
         end
 
-        def authenticate_or_request_with_http_basic(realm = nil, message = nil, &login_procedure)
-          authenticate_with_http_basic(&login_procedure) || request_http_basic_authentication(realm || "Application", message)
+        def authenticate_or_request_with_http_basic(realm = nil, message = nil, content_type = nil, &login_procedure)
+          authenticate_with_http_basic(&login_procedure) || request_http_basic_authentication(realm || "Application", message, content_type)
         end
 
         def authenticate_with_http_basic(&login_procedure)
           HttpAuthentication::Basic.authenticate(request, &login_procedure)
         end
 
-        def request_http_basic_authentication(realm = "Application", message = nil)
-          HttpAuthentication::Basic.authentication_request(self, realm, message)
+        def request_http_basic_authentication(realm = "Application", message = nil, content_type = nil)
+          HttpAuthentication::Basic.authentication_request(self, realm, message, content_type)
         end
       end
 
@@ -135,10 +135,11 @@ module ActionController
         "Basic #{::Base64.strict_encode64("#{user_name}:#{password}")}"
       end
 
-      def authentication_request(controller, realm, message)
+      def authentication_request(controller, realm, message = nil, content_type = nil)
         message ||= "HTTP Basic: Access denied.\n"
         controller.headers["WWW-Authenticate"] = %(Basic realm="#{realm.tr('"', "")}")
         controller.status = 401
+        controller.content_type = content_type
         controller.response_body = message
       end
     end
@@ -194,8 +195,8 @@ module ActionController
         # requesting the client to send a Digest.
         #
         # See ActionController::HttpAuthentication::Digest for example usage.
-        def authenticate_or_request_with_http_digest(realm = "Application", message = nil, &password_procedure)
-          authenticate_with_http_digest(realm, &password_procedure) || request_http_digest_authentication(realm, message)
+        def authenticate_or_request_with_http_digest(realm = "Application", message = nil, content_type = nil, &password_procedure)
+          authenticate_with_http_digest(realm, &password_procedure) || request_http_digest_authentication(realm, message, content_type)
         end
 
         # Authenticate using an HTTP Digest. Returns true if authentication is
@@ -206,8 +207,8 @@ module ActionController
 
         # Render an HTTP header requesting the client to send a Digest for
         # authentication.
-        def request_http_digest_authentication(realm = "Application", message = nil)
-          HttpAuthentication::Digest.authentication_request(self, realm, message)
+        def request_http_digest_authentication(realm = "Application", message = nil, content_type = nil)
+          HttpAuthentication::Digest.authentication_request(self, realm, message, content_type)
         end
       end
 
@@ -278,10 +279,11 @@ module ActionController
         controller.headers["WWW-Authenticate"] = %(Digest realm="#{realm}", qop="auth", algorithm=MD5, nonce="#{nonce}", opaque="#{opaque}")
       end
 
-      def authentication_request(controller, realm, message = nil)
+      def authentication_request(controller, realm, message = nil, content_type = nil)
         message ||= "HTTP Digest: Access denied.\n"
         authentication_header(controller, realm)
         controller.status = 401
+        controller.content_type = content_type
         controller.response_body = message
       end
 
@@ -435,8 +437,8 @@ module ActionController
         # Typically, the authenticated user is returned.
         #
         # See ActionController::HttpAuthentication::Token for example usage.
-        def authenticate_or_request_with_http_token(realm = "Application", message = nil, &login_procedure)
-          authenticate_with_http_token(&login_procedure) || request_http_token_authentication(realm, message)
+        def authenticate_or_request_with_http_token(realm = "Application", message = nil, content_type = nil, &login_procedure)
+          authenticate_with_http_token(&login_procedure) || request_http_token_authentication(realm, message, content_type)
         end
 
         # Authenticate using an HTTP Bearer token. Returns the return value of
@@ -449,8 +451,8 @@ module ActionController
 
         # Render an HTTP header requesting the client to send a Bearer token for
         # authentication.
-        def request_http_token_authentication(realm = "Application", message = nil)
-          Token.authentication_request(self, realm, message)
+        def request_http_token_authentication(realm = "Application", message = nil, content_type = nil)
+          Token.authentication_request(self, realm, message, content_type)
         end
       end
 
@@ -552,10 +554,10 @@ module ActionController
       # *   `controller` - ActionController::Base instance for the outgoing response.
       # *   `realm` - String realm to use in the header.
       #
-      def authentication_request(controller, realm, message = nil)
+      def authentication_request(controller, realm, message = nil, content_type = nil)
         message ||= "HTTP Token: Access denied.\n"
         controller.headers["WWW-Authenticate"] = %(Token realm="#{realm.tr('"', "")}")
-        controller.__send__ :render, plain: message, status: :unauthorized
+        controller.__send__ :render, plain: message, status: :unauthorized, content_type: content_type
       end
     end
   end

@@ -133,6 +133,13 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     end
   end
 
+  test "inspect does not show internals" do
+    run_in_eventmachine do
+      connection = open_connection
+      assert_match(/\A#<ActionCable::Connection::BaseTest::Connection:0x[0-9a-f]+>\z/, connection.inspect)
+    end
+  end
+
   private
     def open_connection
       env = Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",

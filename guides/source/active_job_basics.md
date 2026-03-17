@@ -186,7 +186,7 @@ TIP: You can find the default generated schema for the `queue` database in
 Finally, to start the queue and start processing jobs you can run:
 
 ```bash
-bin/jobs start
+$ bin/jobs start
 ```
 
 #### Production
