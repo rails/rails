@@ -3,6 +3,7 @@
 require "rails/initializable"
 require "active_support/descendants_tracker"
 require "active_support/inflector"
+require "active_support/inspect_backport"
 require "active_support/core_ext/module/introspection"
 require "active_support/logger"
 
@@ -202,7 +203,7 @@ module Rails
 
       def load_hook_guard_message_for(component) # :nodoc:
         <<~MSG
-          #{component.inspect} was loaded before appliction initialization.
+          #{component.inspect} was loaded before application initialization.
           Prematurely executing load hooks will slow down your boot time
           and could cause conflicts with the load order of your application.
           Please wrap your code with an on_load hook:
@@ -220,7 +221,7 @@ module Rails
         components.each do |component|
           ActiveSupport.on_load(component) do
             if Rails.try(:application) && !Rails.configuration.eager_load && !Rails.application.initialized?
-              case Rails.configuration.action_on_eary_load_hook
+              case Rails.configuration.action_on_early_load_hook
               when :log
                 (Rails.logger || ActiveSupport::Logger.new($stdout)).warn <<~MSG
                   #{Railtie.load_hook_guard_message_for(component)}
@@ -284,9 +285,7 @@ module Rails
       end
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}>"
-    end
+    ActiveSupport::InspectBackport.apply(self)
 
     def configure(&block) # :nodoc:
       instance_eval(&block)
@@ -326,6 +325,10 @@ module Rails
       end
 
     private
+      def instance_variables_to_inspect
+        [].freeze
+      end
+
       # run `&block` in every registered block in `#register_block_for`
       def each_registered_block(type, &block)
         klass = self.class

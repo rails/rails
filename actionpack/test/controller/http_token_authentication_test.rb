@@ -31,7 +31,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
         if authenticate_with_http_token { |token, options| token == '"quote" pretty' && options[:algorithm] == "test" }
           @logged_in = true
         else
-          request_http_token_authentication("SuperSecret", "Authentication Failed\n")
+          request_http_token_authentication("SuperSecret", "Authentication Failed\n", "application/json")
         end
       end
 
@@ -118,6 +118,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
     assert_response :unauthorized
     assert_equal "Authentication Failed\n", @response.body
+    assert_equal "application/json", @response.media_type
     assert_equal 'Token realm="SuperSecret"', @response.headers["WWW-Authenticate"]
   end
 
@@ -127,6 +128,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
     assert_response :unauthorized
     assert_equal "Authentication Failed\n", @response.body
+    assert_equal "application/json", @response.media_type
     assert_equal 'Token realm="SuperSecret"', @response.headers["WWW-Authenticate"]
   end
 

@@ -188,7 +188,7 @@ Below are the default values associated with each target version. In cases of co
 
 The following configuration methods are to be called on a `Rails::Railtie` object, such as a subclass of `Rails::Engine` or `Rails::Application`.
 
-#### `config.action_on_eary_load_hook`
+#### `config.action_on_early_load_hook`
 
 Controls what happens when a load hook is violated before the Rails application is initialized.
 The value is `:log` by default, which will log when when a load hook is invoked early. The value can alternatively be `raise`, which will raise a `LoadError` instead of logging.

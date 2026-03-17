@@ -51,8 +51,8 @@ module ActionDispatch
     config.eager_load_namespaces << ActionDispatch
 
     guard_load_hooks(
-      :action_dispatch_request, :action_dispatch_response,
-      :action_dispatch_system_test_case, :action_dispatch_integration_test,
+      :action_dispatch_response, :action_dispatch_system_test_case,
+      :action_dispatch_integration_test,
     )
 
     initializer "action_dispatch.deprecator", before: :load_environment_config do |app|

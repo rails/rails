@@ -5,6 +5,9 @@ on:
   push:
     branches: [ <%= user_default_branch %> ]
 
+permissions:
+  contents: read
+
 jobs:
 <%- unless skip_brakeman? && skip_bundler_audit? -%>
   scan_ruby:

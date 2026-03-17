@@ -928,6 +928,31 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     assert_nil ActionView::PartialRenderer.collection_cache.read(key)
   end
 
+  test "collection caching with an expires_in set to nil does not expire" do
+    ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1.hour)
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
+    @view.render(partial: "test/customer", collection: [customer], cached: { expires_in: nil })
+    assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
+
+    travel 2.hours
+
+    assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
+  end
+
+  test "collection caching without expires_in does not overwrite the default expires_in of the cache store" do
+    ActionView::PartialRenderer.collection_cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1.hour)
+
+    customer = Customer.new("david", 1)
+    key = cache_key(customer, "test/_customer")
+    @view.render(partial: "test/customer", collection: [customer], cached: true)
+    assert_equal "Hello: david", ActionView::PartialRenderer.collection_cache.read(key)
+
+    travel 2.hours
+
+    assert_nil ActionView::PartialRenderer.collection_cache.read(key)
+  end
+
   test "collection caching does not cache by default" do
     customer = Customer.new("david", 1)
     key = cache_key(customer, "test/_customer")

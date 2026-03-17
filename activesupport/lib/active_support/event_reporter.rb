@@ -366,7 +366,7 @@ module ActiveSupport
     # * +:caller_depth+ - The stack depth to use for source location (default: 1).
     #
     # * +:kwargs+ - Additional payload data when using string/symbol event names.
-    def notify(name_or_object, payload = nil, caller_depth: 1, **kwargs)
+    def notify(name_or_object, payload = nil, caller_depth: 1, filter_payload: true, **kwargs)
       name = resolve_name(name_or_object)
       event = { name: name }
 
@@ -381,7 +381,7 @@ module ActiveSupport
 
       return if subscribers.empty?
 
-      payload = resolve_payload(name_or_object, payload, **kwargs)
+      payload = resolve_payload(name_or_object, payload, filter_payload, **kwargs)
 
       event = {
         name: name,
@@ -446,12 +446,12 @@ module ActiveSupport
     # * +:caller_depth+ - The stack depth to use for source location (default: 1).
     #
     # * +:kwargs+ - Additional payload data when using string/symbol event names.
-    def debug(name_or_object, payload = nil, caller_depth: 1, **kwargs)
+    def debug(name_or_object, payload = nil, caller_depth: 1, filter_payload: true, **kwargs)
       if debug_mode?
         if block_given?
-          notify(name_or_object, payload, caller_depth: caller_depth + 1, **kwargs.merge(yield))
+          notify(name_or_object, payload, caller_depth: caller_depth + 1, filter_payload: filter_payload, **kwargs.merge(yield))
         else
-          notify(name_or_object, payload, caller_depth: caller_depth + 1, **kwargs)
+          notify(name_or_object, payload, caller_depth: caller_depth + 1, filter_payload: filter_payload, **kwargs)
         end
       end
     end
@@ -579,14 +579,16 @@ module ActiveSupport
         end
       end
 
-      def resolve_payload(name_or_object, payload, **kwargs)
+      def resolve_payload(name_or_object, payload, filter, **kwargs)
         case name_or_object
         when String, Symbol
           handle_unexpected_args(name_or_object, payload, kwargs) if payload && kwargs.any?
           if kwargs.any?
-            payload_filter.filter(kwargs.transform_keys(&:to_sym))
+            resolved = kwargs.transform_keys(&:to_sym)
+            filter ? payload_filter.filter(resolved) : resolved
           elsif payload
-            payload_filter.filter(payload.transform_keys(&:to_sym))
+            resolved = payload.transform_keys(&:to_sym)
+            filter ? payload_filter.filter(resolved) : resolved
           end
         else
           handle_unexpected_args(name_or_object, payload, kwargs) if payload || kwargs.any?

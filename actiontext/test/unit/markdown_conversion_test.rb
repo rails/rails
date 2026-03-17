@@ -1,0 +1,1007 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
+  test "escape_markdown_text escapes metacharacters" do
+    assert_equal '\\*\\*bold\\*\\* and \\[link\\](url)', ActionText::MarkdownConversion.escape_markdown_text("**bold** and [link](url)")
+  end
+
+  test "markdown_link escapes title text and encodes URL" do
+    assert_equal '[\\*\\*bold\\*\\*](https://example.com/a%20b)', ActionText::MarkdownConversion.markdown_link("**bold**", "https://example.com/a b")
+  end
+
+  test "markdown_link with disallowed URI scheme returns escaped title" do
+    assert_equal "\\[click here\\]", ActionText::MarkdownConversion.markdown_link("click here", "javascript:alert(1)")
+  end
+
+  test "markdown_link with image: true returns image syntax" do
+    assert_equal "![photo](https://example.com/photo.png)", ActionText::MarkdownConversion.markdown_link("photo", "https://example.com/photo.png", image: true)
+  end
+
+  test "markdown_link with image: true and disallowed URI scheme returns escaped title" do
+    assert_equal "\\[Image\\]", ActionText::MarkdownConversion.markdown_link("Image", "data:text/html,PAYLOAD", image: true)
+  end
+
+  test "markdown_link with allowed data:image URI produces image link" do
+    assert_equal "![photo](data:image/png;base64,abc)", ActionText::MarkdownConversion.markdown_link("photo", "data:image/png;base64,abc", image: true)
+  end
+
+  # --- Text tests ---
+
+  test "plain text passes through unchanged" do
+    assert_converted_to(
+      "hello world",
+      "hello world"
+    )
+    assert_converted_to(
+      "hello world",
+      "<p>hello world</p>"
+    )
+  end
+
+  test "empty content" do
+    assert_converted_to("", "")
+  end
+
+  test "leading and trailing whitespace is stripped" do
+    assert_converted_to("hello", "<p>  hello  </p>")
+  end
+
+  test "HTML entities are decoded" do
+    assert_converted_to(
+      'asdf \< asdf & asdf \> asdf',
+      "<p>asdf &lt; asdf &amp; asdf &gt; asdf</p>"
+    )
+  end
+
+  test "text escaping: angle bracket (HTML block)" do
+    assert_converted_to('\<!-- hidden --\>', "<p>&lt;!-- hidden --&gt;</p>")
+  end
+
+  test "text escaping: backslash (escape character)" do
+    assert_converted_to('a \\\\ b', '<p>a \\ b</p>')
+  end
+
+  test "text escaping: backtick (code span)" do
+    assert_converted_to('a \\` b', "<p>a ` b</p>")
+  end
+
+  test "text escaping: asterisk (emphasis)" do
+    assert_converted_to('\\*not italic\\*', "<p>*not italic*</p>")
+    assert_converted_to('\\*\\*not bold\\*\\*', "<p>**not bold**</p>")
+  end
+
+  test "text escaping: underscore (emphasis)" do
+    assert_converted_to('\\_not italic\\_', "<p>_not italic_</p>")
+    assert_converted_to('\\_\\_not bold\\_\\_', "<p>__not bold__</p>")
+  end
+
+  test "text escaping: curly braces (reserved for extensions)" do
+    assert_converted_to('\\{attr\\}', "<p>{attr}</p>")
+  end
+
+  test "text escaping: square brackets (link text)" do
+    assert_converted_to('\\[not a link\\]', "<p>[not a link]</p>")
+  end
+
+  test "text escaping: parentheses are not escaped because bracket escaping prevents link syntax" do
+    assert_converted_to("(aside)", "<p>(aside)</p>")
+    assert_converted_to("f(x)", "<p>f(x)</p>")
+  end
+
+  test "text escaping: hash (ATX heading)" do
+    assert_converted_to('\# not a heading', "<p># not a heading</p>")
+    assert_converted_to('\## not a heading', "<p>## not a heading</p>")
+    assert_converted_to('\#', "<p>#</p>")
+    assert_converted_to("> \\# not a heading", "<blockquote># not a heading</blockquote>")
+  end
+
+  test "text escaping: hash is not escaped in normal prose" do
+    assert_converted_to("C# is a language", "<p>C# is a language</p>")
+    assert_converted_to("issue #123", "<p>issue #123</p>")
+    assert_converted_to("#hashtag", "<p>#hashtag</p>")
+  end
+
+  test "text escaping: plus (unordered list item)" do
+    assert_converted_to('\+ not a list', "<p>+ not a list</p>")
+  end
+
+  test "text escaping: plus is not escaped in normal prose" do
+    assert_converted_to("C++ is a language", "<p>C++ is a language</p>")
+    assert_converted_to("a + b = c", "<p>a + b = c</p>")
+    assert_converted_to("+1 for this", "<p>+1 for this</p>")
+  end
+
+  test "text escaping: hyphen (list item, thematic break, setext heading)" do
+    assert_converted_to('\- not a list', "<p>- not a list</p>")
+    assert_converted_to('\---', "<p>---</p>")
+    assert_converted_to("> \\- not a list", "<blockquote>- not a list</blockquote>")
+    assert_converted_to('> \---', "<blockquote>---</blockquote>")
+  end
+
+  test "text escaping: equals (setext heading)" do
+    assert_converted_to('\===', "<p>===</p>")
+    assert_converted_to('\=', "<p>=</p>")
+    assert_converted_to('> \===', "<blockquote>===</blockquote>")
+  end
+
+  test "text escaping: equals is not escaped in normal prose" do
+    assert_converted_to("a = b", "<p>a = b</p>")
+    assert_converted_to("a == b", "<p>a == b</p>")
+    assert_converted_to("=foo", "<p>=foo</p>")
+  end
+
+  test "text escaping: hyphen is not escaped in normal prose" do
+    assert_converted_to("well-known fact", "<p>well-known fact</p>")
+    assert_converted_to("foo -- bar", "<p>foo -- bar</p>")
+    assert_converted_to("foo --- bar", "<p>foo --- bar</p>")
+  end
+
+  test "text escaping: dot (ordered list item)" do
+    assert_converted_to('1\. not a list', "<p>1. not a list</p>")
+    assert_converted_to('1\.', "<p>1.</p>")
+  end
+
+  test "text escaping: dot is not escaped in normal prose" do
+    assert_converted_to("end of sentence. start of next", "<p>end of sentence. start of next</p>")
+    assert_converted_to("e.g. for example", "<p>e.g. for example</p>")
+    assert_converted_to("Agent 007. Licensed to kill.", "<p>Agent 007. Licensed to kill.</p>")
+    assert_converted_to("3.1 this is not a list item", "<p>3.1 this is not a list item</p>")
+  end
+
+  test "text escaping: pipe (table delimiter)" do
+    assert_converted_to('a \\| b', "<p>a | b</p>")
+  end
+
+  test "text escaping: tilde (strikethrough)" do
+    assert_converted_to('\\~\\~not struck\\~\\~', "<p>~~not struck~~</p>")
+  end
+
+  test "text escaping: greater-than (block quote)" do
+    assert_converted_to('\> not a quote', "<p>> not a quote</p>")
+    assert_converted_to('\> not a quote', "<p>&gt; not a quote</p>")
+  end
+
+  # --- Tag tests ---
+
+  test "<strong> tags are converted to bold" do
+    assert_converted_to("**hello**", "<strong>hello</strong>")
+  end
+
+  test "<b> tags are converted to bold" do
+    assert_converted_to("**hello**", "<b>hello</b>")
+  end
+
+  test "<em> tags are converted to italic" do
+    assert_converted_to("*hello*", "<em>hello</em>")
+  end
+
+  test "<i> tags are converted to italic" do
+    assert_converted_to("*hello*", "<i>hello</i>")
+  end
+
+  test "<s> tags are converted to strikethrough" do
+    assert_converted_to("~~hello~~", "<s>hello</s>")
+  end
+
+  test "<del> tags are converted to strikethrough" do
+    assert_converted_to("~~hello~~", "<del>hello</del>")
+  end
+
+  test "<code> tags are converted to inline code" do
+    assert_converted_to("`hello`", "<code>hello</code>")
+  end
+
+  test "<code> tags containing backticks are fenced with double backticks" do
+    assert_converted_to("``foo`bar``", "<code>foo`bar</code>")
+  end
+
+  test "<code> tags with leading backtick are space-padded" do
+    assert_converted_to("`` `leading ``", "<code>`leading</code>")
+  end
+
+  test "<code> tags with trailing backtick are space-padded" do
+    assert_converted_to("`` trailing` ``", "<code>trailing`</code>")
+  end
+
+  test "nested <strong> and <em> tags produce bold italic" do
+    assert_converted_to("***hello***", "<strong><em>hello</em></strong>")
+  end
+
+  test "redundant nested <b> and <strong> tags do not double-bold" do
+    assert_converted_to("**hello**", "<b><strong>hello</strong></b>")
+  end
+
+  test "<strong> with inner whitespace moves spaces outside markers" do
+    assert_converted_to("a **hello** b", "<p>a<strong> hello </strong>b</p>")
+  end
+
+  test "<em> with inner whitespace moves spaces outside markers" do
+    assert_converted_to("a *hello* b", "<p>a<em> hello </em>b</p>")
+  end
+
+  test "<b> wrapping <code> wrapping <strong> collapses to bold code" do
+    assert_converted_to("**`asdf`**", "<b><code><strong>asdf</strong></code></b>")
+  end
+
+  test "adjacent <b> spans are merged" do
+    assert_converted_to(
+      "aaa **`bb` or `cc`** ddd",
+      "<p>aaa <b><code><strong>bb</strong></code></b><b><strong> or </strong></b><b><code><strong>cc</strong></code></b> ddd</p>"
+    )
+  end
+
+  test "adjacent <i> spans are merged" do
+    assert_converted_to(
+      "*`foo` and `bar`*",
+      "<p><i><code><em>foo</em></code></i><i><em> and </em></i><i><code><em>bar</em></code></i></p>"
+    )
+  end
+
+  test "adjacent bold+italic spans are merged" do
+    assert_converted_to(
+      "***`foo`** **and** **`bar`***",
+      "<p><i><b><code><strong>foo</strong></code></b></i><i><b><strong> and </strong></b></i><i><b><code><strong>bar</strong></code></b></i></p>"
+    )
+  end
+
+  test "inline siblings preserve whitespace between them" do
+    assert_converted_to(
+      "**before** ~~middle~~ *after*",
+      "<p><strong>before</strong> <del>middle</del> <em>after</em></p>"
+    )
+    assert_converted_to(
+      "**bold** *italic* ~~struck~~ `code`",
+      "<p><strong>bold</strong> <em>italic</em> <s>struck</s> <code>code</code></p>"
+    )
+    assert_converted_to(
+      "**bold** *italic* ~~struck~~ `code`",
+      "<p><b>bold</b> <i>italic</i> <del>struck</del> <code>code</code></p>"
+    )
+  end
+
+  test "<div> passes through content" do
+    assert_converted_to("hello", "<div>  hello  </div>")
+  end
+
+  test "<span> passes through content" do
+    assert_converted_to("hello", "<span>  hello  </span>")
+  end
+
+  test "Lexxy-style <p> tags are separated by two new lines" do
+    assert_converted_to(
+      "hello\n\nworld",
+      "<p>hello</p><p>world</p>"
+    )
+  end
+
+  test "Lexxy-style pretty-printed <p> tags do not leak indentation into markdown" do
+    assert_converted_to(
+      "hello\n\nworld",
+      <<~HTML
+        <p>
+          hello
+        </p>
+        <p>
+          world
+        </p>
+      HTML
+    )
+  end
+
+  test "Trix-style <div> blocks with <br> line breaks do not get additional newlines" do
+    assert_converted_to(
+      "Line one.\n\n**Subject header**\n\nLine two.",
+      "<div>Line one.<br><br></div><div><strong>Subject header<br></strong><br></div><div>Line two.<br><br></div><div><br></div>"
+    )
+  end
+
+  test "Trix-style pretty-printed HTML does not leak indentation into markdown" do
+    assert_converted_to(
+      "Line one.\n\n**Subject header**\n\nLine two.",
+      <<~HTML
+        <div>
+          Line one.
+          <br>
+          <br>
+        </div>
+        <div>
+          <strong>
+            Subject header
+            <br>
+          </strong>
+          <br>
+        </div>
+        <div>
+          Line two.
+          <br>
+          <br>
+        </div>
+        <div>
+          <br>
+        </div>
+      HTML
+    )
+  end
+
+  test "<h1> through <h6> tags are converted to heading markers" do
+    assert_converted_to("# hello", "<h1>hello</h1>")
+    assert_converted_to("## hello", "<h2>hello</h2>")
+    assert_converted_to("### hello", "<h3>hello</h3>")
+    assert_converted_to("#### hello", "<h4>hello</h4>")
+    assert_converted_to("##### hello", "<h5>hello</h5>")
+    assert_converted_to("###### hello", "<h6>hello</h6>")
+  end
+
+  test "<blockquote> tags are converted to quoted lines" do
+    assert_converted_to("> hello", "<blockquote>hello</blockquote>")
+  end
+
+  test "<blockquote> with multiple lines prefixes each line" do
+    assert_converted_to(
+      "> line1\n> line2",
+      "<blockquote>line1\nline2</blockquote>"
+    )
+  end
+
+  test "nested <blockquote> tags produce nested quotes" do
+    assert_converted_to(
+      "> this is a quote\n> > of a quote",
+      "<blockquote>this is a quote<blockquote>of a quote</blockquote></blockquote>"
+    )
+  end
+
+  test "<br> tags are converted to newlines" do
+    assert_converted_to("hello\nworld", "hello<br>world")
+  end
+
+  test "<hr> tags are converted to thematic breaks" do
+    assert_converted_to("---", "<hr>")
+  end
+
+  test "<pre> tags are converted to fenced code blocks" do
+    assert_converted_to("```\nhello\n```", "<pre>hello</pre>")
+  end
+
+  test "<pre> with nested <code> tag is converted to fenced code block" do
+    assert_converted_to("```\nhello\n```", "<pre><code>hello</code></pre>")
+  end
+
+  test "<pre> preserves inner blank lines" do
+    assert_converted_to(
+      "```\n\nblank first line\n```",
+      "<pre><code>\n\nblank first line\n</code></pre>"
+    )
+  end
+
+  test "<pre> preserves leading and trailing spaces on lines" do
+    assert_converted_to(
+      "```\n  indented\nline  \n```",
+      "<pre><code>  indented\nline  </code></pre>"
+    )
+  end
+
+  test "<pre> containing triple backticks uses longer fence" do
+    assert_converted_to(
+      "````\n```\nsome code\n```\n````",
+      "<pre><code>```\nsome code\n```</code></pre>"
+    )
+  end
+
+  test "<pre> followed by <p> has blank line separator" do
+    assert_converted_to(
+      "```\nhello\n```\n\nworld",
+      "<pre>hello</pre><p>world</p>"
+    )
+  end
+
+  test "<ul> tags are converted to unordered lists" do
+    assert_converted_to(
+      "before\n\n- one\n- two\n- three\n\nafter",
+      "<p>before</p><ul><li>one</li><li>two</li><li>three</li></ul><p>after</p>"
+    )
+  end
+
+  test "<ol> tags are converted to ordered lists" do
+    assert_converted_to(
+      "before\n\n1. one\n2. two\n3. three\n\nafter",
+      "<p>before</p><ol><li>one</li><li>two</li><li>three</li></ol><p>after</p>"
+    )
+  end
+
+  test "empty <li> tags are skipped" do
+    assert_converted_to(
+      "before\n\n- real\n\nafter",
+      "<p>before</p><ul><li></li><li>real</li></ul><p>after</p>"
+    )
+  end
+
+  test "nested <ul> tags are indented" do
+    assert_converted_to(
+      "- one\n  - nested\n- two",
+      "<ul><li>one<ul><li>nested</li></ul></li><li>two</li></ul>"
+    )
+  end
+
+  test "nested <ul> where sublist is in its own <li>" do
+    assert_converted_to(
+      "- top 1\n- top 2\n  - nested 1\n  - nested 2",
+      <<~HTML
+        <ul>
+          <li>top 1</li>
+          <li>top 2</li>
+          <li>
+            <ul>
+              <li>nested 1</li>
+              <li>nested 2</li>
+            </ul>
+          </li>
+        </ul>
+      HTML
+    )
+  end
+
+  test "<ul> followed by <p> has blank line separator" do
+    assert_converted_to(
+      "- Item 1\n  - Subitem\n- Item 2\n\nParagraph",
+      <<~HTML
+        <ul>
+          <li>Item 1</li>
+          <li>
+            <ul>
+              <li>Subitem</li>
+            </ul>
+          </li>
+          <li>Item 2</li>
+        </ul>
+        <p>Paragraph</p>
+      HTML
+    )
+  end
+
+  test "<a> tags are converted to links" do
+    assert_converted_to(
+      "[click here](https://example.com)",
+      '<a href="https://example.com">click here</a>'
+    )
+  end
+
+  test "<a> tags with formatting inside" do
+    assert_converted_to(
+      "[**bold link**](https://example.com)",
+      '<a href="https://example.com"><strong>bold link</strong></a>'
+    )
+  end
+
+  test "<a> tags with parentheses in href are encoded" do
+    assert_converted_to(
+      "[Rust](https://en.wikipedia.org/wiki/Rust_%28programming_language%29)",
+      '<a href="https://en.wikipedia.org/wiki/Rust_(programming_language)">Rust</a>'
+    )
+  end
+
+  test "<a> tags with spaces in href are encoded" do
+    assert_converted_to(
+      "[link](https://example.com/path%20with%20spaces)",
+      '<a href="https://example.com/path with spaces">link</a>'
+    )
+  end
+
+  test "<a> tags with angle brackets in href are encoded" do
+    assert_converted_to(
+      "[link](https://example.com/a%3Cb%3Ec)",
+      '<a href="https://example.com/a<b>c">link</a>'
+    )
+  end
+
+  test "<a> tags with newlines in href are encoded" do
+    assert_converted_to(
+      "[link](https://example.com/a%0Ab)",
+      "<a href=\"https://example.com/a\nb\">link</a>"
+    )
+  end
+
+  test "<a> tags with carriage returns in href are encoded" do
+    # Nokogiri normalizes \r to \n in attribute values
+    assert_converted_to(
+      "[link](https://example.com/a%0Ab)",
+      "<a href=\"https://example.com/a\rb\">link</a>"
+    )
+  end
+
+  test "<a> tags with tabs in href are encoded" do
+    assert_converted_to(
+      "[link](https://example.com/a%09b)",
+      "<a href=\"https://example.com/a\tb\">link</a>"
+    )
+  end
+
+  test "<a> tags with already-encoded parentheses in href are not double-encoded" do
+    assert_converted_to(
+      "[link](https://example.com/foo%28bar%29)",
+      '<a href="https://example.com/foo%28bar%29">link</a>'
+    )
+  end
+
+  test "<a> tags with bracket injection in link text are escaped" do
+    assert_converted_to(
+      '[text\](https://evil.com)](https://example.com)',
+      '<a href="https://example.com">text](https://evil.com)</a>'
+    )
+  end
+
+  test "<a> tags with backslash+bracket injection in link text are escaped" do
+    assert_converted_to(
+      '[text\\\\\](https://evil.com)](https://example.com)',
+      '<a href="https://example.com">text\](https://evil.com)</a>'
+    )
+  end
+
+  test "<a> tags with data:image href are converted to links" do
+    assert_converted_to(
+      "[img](data:image/png;base64,abc123)",
+      '<a href="data:image/png;base64,abc123">img</a>'
+    )
+  end
+
+  test "<a> tags without href pass through content" do
+    assert_converted_to("**click here**", "<a><strong>click here</strong></a>")
+  end
+
+  test "<a> tags with mailto: href are converted to links" do
+    assert_converted_to("[email](mailto:test@example.com)", '<a href="mailto:test@example.com">email</a>')
+  end
+
+  test "<a> tags with tel: href are converted to links" do
+    assert_converted_to("[call](tel:+1234567890)", '<a href="tel:+1234567890">call</a>')
+  end
+
+  test "<a> tags with relative href are converted to links" do
+    assert_converted_to("[page](/about)", '<a href="/about">page</a>')
+  end
+
+  test "<a> tags with relative href containing colons are converted to links" do
+    assert_converted_to("[notes](/docs/v1:notes)", '<a href="/docs/v1:notes">notes</a>')
+  end
+
+  test "<a> tags with javascript: href pass through content without link" do
+    assert_converted_to("click here", '<a href="javascript:alert(1)">click here</a>')
+  end
+
+  test "<a> tags with javascript: href obfuscated by leading space" do
+    assert_converted_to("click here", '<a href=" javascript:alert(1)">click here</a>')
+  end
+
+  test "<a> tags with javascript: href obfuscated by leading tab" do
+    assert_converted_to("click here", '<a href="	javascript:alert(1)">click here</a>')
+  end
+
+  test "<a> tags with javascript: href obfuscated by HTML entity encoding" do
+    assert_converted_to("click here", '<a href="&#106;avascript:alert(1)">click here</a>')
+  end
+
+  test "<a> tags with javascript: href obfuscated by entity-encoded colon" do
+    assert_converted_to("click here", '<a href="javascript&#58;alert(1)">click here</a>')
+  end
+
+  test "<a> tags with JAVASCRIPT: href (uppercase) pass through content without link" do
+    assert_converted_to("click here", '<a href="JAVASCRIPT:alert(1)">click here</a>')
+  end
+
+  test "<a> tags with javascript: href obfuscated by newline" do
+    assert_converted_to("click here", '<a href="&#10;javascript:alert(1)">click here</a>')
+  end
+
+  test "<table> with <thead> is converted to markdown table" do
+    assert_converted_to(
+      "| Name | Age |\n| --- | --- |\n| Alice | 30 |",
+      <<~HTML
+        <table>
+          <thead><tr><th>Name</th><th>Age</th></tr></thead>
+          <tbody><tr><td>Alice</td><td>30</td></tr></tbody>
+        </table>
+      HTML
+    )
+  end
+
+  test "<table> cells with formatting" do
+    assert_converted_to(
+      "| **bold** | *italic* |",
+      "<table><tr><td><strong>bold</strong></td><td><em>italic</em></td></tr></table>"
+    )
+  end
+
+  test "<table> without <thead>" do
+    assert_converted_to(
+      "| a | b |\n| c | d |",
+      "<table><tr><td>a</td><td>b</td></tr><tr><td>c</td><td>d</td></tr></table>"
+    )
+  end
+
+  test "<table> with <th> headers in <tbody>" do
+    assert_converted_to(
+      "| a | b | c |\n| --- | --- | --- |\n| 1 | asdf | asdf |\n| 2 | asdf | asdf |",
+      "<table><tbody><tr><th><p>a</p></th><th><p>b</p></th><th><p>c</p></th></tr><tr><th><p>1</p></th><td><p>asdf</p></td><td><p>asdf</p></td></tr><tr><th><p>2</p></th><td><p>asdf</p></td><td><p>asdf</p></td></tr></tbody></table>"
+    )
+  end
+
+  test "<details> and <summary> are converted" do
+    assert_converted_to(
+      "**Click to expand**\n\nHidden content",
+      "<details><summary>Click to expand</summary>Hidden content</details>"
+    )
+  end
+
+  test "unknown elements pass through their content" do
+    assert_converted_to("hello", "<asdf>hello</asdf>")
+  end
+
+  test "<script> tags are ignored" do
+    assert_converted_to(
+      "hello",
+      <<~HTML
+        <script type="javascript">
+          console.log("message");
+        </script>
+        <div>hello</div>
+      HTML
+    )
+  end
+
+  test "<style> tags are ignored" do
+    assert_converted_to(
+      "hello",
+      <<~HTML
+        <style type="text/css">
+          body { color: red; }
+        </style>
+        <div>hello</div>
+      HTML
+    )
+  end
+
+  test "non-core inline element preserves surrounding whitespace" do
+    assert_converted_to(
+      "hello world",
+      "hello <abbr>world</abbr>"
+    )
+  end
+
+  test "unknown element with blank whitespace node drops it (block-like default)" do
+    assert_converted_to(
+      "helloworld",
+      "<abbr>hello</abbr> <custom-widget>world</custom-widget>"
+    )
+  end
+
+  # --- Attachment tests ---
+
+  test "RemoteImage attachment with surrounding text" do
+    assert_converted_to(
+      "Hello world! ![Cat](http://example.com/cat.jpg)",
+      'Hello world! <action-text-attachment url="http://example.com/cat.jpg" content-type="image/jpeg" caption="Cat"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachments separated by whitespace preserve the whitespace" do
+    assert_converted_to(
+      "![A](https://example.com/a.jpg) ![B](https://example.com/b.jpg)",
+      '<action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment> <action-text-attachment content-type="image/jpeg" url="https://example.com/b.jpg" caption="B"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachments and text separated by whitespace preserve the whitespace" do
+    assert_converted_to(
+      "![A](https://example.com/a.jpg) and ![B](https://example.com/b.jpg)",
+      '<action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment> and <action-text-attachment content-type="image/jpeg" url="https://example.com/b.jpg" caption="B"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment with whitespace before inline element preserves the whitespace" do
+    assert_converted_to(
+      "![A](https://example.com/a.jpg) **bold**",
+      '<action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment> <strong>bold</strong>'
+    )
+  end
+
+  test "RemoteImage attachment with whitespace before attachment preserves the whitespace" do
+    assert_converted_to(
+      "**bold** ![A](https://example.com/a.jpg)",
+      '<strong>bold</strong> <action-text-attachment content-type="image/jpeg" url="https://example.com/a.jpg" caption="A"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment with caption is converted to markdown image" do
+    assert_converted_to(
+      "![A photo](https://example.com/photo.png)",
+      '<action-text-attachment content-type="image/png" url="https://example.com/photo.png" caption="A photo"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment with parentheses in URL is encoded" do
+    assert_converted_to(
+      "![Photo](https://example.com/photo_%28large%29.png)",
+      '<action-text-attachment content-type="image/png" url="https://example.com/photo_(large).png" caption="Photo"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment with bracket injection in caption is escaped" do
+    assert_converted_to(
+      '![evil\](https://evil.com)!\[x](https://example.com/photo.png)',
+      '<action-text-attachment content-type="image/png" url="https://example.com/photo.png" caption="evil](https://evil.com)![x"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment with emphasis markers in caption is escaped" do
+    assert_converted_to(
+      '![photo \*large\*](https://example.com/photo.png)',
+      '<action-text-attachment content-type="image/png" url="https://example.com/photo.png" caption="photo *large*"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment with angle brackets in caption is escaped" do
+    assert_converted_to(
+      "![photo \\<large\\>](https://example.com/photo.png)",
+      '<action-text-attachment content-type="image/png" url="https://example.com/photo.png" caption="photo &lt;large&gt;"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment with allowed data:image URI renders as image link" do
+    assert_converted_to(
+      "![Image](data:image/png;base64,abc)",
+      '<action-text-attachment content-type="image/png" url="data:image/png;base64,abc"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment with disallowed URI scheme omits the link" do
+    assert_converted_to(
+      "\\[Image\\]",
+      '<action-text-attachment content-type="image/jpeg" url="data:text/html,DANGEROUS_PAYLOAD"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment without caption falls back to Image alt text" do
+    assert_converted_to(
+      "![Image](https://example.com/photo.jpg)",
+      '<action-text-attachment content-type="image/jpeg" url="https://example.com/photo.jpg" filename="photo.jpg"></action-text-attachment>'
+    )
+  end
+
+  test "Content attachment HTML is converted to markdown" do
+    assert_converted_to(
+      "**hello**",
+      '<action-text-attachment content-type="text/html" content="<strong>hello</strong>"></action-text-attachment>'
+    )
+
+    assert_converted_to(
+      "**hello**",
+      '<action-text-attachment content-type="text/html" content="&lt;strong&gt;hello&lt;/strong&gt;"></action-text-attachment>'
+    )
+  end
+
+  test "Blob image without :attachment_links uses caption" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    assert_converted_to("\\[Captioned\\]", html)
+  end
+
+  test "Blob image with attachment_links: true uses caption" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_converted_to("![Captioned](#{url})", html, attachment_links: true)
+    end
+  end
+
+  test "Blob image without :attachment_links uses filename" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
+
+    assert_converted_to("\\[racecar.jpg\\]", html)
+  end
+
+  test "Blob image with attachment_links: true uses filename" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_converted_to("![racecar.jpg](#{url})", html, attachment_links: true)
+    end
+  end
+
+  test "Blob without :attachment_links uses caption" do
+    blob = create_file_blob(filename: "report.txt", content_type: "text/plain")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    assert_converted_to("\\[Captioned\\]", html)
+  end
+
+  test "Blob with attachment_links: true uses caption" do
+    blob = create_file_blob(filename: "report.txt", content_type: "text/plain")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_converted_to("[Captioned](#{url})", html, attachment_links: true)
+    end
+  end
+
+  test "Blob without :attachment_links uses filename" do
+    blob = create_file_blob(filename: "report.txt", content_type: "text/plain")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
+
+    assert_converted_to("\\[report.txt\\]", html)
+  end
+
+  test "Blob with attachment_links: true uses filename" do
+    blob = create_file_blob(filename: "report.txt", content_type: "text/plain")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_converted_to("[report.txt](#{url})", html, attachment_links: true)
+    end
+  end
+
+  test "Blob image without :attachment_links escapes metacharacters in caption" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo *large*"></action-text-attachment>)
+
+    assert_converted_to("\\[photo \\*large\\*\\]", html)
+  end
+
+  test "Blob image with attachment_links: true escapes metacharacters in caption" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo *large*"></action-text-attachment>)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_converted_to("![photo \\*large\\*](#{url})", html, attachment_links: true)
+    end
+  end
+
+  test "Blob image without :attachment_links escapes angle brackets in caption" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo <large>"></action-text-attachment>)
+    html2 = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo &lt;large&gt;"></action-text-attachment>)
+
+    assert_converted_to("\\[photo \\<large\\>\\]", html)
+    assert_converted_to("\\[photo \\<large\\>\\]", html2)
+  end
+
+  test "Blob image with attachment_links: true escapes angle brackets in caption" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo <large>"></action-text-attachment>)
+    html2 = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo &lt;large&gt;"></action-text-attachment>)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_converted_to("![photo \\<large\\>](#{url})", html, attachment_links: true)
+      assert_converted_to("![photo \\<large\\>](#{url})", html2, attachment_links: true)
+    end
+  end
+
+  test "Blob image with mailer renderer and attachment_links: true generates markdown link" do
+    original_default_url_options = ActionMailer::Base.default_url_options
+    ActionMailer::Base.default_url_options = { host: "example.com" }
+
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    mailer = MessagesMailer.new
+    ActionText::Content.with_renderer(mailer) do
+      url = mailer.url_for(blob)
+      assert_converted_to("![Captioned](#{url})", html, attachment_links: true)
+    end
+  ensure
+    ActionMailer::Base.default_url_options = original_default_url_options
+  end
+
+  test "Blob image with attachment_links: true raises when mailer missing host" do
+    original_default_url_options = ActionMailer::Base.default_url_options
+    ActionMailer::Base.default_url_options = {}
+
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    mailer = MessagesMailer.new
+    ActionText::Content.with_renderer(mailer) do
+      assert_raises(ArgumentError) do
+        ActionText::Content.new(html).to_markdown(attachment_links: true)
+      end
+      assert_converted_to("\\[Captioned\\]", html)
+    end
+  ensure
+    ActionMailer::Base.default_url_options = original_default_url_options
+  end
+
+  test "Blob image with attachment_links: true raises when no renderer" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    error = assert_raises(ArgumentError) do
+      ActionText::Content.new(html).to_markdown(attachment_links: true)
+    end
+    assert_match(/rendering context/, error.message)
+    assert_converted_to("\\[Captioned\\]", html)
+  end
+
+  test "Blob image with renderer uses bracketed title by default" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    with_controller_renderer do
+      assert_converted_to("\\[Captioned\\]", html)
+    end
+  end
+
+  test "Blob image with attachment_links: true propagates script_name from request" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Photo"></action-text-attachment>)
+
+    with_controller_renderer(script_name: "/myapp") do |controller|
+      url = controller.url_for(blob)
+      assert_match %r{/myapp/rails/active_storage/blobs/}, url
+      assert_converted_to("![Photo](#{url})", html, attachment_links: true)
+    end
+  end
+
+  test "Blob missing attachable is converted to ☒" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
+    blob.destroy!
+
+    assert_converted_to("☒", html)
+  end
+
+  # --- Fragment and Rich Text tests ---
+
+  test "Fragment#to_markdown memoizes the result" do
+    fragment = ActionText::Fragment.from_html("<p><strong>hello</strong></p>")
+    assert_same fragment.to_markdown, fragment.to_markdown
+  end
+
+  test "RichText#to_markdown" do
+    assert_equal "**hello**", ActionText::RichText.new(body: "<p><strong>hello</strong></p>").to_markdown
+  end
+
+  test "RichText#to_markdown with attachment_links: true" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    body = ActionText::Content.new.append_attachables(blob)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_equal "![racecar.jpg](#{url})", ActionText::RichText.new(body: body).to_markdown(attachment_links: true)
+    end
+  end
+
+  test "RichText#to_markdown handles blank body" do
+    assert_equal "", ActionText::RichText.new(body: "").to_markdown
+  end
+
+  test "RichText#to_markdown handles nil body" do
+    assert_equal "", ActionText::RichText.new(body: nil).to_markdown
+  end
+
+  private
+    def assert_converted_to(expected_markdown, html, **options)
+      assert_equal expected_markdown, ActionText::Content.new(html).to_markdown(**options)
+    end
+
+    def with_controller_renderer(script_name: "")
+      controller = MessagesController.new
+      request = ActionDispatch::TestRequest.create("SCRIPT_NAME" => script_name)
+      request.routes = Rails.application.routes
+      controller.set_request!(request)
+      controller.set_response!(ActionDispatch::TestResponse.new)
+
+      ActionText::Content.with_renderer(controller) do
+        yield controller
+      end
+    end
+end

@@ -51,6 +51,10 @@ module ActionText
       @plain_text ||= PlainTextConversion.node_to_plain_text(source)
     end
 
+    def to_markdown
+      @markdown ||= MarkdownConversion.node_to_markdown(source)
+    end
+
     def to_html
       @html ||= HtmlConversion.node_to_html(source)
     end

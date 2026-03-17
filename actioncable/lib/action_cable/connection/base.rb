@@ -3,6 +3,7 @@
 # :markup: markdown
 
 require "action_dispatch"
+require "active_support/inspect_backport"
 require "active_support/rescuable"
 
 module ActionCable
@@ -165,11 +166,13 @@ module ActionCable
         send_async :handle_close
       end
 
-      def inspect # :nodoc:
-        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-      end
+      ActiveSupport::InspectBackport.apply(self)
 
       private
+        def instance_variables_to_inspect
+          [].freeze
+        end
+
         attr_reader :websocket
         attr_reader :message_buffer
 

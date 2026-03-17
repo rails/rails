@@ -80,7 +80,7 @@ module ActiveRecord
             super,
             @identity,
             @serial,
-            @virtual,
+            @generated,
           ].hash
         end
       end

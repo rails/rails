@@ -31,7 +31,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
         if authenticate_with_http_digest("SuperSecret")  { |username| USERS[username] }
           @logged_in = true
         else
-          request_http_digest_authentication("SuperSecret", "Authentication Failed")
+          request_http_digest_authentication("SuperSecret", "Authentication Failed", "application/json")
         end
       end
   end
@@ -78,6 +78,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
     assert_response :unauthorized
     assert_equal "Authentication Failed", @response.body
+    assert_equal "application/json", @response.media_type
     credentials = decode_credentials(@response.headers["WWW-Authenticate"])
     assert_equal "SuperSecret", credentials[:realm]
   end

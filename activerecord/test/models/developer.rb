@@ -108,7 +108,9 @@ class Developer < ActiveRecord::Base
   end
 
   after_find :track_instance_count
-  cattr_accessor :instance_count
+  class << self
+    attr_accessor :instance_count
+  end
 
   def track_instance_count
     self.class.instance_count ||= 0

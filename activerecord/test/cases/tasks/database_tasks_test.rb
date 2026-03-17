@@ -95,7 +95,7 @@ module ActiveRecord
       end
 
       def test_raises_an_error_when_called_with_protected_environment
-        protected_environments = ActiveRecord::Base.protected_environments
+        protected_environments = ActiveRecord.protected_environments
         current_env            = ActiveRecord::Base.connection_pool.migration_context.current_environment
 
         ActiveRecord::Base.connection_pool.internal_metadata[:environment] = current_env
@@ -110,18 +110,18 @@ module ActiveRecord
           # Assert no error
           ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
 
-          ActiveRecord::Base.protected_environments = [current_env]
+          ActiveRecord.protected_environments = [current_env]
 
           assert_raise(ActiveRecord::ProtectedEnvironmentError) do
             ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
           end
         end
       ensure
-        ActiveRecord::Base.protected_environments = protected_environments
+        ActiveRecord.protected_environments = protected_environments
       end
 
       def test_raises_an_error_when_called_with_protected_environment_which_name_is_a_symbol
-        protected_environments = ActiveRecord::Base.protected_environments
+        protected_environments = ActiveRecord.protected_environments
         current_env            = ActiveRecord::Base.connection_pool.migration_context.current_environment
 
         ActiveRecord::Base.connection_pool.internal_metadata[:environment] = current_env
@@ -136,13 +136,13 @@ module ActiveRecord
           # Assert no error
           ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
 
-          ActiveRecord::Base.protected_environments = [current_env.to_sym]
+          ActiveRecord.protected_environments = [current_env.to_sym]
           assert_raise(ActiveRecord::ProtectedEnvironmentError) do
             ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
           end
         end
       ensure
-        ActiveRecord::Base.protected_environments = protected_environments
+        ActiveRecord.protected_environments = protected_environments
       end
 
       def test_raises_an_error_if_no_migrations_have_been_made
@@ -194,7 +194,7 @@ module ActiveRecord
         env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
 
         with_multi_db_configurations(env) do
-          protected_environments = ActiveRecord::Base.protected_environments
+          protected_environments = ActiveRecord.protected_environments
           current_env = ActiveRecord::Base.connection_pool.migration_context.current_environment
           assert_equal current_env, env
 
@@ -214,13 +214,13 @@ module ActiveRecord
           schema_migration.create_table
           schema_migration.create_version("1")
 
-          ActiveRecord::Base.protected_environments = [current_env.to_sym]
+          ActiveRecord.protected_environments = [current_env.to_sym]
 
           assert_raise(ActiveRecord::ProtectedEnvironmentError) do
             ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!(env)
           end
         ensure
-          ActiveRecord::Base.protected_environments = protected_environments
+          ActiveRecord.protected_environments = protected_environments
         end
       end
 
