@@ -65,7 +65,7 @@ module ActiveRecord
         ids = Array(ids).compact_blank
         ids.map! { |id| pk_type.cast(id) }
 
-        records = if klass.composite_primary_key?
+        records = if primary_key.is_a?(Array)
           klass.where(primary_key => ids).index_by do |record|
             primary_key.map { |primary_key| record._read_attribute(primary_key) }
           end
