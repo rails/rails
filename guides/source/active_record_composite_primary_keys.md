@@ -29,8 +29,8 @@ primary key column. Ensure your use-case requires a composite primary key
 before using one.
 
 
-Composite Primary Key Migrations
---------------------------------
+Creating Migrations
+-------------------
 
 You can create a table with a composite primary key by passing the
 `:primary_key` option to `create_table` with an array value:
@@ -214,8 +214,8 @@ primary key in the SQL query:
 SELECT * FROM authors WHERE first_name = 'Jane' AND last_name = 'Doe'
 ```
 
-Forms for Composite Primary Key Models
----------------------------
+Forms
+-----
 
 Forms may also be built for composite primary key models.
 See the [Form Helpers][] guide for more information on the form builder syntax.
@@ -252,8 +252,8 @@ Note the generated URL contains the `author_id` and `id` delimited by an
 underscore. Once submitted, the controller can extract primary key values from
 the parameters and update the record. See the next section for more details.
 
-Composite Key Parameters
-------------------------
+Controller Parameters
+---------------------
 
 Composite key parameters contain multiple values in one parameter.
 For this reason, we need to be able to extract each value and pass them to
@@ -284,8 +284,8 @@ composite key value `["4", "2"]` and pass it to `Book.find` to render the right
 record in the view. The `extract_value` method may be used to extract arrays
 out of any delimited parameters.
 
-Composite Primary Key Fixtures
-------------------------------
+Fixtures
+--------
 
 Fixtures for composite primary key tables are fairly similar to normal tables.
 When using an id column, the column may be omitted as usual:
