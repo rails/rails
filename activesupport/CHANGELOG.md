@@ -1,3 +1,16 @@
+*   `ActiveSupport::Cache::RedisCacheStore` entirely reimplemented.
+
+    Now depends on the much lighter `redis-client >= 0.28.0` instead of `redis >= 4.0.1`.
+
+    The change shouldn't be noticeable unless the cache is configured with the `:redis` argument.
+    In such case it will keep working for now, but will issue a deprecation warning.
+
+    Prefer configuring Redis Cache Store with an `:url` argument instead, but if you need advanced options
+    not supported by Redis Cache Store constructor, you can alternatively pass a custom `RedisClient::Config` instance
+    via the `:client` argument.
+
+    *Jean Boussier*
+
 *   Fix `NumberHelper` raising `FloatDomainError` for `Infinity` / `NaN` with
     `significant: true`.
 
