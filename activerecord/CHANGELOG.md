@@ -1,3 +1,17 @@
+*   Adds a new `:update_if_dirty` option for the `on_duplicate` parameter of
+    the `upsert_all` method.
+
+    Specifying this option will skip any duplicate rows that are identical
+    to the values being provided for the update. Skipped rows will not
+    appear in the return value of `upsert_all`. This is handy when you want
+    to know which specific rows were modified by the statement.
+
+    Currently this feature is only supported by the postgresql adapter.
+    Using this option should reduce WAL noise and vacuums when your use case
+    for `upsert_all` often results in unchanged rows.
+
+    *Clayton Passmore*
+
 *   Support PostgreSQL `RESET` on readonly queries.
 
     ```ruby

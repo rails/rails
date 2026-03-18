@@ -570,6 +570,24 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_in_delta updated_at, Book.find(101).updated_at, 1
   end
 
+  def test_upsert_all_returns_row_when_values_do_not_change
+    skip unless supports_insert_on_duplicate_update? && supports_insert_returning?
+
+    Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }]
+    ret = Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }], returning: :id
+
+    assert_equal [[101]], ret.rows
+  end
+
+  def test_upsert_all_returns_row_when_values_do_not_change_and_timestamps_are_not_recorded
+    skip unless supports_insert_on_duplicate_update? && supports_insert_returning?
+
+    Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }]
+    ret = Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }], returning: :id, record_timestamps: false
+
+    assert_equal [[101]], ret.rows
+  end
+
   def test_upsert_all_touches_updated_at_and_updated_on_when_values_change
     skip unless supports_insert_on_duplicate_update?
 
@@ -766,6 +784,84 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_nil alice.created_on
     assert_not_nil alice.updated_at
     assert_not_nil alice.updated_on
+  end
+
+  def test_upsert_all_update_if_dirty_applies_changes_and_skips_unchanged_rows
+    skip unless supports_insert_on_duplicate_update_if_dirty?
+
+    updated_at = Time.now.utc - 5.years
+    Book.insert_all [
+      { id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1), updated_at: updated_at },
+      { id: 102, name: "Perelandra", published_on: Date.new(1943, 4, 20), updated_at: updated_at }
+    ]
+
+    with_record_timestamps(Book, true) do
+      Book.upsert_all [
+        { id: 101, name: "Out of the Silent Planet", published_on: Date.new(1984, 4, 1) },
+        { id: 102, name: "Perelandra", published_on: Date.new(1943, 4, 20) }
+      ], on_duplicate: :update_if_dirty
+
+      book101 = Book.find(101)
+      assert_equal Date.new(1984, 4, 1), book101.published_on
+      assert_equal Time.now.utc.year, book101.updated_at.year
+
+      book102 = Book.find(102)
+      assert_equal Date.new(1943, 4, 20), book102.published_on
+      assert_in_delta book102.updated_at, updated_at, 1
+    end
+  end
+
+  def test_upsert_all_update_if_dirty_omits_unchanged_rows_from_returned_values
+    skip unless supports_insert_on_duplicate_update_if_dirty? && supports_insert_returning?
+
+    Book.insert_all [
+      { id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) },
+      { id: 102, name: "Perelandra", published_on: Date.new(1943, 4, 20) }
+    ]
+
+    ret = Book.upsert_all [
+      { id: 101, name: "Out of the Silent Planet", published_on: Date.new(1984, 4, 1) },
+      { id: 102, name: "Perelandra", published_on: Date.new(1943, 4, 20) }
+    ], on_duplicate: :update_if_dirty, returning: :id
+
+    assert_equal [[101]], ret.rows
+  end
+
+  def test_upsert_all_update_if_dirty_inserts_new_records
+    skip unless supports_insert_on_duplicate_update_if_dirty?
+
+    assert_difference "Book.count", +1 do
+      Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }], on_duplicate: :update_if_dirty
+    end
+  end
+
+  def test_upsert_all_update_if_dirty_updates_when_specified_columns_are_different
+    skip unless supports_insert_on_duplicate_update_if_dirty?
+
+    Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }]
+    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1984, 4, 1) }], on_duplicate: :update_if_dirty, update_only: [:published_on]
+
+    book = Book.find(101)
+    assert_equal Date.new(1984, 4, 1), book.published_on
+  end
+
+  def test_upsert_all_update_if_dirty_skips_when_specified_columns_are_the_same
+    skip unless supports_insert_on_duplicate_update_if_dirty?
+
+    Book.insert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1938, 4, 1) }]
+    Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1984, 4, 1) }], on_duplicate: :update_if_dirty, update_only: [:name]
+
+    book = Book.find(101)
+    assert_equal Date.new(1938, 4, 1), book.published_on
+  end
+
+  def test_upsert_all_update_if_dirty_raises_when_adapter_does_not_support_it
+    skip if supports_insert_on_duplicate_update_if_dirty?
+
+    error = assert_raises ArgumentError do
+      Book.upsert_all [{ id: 101, name: "Out of the Silent Planet", published_on: Date.new(1984, 4, 1) }], on_duplicate: :update_if_dirty
+    end
+    assert_match "#{ActiveRecord::Base.lease_connection.class} does not support upserting only changed rows", error.message
   end
 
   def test_insert_all_raises_on_unknown_attribute

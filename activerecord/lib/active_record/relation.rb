@@ -881,9 +881,17 @@ module ActiveRecord
     # Active Record's schema_cache.
     #
     # [:on_duplicate]
-    #   Configure the behavior that will be used in case of conflict. Use `:skip`
-    #   to ignore any conflicts or provide a safe SQL fragment wrapped with
-    #   `Arel.sql`.
+    #   Configure the behavior that will be used in case of conflict. By default, duplicate
+    #   records will be assigned the attributes provided. Timestamps may also be set (see
+    #   the related +:record_timestamps+ option).
+    #
+    #   Use <tt>:update_if_dirty</tt> to only update duplicate records whose attributes differ
+    #   from the attributes provided. If a duplicate record exists with the exact same attributes
+    #   as those provided, it will be skipped.
+    #
+    #   Use <tt>:skip</tt> to ignore all conflicts.
+    #
+    #   Alternatively, you may provide a safe SQL fragment wrapped with <tt>Arel.sql</tt>.
     #
     #   NOTE: If you use this option you must provide all the columns you want to update
     #   by yourself.

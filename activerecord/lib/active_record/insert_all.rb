@@ -49,7 +49,7 @@ module ActiveRecord
 
       message = +"#{model} "
       message << "Bulk " if inserts.many?
-      message << (on_duplicate == :update ? "Upsert" : "Insert")
+      message << ([:update, :update_if_dirty].include?(on_duplicate) ? "Upsert" : "Insert")
       connection.exec_insert_all self, message
     end
 
@@ -67,6 +67,10 @@ module ActiveRecord
 
     def update_duplicates?
       on_duplicate == :update
+    end
+
+    def update_duplicates_if_dirty?
+      on_duplicate == :update_if_dirty
     end
 
     def map_key_with_value
@@ -144,7 +148,7 @@ module ActiveRecord
         elsif custom_update_sql_provided?
           @update_sql = on_duplicate
           @on_duplicate = :update
-        elsif @on_duplicate == :update && updatable_columns.empty?
+        elsif [:update, :update_if_dirty].include?(@on_duplicate) && updatable_columns.empty?
           @on_duplicate = :skip
         end
       end
@@ -190,6 +194,10 @@ module ActiveRecord
           raise ArgumentError, "#{connection.class} does not support upsert"
         end
 
+        if update_duplicates_if_dirty? && !connection.supports_insert_on_duplicate_update_if_dirty?
+          raise ArgumentError, "#{connection.class} does not support upserting only changed rows"
+        end
+
         if unique_by && !connection.supports_insert_conflict_target?
           raise ArgumentError, "#{connection.class} does not support :unique_by"
         end
@@ -222,7 +230,14 @@ module ActiveRecord
       class Builder # :nodoc:
         attr_reader :model
 
-        delegate :skip_duplicates?, :update_duplicates?, :keys, :keys_including_timestamps, :record_timestamps?, :primary_keys, to: :insert_all
+        delegate :skip_duplicates?,
+          :update_duplicates?,
+          :update_duplicates_if_dirty?,
+          :keys,
+          :keys_including_timestamps,
+          :record_timestamps?,
+          :primary_keys,
+          to: :insert_all
 
         def initialize(insert_all)
           @insert_all, @model, @connection = insert_all, insert_all.model, insert_all.connection
@@ -270,7 +285,7 @@ module ActiveRecord
             sql = +"(#{format_columns(index.columns)})"
             sql << " WHERE #{index.where}" if index.where
             sql
-          elsif update_duplicates?
+          elsif update_duplicates? || update_duplicates_if_dirty?
             "(#{format_columns(insert_all.primary_keys)})"
           end
         end
@@ -280,7 +295,7 @@ module ActiveRecord
         end
 
         def touch_model_timestamps_unless(&block)
-          return "" unless update_duplicates? && record_timestamps?
+          return "" unless (update_duplicates? || update_duplicates_if_dirty?) && record_timestamps?
 
           model.timestamp_attributes_for_update_in_model.filter_map do |column_name|
             if touch_timestamp_attribute?(column_name)

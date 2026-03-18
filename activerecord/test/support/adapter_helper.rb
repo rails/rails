@@ -72,6 +72,7 @@ module AdapterHelper
     supports_insert_returning?
     supports_insert_on_duplicate_skip?
     supports_insert_on_duplicate_update?
+    supports_insert_on_duplicate_update_if_dirty?
     supports_insert_conflict_target?
     supports_optimizer_hints?
     supports_datetime_with_precision?
