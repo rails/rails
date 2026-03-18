@@ -13,6 +13,9 @@ module ActionController # :nodoc:
       # versions specified. This means that all other browsers, as well as agents that
       # aren't reporting a user-agent header, will be allowed access.
       #
+      # Known social preview unfurlers that present older browser user-agents are
+      # also treated as bot traffic and won't be blocked.
+      #
       # A browser that's blocked will by default be served the file in
       # public/406-unsupported-browser.html with an HTTP status code of "406 Not
       # Acceptable".
@@ -74,6 +77,19 @@ module ActionController # :nodoc:
         SETS = {
           modern: { safari: 17.2, chrome: 120, firefox: 121, opera: 106, ie: false }
         }
+        SOCIAL_PREVIEW_USER_AGENT_TOKENS = %w[
+          applebot
+          discordbot
+          facebot
+          facebookexternalhit
+          linkedinbot
+          mobilesms
+          skypeuripreview
+          slackbot
+          telegrambot
+          twitterbot
+          whatsapp
+        ].freeze
 
         attr_reader :request, :versions
 
@@ -103,7 +119,14 @@ module ActionController # :nodoc:
           end
 
           def bot?
-            parsed_user_agent.bot?
+            parsed_user_agent.bot? || social_preview_unfurler?
+          end
+
+          def social_preview_unfurler?
+            user_agent = request.user_agent.to_s.downcase
+            return false if user_agent.empty?
+
+            SOCIAL_PREVIEW_USER_AGENT_TOKENS.any? { |token| user_agent.include?(token) }
           end
 
           def version_below_minimum_required?

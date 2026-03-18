@@ -1,3 +1,12 @@
+*   Allow known social preview unfurlers to bypass `allow_browser` version blocking.
+
+    Some social preview fetchers present Safari-style user agents that can look
+    older than the `:modern` minimums. We now treat common unfurler tokens
+    (for example `facebookexternalhit`, `twitterbot`, and `MobileSMS`) as
+    bot-like traffic so Open Graph previews are not blocked by 406 responses.
+
+    *Trevor Turk*
+
 *   Add `content_type` option to HTTP authentication methods.
 
     `request_http_basic_authentication`, `request_http_digest_authentication`,

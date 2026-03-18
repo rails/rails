@@ -123,6 +123,8 @@ end
 
 Browsers matched in the hash passed to `versions:` will be blocked if they’re below the versions specified. This means that all other browsers not mentioned in `versions:` (Chrome and Opera in the above example), as well as agents that aren’t reporting a user-agent header, _will be_ allowed access.
 
+Rails also allows known social preview unfurlers (for example iMessage/social bots that include tokens like `facebookexternalhit`, `twitterbot`, or `MobileSMS`) even when their user-agent string otherwise looks like an older blocked browser version.
+
 You can also use `allow_browser` in a given controller and specify actions using `only` or `except`. For example:
 
 ```ruby

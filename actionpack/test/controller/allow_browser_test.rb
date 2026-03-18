@@ -29,11 +29,14 @@ class AllowBrowserTest < ActionController::TestCase
 
   CHROME_118    = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118 Safari/537.36"
   CHROME_120    = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
+  SAFARI_16_6   = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1"
   SAFARI_17_2_0 = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.0 Safari/605.1.15"
   FIREFOX_114   = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0"
   IE_11         = "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko"
   OPERA_106     = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0"
   GOOGLE_BOT    = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/W.X.Y.Z Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+  SOCIAL_PREVIEW_FACEBOOK_WITH_OLD_SAFARI = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/601.2.4 (KHTML, like Gecko) Version/9.0.1 Safari/601.2.4 facebookexternalhit/1.1 Facebot Twitterbot/1.0"
+  SOCIAL_PREVIEW_MOBILE_SMS_WITH_OLD_SAFARI = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 MobileSMS/1.0"
 
   test "blocked browser below version limit with callable" do
     get_with_agent :hello, FIREFOX_114
@@ -65,6 +68,9 @@ class AllowBrowserTest < ActionController::TestCase
     get_with_agent :modern, SAFARI_17_2_0
     assert_response :ok
 
+    get_with_agent :modern, SAFARI_16_6
+    assert_response :upgrade_required
+
     get_with_agent :modern, CHROME_118
     assert_response :upgrade_required
 
@@ -80,6 +86,14 @@ class AllowBrowserTest < ActionController::TestCase
     assert_response :ok
 
     get_with_agent :modern, GOOGLE_BOT
+    assert_response :ok
+  end
+
+  test "social preview unfurlers with old safari user agents are allowed" do
+    get_with_agent :hello, SOCIAL_PREVIEW_FACEBOOK_WITH_OLD_SAFARI
+    assert_response :ok
+
+    get_with_agent :modern, SOCIAL_PREVIEW_MOBILE_SMS_WITH_OLD_SAFARI
     assert_response :ok
   end
 
