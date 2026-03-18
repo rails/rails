@@ -124,7 +124,7 @@ module ActionView
     end
 
     def built_templates # :nodoc:
-      @unbound_templates.values.flatten.flat_map(&:built_templates)
+      @unbound_templates.values.flat_map(&:built_templates)
     end
 
     private

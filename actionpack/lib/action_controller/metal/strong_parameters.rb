@@ -775,7 +775,7 @@ module ActionController
     #
     def expect(*filters)
       params = permit_filters(filters)
-      keys = filters.flatten.flat_map { |f| f.is_a?(Hash) ? f.keys : f }
+      keys = filters.flat_map { |f| f.is_a?(Hash) ? f.keys : f }
       values = params.require(keys)
       values.size == 1 ? values.first : values
     end
