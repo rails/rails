@@ -343,6 +343,13 @@ module SanitizeHelperVendorTests
     assert_equal("Example of a fragment", result)
   end
 
+  def test_sanitize_url_string
+    input = "javascript:alert(1)"
+    result = @subject.sanitize_url_string(input, fallback: "/safe_url")
+
+    assert_equal("/safe_url", result)
+  end
+
   def test_strip_links
     input = %(<div><a href="http://www.example.com/">Example</a> of a fragment</div>)
     result = @subject.strip_links(input)
