@@ -130,7 +130,6 @@ Then in the User controller, add `:profile_photo` to the allowed params:
 class UserController < ApplicationController
   def create
     user = User.create!(user_params)
-    session[:user_id] = user.id
     redirect_to root_path
   end
 
@@ -243,7 +242,7 @@ Calling `.attach` always appends new files. It never replaces existing attachmen
 @product.images.attach(params[:new_images])
 ```
 
-However, form assignment behaves differently. When a form submits `images: params`, Rails treats the submitted list as the entire intended set of attachments for that field. If the form only includes the newly uploaded files, Rails will interpret that as replacing the collection.
+When a form submits `images: params`, Rails treats the submitted list as the entire intended set of attachments for that field. If the form only includes the newly uploaded files, Rails will interpret that as replacing the collection.
 
 To keep existing attachments, you can use hidden form fields with the
 [`signed_id`][ActiveStorage::Blob#signed_id] to re-submit each of the already attached file:
@@ -397,7 +396,7 @@ require a higher level of protection consider implementing
 To generate a permanent URL for a blob, you can pass the attachment or the blob
 to the [`url_for`][ActionView::RoutingUrlFor#url_for] view helper. This
 generates a URL with the blob's [`signed_id`][ActiveStorage::Blob#signed_id]
-which points to the the blob's
+which points to the blob's
 [`RedirectController`][`ActiveStorage::Blobs::RedirectController`]
 
 ```ruby
@@ -414,7 +413,9 @@ response is cached by the browser for 5 minutes.
 
 To create a download link, use the `rails_blob_{path|url}` helpers. These
 helpers generate the same permanent Rails URL but allow you to specify the file
-disposition.
+[Content-Disposition Header].
+
+[Content-Disposition Header]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Disposition
 
 ```ruby
 rails_blob_path(user.profile_photo, disposition: "attachment")
@@ -494,14 +495,14 @@ and then generate routes like this:
 
 ### Authenticated Controllers
 
-By default, all Active Storage controllers are publicly accessible. The URLs they generate contain a blob’s [signed_id][ActiveStorage::Blob#signed_id], which is hard to guess but permanent. Anyone who knows the URL can access the file, even if the rest of your application requires authentication. before_actions in your own controllers (such as requiring a logged-in user) do not apply to Active Storage’s built-in controllers.
+By default, all Active Storage controllers are publicly accessible. The URLs they generate contain a blob’s [signed_id][ActiveStorage::Blob#signed_id], which is hard to guess but permanent. Anyone who knows the URL can access the file, even if the rest of your application requires authentication. `before_action`s in your own controllers (such as requiring a logged-in user) do not apply to Active Storage’s built-in controllers.
 
 If your files require stricter access control, such as “a user may only view their own files”, you can replace the built-in controllers with your own authenticated controllers. These controllers should wrap the behavior of the following built-in controllers but apply your own authorization logic before serving the file :
 
-[`ActiveStorage::Blobs::RedirectController`][],
-[`ActiveStorage::Blobs::ProxyController`][],
-[`ActiveStorage::Representations::RedirectController`][] and
-[`ActiveStorage::Representations::ProxyController`][]
+* [`ActiveStorage::Blobs::RedirectController`][]
+* [`ActiveStorage::Blobs::ProxyController`][]
+* [`ActiveStorage::Representations::RedirectController`][]
+* [`ActiveStorage::Representations::ProxyController`][]
 
 As an example, to only allow an account to access their own logo you could do the following:
 
@@ -660,7 +661,7 @@ end
 
 NOTE: Attachments with `process: :immediately` variants automatically analyze immediately to ensure metadata is available before processing.
 
-You can set the an application level default for the `analyze` option your in your Rails application configuration as well:
+You can set the application level default for the `analyze` option in your Rails application configuration as well:
 
 ```ruby
 # config/application.rb
@@ -912,7 +913,7 @@ local:
 
 ### S3 Service (Amazon S3 and S3-compatible APIs)
 
-Active Storage’s built-in S3 service adapter relies on the official AWS SDK to communicate with Amazon S3 (or any S3-compatible service). Rails does not bundle the AWS SDK by default, so you must add the `aws-sdk-s3 gem` to your application’s Gemfile:
+Active Storage’s built-in S3 service adapter relies on the official AWS SDK to communicate with Amazon S3 (or any S3-compatible service). Rails does not bundle the AWS SDK by default, so you must add the `aws-sdk-s3` gem to your application’s Gemfile:
 
 ```ruby
 gem "aws-sdk-s3", require: false
@@ -970,7 +971,7 @@ digitalocean:
 
 NOTE: The core features of Active Storage require the following permissions: `s3:ListBucket`, `s3:PutObject`, `s3:GetObject`, and `s3:DeleteObject`. [Public access](#public-access) additionally requires `s3:PutObjectAcl`. If you have additional upload options configured such as setting ACLs then additional permissions may be required.
 
-There are many other options available. You can see them in [AWS S3 Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Client.html#initialize-instance_method) documentation.
+There are many other options available. You can see them in the [AWS S3 Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Client.html#initialize-instance_method) documentation.
 
 ### Google Cloud Storage Service
 
@@ -979,6 +980,8 @@ You'll need  to add the [`google-cloud-storage`](https://github.com/GoogleCloudP
 ```ruby
 gem "google-cloud-storage", "~> 1.11", require: false
 ```
+
+The `require: false` option avoids loading the gem automatically. Active Storage will load it only when the GCS service is used, keeping application boot time and memory usage lower.
 
 Then you can declare a Google Cloud Storage service in `config/storage.yml`:
 
@@ -1012,7 +1015,7 @@ google:
   cache_control: "public, max-age=3600"
 ```
 
-You can optionally use [IAM](https://cloud.google.com/storage/docs/access-control/signed-urls#signing-iam) instead of the `credentials` when signing URLs. This is useful if you are authenticating your GKE applications with Workload Identity, see [this Google Cloud blog post](https://cloud.google.com/blog/products/containers-kubernetes/introducing-workload-identity-better-authentication-for-your-gke-applications) for more information.
+You can optionally use [IAM](https://cloud.google.com/storage/docs/access-control/signed-urls#signing-iam) instead of the `credentials` when signing URLs. This is useful if you are authenticating your GKE (Google Kubernetes Engine) applications with Workload Identity, see [this Google Cloud blog post](https://cloud.google.com/blog/products/containers-kubernetes/introducing-workload-identity-better-authentication-for-your-gke-applications) for more information.
 
 ```yaml
 google:
@@ -1043,7 +1046,7 @@ Mirror services are primarily intended for temporary use during migrations betwe
 
 NOTE: Mirroring is not atomic. It’s possible for an upload to succeed on the primary service but fail on one or more mirrors. Before switching fully to the new service, ensure that all files have been successfully copied.
 
-In order to define a `Mirror` service, first, define each service you want to mirror as usual. Then, reference them by name in the `Mirror` service configuration:
+In order to define a `Mirror` service, first define each service you want to mirror as usual. Then, reference them by name in the `Mirror` service configuration:
 
 ```yaml
 s3_west_coast:
@@ -1075,7 +1078,7 @@ are directly uploaded to the primary service. When a directly-uploaded file is
 attached to a record, a background job is enqueued to copy it to the secondary
 services.
 
-### Public access
+### Public Access
 
 By default, Active Storage assumes private access to services. This means generating signed, single-use URLs for blobs. If you'd rather make blobs publicly accessible, specify `public: true` in your app's `config/storage.yml`:
 
@@ -1118,7 +1121,7 @@ Direct uploads integrate seamlessly with Active Storage’s attachments and vari
 Active Storage, with its included JavaScript library, supports uploading
 directly from the client to the cloud.
 
-### Usage
+### Setup
 
 In order to start using direct uploads, you'll need to use the JavaScript Library included with Active Storage. The library handles:
 
@@ -1255,7 +1258,7 @@ You can use these events to show the progress of an upload.
 
 ![direct-uploads](https://user-images.githubusercontent.com/5355/28694528-16e69d0c-72f8-11e7-91a7-c0b8cfc90391.gif)
 
-To show the uploaded files in a form:
+To show the progress of the uploaded files in a form add the following javascript:
 
 ```js
 // app/javascript/direct_uploads.js
@@ -1298,7 +1301,7 @@ addEventListener("direct-upload:end", event => {
 })
 ```
 
-Add styles:
+Add CSS to style the progress of the uploaded files:
 
 ```css
 /* app/assets/stylesheets/direct_uploads.css */
@@ -1341,7 +1344,7 @@ input[type=file][data-direct-upload-url][disabled] {
 }
 ```
 
-### Custom drag and drop solutions
+### Custom Drag and Drop Solutions
 
 You can use the `DirectUpload` class for this purpose as well. Upon receiving a file
 from your library of choice, instantiate a DirectUpload and call its create
@@ -1391,7 +1394,7 @@ const uploadFile = (file) => {
 }
 ```
 
-### Track the progress of the file upload
+### Track the Progress of the File Upload
 
 When using the `DirectUpload` constructor, it is possible to include a third
 parameter. This will allow the `DirectUpload` object to invoke the
@@ -1431,7 +1434,7 @@ class Uploader {
 ### Integrating with Libraries or Frameworks
 
 Once you receive a file from the library you have selected, you need to create a
-`DirectUpload` instance and use its "create" method to initiate the upload
+`DirectUpload` instance and use its `create` method to initiate the upload
 process, adding any required additional headers as necessary. The "create"
 method also requires a callback function to be provided that will be triggered
 once the upload has finished.
@@ -1662,7 +1665,7 @@ Without configuring a test `s3` service in `config/storage/test.yml`, the `s3` s
 
 The default configuration would be used and files would be uploaded to the service provider configured in `config/storage.yml`.
 
-In this case, you can add `config/storage/test.yml` and use Disk service for a service named `s3` to prevent sending requests.
+In this case, you can add `config/storage/test.yml` and use Disk service for a service named `s3` to prevent sending requests to S3.
 
 ```yaml
 test:
