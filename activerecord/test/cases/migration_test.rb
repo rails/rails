@@ -1497,8 +1497,8 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
 
       classname = ActiveRecord::Base.lease_connection.class.name[/[^:]*$/]
       expected_query_count = {
-        "Mysql2Adapter"     => 7, # four queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
-        "TrilogyAdapter"    => 7, # four queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
+        "Mysql2Adapter"     => 6, # three queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
+        "TrilogyAdapter"    => 6, # three queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
         "PostgreSQLAdapter" => 5, # two queries for columns, one for bulk change, one for UPDATE, one for NOT NULL
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
