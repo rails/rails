@@ -53,9 +53,35 @@ end
 Given the above `ClientsController`, if a user goes to `/clients/new` in your
 application to add a new client, Rails will create an instance of
 `ClientsController` and call its `new` method. If the `new` method is empty, Rails
-will automatically render the `new.html.erb` view by default.
+will automatically render `app/views/clients/new.html.erb` by default.
 
 NOTE: The `new` method is an instance method here, called on an instance of `ClientsController`. This should not be confused with the `new` class method (i.e., `ClientsController.new`).
+
+You can explicity define the template to render using the `render` method:
+
+```ruby
+class ClientsController < ApplicationController
+  def new
+    # Renders `app/views/clients/form.html.erb`
+    render "form"
+  end
+end
+```
+
+To enable rendering of additional formats, not just HTML, use a `respond_to` block. This will choose the correct template based on the `Accept` header in the HTTP request:
+
+```ruby
+class ClientsController < ApplicationController
+  def new
+    respond_to do |format|
+      format.html   # renders `app/views/clients/new.html.erb`
+      format.xml    # renders `app/views/clients/new.xml.erb`
+    end
+  end
+end
+```
+
+See the [Layouts and Rendering](layouts_and_rendering.html) guide for futher details.
 
 In the `new` method, the controller would typically create an instance of the
 `Client` model, and make it available as an instance variable called `@client`
@@ -139,7 +165,7 @@ class ClientsController < ApplicationController
     if @client.save
       redirect_to @client
     else
-      render "new"
+      render "new", status: :unprocessable_content
     end
   end
 end
@@ -1233,54 +1259,6 @@ access to the various parameters.
 [`path_parameters`]: https://api.rubyonrails.org/classes/ActionDispatch/Http/Parameters.html#method-i-path_parameters
 [`query_parameters`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html#method-i-query_parameters
 [`request_parameters`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html#method-i-request_parameters
-
-#### `request.variant`
-
-Controllers might need to tailor a response based on context-specific
-information in a request. For example, controllers responding to requests from a
-mobile platform might need to render different content than requests from a
-desktop browser. One strategy to accomplish this is by customizing a request's
-variant. Variant names are arbitrary, and can communicate anything from the
-request's platform (`:android`, `:ios`, `:linux`, `:macos`, `:windows`) to its
-browser (`:chrome`, `:edge`, `:firefox`, `:safari`), to the type of user
-(`:admin`, `:guest`, `:user`).
-
-You can set the [`request.variant`](https://api.rubyonrails.org/classes/ActionDispatch/Http/MimeNegotiation.html#method-i-variant-3D) in a `before_action`:
-
-```ruby
-request.variant = :tablet if request.user_agent.include?("iPad")
-```
-
-Responding with a variant in a controller action is like responding with a format:
-
-```ruby
-# app/controllers/projects_controller.rb
-
-def show
-  # ...
-  respond_to do |format|
-    format.html do |html|
-      html.tablet                         # renders app/views/projects/show.html+tablet.erb
-      html.phone { extra_setup; render }  # renders app/views/projects/show.html+phone.erb
-    end
-  end
-end
-```
-
-A separate template should be created for each format and variant:
-
-* `app/views/projects/show.html.erb`
-* `app/views/projects/show.html+tablet.erb`
-* `app/views/projects/show.html+phone.erb`
-
-You can also simplify the variants definition using the inline syntax:
-
-```ruby
-respond_to do |format|
-  format.html.tablet
-  format.html.phone  { extra_setup; render }
-end
-```
 
 ### The `response` Object
 
