@@ -391,6 +391,10 @@ module ActiveRecord
       !value.nil? && !(value.respond_to?(:empty?) && value.empty?)
     end
 
+    ##
+    # :method: []
+    # :call-seq: [](attr_name)
+    #
     # Returns the value of the attribute identified by +attr_name+ after it has
     # been type cast. (For information about specific type casting behavior, see
     # the types under ActiveModel::Type.)
@@ -412,10 +416,11 @@ module ActiveRecord
     #   person[:date_of_birth]   # => ActiveModel::MissingAttributeError: missing attribute 'date_of_birth' for Person
     #   person[:organization_id] # => ActiveModel::MissingAttributeError: missing attribute 'organization_id' for Person
     #   person[:id]              # => nil
-    def [](attr_name)
-      read_attribute(attr_name) { |n| missing_attribute(n, caller) }
-    end
 
+    ##
+    # :method: []=
+    # :call-seq: []=(attr_name, value)
+    #
     # Updates the attribute identified by +attr_name+ using the specified
     # +value+. The attribute value will be type cast upon being read.
     #
@@ -425,9 +430,6 @@ module ActiveRecord
     #   person = Person.new
     #   person[:date_of_birth] = "2004-12-12"
     #   person[:date_of_birth] # => Date.new(2004, 12, 12)
-    def []=(attr_name, value)
-      write_attribute(attr_name, value)
-    end
 
     # Returns the name of all database fields which have been read from this
     # model. This can be useful in development mode to determine which fields

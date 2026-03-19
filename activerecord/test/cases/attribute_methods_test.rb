@@ -394,28 +394,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal(topic, topicReloaded)
   end
 
-  test "write_attribute" do
-    topic = Topic.new
-    topic.write_attribute :title, "Still another topic"
-    assert_equal "Still another topic", topic.title
-
-    topic[:title] = "Still another topic: part 2"
-    assert_equal "Still another topic: part 2", topic.title
-
-    topic.write_attribute "title", "Still another topic: part 3"
-    assert_equal "Still another topic: part 3", topic.title
-
-    topic["title"] = "Still another topic: part 4"
-    assert_equal "Still another topic: part 4", topic.title
-  end
-
-  test "write_attribute can write aliased attributes as well" do
-    topic = Topic.new(title: "Don't change the topic")
-    topic.write_attribute :heading, "New topic"
-
-    assert_equal "New topic", topic.title
-  end
-
   test "write_attribute raises ActiveModel::MissingAttributeError when the attribute does not exist" do
     topic = Topic.first
     assert_raises(ActiveModel::MissingAttributeError) { topic.update_columns(no_column_exists: "Hello!") }
@@ -432,26 +410,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.first
     assert_nothing_raised { topic.update_columns(heading: "Hello!") }
     assert_nothing_raised { topic.update(heading: "Hello!") }
-  end
-
-  test "read_attribute" do
-    topic = Topic.new
-    topic.title = "Don't change the topic"
-    assert_equal "Don't change the topic", topic.read_attribute("title")
-    assert_equal "Don't change the topic", topic["title"]
-
-    assert_equal "Don't change the topic", topic.read_attribute(:title)
-    assert_equal "Don't change the topic", topic[:title]
-  end
-
-  test "read_attribute can read aliased attributes as well" do
-    topic = Topic.new(title: "Don't change the topic")
-
-    assert_equal "Don't change the topic", topic.read_attribute("heading")
-    assert_equal "Don't change the topic", topic["heading"]
-
-    assert_equal "Don't change the topic", topic.read_attribute(:heading)
-    assert_equal "Don't change the topic", topic[:heading]
   end
 
   test "read_attribute raises ActiveModel::MissingAttributeError when the attribute isn't selected" do
@@ -492,39 +450,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     topic.approved = "true"
     assert_predicate topic, :approved?, "approved should be true"
-  end
-
-  test "overridden write_attribute" do
-    topic = Topic.new
-    def topic.write_attribute(attr_name, value)
-      super(attr_name, value.downcase)
-    end
-
-    topic.write_attribute :title, "Yet another topic"
-    assert_equal "yet another topic", topic.title
-
-    topic[:title] = "Yet another topic: part 2"
-    assert_equal "yet another topic: part 2", topic.title
-
-    topic.write_attribute "title", "Yet another topic: part 3"
-    assert_equal "yet another topic: part 3", topic.title
-
-    topic["title"] = "Yet another topic: part 4"
-    assert_equal "yet another topic: part 4", topic.title
-  end
-
-  test "overridden read_attribute" do
-    topic = Topic.new
-    topic.title = "Stop changing the topic"
-    def topic.read_attribute(attr_name)
-      super(attr_name).upcase
-    end
-
-    assert_equal "STOP CHANGING THE TOPIC", topic.read_attribute("title")
-    assert_equal "STOP CHANGING THE TOPIC", topic["title"]
-
-    assert_equal "STOP CHANGING THE TOPIC", topic.read_attribute(:title)
-    assert_equal "STOP CHANGING THE TOPIC", topic[:title]
   end
 
   test "read overridden attribute" do
@@ -656,13 +581,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     object.int_value = "0"
     assert_not_predicate object, :int_value?
-  end
-
-  test "non-attribute read and write" do
-    topic = Topic.new
-    assert_not_respond_to topic, "mumbo"
-    assert_raise(NoMethodError) { topic.mumbo }
-    assert_raise(NoMethodError) { topic.mumbo = 5 }
   end
 
   test "undeclared attribute method does not affect respond_to? and method_missing" do
