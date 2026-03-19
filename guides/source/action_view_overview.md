@@ -247,17 +247,21 @@ method within the view:
 ```
 
 This will look for a file named `_product.html.erb` in the same folder to render
-within that view. Partial file names start with leading underscore character by
+within that view. If no such file exists, Rails will look for it under the
+`app/view/application/` folder. This makes `app/views/application/` a great
+place for your shared partials
+
+Partial file names start with leading underscore character by
 convention. The file name distinguishes partials from regular views. However, no
 underscore is used when referring to partials for rendering within a view. This
 is true even when you reference a partial from another directory:
 
 ```erb
-<%= render "application/product" %>
+<%= render "admin/control_panel" %>
 ```
 
-That code will look for and display a partial file named `_product.html.erb` in
-`app/views/application/`.
+That code will look for and render a partial named `_control_panel.html.erb` in
+`app/views/admin/`.
 
 ### Using Partials to Simplify Views
 
@@ -399,6 +403,7 @@ You can also use this shorthand based on conventions:
 This will look for a partial named `_product.html.erb` in `app/views/products/`,
 as well as pass a local named `product` set to the value `@product`.
 
+NOTE: Under the hood, Rails calls `to_partial_path` on the model to determine which partial to render. You can override this method to customize the partial if required.
 
 ### The `as` and `object` Options
 
@@ -476,19 +481,40 @@ variable named after the partial. In this case, since the partial is
 `_product.html.erb`, you can use `product` to refer to the collection member
 that is being rendered.
 
-You can also use the following conventions based shorthand syntax for rendering
-collections.
+When the collection you wish to render contains objects that respond to `to_partial_path`,
+such as Active Record and Active Model instances, you can use the following shorthand:
 
-```erb
+```html+erb
 <%= render @products %>
 ```
 
-The above assumes that `@products` is a collection of `Product` instances. Rails
-uses naming conventions to determine the name of the partial to use by looking
-at the model name in the collection, `Product` in this case. In fact, you can
-even render a collection made up of instances of different models using this
-shorthand, and Rails will choose the proper partial for each member of the
-collection.
+Rails determines the partial for each object by calling `to_partial_path` on it.
+Conventionally, for Active Record objects, this is the name of the model:
+`products/_product.html.erb` for `Product`.
+
+A collection can be composed of different types of objects and Rails will render
+the corresponding partial for each one.
+
+```html+erb
+<%# customers/_customer.html.erb -%>
+<p>Customer: <%= customer.name %></p>
+
+<%# employees/_employee.html.erb -%>
+<p>Employee: <%= employee.name %></p>
+
+<%# index.html.erb -%>
+<h1>Contacts</h1>
+
+<%# Rails will render the matching partial for customer and employee objects -%>
+<%= render [customer1, employee1, customer2, employee2] %>
+```
+
+If the collection is empty, `render` will return nil so you can define a fallback.
+
+```html+erb
+<h1>Products</h1>
+<%= render(@products) || "There are no products available." %>
+```
 
 ### Spacer Templates
 
@@ -502,31 +528,31 @@ main partial by using the `:spacer_template` option:
 Rails will render the `_product_ruler.html.erb` partial (with no data passed to
 it) between each pair of `_product.html.erb` partials.
 
-### Counter Variables
+### Metadata Variables
 
-Rails also makes a counter variable available within a partial called by the
-collection. The variable is named after the title of the partial followed by
-`_counter`. For example, when rendering a collection `@products` the partial
-`_product.html.erb` can access the variable `product_counter`. The variable
-indexes the number of times the partial has been rendered within the enclosing
-view, starting with a value of `0` on the first render.
+Rails injects two additional variables into each partial when rendering
+a collection: `<object>_counter` and `<object>_iteration`.
 
-```erb
-<%# index.html.erb %>
-<%= render partial: "product", collection: @products %>
+```html+erb
+<%# app/views/products/index.html.erb -%>
+<%= render @products %>
+
+<%# app/views/products/_product.html.erb -%>
+<ul>
+  <li>Counter: <%= product_counter %></li>
+  <li>Iteration: <%= product_iteration %></li>
+</ul>
 ```
 
-```erb
-<%# _product.html.erb %>
-<%= product_counter %> # 0 for the first product, 1 for the second product...
-```
+The `product_counter` is the index of the element being rendered within the collection.
+The `product_iteration` is an instance of [`ActionView::PartialIteration`](https://api.rubyonrails.org/classes/ActionView/PartialIteration.html) which can be used to determine if it's the
+first or last element in the collection.
 
-This also works when the local variable name is changed using the `as:` option.
-So if you did `as: :item`, the counter variable would be `item_counter`.
+When using the `as:` option, these variable names will also change.
+For example, using `as: :item` will create variables
+called `item_counter` and `item_iteration`.
 
-NOTE: When rendering collections with instances of different models, the counter variable increments for each partial, regardless of the class of the model being rendered.
-
-Note: The following two sections, [Strict Locals](#strict-locals) and [Local
+NOTE: The following two sections, [Strict Locals](#strict-locals) and [Local
 Assigns with Pattern Matching](#local-assigns-with-pattern-matching) are more
 advanced features of using partials, included here for completeness.
 
@@ -607,11 +633,11 @@ enables compact partial-local default variable assignments:
 ### Strict Locals
 
 Action View partials are compiled into regular Ruby methods under the hood.
-Because it is impossible in Ruby to dynamically create local variables, every single combination of `locals` passed to
-a partial requires compiling another version:
+Because it is impossible in Ruby to dynamically create local variables, every single combination of `locals` passed to a partial requires compiling another version:
 
 ```html+erb
-<%# app/views/articles/show.html.erb %>
+<!-- app/views/articles/show.html.erb -->
+
 <%= render partial: "article", layout: "box", locals: { article: @article } %>
 <%= render partial: "article", layout: "box", locals: { article: @article, theme: "dark" } %>
 ```
@@ -643,7 +669,7 @@ values, and more with a `locals:` signature, using the same syntax as Ruby metho
 Here are some examples of the `locals:` signature:
 
 ```html+erb
-<%# app/views/messages/_message.html.erb %>
+<!-- app/views/messages/_message.html.erb -->
 
 <%# locals: (message:) -%>
 <%= message %>
@@ -661,7 +687,7 @@ If a default value is set then it can be used if `message` is not passed in
 `locals:`:
 
 ```erb
-<%# app/views/messages/_message.html.erb %>
+<!-- app/views/messages/_message.html.erb -->
 
 <%# locals: (message: "Hello, world!") -%>
 <%= message %>
@@ -686,8 +712,7 @@ You can allow optional local variable arguments with the double splat `**`
 operator:
 
 ```erb
-
-<%# app/views/messages/_message.html.erb %>
+<!-- app/views/messages/_message.html.erb -->
 
 <%# locals: (message: "Hello, world!", **attributes) -%>
 <%= tag.p(message, **attributes) %>
@@ -696,7 +721,7 @@ operator:
 Or you can disable `locals` entirely by setting the `locals:` to empty `()`:
 
 ```erb
-<%# app/views/messages/_message.html.erb %>
+<!-- app/views/messages/_message.html.erb -->
 
 <%# locals: () %>
 ```
@@ -708,6 +733,8 @@ exception:
 render "messages/message", unknown_local: "will raise"
 # => ActionView::Template::Error: no locals accepted for app/views/messages/_message.html.erb
 ```
+
+WARNING: When using strict locals in conjunction with collection rendering, you need to explicity allow the `<object>_counter` and `<object>_iteration` variables or they will not be set: `<%# locals: (product_counter: nil, product_iteration: nil)`. The `nil` default values are needed so the partial doesn't break when rendered outside of collections, where these two variables will not be set.
 
 Action View will process the `locals:` signature in any templating engine
 that supports `#`-prefixed comments, and will read the signature from any
@@ -747,7 +774,7 @@ example, rendering actions from the `ProductsController` class will use
 
 Rails will use `app/views/layouts/application.html.erb` if a controller-specific layout does not exist.
 
-Here is an example of a simple layout in `application.html.erb` file:
+Here is an example of a basic layout in `application.html.erb` file:
 
 ```html+erb
 <!DOCTYPE html>
@@ -779,9 +806,156 @@ Here is an example of a simple layout in `application.html.erb` file:
 In the above example layout, view content will be rendered in place of `<%=
 yield %>`, and surrounded by the same `<head>`, `<nav>`, and `<footer>` content.
 
-Rails provides more ways to assign specific layouts to individual controllers
-and actions. You can learn more about layouts in general in the [Layouts and
-Rendering in Rails](layouts_and_rendering.html) guide.
+To learn more about controller-specific layouts, see the [Layouts and
+Rendering in Rails](layouts_and_rendering.html#setting_layouts_in_controllers) guide.
+
+### Structuring Layouts
+
+Layouts can provide one or more slots into which views can render content. They can also incorporate partials just like regular views to offer better structure.
+
+Slots can be defined using `yield` and [`content_for`][].
+
+[`content_for`]: https://api.rubyonrails.org/classes/ActionView/Helpers/CaptureHelper.html#method-i-content_for
+
+#### Understanding `yield`
+
+Within a layout, `yield` provides the slot where content from the view should be inserted.
+
+```html+erb
+<html>
+  <head>
+  </head>
+  <body>
+    <%= yield %>
+  </body>
+</html>
+```
+
+You can also create a layout with multiple yielding regions:
+
+```html+erb
+<html>
+  <head>
+    <%= yield :head %>
+  </head>
+  <body>
+    <%= yield %>
+  </body>
+</html>
+```
+
+The main body of the view will always render into the unnamed `yield`. To render content into a named `yield`, call `content_for` with the same argument as the named `yield`.
+
+#### Slotting content with `content_for`
+
+The [`content_for`][] method allows you to insert content into a named `yield` block in your layout. For example, consider following layout and view:
+
+```html+erb
+<html>
+  <head>
+    <title>The page title</title>
+  </head>
+  <body>
+    <header>
+      <%= yield :header %>
+    </header>
+
+    <main>
+      <%= yield %>
+    </main>
+  </body>
+</html>
+```
+
+```html+erb
+<% content_for :header do %>
+  <h1>A simple page</h1>
+<% end %>
+
+<p>Hello, Rails!</p>
+```
+
+This will render out:
+
+```html
+<html>
+  <head>
+    <title>The page title</title>
+  </head>
+  <body>
+    <header>
+      <h1>A simple page</h1>
+    </header>
+    <main>
+      <p>Hello, Rails!</p>
+    </main>
+  </body>
+</html>
+```
+
+You can also use `content_for` in the layout instead of `yield`, using a check to inquire whether content for that particular slot was provided:
+
+```html+erb
+<html>
+  <head>
+    <title>The page title</title>
+  </head>
+  <body>
+    <header>
+      <%= content_for :header if content_for?(:header) %>
+    </header>
+
+    <main>
+      <%= yield %>
+    </main>
+  </body>
+</html>
+```
+
+This example is functionally equivalent to the previous one where we used `yield :head`.
+
+TIP: The `content_for` method is very helpful when your layout contains distinct regions such as sidebars and footers that should get their own blocks of content inserted. It's also useful for inserting page-specific JavaScript and CSS, context-specific `<meta>` elements, or any other elements into an otherwise generic layout.
+
+#### Nested Layouts
+
+Layouts can inherit from other layouts when you need to make minor changes for certain controllers. Let's say your application has an _admin_ area which displays an extra _admin panel_ but the rest of the layout is the same.
+
+Instead of duplicating your `application.html.erb` layout with the addition of the admin panel, you can create an `admin.html.erb` layout which inherits from `application.html.erb`.
+
+```html+erb
+<%# app/views/layouts/application.html.erb -%>
+
+<html>
+  <%# ... -%>
+  <body>
+    <header>
+      <nav>Navigation menu items here</nav>
+    </header>
+
+    <main>
+      <% if content_for(:main) -%>
+        <%= yield :content %>
+      <% else %>
+        <%= yield %>
+      <% end %>
+    </main>
+  </body>
+</html>
+```
+
+```html+erb
+<%# app/views/layouts/admin.html.erb -%>
+
+<% content_for :main do %>
+  <aside>Admin panel goes here</aside>
+
+  <%= yield %>
+<% end %>
+
+<%= render template: "layouts/application" %>
+```
+
+You can then set all the controllers serving the _admin area_ of the application to layout using `admin.html.erb`, and your view code remains DRY.
 
 ### Partial Layouts
 
