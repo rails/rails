@@ -785,8 +785,29 @@ module ActiveRecord
         end
 
         def extract_table_ref_from_insert_sql(sql)
-          if sql =~ /into\s("[-A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im
-            $1.delete('"').strip
+          quoted_ident  = /"(?:[^"]|"")*"/
+          bracket_ident = /\[(?:[^\]]|\]\])*\]/
+          bare_ident    = /[-A-Za-z0-9_]+/
+          ident_part    = /(?:#{quoted_ident.source}|#{bracket_ident.source}|#{bare_ident.source})/
+
+          into_target = /
+            \binto\s+
+            (?:
+              (?<qualified>#{ident_part.source}(?:\.#{ident_part.source})+) |
+              (?<single_quoted>#{quoted_ident.source}) |
+              (?<single_plain>#{bracket_ident.source}|#{bare_ident.source})
+            )
+            (?=\s|$|[,(;])
+          /imx
+
+          if (m = sql.match(into_target))
+            if m[:qualified]
+              m[:qualified].strip
+            elsif m[:single_quoted]
+              m[:single_quoted][1..-2].gsub('""', '"').strip
+            else
+              m[:single_plain].strip
+            end
           end
         end
     end
