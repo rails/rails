@@ -384,7 +384,7 @@ module ActiveRecord
       # In that case, +options+ and the block will be used by #create_table except if you provide more than one table which is not supported.
       def drop_table(*table_names, **options)
         table_names.each { |table_name| schema_cache.clear_data_source_cache!(table_name.to_s) }
-        execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{table_names.map { |table_name| quote_table_name(table_name) }.join(', ')}#{' CASCADE' if options[:force] == :cascade}"
+        execute drop_table_sql(*table_names, **options)
       end
 
       def rename_index(table_name, old_name, new_name)
@@ -1144,6 +1144,15 @@ module ActiveRecord
           else
             raise DatabaseVersionError, "Unable to parse MySQL version from #{full_version_string.inspect}"
           end
+        end
+
+        def drop_table_sql(*table_names, if_exists: nil, force: nil, temporary: nil, **)
+          temporary = " TEMPORARY" if temporary
+          exists = " IF EXISTS" if if_exists
+          quoted_table_names = table_names.map { |table_name| quote_table_name(table_name) }.join(", ")
+          cascade = " CASCADE" if force == :cascade
+
+          "DROP#{temporary} TABLE#{exists} #{quoted_table_names}#{cascade}"
         end
     end
   end

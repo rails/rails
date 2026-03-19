@@ -1008,6 +1008,17 @@ module ActiveRecord
         @connection.execute("DROP EXTENSION IF EXISTS hstore")
       end
 
+      def test_generated_changes_column_equality
+        cast_type = @connection.lookup_cast_type("varchar")
+        type_metadata = SqlTypeMetadata.new(sql_type: "varchar", type: :string)
+
+        stored_column = PostgreSQL::Column.new("name", cast_type, nil, type_metadata, true, nil, generated: "s")
+        virtual_column = PostgreSQL::Column.new("name", cast_type, nil, type_metadata, true, nil, generated: "v")
+
+        assert_not_equal stored_column, virtual_column
+        assert_not_equal stored_column.hash, virtual_column.hash
+      end
+
       private
         def with_postgresql_apdater_decode_dates
           PostgreSQLAdapter.decode_dates = true
