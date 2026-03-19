@@ -48,7 +48,7 @@ The install command creates migrations to add the following Active Storage speci
 * `active_storage_attachments` - a polymorphic join table that [connects your models to blobs](#attaching-files-to-records). This is a [polymorphic association](association_basics.html#polymorphic-associations) so if your model's class name changes, you will need to run a migration to update the underlying `record_type` column in this table to the new name.
 * `active_storage_variant_records` - if [variant tracking](#attaching-files-to-records) is enabled, this table stores records for each variant that has been generated.
 
-WARNING: If you are using UUIDs instead of integers as the primary key on your models, you will need to set `Rails.application.config.generators { |g| g.orm :active_record, primary_key_type: :uuid }` in a config file.
+WARNING: If you are using UUIDs instead of integers as the primary key on your models, you will need to set `Rails.application.config.generators { |g| g.orm :active_record, primary_key_type: :uuid }` in a config file. This configuration needs to be set *before* running the `active_storage:install` command.
 
 NOTE: Since Active Storage relies on [polymorphic associations](association_basics.html#polymorphic-associations), which store Ruby class names in the database, you will need to manually update Active Storage tables if you rename related Ruby classes (e.g. `active_storage_attachments.record_type` table and column).
 
@@ -621,27 +621,6 @@ Once a file has been analyzed, the metadata is stored in the `active_storage_blo
 
 Image analysis provides `width` and `height` attributes. Video analysis provides these, as well as `duration`, `angle`, `display_aspect_ratio`, and `video` and `audio` booleans to indicate the presence of those channels. Audio analysis provides `duration` and `bit_rate` attributes.
 
-### Validating Attachment Metadata
-
-Since attachments are analyzed immediately by default, metadata is available for model validations. For example, it's possible to validate that the uploaded profile photo has certain dimensions:
-
-```ruby
-class User < ApplicationRecord
-  has_one_attached :profile_photo
-
-  validate :validate_profile_photo_size, if: -> { profile_photo.attached? }
-
-  private
-    def validate_profile_photo_size
-      if profile_photo.metadata[:width] < 200 || profile_photo.metadata[:height] < 200
-        errors.add(:profile_photo, "must be at least 200x200 pixels")
-      end
-    end
-end
-```
-
-NOTE: Since [Direct uploads](#direct-uploads) bypass the server, files aren't locally available for analysis. In this case, `:immediately` falls back to `:later`, analyzing via background job after upload completes. So model validations using metadata isn't possible. You can validate on the client side using JavaScript instead.
-
 ### Controlling When Analysis is Performed
 
 You can control *when* metadata analysis is performed by using the `analyze` option when defining attachments with `has_one_attached` or `has_many_attached`. The default value of this option is `immediately`, but it can be set to `later` or `lazily`:
@@ -667,6 +646,27 @@ You can set the application level default for the `analyze` option in your Rails
 # config/application.rb
 config.active_storage.analyze = :later
 ```
+
+### Validating Attachment Metadata
+
+Since attachments are analyzed immediately by default, metadata is available for model validations. For example, it's possible to validate that the uploaded profile photo has certain dimensions:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :profile_photo
+
+  validate :validate_profile_photo_size, if: -> { profile_photo.attached? }
+
+  private
+    def validate_profile_photo_size
+      if profile_photo.metadata[:width] < 200 || profile_photo.metadata[:height] < 200
+        errors.add(:profile_photo, "must be at least 200x200 pixels")
+      end
+    end
+end
+```
+
+NOTE: Since [Direct uploads](#direct-uploads) bypass the server, files aren't locally available for analysis. In this case, `:immediately` falls back to `:later`, analyzing via background job after upload completes. So model validations using metadata isn't possible. You can validate on the client side using JavaScript instead.
 
 [`analyzed?`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyzed-3F
 
