@@ -115,10 +115,8 @@ of `id` will match against an `:id` attribute on the model. This is different
 from `find`, where the ID passed in should be a primary key value.
 
 Take caution when using `find_by(id:)` on models where `:id` is not the primary
-key, such as composite primary key models. See the [Active Record Querying][]
+key, such as composite primary key models. See the [Active Record Querying](active_record_querying.html#conditions-with-id)
 guide to learn more.
-
-[Active Record Querying]: active_record_querying.html#conditions-with-id
 
 Associations between Models with Composite Primary Keys
 -------------------------------------------------------
