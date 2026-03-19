@@ -1121,7 +1121,7 @@ Direct uploads integrate seamlessly with Active Storage’s attachments and vari
 Active Storage, with its included JavaScript library, supports uploading
 directly from the client to the cloud.
 
-### Setup
+### Setup JavaScript Library
 
 In order to start using direct uploads, you'll need to use the JavaScript Library included with Active Storage. The library handles:
 
@@ -1139,7 +1139,7 @@ There are several ways to include the Active Storage JavaScript library in your 
 <%= javascript_include_tag "activestorage" %>
 ```
 
-1. Using Importmap (ESM) - pin the library in `config/importmap.rb`:
+2. Using Importmap (ESM) - pin the library in `config/importmap.rb`:
 
 ```ruby
 pin "@rails/activestorage", to: "activestorage.esm.js"
@@ -1154,13 +1154,13 @@ Then import and start it in your HTML:
 </script>
 ```
 
-1. Using the Asset Pipeline - require the library in a JavaScript manifest:
+3. Using the Asset Pipeline - require the library in a JavaScript manifest:
 
 ```javascript
 //= require activestorage
 ```
 
-1. Using the npm package - install via npm/yarn and import it in your JavaScript bundle:
+4. Using the npm package - install via npm/yarn and import it in your JavaScript bundle:
 
 ```js
 import * as ActiveStorage from "@rails/activestorage"
@@ -1168,6 +1168,8 @@ ActiveStorage.start()
 ```
 
 All of these approaches provide the same functionality; choose the one that matches your application’s JavaScript setup.
+
+### Enabling Direct Uploads on the Input
 
 Next step is to set the `direct_upload: true` option in your [`file_field`
 helper](form_helpers.html#uploading-files) to automatically annotate the
