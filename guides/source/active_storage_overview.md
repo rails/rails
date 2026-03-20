@@ -1383,38 +1383,38 @@ application:
    without bundling through the asset pipeline. Autostart is enabled
    automatically:
 
-```erb
-<%= javascript_include_tag "activestorage" %>
-```
+   ```erb
+   <%= javascript_include_tag "activestorage" %>
+   ```
 
 2. Using Importmap (ESM) - pin the library in `config/importmap.rb`:
 
-```ruby
-pin "@rails/activestorage", to: "activestorage.esm.js"
-```
+   ```ruby
+   pin "@rails/activestorage", to: "activestorage.esm.js"
+   ```
 
-Then import and start it in your HTML:
+   Then import and start it in your HTML:
 
-```html
-<script type="module-shim">
-  import * as ActiveStorage from "@rails/activestorage"
-  ActiveStorage.start()
-</script>
-```
+   ```html
+   <script type="module-shim">
+     import * as ActiveStorage from "@rails/activestorage"
+     ActiveStorage.start()
+   </script>
+   ```
 
 3. Using the Asset Pipeline - require the library in a JavaScript manifest:
 
-```javascript
-//= require activestorage
-```
+   ```javascript
+   //= require activestorage
+   ```
 
 4. Using the npm package - install via npm/yarn and import it in your JavaScript
    bundle:
 
-```js
-import * as ActiveStorage from "@rails/activestorage"
-ActiveStorage.start()
-```
+   ```js
+   import * as ActiveStorage from "@rails/activestorage"
+   ActiveStorage.start()
+   ```
 
 All of these approaches provide the same functionality; choose the one that
 matches your application’s JavaScript setup.
