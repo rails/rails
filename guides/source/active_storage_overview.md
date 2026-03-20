@@ -231,7 +231,7 @@ end
 [Attached::Many#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attach
 [Attached::Many#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attached-3F
 
-#### Adding New Attachments
+#### Adding New Attachments: Appending vs. Replacing
 
 When working with the `has_many_attached` association, it’s important to distinguish between calling `.attach` directly in Ruby and assigning attachments through form parameters.
 
