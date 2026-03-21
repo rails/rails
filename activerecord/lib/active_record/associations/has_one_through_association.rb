@@ -6,7 +6,31 @@ module ActiveRecord
     class HasOneThroughAssociation < HasOneAssociation # :nodoc:
       include ThroughAssociation
 
+      def reader
+        if !loaded? && !stale_target? && through_chain_loaded?
+          self.target = resolve_target_from_through_chain
+        end
+
+        super
+      end
+
       private
+        def through_chain_loaded?
+          through_assoc = through_association
+          return false unless through_assoc.loaded?
+
+          through_target = through_assoc.target
+          return true unless through_target
+
+          through_target.association(source_reflection.name).loaded?
+        end
+
+        def resolve_target_from_through_chain
+          through_target = through_association.target
+          return nil unless through_target
+          through_target.association(source_reflection.name).target
+        end
+
         def replace(record, save = true)
           create_through_record(record, save)
           self.target = record

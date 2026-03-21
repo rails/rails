@@ -477,6 +477,70 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_predicate(book.association(:order_agreement), :stale_target?)
   end
+
+  def test_has_one_through_reuses_loaded_intermediate_association
+    club = Club.all.merge!(includes: { membership: :member }).first
+    member = club.membership.member
+
+    assert_predicate member.association(:current_membership), :loaded?,
+      "intermediate association (current_membership) should be loaded"
+
+    assert_no_queries do
+      member.club
+    end
+  end
+
+  def test_has_one_through_returns_nil_when_through_is_loaded_but_nil
+    member = Member.create!(name: "No Membership")
+    member = Member.all.merge!(includes: :current_membership).where(id: member.id).first
+
+    assert_predicate member.association(:current_membership), :loaded?,
+      "through association should be loaded (as nil)"
+    assert_nil member.current_membership
+
+    assert_no_queries do
+      assert_nil member.club
+    end
+  end
+
+  def test_has_one_through_queries_when_source_not_loaded_on_through_record
+    member = members(:groucho)
+    # Load only the through association, not the source (club) on it
+    member.current_membership
+
+    assert_predicate member.association(:current_membership), :loaded?,
+      "through association should be loaded"
+    assert_not_predicate member.current_membership.association(:club), :loaded?,
+      "source association on through record should NOT be loaded"
+
+    assert_queries_count(1) do
+      member.club
+    end
+  end
+
+  def test_has_one_through_queries_when_nothing_loaded
+    member = members(:groucho)
+    member.association(:current_membership).reset
+    member.association(:club).reset
+
+    assert_not_predicate member.association(:current_membership), :loaded?
+    assert_not_predicate member.association(:club), :loaded?
+
+    assert_queries_count(1) do
+      member.club
+    end
+  end
+
+  def test_has_one_through_explicit_reload_queries_when_chain_loaded
+    club = Club.all.merge!(includes: { membership: :member }).first
+    member = club.membership.member
+
+    assert_predicate member.association(:current_membership), :loaded?
+
+    assert_queries_count(1) do
+      member.reload_club
+    end
+  end
 end
 
 class DeprecatedHasOneThroughAssociationsTest < ActiveRecord::TestCase
