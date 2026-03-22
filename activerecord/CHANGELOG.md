@@ -1,3 +1,12 @@
+*   Skip `--ssl-mode` flag in `mysqldump`/`mysql` CLI when unsupported.
+
+    When `ssl_mode` is set in `database.yml`, `db:schema:dump` and
+    `db:schema:load` now detect at runtime whether `mysqldump`/`mysql`
+    supports `--ssl-mode`. If unsupported (common on Debian/Ubuntu
+    packages), the flag is skipped and a warning is logged.
+
+    *Denis Savchuk*
+
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be
