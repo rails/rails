@@ -28,6 +28,8 @@ require "models/subscriber"
 require "models/book"
 require "models/branch"
 require "models/cpk"
+require "models/sharded/blog_post"
+require "models/sharded/comment"
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars, :books
@@ -424,7 +426,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
 end
 
 class InverseHasManyTests < ActiveRecord::TestCase
-  fixtures :humans, :interests, :posts, :authors, :author_addresses, :comments
+  fixtures :humans, :interests, :posts, :authors, :author_addresses, :comments, :sharded_blog_posts, :sharded_comments
 
   def test_parent_instance_should_be_shared_with_every_child_on_find
     human = humans(:gordon)
@@ -633,6 +635,18 @@ class InverseHasManyTests < ActiveRecord::TestCase
     author.save!
 
     assert_predicate book.association(:order), :loaded?
+  end
+
+  def test_has_many_inversing_with_composite_foreign_key
+    with_has_many_inversing do
+      comment = sharded_comments(:great_comment_blog_post_one)
+      blog_post = comment.blog_post_with_composite_fk
+
+      found = blog_post.comments_with_composite_pk.detect { |c| c.id == comment.id }
+
+      assert_same comment, found,
+        "Composite-key: child loaded via belongs_to should be the same Ruby object in parent.has_many"
+    end
   end
 
   def test_raise_record_not_found_error_when_invalid_ids_are_passed
