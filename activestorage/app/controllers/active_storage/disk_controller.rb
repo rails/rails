@@ -9,6 +9,8 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
 
   skip_forgery_protection
 
+  before_action :http_conditional_check!, only: :show
+
   def show
     if key = decode_verified_key
       serve_file named_disk_service(key[:service_name]).path_for(key[:key]), content_type: key[:content_type], disposition: key[:disposition]
@@ -53,5 +55,11 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
 
     def acceptable_content?(token)
       token[:content_type] == request.content_mime_type && token[:content_length] == request.content_length
+    end
+
+    def http_conditional_check!
+      blob = ActiveStorage::Blob.find_by!(key: decode_verified_key&.fetch(:key, nil))
+
+      fresh_when(strong_etag: blob.checksum, last_modified: blob.created_at)
     end
 end

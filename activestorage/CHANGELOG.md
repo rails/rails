@@ -1,3 +1,9 @@
+*   Support HTTP conditional requests with Disk service
+
+    Currently supported `ETag` and `Last-Modified` headers.
+
+    *Ali Ismayilov*
+
 *   Restore ADC when signing URLs with IAM for GCS
 
     ADC was previously used for automatic authorization when signing URLs with IAM.

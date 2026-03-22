@@ -72,6 +72,30 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "showing blob with HTTP conditional ETag header" do
+    blob = create_blob(filename: "hello.jpg", content_type: "image/jpeg")
+
+    get blob.url
+    assert_response :ok
+    assert response.headers["ETag"]
+
+    get blob.url, headers: { "If-None-Match" => response.headers["ETag"] }
+    assert_response :not_modified
+  end
+
+  test "showing blob with HTTP conditional Last-Modified header" do
+    blob = create_blob(filename: "hello.jpg", content_type: "image/jpeg")
+
+    get blob.url
+    assert_response :ok
+    assert response.headers["Last-Modified"]
+
+    last_modified = Time.parse(response.headers["Last-Modified"])
+
+    get blob.url, headers: { "If-Modified-Since" => (last_modified + 1.hour).httpdate }
+    assert_response :not_modified
+  end
+
   test "directly uploading blob with integrity" do
     data = "Something else entirely!"
     blob = create_blob_before_direct_upload byte_size: data.size, checksum: OpenSSL::Digest::MD5.base64digest(data)
