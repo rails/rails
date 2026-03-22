@@ -208,7 +208,7 @@ module ActionView
 
           if include_blank == true
             include_blank = ""
-            options_for_blank_options_tag[:label] = " "
+            options_for_blank_options_tag[:label] = raw("&nbsp;")
           end
 
           if include_blank
