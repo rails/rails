@@ -178,6 +178,14 @@ class CaptureHelperTest < ActionView::TestCase
     assert_predicate content_for(:title), :html_safe?
   end
 
+  def test_content_for_deprecates_invalid_options
+    assert_deprecated(/Passing invalid options to content_for is deprecated/, ActionView.deprecator) do
+      content_for :name, invalid: true do
+        "foo"
+      end
+    end
+  end
+
   def test_provide
     assert_not content_for?(:title)
     provide :title, "hi"

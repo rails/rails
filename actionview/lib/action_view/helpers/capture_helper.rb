@@ -148,7 +148,7 @@ module ActionView
       #
       #   <ul><%= content_for :navigation %></ul>
       #
-      # If the flush parameter is +true+ <tt>content_for</tt> replaces the blocks it is given. For example:
+      # If the flush parameter is +true+, <tt>content_for</tt> replaces the blocks it is given. For example:
       #
       #   <% content_for :navigation do %>
       #     <li><%= link_to 'Home', action: 'index' %></li>
@@ -175,8 +175,15 @@ module ActionView
             options = content if content
             content = capture(&block)
           end
+          flush = options.delete(:flush) { false }
+          if options.any?
+            ActionView.deprecator.warn(<<-MSG.squish)
+              Passing invalid options to content_for is deprecated.
+              Options #{options.keys.join(', ')} will be ignored.
+            MSG
+          end
           if content
-            options[:flush] ? @view_flow.set(name, content) : @view_flow.append(name, content)
+            flush ? @view_flow.set(name, content) : @view_flow.append(name, content)
           end
           nil
         else
