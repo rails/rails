@@ -167,6 +167,18 @@ class RedirectController < ActionController::Base
     redirect_to "?foo=bar"
   end
 
+  def redirect_to_url_with_leading_whitespace
+    redirect_to " https://www.example.com/"
+  end
+
+  def redirect_to_url_with_trailing_whitespace
+    redirect_to "https://www.example.com/ "
+  end
+
+  def redirect_to_path_with_leading_whitespace
+    redirect_to " /things/stuff"
+  end
+
   def redirect_to_existing_record
     redirect_to Workshop.new(5)
   end
@@ -370,6 +382,40 @@ class RedirectTest < ActionController::TestCase
     get :redirect_to_url_with_network_path_reference
     assert_response :redirect
     assert_equal "//www.rubyonrails.org/", redirect_to_url
+  end
+
+  def test_redirect_to_url_with_leading_whitespace
+    get :redirect_to_url_with_leading_whitespace
+    assert_response :redirect
+    assert_equal "https://www.example.com/", redirect_to_url
+  end
+
+  def test_redirect_to_url_with_trailing_whitespace
+    get :redirect_to_url_with_trailing_whitespace
+    assert_response :redirect
+    assert_equal "https://www.example.com/", redirect_to_url
+  end
+
+  def test_redirect_to_path_with_leading_whitespace
+    get :redirect_to_path_with_leading_whitespace
+    assert_response :redirect
+    assert_equal "http://test.host/things/stuff", redirect_to_url
+  end
+
+  def test_redirect_to_url_with_whitespace_does_not_trigger_path_relative_raise
+    with_path_relative_redirect(:raise) do
+      get :redirect_to_url_with_leading_whitespace
+      assert_response :redirect
+      assert_equal "https://www.example.com/", redirect_to_url
+    end
+  end
+
+  def test_redirect_to_path_with_whitespace_does_not_trigger_path_relative_raise
+    with_path_relative_redirect(:raise) do
+      get :redirect_to_path_with_leading_whitespace
+      assert_response :redirect
+      assert_equal "http://test.host/things/stuff", redirect_to_url
+    end
   end
 
   def test_redirect_back

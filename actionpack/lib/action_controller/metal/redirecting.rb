@@ -211,8 +211,30 @@ module ActionController
       # https://tools.ietf.org/html/rfc3986#section-3.1 The protocol relative scheme
       # starts with a double slash "//".
       when /\A([a-z][a-z\d\-+.]*:|\/\/).*/i
-        options.to_str
+        if options.is_a?(String)
+          # Strip trailing whitespace from URLs like "https://example.com/ "
+          # to avoid invalid Location headers. We use getbyte as a guard
+          # because String#strip always allocates a new string even when
+          # there's nothing to strip. Byte <= 32 covers all ASCII whitespace
+          # (space, tab, newline, carriage return, form feed).
+          last_byte = options.getbyte(-1)
+          (last_byte && last_byte <= 32) ? options.strip : options
+        else
+          options.to_str
+        end
       when String
+        # Strip leading whitespace from URLs like " https://example.com"
+        # that fail to match the scheme regex due to the leading space,
+        # then re-check if the stripped result is actually an absolute URL.
+        # Same getbyte guard as above to avoid allocating on clean strings.
+        first_byte = options.getbyte(0)
+        if first_byte && first_byte <= 32
+          options = options.strip
+          if options.match?(/\A([a-z][a-z\d\-+.]*:|\/\/).*/i)
+            return options.delete("\0\r\n")
+          end
+        end
+
         if !options.start_with?("/", "?") && !options.empty?
           _handle_path_relative_redirect(options)
         end
