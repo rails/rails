@@ -6,11 +6,12 @@ module ActiveRecord
       class Column < ConnectionAdapters::Column # :nodoc:
         delegate :oid, :fmod, to: :sql_type_metadata
 
-        def initialize(*, serial: nil, identity: nil, generated: nil, **)
+        def initialize(*, serial: nil, identity: nil, generated: nil, collation_deterministic: nil, **)
           super
           @serial = serial
           @identity = identity
           @generated = generated
+          @collation_deterministic = collation_deterministic
         end
 
         def identity?
@@ -51,10 +52,21 @@ module ActiveRecord
           super.delete_suffix("[]")
         end
 
+        def case_sensitive?
+          if sql_type == "citext"
+            false
+          elsif !@collation_deterministic.nil?
+            @collation_deterministic
+          else
+            true
+          end
+        end
+
         def init_with(coder)
           @serial = coder["serial"]
           @identity = coder["identity"]
           @generated = coder["generated"]
+          @collation_deterministic = coder["collation_deterministic"]
           super
         end
 
@@ -62,6 +74,7 @@ module ActiveRecord
           coder["serial"] = @serial
           coder["identity"] = @identity
           coder["generated"] = @generated
+          coder["collation_deterministic"] = @collation_deterministic
           super
         end
 
@@ -70,7 +83,8 @@ module ActiveRecord
             super &&
             identity? == other.identity? &&
             serial? == other.serial? &&
-            generated == other.generated
+            generated == other.generated &&
+            collation_deterministic == other.collation_deterministic
         end
         alias :eql? :==
 
@@ -81,11 +95,12 @@ module ActiveRecord
             @identity,
             @serial,
             @generated,
+            @collation_deterministic,
           ].hash
         end
 
         protected
-          attr_reader :generated
+          attr_reader :generated, :collation_deterministic
       end
     end
     PostgreSQLColumn = PostgreSQL::Column # :nodoc:

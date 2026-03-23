@@ -1716,3 +1716,129 @@ class WithAnnotationsTest < ActiveRecord::TestCase
     end
   end
 end
+
+class PreloaderCaseInsensitiveTest < ActiveRecord::SQLite3TestCase
+  self.use_transactional_tests = false
+
+  def setup
+    @connection = ActiveRecord::Base.lease_connection
+
+    @connection.create_table :ci_orders, force: true do |t|
+      t.string :shipping_label, collation: "NOCASE"
+    end
+
+    @connection.create_table :ci_addresses, force: true do |t|
+      t.string :label, collation: "NOCASE"
+    end
+
+    eval <<~RUBY
+      class ::CiOrder < ActiveRecord::Base
+        self.table_name = "ci_orders"
+        belongs_to :ci_address, primary_key: :label, foreign_key: :shipping_label
+      end
+
+      class ::CiAddress < ActiveRecord::Base
+        self.table_name = "ci_addresses"
+        has_many :ci_orders, primary_key: :label, foreign_key: :shipping_label
+      end
+    RUBY
+  end
+
+  def teardown
+    @connection.drop_table :ci_orders, if_exists: true
+    @connection.drop_table :ci_addresses, if_exists: true
+    Object.send(:remove_const, :CiOrder) if defined?(::CiOrder)
+    Object.send(:remove_const, :CiAddress) if defined?(::CiAddress)
+  end
+
+  def test_preload_belongs_to_with_case_insensitive_key
+    address = CiAddress.create!(label: "home")
+    order = CiOrder.create!(shipping_label: "Home")
+
+    orders = CiOrder.where(id: order.id).preload(:ci_address).to_a
+    assert_equal address, orders.first.ci_address
+  end
+
+  def test_preload_has_many_with_case_insensitive_key
+    address = CiAddress.create!(label: "office")
+    order1 = CiOrder.create!(shipping_label: "Office")
+    order2 = CiOrder.create!(shipping_label: "OFFICE")
+
+    addresses = CiAddress.where(id: address.id).preload(:ci_orders).to_a
+    assert_equal [order1, order2].map(&:id).sort, addresses.first.ci_orders.map(&:id).sort
+  end
+
+  def test_preload_case_sensitive_column_still_requires_exact_match
+    @connection.create_table :cs_items, force: true do |t|
+      t.string :code
+    end
+
+    @connection.create_table :cs_details, force: true do |t|
+      t.string :item_code
+    end
+
+    eval <<~RUBY
+      class ::CsItem < ActiveRecord::Base
+        self.table_name = "cs_items"
+        has_many :cs_details, primary_key: :code, foreign_key: :item_code
+      end
+
+      class ::CsDetail < ActiveRecord::Base
+        self.table_name = "cs_details"
+      end
+    RUBY
+
+    item = CsItem.create!(code: "ABC")
+    CsDetail.create!(item_code: "abc")
+
+    items = CsItem.where(id: item.id).preload(:cs_details).to_a
+    assert_empty items.first.cs_details
+  ensure
+    @connection.drop_table :cs_items, if_exists: true
+    @connection.drop_table :cs_details, if_exists: true
+    Object.send(:remove_const, :CsItem) if defined?(::CsItem)
+    Object.send(:remove_const, :CsDetail) if defined?(::CsDetail)
+  end
+
+  def test_preload_composite_key_with_case_insensitive_string_component
+    @connection.create_table :ci_cpk_orders, force: true do |t|
+      t.integer :store_id
+      t.string :shipping_label, collation: "NOCASE"
+    end
+
+    @connection.create_table :ci_cpk_addresses, force: true do |t|
+      t.integer :store_id
+      t.string :label, collation: "NOCASE"
+    end
+
+    eval <<~RUBY
+      class ::CiCpkOrder < ActiveRecord::Base
+        self.table_name = "ci_cpk_orders"
+        belongs_to :ci_cpk_address,
+          primary_key: [:store_id, :label],
+          foreign_key: [:store_id, :shipping_label]
+      end
+
+      class ::CiCpkAddress < ActiveRecord::Base
+        self.table_name = "ci_cpk_addresses"
+        has_many :ci_cpk_orders,
+          primary_key: [:store_id, :label],
+          foreign_key: [:store_id, :shipping_label]
+      end
+    RUBY
+
+    address = CiCpkAddress.create!(store_id: 1, label: "warehouse")
+    order = CiCpkOrder.create!(store_id: 1, shipping_label: "Warehouse")
+
+    orders = CiCpkOrder.where(id: order.id).preload(:ci_cpk_address).to_a
+    assert_equal address, orders.first.ci_cpk_address
+
+    addresses = CiCpkAddress.where(id: address.id).preload(:ci_cpk_orders).to_a
+    assert_equal [order], addresses.first.ci_cpk_orders.to_a
+  ensure
+    @connection.drop_table :ci_cpk_orders, if_exists: true
+    @connection.drop_table :ci_cpk_addresses, if_exists: true
+    Object.send(:remove_const, :CiCpkOrder) if defined?(::CiCpkOrder)
+    Object.send(:remove_const, :CiCpkAddress) if defined?(::CiCpkAddress)
+  end
+end

@@ -1153,7 +1153,7 @@ module ActiveRecord
           end
 
           def new_column_from_field(table_name, field, _definitions)
-            column_name, type, default, notnull, oid, fmod, collation, comment, identity, attgenerated = field
+            column_name, type, default, notnull, oid, fmod, collation, comment, identity, attgenerated, collisdeterministic = field
             type_metadata = fetch_type_metadata(column_name, type, oid.to_i, fmod.to_i)
             default_value = extract_value_from_default(default)
 
@@ -1178,7 +1178,8 @@ module ActiveRecord
               comment: comment.presence,
               serial: serial,
               identity: identity.presence,
-              generated: attgenerated
+              generated: attgenerated,
+              collation_deterministic: collisdeterministic.nil? ? nil : collisdeterministic != "f"
             )
           end
 

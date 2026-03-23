@@ -1,3 +1,12 @@
+*   Fix preloader to respect case-insensitive column collations.
+
+    Preloading associations keyed on case-insensitive columns (SQLite
+    NOCASE, MySQL `_ci`, PostgreSQL citext/non-deterministic ICU) now
+    correctly matches records. Previously, Ruby's case-sensitive Hash
+    lookup silently returned nil.
+
+    *Denis Savchuk*
+
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be

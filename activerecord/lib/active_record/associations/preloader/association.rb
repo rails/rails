@@ -265,7 +265,14 @@ module ActiveRecord
 
           def derive_key(owner, key)
             if key.is_a?(Array)
-              key.map { |k| convert_key(owner._read_attribute(k)) }
+              if (indices = ci_key_indices) && !indices.empty?
+                key.map.with_index do |k, idx|
+                  val = convert_key(owner._read_attribute(k))
+                  indices.include?(idx) && val.is_a?(String) ? val.downcase : val
+                end
+              else
+                key.map { |k| convert_key(owner._read_attribute(k)) }
+              end
             else
               convert_key(owner._read_attribute(key))
             end
@@ -273,10 +280,44 @@ module ActiveRecord
 
           def convert_key(key)
             if key_conversion_required?
-              key.to_s
+              key = key.to_s
+            end
+
+            if case_insensitive_key? && key.is_a?(String)
+              key.downcase
             else
               key
             end
+          end
+
+          def case_insensitive_key?
+            unless defined?(@case_insensitive_key)
+              columns_hash = @klass.columns_hash
+              key = association_key_name
+
+              @case_insensitive_key = if key.is_a?(Array)
+                key.any? { |k| (col = columns_hash[k.to_s]) && !col.case_sensitive? }
+              else
+                (col = columns_hash[key.to_s]) && !col.case_sensitive?
+              end
+            end
+            @case_insensitive_key
+          end
+
+          def ci_key_indices
+            unless defined?(@ci_key_indices)
+              key = association_key_name
+              @ci_key_indices = if key.is_a?(Array)
+                columns_hash = @klass.columns_hash
+                indices = []
+                key.each_with_index do |k, idx|
+                  col = columns_hash[k.to_s]
+                  indices << idx if col && !col.case_sensitive?
+                end
+                indices.freeze
+              end
+            end
+            @ci_key_indices
           end
 
           def association_key_type

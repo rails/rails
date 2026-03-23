@@ -61,4 +61,20 @@ class SQLite3CollationTest < ActiveRecord::SQLite3TestCase
     assert_match %r{t\.string\s+"string_nocase",\s+collation: "NOCASE"$}, output
     assert_match %r{t\.text\s+"text_rtrim",\s+collation: "RTRIM"$}, output
   end
+
+  test "case_sensitive? returns false for NOCASE collation" do
+    column = @connection.columns(:collation_table_sqlite3).find { |c| c.name == "string_nocase" }
+    assert_not_predicate column, :case_sensitive?
+  end
+
+  test "case_sensitive? returns true for RTRIM collation" do
+    column = @connection.columns(:collation_table_sqlite3).find { |c| c.name == "text_rtrim" }
+    assert_predicate column, :case_sensitive?
+  end
+
+  test "case_sensitive? returns true for no collation" do
+    @connection.add_column :collation_table_sqlite3, :plain_string, :string
+    column = @connection.columns(:collation_table_sqlite3).find { |c| c.name == "plain_string" }
+    assert_predicate column, :case_sensitive?
+  end
 end

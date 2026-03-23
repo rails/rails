@@ -1151,7 +1151,8 @@ module ActiveRecord
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment,
                      #{supports_identity_columns? ? 'attidentity' : quote('')} AS identity,
-                     #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated
+                     #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated,
+                     c.collisdeterministic
                 FROM pg_attribute a
                 LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
                 LEFT JOIN pg_type t ON a.atttypid = t.oid

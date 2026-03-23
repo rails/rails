@@ -39,5 +39,12 @@ module ActiveRecord
         assert_equal "title varchar(20) DEFAULT 'Hello' NOT NULL", @viz.accept(column_def)
       end
     end
+
+    class ColumnTest < ActiveRecord::TestCase
+      def test_case_sensitive_by_default
+        column = Column.new("title", nil, nil)
+        assert_predicate column, :case_sensitive?
+      end
+    end
   end
 end
