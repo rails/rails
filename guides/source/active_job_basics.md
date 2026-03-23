@@ -218,7 +218,7 @@ Rails.application.config.active_job.custom_serializers << MoneySerializer
 
 Custom Active Job serializers are registered during application initialization and are expected to remain stable for the lifetime of the process. Reloadable autoloading is not supported in this context.
 
-To ensure serializers are loaded only once (and not reloaded in development), place them in an autoload_once_paths directory:
+To ensure serializers are loaded only once (and not reloaded in development), place them in an autoload_once_paths directory, such as:
 
 ```ruby
 # config/application.rb
@@ -328,7 +328,7 @@ class ProcessVideoJob < ApplicationJob
 end
 ```
 
-```ruby
+```irb
 last_video = Video.last
 ProcessVideoJob.perform_later(last_video)
 ```
@@ -667,7 +667,7 @@ can safely pause and resume without losing progress. For more details, see
 Default Backend: Solid Queue
 ------------------------------
 
-Solid Queue is a database-backed queue backend built on Active Job and the default queue backend for Rails version 8.0 onwards. Rather than requiring a separate infrastructure dependency like Redis, Solid Queue uses your existing database to persist and process jobs. It supports delayed jobs, job priorities, concurrency controls, recurring jobs, and bulk enqueuing.
+Solid Queue is a database-backed queue backend for Active Job and the default queue backend for Rails version 8.0 onwards. Rather than requiring a separate infrastructure dependency like Redis, Solid Queue uses your existing database to persist and process jobs. It supports delayed jobs, job priorities, concurrency controls, recurring jobs, and bulk enqueuing.
 
 ### Set Up and Default Configuration
 
@@ -720,12 +720,13 @@ bin/jobs start
 
 #### Development Environment
 
-For development environment, Rails provides an asynchronous in-process queuing
-backend, which keeps the jobs in memory. With this default async adapter, if the
-process crashes or the machine is reset, then all outstanding jobs are lost.
-This can be acceptable for non-critical jobs in development.
+Rails provides an asynchronous in-process queuing backend, which keeps the jobs
+in memory. With the default `async` adapter, if the process crashes or the
+machine is reset, then all outstanding jobs are lost. This can be acceptable for
+non-critical jobs in development.
 
-Alternatively, you can also use Solid Queue in development. It can be configured it in the same way as in the production environment:
+Alternatively, you can use Solid Queue in development. It can be configured it
+in the same way as in the production environment:
 
 ```ruby#3
 # config/environments/development.rb
