@@ -1012,7 +1012,7 @@ documentation.
 Alternate Queuing Backends
 --------------------------
 
-While Solid Queue is the default queuing backend in Rails 8, Active Job is designed to work seamlessly with different queuing backends. Switching to an alternative backend, such as Sidekiq, GoodJob, or Resque, requires only a configuration change (typically with no modifications to your job code), along with adding the queuing backend's adapter to your Gemfile.
+While Solid Queue is the default queuing backend in Rails, Active Job is designed to work seamlessly with different queuing backends. Switching to an alternative backend, such as [Sidekiq](https://github.com/sidekiq/sidekiq), [GoodJob](https://github.com/bensheldon/good_job), or [Resque](https://github.com/resque/resque), requires only a configuration change (typically with no modifications to your job code), along with adding the queuing backend's adapter to your Gemfile.
 
 You can get an up-to-date list of the adapters in the the API Documentation for
 [`ActiveJob::QueueAdapters`](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
@@ -1066,7 +1066,7 @@ Monitoring and Handling Failed Jobs
 
 The [Mission Control](https://github.com/rails/mission_control-jobs) tool is a
 Rails-based frontend to Active Job adapters to help centralize the monitoring
-and management of failed jobs. It provides insights into job statuses, failure
+and management of failed jobs. It provides insights into job status, failure
 reasons, and retry behaviors, enabling you to track and resolve issues more
 effectively.
 
