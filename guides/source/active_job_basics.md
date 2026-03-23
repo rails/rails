@@ -104,7 +104,7 @@ To run a job immediately without enqueuing it:
 GuestsCleanupJob.perform_now(guest)
 ```
 
-To enqueue a job to be performed as soon as the queuing system is free:
+To enqueue a job to be performed later:
 
 ```ruby
 GuestsCleanupJob.perform_later(guest)
@@ -607,7 +607,10 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-When `:abort` is thrown in a `before_enqueue` callback, the job will not be enqueued and `perform_later` will return `false`. When thrown in a `before_perform` callback, the job will not be performed. It will also skip the execution of any subsequent before, around and after callbacks
+When `:abort` is thrown in a `before_enqueue` callback, the job will not be enqueued and `perform_later` will return `false`. When thrown in a `before_perform` callback, the job will not be performed. It will also skip the execution of any subsequent before, around and after callbacks.
+
+NOTE: Throwing an `:abort` does not trigger `after_discard`. The
+`after_discard` callback is specifically tied to the `discard_on` mechanism.
 
 Job Continuations
 -----------------
