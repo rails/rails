@@ -98,7 +98,7 @@ end
 
 Once you have defined a jobs class with a `perform` method, you'd typically call this method using [`perform_later`][] to enqueue the work to be executed on a queuing backend.
 
-Here are examples of various way to use `perform_later`. To enqueue a job to be performed as soon as the queuing system is free:
+Here are examples of various ways to use `perform_later`. To enqueue a job to be performed as soon as the queuing system is free:
 
 ```ruby
 GuestsCleanupJob.perform_later(guest)
@@ -278,7 +278,7 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-The default queue name prefix delimiter is '\_'.  This can be changed by setting
+The default queue name prefix delimiter is '_'.  This can be changed by setting
 [`config.active_job.queue_name_delimiter`][] in `application.rb`:
 
 ```ruby
@@ -299,7 +299,7 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-Now the queue will be named `production.low_priority` and `staging.low_priority`.
+Now the queue will be named `production.low_priority` or `staging.low_priority`.
 
 You can control the queue at the job level by passing a block to `queue_as`. The
 block will be executed in the job context (so it can access `self.arguments`),
