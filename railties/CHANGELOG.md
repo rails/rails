@@ -1,3 +1,14 @@
+*   Skip Solid installers whose gem is not in the `Gemfile` of a new application.
+
+    A template that removed `solid_cache` from the `Gemfile` made `rails new`
+    abort with `Unrecognized command "solid_cache:install"`, because the
+    generator ran every Solid installer. It now runs `solid_cache:install`,
+    `solid_queue:install` and `solid_cable:install` only for the gems the
+    `Gemfile` declares, including lines written as `gem("solid_cache")` or
+    spread over several lines.
+
+    *Viktor Schmidt*
+
 *   Detect Kamal in `bin/rails app:update`.
 
     The update command didn't pass `skip_kamal`, so it rendered config files
