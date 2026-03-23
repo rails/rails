@@ -34,8 +34,7 @@ Storage also supports Direct Uploads, allowing files to be uploaded straight
 from the client's browser to the configured cloud storage service. This avoids
 routing large files through your Rails servers.
 
-For local development and testing, Active Storage has a `Disk` service which
-uses the local filesystem by default.
+Active Storage also supports a `Disk` service which uses the local filesystem by default.
 
 ### Setup
 
