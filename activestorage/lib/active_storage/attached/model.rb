@@ -156,7 +156,13 @@ module ActiveStorage
 
         after_save { attachment_changes[name.to_s]&.save }
 
-        after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
+        after_commit(on: %i[ create update ]) do
+          change = attachment_changes.delete(name.to_s)
+          if change
+            (@previous_attachment_changes ||= {})[name.to_s] = change
+            change.upload if change.respond_to?(:upload)
+          end
+        end
 
         reflection = ActiveRecord::Reflection.create(
           :has_one_attached,
@@ -270,7 +276,13 @@ module ActiveStorage
 
         after_save { attachment_changes[name.to_s]&.save }
 
-        after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
+        after_commit(on: %i[ create update ]) do
+          change = attachment_changes.delete(name.to_s)
+          if change
+            (@previous_attachment_changes ||= {})[name.to_s] = change
+            change.upload if change.respond_to?(:upload)
+          end
+        end
 
         reflection = ActiveRecord::Reflection.create(
           :has_many_attached,
@@ -307,6 +319,14 @@ module ActiveStorage
       @attachment_changes ||= {}
     end
 
+    # Returns a hash of attachment changes that were committed in the last
+    # transaction. Similar to ActiveModel's +previous_changes+, this allows
+    # +after_commit+ callbacks to check which attachments were modified,
+    # regardless of callback definition order.
+    def previous_attachment_changes
+      @previous_attachment_changes ||= {}
+    end
+
     def changed_for_autosave? # :nodoc:
       super || attachment_changes.any?
     end
@@ -315,10 +335,14 @@ module ActiveStorage
       super
       @active_storage_attached = nil
       @attachment_changes = nil
+      @previous_attachment_changes = nil
     end
 
     def reload(*) # :nodoc:
-      super.tap { @attachment_changes = nil }
+      super.tap do
+        @attachment_changes = nil
+        @previous_attachment_changes = nil
+      end
     end
   end
 end
