@@ -7,9 +7,10 @@ This guide is an introduction to composite primary keys for database tables.
 
 After reading this guide you will be able to:
 
-* Create a table with a composite primary key
-* Query a model with a composite primary key
-* Enable your model to use a composite primary key for queries and associations
+* Know what composite primary keys are and when to use them
+* Declare composite primary keys and create migrations
+* Query models with composite primary keys
+* Enable associations with composite primary keys
 * Create forms for models that use composite primary keys
 * Extract composite primary keys from controller parameters
 * Use database fixtures for tables with composite primary keys
@@ -24,16 +25,27 @@ of a table, and a combination of two or more columns is required.
 This can be the case when using a legacy database schema without a single `id`
 column as a primary key, or when altering schemas for sharding or multitenancy.
 
-Composite primary keys increase complexity and can be slower than a single
-primary key column. Ensure your use-case requires a composite primary key
+Composite primary keys (CPK) increase complexity and can be slower than a
+single primary key column. Ensure your use case requires a composite primary key
 before using one.
 
+### Using `query_constraints` as an Alternative
 
-Creating Migrations
--------------------
+In cases where your table has a conventional `id` column but you want Active Record to scope queries using an additional column — common in multi-tenant applications — you can use `query_constraints` instead of redefining the primary key entirely:
 
-You can create a table with a composite primary key by passing the
-`:primary_key` option to `create_table` with an array value:
+```ruby
+class Order < ApplicationRecord
+  query_constraints :shop_id, :id
+end
+```
+
+This keeps `id` as the primary key at the database level while instructing Active Record to always include `shop_id` in queries, updates, and deletes. It's a lighter-weight option when you don't need a true composite primary key but want Rails to treat a combination of columns as the effective identity.
+
+
+Declaring Composite Primary Keys and Creating Migrations
+--------------------------------------------------------
+
+To create a table with a composite primary key, you can pass an array to the `primary_key:` option in the migration file:
 
 ```ruby
 class CreateProducts < ActiveRecord::Migration[8.2]
@@ -42,10 +54,43 @@ class CreateProducts < ActiveRecord::Migration[8.2]
       t.integer :store_id
       t.string :sku
       t.text :description
+      t.timestamps
     end
   end
 end
 ```
+
+After running the migration above, your `schema.rb` file will reflect the composite key:
+
+```ruby
+# db/schema.rb
+create_table "products", primary_key: [:store_id, :sku], force: :cascade do |t|
+  t.integer "store_id", null: false
+  t.string "sku", null: false
+  t.text "description"
+  t.datetime "created_at", null: false
+  t.datetime "updated_at", null: false
+end
+```
+
+NOTE: When using a composite primary key, uniqueness is enforced by the combination of columns rather than a single auto-incrementing `id`. In the above example, `store_id` would typically be a foreign key to a `stores` table, and `sku` would be a string the application provides (like "ABC-123"). Neither needs to be auto-generated, their combination is what's unique. However, if your CPK contains no conventional `id` column, you are responsible for ensuring uniqueness, through application logic, UUIDs, etc.
+
+Rails also supports declaring composite primary keys at the model level via [`self.primary_key`](https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/PrimaryKey/ClassMethods.html) method:
+
+```ruby
+class Order < ApplicationRecord
+  self.primary_key = [:store_id, :sku]
+end
+```
+
+This tells Active Record that records are uniquely identified by the combination of both columns, not a single `id`.
+
+In most cases, you don't need to declare a composite primary key with
+`self.primary_key` in your model at all. If you define the CPK in your migration
+and use the default `schema.rb` format, Rails will read the primary key from the
+schema automatically at boot time and your model will work.
+
+On the other hand, if your application uses `structure.sql` instead of `schema.rb` or if you're connecting to a legacy or external database that was not created by your migrations, you can use `self.primary_key` to explicitly declare a composite primary key.
 
 Querying Models
 ---------------
