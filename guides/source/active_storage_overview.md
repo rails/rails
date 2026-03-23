@@ -21,7 +21,7 @@ What is Active Storage?
 -----------------------
 
 Active Storage facilitates attaching files to Active Record objects and
-uploading those files to cloud storage services.
+uploading those files to your server or to a cloud storage service.
 
 Active Storage supports image variants (e.g. resizing) and can transform and
 store variants of uploaded images. Using Active Storage, you can also generate
