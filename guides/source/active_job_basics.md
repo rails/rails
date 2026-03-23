@@ -18,7 +18,7 @@ After reading this guide, you will know:
 What is Active Job?
 -------------------
 
-Active Job Rails framework allows you to declare background jobs and
+The Active Job Rails framework allows you to declare background jobs and
 execute them on a queuing backend. It provides a consistent, high-level interface for common asynchronous tasks such as sending emails, processing data, generating reports, and running periodic maintenance work like data clean-up or billing.
 
 The goal of background jobs is to move long-running or non-critical work out of the HTTP request-response cycle and into a background queue (such as the default Solid Queue), and keep the web requests fast and responsive. This separation allows applications to perform work asynchronously, scale background processing independently, and execute multiple tasks in parallel without blocking user interactions.
@@ -70,7 +70,7 @@ Note that you can define the `perform` method inside a job class with as many ar
 If your application uses a custom abstract job base class instead of
 `ApplicationJob`, you can use the `--parent` option with the generator. The parent class must itself inherit from `ApplicationJob`. This can be useful for grouping related functionality in one place.
 
-For example, given a custom abstract job class:
+For example, given a custom abstract job class using [queue_as](https://api.rubyonrails.org/classes/ActiveJob/QueueName/ClassMethods.html#method-i-queue_as):
 
 ```ruby
 class PaymentJob < ApplicationJob
@@ -89,16 +89,22 @@ The above creates a class that will use the `payments` queue:
 ```ruby
 class ProcessPaymentJob < PaymentJob
   def perform(*args)
-    # Do something later
+    # Do something later, uses the "payments" queue
   end
 end
 ```
 
 ### Calling the `perform_*` Methods
 
-Once you have defined a jobs class with a `perform` method, you'd typically call this method using [`perform_later`][] to enqueue the work to be executed on a queuing backend.
+Once you have defined a job class with a `perform` method, you'd typically call it using [`perform_later`][] to enqueue the work to be executed on a queuing backend. Or use [`perform_now`][] if you want the job to execute immediately without queueing. Both `perform_later` and `perform_now` call `perform` under the hood.
 
-Here are examples of various ways to use `perform_later`. To enqueue a job to be performed as soon as the queuing system is free:
+To run a job immediately without enqueuing it:
+
+```ruby
+GuestsCleanupJob.perform_now(guest)
+```
+
+To enqueue a job to be performed as soon as the queuing system is free:
 
 ```ruby
 GuestsCleanupJob.perform_later(guest)
@@ -116,15 +122,15 @@ To enqueue a job to be performed one week from now:
 GuestsCleanupJob.set(wait: 1.week).perform_later(guest)
 ```
 
-Note that `perform_now` and `perform_later` will call `perform` under the hood
-so you can pass as many arguments as defined in `peform`.
+Since both `perform_now` and `perform_later` forward their arguments to `perform`, you can pass as many arguments as defined in `perform`, including keyword arguments:
 
 ```ruby
 GuestsCleanupJob.perform_later(guest1, guest2, filter: "some_filter")
 ```
 
+[`perform_now`]: https://api.rubyonrails.org/classes/ActiveJob/Execution.html#method-i-perform_now
 [`perform_later`]:
-    https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
+ https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
 [`set`]:
     https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
 
