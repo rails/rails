@@ -1402,13 +1402,7 @@ application:
    </script>
    ```
 
-3. Using the Asset Pipeline - require the library in a JavaScript manifest:
-
-   ```javascript
-   //= require activestorage
-   ```
-
-4. Using the npm package - install via npm/yarn and import it in your JavaScript
+3. Using the npm package - install via npm/yarn and import it in your JavaScript
    bundle:
 
    ```js
