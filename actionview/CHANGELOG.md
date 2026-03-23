@@ -1,3 +1,17 @@
+*   Fix `strip_tags` to encode `"` and `'` in its output.
+
+    `strip_tags` returns an `html_safe` string, but was not encoding quotation
+    marks. The method now encodes all five HTML-significant characters (`&`,
+    `<`, `>`, `"`, `'`), consistent with the existing `html_safe` convention.
+
+    Output used outside HTML, such as in a text template or JSON, now contains
+    `&quot;` and `&#39;` where it contained `"` and `'`. `CGI.unescapeHTML`
+    decodes them.
+
+    [GHSA-rq8q-p985-fjq7]
+
+    *Mike Dalessio*
+
 *   Escape the matched phrase before substituting it into `highlight`'s
     `:highlighter`.
 
