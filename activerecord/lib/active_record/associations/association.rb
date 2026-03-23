@@ -381,10 +381,11 @@ module ActiveRecord
         end
 
         def build_record(attributes)
-          reflection.build_association(attributes) do |record|
+          record = reflection.build_association(attributes) do |record|
             initialize_attributes(record, attributes)
-            yield(record) if block_given?
           end
+          yield(record) if block_given?
+          record
         end
 
         # Returns true if statement cache should be skipped on the association reader.
