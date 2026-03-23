@@ -753,10 +753,30 @@ module Rails
       def run_solid
         return if skip_solid? || !bundle_install?
 
-        commands = "solid_cache:install solid_queue:install"
-        commands += " solid_cable:install" unless skip_action_cable?
+        solid_install_commands.each do |command|
+          rails_command command
+        end
+      end
 
-        rails_command commands
+      def solid_install_commands
+        commands = []
+        commands << "solid_cache:install" if solid_gem_configured?("solid_cache")
+        commands << "solid_queue:install" if solid_gem_configured?("solid_queue")
+        commands << "solid_cable:install" if !skip_action_cable? && solid_gem_configured?("solid_cable")
+        commands
+      end
+
+      def solid_gem_configured?(gem_name)
+        gem_declared_in_gemfile?(gem_name)
+      end
+
+      def gem_declared_in_gemfile?(gem_name)
+        in_root do
+          return false unless File.exist?("Gemfile")
+
+          gem_declaration_pattern = /^\s*gem\s+["']#{Regexp.escape(gem_name)}["'](?:\s|,|$)/
+          File.foreach("Gemfile").any? { |line| line.match?(gem_declaration_pattern) }
+        end
       end
 
       def add_bundler_platforms
