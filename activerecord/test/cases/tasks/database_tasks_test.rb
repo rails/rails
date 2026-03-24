@@ -1257,6 +1257,86 @@ module ActiveRecord
     end
   end
 
+  class DatabaseTasksInitializeDatabaseTest < ActiveRecord::TestCase
+    if current_adapter?(:SQLite3Adapter) && !in_memory_db?
+      self.use_transactional_tests = false
+
+      setup do
+        @original_db_config = ActiveRecord::Base.connection_db_config
+        @tmp_db = "#{Dir.tmpdir}/init_db_test_#{$$}.sqlite3"
+        @db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(
+          "test", "primary", { adapter: "sqlite3", database: @tmp_db }
+        )
+      end
+
+      teardown do
+        ActiveRecord::Base.establish_connection(@original_db_config)
+        File.delete(@tmp_db) if File.exist?(@tmp_db)
+      end
+
+      def test_raises_error_when_non_rails_tables_exist_without_schema_migrations
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: @tmp_db)
+        ActiveRecord::Base.lease_connection.execute("CREATE TABLE users (id integer PRIMARY KEY, name varchar)")
+        ActiveRecord::Base.connection_handler.clear_all_connections!
+
+        assert_raises(ActiveRecord::DatabaseNotManagedError) do
+          with_schema_dump_path do
+            ActiveRecord::Tasks::DatabaseTasks.send(:initialize_database, @db_config)
+          end
+        end
+      end
+
+      def test_does_not_raise_when_database_is_empty
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: @tmp_db)
+        ActiveRecord::Base.connection_handler.clear_all_connections!
+
+        assert_nothing_raised do
+          with_schema_dump_path do
+            ActiveRecord::Tasks::DatabaseTasks.send(:initialize_database, @db_config)
+          end
+        end
+      end
+
+      def test_does_not_raise_when_schema_migrations_exists
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: @tmp_db)
+        ActiveRecord::Base.lease_connection.execute("CREATE TABLE schema_migrations (version varchar NOT NULL PRIMARY KEY)")
+        ActiveRecord::Base.lease_connection.execute("CREATE TABLE users (id integer PRIMARY KEY, name varchar)")
+        ActiveRecord::Base.connection_handler.clear_all_connections!
+
+        assert_nothing_raised do
+          with_schema_dump_path do
+            ActiveRecord::Tasks::DatabaseTasks.send(:initialize_database, @db_config)
+          end
+        end
+      end
+
+      def test_does_not_raise_when_only_ar_internal_metadata_exists
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: @tmp_db)
+        ActiveRecord::Base.lease_connection.execute("CREATE TABLE ar_internal_metadata (key varchar NOT NULL PRIMARY KEY, value varchar, created_at datetime(6), updated_at datetime(6))")
+        ActiveRecord::Base.connection_handler.clear_all_connections!
+
+        assert_nothing_raised do
+          with_schema_dump_path do
+            ActiveRecord::Tasks::DatabaseTasks.send(:initialize_database, @db_config)
+          end
+        end
+      end
+
+      private
+        def with_schema_dump_path(&block)
+          schema_file = Tempfile.new(["schema", ".rb"])
+          schema_file.write("ActiveRecord::Schema[8.1].define(version: 2024_01_01_000001) {}")
+          schema_file.close
+
+          ActiveRecord::Tasks::DatabaseTasks.stub(:schema_dump_path, ->(_) { schema_file.path }) do
+            ActiveRecord::Tasks::DatabaseTasks.stub(:load_schema, ->(_) { }, &block)
+          end
+        ensure
+          schema_file&.unlink
+        end
+    end
+  end
+
   class DatabaseTasksPurgeTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 
