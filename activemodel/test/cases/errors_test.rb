@@ -98,6 +98,65 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal false, errors.key?(:name), "errors should not have key :name"
   end
 
+  test "where returns errors filtered by attribute" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+    errors.add(:name, :too_short, count: 5)
+    errors.add(:age, :blank)
+
+    name_errors = errors.where(:name)
+    assert_equal 2, name_errors.length
+    assert(name_errors.all? { |e| e.attribute == :name })
+
+    age_errors = errors.where(:age)
+    assert_equal 1, age_errors.length
+    assert_equal :age, age_errors.first.attribute
+  end
+
+  test "where returns errors filtered by attribute and type" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+    errors.add(:name, :too_short, count: 5)
+    errors.add(:name, :invalid)
+
+    result = errors.where(:name, :too_short)
+    assert_equal 1, result.length
+    assert_equal :too_short, result.first.type
+  end
+
+  test "where returns errors filtered by attribute, type, and options" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :too_short, count: 2)
+    errors.add(:name, :too_short, count: 5)
+
+    result = errors.where(:name, :too_short, count: 2)
+    assert_equal 1, result.length
+    assert_equal 2, result.first.options[:count]
+  end
+
+  test "where returns empty array when no match" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+
+    result = errors.where(:age)
+    assert_equal [], result
+
+    result = errors.where(:name, :too_short)
+    assert_equal [], result
+  end
+
+  test "where returns Error objects" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+    errors.add(:name, :too_short, count: 5)
+
+    result = errors.where(:name)
+    assert_not_empty result
+    result.each do |error|
+      assert_kind_of ActiveModel::Error, error
+    end
+  end
+
   test "clear errors" do
     person = Person.new
     person.validate!
@@ -748,6 +807,6 @@ class ErrorsTest < ActiveModel::TestCase
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:base)
 
-    assert_equal(%(#<ActiveModel::Errors [#{errors.first.inspect}]>), errors.inspect)
+    assert_match(/\A#<ActiveModel::Errors:0x[0-9a-f]+ @errors=\[#<ActiveModel::Error/, errors.inspect)
   end
 end

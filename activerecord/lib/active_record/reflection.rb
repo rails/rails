@@ -571,13 +571,12 @@ module ActiveRecord
         else
           derived_fk = derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of)
 
-          if active_record.has_query_constraints?
+          if !derived_fk.is_a?(Array) && active_record.has_query_constraints?
             derived_fk = derive_fk_query_constraints(derived_fk)
           end
 
           if derived_fk.is_a?(Array)
-            derived_fk.map! { |fk| -fk.freeze }
-            derived_fk.freeze
+            derived_fk.map { |fk| -fk.freeze }.freeze
           else
             -derived_fk.freeze
           end

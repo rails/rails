@@ -3,7 +3,6 @@
 require "fileutils"
 require "digest/md5"
 require "rails/version" unless defined?(Rails::VERSION)
-require "open-uri"
 require "tsort"
 require "uri"
 require "rails/generators"

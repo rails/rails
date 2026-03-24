@@ -429,11 +429,13 @@ module ApplicationTests
       RUBY
 
       app_file "config/initializers/active_record.rb", <<-RUBY
-        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-        ActiveRecord::Migration.verbose = false
-        ActiveRecord::Schema.define(version: 1) do
-          create_table :posts do |t|
-            t.string :title
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+          ActiveRecord::Migration.verbose = false
+          ActiveRecord::Schema.define(version: 1) do
+            create_table :posts do |t|
+              t.string :title
+            end
           end
         end
       RUBY
@@ -1653,7 +1655,12 @@ module ApplicationTests
       app "development"
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
-      assert_equal "#<ActionController::Parameters #{{ "title" => "foo" }} permitted: false>", last_response.body
+
+      if RUBY_VERSION < "3.4"
+        assert_match('#<ActionController::Parameters {"title"=>"foo"} permitted: false>', last_response.body)
+      else
+        assert_match('#<ActionController::Parameters {"title" => "foo"} permitted: false>', last_response.body)
+      end
     end
 
     test "config.action_controller.permit_all_parameters = true" do
@@ -3016,22 +3023,28 @@ module ApplicationTests
 
     test "PostgresqlAdapter.decode_dates is true by default for new apps" do
       app_file "config/initializers/active_record.rb", <<~RUBY
-        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.establish_connection(adapter: "postgresql")
+        end
       RUBY
 
       app "development"
 
+      _ = ActiveRecord::Base
       assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates
     end
 
     test "PostgresqlAdapter.decode_dates is false by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
       app_file "config/initializers/active_record.rb", <<~RUBY
-        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.establish_connection(adapter: "postgresql")
+        end
       RUBY
 
       app "development"
 
+      _ = ActiveRecord::Base
       assert_equal false, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates
     end
 
@@ -3040,11 +3053,14 @@ module ApplicationTests
       add_to_config "config.active_record.postgresql_adapter_decode_dates = true"
 
       app_file "config/initializers/active_record.rb", <<~RUBY
-        ActiveRecord::Base.establish_connection(adapter: "postgresql")
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.establish_connection(adapter: "postgresql")
+        end
       RUBY
 
       app "development"
 
+      _ = ActiveRecord::Base
       assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates
     end
 
@@ -3118,11 +3134,14 @@ module ApplicationTests
 
     test "SQLite3Adapter.strict_strings_by_default is true by default for new apps" do
       app_file "config/initializers/active_record.rb", <<~RUBY
-        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        end
       RUBY
 
       app "development"
 
+      _ = ActiveRecord::Base
       assert_equal true, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_strings_by_default
     end
 
@@ -3134,11 +3153,14 @@ module ApplicationTests
 
       remove_from_config '.*config\.load_defaults.*\n'
       app_file "config/initializers/active_record.rb", <<~RUBY
-        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        end
       RUBY
 
       app "development"
 
+      _ = ActiveRecord::Base
       assert_equal false, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_strings_by_default
 
       Post.lease_connection.create_table :posts
@@ -3152,11 +3174,14 @@ module ApplicationTests
       add_to_config "config.active_record.sqlite3_adapter_strict_strings_by_default = true"
 
       app_file "config/initializers/active_record.rb", <<~RUBY
-        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        end
       RUBY
 
       app "development"
 
+      _ = ActiveRecord::Base
       assert_equal true, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_strings_by_default
     end
 
@@ -3171,11 +3196,14 @@ module ApplicationTests
         Rails.application.config.active_record.sqlite3_adapter_strict_strings_by_default = true
       RUBY
       app_file "config/initializers/active_record.rb", <<~RUBY
-        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        end
       RUBY
 
       app "development"
 
+      _ = ActiveRecord::Base
       assert_equal true, ActiveRecord::ConnectionAdapters::SQLite3Adapter.strict_strings_by_default
 
       Post.lease_connection.create_table :posts
@@ -3746,7 +3774,9 @@ module ApplicationTests
     test "Rails.application.config.action_mailer.smtp_settings = nil fallback to ActionMailer::Base.smtp_settings" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config <<-RUBY
-        ActionMailer::Base.smtp_settings = { domain: "example.com" }
+        ActiveSupport.on_load(:action_mailer) do
+          self.smtp_settings = { domain: "example.com" }
+        end
         config.load_defaults "7.0"
       RUBY
 
@@ -4102,15 +4132,16 @@ module ApplicationTests
         Rails.application.config.active_record.encryption.primary_key = "dummy_key"
         Rails.application.config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
 
-        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
-        ActiveRecord::Migration.verbose = false
-        ActiveRecord::Schema.define(version: 1) do
-          create_table :posts do |t|
-            t.string :content
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+          ActiveRecord::Migration.verbose = false
+          ActiveRecord::Schema.define(version: 1) do
+            create_table :posts do |t|
+              t.string :content
+            end
           end
+          ActiveRecord::Base.schema_cache.add("posts")
         end
-
-        ActiveRecord::Base.schema_cache.add("posts")
       RUBY
 
       app_file "app/models/post.rb", <<-RUBY
@@ -4142,7 +4173,9 @@ module ApplicationTests
         Rails.application.config.active_record.encryption.primary_key = "dummy_key"
         Rails.application.config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
 
-        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        end
         ActiveRecord::Migration.verbose = false
         ActiveRecord::Schema.define(version: 1) do
           create_table :posts do |t|
@@ -4893,7 +4926,9 @@ module ApplicationTests
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "7.0"'
       app_file "config/initializers/01_configure_database.rb", <<-RUBY
-        ActiveRecord::Base.connected?
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.connected?
+        end
       RUBY
       app_file "config/initializers/new_framework_defaults_7_1.rb", <<-RUBY
         Rails.application.config.active_record.run_after_transaction_callbacks_in_order_defined = true

@@ -16,9 +16,24 @@ module ActiveSupport
       private
         def parts
           left, right = number.to_s.split(".")
-          left.gsub!(delimiter_pattern) do |digit_to_delimit|
-            "#{digit_to_delimit}#{options[:delimiter]}"
+          if delimiter_pattern
+            left.gsub!(delimiter_pattern) do |digit_to_delimit|
+              "#{digit_to_delimit}#{options[:delimiter]}"
+            end
+          else
+            left_parts = []
+            offset = left.size % 3
+            if offset > 0
+              left_parts << left[0, offset]
+            end
+
+            (left.size / 3).times do |i|
+              left_parts << left[offset + (i * 3), 3]
+            end
+
+            left = left_parts.join(options[:delimiter])
           end
+
           [left, right].compact
         end
 

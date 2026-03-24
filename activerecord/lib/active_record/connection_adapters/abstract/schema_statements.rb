@@ -302,33 +302,40 @@ module ActiveRecord
           raise ArgumentError, "Options `:force` and `:if_not_exists` cannot be used simultaneously."
         end
 
-        td = build_create_table_definition(table_name, id: id, primary_key: primary_key, force: force, **options, &block)
+        statements = []
 
         if force
-          drop_table(table_name, force: force, if_exists: true)
-        else
-          schema_cache.clear_data_source_cache!(table_name.to_s)
+          statements << drop_table_sql(table_name, force: force, if_exists: true)
         end
 
-        result = execute schema_creation.accept(td)
+        schema_cache.clear_data_source_cache!(table_name.to_s)
+
+        td = build_create_table_definition(table_name, id: id, primary_key: primary_key, force: force, **options, &block)
+        statements << schema_creation.accept(td)
 
         unless supports_indexes_in_create?
           td.indexes.each do |column_name, index_options|
-            add_index(table_name, column_name, **index_options, if_not_exists: td.if_not_exists)
+            index_definition = build_create_index_definition(table_name, column_name, **index_options, if_not_exists: td.if_not_exists)
+
+            statements << schema_creation.accept(index_definition)
+
+            if supports_comments? && !supports_comments_in_create?
+              statements << change_index_comment_sql(index_definition.index) if index_definition.index.comment.present?
+            end
           end
         end
 
         if supports_comments? && !supports_comments_in_create?
           if table_comment = td.comment.presence
-            change_table_comment(table_name, table_comment)
+            statements << change_table_comment_sql(table_name, table_comment)
           end
 
           td.columns.each do |column|
-            change_column_comment(table_name, column.name, column.comment) if column.comment.present?
+            statements << change_column_comment_sql(table_name, column.name, column.comment) if column.comment.present?
           end
         end
 
-        result
+        execute_batch statements
       end
 
       # Returns a TableDefinition object containing information about the table that would be created
@@ -559,7 +566,7 @@ module ActiveRecord
       def drop_table(*table_names, **options)
         table_names.each do |table_name|
           schema_cache.clear_data_source_cache!(table_name.to_s)
-          execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}"
+          execute drop_table_sql(table_name, **options)
         end
       end
 
@@ -652,6 +659,13 @@ module ActiveRecord
       #
       #  # Ignores the method call if the column exists
       #  add_column(:shapes, :triangle, 'polygon', if_not_exists: true)
+      #
+      # ====== Creating a column with a specific algorithm and lock mode
+      #
+      #  add_column(:users, :age, :integer, algorithm: :instant, lock: :none)
+      #  # ALTER TABLE `users` ADD `age` int ALGORITHM = INSTANT LOCK = NONE
+      #
+      # Note: only supported by MySQL.
       def add_column(table_name, column_name, type, **options)
         add_column_def = build_add_column_definition(table_name, column_name, type, **options)
         return unless add_column_def
@@ -715,6 +729,12 @@ module ActiveRecord
       # if the column was already removed.
       #
       #   remove_column(:suppliers, :qualification, if_exists: true)
+      #
+      # Removes the column with a specific algorithm and lock mode:
+      #
+      #   remove_column(:suppliers, :qualification, algorithm: :inplace, lock: :none)
+      #
+      # Note: only supported by MySQL.
       def remove_column(table_name, column_name, type = nil, **options)
         return if options[:if_exists] == true && !column_exists?(table_name, column_name)
 
@@ -727,6 +747,11 @@ module ActiveRecord
       #   change_column(:suppliers, :name, :string, limit: 80)
       #   change_column(:accounts, :description, :text)
       #
+      # Changes the column with a specific algorithm and lock mode:
+      #
+      #   change_column(:suppliers, :name, :string, limit: 80, algorithm: :inplace, lock: :none)
+      #
+      # Note: only supported by MySQL.
       def change_column(table_name, column_name, type, **options)
         raise NotImplementedError, "change_column is not implemented"
       end
@@ -782,6 +807,11 @@ module ActiveRecord
       #
       #   rename_column(:suppliers, :description, :name)
       #
+      # Renames the column with a specific algorithm and lock mode:
+      #
+      #   rename_column(:suppliers, :description, :name, algorithm: :inplace, lock: :none)
+      #
+      # Note: only supported by MySQL.
       def rename_column(table_name, column_name, new_column_name)
         raise NotImplementedError, "rename_column is not implemented"
       end
@@ -932,6 +962,16 @@ module ActiveRecord
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       #
+      # ====== Creating an index with a specific lock mode
+      #
+      #  add_index(:developers, :name, lock: :none)
+      #  # CREATE INDEX `index_developers_on_name` ON `developers` (`name`) LOCK = NONE -- MySQL
+      #
+      #  add_index(:developers, :name, algorithm: :inplace, lock: :none)
+      #  # CREATE INDEX `index_developers_on_name` ON `developers` (`name`) ALGORITHM = INPLACE LOCK = NONE -- MySQL
+      #
+      # Note: only supported by MySQL.
+      #
       # ====== Creating an index that is not used by queries
       #
       #   add_index(:developers, :name, enabled: false)
@@ -995,6 +1035,11 @@ module ActiveRecord
       # Concurrently removing an index is not supported in a transaction.
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
+      #
+      # Removes the index with a specific algorithm and lock mode on MySQL:
+      #
+      #   remove_index :accounts, :branch_id, algorithm: :inplace, lock: :none
+      #
       def remove_index(table_name, column_name = nil, **options)
         return if options[:if_exists] && !index_exists?(table_name, column_name, **options)
 
@@ -1902,7 +1947,7 @@ module ActiveRecord
         alias :extract_new_comment_value :extract_new_default_value
 
         def can_remove_index_by_name?(column_name, options)
-          column_name.nil? && options.key?(:name) && options.except(:name, :algorithm).empty?
+          column_name.nil? && options.key?(:name) && options.except(:name, :algorithm, :lock).empty?
         end
 
         def reference_name_for_table(table_name)
@@ -1959,6 +2004,24 @@ module ActiveRecord
         end
 
         def quoted_scope(name = nil, type: nil)
+          raise NotImplementedError
+        end
+
+        def drop_table_sql(table_name, if_exists: nil, force: nil, **)
+          exists = " IF EXISTS" if if_exists
+
+          "DROP TABLE#{exists} #{quote_table_name(table_name)}"
+        end
+
+        def change_table_comment_sql(table_name, comment_or_changes)
+          raise NotImplementedError
+        end
+
+        def change_column_comment_sql(table_name, column_name, comment_or_changes)
+          raise NotImplementedError
+        end
+
+        def change_index_comment_sql(index)
           raise NotImplementedError
         end
     end

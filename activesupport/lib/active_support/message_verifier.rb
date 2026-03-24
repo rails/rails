@@ -3,6 +3,7 @@
 require "openssl"
 require "base64"
 require "active_support/core_ext/object/blank"
+require "active_support/inspect_backport"
 require "active_support/security_utils"
 require "active_support/messages/codec"
 require "active_support/messages/rotator"
@@ -315,11 +316,13 @@ module ActiveSupport
       deserialize_with_metadata(decode(extract_encoded(message)), **options)
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-    end
+    ActiveSupport::InspectBackport.apply(self)
 
     private
+      def instance_variables_to_inspect
+        [].freeze
+      end
+
       def decode(encoded, url_safe: @url_safe)
         catch :invalid_message_format do
           return super

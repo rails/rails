@@ -28,6 +28,10 @@ module ActiveModel
   #   person.name # => "Volmer"
   #   person.active # => true
   module Attributes
+    extend ActiveSupport::Autoload
+
+    autoload :Normalization
+
     extend ActiveSupport::Concern
     include ActiveModel::AttributeRegistration
     include ActiveModel::AttributeMethods

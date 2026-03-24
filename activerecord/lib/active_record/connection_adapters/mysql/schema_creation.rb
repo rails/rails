@@ -36,6 +36,7 @@ module ActiveRecord
           def visit_CreateIndexDefinition(o)
             sql = visit_IndexDefinition(o.index, true)
             sql << " #{o.algorithm}" if o.algorithm
+            sql << " #{o.lock}" if o.lock
             sql
           end
 

@@ -237,16 +237,19 @@ module ActionView
           output = +""
           sep    = " "
           options.each_pair do |key, value|
+            next if key.blank?
+
             type = TAG_TYPES[key]
             if type == :data && value.is_a?(Hash)
               value.each_pair do |k, v|
-                next if v.nil?
+                next if k.blank? || v.nil?
+
                 output << sep
                 output << prefix_tag_option(key, k, v, escape)
               end
             elsif type == :aria && value.is_a?(Hash)
               value.each_pair do |k, v|
-                next if v.nil?
+                next if k.blank? || v.nil?
 
                 case v
                 when Array, Hash

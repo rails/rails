@@ -187,6 +187,11 @@ Below are the default values associated with each target version. In cases of co
 
 The following configuration methods are to be called on a `Rails::Railtie` object, such as a subclass of `Rails::Engine` or `Rails::Application`.
 
+#### `config.action_on_early_load_hook`
+
+Controls what happens when a load hook is violated before the Rails application is initialized.
+The value is `:log` by default, which will log when when a load hook is invoked early. The value can alternatively be `raise`, which will raise a `LoadError` instead of logging.
+
 #### `config.add_autoload_paths_to_load_path`
 
 Says whether autoload paths have to be added to `$LOAD_PATH`. It is recommended to be set to `false` in `:zeitwerk` mode early, in `config/application.rb`. Zeitwerk uses absolute paths internally, and applications running in `:zeitwerk` mode do not need `require_dependency`, so models, controllers, jobs, etc. do not need to be in `$LOAD_PATH`. Setting this to `false` saves Ruby from checking these directories when resolving `require` calls with relative paths, and saves Bootsnap work and RAM, since it does not need to build an index for them.
@@ -3594,6 +3599,20 @@ The default value depends on the `config.load_defaults` target version:
 
 Determines whether the Active Storage assets should be added to the asset pipeline precompilation. It
 has no effect if Sprockets is not used. The default value is `true`.
+
+#### `config.active_storage.streaming_max_ranges`
+
+Defines how many ranges a byte range request may contain.
+
+`ActiveStorage::Streaming` allows requesting partial resources using HTTP Range Requests,
+but that feature can be abused for denial of service attacks.
+
+By default only a single range of byte is allowed, which allows for retries and the vast majority
+of use cases. If you need multiple byte range support, you can increase that setting.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `1`                  |
 
 ### Configuring Action Text
 

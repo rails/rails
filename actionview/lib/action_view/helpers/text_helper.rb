@@ -143,7 +143,7 @@ module ActionView
       #
       # [+:highlighter+]
       #   The highlighter string. Uses <tt>\1</tt> as the placeholder for a
-      #   phrase, similar to +String#sub+. Defaults to <tt>"<mark>\1</mark>"</tt>.
+      #   phrase, similar to <tt>String#sub</tt>. Defaults to <tt>"<mark>\1</mark>"</tt>.
       #   This option is ignored if a block is specified.
       #
       # [+:sanitize+]

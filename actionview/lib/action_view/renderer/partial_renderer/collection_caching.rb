@@ -119,8 +119,11 @@ module ActionView
         end
 
         unless entries_to_write.empty?
-          expires_in = @options[:cached][:expires_in] if @options[:cached].is_a?(Hash)
-          collection_cache.write_multi(entries_to_write, expires_in: expires_in)
+          if @options[:cached].is_a?(Hash) && @options[:cached].key?(:expires_in)
+            collection_cache.write_multi(entries_to_write, expires_in: @options[:cached][:expires_in])
+          else
+            collection_cache.write_multi(entries_to_write)
+          end
         end
 
         keyed_partials

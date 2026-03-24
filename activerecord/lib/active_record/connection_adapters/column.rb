@@ -89,16 +89,18 @@ module ActiveRecord
       alias :eql? :==
 
       def hash
-        Column.hash ^
-          name.hash ^
-          name.encoding.hash ^
-          cast_type.hash ^
-          default.hash ^
-          sql_type_metadata.hash ^
-          null.hash ^
-          default_function.hash ^
-          collation.hash ^
-          comment.hash
+        [
+          Column,
+          @name,
+          @name.encoding,
+          @cast_type,
+          @default,
+          @sql_type_metadata,
+          @null,
+          @default_function,
+          @collation,
+          @comment,
+        ].hash
       end
 
       def virtual?

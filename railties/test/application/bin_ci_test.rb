@@ -16,6 +16,9 @@ module ApplicationTests
 
         content = File.read("config/ci.rb")
 
+        # Parallel group
+        assert_match(/group "Checks", parallel: 2/, content)
+
         # Default steps
         assert_match(/bin\/rubocop/, content)
         assert_match(/bin\/brakeman/, content)
@@ -23,6 +26,9 @@ module ApplicationTests
         assert_match(/"bin\/rails test"$/, content)
         assert_match(/"bin\/rails test:system"$/, content)
         assert_match(/bin\/rails db:seed:replant/, content)
+
+        # Tests sub-group
+        assert_match(/group "Tests"/, content)
 
         # Node-specific steps excluded by default
         assert_no_match(/yarn audit/, content)

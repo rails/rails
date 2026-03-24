@@ -16,10 +16,18 @@
 # Blobs are intended to be immutable in as-so-far as their reference to a specific file goes. You're allowed to
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
+#
+# When using a custom +key+, the value is treated as trusted. Using untrusted user input
+# as the key may result in unexpected behavior.
 class ActiveStorage::Blob < ActiveStorage::Record
   MINIMUM_TOKEN_LENGTH = 28
 
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
+
+  # FIXME: these property should never have been stored in the metadata.
+  # The blob table should be migrated to have dedicated columns for theses.
+  PROTECTED_METADATA = %w(analyzed identified composed)
+  private_constant :PROTECTED_METADATA
   store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
 
   # Temporary reference to a local io during the upload flow. When set,
@@ -98,6 +106,9 @@ class ActiveStorage::Blob < ActiveStorage::Record
     # be saved before the upload begins to prevent the upload clobbering another due to key collisions.
     # When providing a content type, pass <tt>identify: false</tt> to bypass
     # automatic content type inference.
+    #
+    # The optional +key+ parameter is treated as trusted. Using untrusted user input
+    # as the key may result in unexpected behavior.
     def create_and_upload!(key: nil, io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil)
       create_after_unfurling!(key: key, io: io, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, identify: identify).tap do |blob|
         blob.upload_without_unfurling(io)
@@ -110,6 +121,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     # Once the form using the direct upload is submitted, the blob can be associated with the right record using
     # the signed ID.
     def create_before_direct_upload!(key: nil, filename:, byte_size:, checksum:, content_type: nil, metadata: nil, service_name: nil, record: nil)
+      metadata = filter_metadata(metadata)
       create! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, metadata: metadata, service_name: service_name
     end
 
@@ -136,7 +148,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     end
 
     def scope_for_strict_loading # :nodoc:
-      if strict_loading_by_default? && ActiveStorage.track_variants
+      if self.strict_loading_by_default? && ActiveStorage.track_variants
         includes(
           variant_records: { image_attachment: :blob },
           preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
@@ -157,6 +169,15 @@ class ActiveStorage::Blob < ActiveStorage::Record
         combined_blob.save!
       end
     end
+
+    private
+      def filter_metadata(metadata)
+        if metadata.is_a?(Hash)
+          metadata.without(*PROTECTED_METADATA)
+        else
+          metadata
+        end
+      end
   end
 
   include Analyzable
@@ -195,22 +216,22 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   # Returns true if the content_type of this blob is in the image range, like image/png.
   def image?
-    content_type.start_with?("image")
+    content_type&.start_with?("image")
   end
 
   # Returns true if the content_type of this blob is in the audio range, like audio/mpeg.
   def audio?
-    content_type.start_with?("audio")
+    content_type&.start_with?("audio")
   end
 
   # Returns true if the content_type of this blob is in the video range, like video/mp4.
   def video?
-    content_type.start_with?("video")
+    content_type&.start_with?("video")
   end
 
   # Returns true if the content_type of this blob is in the text range, like text/plain.
   def text?
-    content_type.start_with?("text")
+    content_type&.start_with?("text")
   end
 
   # Returns the URL of the blob on the service. This returns a permanent URL for public files, and returns a

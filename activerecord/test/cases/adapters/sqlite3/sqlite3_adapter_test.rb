@@ -1111,6 +1111,26 @@ module ActiveRecord
         end
       end
 
+      def test_rowid_changes_column_equality
+        cast_type = @conn.lookup_cast_type("integer")
+        type_metadata = SqlTypeMetadata.new(sql_type: "integer", type: :integer)
+
+        rowid_column = SQLite3::Column.new("id", cast_type, nil, type_metadata, true, nil, rowid: true)
+        regular_column = SQLite3::Column.new("id", cast_type, nil, type_metadata, true, nil, rowid: false)
+
+        assert_not_equal rowid_column, regular_column
+      end
+
+      def test_generated_type_changes_column_equality
+        cast_type = @conn.lookup_cast_type("string")
+        type_metadata = SqlTypeMetadata.new(sql_type: "varchar", type: :string)
+
+        stored_column = SQLite3::Column.new("name", cast_type, nil, type_metadata, true, nil, generated_type: :stored)
+        virtual_column = SQLite3::Column.new("name", cast_type, nil, type_metadata, true, nil, generated_type: :virtual)
+
+        assert_not_equal stored_column, virtual_column
+      end
+
       def test_sqlite_extensions_are_constantized_for_the_client_constructor
         mock_adapter = Class.new(SQLite3Adapter) do
           class << self
