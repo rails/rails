@@ -1,3 +1,16 @@
+*   Set inverse association before assigning attributes in `build` on
+    `has_many` and `has_one` associations.
+
+    Previously, when calling `parent.children.build(attrs)`, the child's
+    attributes were assigned before the inverse association (back-reference
+    to the parent) was set. This caused issues when attribute setters or
+    callbacks needed to access the parent, such as ActiveStorage's dynamic
+    service resolution.
+
+    Fixes #57042.
+
+    *Denis Savchuk*
+
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be
