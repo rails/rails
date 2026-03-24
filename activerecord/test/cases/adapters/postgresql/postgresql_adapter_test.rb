@@ -905,11 +905,14 @@ module ActiveRecord
         assert_raises ActiveRecord::ConnectionNotEstablished do
           @connection.execute("SELECT 1")
         end
+      ensure
+        @connection&.disconnect!
       end
 
       def test_translate_no_connection_exception_to_not_established
-        pid = @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
-        @connection.pool.checkout.execute("SELECT pg_terminate_backend(#{pid})")
+        raw_connection = @connection.raw_connection
+        pid = connection_id_from_server(@connection)
+        kill_connection_from_server(pid)
         # If you run `@connection.execute` after the backend process has been terminated,
         # you will get the "server closed the connection unexpectedly" rather than "no connection to the server".
         # Because what we want to test here is an error that occurs during `send_query`,
@@ -917,11 +920,63 @@ module ActiveRecord
         # The `send_query` changes the internal `PG::Connection#status` to `CONNECTION_BAD`,
         # so any subsequent queries will get the "no connection to the server" error.
         # https://github.com/postgres/postgres/blob/REL_17_0/src/interfaces/libpq/fe-exec.c#L1686-L1691
-        @connection.instance_variable_get(:@raw_connection).send_query("SELECT 1")
+        raw_connection.send_query("SELECT 1")
 
         assert_raise ActiveRecord::ConnectionNotEstablished do
           @connection.execute("SELECT 1")
         end
+      end
+
+      def test_terminate_backend_preserves_typed_exception
+        pid = connection_id_from_server(@connection)
+
+        # Put in a dirty transaction so auto-reconnect can't mask the error
+        @connection.execute("BEGIN")
+        @connection.execute("CREATE TEMP TABLE _typed_exception_probe()")
+
+        kill_connection_from_server(pid)
+        sleep 0.1
+
+        error = assert_raises(ActiveRecord::ConnectionFailed) { @connection.execute("SELECT 1") }
+        assert_kind_of PG::AdminShutdown, error.cause
+        assert_equal "57P01", error.cause.result.error_field(PG::PG_DIAG_SQLSTATE)
+      ensure
+        @connection&.disconnect!
+      end
+
+      def test_idle_in_transaction_timeout_preserves_typed_exception
+        @connection.execute("BEGIN")
+        @connection.execute("SET idle_in_transaction_session_timeout = '10ms'")
+        sleep 0.1
+
+        error = assert_raises(ActiveRecord::ConnectionFailed) { @connection.execute("SELECT 1") }
+        assert_kind_of PG::IdleInTransactionSessionTimeout, error.cause
+        assert_equal "25P03", error.cause.result.error_field(PG::PG_DIAG_SQLSTATE)
+      ensure
+        @connection&.disconnect!
+      end
+
+      def test_flush_on_dead_connection_translates_to_connection_failed
+        pid = connection_id_from_server(@connection)
+        raw_connection = @connection.raw_connection
+
+        # Queue a slow query, then kill the backend while it's running
+        raw_connection.send_query("SELECT pg_sleep(1)")
+        kill_connection_from_server(pid)
+        sleep 0.1
+
+        # Drain results: first the FATAL, then the socket death
+        loop do
+          raw_connection.get_result || break
+        rescue PG::Error
+          break
+        end
+
+        error = assert_raises(PG::Error) { raw_connection.flush }
+        assert_not_kind_of PG::ConnectionBad, error
+
+        translated = @connection.send(:translate_exception_class, error, nil, nil)
+        assert_kind_of ActiveRecord::ConnectionFailed, translated
       end
 
       def test_reload_type_map_for_newly_defined_types
