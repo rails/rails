@@ -64,6 +64,7 @@ module ActiveRecord
         super.tap do
           @mutations_before_last_save = nil
           @mutations_from_database = nil
+          @transaction_mutations_before_last_save = nil
         end
       end
 
