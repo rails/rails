@@ -266,6 +266,24 @@ class ExceptionsTest < ActiveSupport::TestCase
       ], JobBuffer.values
     end
 
+    test "custom wait object can use the execution count" do
+      travel_to Time.now
+
+      RetryJob.perform_later "CallableWaitTenAttemptsError", 5, :log_scheduled_at
+
+      assert_equal [
+        "Raised CallableWaitTenAttemptsError for the 1st time",
+        "Next execution scheduled at #{(Time.now + 2.seconds).to_f}",
+        "Raised CallableWaitTenAttemptsError for the 2nd time",
+        "Next execution scheduled at #{(Time.now + 4.seconds).to_f}",
+        "Raised CallableWaitTenAttemptsError for the 3rd time",
+        "Next execution scheduled at #{(Time.now + 6.seconds).to_f}",
+        "Raised CallableWaitTenAttemptsError for the 4th time",
+        "Next execution scheduled at #{(Time.now + 8.seconds).to_f}",
+        "Successfully completed job"
+      ], JobBuffer.values
+    end
+
     test "custom wait proc can use the error" do
       travel_to Time.now
 
@@ -276,6 +294,38 @@ class ExceptionsTest < ActiveSupport::TestCase
         "Next execution scheduled at #{(Time.now + 11.seconds).to_f}",
         "Raised RetryWaitIncludedInError for the 2nd time",
         "Next execution scheduled at #{(Time.now + 12.seconds).to_f}",
+        "Successfully completed job"
+      ], JobBuffer.values
+    end
+
+    test "custom wait object can use the error" do
+      travel_to Time.now
+
+      RetryJob.perform_later "CallableWaitIncludedInError", 3, :log_scheduled_at
+
+      assert_equal [
+        "Raised CallableWaitIncludedInError for the 1st time",
+        "Next execution scheduled at #{(Time.now + 11.seconds).to_f}",
+        "Raised CallableWaitIncludedInError for the 2nd time",
+        "Next execution scheduled at #{(Time.now + 12.seconds).to_f}",
+        "Successfully completed job"
+      ], JobBuffer.values
+    end
+
+    test "custom wait method can use the execution count" do
+      travel_to Time.now
+
+      RetryJob.perform_later "MethodWaitTenAttemptsError", 5, :log_scheduled_at
+
+      assert_equal [
+        "Raised MethodWaitTenAttemptsError for the 1st time",
+        "Next execution scheduled at #{(Time.now + 2.seconds).to_f}",
+        "Raised MethodWaitTenAttemptsError for the 2nd time",
+        "Next execution scheduled at #{(Time.now + 4.seconds).to_f}",
+        "Raised MethodWaitTenAttemptsError for the 3rd time",
+        "Next execution scheduled at #{(Time.now + 6.seconds).to_f}",
+        "Raised MethodWaitTenAttemptsError for the 4th time",
+        "Next execution scheduled at #{(Time.now + 8.seconds).to_f}",
         "Successfully completed job"
       ], JobBuffer.values
     end

@@ -26,7 +26,8 @@ module ActiveJob
       #
       # ==== Options
       # * <tt>:wait</tt> - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds),
-      #   as a computing proc that takes the number of executions so far as an argument (and optionally the error),
+      #   as a callable that takes the number of executions so far as an argument (and optionally the error),
+      #   such as a proc, lambda, Method, or object that responds to <tt>#call</tt>,
       #   or as a symbol reference of
       #   <tt>:polynomially_longer</tt>, which applies the wait algorithm of <tt>((executions**4) + (Kernel.rand * (executions**4) * jitter)) + 2</tt>
       #   (first wait ~3s, then ~18s, then ~83s, etc)
@@ -183,12 +184,19 @@ module ActiveJob
           delay = seconds_or_duration_or_algorithm.to_i
           delay_jitter = determine_jitter_for_delay(delay, jitter)
           delay + delay_jitter
-        when Proc
-          algorithm = seconds_or_duration_or_algorithm
-          algorithm.arity == 1 ? algorithm.call(executions) : algorithm.call(executions, error)
         else
-          raise "Couldn't determine a delay based on #{seconds_or_duration_or_algorithm.inspect}"
+          if seconds_or_duration_or_algorithm.respond_to?(:call)
+            determine_callable_delay(seconds_or_duration_or_algorithm, executions, error)
+          else
+            raise "Couldn't determine a delay based on #{seconds_or_duration_or_algorithm.inspect}"
+          end
         end
+      end
+
+      def determine_callable_delay(callable, executions, error)
+        arity = callable.respond_to?(:arity) ? callable.arity : callable.method(:call).arity
+
+        arity == 1 ? callable.call(executions) : callable.call(executions, error)
       end
 
       def determine_jitter_for_delay(delay, jitter)
