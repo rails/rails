@@ -164,11 +164,15 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, intent)
-            result = if intent.prepare
+            raw_connection.discard_results
+
+            if intent.prepare
               begin
                 stmt_key = prepare_statement(intent.processed_sql, intent.binds, raw_connection)
                 intent.notification_payload[:statement_name] = stmt_key
-                raw_connection.exec_prepared(stmt_key, intent.type_casted_binds)
+                raw_connection.send_query_prepared(stmt_key, intent.type_casted_binds)
+                result = get_result(raw_connection)
+                result&.check
               rescue PG::FeatureNotSupported => error
                 if is_cached_plan_failure?(error)
                   # Nothing we can do if we are in a transaction because all commands
@@ -186,10 +190,15 @@ module ActiveRecord
 
                 raise
               end
-            elsif intent.has_binds?
-              raw_connection.exec_params(intent.processed_sql, intent.type_casted_binds)
             else
-              raw_connection.async_exec(intent.processed_sql)
+              if intent.has_binds?
+                raw_connection.send_query_params(intent.processed_sql, intent.type_casted_binds)
+              else
+                raw_connection.send_query(intent.processed_sql)
+              end
+
+              result = get_result(raw_connection)
+              result&.check
             end
 
             verified!
@@ -267,6 +276,20 @@ module ActiveRecord
 
           def warning_ignored?(warning)
             ["WARNING", "ERROR", "FATAL", "PANIC"].exclude?(warning.level) || super
+          end
+
+          def get_result(raw_connection)
+            result = nil
+            while incoming = raw_connection.get_result
+              result&.clear
+              result = incoming
+
+              if result.result_status == PG::PGRES_FATAL_ERROR
+                severity = result.error_field(PG::PG_DIAG_SEVERITY_NONLOCALIZED)
+                result.check if severity == "FATAL"
+              end
+            end
+            result
           end
       end
     end
