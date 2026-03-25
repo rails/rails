@@ -19,7 +19,7 @@ module ActionDispatch
       begin
         response = @app.call(env)
 
-        if env["action_dispatch.report_exception"]
+        if env["action_dispatch.report_exception"] && !env["action_dispatch.exception_reported"]
           error = env["action_dispatch.exception"]
           @executor.error_reporter.report(error, handled: false, source: "application.action_dispatch")
         end
@@ -33,7 +33,10 @@ module ActionDispatch
         request = ActionDispatch::Request.new env
         backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
         wrapper = ExceptionWrapper.new(backtrace_cleaner, error)
-        @executor.error_reporter.report(wrapper.unwrapped_exception, handled: false, source: "application.action_dispatch")
+        unless wrapper.rescue_response?
+          @executor.error_reporter.report(wrapper.unwrapped_exception, handled: false, source: "application.action_dispatch")
+          env["action_dispatch.exception_reported"] = true
+        end
         raise
       ensure
         if !returned && !response_finished
