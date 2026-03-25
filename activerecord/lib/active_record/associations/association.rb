@@ -217,7 +217,15 @@ module ActiveRecord
       def initialize_attributes(record, except_from_scope_attributes = nil) # :nodoc:
         except_from_scope_attributes ||= {}
         skip_assign = [reflection.foreign_key, reflection.type].compact
-        assigned_keys = record.changed_attribute_names_to_save
+        default_attributes = record.class._default_attributes
+        assigned_keys = record.changed_attribute_names_to_save.select { |attr_name|
+          # Only treat attributes as "already assigned" if they were explicitly
+          # set by the user (e.g., passed to build() or set in after_initialize),
+          # not merely defaulted via `attribute :name, default:`. Attributes
+          # still at their class-level default should not prevent scope values
+          # from being applied.
+          record.instance_variable_get(:@attributes)[attr_name] != default_attributes[attr_name]
+        }
         assigned_keys += except_from_scope_attributes.keys.map(&:to_s)
         attributes = scope_for_create.except!(*(assigned_keys - skip_assign))
         record.send(:_assign_attributes, attributes) if attributes.any?
