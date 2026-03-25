@@ -103,7 +103,7 @@ module ActiveRecord
     end
 
     module ClassMethods
-      def inherited(subclass) # :nodoc
+      def inherited(subclass) # :nodoc:
         super
         subclass.instance_variable_set(:@local_stored_attributes, nil)
         subclass.instance_variable_set(:@_store_accessors_module, nil)
