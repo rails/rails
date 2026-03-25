@@ -710,6 +710,41 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "detaching dependent attachments on destroy keeps blobs" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      @user.documents.attach blobs
+
+      assert_no_enqueued_jobs do
+        @user.destroy!
+      end
+
+      assert ActiveStorage::Blob.exists?(blobs.first.id)
+      assert ActiveStorage::Blob.exists?(blobs.second.id)
+      assert ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.second.key)
+    end
+  end
+
+  test "detaching many attachments touches blobs in a single query" do
+    blobs = 3.times.map { |i| create_blob(filename: "doc_#{i}.jpg") }
+    @user.documents.attach blobs
+
+    touch_queries = []
+    counter = ->(*args) {
+      payload = args.last
+      if payload[:sql] =~ /UPDATE.*active_storage_blobs.*updated_at/i
+        touch_queries << payload[:sql]
+      end
+    }
+
+    ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+      @user.documents.detach
+    end
+
+    assert_equal 1, touch_queries.size,
+      "Expected 1 batch UPDATE, got #{touch_queries.size}: #{touch_queries.inspect}"
+  end
+
   test "duped record does not share attachments" do
     @user.highlights.attach [ create_blob(filename: "funky.jpg") ]
 

@@ -82,6 +82,26 @@ Upgrading from Rails 8.1 to Rails 8.2
 
 For more information on changes made to Rails 8.2 please see the [release notes](8_2_release_notes.html).
 
+### Active Storage `dependent: :detach` and `updated_at` on blobs
+
+Active Storage now supports `dependent: :detach` for `has_one_attached` and
+`has_many_attached`. When a record is destroyed, the attachment is removed but
+the blob and its file are preserved.
+
+A new `updated_at` column has been added to `active_storage_blobs`. Blobs are
+touched when detached, so you can purge unattached blobs based on when they
+became unattached rather than when they were originally uploaded:
+
+```ruby
+ActiveStorage::Blob.unattached.where(
+  "COALESCE(active_storage_blobs.updated_at, active_storage_blobs.created_at) <= ?",
+  2.days.ago
+).find_each(&:purge_later)
+```
+
+Run `rails app:update` to copy the new migration that adds the `updated_at`
+column.
+
 ### The negative scopes for enums now include records with `nil` values.
 
 Active Record negative scopes for enums now include records with `nil` values.

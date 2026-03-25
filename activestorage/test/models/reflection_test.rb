@@ -39,11 +39,21 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
     assert_instance_of Hash, reflection.named_variants
   end
 
+  test "reflecting on a singular attachment with detach dependent" do
+    reflection = User.reflect_on_attachment(:profile_photo)
+    assert_equal :detach, reflection.options[:dependent]
+  end
+
+  test "reflecting on a collection attachment with detach dependent" do
+    reflection = User.reflect_on_attachment(:documents)
+    assert_equal :detach, reflection.options[:dependent]
+  end
+
   test "reflecting on all attachments" do
     reflections = User.reflect_on_all_attachments.sort_by(&:name)
     assert_equal [ User ], reflections.collect(&:active_record).uniq
-    assert_equal [ :avatar, :avatar_with_conditional_preprocessed, :avatar_with_immediate_analysis, :avatar_with_immediate_variants, :avatar_with_later_analysis, :avatar_with_later_variants, :avatar_with_lazy_analysis, :avatar_with_lazy_variants, :avatar_with_preprocessed, :avatar_with_variants, :cover_photo, :highlights, :highlights_with_conditional_preprocessed, :highlights_with_immediate_variants, :highlights_with_preprocessed, :highlights_with_variants, :intro_video, :name_pronunciation_audio, :resume, :resume_with_preprocessing, :vlogs ], reflections.collect(&:name)
-    assert_equal [ :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_many_attached, :has_many_attached, :has_many_attached, :has_many_attached, :has_many_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_many_attached ], reflections.collect(&:macro)
-    assert_equal [ :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, false, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, false ], reflections.collect { |reflection| reflection.options[:dependent] }
+    assert_equal [ :avatar, :avatar_with_conditional_preprocessed, :avatar_with_immediate_analysis, :avatar_with_immediate_variants, :avatar_with_later_analysis, :avatar_with_later_variants, :avatar_with_lazy_analysis, :avatar_with_lazy_variants, :avatar_with_preprocessed, :avatar_with_variants, :cover_photo, :documents, :highlights, :highlights_with_conditional_preprocessed, :highlights_with_immediate_variants, :highlights_with_preprocessed, :highlights_with_variants, :intro_video, :name_pronunciation_audio, :profile_photo, :resume, :resume_with_preprocessing, :vlogs ], reflections.collect(&:name)
+    assert_equal [ :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_many_attached, :has_many_attached, :has_many_attached, :has_many_attached, :has_many_attached, :has_many_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_one_attached, :has_many_attached ], reflections.collect(&:macro)
+    assert_equal [ :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, false, :detach, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :purge_later, :detach, :purge_later, :purge_later, false ], reflections.collect { |reflection| reflection.options[:dependent] }
   end
 end
