@@ -70,6 +70,7 @@ module AdapterHelper
     supports_expression_index?
     supports_index_include?
     supports_insert_returning?
+    supports_update_returning?
     supports_insert_on_duplicate_skip?
     supports_insert_on_duplicate_update?
     supports_insert_conflict_target?

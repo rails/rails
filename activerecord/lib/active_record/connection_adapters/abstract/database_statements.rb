@@ -259,6 +259,15 @@ module ActiveRecord
         intent.affected_rows
       end
 
+      # Executes the update statement and returns the resulting rows as an ActiveRecord::Result.
+      # Used when the update includes a RETURNING clause.
+      def update_returning(arel, name = nil, binds = [])
+        intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
+
+        intent.execute!
+        intent.cast_result
+      end
+
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel, name = nil, binds = [])
         intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)

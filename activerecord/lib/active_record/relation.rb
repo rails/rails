@@ -612,29 +612,67 @@ module ActiveRecord
         MESSAGE
       end
 
-      if updates.is_a?(Hash)
-        if model.locking_enabled? &&
-            !updates.key?(model.locking_column) &&
-            !updates.key?(model.locking_column.to_sym)
-          attr = table[model.locking_column]
-          updates[attr.name] = _increment_attribute(attr)
-        end
-        values = _substitute_values(updates)
-      else
-        values = Arel.sql(model.sanitize_sql_for_assignment(updates, table.name))
+      model.with_connection do |c|
+        stmt = build_update_all_statement(updates)
+        c.update(stmt, "#{model} Update All").tap { reset }
+      end
+    end
+
+    # Updates all records in the current relation with details given and returns the updated rows
+    # as an ActiveRecord::Result. This method constructs a single SQL UPDATE ... RETURNING
+    # statement and sends it straight to the database. It does not instantiate the involved models and it does not
+    # trigger Active Record callbacks or validations. However, values passed to #update_all_returning will still go
+    # through Active Record's normal type casting and serialization.
+    #
+    # Requires the database to support UPDATE ... RETURNING (PostgreSQL, SQLite).
+    #
+    # Note: As Active Record callbacks are not triggered, this method will not automatically update +updated_at+/+updated_on+ columns.
+    #
+    # ==== Parameters
+    #
+    # * +updates+ - A string, array, or hash representing the SET part of an SQL statement. Any strings provided will
+    #   be type cast, unless you use +Arel.sql+. (Don't pass user-provided values to +Arel.sql+.)
+    #
+    # Use +select+ to specify which columns to return. Without +select+, all columns are returned.
+    #
+    # ==== Examples
+    #
+    #   # Update all customers and return all columns
+    #   Customer.update_all_returning(wants_email: true)
+    #   # => ActiveRecord::Result with all columns
+    #
+    #   # Update matching books and return only id and title
+    #   Book.select(:id, :title).where('title LIKE ?', '%Rails%').update_all_returning(author: 'David')
+    #   # => ActiveRecord::Result with id and title columns
+    #
+    #   # Claim the next pending job atomically
+    #   Job.where(status: :pending).limit(1).update_all_returning(status: :processing)
+    #   # => ActiveRecord::Result with all columns of the updated row
+    def update_all_returning(updates)
+      raise ArgumentError, "Empty list of attributes to change" if updates.blank?
+
+      return ActiveRecord::Result.empty if @none
+
+      invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
+        value = @values[method]
+        method == :distinct ? value : value&.any?
+      end
+      if invalid_methods.any?
+        raise ActiveRecordError.new("update_all_returning doesn't support #{invalid_methods.join(', ')}")
       end
 
       model.with_connection do |c|
-        arel = eager_loading? ? apply_join_dependency.arel : arel()
-        arel.source.left = table
-
-        key = if model.composite_primary_key?
-          primary_key.map { |pk| table[pk] }
-        else
-          table[primary_key]
+        unless c.supports_update_returning?
+          raise ArgumentError, "#{c.class} does not support :returning"
         end
-        stmt = arel.compile_update(values, key)
-        c.update(stmt, "#{model} Update All").tap { reset }
+
+        stmt = build_update_all_statement(updates)
+        stmt.ast.returning = if select_values.any?
+          arel_columns(select_values)
+        else
+          model.column_names.map { |field| table[field] }
+        end
+        c.update_returning(stmt, "#{model} Update All Returning").tap { reset }
       end
     end
 
@@ -1408,6 +1446,30 @@ module ActiveRecord
         if all_queries
           registry.set_global_current_scope(model, previous_global)
         end
+      end
+
+      def build_update_all_statement(updates)
+        if updates.is_a?(Hash)
+          if model.locking_enabled? &&
+              !updates.key?(model.locking_column) &&
+              !updates.key?(model.locking_column.to_sym)
+            attr = table[model.locking_column]
+            updates[attr.name] = _increment_attribute(attr)
+          end
+          values = _substitute_values(updates)
+        else
+          values = Arel.sql(model.sanitize_sql_for_assignment(updates, table.name))
+        end
+
+        arel = eager_loading? ? apply_join_dependency.arel : arel()
+        arel.source.left = table
+
+        key = if model.composite_primary_key?
+          primary_key.map { |pk| table[pk] }
+        else
+          table[primary_key]
+        end
+        arel.compile_update(values, key)
       end
 
       def _substitute_values(values)

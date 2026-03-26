@@ -457,6 +457,68 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_all_returning
+    skip unless supports_update_returning?
+
+    david_posts = Post.where(author_id: authors(:david).id)
+    other_posts_count = Post.where.not(author_id: authors(:david).id).count
+    result = david_posts.update_all_returning(title: "updated")
+
+    assert_instance_of ActiveRecord::Result, result
+    assert_equal david_posts.count, result.length
+    result.each do |row|
+      assert_equal "updated", row["title"]
+    end
+    # Verify WHERE clause was respected — other posts unchanged
+    assert_equal other_posts_count, Post.where.not(title: "updated").count
+  end
+
+  def test_update_all_returning_with_select
+    skip unless supports_update_returning?
+
+    posts = Post.select(:id, :title).where(author_id: authors(:david).id)
+    result = posts.update_all_returning(title: "updated")
+
+    assert_instance_of ActiveRecord::Result, result
+    assert_equal %w[id title], result.columns.sort
+    assert_operator result.length, :>, 0
+  end
+
+  def test_update_all_returning_with_limit
+    skip unless supports_update_returning?
+
+    posts = Post.where(author_id: authors(:david).id).order(:id).limit(1)
+    result = posts.update_all_returning(title: "updated")
+
+    assert_instance_of ActiveRecord::Result, result
+    assert_equal 1, result.length
+    assert_equal "updated", result.first["title"]
+  end
+
+  def test_update_all_returning_with_none
+    skip unless supports_update_returning?
+
+    result = Post.none.update_all_returning(title: "updated")
+
+    assert_instance_of ActiveRecord::Result, result
+    assert_equal 0, result.length
+  end
+
+  def test_update_all_returning_with_blank_argument
+    skip unless supports_update_returning?
+
+    error = assert_raises(ArgumentError) { Post.all.update_all_returning({}) }
+    assert_equal "Empty list of attributes to change", error.message
+  end
+
+  def test_update_all_returning_with_unpermitted_relation
+    skip unless supports_update_returning?
+
+    assert_raises(ActiveRecord::ActiveRecordError) do
+      Author.distinct.update_all_returning(name: "Bob")
+    end
+  end
+
   def test_update_all_composite_model_with_join_subquery
     agreement = cpk_order_agreements(:order_agreement_three)
     join_scope = Cpk::Order.joins(:order_agreements).where(order_agreements: { signature: agreement.signature })

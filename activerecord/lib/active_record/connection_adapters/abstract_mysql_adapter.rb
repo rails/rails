@@ -178,6 +178,11 @@ module ActiveRecord
         mariadb? && database_version >= "10.5.0"
       end
 
+      # MariaDB supports RETURNING for INSERT and DELETE, but not UPDATE.
+      def supports_update_returning?
+        false
+      end
+
       def return_value_after_insert?(column) # :nodoc:
         supports_insert_returning? ? column.auto_populated? : column.auto_increment?
       end
