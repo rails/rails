@@ -89,6 +89,61 @@ class DogValidatorWithIfCondition < Dog
   def set_after_validation_marker2; history << "after_validation_marker2" ; end
 end
 
+class DogWithAroundValidation < Dog
+  around_validation :wrap_validation
+
+  def wrap_validation
+    history << "around_validation_before"
+    yield
+    history << "around_validation_after"
+  end
+end
+
+class DogWithAroundValidationAsProc < Dog
+  around_validation do |_, blk|
+    history << "around_validation_before"
+    blk.call
+    history << "around_validation_after"
+  end
+end
+
+class DogWithAroundAndBeforeAfterValidation < Dog
+  before_validation { history << "before_validation" }
+  around_validation do |_, blk|
+    history << "around_validation_before"
+    blk.call
+    history << "around_validation_after"
+  end
+  after_validation { history << "after_validation" }
+end
+
+class DogValidatorWithAroundOnCondition < Dog
+  around_validation :wrap_validation, on: :create
+
+  def wrap_validation
+    history << "around_validation_before"
+    yield
+    history << "around_validation_after"
+  end
+end
+
+class DogValidatorWithAroundIfCondition < Dog
+  around_validation :set_around_validation_marker1, if: -> { true }
+  around_validation :set_around_validation_marker2, if: -> { false }
+
+  def set_around_validation_marker1
+    history << "around_validation_marker1_before"
+    yield
+    history << "around_validation_marker1_after"
+  end
+
+  def set_around_validation_marker2
+    history << "around_validation_marker2_before"
+    yield
+    history << "around_validation_marker2_after"
+  end
+end
+
 class CallbacksWithMethodNamesShouldBeCalled < ActiveModel::TestCase
   def test_if_condition_is_respected_for_before_validation
     d = DogValidatorWithIfCondition.new
@@ -213,5 +268,47 @@ class CallbacksWithMethodNamesShouldBeCalled < ActiveModel::TestCase
     end
 
     assert_empty opts
+  end
+
+  def test_around_validation_callback_should_be_called
+    d = DogWithAroundValidation.new
+    d.valid?
+    assert_equal ["around_validation_before", "around_validation_after"], d.history
+  end
+
+  def test_around_validation_callback_should_be_called_with_proc
+    d = DogWithAroundValidationAsProc.new
+    d.valid?
+    assert_equal ["around_validation_before", "around_validation_after"], d.history
+  end
+
+  def test_around_validation_wraps_before_and_after_callbacks
+    d = DogWithAroundAndBeforeAfterValidation.new
+    d.valid?
+    assert_equal ["before_validation", "around_validation_before", "around_validation_after", "after_validation"], d.history
+  end
+
+  def test_on_condition_is_respected_for_around_validation_with_matching_context
+    d = DogValidatorWithAroundOnCondition.new
+    d.valid?(:create)
+    assert_equal ["around_validation_before", "around_validation_after"], d.history
+  end
+
+  def test_on_condition_is_respected_for_around_validation_without_matching_context
+    d = DogValidatorWithAroundOnCondition.new
+    d.valid?(:save)
+    assert_equal [], d.history
+  end
+
+  def test_on_condition_is_respected_for_around_validation_without_context
+    d = DogValidatorWithAroundOnCondition.new
+    d.valid?
+    assert_equal [], d.history
+  end
+
+  def test_if_condition_is_respected_for_around_validation
+    d = DogValidatorWithAroundIfCondition.new
+    d.valid?
+    assert_equal ["around_validation_marker1_before", "around_validation_marker1_after"], d.history
   end
 end

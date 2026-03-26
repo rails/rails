@@ -1,3 +1,38 @@
+*   Add `around_validation` to define a callback that will get called around model validations.
+
+    ```ruby
+    class Account
+      include ActiveModel::Validations
+      include ActiveModel::Validations::Callbacks
+
+      attr_accessor :balance, :provisional_credit
+
+      validates_numericality_of :balance, greater_than: 0
+
+      around_validation :apply_and_verify_balance
+
+      private
+        def apply_and_verify_balance
+          original_balance = self.balance
+          self.balance += provisional_credit.to_i
+
+          yield # Validations run here
+
+          if errors.any?
+            self.balance = original_balance
+          end
+        end
+    end
+
+    account = Account.new
+    account.balance = 10
+    account.provisional_credit = -20
+    account.valid? # => false
+    account.balance # => 10
+    ```
+
+    *Francesco Rodriguez*
+
 *   Add `has_json` and `has_delegated_json` to provide schema-enforced access to JSON attributes.
 
     ```ruby
