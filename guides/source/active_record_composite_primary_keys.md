@@ -100,24 +100,24 @@ Querying Models
 ### Using `#find`
 
 If your table uses a composite primary key, you'll need to pass an array
-when using `#find` to locate a record:
+when using `#find` to locate a record. For example to find the product with `store_id` 3 and `sku` "XYZ12345":
 
 ```irb
-# Find the product with store_id 3 and sku "XYZ12345"
 irb> product = Product.find([3, "XYZ12345"])
 => #<Product store_id: 3, sku: "XYZ12345", description: "Yellow socks">
 ```
 
-The SQL equivalent of the above is:
+The above Active Record method results in the following SQL:
 
 ```sql
 SELECT * FROM products WHERE store_id = 3 AND sku = "XYZ12345"
 ```
 
-To find multiple records with composite IDs, pass an array of arrays to `#find`:
+NOTE: The `find` method expects the values in the same order as the columns were declared in `primary_key` when querying with composite primary key.
+
+To find multiple records with composite IDs, you can pass an array of arrays to `#find`. For example, to find the products with primary keys [1, "ABC98765"] and [7, "ZZZ11111"]
 
 ```irb
-# Find the products with primary keys [1, "ABC98765"] and [7, "ZZZ11111"]
 irb> products = Product.find([[1, "ABC98765"], [7, "ZZZ11111"]])
 => [
   #<Product store_id: 1, sku: "ABC98765", description: "Red Hat">,
@@ -125,7 +125,7 @@ irb> products = Product.find([[1, "ABC98765"], [7, "ZZZ11111"]])
 ]
 ```
 
-The SQL equivalent of the above is:
+The above Active Record method results in the following SQL:
 
 ```sql
 SELECT * FROM products WHERE (store_id = 1 AND sku = 'ABC98765' OR store_id = 7 AND sku = 'ZZZ11111')
@@ -140,7 +140,7 @@ irb> product = Product.first
 => #<Product store_id: 1, sku: "ABC98765", description: "Red Hat">
 ```
 
-The SQL equivalent of the above is:
+The above Active Record method results in the following SQL:
 
 ```sql
 SELECT * FROM products ORDER BY products.store_id ASC, products.sku ASC LIMIT 1
@@ -148,22 +148,15 @@ SELECT * FROM products ORDER BY products.store_id ASC, products.sku ASC LIMIT 1
 
 ### Using `#where`
 
-Hash conditions for `#where` may be specified in a tuple-like syntax.
-This can be useful for querying composite primary key relations:
+Hash conditions for `#where` can query against multiple composite key values at once by passing an array of value pairs:
 
 ```ruby
 Product.where(Product.primary_key => [[1, "ABC98765"], [7, "ZZZ11111"]])
 ```
 
-#### Conditions with `:id`
+This returns all products matching either `[store_id: 1, sku: "ABC98765"]` or `[store_id: 7, sku: "ZZZ11111"]`.
 
-When specifying conditions on methods like `find_by` and `where`, the use
-of `id` will match against an `:id` attribute on the model. This is different
-from `find`, where the ID passed in should be a primary key value.
-
-Take caution when using `find_by(id:)` on models where `:id` is not the primary
-key, such as composite primary key models. See the [Active Record Querying](active_record_querying.html#conditions-with-id)
-guide to learn more.
+Note that when using  `where` or `find_by`, the key `id` matches against an `:id` attribute on the model. It does not resolve to the full composite primary key the way `find` does. On a model like `Product` where `:id` is not the primary key, `find_by(id:)` will only match on the `id` column, ignoring `store_id`. So use `find` when you want to look up a record by its full composite primary key. See the [Active Record Querying](active_record_querying.html#conditions-with-id) guide for more detail.
 
 Associations between Models with Composite Primary Keys
 -------------------------------------------------------
