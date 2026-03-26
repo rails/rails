@@ -256,8 +256,8 @@ SELECT * FROM orders WHERE store_id = 1 AND order_number = 1001
 
 Once you set the `foreign_key:` option while defining the association, the full composite primary key will be used for the associations. And all columns in the foreign key will be used when querying the associated record.
 
-Forms
------
+Forms, URLs, and Controller Parameters
+--------------------------------------
 
 Forms may also be built for composite primary key models.
 See the [Form Helpers][] guide for more information on the form builder syntax.
@@ -292,14 +292,13 @@ Outputs:
 
 Note the generated URL contains the `author_id` and `id` delimited by an
 underscore. Once submitted, the controller can extract primary key values from
-the parameters and update the record. See the next section for more details.
+the parameters and update the record.
 
-Controller Parameters
----------------------
+### Extracting Composite Primary Key from `params`
 
 Composite key parameters contain multiple values in one parameter.
 For this reason, we need to be able to extract each value and pass them to
-Active Record. We can leverage the `extract_value` method for this use-case.
+Active Record. We can leverage the [`extract_value`](https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-extract_value) method for this use-case.
 
 Given the following controller:
 
@@ -310,7 +309,7 @@ class BooksController < ApplicationController
     id = params.extract_value(:id)
     # Find the book using the composite ID.
     @book = Book.find(id)
-    # use the default rendering behavior to render the show view.
+    # ...
   end
 end
 ```
