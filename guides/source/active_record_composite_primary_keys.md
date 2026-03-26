@@ -128,7 +128,7 @@ irb> products = Product.find([[1, "ABC98765"], [7, "ZZZ11111"]])
 The above Active Record method results in the following SQL:
 
 ```sql
-SELECT * FROM products WHERE (store_id = 1 AND sku = 'ABC98765' OR store_id = 7 AND sku = 'ZZZ11111')
+SELECT * FROM products WHERE ((store_id = 1 AND sku = 'ABC98765') OR (store_id = 7 AND sku = 'ZZZ11111'))
 ```
 
 Models with composite primary keys will also use the full composite primary key
@@ -156,7 +156,13 @@ Product.where(Product.primary_key => [[1, "ABC98765"], [7, "ZZZ11111"]])
 
 This returns all products matching either `[store_id: 1, sku: "ABC98765"]` or `[store_id: 7, sku: "ZZZ11111"]`.
 
-WARN When using  `where` or `find_by`, the key `id` matches against an `:id` attribute on the model. It does not resolve to the full composite primary key the way `find` does. On a model like `Product` where `:id` is not the primary key, `find_by(id:)` will only match on the `id` column, ignoring `store_id`. So use `find` when you want to look up a record by its full composite primary key. See the [Active Record Querying](active_record_querying.html#conditions-with-id) guide for more detail.
+This generates the following SQL:
+
+```sql
+SELECT * FROM products WHERE (store_id, sku) IN ((1, 'ABC98765'), (7, 'ZZZ11111'))
+```
+
+WARN: When using  `where` or `find_by`, the key `id` matches against an `:id` attribute on the model only. It does not resolve to the full composite primary key the way `find` does. On a model like `Product` where `:id` is not the primary key, `find_by(id:)` will only match on the `id` column, ignoring `store_id`. So use `find` when you want to look up a record by its full composite primary key. See the [Active Record Querying](active_record_querying.html#conditions-with-id) guide for more detail.
 
 Associations between Models with Composite Primary Keys
 -------------------------------------------------------
@@ -256,8 +262,8 @@ SELECT * FROM orders WHERE store_id = 1 AND order_number = 1001
 
 Once you set the `foreign_key:` option while defining the association, the full composite primary key will be used for the associations. And all columns in the foreign key will be used when querying the associated record.
 
-Forms, URLs, and Controller Parameters
---------------------------------------
+Forms and Controller Parameters
+-------------------------------
 
 Forms may also be built for composite primary key models.
 See the [Form Helpers][] guide for more information on the form builder syntax.
@@ -329,7 +335,7 @@ Fixtures
 --------
 
 Fixtures for composite primary key tables are fairly similar to normal tables.
-When using an id column, the column may be omitted as usual:
+When using an `id` column, the column may be omitted as usual:
 
 ```ruby
 class Book < ApplicationRecord
@@ -365,4 +371,21 @@ alices_adventure_in_wonderland_in_books:
   shop: book_store
   order_id: <%= ActiveRecord::FixtureSet.composite_identify(
               :books, Order.primary_key)[:id] %>
+```
+
+Performance and Indexing
+------------------------
+
+### Column Order Matters
+
+The composite primary key creates a database index on its columns in the order they are declared. A CPK of `[:store_id, :sku]` means the database can efficiently use that index for queries filtering on `store_id` alone, or `store_id` and `sku` together, but not `sku` alone. The leading column should be the one you filter on most frequently. In a multi-tenant application, placing the tenant identifier first (e.g. `store_id`) makes sense, since almost every query will be scoped to a store.
+
+### Index Foreign Key Columns Manually
+
+When another table references a composite primary key, the foreign key columns on that table need their own index. Unlike single column foreign keys, Rails does not add these automatically. Without an explicit index, any join or association query back to the parent table will result in a full table scan.
+
+You can add the index manually in your migration:
+
+```ruby
+add_index :books, [:order_store_id, :order_number]
 ```
