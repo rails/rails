@@ -1,3 +1,17 @@
+*   Fix `has_one :through` to use preloaded associations instead of querying.
+
+    When a `has_one :through` association's entire chain was preloaded via
+    `includes`, accessing the association still fired a database query.
+    `HasOneThroughAssociation` now detects when the through chain is loaded
+    and resolves the target from memory. The optimization conservatively
+    disables itself for scoped and polymorphic-source (`source_type`)
+    associations, where chain-walking could return a record the query
+    would have excluded.
+
+    Fixes #56978.
+
+    *Tyler Wood*
+
 *   Support dumping `schema_migrations` in `db/schema.rb`.
 
     When the new `ActiveRecord.dump_schema_migrations` flag is true, `:ruby`
