@@ -113,7 +113,7 @@ module ActiveModel
     end
 
     def initialize_dup(other) # :nodoc:
-      @attributes = @attributes.deep_dup
+      @attributes = @attributes.deep_dup if @attributes
       super
     end
 
@@ -133,7 +133,7 @@ module ActiveModel
     #
     #   person.attributes # => { "name" => "Francesco", "age" => 22}
     def attributes
-      @attributes.to_hash
+      @attributes ? @attributes.to_hash : {}
     end
 
     # Returns an array of attribute names as strings.
@@ -148,22 +148,22 @@ module ActiveModel
     #   person = Person.new
     #   person.attribute_names # => ["name", "age"]
     def attribute_names
-      @attributes.keys
+      @attributes ? @attributes.keys : []
     end
 
     def freeze # :nodoc:
-      @attributes = @attributes.clone.freeze unless frozen?
+      @attributes = @attributes.clone.freeze if @attributes && !frozen?
       super
     end
 
     private
       def _write_attribute(attr_name, value)
-        @attributes.write_from_user(attr_name, value)
+        @attributes&.write_from_user(attr_name, value)
       end
       alias :attribute= :_write_attribute
 
       def attribute(attr_name)
-        @attributes.fetch_value(attr_name)
+        @attributes&.fetch_value(attr_name)
       end
   end
 end

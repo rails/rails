@@ -1,3 +1,17 @@
+*   Include `ActiveModel::Attributes` in `ActiveModel::Model` by default.
+
+    This change allows any class including `ActiveModel::Model` to use the `attribute` macro for type-casting and default values out-of-the-box.
+
+    ```ruby
+    class Person
+      include ActiveModel::Model
+      attribute :name, :string
+      attribute :age, :integer
+    end
+    ```
+
+    *Sijin TV*
+
 *   Add `has_json` and `has_delegated_json` to provide schema-enforced access to JSON attributes.
 
     ```ruby

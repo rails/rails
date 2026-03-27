@@ -132,22 +132,24 @@ guides, respectively.
 ### Model
 
 [`ActiveModel::Model`](https://api.rubyonrails.org/classes/ActiveModel/Model.html)
-includes [ActiveModel::API](#api) to interact with Action Pack and Action View
-by default, and is the recommended approach to implement model-like Ruby
-classes. It will be extended in the future to add more functionality.
+includes [ActiveModel::API](#api) and [ActiveModel::Attributes](#attributes)
+to interact with Action Pack and Action View by default, and is the
+recommended approach to implement model-like Ruby classes.
 
 ```ruby
 class Person
   include ActiveModel::Model
 
-  attr_accessor :name, :age
+  attribute :name, :string
+  attribute :age, :integer
 end
 ```
 
 ```irb
 irb> person = Person.new(name: 'bob', age: '18')
 irb> person.name # => "bob"
-irb> person.age  # => "18"
+irb> person.age  # => 18
+irb> person.age.class # => Integer
 ```
 
 ### Attributes
