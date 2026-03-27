@@ -1,3 +1,13 @@
+*   Fix `has_many_inversing` for associations with composite foreign keys.
+
+    `matches_foreign_key?` passed composite foreign key arrays directly to
+    `read_attribute`, which returned nil. Use `Array()` and map over each
+    component, matching the pattern used by `foreign_key_for?`.
+
+    Fixes #56829.
+
+    *Tyler Wood*
+
 *   Deprecate the `strict` option in MySQL database configurations.
 
     The `strict` option for MySQL will be removed in Rails 8.3 because it is the default behavior.

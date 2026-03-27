@@ -1076,3 +1076,60 @@ class InverseMultipleHasManyInversesForSameModel < ActiveRecord::TestCase
     end
   end
 end
+
+class InverseCompositeForeignKeyTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  def setup
+    @connection = ActiveRecord::Base.lease_connection
+
+    @connection.create_table :cpk_blog_posts, force: true do |t|
+      t.integer :blog_id, null: false
+    end
+
+    @connection.create_table :cpk_comments, force: true do |t|
+      t.integer :blog_id, null: false
+      t.integer :cpk_blog_post_id, null: false
+    end
+
+    Object.const_set(:CpkBlogPost, Class.new(ActiveRecord::Base) {
+      self.table_name = "cpk_blog_posts"
+      has_many :cpk_comments, -> { order(:id) },
+        primary_key: [:blog_id, :id],
+        foreign_key: [:blog_id, :cpk_blog_post_id],
+        inverse_of: :cpk_blog_post
+    })
+
+    Object.const_set(:CpkComment, Class.new(ActiveRecord::Base) {
+      self.table_name = "cpk_comments"
+      belongs_to :cpk_blog_post,
+        foreign_key: [:blog_id, :cpk_blog_post_id],
+        primary_key: [:blog_id, :id],
+        inverse_of: :cpk_comments
+    })
+  end
+
+  def teardown
+    @connection.drop_table :cpk_comments, if_exists: true
+    @connection.drop_table :cpk_blog_posts, if_exists: true
+    Object.send(:remove_const, :CpkComment)
+    Object.send(:remove_const, :CpkBlogPost)
+  end
+
+  def test_has_many_inversing_with_composite_foreign_key
+    with_has_many_inversing do
+      blog_post = CpkBlogPost.create!(blog_id: 1)
+      CpkComment.create!(blog_id: 1, cpk_blog_post_id: blog_post.id)
+
+      # The scope on cpk_comments forces exec_queries path, which uses
+      # inversed_from_queries → inversable? → matches_foreign_key?
+      comments = blog_post.cpk_comments.to_a
+      comment = comments.first
+      assert_not_nil comment
+
+      assert comment.association(:cpk_blog_post).loaded?,
+        "belongs_to inverse should be set when loading scoped has_many with composite FK"
+      assert_equal blog_post, comment.cpk_blog_post
+    end
+  end
+end
