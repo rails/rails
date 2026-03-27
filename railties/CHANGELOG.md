@@ -12,7 +12,7 @@
 
     All commands support `--environment` for environment-specific credentials.
 
-    *Gyuha Wang*
+    *sebyx07*
 
 *   Avoid adding `Rack::Sendfile` to the middleware stack if `config.action_dispatch.x_sendfile_header` is `nil`.
 
