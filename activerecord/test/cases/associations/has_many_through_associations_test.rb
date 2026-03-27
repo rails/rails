@@ -1736,6 +1736,76 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 end
 
+class HasManyThroughCustomAttributeTypeTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  # A custom type that multiplies values by 1000 when serializing to the
+  # database. This makes it easy to verify which type caster is being used
+  # in the generated SQL.
+  class ScaledInteger < ActiveRecord::Type::Integer
+    def serialize(value)
+      super(value.to_i * 1000)
+    end
+
+    def deserialize(value)
+      super(value.to_i / 1000)
+    end
+  end
+
+  def setup
+    @connection = ActiveRecord::Base.lease_connection
+
+    @connection.create_table :custom_type_authors, force: true
+    @connection.create_table :custom_type_readers, force: true do |t|
+      t.integer :custom_type_author_id
+      t.integer :custom_type_post_id
+    end
+    @connection.create_table :custom_type_posts, force: true
+
+    # The join model declares a custom attribute type on the FK column.
+    Object.const_set(:CustomTypeReader, Class.new(ActiveRecord::Base) {
+      self.table_name = "custom_type_readers"
+      attribute :custom_type_author_id, ScaledInteger.new
+      belongs_to :custom_type_author
+      belongs_to :custom_type_post
+    })
+
+    Object.const_set(:CustomTypeAuthor, Class.new(ActiveRecord::Base) {
+      self.table_name = "custom_type_authors"
+      has_many :custom_type_readers
+      has_many :custom_type_posts, through: :custom_type_readers
+    })
+
+    Object.const_set(:CustomTypePost, Class.new(ActiveRecord::Base) {
+      self.table_name = "custom_type_posts"
+    })
+  end
+
+  def teardown
+    @connection.drop_table :custom_type_readers, if_exists: true
+    @connection.drop_table :custom_type_authors, if_exists: true
+    @connection.drop_table :custom_type_posts, if_exists: true
+    Object.send(:remove_const, :CustomTypeReader)
+    Object.send(:remove_const, :CustomTypeAuthor)
+    Object.send(:remove_const, :CustomTypePost)
+  end
+
+  def test_through_association_uses_join_model_custom_attribute_type
+    author = CustomTypeAuthor.create!
+    post = CustomTypePost.create!
+    # Insert the reader row with the scaled FK value directly,
+    # matching what the custom type would serialize.
+    CustomTypeReader.insert!({
+      custom_type_author_id: author.id,
+      custom_type_post_id: post.id
+    })
+
+    # The through query should use the join model's ScaledInteger type
+    # to serialize author.id, producing author.id * 1000 in the WHERE clause.
+    assert_equal [post], author.custom_type_posts.to_a
+  end
+end
+
 class DeprecatedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   include DeprecatedAssociationsTestHelpers
 

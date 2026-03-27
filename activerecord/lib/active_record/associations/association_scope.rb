@@ -162,7 +162,8 @@ module ActiveRecord
           if scope.table == table
             scope.where!(key => value)
           else
-            scope.where!(table.name => { key => value })
+            bind = Relation::QueryAttribute.new(key, value, table.type_for_attribute(key))
+            scope.where!(table[key].eq(bind))
           end
         end
 

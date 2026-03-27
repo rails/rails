@@ -1,3 +1,14 @@
+*   Fix `has_many :through` to use join model's custom attribute type in queries.
+
+    When a join model declares a custom attribute type via
+    `attribute :col, MyType.new`, the through association's cross-table
+    WHERE clause silently ignored it, falling back to the database
+    schema's default type.
+
+    Fixes #56893.
+
+    *Tyler Wood*
+
 *   Deprecate the `strict` option in MySQL database configurations.
 
     The `strict` option for MySQL will be removed in Rails 8.3 because it is the default behavior.
