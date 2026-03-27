@@ -378,7 +378,7 @@ Performance and Indexing
 
 ### Column Order Matters
 
-The composite primary key creates a database index on its columns in the order they are declared. A CPK of `[:store_id, :sku]` means the database can efficiently use that index for queries filtering on `store_id` alone, or `store_id` and `sku` together, but not `sku` alone. The leading column should be the one you filter on most frequently. In a multi-tenant application, placing the tenant identifier first (e.g. `store_id`) makes sense, since almost every query will be scoped to a store.
+A composite primary key creates a database index on its columns in the order they are declared. A CPK of `[:store_id, :sku]` means the database can efficiently use that index for queries filtering on `store_id` alone, or `store_id` and `sku` together, but not `sku` alone. The leading column should be the one you filter on most frequently. In a multi-tenant application, placing the tenant identifier first (e.g. `store_id`) makes sense, since almost every query will be scoped to a store.
 
 ### Index Foreign Key Columns Manually
 
