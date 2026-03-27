@@ -409,11 +409,13 @@ module ActiveRecord
         end
 
         def matches_foreign_key?(record)
-          if foreign_key_for?(record)
-            record.read_attribute(reflection.foreign_key) == owner.id ||
-              (foreign_key_for?(owner) && owner.read_attribute(reflection.foreign_key) == record.id)
-          else
-            owner.read_attribute(reflection.foreign_key) == record.id
+          primary_key_column_names = Array(reflection.join_primary_key(record.class))
+          foreign_key_column_names = Array(reflection.join_foreign_key)
+
+          primary_foreign_key_pairs = primary_key_column_names.zip(foreign_key_column_names)
+
+          primary_foreign_key_pairs.all? do |primary_key_column_name, foreign_key_column_name|
+            owner.read_attribute(foreign_key_column_name) == record.read_attribute(primary_key_column_name)
           end
         end
     end
