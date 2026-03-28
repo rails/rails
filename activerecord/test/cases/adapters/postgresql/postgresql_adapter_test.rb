@@ -15,6 +15,11 @@ module ActiveRecord
       include DdlHelper
       include ConnectionHelper
 
+      # Force known GUC defaults at connect time so query-count
+      # assertions are deterministic regardless of server configuration.
+      # TimeZone must be non-UTC so the :utc/:local distinction is visible.
+      KNOWN_SERVER_DEFAULTS = "-c TimeZone=US/Eastern -c IntervalStyle=postgres -c standard_conforming_strings=on -c client_min_messages=notice"
+
       def setup
         @connection = ActiveRecord::Base.lease_connection
         @original_db_warnings_action = :ignore
@@ -286,6 +291,74 @@ module ActiveRecord
         connection&.disconnect!
       end
 
+      def test_configure_connection_variables_with_nil_value
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(
+            variables: { client_min_messages: nil }
+          )
+        )
+        connection.connect!
+
+        # nil is a no-op: Rails' default "warning" should still be applied
+        assert_equal "warning", connection.query_value("SHOW client_min_messages")
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_configure_connection_variables_with_false_value
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(
+            variables: { enable_seqscan: false }
+          )
+        )
+        connection.connect!
+
+        assert_equal "off", connection.query_value("SHOW enable_seqscan")
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_configure_connection_preserves_user_supplied_variable_casing
+        run_without_connection do |config|
+          connection = PostgreSQLAdapter.new(
+            config.merge(variables: { "my_app.SomeOption" => "hello" })
+          )
+          queries = capture_sql(include_schema: true) do
+            connection.select_value("SELECT 1")
+          end.map(&:squish)
+
+          assert_includes queries, "SET SESSION my_app.SomeOption TO 'hello'"
+        end
+      end
+
+      def test_configure_connection_skips_redundant_set_via_downcase_fallback
+        run_without_connection do |config|
+          queries = with_timezone_config(default: :local) do
+            connection = PostgreSQLAdapter.new(
+              config.merge(
+                options: KNOWN_SERVER_DEFAULTS,
+                variables: { "sTaNdArD_cOnFoRmInG_StRiNgS" => "on" },
+              )
+            )
+            capture_sql(include_schema: true) do
+              connection.select_value("SELECT 1")
+            end
+          end.map(&:squish)
+
+          expected_queries = [
+            "SET SESSION IntervalStyle TO 'iso_8601'",
+            "SET SESSION client_min_messages TO 'warning'",
+            ("SHOW search_path" if @connection.database_version < 18_00_00),
+            "SELECT 1",
+          ].compact
+
+          assert_equal expected_queries.size, queries.size
+          assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
+        end
+      end
+
       def test_schema_search_path_is_reapplied_after_reconnect
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
 
@@ -323,54 +396,51 @@ module ActiveRecord
       end
 
       def test_queries_executed_on_fresh_connection_through_first_select
-        reset_pool
+        run_without_connection do |config|
+          ActiveRecord::Base.establish_connection(config.merge(options: KNOWN_SERVER_DEFAULTS))
 
-        queries = PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
-          with_timezone_config(default: :utc) do
+          queries = with_timezone_config(default: :utc) do
             capture_sql(include_schema: true) do
               ActiveRecord::Base.lease_connection.select_value("SELECT 1+2")
             end
-          end
-        end.map(&:squish)
+          end.map(&:squish)
 
-        expected_queries = [
-          "SET SESSION IntervalStyle TO 'iso_8601'",
-          "SET SESSION client_min_messages TO 'warning'",
-          "SET SESSION timezone TO 'UTC'",
-          ("SHOW search_path" if @connection.database_version < 18_00_00),
-          "SELECT 1+2",
-        ].compact
+          expected_queries = [
+            "SET SESSION IntervalStyle TO 'iso_8601'",
+            "SET SESSION client_min_messages TO 'warning'",
+            "SET SESSION TimeZone TO 'UTC'",
+            ("SHOW search_path" if @connection.database_version < 18_00_00),
+            "SELECT 1+2",
+          ].compact
 
-        assert_equal expected_queries.size, queries.size
-        assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
-      ensure
-        reset_pool
+          assert_equal expected_queries.size, queries.size
+          assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
+        end
       end
 
       def test_queries_executed_on_fresh_connection_with_all_settings_skipped
-        reset_pool
-
-        queries = PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
-          with_timezone_config(default: :utc) do
-            db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-            with_postgresql_adapter(db_config.configuration_hash.merge(intervalstyle: false, min_messages: false)) do |connection|
-              capture_sql(include_schema: true) do
-                connection.select_value("SELECT 1+2")
-              end
+        run_without_connection do |config|
+          queries = with_timezone_config(default: :local) do
+            connection = PostgreSQLAdapter.new(
+              config.merge(
+                options: KNOWN_SERVER_DEFAULTS,
+                intervalstyle: false,
+                min_messages: false,
+              )
+            )
+            capture_sql(include_schema: true) do
+              connection.select_value("SELECT 1+2")
             end
-          end
-        end.map(&:squish)
+          end.map(&:squish)
 
-        expected_queries = [
-          "SET SESSION timezone TO 'UTC'",
-          ("SHOW search_path" if @connection.database_version < 18_00_00),
-          "SELECT 1+2",
-        ].compact
+          expected_queries = [
+            ("SHOW search_path" if @connection.database_version < 18_00_00),
+            "SELECT 1+2",
+          ].compact
 
-        assert_equal expected_queries.size, queries.size
-        assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
-      ensure
-        reset_pool
+          assert_equal expected_queries.size, queries.size
+          assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
+        end
       end
 
       def test_queries_executed_on_fresh_connection_with_first_custom_type_lookup
@@ -379,32 +449,32 @@ module ActiveRecord
           t.column :value, :postgresql_startup_lookup_enum
         end
         @connection.execute "INSERT INTO postgresql_startup_lookup_enums (value) VALUES ('good')"
-        reset_pool
 
-        queries = PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
-          with_timezone_config(default: :utc) do
+        run_without_connection do |config|
+          ActiveRecord::Base.establish_connection(config.merge(options: KNOWN_SERVER_DEFAULTS))
+
+          queries = with_timezone_config(default: :utc) do
             capture_sql(include_schema: true) do
               result = ActiveRecord::Base.lease_connection.select_all("SELECT value FROM postgresql_startup_lookup_enums LIMIT 1")
               result.column_types["value"]
             end
-          end
-        end.map(&:squish)
+          end.map(&:squish)
 
-        expected_queries = [
-          "SET SESSION IntervalStyle TO 'iso_8601'",
-          "SET SESSION client_min_messages TO 'warning'",
-          "SET SESSION timezone TO 'UTC'",
-          ("SHOW search_path" if @connection.database_version < 18_00_00),
-          "SELECT value FROM postgresql_startup_lookup_enums LIMIT 1",
-          oid_lookup_query_regex(initial_bulk_load: true),
-        ].compact
+          expected_queries = [
+            "SET SESSION IntervalStyle TO 'iso_8601'",
+            "SET SESSION client_min_messages TO 'warning'",
+            "SET SESSION TimeZone TO 'UTC'",
+            ("SHOW search_path" if @connection.database_version < 18_00_00),
+            "SELECT value FROM postgresql_startup_lookup_enums LIMIT 1",
+            oid_lookup_query_regex(initial_bulk_load: true),
+          ].compact
 
-        assert_equal expected_queries.size, queries.size
-        assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
+          assert_equal expected_queries.size, queries.size
+          assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
+        end
       ensure
         @connection.drop_table "postgresql_startup_lookup_enums", if_exists: true
         @connection.drop_enum "postgresql_startup_lookup_enum", if_exists: true
-        reset_pool
       end
 
       def test_queries_executed_on_fresh_connection_with_two_multi_oid_type_lookups
@@ -413,11 +483,12 @@ module ActiveRecord
 
         first_sql = "SELECT 'one'::postgresql_startup_lookup_one_a AS value_a, 'one'::postgresql_startup_lookup_one_b AS value_b"
         second_sql = "SELECT 'one'::postgresql_startup_lookup_two_a AS value_a, 'one'::postgresql_startup_lookup_two_b AS value_b"
-        reset_pool
 
-        first_queries = nil
-        second_queries = nil
-        PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
+        run_without_connection do |config|
+          ActiveRecord::Base.establish_connection(config.merge(options: KNOWN_SERVER_DEFAULTS))
+
+          first_queries = nil
+          second_queries = nil
           with_timezone_config(default: :utc) do
             first_queries = capture_sql(include_schema: true) do
               connection = ActiveRecord::Base.lease_connection
@@ -432,32 +503,31 @@ module ActiveRecord
               connection.select_all(second_sql)
             end.map(&:squish)
           end
+
+          expected_first_queries = [
+            "SET SESSION IntervalStyle TO 'iso_8601'",
+            "SET SESSION client_min_messages TO 'warning'",
+            "SET SESSION TimeZone TO 'UTC'",
+            ("SHOW search_path" if @connection.database_version < 18_00_00),
+            first_sql,
+            oid_lookup_query_regex(initial_bulk_load: true),
+          ].compact
+
+          expected_second_queries = [
+            second_sql,
+            oid_lookup_query_regex(initial_bulk_load: false),
+          ]
+
+          assert_equal expected_first_queries.size, first_queries.size
+          assert expected_first_queries.zip(first_queries).all? { |expected, actual| expected === actual }
+          assert_equal expected_second_queries.size, second_queries.size
+          assert expected_second_queries.zip(second_queries).all? { |expected, actual| expected === actual }
         end
-
-        expected_first_queries = [
-          "SET SESSION IntervalStyle TO 'iso_8601'",
-          "SET SESSION client_min_messages TO 'warning'",
-          "SET SESSION timezone TO 'UTC'",
-          ("SHOW search_path" if @connection.database_version < 18_00_00),
-          first_sql,
-          oid_lookup_query_regex(initial_bulk_load: true),
-        ].compact
-
-        expected_second_queries = [
-          second_sql,
-          oid_lookup_query_regex(initial_bulk_load: false),
-        ]
-
-        assert_equal expected_first_queries.size, first_queries.size
-        assert expected_first_queries.zip(first_queries).all? { |expected, actual| expected === actual }
-        assert_equal expected_second_queries.size, second_queries.size
-        assert expected_second_queries.zip(second_queries).all? { |expected, actual| expected === actual }
       ensure
         @connection.drop_enum "postgresql_startup_lookup_one_a", if_exists: true
         @connection.drop_enum "postgresql_startup_lookup_one_b", if_exists: true
         @connection.drop_enum "postgresql_startup_lookup_two_a", if_exists: true
         @connection.drop_enum "postgresql_startup_lookup_two_b", if_exists: true
-        reset_pool
       end
 
       def test_schema_search_path_uses_parameter_status_on_pg18
