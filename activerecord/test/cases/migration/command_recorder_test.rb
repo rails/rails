@@ -300,6 +300,11 @@ module ActiveRecord
         assert_equal [:rename_column, [:table, :new, :old]], rename
       end
 
+      def test_invert_rename_column_with_options
+        rename = @recorder.inverse_of :rename_column, [:table, :old, :new, { algorithm: :inplace, lock: :none }]
+        assert_equal [:rename_column, [:table, :new, :old, { algorithm: :inplace, lock: :none }]], rename
+      end
+
       def test_invert_add_index
         remove = @recorder.inverse_of :add_index, [:table, [:one, :two]]
         assert_equal [:remove_index, [:table, [:one, :two]], nil], remove

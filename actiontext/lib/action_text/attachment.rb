@@ -122,12 +122,12 @@ module ActionText
     #
     #     attachable = ActiveStorage::Blob.find_by filename: "racecar.jpg"
     #     attachment = ActionText::Attachment.from_attachable(attachable)
-    #     attachment.to_markdown # => "[racecar.jpg]"
+    #     attachment.to_markdown # => "\\[racecar.jpg\\]"
     #
     # Use the `caption` when set:
     #
     #     attachment = ActionText::Attachment.from_attachable(attachable, caption: "Vroom vroom")
-    #     attachment.to_markdown # => "[Vroom vroom]"
+    #     attachment.to_markdown # => "\\[Vroom vroom\\]"
     #
     # When +attachment_links+ is true and a rendering context is available (e.g., controller or
     # mailer action), ActiveStorage blob attachments generate Markdown links with URLs.
@@ -138,10 +138,15 @@ module ActionText
     #     # Non-image blob
     #     attachment.to_markdown(attachment_links: true) # => "[report.pdf](http://example.com/rails/active_storage/blobs/...)"
     #
-    # Remote images always render as Markdown links regardless of +attachment_links+:
+    # Remote images always render as Markdown image links when the URL scheme is allowed:
     #
     #     content = ActionText::Content.new('<action-text-attachment content-type="image/jpeg" url="https://example.com/photo.jpg" caption="A photo"></action-text-attachment>')
     #     content.to_markdown # => "![A photo](https://example.com/photo.jpg)"
+    #
+    # Remote images with a disallowed URL scheme render as escaped bracketed text:
+    #
+    #     content = ActionText::Content.new('<action-text-attachment content-type="image/jpeg" url="data:text/html,PAYLOAD" caption="Click"></action-text-attachment>')
+    #     content.to_markdown # => "\\[Click\\]"
     #
     # The presentation can be overridden by implementing the `attachable_markdown_representation`
     # method:

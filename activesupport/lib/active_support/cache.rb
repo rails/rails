@@ -2,6 +2,7 @@
 
 require "zlib"
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/numeric/bytes"
@@ -194,8 +195,8 @@ module ActiveSupport
       # Keys are truncated with the Active Support digest if they exceed the limit.
       MAX_KEY_SIZE = 250
 
-      cattr_accessor :logger, instance_writer: true
-      cattr_accessor :raise_on_invalid_cache_expiration_time, default: false
+      class_attribute :logger, instance_predicate: false
+      class_attribute :raise_on_invalid_cache_expiration_time, instance_predicate: false, default: false
 
       attr_reader :silence, :options
       alias :silence? :silence
@@ -936,7 +937,7 @@ module ActiveSupport
 
         def handle_invalid_expires_in(message)
           error = ArgumentError.new(message)
-          if ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+          if raise_on_invalid_cache_expiration_time
             raise error
           else
             ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)

@@ -93,7 +93,13 @@ module ActiveRecord
           if foreign_key_exists?(table_name, column: column_name)
             remove_foreign_key(table_name, column: column_name)
           end
-          super
+          algorithm = index_algorithm(options.delete(:algorithm))
+          lock = lock_clause(options.delete(:lock))
+          return if options[:if_exists] == true && !column_exists?(table_name, column_name)
+          sql = +"ALTER TABLE #{quote_table_name(table_name)} #{remove_column_for_alter(table_name, column_name, type, **options)}"
+          sql << ", #{algorithm}" if algorithm
+          sql << ", #{lock}" if lock
+          execute(sql)
         end
 
         def create_table(table_name, options: default_row_format, **)
@@ -252,6 +258,7 @@ module ActiveRecord
           def valid_index_options
             index_options = super
             index_options << :enabled if supports_disabling_indexes?
+            index_options << :lock
             index_options
           end
 

@@ -1,3 +1,38 @@
+*   Support PostgreSQL `RESET` on readonly queries.
+
+    ```ruby
+    ActiveRecord::Base.connected_to(role: :reading, prevent_writes: true) do
+      ActiveRecord::Base.with_connection do |c|
+        c.execute("SET statement_timeout = '7s'")
+        # some queries
+        c.execute("RESET statement_timeout")
+        # => no longer raises ActiveRecord::ReadOnlyError
+      end
+    end
+    ```
+
+    *Francesco Rodriguez*
+
+*   Add MySQL `lock:` option for `add_index`, `remove_index`, and ALTER TABLE
+    column operations (`add_column`, `remove_column`, `change_column`, `rename_column`).
+
+    Also extend `algorithm:` option support to ALTER TABLE column operations on MySQL.
+
+    MySQL supports `ALGORITHM = {DEFAULT|COPY|INPLACE|INSTANT}` and
+    `LOCK = {DEFAULT|NONE|SHARED|EXCLUSIVE}` to control how DDL operations
+    are performed, enabling online schema changes without blocking reads or writes.
+
+    ```ruby
+    add_index :users, :email, algorithm: :inplace, lock: :none
+    remove_index :users, :email, algorithm: :inplace, lock: :none
+    add_column :users, :name, :string, algorithm: :instant, lock: :none
+    change_column :users, :name, :string, null: false, algorithm: :inplace, lock: :none
+    remove_column :users, :name, algorithm: :inplace, lock: :none
+    rename_column :users, :name, :full_name, algorithm: :inplace, lock: :none
+    ```
+
+    *Dominik Darnel*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.
