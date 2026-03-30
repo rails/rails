@@ -23,6 +23,8 @@ execute them on a queuing backend. It provides a consistent, high-level interfac
 
 The goal of background jobs is to move long-running or non-critical work out of the HTTP request-response cycle and into a background queue (such as the default Solid Queue), and keep the web requests fast and responsive. This separation allows applications to perform work asynchronously, scale background processing independently, and execute multiple tasks in parallel without blocking user interactions.
 
+NOTE: Active Job is an interface, not a background job execution engine. It does not run jobs on its own, it needs a persistent queuing backend (such as Solid Queue) to process jobs reliably in the background.
+
 Creating Jobs
 -------------
 
