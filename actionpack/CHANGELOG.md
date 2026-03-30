@@ -1,3 +1,12 @@
+*   Add support for passkeys
+
+    Passkeys are a modern, phishing-resistant authentication method that uses public key cryptography.
+    It's built on the WebAuthn standard and supported by all major platforms and browsers.
+    This adds support for decoding WebAuthn requests and provides a Passkey implementation and helpers
+    for adding passkey-based authentication to Rails applications.
+
+    *Stanko Krtalic Rusendic* and *David Heinemeier Hansson*
+
 *   Add `config.action_dispatch.strict_accept_header` to stop forcing an
     HTML response when the `Accept` header contains the `*/*` wildcard.
 

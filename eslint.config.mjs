@@ -59,4 +59,10 @@ export default [
       ],
     },
   },
+  {
+    files: ["actionpack/**"],
+    languageOptions: {
+      ecmaVersion: 2020,
+    },
+  },
 ];

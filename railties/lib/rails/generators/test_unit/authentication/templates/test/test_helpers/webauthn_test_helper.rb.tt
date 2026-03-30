@@ -1,0 +1,83 @@
+module WebauthnTestHelper
+  # Fixed EC P-256 key pair for WebAuthn tests.
+  WEBAUTHN_PRIVATE_KEY = OpenSSL::PKey::EC.new(
+    [ "307702010104201dd589de7210b3318620f32150e3012cce021519df1d6e9e01" \
+      "0471146d395cdca00a06082a8648ce3d030107a14403420004116847fe19e1ad" \
+      "4471ab9980d7ff9cc1e4c7cb7a3af00e082b64fcd84f5ae70114c2495eef16f" \
+      "542b5e57dd1b263661624e3cf28f581b57a441edbd756a41d0e" ].pack("H*")
+  )
+
+  # Pre-encoded COSE EC2/ES256 public key (CBOR) for the key above.
+  COSE_PUBLIC_KEY = [ "a5010203262001215820116847fe19e1ad4471ab9980d7ff9cc1" \
+    "e4c7cb7a3af00e082b64fcd84f5ae70122582014c2495eef16f542b5e57dd1b2" \
+    "63661624e3cf28f581b57a441edbd756a41d0e" ].pack("H*")
+
+  ATTESTATION_OBJECT_CBOR_PREFIX =
+    [ "a363666d74646e6f6e656761747453746d74a068617574684461746158a4" ].pack("H*")
+
+  private
+    def webauthn_challenge(purpose: nil)
+      ActionPack::WebAuthn::PublicKeyCredential::Options.new(challenge_purpose: purpose).challenge
+    end
+
+    def build_attestation_params(challenge:)
+      credential_id = SecureRandom.random_bytes(32)
+      auth_data = build_attestation_auth_data(credential_id: credential_id)
+
+      {
+        passkey: {
+          client_data_json: webauthn_client_data_json(challenge: challenge, type: "webauthn.create"),
+          attestation_object: Base64.urlsafe_encode64(ATTESTATION_OBJECT_CBOR_PREFIX + auth_data, padding: false),
+          transports: [ "internal" ]
+        }
+      }
+    end
+
+    def build_assertion_params(challenge:, credential:, sign_count: 1)
+      client_data_json = webauthn_client_data_json(challenge: challenge, type: "webauthn.get")
+      authenticator_data = build_assertion_auth_data(sign_count: sign_count)
+      signature = webauthn_sign(authenticator_data, client_data_json)
+
+      {
+        passkey: {
+          id: credential.credential_id,
+          client_data_json: client_data_json,
+          authenticator_data: Base64.urlsafe_encode64(authenticator_data, padding: false),
+          signature: Base64.urlsafe_encode64(signature, padding: false)
+        }
+      }
+    end
+
+    def webauthn_client_data_json(challenge:, type:)
+      { challenge: challenge, origin: "http://www.example.com", type: type }.to_json
+    end
+
+    def build_attestation_auth_data(credential_id:)
+      [
+        Digest::SHA256.digest("www.example.com"),
+        [ 0x45 ].pack("C"),
+        [ 0 ].pack("N"),
+        "\x00" * 16,
+        [ credential_id.bytesize ].pack("n"),
+        credential_id,
+        COSE_PUBLIC_KEY
+      ].join.b
+    end
+
+    def build_assertion_auth_data(sign_count:)
+      [
+        Digest::SHA256.digest("www.example.com"),
+        [ 0x05 ].pack("C"),
+        [ sign_count ].pack("N")
+      ].join.b
+    end
+
+    def webauthn_sign(authenticator_data, client_data_json)
+      signed_data = authenticator_data + Digest::SHA256.digest(client_data_json)
+      WEBAUTHN_PRIVATE_KEY.sign("SHA256", signed_data)
+    end
+end
+
+ActiveSupport.on_load(:action_dispatch_integration_test) do
+  include WebauthnTestHelper
+end

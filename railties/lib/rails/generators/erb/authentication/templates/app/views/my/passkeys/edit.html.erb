@@ -1,0 +1,19 @@
+<h1>Edit Passkey</h1>
+
+<%% if params[:created] %>
+  <p>Your passkey has been registered. Give it a name so you can identify it later.</p>
+<%% end %>
+
+<%%= form_with model: @passkey, scope: :passkey, url: my_passkey_path(@passkey) do |form| %>
+  <div>
+    <%%= form.label :name, "Name your passkey" %><br>
+    <%%= form.text_field :name, autofocus: true, placeholder: "e.g. MacBook Pro, iPhone", autocomplete: "off" %>
+  </div>
+
+  <%%= form.submit "Save" %>
+<%% end %>
+
+<div>
+  <%%= button_to "Remove this passkey", my_passkey_path(@passkey), method: :delete,
+        data: { turbo_confirm: "Are you sure you want to remove this passkey?" } %>
+</div>

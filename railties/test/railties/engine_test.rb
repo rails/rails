@@ -1556,6 +1556,7 @@ en:
         ActionMailbox::Engine
         Trix::Engine
         ActionText::Engine
+        ActionPack::Passkeys::Engine
         Bukkits::Engine
         Importmap::Engine
         AppTemplate::Application

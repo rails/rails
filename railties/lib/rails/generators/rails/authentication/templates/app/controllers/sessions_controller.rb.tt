@@ -1,17 +1,32 @@
 class SessionsController < ApplicationController
+  include ActionPack::Passkeys::Request
+
   allow_unauthenticated_access only: %i[ new create ]
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_session_path, alert: "Try again later." }
 
   def new
+    @authentication_options = passkey_authentication_options
   end
 
   def create
+<%- if options.password_based? -%>
     if user = User.authenticate_by(params.permit(:email_address, :password))
       start_new_session_for user
       redirect_to after_authentication_url
     else
       redirect_to new_session_path, alert: "Try another email address or password."
     end
+<%- else -%>
+    if user = User.find_by(email_address: params[:email_address])
+      magic_link = user.magic_links.create!
+      <%- if defined?(ActionMailer::Railtie) -%>
+      MagicLinkMailer.sign_in(magic_link).deliver_later
+      <%- end -%>
+      redirect_to_session_magic_link magic_link
+    else
+      redirect_to_fake_session_magic_link params[:email_address]
+    end
+<%- end -%>
   end
 
   def destroy
