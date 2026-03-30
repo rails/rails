@@ -1,3 +1,16 @@
+*   Add `ActiveSupport::Base32::Crockford` for Crockford's Base32 encoding.
+
+    Generates and normalizes Crockford's Base32 strings, which are designed to
+    be unambiguous for humans. Useful for generating and normalizing short,
+    readable codes and tokens.
+
+    ```ruby
+    ActiveSupport::Base32::Crockford.generate(6)          # => "K5C9BM"
+    ActiveSupport::Base32::Crockford.normalize("OIL-123") # => "011123"
+    ```
+
+    *Stanko Krtalic Rusendic*
+
 *   Add `prepend: true` option to `ActiveSupport::Notifications.subscribe`.
 
       When `prepend: true` is passed, the subscriber is added to the front of

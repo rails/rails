@@ -12,6 +12,7 @@ require "rails"
   action_cable/engine
   action_mailbox/engine
   action_text/engine
+  action_pack/passkeys/engine
   rails/test_unit/railtie
 ).each do |railtie|
   begin # rubocop:disable Style/RedundantBegin

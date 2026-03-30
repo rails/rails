@@ -1,0 +1,12 @@
+<h1>Check your email</h1>
+
+<%%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
+
+<p>We sent a sign-in code to <strong><%%= email_address_pending_authentication %></strong>.</p>
+
+<%%= form_with url: session_magic_link_path do |form| %>
+  <%%= form.text_field :code, required: true, autofocus: true, autocomplete: "one-time-code", maxlength: 6, placeholder: "Enter code", value: params[:code] %><br>
+  <%%= form.submit "Verify" %>
+<%% end %>
+
+<p>The code will expire in <%%= distance_of_time_in_words(MagicLink::EXPIRATION_TIME) %>.</p>

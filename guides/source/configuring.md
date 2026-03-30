@@ -3657,6 +3657,57 @@ NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms
 
 See Ruby's documentation for [`Regexp.timeout=`](https://docs.ruby-lang.org/en/master/Regexp.html#method-c-timeout-3D).
 
+### Configuring Action Pack Passkeys
+
+#### `config.action_pack.passkey.parent_class_name`
+
+Specifies the parent class for the `ActionPack::Passkeys::Passkey` model.
+Defaults to `"ApplicationRecord"`.
+
+#### `config.action_pack.passkey.routes_prefix`
+
+Sets the URL prefix for the passkey challenge endpoint.
+Defaults to `"/rails/action_pack/passkey"`.
+
+#### `config.action_pack.passkey.draw_routes`
+
+Controls whether the passkey challenge route is automatically drawn.
+Set to `false` to define the route manually. Defaults to `true`.
+
+#### `config.action_pack.passkey.challenge_url`
+
+A proc that returns the challenge endpoint URL. When `nil`, the
+default route helper `passkey_challenge_path` is used.
+Defaults to `nil`.
+
+#### `config.action_pack.passkey.default_registration_options`
+
+A hash of default options merged into every passkey registration
+ceremony. Defaults to `{}`.
+
+#### `config.action_pack.passkey.default_authentication_options`
+
+A hash of default options merged into every passkey authentication
+ceremony. Defaults to `{}`.
+
+#### `config.action_pack.passkey.registration_challenge_expiration`
+
+How long a registration challenge remains valid. Defaults to `10.minutes`.
+
+#### `config.action_pack.passkey.authentication_challenge_expiration`
+
+How long an authentication challenge remains valid. Defaults to `5.minutes`.
+
+#### `config.action_pack.passkey.cbor_max_depth`
+
+Maximum nesting depth allowed when decoding CBOR data from
+authenticators. Defaults to `16`.
+
+#### `config.action_pack.passkey.cbor_max_size`
+
+Maximum byte size of CBOR input allowed from authenticators.
+Defaults to `10.megabytes`.
+
 ### Configuring a Database
 
 Just about every Rails application will interact with a database. You can connect to the database by setting an environment variable `ENV['DATABASE_URL']` or by using a configuration file called `config/database.yml`.

@@ -2,10 +2,16 @@
 <%%= tag.div(flash[:notice], style: "color:green") if flash[:notice] %>
 
 <%%= form_with url: session_path do |form| %>
-  <%%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %><br>
+  <%%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username webauthn", placeholder: "Enter your email address", value: params[:email_address] %><br>
+<%- if options.password_based? -%>
   <%%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %><br>
+<%- end -%>
   <%%= form.submit "Sign in" %>
 <%% end %>
+<%- if options.password_based? -%>
 <br>
 
 <%%= link_to "Forgot password?", new_password_path %>
+<%- end -%>
+
+<%%= passkey_sign_in_button "Sign in with a passkey", session_passkey_path, options: @authentication_options, mediation: "conditional" %>
