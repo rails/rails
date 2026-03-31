@@ -1,3 +1,11 @@
+*   Add `ActiveRecord::Errors`, a subclass of `ActiveModel::Errors` used
+    when an Active Record object is converted via `to_model`. Association
+    validation errors are aliased to the corresponding foreign key so
+    Action View form fields like `f.select :person_id` are wrapped with
+    `field_with_errors`.
+
+    *Jose Goncalves*
+
 *   Fix PostgreSQL primary key introspection for covering indexes.
 
     `pg_index.indkey` includes non-key columns added with `INCLUDE`. Primary

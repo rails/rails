@@ -203,8 +203,11 @@ module ActiveModel
         error.match?(attribute.to_sym)
       }
     end
-    alias :has_key? :include?
-    alias :key? :include?
+
+    def has_key?(attribute)
+      include?(attribute)
+    end
+    alias :key? :has_key?
 
     # Delete messages for +key+. Returns the deleted messages.
     #

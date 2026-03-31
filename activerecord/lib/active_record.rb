@@ -35,7 +35,7 @@ require "zlib"
 require "active_record/version"
 require "active_record/deprecator"
 require "active_model/attribute_set"
-require "active_record/errors"
+require "active_record/exceptions"
 
 # :include: ../README.rdoc
 module ActiveRecord
@@ -44,6 +44,7 @@ module ActiveRecord
   autoload :Base
   autoload :Callbacks
   autoload :ConnectionHandling
+  autoload :Conversion
   autoload :Core
   autoload :CounterCache
   autoload :DelegatedType
@@ -51,6 +52,7 @@ module ActiveRecord
   autoload :DynamicMatchers
   autoload :Encryption
   autoload :Enum
+  autoload :Errors
   autoload :Explain
   autoload :FixtureSet, "active_record/fixtures"
   autoload :FilterAttributeHandler
