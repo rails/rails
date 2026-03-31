@@ -3,6 +3,8 @@
 require "active_record_unit"
 require "fixtures/project"
 require "fixtures/developer"
+require "fixtures/mascot"
+require "fixtures/company"
 
 class FormHelperActiveRecordTest < ActionView::TestCase
   tests ActionView::Helpers::FormHelper
@@ -89,4 +91,33 @@ class FormHelperActiveRecordTest < ActionView::TestCase
 
       form_text(action, id, html_class, remote, multipart, method) + hidden_fields(method) + contents + "</form>"
     end
+end
+
+class FormHelperActiveRecordValidationsTest < ActionView::TestCase
+  tests ActionView::Helpers::FormHelper
+
+  def form_with(*, **)
+    @rendered = super
+  end
+
+  def test_field_with_errors_on_belongs_to_foreign_key
+    mascot = Class.new(Mascot) do
+      validates :company, presence: true
+
+      def self.name
+        "Mascot"
+      end
+    end.new
+    mascot.valid?
+
+    form_with(model: mascot, url: "/mascots") do |f|
+      concat f.select(:company_id, [["37Signals", 1]])
+    end
+
+    assert_includes(@rendered,
+        '<div class="field_with_errors">' \
+          '<select name="mascot[company_id]"><option value="1">37Signals</option></select>' \
+        "</div>"
+    )
+  end
 end

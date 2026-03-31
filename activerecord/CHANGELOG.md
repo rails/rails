@@ -1,3 +1,11 @@
+*   Add `ActiveRecord::Errors` (subclass of `ActiveModel::Errors`), used when an activerecord object
+    is later converted to activemodel compliant via `to_model`.
+    Validation errors can be aliased, enabling errors from `belongs_to` and `has(_and_belongs_to)_many` associations
+    to be accessed via the corresponding foreign key
+    Form fields with errors for associations like `f.select :person_id` will now be highlighted with `field_with_errors`.
+
+    *Jose Goncalves*
+
 *   `connected_to_all_shards` now raises `ArgumentError` when called on a model
     that is not connected to any shards, rather than silently doing nothing.
 
