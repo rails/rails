@@ -329,6 +329,7 @@ module ActiveRecord # :nodoc:
     include SignedId
     include Suppressor
     include Marshalling::Methods
+    include Conversion
 
     self.param_delimiter = "_"
   end

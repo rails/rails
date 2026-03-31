@@ -1,3 +1,11 @@
+*   Add `ActiveRecord::Errors` (subclass of `ActiveModel::Errors`), used when an activerecord object
+    is later converted to activemodel compliant via `to_model`.
+    Validation errors can be aliased, enabling errors from `belongs_to` and `has(_and_belongs_to)_many` associations
+    to be accessed via the corresponding foreign key
+    Form fields with errors for associations like `f.select :person_id` will now be highlighted with `field_with_errors`.
+
+    *Jose Goncalves*
+
 *   Let the schema readers answer for many tables at once.
 
     `indexes`, `primary_keys`, `foreign_keys`, `check_constraints`,

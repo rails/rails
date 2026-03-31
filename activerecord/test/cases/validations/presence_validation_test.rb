@@ -6,6 +6,7 @@ require "models/face"
 require "models/interest"
 require "models/speedometer"
 require "models/dashboard"
+require "models/minivan"
 
 class PresenceValidationTest < ActiveRecord::TestCase
   class Boy < Human; end
@@ -100,6 +101,45 @@ class PresenceValidationTest < ActiveRecord::TestCase
       interest = Interest.new
       interest.save!
       assert_not interest.valid?(:required_name)
+    end
+  end
+
+  def test_belongs_to_has_many_presence_error_is_aliased_via_foreign_key
+    # class Speedometer has belongs_to(:dashboard) and has_many(:minivans)
+    repair_validations(Speedometer) do
+      Speedometer.validates_presence_of(:dashboard)
+      Speedometer.validates_presence_of(:minivans)
+      speedometer = Speedometer.new
+      speedometer.valid?
+
+      assert speedometer.errors[:dashboard].any?,    "expected error on :dashboard"
+      assert speedometer.errors[:dashboard_id].none?, "unexpected error on :dashboard_id, no alias yet"
+      assert speedometer.errors[:minivans].any?,    "expected error on :minivans"
+      assert speedometer.errors[:minivan_ids].none?, "unexpected error on :minivan_ids, no alias yet"
+
+      speedometer.to_model
+
+      assert speedometer.errors[:dashboard_id].any?, "expected error on :dashboard_id via alias"
+      assert_equal speedometer.errors[:dashboard], speedometer.errors[:dashboard_id]
+      assert speedometer.errors[:minivan_ids].any?, "expected error on :minivan_ids via alias"
+      assert_equal speedometer.errors[:minivans], speedometer.errors[:minivan_ids]
+    end
+  end
+
+  def test_belongs_to_with_custom_foreign_key_presence_error_is_aliased
+    # class Face has belongs_to(:autosave_human, foreign_key: :human_id)
+    repair_validations(Face) do
+      Face.validates_presence_of(:autosave_human)
+      face = Face.new
+      face.valid?
+
+      assert face.errors[:autosave_human].any?,    "expected error on :autosave_human"
+      assert face.errors[:human_id].none?, "unexpected error on :human_id, no alias yet"
+
+      face.to_model
+
+      assert face.errors[:human_id].any?, "expected error on :autosave_human_id via alias"
+      assert_equal face.errors[:autosave_human], face.errors[:human_id]
     end
   end
 end
