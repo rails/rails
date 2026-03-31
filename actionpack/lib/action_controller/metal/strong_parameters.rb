@@ -429,6 +429,25 @@ module ActionController
       to_enum(:each_value).to_a
     end
 
+    # Extract the given key from each value in the parameters.
+    #
+    # This is useful when parameters represent an array-like structure with
+    # numeric keys, such as form data like `items[0][name]=David&items[1][name]=Rafael`.
+    #
+    #     params = ActionController::Parameters.new(
+    #       "0" => { name: "David" },
+    #       "1" => { name: "Rafael" },
+    #       "2" => { name: "Aaron" }
+    #     )
+    #     params.pluck(:name)
+    #     # => ["David", "Rafael", "Aaron"]
+    #
+    #     params.pluck(:id, :name)
+    #     # => [[1, "David"], [2, "Rafael"], [3, "Aaron"]]
+    def pluck(*keys)
+      values.pluck(*keys)
+    end
+
     # Attribute that keeps track of converted arrays, if any, to avoid double
     # looping in the common use case permit + mass-assignment. Defined in a method
     # to instantiate it only if needed.

@@ -340,6 +340,36 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_equal ["Chicago", "Illinois", ActionController::Parameters.new(first_name: "David")], params.values
   end
 
+  test "pluck extracts values for a single key" do
+    params = ActionController::Parameters.new(
+      "0" => { name: "David", age: 32 },
+      "1" => { name: "Rafael", age: 28 },
+      "2" => { name: "Aaron", age: 35 }
+    )
+    assert_equal ["David", "Rafael", "Aaron"], params.pluck(:name)
+  end
+
+  test "pluck extracts values for multiple keys" do
+    params = ActionController::Parameters.new(
+      "0" => { name: "David", age: 32 },
+      "1" => { name: "Rafael", age: 28 }
+    )
+    assert_equal [["David", 32], ["Rafael", 28]], params.pluck(:name, :age)
+  end
+
+  test "pluck returns nil for missing keys" do
+    params = ActionController::Parameters.new(
+      "0" => { name: "David" },
+      "1" => { name: "Rafael" }
+    )
+    assert_equal [nil, nil], params.pluck(:missing)
+  end
+
+  test "pluck returns empty array for empty params" do
+    params = ActionController::Parameters.new
+    assert_equal [], params.pluck(:name)
+  end
+
   test "values_at retains permitted status" do
     @params.permit!
     assert_predicate @params.values_at(:person).first, :permitted?
