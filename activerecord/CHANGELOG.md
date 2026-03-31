@@ -1,3 +1,12 @@
+*   Add `ActiveRecord::Errors` (subclass of `ActiveModel::Errors`), used when an activerecord object
+    is later converted to activemodel compliant via `to_model`.
+    Validation errors can be aliased, enabling errors from `belongs_to` and `has(_and_belongs_to)_many` associations
+    to be accessed via the corresponding foreign key
+    This improves form field validation error UX for activerecord objects.
+    Form fields with errors for associations like `f.select :person_id` will now be highlighted with `field_with_errors`.
+
+    *Jose Goncalves*
+
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be

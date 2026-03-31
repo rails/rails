@@ -622,6 +622,10 @@ module ActiveRecord
         active_record_primary_key
       end
 
+      def ids_reader_name
+        :"#{name.to_s.singularize}_ids"
+      end
+
       def check_validity!
         return if @validated
 
