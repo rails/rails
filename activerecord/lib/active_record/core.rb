@@ -416,6 +416,16 @@ module ActiveRecord
         cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
       end
 
+      def raw_relation # :nodoc:
+        relation = Relation.create(self)
+
+        if finder_needs_type_condition? && !ignore_default_scope?
+          relation.where!(type_condition)
+        else
+          relation
+        end
+      end
+
       private
         def inherited(subclass)
           super
@@ -436,16 +446,6 @@ module ActiveRecord
             @inspection_filter = nil
             @filter_attributes ||= nil
             @generated_association_methods ||= nil
-          end
-        end
-
-        def relation
-          relation = Relation.create(self)
-
-          if finder_needs_type_condition? && !ignore_default_scope?
-            relation.where!(type_condition)
-          else
-            relation
           end
         end
 
