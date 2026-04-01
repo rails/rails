@@ -2074,8 +2074,8 @@ Use `ActionDispatch::ExceptionWrapper.rescue_responses` to observe the configura
   "ActionController::UnknownFormat" => :not_acceptable,
   "ActionDispatch::Http::MimeNegotiation::InvalidType" => :not_acceptable,
   "ActionController::MissingExactTemplate" => :not_acceptable,
-  "ActionController::InvalidAuthenticityToken" => :unprocessable_entity,
-  "ActionController::InvalidCrossOriginRequest" => :unprocessable_entity,
+  "ActionController::InvalidAuthenticityToken" => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
+  "ActionController::InvalidCrossOriginRequest" => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
   "ActionDispatch::Http::Parameters::ParseError" => :bad_request,
   "ActionController::BadRequest" => :bad_request,
   "ActionController::ParameterMissing" => :bad_request,
@@ -2083,10 +2083,13 @@ Use `ActionDispatch::ExceptionWrapper.rescue_responses` to observe the configura
   "Rack::QueryParser::InvalidParameterError" => :bad_request,
   "ActiveRecord::RecordNotFound" => :not_found,
   "ActiveRecord::StaleObjectError" => :conflict,
-  "ActiveRecord::RecordInvalid" => :unprocessable_entity,
-  "ActiveRecord::RecordNotSaved" => :unprocessable_entity
+  "ActiveRecord::RecordInvalid" => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
+  "ActiveRecord::RecordNotSaved" => ActionDispatch::Constants::UNPROCESSABLE_CONTENT
 }
 ```
+
+`ActionDispatch::Constants::UNPROCESSABLE_CONTENT` resolves to
+`:unprocessable_entity` on Rack < 3.1 and `:unprocessable_content` on Rack >= 3.1.
 
 Any exceptions that are not configured will be mapped to 500 Internal Server Error.
 
