@@ -1145,6 +1145,13 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_nil Time.utc(2000) <=> "Invalid as Time"
   end
 
+  def test_compare_with_numeric_uses_time_native_behavior
+    time = Time.utc(2000)
+
+    assert_nil time <=> 1_700_000_000
+    assert_raise(ArgumentError) { time >= 1_700_000_000 }
+  end
+
   def test_at_with_datetime
     assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0))
 
