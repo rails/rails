@@ -1347,6 +1347,75 @@ module ActiveRecord
         conn.disconnect! if conn
       end
 
+      def test_alter_table_inside_transaction_preserves_cascade_fk_data
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :users do |t|
+          t.string :email
+          t.string :name
+        end
+
+        conn.create_table :payments do |t|
+          t.references :user, null: false, foreign_key: { on_delete: :cascade }
+          t.integer :amount, default: 0, null: false
+        end
+
+        # create 2 users
+        conn.execute("INSERT INTO users (id, email, name) VALUES (1, 'a@e.com', 'A')")
+        conn.execute("INSERT INTO users (id, email, name) VALUES (2, 'b@e.com', 'B')")
+
+        # create 1 payment per user id==1
+        conn.execute("INSERT INTO payments (id, user_id, amount) VALUES (1, 1, 100)")
+        # create 2 payments for user id==2
+        conn.execute("INSERT INTO payments (id, user_id, amount) VALUES (2, 2, 200)")
+        conn.execute("INSERT INTO payments (id, user_id, amount) VALUES (3, 2, 300)")
+
+        conn.transaction do
+          # delete user with id 1, must cascade delete user's payments (1 payment)
+          conn.execute("DELETE FROM users WHERE id = 1")
+          # remove column from users table, must not CASCADE-delete payments
+          conn.remove_column :users, :name
+          # rename column from users table also must not CASCADE-delete payments
+          conn.rename_column :users, :email, :email2
+        end
+
+        # verify only 1 user remains
+        assert_equal 1, conn.select_value("SELECT COUNT(*) FROM users")
+        # verify only 2 payments remains because:
+        # 1 payment was deleted for user id 1 when this user was deleted
+        # 2 payments (belong to user id 2) remains after removing :name column and renaming :email column
+        assert_equal 2, conn.select_value("SELECT COUNT(*) FROM payments")
+      ensure
+        conn.disconnect! if conn
+      end
+
+      def test_alter_table_inside_transaction_preserves_set_null_fk_data
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :users do |t|
+          t.string :email
+          t.string :name
+        end
+
+        conn.create_table :notes do |t|
+          t.integer :user_id
+          t.string :body, null: false
+        end
+        conn.add_foreign_key :notes, :users, on_delete: :nullify
+
+        conn.execute("INSERT INTO users (id, email, name) VALUES (1, 'a@e.com', 'A')")
+        conn.execute("INSERT INTO notes (id, user_id, body) VALUES (1, 1, 'hello')")
+
+        conn.transaction do
+          conn.remove_column :users, :name
+        end
+
+        assert_equal 1, conn.select_value("SELECT user_id FROM notes WHERE id = 1"),
+          "Notes.user_id was silently set to NULL during table alteration inside transaction"
+      ensure
+        conn.disconnect! if conn
+      end
+
       private
         def with_rails_root(&block)
           mod = Module.new do

@@ -638,10 +638,33 @@ module ActiveRecord
             yield definition if block_given?
           end
 
-          disable_referential_integrity do
-            transaction do
-              move_table(table_name, altered_table_name, options.merge(temporary: true))
-              move_table(altered_table_name, table_name, &caller)
+          restart = open_transactions == 1 && current_transaction.joinable? && referenced_by_destructive_foreign_key?(table_name)
+          if restart
+            materialize_transactions
+            commit_db_transaction
+          end
+
+          begin
+            disable_referential_integrity do
+              transaction(requires_new: restart) do
+                move_table(table_name, altered_table_name, options.merge(temporary: true))
+                move_table(altered_table_name, table_name, &caller)
+              end
+            end
+          ensure
+            begin_db_transaction if restart
+          end
+        end
+
+        # FK actions that silently corrupt data when PRAGMA foreign_keys = OFF is ignored inside a transaction.
+        DESTRUCTIVE_FK_ACTIONS = ["CASCADE", "SET NULL"].freeze
+
+        def referenced_by_destructive_foreign_key?(table_name)
+          table_name = table_name.to_s
+          tables = query_all("SELECT name FROM sqlite_master WHERE type = 'table' AND name != #{quote(table_name)}", nil)
+          tables.any? do |row|
+            query_all("PRAGMA foreign_key_list(#{quote(row["name"])})", nil).any? do |fk|
+              fk["table"] == table_name && DESTRUCTIVE_FK_ACTIONS.include?(fk["on_delete"])
             end
           end
         end
