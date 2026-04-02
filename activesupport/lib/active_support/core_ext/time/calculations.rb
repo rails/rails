@@ -23,10 +23,8 @@ class Time
     # If no year is specified, it will use the current year.
     #
     # This method assumes the proleptic Gregorian calendar and does not
-    # account for the historical Gregorian Calendar Reform. During the
-    # reform, countries skipped several days (e.g., Italy skipped 10 days
-    # in October 1582, England skipped 11 days in September 1752). For
-    # such historical dates, use Ruby's +Date+ class directly instead:
+    # account for the {Gregorian Calendar Reform}[https://en.wikipedia.org/wiki/Gregorian_calendar#Adoption_by_country].
+    # For such historical dates, use Ruby's +Date+ class directly instead:
     #
     #   (Date.new(1582, 10, 1)..Date.new(1582, 10, -1)).count  # => 21
     def days_in_month(month, year = current.year)
