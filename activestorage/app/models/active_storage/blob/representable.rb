@@ -105,6 +105,38 @@ module ActiveStorage::Blob::Representable
     end
   end
 
+  # Returns an ActiveStorage::PassthroughVariant if the blob's content type matches one of the
+  # accepted +formats+, or an ActiveStorage::Variant that converts to the first format otherwise.
+  #
+  # This is useful when you need an image in a specific set of formats but want to avoid
+  # unnecessary reprocessing when the blob already qualifies. For example, when embedding
+  # images in a PDF that only supports JPEG and PNG:
+  #
+  #   blob.variant_or_self(formats: [:jpeg, :png]).processed.url
+  #
+  # If the blob is already a JPEG or PNG, it is returned as-is (wrapped in a PassthroughVariant).
+  # Otherwise, it is converted to the first format in the list (JPEG in this case).
+  #
+  # Unlike +variant+, this method does not accept image transformations such as +resize_to_limit+.
+  # Use +variant+ directly when transformations are needed.
+  #
+  # Raises ActiveStorage::InvariableError if the blob cannot be transformed.
+  # Raises ArgumentError if +formats+ is missing, empty, or extra transformations are given.
+  def variant_or_self(formats: nil, **transformations)
+    raise ArgumentError, "variant_or_self requires formats: to be provided" if formats.nil?
+    raise ArgumentError, "variant_or_self requires at least one format" if formats.empty?
+    raise ArgumentError, "variant_or_self does not accept transformations like #{transformations.keys.map(&:inspect).join(", ")}. Use #variant instead." if transformations.any?
+    raise ActiveStorage::InvariableError, "Can't transform blob with ID=#{id} and content_type=#{content_type}" unless variable?
+
+    matching_format = formats.find { |fmt| Marcel::MimeType.for(extension: fmt.to_s) == content_type }
+
+    if matching_format
+      ActiveStorage::PassthroughVariant.new(self)
+    else
+      variant(format: formats.first)
+    end
+  end
+
   # Returns true if the variant processor can transform the blob (its content
   # type is in +ActiveStorage.variable_content_types+).
   def variable?
