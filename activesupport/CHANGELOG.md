@@ -1,3 +1,12 @@
+*   Add `ActiveSupport::Duration#in_quarters`
+
+    ```ruby
+    3.months.in_quarters # => 1.0
+    1.year.in_quarters # => 4.0
+    ```
+
+    *Sean Doyle*
+
 *   Add `#this_quarter?` to Date/Time.
 
     It returns true if the date/time falls within the current quarter.
