@@ -1,3 +1,12 @@
+*   Add `ActiveSupport::Duration#in_quarters`
+
+    ```ruby
+    3.months.in_quarters # => 1.0
+    1.year.in_quarters # => 4.0
+    ```
+
+    *Sean Doyle*
+
 *   Add `prepend: true` option to `ActiveSupport::Notifications.subscribe`.
 
       When `prepend: true` is passed, the subscriber is added to the front of

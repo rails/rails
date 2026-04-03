@@ -110,12 +110,13 @@ module ActiveSupport
         end
     end
 
-    SECONDS_PER_MINUTE = 60
-    SECONDS_PER_HOUR   = 3600
-    SECONDS_PER_DAY    = 86400
-    SECONDS_PER_WEEK   = 604800
-    SECONDS_PER_MONTH  = 2629746  # 1/12 of a gregorian year
-    SECONDS_PER_YEAR   = 31556952 # length of a gregorian year (365.2425 days)
+    SECONDS_PER_MINUTE   = 60
+    SECONDS_PER_HOUR     = 3600
+    SECONDS_PER_DAY      = 86400
+    SECONDS_PER_WEEK     = 604800
+    SECONDS_PER_MONTH    = 2629746  # 1/12 of a gregorian year
+    SECONDS_PER_QUARTER  = 7889238  # 1/4 of a gregorian year
+    SECONDS_PER_YEAR     = 31556952 # length of a gregorian year (365.2425 days)
 
     PARTS_IN_SECONDS = {
       seconds: 1,
@@ -412,6 +413,14 @@ module ActiveSupport
     #   9.weeks.in_months # => 2.07
     def in_months
       in_seconds / SECONDS_PER_MONTH.to_f
+    end
+
+    # Returns the amount of quarters a duration covers as a float
+    #
+    #   3.months.in_quarters  # => 1.0
+    #   1.year.in_quarters    # => 4.0
+    def in_quarters
+      in_seconds / SECONDS_PER_QUARTER.to_f
     end
 
     # Returns the amount of years a duration covers as a float
