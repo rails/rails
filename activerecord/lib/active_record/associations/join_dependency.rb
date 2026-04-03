@@ -283,13 +283,17 @@ module ActiveRecord
           unless model = model_cache[node][id]
             model = node.instantiate(row, aliases.column_aliases(node)) do |m|
               m.strict_loading! if strict_loading_value
-              other.set_inverse_instance(m)
+              other.set_inverse_instance_from_queries(m)
             end
             model_cache[node][id] = model if id
           end
 
           if node.reflection.collection?
-            other.target.push(model)
+            if node.reflection.klass.has_many_inversing
+              other.target = model
+            else
+              other.target.push(model)
+            end
           else
             other.target = model
           end
