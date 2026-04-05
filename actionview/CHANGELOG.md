@@ -1,3 +1,7 @@
+*   Cache `ActionView::LookupContext#normalize_name` to reduce memory allocations during template lookups.
+
+    *Michael Oberegger*
+
 *   Skip blank attribute names in tag helpers to avoid generating invalid HTML.
 
     *Mike Dalessio*

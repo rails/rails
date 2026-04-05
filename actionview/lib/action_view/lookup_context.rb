@@ -125,6 +125,9 @@ module ActionView
     module ViewPaths
       attr_reader :view_paths, :html_fallback_for_js
 
+      NORMALIZE_NAME_CACHE = Concurrent::Map.new
+      private_constant :NORMALIZE_NAME_CACHE
+
       def find(name, prefixes = [], partial = false, keys = [], options = {})
         name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for(options)
@@ -211,17 +214,31 @@ module ActionView
         idx = name.rindex("/")
         return name, prefixes.presence || [""] unless idx
 
-        path_prefix = name[0, idx]
-        path_prefix = path_prefix.from(1) if path_prefix.start_with?("/")
-        name = name.from(idx + 1)
+        NORMALIZE_NAME_CACHE[normalize_name_cache_key(name, prefixes)] ||= begin
+          path_prefix = name[0, idx]
+          path_prefix = path_prefix.from(1) if path_prefix.start_with?("/")
+          name = name.from(idx + 1)
 
-        if !prefixes || prefixes.empty?
-          prefixes = [path_prefix]
-        else
-          prefixes = prefixes.map { |p| "#{p}/#{path_prefix}" }
+          if prefixes.present?
+            prefixes = prefixes.map { |p| "#{p}/#{path_prefix}" }
+          else
+            prefixes = [path_prefix]
+          end
+
+          [name.freeze, prefixes.freeze]
         end
+      end
 
-        return name, prefixes
+      def normalize_name_cache_key(name, prefixes)
+        if prefixes.present?
+          if prefixes.length == 1
+            "#{name}:#{prefixes[0]}"
+          else
+            prefixes.join(",").prepend(name, ":")
+          end
+        else
+          name
+        end
       end
     end
 
