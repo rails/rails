@@ -1,3 +1,22 @@
+*   Normalize validation context to symbol so that `on:` and the argument to
+    `valid?` can be used interchangeably as strings or symbols.
+
+    Previously, `on: :my_context` with `valid?("my_context")` (or vice versa)
+    would silently skip the validation due to a type mismatch. Now both sides
+    are normalized to symbols before comparison.
+
+    ```ruby
+    class Person
+      include ActiveModel::Validations
+      validates :name, presence: true, on: :custom
+    end
+
+    person = Person.new
+    person.valid?("custom")  # => false (was true before, validation was skipped)
+    ```
+
+    *Dmitry Gusev*
+
 *   Combine `:if`, `:unless`, and `:on` options when specified at both the
     `validates` level and the per-validator level, instead of the per-validator
     options silently replacing the top-level ones.
