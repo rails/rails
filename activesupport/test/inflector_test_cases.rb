@@ -294,6 +294,7 @@ module InflectorTestCases
     "i've just seen a face" => "I've Just Seen A Face",
     "maybe you'll be there" => "Maybe You'll Be There",
     "¿por qué?"             => "¿Por Qué?",
+    "über ñoño"             => "Über Ñoño",
     "Fred’s"                => "Fred’s",
     "Fred`s"                => "Fred`s",
     "this was 'fake news'"  => "This Was 'Fake News'",

@@ -38,8 +38,6 @@ module Rails
   end
 
   class << self
-    @application = @app_class = nil
-
     attr_writer :application
     attr_accessor :app_class, :cache, :logger
     def application
@@ -84,8 +82,8 @@ module Rails
       @_env = ActiveSupport::EnvironmentInquirer.new(environment)
     end
 
-    # Returns the ActiveSupport::ErrorReporter of the current \Rails project,
-    # otherwise it returns +nil+ if there is no project.
+    # Returns the ActiveSupport::ErrorReporter instance used for reporting
+    # errors.
     #
     #   Rails.error.handle(IOError) do
     #     # ...
@@ -95,8 +93,8 @@ module Rails
       ActiveSupport.error_reporter
     end
 
-    # Returns the ActiveSupport::EventReporter of the current \Rails project,
-    # otherwise it returns +nil+ if there is no project.
+    # Returns the ActiveSupport::EventReporter instance used for broadcasting
+    # structured events.
     #
     #   Rails.event.notify("my_event", { message: "Hello, world!" })
     def event

@@ -54,7 +54,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
             :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors,
             :pirates, :mateys, :sharded_blogs, :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags,
-            :sharded_tags, :cpk_orders, :cpk_order_agreements
+            :sharded_tags, :cpk_authors, :cpk_orders, :cpk_books, :cpk_order_agreements
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
     member = Member.all.merge!(includes: :favorite_club).find(members(:some_other_guy).id)
@@ -340,6 +340,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
     # find the post, then find the author which is null so no query for the author or address
     assert_no_queries do
       assert_nil post.author_with_address
+    end
+  end
+
+  def test_finding_with_includes_on_null_composite_belongs_to_association_includes_only_once
+    book = cpk_books(:cpk_great_author_first_book)
+    book.update_columns(shop_id: nil, order_id: nil)
+    book = assert_queries_count(1) { Cpk::Book.all.merge!(includes: :order).find(book.id) }
+    assert_no_queries do
+      assert_nil book.order
     end
   end
 

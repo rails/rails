@@ -189,7 +189,12 @@ class MigrationTest < ActiveRecord::TestCase
     connection = Person.lease_connection
     name_limit = connection.table_name_length
     long_name = "a" * (name_limit + 1)
-    short_name = "a" * name_limit
+    short_name =
+      if current_adapter?(:PostgreSQLAdapter)
+        "public." + "a" * name_limit
+      else
+        "a" * name_limit
+      end
 
     error = assert_raises(ArgumentError) do
       connection.create_table(long_name)

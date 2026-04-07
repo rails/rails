@@ -205,8 +205,28 @@ module ActiveRecord
             else
               fields = result.fields
               types = Array.new(fields.size)
+              field_types = Array.new(fields.size)
+              missing_oids = []
+
               fields.size.times do |index|
                 ftype = result.ftype(index)
+                field_types[index] = ftype
+                missing_oids << ftype unless type_map.key?(ftype)
+              end
+
+              if missing_oids.any?
+                load_additional_types(missing_oids)
+
+                fields.size.times do |index|
+                  ftype = field_types[index]
+                  next if type_map.key?(ftype)
+
+                  register_unknown_oid_type(ftype, fields[index])
+                end
+              end
+
+              fields.size.times do |index|
+                ftype = field_types[index]
                 fmod  = result.fmod(index)
                 types[index] = get_oid_type(ftype, fmod, fields[index])
               end

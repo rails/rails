@@ -79,7 +79,10 @@ module ActiveSupport
         end
       end
 
-      attr_writer :logger
+      def logger=(logger)
+        @supports_flush = nil
+        @logger = logger
+      end
 
       def attach_to(...) # :nodoc:
         result = super
@@ -93,7 +96,8 @@ module ActiveSupport
 
       # Flush all log_subscribers' logger.
       def flush_all!
-        logger.flush if logger.respond_to?(:flush)
+        @supports_flush = logger.respond_to?(:flush) if @supports_flush.nil?
+        logger.flush if @supports_flush
       end
 
       private

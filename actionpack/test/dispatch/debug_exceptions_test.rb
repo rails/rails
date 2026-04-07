@@ -128,6 +128,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         rescue Exception
           raise ActionView::Template::Error.new(template)
         end
+      when "/xss_error"
+        raise "x</script><script>alert(1)</script>"
       else
         raise "puke!"
       end
@@ -978,6 +980,16 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_select "#container code", /undefined local variable or method ['`]string”'/
   end
 
+  test "exception message is escaped in copy-to-clipboard script tag" do
+    @app = DevelopmentApp
+
+    get "/xss_error", headers: { "action_dispatch.show_exceptions" => :all }
+    assert_response 500
+
+    assert_no_match "<script>alert(1)</script>", body
+    assert_match "&lt;script&gt;alert(1)&lt;/script&gt;", body
+  end
+
   test "includes copy button in error pages" do
     @app = DevelopmentApp
 
@@ -998,7 +1010,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_no_match %r{<button}, body
-    assert_no_match %r{<script}, body
   end
 
   test "exception message includes causes for nested exceptions" do

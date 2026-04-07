@@ -1,3 +1,16 @@
+*   Add `ActionDispatch::Request#safe_method?` and `#unsafe_method?`.
+
+    `safe_method?` returns true for HTTP methods that are defined as safe per
+    [RFC 9110 §9.2.1](https://httpwg.org/specs/rfc9110.html#safe.methods):
+    GET, HEAD, OPTIONS, and TRACE. `unsafe_method?` is the inverse.
+
+    ```ruby
+    request.safe_method?   # => true for GET, HEAD, OPTIONS, TRACE
+    request.unsafe_method? # => true for POST, PUT, PATCH, DELETE
+    ```
+
+    *Joseph Hale*
+
 *   Add `content_type` option to HTTP authentication methods.
 
     `request_http_basic_authentication`, `request_http_digest_authentication`,

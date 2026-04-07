@@ -579,6 +579,8 @@ There is an additional parameter `key` that can be used to specify folders/sub-f
 in your S3 Bucket. AWS S3 otherwise uses a random key to name your files. This
 approach is helpful if you want to organize your S3 Bucket files better.
 
+NOTE: The `key` parameter is treated as trusted. Using untrusted user input as the key may result in unexpected behavior.
+
 ```ruby
 @message.images.attach(
   io: File.open("/path/to/file"),

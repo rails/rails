@@ -722,6 +722,15 @@ module ActiveRecord
       end
 
       def strict_mode?
+        if @config.key?(:strict) && !@strict_mode_deprecation_warned
+          @strict_mode_deprecation_warned = true
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            The `strict` option in database configurations is deprecated and
+            will be removed in Rails 8.3. Use `variables: { sql_mode: "..." }`
+            to configure sql_mode directly instead.
+          MSG
+        end
+
         self.class.type_cast_config_to_boolean(@config.fetch(:strict, true))
       end
 
@@ -896,6 +905,7 @@ module ActiveRecord
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
         ER_DB_CREATE_EXISTS     = 1007
         ER_FILSORT_ABORT        = 1028
+        ER_NO_DB_ERROR          = 1046
         ER_DUP_ENTRY            = 1062
         ER_SERVER_SHUTDOWN      = 1053
         ER_NOT_NULL_VIOLATION   = 1048
@@ -928,7 +938,7 @@ module ActiveRecord
             else
               super
             end
-          when ER_CONNECTION_KILLED, ER_SERVER_SHUTDOWN, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT
+          when ER_CONNECTION_KILLED, ER_SERVER_SHUTDOWN, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT, ER_NO_DB_ERROR
             ConnectionFailed.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_DB_CREATE_EXISTS
             DatabaseAlreadyExists.new(message, sql: sql, binds: binds, connection_pool: @pool)
@@ -1031,17 +1041,24 @@ module ActiveRecord
           variables = @config.fetch(:variables, {}).stringify_keys
 
           # Increase timeout so the server doesn't disconnect us.
-          wait_timeout = self.class.type_cast_config_to_integer(@config[:wait_timeout])
-          wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
-          variables["wait_timeout"] = wait_timeout
+          # Set to false in config to skip.
+          unless @config[:wait_timeout] == false
+            wait_timeout = self.class.type_cast_config_to_integer(@config[:wait_timeout])
+            wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
+            variables["wait_timeout"] = wait_timeout
+          end
 
           defaults = [":default", :default].to_set
 
           # Make MySQL reject illegal values rather than truncating or blanking them, see
           # https://dev.mysql.com/doc/refman/en/sql-mode.html#sqlmode_strict_all_tables
           # If the user has provided another value for sql_mode, don't replace it.
-          if sql_mode = variables.delete("sql_mode")
-            sql_mode = quote(sql_mode)
+          # Set sql_mode to false or :default in variables to skip.
+          if variables.key?("sql_mode")
+            sql_mode_value = variables.delete("sql_mode")
+            unless sql_mode_value == false || defaults.include?(sql_mode_value)
+              sql_mode = quote(sql_mode_value)
+            end
           elsif !defaults.include?(strict_mode?)
             if strict_mode?
               sql_mode = "CONCAT(@@sql_mode, ',STRICT_ALL_TABLES')"

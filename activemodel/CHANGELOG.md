@@ -1,3 +1,15 @@
+*   Combine `:if`, `:unless`, and `:on` options when specified at both the
+    `validates` level and the per-validator level, instead of the per-validator
+    options silently replacing the top-level ones.
+
+    Before, `validates :title, presence: { if: :local? }, if: :global?` would
+    only check `local?`, ignoring `global?` entirely. Now both conditions must
+    pass for the validation to run.
+
+    Fixes #55761.
+
+    *Denis Savchuk*
+
 *   Add `has_json` and `has_delegated_json` to provide schema-enforced access to JSON attributes.
 
     ```ruby

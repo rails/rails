@@ -627,7 +627,8 @@ GEM
     timeout (0.4.3)
     tomlrb (2.0.3)
     trailblazer-option (0.1.2)
-    trilogy (2.9.0)
+    trilogy (2.11.0)
+      bigdecimal
     tsort (0.2.0)
     turbo-rails (2.0.11)
       actionpack (>= 6.0.0)
@@ -1001,7 +1002,7 @@ CHECKSUMS
   timeout (0.4.3) sha256=9509f079b2b55fe4236d79633bd75e34c1c1e7e3fb4b56cb5fda61f80a0fe30e
   tomlrb (2.0.3) sha256=c2736acf24919f793334023a4ff396c0647d93fce702a73c9d348deaa815d4f7
   trailblazer-option (0.1.2) sha256=20e4f12ea4e1f718c8007e7944ca21a329eee4eed9e0fa5dde6e8ad8ac4344a3
-  trilogy (2.9.0) sha256=a2d63b663ba68a4758e15d1f9afb228f5d16efc7fe7cea68699e1c106ef6067f
+  trilogy (2.11.0) sha256=7ab5685ce35daf64556234cc258c976e50e85a762f01f71dce3f9acff5f0ea13
   tsort (0.2.0) sha256=9650a793f6859a43b6641671278f79cfead60ac714148aabe4e3f0060480089f
   turbo-rails (2.0.11) sha256=fc47674736372780abd2a4dc0d84bef242f5ca156a457cd7fa6308291e397fcf
   tzinfo (2.0.6) sha256=8daf828cc77bcf7d63b0e3bdb6caa47e2272dcfaf4fbfe46f8c3a9df087a829b

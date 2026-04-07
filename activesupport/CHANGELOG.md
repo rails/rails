@@ -1,3 +1,18 @@
+*   Add `prepend: true` option to `ActiveSupport::Notifications.subscribe`.
+
+      When `prepend: true` is passed, the subscriber is added to the front of
+      the subscriber list for the given event, ensuring it runs before any
+      previously registered subscribers. This allows mutating the event payload
+      before other subscribers process it.
+
+      ```ruby
+      ActiveSupport::Notifications.subscribe("sql.active_record", prepend: true) do |event|
+        event.payload[:name] = "[IDC] #{event.payload[:name]}"
+      end
+      ```
+
+      *Jean Boussier*, *Federico Carrocera*
+
 *   Deprecate `require_dependency`.
 
     `require_dependency` is deprecated without replacement and will be removed in Rails 9.

@@ -293,6 +293,17 @@ namespace :db do
 
     desc "Rebuild the PostgreSQL test databases"
     task rebuild: [:drop, :build]
+
+    desc "Regenerate well-known PostgreSQL OID mappings from upstream pg_type.dat and pg_range.dat"
+    task :update_well_known_oids do
+      require_relative "lib/active_record/connection_adapters/postgresql/oid/well_known_generator"
+
+      result = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::WellKnown::Generator.generate!
+      versions = result.fetch(:mappings_by_version).keys.sort
+      latest = result.fetch(:mappings_by_version).fetch(versions.last)
+
+      puts "Updated well_known_values.rb for PostgreSQL versions #{versions.join(", ")} (latest: #{latest[:type_aliases].size} type aliases, #{latest[:array_types].size} arrays, #{latest[:range_types].size} ranges, #{latest[:domain_types].size} domains)"
+    end
   end
 end
 

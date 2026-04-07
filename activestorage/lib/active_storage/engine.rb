@@ -152,6 +152,7 @@ module ActiveStorage
         ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
         ActiveStorage.analyze = app.config.active_storage.analyze || :later
+        ActiveStorage.streaming_chunk_max_size = app.config.active_storage.streaming_chunk_max_size || 100.megabytes
       end
     end
 
