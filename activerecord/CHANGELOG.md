@@ -2,6 +2,64 @@
 
     *Christian Schmidt*
 
+*   Deprecate the `schema_order` option in PostgreSQL database configurations.
+
+    Use `schema_search_path` instead. The `schema_order` alias will be
+    removed in Rails 8.3.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate the `strict` option in MySQL database configurations.
+
+    The `strict` option for MySQL will be removed in Rails 8.3 because it is the default behavior.
+
+    To change the default behavior of `strict`, use `variables: { sql_mode: "..." }` to configure `sql_mode` directly.
+
+
+    `strict: false` can be replaced with `variables: { sql_mode: "" }`, and `strict: :default` can be replaced with `variables: { sql_mode: :default }`.
+
+    *Eileen M. Uchitelle*
+
+*   Allow configuring `SET` queriers for the PostgreSQL and MySQL adapters.
+
+    Individual settings can be skipped by setting them to `false` in
+    `database.yml`, which is useful when connecting through a load balancer or
+    proxy that handles configuration:
+
+    PostgreSQL example:
+
+    ```yaml
+    production:
+      adapter: postgresql
+      standard_conforming_strings: false
+      intervalstyle: false
+      min_messages: false
+      schema_search_path: false
+    ```
+
+    MySQL example:
+
+    ```yaml
+    production:
+      adapter: mysql2
+      wait_timeout: false
+      variables:
+        sql_mode: false
+    ```
+
+    Also deprecates `set_standard_conforming_strings` — it is now handled
+    automatically through the consolidated settings hash.
+
+    *Eileen M. Uchitelle*, *Matthew Draper*
+
+*   MySQL error 1046 (`ER_NO_DB_ERROR: No database selected`) is now retryable as a `ConnectionFailed` exception
+
+    *Clay Harmon*
+
+*   Batch SQL statements when creating tables to improve performance.
+
+    *Andrew Novoselac*
+
 *   Support PostgreSQL `RESET` on readonly queries.
 
     ```ruby

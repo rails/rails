@@ -241,8 +241,8 @@ module ActiveSupport
       #   ActiveSupport::Notifications.subscribe(:render) {|event| ...}
       #   #=> ArgumentError (pattern must be specified as a String, Regexp or empty)
       #
-      def subscribe(pattern = nil, callback = nil, &block)
-        notifier.subscribe(pattern, callback, monotonic: false, &block)
+      def subscribe(pattern = nil, callback = nil, prepend: false, &block)
+        notifier.subscribe(pattern, callback, monotonic: false, prepend: prepend, &block)
       end
 
       # Performs the same functionality as #subscribe, but the +start+ and
@@ -251,8 +251,8 @@ module ActiveSupport
       # Daylights Savings). Use +monotonic_subscribe+ when accuracy of time
       # duration is important. For example, computing elapsed time between
       # two events.
-      def monotonic_subscribe(pattern = nil, callback = nil, &block)
-        notifier.subscribe(pattern, callback, monotonic: true, &block)
+      def monotonic_subscribe(pattern = nil, callback = nil, prepend: false, &block)
+        notifier.subscribe(pattern, callback, monotonic: true, prepend: prepend, &block)
       end
 
       def subscribed(callback, pattern = nil, monotonic: false, &block)

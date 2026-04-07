@@ -47,4 +47,9 @@ module Cpk
     has_many :order_agreements, through: :order
     has_one :order_agreement, through: :order, source: :order_agreements
   end
+
+  class BookWithRequiredOrder < ActiveRecord::Base
+    self.table_name = :cpk_books
+    belongs_to :order, class_name: "Cpk::Order", foreign_key: [:shop_id, :order_id], primary_key: [:shop_id, :id], optional: false
+  end
 end

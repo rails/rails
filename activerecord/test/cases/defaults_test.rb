@@ -234,8 +234,10 @@ class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
     def using_strict(strict)
       db_config = ActiveRecord::Base.connection_pool.db_config
       conn_hash = db_config.configuration_hash
-      ActiveRecord::Base.establish_connection conn_hash.merge(strict: strict)
-      yield
+      ActiveRecord.deprecator.silence do
+        ActiveRecord::Base.establish_connection conn_hash.merge(strict: strict)
+        yield
+      end
     ensure
       ActiveRecord::Base.establish_connection db_config
     end

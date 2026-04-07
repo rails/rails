@@ -58,6 +58,42 @@ class ParallelizationTest < ActiveSupport::TestCase
     assert_not server.active_workers?
   end
 
+  test "shutdown handles workers that die during server shutdown" do
+    # Regression test: workers that exit without calling stop_worker AFTER
+    # the initial WNOHANG sweep in Parallelization#shutdown must still be
+    # detected inside Server#shutdown's wait_for_active_workers loop.
+    parallelization = ActiveSupport::Testing::Parallelization.new(1)
+    server = parallelization.instance_variable_get(:@queue_server)
+    url = parallelization.instance_variable_get(:@url)
+
+    # Use a shared queue distributor so the worker blocks waiting for work
+    blocking_distributor = ActiveSupport::Testing::Parallelization::SharedQueueDistributor.new
+    server.instance_variable_set(:@distributor, blocking_distributor)
+
+    # Fork a worker that registers but will be killed mid-shutdown
+    worker_pid = fork do
+      DRb.stop_service
+      queue = DRbObject.new_with_uri(url)
+      queue.start_worker(0, Process.pid)
+      sleep 5
+      exit!(4)
+    end
+    parallelization.instance_variable_set(:@worker_pool, [worker_pid])
+
+    sleep 0.25
+    assert server.active_workers?
+
+    # Schedule the kill AFTER shutdown begins, so the initial WNOHANG sweep
+    # in Parallelization#shutdown finds the worker still alive
+    Thread.new do
+      sleep 0.5
+      Process.kill("KILL", worker_pid)
+    end
+
+    Timeout.timeout(3, Minitest::Assertion, "Expected shutdown to not hang") { parallelization.shutdown }
+    assert_not server.active_workers?
+  end
+
   test "seeded distribution assigns tests to workers round-robin" do
     worker_count = 2
 

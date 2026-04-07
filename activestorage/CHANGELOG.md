@@ -1,3 +1,34 @@
+*   Configurable maxmimum streaming chunk size
+
+    Makes sure that byte ranges for blobs don't exceed 100mb by default.
+    Content ranges that are too big can result in denial of service.
+
+    *Gannon McGibbon*
+
+*   Prevent path traversal in `DiskService`.
+
+    `DiskService#path_for` now raises an `InvalidKeyError` when passed keys with dot segments (".",
+    ".."), or if the resolved path is outside the storage root directory.
+
+    `#path_for` also now consistently raises `InvalidKeyError` if the key is invalid in any way, for
+    example containing null bytes or having an incompatible encoding. Previously, the exception
+    raised may have been `ArgumentError` or `Encoding::CompatibilityError`.
+
+    `DiskController` now explicitly rescues `InvalidKeyError` with appropriate HTTP status codes.
+
+    *Mike Dalessio*
+
+*   Prevent glob injection in `DiskService#delete_prefixed`.
+
+    Escape glob metacharacters in the resolved path before passing to `Dir.glob`.
+
+    Note that this change breaks any existing code that is relying on `delete_prefixed` to expand
+    glob metacharacters. This change presumes that is unintended behavior (as other storage services
+    do not respect these metacharacters).
+
+    *Mike Dalessio*
+
+
 *   Restore ADC when signing URLs with IAM for GCS
 
     ADC was previously used for automatic authorization when signing URLs with IAM.

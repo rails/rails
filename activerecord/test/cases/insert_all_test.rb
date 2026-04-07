@@ -352,6 +352,21 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_logs_message_including_model_name_from_anonymous_class
+    skip unless supports_insert_conflict_target?
+
+    anonymous_book_klass = Class.new(Book) do
+      def self.name
+        "AnonymousBook"
+      end
+    end
+
+    capture_log_output do |output|
+      anonymous_book_klass.insert({ name: "Rework", author_id: 1 })
+      assert_match "AnonymousBook Insert", output.string
+    end
+  end
+
   def test_insert_all_logs_message_including_model_name
     skip unless supports_insert_conflict_target?
 

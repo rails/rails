@@ -94,41 +94,35 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
   end
 
-  def test_basic_query_logging_coloration
-    logger = TestDebugLogSubscriber.new
-    ActiveSupport.colorize_logging = true
-    SQL_COLORINGS.each do |verb, color_regex|
+  SQL_COLORINGS.each do |verb, color_regex|
+    test "basic_query_logging_coloration_#{verb}" do
+      logger = TestDebugLogSubscriber.new
+      ActiveSupport.colorize_logging = true
       logger.sql({ payload: { sql: verb.to_s, duration_ms: 0.9 } })
       assert_match(/#{REGEXP_BOLD}#{color_regex}#{verb}#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
-  end
 
-  def test_logging_sql_coloration_disabled
-    logger = TestDebugLogSubscriber.new
-    ActiveSupport.colorize_logging = false
+    test "logging_sql_coloration_disabled_#{verb}" do
+      logger = TestDebugLogSubscriber.new
+      ActiveSupport.colorize_logging = false
 
-    SQL_COLORINGS.each do |verb, color_regex|
       logger.sql({ payload: { sql: verb.to_s, duration_ms: 0.9 } })
       assert_no_match(/#{REGEXP_BOLD}#{color_regex}#{verb}#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
-  end
 
-  def test_basic_payload_name_logging_coloration_generic_sql
-    logger = TestDebugLogSubscriber.new
-    ActiveSupport.colorize_logging = true
-    SQL_COLORINGS.each do |verb, _|
+    test "basic_payload_name_logging_coloration_generic_sql_#{verb}" do
+      logger = TestDebugLogSubscriber.new
+      ActiveSupport.colorize_logging = true
       logger.sql({ payload: { sql: verb.to_s, duration_ms: 0.9 } })
       assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA} \(0\.9ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
 
       logger.sql({ payload: { name: "SQL", sql: verb.to_s, duration_ms: 0.9 } })
       assert_match(/#{REGEXP_BOLD}#{REGEXP_MAGENTA}SQL \(0\.9ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
     end
-  end
 
-  def test_basic_payload_name_logging_coloration_named_sql
-    logger = TestDebugLogSubscriber.new
-    ActiveSupport.colorize_logging = true
-    SQL_COLORINGS.each do |verb, _|
+    test "basic_payload_name_logging_coloration_named_sql_#{verb}" do
+      logger = TestDebugLogSubscriber.new
+      ActiveSupport.colorize_logging = true
       logger.sql({ payload: { sql: verb.to_s, name: "Model Load", duration_ms: 0.9 } })
       assert_match(/#{REGEXP_BOLD}#{REGEXP_CYAN}Model Load \(0\.9ms\)#{REGEXP_CLEAR}/i, logger.debugs.last)
 

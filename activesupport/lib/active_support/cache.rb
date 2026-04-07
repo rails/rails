@@ -983,7 +983,7 @@ module ActiveSupport
         end
 
         def expand_and_namespace_key(key, options = nil)
-          str_key = expanded_key(key)
+          str_key = key.class == ::String ? key : expanded_key(key)
           raise(ArgumentError, "key cannot be blank") if !str_key || str_key.empty?
 
           namespace_key str_key, options

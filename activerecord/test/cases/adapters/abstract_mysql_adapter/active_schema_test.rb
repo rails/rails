@@ -19,6 +19,19 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
           sql
         end
       end
+
+      alias_method :execute_batch_without_stub, :execute_batch
+      def execute_batch(statements, name = nil, **kwargs)
+        statements.each do |sql|
+          ActiveSupport::Notifications.instrumenter.instrument(
+            "sql.active_record",
+            sql: sql,
+            name: name,
+            connection: self) do
+            sql
+          end
+        end.join(";\n")
+      end
     end
   end
 
@@ -264,6 +277,10 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
         alias_method :execute_with_stub, :execute
         remove_method :execute
         alias_method :execute, :execute_without_stub
+
+        alias_method :execute_batch_with_stub, :execute_batch
+        remove_method :execute_batch
+        alias_method :execute_batch, :execute_batch_without_stub
       end
 
       yield
@@ -271,6 +288,9 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
       ActiveRecord::Base.lease_connection.singleton_class.class_eval do
         remove_method :execute
         alias_method :execute, :execute_with_stub
+
+        remove_method :execute_batch
+        alias_method :execute_batch, :execute_batch_with_stub
       end
     end
 
