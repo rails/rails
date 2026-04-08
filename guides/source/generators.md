@@ -256,8 +256,7 @@ destination path is inherited from `Rails::Generators::NamedBase`.)
 [`copy_file`]: https://www.rubydoc.info/gems/thor/Thor/Actions#copy_file-instance_method
 [`source_root`]: https://api.rubyonrails.org/classes/Rails/Generators/Base.html#method-c-source_root
 
-Generator Command Line Options
-------------------------------
+### Generator Command Line Options
 
 Generators can support command line options using [`class_option`][]. For
 example:
@@ -274,7 +273,7 @@ Now our generator can be invoked with a `--scope` option:
 $ bin/rails generate initializer theme --scope dashboard
 ```
 
-Option values are accessible in generator methods via [`options`][]:
+This will generate a file `theme.rb` withing `config/initializers` and override the default value "app" for the `--scope` option. Option values are accessible in generator methods via [`options`][]:
 
 ```ruby
 def copy_initializer_file
