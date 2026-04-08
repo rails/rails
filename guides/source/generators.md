@@ -299,7 +299,7 @@ Rails tries to load each of the following files, in order, until one is found:
 If none of these are found, an error will be raised.
 
 We put our generator in the application's `lib/` directory because that
-directory is in `$LOAD_PATH`, thus allowing Rails to find and load the file.
+directory is in `$LOAD_PATH` (Ruby's list of directories searched when loading files), thus allowing Rails to find and load the generator files.
 
 Overriding Rails Generator Templates
 ------------------------------------
