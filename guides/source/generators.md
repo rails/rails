@@ -19,7 +19,7 @@ What are Generators?
 --------------------
 
 When you create an application using the `rails` command, you are in fact using
-a Rails generator. Generators create specific files in your application to
+a Rails generator. Generators create specific files for your application to
 automate generating boilerplate code. You can get a list of all available
 generators by invoking `bin/rails generate` from within any Rails application:
 
@@ -101,33 +101,37 @@ Examples:
 ...
 ```
 
-TIP: The `--help` output is a good resource to learn more about a particular generator. It provides detailed usage instructions as well as examples.
+The `--help` output is a good resource to learn more about a particular generator. It provides detailed usage instructions as well as examples.
 
 Creating Your First Generator
 -----------------------------
 
-Generators are built on top of [Thor](https://github.com/rails/thor), which
-provides powerful options for parsing and a great API for manipulating files.
+In addition to generators provided by Rails, you can also build custom
+generators. Let's build a generator that creates an initializer file named
+`hello_generator.rb` inside `config/initializers` folder. We will do this manually first and then see how to do it using a `generator` command as well. 
 
-Let's build a generator that creates an initializer file named `initializer.rb`
-inside `config/initializers`. The first step is to create a file at
-`lib/generators/initializer_generator.rb` with the following content:
+NOTE: Generators are built on top of [Thor](https://github.com/rails/thor),
+which provides powerful options for parsing and an useful API for manipulating
+files.
+
+The first step is to create a file named `initializer_generator.rb` inside `lib/generators` with the following content:
 
 ```ruby
 class InitializerGenerator < Rails::Generators::Base
   def create_initializer_file
-    create_file "config/initializers/initializer.rb", <<~RUBY
-      # Add initialization content here
+    create_file "config/initializers/hello_generator.rb", <<~RUBY
+      # Add hello_generator.rb file content here
     RUBY
   end
 end
 ```
 
-Our new generator is quite simple: it inherits from [`Rails::Generators::Base`][]
-and has one method definition. When a generator is invoked, each public method
-in the generator is executed sequentially in the order that it is defined. Our
-method invokes [`create_file`][], which will create a file at the given
-destination with the given content.
+The name of our generator based on the file and Ruby class name is `initializer`
+and it inherits from [`Rails::Generators::Base`][]. When a generator is invoked,
+each public method in the generator is executed sequentially in the order that
+it is defined. Our new generator is intentionally simple, it has only one method
+definition.  The method invokes [`create_file`][], which will create a file at
+the given destination with the given content.
 
 To invoke our new generator, we run:
 
@@ -135,7 +139,9 @@ To invoke our new generator, we run:
 $ bin/rails generate initializer
 ```
 
-Before we go on, let's see the description of our new generator:
+This will create and empty file named `hello_generator.rb` within the `config/initializers` folder.
+
+Before we go on, let's check the description of our new generator:
 
 ```bash
 $ bin/rails generate initializer --help
@@ -143,21 +149,21 @@ $ bin/rails generate initializer --help
 
 Rails is usually able to derive a good description if a generator is namespaced,
 such as `ActiveRecord::Generators::ModelGenerator`, but not in this case. We can
-solve this problem in two ways. The first way to add a description is by calling
+solve this problem in two ways. The first way is to add a description by calling
 [`desc`][] inside our generator:
 
-```ruby
+```ruby#2
 class InitializerGenerator < Rails::Generators::Base
-  desc "This generator creates an initializer file at config/initializers"
+  desc "This generator creates a file at config/initializers"
   def create_initializer_file
-    create_file "config/initializers/initializer.rb", <<~RUBY
-      # Add initialization content here
+    create_file "config/initializers/hello_generator.rb", <<~RUBY
+      # Add hello_generator.rb file content here
     RUBY
   end
 end
 ```
 
-Now we can see the new description by invoking `--help` on the new generator.
+Now we can see the description by invoking `--help` on the new generator.
 
 The second way to add a description is by creating a file named `USAGE` in the
 same directory as our generator. We are going to do that in the next step.
@@ -167,11 +173,11 @@ same directory as our generator. We are going to do that in the next step.
 [`create_file`]: https://www.rubydoc.info/gems/thor/Thor/Actions#create_file-instance_method
 [`desc`]: https://www.rubydoc.info/gems/thor/Thor#desc-class_method
 
-Creating Generators with Generators
------------------------------------
+### Creating Generators by Using a Generator
 
-Generators themselves have a generator. Let's remove our `InitializerGenerator`
-and use `bin/rails generate generator` to generate a new one:
+Generators themselves have a generator that can create the necessary files in
+the right locations. Let's remove our `InitializerGenerator` and use `bin/rails
+generate generator` command to generate a new one:
 
 ```bash
 $ rm lib/generators/initializer_generator.rb
@@ -188,15 +194,16 @@ $ bin/rails generate generator initializer
 This is the generator just created:
 
 ```ruby
+# lib/generators/initializer/initializer_generator.rb
 class InitializerGenerator < Rails::Generators::NamedBase
   source_root File.expand_path("templates", __dir__)
 end
 ```
 
-First, notice that the generator inherits from [`Rails::Generators::NamedBase`][]
-instead of `Rails::Generators::Base`. This means that our generator expects at
-least one argument, which will be the name of the initializer and will be
-available to our code via `name`.
+First, notice that the generator inherits from
+[`Rails::Generators::NamedBase`][] instead of `Rails::Generators::Base`. This
+means that our generator expects at least one argument, which will be the name
+of the initializer and will be available to our code via `name`.
 
 We can see that by checking the description of the new generator:
 
