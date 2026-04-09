@@ -1,3 +1,20 @@
+*   Fix `store` on native `json`/`jsonb` columns to skip the serialization layer.
+
+    Previously, calling `store :metadata, coder: JSON` on a `json` or `jsonb`
+    column would double-serialize on write (encoding JSON as a JSON string) and
+    raise `"no implicit conversion of Hash into String"` on read. This happened
+    because `Type::Serialized` wraps the native JSON type with an additional
+    serialization layer that is unnecessary when the database adapter already
+    handles JSON encoding/decoding.
+
+    `store` now detects native `json`/`jsonb` columns and uses a new
+    `Type::IndifferentJson` type that provides the same `HashWithIndifferentAccess`
+    behavior as `store` on text columns, without the `Type::Serialized` wrapping.
+    The `coder` option is ignored on native JSON columns since the adapter handles
+    serialization.
+
+    *Mark Edmondson*
+
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be

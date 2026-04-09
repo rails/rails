@@ -26,10 +26,10 @@ module ActiveRecord
   # JSON, YAML, Marshal are supported out of the box. Generally it can be any wrapper that provides +load+ and +dump+.
   #
   # NOTE: If you are using structured database data types (e.g. PostgreSQL +hstore+/+json+, MySQL 5.7+
-  # +json+, or SQLite 3.38+ +json+) there is no need for the serialization provided by {.store}[rdoc-ref:rdoc-ref:ClassMethods#store].
-  # Simply use {.store_accessor}[rdoc-ref:ClassMethods#store_accessor] instead to generate
-  # the accessor methods. Be aware that these columns use a string keyed hash and do not allow access
-  # using a symbol.
+  # +json+, or SQLite 3.38+ +json+) you can use either {.store}[rdoc-ref:rdoc-ref:ClassMethods#store]
+  # or {.store_accessor}[rdoc-ref:ClassMethods#store_accessor]. When +store+ detects a native +json+
+  # or +jsonb+ column, it skips the serialization layer and provides indifferent access (both symbol
+  # and string keys work). +store_accessor+ provides string-keyed access only.
   #
   # NOTE: The default validations with the exception of +uniqueness+ will work.
   # For example, if you want to check for +uniqueness+ with +hstore+ you will
@@ -110,8 +110,16 @@ module ActiveRecord
       end
 
       def store(store_attribute, options = {})
-        coder = build_column_serializer(store_attribute, options[:coder], Object, options[:yaml])
-        serialize store_attribute, coder: IndifferentCoder.new(store_attribute, coder)
+        if native_json_column?(store_attribute)
+          # Native json/jsonb columns handle serialization at the adapter level.
+          # Skip the Type::Serialized wrapping (which double-serializes) and use
+          # IndifferentJson to provide the same symbol/string key access that
+          # IndifferentCoder provides on text columns.
+          attribute store_attribute, ActiveRecord::Type::IndifferentJson.new
+        else
+          coder = build_column_serializer(store_attribute, options[:coder], Object, options[:yaml])
+          serialize store_attribute, coder: IndifferentCoder.new(store_attribute, coder)
+        end
         store_accessor(store_attribute, options[:accessors], **options.slice(:prefix, :suffix)) if options.has_key? :accessors
       end
 
@@ -215,6 +223,13 @@ module ActiveRecord
         end
         parent
       end
+
+      private
+        def native_json_column?(store_attribute)
+          type_for_attribute(store_attribute.to_s).is_a?(ActiveRecord::Type::Json)
+        rescue ActiveRecord::StatementInvalid, ActiveRecord::NoDatabaseError
+          false
+        end
     end
 
     private
