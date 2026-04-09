@@ -79,6 +79,21 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
     assert_equal "Surprise!", @service.mirrors.third.download(key)
   end
 
+  test "mirroring a file without a checksum does not raise" do
+    key  = SecureRandom.base58(24)
+    data = "Something else entirely!"
+
+    @service.primary.upload key, StringIO.new(data)
+
+    assert_nothing_raised { @service.mirror key, checksum: nil }
+
+    @service.mirrors.each do |mirror|
+      assert_equal data, mirror.download(key)
+    end
+  ensure
+    @service.delete key
+  end
+
   test "URL generation in primary service" do
     filename = ActiveStorage::Filename.new("test.txt")
 

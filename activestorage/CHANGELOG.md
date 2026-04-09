@@ -1,3 +1,8 @@
+*   Fix `MirrorService#mirror` raising `ActiveStorage::IntegrityError` when
+    mirroring without a checksum (e.g., `track_variants: false`).
+
+    *Denis Savchuk*
+
 *   Configurable maximum streaming chunk size
 
     Makes sure that byte ranges for blobs don't exceed 100mb by default.
