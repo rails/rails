@@ -211,7 +211,7 @@ module ActiveStorage
         tempfile.flush
         tempfile.rewind
 
-        verify_integrity_of(tempfile, checksum: checksum) if verify
+        verify_integrity_of(tempfile, checksum: checksum) if verify && checksum
         if block_given?
           begin
             yield tempfile

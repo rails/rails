@@ -79,6 +79,44 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
     assert_equal "Surprise!", @service.mirrors.third.download(key)
   end
 
+  test "mirroring a file without a checksum does not raise IntegrityError" do
+    key  = SecureRandom.base58(24)
+    data = "Something else entirely!"
+
+    @service.primary.upload key, StringIO.new(data)
+
+    assert_nothing_raised do
+      @service.mirror key, checksum: nil
+    end
+
+    @service.mirrors.each do |mirror|
+      assert_equal data, mirror.download(key)
+    end
+  ensure
+    @service.delete key
+  end
+
+  test "uploading without a checksum mirrors to all services" do
+    old_service = ActiveStorage::Blob.service
+    ActiveStorage::Blob.service = @service
+
+    key  = SecureRandom.base58(24)
+    data = "Something else entirely!"
+    io   = StringIO.new(data)
+
+    assert_performed_jobs 1, only: ActiveStorage::MirrorJob do
+      @service.upload key, io.tap(&:read)
+    end
+
+    assert_equal data, @service.primary.download(key)
+    @service.mirrors.each do |mirror|
+      assert_equal data, mirror.download(key)
+    end
+  ensure
+    @service.delete key
+    ActiveStorage::Blob.service = old_service
+  end
+
   test "URL generation in primary service" do
     filename = ActiveStorage::Filename.new("test.txt")
 
