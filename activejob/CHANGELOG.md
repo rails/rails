@@ -1,3 +1,8 @@
+*   Fix `NoMethodError` in `logger_tagged_by_active_job?` when
+    `BroadcastLogger`'s first broadcast has a non-tagged formatter.
+
+    *Denis Savchuk*
+
 *   Deprecate built-in `queue_classic` Active Job adapter.
 
     *Harun Sabljaković, Wojciech Wnętrzak*
