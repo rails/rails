@@ -1,3 +1,8 @@
+*   Fix `MirrorService#mirror` raising `ActiveStorage::IntegrityError` when
+    mirroring without a checksum (e.g., `track_variants: false`).
+
+    *Denis Savchuk*
+
 *   Don't bump `lock_version` on attachment records' parents during blob analysis.
 
     `ActiveStorage::AnalyzeJob` writes only to `Blob#metadata`. The cascade
