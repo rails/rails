@@ -304,24 +304,24 @@ directory is in `$LOAD_PATH` (Ruby's list of directories searched when loading f
 Overriding Rails Generator Templates
 ------------------------------------
 
-Rails will also look in multiple places when resolving generator template files.
+Rails looks in multiple places when resolving generator template files.
 One of those places is the application's `lib/templates/` directory. This
 behavior allows us to override the templates used by Rails' built-in generators.
 For example, we could override the [scaffold controller template][] or the
 [scaffold view templates][].
 
-To see this in action, let's create a `lib/templates/erb/scaffold/index.html.erb.tt`
-file with the following contents:
+To see this in action, let's create a
+`lib/templates/erb/scaffold/index.html.erb.tt` file with the content shown below. The extra `.tt` extension tells Rails that the file is a generator template needs to be processed by Thor first (it stands for "thor template").
 
 ```erb
 <%%= @<%= plural_table_name %>.count %> <%= human_name.pluralize %>
 ```
 
-Note that the template is an ERB template that renders _another_ ERB template.
+The template is an ERB template that renders _another_ ERB template.
 So any `<%` that should appear in the _resulting_ template must be escaped as
 `<%%` in the _generator_ template.
 
-Now let's run Rails' built-in scaffold generator:
+Now when you run Rails' built-in scaffold generator:
 
 ```bash
 $ bin/rails generate scaffold Post title:string
@@ -330,7 +330,7 @@ $ bin/rails generate scaffold Post title:string
       ...
 ```
 
-The contents of `app/views/posts/index.html.erb` is:
+The content of `app/views/posts/index.html.erb` is:
 
 ```erb
 <%= @posts.count %> Posts
