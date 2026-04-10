@@ -301,51 +301,15 @@ If none of these are found, an error will be raised.
 We put our generator in the application's `lib/` directory because that
 directory is in `$LOAD_PATH` (Ruby's list of directories searched when loading files), thus allowing Rails to find and load the generator files.
 
-Overriding Rails Generator Templates
-------------------------------------
+Overriding Rails Generators and Templates
+-----------------------------------------
 
-Rails looks in multiple places when resolving generator template files.
-One of those places is the application's `lib/templates/` directory. This
-behavior allows us to override the templates used by Rails' built-in generators.
-For example, we could override the [scaffold controller template][] or the
-[scaffold view templates][].
+It's possible to override the built-in Rails generators and configure them via
+[`config.generators`][]. As your Rails application grows, you may want to add
+your own methods to generated controllers, for example, or change the format of
+generated views.
 
-To see this in action, let's create a
-`lib/templates/erb/scaffold/index.html.erb.tt` file with the content shown below. The extra `.tt` extension tells Rails that the file is a generator template needs to be processed by Thor first (it stands for "thor template").
-
-```erb
-<%%= @<%= plural_table_name %>.count %> <%= human_name.pluralize %>
-```
-
-The template is an ERB template that renders _another_ ERB template.
-So any `<%` that should appear in the _resulting_ template must be escaped as
-`<%%` in the _generator_ template.
-
-Now when you run Rails' built-in scaffold generator:
-
-```bash
-$ bin/rails generate scaffold Post title:string
-      ...
-      create      app/views/posts/index.html.erb
-      ...
-```
-
-The content of `app/views/posts/index.html.erb` is:
-
-```erb
-<%= @posts.count %> Posts
-```
-
-[scaffold controller template]: https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/scaffold_controller/templates/controller.rb.tt
-[scaffold view templates]: https://github.com/rails/rails/tree/main/railties/lib/rails/generators/erb/scaffold/templates
-
-Overriding Rails Generators
----------------------------
-
-Rails' built-in generators can be configured via [`config.generators`][],
-including overriding some generators entirely.
-
-First, let's take a closer look at how the scaffold generator works.
+As an example of how to override a built-in generator, let's take a closer look at how the scaffold generator works.
 
 ```bash
 $ bin/rails generate scaffold User name:string
@@ -382,10 +346,10 @@ $ bin/rails generate scaffold User name:string
 From the output, we can see that the scaffold generator invokes other
 generators, such as the `scaffold_controller` generator. And some of those
 generators invoke other generators too. In particular, the `scaffold_controller`
-generator invokes several other generators, including the `helper` generator.
+generator invokes the `helper` generator.
 
-Let's override the built-in `helper` generator with a new generator. We'll name
-the generator `my_helper`:
+Let's see how to override the built-in `helper` generator with a new generator.
+We'll name the new generator `my_helper`. We create this generator using the `generator` command inside `lib/generators/rails`:
 
 ```bash
 $ bin/rails generate generator rails/my_helper
@@ -397,10 +361,10 @@ $ bin/rails generate generator rails/my_helper
       create    test/lib/generators/rails/my_helper_generator_test.rb
 ```
 
-And in `lib/generators/rails/my_helper/my_helper_generator.rb` we'll define
-the generator as:
+And in the file `my_helper_generator.rb`, we'll define the generator as:
 
 ```ruby
+# lib/generators/rails/my_helper/my_helper_generator.rb
 class Rails::MyHelperGenerator < Rails::Generators::NamedBase
   def create_helper_file
     create_file "app/helpers/#{file_name}_helper.rb", <<~RUBY
@@ -425,7 +389,7 @@ end
 Now if we run the scaffold generator again, we see the `my_helper` generator in
 action:
 
-```bash
+```bash#5
 $ bin/rails generate scaffold Article body:text
       ...
       invoke  scaffold_controller
@@ -445,14 +409,18 @@ the `hook_for` documentation for more information.
 [`config.generators`]: configuring.html#configuring-generators
 [`hook_for`]: https://api.rubyonrails.org/classes/Rails/Generators/Base.html#method-c-hook_for
 
-### Generators Fallbacks
+### Overriding Generators with Fallbacks
 
 Another way to override specific generators is by using _fallbacks_. A fallback
-allows a generator namespace to delegate to another generator namespace.
+allows a generator namespace to delegate to another generator namespace when a
+matching generator is not found.
 
 For example, let's say we want to override the `test_unit:model` generator with
 our own `my_test_unit:model` generator, but we don't want to replace all of the
-other `test_unit:*` generators such as `test_unit:controller`.
+other `test_unit:*` generators such as `test_unit:controller`. Instead of
+implementing every generator in the `my_test_unit` namespace, we can configure
+`my_test_unit` to fall back to `test_unit` for any generator we haven't
+explicitly defined.
 
 First, we create the `my_test_unit:model` generator in
 `lib/generators/my_test_unit/model/model_generator.rb`:
@@ -468,6 +436,8 @@ module MyTestUnit
   end
 end
 ```
+
+NOTE: Because `my_test_unit` is a custom namespace rather than an override of a Rails built-in generator, we place it in `lib/generators/my_test_unit/` rather than `lib/generators/rails/`. Rails will find it via the normal load path lookup. We'll also need to register it as the `test_framework` via `config.generators`, which we'll do in the next step.
 
 Next, we use `config.generators` to configure the `test_framework` generator as
 `my_test_unit`, but we also configure a fallback such that any missing
@@ -513,6 +483,45 @@ $ bin/rails generate scaffold Comment body:text
       create      app/views/comments/index.json.jbuilder
       create      app/views/comments/show.json.jbuilder
 ```
+
+NOTE: Notice that the model invocation of `my_test_unit` only prints "Doing different stuff..." and creates no test file, because our custom generator doesn't create one. The controller and helper invocations of `my_test_unit` fall back to `test_unit`, which is why `test/controllers/comments_controller_test.rb` is still generated as normal.
+
+### Overriding Generator Templates
+
+Rails looks in multiple places when resolving generator template files.
+One of those places is the application's `lib/templates/` directory. This
+behavior allows us to override the templates used by Rails' built-in generators.
+For example, we could override the [scaffold controller template][] or the
+[scaffold view templates][].
+
+To see this in action, let's create a
+`lib/templates/erb/scaffold/index.html.erb.tt` file with the content shown below. The extra `.tt` extension tells Rails that the file is a generator template needs to be processed by Thor first (it stands for "thor template").
+
+```erb
+<%%= @<%= plural_table_name %>.count %> <%= human_name.pluralize %>
+```
+
+The template is an ERB template that renders _another_ ERB template.
+So any `<%` that should appear in the _resulting_ template must be escaped as
+`<%%` in the _generator_ template.
+
+Now when you run Rails' built-in scaffold generator:
+
+```bash
+$ bin/rails generate scaffold Post title:string
+      ...
+      create      app/views/posts/index.html.erb
+      ...
+```
+
+The content of `app/views/posts/index.html.erb` is:
+
+```erb
+<%= @posts.count %> Posts
+```
+
+[scaffold controller template]: https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/scaffold_controller/templates/controller.rb.tt
+[scaffold view templates]: https://github.com/rails/rails/tree/main/railties/lib/rails/generators/erb/scaffold/templates
 
 Application Templates
 ---------------------
