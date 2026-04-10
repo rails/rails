@@ -110,15 +110,21 @@ module ActiveRecord
       end
 
       def store(store_attribute, options = {})
-        if native_json_column?(store_attribute)
-          # Native json/jsonb columns handle serialization at the adapter level.
-          # Skip the Type::Serialized wrapping (which double-serializes) and use
-          # IndifferentJson to provide the same symbol/string key access that
-          # IndifferentCoder provides on text columns.
-          attribute store_attribute, ActiveRecord::Type::IndifferentJson.new
-        else
-          coder = build_column_serializer(store_attribute, options[:coder], Object, options[:yaml])
-          serialize store_attribute, coder: IndifferentCoder.new(store_attribute, coder)
+        coder_option = options[:coder]
+        yaml_option  = options[:yaml]
+
+        decorate_attributes([store_attribute]) do |attr_name, cast_type|
+          if cast_type.is_a?(ActiveRecord::Type::Json)
+            # Native json/jsonb columns handle serialization at the adapter level.
+            # Skip the Type::Serialized wrapping (which double-serializes on write
+            # and fails on read) and use IndifferentJson to provide the same
+            # symbol/string key access that IndifferentCoder provides on text columns.
+            ActiveRecord::Type::IndifferentJson.new
+          else
+            cast_type = cast_type.subtype if Type::Serialized === cast_type
+            coder = build_column_serializer(attr_name, coder_option, Object, yaml_option)
+            Type::Serialized.new(cast_type, IndifferentCoder.new(attr_name, coder))
+          end
         end
         store_accessor(store_attribute, options[:accessors], **options.slice(:prefix, :suffix)) if options.has_key? :accessors
       end
@@ -223,13 +229,6 @@ module ActiveRecord
         end
         parent
       end
-
-      private
-        def native_json_column?(store_attribute)
-          type_for_attribute(store_attribute.to_s).is_a?(ActiveRecord::Type::Json)
-        rescue ActiveRecord::StatementInvalid, ActiveRecord::NoDatabaseError
-          false
-        end
     end
 
     private
