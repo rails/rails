@@ -219,6 +219,25 @@ module ActiveRecord
       #--
       # Implemented by ActiveModel::AttributeRegistration#attribute.
 
+      def attribute(name, cast_type = nil, default: (no_default = true), **options) # :nodoc:
+        if cast_type.is_a?(Symbol)
+          begin
+            connection_db_config
+          rescue ActiveRecord::ConnectionNotDefined
+            name = resolve_attribute_name(name)
+            pending_attribute_modifications << PendingTypeName.new(name, cast_type, options, self)
+            pending_attribute_modifications << ActiveModel::AttributeRegistration::ClassMethods::PendingDefault.new(name, default) unless no_default
+            reset_default_attributes
+            return
+          end
+        end
+        if no_default
+          super(name, cast_type, **options)
+        else
+          super(name, cast_type, default: default, **options)
+        end
+      end
+
       # This API only accepts type objects, and will do its work immediately instead of
       # waiting for the schema to load. While this method
       # is provided so it can be used by plugin authors, application code
@@ -284,6 +303,17 @@ module ActiveRecord
         NO_DEFAULT_PROVIDED = Object.new # :nodoc:
         private_constant :NO_DEFAULT_PROVIDED
 
+        # Stored when attribute :foo, :bar is called without a connection.
+        # Resolved during apply_pending_attribute_modifications, where a
+        # connection is already guaranteed (columns_hash was just called).
+        PendingTypeName = Struct.new(:name, :type_name, :options, :model) do # :nodoc:
+          def apply_to(attribute_set)
+            type = model.send(:resolve_pending_type, name, type_name, options)
+            attribute = attribute_set[name]
+            attribute_set[name] = attribute.with_type(type)
+          end
+        end
+
         def define_default_attribute(name, value, type, from_user:)
           if value == NO_DEFAULT_PROVIDED
             default_attribute = _default_attributes[name].with_type(type)
@@ -306,6 +336,11 @@ module ActiveRecord
 
         def resolve_type_name(name, **options)
           Type.lookup(name, **options, adapter: Type.adapter_name_from(self))
+        end
+
+        def resolve_pending_type(name, type_name, options)
+          type = Type.lookup(type_name, **options, adapter: Type.adapter_name_from(self))
+          hook_attribute_type(name, type)
         end
 
         def type_for_column(column)
