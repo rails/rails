@@ -5,8 +5,8 @@
 #
 # The +signed_id+s make URLs hard to guess but permanent by design, allowing the URLs to be cached.
 #
-# The URL's created for this controller are set to never expire by default.
-# To make URL's expire, pass the +expires_in+ option when generating the URL:
+# The URLs created for this controller are set to never expire by default.
+# To make URLs expire, pass the +expires_in+ option when generating the URL:
 #
 #   rails_storage_redirect_url(representation, expires_in: 1.minute)
 #
