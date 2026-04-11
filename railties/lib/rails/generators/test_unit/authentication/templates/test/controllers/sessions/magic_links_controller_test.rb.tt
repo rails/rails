@@ -1,0 +1,31 @@
+require "test_helper"
+
+class Sessions::MagicLinksControllerTest < ActionDispatch::IntegrationTest
+  setup { @user = User.take }
+
+  test "show redirects without pending authentication" do
+    get session_magic_link_path
+
+    assert_redirected_to new_session_path
+  end
+
+  test "create with valid code signs in" do
+    post session_path, params: { email_address: @user.email_address }
+    assert_redirected_to session_magic_link_path
+
+    magic_link = @user.magic_links.last
+
+    post session_magic_link_path, params: { code: magic_link.code }
+
+    assert_redirected_to root_path
+    assert cookies[:session_id]
+  end
+
+  test "create with invalid code" do
+    post session_path, params: { email_address: @user.email_address }
+
+    post session_magic_link_path, params: { code: "WRONG1" }
+
+    assert_redirected_to session_magic_link_path
+  end
+end

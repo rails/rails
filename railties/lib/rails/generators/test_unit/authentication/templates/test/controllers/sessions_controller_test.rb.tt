@@ -7,6 +7,7 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     get new_session_path
     assert_response :success
   end
+<%- if options.password_based? -%>
 
   test "create with valid credentials" do
     post session_path, params: { email_address: @user.email_address, password: "password" }
@@ -21,6 +22,21 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_session_path
     assert_nil cookies[:session_id]
   end
+<%- else -%>
+
+  test "create sends magic link" do
+    post session_path, params: { email_address: @user.email_address }
+
+    assert_redirected_to session_magic_link_path
+    assert @user.magic_links.any?
+  end
+
+  test "create with unknown email" do
+    post session_path, params: { email_address: "unknown@example.com" }
+
+    assert_redirected_to new_session_path
+  end
+<%- end -%>
 
   test "destroy" do
     sign_in_as(@user)

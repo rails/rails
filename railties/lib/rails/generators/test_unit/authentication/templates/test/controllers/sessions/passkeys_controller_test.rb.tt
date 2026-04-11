@@ -1,0 +1,9 @@
+require "test_helper"
+
+class Sessions::PasskeysControllerTest < ActionDispatch::IntegrationTest
+  test "create with invalid passkey" do
+    post session_passkey_path, params: { passkey: { id: "invalid", client_data_json: "{}", authenticator_data: "bad", signature: "bad" } }
+
+    assert_redirected_to new_session_path
+  end
+end

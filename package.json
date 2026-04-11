@@ -2,6 +2,7 @@
   "private": true,
   "workspaces": [
     "actioncable",
+    "actionpack",
     "actiontext",
     "activestorage"
   ]

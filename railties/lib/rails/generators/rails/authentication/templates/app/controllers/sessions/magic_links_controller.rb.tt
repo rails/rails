@@ -1,0 +1,23 @@
+class Sessions::MagicLinksController < ApplicationController
+  allow_unauthenticated_access
+  rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to session_magic_link_path, alert: "Try again later." }
+  before_action :ensure_pending_authentication
+
+  def show
+  end
+
+  def create
+    if magic_link = MagicLink.consume(params[:code])
+      clear_pending_authentication_token
+      start_new_session_for magic_link.user
+      redirect_to after_authentication_url
+    else
+      redirect_to session_magic_link_path, alert: "Invalid or expired code. Try again."
+    end
+  end
+
+  private
+    def ensure_pending_authentication
+      redirect_to new_session_path, alert: "Enter your email address to sign in." unless email_address_pending_authentication
+    end
+end

@@ -1,0 +1,5 @@
+Enter this code to sign in:
+
+<%%= @magic_link.code %>
+
+This code will expire in <%%= distance_of_time_in_words(MagicLink::EXPIRATION_TIME) %>.
