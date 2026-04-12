@@ -236,6 +236,9 @@ puts welcome_message # Output: Welcome to Rails!
 Rails.cache.delete("greeting")
 ```
 
+See [`ActiveSupport::Cache::Store` and its descendants](#activesupport-cache-store)
+for more details.
+
 #### Avoid Caching Instances of Active Record Objects
 
 Consider this example, which stores a list of Active Record objects representing superusers in the cache:
