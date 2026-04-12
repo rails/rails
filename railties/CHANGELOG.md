@@ -1,3 +1,19 @@
+*   Add `credentials:set`, `credentials:list`, and `credentials:delete` commands.
+
+    These commands allow managing credentials without opening an interactive editor,
+    which is useful for CI/CD pipelines and AI coding agents.
+
+    ```bash
+    bin/rails credentials:set aws.access_key_id=AKIAIOSFODNN7EXAMPLE
+    bin/rails credentials:list
+    bin/rails credentials:list --show-values
+    bin/rails credentials:delete aws.access_key_id
+    ```
+
+    All commands support `--environment` for environment-specific credentials.
+
+    *sebyx07*
+
 *   Avoid adding `Rack::Sendfile` to the middleware stack if `config.action_dispatch.x_sendfile_header` is `nil`.
 
     The middleware behave as a noop in such case so it's pointless to have it in the stack.

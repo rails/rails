@@ -77,6 +77,99 @@ module Rails
         end
       end
 
+      desc "set KEY=VALUE", "Set a credential value (use dot notation for nesting, e.g. aws.access_key_id=VALUE)"
+      def set(assignment)
+        load_environment_config!
+        load_generators
+
+        unless assignment.include?("=")
+          say_error "Expected argument in the form KEY=VALUE, got: #{assignment}"
+          exit 1
+        end
+
+        key_path_str, value = assignment.split("=", 2)
+        keys = key_path_str.split(".")
+
+        if keys.any? { |k| k.empty? }
+          say_error "Invalid key path: #{key_path_str}"
+          exit 1
+        end
+
+        if environment_specified?
+          @content_path = "config/credentials/#{environment}.yml.enc" unless config.overridden?(:content_path)
+          @key_path = "config/credentials/#{environment}.key" unless config.overridden?(:key_path)
+        end
+
+        ensure_encryption_key_has_been_added
+        ensure_credentials_have_been_added
+
+        yaml = credentials.read.presence || ""
+        parsed = YAML.load(yaml).presence || {}
+
+        deep_set(parsed, keys, value)
+
+        credentials.write(YAML.dump(parsed))
+        say "#{key_path_str} was set."
+      rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+        say error.message
+      rescue ActiveSupport::MessageEncryptor::InvalidMessage
+        say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
+      end
+
+      desc "list", "List credential keys"
+      option :show_values, type: :boolean, default: false,
+        desc: "Show decrypted values alongside keys"
+      def list
+        load_environment_config!
+
+        yaml = credentials.read.presence || missing_credentials!
+        parsed = YAML.load(yaml).presence
+
+        unless parsed
+          say "No credentials found."
+          return
+        end
+
+        flatten_keys(parsed).each do |key, value|
+          if options[:show_values]
+            say "#{key}=#{value}"
+          else
+            say key
+          end
+        end
+      rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+        say error.message
+      rescue ActiveSupport::MessageEncryptor::InvalidMessage
+        say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
+      end
+
+      desc "delete KEY", "Delete a credential (use dot notation for nesting, e.g. aws.access_key_id)"
+      def delete(key_path_str)
+        load_environment_config!
+
+        keys = key_path_str.split(".")
+
+        if keys.any? { |k| k.empty? }
+          say_error "Invalid key path: #{key_path_str}"
+          exit 1
+        end
+
+        yaml = credentials.read.presence || missing_credentials!
+        parsed = YAML.load(yaml).presence || {}
+
+        if deep_delete(parsed, keys)
+          credentials.write(YAML.dump(parsed))
+          say "#{key_path_str} was deleted."
+        else
+          say_error "Key not found: #{key_path_str}"
+          exit 1
+        end
+      rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+        say error.message
+      rescue ActiveSupport::MessageEncryptor::InvalidMessage
+        say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
+      end
+
       private
         def config
           Rails.application.config.credentials
@@ -153,6 +246,40 @@ module Rails
 
         def extract_custom_environment(path)
           path =~ %r{config/credentials/(.+)\.yml\.enc} && $1
+        end
+
+        def deep_set(hash, keys, value)
+          if keys.length == 1
+            hash[keys.first] = value
+          else
+            child = hash[keys.first]
+            hash[keys.first] = child = {} unless child.is_a?(Hash)
+            deep_set(child, keys[1..], value)
+          end
+        end
+
+        def deep_delete(hash, keys)
+          if keys.length == 1
+            hash.key?(keys.first) ? hash.delete(keys.first) || true : false
+          else
+            child = hash[keys.first]
+            return false unless child.is_a?(Hash)
+
+            result = deep_delete(child, keys[1..])
+            hash.delete(keys.first) if child.empty?
+            result
+          end
+        end
+
+        def flatten_keys(hash, prefix = nil)
+          hash.each_with_object([]) do |(key, value), result|
+            full_key = prefix ? "#{prefix}.#{key}" : key.to_s
+            if value.is_a?(Hash)
+              result.concat(flatten_keys(value, full_key))
+            else
+              result << [full_key, value]
+            end
+          end
         end
     end
   end

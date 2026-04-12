@@ -367,6 +367,90 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_match("Invalid or missing credential path: egg.spam", stderr_output)
   end
 
+
+  test "set a credential and read it back" do
+    output = run_set_command("api_key=secret123")
+
+    assert_match(/api_key was set/, output)
+    assert_match(/api_key: secret123/, run_show_command)
+  end
+
+  test "set nested credentials using dot notation" do
+    run_set_command("aws.access_key_id=AKIA123")
+    run_set_command("aws.secret_access_key=wJalr456")
+
+    show_output = run_show_command
+    assert_match(/access_key_id: AKIA123/, show_output)
+    assert_match(/secret_access_key: wJalr456/, show_output)
+  end
+
+  test "set preserves existing credentials" do
+    write_credentials({ "existing" => "keep_me" }.to_yaml)
+    run_set_command("new_key=new_value")
+
+    show_output = run_show_command
+    assert_match(/existing: keep_me/, show_output)
+    assert_match(/new_key: new_value/, show_output)
+  end
+
+  test "set with environment option" do
+    run_set_command("api_key=prod_secret", environment: "production")
+
+    assert_match(/api_key: prod_secret/, run_show_command(environment: "production"))
+  end
+
+  test "set rejects invalid arguments" do
+    stderr_output = capture(:stderr) { run_set_command("invalid_arg", allow_failure: true, stderr: true) }
+    assert_match(/Expected argument in the form KEY=VALUE/, stderr_output)
+  end
+
+
+  test "list credential keys without values" do
+    write_credentials({ "foo" => "bar", "nested" => { "key" => "value" } }.to_yaml)
+
+    output = run_list_command
+    assert_match(/foo/, output)
+    assert_match(/nested\.key/, output)
+    assert_no_match(/bar/, output)
+  end
+
+  test "list with --show-values" do
+    write_credentials({ "foo" => "bar", "nested" => { "key" => "value" } }.to_yaml)
+
+    output = run_list_command(show_values: true)
+    assert_match(/foo=bar/, output)
+    assert_match(/nested\.key=value/, output)
+  end
+
+
+  test "delete a credential" do
+    write_credentials({ "keep" => "this", "remove" => "that" }.to_yaml)
+
+    output = run_delete_command("remove")
+    assert_match(/remove was deleted/, output)
+
+    show_output = run_show_command
+    assert_match(/keep: this/, show_output)
+    assert_no_match(/remove/, show_output)
+  end
+
+  test "delete a nested credential" do
+    write_credentials({ "aws" => { "key" => "val", "secret" => "s" } }.to_yaml)
+
+    run_delete_command("aws.key")
+
+    show_output = run_show_command
+    assert_no_match(/key: val/, show_output)
+    assert_match(/secret: s/, show_output)
+  end
+
+  test "delete a missing key" do
+    write_credentials({ "foo" => "bar" }.to_yaml)
+
+    stderr_output = capture(:stderr) { run_delete_command("nonexistent", stderr: true, allow_failure: true) }
+    assert_match(/Key not found: nonexistent/, stderr_output)
+  end
+
   private
     DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: \h{128}\n/m
 
@@ -391,6 +475,23 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
 
     def run_fetch_command(path, **options)
       rails "credentials:fetch", path, **options
+    end
+
+    def run_set_command(assignment, environment: nil, **options)
+      args = environment ? ["--environment", environment] : []
+      rails "credentials:set", assignment, args, **options
+    end
+
+    def run_list_command(environment: nil, show_values: false, **options)
+      args = []
+      args.push("--environment", environment) if environment
+      args.push("--show-values") if show_values
+      rails "credentials:list", args, **options
+    end
+
+    def run_delete_command(key, environment: nil, **options)
+      args = environment ? ["--environment", environment] : []
+      rails "credentials:delete", key, args, **options
     end
 
     def write_credentials(content, **options)
