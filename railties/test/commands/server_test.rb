@@ -110,6 +110,38 @@ class Rails::Command::ServerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_env_port_does_not_inject_Port_into_user_supplied_options_when_puma_config_handles_it
+    Dir.mktmpdir do |dir|
+      Dir.chdir(dir) do
+        FileUtils.mkdir_p("config")
+
+        File.write("config/puma.rb", <<~RUBY)
+          port ENV.fetch("PORT", 3000)
+          bind "tcp://0.0.0.0:9292"
+        RUBY
+
+        switch_env "PORT", "3010" do
+          options = parse_arguments
+          assert_not_includes options[:user_supplied_options], :Port,
+            "ENV[PORT] must not inject :Port into user_supplied_options when " \
+            "config/puma.rb already handles it — doing so wipes ssl_bind entries"
+        end
+      end
+    end
+  end
+
+  def test_env_port_injects_Port_into_user_supplied_options_when_no_puma_config
+    Dir.mktmpdir do |dir|
+      Dir.chdir(dir) do
+        switch_env "PORT", "3010" do
+          options = parse_arguments
+          assert_includes options[:user_supplied_options], :Port,
+            "ENV[PORT] must inject :Port when no config/puma.rb exists (e.g. devcontainers)"
+        end
+      end
+    end
+  end
+
   def test_environment_with_binding
     switch_env "BINDING", "1.2.3.4" do
       options = parse_arguments

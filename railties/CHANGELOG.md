@@ -1,3 +1,16 @@
+*   Preserve `ssl_bind` and extra `bind` directives in `config/puma.rb` when
+    `ENV["PORT"]` is set.
+
+    Previously, setting `ENV["PORT"]` caused `rails server` to inject `:Port`
+    into Puma's user-supplied options, which replaced the entire bind list and
+    silently discarded any `ssl_bind` or additional `bind` calls in
+    `config/puma.rb`. The fix skips the injection when `config/puma.rb`
+    already handles `ENV["PORT"]` via its own `port` directive, while
+    preserving the existing behaviour for environments without a
+    `config/puma.rb` (e.g. devcontainers).
+
+    *Ruy Rocha*
+
 *   Avoid adding `Rack::Sendfile` to the middleware stack if `config.action_dispatch.x_sendfile_header` is `nil`.
 
     The middleware behave as a noop in such case so it's pointless to have it in the stack.

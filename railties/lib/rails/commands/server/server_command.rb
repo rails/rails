@@ -204,7 +204,7 @@ module Rails
               end
             end
             user_supplied_options << :Host if ENV["HOST"] || ENV["BINDING"]
-            user_supplied_options << :Port if ENV["PORT"]
+            user_supplied_options << :Port if ENV["PORT"] && !puma_config_handles_port?
             user_supplied_options << :pid if ENV["PIDFILE"]
             user_supplied_options.uniq
           end
@@ -250,6 +250,12 @@ module Rails
 
         def prepare_restart
           FileUtils.rm_f(pid) if pid && options[:restart]
+        end
+
+        def puma_config_handles_port?
+          config_file = "config/puma.rb"
+
+          File.exist?(config_file) && File.read(config_file).match(/^\s*port[\s(]/)
         end
 
         def rack_server_suggestion(server)
