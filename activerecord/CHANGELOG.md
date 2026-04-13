@@ -1,3 +1,12 @@
+*   Fix `preload` and `includes` applying `LIMIT` globally for `has_one` associations with `limit` in scope.
+
+    When preloading a `has_one` association defined with a `limit` scope like
+    `has_one :last_comment, -> { order(id: :desc).limit(1) }`, the `LIMIT` was
+    incorrectly applied to the entire batch query instead of per-parent-record.
+    This caused some parent records to incorrectly return `nil` for the association.
+
+    *Dmytro Rymar*
+
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be
