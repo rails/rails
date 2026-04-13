@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Admin::User < ActiveRecord::Base
+  self.store_native_json_columns = true
+
   class Coder
     def initialize(default = {})
       @default = default

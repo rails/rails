@@ -92,6 +92,8 @@ module ActiveRecord
 
       class_attribute :has_many_inversing, instance_accessor: false, default: false
 
+      class_attribute :store_native_json_columns, instance_accessor: false, default: false
+
       class_attribute :run_commit_callbacks_on_first_saved_instances_in_transaction, instance_accessor: false, default: true
 
       class_attribute :default_connection_handler, instance_writer: false

@@ -390,6 +390,19 @@ class StoreTest < ActiveRecord::TestCase
     end
   end
 
+  test "store on a json column falls back to Type::Serialized when store_native_json_columns is false" do
+    skip "MySQL treats json columns as Type::Text (LONGTEXT), not Type::Json" if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "admin_users"
+      self.store_native_json_columns = false
+      store :json_native_data, accessors: [:city], coder: JSON
+    end
+
+    type = model.type_for_attribute("json_native_data")
+    assert_instance_of ActiveRecord::Type::Serialized, type
+  end
+
   test "reading store attributes through accessors on a json column" do
     @john.update!(json_native_data: { "city" => "Portland", "zip_code" => "97201" })
     @john.reload
@@ -447,7 +460,7 @@ class StoreTest < ActiveRecord::TestCase
   test "store on a json column does not use Type::Serialized" do
     skip "MySQL treats json columns as Type::Text (LONGTEXT), not Type::Json" if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     type = Admin::User.type_for_attribute("json_native_data")
-    assert_instance_of ActiveRecord::Type::IndifferentJson, type
+    assert_instance_of ActiveRecord::Store::IndifferentJsonType, type
     assert_not_instance_of ActiveRecord::Type::Serialized, type
   end
 end

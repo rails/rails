@@ -27,7 +27,8 @@ module ActiveRecord
   #
   # NOTE: If you are using structured database data types (e.g. PostgreSQL +hstore+/+json+, MySQL 5.7+
   # +json+, or SQLite 3.38+ +json+) you can use either {.store}[rdoc-ref:rdoc-ref:ClassMethods#store]
-  # or {.store_accessor}[rdoc-ref:ClassMethods#store_accessor]. When +store+ detects a native +json+
+  # or {.store_accessor}[rdoc-ref:ClassMethods#store_accessor]. When
+  # +config.active_record.store_native_json_columns+ is enabled and +store+ detects a native +json+
   # or +jsonb+ column, it skips the serialization layer and provides indifferent access (both symbol
   # and string keys work). +store_accessor+ provides string-keyed access only.
   #
@@ -112,14 +113,15 @@ module ActiveRecord
       def store(store_attribute, options = {})
         coder_option = options[:coder]
         yaml_option  = options[:yaml]
+        use_native_json = store_native_json_columns
 
         decorate_attributes([store_attribute]) do |attr_name, cast_type|
-          if cast_type.is_a?(ActiveRecord::Type::Json)
+          if use_native_json && cast_type.is_a?(ActiveRecord::Type::Json)
             # Native json/jsonb columns handle serialization at the adapter level.
             # Skip the Type::Serialized wrapping (which double-serializes on write
-            # and fails on read) and use IndifferentJson to provide the same
+            # and fails on read) and use IndifferentJsonType to provide the same
             # symbol/string key access that IndifferentCoder provides on text columns.
-            ActiveRecord::Type::IndifferentJson.new
+            IndifferentJsonType.new
           else
             cast_type = cast_type.subtype if Type::Serialized === cast_type
             coder = build_column_serializer(attr_name, coder_option, Object, yaml_option)
@@ -303,6 +305,30 @@ module ActiveRecord
           end
 
           store_object
+        end
+      end
+
+      # A JSON type that wraps deserialized values in HashWithIndifferentAccess.
+      # Used exclusively by ActiveRecord::Store when the underlying column is a
+      # native json/jsonb type, so that +store+ provides the same indifferent
+      # access as it does on text columns (via IndifferentCoder / Type::Serialized)
+      # without the double-serialization bug that occurs when Type::Serialized
+      # wraps a json/jsonb column.
+      #
+      # This type only handles Hash top-level objects (which +store+ enforces)
+      # and is not suitable as a general-purpose JSON type.
+      class IndifferentJsonType < ActiveRecord::Type::Json # :nodoc:
+        def deserialize(value)
+          result = super
+          if result.is_a?(Hash)
+            result.with_indifferent_access
+          else
+            result
+          end
+        end
+
+        def accessor
+          ActiveRecord::Store::IndifferentHashAccessor
         end
       end
 

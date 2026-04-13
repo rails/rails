@@ -7,11 +7,15 @@
     serialization layer that is unnecessary when the database adapter already
     handles JSON encoding/decoding.
 
-    `store` now detects native `json`/`jsonb` columns and uses a new
-    `Type::IndifferentJson` type that provides the same `HashWithIndifferentAccess`
-    behavior as `store` on text columns, without the `Type::Serialized` wrapping.
-    The `coder` option is ignored on native JSON columns since the adapter handles
-    serialization.
+    `store` now detects native `json`/`jsonb` columns and provides the same
+    `HashWithIndifferentAccess` behavior as `store` on text columns, without the
+    `Type::Serialized` wrapping. The `coder` option is ignored on native JSON
+    columns since the adapter handles serialization.
+
+    This behavior is gated behind `config.active_record.store_native_json_columns`,
+    which defaults to `true` for new applications (via `load_defaults "8.2"`).
+    Existing applications that may have accumulated double-serialized data in
+    json/jsonb columns should migrate that data before enabling this setting.
 
     *Mark Edmondson*
 
