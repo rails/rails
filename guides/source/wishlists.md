@@ -364,10 +364,10 @@ If a user is not logged in, they'll see a link to sign up. Logged in users will
 see a form to select a wishlist and add the product to it.
 
 Next, create the controller to handle this form in
-`app/controllers/products/wishlists_controller.rb` with the following:
+`app/controllers/products/wishlist_controller.rb` with the following:
 
 ```ruby
-class Products::WishlistsController < ApplicationController
+class Products::WishlistController < ApplicationController
   before_action :set_product
   before_action :set_wishlist
 
@@ -417,7 +417,7 @@ error.
 ```bash
 ActiveRecord::RecordNotFound (Couldn't find Wishlist without an ID):
 
-app/controllers/products/wishlists_controller.rb:16:in 'Products::WishlistsController#set_wishlist'
+app/controllers/products/wishlist_controller.rb:16:in 'Products::WishlistController#set_wishlist'
 ```
 
 In this case, we should automatically create a wishlist if the user doesn't have
@@ -426,7 +426,7 @@ any. This has the added bonus of slowly introducing the user to wishlists.
 Update `set_wishlist` in the controller to find or create a wishlist:
 
 ```ruby#16-20
-class Products::WishlistsController < ApplicationController
+class Products::WishlistController < ApplicationController
   before_action :set_product
   before_action :set_wishlist
 
