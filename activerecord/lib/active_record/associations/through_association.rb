@@ -119,6 +119,7 @@ module ActiveRecord
             target = through_association.target
 
             if inverse && target && !target.is_a?(Array)
+              attributes ||= {}
               Array(target.id).zip(Array(inverse.foreign_key)).map do |primary_key_value, foreign_key_column|
                 attributes[foreign_key_column] = primary_key_value
               end

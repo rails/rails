@@ -381,10 +381,25 @@ module ActiveRecord
         end
 
         def build_record(attributes)
-          reflection.build_association(attributes) do |record|
+          sti_attrs = _sti_type_for_build(attributes)
+
+          reflection.build_association(sti_attrs) do |record|
+            set_inverse_instance(record)
+            record.assign_attributes(attributes) if attributes
             initialize_attributes(record, attributes)
             yield(record) if block_given?
           end
+        end
+
+        def _sti_type_for_build(attributes)
+          return unless attributes
+
+          klass = reflection.klass
+          inheritance_col = klass.inheritance_column
+          return unless klass._has_attribute?(inheritance_col)
+
+          type_value = attributes[inheritance_col] || attributes[inheritance_col.to_sym]
+          { inheritance_col => type_value } if type_value
         end
 
         # Returns true if statement cache should be skipped on the association reader.

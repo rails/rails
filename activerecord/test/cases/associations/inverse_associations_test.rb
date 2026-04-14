@@ -421,6 +421,26 @@ class InverseHasOneTests < ActiveRecord::TestCase
     assert_match "Did you mean?", error.detailed_message
     assert_equal "confused_human", error.corrections.first
   end
+
+  def test_inverse_is_available_during_attribute_assignment_on_has_one_build
+    human = Human.create!
+
+    inverse_during_assignment = nil
+
+    Face.class_eval do
+      define_method(:description_for_inverse_test=) do |value|
+        inverse_during_assignment = self.human
+        self.description = value
+      end
+    end
+
+    human.build_face(description_for_inverse_test: "Smiling")
+
+    assert_equal human, inverse_during_assignment,
+      "inverse association should be available when attributes are assigned during has_one build"
+  ensure
+    Face.remove_method(:description_for_inverse_test=) if Face.method_defined?(:description_for_inverse_test=)
+  end
 end
 
 class InverseHasManyTests < ActiveRecord::TestCase
@@ -713,6 +733,26 @@ class InverseHasManyTests < ActiveRecord::TestCase
     comment.update!(post_id: post2.id)
 
     assert_equal post2, comment.post
+  end
+
+  def test_inverse_is_available_during_attribute_assignment_on_has_many_build
+    human = Human.create!
+
+    inverse_during_assignment = nil
+
+    Interest.class_eval do
+      define_method(:topic_for_inverse_test=) do |value|
+        inverse_during_assignment = self.human
+        self.topic = value
+      end
+    end
+
+    human.interests.build(topic_for_inverse_test: "Music")
+
+    assert_equal human, inverse_during_assignment,
+      "inverse association should be available when attributes are assigned during build"
+  ensure
+    Interest.remove_method(:topic_for_inverse_test=) if Interest.method_defined?(:topic_for_inverse_test=)
   end
 end
 
