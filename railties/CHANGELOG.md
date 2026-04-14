@@ -1,3 +1,12 @@
+*   Add offline fallback page to the PWA scaffold.
+
+    New Rails apps now include an `app/views/pwa/offline.html.erb` template and
+    a commented `get "offline"` route in `config/routes.rb`, alongside the existing
+    manifest and service worker. The service worker template also includes a
+    commented example for caching and serving the offline page.
+
+    *Juan Vasquez*
+
 *   Avoid adding `Rack::Sendfile` to the middleware stack if `config.action_dispatch.x_sendfile_header` is `nil`.
 
     The middleware behave as a noop in such case so it's pointless to have it in the stack.
