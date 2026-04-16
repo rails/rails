@@ -72,17 +72,15 @@ module ActiveSupport
       # String#camelize takes a symbol (:upper or :lower), so here we also support :lower to keep the methods consistent.
       if !uppercase_first_letter || uppercase_first_letter == :lower
         string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase! || match }
-      elsif string.match?(/\A[a-z\d]*\z/)
-        return inflections.acronyms[string]&.dup || string.capitalize
+        string.gsub!(/(?:_|(\/))([a-z\d]*)/i) do
+          word = $2
+          substituted = inflections.acronyms[word] || word.capitalize! || word
+          $1 ? "::#{substituted}" : substituted
+        end
+        string
       else
-        string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize! || match }
+        _camelize_native(string, inflections.acronyms)
       end
-      string.gsub!(/(?:_|(\/))([a-z\d]*)/i) do
-        word = $2
-        substituted = inflections.acronyms[word] || word.capitalize! || word
-        $1 ? "::#{substituted}" : substituted
-      end
-      string
     end
 
     # Makes an underscored, lowercase form from the expression in the string.
@@ -98,8 +96,33 @@ module ActiveSupport
     #   camelize(underscore('SSLError'))  # => "SslError"
     def underscore(camel_cased_word)
       return camel_cased_word.to_s.dup unless /[A-Z-]|::/.match?(camel_cased_word)
-      word = camel_cased_word.to_s.gsub("::", "/")
-      word.gsub!(inflections.acronyms_underscore_regex) { "#{$1 && '_' }#{$2.downcase}" }
+      unless inflections.acronyms.empty?
+        word = camel_cased_word.to_s.gsub("::", "/")
+        word.gsub!(inflections.acronyms_underscore_regex) { "#{$1 && '_' }#{$2.downcase}" }
+        return _underscore_native(word)
+      end
+      _underscore_native(camel_cased_word.to_s)
+    end
+
+    # Pure-Ruby fallbacks for _camelize_native and _underscore_native.
+    # These are overridden by the C extension (active_support/inflector_core)
+    # when it is available.  Marked :nodoc: — internal implementation detail.
+
+    def _camelize_native(string, acronyms) # :nodoc:
+      if string.match?(/\A[a-z\d]*\z/)
+        return acronyms[string]&.dup || string.capitalize
+      end
+      string = string.sub(/^[a-z\d]*/) { |match| acronyms[match] || match.capitalize! || match }
+      string.gsub!(/(?:_|(\/))([a-z\d]*)/i) do
+        word = $2
+        substituted = acronyms[word] || word.capitalize! || word
+        $1 ? "::#{substituted}" : substituted
+      end
+      string
+    end
+
+    def _underscore_native(word) # :nodoc:
+      word.gsub!("::", "/")
       word.gsub!(/(?<=[A-Z])(?=[A-Z][a-z])|(?<=[a-z\d])(?=[A-Z])/, "_")
       word.tr!("-", "_")
       word.downcase!
@@ -384,4 +407,15 @@ module ActiveSupport
         end
       end
   end
+end
+
+# Load the native C extension.  When present, it overrides _camelize_native and
+# _underscore_native with zero-regex, zero-MatchData C implementations.
+# If the extension is absent (e.g. running from source without compiling),
+# the pure-Ruby fallbacks defined above remain active.
+begin
+  verbose, $VERBOSE = $VERBOSE, nil
+  require "active_support/inflector_core"
+ensure
+  $VERBOSE = verbose
 end

@@ -17,7 +17,8 @@ Gem::Specification.new do |s|
   s.email    = "david@loudthinking.com"
   s.homepage = "https://rubyonrails.org"
 
-  s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.rdoc", "lib/**/*"]
+  s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.rdoc", "lib/**/*", "ext/**/*"]
+  s.extensions   = ["ext/active_support/extconf.rb"]
   s.require_path = "lib"
 
   s.rdoc_options.concat ["--encoding",  "UTF-8"]
