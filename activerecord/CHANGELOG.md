@@ -1,3 +1,13 @@
+*   Infer primary key for simple PostgreSQL views from the underlying table.
+
+    Models backed by simple auto-updatable views (e.g.,
+    `CREATE VIEW old_name AS SELECT * FROM new_name`) now automatically
+    detect the primary key from the base table, removing the need to
+    declare `self.primary_key = "id"` on the model. This enables
+    zero-downtime table renames by creating a view alias with the old name.
+
+    *Phil Pirozhkov*
+
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be

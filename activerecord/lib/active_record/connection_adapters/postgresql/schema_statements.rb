@@ -587,15 +587,55 @@ module ActiveRecord
         end
 
         def primary_keys(table_name) # :nodoc:
-          query_values(<<~SQL)
+          quoted_regclass = quote(quote_table_name(table_name))
+
+          result = query_values(<<~SQL)
             SELECT a.attname
             FROM pg_index i
             JOIN pg_attribute a
               ON a.attrelid = i.indrelid
               AND a.attnum = ANY(i.indkey)
-            WHERE i.indrelid = #{quote(quote_table_name(table_name))}::regclass
+            WHERE i.indrelid = #{quoted_regclass}::regclass
               AND i.indisprimary
             ORDER BY array_position(i.indkey, a.attnum)
+          SQL
+
+          return result unless result.empty?
+
+          # For simple auto-updatable views, infer the primary key from the
+          # underlying table. Each candidate column must be a direct, updatable
+          # reference to a base-table primary-key column with the same name,
+          # and every base-table primary-key column must be present.
+          query_values(<<~SQL)
+            WITH view_pk_candidates AS (
+              SELECT ba.attname,
+                     ba.attnum AS base_attnum,
+                     i.indkey AS pk_indkey
+              FROM pg_class v
+              JOIN pg_rewrite rw ON rw.ev_class = v.oid
+                AND rw.rulename = '_RETURN'
+              JOIN pg_depend d ON d.objid = rw.oid
+                AND d.classid = 'pg_rewrite'::regclass
+                AND d.refclassid = 'pg_class'::regclass
+                AND d.deptype = 'n'
+                AND d.refobjsubid > 0
+              JOIN pg_class base ON base.oid = d.refobjid
+                AND base.relkind IN ('r', 'p')
+              JOIN pg_index i ON i.indrelid = base.oid
+                AND i.indisprimary
+              JOIN pg_attribute ba ON ba.attrelid = base.oid
+                AND ba.attnum = ANY(i.indkey)
+                AND ba.attnum = d.refobjsubid
+              JOIN pg_attribute va ON va.attrelid = v.oid
+                AND va.attname = ba.attname
+                AND NOT va.attisdropped
+                AND pg_column_is_updatable(v.oid, va.attnum, false)
+              WHERE v.oid = #{quoted_regclass}::regclass
+                AND v.relkind = 'v'
+            )
+            SELECT attname FROM view_pk_candidates
+            WHERE array_length(pk_indkey, 1) = (SELECT count(*) FROM view_pk_candidates)
+            ORDER BY array_position(pk_indkey, base_attnum)
           SQL
         end
 

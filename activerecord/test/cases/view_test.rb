@@ -68,10 +68,16 @@ module ViewBehavior
   end
 
   def test_does_not_assume_id_column_as_primary_key
+    view_name = "ebooks_computed_id"
+    create_view view_name, "SELECT 0 AS id, name FROM books"
+
     model = Class.new(ActiveRecord::Base) do
-      self.table_name = "ebooks'"
+      self.table_name = "ebooks_computed_id"
     end
+
     assert_nil model.primary_key
+  ensure
+    drop_view view_name
   end
 
   def test_does_not_dump_view_as_table
@@ -206,6 +212,85 @@ if ActiveRecord::Base.lease_connection.supports_views?
         end
       end
     end # end of `if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)`
+  end
+
+  class PostgreSQLViewPrimaryKeyInferenceTest < ActiveRecord::TestCase
+    if current_adapter?(:PostgreSQLAdapter)
+      self.use_transactional_tests = false
+      fixtures :books
+
+      setup do
+        @connection = ActiveRecord::Base.lease_connection
+      end
+
+      teardown do
+        @connection.execute "DROP VIEW IF EXISTS simple_books_view"
+        @connection.execute "DROP VIEW IF EXISTS no_pk_books_view"
+        @connection.execute "DROP VIEW IF EXISTS computed_id_books_view"
+        @connection.execute "DROP VIEW IF EXISTS cpk_posts_view"
+        @connection.execute "DROP VIEW IF EXISTS partial_cpk_posts_view"
+      end
+
+      def test_infers_primary_key_for_simple_view
+        @connection.execute <<~SQL
+          CREATE VIEW simple_books_view AS SELECT * FROM books
+        SQL
+
+        model = Class.new(ActiveRecord::Base) do
+          self.table_name = "simple_books_view"
+        end
+
+        assert_equal "id", model.primary_key
+      end
+
+      def test_no_primary_key_when_pk_column_missing_from_view
+        @connection.execute <<~SQL
+          CREATE VIEW no_pk_books_view AS SELECT name, status FROM books
+        SQL
+
+        model = Class.new(ActiveRecord::Base) do
+          self.table_name = "no_pk_books_view"
+        end
+
+        assert_nil model.primary_key
+      end
+
+      def test_no_primary_key_when_pk_column_is_computed
+        @connection.execute <<~SQL
+          CREATE VIEW computed_id_books_view AS SELECT 0 AS id, name FROM books
+        SQL
+
+        model = Class.new(ActiveRecord::Base) do
+          self.table_name = "computed_id_books_view"
+        end
+
+        assert_nil model.primary_key
+      end
+
+      def test_infers_composite_primary_key_from_view
+        @connection.execute <<~SQL
+          CREATE VIEW cpk_posts_view AS SELECT * FROM cpk_posts
+        SQL
+
+        model = Class.new(ActiveRecord::Base) do
+          self.table_name = "cpk_posts_view"
+        end
+
+        assert_equal ["title", "author"], model.primary_key
+      end
+
+      def test_no_primary_key_when_composite_pk_column_missing_from_view
+        @connection.execute <<~SQL
+          CREATE VIEW partial_cpk_posts_view AS SELECT title FROM cpk_posts
+        SQL
+
+        model = Class.new(ActiveRecord::Base) do
+          self.table_name = "partial_cpk_posts_view"
+        end
+
+        assert_nil model.primary_key
+      end
+    end
   end
 end # end of `if ActiveRecord::Base.lease_connection.supports_views?`
 
