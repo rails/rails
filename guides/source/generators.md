@@ -6,10 +6,10 @@ Creating and Customizing Rails Generators & Templates
 Rails generators and application templates are useful tools that can improve your workflow by automatically creating boilerplate code. In this guide you will learn:
 
 * How to see which generators are available in your application.
-* How to create a generator using templates.
+* How to create a custom generator using templates.
 * How Rails searches for generators before invoking them.
 * How to customize Rails scaffolding by overriding generators and templates.
-* How to use fallbacks to avoid overwriting a huge set of generators.
+* How to configure fallbacks to override only specific generators.
 * How to use templates to create/customize Rails applications.
 * How to use the Rails Template API to write your own reusable application templates.
 
@@ -108,7 +108,7 @@ Creating Your First Generator
 
 In addition to generators provided by Rails, you can also build custom
 generators. Let's build a generator that creates an initializer file named
-`hello_generator.rb` inside `config/initializers` folder. We will do this manually first and then see how to do it using a `generator` command as well. 
+`hello_generator.rb` inside `config/initializers` folder. We will do this manually first and then see how to do it using a `generator` command as well.
 
 NOTE: Generators are built on top of [Thor](https://github.com/rails/thor),
 which provides powerful options for parsing and an useful API for manipulating
