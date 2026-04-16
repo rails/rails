@@ -1,3 +1,11 @@
+*   Serve static CSS and HTML files with `charset=utf-8` in the Content-Type header.
+
+    Static CSS and HTML files served by `ActionDispatch::Static` now include
+    `; charset=utf-8` in their Content-Type response header, fixing browser
+    encoding issues with CSS files containing non-ASCII characters.
+
+    *Mike Dalessio*
+
 *   Add `query:` and `body:` kwargs to integration test request helpers.
 
     `params:` was ambiguous for GET requests with `as: :json` — unclear
