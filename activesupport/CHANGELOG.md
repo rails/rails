@@ -1,23 +1,6 @@
-*   Replace the regex-based hot paths in `ActiveSupport::Inflector.camelize`
-    and `ActiveSupport::Inflector.underscore` with native C implementations.
-
-    Both methods previously allocated a `MatchData` object and one or two
-    capture-group strings on every regex match.  For a typical call such as
-    `camelize('active_support/core_ext/string')` this amounted to ~18 Ruby
-    objects (~1 200 bytes) per call.  The C extension replaces those paths
-    with single-pass byte scanners that write directly into a pre-sized output
-    buffer.
-
-    Measured improvement (Ruby 4.0.2, no acronyms defined):
-
-    | Method        | Objects/call | Bytes/call | Throughput              |
-    |---------------|--------------|------------|-------------------------|
-    | `camelize`    | 18 → 4       | 1208 → 224 | 61k → 438k i/s (7.1×)  |
-    | `underscore`  |  5 → 1       |  522 →  96 | 90k → 364k i/s (4.0×)  |
-
-    A pure-Ruby fallback remains active if the extension cannot be loaded
-    (e.g. running from source without compiling), so behaviour is unchanged in
-    all environments.
+*   Speed up `ActiveSupport::Inflector.camelize` and `.underscore` with
+    native C implementations that replace the regex-based hot paths.
+    A pure-Ruby fallback remains active when the extension is unavailable.
 
     *Matrix9180*
 
