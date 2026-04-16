@@ -1177,6 +1177,41 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_empty post.readers
   end
 
+  def test_collection_not_blank_after_building
+    company = companies(:first_firm)
+    assert_predicate company.contracts, :blank?
+    company.contracts.build
+    assert_not_predicate company.contracts, :blank?
+  end
+
+  def test_collection_blank_with_dirty_target
+    post = posts(:thinking)
+    assert_equal [], post.reader_ids
+    assert_predicate post.readers, :blank?
+    post.readers.reset
+    post.readers.build
+    assert_equal [nil], post.reader_ids
+    assert_not_predicate post.readers, :blank?
+  end
+
+  def test_blank_does_not_load_target
+    firm = companies(:first_firm)
+    assert_not_predicate firm.clients_of_firm, :loaded?
+    assert_queries_count(1) do
+      assert_not_predicate firm.clients_of_firm, :blank?
+    end
+    assert_not_predicate firm.clients_of_firm, :loaded?
+  end
+
+  def test_present_does_not_load_target
+    firm = companies(:first_firm)
+    assert_not_predicate firm.clients_of_firm, :loaded?
+    assert_queries_count(1) do
+      assert_predicate firm.clients_of_firm, :present?
+    end
+    assert_not_predicate firm.clients_of_firm, :loaded?
+  end
+
   def test_collection_size_twice_for_regressions
     post = posts(:thinking)
     assert_equal 0, post.readers.size
@@ -1476,6 +1511,20 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     post = posts(:welcome)
     assert_no_queries do
       assert_not_empty post.comments
+    end
+  end
+
+  def test_calling_blank_with_counter_cache
+    post = posts(:welcome)
+    assert_no_queries do
+      assert_not_predicate post.comments, :blank?
+    end
+  end
+
+  def test_calling_present_with_counter_cache
+    post = posts(:welcome)
+    assert_no_queries do
+      assert_predicate post.comments, :present?
     end
   end
 

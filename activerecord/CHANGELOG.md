@@ -1,3 +1,11 @@
+*   Optimize `Relation#blank?` to use `#empty?` instead of loading all records.
+
+    Previously, calling `blank?` on a relation would load all records via
+    `records.blank?`. Now it delegates to `empty?`, which can use a COUNT
+    query or check the loaded state without forcing a full load.
+
+    *George Ogata*
+
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be

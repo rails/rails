@@ -1196,6 +1196,21 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_predicate no_posts, :loaded?
   end
 
+  def test_blank
+    posts = Post.all
+
+    assert_queries_count(1) { assert_equal false, posts.blank? }
+    assert_not_predicate posts, :loaded?
+
+    no_posts = posts.where(title: "")
+    assert_queries_count(1) { assert_equal true, no_posts.blank? }
+    assert_not_predicate no_posts, :loaded?
+
+    best_posts = posts.where(comments_count: 0)
+    best_posts.load # force load
+    assert_no_queries { assert_equal false, best_posts.blank? }
+  end
+
   def test_any
     posts = Post.all
 
@@ -2018,11 +2033,12 @@ class RelationTest < ActiveRecord::TestCase
   def test_presence
     topics = Topic.all
 
-    # the first query is triggered because there are no topics yet.
+    # Before loading, present?/blank? should run a count without loading records.
     assert_queries_count(1) { assert_predicate topics, :present? }
+    assert_not_predicate topics, :loaded?
 
-    # checking if there are topics is used before you actually display them,
-    # thus it shouldn't invoke an extra count query.
+    # After loading, it should use the loaded records & not require a query.
+    topics.load
     assert_no_queries { assert_predicate topics, :present? }
     assert_no_queries { assert_not topics.blank? }
 
