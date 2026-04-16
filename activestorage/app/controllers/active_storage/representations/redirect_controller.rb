@@ -1,10 +1,27 @@
 # frozen_string_literal: true
 
-# Take a signed permanent reference for a blob representation and turn it into an expiring service URL for download.
+# Finds a representation by a +signed_id+ and a +variation_key+, and redirects to a representation's expiring
+# service URL.
 #
-# WARNING: All Active Storage controllers are publicly accessible by default. The
-# generated URLs are hard to guess, but permanent by design. If your files
-# require a higher level of protection consider implementing
+# The +signed_id+s make URLs hard to guess but permanent by design, allowing the URLs to be cached.
+#
+# The URLs created for this controller are set to never expire by default.
+# To make URLs expire, pass the +expires_in+ option when generating the URL:
+#
+#   rails_storage_redirect_url(representation, expires_in: 1.minute)
+#
+# Or set the default for all Active Storage URLs:
+#
+#   config.active_storage.urls_expire_in = 1.day
+#
+# The service URLs are set to expire in 5 minutes by default.
+# The default can be changed for all service URLs:
+#
+#   config.active_storage.service_urls_expire_in = 1.hour
+#
+# WARNING: All Active Storage controllers are publicly accessible by default.
+# Anyone who knows the URL can access the file, even if the rest of your application requires
+# authentication. If your files require access control consider implementing
 # {Authenticated Controllers}[https://guides.rubyonrails.org/active_storage_overview.html#authenticated-controllers].
 class ActiveStorage::Representations::RedirectController < ActiveStorage::Representations::BaseController
   def show

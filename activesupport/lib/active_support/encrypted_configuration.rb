@@ -58,13 +58,18 @@ module ActiveSupport
       @options = nil
     end
 
-    # Find the referenced key
-    # Raises +KeyError+ if not found.
+    # Find singular or nested keys.
+    # Raises +KeyError+ if not found or nil.
+    #
+    # Given configuration:
+    #   db_port: null
+    #   database:
+    #     host: "db.example.com"
     #
     # Examples:
-    #
-    #   require(:db_host)         # => ENV.fetch("DB_HOST")
-    #   require(:database, :host) # => ENV.fetch("DATABASE__HOST")
+    #   require(:database, :host) # => "db.example.com"
+    #   require(:missing)         # => KeyError
+    #   require(:db_port)         # => KeyError (nil values are treated as missing)
     def require(*key)
       value = dig(*key)
 
@@ -75,16 +80,21 @@ module ActiveSupport
       end
     end
 
-    # Find a upcased and double-underscored-joined string-version of the +key+ in ENV.
-    # Returns nil if the key isn't found or the value of default when passed If default is
-    # a block, it's called first.
+    # Find singular or nested keys.
+    # Returns +nil+ if the key isn't found.
+    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or nil value.
+    #
+    # Given configuration:
+    #   db_port: null
+    #   database:
+    #     host: "db.example.com"
     #
     # Examples:
-    #
-    #   config.option(:db_host)                                    # => ENV["DB_HOST"]
-    #   config.option(:database, :host)                            # => ENV["DATABASE__HOST"]
-    #   config.option(:database, :host, default: "missing")        # => ENV.fetch("DATABASE__HOST", "missing")
-    #   config.option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST", default.call)
+    #   option(:database, :host)               # => "db.example.com"
+    #   option(:missing)                       # => nil
+    #   option(:missing, default: "localhost")        # => "localhost"
+    #   option(:missing, default: -> { "localhost" }) # => "localhost"
+    #   option(:db_port, default: 5432)               # => 5432 (nil values use default)
     def option(*key, default: nil)
       value = dig(*key)
 
@@ -130,8 +140,20 @@ module ActiveSupport
       @config ||= deep_symbolize_keys(deserialize(read))
     end
 
+    # Returns an array of symbolized keys from the decrypted configuration.
+    #
+    #   my_config = ActiveSupport::EncryptedConfiguration.new(...)
+    #   my_config.read # => "some_secret: 123\nsome_namespace:\n  another_secret: 456"
+    #
+    #   my_config.keys
+    #   # => [:some_secret, :some_namespace]
+    #
+    def keys
+      config.keys
+    end
+
     def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} keys=#{keys.inspect}>"
     end
 
     private

@@ -827,7 +827,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_find_all
     firm = Firm.first
-    assert_equal 3, firm.clients.where("#{QUOTED_TYPE} = 'Client'").to_a.length
+    assert_equal 3, firm.clients.where("#{ARTest::QUOTED_TYPE} = 'Client'").to_a.length
     assert_equal 1, firm.clients.where("name = 'Summit'").to_a.length
   end
 
@@ -881,14 +881,14 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = Firm.first
     client2 = Client.find(2)
     assert_equal firm.clients.first, firm.clients.order("id").first
-    assert_equal client2, firm.clients.where("#{QUOTED_TYPE} = 'Client'").order("id").first
+    assert_equal client2, firm.clients.where("#{ARTest::QUOTED_TYPE} = 'Client'").order("id").first
   end
 
   def test_find_first_sanitized
     firm = Firm.first
     client2 = Client.find(2)
-    assert_equal client2, firm.clients.where("#{QUOTED_TYPE} = ?", "Client").first
-    assert_equal client2, firm.clients.where("#{QUOTED_TYPE} = :type", type: "Client").first
+    assert_equal client2, firm.clients.where("#{ARTest::QUOTED_TYPE} = ?", "Client").first
+    assert_equal client2, firm.clients.where("#{ARTest::QUOTED_TYPE} = :type", type: "Client").first
   end
 
   def test_find_first_after_reset_scope
@@ -3267,14 +3267,9 @@ class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
       firm.association(:clients).async_load_target
       wait_for_async_query
 
-      events = []
-      callback = -> (event) do
-        events << event unless event.payload[:name] == "SCHEMA"
-      end
-
-      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+      events = capture_notifications("sql.active_record") do
         assert_equal 3, firm.clients.size
-      end
+      end.reject { |e| e.payload[:name] == "SCHEMA" }
 
       assert_no_queries do
         assert_not_nil firm.clients[2]

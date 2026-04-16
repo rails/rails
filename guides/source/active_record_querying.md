@@ -1179,7 +1179,7 @@ SELECT * FROM authors WHERE id = 10 LIMIT 1
 SELECT * FROM books WHERE author_id = 10 ORDER BY year_published DESC
 ```
 
-You can using the `reorder` clause to specify a different way to order the books:
+You can use the `reorder` clause to specify a different way to order the books:
 
 ```ruby
 Author.find(10).books.reorder("year_published ASC")

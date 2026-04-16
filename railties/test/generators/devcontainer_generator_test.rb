@@ -270,7 +270,7 @@ module Rails
         assert_compose_file do |compose|
           assert_includes compose["services"]["rails-app"]["depends_on"], "redis"
           expected_redis_config = {
-            "image" => "valkey/valkey:8",
+            "image" => "valkey/valkey:9",
             "restart" => "unless-stopped",
             "volumes" => ["redis-data:/data"]
           }

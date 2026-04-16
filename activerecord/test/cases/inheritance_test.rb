@@ -195,7 +195,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_a_bad_type_column
-    Company.lease_connection.insert "INSERT INTO companies (id, #{QUOTED_TYPE}, name) VALUES(100, 'bad_class!', 'Not happening')"
+    Company.lease_connection.insert "INSERT INTO companies (id, #{ARTest::QUOTED_TYPE}, name) VALUES(100, 'bad_class!', 'Not happening')"
 
     assert_raise(ActiveRecord::SubclassNotFound) { Company.find(100) }
   end

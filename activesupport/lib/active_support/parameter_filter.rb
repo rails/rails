@@ -54,17 +54,23 @@ module ActiveSupport
     #
     def self.precompile_filters(filters)
       filters, patterns = filters.partition { |filter| filter.is_a?(Proc) }
+      regexps, patterns = patterns.partition { |filter| filter.is_a?(Regexp) }
 
-      patterns.map! do |pattern|
-        pattern.is_a?(Regexp) ? pattern : "(?i:#{Regexp.escape pattern.to_s})"
+      patterns.map! do |p|
+        p.is_a?(Symbol) ? p.name : p.to_s
       end
 
-      deep_patterns = patterns.extract! { |pattern| pattern.to_s.include?("\\.") }
+      patterns.sort_by! { |p| [p.count("."), p.size] }
 
-      filters << Regexp.new(patterns.join("|")) if patterns.any?
-      filters << Regexp.new(deep_patterns.join("|")) if deep_patterns.any?
+      patterns.each do |pattern|
+        # Remove redundant patterns, e.g. it's pointless to search for `user.password` or `user.password_confirmation`
+        # if `password` is already a filter.
+        unless regexps.any? { |r| r.match?(pattern) }
+          regexps << Regexp.new(Regexp.escape(pattern), Regexp::IGNORECASE)
+        end
+      end
 
-      filters
+      filters << Regexp.union(regexps)
     end
 
     # Create instance with given filters. Supported type of filters are +String+, +Regexp+, and +Proc+.
@@ -90,6 +96,18 @@ module ActiveSupport
     end
 
   private
+    # If the regexp is an anchored exact match like /^token$/ or /\Atoken\z/,
+    # returns the literal string.
+    def extract_exact_key(regexp) # :nodoc:
+      return if regexp.casefold?
+      source = regexp.source
+      return unless source.start_with?("^", "\\A") && source.end_with?("$", "\\z")
+
+      literal = source.delete_prefix("^").delete_prefix("\\A")
+                      .delete_suffix("$").delete_suffix("\\z")
+      literal if literal.match?(/\A[a-zA-Z0-9_]+\z/)
+    end
+
     def compile_filters!(filters)
       @no_filters = filters.empty?
       return if @no_filters
@@ -97,6 +115,7 @@ module ActiveSupport
       @regexps, strings = [], []
       @deep_regexps, deep_strings = nil, nil
       @blocks = nil
+      @exact_keys = nil
 
       filters.each do |item|
         case item
@@ -105,6 +124,8 @@ module ActiveSupport
         when Regexp
           if item.to_s.include?("\\.")
             (@deep_regexps ||= []) << item
+          elsif (literal = extract_exact_key(item))
+            (@exact_keys ||= {})[literal] = true
           else
             @regexps << item
           end
@@ -133,11 +154,15 @@ module ActiveSupport
     end
 
     def value_for_key(key, value, full_parent_key = nil, original_params = nil)
+      key_s = key.to_s
+
       if @deep_regexps
-        full_key = full_parent_key ? "#{full_parent_key}.#{key}" : key.to_s
+        full_key = full_parent_key ? "#{full_parent_key}.#{key_s}" : key_s
       end
 
-      if @regexps.any? { |r| r.match?(key.to_s) }
+      if @exact_keys && @exact_keys[key_s]
+        value = @mask
+      elsif @regexps.any? { |r| r.match?(key_s) }
         value = @mask
       elsif @deep_regexps&.any? { |r| r.match?(full_key) }
         value = @mask

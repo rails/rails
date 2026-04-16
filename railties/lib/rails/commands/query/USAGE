@@ -1,0 +1,51 @@
+Description:
+    Run read-only queries against your database. Connects to the
+    reading replica role by default and prevents database writes.
+
+    The --sql flag restricts execution to SQL only. ActiveRecord
+    expressions are evaluated as Ruby, with the same trust model
+    as rails runner and rails console.
+
+    Output is JSON. Pipe through jq for human-readable formatting.
+
+Subcommands:
+    <%= executable %> schema [TABLE]      Show tables or table detail with associations
+    <%= executable %> models              List ActiveRecord models with associations
+    <%= executable %> explain EXPRESSION  Show EXPLAIN output
+
+Examples:
+    Run an ActiveRecord query:
+
+        <%= executable %> "Account.where(plan: 'premium').limit(10)"
+
+    Pretty-print with jq:
+
+        <%= executable %> "Account.first" | jq
+
+    Extract just the rows:
+
+        <%= executable %> "Account.limit(5)" | jq -r '.rows[] | @csv'
+
+    Run raw SQL:
+
+        <%= executable %> --sql "SELECT * FROM accounts LIMIT 10"
+
+    Paginate results:
+
+        <%= executable %> "Account.all" --page 2 --per 50
+
+    Use a specific database config:
+
+        <%= executable %> "Account.count" --database primary_replica
+
+    Schema introspection:
+
+        <%= executable %> schema accounts
+
+    List models:
+
+        <%= executable %> models
+
+    Explain a query:
+
+        <%= executable %> explain "Account.where(plan: 'premium')"

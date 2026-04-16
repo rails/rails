@@ -43,7 +43,7 @@ Releaser::FRAMEWORKS.each do |framework|
 end
 
 namespace :activejob do
-  activejob_adapters = %w(async inline queue_classic resque sidekiq sneakers backburner test)
+  activejob_adapters = %w(async inline queue_classic resque sneakers backburner test)
   activejob_adapters.delete("queue_classic") if defined?(JRUBY_VERSION)
 
   desc "Run Active Job integration tests for all adapters"

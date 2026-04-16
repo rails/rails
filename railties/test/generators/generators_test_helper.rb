@@ -28,9 +28,6 @@ module GeneratorsTestHelper
 
       setup { Rails.application.config.root = Pathname("../fixtures").expand_path(__dir__) }
 
-      setup { @original_rakeopt, ENV["RAKEOPT"] = ENV["RAKEOPT"], "--silent" }
-      teardown { ENV["RAKEOPT"] = @original_rakeopt }
-
       begin
         base.tests Rails::Generators.const_get(base.name.delete_suffix("Test"))
       rescue

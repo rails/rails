@@ -260,7 +260,7 @@ class Process::Status # :nodoc:
   end
 end
 
-class Exception
+class Exception # :nodoc:
   def as_json(options = nil)
     to_s
   end

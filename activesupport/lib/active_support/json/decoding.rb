@@ -1,12 +1,10 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/module/delegation"
 require "json"
 
 module ActiveSupport
   # Look for and parse JSON strings that look like ISO 8601 times.
-  mattr_accessor :parse_json_times
+  singleton_class.attr_accessor :parse_json_times
 
   module JSON
     # matches YAML-formatted dates

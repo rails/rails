@@ -87,7 +87,13 @@ module ActiveSupport
 
           def _load(marked)
             dumped = marked.byteslice(1..-1)
-            dumped = Zlib::Inflate.inflate(dumped) if marked.start_with?(MARK_COMPRESSED)
+            if marked.start_with?(MARK_COMPRESSED)
+              dumped = begin
+                Zlib::Inflate.inflate(dumped)
+              rescue Zlib::Error => error
+                raise Cache::DeserializationError, "#{error.class}: #{error.message}"
+              end
+            end
             Cache::Entry.unpack(marshal_load(dumped))
           end
 

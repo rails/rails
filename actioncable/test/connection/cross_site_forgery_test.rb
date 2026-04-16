@@ -64,29 +64,65 @@ class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
     assert_origin_not_allowed "http://rails.co.uk"
   end
 
+  test "allow same origin with X-Forwarded-Host" do
+    @server.config.allow_same_origin_as_host = true
+    assert_origin_allowed "http://proxy.example.com", forwarded_host: "proxy.example.com"
+    assert_origin_not_allowed "http://hax.com", forwarded_host: "proxy.example.com"
+  end
+
+  test "X-Forwarded-Host takes precedence over HTTP_HOST for same origin check" do
+    @server.config.allowed_request_origins = []
+    @server.config.allow_same_origin_as_host = true
+    assert_origin_allowed "http://proxy.example.com", forwarded_host: "proxy.example.com"
+    assert_origin_not_allowed "http://#{HOST}", forwarded_host: "proxy.example.com"
+  end
+
+  test "X-Forwarded-Host same origin check uses last host in chain" do
+    @server.config.allowed_request_origins = []
+    @server.config.allow_same_origin_as_host = true
+    assert_origin_allowed "http://proxy2.example.com", forwarded_host: "proxy1.example.com, proxy2.example.com"
+    assert_origin_not_allowed "http://proxy1.example.com", forwarded_host: "proxy1.example.com, proxy2.example.com"
+  end
+
+  test "allow same origin with X-Forwarded-Host and non-standard port" do
+    @server.config.allow_same_origin_as_host = true
+    assert_origin_allowed "http://proxy.example.com:3000", forwarded_host: "proxy.example.com:3000"
+    assert_origin_not_allowed "http://proxy.example.com", forwarded_host: "proxy.example.com:3000"
+  end
+
+  test "allow same origin with X-Forwarded-Proto" do
+    @server.config.allowed_request_origins = []
+    @server.config.allow_same_origin_as_host = true
+    assert_origin_allowed "https://#{HOST}", forwarded_proto: "https"
+    assert_origin_not_allowed "http://#{HOST}", forwarded_proto: "https"
+  end
+
   private
-    def assert_origin_allowed(origin)
-      response = connect_with_origin origin
+    def assert_origin_allowed(origin, **options)
+      response = connect_with_origin origin, **options
       assert_equal(-1, response[0])
     end
 
-    def assert_origin_not_allowed(origin)
-      response = connect_with_origin origin
+    def assert_origin_not_allowed(origin, **options)
+      response = connect_with_origin origin, **options
       assert_equal 404, response[0]
     end
 
-    def connect_with_origin(origin)
+    def connect_with_origin(origin, **options)
       response = nil
 
       run_in_eventmachine do
-        response = Connection.new(@server, env_for_origin(origin)).process
+        response = Connection.new(@server, env_for_origin(origin, **options)).process
       end
 
       response
     end
 
-    def env_for_origin(origin)
-      Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket", "SERVER_NAME" => HOST,
+    def env_for_origin(origin, forwarded_host: nil, forwarded_proto: nil)
+      env = Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket", "SERVER_NAME" => HOST,
         "HTTP_HOST" => HOST, "HTTP_ORIGIN" => origin
+      env["HTTP_X_FORWARDED_HOST"] = forwarded_host if forwarded_host
+      env["HTTP_X_FORWARDED_PROTO"] = forwarded_proto if forwarded_proto
+      env
     end
 end

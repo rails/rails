@@ -1027,6 +1027,12 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
       t.integer "test_table_id"
       t.foreign_key "test_schema.test_table"
     end
+    # Create a table in test_schema2 and a table in test_schema with a cross-schema foreign key
+    @connection.create_table("test_schema2.referenced_table")
+    @connection.create_table("test_schema.cross_schema_fk_table") do |t|
+      t.integer "referenced_table_id"
+      t.foreign_key "test_schema2.referenced_table"
+    end
   end
 
   def teardown
@@ -1080,6 +1086,15 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
         assert_includes output, 'add_foreign_key "test_schema.test_table2", "test_schema.test_table"'
         assert_not_includes output, 'add_foreign_key "public.authors", "public.author_addresses"'
       end
+    end
+  end
+
+  def test_schema_dump_with_cross_schema_foreign_key
+    with_dump_schemas(:all) do
+      output = dump_all_table_schema
+
+      assert_includes output, 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema2.referenced_table"'
+      assert_not_includes output, 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema.test_schema2.referenced_table"'
     end
   end
 end

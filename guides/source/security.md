@@ -1307,12 +1307,6 @@ all domains.
 
 [`X-Frame-Options`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
 
-#### `X-XSS-Protection`
-
-A [deprecated legacy
-header](https://owasp.org/www-project-secure-headers/#x-xss-protection), set to
-`0` in Rails by default to disable problematic legacy XSS auditors.
-
 #### `X-Content-Type-Options`
 
 The [`X-Content-Type-Options`][] header is set to `nosniff` in Rails by default.
@@ -1341,7 +1335,6 @@ These headers are configured by default as follows:
 ```ruby
 config.action_dispatch.default_headers = {
   "X-Frame-Options" => "SAMEORIGIN",
-  "X-XSS-Protection" => "0",
   "X-Content-Type-Options" => "nosniff",
   "X-Permitted-Cross-Domain-Policies" => "none",
   "Referrer-Policy" => "strict-origin-when-cross-origin"

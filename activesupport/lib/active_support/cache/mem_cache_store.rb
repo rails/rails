@@ -8,7 +8,6 @@ rescue LoadError => e
 end
 
 require "connection_pool"
-require "delegate"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/numeric/time"
@@ -40,8 +39,6 @@ module ActiveSupport
       end
 
       prepend Strategy::LocalCache
-
-      ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
       # Creates a new Dalli::Client instance with specified addresses and options.
       # If no addresses are provided, we give nil to Dalli::Client, so it uses its fallbacks:
@@ -90,6 +87,9 @@ module ActiveSupport
         # The value "compress: false" prevents duplicate compression within Dalli.
         @mem_cache_options[:compress] = false
         (OVERRIDDEN_OPTIONS - %i(compress)).each { |name| @mem_cache_options.delete(name) }
+        # Set the default serializer for Dalli to prevent warning about
+        # inheriting the default serializer.
+        @mem_cache_options[:serializer] = Marshal
         @data = self.class.build_mem_cache(*(addresses + [@mem_cache_options]))
       end
 
@@ -257,10 +257,8 @@ module ActiveSupport
         # characters properly.
         def normalize_key(key, options)
           key = expand_and_namespace_key(key, options)
-          if key
-            key = key.dup.force_encoding(Encoding::ASCII_8BIT)
-            key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
-          end
+          key = key.b
+          key.gsub!(/[\x00-\x20%\x7F-\xFF]/n) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
           truncate_key(key)
         end
 

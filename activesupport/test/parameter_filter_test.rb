@@ -122,6 +122,12 @@ class ParameterFilterTest < ActiveSupport::TestCase
     end
   end
 
+  test "anchored exact-match regexp filters" do
+    parameter_filter = ActiveSupport::ParameterFilter.new([/^token$/, /\Astate\z/, /password/])
+    result = parameter_filter.filter("token" => "t0k3n", "state" => "abc", "password" => "pass", "user_password" => "pass", "not_secret" => "visible")
+    assert_equal({ "token" => "[FILTERED]", "state" => "[FILTERED]", "password" => "[FILTERED]", "user_password" => "[FILTERED]", "not_secret" => "visible" }, result)
+  end
+
   test "precompile_filters" do
     patterns = [/A.a/, /b.B/i, "ccC", :ddD]
     keys = ["Aaa", "Bbb", "Ccc", "Ddd"]
@@ -131,18 +137,21 @@ class ParameterFilterTest < ActiveSupport::TestCase
 
     precompiled = ActiveSupport::ParameterFilter.precompile_filters([*patterns, *deep_patterns, *procs])
 
-    assert_equal 2, precompiled.grep(Regexp).length
-    assert_equal 2 + procs.length, precompiled.length
+    assert_equal 1, precompiled.grep(Regexp).length
+    assert_equal 1 + procs.length, precompiled.length
 
-    regexp = precompiled.find { |filter| filter.to_s.include?(patterns.first.to_s) }
+    regexp = precompiled.grep(Regexp).first
     keys.each { |key| assert_match regexp, key }
     assert_no_match regexp, keys.first.swapcase
 
-    deep_regexp = precompiled.find { |filter| filter.to_s.include?(deep_patterns.first.to_s) }
-    deep_keys.each { |deep_key| assert_match deep_regexp, deep_key }
-    assert_no_match deep_regexp, deep_keys.first.swapcase
+    deep_keys.each { |deep_key| assert_match regexp, deep_key }
+    assert_no_match regexp, deep_keys.first.swapcase
 
-    assert_not_equal regexp, deep_regexp
     assert_equal procs, precompiled & procs
+  end
+
+  test "precompile_filters eliminate dead patterns" do
+    assert_equal [/token/i], ActiveSupport::ParameterFilter.precompile_filters(["user.token", "token"])
+    assert_equal [/password/i], ActiveSupport::ParameterFilter.precompile_filters(["user_password", "password"])
   end
 end

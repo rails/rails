@@ -1,3 +1,135 @@
+*   Serve static CSS and HTML files with `charset=utf-8` in the Content-Type header.
+
+    Static CSS and HTML files served by `ActionDispatch::Static` now include
+    `; charset=utf-8` in their Content-Type response header, fixing browser
+    encoding issues with CSS files containing non-ASCII characters.
+
+    *Mike Dalessio*
+
+*   Add `query:` and `body:` kwargs to integration test request helpers.
+
+    `params:` was ambiguous for GET requests with `as: :json` — unclear
+    whether params should go in the query string or request body. This
+    caused failures in API-only apps which exclude `Rack::MethodOverride`.
+
+    Use `query:` to explicitly send params in the URL query string (any
+    HTTP method), and `body:` to send an encoded request body. They can
+    be combined.
+
+    `params:` retains existing behavior: GET → query string,
+    other methods → request body.
+
+        get  "/search", query: { q: "rails" }, as: :json
+        post "/search", query: { page: 1 }, body: { filters: {} }, as: :json
+
+    Fixes #57131.
+
+    *Denis Savchuk*
+
+*   Add `ActionDispatch::Request#safe_method?` and `#unsafe_method?`.
+
+    `safe_method?` returns true for HTTP methods that are defined as safe per
+    [RFC 9110 §9.2.1](https://httpwg.org/specs/rfc9110.html#safe.methods):
+    GET, HEAD, OPTIONS, and TRACE. `unsafe_method?` is the inverse.
+
+    ```ruby
+    request.safe_method?   # => true for GET, HEAD, OPTIONS, TRACE
+    request.unsafe_method? # => true for POST, PUT, PATCH, DELETE
+    ```
+
+    *Joseph Hale*
+
+*   Add `content_type` option to HTTP authentication methods.
+
+    `request_http_basic_authentication`, `request_http_digest_authentication`,
+    and `request_http_token_authentication` now accept a `content_type`
+    parameter to control the Content-Type of the 401 response. The default
+    behavior is unchanged.
+
+    ```ruby
+    http_basic_authenticate_with(
+      name: "admin", password: "secret",
+      message: '{"error":"Access denied"}',
+      content_type: "application/json"
+    )
+    ```
+
+    *Iliana Hadzhiatanasova*
+
+*   Add `RAILS_HOST_APP_PATH` environment variable to support editor links in devcontainer/Docker environments.
+
+    When Rails runs inside a container, file paths in error pages are container-internal paths
+    that don't exist on the host machine. Setting `RAILS_HOST_APP_PATH` to the host's application
+    path enables proper translation of container paths to host paths for editor links.
+
+    Example in `.devcontainer/devcontainer.json`:
+
+    ```json
+    {
+      "containerEnv": {
+        "EDITOR": "code",
+        "RAILS_HOST_APP_PATH": "${localWorkspaceFolder}"
+      }
+    }
+    ```
+
+    This allows the "open in editor" feature to work correctly when developing in containers.
+
+    *Victor Cobos*
+
+*   Make `event_backtrace` attribute in `rescue_from_handled.action_controller` notifications the full backtrace, when `config.action_controller.rescue_from_event_backtrace` is `:array`.
+
+    This also affects `action_controller.rescue_from_handled` events.
+
+    *zzak*
+
+*   Avoid loading `ActionController::Live` early in initializer, and introduce
+    `action_controller_live` load hook.
+
+    *Adrianna Chang*
+
+*   Make CSRF header-only protection compatible with local installs using HTTP
+
+    In local installations that don't use HTTPS and where the app is
+    accessed within a local network, requests won't be performed from a
+    secure context. In this case, the browser won't send the
+    `Sec-Fetch-Site` header. This means non-GET requests will be rejected
+    because CSRF protection will fail when using the header-only approach.
+
+    With this change, we allow these requests with missing `Sec-Fetch-Site`
+    headers if:
+
+    - They happen over HTTP
+    - The app is not configured to force SSL
+
+    The `Origin` check always happens in any case.
+
+    *Rosa Gutierrez*
+
+*   Deprecate calling `protect_from_forgery` without specifying a strategy.
+
+    When `protect_from_forgery` is called without the `:with` option, it currently defaults to
+    `:null_session`. This is inconsistent with `config.action_controller.default_protect_from_forgery`,
+    which uses `:exception`.
+
+    A new configuration option `config.action_controller.default_protect_from_forgery_with` has been
+    added to allow applications to configure the default strategy. It currently defaults to `:null_session`
+    for backwards compatibility, but will change to `:exception` in a future version of Rails.
+
+    Applications can opt into the new behavior now by setting:
+
+    ```ruby
+    config.action_controller.default_protect_from_forgery_with = :exception
+    ```
+
+    To silence the deprecation warning without changing behavior, explicitly pass the strategy:
+
+    ```ruby
+    protect_from_forgery with: :null_session
+    ```
+
+    *Said Kaldybaev*
+
 *   Add `ActionDispatch::Request#bearer_token` to extract the bearer token from the Authorization header.
     Bearer tokens are commonly used for API and MCP requests.
 

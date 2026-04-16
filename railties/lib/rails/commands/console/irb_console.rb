@@ -56,6 +56,8 @@ module Rails
 
       def execute
         puts "Reloading..."
+        executor = Rails.application.executor
+        executor.run!(reset: true) if executor.active?
         Rails.application.reloader.reload!
       end
     end

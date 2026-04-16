@@ -515,15 +515,16 @@ module ApplicationTests
     end
 
     test "asset paths should use RAILS_RELATIVE_URL_ROOT by default" do
-      ENV["RAILS_RELATIVE_URL_ROOT"] = "/sub/uri"
-      app_file "app/assets/images/rails.png", "notreallyapng"
-      app_file "app/assets/javascripts/app.js.erb", "var src='<%= image_path('rails.png') %>';"
-      add_to_config "config.assets.precompile = %w{rails.png app.js}"
-      add_to_env_config "development", "config.assets.digest = false"
+      with_env RAILS_RELATIVE_URL_ROOT: "/sub/uri" do
+        app_file "app/assets/images/rails.png", "notreallyapng"
+        app_file "app/assets/javascripts/app.js.erb", "var src='<%= image_path('rails.png') %>';"
+        add_to_config "config.assets.precompile = %w{rails.png app.js}"
+        add_to_env_config "development", "config.assets.digest = false"
 
-      precompile!
+        precompile!
 
-      assert_match "src='/sub/uri/assets/rails.png'", File.read(Dir["#{app_path}/public/assets/app-*.js"].first)
+        assert_match "src='/sub/uri/assets/rails.png'", File.read(Dir["#{app_path}/public/assets/app-*.js"].first)
+      end
     end
 
     test "app:update removes_sprockets" do

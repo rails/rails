@@ -20,8 +20,7 @@ module ApplicationTests
         "db/database_url_db.sqlite3"
       end
 
-      def set_database_url
-        ENV["DATABASE_URL"] = "sqlite3:#{database_url_db_name}"
+      def delete_database_config!
         # ensure it's using the DATABASE_URL
         FileUtils.rm_rf("#{app_path}/config/database.yml")
       end
@@ -42,8 +41,10 @@ module ApplicationTests
 
       test "db:migrate and db:migrate:status with database_url" do
         require "#{app_path}/config/environment"
-        set_database_url
-        db_migrate_and_status database_url_db_name
+        delete_database_config!
+        with_env DATABASE_URL: "sqlite3:#{database_url_db_name}" do
+          db_migrate_and_status database_url_db_name
+        end
       end
 
       test "db:migrate on new db loads schema" do
@@ -131,8 +132,10 @@ module ApplicationTests
       end
 
       test "db:schema:dump with database_url" do
-        set_database_url
-        db_schema_dump
+        delete_database_config!
+        with_env DATABASE_URL: "sqlite3:#{database_url_db_name}" do
+          db_schema_dump
+        end
       end
 
       test "db:schema:dump with env as ruby" do
@@ -257,8 +260,10 @@ module ApplicationTests
 
       test "db:fixtures:load with database_url" do
         require "#{app_path}/config/environment"
-        set_database_url
-        db_fixtures_load database_url_db_name
+        delete_database_config!
+        with_env DATABASE_URL: "sqlite3:#{database_url_db_name}" do
+          db_fixtures_load database_url_db_name
+        end
       end
 
       test "db:fixtures:load with namespaced fixture" do

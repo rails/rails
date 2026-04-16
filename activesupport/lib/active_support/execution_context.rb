@@ -23,6 +23,13 @@ module ActiveSupport
         @store = @stack.pop
         self
       end
+
+      def flush
+        @stack = Array.new(@stack.size) { {} }
+        @store = {}
+        @current_attributes_instances = {}
+        self
+      end
     end
 
     @after_change_callbacks = []
@@ -95,6 +102,10 @@ module ActiveSupport
 
       def clear
         IsolatedExecutionState[:active_support_execution_context] = nil
+      end
+
+      def flush
+        record.flush
       end
 
       def current_attributes_instances

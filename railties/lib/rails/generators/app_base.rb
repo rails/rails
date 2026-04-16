@@ -3,7 +3,6 @@
 require "fileutils"
 require "digest/md5"
 require "rails/version" unless defined?(Rails::VERSION)
-require "open-uri"
 require "tsort"
 require "uri"
 require "rails/generators"
@@ -631,6 +630,9 @@ module Rails
 
           packages << "python-is-python3"
         end
+
+        # ActiveStorage preview support
+        packages << "libvips" unless skip_active_storage?
 
         packages.compact.sort
       end

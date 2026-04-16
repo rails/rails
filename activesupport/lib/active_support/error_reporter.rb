@@ -213,7 +213,7 @@ module ActiveSupport
     # It must return a hash - the middleware stack returns the hash after it has
     # run through all middlewares. A middleware can mutate or replace the hash.
     #
-    #   Rails.error.add_middleware(-> (error, context) { context.merge({ foo: :bar }) })
+    #   Rails.error.add_middleware(-> (error, handled:, severity:, context:, source:) { context.merge({ foo: :bar }) })
     #
     def add_middleware(middleware)
       @context_middlewares.use(middleware)

@@ -29,7 +29,7 @@ require "models/drink_designer"
 require "models/recipe"
 require "models/user_with_invalid_relation"
 require "models/hardback"
-require "models/sharded/comment"
+require "models/sharded"
 require "models/admin"
 require "models/admin/user"
 require "models/user"
@@ -684,12 +684,25 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "id", actual
   end
 
+  def test_through_reflection_association_primary_key_with_composite_key
+    reflection = Sharded::Blog.reflect_on_association(:comments_via_posts)
+    actual = reflection.association_primary_key
+
+    assert_kind_of Array, actual
+    assert_equal ["blog_id", "id"], actual
+  end
+
   def test_belongs_to_reflection_with_query_constraints_infers_correct_foreign_key
     blog_foreign_key = Sharded::Comment.reflect_on_association(:blog).foreign_key
     blog_post_foreign_key = Sharded::Comment.reflect_on_association(:blog_post).foreign_key
 
     assert_equal "blog_id", blog_foreign_key
     assert_equal ["blog_id", "blog_post_id"], blog_post_foreign_key
+  end
+
+  def test_has_many_foreign_key_derived_from_inverse_with_composite_foreign_key
+    reflection = Sharded::BlogPost.reflect_on_association(:comments_with_inverse)
+    assert_equal ["blog_id", "blog_post_id"], reflection.foreign_key
   end
 
   def test_using_query_constraints_warns_about_changing_behavior

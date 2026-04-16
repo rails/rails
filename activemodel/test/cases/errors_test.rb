@@ -98,6 +98,65 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal false, errors.key?(:name), "errors should not have key :name"
   end
 
+  test "where returns errors filtered by attribute" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+    errors.add(:name, :too_short, count: 5)
+    errors.add(:age, :blank)
+
+    name_errors = errors.where(:name)
+    assert_equal 2, name_errors.length
+    assert(name_errors.all? { |e| e.attribute == :name })
+
+    age_errors = errors.where(:age)
+    assert_equal 1, age_errors.length
+    assert_equal :age, age_errors.first.attribute
+  end
+
+  test "where returns errors filtered by attribute and type" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+    errors.add(:name, :too_short, count: 5)
+    errors.add(:name, :invalid)
+
+    result = errors.where(:name, :too_short)
+    assert_equal 1, result.length
+    assert_equal :too_short, result.first.type
+  end
+
+  test "where returns errors filtered by attribute, type, and options" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :too_short, count: 2)
+    errors.add(:name, :too_short, count: 5)
+
+    result = errors.where(:name, :too_short, count: 2)
+    assert_equal 1, result.length
+    assert_equal 2, result.first.options[:count]
+  end
+
+  test "where returns empty array when no match" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+
+    result = errors.where(:age)
+    assert_equal [], result
+
+    result = errors.where(:name, :too_short)
+    assert_equal [], result
+  end
+
+  test "where returns Error objects" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+    errors.add(:name, :too_short, count: 5)
+
+    result = errors.where(:name)
+    assert_not_empty result
+    result.each do |error|
+      assert_kind_of ActiveModel::Error, error
+    end
+  end
+
   test "clear errors" do
     person = Person.new
     person.validate!
@@ -262,11 +321,33 @@ class ErrorsTest < ActiveModel::TestCase
     assert person.errors.added?(:name, :too_long)
   end
 
+  test "added? ignores callback option when provided in check" do
+    person = Person.new
+
+    person.errors.add(:name, :too_long, if: -> { true })
+    assert person.errors.added?(:name, :too_long, if: -> { true })
+  end
+
   test "added? ignores message option" do
     person = Person.new
 
     person.errors.add(:name, :too_long, message: proc { "foo" })
     assert person.errors.added?(:name, :too_long)
+  end
+
+  test "added? ignores message option when provided in check" do
+    person = Person.new
+
+    person.errors.add(:name, :too_long, message: proc { "foo" })
+    assert person.errors.added?(:name, :too_long, message: proc { "foo" })
+  end
+
+  test "added? ignores callback options with other options" do
+    person = Person.new
+
+    person.errors.add(:name, :too_long, count: 25, allow_nil: true)
+    assert person.errors.added?(:name, :too_long, count: 25, allow_nil: true)
+    assert person.errors.added?(:name, :too_long, count: 25)
   end
 
   test "added? detects indifferent if a specific error was added to the object" do
@@ -636,6 +717,36 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["is invalid"], errors.delete(:name)
   end
 
+  test "delete with type removes only errors matching attribute and type" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+    errors.add(:name, :invalid)
+
+    errors.delete(:name, :blank)
+
+    assert_not errors.added?(:name, :blank)
+    assert errors.added?(:name, :invalid)
+  end
+
+  test "delete with type and options removes only exact matches" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :too_short, count: 5)
+    errors.add(:name, :too_short, count: 10)
+
+    errors.delete(:name, :too_short, count: 5)
+
+    assert_equal 1, errors.where(:name, :too_short).size
+    assert errors.added?(:name, :too_short, count: 10)
+  end
+
+  test "delete with type returns deleted messages" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+    errors.add(:name, :invalid)
+
+    assert_equal ["can't be blank"], errors.delete(:name, :blank)
+  end
+
   test "clear removes details" do
     person = Person.new
     person.errors.add(:name, :invalid)
@@ -663,6 +774,47 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.each do |error|
       assert_same person, error.base
     end
+  end
+
+  test "import wraps error as NestedError" do
+    person = Person.new
+    original_error = ActiveModel::Error.new(Person.new, :name, :invalid)
+
+    person.errors.import(original_error)
+
+    assert_equal 1, person.errors.size
+    assert_instance_of ActiveModel::NestedError, person.errors.first
+  end
+
+  test "import retains reference to inner error" do
+    person = Person.new
+    original_error = ActiveModel::Error.new(Person.new, :name, :invalid)
+
+    person.errors.import(original_error)
+
+    assert_equal original_error, person.errors.first.inner_error
+  end
+
+  test "import with attribute override" do
+    person = Person.new
+    original_error = ActiveModel::Error.new(Person.new, :name, :invalid)
+
+    person.errors.import(original_error, attribute: "age")
+
+    imported = person.errors.first
+    assert_equal :age, imported.attribute
+    assert_equal :invalid, imported.type
+  end
+
+  test "import with type override" do
+    person = Person.new
+    original_error = ActiveModel::Error.new(Person.new, :name, :invalid)
+
+    person.errors.import(original_error, type: "blank")
+
+    imported = person.errors.first
+    assert_equal :name, imported.attribute
+    assert_equal :blank, imported.type
   end
 
   test "merge errors" do
@@ -722,10 +874,27 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal({}, errors.details)
   end
 
+  test "to_hash with full_messages" do
+    person = Person.new
+    person.errors.add(:name, "cannot be blank")
+
+    assert_equal({ name: ["name cannot be blank"] }, person.errors.to_hash(true))
+  end
+
+  test "uniq! removes duplicate errors" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+    errors.add(:name, :invalid)
+
+    assert_equal 2, errors.size
+    errors.uniq!
+    assert_equal 1, errors.size
+  end
+
   test "inspect" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:base)
 
-    assert_equal(%(#<ActiveModel::Errors [#{errors.first.inspect}]>), errors.inspect)
+    assert_match(/\A#<ActiveModel::Errors:0x[0-9a-f]+ @errors=\[#<ActiveModel::Error/, errors.inspect)
   end
 end

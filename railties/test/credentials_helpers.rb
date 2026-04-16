@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rails"
-
 module CredentialsHelpers
   private
     def write_credentials_override(name, with_key: true)

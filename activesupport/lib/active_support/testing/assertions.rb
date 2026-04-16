@@ -348,6 +348,9 @@ module ActiveSupport
             lines[0] = lines[0].byteslice(location[1]...)
             source = lines.join.strip
 
+            # Strip stabby lambda from Ruby 4.1+
+            source = source.sub(/^->\s*/, "")
+
             # We ignore procs defined with do/end as they are likely multi-line anyway.
             if source.start_with?("{")
               source.delete_suffix!("}")

@@ -2,11 +2,13 @@
 
 require "isolation/abstract_unit"
 require "rack/test"
+require "env_helpers"
 
 module ApplicationTests
   class AssetDebuggingTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
+    include EnvHelpers
 
     def setup
       build_app(initializers: true)
@@ -30,8 +32,6 @@ module ApplicationTests
         class PostsController < ActionController::Base
         end
       RUBY
-
-      ENV["RAILS_ENV"] = "production"
     end
 
     def teardown
@@ -40,18 +40,19 @@ module ApplicationTests
 
     test "assets are concatenated when debug is off and compile is off either if debug_assets param is provided" do
       # config.assets.debug and config.assets.compile are false for production environment
-      ENV["RAILS_ENV"] = "production"
-      rails "assets:precompile", "--trace"
+      with_rails_env("production") do
+        rails "assets:precompile", "--trace"
 
-      # Load app env
-      app "production"
+        # Load app env
+        app "production"
 
-      class ::PostsController < ActionController::Base ; end
+        class ::PostsController < ActionController::Base ; end
 
-      # the debug_assets params isn't used if compile is off
-      get("/posts?debug_assets=true", {}, "HTTPS" => "on")
-      assert_match(/<script src="\/assets\/application-([0-z]+)\.js"><\/script>/, last_response.body)
-      assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
+        # the debug_assets params isn't used if compile is off
+        get("/posts?debug_assets=true", {}, "HTTPS" => "on")
+        assert_match(/<script src="\/assets\/application-([0-z]+)\.js"><\/script>/, last_response.body)
+        assert_no_match(/<script src="\/assets\/xmlhr-([0-z]+)\.js"><\/script>/, last_response.body)
+      end
     end
 
     test "assets are debug when compile is true is on and debug_assets params is true" do

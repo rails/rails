@@ -142,7 +142,7 @@ module ActiveRecord
           recorder.reverting = @reverting
           yield recorder.delegate.update_table_definition(table_name, recorder)
           commands = recorder.commands
-          @commands << [:change_table, [table_name], -> t { bulk_change_table(table_name, commands) }]
+          @commands << [:change_table, [table_name], -> t { bulk_change_table(t.name, commands.reverse) }]
         else
           yield delegate.update_table_definition(table_name, self)
         end
@@ -257,8 +257,10 @@ module ActiveRecord
         end
 
         def invert_rename_column(args)
-          table_name, old_name, new_name = args
-          [:rename_column, [table_name, new_name, old_name]]
+          table_name, old_name, new_name, options = args
+          args = [table_name, new_name, old_name]
+          args << options if options
+          [:rename_column, args]
         end
 
         def invert_remove_index(args)

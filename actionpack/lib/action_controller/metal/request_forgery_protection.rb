@@ -128,6 +128,13 @@ module ActionController # :nodoc:
       delegate :forgery_protection_trusted_origins, :forgery_protection_trusted_origins=, to: :config
       self.forgery_protection_trusted_origins = []
 
+      # Controls the default strategy used when calling protect_from_forgery without arguments.
+      # Defaults to :null_session for backwards compatibility, but will change to :exception
+      # in a future version of Rails.
+      singleton_class.delegate :default_protect_from_forgery_with, :default_protect_from_forgery_with=, to: :config
+      delegate :default_protect_from_forgery_with, :default_protect_from_forgery_with=, to: :config
+      self.default_protect_from_forgery_with = :null_session
+
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end
@@ -165,9 +172,13 @@ module ActionController # :nodoc:
       #
       #     If you need to add verification to the beginning of the callback chain,
       #     use `prepend: true`.
-      # *   `:with` - Set the method to handle unverified request. Note if
-      #     `default_protect_from_forgery` is true, Rails call protect_from_forgery
-      #     with `with :exception`.
+      # *   `:with` - Set the method to handle unverified request. If not specified,
+      #     defaults to the value of `config.action_controller.default_protect_from_forgery_with`,
+      #     which is `:null_session` by default but will change to `:exception` in a
+      #     future version of Rails. You can opt into the new behavior now by setting
+      #     `config.action_controller.default_protect_from_forgery_with = :exception`.
+      #     Note if `default_protect_from_forgery` is true, Rails calls
+      #     protect_from_forgery with `with: :exception`.
       #
       #
       # Built-in unverified request handling methods are:
@@ -176,7 +187,8 @@ module ActionController # :nodoc:
       #     exception.
       # *   `:reset_session` - Resets the session.
       # *   `:null_session` - Provides an empty session during request but doesn't
-      #     reset it completely. Used as default if `:with` option is not specified.
+      #     reset it completely. Currently used as default if `:with` option is not
+      #     specified, but this will change to `:exception` in a future version of Rails.
       #
       #
       # You can also implement custom strategy classes for unverified request
@@ -265,7 +277,22 @@ module ActionController # :nodoc:
       def protect_from_forgery(options = {})
         options = options.reverse_merge(prepend: false)
 
-        self.forgery_protection_strategy = protection_method_class(options[:with] || :null_session)
+        strategy = if options.key?(:with)
+          options[:with]
+        else
+          if default_protect_from_forgery_with == :null_session
+            ActionController.deprecator.warn(<<~MSG.squish)
+              Calling `protect_from_forgery` without specifying a strategy is deprecated
+              and will default to `with: :exception` in a future version of Rails. To opt into the new
+              behavior now, use `config.action_controller.default_protect_from_forgery_with = :exception`.
+              To silence this warning without changing behavior, explicitly pass
+              `protect_from_forgery with: :null_session`.
+            MSG
+          end
+          default_protect_from_forgery_with
+        end
+
+        self.forgery_protection_strategy = protection_method_class(strategy)
         self.request_forgery_protection_token ||= :authenticity_token
 
         self.csrf_token_storage_strategy = storage_strategy(options[:store] || SessionStore.new)
@@ -285,10 +312,13 @@ module ActionController # :nodoc:
       # Turn off request forgery protection. This is a wrapper for:
       #
       #     skip_before_action :verify_request_for_forgery_protection
+      #     skip_after_action :append_sec_fetch_site_to_vary_header
       #
       # See `skip_before_action` for allowed options.
       def skip_forgery_protection(options = {})
-        skip_before_action :verify_request_for_forgery_protection, options.reverse_merge(raise: false)
+        options = options.reverse_merge(raise: false)
+        skip_before_action :verify_request_for_forgery_protection, options
+        skip_after_action :append_sec_fetch_site_to_vary_header, options
       end
 
       private
@@ -605,8 +635,16 @@ module ActionController # :nodoc:
       end
 
       def verified_via_header_only?
-        SAFE_FETCH_SITES.include?(sec_fetch_site_value) ||
-          (sec_fetch_site_value == "cross-site" && origin_trusted?)
+        case sec_fetch_site_value
+        when "same-origin", "same-site"
+          true
+        when "cross-site"
+          origin_trusted?
+        when nil
+          !request.ssl? && !ActionDispatch::Http::URL.secure_protocol
+        else
+          false
+        end
       end
 
       def verified_with_legacy_token?
@@ -651,7 +689,9 @@ module ActionController # :nodoc:
 
       # Returns the normalized value of the Sec-Fetch-Site header.
       def sec_fetch_site_value # :doc:
-        request.headers["Sec-Fetch-Site"].to_s.downcase.presence
+        if value = request.headers["Sec-Fetch-Site"]
+          value.to_s.downcase.presence
+        end
       end
 
       # Checks if any of the authenticity tokens from the request are valid.

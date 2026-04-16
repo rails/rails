@@ -31,6 +31,7 @@ dl dd .interstitial {
   spurious blank area below with the box background. */
   p {
     margin-bottom: 0.75em;
+    overflow: hidden;
 
     &:last-child {
       margin-bottom: 0;

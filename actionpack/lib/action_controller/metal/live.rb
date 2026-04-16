@@ -91,7 +91,8 @@ module ActionController
   module Live
     extend ActiveSupport::Concern
 
-    mattr_accessor :live_streaming_excluded_keys, default: []
+    @live_streaming_excluded_keys = []
+    singleton_class.attr_accessor :live_streaming_excluded_keys
 
     included do
       class_attribute :live_streaming_excluded_keys, instance_accessor: false, default: Live.live_streaming_excluded_keys
@@ -230,6 +231,8 @@ module ActionController
             raise ClientDisconnected, "client disconnected"
           end
         end
+
+        string.bytesize
       end
 
       # Same as `write` but automatically include a newline at the end of the string.
@@ -308,6 +311,9 @@ module ActionController
       t1 = Thread.current
       locals = t1.keys.map { |key| [key, t1[key]] }
 
+      # The IsolatedExecutionState context may be a Fiber, not a Thread
+      context = ActiveSupport::IsolatedExecutionState.context
+
       error = nil
       # This processes the action in a child thread. It lets us return the response
       # code and headers back up the Rack stack, and still process the body in
@@ -320,7 +326,7 @@ module ActionController
           # from the main thread to the child thread. :'(
           locals.each { |k, v| t2[k] = v }
 
-          ActiveSupport::IsolatedExecutionState.share_with(t1, except: self.class.live_streaming_excluded_keys) do
+          ActiveSupport::IsolatedExecutionState.share_with(context, except: self.class.live_streaming_excluded_keys) do
             super(name)
           rescue => e
             if @_response.committed?
@@ -379,7 +385,7 @@ module ActionController
     #         stream.write "#{subscriber.email_address},#{subscriber.updated_at}\n"
     #       end
     #     end
-    def send_stream(filename:, disposition: "attachment", type: nil)
+    def send_stream(filename:, disposition: "attachment", type: nil, &block)
       payload = { filename: filename, disposition: disposition, type: type }
       ActiveSupport::Notifications.instrument("send_stream.action_controller", payload) do
         response.headers["Content-Type"] =
@@ -401,7 +407,7 @@ module ActionController
       # fact that Rack isn't based around IOs and we need to use a thread to stream
       # data from the response bodies. Nobody should call this method except in Rails
       # internals. Seriously!
-      def new_controller_thread # :nodoc:
+      def new_controller_thread(&block) # :nodoc:
         ActionController::Live.live_thread_pool_executor.post do
           t2 = Thread.current
           t2.abort_on_exception = true
@@ -429,5 +435,7 @@ module ActionController
           "#{message}\n\n"
         end
       end
+
+      ActiveSupport.run_load_hooks(:action_controller_live, self)
   end
 end

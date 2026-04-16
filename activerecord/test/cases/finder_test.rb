@@ -1166,7 +1166,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  def last_with_at_least_query_constraints
+  def test_last_with_at_least_query_constraints
     ordered_edge = Class.new(Edge) do
       query_constraints "source_id"
     end
@@ -1758,7 +1758,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_id_with_conditions_with_or
     assert_nothing_raised do
-      Post.where("posts.id <= 3 OR posts.#{QUOTED_TYPE} = 'Post'").find([1, 2, 3])
+      Post.where("posts.id <= 3 OR posts.#{ARTest::QUOTED_TYPE} = 'Post'").find([1, 2, 3])
     end
   end
 

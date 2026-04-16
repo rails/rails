@@ -17,18 +17,8 @@ module SecureRandom
   #
   #   p SecureRandom.base58 # => "4kUgL2pdQMSCQtjE"
   #   p SecureRandom.base58(24) # => "77TMHrHJFvFDwodq8w7Ev2m7"
-  if SecureRandom.method(:alphanumeric).parameters.size == 2 # Remove check when Ruby 3.3 is the minimum supported version
-    def self.base58(n = 16)
-      alphanumeric(n, chars: BASE58_ALPHABET)
-    end
-  else
-    def self.base58(n = 16)
-      SecureRandom.random_bytes(n).unpack("C*").map do |byte|
-        idx = byte % 64
-        idx = SecureRandom.random_number(58) if idx >= 58
-        BASE58_ALPHABET[idx]
-      end.join
-    end
+  def self.base58(n = 16)
+    alphanumeric(n, chars: BASE58_ALPHABET)
   end
 
   # SecureRandom.base36 generates a random base36 string in lowercase.
@@ -42,18 +32,8 @@ module SecureRandom
   #
   #   p SecureRandom.base36 # => "4kugl2pdqmscqtje"
   #   p SecureRandom.base36(24) # => "77tmhrhjfvfdwodq8w7ev2m7"
-  if SecureRandom.method(:alphanumeric).parameters.size == 2 # Remove check when Ruby 3.3 is the minimum supported version
-    def self.base36(n = 16)
-      alphanumeric(n, chars: BASE36_ALPHABET)
-    end
-  else
-    def self.base36(n = 16)
-      SecureRandom.random_bytes(n).unpack("C*").map do |byte|
-        idx = byte % 64
-        idx = SecureRandom.random_number(36) if idx >= 36
-        BASE36_ALPHABET[idx]
-      end.join
-    end
+  def self.base36(n = 16)
+    alphanumeric(n, chars: BASE36_ALPHABET)
   end
 
   # SecureRandom.base32 generates a random Crockford base32 string in uppercase.
@@ -67,17 +47,7 @@ module SecureRandom
   #
   #   p SecureRandom.base32 # => "PAK1NG78CM1HJ44A"
   #   p SecureRandom.base32(24) # => "BN9EAB8RG9BNTTC9BX7P5JGJ"
-  if SecureRandom.method(:alphanumeric).parameters.size == 2 # Remove check when Ruby 3.3 is the minimum supported version
-    def self.base32(n = 16)
-      alphanumeric(n, chars: BASE32_ALPHABET)
-    end
-  else
-    def self.base32(n = 16)
-      SecureRandom.random_bytes(n).unpack("C*").map do |byte|
-        idx = byte % 64
-        idx = SecureRandom.random_number(32) if idx >= 32
-        BASE32_ALPHABET[idx]
-      end.join
-    end
+  def self.base32(n = 16)
+    alphanumeric(n, chars: BASE32_ALPHABET)
   end
 end

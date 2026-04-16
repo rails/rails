@@ -782,6 +782,18 @@ module ActiveRecord
     #   You can also pass an SQL string if you need more control on the return values
     #   (for example, <tt>returning: Arel.sql("id, name as new_name")</tt>).
     #
+    # [:unique_by]
+    #   (PostgreSQL and SQLite only) By default rows are considered to be unique
+    #   by every unique index on the table.
+    #
+    #   To check uniqueness according to just one unique index pass <tt>:unique_by</tt>.
+    #
+    #   Unique indexes can be identified by columns or name:
+    #
+    #     unique_by: :isbn
+    #     unique_by: %i[ author_id name ]
+    #     unique_by: :index_books_on_isbn
+    #
     # [:record_timestamps]
     #   By default, automatic setting of timestamp columns is controlled by
     #   the model's <tt>record_timestamps</tt> config, matching typical
@@ -807,8 +819,8 @@ module ActiveRecord
     #     { id: 1, title: "Rework", author: "David" },
     #     { id: 1, title: "Eloquent Ruby", author: "Russ" }
     #   ])
-    def insert_all!(attributes, returning: nil, record_timestamps: nil)
-      InsertAll.execute(self, attributes, on_duplicate: :raise, returning: returning, record_timestamps: record_timestamps)
+    def insert_all!(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
+      InsertAll.execute(self, attributes, on_duplicate: :raise, returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
     end
 
     # Updates or inserts (upserts) a single record into the database in a
@@ -1299,7 +1311,7 @@ module ActiveRecord
       readonly_value
     end
 
-    def values
+    def values # :nodoc:
       @values.dup
     end
 

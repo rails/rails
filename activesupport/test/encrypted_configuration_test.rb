@@ -133,13 +133,14 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_raise(KeyError) { @credentials.something! }
   end
 
-  test "inspect does not show unencrypted attributes" do
+  test "inspect does not show unencrypted attributes but shows keys" do
     secret = "something secret"
     @credentials.write({ secret: secret }.to_yaml)
     @credentials.config
 
     assert_no_match(/#{secret}/, @credentials.inspect)
-    assert_match(/\A#<ActiveSupport::EncryptedConfiguration:0x[0-9a-f]+>\z/, @credentials.inspect)
+    assert_match(/keys=\[:secret\]/, @credentials.inspect)
+    assert_match(/\A#<ActiveSupport::EncryptedConfiguration:0x[0-9a-f]+ keys=\[.*\]>\z/, @credentials.inspect)
   end
 
   test "require key" do

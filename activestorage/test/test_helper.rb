@@ -11,6 +11,7 @@ require "active_support/test_case"
 require "active_support/core_ext/object/try"
 require "active_support/testing/autorun"
 require "image_processing/mini_magick"
+require "webmock/minitest"
 
 require "active_support/current_attributes/test_helper"
 require "active_record/testing/query_assertions"
@@ -22,6 +23,8 @@ ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 ActiveStorage::FixtureSet.file_fixture_path = File.expand_path("fixtures/files", __dir__)
+
+WebMock.disable!
 
 class ActiveSupport::TestCase
   self.file_fixture_path = ActiveStorage::FixtureSet.file_fixture_path

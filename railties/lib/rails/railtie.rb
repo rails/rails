@@ -3,7 +3,9 @@
 require "rails/initializable"
 require "active_support/descendants_tracker"
 require "active_support/inflector"
+require "active_support/inspect_backport"
 require "active_support/core_ext/module/introspection"
+require "active_support/logger"
 
 module Rails
   # +Rails::Railtie+ is the core of the \Rails framework and provides
@@ -199,6 +201,42 @@ module Rails
         super
       end
 
+      def load_hook_guard_message_for(component) # :nodoc:
+        <<~MSG
+          #{component.inspect} was loaded before application initialization.
+          Prematurely executing load hooks will slow down your boot time
+          and could cause conflicts with the load order of your application.
+          Please wrap your code with an on_load hook:
+
+            ActiveSupport.on_load(#{component.inspect}) do
+              # your code here
+            end
+        MSG
+      end
+
+      # Adds a load hook that makes sure the application is initialized before
+      # the a lazy loaded component is loaded. The load hook will avise how to use
+      # load hooks to defer code until the application is fully loaded.
+      def guard_load_hooks(*components)
+        components.each do |component|
+          ActiveSupport.on_load(component) do
+            if Rails.try(:application) && !Rails.configuration.eager_load && !Rails.application.initialized?
+              case Rails.configuration.action_on_early_load_hook
+              when :log
+                (Rails.logger || ActiveSupport::Logger.new($stdout)).warn <<~MSG
+                  #{Railtie.load_hook_guard_message_for(component)}
+
+                  Called from:
+                  #{caller.join("\n")}
+                MSG
+              when :raise
+                raise LoadError, Railtie.load_hook_guard_message_for(component)
+              end
+            end
+          end
+        end
+      end
+
       protected
         attr_reader :load_index
 
@@ -247,9 +285,7 @@ module Rails
       end
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}>"
-    end
+    ActiveSupport::InspectBackport.apply(self)
 
     def configure(&block) # :nodoc:
       instance_eval(&block)
@@ -289,6 +325,10 @@ module Rails
       end
 
     private
+      def instance_variables_to_inspect
+        [].freeze
+      end
+
       # run `&block` in every registered block in `#register_block_for`
       def each_registered_block(type, &block)
         klass = self.class

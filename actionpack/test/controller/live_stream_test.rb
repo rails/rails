@@ -575,6 +575,26 @@ module ActionController
       assert_stream_closed
     end
 
+    def test_isolated_state_with_isolation_level_fiber
+      previous_level = ActiveSupport::IsolatedExecutionState.isolation_level
+      ActiveSupport::IsolatedExecutionState.isolation_level = :fiber
+
+      @controller.tc = self
+      ActiveSupport::IsolatedExecutionState[:raw_isolated_state] = "buffy"
+
+      get :raw_isolated_state
+      assert_equal "buffy".inspect, response.body
+      assert_stream_closed
+
+      ActiveSupport::IsolatedExecutionState.clear
+
+      get :isolated_state
+      assert_equal nil.inspect, response.body
+      assert_stream_closed
+    ensure
+      ActiveSupport::IsolatedExecutionState.isolation_level = previous_level
+    end
+
     def test_connected_to_stack_not_inherited
       original = @controller.class.live_streaming_excluded_keys
       @controller.class.live_streaming_excluded_keys = [:active_record_connected_to_stack]
@@ -731,6 +751,28 @@ module ActionController
     def test_nil_callback
       buf = ActionController::Live::Buffer.new nil
       assert buf.call_on_error
+    end
+
+    def test_write_returns_bytesize
+      response = ActionController::Live::Response.new
+      response.request = ActionDispatch::Request.empty
+      buf = ActionController::Live::Buffer.new response
+      result = buf.write "foo"
+      assert_equal 3, result
+    end
+
+    def test_write_dups_string_for_io_copy_stream_safety
+      response = ActionController::Live::Response.new
+      response.request = ActionDispatch::Request.empty
+      buf = response.stream
+      sio = StringIO.new("bar")
+      IO.copy_stream(sio, buf)
+      buf.write "baz"
+      buf.close
+
+      body = +""
+      response.each { |chunk| body << chunk }
+      assert_equal "barbaz", body
     end
   end
 end

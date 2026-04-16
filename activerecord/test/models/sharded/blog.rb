@@ -8,5 +8,11 @@
 module Sharded
   class Blog < ActiveRecord::Base
     self.table_name = :sharded_blogs
+
+    has_many :blog_posts
+
+    has_many :comments_via_posts,
+      through: :blog_posts,
+      source: :comments_with_composite_pk
   end
 end

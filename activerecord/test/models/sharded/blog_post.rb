@@ -13,5 +13,14 @@ module Sharded
 
     has_many :blog_post_tags
     has_many :tags, through: :blog_post_tags
+
+    has_many :comments_with_composite_pk,
+      class_name: "Sharded::Comment",
+      primary_key: [:blog_id, :id],
+      foreign_key: [:blog_id, :blog_post_id]
+
+    has_many :comments_with_inverse,
+      class_name: "Sharded::Comment",
+      inverse_of: :blog_post_with_inverse
   end
 end

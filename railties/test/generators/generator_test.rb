@@ -56,8 +56,10 @@ module Rails
         klass = make_builder_class
         generator = klass.start(["new", "blah"])
 
-        switch_env "rvm_ruby_string", "ruby-3.4.0" do
-          assert_equal "ruby-3.4.0", generator.send(:version_manager_ruby_version)
+        switch_env "RBENV_VERSION", nil do
+          switch_env "rvm_ruby_string", "ruby-3.4.0" do
+            assert_equal "ruby-3.4.0", generator.send(:version_manager_ruby_version)
+          end
         end
       end
 
@@ -65,9 +67,14 @@ module Rails
         klass = make_builder_class
         generator = klass.start(["new", "blah"])
 
-        stub_const(Object, :RUBY_ENGINE, "ruby") do
-          Gem.stub(:ruby_version, Gem::Version.new("3.4.0")) do
-            assert_equal "ruby-3.4.0", generator.send(:version_manager_ruby_version)
+
+        switch_env "RBENV_VERSION", nil do
+          switch_env "rvm_ruby_string", nil do
+            stub_const(Object, :RUBY_ENGINE, "ruby") do
+              Gem.stub(:ruby_version, Gem::Version.new("3.4.0")) do
+                assert_equal "ruby-3.4.0", generator.send(:version_manager_ruby_version)
+              end
+            end
           end
         end
       end
@@ -76,9 +83,13 @@ module Rails
         klass = make_builder_class
         generator = klass.start(["new", "blah"])
 
-        stub_const(Object, :RUBY_ENGINE, "ruby") do
-          Gem.stub(:ruby_version, Gem::Version.new("4.0.0.preview2")) do
-            assert_equal "ruby-4.0.0-preview2", generator.send(:version_manager_ruby_version)
+        switch_env "RBENV_VERSION", nil do
+          switch_env "rvm_ruby_string", nil do
+            stub_const(Object, :RUBY_ENGINE, "ruby") do
+              Gem.stub(:ruby_version, Gem::Version.new("4.0.0.preview2")) do
+                assert_equal "ruby-4.0.0-preview2", generator.send(:version_manager_ruby_version)
+              end
+            end
           end
         end
       end
@@ -87,9 +98,13 @@ module Rails
         klass = make_builder_class
         generator = klass.start(["new", "blah"])
 
-        stub_const(Object, :RUBY_ENGINE, "jruby") do
-          stub_const(Object, :RUBY_ENGINE_VERSION, "10.0.2.0") do
-            assert_equal "jruby-10.0.2.0", generator.send(:version_manager_ruby_version)
+        switch_env "RBENV_VERSION", nil do
+          switch_env "rvm_ruby_string", nil do
+            stub_const(Object, :RUBY_ENGINE, "jruby") do
+              stub_const(Object, :RUBY_ENGINE_VERSION, "10.0.2.0") do
+                assert_equal "jruby-10.0.2.0", generator.send(:version_manager_ruby_version)
+              end
+            end
           end
         end
       end

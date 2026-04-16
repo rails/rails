@@ -31,6 +31,7 @@ DEFAULT_APP_FILES = %w(
   app/views/layouts/mailer.html.erb
   app/views/layouts/mailer.text.erb
   app/views/pwa/manifest.json.erb
+  app/views/pwa/offline.html.erb
   app/views/pwa/service-worker.js
   bin/brakeman
   bin/bundler-audit
@@ -833,6 +834,24 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_gitignore_appends_storage_entries_when_active_storage_is_skipped
+    generator [destination_root], ["--skip-active-storage"]
+    run_generator_instance
+
+    assert_file ".gitignore" do |content|
+      assert_match(%r{storage/}, content)
+    end
+  end
+
+  def test_gitignore_does_not_append_storage_entries_when_active_storage_is_skipped_and_database_is_not_sqlite
+    generator [destination_root], ["--skip-active-storage", "--database=postgresql"]
+    run_generator_instance
+
+    assert_file ".gitignore" do |content|
+      assert_no_match(%r{storage/}, content)
+    end
+  end
+
   def test_usage_read_from_file
     assert_called(File, :read, returns: "USAGE FROM FILE") do
       assert_equal "USAGE FROM FILE", Rails::Generators::AppGenerator.desc
@@ -1373,6 +1392,24 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_dockerignore_appends_storage_entries_when_active_storage_is_skipped
+    generator [destination_root], ["--skip-active-storage"]
+    run_generator_instance
+
+    assert_file ".dockerignore" do |content|
+      assert_match(%r{storage/}, content)
+    end
+  end
+
+  def test_dockerignore_does_not_append_storage_entries_when_active_storage_is_skipped_and_database_is_not_sqlite
+    generator [destination_root], ["--skip-active-storage", "--database=postgresql"]
+    run_generator_instance
+
+    assert_file ".dockerignore" do |content|
+      assert_no_match(%r{storage/}, content)
+    end
+  end
+
   def test_dockerfile
     run_generator
 
@@ -1537,7 +1574,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "redis"
 
       expected_redis_config = {
-        "image" => "valkey/valkey:8",
+        "image" => "valkey/valkey:9",
         "restart" => "unless-stopped",
         "volumes" => ["redis-data:/data"]
       }

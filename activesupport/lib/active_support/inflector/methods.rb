@@ -119,7 +119,7 @@ module ActiveSupport
     # The capitalization of the first word can be turned off by setting the
     # +:capitalize+ option to false (default is true).
     #
-    # The trailing '_id' can be kept and capitalized by setting the
+    # The trailing '_id' can be kept by setting the
     # optional parameter +keep_id_suffix+ to true (default is false).
     #
     #   humanize('employee_salary')                  # => "Employee salary"
@@ -190,7 +190,7 @@ module ActiveSupport
     #   titleize('raiders_of_the_lost_ark')                      # => "Raiders Of The Lost Ark"
     #   titleize('string_ending_with_id', keep_id_suffix: true)  # => "String Ending With Id"
     def titleize(word, keep_id_suffix: false)
-      humanize(underscore(word), keep_id_suffix: keep_id_suffix).gsub(/\b(?<!\w['’`()])[a-z]/) do |match|
+      humanize(underscore(word), keep_id_suffix: keep_id_suffix).gsub(/\b(?<!\w['’`()])\p{Lower}/) do |match|
         match.capitalize
       end
     end

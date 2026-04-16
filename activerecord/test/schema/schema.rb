@@ -139,6 +139,7 @@ ActiveRecord::Schema.define do
     t.column :illustrator_visibility, :integer, **default_zero
     t.column :font_size, :integer, **default_zero
     t.column :difficulty, :integer, **default_zero
+    t.column :rating, :float
     t.column :cover, :string, default: "hard"
     t.column :symbol_status, :string, default: "proposed"
     t.string :isbn

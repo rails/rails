@@ -13,6 +13,7 @@ require_relative "../support/config"
 require_relative "../support/connection"
 require_relative "../support/adapter_helper"
 require_relative "../support/load_schema_helper"
+require_relative "../support/postgresql_config"
 
 module ActiveRecord
   # = Active Record Test Case

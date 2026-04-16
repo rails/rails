@@ -553,7 +553,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_calculate_grouped_by_function
-    c = Company.group("UPPER(#{QUOTED_TYPE})").count(:all)
+    c = Company.group("UPPER(#{ARTest::QUOTED_TYPE})").count(:all)
     assert_equal 2, c[nil]
     assert_equal 1, c["DEPENDENTFIRM"]
     assert_equal 5, c["CLIENT"]
@@ -561,7 +561,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_calculate_grouped_by_function_with_table_alias
-    c = Company.group("UPPER(companies.#{QUOTED_TYPE})").count(:all)
+    c = Company.group("UPPER(companies.#{ARTest::QUOTED_TYPE})").count(:all)
     assert_equal 2, c[nil]
     assert_equal 1, c["DEPENDENTFIRM"]
     assert_equal 5, c["CLIENT"]

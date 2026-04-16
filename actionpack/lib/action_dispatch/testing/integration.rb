@@ -184,7 +184,7 @@ module ActionDispatch
       # Returns `true` if the session is mimicking a secure HTTPS request.
       #
       #     if session.https?
-      #       ...
+      #       # ...
       #     end
       def https?
         @https
@@ -198,16 +198,23 @@ module ActionDispatch
       # *   `params`: The HTTP parameters that you want to pass. This may be `nil`, a
       #     Hash, or a String that is appropriately encoded
       #     (`application/x-www-form-urlencoded` or `multipart/form-data`).
+      #     For GET requests, params are sent as query string. For other methods,
+      #     params are sent as the request body. Use `query:` or `body:` for
+      #     explicit control.
       # *   `headers`: Additional headers to pass, as a Hash. The headers will be
       #     merged into the Rack env hash.
       # *   `env`: Additional env to pass, as a Hash. The headers will be merged into
       #     the Rack env hash.
       # *   `xhr`: Set to `true` if you want to make an Ajax request. Adds request
-      #     headers characteristic of XMLHttpRequest e.g. HTTP_X_REQUESTED_WITH. The
+      #     headers characteristic of `XMLHttpRequest`, e.g. `HTTP_X_REQUESTED_WITH`. The
       #     headers will be merged into the Rack env hash.
       # *   `as`: Used for encoding the request with different content type. Supports
       #     `:json` by default and will set the appropriate request headers. The
       #     headers will be merged into the Rack env hash.
+      # *   `query`: Parameters to always send as URL query string, regardless of
+      #     HTTP method. Accepts a Hash or pre-encoded String.
+      # *   `body`: Parameters to always send as the request body, encoded per `as:`.
+      #     Can be combined with `query:` to send both query string and body params.
       #
       #
       # This method is rarely used directly. Use RequestHelpers#get,
@@ -218,17 +225,20 @@ module ActionDispatch
       # This method returns the response status, after performing the request.
       # Furthermore, if this method was called from an ActionDispatch::IntegrationTest
       # object, then that object's `@response` instance variable will point to a
-      # Response object which one can use to inspect the details of the response.
+      # ActionDispatch::TestResponse object which one can use to inspect the details of the response.
       #
       # Example:
+      #
       #     process :get, '/author', params: { since: 201501011400 }
-      def process(method, path, params: nil, headers: nil, env: nil, xhr: false, as: nil)
+      #     process :get, '/author', query: { since: 201501011400 }, as: :json
+      #     process :post, '/search', query: { page: 1 }, body: { q: "rails" }, as: :json
+      def process(method, path, params: nil, headers: nil, env: nil, xhr: false, as: nil, query: nil, body: nil)
         request_encoder = RequestEncoder.encoder(as)
         headers ||= {}
 
-        if method == :get && as == :json && params
-          headers["X-Http-Method-Override"] = "GET"
-          method = :post
+        if query
+          query_string = query.is_a?(String) ? query : Rack::Utils.build_nested_query(query)
+          path = path.include?("?") ? "#{path}&#{query_string}" : "#{path}?#{query_string}"
         end
 
         if path.include?("://")
@@ -245,9 +255,12 @@ module ActionDispatch
 
         hostname, port = host.split(":")
 
+        body_params = body || (method != :get ? params : nil)
+        query_params = body ? nil : (method == :get ? params : nil)
+
         request_env = {
           :method => method,
-          :params => request_encoder.encode_params(params),
+          :params => body_params ? request_encoder.encode_params(body_params) : query_params,
 
           "SERVER_NAME"     => hostname,
           "SERVER_PORT"     => port || (https? ? "443" : "80"),
@@ -260,7 +273,7 @@ module ActionDispatch
           "HTTP_ACCEPT"    => request_encoder.accept_header || accept
         }
 
-        if request_encoder.content_type
+        if body_params && request_encoder.content_type
           request_env["CONTENT_TYPE"] = request_encoder.content_type
         end
 

@@ -119,6 +119,8 @@ module Rails
       @message_verifiers = nil
       @deprecators       = nil
       @ran_load_hooks    = false
+      @revision          = nil
+      @revision_initialized = false
 
       @executor          = Class.new(ActiveSupport::Executor)
       @reloader          = Class.new(ActiveSupport::Reloader)
@@ -294,7 +296,6 @@ module Rails
       yaml = name.is_a?(Pathname) ? name : Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
 
       if yaml.exist?
-        require "erb"
         all_configs    = ActiveSupport::ConfigurationFile.parse(yaml).deep_symbolize_keys
         config, shared = all_configs[env.to_sym], all_configs[:shared]
 
@@ -394,7 +395,36 @@ module Rails
       self.class.isolate_namespace(mod)
     end
 
+
+    # Returns the application's revision (deployment identifier).
+    # Useful for error reporting and deployment verification.
+    #
+    # Set via config.revision (string), ENV["REVISION"], or REVISION file.
+    # Always either a String or +nil+.
+    def revision
+      unless @revision_initialized
+        @revision = begin
+          ENV["REVISION"].presence ||
+            root.join("REVISION").read.strip.presence
+        rescue SystemCallError
+          r, w = IO.pipe
+          success = system("git", "-C", root.to_s, "rev-parse", "HEAD", in: File::NULL, err: File::NULL, out: w)
+          w.close
+          rev = r.read.strip
+          r.close
+          rev if success
+        end
+        @revision_initialized = true
+      end
+      @revision
+    end
+
     ## Rails internal API
+
+    def revision=(rev) # :nodoc:
+      @revision = rev&.to_s
+      @revision_initialized = true
+    end
 
     # This method is called just after an application inherits from Rails::Application,
     # allowing the developer to load classes in lib and use them during application

@@ -94,6 +94,20 @@ class AtomicWriteTest < ActiveSupport::TestCase
     end
   end
 
+  def test_atomic_write_uses_unique_temp_file_names
+    temp_file_paths = []
+    2.times do
+      File.atomic_write(file_name, Dir.pwd) do |file|
+        temp_file_paths << file.path
+      end
+    end
+
+    assert_match(/\.atomic-#{Process.pid}\.file\.tmp\.[0-9a-f]{32}\z/, temp_file_paths[0])
+    assert_not_equal temp_file_paths[0], temp_file_paths[1]
+  ensure
+    File.unlink(file_name) rescue nil
+  end
+
   private
     def file_name
       "atomic-#{Process.pid}.file"

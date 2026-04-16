@@ -127,7 +127,7 @@ You can configure the number of Puma workers by setting the `WEB_CONCURRENCY` en
 ### YJIT
 
 Recent Ruby versions come with a [Just-in-time compiler](https://en.wikipedia.org/wiki/Just-in-time_compilation)
-called [`YJIT`](https://github.com/ruby/ruby/blob/master/doc/yjit/yjit.md).
+called [`YJIT`](https://github.com/ruby/ruby/blob/master/doc/jit/yjit.md).
 
 Without going into too many details, JIT compilers allow to execute code faster, at the expense of using some more
 memory.
@@ -136,10 +136,10 @@ Unless you really cannot spare this extra memory usage, it is highly recommended
 As for Rails 7.2, if your application is running on Ruby 3.3 or superior, YJIT will automatically be enabled by Rails
 by default.
 Older versions of Rails or Ruby have to enable it manually, please refer to the
-[`YJIT documentation`](https://github.com/ruby/ruby/blob/master/doc/yjit/yjit.md) about how to do it.
+[`YJIT documentation`](https://github.com/ruby/ruby/blob/master/doc/jit/yjit.md) about how to do it.
 
 If the extra memory usage is a problem, before entirely disabling YJIT, you can try tuning it to use less memory via
-[the `--yjit-exec-mem-size` configuration](https://github.com/ruby/ruby/blob/master/doc/yjit/yjit.md#decreasing---yjit-exec-mem-size).
+[the `--yjit-mem-size` configuration](https://github.com/ruby/ruby/blob/master/doc/jit/yjit.md#decreasing---yjit-mem-size).
 
 ### Memory Allocators and Configuration
 
