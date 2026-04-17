@@ -855,6 +855,17 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal "published", klass.new.status
   end
 
+  test "enum default resolves to database value for dirty tracking" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, { proposed: 0, written: 1, published: 2 }, default: :written
+    end
+
+    record = klass.new
+    assert_equal "written", record.status
+    assert_equal 1, record.read_attribute_before_type_cast(:status)
+  end
+
   test ":_default is invalid in the new API" do
     error = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do

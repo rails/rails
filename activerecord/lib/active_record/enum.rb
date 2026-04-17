@@ -235,6 +235,15 @@ module ActiveRecord
         detect_enum_conflict!(name, name)
         detect_enum_conflict!(name, "#{name}=")
 
+        if options.key?(:default)
+          default_label = options[:default]
+          if values.respond_to?(:each_pair)
+            options[:default] = ActiveSupport::HashWithIndifferentAccess.new(values)[default_label]
+          else
+            options[:default] = values.index { |v| v.to_s == default_label.to_s }
+          end
+        end
+
         attribute(name, **options)
 
         decorate_attributes([name]) do |_name, subtype|

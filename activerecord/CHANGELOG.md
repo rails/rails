@@ -1,3 +1,25 @@
+*   Fix `enum` with `default:` preventing scoped association `.build` from applying scope values.
+
+    When an enum declared a `default:`, building a record through a scoped `has_many`
+    (e.g., `has_many :write_posts, -> { write }`) would silently ignore the scope's
+    value and use the enum default instead.
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      enum :action, { write: 0, read: 1 }, default: :read
+    end
+
+    class User < ActiveRecord::Base
+      has_many :write_posts, -> { write }, class_name: "Post"
+    end
+
+    user = User.create!
+    post = user.write_posts.build
+    post.action # => "write" (was incorrectly "read")
+    ```
+
+    *Song Huang*
+
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be
