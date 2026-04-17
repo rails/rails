@@ -28,16 +28,6 @@ NOTE: Active Job is an interface, not a background job execution engine. It does
 Creating Jobs
 -------------
 
-One of the most common jobs in a modern web application is sending emails to users. Active Job can do this outside of the request-response cycle, so the user doesn't have to wait on it. Active Job is integrated with Action Mailer so you can easily send emails asynchronously:
-
-```ruby
-# If you want to send the email now use #deliver_now
-UserMailer.welcome(@user).deliver_now
-
-# If you want to send the email asynchronously use #deliver_later
-UserMailer.welcome(@user).deliver_later
-```
-
 This section provides a step-by-step guide for defining a job Ruby class and then using the `perform_*` method to enqueue work to be executed in the background.
 
 ### Defining a Job
@@ -100,6 +90,8 @@ end
 
 Once you have defined a job class with a `perform` method, you'd typically call it using [`perform_later`][] to enqueue the work to be executed on a queuing backend. Or use [`perform_now`][] if you want the job to execute immediately without queueing. Both `perform_later` and `perform_now` call `perform` under the hood.
 
+In the examples below, the methods can be called from anywhere in your Rails application, most commonly from controllers, models, or other jobs.
+
 To run a job immediately without enqueuing it:
 
 ```ruby
@@ -129,6 +121,20 @@ Since both `perform_now` and `perform_later` forward their arguments to `perform
 ```ruby
 GuestsCleanupJob.perform_later(guest1, guest2, filter: "some_filter")
 ```
+
+#### Example: Sending Email
+
+One of the most common jobs in a modern web application is sending emails to users. Active Job can do this outside of the request-response cycle, so the user doesn't have to wait on it. Active Job is integrated with Action Mailer so you can easily send emails asynchronously:
+
+```ruby
+# If you want to send the email now use #deliver_now
+UserMailer.welcome(@user).deliver_now
+
+# If you want to send the email asynchronously use #deliver_later
+UserMailer.welcome(@user).deliver_later
+```
+
+The `deliver_now` and `deliver_later` methods are Action Mailer's counterparts to `perform_now` and `perform_later`. Under the hood, `deliver_later` works by enqueuing an `ActionMailer::MailDeliveryJob` — a built-in Active Job job that Rails provides — which goes through the same queuing pipeline as any job you define yourself, and will eventually call the `perform` method in your Job class.
 
 [`perform_now`]: https://api.rubyonrails.org/classes/ActiveJob/Execution.html#method-i-perform_now
 [`perform_later`]:
