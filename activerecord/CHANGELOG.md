@@ -1,3 +1,15 @@
+*   Raise `DatabaseNotManagedError` when `db:migrate` detects existing tables
+    but no `schema_migrations` table.
+
+    Previously, running `db:migrate` on a database that had tables but was
+    missing the `schema_migrations` table would silently load `schema.rb`,
+    dropping and recreating all tables, causing data loss. Now raises an
+    error with actionable guidance instead.
+
+    Fixes #56755.
+
+    *Denis Savchuk*
+
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be

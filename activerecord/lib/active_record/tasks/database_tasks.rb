@@ -666,15 +666,22 @@ module ActiveRecord
         def initialize_database(db_config)
           with_temporary_pool(db_config) do
             begin
-              database_already_initialized = migration_connection_pool.schema_migration.table_exists?
+              tables = migration_connection_pool.with_connection { |conn| conn.tables }
             rescue ActiveRecord::NoDatabaseError
               create(db_config)
               retry
             end
 
+            schema_migration_table = migration_connection_pool.schema_migration.table_name
+            database_already_initialized = tables.include?(schema_migration_table)
+
             unless database_already_initialized
               schema_dump_path = schema_dump_path(db_config)
               if schema_dump_path && File.exist?(schema_dump_path)
+                rails_tables = [schema_migration_table, "ar_internal_metadata"]
+                if (tables - rails_tables).any?
+                  raise DatabaseNotManagedError.new(db_config)
+                end
                 load_schema(db_config)
               end
             end

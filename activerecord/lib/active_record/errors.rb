@@ -370,6 +370,27 @@ module ActiveRecord
   class DatabaseAlreadyExists < StatementInvalid
   end
 
+  # Raised when db:migrate detects that the database contains tables but is
+  # missing the schema_migrations table, which would cause schema.rb to be
+  # loaded and potentially destroy existing data.
+  class DatabaseNotManagedError < ActiveRecordError
+    def initialize(db_config = nil)
+      db_name = db_config&.database
+      if db_name
+        super(<<~MSG.squish)
+          Unable to migrate database '#{db_name}': the database already contains
+          tables but is missing the `schema_migrations` table. Running `db:migrate`
+          in this state would load `schema.rb` and could destroy existing data.
+          To resolve this, either run `bin/rails db:schema:load` if this is a new
+          database, or manually create the `schema_migrations` table and register
+          already-applied migration versions.
+        MSG
+      else
+        super
+      end
+    end
+  end
+
   # Raised when PostgreSQL returns 'cached plan must not change result type' and
   # we cannot retry gracefully (e.g. inside a transaction)
   class PreparedStatementCacheExpired < StatementInvalid
