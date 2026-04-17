@@ -1,4 +1,5 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON
+<https://guides.rubyonrails.org>.**
 
 Active Job Basics
 =================
@@ -18,17 +19,28 @@ After reading this guide, you will know:
 What is Active Job?
 -------------------
 
-The Active Job Rails framework allows you to declare background jobs and
-execute them on a queuing backend. It provides a consistent, high-level interface for common asynchronous tasks such as sending emails, processing data, generating reports, and running periodic maintenance work like data clean-up or billing.
+The Active Job Rails framework allows you to declare background jobs and execute
+them on a queuing backend. It provides a consistent, high-level interface for
+common asynchronous tasks such as sending emails, processing data, generating
+reports, and running periodic maintenance work like data clean-up or billing.
 
-The goal of background jobs is to move long-running or non-critical work out of the HTTP request-response cycle and into a background queue (such as the default Solid Queue), and keep the web requests fast and responsive. This separation allows applications to perform work asynchronously, scale background processing independently, and execute multiple tasks in parallel without blocking user interactions.
+The goal of background jobs is to move long-running or non-critical work out of
+the HTTP request-response cycle and into a background queue (such as the default
+Solid Queue), and keep the web requests fast and responsive. This separation
+allows applications to perform work asynchronously, scale background processing
+independently, and execute multiple tasks in parallel without blocking user
+interactions.
 
-NOTE: Active Job is an interface, not a background job execution engine. It does not run jobs on its own, it needs a persistent queuing backend (such as Solid Queue) to process jobs reliably in the background.
+NOTE: Active Job is an interface, not a background job execution engine. It does
+not run jobs on its own, it needs a persistent queuing backend (such as Solid
+Queue) to process jobs reliably in the background.
 
 Creating Jobs
 -------------
 
-This section provides a step-by-step guide for defining a job Ruby class and then using the `perform_*` method to enqueue work to be executed in the background.
+This section provides a step-by-step guide for defining a job Ruby class and
+then using the `perform_*` method to enqueue work to be executed in the
+background.
 
 ### Defining a Job
 
@@ -57,12 +69,16 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-Note that you can define the `perform` method inside a job class with as many arguments as you want.
+Note that you can define the `perform` method inside a job class with as many
+arguments as you want.
 
 If your application uses a custom abstract job base class instead of
-`ApplicationJob`, you can use the `--parent` option with the generator. The parent class must itself inherit from `ApplicationJob`. This can be useful for grouping related functionality in one place.
+`ApplicationJob`, you can use the `--parent` option with the generator. The
+parent class must itself inherit from `ApplicationJob`. This can be useful for
+grouping related functionality in one place.
 
-For example, given a custom abstract job class using [queue_as](https://api.rubyonrails.org/classes/ActiveJob/QueueName/ClassMethods.html#method-i-queue_as):
+For example, given a custom abstract job class using
+[queue_as](https://api.rubyonrails.org/classes/ActiveJob/QueueName/ClassMethods.html#method-i-queue_as):
 
 ```ruby
 class PaymentJob < ApplicationJob
@@ -88,9 +104,14 @@ end
 
 ### Calling the `perform_*` Methods
 
-Once you have defined a job class with a `perform` method, you'd typically call it using [`perform_later`][] to enqueue the work to be executed on a queuing backend. Or use [`perform_now`][] if you want the job to execute immediately without queueing. Both `perform_later` and `perform_now` call `perform` under the hood.
+Once you have defined a job class with a `perform` method, you'd typically call
+it using [`perform_later`][] to enqueue the work to be executed on a queuing
+backend. Or use [`perform_now`][] if you want the job to execute immediately
+without queueing. Both `perform_later` and `perform_now` call `perform` under
+the hood.
 
-In the examples below, the methods can be called from anywhere in your Rails application, most commonly from controllers, models, or other jobs.
+In the examples below, the methods can be called from anywhere in your Rails
+application, most commonly from controllers, models, or other jobs.
 
 To run a job immediately without enqueuing it:
 
@@ -116,7 +137,9 @@ To enqueue a job to be performed one week from now:
 GuestsCleanupJob.set(wait: 1.week).perform_later(guest)
 ```
 
-Since both `perform_now` and `perform_later` forward their arguments to `perform`, you can pass as many arguments as defined in `perform`, including keyword arguments:
+Since both `perform_now` and `perform_later` forward their arguments to
+`perform`, you can pass as many arguments as defined in `perform`, including
+keyword arguments:
 
 ```ruby
 GuestsCleanupJob.perform_later(guest1, guest2, filter: "some_filter")
@@ -124,19 +147,28 @@ GuestsCleanupJob.perform_later(guest1, guest2, filter: "some_filter")
 
 #### Example: Sending Email
 
-One of the most common jobs in a modern web application is sending emails to users. Active Job can do this outside of the request-response cycle, so the user doesn't have to wait on it. Active Job is integrated with Action Mailer so you can easily send emails asynchronously:
+One of the most common jobs in a modern web application is sending emails to
+users. Active Job can do this outside of the request-response cycle, so the user
+doesn't have to wait on it. Active Job is integrated with Action Mailer so you
+can easily send emails asynchronously:
 
 ```ruby
-# If you want to send the email now use #deliver_now
+# If you want to send the email now, use #deliver_now
 UserMailer.welcome(@user).deliver_now
 
-# If you want to send the email asynchronously use #deliver_later
+# If you want to send the email asynchronously, use #deliver_later
 UserMailer.welcome(@user).deliver_later
 ```
 
-The `deliver_now` and `deliver_later` methods are Action Mailer's counterparts to `perform_now` and `perform_later`. Under the hood, `deliver_later` works by enqueuing an `ActionMailer::MailDeliveryJob` — a built-in Active Job job that Rails provides — which goes through the same queuing pipeline as any job you define yourself, and will eventually call the `perform` method in your Job class.
+The `deliver_now` and `deliver_later` methods are Action Mailer's counterparts
+to `perform_now` and `perform_later`. Under the hood, `deliver_later` works by
+enqueuing an `ActionMailer::MailDeliveryJob` — a built-in Active Job job that
+Rails provides — which goes through the same queuing pipeline as any job you
+define yourself, and will eventually call the `perform` method in your Job
+class.
 
-[`perform_now`]: https://api.rubyonrails.org/classes/ActiveJob/Execution.html#method-i-perform_now
+[`perform_now`]:
+    https://api.rubyonrails.org/classes/ActiveJob/Execution.html#method-i-perform_now
 [`perform_later`]:
  https://api.rubyonrails.org/classes/ActiveJob/Enqueuing/ClassMethods.html#method-i-perform_later
 [`set`]:
@@ -187,13 +219,19 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-This works with any class that mixes in `GlobalID::Identification`, which is mixed into Active Record by default.
+This works with any class that mixes in `GlobalID::Identification`, which is
+mixed into Active Record by default.
 
 #### Add Custom Types by Defining Serializers
 
-You can extend the list of supported argument types by defining your own serializer for your custom types. A serializer needs three methods: `serialize`, `deserialize`, and `klass`.
+You can extend the list of supported argument types by defining your own
+serializer for your custom types. A serializer needs three methods: `serialize`,
+`deserialize`, and `klass`.
 
-The `serialize` method converts an object into a simpler representation using only supported types. The recommended approach is to return a Hash with string keys, calling `super` to let Active Job merge in the serializer's type information:
+The `serialize` method converts an object into a simpler representation using
+only supported types. The recommended approach is to return a Hash with string
+keys, calling `super` to let Active Job merge in the serializer's type
+information:
 
 ```ruby
 # app/serializers/money_serializer.rb
@@ -215,18 +253,24 @@ class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
 end
 ```
 
-The `deserialize` method receives that hash and reconstructs the original object. The `klass` method returns the class this serializer handles so Active Job can use it to determine which serializer to apply to a given argument.
+The `deserialize` method receives that hash and reconstructs the original
+object. The `klass` method returns the class this serializer handles so Active
+Job can use it to determine which serializer to apply to a given argument.
 
-Once a serializer is defined, it needs to be added to the list of serializers Rails knows about:
+Once a serializer is defined, it needs to be added to the list of serializers
+Rails knows about:
 
 ```ruby
 # config/initializers/custom_serializers.rb
 Rails.application.config.active_job.custom_serializers << MoneySerializer
 ```
 
-Custom Active Job serializers are registered during application initialization and are expected to remain stable for the lifetime of the process. Reloadable autoloading is not supported in this context.
+Custom Active Job serializers are registered during application initialization
+and are expected to remain stable for the lifetime of the process. Reloadable
+autoloading is not supported in this context.
 
-To ensure serializers are loaded only once (and not reloaded in development), place them in an autoload_once_paths directory, such as:
+To ensure serializers are loaded only once (and not reloaded in development),
+place them in an autoload_once_paths directory, such as:
 
 ```ruby
 # config/application.rb
@@ -252,7 +296,8 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-When using a generator, you can also create a job that will run on a specific queue:
+When using a generator, you can also create a job that will run on a specific
+queue:
 
 ```bash
 $ bin/rails generate job guests_cleanup --queue low_priority
@@ -278,8 +323,8 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-Now your job will run on queue `production_low_priority` on your
-production environment and on `staging_low_priority` on your staging environment.
+Now your job will run on queue `production_low_priority` on your production
+environment and on `staging_low_priority` on your staging environment.
 
 You can also configure the prefix on a per job basis.
 
@@ -512,7 +557,9 @@ enqueue jobs one by one.
 Callbacks
 ---------
 
-Active Job provides hooks to trigger logic during the life cycle of a job. Like other callbacks in Rails, you can implement them as ordinary methods and register them using a class-level method:
+Active Job provides hooks to trigger logic during the life cycle of a job. Like
+other callbacks in Rails, you can implement them as ordinary methods and
+register them using a class-level method:
 
 ```ruby#4
 class GuestsCleanupJob < ApplicationJob
@@ -533,7 +580,9 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-These class-level methods also accept a block, which works well when the callback logic is short enough to fit on a single line. For example, sending metrics for every enqueued job:
+These class-level methods also accept a block, which works well when the
+callback logic is short enough to fit on a single line. For example, sending
+metrics for every enqueued job:
 
 ```ruby
 class ApplicationJob < ActiveJob::Base
@@ -546,7 +595,8 @@ end
 There are several other callbacks that Active Job supports.
 
 * [`before_enqueue`][] runs before a job is enqueued.
-* [`around_enqueue`][] wraps the enqueuing process, allowing logic to run both before and after.
+* [`around_enqueue`][] wraps the enqueuing process, allowing logic to run both
+  before and after.
 * [`after_enqueue`][] runs after a job is enqueued.
 
 For example:
@@ -560,7 +610,8 @@ end
 ```
 
 * [`before_perform`][] runs before a job is performed.
-* [`around_perform`][] wraps the perform process, allowing logic to run both before and after.
+* [`around_perform`][] wraps the perform process, allowing logic to run both
+  before and after.
 * [`after_perform`][] runs after a job is performed.
 
 For example:
@@ -573,7 +624,8 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-Lastly, [`after_discard`][] runs when a job is discarded due to an unhandled exception:
+Lastly, [`after_discard`][] runs when a job is discarded due to an unhandled
+exception:
 
 ```ruby
 class GuestsCleanupJob < ApplicationJob
@@ -589,7 +641,8 @@ See [Bulk Enqueuing Callbacks](#bulk-enqueue-callbacks).
  https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_enqueue
 [`around_enqueue`]:
 https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_enqueue
-[`after_enqueue`]:    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_enqueue
+[`after_enqueue`]:
+    https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_enqueue
 [`before_perform`]:
 https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_perform
 [`around_perform`]:
@@ -601,7 +654,9 @@ https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html#metho
 
 ### Halting Callbacks
 
-You can halt the callback chain by throwing `:abort`. This works the same way as in Active Record and other Rails callbacks. For example, to prevent a job from being enqueued based on a condition:
+You can halt the callback chain by throwing `:abort`. This works the same way as
+in Active Record and other Rails callbacks. For example, to prevent a job from
+being enqueued based on a condition:
 
 ```ruby
 class GuestsCleanupJob < ApplicationJob
@@ -615,24 +670,37 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-When `:abort` is thrown in a `before_enqueue` callback, the job will not be enqueued and `perform_later` will return `false`. When thrown in a `before_perform` callback, the job will not be performed. It will also skip the execution of any subsequent before, around and after callbacks.
+When `:abort` is thrown in a `before_enqueue` callback, the job will not be
+enqueued and `perform_later` will return `false`. When thrown in a
+`before_perform` callback, the job will not be performed. It will also skip the
+execution of any subsequent before, around and after callbacks.
 
-NOTE: Throwing an `:abort` does not trigger `after_discard`. The
-`after_discard` callback is specifically tied to the `discard_on` mechanism.
+NOTE: Throwing an `:abort` does not trigger `after_discard`. The `after_discard`
+callback is specifically tied to the `discard_on` mechanism.
 
 Job Continuations
 -----------------
 
-Active Job Continuations allow jobs to be split into resumable steps, so that long-running jobs can make progress after interruptions. When
-using continuations, the job automatically resumes from the last completed step,
+Active Job Continuations allow jobs to be split into resumable steps, so that
+long-running jobs can make progress after interruptions. When using
+continuations, the job automatically resumes from the last completed step,
 instead of restarting from the beginning.
 
 To use continuations, include the `ActiveJob::Continuable` module in your Job
-class. You can then define each step inside the `perform` method using [`step`](https://api.rubyonrails.org/classes/ActiveJob/Continuation/Step.html) inside.
+class. You can then define each step inside the `perform` method using
+[`step`](https://api.rubyonrails.org/classes/ActiveJob/Continuation/Step.html)
+inside.
 
-Steps can use an optional [cursor](https://api.rubyonrails.org/classes/ActiveJob/Continuation.html#class-ActiveJob::Continuation-label-Cursors) to track progress *within* the step. The code in the step is responsible for using the cursor to continue from the appropriate location after an interruption.
+Steps can use an optional
+[cursor](https://api.rubyonrails.org/classes/ActiveJob/Continuation.html#class-ActiveJob::Continuation-label-Cursors)
+to track progress *within* the step. The code in the step is responsible for
+using the cursor to continue from the appropriate location after an
+interruption.
 
-Steps are executed as soon as they are encountered. Code that is not part of a step will be executed on each job run. If a job is interrupted, previously completed steps will be skipped. If a step is in progress, it will be restarted or resumed with the last recorded cursor if using cursors.  For example:
+Steps are executed as soon as they are encountered. Code that is not part of a
+step will be executed on each job run. If a job is interrupted, previously
+completed steps will be skipped. If a step is in progress, it will be restarted
+or resumed with the last recorded cursor if using cursors.  For example:
 
 ```ruby
 class ProcessImportJob < ApplicationJob
@@ -678,7 +746,11 @@ can safely pause and resume without losing progress. For more details, see
 Default Backend: Solid Queue
 ------------------------------
 
-Solid Queue is a database-backed queue backend for Active Job and the default queue backend for Rails version 8.0 onwards. Rather than requiring a separate infrastructure dependency like Redis, Solid Queue uses your existing database to persist and process jobs. It supports delayed jobs, job priorities, concurrency controls, recurring jobs, and bulk enqueuing.
+Solid Queue is a database-backed queue backend for Active Job and the default
+queue backend for Rails version 8.0 onwards. Rather than requiring a separate
+infrastructure dependency like Redis, Solid Queue uses your existing database to
+persist and process jobs. It supports delayed jobs, job priorities, concurrency
+controls, recurring jobs, and bulk enqueuing.
 
 ### Set Up and Default Configuration
 
@@ -710,9 +782,11 @@ production:
 ```
 
 NOTE: The key `queue` from the database configuration needs to match the key
-used in the configuration for `config.solid_queue.connects_to` (as highlighted in the code snippets above).
+used in the configuration for `config.solid_queue.connects_to` (as highlighted
+in the code snippets above).
 
-In order to start using Solid Queue, run `db:prepare` so your database has Solid Queue related tables:
+In order to start using Solid Queue, run `db:prepare` so your database has Solid
+Queue related tables:
 
 ```bash
 $ bin/rails db:prepare
@@ -761,9 +835,16 @@ development:
 
 ### Workers, Dispatchers, Supervisors
 
-Solid Queue uses three types of processes to handle job queueing and execution. *Workers* poll queues for jobs that are ready to run and execute them. *Dispatchers* handle scheduled jobs — they check for jobs due to run in the future and move them into the ready queue for workers to pick up. Both workers and dispatchers are managed by a *Supervisor*, which forks and monitors them.
+Solid Queue uses three types of processes to handle job queueing and execution.
+*Workers* poll queues for jobs that are ready to run and execute them.
+*Dispatchers* handle scheduled jobs — they check for jobs due to run in the
+future and move them into the ready queue for workers to pick up. Both workers
+and dispatchers are managed by a *Supervisor*, which forks and monitors them.
 
-When you run `bin/rails jobs`, you're starting the supervisor process, which in turn forks and manages the workers and dispatchers according to the configuration in `config/queue.yml`. Here is an example of the default configuration:
+When you run `bin/rails jobs`, you're starting the supervisor process, which in
+turn forks and manages the workers and dispatchers according to the
+configuration in `config/queue.yml`. Here is an example of the default
+configuration:
 
 ```yaml
 # config/queue.yml
@@ -780,7 +861,8 @@ default: &default
 
 The configuration in `config/queue.yml` is optional. If no configuration is
 provided, Solid Queue will run with one dispatcher and one worker with default
-settings. Below are some of the configuration options you can set along with their default values`:
+settings. Below are some of the configuration options you can set along with
+their default values`:
 
 | **Option**                           | **Description**                                                                                     | **Default Value**                             |
 | ------------------------------------ | --------------------------------------------------------------------------------------------------- | --------------------------------------------- |
@@ -801,11 +883,16 @@ your Rails Application.
 
 ### Queue Order and Priority
 
-Solid Queue offers two distinct mechanisms for controlling the order in which jobs are processed: queue ordering and numeric priorities. Understanding how they interact is important for getting the behavior you expect.
+Solid Queue offers two distinct mechanisms for controlling the order in which
+jobs are processed: queue ordering and numeric priorities. Understanding how
+they interact is important for getting the behavior you expect.
 
 #### Queue Order
 
-Queue order is the primary way to prioritize work in Solid Queue. The order in which queues are listed in `config/queue.yml` for a worker determines the polling order. A worker will not pull jobs from a lower priority queue (listed later in the array) until all higher priority queues are empty:
+Queue order is the primary way to prioritize work in Solid Queue. The order in
+which queues are listed in `config/queue.yml` for a worker determines the
+polling order. A worker will not pull jobs from a lower priority queue (listed
+later in the array) until all higher priority queues are empty:
 
 ```yaml
 production:
@@ -814,12 +901,22 @@ production:
       threads: 5
 ```
 
-With the above configuration, no jobs will be taken from the `default` queue while the `critical` queue has jobs waiting, and no jobs will be taken from `low` while either `critical` or `default` has jobs waiting. Solid Queue has strict ordering (unlike other queuing backend which may allow relative weights so that lower priority queues still receive a proportional share of processing time). It is possible for lower queues to be starved if higher queues are consistently busy.
+With the above configuration, no jobs will be taken from the `default` queue
+while the `critical` queue has jobs waiting, and no jobs will be taken from
+`low` while either `critical` or `default` has jobs waiting. Solid Queue has
+strict ordering (unlike other queuing backend which may allow relative weights
+so that lower priority queues still receive a proportional share of processing
+time). It is possible for lower queues to be starved if higher queues are
+consistently busy.
 
-NOTE: One way to name queues is based on latency. So instead of "critical", "default", or "low", queues could be named "within_30_seconds", "within_5_minutes", and "within_1_hour". This can be enforced like a contract by configuring your queuing backend to notify your engineering team if a job sits in a given queue longer than the corresponding time.
+NOTE: One way to name queues is based on latency. So instead of "critical",
+"default", or "low", queues could be named "within_30_seconds",
+"within_5_minutes", and "within_1_hour". This can be enforced like a contract by
+configuring your queuing backend to notify your engineering team if a job sits
+in a given queue longer than the corresponding time.
 
-It is possible to use a wildcard `*` within queue names. For example if
-the worker is configured with `queues:[active_storage*, mailers]`, it will fetch
+It is possible to use a wildcard `*` within queue names. For example if the
+worker is configured with `queues:[active_storage*, mailers]`, it will fetch
 jobs from queues starting with "active_storage", such as  the
 `active_storage_analyze` queue and `active_storage_transform` queue. Only when
 no jobs remain in the `active_storage`-prefixed queues will workers move on to
@@ -828,12 +925,14 @@ the `mailers` queue.
 WARNING: Using wildcard queue names (e.g., `queues: active_storage*`) can slow
 down polling performance in SQLite and PostgreSQL due to the need for a
 `DISTINCT` query to identify all matching queues, which can be slow on large
-tables. For better performance, it’s best to specify exact queue
-names instead of using wildcards.
+tables. For better performance, it’s best to specify exact queue names instead
+of using wildcards.
 
 #### Numeric Priorities
 
-Numeric priorities apply *within* a single queue. You can assign numeric priorities to jobs using `queue_with_priority`. Lower numbers indicate higher priority, with a default of 0:
+Numeric priorities apply *within* a single queue. You can assign numeric
+priorities to jobs using `queue_with_priority`. Lower numbers indicate higher
+priority, with a default of 0:
 
 ```ruby
 class CriticalReportJob < ApplicationJob
@@ -847,11 +946,16 @@ class RoutineCleanupJob < ApplicationJob
 end
 ```
 
-When both jobs are in the `default` queue, `CriticalReportJob` will be picked up first. However, numeric priority only applies within a queue. It has no effect across queues. Queue order takes precedence, if you are using both mechanisms together.
+When both jobs are in the `default` queue, `CriticalReportJob` will be picked up
+first. However, numeric priority only applies within a queue. It has no effect
+across queues. Queue order takes precedence, if you are using both mechanisms
+together.
 
 #### Polling Interval
 
-For Solid Queue the `polling_interval` setting for a worker directly affects how quickly it picks up new jobs. A high-priority queue paired with a slow polling interval may not feel very responsive in practice:
+For Solid Queue the `polling_interval` setting for a worker directly affects how
+quickly it picks up new jobs. A high-priority queue paired with a slow polling
+interval may not feel very responsive in practice:
 
 ```yaml
 production:
@@ -864,11 +968,13 @@ production:
       polling_interval: 10   # Poll every 10s — fine for low-priority work
 ```
 
-Tuning `polling_interval` per worker is especially important for time-sensitive queues.
+Tuning `polling_interval` per worker is especially important for time-sensitive
+queues.
 
 #### Retries
 
-In Solid Queue, retries need to be configured explicitly using Active Job's `retry_on`:
+In Solid Queue, retries need to be configured explicitly using Active Job's
+`retry_on`:
 
 ```ruby
 class ExternalApiJob < ApplicationJob
@@ -881,11 +987,17 @@ class ExternalApiJob < ApplicationJob
 end
 ```
 
-This can also be set globally in `ApplicationJob` if you want a default retry policy across all jobs. Failed jobs that aren't configured with `retry_on` will go straight to failed executions without retrying.
+This can also be set globally in `ApplicationJob` if you want a default retry
+policy across all jobs. Failed jobs that aren't configured with `retry_on` will
+go straight to failed executions without retrying.
 
 ### Concurrency Controls
 
-Solid Queue extends Active Job with concurrency controls, allowing you to limit how many jobs of a certain type can run at the same time. This is useful for protecting shared resources, such as ensuring only one export job runs per account at a time, or capping the number of concurrent API calls to an external service.
+Solid Queue extends Active Job with concurrency controls, allowing you to limit
+how many jobs of a certain type can run at the same time. This is useful for
+protecting shared resources, such as ensuring only one export job runs per
+account at a time, or capping the number of concurrent API calls to an external
+service.
 
 Concurrency controls are declared using `limits_concurrency` in your job class:
 
@@ -901,12 +1013,21 @@ end
 
 In the above example:
 - The `to` option sets the maximum number of jobs that can run concurrently.
-- The `key` lambda computes a concurrency key from the job's arguments. In the example above, the limit of 1 applies per account rather than globally.
-- The `duration` option acts as a failsafe. So if a worker dies mid-job and fails to release its lock, any blocked jobs become candidates for release once duration has elapsed.
+- The `key` lambda computes a concurrency key from the job's arguments. In the
+  example above, the limit of 1 applies per account rather than globally.
+- The `duration` option acts as a failsafe. So if a worker dies mid-job and
+  fails to release its lock, any blocked jobs become candidates for release once
+  duration has elapsed.
 
-When a job with concurrency controls is enqueued, Solid Queue checks a database-backed lock for the computed key. If the lock is available, the job is marked ready for execution. If not, the behavior depends on the `on_conflict:` option. If `on_conflict` is set to `:block` (the default), the job is held in a blocked state and marked ready only when a running job finishes. The other option is `:discard`, in which case the job is dropped entirely.
+When a job with concurrency controls is enqueued, Solid Queue checks a
+database-backed lock for the computed key. If the lock is available, the job is
+marked ready for execution. If not, the behavior depends on the `on_conflict:`
+option. If `on_conflict` is set to `:block` (the default), the job is held in a
+blocked state and marked ready only when a running job finishes. The other
+option is `:discard`, in which case the job is dropped entirely.
 
-You can also scope limits across *different* job classes using the `group:` option:
+You can also scope limits across *different* job classes using the `group:`
+option:
 
 ```ruby
 class AnalyticsExportJob < ApplicationJob
@@ -918,19 +1039,42 @@ class InvoiceExportJob < ApplicationJob
 end
 ```
 
-In the above example, both job classes share the same concurrency limit per the "account_exports" group, which means only one export of either type will run at a time for a given account.
+In the above example, both job classes share the same concurrency limit per the
+"account_exports" group, which means only one export of either type will run at
+a time for a given account.
 
-NOTE: Concurrency controls do carry overhead since blocked executions must be tracked and locks created and updated. So they should be used sparingly. For simple throughput limiting, constraining the number of worker threads per queue is more efficient.
+NOTE: Concurrency controls do carry overhead since blocked executions must be
+tracked and locks created and updated. So they should be used sparingly. For
+simple throughput limiting, constraining the number of worker threads per queue
+is more efficient.
 
-WARN: Concurrency controls are not compatible with bulk enqueuing via `perform_all_later`. Since concurrency-controlled jobs need to be enqueued one-by-one to respect the configured limits.
+WARN: Concurrency controls are not compatible with bulk enqueuing via
+`perform_all_later`. Since concurrency-controlled jobs need to be enqueued
+one-by-one to respect the configured limits.
 
 ### Error handling
 
-Solid Queue raises `SolidQueue::Job::EnqueueError` when an Active Record error occurs during job enqueuing. This differs from `ActiveJob::EnqueueError`, which Active Job handles internally by making `perform_later` return `false`. The practical consequence is that errors become harder to handle for jobs enqueued by Rails internals or third-party gems like `Turbo::Streams::BroadcastJob`, since you don't control the call to `perform_later` in those cases. For recurring tasks, enqueue errors are logged but not raised. See [Errors When Enqueuing](https://github.com/rails/solid_queue?tab=readme-ov-file#errors-when-enqueuing) in the Solid Queue documentation for more detail.
+Solid Queue raises `SolidQueue::Job::EnqueueError` when an Active Record error
+occurs during job enqueuing. This differs from `ActiveJob::EnqueueError`, which
+Active Job handles internally by making `perform_later` return `false`. The
+practical consequence is that errors become harder to handle for jobs enqueued
+by Rails internals or third-party gems like `Turbo::Streams::BroadcastJob`,
+since you don't control the call to `perform_later` in those cases. For
+recurring tasks, enqueue errors are logged but not raised. See [Errors When
+Enqueuing](https://github.com/rails/solid_queue?tab=readme-ov-file#errors-when-enqueuing)
+in the Solid Queue documentation for more detail.
 
-If a worker process is killed unexpectedly — for example, with a `KILL` signal — any in-flight jobs are marked as failed, and errors such as `SolidQueue::Processes::ProcessExitError` or `SolidQueue::Processes::ProcessPrunedError` are raised. Heartbeat settings control how quickly Solid Queue detects and cleans up expired processes. See [Threads, Processes and Signals](https://github.com/rails/solid_queue?tab=readme-ov-file#threads-processes-and-signals) in the Solid Queue documentation for details on configuring this behavior.
+If a worker process is killed unexpectedly — for example, with a `KILL` signal —
+any in-flight jobs are marked as failed, and errors such as
+`SolidQueue::Processes::ProcessExitError` or
+`SolidQueue::Processes::ProcessPrunedError` are raised. Heartbeat settings
+control how quickly Solid Queue detects and cleans up expired processes. See
+[Threads, Processes and
+Signals](https://github.com/rails/solid_queue?tab=readme-ov-file#threads-processes-and-signals)
+in the Solid Queue documentation for details on configuring this behavior.
 
-If your error tracking service doesn't automatically capture job errors, you can hook into Active Job's `rescue_from` in `ApplicationJob`:
+If your error tracking service doesn't automatically capture job errors, you can
+hook into Active Job's `rescue_from` in `ApplicationJob`:
 
 ```ruby
 class ApplicationJob < ActiveJob::Base
@@ -941,7 +1085,9 @@ class ApplicationJob < ActiveJob::Base
 end
 ```
 
-If your application uses Action Mailer, note that mailer delivery runs through `ActionMailer::MailDeliveryJob`, which inherits from `ApplicationJob` but needs to be handled separately:
+If your application uses Action Mailer, note that mailer delivery runs through
+`ActionMailer::MailDeliveryJob`, which inherits from `ApplicationJob` but needs
+to be handled separately:
 
 ```ruby
 class ApplicationMailer < ActionMailer::Base
@@ -954,15 +1100,30 @@ end
 
 ### Transactional Integrity on Jobs
 
-Since Solid Queue can use the same database as your application, it can participate in the same ACID transactions as your application data. But this behavior comes with important nuances worth understanding before you rely on it.
+Since Solid Queue can use the same database as your application, it can
+participate in the same ACID transactions as your application data. But this
+behavior comes with important nuances worth understanding before you rely on it.
 
-When Solid Queue uses the same database as your application, job enqueuing happens inside the same transaction as any surrounding Active Record operations. This means a job won't be enqueued if the transaction rolls back, and the transaction won't commit unless the job enqueue also succeeds. This eliminates a class of race conditions common with Redis backends (e.g. a job running before the record it needs has been committed to the database).
+When Solid Queue uses the same database as your application, job enqueuing
+happens inside the same transaction as any surrounding Active Record operations.
+This means a job won't be enqueued if the transaction rolls back, and the
+transaction won't commit unless the job enqueue also succeeds. This eliminates a
+class of race conditions common with Redis backends (e.g. a job running before
+the record it needs has been committed to the database).
 
-However, Rails 8 configures Solid Queue on a *separate database by default*, precisely to avoid implicit coupling to this behavior. If you build logic that depends on transactional integrity and later move Solid Queue to its own database or switch to a different backend, that behavior silently disappears. The separate database default is the safer choice for most applications.
+However, Rails 8 configures Solid Queue on a *separate database by default*,
+precisely to avoid implicit coupling to this behavior. If you build logic that
+depends on transactional integrity and later move Solid Queue to its own
+database or switch to a different backend, that behavior silently disappears.
+The separate database default is the safer choice for most applications.
 
 #### Using `enqueue_after_transaction_commit`
 
-The recommended way to get transactional safety — without depending on both your app and Solid Queue sharing the same database — is to use `enqueue_after_transaction_commit`. This defers job enqueuing until the surrounding Active Record transaction successfully commits, and can be enabled per job or globally:
+The recommended way to get transactional safety — without depending on both your
+app and Solid Queue sharing the same database — is to use
+`enqueue_after_transaction_commit`. This defers job enqueuing until the
+surrounding Active Record transaction successfully commits, and can be enabled
+per job or globally:
 
 ```ruby
 class ApplicationJob < ActiveJob::Base
@@ -970,11 +1131,15 @@ class ApplicationJob < ActiveJob::Base
 end
 ```
 
-With this setting, a job enqueued inside a transaction that rolls back will simply not be enqueued. This gives you the guarantee portably, regardless of whether Solid Queue shares a database with your app or not.
+With this setting, a job enqueued inside a transaction that rolls back will
+simply not be enqueued. This gives you the guarantee portably, regardless of
+whether Solid Queue shares a database with your app or not.
 
 #### Enqueuing from `after_commit` Callbacks
 
-If you prefer not to use `enqueue_after_transaction_commit`, the alternative is to always enqueue jobs from `after_commit` callbacks rather than from within transactions directly:
+If you prefer not to use `enqueue_after_transaction_commit`, the alternative is
+to always enqueue jobs from `after_commit` callbacks rather than from within
+transactions directly:
 
 ```ruby
 after_commit :schedule_cleanup, on: :create
@@ -984,14 +1149,21 @@ def schedule_cleanup
 end
 ```
 
-This ensures the job is only enqueued once the relevant data is durably committed to the database.
+This ensures the job is only enqueued once the relevant data is durably
+committed to the database.
 
 #### The Risk of Implicit Reliance
 
-The subtle danger is enqueuing a job inside a transaction without either of the above safeguards in place. In that case, the job may run before the data it needs is visible to other connections, or it may be enqueued even if the transaction rolls back. This is easy to overlook if you're accustomed to Redis-backed backends where this problem doesn't arise in the same form. If you're unsure whether your code relies on transactional integrity, enabling `enqueue_after_transaction_commit` globally in `ApplicationJob` is the safest default.
+The subtle danger is enqueuing a job inside a transaction without either of the
+above safeguards in place. In that case, the job may run before the data it
+needs is visible to other connections, or it may be enqueued even if the
+transaction rolls back. This is easy to overlook if you're accustomed to
+Redis-backed backends where this problem doesn't arise in the same form. If
+you're unsure whether your code relies on transactional integrity, enabling
+`enqueue_after_transaction_commit` globally in `ApplicationJob` is the safest
+default.
 
-You can read more about [Transactional Integrity in the
-Solid Queue
+You can read more about [Transactional Integrity in the Solid Queue
 documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#jobs-and-transactional-integrity)
 
 ### Recurring Tasks
@@ -1017,18 +1189,26 @@ jobs, such as in the example for `MyJob` where `args` are passed. This can be
 passed as a single argument, a hash, or an array of arguments that can also
 include key word arguments as the last element in the array.
 
-You can learn more about [Recurring Tasks](https://github.com/rails/solid_queue?tab=readme-ov-file#recurring-tasks) in the Solid Queue
-documentation.
+You can learn more about [Recurring
+Tasks](https://github.com/rails/solid_queue?tab=readme-ov-file#recurring-tasks)
+in the Solid Queue documentation.
 
 Alternate Queuing Backends
 --------------------------
 
-While Solid Queue is the default queuing backend in Rails, Active Job is designed to work seamlessly with different queuing backends. Switching to an alternative backend, such as [Sidekiq](https://github.com/sidekiq/sidekiq), [GoodJob](https://github.com/bensheldon/good_job), or [Resque](https://github.com/resque/resque), requires only a configuration change (typically with no modifications to your job code), along with adding the queuing backend's adapter to your Gemfile.
+While Solid Queue is the default queuing backend in Rails, Active Job is
+designed to work seamlessly with different queuing backends. Switching to an
+alternative backend, such as [Sidekiq](https://github.com/sidekiq/sidekiq),
+[GoodJob](https://github.com/bensheldon/good_job), or
+[Resque](https://github.com/resque/resque), requires only a configuration change
+(typically with no modifications to your job code), along with adding the
+queuing backend's adapter to your Gemfile.
 
 You can get an up-to-date list of the adapters in the the API Documentation for
 [`ActiveJob::QueueAdapters`](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
-To switch backends globally, you can set `config.active_job.queue_adapter` in your application configuration:
+To switch backends globally, you can set `config.active_job.queue_adapter` in
+your application configuration:
 
 ```ruby
 # config/application.rb
@@ -1039,14 +1219,17 @@ module YourApp
 end
 ```
 
-You can also set the adapter per-environment, which is useful if you want to use Solid Queue in production but a simpler adapter in development:
+You can also set the adapter per-environment, which is useful if you want to use
+Solid Queue in production but a simpler adapter in development:
 
 ```ruby
 # config/environments/development.rb
 config.active_job.queue_adapter = :async
 ```
 
-If you want to migrate incrementally, you can set the adapter at the job class level. This is useful for moving one job at a time rather than switching everything at once:
+If you want to migrate incrementally, you can set the adapter at the job class
+level. This is useful for moving one job at a time rather than switching
+everything at once:
 
 ```ruby
 class MyJob < ApplicationJob
@@ -1054,11 +1237,19 @@ class MyJob < ApplicationJob
 end
 ```
 
-Each backend requires its own gem and typically its own process. Once you add the adapter's gem to your `Gemfile`, you can refer to the adapter's documentation for any additional setup — most backends require a separate worker process to be started alongside your Rails application, and some (like Sidekiq) require additional infrastructure such as Redis.
+Each backend requires its own gem and typically its own process. Once you add
+the adapter's gem to your `Gemfile`, you can refer to the adapter's
+documentation for any additional setup — most backends require a separate worker
+process to be started alongside your Rails application, and some (like Sidekiq)
+require additional infrastructure such as Redis.
 
-NOTE: Switching backends doesn't migrate jobs already sitting in the old queue. You'll need to drain the old queue before switching, or run both backends in parallel temporarily to let existing jobs complete.
+NOTE: Switching backends doesn't migrate jobs already sitting in the old queue.
+You'll need to drain the old queue before switching, or run both backends in
+parallel temporarily to let existing jobs complete.
 
-TIP: If you use `config.active_job.queue_name_prefix`, make sure your new backend's worker configuration listens to the prefixed queue names, not the bare names.
+TIP: If you use `config.active_job.queue_name_prefix`, make sure your new
+backend's worker configuration listens to the prefixed queue names, not the bare
+names.
 
 Here is a noncomprehensive list of documentation:
 
@@ -1141,5 +1332,6 @@ GlobalID allows serializing full Active Record objects passed to `#perform`.
 
 If a passed record is deleted after the job is enqueued but before the
 `#perform` method is called Active Job will raise an
-[`ActiveJob::DeserializationError`](https://api.rubyonrails.org/classes/ActiveJob/DeserializationError.html) exception.
+[`ActiveJob::DeserializationError`](https://api.rubyonrails.org/classes/ActiveJob/DeserializationError.html)
+exception.
 
