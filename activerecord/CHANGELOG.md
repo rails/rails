@@ -1,3 +1,7 @@
+*   Better error message when assigning a non-model to a polymorphic association.
+
+    *Christian Schmidt*
+
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be
