@@ -1,3 +1,12 @@
+*   Use `t.json` instead of `t.text` for the `metadata` column in the
+    `create_active_storage_tables` migration. New applications will get a native
+    JSON column, which works across all supported adapters (PostgreSQL uses
+    `jsonb`, SQLite and MySQL use `json`). Existing applications are unaffected;
+    the `store` call on `ActiveStorage::Blob` works correctly on both text and
+    JSON columns thanks to the `ActiveRecord::Store` fix in this release.
+
+    *Mark Edmondson*
+
 *   Configurable maximum streaming chunk size
 
     Makes sure that byte ranges for blobs don't exceed 100mb by default.

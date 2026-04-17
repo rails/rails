@@ -73,6 +73,20 @@
 # Rails.application.config.active_record.postgresql_adapter_decode_money = true
 
 ###
+# Skip the serialization layer for `store` on native json/jsonb columns.
+#
+# Previously, `store :attr, coder: JSON` on a json/jsonb column would
+# double-serialize on write and raise on read. When enabled, `store`
+# detects native JSON columns and provides indifferent access without
+# the serialization wrapper.
+#
+# If your application has been using `store` on json/jsonb columns, the
+# data may already be double-serialized (JSON strings stored as JSON).
+# You will need to migrate that data before enabling this setting.
+#++
+# Rails.application.config.active_record.store_native_json_columns = true
+
+###
 # Analyze attachments immediately, making metadata available for validations.
 #
 # When enabled, attachment metadata (image dimensions, video duration, etc.) is extracted

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Admin::User < ActiveRecord::Base
+  self.store_native_json_columns = true
+
   class Coder
     def initialize(default = {})
       @default = default
@@ -37,6 +39,7 @@ class Admin::User < ActiveRecord::Base
   store :json_data, accessors: [ :height, :weight ], coder: Coder.new
 
   store :json_data_empty, accessors: [ :is_a_good_guy ], coder: Coder.new
+  store :json_native_data, accessors: [ :city, :zip_code ], coder: JSON
 
   store_accessor :json_options, :enable_friend_requests
 

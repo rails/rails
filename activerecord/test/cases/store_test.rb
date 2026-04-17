@@ -389,4 +389,78 @@ class StoreTest < ActiveRecord::TestCase
       user.color = "blue"
     end
   end
+
+  test "store on a json column falls back to Type::Serialized when store_native_json_columns is false" do
+    skip "MySQL treats json columns as Type::Text (LONGTEXT), not Type::Json" if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "admin_users"
+      self.store_native_json_columns = false
+      store :json_native_data, accessors: [:city], coder: JSON
+    end
+
+    type = model.type_for_attribute("json_native_data")
+    assert_instance_of ActiveRecord::Type::Serialized, type
+  end
+
+  test "reading store attributes through accessors on a json column" do
+    @john.update!(json_native_data: { "city" => "Portland", "zip_code" => "97201" })
+    @john.reload
+
+    assert_equal "Portland", @john.city
+    assert_equal "97201", @john.zip_code
+  end
+
+  test "writing store attributes through accessors on a json column" do
+    @john.city = "Seattle"
+    @john.zip_code = "98101"
+
+    assert_equal "Seattle", @john.city
+    assert_equal "98101", @john.zip_code
+  end
+
+  test "store on a json column persists and round-trips through the database" do
+    @john.city = "Denver"
+    @john.save!
+    @john.reload
+
+    assert_equal "Denver", @john.city
+  end
+
+  test "store on a json column provides indifferent access via symbol keys" do
+    @john.json_native_data = { "city" => "Boston" }
+    assert_equal "Boston", @john.json_native_data[:city]
+    assert_equal "Boston", @john.json_native_data["city"]
+  end
+
+  test "store on a json column provides indifferent access via string keys" do
+    @john.json_native_data = { city: "Austin" }
+    assert_equal "Austin", @john.json_native_data[:city]
+    assert_equal "Austin", @john.json_native_data["city"]
+  end
+
+  test "store on a json column returns HashWithIndifferentAccess" do
+    @john.json_native_data = { "city" => "Miami" }
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, @john.json_native_data
+  end
+
+  test "accessing non-accessor attributes on a json column with indifferent access" do
+    @john.update!(json_native_data: { "state" => "Oregon" })
+    @john.reload
+
+    assert_equal "Oregon", @john.json_native_data[:state]
+    assert_equal "Oregon", @john.json_native_data["state"]
+  end
+
+  test "store on a json column marks attribute as changed" do
+    @john.city = "Chicago"
+    assert_predicate @john, :json_native_data_changed?
+  end
+
+  test "store on a json column does not use Type::Serialized" do
+    skip "MySQL treats json columns as Type::Text (LONGTEXT), not Type::Json" if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+    type = Admin::User.type_for_attribute("json_native_data")
+    assert_instance_of ActiveRecord::Store::IndifferentJsonType, type
+    assert_not_instance_of ActiveRecord::Type::Serialized, type
+  end
 end

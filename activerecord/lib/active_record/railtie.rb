@@ -39,6 +39,7 @@ module ActiveRecord
     config.active_record.raise_on_assign_to_attr_readonly = false
     config.active_record.belongs_to_required_validates_foreign_key = true
     config.active_record.generate_secure_token_on = :create
+    config.active_record.store_native_json_columns = false
     config.active_record.use_legacy_signed_id_verifier = :generate_and_verify
     config.active_record.deprecated_associations_options = { mode: :warn, backtrace: false }
 
