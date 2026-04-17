@@ -364,6 +364,46 @@ module ActiveRecord
       end
     end
 
+    test "attribute with symbol type can be defined without a connection" do
+      klass = nil
+      ActiveRecord::Base.stub(:connection_db_config, -> { raise ActiveRecord::ConnectionNotDefined, "no connection" }) do
+        assert_nothing_raised do
+          klass = Class.new(ActiveRecord::Base) do
+            self.table_name = "overloaded_types"
+            attribute :virtual_string, :string
+          end
+        end
+      end
+      # Once connection is available, the attribute resolves and casts correctly
+      instance = klass.new(virtual_string: 42)
+      assert_equal "42", instance.virtual_string
+    end
+
+    test "attribute with symbol type and default can be defined without a connection" do
+      klass = nil
+      ActiveRecord::Base.stub(:connection_db_config, -> { raise ActiveRecord::ConnectionNotDefined, "no connection" }) do
+        assert_nothing_raised do
+          klass = Class.new(ActiveRecord::Base) do
+            self.table_name = "overloaded_types"
+            attribute :virtual_int, :integer, default: 7
+          end
+        end
+      end
+      assert_equal 7, klass.new.virtual_int
+    end
+
+    test "subclass inherits deferred attribute from parent" do
+      parent = nil
+      ActiveRecord::Base.stub(:connection_db_config, -> { raise ActiveRecord::ConnectionNotDefined, "no connection" }) do
+        parent = Class.new(ActiveRecord::Base) do
+          self.table_name = "overloaded_types"
+          attribute :virtual_string, :string
+        end
+      end
+      child = Class.new(parent)
+      assert_equal "42", child.new(virtual_string: 42).virtual_string
+    end
+
     test "unknown type error is raised" do
       assert_raise(ArgumentError) do
         OverloadedType.attribute :foo, :unknown

@@ -1,3 +1,8 @@
+*   Allow `attribute` with a symbol type to be called without a database
+    connection. The type is resolved lazily when the schema is first loaded.
+
+    *Denis Savchuk*
+
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be
