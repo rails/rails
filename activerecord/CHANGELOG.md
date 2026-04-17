@@ -1,3 +1,37 @@
+*   Enable experimental support for models to connect to and query databases
+    with different adapters.
+
+    Previously, models cached many adapter specific values which would prevent
+    making queries against different database types. Now, those caches are per
+    `schema_context`, which can be configured in `database.yml`:
+
+    ```yaml
+    primary:
+      adapter: trilogy
+      database: myapp_development
+    primary_pg:
+      adapter: postgresql
+      database: myapp_development
+      schema_context: pg
+    ```
+
+    This enables models to connect to both MySQL and PostgreSQL databases in the
+    same application, and query them successfully:
+
+    ```ruby
+    class User < ApplicationRecord
+      connects_to shards: {
+        mysql: { writing: :primary, reading: :primary },
+        pg: { writing: :primary_pg, reading: :primary_pg },
+      }
+    end
+
+    User.connected_to(shard: :mysql) { User.first } # queries MySQL
+    User.connected_to(shard: :pg) { User.first } # queries PostgreSQL
+    ```
+
+    *Hartley McGuire*
+
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be

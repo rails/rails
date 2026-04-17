@@ -263,7 +263,7 @@ module ActiveRecord
 
     module ClassMethods
       def initialize_find_by_cache # :nodoc:
-        @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
+        model_schemas.each_value(&:initialize_find_by_cache)
       end
 
       def find(*ids) # :nodoc:
@@ -412,8 +412,7 @@ module ActiveRecord
       end
 
       def cached_find_by_statement(connection, key, &block) # :nodoc:
-        cache = @find_by_statement_cache[connection.prepared_statements]
-        cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
+        model_schema.cached_find_by_statement(connection, key, &block)
       end
 
       private
