@@ -107,6 +107,10 @@ module ActiveRecord
         false
       end
 
+      def case_sensitive?
+        true
+      end
+
       private
         def deduplicated
           @name = -name

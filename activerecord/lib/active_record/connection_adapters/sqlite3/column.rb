@@ -62,6 +62,10 @@ module ActiveRecord
           ].hash
         end
 
+        def case_sensitive?
+          !collation || !collation.casecmp("nocase").zero?
+        end
+
         protected
           attr_reader :generated_type
       end
