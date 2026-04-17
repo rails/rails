@@ -24,6 +24,16 @@ module ActiveRecord
         connection.charset
       end
 
+      def self.ssl_mode_supported?(cmd = "mysqldump") # :nodoc:
+        @ssl_mode_support ||= {}
+        if @ssl_mode_support[cmd].nil?
+          @ssl_mode_support[cmd] = `#{cmd} --help 2>&1`.include?("ssl-mode")
+        end
+        @ssl_mode_support[cmd]
+      rescue Errno::ENOENT
+        false
+      end
+
       def structure_dump(filename, extra_flags)
         args = prepare_command_options
         args.concat(["--result-file", "#{filename}"])
@@ -73,10 +83,20 @@ module ActiveRecord
             sslcapath: "--ssl-capath",
             sslcipher: "--ssl-cipher",
             sslkey:    "--ssl-key",
-            ssl_mode:  "--ssl-mode"
-          }.filter_map { |opt, arg| "#{arg}=#{configuration_hash[opt]}" if configuration_hash[opt] }
+          }
 
-          args
+          if configuration_hash[:ssl_mode]
+            if self.class.ssl_mode_supported?
+              args[:ssl_mode] = "--ssl-mode"
+            else
+              ActiveRecord::Base.logger&.warn(
+                "mysqldump does not support --ssl-mode, skipping. " \
+                "Ensure your mysqldump version supports this option or remove ssl_mode from database configuration."
+              )
+            end
+          end
+
+          args.filter_map { |opt, arg| "#{arg}=#{configuration_hash[opt]}" if configuration_hash[opt] }
         end
     end
   end

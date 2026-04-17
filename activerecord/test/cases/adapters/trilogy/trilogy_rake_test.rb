@@ -370,6 +370,38 @@ module ActiveRecord
         end
     end
 
+    def test_structure_dump_with_ssl_mode_when_supported
+      filename = "awesome-file.sql"
+      ActiveRecord::Tasks::MySQLDatabaseTasks.stub(:ssl_mode_supported?, true) do
+        assert_called_with(
+          Kernel,
+          :system,
+          ["mysqldump", "--ssl-mode=required", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
+          returns: true
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+            @configuration.merge("ssl_mode" => "required"),
+            filename)
+        end
+      end
+    end
+
+    def test_structure_dump_with_ssl_mode_when_not_supported
+      filename = "awesome-file.sql"
+      ActiveRecord::Tasks::MySQLDatabaseTasks.stub(:ssl_mode_supported?, false) do
+        assert_called_with(
+          Kernel,
+          :system,
+          ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
+          returns: true
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+            @configuration.merge("ssl_mode" => "required"),
+            filename)
+        end
+      end
+    end
+
     private
       def with_structure_dump_flags(flags)
         old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags
