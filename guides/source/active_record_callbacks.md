@@ -1383,7 +1383,7 @@ Sometimes the callback methods that you'll write will be useful enough to be
 reused by other models. Active Record makes it possible to create classes that
 encapsulate the callback methods, so they can be reused.
 
-Here's an example of an `after_commit` callback  class to deal with the cleanup
+Here's an example of an `after_commit` callback class to deal with the cleanup
 of discarded files on the filesystem. This behavior may not be unique to our
 `PictureFile` model and we may want to share it, so it's a good idea to
 encapsulate this into a separate class. This will make testing that behavior and

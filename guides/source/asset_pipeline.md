@@ -199,7 +199,7 @@ As mentioned in the [Asset Organization section](#asset-organization), in
 Propshaft, all assets from the paths configured in `config.assets.paths` are
 available for serving and will be copied into the `public/assets` directory.
 
-When fingerprinted, an asset filename  like `styles.css` is renamed to
+When fingerprinted, an asset filename like `styles.css` is renamed to
 `styles-a1b2c3d4e5f6.css`. This ensures that if `styles.css` is updated, the
 filename changes as well, compelling the browser to download the latest version
 instead of using a potentially outdated cached copy.

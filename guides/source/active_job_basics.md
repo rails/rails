@@ -298,7 +298,7 @@ production:
 ```
 
 In the above example, workers will fetch jobs from queues starting with
-"active_storage", like  the `active_storage_analyse` queue and
+"active_storage", like the `active_storage_analyse` queue and
 `active_storage_transform` queue. Only when no jobs remain in the
 `active_storage`-prefixed queues will workers move on to the `mailers` queue.
 
