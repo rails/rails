@@ -144,9 +144,77 @@ module ActiveRecord
           intent.finish
         end
 
+        def execute_intent(intent) # :nodoc:
+          # Lock in bind values before routing decision; this also ensures
+          # timezone is current before we commit to running the query
+          intent.type_casted_binds
+
+          if should_pipeline?(intent)
+            if intent.materialize_transactions
+              # Validate before BEGIN - can raise locally (e.g. ReadOnlyError)
+              intent.processed_sql
+              materialize_transactions
+            end
+
+            start_intent_log(intent)
+            with_raw_connection(allow_retry: true, materialize_transactions: false, pipeline_mode: true) do |_conn|
+              # Initialize retry state for this pipelined query
+              intent.initialize_retry_state(
+                retries: intent.allow_retry ? connection_retries : 0,
+                deadline: retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline,
+                reconnectable: reconnect_can_restore_state?
+              )
+
+              pipeline_add_query(intent)
+            end
+
+            # No immediate result - will be populated when pipeline flushes
+            nil
+          else
+            raise ArgumentError, "Cannot pipeline this query" if intent.prefer_pipeline
+
+            # Normal immediate execution (exits pipeline mode if active)
+            super
+          end
+        end
+
         private
           IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR]
           private_constant :IDLE_TRANSACTION_STATUSES
+
+          # Decide whether this query should be pipelined
+          def should_pipeline?(intent)
+            # Don't pipeline if connection is dirty (userspace has raw connection)
+            return false if @raw_connection_dirty
+
+            # Don't pipeline batch queries
+            return false if intent.batch
+
+            # Don't pipeline multi-statement SQL without binds
+            # send_query_params uses prepared statements which don't support multiple commands
+            # With binds, it's safe because the query likely doesn't have semicolons
+            # Note: has_binds? triggers compile_arel! which determines intent.prepare
+            if !intent.has_binds? && intent.processed_sql.include?(";")
+              return false
+            end
+
+            # Don't pipeline prepared statements (they need different handling)
+            # Must check AFTER has_binds?/processed_sql to ensure compile_arel! has run
+            return false if intent.prepare
+
+            # If pipelining is locked, maintain current state (don't change mode)
+            return pipeline_active? if @pipelining_locked
+
+            # Pipeline if already active (add to existing batch)
+            return true if pipeline_active?
+
+            # Pipeline if explicitly requested, or if the caller wanted
+            # deferred execution (async implies pipeline-eligible)
+            return true if intent.prefer_pipeline || intent.allow_async
+
+            # Otherwise, don't pipeline by default
+            ENV["AR_POSTGRESQL_PIPELINE"] == "1"
+          end
 
           def cancel_any_running_query
             return if @raw_connection.nil? || IDLE_TRANSACTION_STATUSES.include?(@raw_connection.transaction_status)
@@ -164,11 +232,19 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, intent)
-            result = if intent.prepare
+            if pipeline_active?
+              raise "BUG: perform_query called while in pipeline mode (sql: #{intent.processed_sql.inspect})"
+            end
+
+            raw_connection.discard_results
+
+            if intent.prepare
               begin
                 stmt_key = prepare_statement(intent.processed_sql, intent.binds, raw_connection)
                 intent.notification_payload[:statement_name] = stmt_key
-                raw_connection.exec_prepared(stmt_key, intent.type_casted_binds)
+                raw_connection.send_query_prepared(stmt_key, intent.type_casted_binds)
+                result = get_result(raw_connection)
+                result&.check
               rescue PG::FeatureNotSupported => error
                 if is_cached_plan_failure?(error)
                   # Nothing we can do if we are in a transaction because all commands
@@ -186,16 +262,23 @@ module ActiveRecord
 
                 raise
               end
-            elsif intent.has_binds?
-              raw_connection.exec_params(intent.processed_sql, intent.type_casted_binds)
             else
-              raw_connection.async_exec(intent.processed_sql)
+              if intent.has_binds?
+                raw_connection.send_query_params(intent.processed_sql, intent.type_casted_binds)
+              else
+                raw_connection.send_query(intent.processed_sql)
+              end
+
+              result = get_result(raw_connection)
+              result&.check
             end
 
             verified!
 
-            intent.notification_payload[:affected_rows] = result.cmd_tuples
-            intent.notification_payload[:row_count] = result.ntuples
+            if intent.notification_payload
+              intent.notification_payload[:affected_rows] = result.cmd_tuples
+              intent.notification_payload[:row_count] = result.ntuples
+            end
             result
           end
 
@@ -267,6 +350,26 @@ module ActiveRecord
 
           def warning_ignored?(warning)
             ["WARNING", "ERROR", "FATAL", "PANIC"].exclude?(warning.level) || super
+          end
+
+          def get_result(raw_connection)
+            result = nil
+            while incoming = raw_connection.get_result
+              if block_given?
+                action = yield incoming
+                next if action == :skip
+                break if action == :break
+              end
+
+              result&.clear
+              result = incoming
+
+              if result.result_status == PG::PGRES_FATAL_ERROR
+                severity = result.error_field(PG::PG_DIAG_SEVERITY_NONLOCALIZED)
+                result.check if severity == "FATAL"
+              end
+            end
+            result
           end
       end
     end

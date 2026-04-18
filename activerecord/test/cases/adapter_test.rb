@@ -973,6 +973,87 @@ module ActiveRecord
       ensure
         connection&.disconnect!
       end
+
+      test "needs_reconnect? starts false" do
+        assert_not_predicate @connection, :needs_reconnect?
+      end
+
+      test "needs_reconnect? is set for connection errors" do
+        @connection.send(:downgrade_connection_after_error,
+          ActiveRecord::ConnectionFailed.new("connection lost"))
+        assert_predicate @connection, :needs_reconnect?
+      end
+
+      test "needs_reconnect? is not set for retryable query errors" do
+        @connection.send(:downgrade_connection_after_error,
+          ActiveRecord::Deadlocked.new("deadlock detected"))
+        assert_not_predicate @connection, :needs_reconnect?
+      end
+
+      test "needs_reconnect? is not set for statement errors" do
+        @connection.send(:downgrade_connection_after_error,
+          ActiveRecord::StatementInvalid.new("PG::UndefinedTable"))
+        assert_not_predicate @connection, :needs_reconnect?
+      end
+
+      test "query error does not force reconnect on next query" do
+        initial_connection_id = connection_id_from_server(@connection)
+
+        assert_raises(ActiveRecord::StatementInvalid) do
+          @connection.execute("SELECT * FROM nonexistent_table_abc")
+        end
+
+        @connection.execute("SELECT 1")
+
+        assert_equal initial_connection_id, connection_id_from_server(@connection)
+      end
+
+      test "reconnect! clears needs_reconnect?" do
+        @connection.instance_variable_set(:@needs_reconnect, true)
+        @connection.reconnect!
+        assert_not_predicate @connection, :needs_reconnect?
+      end
+
+      test "disconnect! clears needs_reconnect?" do
+        @connection.instance_variable_set(:@needs_reconnect, true)
+        @connection.disconnect!
+        assert_not_predicate @connection, :needs_reconnect?
+      end
+
+      test "needs_reconnect? survives clean!" do
+        @connection.instance_variable_set(:@needs_reconnect, true)
+        @connection.clean!
+        assert_predicate @connection, :needs_reconnect?
+      end
+
+      test "verify! forces reconnect when needs_reconnect? even if connection is active" do
+        assert_predicate @connection, :active?
+        connected_since_before = @connection.instance_variable_get(:@connected_since)
+
+        @connection.instance_variable_set(:@needs_reconnect, true)
+        @connection.instance_variable_set(:@verified, false)
+        @connection.verify!
+
+        assert_not_predicate @connection, :needs_reconnect?
+        assert_predicate @connection, :active?
+        assert_operator @connection.instance_variable_get(:@connected_since), :>, connected_since_before
+      end
+
+      test "retryable query forces reconnect when needs_reconnect? is set" do
+        connected_since_before = @connection.instance_variable_get(:@connected_since)
+
+        # Simulate a connection error marking via the real mechanism
+        @connection.send(:downgrade_connection_after_error,
+          ActiveRecord::ConnectionFailed.new("connection lost"))
+
+        # Use allow_retry: true to exercise the reconnectable+allow_retry
+        # branch in skip_verification?, which would normally skip verification
+        result = @connection.select_all("SELECT 1", "SQL", [], allow_retry: true)
+        assert_equal [[1]], result.rows
+
+        assert_not_predicate @connection, :needs_reconnect?
+        assert_operator @connection.instance_variable_get(:@connected_since), :>, connected_since_before
+      end
     end
   end
 

@@ -3,6 +3,11 @@
 module ActiveRecord
   module ConnectionAdapters
     class QueryIntent # :nodoc:
+      # Raised when attempting to deliver to or reset a finalized intent.
+      # This is an internal invariant violation - finalization is terminal.
+      class FinalizedError < ActiveRecordError # :nodoc:
+      end
+
       # Buffers instrumentation events during background execution for later publishing
       class EventBuffer
         def initialize(intent, instrumenter)
@@ -20,6 +25,18 @@ module ActiveRecord
           end
         end
 
+        # Build a deferred handle for split start/finish logging.
+        # Unlike the real instrumenter's build_handle (which notifies subscribers
+        # immediately), this captures timing and queues for later publishing.
+        def build_handle(name, payload)
+          DeferredHandle.new(self, @instrumenter, name, payload)
+        end
+
+        # Add a finished event to the buffer for later publishing
+        def add_event(event)
+          @events << event
+        end
+
         def flush
           events, @events = @events, []
           events.each do |event|
@@ -27,15 +44,40 @@ module ActiveRecord
             ActiveSupport::Notifications.publish_event(event)
           end
         end
+
+        # A handle that records timing but defers notification until buffer flush.
+        # Mirrors the interface of ActiveSupport::Notifications::Fanout::Handle.
+        class DeferredHandle
+          def initialize(buffer, instrumenter, name, payload)
+            @buffer = buffer
+            @event = instrumenter.new_event(name, payload)
+          end
+
+          def start
+            @event.start!
+          end
+
+          def finish
+            @event.finish!
+            @buffer.add_event(@event)
+          end
+
+          def payload
+            @event.payload
+          end
+        end
       end
 
-      attr_reader :arel, :name, :prepare, :allow_retry, :allow_async,
-                  :materialize_transactions, :batch, :pool, :session, :lock_wait
+      attr_reader :arel, :name, :prepare, :allow_retry, :allow_async, :prefer_pipeline,
+                  :materialize_transactions, :batch, :pool, :session, :lock_wait,
+                  :retries_remaining, :retry_deadline, :error, :reconnectable,
+                  :event_buffer, :not_run_reason, :finalized
+      alias_method :finalized?, :finalized
       attr_writer :raw_sql, :session
-      attr_accessor :adapter, :binds, :ran_async, :notification_payload
+      attr_accessor :adapter, :binds, :ran_async, :notification_payload, :log_handle
 
       def initialize(adapter:, arel: nil, raw_sql: nil, processed_sql: nil, name: "SQL", binds: [], prepare: false, allow_async: false,
-                     allow_retry: false, materialize_transactions: true, batch: false)
+                     prefer_pipeline: false, allow_retry: false, materialize_transactions: true, batch: false)
         if arel.nil? && raw_sql.nil? && processed_sql.nil?
           raise ArgumentError, "One of arel, raw_sql, or processed_sql must be provided"
         end
@@ -47,6 +89,7 @@ module ActiveRecord
         @binds = binds
         @prepare = prepare
         @allow_async = allow_async
+        @prefer_pipeline = prefer_pipeline
         @ran_async = nil
         @allow_retry = allow_retry
         @materialize_transactions = materialize_transactions
@@ -57,6 +100,8 @@ module ActiveRecord
         @raw_result = nil
         @raw_result_available = false
         @executed = false
+        @not_run_reason = nil
+        @not_run_resettable = false
         @write_query = nil
 
         # Deferred execution state
@@ -66,6 +111,13 @@ module ActiveRecord
         @error = nil
         @lock_wait = nil
         @event_buffer = nil
+        @log_handle = nil
+        @finalized = false
+
+        # Retry tracking state (initialized when execution begins)
+        @retries_remaining = nil
+        @retry_deadline = nil
+        @reconnectable = nil
       end
 
       # Returns a hash representation of the QueryIntent for debugging/introspection
@@ -109,6 +161,9 @@ module ActiveRecord
                 @adapter = connection
                 @ran_async = true
                 run_query!
+
+                # If pipelined, flush with instrumentation before releasing connection
+                flush_pipelined_result(connection) unless @raw_result_available
               end
             rescue => error
               @error = error
@@ -122,7 +177,7 @@ module ActiveRecord
 
       # Is this intent still pending (result not yet available)?
       def pending?
-        !@raw_result_available && @session&.active?
+        !@raw_result_available && (@session&.active? || @executed)
       end
 
       # Was this intent canceled?
@@ -188,8 +243,104 @@ module ActiveRecord
 
       # Internal setter for raw result
       def raw_result=(value)
-        @raw_result = value
+        adapter.lock.synchronize do
+          @raw_result = value
+          @raw_result_available = true
+        end
+      end
+
+      # Deliver a successful result to this intent.
+      # Handles logging, transaction dirtying, and marks the intent complete.
+      def deliver_result(value)
+        raise FinalizedError, "delivering result to a finalized intent" if @finalized
+
+        adapter.lock.synchronize do
+          @raw_result = value
+          @error = nil
+
+          adapter.send(:handle_warnings, value, processed_sql)
+          adapter.send(:dirty_current_transaction) if @materialize_transactions
+
+          @raw_result_available = true
+        end
+
+        # Logging outside lock to avoid blocking other threads.
+        # Set @finalized before finish_intent_log: the handle's state
+        # changes to :finished even if a subscriber raises, so our
+        # flag must reflect that to prevent double-finish in the sweep.
+        @finalized = true
+        adapter.finish_intent_log(self)
+      end
+
+      # Deliver a failure to this intent.
+      # Records the error; does not log. Logging is deferred to the
+      # final outcome in ensure_result (success via deliver_result, or
+      # permanent failure just before raising).
+      def deliver_failure(exception)
+        raise FinalizedError, "delivering failure to a finalized intent" if @finalized
+
+        adapter.lock.synchronize do
+          @error = exception
+
+          adapter.send(:downgrade_connection_after_error, exception)
+          adapter.send(:dirty_current_transaction) if @materialize_transactions
+
+          @raw_result_available = true
+        end
+      end
+
+      # Mark this intent as not run, with an explicit reason and reset policy.
+      #
+      # When +resettable+ is true, accessing the result will trigger on-demand
+      # re-execution rather than raising QueryNotRun.
+      #
+      # All current pipelining is AR-internal, so +resettable+ is always true
+      # today. A future manual batching API would set +resettable: false+ so
+      # that callers observe QueryNotRun for server-aborted queries.
+      def deliver_not_run(reason:, resettable: true)
+        raise FinalizedError, "delivering not_run to a finalized intent" if @finalized
+
+        @not_run_reason = reason
+        @not_run_resettable = resettable
         @raw_result_available = true
+      end
+
+      # Initialize retry tracking state from adapter configuration.
+      # Called when beginning execution attempts.
+      def initialize_retry_state(retries:, deadline:, reconnectable:)
+        return if @retries_remaining
+
+        @retries_remaining = retries
+        @retry_deadline = deadline
+        @reconnectable = reconnectable
+      end
+
+      # Decrement retries remaining. Returns true if retry is still possible.
+      def consume_retry
+        return false unless @retries_remaining && @retries_remaining > 0
+        return false if retry_deadline_exceeded?
+        @retries_remaining -= 1
+        true
+      end
+
+      # Check if the retry deadline has passed
+      def retry_deadline_exceeded?
+        @retry_deadline && @retry_deadline < Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      end
+
+      # Check if this intent can still be retried
+      def retriable?
+        @allow_retry && @retries_remaining && @retries_remaining > 0 && !retry_deadline_exceeded?
+      end
+
+      # Reset state to allow another attempt
+      def reset_for_retry
+        raise FinalizedError, "resetting a finalized intent" if @finalized
+
+        @raw_result = nil
+        @raw_result_available = false
+        @error = nil
+        @not_run_reason = nil
       end
 
       # Check if result has been populated yet (without blocking)
@@ -210,29 +361,104 @@ module ActiveRecord
           execute_or_wait
         end
 
-        @event_buffer&.flush
+        loop do
+          unless @raw_result_available
+            # Result not available - flush pipeline to get it
+            flush_pipelined_result(adapter)
+          end
 
-        # Raise any error captured during deferred execution
-        raise @error if @error
+          @event_buffer&.flush
+
+          if @not_run_reason
+            if @not_run_resettable
+              reset_for_rerun
+              adapter.execute_intent(self)
+              next
+            else
+              raise ActiveRecord::QueryNotRun.new("Query was not run due to pipeline failure (#{@not_run_reason})")
+            end
+          end
+
+          # Retry loop for retryable errors. deliver_failure records the
+          # error; we handle reconnect and re-execution here, mirroring
+          # what with_raw_connection does for synchronous queries.
+          if @error && retriable?
+            action = adapter.send(:classify_retry_action, @error, reconnectable: @reconnectable)
+            if action
+              consume_retry
+              reset_for_retry
+
+              case action
+              when :retry_query
+                adapter.send(:backoff, adapter.send(:connection_retries) - @retries_remaining)
+              when :retry_after_reconnect
+                @reconnectable = false
+              end
+
+              adapter.execute_intent(self)
+              next
+            end
+          end
+
+          break
+        end
+
+        if @error
+          unless @finalized
+            @finalized = true
+            adapter.finish_intent_log(self, exception: @error)
+          end
+          raise @error
+        end
+
+        # Check if the result contains an error (for pipelined queries)
+        # Pipeline results defer errors until the result is accessed.
+        if @raw_result.respond_to?(:check)
+          begin
+            @raw_result.check
+          rescue => e
+            raise adapter.send(:translate_exception_class, e, processed_sql, binds)
+          end
+        end
       end
 
       def cast_result
         raise "Cannot call cast_result before query has executed" unless @executed
         raise "Cannot call cast_result after affected_rows has been called" if defined?(@affected_rows)
+        return @cast_result if defined?(@cast_result)
 
         ensure_result
-        @cast_result ||= adapter.send(:cast_result, @raw_result)
+        @cast_result = adapter.send(:cast_result, @raw_result)
       end
 
       def affected_rows
         raise "Cannot call affected_rows before query has executed" unless @executed
         raise "Cannot call affected_rows after cast_result has been called" if defined?(@cast_result)
+        return @affected_rows if defined?(@affected_rows)
 
         ensure_result
-        @affected_rows ||= adapter.send(:affected_rows, @raw_result)
+        @affected_rows = adapter.send(:affected_rows, @raw_result)
       end
 
       private
+        def reset_for_rerun
+          raise FinalizedError, "resetting a finalized intent for rerun" if @finalized
+
+          @raw_result = nil
+          @raw_result_available = false
+          @error = nil
+          @not_run_reason = nil
+          @not_run_resettable = false
+          remove_instance_variable(:@cast_result) if defined?(@cast_result)
+          remove_instance_variable(:@affected_rows) if defined?(@affected_rows)
+        end
+
+        def flush_pipelined_result(connection)
+          # Just flush the pipeline - logging is handled by start/finish_intent_log
+          # via deliver_result called from consume_pipeline
+          connection.flush_pipeline
+        end
+
         def async_schedule!(session)
           if adapter.current_transaction.joinable?
             raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
@@ -302,6 +528,9 @@ module ActiveRecord
                 @adapter = connection
                 @ran_async = false  # Foreground fallback, not actually async
                 run_query!
+
+                # If pipelined, flush with instrumentation before releasing connection
+                flush_pipelined_result(connection) unless @raw_result_available
               end
             else
               # Result was computed by background thread while we waited for mutex
