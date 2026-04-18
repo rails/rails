@@ -83,8 +83,10 @@ module Rails
             {
               model: model.name,
               table_name: model.table_name,
+              fields: fields_for(model),
+              enums: model.defined_enums.presence,
               associations: format_associations(model)
-            }
+            }.compact
           end
 
           say JSON.generate(data)
@@ -216,15 +218,29 @@ module Rails
 
           JSON.generate({
             table: table,
-            columns: columns.map do |col|
-              { name: col.name, type: col.sql_type, null: col.null, default: col.default }
-            end,
+            columns: format_fields(model, columns),
             indexes: indexes.map do |idx|
               { name: idx.name, columns: idx.columns, unique: idx.unique }
             end,
             enums: model&.defined_enums.presence,
             associations: format_associations(model)
           }.compact)
+        end
+
+        def format_fields(model, columns)
+          enums = model&.defined_enums || {}
+
+          columns.map do |col|
+            field = { name: col.name, type: col.sql_type, null: col.null, default: col.default }
+            field[:enum] = enums[col.name] if enums.key?(col.name)
+            field
+          end
+        end
+
+        def fields_for(model)
+          format_fields(model, model.columns) if model.table_exists?
+        rescue ActiveRecord::ActiveRecordError
+          nil
         end
 
         def model_for_table(table)

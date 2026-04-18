@@ -23,6 +23,10 @@
 
     *Lewis Buckley*
 
+*   Update `bin/rails query` to include enum defintions in model and schema output.
+
+    *Geoff Harcourt*
+
 *   Avoid adding `Rack::Sendfile` to the middleware stack if `config.action_dispatch.x_sendfile_header` is `nil`.
 
     The middleware behave as a noop in such case so it's pointless to have it in the stack.

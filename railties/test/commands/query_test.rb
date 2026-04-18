@@ -149,6 +149,43 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
     assert_equal "comments", post["associations"].first["name"]
   end
 
+  test "models lists fields for each model" do
+    data = query_json("models")
+    post = data.find { |m| m["model"] == "Post" }
+
+    field_names = post["fields"].map { |f| f["name"] }
+    assert_includes field_names, "id"
+    assert_includes field_names, "title"
+    assert_includes field_names, "status"
+
+    title = post["fields"].find { |f| f["name"] == "title" }
+    assert title.key?("type")
+    assert title.key?("null")
+    assert_not title.key?("enum")
+  end
+
+  test "models exposes enums at the model level" do
+    data = query_json("models")
+    post = data.find { |m| m["model"] == "Post" }
+
+    assert_equal({ "draft" => 0, "published" => 1 }, post.dig("enums", "status"))
+  end
+
+  test "models inlines enum mapping on enum-backed fields" do
+    data = query_json("models")
+    post = data.find { |m| m["model"] == "Post" }
+    status = post["fields"].find { |f| f["name"] == "status" }
+
+    assert_equal({ "draft" => 0, "published" => 1 }, status["enum"])
+  end
+
+  test "schema inlines enum mapping on enum-backed columns" do
+    data = query_json("schema", "posts")
+    status = data["columns"].find { |c| c["name"] == "status" }
+
+    assert_equal({ "draft" => 0, "published" => 1 }, status["enum"])
+  end
+
   test "schema shows associations" do
     data = query_json("schema", "comments")
 
