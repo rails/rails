@@ -5,7 +5,7 @@ module ActiveSupport
   #
   # The Broadcast logger is a logger used to write messages to multiple IO. It is commonly used
   # in development to display messages on STDOUT and also write them to a file (development.log).
-  # With the Broadcast logger, you can broadcast your logs to a unlimited number of sinks.
+  # With the Broadcast logger, you can broadcast your logs to an unlimited number of sinks.
   #
   # The BroadcastLogger acts as a standard logger and all methods you are used to are available.
   # However, all the methods on this logger will propagate and be delegated to the other loggers

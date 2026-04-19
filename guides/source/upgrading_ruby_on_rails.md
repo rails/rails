@@ -644,7 +644,7 @@ In order to be able to read messages using the old digest class it is necessary
 to register a rotator. Failing to do so may result in users having their sessions
 invalidated during the upgrade.
 
-The following is an example for rotator for the encrypted and the signed cookies.
+The following is an example of a rotator for encrypted and signed cookies.
 
 ```ruby
 # config/initializers/cookie_rotator.rb

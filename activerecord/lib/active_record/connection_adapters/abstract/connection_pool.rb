@@ -455,13 +455,13 @@ module ActiveRecord
           begin
             yield lease.connection
           ensure
-            lease.sticky = sticky_was if prevent_permanent_checkout && !sticky_was
+            lease.sticky = sticky_was if prevent_permanent_checkout
           end
         else
           begin
             yield lease.connection = checkout
           ensure
-            lease.sticky = sticky_was if prevent_permanent_checkout && !sticky_was
+            lease.sticky = sticky_was if prevent_permanent_checkout
             release_connection(lease) unless lease.sticky
           end
         end

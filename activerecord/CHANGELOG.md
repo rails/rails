@@ -6,6 +6,16 @@
 
     *Eugene Mironichev*
 
+*   Let `add_column` raise `ArgumentError` if `:null` is set to a true value
+    when defining a primary key.
+
+    Primary keys get a `NOT NULL` constraint unconditionally. In particular,
+    `null: true` was being ignored, thus not doing what the user specified.
+    We should rather raise to let the user know the call is invalid.
+
+    *Xavier Noria*
+
+
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be

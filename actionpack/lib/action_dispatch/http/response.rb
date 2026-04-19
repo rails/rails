@@ -150,7 +150,8 @@ module ActionDispatch # :nodoc:
 
         @str_body = nil
         @response.commit!
-        @buf.push string
+        @buf.push string.frozen? ? string : string.dup
+        string.bytesize
       end
       alias_method :<<, :write
 

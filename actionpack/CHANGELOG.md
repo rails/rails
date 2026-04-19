@@ -1,3 +1,44 @@
+*   Serve static CSS and HTML files with `charset=utf-8` in the Content-Type header.
+
+    Static CSS and HTML files served by `ActionDispatch::Static` now include
+    `; charset=utf-8` in their Content-Type response header, fixing browser
+    encoding issues with CSS files containing non-ASCII characters.
+
+    *Mike Dalessio*
+
+*   Add `query:` and `body:` kwargs to integration test request helpers.
+
+    `params:` was ambiguous for GET requests with `as: :json` — unclear
+    whether params should go in the query string or request body. This
+    caused failures in API-only apps which exclude `Rack::MethodOverride`.
+
+    Use `query:` to explicitly send params in the URL query string (any
+    HTTP method), and `body:` to send an encoded request body. They can
+    be combined.
+
+    `params:` retains existing behavior: GET → query string,
+    other methods → request body.
+
+        get  "/search", query: { q: "rails" }, as: :json
+        post "/search", query: { page: 1 }, body: { filters: {} }, as: :json
+
+    Fixes #57131.
+
+    *Denis Savchuk*
+
+*   Add `ActionDispatch::Request#safe_method?` and `#unsafe_method?`.
+
+    `safe_method?` returns true for HTTP methods that are defined as safe per
+    [RFC 9110 §9.2.1](https://httpwg.org/specs/rfc9110.html#safe.methods):
+    GET, HEAD, OPTIONS, and TRACE. `unsafe_method?` is the inverse.
+
+    ```ruby
+    request.safe_method?   # => true for GET, HEAD, OPTIONS, TRACE
+    request.unsafe_method? # => true for POST, PUT, PATCH, DELETE
+    ```
+
+    *Joseph Hale*
+
 *   Add `content_type` option to HTTP authentication methods.
 
     `request_http_basic_authentication`, `request_http_digest_authentication`,

@@ -741,6 +741,57 @@ primary database by default. You can specify which database to connect to using
 $ bin/rails dbconsole --database=animals
 ```
 
+### `bin/rails query`
+
+`query` runs read-only database queries and returns structured JSON output. It connects to the reading replica role by default and prevents database writes. The `--sql` flag restricts execution to SQL only. ActiveRecord expressions are evaluated as Ruby, with the same trust model as `bin/rails runner` and `bin/rails console`.
+
+```bash
+$ bin/rails query "Account.where(plan: 'premium').limit(10)"
+```
+
+You can run raw SQL with the `--sql` flag:
+
+```bash
+$ bin/rails query --sql "SELECT * FROM accounts LIMIT 10"
+```
+
+Results are paginated. Use `--page` and `--per` to navigate:
+
+```bash
+$ bin/rails query "Account.all" --page 2 --per 50
+```
+
+Pipe through `jq` for human-readable formatting:
+
+```bash
+$ bin/rails query "Account.first" | jq
+```
+
+The `schema` subcommand lists tables or shows detail for a specific table, including columns, indexes, enums, and associations:
+
+```bash
+$ bin/rails query schema
+$ bin/rails query schema accounts
+```
+
+The `models` subcommand lists all ActiveRecord models with their table names and associations:
+
+```bash
+$ bin/rails query models
+```
+
+The `explain` subcommand shows the query plan for an expression:
+
+```bash
+$ bin/rails query explain "Account.where(plan: 'premium')"
+```
+
+If you are using multiple databases, you can specify which database configuration to use with `--database` or `--db`:
+
+```bash
+$ bin/rails query "Account.count" --database primary_replica
+```
+
 ### `bin/rails runner`
 
 The `runner` command executes Ruby code in the context of the Rails application

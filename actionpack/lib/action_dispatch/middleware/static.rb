@@ -109,8 +109,15 @@ module ActionDispatch
         end
       end
 
+      DEFAULT_UTF8_CONTENT_TYPES = [ Mime[:html], Mime[:css] ]
+      private_constant :DEFAULT_UTF8_CONTENT_TYPES
+
       def try_files(filepath, content_type, accept_encoding:)
         headers = { Rack::CONTENT_TYPE => content_type }
+
+        if DEFAULT_UTF8_CONTENT_TYPES.include?(content_type)
+          headers[Rack::CONTENT_TYPE] = "#{content_type}; charset=utf-8"
+        end
 
         if compressible? content_type
           try_precompressed_files filepath, headers, accept_encoding: accept_encoding

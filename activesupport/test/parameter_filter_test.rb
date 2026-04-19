@@ -122,6 +122,12 @@ class ParameterFilterTest < ActiveSupport::TestCase
     end
   end
 
+  test "anchored exact-match regexp filters" do
+    parameter_filter = ActiveSupport::ParameterFilter.new([/^token$/, /\Astate\z/, /password/])
+    result = parameter_filter.filter("token" => "t0k3n", "state" => "abc", "password" => "pass", "user_password" => "pass", "not_secret" => "visible")
+    assert_equal({ "token" => "[FILTERED]", "state" => "[FILTERED]", "password" => "[FILTERED]", "user_password" => "[FILTERED]", "not_secret" => "visible" }, result)
+  end
+
   test "precompile_filters" do
     patterns = [/A.a/, /b.B/i, "ccC", :ddD]
     keys = ["Aaa", "Bbb", "Ccc", "Ddd"]
