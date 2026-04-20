@@ -7,13 +7,14 @@ require "bigdecimal/util"
 module ActiveModel
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
+      include Clusivity
       include Comparability
       include ResolveValue
 
-      RANGE_CHECKS = { in: :in? }
+      CLUSIVITY_CHECKS = %i[in within]
       NUMBER_CHECKS = { odd: :odd?, even: :even? }
 
-      RESERVED_OPTIONS = COMPARE_CHECKS.keys + NUMBER_CHECKS.keys + RANGE_CHECKS.keys + [:only_integer, :only_numeric]
+      RESERVED_OPTIONS = COMPARE_CHECKS.keys + NUMBER_CHECKS.keys + CLUSIVITY_CHECKS + [:only_integer, :only_numeric]
 
       INTEGER_REGEX = /\A[+-]?\d+\z/
 
@@ -26,10 +27,8 @@ module ActiveModel
           end
         end
 
-        options.slice(*RANGE_CHECKS.keys).each do |option, value|
-          unless value.is_a?(Range)
-            raise ArgumentError, ":#{option} must be a range"
-          end
+        if CLUSIVITY_CHECKS.any? { |check| options.key?(check) }
+          super
         end
       end
 
@@ -51,8 +50,8 @@ module ActiveModel
             unless value.to_i.public_send(NUMBER_CHECKS[option])
               record.errors.add(attr_name, option, **filtered_options(value))
             end
-          elsif RANGE_CHECKS.include?(option)
-            unless value.public_send(RANGE_CHECKS[option], option_value)
+          elsif CLUSIVITY_CHECKS.include?(option)
+            unless include?(record, value)
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
           elsif COMPARE_CHECKS.include?(option)
