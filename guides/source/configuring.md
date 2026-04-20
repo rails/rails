@@ -69,6 +69,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 - [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
+- [`config.active_support.raise_on_invalid_parse_string`](#config-active-support-raise-on-invalid-parse-string): `true`
 
 #### Default Values for Target Version 8.1
 
@@ -3281,6 +3282,30 @@ The default value depends on the `config.load_defaults` target version:
 
 [ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
 [ActiveSupport::Cache::Store#write]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-write
+
+#### `config.active_support.raise_on_invalid_parse_string`
+
+Specifies whether [`ActiveSupport::TimeZone#parse`][] raises `ArgumentError`
+for strings that contain no recognizable date information (e.g. `"foobar"`).
+
+Historically, `TimeZone#parse` had two different behaviors for invalid
+strings: it returned `nil` when the string contained no recognizable date
+information, but raised `ArgumentError` when the string looked like a date
+but contained out-of-range values (e.g. `"9000"`, which is interpreted as
+month 90).
+
+When set to `true`, both cases raise `ArgumentError`, which matches the
+Ruby standard library's `Time.parse` and makes failures less likely to
+go unnoticed.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
+
+[`ActiveSupport::TimeZone#parse`]: https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html#method-i-parse
 
 #### `config.active_support.event_reporter_context_store`
 

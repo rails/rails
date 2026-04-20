@@ -2,6 +2,7 @@
 
 require "tzinfo"
 require "concurrent/map"
+require "active_support/core_ext/class/attribute"
 
 module ActiveSupport
   # = Active Support \Time Zone
@@ -188,6 +189,8 @@ module ActiveSupport
     UTC_OFFSET_WITH_COLON = "%s%02d:%02d" # :nodoc:
     UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(":", "") # :nodoc:
     private_constant :UTC_OFFSET_WITH_COLON, :UTC_OFFSET_WITHOUT_COLON
+
+    class_attribute :raise_on_invalid_parse_string, instance_accessor: false, default: false
 
     @lazy_zones_map = Concurrent::Map.new
     @country_zones  = Concurrent::Map.new
@@ -456,7 +459,14 @@ module ActiveSupport
     #
     #   Time.zone.parse('Mar 2000') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
     #
-    # If the string is invalid then an +ArgumentError+ could be raised.
+    # Strings with no recognizable date information return +nil+, while strings
+    # with out-of-range components raise +ArgumentError+:
+    #
+    #   Time.zone.parse('foobar') # => nil
+    #   Time.zone.parse('9000')   # => ArgumentError: argument out of range
+    #
+    # Set ActiveSupport::TimeZone.raise_on_invalid_parse_string to +true+ to
+    # raise +ArgumentError+ in both cases.
     def parse(str, now = now())
       parts_to_time(Date._parse(str, false), now)
     end
@@ -591,7 +601,10 @@ module ActiveSupport
     private
       def parts_to_time(parts, now)
         raise ArgumentError, "invalid date" if parts.nil?
-        return if parts.empty?
+        if parts.empty?
+          raise ArgumentError, "invalid date" if TimeZone.raise_on_invalid_parse_string
+          return
+        end
 
         if parts[:seconds]
           time = Time.at(parts[:seconds] + parts.fetch(:sec_fraction, 0))

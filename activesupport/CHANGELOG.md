@@ -1,3 +1,13 @@
+*   Add `ActiveSupport::TimeZone.raise_on_invalid_parse_string`.
+
+    Raise `ArgumentError` on `ActiveSupport::TimeZone#parse` for any invalid
+    string. Historically, strings without recognizable date information
+    (e.g. `"foobar"`) returned `nil`, while strings with out-of-range date
+    components (e.g. `"9000"`) raised `ArgumentError`. When enabled, both
+    cases raise `ArgumentError`, matching the Ruby standard library's `Time.parse`.
+
+    *Said Kaldybaev*
+
 *   Preserve sub-second precision when subtracting a `DateTime` from a `Time`.
 
     `Time - DateTime` converted both sides via `to_f`, so microsecond-level
