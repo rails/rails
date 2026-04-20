@@ -421,3 +421,196 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       end
     end
 end
+
+class FlashDedicatedCookieTest < ActionDispatch::IntegrationTest
+  SessionKey = "_myapp_session"
+  SessionSecret = "b3c631c314c0bbca50c1b2843150fe33"
+  Generator = ActiveSupport::CachingKeyGenerator.new(
+    ActiveSupport::KeyGenerator.new(SessionSecret, iterations: 1000)
+  )
+  Rotations = ActiveSupport::Messages::RotationConfiguration.new
+  SIGNED_COOKIE_SALT = "signed cookie"
+  ENCRYPTED_COOKIE_SALT = "encrypted cookie"
+  ENCRYPTED_SIGNED_COOKIE_SALT = "signed encrypted cookie"
+  AUTHENTICATED_ENCRYPTED_COOKIE_SALT = "authenticated encrypted cookie"
+
+  class TestController < ActionController::Base
+    def set_flash
+      flash["that"] = "hello"
+      head :ok
+    end
+
+    def use_flash
+      render inline: "flash: #{flash["that"]}"
+    end
+
+    def set_flash_now
+      flash.now["that"] = "hello"
+      head :ok
+    end
+
+    def just_use_flash
+      flash["that"]
+      head :ok
+    end
+
+    def touch_nothing
+      head :ok
+    end
+
+    def reset_and_render
+      reset_session
+      render inline: "flash: #{flash["that"]}"
+    end
+
+    def set_flash_then_reset
+      flash["that"] = "hello"
+      reset_session
+      head :ok
+    end
+
+    def raise_data_overflow
+      flash["big"] = "x" * (5 * 1024)
+      head :ok
+    end
+  end
+
+  include CookieAssertions
+
+  def setup
+    super
+    ActionDispatch::Flash.use_dedicated_cookie = true
+  end
+
+  def teardown
+    ActionDispatch::Flash.use_dedicated_cookie = false
+    super
+  end
+
+  def test_flash_round_trips_via_dedicated_cookie
+    with_test_route_set do
+      get "/set_flash"
+      assert_response :success
+      assert_includes set_cookie_header.to_s, "_flash="
+      assert_not_includes set_cookie_header.to_s, "_myapp_session"
+
+      get "/use_flash"
+      assert_response :success
+      assert_equal "flash: hello", @response.body
+    end
+  end
+
+  def test_response_that_does_not_touch_flash_emits_no_flash_cookie
+    with_test_route_set do
+      get "/touch_nothing"
+      assert_response :success
+      assert_not_includes set_cookie_header.to_s, "_flash"
+    end
+  end
+
+  def test_response_that_reads_flash_without_incoming_cookie_emits_no_flash_cookie
+    # If this breaks, the race fix is gone. A concurrent response that happens to read flash but
+    # doesn't set one must NOT emit a delete header, or it will clobber a freshly-set _flash from a
+    # parallel form POST.
+    with_test_route_set do
+      get "/just_use_flash"
+      assert_response :success
+      assert_not_includes set_cookie_header.to_s, "_flash"
+    end
+  end
+
+  def test_flash_cookie_is_deleted_once_consumed
+    with_test_route_set do
+      get "/set_flash"
+      assert_response :success
+      assert_match(/_flash=[^;]+/, set_cookie_header.to_s)
+
+      get "/use_flash"
+      assert_response :success
+      # After consumption, the response should clear the cookie so the browser doesn't keep sending
+      # it forever.
+      assert_match(/_flash=;/, set_cookie_header.to_s)
+    end
+  end
+
+  def test_flash_now_does_not_set_cookie
+    with_test_route_set do
+      get "/set_flash_now"
+      assert_response :success
+      assert_not_includes set_cookie_header.to_s, "_flash"
+    end
+  end
+
+  def test_reset_session_clears_pending_flash_cookie
+    with_test_route_set do
+      get "/set_flash"
+      assert_match(/_flash=[^;]+/, set_cookie_header.to_s)
+
+      get "/reset_and_render"
+      assert_match(/_flash=;/, set_cookie_header.to_s)
+    end
+  end
+
+  def test_reset_session_without_incoming_flash_cookie_emits_no_flash_header
+    with_test_route_set do
+      get "/reset_and_render"
+      assert_not_includes set_cookie_header.to_s, "_flash"
+    end
+  end
+
+  def test_setting_flash_then_reset_session_in_same_request_does_not_persist
+    with_test_route_set do
+      get "/set_flash_then_reset"
+
+      get "/use_flash"
+      assert_equal "flash: ", @response.body
+    end
+  end
+
+  def test_overflow_raises_for_flash_cookie_not_session
+    with_test_route_set do
+      assert_raises(ActionDispatch::Cookies::CookieOverflow) do
+        get "/raise_data_overflow"
+      end
+    end
+  end
+
+  private
+    def set_cookie_header
+      @response.headers["Set-Cookie"]
+    end
+
+    def get(path, **options)
+      options[:env] ||= {}
+      options[:env]["action_dispatch.key_generator"] ||= Generator
+      options[:env]["action_dispatch.cookies_rotations"] = Rotations
+      options[:env]["action_dispatch.secret_key_base"] = SessionSecret
+      options[:env]["action_dispatch.use_authenticated_cookie_encryption"] = true
+      options[:env]["action_dispatch.signed_cookie_salt"] = SIGNED_COOKIE_SALT
+      options[:env]["action_dispatch.encrypted_cookie_salt"] = ENCRYPTED_COOKIE_SALT
+      options[:env]["action_dispatch.encrypted_signed_cookie_salt"] = ENCRYPTED_SIGNED_COOKIE_SALT
+      options[:env]["action_dispatch.authenticated_encrypted_cookie_salt"] = AUTHENTICATED_ENCRYPTED_COOKIE_SALT
+      options[:env]["action_dispatch.cookies_same_site_protection"] = proc { :lax }
+      super(path, **options)
+    end
+
+    def app
+      @app ||= self.class.build_app do |middleware|
+        middleware.use ActionDispatch::Session::CookieStore, key: SessionKey
+        middleware.use ActionDispatch::Flash
+        middleware.delete ActionDispatch::ShowExceptions
+      end
+    end
+
+    def with_test_route_set
+      with_routing do |set|
+        set.draw do
+          ActionDispatch.deprecator.silence do
+            get ":action", to: FlashDedicatedCookieTest::TestController
+          end
+        end
+
+        yield
+      end
+    end
+end

@@ -27,6 +27,7 @@ module ActionDispatch
     config.action_dispatch.authenticated_encrypted_cookie_salt = "authenticated encrypted cookie"
     config.action_dispatch.use_authenticated_cookie_encryption = false
     config.action_dispatch.use_cookies_with_metadata = false
+    config.action_dispatch.use_dedicated_flash_cookie = false
     config.action_dispatch.perform_deep_munge = true
     config.action_dispatch.request_id_header = ActionDispatch::Constants::X_REQUEST_ID
     config.action_dispatch.log_rescued_responses = true
@@ -91,6 +92,8 @@ module ActionDispatch
 
       config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
+
+      ActionDispatch::Flash.use_dedicated_cookie = config.action_dispatch.use_dedicated_flash_cookie
 
       ActionDispatch::Routing::Mapper.route_source_locations = Rails.env.development?
 

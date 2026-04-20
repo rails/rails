@@ -2497,6 +2497,45 @@ This defaults to `true` in `development`, and `false` in all other environments.
 
 Specifies if source locations of redirects should be logged below relevant log lines. By default, the flag is `true` in development and `false` in all other environments.
 
+#### `config.action_dispatch.use_dedicated_flash_cookie`
+
+When `true`, flash data is stored in a dedicated encrypted cookie named `_flash` instead of inside
+`session["flash"]`. Defaults to `false`.
+
+Enabling this fixes a race that can silently drop flash messages after a form submission. The race
+requires a few things to line up: your app stores sessions in the cookie store (the default), a
+concurrent in-flight request is loading on the same page (a lazy `turbo_frame`, a prefetch, or
+another AJAX call, etc.), and the user submits a form that sets a flash and redirects. The
+concurrent response can arrive just after the form response and re-emit the session cookie without
+the flash, overwriting the freshly-set flash at the browser cookie layer — so the redirect renders
+without the toast.
+
+With the dedicated cookie, flash lives in its own encrypted cookie that is only written when flash
+is actually set, and only deleted when an incoming flash cookie has been consumed. Responses that
+don't touch flash never emit a `Set-Cookie: _flash` header, so there is nothing for concurrent
+responses to clobber.
+
+Caveats to be aware of when enabling:
+
+* **One-time flash loss at the flip.** Users whose session cookie contained a flash set just before
+  the deploy will not see that flash rendered. Impact is low and one-time.
+* **Legacy `session["flash"]` key lingers.** Rails does not proactively clean up any `flash` key
+  inside existing sessions; the new code simply stops reading or writing it. It's harmless, but if
+  you want to clean it up you can run this as a short-lived `before_action` and remove it after one
+  deploy:
+
+    ```ruby
+    before_action :drop_legacy_session_flash
+    def drop_legacy_session_flash
+      session.delete("flash") if session.loaded? && session.key?("flash")
+    end
+    ```
+
+* **Overflow failure mode changes.** A very large flash now raises
+  `ActionDispatch::Cookies::CookieOverflow` for the `_flash` cookie rather than for the session
+  cookie. Error signatures in your reporting tool will shift.
+* **No session required.** The dedicated-cookie path works even when the session backend is disabled.
+
 #### `ActionDispatch::Callbacks.before`
 
 Takes a block of code to run before the request.
