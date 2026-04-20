@@ -47,8 +47,8 @@ module ActionText
       self.class.name.demodulize.delete_suffix("Editor").underscore
     end
 
-    def editor_tag(...)
-      Tag.new(editor_name, ...)
+    def editor_tag(options = {}, &block)
+      Tag.new(editor_name, options, &block)
     end
   end
 
@@ -58,9 +58,10 @@ module ActionText
     attr_reader :editor_name
     attr_reader :options
 
-    def initialize(editor_name, options = {})
+    def initialize(editor_name, options = {}, &block)
       @editor_name = editor_name
       @options = options
+      @block = block
     end
 
     def element_name
@@ -70,7 +71,7 @@ module ActionText
     def render_in(view_context)
       options[:class] ||= "#{editor_name}-content"
 
-      view_context.content_tag(element_name, nil, options)
+      view_context.content_tag(element_name, nil, options, &@block)
     end
   end
 end

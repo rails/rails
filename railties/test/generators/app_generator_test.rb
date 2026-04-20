@@ -31,6 +31,7 @@ DEFAULT_APP_FILES = %w(
   app/views/layouts/mailer.html.erb
   app/views/layouts/mailer.text.erb
   app/views/pwa/manifest.json.erb
+  app/views/pwa/offline.html.erb
   app/views/pwa/service-worker.js
   bin/brakeman
   bin/bundler-audit

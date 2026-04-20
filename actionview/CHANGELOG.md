@@ -1,3 +1,7 @@
+*   Skip blank attribute names in tag helpers to avoid generating invalid HTML.
+
+    *Mike Dalessio*
+
 *   Fix tag parameter content being overwritten instead of combined with tag block content.
     Before `tag.div("Hello ") { "World" }` would just return `<div>World</div>`, now it returns `<div>Hello World</div>`.
 

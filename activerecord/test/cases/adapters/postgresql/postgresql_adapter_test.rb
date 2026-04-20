@@ -6,6 +6,7 @@ require "support/connection_helper"
 
 require "active_support/core_ext/object/with"
 require "active_support/error_reporter/test_helper"
+require "json"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -137,6 +138,152 @@ module ActiveRecord
         end
       end
 
+      def test_set_standard_conforming_strings_deprecation
+        assert_deprecated(ActiveRecord.deprecator) do
+          @connection.set_standard_conforming_strings
+        end
+      end
+
+      def test_schema_order_deprecation
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        assert_deprecated(ActiveRecord.deprecator) do
+          connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+            db_config.configuration_hash.merge(schema_order: "public")
+          )
+          connection.connect!
+          assert_equal "public", connection.schema_search_path
+          connection.disconnect!
+        end
+      end
+
+      def test_configure_connection_sets_default_settings
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+        connection.connect!
+
+        assert_equal "on", connection.query_value("SHOW standard_conforming_strings")
+        assert_equal "iso_8601", connection.query_value("SHOW intervalstyle")
+        assert_equal "warning", connection.query_value("SHOW client_min_messages")
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_configure_connection_skips_standard_conforming_strings_when_false
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(standard_conforming_strings: false)
+        )
+
+        log = capture_sql(include_schema: true) do
+          connection.connect!
+        end
+
+        assert_not log.any? { |sql| sql.include?("standard_conforming_strings") },
+          "Expected no SET standard_conforming_strings query, but found one in: #{log.inspect}"
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_configure_connection_skips_intervalstyle_when_false
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(intervalstyle: false)
+        )
+
+        log = capture_sql(include_schema: true) do
+          connection.connect!
+        end
+
+        assert_not log.any? { |sql| sql.include?("IntervalStyle") },
+          "Expected no SET IntervalStyle query, but found one in: #{log.inspect}"
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_configure_connection_skips_client_min_messages_when_false
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(min_messages: false)
+        )
+
+        log = capture_sql(include_schema: true) do
+          connection.connect!
+        end
+
+        assert_not log.any? { |sql| sql.include?("client_min_messages") },
+          "Expected no SET client_min_messages query, but found one in: #{log.inspect}"
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_configure_connection_skips_schema_search_path_when_false
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(schema_search_path: false)
+        )
+
+        log = capture_sql(include_schema: true) do
+          connection.connect!
+        end
+
+        assert_not log.any? { |sql| sql.match?(/SET.*search_path/) },
+          "Expected no SET search_path query, but found one in: #{log.inspect}"
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_configure_connection_custom_min_messages
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(min_messages: "notice")
+        )
+        connection.connect!
+
+        assert_equal "notice", connection.query_value("SHOW client_min_messages")
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_configure_connection_variables_are_set
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(variables: { statement_timeout: "5000" })
+        )
+        connection.connect!
+
+        assert_equal "5s", connection.query_value("SHOW statement_timeout")
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_configure_connection_variables_can_override_defaults
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(variables: { client_min_messages: "error" })
+        )
+        connection.connect!
+
+        # The :variables hash entry should win over the default "warning"
+        assert_equal "error", connection.query_value("SHOW client_min_messages")
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_configure_connection_variables_with_default_value
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(
+            variables: { client_min_messages: :default }
+          )
+        )
+        connection.connect!
+
+        # :default resets to the server's compile-time default which is "notice"
+        assert_equal "notice", connection.query_value("SHOW client_min_messages")
+      ensure
+        connection&.disconnect!
+      end
+
       def test_schema_search_path_is_reapplied_after_reconnect
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
 
@@ -171,6 +318,148 @@ module ActiveRecord
         assert_equal "public, foo", connection.select_value("SHOW search_path")
       ensure
         connection&.disconnect!
+      end
+
+      def test_queries_executed_on_fresh_connection_through_first_select
+        reset_connection
+
+        queries = PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
+          with_timezone_config(default: :utc) do
+            capture_sql(include_schema: true) do
+              ActiveRecord::Base.lease_connection.select_value("SELECT 1+2")
+            end
+          end
+        end.map(&:squish)
+
+        expected_queries = [
+          "SET SESSION IntervalStyle TO 'iso_8601'",
+          "SET SESSION client_min_messages TO 'warning'",
+          "SET SESSION timezone TO 'UTC'",
+          ("SHOW search_path" if @connection.database_version < 18_00_00),
+          "SELECT 1+2",
+        ].compact
+
+        assert_equal expected_queries.size, queries.size
+        assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
+      ensure
+        reset_connection
+      end
+
+      def test_queries_executed_on_fresh_connection_with_all_settings_skipped
+        reset_connection
+
+        queries = PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
+          with_timezone_config(default: :utc) do
+            db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+            connection = PostgreSQLAdapter.new(
+              db_config.configuration_hash.merge(
+                intervalstyle: false,
+                min_messages: false,
+              )
+            )
+            capture_sql(include_schema: true) do
+              connection.select_value("SELECT 1+2")
+            end
+          end
+        end.map(&:squish)
+
+        expected_queries = [
+          "SET SESSION timezone TO 'UTC'",
+          ("SHOW search_path" if @connection.database_version < 18_00_00),
+          "SELECT 1+2",
+        ].compact
+
+        assert_equal expected_queries.size, queries.size
+        assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
+      ensure
+        reset_connection
+      end
+
+      def test_queries_executed_on_fresh_connection_with_first_custom_type_lookup
+        @connection.create_enum "postgresql_startup_lookup_enum", ["good", "bad"]
+        @connection.create_table("postgresql_startup_lookup_enums", force: true) do |t|
+          t.column :value, :postgresql_startup_lookup_enum
+        end
+        @connection.execute "INSERT INTO postgresql_startup_lookup_enums (value) VALUES ('good')"
+        reset_connection
+
+        queries = PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
+          with_timezone_config(default: :utc) do
+            capture_sql(include_schema: true) do
+              result = ActiveRecord::Base.lease_connection.select_all("SELECT value FROM postgresql_startup_lookup_enums LIMIT 1")
+              result.column_types["value"]
+            end
+          end
+        end.map(&:squish)
+
+        expected_queries = [
+          "SET SESSION IntervalStyle TO 'iso_8601'",
+          "SET SESSION client_min_messages TO 'warning'",
+          "SET SESSION timezone TO 'UTC'",
+          ("SHOW search_path" if @connection.database_version < 18_00_00),
+          "SELECT value FROM postgresql_startup_lookup_enums LIMIT 1",
+          oid_lookup_query_regex(initial_bulk_load: true),
+        ].compact
+
+        assert_equal expected_queries.size, queries.size
+        assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
+      ensure
+        @connection.drop_table "postgresql_startup_lookup_enums", if_exists: true
+        @connection.drop_enum "postgresql_startup_lookup_enum", if_exists: true
+        reset_connection
+      end
+
+      def test_queries_executed_on_fresh_connection_with_two_multi_oid_type_lookups
+        @connection.create_enum "postgresql_startup_lookup_one_a", ["one", "two"]
+        @connection.create_enum "postgresql_startup_lookup_one_b", ["one", "two"]
+
+        first_sql = "SELECT 'one'::postgresql_startup_lookup_one_a AS value_a, 'one'::postgresql_startup_lookup_one_b AS value_b"
+        second_sql = "SELECT 'one'::postgresql_startup_lookup_two_a AS value_a, 'one'::postgresql_startup_lookup_two_b AS value_b"
+        reset_connection
+
+        first_queries = nil
+        second_queries = nil
+        PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
+          with_timezone_config(default: :utc) do
+            first_queries = capture_sql(include_schema: true) do
+              connection = ActiveRecord::Base.lease_connection
+              connection.select_all(first_sql)
+            end.map(&:squish)
+
+            connection = ActiveRecord::Base.lease_connection
+            connection.execute "CREATE TYPE postgresql_startup_lookup_two_a AS ENUM ('one', 'two')"
+            connection.execute "CREATE TYPE postgresql_startup_lookup_two_b AS ENUM ('one', 'two')"
+
+            second_queries = capture_sql(include_schema: true) do
+              connection.select_all(second_sql)
+            end.map(&:squish)
+          end
+        end
+
+        expected_first_queries = [
+          "SET SESSION IntervalStyle TO 'iso_8601'",
+          "SET SESSION client_min_messages TO 'warning'",
+          "SET SESSION timezone TO 'UTC'",
+          ("SHOW search_path" if @connection.database_version < 18_00_00),
+          first_sql,
+          oid_lookup_query_regex(initial_bulk_load: true),
+        ].compact
+
+        expected_second_queries = [
+          second_sql,
+          oid_lookup_query_regex(initial_bulk_load: false),
+        ]
+
+        assert_equal expected_first_queries.size, first_queries.size
+        assert expected_first_queries.zip(first_queries).all? { |expected, actual| expected === actual }
+        assert_equal expected_second_queries.size, second_queries.size
+        assert expected_second_queries.zip(second_queries).all? { |expected, actual| expected === actual }
+      ensure
+        @connection.drop_enum "postgresql_startup_lookup_one_a", if_exists: true
+        @connection.drop_enum "postgresql_startup_lookup_one_b", if_exists: true
+        @connection.drop_enum "postgresql_startup_lookup_two_a", if_exists: true
+        @connection.drop_enum "postgresql_startup_lookup_two_b", if_exists: true
+        reset_connection
       end
 
       def test_schema_search_path_uses_parameter_status_on_pg18
@@ -637,18 +926,21 @@ module ActiveRecord
 
       def test_reload_type_map_for_newly_defined_types
         @connection.create_enum "feeling", ["good", "bad"]
+        enum_oid = @connection.query_value("SELECT 'feeling'::regtype::oid").to_i
 
-        # Runs only SELECT, no type map reloading.
-        assert_queries_count(1, include_schema: true) do
+        # Runs SELECT plus an on-demand type lookup for the enum OID.
+        assert_queries_count(2, include_schema: true) do
           result = @connection.select_all "SELECT 'good'::feeling"
           assert_instance_of(PostgreSQLAdapter::OID::Enum,
                              result.column_types["feeling"])
         end
+
+        assert @connection.send(:type_map).key?(enum_oid)
+
+        @connection.drop_enum "feeling", if_exists: true
+        assert_not @connection.send(:type_map).key?(enum_oid)
       ensure
-        # Reloads type map.
-        assert_queries_match(/from pg_type/i, include_schema: true) do
-          @connection.drop_enum "feeling", if_exists: true
-        end
+        @connection.drop_enum "feeling", if_exists: true
         reset_connection
       end
 
@@ -657,18 +949,152 @@ module ActiveRecord
         connection = ActiveRecord::Base.lease_connection
         connection.select_all "SELECT 1" # eagerly initialize the connection
 
-        silence_warnings do
-          assert_queries_count(2, include_schema: true) do
+        queries = silence_warnings do
+          capture_sql(include_schema: true) do
             connection.select_all "select 'pg_catalog.pg_class'::regclass"
-          end
-          assert_queries_count(1, include_schema: true) do
             connection.select_all "select 'pg_catalog.pg_class'::regclass"
-          end
-          assert_queries_count(2, include_schema: true) do
             connection.select_all "SELECT NULL::anyarray"
           end
-        end
+        end.map(&:squish)
+
+        expected_queries = [
+          "select 'pg_catalog.pg_class'::regclass",
+          oid_lookup_query_regex(initial_bulk_load: true),
+          "select 'pg_catalog.pg_class'::regclass",
+          "SELECT NULL::anyarray",
+          oid_lookup_query_regex(initial_bulk_load: false),
+        ]
+
+        assert_equal expected_queries.size, queries.size
+        assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
       ensure
+        reset_connection
+      end
+
+      def test_bulk_loads_domains_after_first_unknown_oid_lookup
+        @connection.execute "CREATE DOMAIN postgresql_domain_one AS integer"
+        @connection.execute "CREATE DOMAIN postgresql_domain_two AS integer"
+        @connection.create_table("postgresql_domain_type_map_bulk_loads_one", force: true) do |t|
+          t.column :value, :postgresql_domain_one
+        end
+        @connection.create_table("postgresql_domain_type_map_bulk_loads_two", force: true) do |t|
+          t.column :value, :postgresql_domain_two
+        end
+        reset_connection
+
+        connection = ActiveRecord::Base.lease_connection
+        connection.select_all "SELECT 1" # eagerly initialize the connection
+
+        first_queries = silence_warnings do
+          capture_sql(include_schema: true) do
+            connection.columns("postgresql_domain_type_map_bulk_loads_one")
+          end
+        end.map(&:squish)
+        first_lookup_queries = first_queries.select { |query| oid_lookup_query?(query) }
+        expected_queries = [oid_lookup_query_regex(initial_bulk_load: true)]
+
+        assert_equal expected_queries.size, first_lookup_queries.size
+        assert expected_queries.zip(first_lookup_queries).all? { |expected, actual| expected === actual }
+
+        second_queries = silence_warnings do
+          capture_sql(include_schema: true) do
+            connection.columns("postgresql_domain_type_map_bulk_loads_two")
+          end
+        end.map(&:squish)
+        second_lookup_queries = second_queries.select { |query| oid_lookup_query?(query) }
+        expected_queries = []
+
+        assert_equal expected_queries.size, second_lookup_queries.size
+        assert expected_queries.zip(second_lookup_queries).all? { |expected, actual| expected === actual }
+      ensure
+        @connection.drop_table "postgresql_domain_type_map_bulk_loads_one", if_exists: true
+        @connection.drop_table "postgresql_domain_type_map_bulk_loads_two", if_exists: true
+        @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_one"
+        @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_two"
+        reset_connection
+      end
+
+      def test_bulk_oid_lookup_query_excludes_system_catalog_types_for_known_servers
+        query = nil
+
+        @connection.stub(:database_version, 14_00_00) do
+          @connection.send(:load_types_queries, [42], true) { |sql| query = sql.squish }
+        end
+
+        assert_includes query, "WHERE t.typtype IN ('r', 'e', 'd') AND t.typnamespace != 'pg_catalog'::regnamespace"
+      end
+
+      def test_bulk_oid_lookup_query_keeps_system_catalog_types_for_newer_servers
+        query = nil
+
+        @connection.stub(:database_version, ActiveRecord::ConnectionAdapters::PostgreSQL::OID::WellKnown::FIRST_UNKNOWN_PG_VERSION) do
+          @connection.send(:load_types_queries, [42], true) { |sql| query = sql.squish }
+        end
+
+        assert_includes query, "WHERE t.typtype IN ('r', 'e', 'd')"
+        assert_not_includes query, "t.typnamespace !="
+      end
+
+      def test_load_additional_types_cascades_dependency_lookups
+        @connection.execute "CREATE DOMAIN postgresql_domain_base AS integer"
+        @connection.execute "CREATE DOMAIN postgresql_domain_nested AS postgresql_domain_base[]"
+        nested_array_oid = @connection.query_value("SELECT 'postgresql_domain_nested[]'::regtype::oid").to_i
+        reset_connection
+
+        connection = ActiveRecord::Base.lease_connection
+        lookup_sql = "SELECT '{}'::postgresql_domain_nested[] AS value"
+
+        queries = capture_sql(include_schema: true) do
+          connection.select_all(lookup_sql)
+        end.map(&:squish)
+        lookup_queries = queries.select { |query| oid_lookup_query?(query) }
+        expected_queries = [
+          oid_lookup_query_regex(initial_bulk_load: true),
+          oid_lookup_query_regex(initial_bulk_load: false),
+        ]
+
+        assert_equal expected_queries.size, lookup_queries.size
+        assert expected_queries.zip(lookup_queries).all? { |expected, actual| expected === actual }
+        assert connection.send(:type_map).key?(nested_array_oid)
+
+        lookup_query = lookup_queries.find { |query| oid_lookup_query_regex(initial_bulk_load: true) === query }
+        assert lookup_query
+
+        explain = connection.select_value("EXPLAIN (FORMAT JSON) #{lookup_query}")
+        plan = JSON.parse(explain).first.fetch("Plan")
+        pg_type_scan_nodes = plan_nodes(plan).select { |node| node["Relation Name"] == "pg_type" }
+        # Keep anti-OR behavior from #40876 visible: OID lookups should stay index-driven,
+        # and only the typtype='d' branch may seq-scan.
+        scan_summary = pg_type_scan_nodes.map { |node| [node["Index Name"], node["Filter"]] }.sort_by { |(index_name, filter)| [index_name.to_s, filter.to_s] }
+        assert_equal 2, scan_summary.length
+        assert_includes scan_summary, ["pg_type_oid_index", nil]
+
+        seq_scan_filter = scan_summary.find { |index_name, _| index_name.nil? }.last
+        assert_includes seq_scan_filter, "typtype = ANY ('{r,e,d}'::\"char\"[])"
+      ensure
+        @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_nested"
+        @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_base"
+        reset_connection
+      end
+
+      def test_load_additional_types_cascades_dependency_lookups_after_initial_bulk_load
+        reset_connection
+        connection = ActiveRecord::Base.lease_connection
+        silence_warnings { connection.select_all "select 'pg_catalog.pg_class'::regclass" }
+
+        connection.execute "CREATE DOMAIN postgresql_domain_base_after_bulk AS integer"
+        connection.execute "CREATE DOMAIN postgresql_domain_nested_after_bulk AS postgresql_domain_base_after_bulk"
+        nested_array_oid = connection.query_value("SELECT 'postgresql_domain_nested_after_bulk[]'::regtype::oid").to_i
+
+        result = silence_warnings do
+          connection.select_all("SELECT '{}'::postgresql_domain_nested_after_bulk[] AS value")
+        end
+
+        assert_instance_of(PostgreSQLAdapter::OID::Array, result.column_types["value"])
+        assert connection.send(:type_map).key?(nested_array_oid)
+      ensure
+        connection&.execute "DROP DOMAIN IF EXISTS postgresql_domain_nested_after_bulk"
+        connection&.execute "DROP DOMAIN IF EXISTS postgresql_domain_base_after_bulk"
         reset_connection
       end
 
@@ -1008,6 +1434,17 @@ module ActiveRecord
         @connection.execute("DROP EXTENSION IF EXISTS hstore")
       end
 
+      def test_generated_changes_column_equality
+        cast_type = @connection.lookup_cast_type("varchar")
+        type_metadata = SqlTypeMetadata.new(sql_type: "varchar", type: :string)
+
+        stored_column = PostgreSQL::Column.new("name", cast_type, nil, type_metadata, true, nil, generated: "s")
+        virtual_column = PostgreSQL::Column.new("name", cast_type, nil, type_metadata, true, nil, generated: "v")
+
+        assert_not_equal stored_column, virtual_column
+        assert_not_equal stored_column.hash, virtual_column.hash
+      end
+
       private
         def with_postgresql_apdater_decode_dates
           PostgreSQLAdapter.decode_dates = true
@@ -1023,6 +1460,33 @@ module ActiveRecord
         def connection_without_insert_returning
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
           ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash.merge(insert_returning: false))
+        end
+
+        def oid_lookup_query?(query)
+          query.start_with?(
+            "SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype " \
+            "FROM pg_type AS t LEFT JOIN pg_range AS r ON oid = rngtypid WHERE t.oid IN ("
+          )
+        end
+
+        def oid_lookup_query_regex(initial_bulk_load:)
+          oid_list_pattern = "\\d+(?:,\\s*\\d+)*"
+          query_prefix = Regexp.escape(
+            "SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype " \
+            "FROM pg_type AS t LEFT JOIN pg_range AS r ON oid = rngtypid WHERE "
+          )
+          bulk_clause = if initial_bulk_load
+            Regexp.escape(" UNION ") + query_prefix + Regexp.escape("t.typtype IN ('r', 'e', 'd')") +
+              "(?:" + Regexp.escape(" AND t.typnamespace != 'pg_catalog'::regnamespace") + ")?"
+          else
+            ""
+          end
+
+          /\A#{query_prefix}t\.oid\ IN\ \(#{oid_list_pattern}\)#{bulk_clause}\z/
+        end
+
+        def plan_nodes(node)
+          [node].concat((node["Plans"] || []).flat_map { |child| plan_nodes(child) })
         end
     end
   end

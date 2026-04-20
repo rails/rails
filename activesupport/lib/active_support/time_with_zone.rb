@@ -5,7 +5,6 @@ require "yaml"
 require "active_support/duration"
 require "active_support/values/time_zone"
 require "active_support/core_ext/object/acts_like"
-require "active_support/core_ext/date_and_time/compatibility"
 
 module ActiveSupport
   # = Active Support \Time With Zone
@@ -45,7 +44,7 @@ module ActiveSupport
     PRECISIONS = Hash.new { |h, n| h[n] = "%FT%T.%#{n}N" }
     PRECISIONS[0] = "%FT%T"
 
-    include Comparable, DateAndTime::Compatibility
+    include Comparable
     attr_reader :time_zone
 
     def initialize(utc_time, time_zone, local_time = nil, period = nil)

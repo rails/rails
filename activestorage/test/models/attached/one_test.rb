@@ -68,6 +68,18 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_equal "town.jpg", @user.avatar.filename.to_s
   end
 
+  test "attaching a new blob from a Hash with a path traversal key raises on Disk service" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      @user.avatar.attach key: "../../etc/passwd", io: StringIO.new("malicious"), filename: "exploit.txt", content_type: "text/plain"
+    end
+  ensure
+    # The orphaned blob record must be removed before teardown, which calls
+    # Blob#delete on all blobs (and that would re-raise InvalidKeyError via
+    # path_for). Use delete_all to bypass the service layer.
+    ActiveStorage::Attachment.where(blob: ActiveStorage::Blob.where(key: "../../etc/passwd")).delete_all
+    ActiveStorage::Blob.where(key: "../../etc/passwd").delete_all
+  end
+
   test "attaching a new blob from a Hash to an existing record passes record" do
     hash = { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg" }
     blob = ActiveStorage::Blob.build_after_unfurling(**hash)

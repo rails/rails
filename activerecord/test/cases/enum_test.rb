@@ -1152,7 +1152,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_match "Undeclared attribute type for enum 'typeless_genre' in Book", error.message
   end
 
-  test "supports attributes declared with a explicit type" do
+  test "supports attributes declared with an explicit type" do
     klass = Class.new(Book) do
       attribute :my_genre, :integer
       enum :my_genre, [:adventure, :comic]

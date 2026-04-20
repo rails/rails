@@ -91,7 +91,8 @@ module ActionController
   module Live
     extend ActiveSupport::Concern
 
-    mattr_accessor :live_streaming_excluded_keys, default: []
+    @live_streaming_excluded_keys = []
+    singleton_class.attr_accessor :live_streaming_excluded_keys
 
     included do
       class_attribute :live_streaming_excluded_keys, instance_accessor: false, default: Live.live_streaming_excluded_keys
@@ -230,6 +231,8 @@ module ActionController
             raise ClientDisconnected, "client disconnected"
           end
         end
+
+        string.bytesize
       end
 
       # Same as `write` but automatically include a newline at the end of the string.

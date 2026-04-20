@@ -28,7 +28,7 @@ It describes how to properly set up Active Record for PostgreSQL.
 Datatypes
 ---------
 
-PostgreSQL offers a number of specific datatypes. Following is a list of types,
+PostgreSQL offers a number of specific datatypes. The following is a list of types,
 that are supported by the PostgreSQL adapter.
 
 ### Bytea

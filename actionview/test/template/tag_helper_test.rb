@@ -107,6 +107,27 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<p included=\"\" />", tag("p", included: "")
   end
 
+  def test_tag_options_rejects_blank_key
+    assert_equal "<p />", tag("p", "" => "value")
+    assert_equal "<p />", tag("p", nil => "value")
+    assert_equal '<p class="a" />', tag("p", "" => "value", "class" => "a")
+    assert_equal '<p class="a" />', tag("p", nil => "value", "class" => "a")
+  end
+
+  def test_tag_options_rejects_blank_data_key
+    assert_equal "<p />", tag("p", data: { "" => "value" })
+    assert_equal "<p />", tag("p", data: { nil => "value" })
+    assert_equal '<p data-x="y" />', tag("p", data: { "" => "value", "x" => "y" })
+    assert_equal '<p data-x="y" />', tag("p", data: { nil => "value", "x" => "y" })
+  end
+
+  def test_tag_options_rejects_blank_aria_key
+    assert_equal "<p />", tag("p", aria: { "" => "value" })
+    assert_equal "<p />", tag("p", aria: { nil => "value" })
+    assert_equal '<p aria-x="y" />', tag("p", aria: { "" => "value", "x" => "y" })
+    assert_equal '<p aria-x="y" />', tag("p", aria: { nil => "value", "x" => "y" })
+  end
+
   def test_tag_builder_options_accepts_blank_option
     assert_equal "<p included=\"\"></p>", tag.p(included: "")
   end
@@ -203,6 +224,14 @@ class TagHelperTest < ActionView::TestCase
 
     assert_equal "<the-name #{COMMON_DANGEROUS_CHARS}=\"the value\" />",
                  tag("the-name", { COMMON_DANGEROUS_CHARS => "the value" }, false, false)
+  end
+
+  def test_tag_with_blank_attribute_name_generates_valid_markup
+    # https://hackerone.com/reports/3078929
+    html = tag("img", "src" => "/nonexistent.png", "" => "/onerror=alert(1)")
+    fragment = Nokogiri::HTML5::DocumentFragment.parse(html)
+    attrs = fragment.at_css("img").attribute_nodes.map(&:name)
+    assert_equal [ "src" ], attrs
   end
 
   def test_tag_builder_with_dangerous_unknown_attribute_name

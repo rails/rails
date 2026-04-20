@@ -2753,7 +2753,7 @@ module ApplicationTests
       end
     end
 
-    test "config_for returns a ActiveSupport::OrderedOptions" do
+    test "config_for returns an ActiveSupport::OrderedOptions" do
       app_file "config/custom.yml", <<~YAML
         shared:
           some_key: default

@@ -27,6 +27,7 @@ require "active_record/connection_adapters/postgresql/oid/vector"
 require "active_record/connection_adapters/postgresql/oid/xml"
 
 require "active_record/connection_adapters/postgresql/oid/type_map_initializer"
+require "active_record/connection_adapters/postgresql/oid/well_known"
 
 module ActiveRecord
   module ConnectionAdapters

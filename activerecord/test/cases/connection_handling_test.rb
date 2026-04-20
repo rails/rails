@@ -54,6 +54,29 @@ module ActiveRecord
         assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
       end
 
+      test "#with_connection(prevent_permanent_checkout: true) won't clear sticky lease set before by #lease_connection" do
+        ActiveRecord::Base.release_connection
+        assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
+
+        leased_connection = nil
+        ActiveRecord::Base.with_connection do |connection|
+          leased_connection = ActiveRecord::Base.lease_connection
+          assert_same connection, leased_connection
+
+          ActiveRecord::Base.with_connection(prevent_permanent_checkout: true) do |inner_connection|
+            assert_same leased_connection, inner_connection
+          end
+
+          assert_predicate ActiveRecord::Base.connection_pool, :active_connection?
+          assert_same leased_connection, ActiveRecord::Base.lease_connection
+        end
+
+        assert_predicate ActiveRecord::Base.connection_pool, :active_connection?
+        assert_same leased_connection, ActiveRecord::Base.lease_connection
+      ensure
+        ActiveRecord::Base.release_connection
+      end
+
       test "#with_connection use the already leased connection if available" do
         leased_connection = ActiveRecord::Base.lease_connection
         assert_predicate ActiveRecord::Base.connection_pool, :active_connection?

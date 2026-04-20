@@ -68,7 +68,7 @@ module ActiveRecord
 
         def drop_table(*table_names, **options) # :nodoc:
           table_names.each { |table_name| schema_cache.clear_data_source_cache!(table_name.to_s) }
-          execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{table_names.map { |table_name| quote_table_name(table_name) }.join(', ')}#{' CASCADE' if options[:force] == :cascade}"
+          execute drop_table_sql(*table_names, **options)
         end
 
         # Returns true if schema exists.
@@ -307,7 +307,12 @@ module ActiveRecord
         def schema_search_path=(schema_csv)
           return if schema_csv == @schema_search_path
           if schema_csv
-            query_command("SET search_path TO #{schema_csv}", "SCHEMA")
+            # Check parameter_status to skip redundant SET when the server
+            # already has the desired search_path (e.g. on initial connection).
+            current = with_raw_connection(materialize_transactions: false) { |conn| conn.parameter_status("search_path") }
+            unless current == schema_csv
+              query_command("SET search_path TO #{schema_csv}", "SCHEMA")
+            end
             @schema_search_path = schema_csv
           end
         end
@@ -677,15 +682,13 @@ module ActiveRecord
         # Adds comment for given table column or drops it if +comment+ is a +nil+
         def change_column_comment(table_name, column_name, comment_or_changes) # :nodoc:
           clear_cache!
-          comment = extract_new_comment_value(comment_or_changes)
-          execute "COMMENT ON COLUMN #{quote_table_name(table_name)}.#{quote_column_name(column_name)} IS #{quote(comment)}"
+          execute change_column_comment_sql(table_name, column_name, comment_or_changes)
         end
 
         # Adds comment for given table or drops it if +comment+ is a +nil+
         def change_table_comment(table_name, comment_or_changes) # :nodoc:
           clear_cache!
-          comment = extract_new_comment_value(comment_or_changes)
-          execute "COMMENT ON TABLE #{quote_table_name(table_name)} IS #{quote(comment)}"
+          execute change_table_comment_sql(table_name, comment_or_changes)
         end
 
         # Renames a column in a table.
@@ -700,7 +703,7 @@ module ActiveRecord
           result = execute schema_creation.accept(create_index)
 
           index = create_index.index
-          execute "COMMENT ON INDEX #{quote_column_name(index.name)} IS #{quote(index.comment)}" if index.comment
+          execute change_index_comment_sql(index) if index.comment
           result
         end
 
@@ -1262,6 +1265,11 @@ module ActiveRecord
             super
           end
 
+          def validate_table_length!(table_name)
+            _schema, table_name = extract_schema_qualified_name(table_name)
+            super
+          end
+
           def exclusion_constraint_name(table_name, **options)
             options.fetch(:name) do
               expression = options.fetch(:expression)
@@ -1338,6 +1346,28 @@ module ActiveRecord
 
           def decode_string_array(value)
             PG::TextDecoder::Array.new.decode(value)
+          end
+
+          def change_table_comment_sql(table_name, comment_or_changes)
+            comment = extract_new_comment_value(comment_or_changes)
+            "COMMENT ON TABLE #{quote_table_name(table_name)} IS #{quote(comment)}"
+          end
+
+          def change_column_comment_sql(table_name, column_name, comment_or_changes)
+            comment = extract_new_comment_value(comment_or_changes)
+            "COMMENT ON COLUMN #{quote_table_name(table_name)}.#{quote_column_name(column_name)} IS #{quote(comment)}"
+          end
+
+          def drop_table_sql(*table_names, if_exists: nil, force: nil, **)
+            exists = " IF EXISTS" if if_exists
+            quoted_table_names = table_names.map { |table_name| quote_table_name(table_name) }.join(", ")
+            cascade = " CASCADE" if force == :cascade
+
+            "DROP TABLE#{exists} #{quoted_table_names}#{cascade}"
+          end
+
+          def change_index_comment_sql(index)
+            "COMMENT ON INDEX #{quote_column_name(index.name)} IS #{quote(index.comment)}"
           end
       end
     end

@@ -174,6 +174,30 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     $stdout = original
   end
 
+  def test_schema_dump_after_schema_load_with_enum_array_column
+    original_stdout, $stdout = $stdout, StringIO.new
+
+    ActiveRecord::Schema.define do
+      create_enum "pg_enum_array_schema_dump_account_type", ["customer", "vendor"]
+
+      create_table "pg_enum_array_schema_dump_accounts", force: :cascade do |t|
+        t.enum :account_types, array: true, enum_type: "pg_enum_array_schema_dump_account_type"
+      end
+    end
+
+    warning = capture(:stderr) { @connection.columns("pg_enum_array_schema_dump_accounts") }
+    assert_predicate warning, :blank?
+
+    column = @connection.columns("pg_enum_array_schema_dump_accounts").find { |entry| entry.name == "account_types" }
+    assert_equal :enum, column.type
+    assert_predicate column, :array?
+  ensure
+    $stdout = original_stdout
+    @connection.drop_table "pg_enum_array_schema_dump_accounts", if_exists: true
+    @connection.drop_enum "pg_enum_array_schema_dump_account_type", if_exists: true
+    reset_connection
+  end
+
   def test_drop_enum
     @connection.create_enum :unused, []
 
