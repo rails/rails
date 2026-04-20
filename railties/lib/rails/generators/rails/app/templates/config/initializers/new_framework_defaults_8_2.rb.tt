@@ -101,3 +101,14 @@
 # Otherwise, when set to `nil`, only the first string of the backtrace is included, stripping the `Rails.root` from the controller path.
 #++
 # Rails.application.config.action_controller.rescue_from_event_backtrace = :array
+
+###
+# Raise `ArgumentError` on `ActiveSupport::TimeZone#parse` for any invalid
+# string.
+#
+# Historically, strings without recognizable date information (e.g. `"foobar"`)
+# returned `nil`, while strings with out-of-range date components (e.g.
+# `"9000"`) raised `ArgumentError`. When enabled, both cases raise
+# `ArgumentError`, matching the Ruby standard library's `Time.parse`.
+#++
+# Rails.application.config.active_support.raise_on_invalid_parse_string = true

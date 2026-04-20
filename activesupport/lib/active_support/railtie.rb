@@ -31,6 +31,14 @@ module ActiveSupport
       end
     end
 
+    initializer "active_support.raise_on_invalid_parse_string" do |app|
+      config.after_initialize do
+        if app.config.active_support.raise_on_invalid_parse_string
+          ActiveSupport::TimeZone.raise_on_invalid_parse_string = true
+        end
+      end
+    end
+
     initializer "active_support.set_authenticated_message_encryption" do |app|
       config.after_initialize do
         unless app.config.active_support.use_authenticated_message_encryption.nil?
