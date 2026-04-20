@@ -52,6 +52,29 @@ module ActionCable::StreamTests
     end
   end
 
+  class StreamHandlerOverrideChannel < ActionCable::Channel::Base
+    attr_reader :stream_handler_arguments
+
+    private
+      def stream_handler(broadcasting, user_handler, coder: nil)
+        @stream_handler_arguments = [ broadcasting, user_handler, coder ]
+        super
+      end
+  end
+
+  class DefaultStreamHandlerOverrideChannel < ActionCable::Channel::Base
+    attr_reader :default_stream_handler_arguments
+
+    private
+      def default_stream_handler(broadcasting, coder:)
+        @default_stream_handler_arguments = [ broadcasting, coder ]
+
+        -> message do
+          transmit({ custom: coder.decode(message), broadcasting: broadcasting })
+        end
+      end
+  end
+
   class StreamTest < ActionCable::TestCase
     test "streaming start and stop" do
       run_in_eventmachine do
@@ -177,6 +200,32 @@ module ActionCable::StreamTests
 
         assert_equal 1, connection.transmissions.size
       end
+    end
+
+    test "stream_handler can be overridden" do
+      connection = TestConnection.new
+      channel = StreamHandlerOverrideChannel.new(connection, "{id: 1}", id: 1)
+      user_handler = -> message { connection.transmit(message) }
+
+      channel.send(:stream_handler, "test_room_1", user_handler, coder: DummyEncoder)
+        .call(DummyEncoder.encode(foo: "bar"))
+
+      assert_equal ["test_room_1", user_handler, DummyEncoder], channel.stream_handler_arguments
+      assert_equal({ "foo" => "decoded" }, connection.last_transmission)
+    end
+
+    test "default_stream_handler can be overridden" do
+      connection = TestConnection.new
+      channel = DefaultStreamHandlerOverrideChannel.new(connection, "{id: 1}", id: 1)
+
+      channel.send(:stream_handler, "test_room_1", nil, coder: DummyEncoder)
+        .call(DummyEncoder.encode(foo: "bar"))
+
+      assert_equal ["test_room_1", DummyEncoder], channel.default_stream_handler_arguments
+      assert_equal(
+        { "identifier" => "{id: 1}", "message" => { "custom" => { "foo" => "decoded" }, "broadcasting" => "test_room_1" } },
+        connection.last_transmission
+      )
     end
 
     test "stop_all_streams" do
