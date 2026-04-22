@@ -1,3 +1,11 @@
+*   Bump the minimum PostgreSQL version to 10.0.
+
+    As part of this change, `supports_pgcrypto_uuid?` is deprecated because
+    `pgcrypto` provides `gen_random_uuid()` since PostgreSQL 9.4, which is
+    below the new 10.0 minimum.
+
+    *Yasuo Honda*
+
 *   Let `add_column` raise `ArgumentError` if `:null` is set to a true value
     when defining a primary key.
 
