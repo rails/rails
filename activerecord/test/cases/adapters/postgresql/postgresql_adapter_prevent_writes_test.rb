@@ -48,6 +48,12 @@ module ActiveRecord
         end
       end
 
+      def test_doesnt_error_when_an_empty_query_is_called_while_preventing_writes
+        ActiveRecord::Base.while_preventing_writes do
+          assert_queries_count(1) { @connection.execute(";") }
+        end
+      end
+
       def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
         with_example_table do
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
