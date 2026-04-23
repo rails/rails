@@ -683,6 +683,7 @@ module ActionController
           end
           env["rack.input"] = StringIO.new
           env.delete "CONTENT_LENGTH"
+          env.delete "CONTENT_TYPE"
           env.delete "RAW_POST_DATA"
           env
         end

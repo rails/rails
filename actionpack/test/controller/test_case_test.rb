@@ -793,6 +793,14 @@ class TestCaseTest < ActionController::TestCase
     assert_equal 0, @request.content_length
   end
 
+  def test_content_type_reset_after_post_request
+    post :no_op, params: { foo: "bar" }
+    assert_equal "application/x-www-form-urlencoded", @request.content_type
+
+    get :no_op
+    assert_nil @request.content_type
+  end
+
   def test_path_is_kept_after_the_request
     get :test_params, params: { id: "foo" }
     assert_equal "/test_case_test/test/test_params/foo", @request.path
