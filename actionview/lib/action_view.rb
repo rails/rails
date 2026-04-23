@@ -89,10 +89,17 @@ module ActionView
   end
 
   autoload :CacheExpiry
+  autoload :Precompiler
   autoload :TestCase
 
   singleton_class.attr_accessor :render_tracker
   self.render_tracker = :regex
+
+  singleton_class.attr_accessor :precompile_templates
+  self.precompile_templates = false
+
+  singleton_class.attr_accessor :precompile_additional_paths
+  self.precompile_additional_paths = []
 
   def self.eager_load!
     super

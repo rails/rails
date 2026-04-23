@@ -82,11 +82,15 @@ module ActionView
     config.after_initialize do |app|
       config.after_initialize do
         ActionView.render_tracker = config.action_view.render_tracker
+        ActionView.precompile_templates = config.action_view.precompile_templates if config.action_view.key?(:precompile_templates)
+        ActionView.precompile_additional_paths = config.action_view.precompile_additional_paths if config.action_view.key?(:precompile_additional_paths)
       end
 
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k, v|
           next if k == :render_tracker
+          next if k == :precompile_templates
+          next if k == :precompile_additional_paths
           send "#{k}=", v
         end
       end
@@ -139,6 +143,14 @@ module ActionView
     rake_tasks do |app|
       unless app.config.api_only
         load "action_view/tasks/cache_digests.rake"
+      end
+    end
+
+    initializer "action_view.precompile_templates" do |app|
+      config.after_initialize do
+        if ActionView.precompile_templates && app.config.eager_load
+          ActionView::Precompiler.precompile
+        end
       end
     end
   end

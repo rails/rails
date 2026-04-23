@@ -397,6 +397,10 @@ module Rails
           if respond_to?(:active_job)
             active_job.enqueue_after_transaction_commit = true
           end
+
+          if respond_to?(:action_view)
+            action_view.precompile_templates = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
