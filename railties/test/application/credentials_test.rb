@@ -37,4 +37,14 @@ class Rails::CredentialsTest < ActiveSupport::TestCase
       assert_equal "revealed", Rails.application.credentials.mystery
     end
   end
+
+  test "picks up config.credentials.key_path set in environment file after credentials were already accessed" do
+    write_credentials_override(:staging)
+    add_to_env_config("production", "config.credentials.content_path = config.root.join('config/credentials/staging.yml.enc')")
+    add_to_env_config("production", "config.credentials.key_path = config.root.join('config/credentials/staging.key')")
+
+    app("production")
+
+    assert_equal "revealed", Rails.application.credentials.mystery
+  end
 end
