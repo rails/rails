@@ -133,7 +133,7 @@ class ClientsController < ApplicationController
     end
   end
 
-  # This action receives parameters from a POST request to "/clients" URL with  form data in the request body.
+  # This action receives parameters from a POST request to "/clients" URL with form data in the request body.
   def create
     @client = Client.new(params[:client])
     if @client.save
