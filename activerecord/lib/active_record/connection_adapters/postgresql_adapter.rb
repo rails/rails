@@ -203,6 +203,11 @@ module ActiveRecord
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
 
+      def rollback_db_transaction
+        super
+        @schema_search_path = nil
+      end
+
       def supports_bulk_alter?
         true
       end
