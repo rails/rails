@@ -33,6 +33,13 @@ module ActiveRecord
       assert_predicate value, :frozen?
     end
 
+    def test_create_or_find_by_does_not_duplicate_where_on_retry
+      user = User.create!(email: "test@example.com")
+      assert_nothing_raised do
+        User.create_or_find_by!(email: "test@example.com")
+      end
+    end
+    
     def test_multi_value_initialize
       relation = Relation.new(FakeKlass)
       Relation::MULTI_VALUE_METHODS.each do |method|
