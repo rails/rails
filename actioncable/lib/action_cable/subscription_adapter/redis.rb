@@ -7,6 +7,9 @@ require "redis"
 
 require "active_support/core_ext/hash/except"
 
+require "action_cable/subscription_adapter/base"
+require "action_cable/subscription_adapter/channel_prefix"
+
 module ActionCable
   module SubscriptionAdapter
     class Redis < Base # :nodoc:
