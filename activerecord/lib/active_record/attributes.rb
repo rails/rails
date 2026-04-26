@@ -9,6 +9,19 @@ module ActiveRecord
     include ActiveModel::AttributeRegistration
     include ActiveModel::Attributes::Normalization
 
+    def arttribute(name, cast_type = nil, **options)
+      type = if cast_type
+        resolve_type_name(cast_type, **options)
+      else
+        if ActiveRecord::Base.connection_pool.active_connection?
+          ActiveRecord::Type.default_value
+        else
+          ActiveRecord::Type::Value.new
+        end
+      end
+     define_attribute(name, type, **options)
+    end
+
     # = Active Record \Attributes
     module ClassMethods
       # :method: attribute
