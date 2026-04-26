@@ -82,11 +82,15 @@ module ActiveRecord
         def exec_rollback_db_transaction # :nodoc:
           cancel_any_running_query
           query_command("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+        ensure
+          @schema_search_path = nil
         end
 
         def exec_restart_db_transaction # :nodoc:
           cancel_any_running_query
           query_command("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+        ensure
+          @schema_search_path = nil
         end
 
         # From https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
