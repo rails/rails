@@ -1009,7 +1009,7 @@ module ActiveRecord
       @connection = conn
       if (mod = conn.migration_compatibility_module_for(self.class))
         target = ActiveRecord::Migration::Compatibility.target_class_for(self.class)
-        target.include(mod) unless target.include?(mod)
+        ActiveRecord::Migration::Compatibility.apply(target, mod, adapter_name: conn.adapter_name)
       end
       if respond_to?(:change)
         if direction == :down
@@ -1584,7 +1584,7 @@ module ActiveRecord
         return unless mod
 
         target = ActiveRecord::Migration::Compatibility.target_class_for(migration_class)
-        target.include(mod) unless target.include?(mod)
+        ActiveRecord::Migration::Compatibility.apply(target, mod, adapter_name: connection.adapter_name)
       end
 
       def target

@@ -31,18 +31,44 @@ module ActiveRecord
         result
       end
 
+      class ConflictError < ActiveRecord::MigrationError
+      end
+
+      def self.apply(target, mod, adapter_name:)
+        @applied ||= ObjectSpace::WeakMap.new
+        current = @applied[target]
+
+        if current
+          current_name, current_mod = current
+          if current_name != adapter_name && !current_mod.equal?(mod)
+            raise ConflictError, <<~MSG.squish
+              Migration class #{target.name || target.inspect} has already been
+              associated with adapter compatibility for #{current_name.inspect};
+              cannot also apply #{adapter_name.inspect}. Use a distinct migration
+              base class per adapter type; see
+              https://guides.rubyonrails.org/active_record_multiple_databases.html#sharing-migration-helpers-across-different-database-adapters
+              for the recommended pattern.
+            MSG
+          end
+        else
+          @applied[target] = [adapter_name, mod]
+          target.include(mod) unless target.include?(mod)
+        end
+      end
+
       module Versioned
         def module_for(migration_class)
+          target = Compatibility.target_class_for(migration_class)
           @module_cache ||= ObjectSpace::WeakMap.new
-          cached = @module_cache[migration_class]
+          cached = @module_cache[target]
           return cached if cached
 
           mods = version_pairs
-            .filter_map { |compat_class, mod| mod if migration_class <= compat_class }
+            .filter_map { |compat_class, mod| mod if target <= compat_class }
           return nil if mods.empty?
 
           assembled = Module.new { mods.reverse_each { |m| include m } }
-          @module_cache[migration_class] = assembled
+          @module_cache[target] = assembled
           assembled
         end
 

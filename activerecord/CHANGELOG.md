@@ -11,6 +11,25 @@
 
     *Yasuo Honda*
 
+*   Raise `ActiveRecord::Migration::Compatibility::ConflictError` when a single
+    migration base class would be associated with adapter-specific compatibility
+    behavior from more than one connection adapter type in the same process.
+
+    Active Record installs adapter-specific compatibility behavior on the
+    topmost user-defined class in a migration's ancestry. In a multi-database
+    app, sharing a single `ApplicationMigration`-style base class across
+    migrations that target different adapter types (e.g., a PostgreSQL primary
+    and a MySQL secondary) would accumulate every adapter's compatibility
+    behavior in the base class's ancestors, letting one adapter's defaults leak
+    into another adapter's migration runs.
+
+    The error message recommends using a distinct migration base class per
+    adapter type and points to the new "Sharing Migration Helpers Across
+    Different Database Adapters" section in the multiple databases guide.
+    Single-adapter applications are unaffected.
+
+    *Yasuo Honda*
+
 *   Raise `ActiveRecord::MultiparameterAssignmentErrors` instead of `NoMethodError`
     when assigning a malformed multiparameter attribute name.
 
