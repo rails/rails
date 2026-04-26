@@ -583,6 +583,11 @@ module Rails
           require environment
         end
       end
+
+      # Reset memoized credentials so that config.credentials.key_path
+      # and config.credentials.content_path set in environment files
+      # are picked up by Rails.application.credentials.
+      self.credentials = nil if self.respond_to?(:credentials=)
     end
 
     initializer :set_load_path, before: :bootstrap_hook do |app|

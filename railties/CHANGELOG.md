@@ -1,3 +1,15 @@
+*   Fix `config.credentials.key_path` set in environment files being ignored.
+
+    When `config.credentials.key_path` was set in an environment-specific
+    config file (e.g. `config/environments/development.rb`), the value could
+    be ignored if `Rails.application.credentials` was memoized before the
+    environment file was loaded. Now, memoized credentials are cleared after
+    environment config files load so the updated paths are picked up.
+
+    Fixes #57218.
+
+    *Hammad Khan*
+
 *   Add offline fallback page to the PWA scaffold.
 
     New Rails apps now include an `app/views/pwa/offline.html.erb` template and
