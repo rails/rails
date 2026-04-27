@@ -1,3 +1,7 @@
+*   Fix `retry_job` to respect `:wait` when enqueue is deferred until after transaction commit.
+
+    *Maryam Fayyaz*
+
 *   Deprecate built-in `queue_classic` Active Job adapter.
 
     *Harun Sabljaković, Wojciech Wnętrzak*

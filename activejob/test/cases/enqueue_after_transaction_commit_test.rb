@@ -73,6 +73,42 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
     end
   end
 
+  test "#retry_job respects :wait when enqueue is deferred until after commit" do
+    fake_active_record = FakeActiveRecord.new(false)
+    stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+      job_class = Class.new(ActiveJob::Base) do
+        self.enqueue_after_transaction_commit = true
+
+        def perform
+          # noop
+        end
+      end
+
+      test_adapter = ActiveJob::QueueAdapters::TestAdapter.new
+      test_adapter.perform_enqueued_jobs = false
+      test_adapter.perform_enqueued_at_jobs = false
+
+      original_adapter = ActiveJob::Base.queue_adapter
+      ActiveJob::Base.queue_adapter = test_adapter
+
+      freeze_time do
+        job = job_class.new
+        job.retry_job wait: 5.seconds
+
+        assert_empty test_adapter.enqueued_jobs
+        assert_nil job.scheduled_at
+
+        fake_active_record.run_after_commit_callbacks
+
+        assert_equal 1, test_adapter.enqueued_jobs.size
+        assert_in_delta 5.seconds.from_now.to_f, test_adapter.enqueued_jobs.last[:at], 0.001
+        assert_nil job.scheduled_at
+      end
+    ensure
+      ActiveJob::Base.queue_adapter = original_adapter
+    end
+  end
+
   test "#perform_later wait for transactions to complete before enqueuing the job" do
     fake_active_record = FakeActiveRecord.new
     stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
