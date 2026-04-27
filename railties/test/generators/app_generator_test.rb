@@ -1197,7 +1197,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     unless defined?(JRUBY_VERSION)
       assert_gem "bootsnap"
       assert_file "config/boot.rb" do |content|
+        assert_match(/^\s*begin$/, content)
         assert_match(/require "bootsnap\/setup"/, content)
+        assert_match(/rescue LoadError => error/, content)
+        assert_match(/warn "Bootsnap disabled: #\{error\.message\}" if ENV\["BOOTSNAP_WARN"\]/, content)
+        assert_match(/^\s*end$/, content)
       end
     else
       assert_no_gem "bootsnap"
