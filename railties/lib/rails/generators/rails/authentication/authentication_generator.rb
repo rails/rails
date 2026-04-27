@@ -1,3 +1,5 @@
+//rails/generators/rails/authentication/authentication_generator.rb
+//This generator creates a simple authentication system with a User model, Session model, and controllers for handling user sessions and password resets. It also includes optional support for Action Cable and Action Mailer if they are available in the application. The generator can be run with the `--api` option to generate API-only controllers and models without view templates.
 # frozen_string_literal: true
 
 require "rails/generators/bundle_helper"
@@ -51,12 +53,31 @@ module Rails
         end
       end
 
-      def add_migrations
-        generate "migration", "CreateUsers", "email_address:string!:uniq password_digest:string!", "--force"
-        generate "migration", "CreateSessions", "user:references ip_address:string user_agent:string", "--force"
-      end
+      # def add_migrations
+      #   generate "migration", "CreateUsers", "email_address:string!:uniq password_digest:string!", "--force"
+      #   generate "migration", "CreateSessions", "user:references ip_address:string user_agent:string", "--force"
+      # end
 
+      def add_migrations
+        if @user_model_generated
+          generate "migration",
+                   "CreateUsers",
+                   "email_address:string!:uniq password_digest:string!",
+                   "--force"
+        end
+
+        generate "migration",
+                 "CreateSessions",
+                 "user:references ip_address:string user_agent:string",
+                 "--force"
+      end
       hook_for :test_framework
+      def generate_user_model_file
+        template "app/models/user.rb"
+        true
+      rescue Thor::Error
+        false
+      end
     end
   end
 end

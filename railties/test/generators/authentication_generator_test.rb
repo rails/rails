@@ -1,3 +1,5 @@
+//railties/test/generators/authentication_generator_test.rb
+//This test file verifies the functionality of the AuthenticationGenerator, which is responsible for generating authentication-related files and configurations in a Rails application. The tests cover various scenarios, including the presence or absence of bcrypt in the Gemfile, the use of the API flag, and the handling of Action Cable and Action Mailer dependencies. The test cases ensure that the generator creates the expected files, modifies existing files correctly, and runs the appropriate commands to set up authentication in the application.
 # frozen_string_literal: true
 
 require "generators/generators_test_helper"
@@ -121,6 +123,36 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |content|
       assert_match("require_relative \"test_helpers/session_test_helper\"", content)
     end
+  end
+
+
+  def test_create_users_migration_is_skipped_when_user_model_overwrite_is_declined
+    FileUtils.mkdir_p("#{destination_root}/app/models")
+    
+    File.write("#{destination_root}/app/models/user.rb", <<~RUBY)
+      class User < ApplicationRecord
+      end
+    RUBY
+    
+    generator([destination_root])
+    
+    generator.stub(:force?, false) do
+      generator.stub(:behavior, :invoke) do
+        generator.stub(:yes?, false) do
+          run_generator_instance
+        end
+      end
+    end
+    
+    assert_not_includes(
+      @rails_commands,
+      "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
+      )
+      
+    assert_includes(
+      @rails_commands,
+      "generate migration CreateSessions user:references ip_address:string user_agent:string --force"
+       )
   end
 
   def test_model_test_is_skipped_if_test_framework_is_given
