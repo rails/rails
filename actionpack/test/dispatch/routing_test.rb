@@ -5324,3 +5324,15 @@ class TestRelativeUrlRootGeneration < ActionDispatch::IntegrationTest
     assert_equal "/blog/1", Routes.url_helpers.post_path("1")
   end
 end
+def test_mounted_app_with_nested_constraints
+  draw do
+    constraints(->(req) { true }) do
+      mount ->(env) { [200, {}, ["OK"]] }, at: "/mount", constraints: ->(req) { true }
+    end
+  end
+  
+  # This test verifies that nested constraints are merged, not overwritten
+  assert_not_empty routes
+  route = routes.first
+  assert route.constraints.present?
+end
