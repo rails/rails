@@ -366,7 +366,7 @@ module Rails
         def test_common_config_with_folder(folder_name)
           assert_file(".devcontainer/Dockerfile") do |dockerfile|
             assert_match(/ARG RUBY_VERSION=#{RUBY_VERSION}/, dockerfile)
-            assert_match(/ENV BINDING="0.0.0.0"/, dockerfile)
+            assert_match(/ENV BINDING="::"/, dockerfile)
           end
 
           assert_devcontainer_json_file do |devcontainer_json|
