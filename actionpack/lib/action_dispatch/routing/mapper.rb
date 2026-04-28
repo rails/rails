@@ -643,11 +643,19 @@ module ActionDispatch
           via ||= :all
 
           # Merge scoped constraints and mount constraints
+          # @scope[:blocks] holds callables (lambda/proc from constraints block)
+          # @scope[:constraints] holds request-level constraints (Hash, e.g. host: "example.com")
+          # These serve different purposes — only add to merged if callable
           merged = []
 
           merged.concat(Array(@scope[:blocks])) if @scope[:blocks]
           merged.concat(Array(constraints)) if constraints
-          merged << @scope[:constraints] if @scope[:constraints].present?
+
+          # Merge @scope[:constraints] (Hash) into the constraints Hash, not into merged
+          if @scope[:constraints].present?
+            constraints = {} if constraints.nil? || !constraints.is_a?(Hash)
+            constraints = constraints.merge(@scope[:constraints])
+          end
 
           constraints = merged if merged.any?
 
