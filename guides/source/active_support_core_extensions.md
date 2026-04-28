@@ -3,10 +3,11 @@
 Active Support Core Extensions
 ==============================
 
-Active Support is the Rails component responsible for providing Ruby
-language extensions and utilities.
+Active Support is a Rails component that provides Ruby language extensions and
+utilities.
 
-It offers a richer bottom-line at the language level, both for Rails applications and for developing the Ruby on Rails framework itself.
+It offers a richer bottom-line at the language level, both for Rails
+applications and for developing the Ruby on Rails framework itself.
 
 After reading this guide, you will know:
 
@@ -17,75 +18,121 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
+What are Core Extensions
+------------------------
+
+Ruby has a distinct feature, *open classes*, that sets it apart from many other
+programming languages. In Ruby, any class, including built-in ones like
+`String`, `Integer`, or `Array`, can be reopened and have new methods added to
+it.
+ 
+This is the mechanism Active Support Core Extensions use. They reopen Ruby's
+built-in classes and add dozens of utility methods that are useful in the
+development of the Rails framework as well as everyday applications.
+
+For example, `blank?` is one such convenience method. This method is added
+directly to Ruby's `Object` class, making it available on any Ruby object:
+ 
+```ruby
+class Object
+  def blank?
+    respond_to?(:empty?) ? empty? : !self
+  end
+end
+ 
+"".blank?      # => true
+nil.blank?     # => true
+"hello".blank? # => false
+```
+
+This method returns `true` if the value is `nil`, `false`, an empty string, or a
+string containing only whitespace. Otherwise, it returns `false`. It enhances
+Ruby's built-in `empty` method to allow for `nil`, etc.
+
+Rails has shipped these extensions since its earliest versions, and they have
+come to define a certain style of Ruby code, which is expressive and reads close
+to natural language.
+ 
+WARNING: Because open classes modify Ruby's built-in types globally, they are a
+form of **monkey patching**. A method added to `String` in one part of your
+program affects every string everywhere. This can lead to subtle bugs if
+extensions conflict with other gems or future versions of Ruby. Active Support's
+extensions are well-tested and widely used, but if you are loading them in a
+non-Rails project, prefer [selective loading](#cherry-picking-a-single-extension) over
+`require "active_support/all"` to limit the surface area. Avoid writing your own
+monkey patches on top of Active Support's, and never monkey patch classes in a
+gem you do not own.
+
+
 How to Load Core Extensions
 ---------------------------
 
-### Stand-Alone Active Support
+### Within a Rails Application
 
-In order to have the smallest default footprint possible, Active Support loads the minimum dependencies by default. It is broken in small pieces so that only the desired extensions can be loaded. It also has some convenience entry points to load related extensions in one shot, even everything.
+Active Support core extensions are loaded by default in any Rails application. They are immediately available across your models, controllers, helpers, and elsewhere in your app. No additional configuration is required.
 
-Thus, after a simple require like:
-
-```ruby
-require "active_support"
+```irb
+>> "hello world".titleize
+=> "Hello World"
+>> 1.week.ago
+=> 2026-04-13 19:37:46.287277000 UTC +00:00
 ```
 
-only the extensions required by the Active Support framework are loaded.
+NOTE: You can opt out of loading all core extensions by setting `config.active_support.bare = true` in your application config. In that case, only the extensions Rails itself needs are loaded, and you can cherry-pick additional ones as needed.
 
-#### Cherry-picking a Definition
+### Using Core Extensions Outside of Rails
 
-This example shows how to load [`Hash#with_indifferent_access`][Hash#with_indifferent_access].  This extension enables the conversion of a `Hash` into an [`ActiveSupport::HashWithIndifferentAccess`][ActiveSupport::HashWithIndifferentAccess] which permits access to the keys as either strings or symbols.
+Active Support ships as its own gem and can be used in any Ruby project independently of Rails. You have several options for how much to load.
 
-```ruby
-{ a: 1 }.with_indifferent_access["a"] # => 1
-```
+#### Cherry-picking a single extension
 
-For every single method defined as a core extension this guide has a note that says where such a method is defined. In the case of `with_indifferent_access` the note reads:
-
-NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
-
-That means that you can require it like this:
+You can load just the extension you need. For example, to use `Hash#with_indifferent_access`:
 
 ```ruby
 require "active_support"
 require "active_support/core_ext/hash/indifferent_access"
+
+{ a: 1 }.with_indifferent_access["a"] # => 1
 ```
 
-Active Support has been carefully revised so that cherry-picking a file loads only strictly needed dependencies, if any.
+NOTE: Throughout this guide, each extension includes a note indicating where it is defined, which tells you exactly what to require.
 
-#### Loading Grouped Core Extensions
+#### Loading all extensions for a class
 
-The next level is to simply load all extensions to `Hash`. As a rule of thumb, extensions to `SomeClass` are available in one shot by loading `active_support/core_ext/some_class`.
-
-Thus, to load all extensions to `Hash` (including `with_indifferent_access`):
+To load all extensions for a given class, use `active_support/core_ext/<class>`:
 
 ```ruby
 require "active_support"
 require "active_support/core_ext/hash"
 ```
 
-#### Loading All Core Extensions
+#### Loading all core extensions
 
-You may prefer just to load all core extensions, there is a file for that:
+To load all core extensions at once:
 
 ```ruby
 require "active_support"
 require "active_support/core_ext"
 ```
 
-#### Loading All Active Support
+#### Loading all of Active Support
 
-And finally, if you want to have all Active Support available just issue:
+To load the entire Active Support library:
 
 ```ruby
 require "active_support/all"
 ```
 
-That does not even put the entire Active Support in memory upfront indeed, some stuff is configured via `autoload`, so it is only loaded if used.
+NOTE: `require "active_support/all"` does not load everything into memory upfront. Some features are configured via `autoload` and are only loaded when used.
 
-### Active Support Within a Ruby on Rails Application
 
-A Ruby on Rails application loads all Active Support unless [`config.active_support.bare`][] is true. In that case, the application will only load what the framework itself cherry-picks for its own needs, and can still cherry-pick itself at any granularity level, as explained in the previous section.
+---
+
+#### Cherry-picking a Definition
+
+This example shows how to load [`Hash#with_indifferent_access`][Hash#with_indifferent_access].  This extension enables the conversion of a `Hash` into an [`ActiveSupport::HashWithIndifferentAccess`][ActiveSupport::HashWithIndifferentAccess] which permits access to the keys as either strings or symbols.
+
+
 
 [`config.active_support.bare`]: configuring.html#config-active-support-bare
 
