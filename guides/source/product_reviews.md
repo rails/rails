@@ -917,11 +917,28 @@ Last, but not least, let's create the edit view in `app/views/store/reviews/edit
   <div>
     <%= form.label :images, style: "display: block;" %>
     <%= form.file_field :images, multiple: true, accept: "image/*", capture: "environment" %>
+
+    <% form.object.images.each do |image| %>
+      <div>
+        <%= image_tag image.variant(resize_to_limit: [150, 150]) %>
+        <%= form.hidden_field :images, value: image.signed_id, multiple: true, id: nil %>
+        <button onclick="this.parentElement.remove()">Remove</button>
+      </div>
+    <% end %>
   </div>
 
   <%= form.submit %>
 <% end %>
 ```
+
+By default, Rails will replace all of the existing images when a new value is
+assigned. To preserve existing images when editing a review, we need to create
+hidden fields for each image that's already uploaded. These hidden fields use
+the image's `signed_id` to reference the existing ActiveRecord object and also
+ensures that it wasn't tampered with. We use `multiple: true` so Rails generates
+the correct name to add the `images` param as an array. We also disable the `id`
+generated for this fields since it would generate duplicates and we don't need
+them.
 
 With that added, store admins can now view, edit and delete reviews as needed.
 
