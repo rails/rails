@@ -123,6 +123,25 @@ module ActionView
         self.class.safe_list_sanitizer.sanitize_css(style)
       end
 
+      # Sanitizes a URL or path string input against unsafe protocols with a
+      # fallback option
+      #
+      # It disallows unsafe protocols like +javascript:+ from a string, while also
+      # protecting against attempts to use Unicode, ASCII, and hex character
+      # references to work around these protocol filters.
+      #
+      # === Parameters
+      #
+      # * +fallback+ - a fallback to use in case of a disallowed URL, defaults to "/"
+      #
+      def sanitize_url_string(url, fallback: "/")
+        if Rails::HTML::Sanitizer.allowed_uri?(url)
+          url
+        else
+          fallback
+        end
+      end
+
       # Strips all HTML tags from +html+, including comments and special characters.
       #
       #   strip_tags("Strip <i>these</i> tags!")

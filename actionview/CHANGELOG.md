@@ -1,3 +1,11 @@
+*   Add `sanitize_url_string` helper to prevent unsafe protocols in URLs. Example
+    usage:
+    ```
+        sanitize_url_string("javascript:alert(1)", fallback: root_url)
+    ```
+
+    *Greg Molnar and Darius Pirvulescu*
+
 *   Skip blank attribute names in tag helpers to avoid generating invalid HTML.
 
     *Mike Dalessio*
