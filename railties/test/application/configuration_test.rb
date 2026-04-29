@@ -529,6 +529,19 @@ module ApplicationTests
       assert_includes Rails.application.config.eager_load_namespaces, AppTemplate::Application
     end
 
+    test "load_defaults 8.1 registers RubyTracker for erb under eager_load" do
+      add_to_config <<~RUBY
+        config.enable_reloading = false
+        config.eager_load = true
+      RUBY
+
+      app "production"
+
+      erb_handler = ActionView::Template.handler_for_extension("erb")
+      trackers = ActionView::DependencyTracker.instance_variable_get(:@trackers)
+      assert_equal ActionView::DependencyTracker::RubyTracker, trackers[erb_handler]
+    end
+
     test "the application can be eager loaded even when there are no frameworks" do
       FileUtils.rm_rf("#{app_path}/app/jobs/application_job.rb")
       FileUtils.rm_rf("#{app_path}/app/models/application_record.rb")
