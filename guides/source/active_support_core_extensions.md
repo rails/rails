@@ -47,10 +47,7 @@ nil.blank?     # => true
 "hello".blank? # => false
 ```
 
-This method returns `true` if the value is `nil`, `false`, an empty string, or a
-string containing only whitespace. Otherwise, it returns `false`. It enhances
-Ruby's built-in `empty` method and works for `nil` (in contrast, calling
-`.empty?` on `nil` would raise a `NoMethodError`).
+This method enhances Ruby's built-in `empty` method and works for `nil`.
 
 Rails has shipped these extensions since its earliest versions, and they have
 come to define a style of Ruby code that is expressive and reads close
@@ -90,7 +87,6 @@ Active Support ships as its own gem and can be used in any Ruby project independ
 You can load just the extension you need. For example, to use a [`Hash#with_indifferent_access`](#https://api.rubyonrails.org/classes/ActiveSupport/HashWithIndifferentAccess.html) where the keys `:foo` and `"foo"` are considered the same:
 
 ```ruby
-require "active_support"
 require "active_support/core_ext/hash/indifferent_access"
 
 { a: 1 }.with_indifferent_access["a"] # => 1
@@ -103,7 +99,6 @@ NOTE: Throughout this guide, each extension includes a note indicating where it 
 To load all extensions for a given class, use `active_support/core_ext/<class>`:
 
 ```ruby
-require "active_support"
 require "active_support/core_ext/hash"
 ```
 
@@ -112,7 +107,6 @@ require "active_support/core_ext/hash"
 To load all core extensions at once:
 
 ```ruby
-require "active_support"
 require "active_support/core_ext"
 ```
 
@@ -133,25 +127,26 @@ NOTE: `require "active_support/all"` does not load everything into memory upfron
 Extensions to All Objects
 -------------------------
 
-### `blank?` and `present?`
+### `blank?`
 
-The following values are considered to be blank in a Rails application:
+The [`blank?`][Object#blank?] method returns `true` if the value is `nil`,
+`false`, or empty. It enhances Ruby's built-in `empty` method and works for
+`nil` by returning `true` (while calling `.empty?` on `nil` would raise a
+`NoMethodError`).
+
+Specifically, the following values are considered to be blank in a Rails
+application:
 
 * `nil` and `false`,
-
-* strings composed only of whitespace (see note below),
-
+* strings composed only of whitespace,
 * empty arrays and hashes, and
+* any other object that responds `true` to the `empty?` method.
 
-* any other object that responds to `empty?` and is empty.
-
-INFO: The predicate for strings uses the Unicode-aware character class `[:space:]`, so for example U+2029 (paragraph separator) is considered to be whitespace.
-
-WARNING: Note that numbers are not mentioned. In particular, 0 and 0.0 are **not** blank.
-
-For example, this method from `ActionController::HttpAuthentication::Token::ControllerMethods` uses [`blank?`][Object#blank?] for checking whether a token is present:
+Here is an example of the `blank?` method being used within Rails source code
+for checking whether a token is blank:
 
 ```ruby
+# From [http_authentication.rb](https://github.com/rails/rails/blob/83423052fc899315fad91c20b5197a186fc8f0fd/actionpack/lib/action_controller/metal/http_authentication.rb#L474)
 def authenticate(controller, &login_procedure)
   token, options = token_and_options(controller.request)
   unless token.blank?
@@ -160,19 +155,31 @@ def authenticate(controller, &login_procedure)
 end
 ```
 
-The method [`present?`][Object#present?] is equivalent to `!blank?`. This example is taken from `ActionDispatch::Http::Cache::Response`:
+NOTE: `blank?` uses a Unicode-aware definition of whitespace when checking strings. This means it recognizes more than just ordinary spaces and tabs as whitespace. It treats Unicode whitespace characters such as U+00A0 (non-breaking space) and U+2029 (paragraph separator) as blank.
+
+WARNING: Numbers such as `0` or `0.0` are **not** considered blank.
+
+NOTE: Defined in `active_support/core_ext/object/blank.rb`.
+
+[Object#blank?]: https://api.rubyonrails.org/classes/Object.html#method-i-blank-3F
+
+### `present?`
+
+The method [`present?`][Object#present?] is the inverse of `blank?` and its return value is equivalent to `!blank?`. Here's an example of `present?` from Rails source code:
 
 ```ruby
-def set_conditional_cache_control!
-  unless self["Cache-Control"].present?
-    # ...
+# From [`flash.rb`](https://github.com/rails/rails/blob/83423052fc899315fad91c20b5197a186fc8f0fd/actionpack/lib/action_dispatch/middleware/flash.rb#L74)
+def commit_flash
+  # ...
+  if flash_hash && (flash_hash.present? || session.key?("flash"))
+    session["flash"] = flash_hash.to_session_value
+    self.flash = flash_hash.dup
   end
 end
 ```
 
 NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
-[Object#blank?]: https://api.rubyonrails.org/classes/Object.html#method-i-blank-3F
 [Object#present?]: https://api.rubyonrails.org/classes/Object.html#method-i-present-3F
 
 ### `presence`
