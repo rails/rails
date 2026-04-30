@@ -196,7 +196,7 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
 ### `duplicable?`
 
-In Ruby, most objects can be duplicated via `dup` or `clone` but not all. When an object does not support duplication, a call to `dup` raises an error. Active Support adds a predicate method, [`duplicable?`][Object#duplicable?], as a shorthand to find out if a given object is duplicable. For example: 
+In Ruby, most objects can be duplicated via `dup` or `clone` but not all. When an object does not support duplication, a call to `dup` raises an error. Active Support adds a predicate method, [`duplicable?`][Object#duplicable?], as a shorthand to find out if a given object is duplicable. For example:
 
 ```ruby
 "foo".dup           # => "foo"
@@ -226,7 +226,11 @@ NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
 
 ### `deep_dup`
 
-The [`deep_dup`][Object#deep_dup] method returns a deep copy of a given object. Normally, when you `dup` an object that contains other objects, Ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
+Normally, when you `dup` an object that contains other objects, Ruby does not
+`dup` them as well. So, `dup` creates a *shallow copy* of the object. The
+[`deep_dup`][Object#deep_dup] method returns a *deep copy* of a given object, by
+also duplicating containing objects. For example, if you have an array of
+strings, `dup` can lead to some surprising behavior:
 
 ```ruby
 array     = ["string"]
@@ -234,20 +238,26 @@ duplicate = array.dup
 
 duplicate.push "another-string"
 
-# the object was duplicated, so the element was added only to the duplicate
+# the `array` object was duplicated, so the string was added only to the duplicate
 array     # => ["string"]
 duplicate # => ["string", "another-string"]
 
 duplicate.first.gsub!("string", "foo")
 
-# first element was not duplicated, it will be changed in both arrays
+# the string element was not duplicated, so it will change in both arrays
 array     # => ["foo"]
 duplicate # => ["foo, "another-string"]
 ```
 
-As you can see, after duplicating the `Array` instance, we got another object, therefore we can modify it and the original object will stay unchanged. This is not true for array's elements, however. Since `dup` does not make a deep copy, the string inside the array is still the same object.
+As you can see, after duplicating the `Array` instance, we are able to add to
+the separate duplicate object without affecting the original array. This is not
+true for the array's elements, however. Since `dup` does not make a deep copy,
+the string inside the array is still the same object. And modifying the original
+string results in a change to both the new array *and* the original array.
 
-If you need a deep copy of an object, you should use `deep_dup`. Here is an example:
+Having the string in the original array change can be a surprising side effect.
+The `deep_dup` method addresses this issue by also copying the `String` objects
+contained within the `Array` object:
 
 ```ruby
 array     = ["string"]
