@@ -429,20 +429,11 @@ NOTE: Defined in `active_support/core_ext/object/to_param.rb`.
 
 ### `to_query`
 
-The [`to_query`][Object#to_query] method constructs a query string that associates a given `key` with the return value of `to_param`. For example, with the following `to_param` definition:
+The [`to_query`][Object#to_query] method constructs a query string that associates a given `key` with the return value of `to_param`. Unlike `to_param`, which returns an unescaped URL segment, `to_query` fully escapes its output so it is ready to be used in a query string. For example:
 
 ```ruby
-class User
-  def to_param
-    "#{id}-#{name.parameterize}"
-  end
-end
-```
-
-we get:
-
-```ruby
-current_user.to_query("user") # => "user=357-john-smith"
+"Tom & Jerry".to_param          # => "Tom & Jerry"   (unescaped)
+"Tom & Jerry".to_query("name")  # => "name=Tom+%26+Jerry" (escaped)
 ```
 
 This method escapes whatever is needed, both for the key and the value:
@@ -452,26 +443,40 @@ account.to_query("company[name]")
 # => "company%5Bname%5D=Johnson+%26+Johnson"
 ```
 
-so its output is ready to be used in a query string.
+You can also use it with a custom `to_param` definition on a model. For example, given:
 
-Arrays return the result of applying `to_query` to each element with `key[]` as key, and join the result with "&":
+```ruby
+class User
+  def to_param
+    "#{id}-#{name.parameterize}"
+  end
+end
+```
+
+```ruby
+current_user.to_query("user") # => "user=67-john-smith"
+```
+
+Arrays return the result of applying `to_query` to each element with `key[]` as the key, joined with `"&"`:
 
 ```ruby
 [3.4, -45.6].to_query("sample")
 # => "sample%5B%5D=3.4&sample%5B%5D=-45.6"
+# which is sample[]=3.4&sample[]=-45.6
 ```
 
-Hashes also respond to `to_query` but with a different signature. If no argument is passed a call generates a sorted series of key/value assignments calling `to_query(key)` on its values. Then it joins the result with "&":
+Hashes also respond to `to_query`. With no argument, it generates a sorted series of key/value assignments and joins them with `"&"`:
 
 ```ruby
 { c: 3, b: 2, a: 1 }.to_query # => "a=1&b=2&c=3"
 ```
 
-The method [`Hash#to_query`][Hash#to_query] accepts an optional namespace for the keys:
+[`Hash#to_query`][Hash#to_query] also accepts an optional namespace for the keys:
 
 ```ruby
 { id: 89, name: "John Smith" }.to_query("user")
 # => "user%5Bid%5D=89&user%5Bname%5D=John+Smith"
+# which is user[id]=89&user[name]=John+Smith
 ```
 
 NOTE: Defined in `active_support/core_ext/object/to_query.rb`.
