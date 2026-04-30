@@ -379,29 +379,33 @@ NOTE: Defined in `active_support/core_ext/object/acts_like.rb`.
 
 ### `to_param`
 
-All objects in Rails respond to the method [`to_param`][Object#to_param], which is meant to return something that represents them as values in a query string, or as URL fragments.
-
-By default `to_param` just calls `to_s`:
+All objects in Rails respond to the method [`to_param`][Object#to_param], which returns a string representation of the object suitable for use in a URL or query string. By default `to_param` just calls `to_s`:
 
 ```ruby
 7.to_param # => "7"
 ```
 
-The return value of `to_param` should **not** be escaped:
+The return value of `to_param` is **not** escaped. Rails handles URL escaping separately when building URLs:
 
 ```ruby
 "Tom & Jerry".to_param # => "Tom & Jerry"
 ```
 
-Several classes in Rails overwrite this method.
-
-For example `nil`, `true`, and `false` return themselves. [`Array#to_param`][Array#to_param] calls `to_param` on the elements and joins the result with "/":
+Several classes in Rails override this method. `nil`, `true`, and `false` return themselves:
 
 ```ruby
-[0, true, String].to_param # => "0/true/String"
+nil.to_param   # => nil
+true.to_param  # => true
+false.to_param # => false
 ```
 
-Notably, the Rails routing system calls `to_param` on models to get a value for the `:id` placeholder. `ActiveRecord::Base#to_param` returns the `id` of a model, but you can redefine that method in your models. For example, given
+[`Array#to_param`][Array#to_param] calls `to_param` on each element and joins the results with `"/"`:
+
+```ruby
+[1, 2, 3].to_param # => "1/2/3"
+```
+
+Notably, the Rails routing system calls `to_param` on models to get a value for the `:id` placeholder. `ActiveRecord::Base#to_param` returns the `id` of a model by default, but you can override it. For example:
 
 ```ruby
 class User
@@ -411,13 +415,12 @@ class User
 end
 ```
 
-we get:
-
 ```ruby
-user_path(@user) # => "/users/357-john-smith"
+@user.to_param # => "67-john-smith"
+user_path(@user) # => "/users/67-john-smith"
 ```
 
-WARNING. Controllers need to be aware of any redefinition of `to_param` because when a request like that comes in "357-john-smith" is the value of `params[:id]`.
+WARNING: Controllers need to be aware of any redefinition of `to_param`. When a request comes in for `/users/67-john-smith`, `params[:id]` will be `"67-john-smith"`, so your controller or model lookup must handle that format.
 
 NOTE: Defined in `active_support/core_ext/object/to_param.rb`.
 
