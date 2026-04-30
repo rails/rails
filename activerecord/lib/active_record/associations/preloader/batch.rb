@@ -40,11 +40,14 @@ module ActiveRecord
           def group_and_load_similar(loaders)
             non_through = loaders.grep_v(ThroughAssociation)
 
+            # #52061: loaders can share the same LoaderQuery (SQL) but different
+            # Relation instances; merging their batches breaks set_inverse for
+            # parallel scoped has_many :through preloads.
             grouped = non_through.group_by do |loader|
-              [loader.loader_query, loader.klass]
+              [loader.loader_query, loader.klass, loader.scope.object_id]
             end
 
-            grouped.each do |(query, _klass), similar_loaders|
+            grouped.each do |(query, _klass, _scope_id), similar_loaders|
               query.load_records_in_batch(similar_loaders)
             end
           end

@@ -1,3 +1,9 @@
+*   Fix preloads where multiple scoped `has_many :through` associations share the same query but must not share one batch loader (regression appeared as wrong STI/type rows when nesting `includes` with the same `:through`).
+
+    Fixes #52061.
+
+    *Edilbek Talantbek uulu*
+
 *   Bump the minimum PostgreSQL version to 10.0.
 
     As part of this change, `supports_pgcrypto_uuid?` is deprecated because
