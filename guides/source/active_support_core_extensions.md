@@ -551,14 +551,11 @@ Classes like `Hash` and `Process::Status` also receive special handling to ensur
 
 NOTE: Defined in `active_support/core_ext/object/json.rb`.
 
-### Instance Variables
+### `instance_values`
 
-Active Support provides several methods to ease access to instance variables.
-
-#### `instance_values`
-
-The method [`instance_values`][Object#instance_values] returns a hash that maps instance variable names without "@" to their
-corresponding values. Keys are strings:
+The [`instance_values`][Object#instance_values] method returns a hash that maps
+instance variable names without "@" to their corresponding values. Keys are
+strings:
 
 ```ruby
 class C
@@ -574,9 +571,9 @@ NOTE: Defined in `active_support/core_ext/object/instance_variables.rb`.
 
 [Object#instance_values]: https://api.rubyonrails.org/classes/Object.html#method-i-instance_values
 
-#### `instance_variable_names`
+### `instance_variable_names`
 
-The method [`instance_variable_names`][Object#instance_variable_names] returns an array. Each name includes the "@" sign.
+The [`instance_variable_names`][Object#instance_variable_names] method returns an array. Each name includes the "@" sign.
 
 ```ruby
 class C
@@ -600,12 +597,18 @@ The methods [`silence_warnings`][Kernel#silence_warnings] and [`enable_warnings`
 silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
 ```
 
-Silencing exceptions is also possible with [`suppress`][Kernel#suppress]. This method receives an arbitrary number of exception classes. If an exception is raised during the execution of the block and is `kind_of?` any of the arguments, `suppress` captures it and returns silently. Otherwise the exception is not captured:
+Silencing exceptions is also possible with the [`suppress`][Kernel#suppress] method. This method receives an arbitrary number of exception classes. If an exception is raised during the execution of the block and is `kind_of?` any of the arguments, `suppress` captures it and returns silently. Otherwise the exception is not captured:
 
 ```ruby
-# If the user is locked, the increment is lost, no big deal.
 suppress(ActiveRecord::StaleObjectError) do
   current_user.increment! :visits
+end
+
+# `suppress` is a more explicit and readable alternative to this:
+begin
+  current_user.increment! :visits
+rescue ActiveRecord::StaleObjectError
+  # do nothing
 end
 ```
 
@@ -617,7 +620,7 @@ NOTE: Defined in `active_support/core_ext/kernel/reporting.rb`.
 
 ### `in?`
 
-The predicate [`in?`][Object#in?] tests if an object is included in another object. An `ArgumentError` exception will be raised if the argument passed does not respond to `include?`.
+The predicate [`in?`][Object#in?] tests if an object is included in another object. An `ArgumentError` will be raised if the argument passed does not respond to `include?`.
 
 Examples of `in?`:
 
