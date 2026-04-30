@@ -313,23 +313,34 @@ NOTE: Defined in `active_support/core_ext/object/try.rb`.
 [Object#try]: https://api.rubyonrails.org/classes/Object.html#method-i-try
 [Object#try!]: https://api.rubyonrails.org/classes/Object.html#method-i-try-21
 
-### `class_eval(*args, &block)`
+### `class_eval`
 
-You can evaluate code in the context of any object's singleton class using [`class_eval`][Kernel#class_eval]:
+The [`class_eval`][Kernel#class_eval] method evaluates a block in the context of an existing class or module, allowing you to define methods on it dynamically at runtime.
+
+A good example of this is how Rails itself generates the `development?`, `test?`, and `production?` methods on [`ActiveSupport::EnvironmentInquirer`](https://github.com/rails/rails/blob/0e53474dd25bb06cc87c07a75ffec49d3490152c/activesupport/lib/active_support/environment_inquirer.rb#L28):
 
 ```ruby
-class Proc
-  def bind(object)
-    block, time = self, Time.current
-    object.class_eval do
-      method_name = "__bind_#{time.to_i}_#{time.usec}"
-      define_method(method_name, &block)
-      method = instance_method(method_name)
-      remove_method(method_name)
-      method
-    end.bind(object)
+# activesupport/lib/active_support/environment_inquirer.rb
+module ActiveSupport
+  class EnvironmentInquirer < StringInquirer
+    DEFAULT_ENVIRONMENTS = %w[ development test production ]
+
+    DEFAULT_ENVIRONMENTS.each do |env|
+      class_eval <<~RUBY, __FILE__, __LINE__ + 1
+        def #{env}?
+          @#{env}
+        end
+      RUBY
+    end
   end
 end
+```
+
+Rather than manually writing each predicate method, Rails iterates over the list of environments and uses `class_eval` to define them dynamically. This results in you being able to query for environments:
+
+```ruby
+Rails.env.development? # => true
+Rails.env.production?  # => false
 ```
 
 NOTE: Defined in `active_support/core_ext/kernel/singleton_class.rb`.
