@@ -366,7 +366,7 @@ class Settings::PasswordsController < ApplicationController
 
   def update
     if Current.user.update(password_params)
-      redirect_to settings_profile_path, status: :see_other, notice: "Your password has been updated."
+      redirect_to settings_password_path, status: :see_other, notice: "Your password has been updated."
     else
       render :show, status: :unprocessable_entity
     end
