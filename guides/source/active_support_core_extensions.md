@@ -281,11 +281,9 @@ NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
 [Object#deep_dup]: https://api.rubyonrails.org/classes/Object.html#method-i-deep_dup
 
-### `try`
+### `try` and `try!`
 
-When you want to call a method on an object only if it is not `nil`, the simplest way to achieve it is with conditional statements, adding unnecessary clutter. The alternative is to use [`try`][Object#try]. `try` is like `Object#public_send` except that it returns `nil` if sent to `nil`.
-
-Here is an example:
+When you want to call a method on an object and if the object could be `nil`, typically you would need to add a conditional check for `nil` first to avoid errors. The [`try`][Object#try] method provides a way to do this without an explicit `nil` check. It returns `nil` if sent to `nil`. For example:
 
 ```ruby
 # without try
@@ -297,28 +295,17 @@ end
 @number.try(:next)
 ```
 
-Another example is this code from `ActiveRecord::ConnectionAdapters::AbstractAdapter` where `@logger` could be `nil`. You can see that the code uses `try` and avoids an unnecessary check.
-
-```ruby
-def log_info(sql, name, ms)
-  if @logger.try(:debug?)
-    name = "%s (%.1fms)" % [name || "SQL", ms]
-    @logger.debug(format_log_entry(name, sql.squeeze(" ")))
-  end
-end
-```
-
-`try` can also be called without arguments but a block, which will only be executed if the object is not nil:
+The `try` method can also be called with a block, which will be executed only if the object is not `nil`:
 
 ```ruby
 @person.try { |p| "#{p.first_name} #{p.last_name}" }
 ```
 
-Note that `try` will swallow no-method errors, returning nil instead. If you want to protect against typos, use [`try!`][Object#try!] instead:
+Note that `try` will hide no-method errors, returning `nil` instead. You can use [`try!`][Object#try!] if you want to surface errors, made by typos in the method name, for example.
 
 ```ruby
-@number.try(:nest)  # => nil
-@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Integer
+@number.try(:nexte)  # => nil
+@number.try!(:nexte) # NoMethodError: undefined method `nexte' for 1:Integer
 ```
 
 NOTE: Defined in `active_support/core_ext/object/try.rb`.
