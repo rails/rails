@@ -184,7 +184,7 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
 ### `presence`
 
-The [`presence`][Object#presence] method returns its receiver if `present?`, and `nil` otherwise. It is useful for idioms like this:
+The [`presence`][Object#presence] method returns its receiver (the object it was called on) if `present?` returns `true`, and returns `nil` otherwise. It is useful for idioms like this:
 
 ```ruby
 host = config[:host].presence || "localhost"
@@ -196,7 +196,7 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
 ### `duplicable?`
 
-As of Ruby 2.5, most objects can be duplicated via `dup` or `clone`:
+In Ruby, most objects can be duplicated via `dup` or `clone` but not all. When an object does not support duplication, a call to `dup` raises an error. Active Support adds a predicate method, [`duplicable?`][Object#duplicable?], as a shorthand to find out if a given object is duplicable. For example: 
 
 ```ruby
 "foo".dup           # => "foo"
@@ -206,7 +206,7 @@ Complex(0).dup      # => (0+0i)
 1.method(:+).dup    # => TypeError (allocator undefined for Method)
 ```
 
-Active Support provides [`duplicable?`][Object#duplicable?] to query an object about this:
+Active Support's `duplicable` returns `false` (instead of raising an error) for the method `+`, as methods are not duplicable in Ruby:
 
 ```ruby
 "foo".duplicable?           # => true
@@ -216,7 +216,9 @@ Complex(1).duplicable?      # => true
 1.method(:+).duplicable?    # => false
 ```
 
-WARNING: Any class can disallow duplication by removing `dup` and `clone` or raising exceptions from them. Thus only `rescue` can tell whether a given arbitrary object is duplicable. `duplicable?` depends on the hard-coded list above, but it is much faster than `rescue`. Use it only if you know the hard-coded list is enough in your use case.
+Without `duplicable?`, the caller of `dup` would need to `rescue` from the error raised by `dup` to discover that a given object is not duplicable, which is 40 times slower. Hence, the predicate method is preferred when possible.
+
+WARNING: `duplicable?` depends on a [hard-coded list of non-duplicable types](https://github.com/rails/rails/blob/main/activesupport/lib/active_support/core_ext/object/duplicable.rb) built into Active Support source code. This list is small and can change as Ruby evolves — for example, `NilClass`, `TrueClass`, `FalseClass`, `Symbol`, and `Numeric` were removed from the list when Ruby 2.4 made them duplicable. Use `duplicable?` only when you know the hard-coded list covers your use case, otherwise use the slower `rescue` approach.
 
 NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
 
