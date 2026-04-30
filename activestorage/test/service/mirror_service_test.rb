@@ -1,8 +1,35 @@
 # frozen_string_literal: true
 
 require "service/shared_service_tests"
+require "database/setup"
 
 class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
+  class RecordingService < ActiveStorage::Service
+    attr_reader :uploads
+
+    def initialize
+      @uploads = []
+      @bytes_by_key = {}
+    end
+
+    def upload(key, io, **options)
+      @uploads << { key: key, options: options }
+      @bytes_by_key[key] = io.read
+    end
+
+    def download(key)
+      @bytes_by_key.fetch(key)
+    end
+
+    def open(key, **)
+      yield StringIO.new(download(key))
+    end
+
+    def exist?(key)
+      @bytes_by_key.key?(key)
+    end
+  end
+
   mirror_config = (1..3).to_h do |i|
     [ "mirror_#{i}",
       service: "Disk",
@@ -77,6 +104,36 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
     assert_equal data, @service.mirrors.first.download(key)
     assert_equal data, @service.mirrors.second.download(key)
     assert_equal "Surprise!", @service.mirrors.third.download(key)
+  end
+
+  test "mirroring forwards blob service metadata to secondary services" do
+    primary = RecordingService.new
+    mirror = RecordingService.new
+    service = ActiveStorage::Service::MirrorService.new(primary: primary, mirrors: [ mirror ])
+
+    data = "<!doctype html>"
+    checksum = OpenSSL::Digest::MD5.base64digest(data)
+    blob = ActiveStorage::Blob.create_before_direct_upload!(
+      key: SecureRandom.base58(24),
+      filename: "page.html",
+      byte_size: data.bytesize,
+      checksum: checksum,
+      content_type: "text/html",
+      metadata: { custom: { "tenant" => "rails" } }
+    )
+
+    primary.upload blob.key, StringIO.new(data), checksum: checksum
+
+    service.mirror blob.key, checksum: checksum
+
+    assert_equal data, mirror.download(blob.key)
+    assert_equal({
+      checksum: checksum,
+      content_type: ActiveStorage.binary_content_type,
+      disposition: :attachment,
+      filename: blob.filename,
+      custom_metadata: { "tenant" => "rails" }
+    }, mirror.uploads.last[:options])
   end
 
   test "URL generation in primary service" do
