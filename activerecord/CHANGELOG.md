@@ -1,8 +1,15 @@
-*   Fix preloads where multiple scoped `has_many :through` associations share the same query but must not share one batch loader (regression appeared as wrong STI/type rows when nesting `includes` with the same `:through`).
+*   Fix eager loading nested `includes` when several scoped parallel `has_many :through`
+    associations reuse the same through table/query.
+
+    Sibling loaders now concatenate `records_by_owner` hashes instead of using `Hash#merge`,
+    which last-winned overlapped owners. Inner through preloads additionally carry the outer
+    `has_many :through` reflection into batch partitioning so loaders that share identical SQL but
+    must not share one inverse/STI batch are split; outer reflections that are non-collection (e.g.
+    `has_one :through`) are excluded so unrelated sibling preloads stay merged into one query.
 
     Fixes #52061.
 
-    *Edilbek Talantbek uulu*
+    *Edil Talantbek uulu*
 
 *   Bump the minimum PostgreSQL version to 10.0.
 
