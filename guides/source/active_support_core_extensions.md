@@ -486,9 +486,9 @@ NOTE: Defined in `active_support/core_ext/object/to_query.rb`.
 
 ### `with_options`
 
-The method [`with_options`][Object#with_options] provides a way to factor out common options in a series of method calls.
+The [`with_options`][Object#with_options] method provides a way to avoid repeating the same options across multiple method calls. It takes a hash of default options and yields a proxy object to a block. Any method called on that proxy object is forwarded to the receiver with the common options automatically merged in.
 
-Given a default options hash, `with_options` yields a proxy object to a block. Within the block, methods called on the proxy are forwarded to the receiver with their options merged. For example, you get rid of the duplication in:
+For example, instead of repeating `dependent: :destroy` on every association:
 
 ```ruby
 class Account < ApplicationRecord
@@ -499,7 +499,7 @@ class Account < ApplicationRecord
 end
 ```
 
-this way:
+You can use `with_options` like this:
 
 ```ruby
 class Account < ApplicationRecord
@@ -512,7 +512,7 @@ class Account < ApplicationRecord
 end
 ```
 
-That idiom may convey _grouping_ to the reader as well. For example, say you want to send a newsletter whose language depends on the user. Somewhere in the mailer you could group locale-dependent bits like this:
+This can convey _grouping_ to the reader as well. For example, say you want to send a newsletter whose language depends on the user. You could group locale-dependent bit in the mailer like this:
 
 ```ruby
 I18n.with_options locale: user.locale, scope: "newsletter" do |i18n|
@@ -521,15 +521,33 @@ I18n.with_options locale: user.locale, scope: "newsletter" do |i18n|
 end
 ```
 
-TIP: Since `with_options` forwards calls to its receiver they can be nested. Each nesting level will merge inherited defaults in addition to their own.
+TIP: The `with_options` blocks can be nested. Each inner block inherits the options from its outer block and merges in its own, so the deeper the nesting, the more options are accumulated and shared across the calls within that block.
 
 NOTE: Defined in `active_support/core_ext/object/with_options.rb`.
 
 [Object#with_options]: https://api.rubyonrails.org/classes/Object.html#method-i-with_options
 
-### JSON Support
+### `to_json`
 
-Active Support provides a better implementation of `to_json` than the `json` gem ordinarily provides for Ruby objects. This is because some classes, like `Hash` and `Process::Status` need special handling in order to provide a proper JSON representation.
+The `to_json` method is a Ruby method that comes from the `json` gem in Ruby's standard library. Active Support overrides the implementation for certain classes where Ruby's default output is insufficient.
+
+The most notable example is `Time` and `Date` — Active Support ensures they serialize to ISO 8601 format, which plain Ruby does not guarantee:
+
+```ruby
+Time.now.to_json       # => "\"2026-04-30T12:00:00.000Z\""
+Date.today.to_json     # => "\"2026-04-30\""
+```
+
+Other common types serialize as you would expect:
+
+```ruby
+1.to_json                           # => "1"
+true.to_json                        # => "true"
+nil.to_json                         # => "null"
+{ a: 1, b: [2, 3] }.to_json        # => "{\"a\":1,\"b\":[2,3]}"
+```
+
+Classes like `Hash` and `Process::Status` also receive special handling to ensure their JSON output is accurate and meaningful.
 
 NOTE: Defined in `active_support/core_ext/object/json.rb`.
 
