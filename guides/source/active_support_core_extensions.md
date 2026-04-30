@@ -347,22 +347,31 @@ NOTE: Defined in `active_support/core_ext/kernel/singleton_class.rb`.
 
 [Kernel#class_eval]: https://api.rubyonrails.org/classes/Kernel.html#method-i-class_eval
 
-### `acts_like?(duck)`
+### `acts_like?`
 
-The method [`acts_like?`][Object#acts_like?] provides a way to check whether some class acts like some other class based on a simple convention: a class that provides the same interface as `String` defines
+The [`acts_like`][Object#acts_like?] method provides a way to check if an object is designed to behave like another class, without requiring it to inherit from that class.
+
+Any class that wants to declare it behaves like another can define a marker method. For example, a class that behaves like `Time` can define:
 
 ```ruby
-def acts_like_string?
+def acts_like_time?
 end
 ```
 
-which is only a marker, its body or return value are irrelevant. Then, client code can query for duck-type-safeness this way:
+The method body and return value are irrelevant. Its presence alone is the signal by convention. Client code can then check:
 
 ```ruby
-some_klass.acts_like?(:string)
+obj.acts_like?(:time)
 ```
 
-Rails has classes that act like `Date` or `Time` and follow this contract.
+A real example in Rails is `ActiveSupport::TimeWithZone`. It is not a subclass of `Time`, but it is designed to behave exactly like one, so it declares `acts_like_time?`:
+
+```ruby
+Time.now.acts_like?(:time)                    # => true
+ActiveSupport::TimeWithZone.now.acts_like?(:time) # => true
+```
+
+This is preferable to `is_a?(Time)`, which would return `false` for `TimeWithZone`. Rails uses this pattern for classes that act like `Date` or `Time`.
 
 NOTE: Defined in `active_support/core_ext/object/acts_like.rb`.
 
