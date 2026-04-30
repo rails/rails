@@ -155,7 +155,7 @@ In `config/routes.rb`, add the following inside the `resources :products` block:
 ```ruby#3
   resources :products do
     resource :wishlist, only: [ :create ], module: :products
-    resources :reviews, only: [ :new, :create], module: :products
+    resources :reviews, only: [ :new, :create ], module: :products
     resources :subscribers, only: [ :create ]
 ```
 
