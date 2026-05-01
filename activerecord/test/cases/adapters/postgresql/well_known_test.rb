@@ -9,10 +9,10 @@ module ActiveRecord
       class WellKnownTest < ActiveRecord::TestCase
         test "uses version 11 mappings for earlier server versions" do
           version_11 = OID::WellKnown.mappings_for(server_version: 11_00_00)
-          version_9_5 = OID::WellKnown.mappings_for(server_version: 9_05_00)
+          version_10 = OID::WellKnown.mappings_for(server_version: 10_00_00)
 
-          assert_equal version_11.fetch(:type_aliases), version_9_5.fetch(:type_aliases)
-          assert_equal version_11.fetch(:array_types), version_9_5.fetch(:array_types)
+          assert_equal version_11.fetch(:type_aliases), version_10.fetch(:type_aliases)
+          assert_equal version_11.fetch(:array_types), version_10.fetch(:array_types)
         end
 
         test "uses latest known mappings for newer server versions" do

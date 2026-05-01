@@ -310,7 +310,7 @@ module Arel
       end
 
       describe "#average" do
-        it "should create a AVG node" do
+        it "should create an AVG node" do
           relation = Table.new(:users)
           _(relation[:id].average).must_be_kind_of Nodes::Avg
         end

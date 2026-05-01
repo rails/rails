@@ -31,6 +31,7 @@ DEFAULT_APP_FILES = %w(
   app/views/layouts/mailer.html.erb
   app/views/layouts/mailer.text.erb
   app/views/pwa/manifest.json.erb
+  app/views/pwa/offline.html.erb
   app/views/pwa/service-worker.js
   bin/brakeman
   bin/bundler-audit
@@ -765,6 +766,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "config/deploy.yml"
     assert_file ".kamal/secrets"
+  end
+
+  def test_inclusion_of_bootsnap_files
+    generator [destination_root]
+    run_generator_instance
+
+    assert_file "config/bootsnap.rb"
   end
 
   def test_kamal_files_are_skipped_if_required

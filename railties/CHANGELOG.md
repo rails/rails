@@ -1,3 +1,43 @@
+*   Enable Ruby `frozen_string_literal` by default.
+
+    New Rails apps now include a `config/bootsnap.rb` file that enables frozen string
+    literals. This only impact the application code, not the dependencies.
+
+    It is also possible to enable it for dependencies for reduce allocations, but
+    some older gems may not yet be compatible. If you do attempt this and run into
+    incompatibilites please do report it on the corresponding gem bug tracker.
+
+    Additionally, `.rubocop.yml` is configured to assume frozen string literals
+    are enabled, if you decide not to enable frozen string literals for your application,
+    make sureto update the rubocop configuration accordingly.
+
+    *Jean Boussier*
+
+*   Add offline fallback page to the PWA scaffold.
+
+    New Rails apps now include an `app/views/pwa/offline.html.erb` template and
+    a commented `get "offline"` route in `config/routes.rb`, alongside the existing
+    manifest and service worker. The service worker template also includes a
+    commented example for caching and serving the offline page.
+
+    *Juan Vasquez*
+
+*   Add `bin/rails query` command for running read-only database queries.
+
+    Supports ActiveRecord expressions and raw SQL with JSON output.
+    Connects to the reading replica role by default and prevents writes.
+    Includes subcommands for schema introspection, model listing, and EXPLAIN.
+
+    ```bash
+    $ bin/rails query "Account.where(plan: 'premium').limit(10)"
+    $ bin/rails query --sql "SELECT COUNT(*) FROM accounts"
+    $ bin/rails query schema accounts
+    $ bin/rails query models
+    $ bin/rails query explain "Account.where(plan: 'premium')"
+    ```
+
+    *Lewis Buckley*
+
 *   Avoid adding `Rack::Sendfile` to the middleware stack if `config.action_dispatch.x_sendfile_header` is `nil`.
 
     The middleware behave as a noop in such case so it's pointless to have it in the stack.

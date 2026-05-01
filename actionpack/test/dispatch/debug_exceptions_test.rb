@@ -626,7 +626,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal 3, log.lines.count
   end
 
-  test "doesn't log the framework backtrace when error type is a invalid mime type" do
+  test "doesn't log the framework backtrace when error type is an invalid mime type" do
     @app = ProductionApp
 
     output = StringIO.new

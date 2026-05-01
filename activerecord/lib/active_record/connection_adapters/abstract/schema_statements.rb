@@ -598,7 +598,10 @@ module ActiveRecord
       #   and number of bytes for <tt>:text</tt>, <tt>:binary</tt>, <tt>:blob</tt>, and <tt>:integer</tt> columns.
       #   This option is ignored by some backends.
       # * <tt>:null</tt> -
-      #   Allows or disallows +NULL+ values in the column.
+      #   Whether the column allows +NULL+ values. If unset, or set to true, the column
+      #   allows +NULL+ values. If set to +false+, a <tt>NOT NULL</tt> constraint is added.
+      #   Primary keys always get a <tt>NOT NULL</tt> constraint regardless. Setting this
+      #   option to true for primary keys raises +ArgumentError+.
       # * <tt>:precision</tt> -
       #   Specifies the precision for the <tt>:decimal</tt>, <tt>:numeric</tt>,
       #   <tt>:datetime</tt>, and <tt>:time</tt> columns.
@@ -830,7 +833,7 @@ module ActiveRecord
       #
       #   CREATE INDEX index_suppliers_on_name ON suppliers(name)
       #
-      # ====== Creating a index which already exists
+      # ====== Creating an index which already exists
       #
       #   add_index(:suppliers, :name, if_not_exists: true)
       #

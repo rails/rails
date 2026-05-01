@@ -96,6 +96,18 @@ module ActiveSupport
     end
 
   private
+    # If the regexp is an anchored exact match like /^token$/ or /\Atoken\z/,
+    # returns the literal string.
+    def extract_exact_key(regexp) # :nodoc:
+      return if regexp.casefold?
+      source = regexp.source
+      return unless source.start_with?("^", "\\A") && source.end_with?("$", "\\z")
+
+      literal = source.delete_prefix("^").delete_prefix("\\A")
+                      .delete_suffix("$").delete_suffix("\\z")
+      literal if literal.match?(/\A[a-zA-Z0-9_]+\z/)
+    end
+
     def compile_filters!(filters)
       @no_filters = filters.empty?
       return if @no_filters
@@ -103,6 +115,7 @@ module ActiveSupport
       @regexps, strings = [], []
       @deep_regexps, deep_strings = nil, nil
       @blocks = nil
+      @exact_keys = nil
 
       filters.each do |item|
         case item
@@ -111,6 +124,8 @@ module ActiveSupport
         when Regexp
           if item.to_s.include?("\\.")
             (@deep_regexps ||= []) << item
+          elsif (literal = extract_exact_key(item))
+            (@exact_keys ||= {})[literal] = true
           else
             @regexps << item
           end
@@ -139,11 +154,15 @@ module ActiveSupport
     end
 
     def value_for_key(key, value, full_parent_key = nil, original_params = nil)
+      key_s = key.to_s
+
       if @deep_regexps
-        full_key = full_parent_key ? "#{full_parent_key}.#{key}" : key.to_s
+        full_key = full_parent_key ? "#{full_parent_key}.#{key_s}" : key_s
       end
 
-      if @regexps.any? { |r| r.match?(key.to_s) }
+      if @exact_keys && @exact_keys[key_s]
+        value = @mask
+      elsif @regexps.any? { |r| r.match?(key_s) }
         value = @mask
       elsif @deep_regexps&.any? { |r| r.match?(full_key) }
         value = @mask

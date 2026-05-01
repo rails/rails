@@ -128,6 +128,7 @@ module Rails
         template "application.rb"
         template "environment.rb"
         template "bundler-audit.yml" unless skip_bundler_audit?
+        template "bootsnap.rb" if depend_on_bootsnap?
         template "cable.yml" unless options[:update] || skip_action_cable?
         template "ci.rb"
         template "puma.rb"

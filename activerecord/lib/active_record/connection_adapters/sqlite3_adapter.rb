@@ -670,10 +670,19 @@ module ActiveRecord
                 limit: column.limit,
                 precision: column.precision,
                 scale: column.scale,
-                null: column.null,
                 collation: column.collation,
                 primary_key: column_name == from_primary_key
               }
+
+              # column.null is true unless there is an explicit NOT NULL
+              # constraint:
+              #
+              #   // The PK gets rowids, but column.null is technically true.
+              #   CREATE TABLE foo (id INTEGER PRIMARY KEY)
+              #
+              # We always add a NOT NULL constraint for PKs, and `null: true` is
+              # invalid for them. That is why we skip in that case.
+              column_options[:null] = column.null unless column_name == from_primary_key
 
               if column.virtual?
                 column_options[:as] = column.default_function

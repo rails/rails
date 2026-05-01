@@ -27,7 +27,7 @@ gem "solid_cable"
 <% if depend_on_bootsnap? -%>
 
 # Reduces boot times through caching; required in config/boot.rb
-gem "bootsnap", require: false
+gem "bootsnap", ">= 1.24.1", require: false
 <% end -%>
 <% unless options.skip_kamal? -%>
 
