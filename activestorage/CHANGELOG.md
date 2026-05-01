@@ -1,3 +1,16 @@
+*   Don't bump `lock_version` on attachment records' parents during blob analysis.
+
+    `ActiveStorage::AnalyzeJob` writes only to `Blob#metadata`. The cascade
+    that touches attached records (and their parents) exists for cache-key
+    invalidation; when those records use optimistic locking, the previous
+    behavior bumped `lock_version`, causing concurrent form edits to raise
+    spurious `ActiveRecord::StaleObjectError`s. The `updated_at` cascade is
+    preserved; the `lock_version` bump on this code path is now suppressed.
+
+    Fixes #55764.
+
+    *Greg Pavlik*
+
 *   Accept Tempfile as ActiveStorage attachable.
 
     ```ruby
