@@ -1,3 +1,8 @@
+*   Support multi-line strict locals for templates using Ruby comment syntax
+    (e.g., `.ruby`, `.builder`, `.jbuilder`).
+
+    *Michael Oberegger*
+
 *   Skip blank attribute names in tag helpers to avoid generating invalid HTML.
 
     *Mike Dalessio*

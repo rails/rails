@@ -485,3 +485,127 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal expected, new_template(source).translate_location(nil, spot)
   end
 end
+
+class TestRubyTemplate < ActiveSupport::TestCase
+  RubyHandler = lambda { |_, source| source }
+
+  class LookupContext
+    def disable_cache
+      yield
+    end
+
+    def find_template(*args)
+    end
+
+    attr_accessor :formats
+  end
+
+  class Context < ActionView::Base
+    def lookup_context
+      @lookup_context ||= LookupContext.new
+    end
+  end
+
+  def new_template(body)
+    ActionView::Template.new(body.dup, "hello template", RubyHandler, virtual_path: "hello", format: :html, locals: [])
+  end
+
+  def render(**locals)
+    @template.render(@context, locals)
+  end
+
+  def setup
+    @context = Context.with_empty_template_cache.empty
+    super
+  end
+
+  def test_locals_can_be_specified
+    @template = new_template("# locals: (message:)\nmessage")
+    assert_equal "Hello", render(message: "Hello")
+  end
+
+  def test_locals_can_spread_to_multiple_lines
+    template = <<~RUBY.chomp
+      # locals: (arg_1:,
+      #          arg_2: nil,
+      #          arg_3: [])
+      [arg_1, arg_2, arg_3].compact.join
+    RUBY
+    @template = new_template(template)
+    assert_equal "First", render(arg_1: "First")
+  end
+
+  def test_locals_can_spread_to_multiple_lines_with_closing_parenthesis_on_diff_line
+    template = <<~RUBY.chomp
+      # locals: (
+      #   arg_1:,
+      #   arg_2: nil,
+      #   arg_3: []
+      # )
+      [arg_1, arg_2, arg_3].compact.join
+    RUBY
+    @template = new_template(template)
+    assert_equal "First", render(arg_1: "First")
+  end
+end
+
+class TestBuilderTemplate < ActiveSupport::TestCase
+  BuilderHandler = ActionView::Template::Handlers::Builder.new
+
+  class LookupContext
+    def disable_cache
+      yield
+    end
+
+    def find_template(*args)
+    end
+
+    attr_accessor :formats
+  end
+
+  class Context < ActionView::Base
+    def lookup_context
+      @lookup_context ||= LookupContext.new
+    end
+  end
+
+  def new_template(body)
+    ActionView::Template.new(body.dup, "hello template", BuilderHandler, virtual_path: "hello", format: :xml, locals: [])
+  end
+
+  def render(**locals)
+    @template.render(@context, locals)
+  end
+
+  def setup
+    @context = Context.with_empty_template_cache.empty
+    super
+  end
+
+  def test_locals_can_be_specified
+    @template = new_template("# locals: (message:)\nxml.p(message)")
+    assert_includes render(message: "Hello"), "Hello"
+  end
+
+  def test_locals_can_spread_to_multiple_lines
+    template = <<~RUBY.chomp
+      # locals: (message:,
+      #          show_title: true)
+      xml.p(message)
+    RUBY
+    @template = new_template(template)
+    assert_includes render(message: "Hello"), "Hello"
+  end
+
+  def test_locals_can_spread_to_multiple_lines_with_closing_parenthesis_on_diff_line
+    template = <<~RUBY.chomp
+      # locals: (
+      #   message:,
+      #   show_title: true
+      # )
+      xml.p(message)
+    RUBY
+    @template = new_template(template)
+    assert_includes render(message: "Hello"), "Hello"
+  end
+end

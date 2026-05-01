@@ -361,12 +361,17 @@ module ActionView
     #
     #   <%# locals: (title: "Default title", comment_count: 0) %>
     #
+    # For .ruby or .builder templates, you can use Ruby comment syntax:
+    #
+    #   # locals: (title: "Default title", comment_count: 0)
+    #
     # Strict locals are useful for validating template arguments and for
     # specifying defaults.
     def strict_locals!
       if @strict_locals == NONE
         self.source.sub!(STRICT_LOCALS_REGEX, "")
-        @strict_locals = $1&.rstrip
+        # Strip leading `#` from continuation lines in Ruby comments
+        @strict_locals = $1&.gsub(/\n\s*#/, "\n")&.rstrip
 
         return if @strict_locals.nil? # Magic comment not found
 
