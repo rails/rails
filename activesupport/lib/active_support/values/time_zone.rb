@@ -456,7 +456,7 @@ module ActiveSupport
     #
     #   Time.zone.parse('Mar 2000') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
     #
-    # Returns +nil+ when the string is invalid and cannot be parsed.
+    # If the string is invalid then an +ArgumentError+ could be raised.
     def parse(str, now = now())
       parts_to_time(Date._parse(str, false), now)
     end

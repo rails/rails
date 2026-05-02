@@ -3203,6 +3203,36 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "italians#painters", @response.body
   end
 
+  def test_mount_with_hash_constraints
+    draw do
+      mount lambda { |env| [200, {}, ["mounted"]] },
+        at: "/app",
+        constraints: { subdomain: "admin" }
+    end
+
+    get "http://admin.example.com/app"
+    assert_equal 200, status
+    assert_equal "mounted", @response.body
+
+    get "http://www.example.com/app"
+    assert_equal 404, status
+  end
+
+  def test_mount_inside_hash_constraints
+    draw do
+      constraints subdomain: "admin" do
+        mount lambda { |env| [200, {}, ["mounted"]] }, at: "/app"
+      end
+    end
+
+    get "http://admin.example.com/app"
+    assert_equal 200, status
+    assert_equal "mounted", @response.body
+
+    get "http://www.example.com/app"
+    assert_equal 404, status
+  end
+
   def test_custom_resource_actions_defined_using_string
     draw do
       resources :customers do

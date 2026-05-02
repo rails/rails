@@ -1,3 +1,7 @@
+*   Defer the View watcher build until view paths are actually registered.
+
+    *Hugo Vacher*
+
 *   Skip blank attribute names in tag helpers to avoid generating invalid HTML.
 
     *Mike Dalessio*

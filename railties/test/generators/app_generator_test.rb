@@ -768,6 +768,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file ".kamal/secrets"
   end
 
+  def test_inclusion_of_bootsnap_files
+    generator [destination_root]
+    run_generator_instance
+
+    assert_file "config/bootsnap.rb"
+  end
+
   def test_kamal_files_are_skipped_if_required
     generator [destination_root], ["--skip-kamal"]
     run_generator_instance

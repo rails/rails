@@ -9,13 +9,11 @@ module ActionView
         @watched_dirs = nil
         @watcher = nil
         @previous_change = false
-
-        ActionView::PathRegistry.file_system_resolver_hooks << method(:rebuild_watcher)
       end
 
       def updated?
         build_watcher unless @watcher
-        @previous_change || @watcher.updated?
+        @previous_change || @watcher&.updated?
       end
 
       def execute
@@ -29,6 +27,11 @@ module ActionView
         watcher.execute
       end
 
+      def rebuild_watcher
+        return unless @watcher
+        build_watcher
+      end
+
       private
         def reload!
           ActionView::LookupContext::DetailsKey.clear
@@ -36,10 +39,15 @@ module ActionView
 
         def build_watcher
           @mutex.synchronize do
+            new_dirs = dirs_to_watch
+
+            # Skip the build entirely if there are no view paths to watch and we have not built a watcher yet.
+            return if new_dirs.empty? && @watcher.nil?
+
             old_watcher = @watcher
 
-            if @watched_dirs != dirs_to_watch
-              @watched_dirs = dirs_to_watch
+            if @watched_dirs != new_dirs
+              @watched_dirs = new_dirs
               new_watcher = @watcher_class.new([], @watched_dirs) do
                 reload!
               end
@@ -50,11 +58,6 @@ module ActionView
               @previous_change ||= old_watcher&.updated?
             end
           end
-        end
-
-        def rebuild_watcher
-          return unless @watcher
-          build_watcher
         end
 
         def dirs_to_watch

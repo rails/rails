@@ -496,6 +496,7 @@ module ActiveRecord
         becoming.instance_variable_set(:@new_record, new_record?)
         becoming.instance_variable_set(:@previously_new_record, previously_new_record?)
         becoming.instance_variable_set(:@destroyed, destroyed?)
+        becoming.instance_variable_set(:@marked_for_destruction, marked_for_destruction?)
         becoming.errors.copy!(errors)
       end
 
