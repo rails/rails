@@ -111,7 +111,7 @@ module Rails
         class_option :skip_ci,             type: :boolean, default: nil,
                                            desc: "Skip GitHub CI files"
 
-        class_option :skip_agent_file,     type: :boolean, default: nil,
+        class_option :skip_agents_file,     type: :boolean, default: nil,
                                            desc: "Skip AGENTS.md file"
 
         class_option :skip_kamal,          type: :boolean, default: nil,
@@ -413,8 +413,8 @@ module Rails
         options[:skip_ci]
       end
 
-      def skip_agent_file?
-        options[:skip_agent_file]
+      def skip_agents_file?
+        options[:skip_agents_file]
       end
 
       def skip_devcontainer?

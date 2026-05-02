@@ -421,7 +421,7 @@ module Rails
       end
 
       def create_agent_file
-        return if skip_agent_file?
+        return if skip_agents_file?
         build(:agent_file)
       end
 
