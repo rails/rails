@@ -1,3 +1,11 @@
+*   Generate an `AGENTS.md` file for new Rails applications.
+
+    `AGENTS.md` provides context for AI coding agents about the application's
+    stack: Rails version, JavaScript approach, CSS framework, asset pipeline,
+    database, and test framework. Pass `--skip-agent-file` to suppress generation.
+
+    *Andy Waite*
+
 *   Enable Ruby `frozen_string_literal` by default.
 
     New Rails apps now include a `config/bootsnap.rb` file that enables frozen string

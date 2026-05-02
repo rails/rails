@@ -745,6 +745,92 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file ".github/dependabot.yml"
   end
 
+  def test_agent_file_is_generated_by_default
+    run_generator
+
+    assert_file "AGENTS.md" do |content|
+      assert_match(/Rails #{Rails::VERSION::MAJOR}\.#{Rails::VERSION::MINOR}$/, content)
+    end
+  end
+
+  def test_agent_file_indicates_api_mode
+    run_generator [destination_root, "--api"]
+
+    assert_file "AGENTS.md" do |content|
+      assert_match(/Rails #{Rails::VERSION::MAJOR}\.#{Rails::VERSION::MINOR} \(API only\)/, content)
+    end
+  end
+
+  def test_agent_file_is_skipped_if_required
+    run_generator [destination_root, "--skip-agent-file"]
+
+    assert_no_file "AGENTS.md"
+  end
+
+  def test_agent_file_includes_css_framework
+    run_generator [destination_root, "--css=tailwind"]
+
+    assert_file "AGENTS.md" do |content|
+      assert_match(/Tailwind/, content)
+    end
+  end
+
+  def test_agent_file_includes_javascript_approach
+    run_generator [destination_root, "--javascript=esbuild"]
+
+    assert_file "AGENTS.md" do |content|
+      assert_match(/Esbuild/, content)
+    end
+  end
+
+  def test_agent_file_includes_asset_pipeline_by_default
+    run_generator
+
+    assert_file "AGENTS.md" do |content|
+      assert_match(/propshaft/, content)
+    end
+  end
+
+  def test_agent_file_shows_no_asset_pipeline_when_skipped
+    run_generator [destination_root, "--skip-asset-pipeline"]
+
+    assert_file "AGENTS.md" do |content|
+      assert_match(/Asset Pipeline\nNone/, content)
+    end
+  end
+
+  def test_agent_file_includes_database
+    run_generator [destination_root, "--database=postgresql"]
+
+    assert_file "AGENTS.md" do |content|
+      assert_match(/postgresql/, content)
+    end
+  end
+
+  def test_agent_file_shows_no_database_when_active_record_skipped
+    run_generator [destination_root, "--skip-active-record"]
+
+    assert_file "AGENTS.md" do |content|
+      assert_match(/Database\nNone/, content)
+    end
+  end
+
+  def test_agent_file_includes_minitest_by_default
+    run_generator
+
+    assert_file "AGENTS.md" do |content|
+      assert_match(/minitest/, content)
+    end
+  end
+
+  def test_agent_file_shows_no_test_framework_when_skipped
+    run_generator [destination_root, "--skip-test"]
+
+    assert_file "AGENTS.md" do |content|
+      assert_match(/Test Framework\nNone/, content)
+    end
+  end
+
   def test_configuration_of_solid
     generator [destination_root]
     run_generator_instance

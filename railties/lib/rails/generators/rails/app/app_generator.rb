@@ -93,6 +93,10 @@ module Rails
       template "rubocop.yml", ".rubocop.yml"
     end
 
+    def agent_file
+      template "AGENTS.md"
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run git_init_command, capture: options[:quiet], abort_on_failure: false
@@ -414,6 +418,11 @@ module Rails
       def create_rubocop_file
         return if skip_rubocop?
         build(:rubocop)
+      end
+
+      def create_agent_file
+        return if skip_agent_file?
+        build(:agent_file)
       end
 
       def create_cifiles

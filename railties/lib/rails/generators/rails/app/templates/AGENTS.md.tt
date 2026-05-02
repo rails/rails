@@ -1,0 +1,42 @@
+# AGENTS.md
+
+This file provides context for AI coding agents working on this Rails application.
+
+## Rails Version
+
+Rails <%= Rails::VERSION::MAJOR %>.<%= Rails::VERSION::MINOR %><% if options[:api] %> (API only)<% end %>
+
+## JavaScript
+<% if options[:skip_javascript] -%>
+None
+<% else -%>
+<%= options[:javascript].capitalize %><% unless options[:skip_hotwire] %> with Hotwire (Turbo + Stimulus)<% end %>
+<% end -%>
+
+## CSS
+<% if options[:css] -%>
+<%= options[:css].capitalize %>
+<% else -%>
+None
+<% end -%>
+
+## Asset Pipeline
+<% if options[:skip_asset_pipeline] -%>
+None
+<% else -%>
+propshaft
+<% end -%>
+
+## Database
+<% if options[:skip_active_record] -%>
+None
+<% else -%>
+<%= options[:database] %>
+<% end -%>
+
+## Test Framework
+<% if options[:skip_test] -%>
+None
+<% else -%>
+minitest
+<% end -%>
