@@ -695,6 +695,58 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "raises ArgumentError for invalid dependent option on has_one_attached" do
+    error = assert_raises ArgumentError do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "users"
+        has_one_attached :avatar, dependent: :invalid
+      end
+    end
+    assert_match(/invalid/i, error.message)
+  end
+
+  test "blob updated_at is not touched when independent attachment is destroyed" do
+    create_blob(filename: "funky.jpg").tap do |blob|
+      @user.cover_photo.attach blob
+
+      travel_to 1.day.from_now do
+        @user.destroy!
+
+        blob.reload
+        assert_not_in_delta Time.current, blob.updated_at, 1.second,
+          "blob updated_at should NOT be touched for dependent: false"
+      end
+    end
+  end
+
+  test "blob updated_at is touched when detach attachment is destroyed" do
+    create_blob(filename: "funky.jpg").tap do |blob|
+      @user.profile_photo.attach blob
+
+      travel_to 1.day.from_now do
+        @user.profile_photo.detach
+
+        blob.reload
+        assert_in_delta Time.current, blob.updated_at, 1.second,
+          "blob updated_at should be touched when attachment is destroyed"
+      end
+    end
+  end
+
+  test "detaching dependent attachment on destroy keeps blob" do
+    create_blob(filename: "funky.jpg").tap do |blob|
+      @user.profile_photo.attach blob
+
+      assert_no_enqueued_jobs do
+        @user.destroy!
+      end
+
+      assert_not ActiveStorage::Attachment.exists?(blob_id: blob.id)
+      assert ActiveStorage::Blob.exists?(blob.id)
+      assert ActiveStorage::Blob.service.exist?(blob.key)
+    end
+  end
+
   test "duped record does not share attachments" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
 

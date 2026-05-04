@@ -119,6 +119,7 @@ module ActiveStorage
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
       # the corresponding rows.
       def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil)
+        validate_dependent_option(dependent)
         Attached::Model.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -231,6 +232,7 @@ module ActiveStorage
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
       # the corresponding rows.
       def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil)
+        validate_dependent_option(dependent)
         Attached::Model.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -282,6 +284,13 @@ module ActiveStorage
         yield reflection if block_given?
         ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
       end
+
+      private
+        def validate_dependent_option(dependent)
+          unless dependent.in?([ :purge_later, :detach, false ])
+            raise ArgumentError, "Invalid dependent option: #{dependent.inspect}. Valid options are :purge_later, :detach, or false"
+          end
+        end
     end
 
     class << self

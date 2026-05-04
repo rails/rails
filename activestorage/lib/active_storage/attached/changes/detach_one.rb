@@ -11,6 +11,7 @@ module ActiveStorage
     def detach
       if attachment.present?
         attachment.delete
+        attachment.blob&.touch if attachment.blob&.persisted?
         reset
       end
     end

@@ -1,3 +1,18 @@
+*   Add `dependent: :detach` option for `has_one_attached` and `has_many_attached`.
+
+    When a record is destroyed with `dependent: :detach`, the attachment record
+    is removed but the blob and its file on the service are preserved. This is
+    useful when you want to keep files around for restoration or auditing.
+
+    Also adds `updated_at` column to `active_storage_blobs` table. The blob is
+    touched when a detached attachment is destroyed, so detached blobs can be
+    safely purged based on when they became unattached rather than when they
+    were originally uploaded.
+
+    Invalid `dependent` options now raise `ArgumentError`.
+
+    *Denis Savchuk*
+
 *   Configurable maximum streaming chunk size
 
     Makes sure that byte ranges for blobs don't exceed 100mb by default.
@@ -27,7 +42,6 @@
     do not respect these metacharacters).
 
     *Mike Dalessio*
-
 
 *   Restore ADC when signing URLs with IAM for GCS
 

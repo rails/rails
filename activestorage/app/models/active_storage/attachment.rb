@@ -49,6 +49,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
 
   after_create_commit :run_upload_callbacks, unless: :pending_upload
   after_destroy_commit :purge_dependent_blob_later
+  after_destroy_commit :touch_blob_after_detach
 
   ##
   # :singleton-method:
@@ -224,6 +225,10 @@ class ActiveStorage::Attachment < ActiveStorage::Record
 
     def purge_dependent_blob_later
       blob&.purge_later if dependent == :purge_later
+    end
+
+    def touch_blob_after_detach
+      blob&.touch if dependent == :detach && blob&.persisted?
     end
 
     def dependent

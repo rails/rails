@@ -462,6 +462,24 @@ class User < ApplicationRecord
 end
 ```
 
+By default, the `:dependent` option is set to `:purge_later`, which enqueues a
+background job to purge the blob when the record is destroyed. To keep blobs when
+the record is destroyed, use `dependent: :detach`:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar, dependent: :detach
+end
+```
+
+When the record is destroyed, the attachment record is removed but the blob and
+its file on the service are preserved. This is useful when you want to keep files
+around for restoration, auditing, or when using storage services without object
+versioning. See [Purging Unattached Uploads](#purging-unattached-uploads) for
+cleaning up detached blobs after a safe period.
+
+To prevent any automatic cleanup, use `dependent: false`.
+
 NOTE: Since Active Storage relies on polymorphic associations, and [polymorphic associations](./association_basics.html#polymorphic-associations) rely on storing class names in the database, that data must remain synchronized with the class name used by the Ruby code. When renaming classes that use `has_one_attached`, make sure to also update the class names in the `active_storage_attachments.record_type` polymorphic type column of the corresponding rows.
 
 [`has_one_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached
@@ -1646,13 +1664,13 @@ by implementing the methods necessary to upload and download files to the cloud.
 Purging Unattached Uploads
 --------------------------
 
-There are cases where a file is uploaded but never attached to a record. This can happen when using [Direct Uploads](#direct-uploads). You can query for unattached records using the [unattached scope](https://github.com/rails/rails/blob/8ef5bd9ced351162b673904a0b77c7034ca2bc20/activestorage/app/models/active_storage/blob.rb#L49). Below is an example using a [custom rake task](command_line.html#custom-rake-tasks).
+There are cases where a file is uploaded but never attached to a record. This can happen when using [Direct Uploads](#direct-uploads) or when using `dependent: :detach` and later destroying the parent record. You can query for unattached records using the [unattached scope](https://api.rubyonrails.org/classes/ActiveStorage/Blob.html). Below is an example using a [custom rake task](command_line.html#custom-rake-tasks).
 
 ```ruby
 namespace :active_storage do
   desc "Purges unattached Active Storage blobs. Run regularly."
   task purge_unattached: :environment do
-    ActiveStorage::Blob.unattached.where(created_at: ..2.days.ago).find_each(&:purge_later)
+    ActiveStorage::Blob.unattached.where(updated_at: ..2.days.ago).find_each(&:purge_later)
   end
 end
 ```
