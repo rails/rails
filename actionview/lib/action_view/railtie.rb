@@ -79,6 +79,12 @@ module ActionView
       ActionView::Helpers::JavaScriptHelper.auto_include_nonce = app.config.content_security_policy_nonce_auto && app.config.content_security_policy_nonce_directives.intersect?(["script-src", "script-src-elem", "script-src-attr"]) && app.config.content_security_policy_nonce_generator.present?
     end
 
+    config.before_eager_load do |app|
+      if app.config.action_view.key?(:render_tracker)
+        ActionView.render_tracker = config.action_view.render_tracker
+      end
+    end
+
     config.after_initialize do |app|
       config.after_initialize do
         ActionView.render_tracker = config.action_view.render_tracker
