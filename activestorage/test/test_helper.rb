@@ -128,6 +128,7 @@ class User < ActiveRecord::Base
   validates :name, presence: true
 
   has_one_attached :avatar
+  has_one_attached :avatar_with_service, service: "mirror_2"
   has_one_attached :cover_photo, dependent: false, service: :local
   has_one_attached :avatar_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
