@@ -717,6 +717,22 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_not @user.avatar.attached?
   end
 
+  test "upload completes after reload inside a transaction" do
+    user = ActiveRecord::Base.transaction do
+      new_user = User.create!(name: "Jason",
+        avatar: {
+          content_type: "text/plain",
+          filename: "dummy.txt",
+          io: StringIO.new("dummy"),
+        }
+      )
+      new_user.reload
+    end
+
+    assert_predicate user.avatar, :attached?
+    assert_equal "dummy", user.avatar.download
+  end
+
   test "overriding attached reader" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
 

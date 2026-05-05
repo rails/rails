@@ -318,7 +318,19 @@ module ActiveStorage
     end
 
     def reload(*) # :nodoc:
-      super.tap { @attachment_changes = nil }
+      super.tap do
+        next unless @attachment_changes
+
+        @attachment_changes.select! do |_, change|
+          case change
+          when ActiveStorage::Attached::Changes::CreateOne
+            change.attachment.persisted?
+          when ActiveStorage::Attached::Changes::CreateMany
+            change.attachments.any?(&:persisted?)
+          end
+        end
+        @attachment_changes = nil if @attachment_changes.empty?
+      end
     end
   end
 end

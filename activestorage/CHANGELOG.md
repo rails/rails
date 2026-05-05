@@ -1,3 +1,15 @@
+*   Fix attachment uploads not completing when `reload` is called inside a transaction.
+
+    When a model with an attachment was saved inside a transaction and then
+    reloaded before the transaction committed, `@attachment_changes` was
+    cleared. This caused the `after_commit` callback to skip uploading the
+    blob to the storage service. Now, pending create changes with persisted
+    attachments are preserved across `reload`.
+
+    Fixes #57222.
+
+    *Hammad Khan*
+
 *   Configurable maximum streaming chunk size
 
     Makes sure that byte ranges for blobs don't exceed 100mb by default.
