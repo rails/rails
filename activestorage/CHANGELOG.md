@@ -1,3 +1,17 @@
+*   Add `Blob#variant_or_self` for format-aware variant passthrough.
+
+    Returns the blob as-is if its content type already matches one of the
+    accepted formats, or converts it to the first format in the list otherwise.
+    This avoids unnecessary image reprocessing when the original format is
+    already acceptable.
+
+    ```ruby
+    # Returns blob as-is for JPEG/PNG, converts others to JPEG
+    blob.variant_or_self(formats: [:jpeg, :png]).processed.url
+    ```
+
+    *Greg Pavlik*
+
 *   Configurable maximum streaming chunk size
 
     Makes sure that byte ranges for blobs don't exceed 100mb by default.
