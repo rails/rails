@@ -29,4 +29,8 @@ class ActiveStorage::EngineTest < ActiveSupport::TestCase
   test "true is the default touch_attachment_records value" do
     assert_equal true, ActiveStorage.touch_attachment_records
   end
+
+  test "true is the default blobs_always_publicly_accessible value" do
+    assert_equal true, ActiveStorage.blobs_always_publicly_accessible
+  end
 end

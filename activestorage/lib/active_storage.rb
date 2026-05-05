@@ -380,6 +380,8 @@ module ActiveStorage
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
+  mattr_accessor :blobs_always_publicly_accessible, default: false
+
   module Transformers
     extend ActiveSupport::Autoload
 
