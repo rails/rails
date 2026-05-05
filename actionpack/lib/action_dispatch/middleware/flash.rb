@@ -50,6 +50,13 @@ module ActionDispatch
   class Flash
     KEY = "action_dispatch.request.flash_hash"
 
+    # Dedicated encrypted cookie for `use_dedicated_cookie`
+    FLASH_COOKIE_NAME = "_flash"
+
+    # When true, flash data is stored in a dedicated cookie rather than inside the session. Opt-in.
+    # See `use_dedicated_flash_cookie` in guides/source/configuring.md.
+    mattr_accessor :use_dedicated_cookie, default: false
+
     module RequestMethods
       # Access the contents of the flash. Returns an ActionDispatch::Flash::FlashHash.
       #
@@ -57,7 +64,14 @@ module ActionDispatch
       def flash
         flash = flash_hash
         return flash if flash
-        self.flash = Flash::FlashHash.from_session_value(session["flash"])
+
+        value = if Flash.use_dedicated_cookie
+          cookie_jar.encrypted[Flash::FLASH_COOKIE_NAME]
+        else
+          session["flash"]
+        end
+
+        self.flash = Flash::FlashHash.from_session_value(value)
       end
 
       def flash=(flash)
@@ -69,22 +83,58 @@ module ActionDispatch
       end
 
       def commit_flash # :nodoc:
-        return unless session.enabled?
-
-        if flash_hash && (flash_hash.present? || session.key?("flash"))
-          session["flash"] = flash_hash.to_session_value
-          self.flash = flash_hash.dup
-        end
-
-        if session.loaded? && session.key?("flash") && session["flash"].nil?
-          session.delete("flash")
+        if Flash.use_dedicated_cookie
+          commit_flash_to_cookie
+        else
+          commit_flash_to_session
         end
       end
 
       def reset_session # :nodoc:
         super
         self.flash = nil
+
+        # `super`'s session wipe doesn't reach the dedicated flash cookie; clear it so a pending
+        # unrendered flash doesn't survive sign-out in the browser.
+        if Flash.use_dedicated_cookie && cookies.key?(Flash::FLASH_COOKIE_NAME)
+          cookie_jar.delete(Flash::FLASH_COOKIE_NAME, path: "/")
+        end
       end
+
+      private
+        def commit_flash_to_session
+          return unless session.enabled?
+
+          if flash_hash && (flash_hash.present? || session.key?("flash"))
+            session["flash"] = flash_hash.to_session_value
+            self.flash = flash_hash.dup
+          end
+
+          if session.loaded? && session.key?("flash") && session["flash"].nil?
+            session.delete("flash")
+          end
+        end
+
+        def commit_flash_to_cookie
+          fh = flash_hash
+          return unless fh
+
+          # `cookies.key?` reads the incoming Cookie header, so this asks "did the browser send a
+          # flash cookie?" The `elsif had_incoming` guard below is required: without it, any response
+          # that reads flash but doesn't set one would emit a delete header, which would itself race
+          # and clobber a freshly-set flash from a parallel form POST — the exact bug this fixes.
+          had_incoming = cookies.key?(Flash::FLASH_COOKIE_NAME)
+
+          if fh.present? && (value = fh.to_session_value)
+            cookie_jar.encrypted[Flash::FLASH_COOKIE_NAME] = {
+              value: value,
+              httponly: true,
+            }
+            self.flash = fh.dup
+          elsif had_incoming
+            cookie_jar.delete(Flash::FLASH_COOKIE_NAME, path: "/")
+          end
+        end
     end
 
     class FlashNow # :nodoc:

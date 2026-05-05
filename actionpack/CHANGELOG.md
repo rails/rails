@@ -1,3 +1,27 @@
+*   Add `config.action_dispatch.use_dedicated_flash_cookie` to store flash in its own encrypted
+    cookie instead of the session.
+
+    When enabled, `flash` is read from and written to a dedicated `_flash` encrypted cookie rather
+    than `session["flash"]`. This fixes a race where a concurrent in-flight request (e.g. a lazy
+    `turbo_frame`, a prefetch, or another AJAX call) rewrites the session cookie without the flash
+    just after a form submission set one, clobbering the freshly-set flash.
+
+    Defaults to `false`; no behavior change for existing apps. To opt in:
+
+        # config/application.rb
+        config.action_dispatch.use_dedicated_flash_cookie = true
+
+    Caveats:
+
+    * Flashes that were sitting in a user's session cookie when the flag flips on will not render
+      (one-time, one lost flash per affected user).
+    * A `flash` key previously stored inside `session` is harmless but no longer read or written.
+      Apps that want to clean it up can do so with a short-lived `before_action`.
+    * A very large flash now raises `ActionDispatch::Cookies::CookieOverflow` for the `_flash`
+      cookie rather than the session cookie.
+
+    *Jordan Brough*
+
 *   Serve static CSS and HTML files with `charset=utf-8` in the Content-Type header.
 
     Static CSS and HTML files served by `ActionDispatch::Static` now include
