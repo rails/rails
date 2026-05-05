@@ -1,3 +1,13 @@
+*   Add `number_from_delimited` helper to `ActiveSupport::NumberHelper`.
+
+    This new helper allows converting a delimited number string to a number:
+
+    ```ruby
+    number_from_delimited("12,345,678.9876") # => 12345678.9876
+    ```
+
+    *Matija Čupić*
+
 *   Add `prepend: true` option to `ActiveSupport::Notifications.subscribe`.
 
       When `prepend: true` is passed, the subscriber is added to the front of
