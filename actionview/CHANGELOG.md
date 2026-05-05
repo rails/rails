@@ -4,9 +4,7 @@
     `config.action_view.precompile_templates = true` (enabled by default in
     `load_defaults "8.2"`) and `config.eager_load` is also `true`. This
     improves cold render times and allows more memory to be shared via
-    copy-on-write on forking web servers. With the potential upstreaming
-    of Herb, this optimization becomes even more important due to the
-    likely increased memory and latency overhead of Herb.
+    copy-on-write on forking web servers.
 
     The precompiler scans view templates, controllers, and helpers for
     `render` calls, detects implicit controller action renders, and supports

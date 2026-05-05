@@ -2681,7 +2681,7 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_view.precompile_additional_paths`
 
-An array of additional directories to scan for `render` calls when precompiling templates. Useful for applications with controllers or helpers outside of the standard engine paths, such as those using Packwerk packs or ViewComponent sidecar templates. Defaults to `[]`.
+An array of additional directories to scan for `render` calls when precompiling templates. Useful for applications with controllers or helpers outside of the standard engine paths. Defaults to `[]`.
 
 #### `config.action_view.sanitizer_vendor`
 
