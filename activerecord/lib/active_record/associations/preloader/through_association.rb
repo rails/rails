@@ -76,7 +76,16 @@ module ActiveRecord
           end
 
           def through_preloaders
-            @through_preloaders ||= ActiveRecord::Associations::Preloader.new(records: owners, associations: through_reflection.name, scope: through_scope, associate_by_default: false).loaders
+            @through_preloaders ||= ActiveRecord::Associations::Preloader.new(
+              records: owners,
+              associations: through_reflection.name,
+              scope: through_scope,
+              associate_by_default: false,
+              # Only has_many :through can batch inner loaders with disjoint siblings (parallel
+              # scopes on shared join rows; #52061). has_one :through must merge with belongs_to:
+              # e.g. +has_one :author, through: :post+ vs +belongs_to :ordinary_post+ on Post.
+              through_parent_reflection: reflection.collection? ? reflection : nil
+            ).loaders
           end
 
           def through_reflection
@@ -88,11 +97,27 @@ module ActiveRecord
           end
 
           def source_records_by_owner
-            @source_records_by_owner ||= source_preloaders.map(&:records_by_owner).reduce(:merge)
+            @source_records_by_owner ||= merge_records_by_owner(source_preloaders.map(&:records_by_owner))
           end
 
           def through_records_by_owner
-            @through_records_by_owner ||= through_preloaders.map(&:records_by_owner).reduce(:merge)
+            @through_records_by_owner ||= merge_records_by_owner(through_preloaders.map(&:records_by_owner))
+          end
+
+          # Fixes #52061: Hash#merge last-wins when parallel loaders share owner keys.
+          #
+          # Do not use compare_by_identity on the accumulator: loaders can hold different
+          # Ruby instances for the same AR row (`Tagging.first` vs freshly loaded)—identity
+          # keys fragment the hash while #== / #eql? still match AR rows by id/class.
+          def merge_records_by_owner(hashes)
+            merged = {}
+            hashes.each do |h|
+              h.each do |owner, records|
+                (merged[owner] ||= []).concat(Array(records))
+              end
+            end
+            merged.each_value(&:uniq!)
+            merged
           end
 
           def preload_index

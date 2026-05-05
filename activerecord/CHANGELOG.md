@@ -1,3 +1,16 @@
+*   Fix eager loading nested `includes` when several scoped parallel `has_many :through`
+    associations reuse the same through table/query.
+
+    Sibling loaders now concatenate `records_by_owner` hashes instead of using `Hash#merge`,
+    which last-winned overlapped owners. Inner through preloads additionally carry the outer
+    `has_many :through` reflection into batch partitioning so loaders that share identical SQL but
+    must not share one inverse/STI batch are split; outer reflections that are non-collection (e.g.
+    `has_one :through`) are excluded so unrelated sibling preloads stay merged into one query.
+
+    Fixes #52061.
+
+    *Edil Talantbek uulu*
+
 *   Bump the minimum PostgreSQL version to 10.0.
 
     As part of this change, `supports_pgcrypto_uuid?` is deprecated because

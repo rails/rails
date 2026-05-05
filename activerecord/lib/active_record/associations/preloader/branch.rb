@@ -8,7 +8,7 @@ module ActiveRecord
         attr_reader :scope, :associate_by_default
         attr_writer :preloaded_records
 
-        def initialize(association:, children:, parent:, associate_by_default:, scope:)
+        def initialize(association:, children:, parent:, associate_by_default:, scope:, through_parent_reflection: nil)
           @association = if association
             begin
               @association = association.to_sym
@@ -19,6 +19,7 @@ module ActiveRecord
           @parent = parent
           @scope = scope
           @associate_by_default = associate_by_default
+          @through_parent_reflection = through_parent_reflection
 
           @children = build_children(children)
           @loaders = nil
@@ -101,7 +102,10 @@ module ActiveRecord
 
             [klass, reflection_scope]
           end.map do |(rhs_klass, reflection_scope), rs|
-            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default)
+            preloader_for(reflection).new(
+              rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default,
+              through_parent_reflection: @through_parent_reflection
+            )
           end
         end
 
@@ -132,7 +136,8 @@ module ActiveRecord
                   association: parent,
                   children: child,
                   associate_by_default: associate_by_default,
-                  scope: scope
+                  scope: scope,
+                  through_parent_reflection: (root? ? @through_parent_reflection : nil)
                 )
               }
             }

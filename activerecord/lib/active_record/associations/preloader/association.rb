@@ -99,9 +99,10 @@ module ActiveRecord
             end
         end
 
-        attr_reader :klass
+        attr_reader :klass, :through_parent_reflection
 
-        def initialize(klass, owners, reflection, preload_scope, reflection_scope, associate_by_default)
+        def initialize(klass, owners, reflection, preload_scope, reflection_scope, associate_by_default,
+          through_parent_reflection: nil)
           @klass         = klass
           @owners        = owners.uniq(&:__id__)
           @reflection    = reflection
@@ -109,6 +110,7 @@ module ActiveRecord
           @reflection_scope = reflection_scope
           @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
           @model         = owners.first && owners.first.class
+          @through_parent_reflection = through_parent_reflection
           @run = false
         end
 

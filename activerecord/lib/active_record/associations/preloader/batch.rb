@@ -41,7 +41,10 @@ module ActiveRecord
             non_through = loaders.grep_v(ThroughAssociation)
 
             grouped = non_through.group_by do |loader|
-              [loader.loader_query, loader.klass]
+              # Parallel scoped has_many :through preloads can share identical inner loaders
+              # (same through reflection + LoaderQuery); merging those batches mishandles callbacks
+              # and STI/source rows (#52061). Tagged only for has_many :through outer reflections.
+              [loader.loader_query, loader.klass, loader.through_parent_reflection]
             end
 
             grouped.each do |(query, _klass), similar_loaders|
