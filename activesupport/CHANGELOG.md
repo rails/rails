@@ -1,3 +1,14 @@
+*   Accept callables as structured event subscribers.
+
+    Up to now, structured event subscribers had to respond to `emit`. Now, they
+    can also respond to the more neutral `call`, and in particular you can
+    subscribe lambdas.
+
+    If the subscriber responds both to `emit` and `call`, the former is called,
+    for backwards compatibility.
+
+    *Xavier Noria*
+
 *   Add `prepend: true` option to `ActiveSupport::Notifications.subscribe`.
 
       When `prepend: true` is passed, the subscriber is added to the front of

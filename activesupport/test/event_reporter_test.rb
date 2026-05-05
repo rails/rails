@@ -52,6 +52,14 @@ module ActiveSupport
       end
     end
 
+    class DualMethodSubscriber
+      attr_reader :invoked
+
+      def initialize = @invoked = []
+      def call(_) = @invoked << __method__
+      def emit(_) = @invoked << __method__
+    end
+
     test "#subscribe" do
       reporter = ActiveSupport::EventReporter.new
       subscribers = reporter.subscribe(@subscriber)
@@ -67,14 +75,32 @@ module ActiveSupport
       assert_equal([{ subscriber: @subscriber, filter: filter }], subscribers)
     end
 
-    test "#subscribe raises ArgumentError when sink doesn't respond to emit" do
+    test "#subscribe raises ArgumentError when sink doesn't respond to emit or call" do
       invalid_subscriber = Object.new
 
       error = assert_raises(ArgumentError) do
         @reporter.subscribe(invalid_subscriber)
       end
 
-      assert_equal "Event subscriber Object must respond to #emit", error.message
+      assert_equal "Event subscriber Object must respond to #call or #emit", error.message
+    end
+
+    test "#subscribe accepts callables" do
+      events = []
+      @reporter.subscribe(->(event) { events << event })
+
+      @reporter.notify(:test_event, key: "value")
+
+      assert event_matcher(name: "test_event", payload: { key: "value" }).call(events.last)
+    end
+
+    test "#notify prefers emit over call when the subscriber implements both" do
+      subscriber = DualMethodSubscriber.new
+      @reporter.subscribe(subscriber)
+
+      @reporter.notify(:test_event)
+
+      assert_equal [:emit], subscriber.invoked
     end
 
     test "#unsubscribe" do

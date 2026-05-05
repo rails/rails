@@ -120,7 +120,9 @@ module ActiveSupport
   #
   # === Subscribers
   #
-  # Subscribers must implement the +emit+ method, which will be called with the event hash.
+  # Subscribers are expected to respond to +call+, which will be called with the
+  # event hash. Alternatively, subscribers may also respond to +emit+. If both
+  # methods are present, +emit+ will be used for compatibility reasons.
   #
   # The event hash has the following keys:
   #
@@ -131,46 +133,14 @@ module ActiveSupport
   #   timestamp: Float (The timestamp of the event, in nanoseconds)
   #   source_location: Hash (The source location of the event, containing the filepath, lineno, and label)
   #
-  # Subscribers are responsible for encoding events to their desired format before emitting them to their
-  # target destination, such as a streaming platform, a log device, or an alerting service.
-  #
-  #   class JSONEventSubscriber
-  #     def emit(event)
-  #       json_data = JSON.generate(event)
-  #       LogExporter.export(json_data)
-  #     end
-  #   end
+  # Example:
   #
   #   class LogSubscriber
-  #     def emit(event)
+  #     def call(event)
   #       payload = event[:payload].map { |key, value| "#{key}=#{value}" }.join(" ")
   #       source_location = event[:source_location]
   #       log = "[#{event[:name]}] #{payload} at #{source_location[:filepath]}:#{source_location[:lineno]}"
   #       Rails.logger.info(log)
-  #     end
-  #   end
-  #
-  # Note that event objects are passed through to subscribers as-is, and may need to be serialized before being encoded:
-  #
-  #   class UserCreatedEvent
-  #     def initialize(id:, name:)
-  #       @id = id
-  #       @name = name
-  #     end
-  #
-  #     def serialize
-  #       {
-  #         id: @id,
-  #         name: @name
-  #       }
-  #     end
-  #   end
-  #
-  #   class LogSubscriber
-  #     def emit(event)
-  #       payload = event[:payload]
-  #       json_data = JSON.generate(payload.serialize)
-  #       LogExporter.export(json_data)
   #     end
   #   end
   #
@@ -298,7 +268,15 @@ module ActiveSupport
 
     # Registers a new event subscriber. The subscriber must respond to
     #
-    #   emit(event: Hash)
+    #   call(event)
+    #
+    # or
+    #
+    #   emit(event)
+    #
+    # where the argument is a hash, as documented above.
+    #
+    # If both methods are present, +emit+ is used for compatibility reasons.
     #
     # The event hash will have the following keys:
     #
@@ -315,8 +293,8 @@ module ActiveSupport
     #   Rails.event.subscribe(subscriber) { |event| event[:payload].is_a?(UserEvent) }
     #
     def subscribe(subscriber, &filter)
-      unless subscriber.respond_to?(:emit)
-        raise ArgumentError, "Event subscriber #{subscriber.class.name} must respond to #emit"
+      unless subscriber.respond_to?(:call) || subscriber.respond_to?(:emit)
+        raise ArgumentError, "Event subscriber #{subscriber.class.name} must respond to #call or #emit"
       end
       @subscribers << { subscriber: subscriber, filter: filter }
     end
@@ -403,7 +381,11 @@ module ActiveSupport
       end
 
       subscribers.each do |subscriber|
-        subscriber.emit(event)
+        if subscriber.respond_to?(:emit)
+          subscriber.emit(event)
+        else
+          subscriber.call(event)
+        end
       rescue => subscriber_error
         if raise_on_error?
           raise
