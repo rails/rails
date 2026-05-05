@@ -1,3 +1,26 @@
+*   Allow `retry_on` `wait` to accept any callable object.
+
+    In addition to procs, `wait:` now accepts callables such as `Method`
+    objects and strategy objects that implement `#call`.
+
+    ```ruby
+    class RetryDelay
+      def call(executions, error)
+        if error.message =~ /retry in (\d+)s/
+          $1.to_i
+        else
+          executions * 2
+        end
+      end
+    end
+
+    class RemoteServiceJob < ActiveJob::Base
+      retry_on CustomError, wait: RetryDelay.new
+    end
+    ```
+
+    *Andrey Samsonov*
+
 *   Deprecate built-in `queue_classic` Active Job adapter.
 
     *Harun Sabljaković, Wojciech Wnętrzak*

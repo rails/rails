@@ -12,11 +12,18 @@ class LongWaitError < StandardError; end
 class ShortWaitTenAttemptsError < StandardError; end
 class PolynomialWaitTenAttemptsError < StandardError; end
 class CustomWaitTenAttemptsError < StandardError; end
+class CallableWaitTenAttemptsError < StandardError; end
+class CallableWaitIncludedInError < StandardError
+  def retry_after
+    10
+  end
+end
 class RetryWaitIncludedInError < StandardError
   def retry_after
     10
   end
 end
+class MethodWaitTenAttemptsError < StandardError; end
 class CustomCatchError < StandardError; end
 class DiscardableError < StandardError; end
 class FirstDiscardableErrorOfTwo < StandardError; end
@@ -26,7 +33,25 @@ class UnlimitedRetryError < StandardError; end
 class ReportedError < StandardError; end
 class HeavyError < StandardError; end
 
+class ExecutionCountWait
+  def call(executions)
+    executions * 2
+  end
+end
+
+class RetryAfterWait
+  def call(executions, error)
+    error.retry_after + executions
+  end
+end
+
 class RetryJob < ActiveJob::Base
+  class << self
+    def delay_from_executions(executions)
+      executions * 2
+    end
+  end
+
   retry_on DefaultsError
   retry_on DisabledJitterError, jitter: nil
   retry_on ZeroJitterError, jitter: 0.0
@@ -35,7 +60,10 @@ class RetryJob < ActiveJob::Base
   retry_on ShortWaitTenAttemptsError, wait: 1.second, attempts: 10
   retry_on PolynomialWaitTenAttemptsError, wait: :polynomially_longer, attempts: 10
   retry_on CustomWaitTenAttemptsError, wait: ->(executions) { executions * 2 }, attempts: 10
+  retry_on CallableWaitTenAttemptsError, wait: ExecutionCountWait.new, attempts: 10
   retry_on RetryWaitIncludedInError, wait: ->(executions, error) { error.retry_after + executions }
+  retry_on CallableWaitIncludedInError, wait: RetryAfterWait.new
+  retry_on MethodWaitTenAttemptsError, wait: method(:delay_from_executions), attempts: 10
   retry_on(CustomCatchError) { |job, error| JobBuffer.add("Dealt with a job that failed to retry in a custom way after #{job.arguments.second} attempts. Message: #{error.message}") }
   retry_on(ActiveJob::DeserializationError) { |job, error| JobBuffer.add("Raised #{error.class} for the #{job.executions} time") }
   retry_on UnlimitedRetryError, attempts: :unlimited
