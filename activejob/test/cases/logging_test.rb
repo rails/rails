@@ -253,6 +253,18 @@ class LoggingTest < ActiveSupport::TestCase
     end
   end
 
+  def test_tagged_logger_support_with_broadcast_logger_plain_formatter_first
+    plain_logger  = ::Logger.new(nil)
+    tagged_logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(nil))
+    broadcast     = ActiveSupport::BroadcastLogger.new(plain_logger, tagged_logger)
+
+    set_logger broadcast
+
+    assert_nothing_raised do
+      HelloJob.perform_now "Cristian"
+    end
+  end
+
   def test_job_error_logging
     perform_enqueued_jobs do
       RescueJob.perform_later "other"
