@@ -1171,4 +1171,76 @@ class EnumTest < ActiveRecord::TestCase
     assert_raises(NoMethodError) { instance.proposed? }
     assert_raises(NoMethodError) { instance.proposed! }
   end
+
+  test "defines constants for enum values on the model class" do
+    assert_equal "proposed", Book::PROPOSED
+    assert_equal "written", Book::WRITTEN
+    assert_equal "published", Book::PUBLISHED
+  end
+
+  test "defined enum constants are frozen strings" do
+    assert_predicate Book::PROPOSED, :frozen?
+    assert_kind_of String, Book::PROPOSED
+  end
+
+  test "enum constants honor prefix: true" do
+    assert_equal "visible", Book::AUTHOR_VISIBILITY_VISIBLE
+    assert_equal "invisible", Book::AUTHOR_VISIBILITY_INVISIBLE
+  end
+
+  test "enum constants honor a custom prefix" do
+    assert_equal "english", Book::IN_ENGLISH
+    assert_equal "spanish", Book::IN_SPANISH
+    assert_equal "french", Book::IN_FRENCH
+  end
+
+  test "enum constants honor a custom suffix" do
+    assert_equal "easy", Book::EASY_TO_READ
+    assert_equal "medium", Book::MEDIUM_TO_READ
+    assert_equal "hard", Book::HARD_TO_READ
+  end
+
+  test "enum constants honor prefix and suffix together" do
+    assert_equal "small", Book::WITH_SMALL_FONT_SIZE
+    assert_equal "medium", Book::WITH_MEDIUM_FONT_SIZE
+    assert_equal "large", Book::WITH_LARGE_FONT_SIZE
+  end
+
+  test "enum constants for hash-form enums use the label, not the underlying value" do
+    assert_equal "hard", Book::HARD
+    assert_equal "soft", Book::SOFT
+    assert_equal "enabled", Book::ENABLED
+    assert_equal "disabled", Book::DISABLED
+  end
+
+  test "enum constants can be used in where clauses" do
+    book = Book.where(status: Book::PROPOSED).first
+    assert_predicate book, :proposed?
+  end
+
+  test "enum constants do not overwrite a constant already defined on the class" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      const_set(:PROPOSED, :keep_me)
+      enum :status, [:proposed, :written]
+    end
+
+    assert_equal :keep_me, klass::PROPOSED
+    assert_equal "written", klass::WRITTEN
+  end
+
+  test "enum constants are not generated for labels that produce invalid constant names" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :status, { "404": 0, "ok": 1 }
+    end
+
+    assert_not_includes klass.constants(false).map(&:to_s), "404"
+    assert_equal "ok", klass::OK
+  end
+
+  test "enum constants are inherited by subclasses" do
+    subclass = Class.new(Book)
+    assert_equal "proposed", subclass::PROPOSED
+  end
 end

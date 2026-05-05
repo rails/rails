@@ -118,6 +118,22 @@ module ActiveRecord
   #     enum :status, [ :active, :archived ], instance_methods: false
   #   end
   #
+  # A class-level constant is also defined for each value of the enum, named
+  # after the corresponding generated method (so +:prefix+ and +:suffix+ are
+  # honored as well). The constant's value is the frozen label string:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum :status, [ :active, :archived ]
+  #   end
+  #
+  #   Conversation::ACTIVE   # => "active"
+  #   Conversation::ARCHIVED # => "archived"
+  #
+  #   Conversation.where(status: Conversation::ACTIVE)
+  #
+  # Constants that are already defined on the class are not overwritten, so
+  # any value you have set manually takes precedence.
+  #
   # By default, an +ArgumentError+ will be raised when assigning an invalid value:
   #
   #   class Conversation < ActiveRecord::Base
@@ -266,6 +282,7 @@ module ActiveRecord
             value_method_name = "#{prefix}#{label}#{suffix}"
             value_method_names << value_method_name
             define_enum_methods(name, value_method_name, value, scopes, instance_methods)
+            define_enum_constant(value_method_name, label)
 
             method_friendly_label = label.gsub(/[\W&&[:ascii:]]+/, "_")
             value_method_alias = "#{prefix}#{method_friendly_label}#{suffix}"
@@ -273,6 +290,7 @@ module ActiveRecord
             if value_method_alias != value_method_name && !value_method_names.include?(value_method_alias)
               value_method_names << value_method_alias
               define_enum_methods(name, value_method_alias, value, scopes, instance_methods)
+              define_enum_constant(value_method_alias, label)
             end
           end
         end
@@ -319,6 +337,14 @@ module ActiveRecord
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
               klass.scope "not_#{value_method_name}", -> { where(predicate_builder[name, value, :is_distinct_from]) }
             end
+          end
+
+          # Conversation::ACTIVE = "active"
+          def define_enum_constant(value_method_name, label)
+            const_name = value_method_name.upcase
+            return unless const_name.match?(/\A[A-Z][A-Z0-9_]*\z/)
+            return if klass.const_defined?(const_name, false)
+            klass.const_set(const_name, -label)
           end
       end
       private_constant :EnumMethods

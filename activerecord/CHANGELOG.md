@@ -1,3 +1,30 @@
+*   Define class-level constants for enum values, mirroring the
+    `prefix`/`suffix` naming scheme used for the generated methods. The
+    constant value is the frozen label string.
+
+        class Conversation < ApplicationRecord
+          enum :status, [ :active, :archived ]
+        end
+
+        Conversation::ACTIVE   # => "active"
+        Conversation::ARCHIVED # => "archived"
+
+        Conversation.where(status: Conversation::ACTIVE)
+
+    With `prefix:` or `suffix:`, the constant name follows the same shape
+    as the generated method:
+
+        class Order < ApplicationRecord
+          enum :status, [ :placed, :shipped ], prefix: true
+        end
+
+        Order::STATUS_PLACED  # => "placed"
+        Order::STATUS_SHIPPED # => "shipped"
+
+    Constants already defined on the class are not overwritten.
+
+    *Jean Mendonça*
+
 *   Bump the minimum PostgreSQL version to 10.0.
 
     As part of this change, `supports_pgcrypto_uuid?` is deprecated because
