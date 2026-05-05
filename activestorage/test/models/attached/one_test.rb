@@ -869,4 +869,24 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
     assert_match(/Cannot find variant :unknown for User#avatar_with_variants/, error.message)
   end
+
+  test "previous_attachment_changes available in after_commit callback defined after has_one_attached" do
+    observed_changes = nil
+    original_callbacks = User._commit_callbacks.dup
+
+    User.after_commit(on: %i[create update]) do
+      observed_changes = previous_attachment_changes["avatar"]
+    end
+
+    @user.avatar.attach(
+      content_type: "text/plain",
+      filename: "test.txt",
+      io: StringIO.new("test")
+    )
+
+    assert_not_nil observed_changes,
+      "previous_attachment_changes should be available in after_commit defined after has_one_attached"
+  ensure
+    User._commit_callbacks = original_callbacks
+  end
 end

@@ -932,4 +932,24 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal 1, @user.highlights.count
     assert_equal "racecar.jpg", @user.highlights.blobs.first.filename.to_s
   end
+
+  test "previous_attachment_changes available in after_commit callback defined after has_many_attached" do
+    observed_changes = nil
+    original_callbacks = User._commit_callbacks.dup
+
+    User.after_commit(on: %i[create update]) do
+      observed_changes = previous_attachment_changes["highlights"]
+    end
+
+    @user.highlights.attach(
+      content_type: "text/plain",
+      filename: "test.txt",
+      io: StringIO.new("test")
+    )
+
+    assert_not_nil observed_changes,
+      "previous_attachment_changes should be available in after_commit defined after has_many_attached"
+  ensure
+    User._commit_callbacks = original_callbacks
+  end
 end

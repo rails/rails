@@ -1,3 +1,20 @@
+*   Add `previous_attachment_changes` for `after_commit` callbacks.
+
+    Active Storage now preserves attachment changes in
+    `previous_attachment_changes` before clearing them during the
+    upload `after_commit` callback. User-defined `after_commit`
+    callbacks can read `previous_attachment_changes` to determine
+    which attachments were modified, regardless of callback definition
+    order.
+
+    Previously, `attachment_changes` was destructively cleared during
+    upload, making it unavailable to callbacks defined after
+    `has_one_attached`/`has_many_attached`. This was especially
+    problematic after Rails 7.1 changed `after_commit` to run in
+    definition order.
+
+    *Denis Savchuk*
+
 *   Configurable maximum streaming chunk size
 
     Makes sure that byte ranges for blobs don't exceed 100mb by default.
@@ -27,7 +44,6 @@
     do not respect these metacharacters).
 
     *Mike Dalessio*
-
 
 *   Restore ADC when signing URLs with IAM for GCS
 
