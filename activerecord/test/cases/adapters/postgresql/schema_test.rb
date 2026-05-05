@@ -241,18 +241,14 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   if ActiveRecord::Base.lease_connection.prepared_statements
     def test_schema_change_with_prepared_stmt
-      altered = false
       assert_nothing_raised do
         @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
         @connection.exec_query "alter table developers add column zomg int", "sql", []
-        altered = true
         @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
       end
       pass
     ensure
-      # We are not using DROP COLUMN IF EXISTS because that syntax is only
-      # supported by pg 9.X
-      @connection.exec_query("alter table developers drop column zomg", "sql", []) if altered
+      @connection.exec_query("alter table developers drop column if exists zomg", "sql", [])
     end
   end
 

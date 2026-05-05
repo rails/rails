@@ -57,7 +57,7 @@ module ActiveModel
       def has_delegated_json(attr, **schema)
         has_json attr, **schema
 
-        schema.keys.each do |schema_key|
+        schema.each_key do |schema_key|
           define_method(schema_key)       { public_send(attr).public_send(schema_key) }
           define_method("#{schema_key}?") { public_send(attr).public_send("#{schema_key}?") }
           define_method("#{schema_key}=") { |value| send(attr).public_send("#{schema_key}=", value) }

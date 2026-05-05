@@ -869,4 +869,19 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
     assert_match(/Cannot find variant :unknown for User#avatar_with_variants/, error.message)
   end
+
+  test "as_json returns nil when no attachment is present" do
+    assert_nil @user.avatar.as_json
+  end
+
+  test "as_json returns the attachment record when attached" do
+    @user.avatar.attach(create_blob(filename: "funky.jpg"))
+    assert_equal @user.avatar_attachment.as_json, @user.avatar.as_json
+  end
+
+  test "to_json on the record does not stack overflow when an attribute shadows the attached name" do
+    @user.avatar.attach(create_blob(filename: "funky.jpg"))
+    user = User.select("name AS avatar").find(@user.id)
+    assert_nothing_raised { user.to_json }
+  end
 end

@@ -1754,6 +1754,17 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal [agreement_3, agreement_4], results.last.order_agreements.sort_by(&:signature)
   end
 
+  test "preloading has_many with cpk and explicit select" do
+    order = Cpk::Order.create!(shop_id: 200)
+    agreement = order.order_agreements.create!(signature: "A")
+
+    relation = Cpk::Order.where(id: order.id).eager_load(:order_agreements).select("cpk_orders.status")
+    loaded_order = relation.to_a.first
+
+    assert_equal order, loaded_order
+    assert_equal [agreement], loaded_order.order_agreements
+  end
+
   test "preloading has_one with cpk" do
     order = Cpk::Order.create!(shop_id: 2)
     book = Cpk::Book.create!(order: order, id: [1, 3])

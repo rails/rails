@@ -12,6 +12,7 @@ module ActiveJob
   #
   module Continuable
     extend ActiveSupport::Concern
+    include ActiveJob::Attributes
 
     included do
       class_attribute :max_resumptions, instance_writer: false

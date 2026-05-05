@@ -1,3 +1,41 @@
+*   Add `ActiveJob::Attributes` for declaring typed attributes that persist across
+    job serialization and deserialization. It is included by `ActiveJob::Continuable`
+    but can also be used standalone.
+
+    It uses the Active Model Attributes API to define typed, defaulted
+    attributes on jobs. Attribute values are automatically included in the
+    serialized job data and restored on deserialization, eliminating the need
+    to manually override `serialize` and `deserialize`.
+
+    This is especially useful with `ActiveJob::Continuable`, where a job may be
+    interrupted and resumed and attributes are preserved across resumptions.
+
+    ```ruby
+    class SubmitEnrollmentJob < ApplicationJob
+      include ActiveJob::Continuable
+
+      attribute :payment_token, :string
+      attribute :billing_profile_id, :integer
+
+      def perform(enrollment)
+        step(:tokenize_payment_instrument) do
+          self.payment_token = PaymentGateway.tokenize(enrollment.user.payment_instrument)
+        end
+
+        step(:create_billing_profile) do
+          self.billing_profile_id = BillingProfileApi.create(customer_id: enrollment.user_id)
+        end
+
+        step(:submit_enrollment) do
+          submission_id = EnrollmentApi.submit(enrollment, billing_profile_id)
+          enrollment.update!(status: 'processing', submission_id: submission_id)
+        end
+      end
+    end
+    ```
+
+    *Bart de Water*
+
 *   Deprecate built-in `queue_classic` Active Job adapter.
 
     *Harun Sabljaković, Wojciech Wnętrzak*

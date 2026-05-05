@@ -66,6 +66,7 @@ module Rails
     autoload :DefaultMiddlewareStack, "rails/application/default_middleware_stack"
     autoload :Finisher,               "rails/application/finisher"
     autoload :Railties,               "rails/engine/railties"
+    autoload :ReloadersCollection,    "rails/application/reloaders_collection"
     autoload :RoutesReloader,         "rails/application/routes_reloader"
 
     class << self
@@ -110,7 +111,7 @@ module Rails
     def initialize(initial_variable_values = {}, &block)
       super()
       @initialized       = false
-      @reloaders         = []
+      @reloaders         = ReloadersCollection.new
       @routes_reloader   = nil
       @app_env_config    = nil
       @ordered_railties  = nil

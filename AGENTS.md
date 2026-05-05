@@ -178,7 +178,6 @@ When modifying form behavior, check ALL three locations for consistency.
 
 - Always reference issue numbers in commits: `Fix #12345: Description`
 - Check for previous related PRs/issues when fixing bugs
-- Look at PR #55336 pattern when working on similar autocomplete-related fixes
 - Bug report templates live in `guides/bug_report_templates/`
 
 ## File Organization Principles

@@ -1463,6 +1463,8 @@ module ActiveRecord
     end
 
     def extending!(*modules, &block) # :nodoc:
+      return self if modules.empty? && !block
+
       modules << Module.new(&block) if block
       modules.flatten!
 
@@ -1777,14 +1779,16 @@ module ActiveRecord
 
       def build_from
         opts = from_clause.value
-        name = from_clause.name
+        name = from_clause.name&.to_s || "subquery"
         case opts
         when Relation
           if opts.eager_loading?
             opts = opts.send(:apply_join_dependency)
           end
-          name ||= "subquery"
-          opts.arel.as(name.to_s)
+          opts.arel.as(name)
+        when Arel::Nodes::Union, Arel::Nodes::UnionAll,
+             Arel::Nodes::Intersect, Arel::Nodes::Except
+          opts.as(name)
         else
           opts
         end

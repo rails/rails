@@ -932,4 +932,19 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal 1, @user.highlights.count
     assert_equal "racecar.jpg", @user.highlights.blobs.first.filename.to_s
   end
+
+  test "as_json returns an empty array when no attachments are present" do
+    assert_equal [], @user.highlights.as_json
+  end
+
+  test "as_json returns the attachment records when attached" do
+    @user.highlights.attach(create_blob(filename: "funky.jpg"))
+    assert_equal @user.highlights_attachments.as_json, @user.highlights.as_json
+  end
+
+  test "to_json on the record does not stack overflow when an attribute shadows the many-attached name" do
+    @user.highlights.attach(create_blob(filename: "funky.jpg"))
+    user = User.select("name AS highlights").find(@user.id)
+    assert_nothing_raised { user.to_json }
+  end
 end

@@ -1,3 +1,29 @@
+*   Include record ID in error when uniqueness validation fails
+
+    When a uniqueness validation fails, the `errors.details` hash for the attribute
+    now includes an `:existing_id` key, holding the ID of the record that caused
+    the conflict.
+
+    ```ruby
+    # Before
+    errors.details[:name]
+    # => [{error: :taken, value: "John Doe"}]
+
+    # After
+    errors.details[:name]
+    # => [{error: :taken, value: "John Doe", existing_id: 123}]
+    ```
+
+    *Bruno Vicenzo*
+
+*   Bump the minimum PostgreSQL version to 10.0.
+
+    As part of this change, `supports_pgcrypto_uuid?` is deprecated because
+    `pgcrypto` provides `gen_random_uuid()` since PostgreSQL 9.4, which is
+    below the new 10.0 minimum.
+
+    *Yasuo Honda*
+
 *   Let `add_column` raise `ArgumentError` if `:null` is set to a true value
     when defining a primary key.
 
