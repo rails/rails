@@ -1,3 +1,9 @@
+*   Migrate `ActiveRecord::AttributeAssignment` support for multi-parameter attributes to Active Model
+
+    Implement assignment in terms of including `ActiveModel::AttributeAssignment`
+
+    *Sean Doyle*
+
 *   Bump the minimum PostgreSQL version to 10.0.
 
     As part of this change, `supports_pgcrypto_uuid?` is deprecated because

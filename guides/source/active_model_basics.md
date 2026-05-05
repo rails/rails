@@ -278,6 +278,66 @@ irb> person.name
 => "John"
 ```
 
+Attribute assignment also supports multi-parameter values like the ones
+submitted by Action View's [form helpers for Date and Time
+values](/form_helpers.html#using-date-and-time-form-helpers).
+
+For example, consider an `<input>` element rendered by
+[date_select](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-date_select):
+
+```erb
+<%= form.date_select :born_on %>
+```
+
+When the form with that field is submitted to the server, Action Pack parses its the parameters into a Hash and calls appropriate attribute assignment methods. For example, a field rendered by [date_select](https://api.rubyonrails.org/classes/ActionView/Helpers/DateHelper.html#method-i-date_select) with November 24, 2004 selected as its value would be transformed into the following attribute assignment:
+
+```ruby
+person.attributes = { "born_on(1i)" => "2004", "born_on(2i)" => "11", "born_on(3i)" => "24" }
+```
+
+Active Model parses and transforms the keys into integers, then casts the values
+to the types inferred from the information embedded in the keys. The attribute
+assignment invokes the `Person#born_on=` attribute setter method with the
+transformed Hash:
+
+```ruby
+person.born_on = { 1 => 2004, 2 => 11, 3 => 24 }
+```
+
+The `Person#born_on=` attribute setter method can then transform the Hash into a
+`Date` instance for assignment:
+
+```ruby
+def born_on=(value)
+  if value.is_a?(Hash)
+    value = Date.new(value[1], value[2], value[3])
+  end
+
+  super
+end
+```
+
+If the class includes `ActiveModel::Attributes` and defines a `born_on`
+attribute of type `:date`, casting multi-parameter values to `Date` instances
+happens automatically:
+
+```ruby
+class Person
+  include ActiveModel::AttributeAssignment
+  include ActiveModel::Attributes
+
+  attribute :born_on, :date
+end
+
+person = Person.new
+person.attributes = { "born_on(1i)" => "2004", "born_on(2i)" => "11", "born_on(3i)" => "24" }
+person.born_on == Date.new(2004, 11, 24) # => true
+```
+
+`ActiveModel::Attributes` also provides built-in support for transforming
+`:datetime` values into `DateTime` instances, and `:time` values into `Time`
+instances.
+
 #### Method alias: `attributes=`
 
 The `assign_attributes` method has an alias `attributes=`.
