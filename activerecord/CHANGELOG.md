@@ -1,3 +1,14 @@
+*   Fix performance regression in `method_missing` for virtual SELECT alias attributes.
+
+    `method_missing` used `public_instance_method` which raises and rescues
+    `NameError` for attributes not backed by real columns (e.g. `SELECT 42 AS
+    virtual_attr`). Guard with `public_method_defined?` to avoid exception
+    allocation on the common path.
+
+    Fixes #57183.
+
+    *Hammad Khan*
+
 *   Bump the minimum PostgreSQL version to 10.0.
 
     As part of this change, `supports_pgcrypto_uuid?` is deprecated because

@@ -1326,6 +1326,20 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  test "virtual SELECT alias attributes are accessible via method_missing" do
+    topic = Topic.select("topics.*, 42 AS virtual_counter").first
+    assert_equal 42, topic.virtual_counter
+  end
+
+  test "virtual SELECT alias attributes do not raise NameError internally" do
+    topic = Topic.select("topics.*, 42 AS virtual_counter").first
+    topic.class.define_attribute_methods
+
+    assert_nothing_raised do
+      topic.virtual_counter
+    end
+  end
+
   test "attribute_method?" do
     assert @target.attribute_method?(:title)
     assert @target.attribute_method?(:title=)
