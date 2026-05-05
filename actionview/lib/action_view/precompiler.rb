@@ -23,8 +23,47 @@ module ActionView
   class Precompiler # :nodoc:
     VIRTUAL_PATH_REGEX = %r{\A(?:(?<prefix>.*)/)?(?<partial>_)?(?<action>[^/.]+)}
 
-    def initialize
+    class << self
+      def precompile(engines:, controllers:)
+        ActiveSupport::Notifications.instrument("precompile_templates.action_view") do |payload|
+          precompiler = new(controllers)
+
+          # Scan view directories from all engines and the application
+          engines.each do |engine|
+            engine.paths["app/views"].existent.each do |view_dir|
+              precompiler.scan_view_dir(view_dir)
+            end
+
+            engine.paths["app/controllers"].existent.each do |controller_dir|
+              precompiler.scan_controller_dir(controller_dir)
+            end
+
+            engine.paths["app/helpers"].existent.each do |helper_dir|
+              precompiler.scan_helper_dir(helper_dir)
+            end
+          end
+
+          # Scan additional paths configured by the application
+          ActionView.precompile_additional_paths.each do |dir|
+            precompiler.scan_ruby_dir(dir)
+          end
+
+          # Add implicit controller action renders
+          controllers.each do |controller|
+            controller.action_methods.each do |action|
+              next if action.include?(".")
+              precompiler.add_template("#{controller.controller_path}/#{action}")
+            end
+          end
+
+          payload[:count] = precompiler.run
+        end
+      end
+    end
+
+    def initialize(controllers = [])
       @template_renders = []
+      @controllers = controllers
     end
 
     def scan_view_dir(view_dir)
@@ -81,14 +120,7 @@ module ActionView
 
     private
       def group_controllers_by_view_paths
-        controllers = self.class.concrete_controllers
-
-        if controllers.empty?
-          # Fallback: use ActionController::Base if no concrete subclasses
-          return { ActionController::Base._view_paths => [ActionController::Base] }
-        end
-
-        controllers.group_by { |c| c._view_paths }
+        @controllers.group_by { |c| c._view_paths }
       end
 
       def find_all_templates(lookup_context, virtual_path, locals)
@@ -102,67 +134,6 @@ module ActionView
         lookup_context.find_all(action, prefix, partial, locals)
       rescue ActionView::MissingTemplate
         []
-      end
-
-      class << self
-        def concrete_controllers
-          @concrete_controllers ||= ActionController::Base.descendants.reject do |controller|
-            controller.abstract? || controller.anonymous?
-          end
-        end
-
-        def precompile
-          ActiveSupport::Notifications.instrument("precompile_templates.action_view") do |payload|
-            precompiler = new
-
-            # Scan view directories from all engines and the application
-            each_engine do |engine|
-              engine.paths["app/views"].existent.each do |view_dir|
-                precompiler.scan_view_dir(view_dir)
-              end
-
-              engine.paths["app/controllers"].existent.each do |controller_dir|
-                precompiler.scan_controller_dir(controller_dir)
-              end
-
-              engine.paths["app/helpers"].existent.each do |helper_dir|
-                precompiler.scan_helper_dir(helper_dir)
-              end
-            end
-
-            # Scan additional paths configured by the application
-            ActionView.precompile_additional_paths.each do |dir|
-              precompiler.scan_ruby_dir(dir)
-            end
-
-            # Add implicit controller action renders
-            add_implicit_action_templates(precompiler)
-
-            payload[:count] = precompiler.run
-          end
-        end
-
-        private
-          def each_engine(&block)
-            if defined?(Rails) && Rails.respond_to?(:application) && Rails.application
-              yield Rails.application
-              Rails::Engine.subclasses.each do |engine_class|
-                yield engine_class.instance if engine_class.respond_to?(:instance)
-              end
-            end
-          end
-
-          def add_implicit_action_templates(precompiler)
-            return unless defined?(ActionController::Base)
-
-            concrete_controllers.each do |controller|
-              controller_path = controller.controller_path
-              controller.action_methods.each do |action|
-                next if action.include?(".")
-                precompiler.add_template("#{controller_path}/#{action}")
-              end
-            end
-          end
       end
   end
 end

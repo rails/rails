@@ -7,6 +7,22 @@ module ActionView
   # are rendered and with which locals. Used by the template precompiler to
   # determine what templates to eagerly compile at boot.
   class TemplateScanner # :nodoc:
+    class FakeTemplate # :nodoc:
+      def initialize(identifier)
+        @identifier = identifier
+      end
+
+      attr_reader :identifier
+
+      def type
+        nil
+      end
+
+      def format
+        nil
+      end
+    end
+
     def initialize(view_dir)
       @view_dir = view_dir
     end
@@ -51,22 +67,6 @@ module ActionView
           fullpath = File.expand_path(file, @view_dir)
           next if File.directory?(fullpath)
           yield file, fullpath
-        end
-      end
-
-      class FakeTemplate # :nodoc:
-        def initialize(identifier)
-          @identifier = identifier
-        end
-
-        attr_reader :identifier
-
-        def type
-          nil
-        end
-
-        def format
-          nil
         end
       end
   end
