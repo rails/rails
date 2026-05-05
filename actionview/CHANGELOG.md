@@ -8,8 +8,7 @@
 
     The precompiler scans view templates, controllers, and helpers for
     `render` calls, detects implicit controller action renders, and supports
-    engine view paths. Invalid templates raise errors at boot time rather
-    than failing silently.
+    engine view paths.
 
     Additional directories can be scanned for `render` calls using
     `config.action_view.precompile_additional_paths`.
