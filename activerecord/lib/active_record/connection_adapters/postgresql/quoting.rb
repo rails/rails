@@ -125,6 +125,7 @@ module ActiveRecord
 
         # Quotes strings for use in SQL input.
         def quote_string(s) # :nodoc:
+          s = s.delete("\0") if self.class.strip_null_bytes
           with_raw_connection(allow_retry: true, materialize_transactions: false) do |connection|
             connection.escape(s)
           end
@@ -181,6 +182,8 @@ module ActiveRecord
             encode_range(value)
           when Rational
             value.to_f
+          when String
+            self.class.strip_null_bytes ? value.delete("\0") : super
           else
             super
           end

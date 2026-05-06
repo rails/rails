@@ -33,6 +33,14 @@ module ActiveRecord
           assert_quoted_as "0/1", Rational(0)
         end
 
+        def test_where_with_null_byte_in_string_using_bind_parameters
+          original = PostgreSQLAdapter.strip_null_bytes
+          PostgreSQLAdapter.strip_null_bytes = true
+          assert_quoted_as "'book1,book2book3'", "book1,book2\x00book3"
+        ensure
+          PostgreSQLAdapter.strip_null_bytes = original
+        end
+
         private
           def assert_quoted_as(expected, value, match: 0)
             relation = Post.where("title = ?", value)

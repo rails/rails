@@ -1,3 +1,23 @@
+*   Add `strip_null_bytes` option to the PostgreSQL adapter.
+
+    PostgreSQL does not support null bytes (`\0`) in text columns. When
+    `strip_null_bytes` is enabled, null bytes are automatically removed from
+    strings during quoting and type casting, preventing `ArgumentError`
+    exceptions from the `pg` gem.
+
+    ```ruby
+    # In config/initializers/active_record.rb or application.rb:
+    ActiveSupport.on_load(:active_record_postgresqladapter) do
+      self.strip_null_bytes = true
+    end
+
+    Book.create(name: "book1,book2\x00book3")        # saves as "book1,book2book3"
+    Book.where(name: "book1,book2\x00book3")         # queries for "book1,book2book3"
+    Book.where("name = ?", "book1,book2\x00book3")   # queries for "book1,book2book3"
+    ```
+
+    *Simon Isler*
+
 *   Treat `nil` values as `""` during multi-parameter attribute assignment
 
     ```ruby

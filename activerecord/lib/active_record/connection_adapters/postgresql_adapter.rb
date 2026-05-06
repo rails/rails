@@ -149,6 +149,21 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
       class_attribute :decode_bytea, default: false
 
+      ##
+      # :singleton-method:
+      # Toggles automatic stripping of null bytes (<tt>\\0</tt>) from string values.
+      #
+      # PostgreSQL does not support null bytes in text columns. By default, any
+      # string containing a null byte would raise an +ArgumentError+ from the +pg+ gem.
+      # When enabled, null bytes are silently removed from strings during quoting and
+      # type casting.
+      #
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.strip_null_bytes = true
+      #   Book.create(name: "book1,book2\x00book3") # saves as "book1,book2book3"
+      #   Book.where(name: "book1,book2\x00book3")  # queries for "book1,book2book3"
+      #   Book.where("name = ?", "book1,book2\x00book3") # queries for "book1,book2book3"
+      class_attribute :strip_null_bytes, default: false
+
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigserial primary key",
         string:      { name: "character varying" },
