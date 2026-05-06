@@ -64,6 +64,8 @@ class Post < ActiveRecord::Base
   scope :with_very_special_comments, -> { joins(:comments).where(comments: { type: "VerySpecialComment" }) }
   scope :with_post, ->(post_id) { joins(:comments).where(comments: { post_id: post_id }) }
 
+  scope :includes_comments, -> { includes(:comments) }
+  scope :includes_special_comments, -> { includes(:special_comments) }
   scope :with_comments, -> { preload(:comments) }
   scope :with_tags, -> { preload(:taggings) }
   scope :with_tags_cte, -> { with(posts_with_tags: where("tags_count > 0")).from("posts_with_tags AS posts") }

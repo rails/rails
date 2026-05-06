@@ -1,3 +1,26 @@
+*   Coerce `ActiveRecord::Relation` instances as `.includes(…)` compliant arguments
+
+    ```ruby
+    class User < ApplicationRecord
+      has_many :posts
+    end
+
+    class Post < ApplicationRecord
+      belongs_to :author, class_name: "User"
+      has_many :comments
+
+      scope :with_comments, -> { includes :comments }
+    end
+
+    class Comment < ApplicationRecord
+      belongs_to :post
+    end
+
+    users = User.includes(posts: Post.with_comments)
+    ```
+
+    *Sean Doyle*
+
 *   Fix PostgreSQL primary key introspection for covering indexes.
 
     `pg_index.indkey` includes non-key columns added with `INCLUDE`. Primary

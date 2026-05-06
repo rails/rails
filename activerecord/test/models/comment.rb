@@ -11,6 +11,7 @@ class Comment < ActiveRecord::Base
   scope :for_first_author, -> { joins(:post).where("posts.author_id" => 1) }
   scope :created, -> { all }
   scope :ordered_by_post_id, -> { order("comments.post_id DESC") }
+  scope :includes_post, -> { includes(:post) }
 
   belongs_to :post, counter_cache: true
   belongs_to :author,   polymorphic: true
