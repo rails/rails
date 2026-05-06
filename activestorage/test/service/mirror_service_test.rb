@@ -79,6 +79,31 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
     assert_equal "Surprise!", @service.mirrors.third.download(key)
   end
 
+  test "mirror_later forwards blob metadata to MirrorJob" do
+    old_service = ActiveStorage::Blob.service
+    ActiveStorage::Blob.service = @service
+
+    key      = SecureRandom.base58(24)
+    data     = "Something else entirely!"
+    checksum = OpenSSL::Digest::MD5.base64digest(data)
+    metadata = {
+      content_type:    "image/jpeg",
+      filename:        "racecar.jpg",
+      disposition:     "inline",
+      custom_metadata: { "owner" => "alice" },
+    }
+
+    assert_enqueued_with(
+      job:  ActiveStorage::MirrorJob,
+      args: [ key, { checksum: checksum, **metadata } ]
+    ) do
+      @service.upload key, StringIO.new(data), checksum: checksum, **metadata
+    end
+  ensure
+    @service.delete key
+    ActiveStorage::Blob.service = old_service
+  end
+
   test "URL generation in primary service" do
     filename = ActiveStorage::Filename.new("test.txt")
 

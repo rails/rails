@@ -45,7 +45,7 @@ module ActiveStorage
     def upload(key, io, checksum: nil, **options)
       io.rewind
       primary.upload key, io, checksum: checksum, **options
-      mirror_later key, checksum: checksum
+      mirror_later key, checksum: checksum, **options
     end
 
     # Delete the file at the +key+ on all services.
@@ -58,18 +58,21 @@ module ActiveStorage
       perform_across_services :delete_prefixed, prefix
     end
 
-    def mirror_later(key, checksum:) # :nodoc:
-      ActiveStorage::MirrorJob.perform_later key, checksum: checksum
+    def mirror_later(key, checksum:, **options) # :nodoc:
+      options[:filename] = options[:filename].to_s if options[:filename]
+      ActiveStorage::MirrorJob.perform_later key, checksum: checksum, **options
     end
 
     # Copy the file at the +key+ from the primary service to each of the mirrors where it doesn't already exist.
-    def mirror(key, checksum:)
+    def mirror(key, checksum:, **options)
+      options[:filename] = ActiveStorage::Filename.wrap(options[:filename]) if options[:filename]
+
       instrument :mirror, key: key, checksum: checksum do
         if (mirrors_in_need_of_mirroring = mirrors.select { |service| !service.exist?(key) }).any?
           primary.open(key, checksum: checksum) do |io|
             mirrors_in_need_of_mirroring.each do |service|
               io.rewind
-              service.upload key, io, checksum: checksum
+              service.upload key, io, checksum: checksum, **options
             end
           end
         end
