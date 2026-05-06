@@ -793,6 +793,9 @@ module ActionController
       raise ExpectedParameterMissing.new(e.param, e.keys)
     end
 
+    alias_method :expected, :expect
+    alias_method :expected!, :expect!
+
     # Returns a parameter for the given `key`. If not found, returns `nil`.
     #
     #     params = ActionController::Parameters.new(person: { name: "Francesco" })
