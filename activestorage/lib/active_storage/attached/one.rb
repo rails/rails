@@ -45,6 +45,12 @@ module ActiveStorage
       !attached?
     end
 
+    # Returns the attachment record's JSON representation, or +nil+ when no
+    # attachment is present.
+    def as_json(options = nil)
+      attached? ? attachment.as_json(options) : nil
+    end
+
     # Attaches an +attachable+ to the record.
     #
     # If the record is persisted and unchanged, the attachment is saved to

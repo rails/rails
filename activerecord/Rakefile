@@ -63,8 +63,11 @@ namespace :test do
     t.test_files = FileList["test/cases/arel/**/*_test.rb"]
 
     t.warning = true
-    t.verbose = true
-    t.options = "--profile" if ENV["CI"]
+    if ENV["CI"]
+      t.verbose = true
+      t.options = "--profile"
+      t.options = "--defer-output"
+    end
   end
 end
 
@@ -88,8 +91,11 @@ adapters.each do |adapter|
 
       t.test_files = files
       t.warning = true
-      t.verbose = true
-      t.options = "--profile" if ENV["CI"]
+      if ENV["CI"]
+        t.verbose = true
+        t.options = "--profile"
+        t.options = "--defer-output"
+      end
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
@@ -100,8 +106,11 @@ adapters.each do |adapter|
           t.libs << "test"
           t.test_files = FileList["test/activejob/*_test.rb"]
           t.warning = true
-          t.verbose = true
-          t.options = "--profile" if ENV["CI"]
+          if ENV["CI"]
+            t.verbose = true
+            t.options = "--profile"
+            t.options = "--defer-output"
+          end
           t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
         end
       end
@@ -207,8 +216,11 @@ adapters.each do |adapter|
           t.test_files = FileList["test/cases/encryption/performance/*_test.rb"]
 
           t.warning = true
-          t.verbose = true
-          t.options = "--profile" if ENV["CI"]
+          if ENV["CI"]
+            t.verbose = true
+            t.options = "--profile"
+            t.options = "--defer-output"
+          end
           t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
         end
       end

@@ -1196,6 +1196,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_skip_dev_gems
     run_generator [destination_root, "--skip-dev-gems"]
     assert_no_gem "web-console"
+    assert_no_gem "kamal"
+  end
+
+  def test_kamal_is_in_development_group
+    run_generator
+
+    assert_file "Gemfile" do |content|
+      assert_match(/group :development do\n  # Deploy this application anywhere as a Docker container \[https:\/\/kamal-deploy\.org\]\n  gem "kamal", require: false/, content)
+      assert_no_match(/^gem "kamal", require: false$/, content)
+      assert_equal 1, content.scan(/^group :development do$/).size
+    end
   end
 
   def test_bootsnap

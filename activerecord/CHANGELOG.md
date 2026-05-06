@@ -5,6 +5,35 @@
     before `disable_referential_integrity` runs so the `PRAGMA` takes effect.
 
     *Eugene Mironichev*
+    
+*   Treat `nil` values as `""` during multi-parameter attribute assignment
+
+    ```ruby
+    topic = Topic.where.not(last_read: nil).first
+    topic.attributes = { "last_read(1i)" => nil, "last_read(2i)" => nil, "last_read(3i)" => nil }
+    topic.last_read # => nil
+    ```
+
+    *Sean Doyle*
+
+*   Include record ID in error when uniqueness validation fails
+
+    When a uniqueness validation fails, the `errors.details` hash for the attribute
+    now includes an `:existing_id` key, holding the ID of the record that caused
+    the conflict.
+
+    ```ruby
+    # Before
+    errors.details[:name]
+    # => [{error: :taken, value: "John Doe"}]
+
+    # After
+    errors.details[:name]
+    # => [{error: :taken, value: "John Doe", existing_id: 123}]
+    ```
+
+    *Bruno Vicenzo*
+
 
 *   Bump the minimum PostgreSQL version to 10.0.
 

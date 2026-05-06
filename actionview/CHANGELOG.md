@@ -1,3 +1,19 @@
+*   Render `Hash` and keyword options as dasherized HTML attributes
+
+    ```ruby
+    tag.button "POST to /clicked", hx: { post: "/clicked", swap: :outerHTML, data: { json: true } }
+
+    # => <button hx-post="/clicked" hx-swap="outerHTML" hx-data="{&quot;json&quot;:true}">POST to /clicked</button>
+    ```
+
+    *Sean Doyle*
+
+*   `ViewReloader#deactivate` removes the `file_system_resolver_hooks` callback
+    so forked processes that clear reloaders no longer trigger filesystem scans
+    on every `prepend_view_path`.
+
+    *Dave Ariens*
+
 *   Defer the View watcher build until view paths are actually registered.
 
     *Hugo Vacher*

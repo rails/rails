@@ -46,8 +46,11 @@ namespace :test do
         (x.include?("delayed_job") && adapter != "delayed_job") ||
           (x.include?("async") && adapter != "async")
       }
-      t.verbose = true
-      t.options = "--profile" if ENV["CI"]
+      if ENV["CI"]
+        t.verbose = true
+        t.options = "--profile"
+        t.options = "--defer-output"
+      end
       t.warning = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
@@ -68,8 +71,11 @@ namespace :test do
         t.description = "Run integration tests for #{adapter}"
         t.libs << "test"
         t.test_files = FileList["test/integration/**/*_test.rb"]
-        t.verbose = true
-        t.options = "--profile" if ENV["CI"]
+        if ENV["CI"]
+          t.verbose = true
+          t.options = "--profile"
+          t.options = "--defer-output"
+        end
         t.warning = true
         t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
       end

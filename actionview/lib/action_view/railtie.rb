@@ -126,8 +126,7 @@ module ActionView
       end
 
       unless enable_caching
-        view_reloader = ActionView::CacheExpiry::ViewReloader.new(watcher: app.config.file_watcher)
-        ActionView::PathRegistry.file_system_resolver_hooks << view_reloader.method(:rebuild_watcher)
+        view_reloader = ActionView::CacheExpiry::ViewReloader.create(watcher: app.config.file_watcher)
 
         app.reloaders << view_reloader
         app.reloader.to_run do

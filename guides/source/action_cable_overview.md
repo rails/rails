@@ -302,7 +302,7 @@ createConsumer('https://ws.example.com/cable')
 createConsumer(getWebSocketURL)
 
 function getWebSocketURL() {
-  const token = localStorage.get('auth-token')
+  const token = localStorage.getItem('auth-token')
   return `wss://example.com/cable?token=${token}`
 }
 ```

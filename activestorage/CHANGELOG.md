@@ -1,3 +1,15 @@
+*   Define `as_json` on `ActiveStorage::Attached::One` and `ActiveStorage::Attached::Many`.
+
+    The proxies hold a back-reference to the owning record in `@record`. Without an explicit
+    `as_json`, the default `Object#as_json` fall back serialized `instance_values`, which made
+    `record.to_json` recurse infinitely whenever the attached name collided with a model
+    attribute (e.g. an `ignored_columns` column brought back by `select('*')`).
+
+    `Attached::One#as_json` now returns the attachment record's JSON when attached and `nil`
+    otherwise. `Attached::Many#as_json` returns the attachment records' JSON as an array.
+
+    *Renxiang Cai*
+
 *   Configurable maximum streaming chunk size
 
     Makes sure that byte ranges for blobs don't exceed 100mb by default.

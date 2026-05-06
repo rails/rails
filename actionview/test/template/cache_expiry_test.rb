@@ -42,6 +42,18 @@ class CacheExpiryViewReloaderTest < ActiveSupport::TestCase
     @reloader = ActionView::CacheExpiry::ViewReloader.new(watcher: CountingWatcher)
   end
 
+  test "create registers the hook on PathRegistry" do
+    hooks = ActionView::PathRegistry.file_system_resolver_hooks
+    initial_size = hooks.size
+
+    reloader = ActionView::CacheExpiry::ViewReloader.create(watcher: CountingWatcher)
+
+    assert_equal initial_size + 1, hooks.size
+    assert_includes hooks, reloader.hook
+  ensure
+    hooks.delete(reloader.hook)
+  end
+
   test "#updated? does not build a watcher when there are no view paths to watch" do
     ActionView::PathRegistry.stub(:all_file_system_resolvers, []) do
       assert_not @reloader.updated?
@@ -85,6 +97,39 @@ class CacheExpiryViewReloaderTest < ActiveSupport::TestCase
     end
 
     assert_equal 2, CountingWatcher.built
+  end
+
+  test "#hook returns the bound method used for PathRegistry registration" do
+    hooks = ActionView::PathRegistry.file_system_resolver_hooks
+    hooks << @reloader.hook
+
+    assert_includes hooks, @reloader.hook
+  ensure
+    hooks.delete(@reloader.hook)
+  end
+
+  test "#deactivate removes the hook from PathRegistry" do
+    hooks = ActionView::PathRegistry.file_system_resolver_hooks
+    hooks << @reloader.hook
+
+    @reloader.deactivate
+
+    assert_not_includes hooks, @reloader.hook
+  ensure
+    hooks.delete(@reloader.hook)
+  end
+
+  test "#deactivate is idempotent" do
+    hooks = ActionView::PathRegistry.file_system_resolver_hooks
+    initial_size = hooks.size
+    hooks << @reloader.hook
+
+    @reloader.deactivate
+    @reloader.deactivate
+
+    assert_equal initial_size, hooks.size
+  ensure
+    hooks.delete(@reloader.hook)
   end
 
   private

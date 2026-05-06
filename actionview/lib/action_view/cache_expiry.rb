@@ -3,12 +3,19 @@
 module ActionView
   module CacheExpiry # :nodoc: all
     class ViewReloader
+      def self.create(watcher:, &block)
+        reloader = new(watcher: watcher, &block)
+        ActionView::PathRegistry.file_system_resolver_hooks << reloader.hook
+        reloader
+      end
+
       def initialize(watcher:, &block)
         @mutex = Mutex.new
         @watcher_class = watcher
         @watched_dirs = nil
         @watcher = nil
         @previous_change = false
+        @hook = method(:rebuild_watcher)
       end
 
       def updated?
@@ -31,6 +38,17 @@ module ActionView
         return unless @watcher
         build_watcher
       end
+
+      # Remove this reloader's hook from PathRegistry so forked processes that
+      # clear reloaders stop triggering filesystem scans on prepend_view_path.
+      def deactivate
+        ActionView::PathRegistry.file_system_resolver_hooks.delete(@hook)
+        @watcher = nil
+        @watched_dirs = nil
+      end
+
+      # The bound method reference for rebuild_watcher.
+      attr_reader :hook
 
       private
         def reload!

@@ -179,7 +179,10 @@ Rake::TestTask.new("test:regular") do |t|
   t.libs << "test" << "#{__dir__}/../activesupport/lib"
   t.pattern = "test/**/*_test.rb"
   t.warning = true
-  t.verbose = true
-  t.options = "--profile" if ENV["BUILDKITE"]
+  if ENV["BUILDKITE"]
+    t.verbose = true
+    t.options = "--profile"
+    t.options = "--defer-output"
+  end
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
 end
