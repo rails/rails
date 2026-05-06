@@ -1,3 +1,13 @@
+*   Add `ActionController::Parameters#expected` and `#expected!` as
+    aliases of `#expect` and `#expect!`.
+
+    `expect` is one letter away from `except` and easy to misread at a glance.
+    `expected` reads as the same intent without the visual collision.
+
+        params.expected(person: [:name, :age])
+
+    *Josua Schmid*
+
 *   Serve static CSS and HTML files with `charset=utf-8` in the Content-Type header.
 
     Static CSS and HTML files served by `ActionDispatch::Static` now include
