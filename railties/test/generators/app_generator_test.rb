@@ -176,7 +176,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     run_app_update
 
-    assert_file defaults_path
+    assert_no_file defaults_path
     assert_no_file "config/initializers/cors.rb"
   end
 
@@ -425,6 +425,27 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_app_update
 
     assert_file "config/application.rb", /\s+config\.load_defaults 5\.1/
+  end
+
+  def test_app_update_generates_new_framework_defaults_when_load_defaults_is_previous_version
+    run_generator
+
+    defaults_path = "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
+
+    FileUtils.cd(destination_root) do
+      config = "config/application.rb"
+      current_version = "#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR}"
+      previous_version = "#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR - 1}"
+      content = File.read(config)
+
+      File.write(config, content.gsub(/config\.load_defaults #{current_version}/, "config.load_defaults #{previous_version}"))
+    end
+
+    assert_no_file defaults_path
+
+    run_app_update
+
+    assert_file defaults_path
   end
 
   def test_app_update_does_not_change_app_name_when_app_name_is_hyphenated_name
