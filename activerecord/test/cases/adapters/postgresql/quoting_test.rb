@@ -103,6 +103,41 @@ module ActiveRecord
           assert_equal "9223372036854775808", @conn.quote(value)
           ActiveRecord.raise_int_wider_than_64bit = @raise_int_wider_than_64bit
         end
+
+        def test_quote_string_strips_null_bytes_when_enabled
+          with_strip_null_bytes(true) do
+            assert_equal "book1,book2book3", @conn.quote_string("book1,book2\x00book3")
+          end
+        end
+
+        def test_quote_string_preserves_null_bytes_when_disabled
+          with_strip_null_bytes(false) do
+            assert_raises(ArgumentError) do
+              @conn.quote_string("book1,book2\x00book3")
+            end
+          end
+        end
+
+        def test_type_cast_strips_null_bytes_when_enabled
+          with_strip_null_bytes(true) do
+            assert_equal "book1,book2book3", @conn.type_cast("book1,book2\x00book3")
+          end
+        end
+
+        def test_type_cast_preserves_strings_without_null_bytes
+          with_strip_null_bytes(true) do
+            assert_equal "hello", @conn.type_cast("hello")
+          end
+        end
+
+        private
+          def with_strip_null_bytes(value)
+            original = PostgreSQLAdapter.strip_null_bytes
+            PostgreSQLAdapter.strip_null_bytes = value
+            yield
+          ensure
+            PostgreSQLAdapter.strip_null_bytes = original
+          end
       end
     end
   end

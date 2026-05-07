@@ -208,11 +208,13 @@ To keep using the current cache store, you can turn off cache versioning entirel
         decode_bytea = config.active_record.postgresql_adapter_decode_bytea
         decode_dates = config.active_record.postgresql_adapter_decode_dates
         decode_money = config.active_record.postgresql_adapter_decode_money
+        strip_null_bytes = config.active_record.postgresql_adapter_strip_null_bytes
 
         ActiveSupport.on_load(:active_record_postgresqladapter) do
           self.decode_bytea = true if decode_bytea
           self.decode_dates = true if decode_dates
           self.decode_money = true if decode_money
+          self.strip_null_bytes = true if strip_null_bytes
         end
       end
     end
@@ -249,6 +251,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :postgresql_adapter_decode_dates,
           :postgresql_adapter_decode_money,
           :postgresql_adapter_decode_bytea,
+          :postgresql_adapter_strip_null_bytes,
           :use_legacy_signed_id_verifier,
         )
 

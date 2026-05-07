@@ -39,6 +39,37 @@ module ActiveRecord
       end
     end
 
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_null_bytes_stripped_with_strip_null_bytes_enabled
+        original = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.strip_null_bytes
+        ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.strip_null_bytes = true
+
+        b = Book.create!(name: "book1,book2\x00book3")
+        b.reload
+        assert_equal "book1,book2book3", b.name
+
+        b.update!(name: "book3,book4\x00book5")
+        b.reload
+        assert_equal "book3,book4book5", b.name
+      ensure
+        ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.strip_null_bytes = original
+      end
+
+      def test_null_bytes_in_where_with_strip_null_bytes_enabled
+        original = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.strip_null_bytes
+        ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.strip_null_bytes = true
+
+        Book.create!(name: "findable")
+        assert_nil Book.find_by(name: "not\x00findable")
+        assert_equal "findable", Book.find_by(name: "findable").name
+
+        result = Book.where("name = ?", "not\x00findable")
+        assert_empty result
+      ensure
+        ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.strip_null_bytes = original
+      end
+    end
+
     def test_create_record_with_pk_as_zero
       Book.create(id: 0)
       assert_equal 0, Book.find(0).id
