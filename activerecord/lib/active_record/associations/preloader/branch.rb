@@ -125,6 +125,8 @@ module ActiveRecord
 
         private
           def build_children(children)
+            children = children.includes_values if children.is_a?(Relation)
+
             Array.wrap(children).flat_map { |association|
               Array(association).flat_map { |parent, child|
                 Branch.new(

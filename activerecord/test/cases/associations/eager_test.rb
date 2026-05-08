@@ -193,8 +193,23 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_includes_scope_with_ordering
+    list = Post.all.merge!(includes: Post.includes_comments, order: "posts.id DESC").to_a
+    [:other_by_mary, :other_by_bob, :misc_by_mary, :misc_by_bob, :eager_other,
+     :sti_habtm, :sti_post_and_comments, :sti_comments, :authorless, :thinking, :welcome
+    ].each_with_index do |post, index|
+      assert_equal posts(post), list[index]
+    end
+  end
+
   def test_has_many_through_with_order
     authors = Author.includes(:favorite_authors).to_a
+    assert authors.count > 0
+    assert_no_queries { authors.map(&:favorite_authors) }
+  end
+
+  def test_includes_scopeany_through_with_order
+    authors = Author.includes(Author.includes_favorite_authors).to_a
     assert authors.count > 0
     assert_no_queries { authors.map(&:favorite_authors) }
   end
@@ -299,6 +314,16 @@ class EagerAssociationTest < ActiveRecord::TestCase
     second_category = Category.create! name: "Second!", posts: [post]
 
     categories = Category.where(id: [first_category.id, second_category.id]).includes(posts: :special_comments)
+    assert_equal [true, true], categories.map { |category| category.posts.first.special_comments.loaded? }
+  end
+
+  def test_includes_scope_associations_loaded_for_all_records
+    post = Post.create!(title: "foo", body: "I like cars!")
+    SpecialComment.create!(body: "Come on!", post: post)
+    first_category = Category.create! name: "First!", posts: [post]
+    second_category = Category.create! name: "Second!", posts: [post]
+
+    categories = Category.where(id: [first_category.id, second_category.id]).includes(posts: Post.includes_special_comments)
     assert_equal [true, true], categories.map { |category| category.posts.first.special_comments.loaded? }
   end
 
@@ -1424,8 +1449,22 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  test "includes scope preload" do
+    author = Author.preload(Author.includes_favorite_authors, Author.includes_posts).first
+
+    assert_predicate author.association(:favorite_authors), :loaded?
+    assert_predicate author.association(:posts), :loaded?
+  end
+
   test "deep preload" do
     post = Post.preload(author: :posts, comments: :post).first
+
+    assert_predicate post.author.association(:posts), :loaded?
+    assert_predicate post.comments.first.association(:post), :loaded?
+  end
+
+  test "includes scope deep preload" do
+    post = Post.preload(author: Author.includes_posts, comments: Comment.includes_post).first
 
     assert_predicate post.author.association(:posts), :loaded?
     assert_predicate post.comments.first.association(:post), :loaded?

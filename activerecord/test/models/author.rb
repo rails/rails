@@ -238,6 +238,9 @@ class Author < ActiveRecord::Base
   has_many :lazy_readers_skimmers_or_not_2, through: :posts_with_no_comments, source: :lazy_readers_skimmers_or_not
   has_many :lazy_readers_skimmers_or_not_3, through: :posts_with_no_comments_2, source: :lazy_readers_skimmers_or_not
 
+  scope :includes_favorite_authors, -> { includes(:favorite_authors) }
+  scope :includes_posts, -> { includes(:posts) }
+
   attr_accessor :post_log
   after_initialize :set_post_log
 
