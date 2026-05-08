@@ -3252,7 +3252,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 end
 
 class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
-  include WaitForAsyncTestHelper
+  include WaitForTestHelper
 
   self.use_transactional_tests = false
 
