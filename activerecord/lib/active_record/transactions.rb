@@ -4,7 +4,7 @@ module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
     extend ActiveSupport::Concern
-    ACTIONS = [:create, :destroy, :update] # :nodoc:
+    ACTIONS = [:create, :destroy, :update].freeze # :nodoc:
 
     included do
       define_callbacks :commit, :rollback,

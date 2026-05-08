@@ -347,7 +347,7 @@ module ActionDispatch
     module Runner
       include ActionDispatch::Assertions
 
-      APP_SESSIONS = {}
+      APP_SESSIONS = {} # rubocop:disable Style/MutableConstant
 
       attr_reader :app
       attr_accessor :root_session # :nodoc:

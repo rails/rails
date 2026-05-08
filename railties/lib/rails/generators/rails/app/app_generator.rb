@@ -347,7 +347,7 @@ module Rails
           implications + more_implications
         end
 
-      META_OPTIONS = [:minimal] # :nodoc:
+      META_OPTIONS = [:minimal].freeze # :nodoc:
 
       def self.apply_rails_template(template, destination) # :nodoc:
         generator = new([destination], { template: template }, { destination_root: destination })

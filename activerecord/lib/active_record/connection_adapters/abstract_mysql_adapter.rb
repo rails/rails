@@ -44,7 +44,7 @@ module ActiveRecord
         blob:        { name: "blob" },
         boolean:     { name: "boolean" },
         json:        { name: "json" },
-      }
+      }.freeze
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private

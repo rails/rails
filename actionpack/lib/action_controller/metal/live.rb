@@ -152,7 +152,7 @@ module ActionController
     # Note: SSEs are not currently supported by IE. However, they are supported by
     # Chrome, Firefox, Opera, and Safari.
     class SSE
-      PERMITTED_OPTIONS = %w( retry event id )
+      PERMITTED_OPTIONS = %w( retry event id ).freeze
 
       def initialize(stream, options = {})
         @stream = stream

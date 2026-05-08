@@ -115,7 +115,7 @@ module ActiveSupport
             }
           }
         }
-      }
+      }.freeze
 
       def self.convert(number, options)
         new(number, options).execute

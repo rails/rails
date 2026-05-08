@@ -145,7 +145,7 @@ module ActiveRecord
         end
 
         private
-          IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR]
+          IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR].freeze
           private_constant :IDLE_TRANSACTION_STATUSES
 
           def cancel_any_running_query

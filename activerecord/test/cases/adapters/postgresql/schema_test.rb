@@ -47,7 +47,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     "description character varying(100)",
     "name_vector tsvector",
     "moment timestamp without time zone default now()"
-  ]
+  ].freeze
   PK_TABLE_NAME = "table_with_pk"
   UNMATCHED_SEQUENCE_NAME = "unmatched_primary_key_default_value_seq"
   UNMATCHED_PK_TABLE_NAME = "table_with_unmatched_sequence_for_pk"

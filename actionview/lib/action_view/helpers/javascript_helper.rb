@@ -6,7 +6,7 @@ module ActionView
     module JavaScriptHelper
       mattr_accessor :auto_include_nonce
 
-      JS_ESCAPE_MAP = {
+      JS_ESCAPE_MAP = { # rubocop:disable Style/MutableConstant
         "\\"    => "\\\\",
         "</"    => '<\/',
         "\r\n"  => '\n',

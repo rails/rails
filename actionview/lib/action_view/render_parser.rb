@@ -4,8 +4,8 @@ require "prism"
 
 module ActionView
   class RenderParser # :nodoc:
-    ALL_KNOWN_KEYS = [:partial, :template, :layout, :formats, :locals, :object, :collection, :as, :status, :content_type, :location, :spacer_template]
-    RENDER_TYPE_KEYS = [:partial, :template, :layout]
+    ALL_KNOWN_KEYS = [:partial, :template, :layout, :formats, :locals, :object, :collection, :as, :status, :content_type, :location, :spacer_template].freeze
+    RENDER_TYPE_KEYS = [:partial, :template, :layout].freeze
 
     def initialize(name, code)
       @name = name

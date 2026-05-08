@@ -54,13 +54,13 @@ module ActiveRecord
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
                             :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope, :optimizer_hints, :annotate,
-                            :with]
+                            :with].freeze
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering, :strict_loading,
-                            :reverse_order, :distinct, :create_with, :skip_query_cache]
+                            :reverse_order, :distinct, :create_with, :skip_query_cache].freeze
 
-    CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive]
+    CLAUSE_METHODS = [:where, :having, :from].freeze
+    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive].freeze
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 

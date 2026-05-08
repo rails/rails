@@ -45,7 +45,7 @@ class I18nValidationTest < ActiveRecord::TestCase
     [ "given unless condition",            { unless: lambda { false } },  {}],
     [ "given option that is not reserved", { format: "jpg" },             { format: "jpg" }],
     [ "given on condition",                { on: [:create, :update] },    {}]
-  ]
+  ].freeze
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_uniqueness_of on generated message #{name}" do

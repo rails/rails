@@ -49,7 +49,7 @@ class FixturesTest < ActiveRecord::TestCase
 
   FIXTURES = %w( accounts binaries companies customers
                  developers developers_projects entrants
-                 movies projects subscribers topics tasks )
+                 movies projects subscribers topics tasks ).freeze
   MATCH_ATTRIBUTE_NAME = /[a-zA-Z][-\w]*/
 
   def setup
@@ -1349,7 +1349,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert_equal "b4b10018-ad47-595d-b42f-d8bdaa6d01bf", ActiveRecord::FixtureSet.identify(:sonny, :uuid)
   end
 
-  TIMESTAMP_COLUMNS = %w(created_at created_on updated_at updated_on)
+  TIMESTAMP_COLUMNS = %w(created_at created_on updated_at updated_on).freeze
 
   def test_populates_timestamp_columns
     TIMESTAMP_COLUMNS.each do |property|
