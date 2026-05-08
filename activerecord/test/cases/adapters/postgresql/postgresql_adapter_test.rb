@@ -1380,14 +1380,17 @@ module ActiveRecord
           error_reporter = ActiveSupport::ErrorReporter.new
           subscriber = ActiveSupport::ErrorReporter::TestHelper::ErrorSubscriber.new
 
-          Rails.define_singleton_method(:error) { error_reporter }
-          Rails.error.subscribe(subscriber)
+          mod = Module.new
+          mod.define_singleton_method(:error) { error_reporter }
+          stub_const(Object, :Rails, mod, exists: defined?(Rails)) do
+            Rails.error.subscribe(subscriber)
 
-          @connection.execute("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$")
-          warning_event, * = subscriber.events.first
+            @connection.execute("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$")
+            warning_event, * = subscriber.events.first
 
-          assert_kind_of ActiveRecord::SQLWarning, warning_event
-          assert_equal "PostgreSQL SQL warning", warning_event.message
+            assert_kind_of ActiveRecord::SQLWarning, warning_event
+            assert_equal "PostgreSQL SQL warning", warning_event.message
+          end
         end
       end
 

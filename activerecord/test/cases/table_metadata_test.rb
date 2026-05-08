@@ -4,7 +4,7 @@ require "cases/helper"
 require "models/developer"
 
 module ActiveRecord
-  class TableMetadataTest < ActiveSupport::TestCase
+  class TableMetadataTest < ActiveRecord::TestCase
     test "#associated_table creates the right type caster for joined table with different association name" do
       base_table_metadata = TableMetadata.new(AuditRequiredDeveloper, Arel::Table.new("developers"))
 

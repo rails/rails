@@ -1,21 +1,9 @@
 # frozen_string_literal: true
 
-require "config"
-
-require "stringio"
+require_relative "../../tools/strict_warnings"
+require_relative "../../tools/test_helper"
 
 require "active_record"
-
-# frozen_string_literal: true
-
-require_relative "../../tools/strict_warnings"
-require "active_support"
-require "active_support/testing/method_call_assertions"
-require "active_support/megatest/setup_and_teardown"
-require "active_support/testing/error_reporter_assertions"
-require "active_support/testing/notification_assertions"
-require "active_support/testing/time_helpers"
-require "active_support/testing/deprecation"
 require "active_support/testing/stream"
 require "active_record/testing/query_assertions"
 require "active_record/fixtures"
@@ -26,21 +14,22 @@ require_relative "support/connection"
 require_relative "support/adapter_helper"
 require_relative "support/load_schema_helper"
 require_relative "support/postgresql_config"
+require_relative "config"
+
+require "models/college"
+require "models/course"
+require "models/professor"
+require "models/other_dog"
 
 module ActiveRecord
   # = Active Record Test Case
   #
   # Defines some test assertions to test against SQL queries.
-  class TestCase < Megatest::Test # :nodoc:
-    # FIXME: Do a base class for all frameworks
+  class TestCase < RailsTestCase # :nodoc:
     include ActiveSupport::Testing::MethodCallAssertions
-    include ActiveSupport::Megatest::SetupAndTeardown
     include ActiveSupport::Testing::Stream
     include ActiveRecord::Assertions::QueryAssertions
-    include ActiveSupport::Testing::TimeHelpers
-    include ActiveSupport::Testing::NotificationAssertions
-    include ActiveSupport::Testing::Deprecation
-    include ActiveSupport::Testing::ErrorReporterAssertions
+
     include ActiveRecord::TestFixtures
     include ActiveRecord::ValidationsRepairHelper
     include AdapterHelper
@@ -52,20 +41,9 @@ module ActiveRecord
     self.use_instantiated_fixtures = false
     self.use_transactional_tests = true
 
-    def assert_mock mock, msg = nil
-      assert mock.verify
-    rescue MockExpectationError => e
-      msg = message(msg) { e.message }
-      flunk msg
-    end
-
     def after_teardown
       super
       check_connection_leaks
-    end
-
-    def _assert_nothing_raised_or_warn(*, &block) # FIXME
-      assert_nothing_raised(&block)
     end
 
     def check_connection_leaks
@@ -89,15 +67,18 @@ module ActiveRecord
           end
         end
 
-        pool.reap
-        pool.connections.each do |conn|
-          if conn.in_use?
-            if conn.owner != Fiber.current && conn.owner != Thread.current
-              leaked_conn << [conn.owner, conn.owner.backtrace]
-              conn.owner&.kill
+        # Avoid racing the pool reaper while it is performing maintenance.
+        pool.reaper_lock do
+          pool.reap
+          pool.connections.each do |conn|
+            if conn.in_use?
+              if conn.owner != Fiber.current && conn.owner != Thread.current
+                leaked_conn << [conn.owner, conn.owner.backtrace]
+                conn.owner&.kill
+              end
+              conn.steal!
+              pool.checkin(conn)
             end
-            conn.steal!
-            pool.checkin(conn)
           end
         end
       end
@@ -138,21 +119,8 @@ module ActiveRecord
     end
 
     # Redefine existing assertion method to explicitly not materialize transactions.
-    def assert_queries_match(match, count: nil, include_schema: false, &block)
-      counter = SQLCounter.new
-      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
-        result = _assert_nothing_raised_or_warn("assert_queries_match", &block)
-        queries = include_schema ? counter.log_all : counter.log
-        matched_queries = queries.select { |query| match === query }
-
-        if count
-          assert_equal count, matched_queries.size, "#{matched_queries.size} instead of #{count} queries were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
-        else
-          assert_operator matched_queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
-        end
-
-        result
-      end
+    def assert_queries_match(*args, **kwargs, &block)
+      super(*args, **kwargs, materialize_transactions: false, &block)
     end
 
     def assert_column(model, column_name, msg = nil)
@@ -279,7 +247,7 @@ module ActiveRecord
     # This method makes sure that tests don't leak global state related to time zones.
     EXPECTED_ZONE = nil
     EXPECTED_DEFAULT_TIMEZONE = :utc
-    EXPECTED_AWARE_TYPES = [:datetime, :time]
+    EXPECTED_AWARE_TYPES = [:datetime, :time].freeze
     EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES = false
     def verify_default_timezone_config
       if Time.zone != EXPECTED_ZONE
@@ -333,6 +301,8 @@ module ActiveRecord
       ActiveRecord::Base.adapter_class.quote_table_name(name)
     end
 
+    alias_method :skip, :force_skip # FIXME: Active Record tests should adhere to TestCommons::DisableSkipping
+
     # Connect to the database
     ARTest.connect
     # Load database schema
@@ -369,6 +339,10 @@ module ActiveRecord
     end
   end
 end
+
+require "config"
+
+require "stringio"
 
 require "active_support/dependencies"
 require "active_support/logger"
@@ -414,18 +388,26 @@ class ActiveRecord::TestCase
       end
   end
 
-  module WaitForAsyncTestHelper
+  module WaitForTestHelper
     private
+      def wait_for(message: "condition not met", timeout: 5, interval: 0.01)
+        deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout
+        loop do
+          return if yield
+          if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+            raise Timeout::Error, "#{message} after #{timeout} seconds"
+          end
+          sleep interval
+        end
+      end
+
       def wait_for_async_query(connection = ActiveRecord::Base.lease_connection, timeout: 5)
         return unless connection.async_enabled?
 
         executor = connection.pool.async_executor
-        (timeout * 100).times do
-          return unless executor.scheduled_task_count > executor.completed_task_count
-          sleep 0.01
+        wait_for(message: "The async executor wasn't drained", timeout: timeout) do
+          executor.scheduled_task_count <= executor.completed_task_count
         end
-
-        raise Timeout::Error, "The async executor wasn't drained after #{timeout} seconds"
       end
   end
 end

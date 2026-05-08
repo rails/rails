@@ -6,6 +6,7 @@ require "megatest/test_task"
 Megatest::TestTask.create do |t|
   t.full_backtrace = true
   t.command = "bin/test"
+  t.pwd = "../" if ENV["BUILDKITE"]
 end
 
 namespace :test do

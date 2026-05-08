@@ -6,7 +6,7 @@ require "models/pet"
 
 class ReloadModelsTest < ActiveRecord::TestCase
   unless in_memory_db?
-    include ActiveSupport::Testing::Isolation
+    tag isolated: true
 
     fixtures :pets, :owners
 

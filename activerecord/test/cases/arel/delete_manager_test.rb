@@ -3,7 +3,6 @@
 require_relative "helper"
 require_relative "support/tree_manager_behavior"
 
-
 module Arel
   class DeleteManagerTest < Arel::Test
     include TreeManagerBehavior

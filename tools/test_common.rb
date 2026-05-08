@@ -2,12 +2,7 @@
 
 require_relative "support/leak_checker"
 
-ActiveSupport::TestCase.alias_method :force_skip, :skip
-
-ENV["RAILS_TEST_EXECUTABLE"] = "bin/test"
-
-if ENV["BUILDKITE"]
-  ENV.delete("CI") # CI has affect on the applications, and we don't want it applied to the apps.
+module TestCommons
   module DisableSkipping # :nodoc:
     private
       def skip(message = nil, *)
@@ -16,7 +11,24 @@ if ENV["BUILDKITE"]
           "This should never happen on CI."
       end
   end
-  ActiveSupport::TestCase.include(DisableSkipping)
+
+  extend self
+
+  def augment(klass)
+    klass.alias_method :force_skip, :skip
+
+    if ENV["BUILDKITE"]
+      klass.include(DisableSkipping)
+    end
+
+    klass.prepend(LeakChecker)
+  end
 end
 
-ActiveSupport::TestCase.prepend(LeakChecker)
+ENV["RAILS_TEST_EXECUTABLE"] = "bin/test"
+if ENV["BUILDKITE"]
+  ENV.delete("CI") # CI has affect on the applications, and we don't want it applied to the apps.
+end
+
+TestCommons.augment(ActiveSupport::TestCase) if defined?(ActiveSupport::TestCase)
+TestCommons.augment(RailsTestCase) if defined?(RailsTestCase)

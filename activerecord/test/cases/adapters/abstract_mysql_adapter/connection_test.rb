@@ -204,13 +204,12 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
     got_lock = @connection.get_advisory_lock(lock_name)
     assert got_lock, "get_advisory_lock should have returned true but it didn't"
 
-    assert_equal false, test_lock_free(lock_name),
-      "expected the test advisory lock to be held but it wasn't"
+    assert_not_lock_free(lock_name, message: "expected the test advisory lock to be held but it wasn't")
 
     released_lock = @connection.release_advisory_lock(lock_name)
     assert released_lock, "expected release_advisory_lock to return true but it didn't"
 
-    assert test_lock_free(lock_name), "expected the test lock to be available after releasing"
+    assert_lock_free(lock_name, message: "expected the test lock to be available after releasing")
   end
 
   def test_release_non_existent_advisory_lock
@@ -265,7 +264,15 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
       sleep 2
     end
 
-    def test_lock_free(lock_name)
+    def lock_free?(lock_name)
       @connection.select_value("SELECT IS_FREE_LOCK(#{@connection.quote(lock_name)})") == 1
+    end
+
+    def assert_lock_free(lock_name, message: nil)
+      assert(lock_free?(lock_name), message: message)
+    end
+
+    def assert_not_lock_free(lock_name, message: nil)
+      assert_not(lock_free?(lock_name), message: message)
     end
 end

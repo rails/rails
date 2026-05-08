@@ -5,7 +5,7 @@ require "models/developer"
 
 module ActiveRecord
   module TypeCaster
-    class ConnectionTest < ActiveSupport::TestCase
+    class ConnectionTest < ActiveRecord::TestCase
       test "#type_for_attribute is not aware of custom types" do
         type_caster = Connection.new(AttributedDeveloper, "developers")
 
