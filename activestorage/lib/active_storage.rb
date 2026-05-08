@@ -360,6 +360,9 @@ module ActiveStorage
   mattr_accessor :touch_attachment_records, default: true
   mattr_accessor :urls_expire_in
 
+  # Configures the mount point for the default Active Storage routes. Accepts any
+  # value supported by `scope`, such as a string path prefix or a hash of routing
+  # options.
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
   mattr_accessor :draw_routes, default: true
   mattr_accessor :resolve_model_to_route, default: :rails_storage_redirect

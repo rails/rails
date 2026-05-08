@@ -16,8 +16,13 @@ Rails::TestUnit::Runner.singleton_class.prepend Module.new {
    private
      def list_tests(patterns)
        tests = super
-       tests.concat FileList["test/cases/adapters/#{adapter_name}/**/*_test.rb"] if patterns.empty?
-       tests
+       if patterns.empty?
+         tests.concat FileList["test/cases/adapters/#{adapter_name}/**/*_test.rb"]
+         case adapter_name
+         when "mysql2", "trilogy"
+           tests.concat(FileList["test/cases/adapters/abstract_mysql_adapter/**/*_test.rb"])
+         end
+       end
      end
 
      def default_test_exclude_glob

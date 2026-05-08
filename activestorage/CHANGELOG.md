@@ -1,3 +1,12 @@
+*   Fix image analyzer reporting wrong dimensions for EXIF orientations involving a mirror.
+
+    `rotated_image?` was swapping width/height for orientations 2 and 4 (flip-only, no 90°
+    rotation), which do not change portrait/landscape orientation. It was also missing orientations
+    5 and 7 (flip + 90° rotation), which do require a swap. Only orientations 5, 6, 7, and 8
+    involve a 90° or 270° rotation and should trigger a dimension swap.
+
+    *Bogdan Gusiev*
+
 *   Define `as_json` on `ActiveStorage::Attached::One` and `ActiveStorage::Attached::Many`.
 
     The proxies hold a back-reference to the owning record in `@record`. Without an explicit

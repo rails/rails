@@ -6,6 +6,15 @@
 
     *Eugene Mironichev*
     
+*   Accept encryption credentials as ENV
+
+    Taking advantage of Rails.apps.creds (#56455), the `primary_key`, `deterministic_key` and
+    `key_derivation_salt` required by ActiveRecord::Encryption can now also be provided through
+    environment variables named `ACTIVE_RECORD_ENCRYPTION__PRIMARY_KEY`,
+    `ACTIVE_RECORD_ENCRYPTION__DETERMINISTIC_KEY`, `ACTIVE_RECORD_ENCRYPTION__KEY_DERIVATION_SALT`.
+
+    *Claudio Baccigalupo*
+
 *   Treat `nil` values as `""` during multi-parameter attribute assignment
 
     ```ruby

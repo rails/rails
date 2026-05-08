@@ -1,3 +1,17 @@
+*   Add `ActionController::Parameters#fetch_values` for fetching multiple parameter values
+
+    ```ruby
+    params = ActionController::Parameters.new(name: "Francesco", age: 22)
+    name, age = params.fetch_values(:name, :age)
+    # => ["Francesco", 22]
+
+    # With default values via block
+    name, email = params.fetch_values(:name, :email) { |key| "default_#{key}" }
+    # => ["Francesco", "default_email"]
+    ```
+
+    *Said Kaldybaev*
+
 *   Serve static CSS and HTML files with `charset=utf-8` in the Content-Type header.
 
     Static CSS and HTML files served by `ActionDispatch::Static` now include

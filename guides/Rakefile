@@ -8,8 +8,7 @@ Rake::TestTask.new do |t|
   t.warning = true
   if ENV["BUILDKITE"]
     t.verbose = true
-    t.options = "--profile"
-    t.options = "--defer-output"
+    t.options = "--profile --defer-output"
   end
 end
 

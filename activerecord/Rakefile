@@ -65,8 +65,7 @@ namespace :test do
     t.warning = true
     if ENV["CI"]
       t.verbose = true
-      t.options = "--profile"
-      t.options = "--defer-output"
+      t.options = "--profile --defer-output"
     end
   end
 end
@@ -93,8 +92,7 @@ adapters.each do |adapter|
       t.warning = true
       if ENV["CI"]
         t.verbose = true
-        t.options = "--profile"
-        t.options = "--defer-output"
+        t.options = "--profile --defer-output"
       end
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
@@ -108,8 +106,7 @@ adapters.each do |adapter|
           t.warning = true
           if ENV["CI"]
             t.verbose = true
-            t.options = "--profile"
-            t.options = "--defer-output"
+            t.options = "--profile --defer-output"
           end
           t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
         end
@@ -218,8 +215,7 @@ adapters.each do |adapter|
           t.warning = true
           if ENV["CI"]
             t.verbose = true
-            t.options = "--profile"
-            t.options = "--defer-output"
+            t.options = "--profile --defer-output"
           end
           t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
         end

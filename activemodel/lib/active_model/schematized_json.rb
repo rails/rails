@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/hash/reverse_merge"
+require "active_support/core_ext/string/filters"
 require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActiveModel
