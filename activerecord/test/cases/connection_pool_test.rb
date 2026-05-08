@@ -6,6 +6,8 @@ require "concurrent/atomic/count_down_latch"
 module ActiveRecord
   module ConnectionAdapters
     module ConnectionPoolTests
+      include ActiveRecord::TestCase::WaitForTestHelper
+
       def self.included(test)
         super
         test.use_transactional_tests = false
@@ -906,9 +908,8 @@ module ActiveRecord
 
         checkin.call(group1.size)         # should wake up all group1
 
-        loop do
-          sleep 0.1
-          break if mutex.synchronize { (successes.size + errors.size) == group1.size }
+        wait_for(message: "group1 threads did not finish", interval: 0.1) do
+          mutex.synchronize { (successes.size + errors.size) == group1.size }
         end
 
         winners = mutex.synchronize { successes.dup }
