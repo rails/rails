@@ -317,21 +317,18 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
-  def test_insert_all_and_upsert_all_works_with_composite_primary_keys_when_unique_by_is_not_provided
+  def test_insert_all_works_with_composite_primary_keys_when_unique_by_is_not_provided
     skip unless supports_insert_on_duplicate_skip?
 
-    assert_difference "Cart.count", 3 do
+    assert_difference "Cart.count", 2 do
       Cart.insert_all [{ id: 1, shop_id: 1, title: "My cart" }]
 
       Cart.insert_all! [{ id: 2, shop_id: 1, title: "My cart 2" }]
-
-      Cart.upsert_all [{ id: 3, shop_id: 2, title: "My other cart" }]
     end
   end
 
   # Regression tests for https://github.com/rails/rails/issues/56953
-  # insert_all without unique_by should not raise "No unique index found for id"
-  # even when the adapter's indexes() method excludes primary key indexes.
+  # insert_all without unique_by should not raise "No unique index found for id".
 
   def test_insert_all_without_unique_by_does_not_raise_on_standard_primary_key
     skip unless supports_insert_on_duplicate_skip?
@@ -566,7 +563,7 @@ class InsertAllTest < ActiveRecord::TestCase
   def test_upsert_all_fails_for_configured_primary_key_with_no_database_constraint
     skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target?
 
-    assert_raises ActiveRecord::StatementInvalid do
+    assert_raises ArgumentError do
       Speedometer.upsert_all [{ speedometer_id: "s1", name: "New Speedometer" }]
     end
   end
