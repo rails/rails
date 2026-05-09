@@ -127,6 +127,14 @@ Within the Ruby on Rails framework, there are a number of hooks provided for com
 | `:message`      | A hash of message    |
 | `:coder`        | The coder            |
 
+#### `connection_latency.action_cable`
+
+| Key                      | Value                |
+| ------------------------ | -------------------- |
+| `:value`                 | The latency in seconds as a float with sub-seconds included |
+| `:connection_identifier` | The identifier string of the connection                     |
+| `:identifiers`           | A hash of identifier objects of the connection              |
+
 ### Action Controller
 
 #### `start_processing.action_controller`

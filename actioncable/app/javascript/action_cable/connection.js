@@ -120,6 +120,13 @@ class Connection {
     }
   }
 
+  expectsPongResponse() {
+    const protocol = this.getProtocol()
+
+    if (!protocol) return
+
+    return protocol.startsWith("actioncable-v1.1-")
+  }
 }
 
 Connection.reopenDelay = 500
@@ -140,6 +147,10 @@ Connection.prototype.events = {
         logger.log(`Disconnecting. Reason: ${reason}`)
         return this.close({allowReconnect: reconnect})
       case message_types.ping:
+        if (this.expectsPongResponse()) {
+          this.send({type: message_types.pong, message: message})
+        }
+
         return null
       case message_types.confirmation:
         this.subscriptions.confirmSubscription(identifier)

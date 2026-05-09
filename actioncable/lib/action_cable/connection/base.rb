@@ -62,6 +62,8 @@ module ActionCable
       include Callbacks
       include ActiveSupport::Rescuable
 
+      HALF_OPEN_CONNECTION_TIMEOUT = ActionCable::Server::Connections::BEAT_INTERVAL.seconds * 2
+
       attr_reader :server, :env, :subscriptions, :logger, :worker_pool, :protocol
       delegate :event_loop, :pubsub, :config, to: :server
 
@@ -76,7 +78,7 @@ module ActionCable
         @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
 
         @_internal_subscriptions = nil
-        @started_at = Time.now
+        @started_at = @last_message_received_at = Time.now
       end
 
       # Called by the server when a new WebSocket connection is established. This
@@ -96,12 +98,17 @@ module ActionCable
       # Decodes WebSocket messages and dispatches them to subscribed channels.
       # WebSocket message transfer encoding is always JSON.
       def receive(websocket_message) # :nodoc:
+        @last_message_received_at = Time.now
         send_async :dispatch_websocket_message, websocket_message
       end
 
       def dispatch_websocket_message(websocket_message) # :nodoc:
         if websocket.alive?
-          handle_channel_command decode(websocket_message)
+          payload = decode(websocket_message)
+
+          return handle_pong(payload) if payload["type"] == ActionCable::INTERNAL[:message_types][:pong]
+
+          handle_channel_command(payload)
         else
           logger.error "Ignoring message processed after the WebSocket was closed: #{websocket_message.inspect})"
         end
@@ -117,14 +124,18 @@ module ActionCable
         websocket.transmit encode(cable_message)
       end
 
-      # Close the WebSocket connection.
-      def close(reason: nil, reconnect: true)
-        transmit(
-          type: ActionCable::INTERNAL[:message_types][:disconnect],
-          reason: reason,
-          reconnect: reconnect
-        )
-        websocket.close
+      # Close the WebSocket connection. When `force: true`, the disconnect
+      # message is skipped and the socket is shut down without a graceful
+      # close handshake. Use only when the client is presumed unreachable.
+      def close(reason: nil, reconnect: true, force: false)
+        unless force
+          transmit(
+            type: ActionCable::INTERNAL[:message_types][:disconnect],
+            reason: reason,
+            reconnect: reconnect
+          )
+        end
+        websocket.close(force: force)
       end
 
       # Invoke a method on the connection asynchronously through the pool of thread
@@ -134,19 +145,28 @@ module ActionCable
       end
 
       # Return a basic hash of statistics for the connection keyed with `identifier`,
-      # `started_at`, `subscriptions`, and `request_id`. This can be returned by a
-      # health check against the connection.
+      # `started_at`, `subscriptions`, `request_id`, and `last_message_received_at`.
+      # This can be returned by a health check against the connection.
       def statistics
         {
           identifier: connection_identifier,
           started_at: @started_at,
           subscriptions: subscriptions.identifiers,
-          request_id: @env["action_dispatch.request_id"]
+          request_id: @env["action_dispatch.request_id"],
+          last_message_received_at: @last_message_received_at
         }
       end
 
       def beat
-        transmit type: ActionCable::INTERNAL[:message_types][:ping], message: Time.now.to_i
+        unless expects_pong?
+          return transmit(type: ActionCable::INTERNAL[:message_types][:ping], message: Time.now.to_i)
+        end
+
+        if connection_idle?
+          return close(reason: ::ActionCable::INTERNAL[:disconnect_reasons][:heartbeat_timeout], force: true)
+        end
+
+        transmit type: ::ActionCable::INTERNAL[:message_types][:ping], message: Time.now.to_f
       end
 
       def on_open # :nodoc:
@@ -201,6 +221,7 @@ module ActionCable
 
         def handle_open
           @protocol = websocket.protocol
+          @expects_pong = @protocol&.start_with?("actioncable-v1.1-")
           connect if respond_to?(:connect)
           subscribe_to_internal_channel
           send_welcome_message
@@ -289,6 +310,28 @@ module ActionCable
           "Successfully upgraded to WebSocket (REQUEST_METHOD: %s, HTTP_CONNECTION: %s, HTTP_UPGRADE: %s)" % [
             env["REQUEST_METHOD"], env["HTTP_CONNECTION"], env["HTTP_UPGRADE"]
           ]
+        end
+
+        def expects_pong?
+          @expects_pong
+        end
+
+        def connection_idle?
+          expects_pong? && @last_message_received_at.before?(HALF_OPEN_CONNECTION_TIMEOUT.ago)
+        end
+
+        def handle_pong(payload)
+          message = payload["message"]
+          latency = Time.now.to_f - message.to_f if message.is_a?(Numeric)
+
+          if latency&.positive? && latency < HALF_OPEN_CONNECTION_TIMEOUT
+            ActiveSupport::Notifications.instrument(
+              "connection_latency.action_cable",
+              value: latency,
+              connection_identifier: connection_identifier,
+              identifiers: identifiers.index_with { |id| instance_variable_get("@#{id}") }
+            )
+          end
         end
     end
   end
