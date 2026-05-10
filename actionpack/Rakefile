@@ -23,12 +23,6 @@ Rake::TestTask.new do |t|
 end
 
 namespace :test do
-  task isolated: :railties do
-    test_files.all? do |file|
-      sh(Gem.ruby, "-w", "-Ilib:test", file)
-    end || raise("Failures")
-  end
-
   task :railties do
     ["action_dispatch/railtie", "action_controller/railtie"].all? do |railtie|
       sh(Gem.ruby, "-r", railtie, "-e", "'OK'")

@@ -51,8 +51,7 @@ rake actionview:test
 Run tests across all components:
 
 ```bash
-rake test          # Run all non-isolated tests
-rake test:isolated # Run isolated tests
+rake test          # Run all tests
 rake smoke         # Quick smoke test
 ```
 
