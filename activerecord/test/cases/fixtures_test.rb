@@ -1634,9 +1634,11 @@ class SameNameDifferentDatabaseFixturesTest < ActiveRecord::TestCase
 end
 
 class NilFixturePathTest < ActiveRecord::TestCase
-  TestCase = Class.new(ActiveSupport::TestCase) do
-    include ActiveRecord::TestFixtures
-    self.fixture_paths = nil
+  TestCommons.allow_test_case do
+    TestCase = Class.new(ActiveSupport::TestCase) do
+      include ActiveRecord::TestFixtures
+      self.fixture_paths = nil
+    end
   end
 
   test "raises an error when all fixtures loaded" do

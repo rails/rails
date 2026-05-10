@@ -12,3 +12,6 @@ I18n.enforce_available_locales = false
 
 class ActiveModel::TestCase < RailsTestCase
 end
+
+TestCommons::MandatoryTestClass.test_class = ActiveModel::TestCase
+TestCommons::MandatoryTestClass.framework = "activemodel"

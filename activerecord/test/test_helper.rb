@@ -4,7 +4,6 @@ require_relative "../../tools/strict_warnings"
 require_relative "../../tools/test_helper"
 
 require "active_record"
-require "active_support/testing/stream"
 require "active_record/testing/query_assertions"
 require "active_record/fixtures"
 
@@ -26,8 +25,6 @@ module ActiveRecord
   #
   # Defines some test assertions to test against SQL queries.
   class TestCase < RailsTestCase # :nodoc:
-    include ActiveSupport::Testing::MethodCallAssertions
-    include ActiveSupport::Testing::Stream
     include ActiveRecord::Assertions::QueryAssertions
 
     include ActiveRecord::TestFixtures
@@ -411,3 +408,6 @@ class ActiveRecord::TestCase
       end
   end
 end
+
+TestCommons::MandatoryTestClass.test_class = ActiveRecord::TestCase
+TestCommons::MandatoryTestClass.framework = "activerecord"

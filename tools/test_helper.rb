@@ -9,6 +9,7 @@ require "active_support/core_ext/integer/time"
 require "active_support/testing/deprecation"
 require "active_support/testing/notification_assertions"
 require "active_support/testing/error_reporter_assertions"
+require "active_support/testing/stream"
 
 class RailsTestCase < Megatest::Test
   include ActiveSupport::Testing::MethodCallAssertions
@@ -16,6 +17,13 @@ class RailsTestCase < Megatest::Test
   include ActiveSupport::Testing::Deprecation
   include ActiveSupport::Testing::NotificationAssertions
   include ActiveSupport::Testing::ErrorReporterAssertions
+  include ActiveSupport::Testing::Stream
+
+  def before_setup
+    # Reenable inheriting from AS::TestCase for assertion tests.
+    TestCommons::MandatoryTestClass.test_class = nil
+    super
+  end
 
   def assert_mock(mock, msg = nil)
     assert mock.verify
@@ -31,3 +39,4 @@ class RailsTestCase < Megatest::Test
 end
 
 require_relative "../tools/test_common"
+TestCommons::MandatoryTestClass.test_class = RailsTestCase

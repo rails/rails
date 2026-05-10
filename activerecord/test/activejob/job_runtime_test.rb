@@ -3,7 +3,7 @@
 require "activejob/helper"
 require "active_record/railties/job_runtime"
 
-class JobRuntimeTest < ActiveSupport::TestCase
+class JobRuntimeTest < ActiveRecord::TestCase
   class TestJob < ActiveJob::Base
     include ActiveRecord::Railties::JobRuntime
 
