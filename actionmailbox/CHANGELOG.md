@@ -5,6 +5,10 @@
 
     *Nesan Vettivel*
 
+*   Return `422 Unprocessable Content` for malformed SendGrid envelopes.
+
+    *Andrii Furmanets*
+
 *   Deprecate `Mail::Address.wrap` because it isn't used.
 
     *Gannon McGibbon*
