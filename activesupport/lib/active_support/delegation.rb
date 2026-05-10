@@ -16,7 +16,7 @@ module ActiveSupport
   module Delegation # :nodoc:
     RUBY_RESERVED_KEYWORDS = %w(__ENCODING__ __LINE__ __FILE__ alias and BEGIN begin break
     case class def defined? do else elsif END end ensure false for if in module next nil
-    not or redo rescue retry return self super then true undef unless until when while yield)
+    not or redo rescue retry return self super then true undef unless until when while yield).freeze
     RESERVED_METHOD_NAMES = (RUBY_RESERVED_KEYWORDS + %w(_ arg args block)).to_set.freeze
 
     class ClassDelegator < ::Delegator

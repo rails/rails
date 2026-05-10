@@ -88,7 +88,7 @@ DEFAULT_APP_FILES = %w(
   tmp/pids/.keep
   tmp/storage/.keep
   vendor/.keep
-)
+).freeze
 
 class AppGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper

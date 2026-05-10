@@ -19,7 +19,7 @@ class Date
     rfc822: "%d %b %Y",
     rfc2822: "%d %b %Y",
     iso8601: lambda { |date| date.iso8601 }
-  }
+  }.freeze
 
   # Convert to a formatted string. See DATE_FORMATS for predefined formats.
   #

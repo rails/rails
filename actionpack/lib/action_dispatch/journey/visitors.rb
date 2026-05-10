@@ -54,7 +54,7 @@ module ActionDispatch
 
     module Visitors # :nodoc:
       class Visitor # :nodoc:
-        DISPATCH_CACHE = {}
+        DISPATCH_CACHE = {} # rubocop:disable Style/MutableConstant
 
         def accept(node)
           visit(node)
@@ -95,7 +95,7 @@ module ActionDispatch
       end
 
       class FunctionalVisitor # :nodoc:
-        DISPATCH_CACHE = {}
+        DISPATCH_CACHE = {} # rubocop:disable Style/MutableConstant
 
         def accept(node, seed)
           visit(node, seed)

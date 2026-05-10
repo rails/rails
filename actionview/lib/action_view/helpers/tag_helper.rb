@@ -34,7 +34,7 @@ module ActionView
       DATA_PREFIXES = ["data", :data].to_set.freeze
       CLASS_PREFIXES = ["class", :class].to_set.freeze
 
-      TAG_TYPES = {}
+      TAG_TYPES = {} # rubocop:disable Style/MutableConstant
       TAG_TYPES.merge! BOOLEAN_ATTRIBUTES.index_with(:boolean)
       TAG_TYPES.merge! DATA_PREFIXES.index_with(:data)
       TAG_TYPES.merge! ARIA_PREFIXES.index_with(:aria)

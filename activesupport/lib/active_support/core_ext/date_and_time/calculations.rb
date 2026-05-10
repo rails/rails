@@ -13,8 +13,8 @@ module DateAndTime
       thursday: 4,
       friday: 5,
       saturday: 6
-    }
-    WEEKEND_DAYS = [ 6, 0 ]
+    }.freeze
+    WEEKEND_DAYS = [ 6, 0 ].freeze
 
     # Returns a new date/time representing yesterday.
     def yesterday

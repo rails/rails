@@ -66,7 +66,7 @@ module ActiveSupport
         ">".b => '\u003e'.b,
         "<".b => '\u003c'.b,
         "&".b => '\u0026'.b,
-      }
+      }.freeze
 
       HTML_ENTITIES_REGEX = Regexp.union(*(ESCAPED_CHARS.keys - [U2028, U2029]))
       FULL_ESCAPE_REGEX = Regexp.union(*ESCAPED_CHARS.keys)

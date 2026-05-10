@@ -39,7 +39,7 @@ module ActionCable
       extend  ActiveSupport::Concern
       include ActiveSupport::Callbacks
 
-      INTERNAL_METHODS = [:_run_subscribe_callbacks, :_run_unsubscribe_callbacks] # :nodoc:
+      INTERNAL_METHODS = [:_run_subscribe_callbacks, :_run_unsubscribe_callbacks].freeze # :nodoc:
 
       included do
         define_callbacks :subscribe

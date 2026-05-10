@@ -38,7 +38,7 @@ module ActiveSupport
       :skip_nil,
       :raw,
       :max_key_size,
-    ]
+    ].freeze
 
     # Mapping of canonical option names to aliases that a store will recognize.
     OPTION_ALIASES = {

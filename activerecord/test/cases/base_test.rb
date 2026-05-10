@@ -401,7 +401,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(topics(:second).title, topics.first.title)
   end
 
-  GUESSED_CLASSES = [Category, Smarts, CreditCard, CreditCard::PinNumber, CreditCard::PinNumber::CvvCode, CreditCard::SubPinNumber, CreditCard::Brand, MasterCreditCard]
+  GUESSED_CLASSES = [Category, Smarts, CreditCard, CreditCard::PinNumber, CreditCard::PinNumber::CvvCode, CreditCard::SubPinNumber, CreditCard::Brand, MasterCreditCard].freeze
 
   def test_table_name_guesses
     assert_equal "topics", Topic.table_name

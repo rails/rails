@@ -24,7 +24,7 @@ module ActiveSupport
   #   maybe_tags = Rails.error.handle(Redis::BaseError) { redis.get("tags") }
   #
   class ErrorReporter
-    SEVERITIES = %i(error warning info)
+    SEVERITIES = %i(error warning info).freeze
     DEFAULT_SOURCE = "application"
     DEFAULT_RESCUE = [StandardError].freeze
 

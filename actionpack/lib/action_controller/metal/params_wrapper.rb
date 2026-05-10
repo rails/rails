@@ -83,7 +83,7 @@ module ActionController
   module ParamsWrapper
     extend ActiveSupport::Concern
 
-    EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8)
+    EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8).freeze
 
     class Options < Struct.new(:name, :format, :include, :exclude, :klass, :model) # :nodoc:
       def self.from_hash(hash)
