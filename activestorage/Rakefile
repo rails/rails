@@ -28,8 +28,6 @@ if ENV["encrypted_0fb9444d0374_key"] && ENV["encrypted_0fb9444d0374_iv"]
 end
 
 namespace :test do
-  task isolated: :railties
-
   task :railties do
     ["active_storage/engine"].all? do |railtie|
       sh(Gem.ruby, "-r", railtie, "-e", "'OK'")
