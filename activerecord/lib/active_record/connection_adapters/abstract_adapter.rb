@@ -587,6 +587,10 @@ module ActiveRecord
         false
       end
 
+      def supports_update_returning?
+        supports_insert_returning?
+      end
+
       def supports_insert_on_duplicate_skip?
         false
       end

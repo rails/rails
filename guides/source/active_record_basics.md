@@ -557,6 +557,15 @@ validations**, you can update the database directly using `update_all`:
 Book.update_all(status: "already own")
 ```
 
+If you need the updated rows back, use `update_all_returning`, which uses
+`UPDATE ... RETURNING` to return the results in a single query (PostgreSQL
+and SQLite):
+
+```ruby
+result = Book.where(status: "available").limit(1).update_all_returning(status: "claimed")
+# => ActiveRecord::Result with all columns of the updated row
+```
+
 ### Delete
 
 Likewise, once retrieved, an Active Record object can be destroyed, which

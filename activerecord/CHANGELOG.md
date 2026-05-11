@@ -117,6 +117,23 @@
 
     *Clay Harmon*
 
+*   Add `update_all_returning` to `ActiveRecord::Relation`.
+
+    Like `update_all`, but uses `UPDATE ... RETURNING` to return the updated
+    rows as an `ActiveRecord::Result`. Supports PostgreSQL and SQLite.
+
+    ```ruby
+    # Update and return all columns
+    Job.where(status: :pending).limit(1).update_all_returning(status: :processing)
+    # => ActiveRecord::Result with all columns of the updated row
+
+    # Update and return specific columns
+    Job.select(:id, :status).where(status: :pending).update_all_returning(status: :processing)
+    # => ActiveRecord::Result with id and status columns
+    ```
+
+    *Keenan Brock*
+
 *   Batch SQL statements when creating tables to improve performance.
 
     *Andrew Novoselac*
