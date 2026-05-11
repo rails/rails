@@ -57,6 +57,10 @@
 
     *Mike Dalessio*
 
+*   When disabled, `touch_attachment_records` will now prevent touch'ing the attachment records.
+
+    *Jamie Lawrence*
+
 
 *   Restore ADC when signing URLs with IAM for GCS
 
