@@ -34,7 +34,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   delegate :signed_id, to: :blob
 
   after_create_commit :mirror_blob_later, :analyze_blob_later, :transform_variants_later
-  after_destroy_commit :purge_dependent_blob_later
+  after_destroy_commit :purge_dependent_blob
 
   ##
   # :singleton-method:
@@ -147,8 +147,12 @@ class ActiveStorage::Attachment < ActiveStorage::Record
       end
     end
 
-    def purge_dependent_blob_later
-      blob&.purge_later if dependent == :purge_later
+    def purge_dependent_blob
+      if dependent == :purge_later
+        blob&.purge_later
+      elsif dependent == :purge
+        blob&.purge
+      end
     end
 
     def dependent

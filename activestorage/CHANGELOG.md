@@ -1,3 +1,8 @@
+*   Correct unexpected behavior resulting from dependent: :purge when using
+    has_one_attached or has_many_attached. Fixes #36423.
+
+    *Mark Oveson*
+
 *   Define `as_json` on `ActiveStorage::Attached::One` and `ActiveStorage::Attached::Many`.
 
     The proxies hold a back-reference to the owning record in `@record`. Without an explicit
