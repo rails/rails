@@ -24,7 +24,7 @@ Sometimes a single column's value isn't enough to uniquely identify every row of
 a table, and a combination of two or more columns is required. This can occur
 with legacy database schemas that lack a single `id` primary key, or in
 applications where the schema has been designed to partition data across
-multiple databases (sharding) or isolate data per customer or tenant
+[multiple databases (sharding)](active_record_multiple_databases.html) or isolate data per customer or tenant
 (multitenancy). Composite primary keys (CPK) are designed to solve this by allowing two or more columns to together act as the unique identifier for a row.
 
 Composite primary keys do increase complexity and can be slower than a
