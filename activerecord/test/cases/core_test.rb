@@ -31,16 +31,13 @@ class CoreTest < ActiveRecord::TestCase
   end
 
   def test_inspect_instance_with_lambda_date_formatter
-    before = Time::DATE_FORMATS[:inspect]
-
     Topic.stub(:attributes_for_inspect, [:id, :last_read]) do
-      Time::DATE_FORMATS[:inspect] = ->(date) { "my_format" }
-      topic = topics(:first)
+      ActiveSupport::TimeFormats.stub(:lookup, ->(format) { { inspect: ->(date) { "my_format" } }[format] }) do
+        topic = topics(:first)
 
-      assert_equal %(#<Topic id: 1, last_read: "2004-04-15">), topic.inspect
+        assert_equal %(#<Topic id: 1, last_read: "2004-04-15">), topic.inspect
+      end
     end
-  ensure
-    Time::DATE_FORMATS[:inspect] = before
   end
 
   def test_inspect_new_instance

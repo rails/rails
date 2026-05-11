@@ -39,15 +39,15 @@ class Date
   #   date.to_fs(:iso8601)       # => "2007-11-10"
   #
   # == Adding your own date formats to to_fs
-  # You can add your own formats to the +Date::DATE_FORMATS+ hash.
-  # Use the format name as the hash key and either a strftime string
+  # You can add your own formats using the +ActiveSupport::DateFormats.register+ method.
+  # Use the format name as the name and either a strftime string
   # or Proc instance that takes a date argument as the value.
   #
   #   # config/initializers/date_formats.rb
-  #   Date::DATE_FORMATS[:month_and_year] = '%B %Y'
-  #   Date::DATE_FORMATS[:short_ordinal] = ->(date) { date.strftime("%B #{date.day.ordinalize}") }
+  #   ActiveSupport::DateFormats.register(:month_and_year, '%B %Y')
+  #   ActiveSupport::DateFormats.register(:short_ordinal, ->(date) { date.strftime("%B #{date.day.ordinalize}") })
   def to_fs(format = :default)
-    if formatter = DATE_FORMATS[format]
+    if formatter = ActiveSupport::DateFormats.lookup(format)
       if formatter.respond_to?(:call)
         formatter.call(self).to_s
       else

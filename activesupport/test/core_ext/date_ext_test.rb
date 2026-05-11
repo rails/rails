@@ -47,11 +47,9 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_date_formats_can_be_extended
-    Date::DATE_FORMATS[:custom_date_format] = "%B %Y"
-
-    assert_equal "February 2005", Date.new(2005, 2, 21).to_fs(:custom_date_format)
-  ensure
-    Date::DATE_FORMATS.delete(:custom_date_format)
+    ActiveSupport::DateFormats.stub(:lookup, ->(format) { { custom_date_format: "%B %Y" }[format] }) do
+      assert_equal "February 2005", Date.new(2005, 2, 21).to_fs(:custom_date_format)
+    end
   end
 
   def test_readable_inspect
