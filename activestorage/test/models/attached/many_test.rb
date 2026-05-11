@@ -619,6 +619,19 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_nil user.attachment_changes["highlights"]
   end
 
+  test "purge attached blobs now when the record is destroyed" do
+    @user.favorites.attach create_blob(filename: "funky.jpg"), create_blob(filename: "wonky.jpg")
+    favorite_keys = @user.favorites.collect(&:key)
+
+    @user.reload.destroy
+
+    assert_nil ActiveStorage::Blob.find_by(key: favorite_keys.first)
+    assert_not ActiveStorage::Blob.service.exist?(favorite_keys.first)
+
+    assert_nil ActiveStorage::Blob.find_by(key: favorite_keys.second)
+    assert_not ActiveStorage::Blob.service.exist?(favorite_keys.second)
+  end
+
   test "purging later" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       @user.highlights.attach blobs

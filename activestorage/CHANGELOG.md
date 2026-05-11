@@ -1,3 +1,8 @@
+*   Correct unexpected behavior resulting from dependent: :purge when using
+    has_one_attached or has_many_attached. Fixes #36423.
+
+    *Mark Oveson*
+
 *   Fix Rails hanging when generating video previews
 
     When Rails runs in a background process group, ffmpeg's attempt to configure the terminal for
