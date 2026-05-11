@@ -850,6 +850,86 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal "Fallback", link_to_unless(true, "Listing", url_hash) { "Fallback" }
   end
 
+  def test_link_to_adds_aria_current_when_target_matches_current_page
+    @request = request_for_url("/")
+
+    assert_dom_equal %{<a href="/" aria-current="page">Home</a>},
+      link_to("Home", url_hash)
+    assert_dom_equal %{<a href="http://www.example.com/" aria-current="page">Home</a>},
+      link_to("Home", "http://www.example.com/")
+  end
+
+  def test_link_to_does_not_add_aria_current_when_target_differs
+    @request = request_for_url("/other")
+
+    assert_dom_equal %{<a href="/">Home</a>},
+      link_to("Home", url_hash)
+  end
+
+  def test_link_to_with_current_false_suppresses_aria_current
+    @request = request_for_url("/")
+
+    assert_dom_equal %{<a href="/">Home</a>},
+      link_to("Home", url_hash, current: false)
+  end
+
+  def test_link_to_with_current_true_forces_aria_current
+    @request = request_for_url("/other")
+
+    assert_dom_equal %{<a href="/" aria-current="page">Home</a>},
+      link_to("Home", url_hash, current: true)
+  end
+
+  def test_link_to_with_current_string_uses_custom_value
+    @request = request_for_url("/")
+
+    assert_dom_equal %{<a href="/" aria-current="step">Step</a>},
+      link_to("Step", url_hash, current: "step")
+  end
+
+  def test_link_to_with_current_symbol_uses_custom_value
+    @request = request_for_url("/")
+
+    assert_dom_equal %{<a href="/" aria-current="location">Here</a>},
+      link_to("Here", url_hash, current: :location)
+  end
+
+  def test_link_to_without_request_does_not_raise
+    @request = nil
+
+    assert_dom_equal %{<a href="/foo">Foo</a>},
+      link_to("Foo", "/foo")
+  end
+
+  def test_link_to_preserves_explicit_aria_current
+    @request = request_for_url("/")
+
+    assert_dom_equal %{<a href="/" aria-current="step">Home</a>},
+      link_to("Home", url_hash, "aria-current" => "step")
+  end
+
+  def test_link_to_preserves_nested_aria_current
+    @request = request_for_url("/")
+
+    assert_dom_equal %{<a href="/" aria-current="step">Home</a>},
+      link_to("Home", url_hash, aria: { current: "step" })
+  end
+
+  def test_link_to_does_not_leak_current_option_as_attribute
+    @request = request_for_url("/other")
+
+    link = link_to("Home", url_hash, current: true)
+    assert_dom_equal %{<a href="/" aria-current="page">Home</a>}, link
+    assert_no_match(/\scurrent=/, link)
+  end
+
+  def test_link_to_with_string_url_matches_current_page
+    @request = request_for_url("/")
+
+    assert_dom_equal %{<a href="/" aria-current="page">Root</a>},
+      link_to("Root", "/")
+  end
+
   def test_mail_to
     assert_dom_equal %{<a href="mailto:david@loudthinking.com">david@loudthinking.com</a>}, mail_to("david@loudthinking.com")
     assert_dom_equal %{<a href="mailto:david@loudthinking.com">David Heinemeier Hansson</a>}, mail_to("david@loudthinking.com", "David Heinemeier Hansson")
@@ -1332,21 +1412,21 @@ class PolymorphicControllerTest < ActionController::TestCase
     @controller = WorkshopsController.new
 
     get :index
-    assert_equal %{/workshops\n<a href="/workshops">Workshop</a>}, @response.body
+    assert_equal %{/workshops\n<a href="/workshops" aria-current="page">Workshop</a>}, @response.body
   end
 
   def test_existing_resource
     @controller = WorkshopsController.new
 
     get :show, params: { id: 1 }
-    assert_equal %{/workshops/1\n<a href="/workshops/1">Workshop</a>}, @response.body
+    assert_equal %{/workshops/1\n<a href="/workshops/1" aria-current="page">Workshop</a>}, @response.body
   end
 
   def test_existing_cpk_resource
     @controller = WorkshopsController.new
 
     get :show, params: { id: "1-27" }
-    assert_equal %{/workshops/1-27\n<a href="/workshops/1-27">Workshop</a>}, @response.body
+    assert_equal %{/workshops/1-27\n<a href="/workshops/1-27" aria-current="page">Workshop</a>}, @response.body
   end
 
   def test_current_page_when_options_does_not_respond_to_to_hash
@@ -1367,14 +1447,14 @@ class PolymorphicSessionsControllerTest < ActionController::TestCase
     @controller = SessionsController.new
 
     get :index, params: { workshop_id: 1 }
-    assert_equal %{/workshops/1/sessions\n<a href="/workshops/1/sessions">Session</a>}, @response.body
+    assert_equal %{/workshops/1/sessions\n<a href="/workshops/1/sessions" aria-current="page">Session</a>}, @response.body
   end
 
   def test_existing_nested_resource
     @controller = SessionsController.new
 
     get :show, params: { workshop_id: 1, id: 1 }
-    assert_equal %{/workshops/1/sessions/1\n<a href="/workshops/1/sessions/1">Session</a>}, @response.body
+    assert_equal %{/workshops/1/sessions/1\n<a href="/workshops/1/sessions/1" aria-current="page">Session</a>}, @response.body
   end
 
   def test_existing_nested_resource_with_params

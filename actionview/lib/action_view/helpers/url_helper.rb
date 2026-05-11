@@ -92,6 +92,12 @@ module ActionView
       #
       # ==== Options
       # * <tt>:data</tt> - This option can be used to add custom data attributes.
+      # * <tt>:current</tt> - Controls the <tt>aria-current</tt> attribute. Pass
+      #   <tt>true</tt> to force <tt>aria-current="page"</tt>, <tt>false</tt> to
+      #   suppress the attribute, or a String/Symbol (e.g. <tt>"step"</tt>) to set
+      #   a custom value. When omitted, +link_to+ automatically adds
+      #   <tt>aria-current="page"</tt> if the link's URL matches the current
+      #   request (using +current_page?+).
       #
       # ==== Examples
       #
@@ -173,6 +179,42 @@ module ActionView
       #   link_to "External link", "http://www.rubyonrails.org/", target: "_blank", rel: "nofollow"
       #   # => <a href="http://www.rubyonrails.org/" target="_blank" rel="nofollow">External link</a>
       #
+      # ==== Styling the active link
+      #
+      # When a link's target matches the current request URL, +link_to+ adds
+      # <tt>aria-current="page"</tt> automatically. Beyond the accessibility win
+      # (screen readers announce the current page), this gives you a styling
+      # hook: highlight the active link in your navigation with one CSS rule,
+      # with no <tt>.active</tt> class to toggle and no conditional helpers
+      # like +link_to_unless_current+ to wrap each item.
+      #
+      #   # On /articles
+      #   <nav>
+      #     <%= link_to "Home", root_path %>
+      #     <%= link_to "Articles", articles_path %>
+      #   </nav>
+      #
+      #   # Renders:
+      #   <nav>
+      #     <a href="/">Home</a>
+      #     <a href="/articles" aria-current="page">Articles</a>
+      #   </nav>
+      #
+      #   /* In your stylesheet: */
+      #   nav a[aria-current="page"] { font-weight: bold; color: tomato; }
+      #
+      # Override the auto behavior with the <tt>:current</tt> option:
+      #
+      #   link_to "Articles", articles_path, current: false
+      #   # => <a href="/articles">Articles</a>
+      #
+      #   link_to "Step 2", step_path(2), current: "step"
+      #   # => <a href="/steps/2" aria-current="step">Step 2</a>
+      #
+      # +link_to+ never overwrites an <tt>aria-current</tt> attribute you set
+      # yourself, either as <tt>"aria-current"</tt> directly or under
+      # <tt>aria: { current: ... }</tt>.
+      #
       # ==== Turbo
       #
       # Rails 7 ships with Turbo enabled by default. Turbo provides the following +:data+ options:
@@ -203,6 +245,8 @@ module ActionView
 
         url = url_target(name, options)
         html_options["href"] ||= url
+
+        html_options = convert_options_to_aria_attributes(url, html_options)
 
         content_tag("a", name || url, html_options, &block)
       end
@@ -717,6 +761,33 @@ module ActionView
           else
             link_to_remote_options?(options) ? { "data-remote" => "true" } : {}
           end
+        end
+
+        def convert_options_to_aria_attributes(url, html_options)
+          return html_options if html_options.key?("aria-current")
+          return html_options if (aria = html_options["aria"]).is_a?(Hash) && (aria.key?(:current) || aria.key?("current"))
+
+          current = html_options.delete("current")
+
+          value =
+            case current
+            when false then return html_options
+            when true  then "page"
+            when nil
+              return html_options unless link_targets_current_page?(url)
+              "page"
+            else current.to_s
+            end
+
+          html_options["aria-current"] = value
+          html_options
+        end
+
+        def link_targets_current_page?(url)
+          return false unless respond_to?(:request) && request
+          current_page?(url)
+        rescue ArgumentError, URI::InvalidURIError
+          false
         end
 
         def url_target(name, options)

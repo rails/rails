@@ -1,3 +1,26 @@
+*   Automatically add `aria-current="page"` to `link_to` when the link's URL
+    matches the current request.
+
+    Beyond the accessibility win, this lets you style the active link in a
+    navigation directly from CSS — no `.active` class to toggle, no
+    `link_to_unless_current` wrapper:
+
+        # On /articles
+        <%= link_to "Articles", articles_path %>
+        # => <a href="/articles" aria-current="page">Articles</a>
+
+        /* stylesheet */
+        nav a[aria-current="page"] { font-weight: bold; }
+
+    The new `:current` option overrides the auto behavior — pass `false` to
+    suppress the attribute, `true` to force it, or a String/Symbol (e.g.
+    `"step"`) for a custom ARIA value:
+
+        link_to "Step 2", step_path(2), current: "step"
+        # => <a href="/steps/2" aria-current="step">Step 2</a>
+
+    *Jeremy Bertrand*
+
 *   Pass render options and block to calls to `#render_in`
 
     ```ruby
