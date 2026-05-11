@@ -122,7 +122,7 @@ module ActiveSupport
       << log add debug info warn error fatal unknown
       level= sev_threshold= close
       formatter formatter=
-    ] # :nodoc:
+    ].freeze # :nodoc:
     LOGGER_METHODS.each do |method|
       class_eval <<~RUBY, __FILE__, __LINE__ + 1
         def #{method}(...)

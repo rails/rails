@@ -23,6 +23,7 @@ Rails::TestUnit::Runner.singleton_class.prepend Module.new {
            tests.concat(FileList["test/cases/adapters/abstract_mysql_adapter/**/*_test.rb"])
          end
        end
+       tests
      end
 
      def default_test_exclude_glob

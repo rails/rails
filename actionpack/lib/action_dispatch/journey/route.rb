@@ -12,7 +12,7 @@ module ActionDispatch
       alias :conditions :constraints
 
       module VerbMatchers
-        VERBS = %w{ DELETE GET HEAD OPTIONS LINK PATCH POST PUT TRACE UNLINK }
+        VERBS = %w{ DELETE GET HEAD OPTIONS LINK PATCH POST PUT TRACE UNLINK }.freeze
         VERBS.each do |v|
           class_eval <<-eoc, __FILE__, __LINE__ + 1
             # frozen_string_literal: true

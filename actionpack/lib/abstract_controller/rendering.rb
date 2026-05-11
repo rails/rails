@@ -55,7 +55,7 @@ module AbstractController
       Mime[:text]
     end
 
-    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %i(@_action_name @_response_body @_formats @_prefixes)
+    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %i(@_action_name @_response_body @_formats @_prefixes).freeze
 
     # This method should return a hash with assigns. You can overwrite this
     # configuration per controller.

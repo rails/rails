@@ -1,3 +1,11 @@
+*   Allow configuring Active Storage base controller parent class
+
+    This enables users to change the parent class for
+    `ActiveStorage::BaseController`, including the option to inherit from
+    `ActionController::API` for api-only apps.
+
+    *Andrew White*, *Santiago Bartesaghi*, *zzak*
+
 *   Fix image analyzer reporting wrong dimensions for EXIF orientations involving a mirror.
 
     `rotated_image?` was swapping width/height for orientations 2 and 4 (flip-only, no 90°

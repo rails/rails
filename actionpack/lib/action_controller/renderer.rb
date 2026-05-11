@@ -143,7 +143,7 @@ module ActionController
         method:      "REQUEST_METHOD",
         script_name: "SCRIPT_NAME",
         input:       "rack.input"
-      }
+      }.freeze
 
       DEFAULT_ENV = normalize_env(DEFAULTS).freeze # :nodoc:
 

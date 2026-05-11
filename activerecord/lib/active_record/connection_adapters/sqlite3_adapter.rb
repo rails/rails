@@ -133,7 +133,7 @@ module ActiveRecord
         binary:       { name: "blob" },
         boolean:      { name: "boolean" },
         json:         { name: "json" },
-      }
+      }.freeze
 
       DEFAULT_PRAGMAS = {
         "foreign_keys"        => true,
@@ -142,7 +142,7 @@ module ActiveRecord
         "mmap_size"           => 134217728, # 128 megabytes
         "journal_size_limit"  => 67108864, # 64 megabytes
         "cache_size"          => 2000
-      }
+      }.freeze
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         alias reset clear

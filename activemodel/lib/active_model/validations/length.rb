@@ -10,7 +10,7 @@ module ActiveModel
       MESSAGES  = { is: :wrong_length, minimum: :too_short, maximum: :too_long }.freeze
       CHECKS    = { is: :==, minimum: :>=, maximum: :<= }.freeze
 
-      RESERVED_OPTIONS = [:minimum, :maximum, :within, :is, :too_short, :too_long]
+      RESERVED_OPTIONS = [:minimum, :maximum, :within, :is, :too_short, :too_long].freeze
 
       def initialize(options)
         if range = (options.delete(:in) || options.delete(:within))

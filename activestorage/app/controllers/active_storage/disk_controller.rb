@@ -7,7 +7,9 @@
 class ActiveStorage::DiskController < ActiveStorage::BaseController
   include ActiveStorage::FileServer
 
-  skip_forgery_protection
+  if respond_to?(:skip_forgery_protection)
+    skip_forgery_protection
+  end
 
   def show
     if key = decode_verified_key

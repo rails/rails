@@ -14,18 +14,18 @@ class NumericalityValidationTest < ActiveModel::TestCase
     Topic.clear_validators!
   end
 
-  NIL = [nil]
-  BLANK = ["", " ", " \t \r \n"]
-  BIGDECIMAL_STRINGS = %w(12345678901234567890.1234567890) # 30 significant digits
-  FLOAT_STRINGS = %w(0.0 +0.0 -0.0 10.0 10.5 -10.5 -0.0001 -090.1 90.1e1 -90.1e5 -90.1e-5 90e-5)
-  INTEGER_STRINGS = %w(0 +0 -0 10 +10 -10 0090 -090)
-  NUMERIC_FLOATS = [0.0, 10.0, 10.5, -10.5, -0.0001]
-  NUMERIC_INTEGERS = [0, 10, -10]
+  NIL = [nil].freeze
+  BLANK = ["", " ", " \t \r \n"].freeze
+  BIGDECIMAL_STRINGS = %w(12345678901234567890.1234567890).freeze # 30 significant digits
+  FLOAT_STRINGS = %w(0.0 +0.0 -0.0 10.0 10.5 -10.5 -0.0001 -090.1 90.1e1 -90.1e5 -90.1e-5 90e-5).freeze
+  INTEGER_STRINGS = %w(0 +0 -0 10 +10 -10 0090 -090).freeze
+  NUMERIC_FLOATS = [0.0, 10.0, 10.5, -10.5, -0.0001].freeze
+  NUMERIC_INTEGERS = [0, 10, -10].freeze
   FLOATS = NUMERIC_FLOATS + FLOAT_STRINGS
   INTEGERS = NUMERIC_INTEGERS + INTEGER_STRINGS
-  BIGDECIMAL = BIGDECIMAL_STRINGS.collect! { |bd| BigDecimal(bd) }
-  JUNK = ["not a number", "42 not a number", "0xdeadbeef", "-0xdeadbeef", "+0xdeadbeef", "0xinvalidhex", "0Xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"]
-  INFINITY = [1.0 / 0.0]
+  BIGDECIMAL = BIGDECIMAL_STRINGS.collect { |bd| BigDecimal(bd) }
+  JUNK = ["not a number", "42 not a number", "0xdeadbeef", "-0xdeadbeef", "+0xdeadbeef", "0xinvalidhex", "0Xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"].freeze
+  INFINITY = [1.0 / 0.0].freeze
 
   def test_default_validates_numericality_of
     Topic.validates_numericality_of :approved

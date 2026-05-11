@@ -21,7 +21,7 @@ module ActionDispatch
         end
       end
 
-      URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
+      URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port].freeze
 
       cattr_accessor :route_source_locations, instance_accessor: false, default: false
       cattr_accessor :backtrace_cleaner, instance_accessor: false, default: BacktraceCleaner.new
@@ -1299,9 +1299,9 @@ module ActionDispatch
       module Resources
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or a path
         # appended since they fit properly in their scope level.
-        VALID_ON_OPTIONS  = [:new, :collection, :member]
-        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
-        CANONICAL_ACTIONS = %w(index create new show update destroy)
+        VALID_ON_OPTIONS  = [:new, :collection, :member].freeze
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns].freeze
+        CANONICAL_ACTIONS = %w(index create new show update destroy).freeze
 
         class Resource # :nodoc:
           class << self
@@ -2440,10 +2440,10 @@ module ActionDispatch
       class Scope # :nodoc:
         OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
                    :controller, :action, :path_names, :constraints,
-                   :shallow, :blocks, :defaults, :via, :format, :options, :to]
+                   :shallow, :blocks, :defaults, :via, :format, :options, :to].freeze
 
-        RESOURCE_SCOPES = [:resource, :resources]
-        RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
+        RESOURCE_SCOPES = [:resource, :resources].freeze
+        RESOURCE_METHOD_SCOPES = [:collection, :member, :new].freeze
 
         attr_reader :parent, :scope_level
 

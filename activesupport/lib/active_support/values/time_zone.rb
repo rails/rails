@@ -30,7 +30,7 @@ module ActiveSupport
   #   Time.zone.now  # => Sun, 18 May 2008 14:30:44 EDT -04:00
   class TimeZone
     # Keys are \Rails TimeZone names, values are TZInfo identifiers.
-    MAPPING = {
+    MAPPING = { # rubocop:disable Style/MutableConstant
       "International Date Line West" => "Etc/GMT+12",
       "Midway Island"                => "Pacific/Midway",
       "American Samoa"               => "Pacific/Pago_Pago",

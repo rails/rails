@@ -47,7 +47,7 @@ module ActiveSupport
         connect_timeout:    1,
         read_timeout:       1,
         write_timeout:      1,
-      }
+      }.freeze
 
       DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) do
         if logger

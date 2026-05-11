@@ -5,7 +5,7 @@ require "active_support/inflector/methods"
 require "active_support/values/time_zone"
 
 class Time
-  DATE_FORMATS = {
+  DATE_FORMATS = { # rubocop:disable Style/MutableConstant
     db: "%Y-%m-%d %H:%M:%S",
     inspect: "%Y-%m-%d %H:%M:%S.%9N %z",
     number: "%Y%m%d%H%M%S",

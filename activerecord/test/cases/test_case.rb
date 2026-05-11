@@ -250,7 +250,7 @@ module ActiveRecord
     # This method makes sure that tests don't leak global state related to time zones.
     EXPECTED_ZONE = nil
     EXPECTED_DEFAULT_TIMEZONE = :utc
-    EXPECTED_AWARE_TYPES = [:datetime, :time]
+    EXPECTED_AWARE_TYPES = [:datetime, :time].freeze
     EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES = false
     def verify_default_timezone_config
       if Time.zone != EXPECTED_ZONE
