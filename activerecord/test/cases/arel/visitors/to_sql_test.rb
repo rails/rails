@@ -347,7 +347,7 @@ module Arel
         end
 
         it "should visit_BigDecimal" do
-          _(compile(Nodes.build_quoted(BigDecimal("2.14")))).must_equal "2.14"
+          _(compile(Nodes.build_quoted(BigDecimal("2.14")))).must_equal BigDecimal("2.14").to_s
         end
 
         it "should visit_Date" do

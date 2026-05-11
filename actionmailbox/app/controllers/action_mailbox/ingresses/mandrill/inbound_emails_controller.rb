@@ -66,7 +66,7 @@ module ActionMailbox
         end
 
         def authenticated?
-          ActiveSupport::SecurityUtils.secure_compare given_signature, expected_signature
+          given_signature.present? && ActiveSupport::SecurityUtils.secure_compare(given_signature, expected_signature)
         end
 
         private

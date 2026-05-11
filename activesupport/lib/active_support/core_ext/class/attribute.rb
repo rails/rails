@@ -93,11 +93,22 @@ class Class
       end
 
       name = name.to_sym
-      namespaced_name = :"__class_attr_#{name}"
-      ::ActiveSupport::ClassAttribute.redefine(self, name, namespaced_name, default)
+      reader_method = :"__class_attr_#{name}"
+      owner_method = :"__class_attr_#{name}_owner"
+      ::ActiveSupport::ClassAttribute.redefine(self, name, owner_method, reader_method, default, instance_reader)
 
-      class_methods << "def #{name}; #{namespaced_name}; end"
-      class_methods << "def #{name}=(value); self.#{namespaced_name} = value; end"
+      singleton_class.attr_reader(reader_method)
+
+      class_methods << "def #{name}; #{owner_method}.#{reader_method}; end"
+      class_methods << <<~RUBY
+        def #{name}=(value)
+          if #{owner_method}.equal?(self)
+            @#{reader_method} = value
+          else
+            ::ActiveSupport::ClassAttribute.redefine(self, :#{name}, :#{owner_method}, :#{reader_method}, value, #{!!instance_reader})
+          end
+        end
+      RUBY
 
       if singleton_class?
         methods << <<~RUBY if instance_reader

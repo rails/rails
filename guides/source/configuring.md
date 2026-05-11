@@ -3554,10 +3554,18 @@ Directs ActiveStorage::Attachments to touch its corresponding record when update
 
 #### `config.active_storage.routes_prefix`
 
-Can be used to set the route prefix for the routes served by Active Storage. Accepts a string that will be prepended to the generated routes.
+Can be used to set the route prefix for the routes served by Active Storage.
+Accepts any value supported by `scope`, such as a string path prefix or a hash of
+routing options.
 
 ```ruby
 config.active_storage.routes_prefix = "/files"
+```
+
+For example, to serve the Active Storage routes from a specific subdomain:
+
+```ruby
+config.active_storage.routes_prefix = { path: "/files", subdomain: "assets" }
 ```
 
 The default is `/rails/active_storage`.

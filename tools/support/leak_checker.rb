@@ -5,7 +5,7 @@ module LeakChecker
   # Either added by the system or by other libraries.
   ALLOWED_KEYS = %w[
     VIPSHOME
-  ]
+  ].freeze
 
   def before_setup
     @__leak_checker_before_env = ENV.to_h

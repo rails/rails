@@ -979,7 +979,7 @@ class RequestFormat < BaseRequestTest
   test "format is not nil with unknown format" do
     request = stub_request("QUERY_STRING" => "format=hello")
 
-    assert_nil request.format
+    assert_equal true, request.format.nil?
     assert_not_predicate request.format, :html?
     assert_not_predicate request.format, :xml?
     assert_not_predicate request.format, :json?

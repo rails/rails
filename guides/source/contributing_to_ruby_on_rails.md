@@ -370,11 +370,9 @@ You can also run component test suites from the repository root using rake tasks
 
 ```bash
 $ bundle exec rake actionpack:test
-$ bundle exec rake actionpack:isolated
 
 # Active Record adapters (from the repo root)
 $ bundle exec rake activerecord:sqlite3:test
-$ bundle exec rake activerecord:sqlite3:isolated
 $ bundle exec rake activerecord:mysql2:test
 $ bundle exec rake activerecord:trilogy:test
 $ bundle exec rake activerecord:postgresql:test
@@ -384,16 +382,11 @@ $ bundle exec rake activerecord:integration
 
 # Active Job adapters
 $ bundle exec rake activejob:async:test
-$ bundle exec rake activejob:async:isolated
 $ bundle exec rake activejob:async:integration
 
 # All Active Job integration tests
 $ bundle exec rake activejob:integration
 ```
-
-Notes:
-
-- Not all frameworks define an isolated test task. For example, `activestorage:isolated` is not supported and will exit with an error.
 
 #### For a Specific Directory
 
@@ -570,15 +563,13 @@ $ bundle exec rake test
 
 will now run the three of them in turn.
 
-You can run adapter-specific isolated tests, or all Active Job integration tests for Active Record, with:
+You can run all Active Job integration tests for Active Record, with:
 
 ```bash
 # From inside activerecord
-$ bundle exec rake test:isolated:sqlite3
 $ bundle exec rake test:integration:active_job
 
 # Or repository root
-$ bundle exec rake activerecord:sqlite3:isolated
 $ bundle exec rake activerecord:integration   # runs Active Job integration across all adapters
 ```
 

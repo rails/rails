@@ -1,3 +1,51 @@
+*   Move the defaulting of `prevent_writes` to `true` when using the `reading` role into the parameters
+    of the role switching methods, and raise an `ArgumentError` if `prevent_writes: false` is provided
+    with the `reading` role.
+
+    *Joshua Young*
+
+*   Fix incorrect callback execution order when `config.active_record.run_after_transaction_callbacks_in_order_defined = true`
+    and using `after_commit` and `after_rollback` callbacks with `prepend: true`.
+
+    *Joshua Young*
+
+*   Accept encryption credentials as ENV
+
+    Taking advantage of Rails.apps.creds (#56455), the `primary_key`, `deterministic_key` and
+    `key_derivation_salt` required by ActiveRecord::Encryption can now also be provided through
+    environment variables named `ACTIVE_RECORD_ENCRYPTION__PRIMARY_KEY`,
+    `ACTIVE_RECORD_ENCRYPTION__DETERMINISTIC_KEY`, `ACTIVE_RECORD_ENCRYPTION__KEY_DERIVATION_SALT`.
+
+    *Claudio Baccigalupo*
+
+*   Treat `nil` values as `""` during multi-parameter attribute assignment
+
+    ```ruby
+    topic = Topic.where.not(last_read: nil).first
+    topic.attributes = { "last_read(1i)" => nil, "last_read(2i)" => nil, "last_read(3i)" => nil }
+    topic.last_read # => nil
+    ```
+
+    *Sean Doyle*
+
+*   Include record ID in error when uniqueness validation fails
+
+    When a uniqueness validation fails, the `errors.details` hash for the attribute
+    now includes an `:existing_id` key, holding the ID of the record that caused
+    the conflict.
+
+    ```ruby
+    # Before
+    errors.details[:name]
+    # => [{error: :taken, value: "John Doe"}]
+
+    # After
+    errors.details[:name]
+    # => [{error: :taken, value: "John Doe", existing_id: 123}]
+    ```
+
+    *Bruno Vicenzo*
+
 *   Bump the minimum PostgreSQL version to 10.0.
 
     As part of this change, `supports_pgcrypto_uuid?` is deprecated because

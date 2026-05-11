@@ -62,7 +62,7 @@ module ActiveRecord
         :create_schema, :drop_schema,
         :create_virtual_table, :drop_virtual_table,
         :enable_index, :disable_index
-      ]
+      ].freeze
       include JoinTable
 
       attr_accessor :commands, :delegate, :reverting

@@ -65,6 +65,13 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     assert_nil topic.last_read
   end
 
+  def test_multiparameter_attributes_on_date_with_all_nil
+    attributes = { "last_read(1i)" => nil, "last_read(2i)" => nil, "last_read(3i)" => nil }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    assert_nil topic.last_read
+  end
+
   def test_multiparameter_attributes_on_time
     with_timezone_config default: :local do
       attributes = {

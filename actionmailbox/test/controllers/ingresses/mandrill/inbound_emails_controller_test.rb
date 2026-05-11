@@ -38,6 +38,14 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsControllerTest < ActionDi
     assert_response :unauthorized
   end
 
+  test "rejecting an inbound email from Mandrill without a signature" do
+    assert_no_difference -> { ActionMailbox::InboundEmail.count } do
+      post rails_mandrill_inbound_emails_url, params: { mandrill_events: @events }
+    end
+
+    assert_response :unauthorized
+  end
+
   test "raising when Mandrill API key is nil" do
     switch_key_to nil do
       assert_raises ArgumentError do

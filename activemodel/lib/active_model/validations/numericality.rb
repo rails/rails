@@ -10,8 +10,8 @@ module ActiveModel
       include Comparability
       include ResolveValue
 
-      RANGE_CHECKS = { in: :in? }
-      NUMBER_CHECKS = { odd: :odd?, even: :even? }
+      RANGE_CHECKS = { in: :in? }.freeze
+      NUMBER_CHECKS = { odd: :odd?, even: :even? }.freeze
 
       RESERVED_OPTIONS = COMPARE_CHECKS.keys + NUMBER_CHECKS.keys + RANGE_CHECKS.keys + [:only_integer, :only_numeric]
 

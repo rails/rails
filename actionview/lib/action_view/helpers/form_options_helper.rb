@@ -924,6 +924,19 @@ module ActionView
       def collection_radio_buttons(method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         @template.collection_radio_buttons(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_html_options.merge(html_options), &block)
       end
+
+      # Wraps ActionView::Helpers::FormTagHelper#datalist_tag for form builders.
+      #
+      #   <%= form_with model: @post do |f| %>
+      #     <%# Wire the input to the datalist using the same derived id: %>
+      #     <%= f.text_field :country, list: f.field_id(:country, :datalist) %>
+      #     <%= f.datalist  :country, ["Argentina", "Brazil", "Chile"] %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+      def datalist(method, choices = nil, html_options = {})
+        @template.datalist_tag(field_id(method, "datalist"), choices, html_options)
+      end
     end
   end
 end

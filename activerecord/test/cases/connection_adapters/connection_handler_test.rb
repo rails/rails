@@ -247,7 +247,7 @@ module ActiveRecord
           assert_instance_of String, db_config.env_name
           assert_instance_of String, db_config.name
 
-          db_config.configuration_hash.keys.each do |key|
+          db_config.configuration_hash.each_key do |key|
             assert_instance_of Symbol, key
           end
         end

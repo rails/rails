@@ -4,6 +4,8 @@ require "cases/helper"
 require "models/post"
 
 module AsynchronousQueriesSharedTests
+  include ActiveRecord::TestCase::WaitForTestHelper
+
   def test_async_select_failure
     if in_memory_db?
       assert_raises ActiveRecord::StatementInvalid do
@@ -74,10 +76,7 @@ module AsynchronousQueriesSharedTests
 
   private
     def wait_for_future_result(result)
-      500.times do
-        break unless result.pending?
-        sleep 0.02
-      end
+      wait_for(message: "future result still pending", timeout: 10, interval: 0.02) { !result.pending? }
     end
 end
 

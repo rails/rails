@@ -232,8 +232,9 @@ class StrictLoadingTest < ActiveRecord::TestCase
     developer = Developer.first
     developer.strict_loading!
 
+
     assert_nothing_raised do
-      developer.audit_logs.build(message: message)
+      developer.audit_logs.build(message: "message")
     end
   end
 

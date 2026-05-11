@@ -66,6 +66,7 @@ module Rails
     autoload :DefaultMiddlewareStack, "rails/application/default_middleware_stack"
     autoload :Finisher,               "rails/application/finisher"
     autoload :Railties,               "rails/engine/railties"
+    autoload :ReloadersCollection,    "rails/application/reloaders_collection"
     autoload :RoutesReloader,         "rails/application/routes_reloader"
 
     class << self
@@ -105,12 +106,12 @@ module Rails
     delegate :default_url_options, :default_url_options=, to: :routes
 
     INITIAL_VARIABLES = [:config, :railties, :routes_reloader, :reloaders,
-                         :routes, :helpers, :app_env_config] # :nodoc:
+                         :routes, :helpers, :app_env_config].freeze # :nodoc:
 
     def initialize(initial_variable_values = {}, &block)
       super()
       @initialized       = false
-      @reloaders         = []
+      @reloaders         = ReloadersCollection.new
       @routes_reloader   = nil
       @app_env_config    = nil
       @ordered_railties  = nil

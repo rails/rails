@@ -6,7 +6,7 @@ module ActionController
   module Rendering
     extend ActiveSupport::Concern
 
-    RENDER_FORMATS_IN_PRIORITY = [:body, :plain, :html]
+    RENDER_FORMATS_IN_PRIORITY = [:body, :plain, :html].freeze
 
     module ClassMethods
       # Documentation at ActionController::Renderer#render

@@ -67,6 +67,10 @@ module ActiveStorage
       attachments.any?
     end
 
+    def as_json(options = nil)
+      attachments.as_json(options)
+    end
+
     private
       def purge_many
         Attached::Changes::PurgeMany.new(name, record, attachments)

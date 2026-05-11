@@ -14,7 +14,7 @@ module ActionDispatch
       RESCUABLE_MIME_FORMAT_ERRORS = [
         ActionController::BadRequest,
         ActionDispatch::Http::Parameters::ParseError,
-      ]
+      ].freeze
 
       included do
         mattr_accessor :ignore_accept_header, default: false
