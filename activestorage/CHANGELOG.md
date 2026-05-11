@@ -1,3 +1,8 @@
+*   Correct unexpected behavior resulting from dependent: :purge when using
+    has_one_attached or has_many_attached. Fixes #36423.
+
+    *Mark Oveson*
+
 *   Allow configuring Active Storage base controller parent class
 
     This enables users to change the parent class for

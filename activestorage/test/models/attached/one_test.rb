@@ -618,6 +618,16 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_nil user.attachment_changes["avatar"]
   end
 
+  test "purge attached blob now when the record is destroyed" do
+    @user.icon.attach create_blob(filename: "funky.jpg")
+    icon_key = @user.icon.key
+
+    @user.reload.destroy
+
+    assert_nil ActiveStorage::Blob.find_by(key: icon_key)
+    assert_not ActiveStorage::Blob.service.exist?(icon_key)
+  end
+
   test "purging later" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob
