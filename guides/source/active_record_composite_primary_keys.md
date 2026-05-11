@@ -117,10 +117,10 @@ On the other hand, if your application uses `structure.sql` instead of `schema.r
 Querying Models
 ---------------
 
-### Using `#find`
+### Using `find`
 
 If your table uses a composite primary key, you'll need to pass an array
-when using `#find` to locate a record. For example to find the product with `store_id` 3 and `sku` "XYZ12345":
+when using `find` to locate a record. For example, to find the product with `store_id` 3 and `sku` "XYZ12345":
 
 ```irb
 irb> product = Product.find([3, "XYZ12345"])
@@ -133,9 +133,9 @@ The above Active Record method results in the following SQL:
 SELECT * FROM products WHERE store_id = 3 AND sku = "XYZ12345"
 ```
 
-NOTE: The `find` method expects the values in the same order as the columns were declared in `primary_key` when querying with composite primary key.
+NOTE: The `find` method expects the values in the same order as the columns were declared in `primary_key` when querying with composite primary key. Also, if only one value is provided, such as `Product.find(3)`, then Rails raises an `ActiveRecord::RecordNotFound` error.
 
-To find multiple records with composite IDs, you can pass an array of arrays to `#find`. For example, to find the products with primary keys [1, "ABC98765"] and [7, "ZZZ11111"]
+To find multiple records with composite IDs, you can pass an array of arrays to `find`. For example, to find the products with primary keys [1, "ABC98765"] and [7, "ZZZ11111"]
 
 ```irb
 irb> products = Product.find([[1, "ABC98765"], [7, "ZZZ11111"]])
@@ -166,9 +166,9 @@ The above Active Record method results in the following SQL:
 SELECT * FROM products ORDER BY products.store_id ASC, products.sku ASC LIMIT 1
 ```
 
-### Using `#where`
+### Using `where`
 
-Hash conditions for `#where` can query against multiple composite key values at once by passing an array of value pairs:
+Hash conditions for `where` can query against multiple composite key values at once by passing an array of value pairs:
 
 ```ruby
 Product.where(Product.primary_key => [[1, "ABC98765"], [7, "ZZZ11111"]])
@@ -205,39 +205,6 @@ end
 For the association above, `Order` has a composite primary key of `[:store_id, :id]`, and `Book` belongs to `Order`. Rails infers that the foreign key column on the books table is `order_id`, and will use only the `id` portion of the composite key when querying the association.
 
 When we create an `Order` and a `Book` associated with it:
-
-```ruby
-order = Order.create!(store_id: 1, id: 2, status: "pending")
-book = order.books.create!(title: "A Cool Book")
-book.order
-```
-
-Rails generates the following SQL to access the order:
-
-```sql
-SELECT * FROM orders WHERE id = 2
-```
-
-Rails uses only `id` here because the composite primary key does contain an `:id` column, and it is unique for all records, so the partial key is sufficient.
-
-Rails can often infer the primary key to foreign key relationships between associated models. However, when dealing with composite primary keys, Rails typically defaults to using only part of the composite key — usually the `id` column — unless explicitly instructed otherwise. This default behavior only works if the model's composite primary key contains the `:id` column, and that column is unique for all records.
-
-Consider the following example:
-
-```ruby
-class Order < ApplicationRecord
-  self.primary_key = [:store_id, :id]
-  has_many :books
-end
-
-class Book < ApplicationRecord
-  belongs_to :order
-end
-```
-
-In this setup, `Order` has a composite primary key of `[:store_id, :id]`, and `Book` belongs to `Order`. Rails infers that the foreign key column on the books table is `order_id`, and will use only the `id` portion of the composite key when querying the association.
-
-Below we create an `Order` and a `Book` associated with it:
 
 ```ruby
 order = Order.create!(store_id: 1, id: 2, status: "pending")
@@ -354,7 +321,7 @@ out of any delimited parameters.
 Fixtures
 --------
 
-Fixtures for composite primary key tables are fairly similar to normal tables.
+Fixtures for composite primary key tables are similar to normal tables.
 When using an `id` column, the column may be omitted as usual:
 
 ```ruby
