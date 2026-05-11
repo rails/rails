@@ -38,13 +38,13 @@ module Arel
     class DummySubNode < DummySuperNode
     end
 
-    class DispatchContaminationTest < Arel::Spec
-      before do
+    class DispatchContaminationTest < Arel::Test
+      setup do
         @connection = Table.engine.lease_connection
         @table = Table.new(:users)
       end
 
-      it "dispatches properly after failing upwards" do
+      test "dispatches properly after failing upwards" do
         node = Nodes::Union.new(Nodes::True.new, Nodes::False.new)
         assert_equal "( TRUE UNION FALSE )", node.to_sql
 
@@ -59,7 +59,7 @@ module Arel
         assert_equal "( TRUE UNION FALSE )", node.to_sql
       end
 
-      it "is threadsafe when implementing superclass fallback" do
+      test "is threadsafe when implementing superclass fallback" do
         visitor = DummyVisitor.new
         main_thread_finished = Concurrent::Event.new
 

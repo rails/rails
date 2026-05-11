@@ -2,12 +2,13 @@
 
 require_relative "helper"
 require_relative "support/tree_manager_behavior"
+require "active_model/attribute"
 
 module Arel
-  class DeleteManagerTest < Arel::Spec
+  class DeleteManagerTest < Arel::Test
     include TreeManagerBehavior
 
-    it "handles limit properly" do
+    test "handles limit properly" do
       table = Table.new(:users)
       dm = Arel::DeleteManager.new
       dm.take 10
@@ -16,35 +17,31 @@ module Arel
       assert_match(/LIMIT 10/, dm.to_sql)
     end
 
-    describe "from" do
-      it "uses from" do
-        table = Table.new(:users)
-        dm = Arel::DeleteManager.new
-        dm.from table
-        _(dm.to_sql).must_be_like %{ DELETE FROM "users" }
-      end
-
-      it "chains" do
-        table = Table.new(:users)
-        dm = Arel::DeleteManager.new
-        _(dm.from(table)).must_equal dm
-      end
+    test "from uses from" do
+      table = Table.new(:users)
+      dm = Arel::DeleteManager.new
+      dm.from table
+      assert_like %{ DELETE FROM "users" }, dm.to_sql
     end
 
-    describe "where" do
-      it "uses where values" do
-        table = Table.new(:users)
-        dm = Arel::DeleteManager.new
-        dm.from table
-        dm.where table[:id].eq(10)
-        _(dm.to_sql).must_be_like %{ DELETE FROM "users" WHERE "users"."id" = 10}
-      end
+    test "from chains" do
+      table = Table.new(:users)
+      dm = Arel::DeleteManager.new
+      assert_equal dm, dm.from(table)
+    end
 
-      it "chains" do
-        table = Table.new(:users)
-        dm = Arel::DeleteManager.new
-        _(dm.where(table[:id].eq(10))).must_equal dm
-      end
+    test "where uses where values" do
+      table = Table.new(:users)
+      dm = Arel::DeleteManager.new
+      dm.from table
+      dm.where table[:id].eq(10)
+      assert_like %{ DELETE FROM "users" WHERE "users"."id" = 10}, dm.to_sql
+    end
+
+    test "where chains" do
+      table = Table.new(:users)
+      dm = Arel::DeleteManager.new
+      assert_equal dm, dm.where(table[:id].eq(10))
     end
 
     private

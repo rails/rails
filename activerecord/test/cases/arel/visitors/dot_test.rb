@@ -6,7 +6,7 @@ require "active_model/attribute"
 module Arel
   module Visitors
     class TestDot < Arel::Test
-      def setup
+      setup do
         @visitor = Visitors::Dot.new
       end
 
