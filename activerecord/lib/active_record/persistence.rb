@@ -261,6 +261,8 @@ module ActiveRecord
       end
 
       def _update_record(values, constraints) # :nodoc:
+        ensure_primary_key_for_write!(:update)
+
         constraints = constraints.map { |name, value| predicate_builder[name, value] }
 
         default_constraint = build_default_constraint
@@ -280,6 +282,8 @@ module ActiveRecord
       end
 
       def _delete_record(constraints) # :nodoc:
+        ensure_primary_key_for_write!(:destroy)
+
         constraints = constraints.map { |name, value| predicate_builder[name, value] }
 
         default_constraint = build_default_constraint
@@ -320,6 +324,16 @@ module ActiveRecord
         # the single-table inheritance discriminator.
         def discriminate_class_for_record(record)
           self
+        end
+
+        # Raise early with a clear error when a write path requires a primary key
+        # but the model has none. Avoids generating invalid SQL and surfacing
+        # adapter-specific errors at runtime.
+        def ensure_primary_key_for_write!(operation)
+          return unless primary_key.blank?
+
+          hint = operation == :destroy ? "dependent: :delete_all" : "update_all"
+          raise UnknownPrimaryKey.new(self, "ActiveRecord cannot #{operation} records without a primary key. Add a primary key or use #{hint}.")
         end
 
         # Called by +_update_record+ and +_delete_record+
