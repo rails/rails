@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support"
-require "active_model/attribute"
 require "minitest/autorun"
 require "arel"
 

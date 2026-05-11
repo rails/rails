@@ -2,7 +2,6 @@
 
 require_relative "helper"
 require_relative "support/tree_manager_behavior"
-require "active_model/attribute"
 
 module Arel
   class UpdateManagerTest < Arel::Test
