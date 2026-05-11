@@ -647,6 +647,48 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, file_field("import", "file", direct_upload: true)
   end
 
+  def test_file_field_auto_multiple_for_has_many_attached
+    reflection = Struct.new(:macro).new(:has_many_attached)
+    klass = Class.new(Struct.new(:photos)) do
+      define_method(:class) { klass }
+      def to_model; self; end
+      def persisted?; false; end
+    end
+    klass.define_singleton_method(:reflect_on_attachment) { |name| reflection if name.to_s == "photos" }
+    klass.define_singleton_method(:model_name) { ActiveModel::Name.new(klass, nil, "User") }
+
+    expected = '<input multiple="multiple" type="file" name="user[photos][]" id="user_photos" />'
+    assert_dom_equal expected, file_field("user", "photos", object: klass.new)
+  end
+
+  def test_file_field_no_auto_multiple_for_has_one_attached
+    reflection = Struct.new(:macro).new(:has_one_attached)
+    klass = Class.new(Struct.new(:avatar)) do
+      define_method(:class) { klass }
+      def to_model; self; end
+      def persisted?; false; end
+    end
+    klass.define_singleton_method(:reflect_on_attachment) { |name| reflection if name.to_s == "avatar" }
+    klass.define_singleton_method(:model_name) { ActiveModel::Name.new(klass, nil, "User") }
+
+    expected = '<input type="file" name="user[avatar]" id="user_avatar" />'
+    assert_dom_equal expected, file_field("user", "avatar", object: klass.new)
+  end
+
+  def test_file_field_explicit_multiple_false_overrides_auto_detection
+    reflection = Struct.new(:macro).new(:has_many_attached)
+    klass = Class.new(Struct.new(:photos)) do
+      define_method(:class) { klass }
+      def to_model; self; end
+      def persisted?; false; end
+    end
+    klass.define_singleton_method(:reflect_on_attachment) { |name| reflection if name.to_s == "photos" }
+    klass.define_singleton_method(:model_name) { ActiveModel::Name.new(klass, nil, "User") }
+
+    expected = '<input type="file" name="user[photos]" id="user_photos" />'
+    assert_dom_equal expected, file_field("user", "photos", object: klass.new, multiple: false)
+  end
+
   def test_hidden_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="hidden" value="Hello World" autocomplete="off" />',

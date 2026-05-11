@@ -5,6 +5,15 @@ module ActionView
     module Tags # :nodoc:
       class FileField < TextField # :nodoc:
         def render
+          if @object && !@options.key?(:multiple)
+            if @object.class.respond_to?(:reflect_on_attachment)
+              reflection = @object.class.reflect_on_attachment(@method_name)
+              if reflection&.macro == :has_many_attached
+                @options[:multiple] = true
+              end
+            end
+          end
+
           include_hidden = @options.delete(:include_hidden)
           if @options[:accept].is_a?(Array)
             @options[:accept] = @options[:accept].join(",")
