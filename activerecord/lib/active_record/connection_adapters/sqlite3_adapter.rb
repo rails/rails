@@ -120,7 +120,7 @@ module ActiveRecord
       #
       class_attribute :strict_strings_by_default, default: false
 
-      NATIVE_DATABASE_TYPES = {
+      NATIVE_DATABASE_TYPES = { # rubocop:disable Style/MutableConstant
         primary_key:  "integer PRIMARY KEY AUTOINCREMENT NOT NULL",
         string:       { name: "varchar" },
         text:         { name: "text" },
@@ -133,7 +133,7 @@ module ActiveRecord
         binary:       { name: "blob" },
         boolean:      { name: "boolean" },
         json:         { name: "json" },
-      }.freeze
+      }
 
       DEFAULT_PRAGMAS = {
         "foreign_keys"        => true,
