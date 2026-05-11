@@ -1056,6 +1056,23 @@ module Arel
             _(compile(sql)).must_be_like "SELECT foo, bar FROM customers GROUP BY foo"
           end
         end
+
+        describe "Nodes::UnqualifiedColumn" do
+          it "compiles qualified columns" do
+            attribute = Nodes::UnqualifiedColumn.new(Attributes::Attribute.new(Table.new(:users), "name"))
+            _(compile(attribute)).must_be_like %{ "name" }
+          end
+
+          it "compiles aliased columns" do
+            attribute = Nodes::UnqualifiedColumn.new(Attributes::Attribute.new(Table.new(:users).alias("zomgusers"), "name"))
+            _(compile(attribute)).must_be_like %{ "name" }
+          end
+
+          it "compiles unqualified columns" do
+            attribute = Nodes::UnqualifiedColumn.new(Attributes::Attribute.new(Table.new(""), "name"))
+            _(compile(attribute)).must_be_like %{ "name" }
+          end
+        end
       end
     end
   end
