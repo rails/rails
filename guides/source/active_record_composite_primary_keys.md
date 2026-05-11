@@ -95,7 +95,7 @@ end
 add_foreign_key "products", "stores", column: "store_id", primary_key: "id"
 ```
 
-When using a composite primary key, uniqueness is enforced by the combination of columns rather than a single auto-incrementing `id`. In the above example, `store_id` is a foreign key to a `stores` table, and `sku` would be a string the application provides (like "ABC-123"). Neither needs to be auto-generated, their combination is what's unique. 
+When using a composite primary key, uniqueness is enforced by the combination of columns rather than a single auto-incrementing `id`. In the above example, `store_id` is a foreign key to a `stores` table, and `sku` would be a string the application provides (like "ABC-123"). Neither needs to be auto-generated, their combination is what's unique.
 
 NOTE: If your composite primary key contains no conventional `id` column, you are responsible for ensuring uniqueness, through application logic, UUIDs, etc.
 
