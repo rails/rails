@@ -65,14 +65,14 @@ Query Constraints is a lighter-weight option when you don't need a true composit
 Declaring Composite Primary Keys and Creating Migrations
 --------------------------------------------------------
 
-To create a table with a composite primary key, you can pass an array to the `primary_key:` option in the migration file:
+To create a table with a composite primary key, you can pass an array to the `primary_key:` option in the database migration:
 
 ```ruby
 class CreateProducts < ActiveRecord::Migration[8.2]
   def change
     create_table :products, primary_key: [:store_id, :sku] do |t|
-      t.integer :store_id
-      t.string :sku
+      t.references :store, null: false, foreign_key: true
+      t.string :sku, null: false
       t.text :description
       t.timestamps
     end
@@ -80,20 +80,22 @@ class CreateProducts < ActiveRecord::Migration[8.2]
 end
 ```
 
-After running the migration above, your `schema.rb` file will reflect the composite key:
+After running the migration above, your `schema.rb` file reflects the composite key:
 
 ```ruby
 # db/schema.rb
 create_table "products", primary_key: [:store_id, :sku], force: :cascade do |t|
-  t.integer "store_id", null: false
+  t.bigint "store_id", null: false
   t.string "sku", null: false
   t.text "description"
   t.datetime "created_at", null: false
   t.datetime "updated_at", null: false
 end
+
+add_foreign_key "products", "stores", column: "store_id", primary_key: "id"
 ```
 
-NOTE: When using a composite primary key, uniqueness is enforced by the combination of columns rather than a single auto-incrementing `id`. In the above example, `store_id` would typically be a foreign key to a `stores` table, and `sku` would be a string the application provides (like "ABC-123"). Neither needs to be auto-generated, their combination is what's unique. However, if your CPK contains no conventional `id` column, you are responsible for ensuring uniqueness, through application logic, UUIDs, etc.
+NOTE: When using a composite primary key, uniqueness is enforced by the combination of columns rather than a single auto-incrementing `id`. In the above example, `store_id` would typically be a foreign key to a `stores` table, and `sku` would be a string the application provides (like "ABC-123"). Neither needs to be auto-generated, their combination is what's unique. However, if your composite primary key contains no conventional `id` column, you are responsible for ensuring uniqueness, through application logic, UUIDs, etc.
 
 Rails also supports declaring composite primary keys at the model level via [`self.primary_key`](https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/PrimaryKey/ClassMethods.html) method:
 
@@ -106,9 +108,9 @@ end
 This tells Active Record that records are uniquely identified by the combination of both columns, not a single `id`.
 
 In most cases, you don't need to declare a composite primary key with
-`self.primary_key` in your model at all. If you define the CPK in your migration
-and use the default `schema.rb` format, Rails will read the primary key from the
-schema automatically at boot time and your model will work.
+`self.primary_key` in your model at all. If you define the composite primary key
+in your migration and use the default `schema.rb` format, Rails will read the
+primary key from the schema automatically at boot time and your model will work.
 
 On the other hand, if your application uses `structure.sql` instead of `schema.rb` or if you're connecting to a legacy or external database that was not created by your migrations, you can use `self.primary_key` to explicitly declare a composite primary key.
 
