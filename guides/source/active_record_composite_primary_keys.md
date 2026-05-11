@@ -20,14 +20,18 @@ After reading this guide you will be able to:
 What are Composite Primary Keys?
 --------------------------------
 
-Sometimes a single column's value isn't enough to uniquely identify every row of
-a table, and a combination of two or more columns is required. This can occur
-with legacy database schemas that lack a single `id` primary key, or in
-applications where the schema has been designed to partition data across
-[multiple databases (sharding)](active_record_multiple_databases.html) or isolate data per customer or tenant
-(multitenancy). Composite primary keys (CPK) are designed to solve this by allowing two or more columns to together act as the unique identifier for a row.
+Composite primary keys (CPK) are designed to allow two or more columns to act as
+the unique identifier for a row in a database table. This is useful when a
+single column's value isn't enough to uniquely identify every row of a table.
+This can occur with legacy database schemas that lack a single `id` primary key,
+or in applications where the schema has been designed to partition data across
+[multiple databases (sharding)](active_record_multiple_databases.html) or
+isolate data per customer or tenant (multitenancy). Composite primary keys is
+an Active Record feature that spans migrations, models, query methods, and
+associations, and allows two or more columns to together serve as the unique
+identifier for a record throughout your application.
 
-Composite primary keys do increase complexity and can be slower than a
+NOTE: Composite primary keys do increase complexity and can be slower than a
 single primary key column. Ensure your use case requires a composite primary key
 before using one.
 
@@ -41,7 +45,23 @@ class Developer < ActiveRecord::Base
 end
 ```
 
-This keeps `id` as the primary key at the database level while instructing Active Record to always include `company_id` in queries, updates, and deletes. It's a lighter-weight option when you don't need a true composite primary key but want Rails to treat a combination of columns as the effective identity.
+This keeps `id` as the primary key at the database level while instructing Active Record to always include `company_id` in queries, updates, and deletes.
+
+For example, this is what a queries looks like *with* the above `query_constraints`:
+
+```sql
+SELECT * FROM developers WHERE company_id = 5 AND id = 1
+UPDATE developers SET name = 'Alice' WHERE company_id = 5 AND id = 1
+```
+
+This is what that query would look like *without* `query_constraints`:
+
+```sql
+SELECT * FROM developers WHERE id = 1
+UPDATE developers SET name = 'Alice' WHERE id = 1
+```
+
+Query Constraints is a lighter-weight option when you don't need a true composite primary key but want Rails to treat a combination of columns as the effective identity.
 
 
 Declaring Composite Primary Keys and Creating Migrations
