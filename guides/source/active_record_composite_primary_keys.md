@@ -47,7 +47,7 @@ end
 
 This keeps `id` as the primary key at the database level while instructing Active Record to always include `company_id` in queries, updates, and deletes.
 
-For example, for `Developers.find(1)`, this is what the query looks like *with* the above `query_constraints`:
+For example, for `Developer.find(1)`, this is what the query looks like *with* the above `query_constraints`:
 
 ```sql
 SELECT * FROM developers WHERE company_id = 5 AND id = 1
@@ -95,7 +95,9 @@ end
 add_foreign_key "products", "stores", column: "store_id", primary_key: "id"
 ```
 
-NOTE: When using a composite primary key, uniqueness is enforced by the combination of columns rather than a single auto-incrementing `id`. In the above example, `store_id` would typically be a foreign key to a `stores` table, and `sku` would be a string the application provides (like "ABC-123"). Neither needs to be auto-generated, their combination is what's unique. However, if your composite primary key contains no conventional `id` column, you are responsible for ensuring uniqueness, through application logic, UUIDs, etc.
+When using a composite primary key, uniqueness is enforced by the combination of columns rather than a single auto-incrementing `id`. In the above example, `store_id` is a foreign key to a `stores` table, and `sku` would be a string the application provides (like "ABC-123"). Neither needs to be auto-generated, their combination is what's unique. 
+
+NOTE: If your composite primary key contains no conventional `id` column, you are responsible for ensuring uniqueness, through application logic, UUIDs, etc.
 
 Rails also supports declaring composite primary keys at the model level via [`self.primary_key`](https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/PrimaryKey/ClassMethods.html) method:
 
@@ -182,7 +184,7 @@ This generates the following SQL:
 SELECT * FROM products WHERE (store_id, sku) IN ((1, 'ABC98765'), (7, 'ZZZ11111'))
 ```
 
-WARN: When using  `where` or `find_by`, the key `id` matches against an `:id` attribute on the model only. It does not resolve to the full composite primary key the way `find` does. On a model like `Product` where `:id` is not the primary key, `find_by(id:)` will only match on the `id` column, ignoring `store_id`. So use `find` when you want to look up a record by its full composite primary key. See the [Active Record Querying](active_record_querying.html#conditions-with-id) guide for more detail.
+WARNING: When using  `where` or `find_by`, the key `id` matches against an `:id` attribute on the model only. It does not resolve to the full composite primary key the way `find` does. On a model like `Product` where `:id` is not the primary key, `find_by(id:)` will only match on the `id` column, ignoring `store_id`. So use `find` when you want to look up a record by its full composite primary key. See the [Active Record Querying](active_record_querying.html#conditions-with-id) guide for more detail.
 
 Associations between Models with Composite Primary Keys
 -------------------------------------------------------
@@ -343,8 +345,8 @@ you must use the `composite_identify` method:
 
 ```ruby
 class BookOrder < ApplicationRecord
-  self.primary_key = [:shop_id, :id]
-  belongs_to :order, foreign_key: [:shop_id, :order_id]
+  self.primary_key = [:store_id, :id]
+  belongs_to :order, foreign_key: [:store_id, :order_id]
   belongs_to :book, foreign_key: [:author_id, :book_id]
 end
 ```
