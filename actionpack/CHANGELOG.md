@@ -1,3 +1,32 @@
+*   Add `ActionController::Parameters#deep_transform_values` and `deep_transform_values!`.
+
+    Mirrors the existing `deep_transform_keys` / `deep_transform_keys!` pair,
+    and matches `Hash#deep_transform_values` from Active Support. The block is
+    yielded only for leaf values; nested hashes, arrays, and `Parameters`
+    instances are traversed automatically. The returned instance carries the
+    same `permitted?` status as the receiver.
+
+    Previously, transforming every nested value required dropping out of the
+    strong-parameters guardrails:
+
+    ```ruby
+    params.to_unsafe_h.deep_transform_values { |v| v.is_a?(String) ? v.strip : v }
+    ```
+
+    With this addition, the same transformation keeps the result inside
+    `ActionController::Parameters`, so it still has to be filtered through
+    `permit` / `expect` before mass assignment:
+
+    ```ruby
+    params = ActionController::Parameters.new(
+      user: { email: "  ALICE@EXAMPLE.COM  ", profile: { bio: "  Hello world  " } }
+    )
+    params.deep_transform_values { |v| v.is_a?(String) ? v.strip.downcase : v }
+    # => #<ActionController::Parameters {"user"=>#<ActionController::Parameters {"email"=>"alice@example.com", "profile"=>#<ActionController::Parameters {"bio"=>"hello world"} permitted: false>} permitted: false>} permitted: false>
+    ```
+
+    *Edil Talantbek uulu*
+
 *   Serve static CSS and HTML files with `charset=utf-8` in the Content-Type header.
 
     Static CSS and HTML files served by `ActionDispatch::Static` now include
