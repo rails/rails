@@ -7,10 +7,9 @@ require "arel/collectors/sql_string"
 module Arel
   module Collectors
     class TestSubstituteBindCollector < Arel::Test
-      def setup
+      setup do
         @conn = FakeRecord::Base.new
         @visitor = Visitors::ToSql.new @conn.lease_connection
-        super
       end
 
       def ast_with_binds
