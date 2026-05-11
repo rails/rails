@@ -165,6 +165,13 @@ module ActiveJob
   #   step :quick_step2
   #   step :quick_step3
   #
+  # === Persisting State Across Steps with \Attributes
+  #
+  # Steps store serialized progress but they do not persist any other state. For multi-step jobs where you need to use
+  # the results of one step in a later step, you can use +ActiveJob::Attributes+ to persist this state. This module is
+  # already included in +ActiveJob::Continuable+, so you can declare attributes on your job and they will be
+  # automatically serialized when the job is interrupted, and restored when the job resumes.
+  #
   # === Errors
   #
   # If a job raises an error and is not retried via Active Job, it will be passed back to the underlying
