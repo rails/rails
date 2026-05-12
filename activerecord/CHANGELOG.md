@@ -54,7 +54,6 @@
 
     *Bruno Vicenzo*
 
-
 *   Bump the minimum PostgreSQL version to 10.0.
 
     As part of this change, `supports_pgcrypto_uuid?` is deprecated because
@@ -62,7 +61,6 @@
     below the new 10.0 minimum.
 
     *Yasuo Honda*
-
 
 *   Let `add_column` raise `ArgumentError` if `:null` is set to a true value
     when defining a primary key.
@@ -72,7 +70,6 @@
     We should rather raise to let the user know the call is invalid.
 
     *Xavier Noria*
-
 
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
