@@ -779,7 +779,7 @@ module ActiveRecord
       # it uses the file value.
 
       def read_fixture_files(path)
-        yaml_files = Dir["#{path}{.yml,/{**,*}/*.yml}"].select { |f|
+        yaml_files = Dir["#{path}{.yml,/**/*.yml}"].select { |f|
           ::File.file?(f)
         }
 
