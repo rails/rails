@@ -537,10 +537,19 @@ module ActiveRecord
     MAX_ID = 2**30 - 1
 
     @@all_cached_fixtures = Hash.new { |h, k| h[k] = {} }
+    @@parsing_cache ||= {}
 
     cattr_accessor :all_loaded_fixtures, default: {}
 
     class << self
+      def without_parsing_cache
+        parsing_cache_was = @@parsing_cache
+        @@parsing_cache = {}
+        yield
+      ensure
+        @@parsing_cache = parsing_cache_was
+      end
+
       def default_fixture_model_name(fixture_set_name, config = ActiveRecord::Base) # :nodoc:
         config.pluralize_table_names ?
           fixture_set_name.singularize.camelize :
@@ -770,7 +779,7 @@ module ActiveRecord
               []
             end
 
-        @ignored_fixtures << "DEFAULTS" unless @ignored_fixtures.include?("DEFAULTS")
+        @ignored_fixtures += ["DEFAULTS"] unless @ignored_fixtures.include?("DEFAULTS")
         @ignored_fixtures.compact
       end
 
@@ -786,13 +795,12 @@ module ActiveRecord
         raise ArgumentError, "No fixture files found for #{@name}" if yaml_files.empty?
 
         yaml_files.each_with_object({}) do |file, fixtures|
-          FixtureSet::File.open(file) do |fh|
-            self.model_class ||= fh.model_class if fh.model_class
-            self.model_class ||= default_fixture_model_class
-            self.ignored_fixtures ||= fh.ignored_fixtures
-            fh.each do |fixture_name, row|
-              fixtures[fixture_name] = ActiveRecord::Fixture.new(row, model_class)
-            end
+          fh = (@@parsing_cache[file] ||= FixtureSet::File.open(file))
+          self.model_class ||= fh.model_class if fh.model_class
+          self.model_class ||= default_fixture_model_class
+          self.ignored_fixtures ||= fh.ignored_fixtures
+          fh.each do |fixture_name, row|
+            fixtures[fixture_name] = ActiveRecord::Fixture.new(row.dup, model_class)
           end
         end
       end
