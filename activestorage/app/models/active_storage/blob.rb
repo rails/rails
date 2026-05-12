@@ -185,6 +185,23 @@ class ActiveStorage::Blob < ActiveStorage::Record
   include Representable
   include Servable
 
+  ##
+  # :method: content_type
+  #
+  # Returns the content type of the associated file:
+  #
+  #   ActiveStorage::Blob.first.content_type
+  #   => "image/png"
+
+  ##
+  # :method: metadata
+  #
+  # Returns a Hash of metadata extracted from the associated file.
+  # ActiveStorage also stores whether the file has been identified and analyzed:
+  #
+  #   ActiveStorage::Blob.first.metadata
+  #   => {"identified" => true, "width" => 763, "height" => 588, "analyzed" => true}
+
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
   def signed_id(purpose: :blob_id, expires_in: nil, expires_at: nil)
     super
