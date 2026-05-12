@@ -1,3 +1,13 @@
+*   Add `start_day` argument to `this_week?` for consistency with `all_week`
+
+    `this_week?` now accepts an optional `start_day` argument, matching the
+    existing interface of `all_week`, `beginning_of_week`, and `end_of_week`.
+
+        date.this_week?              # Uses Date.beginning_of_week (default)
+        date.this_week?(:sunday)     # Checks against Sun-Sat week
+
+    *Kenta Ishizaki*
+
 *   Add `delete: true` option to `Rails.cache.read` for atomic read-and-delete (only supported by Redis cache store).
 
     Uses the Redis [GETDEL](https://redis.io/docs/latest/commands/getdel/) command to atomically return a cached value and remove
