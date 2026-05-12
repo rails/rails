@@ -129,6 +129,52 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_schema "referential_integrity_test_schema", if_exists: true
   end
 
+  def test_disable_referential_integrity_with_duplicate_table_names_in_search_path
+    first_schema  = "first_referential_integrity_test_schema"
+    second_schema = "second_referential_integrity_test_schema"
+    missing_fk_id = 123_456_789
+
+    @connection.execute <<~SQL
+      CREATE SCHEMA #{first_schema};
+      CREATE SCHEMA #{second_schema};
+
+      -- same names in both schemas to create ambiguity in search_path lookups
+      CREATE TABLE #{first_schema}.foo (id bigserial PRIMARY KEY);
+      CREATE TABLE #{second_schema}.foo (id bigserial PRIMARY KEY);
+
+      CREATE TABLE #{first_schema}.bar (id bigserial PRIMARY KEY, foo_id bigint);
+      CREATE TABLE #{second_schema}.bar (
+        id bigserial PRIMARY KEY,
+        foo_id bigint NOT NULL,
+        CONSTRAINT fk_bar_foo FOREIGN KEY (foo_id) REFERENCES #{second_schema}.foo(id)
+      );
+
+      SET search_path TO #{first_schema}, #{second_schema};
+    SQL
+
+    assert_raises(ActiveRecord::InvalidForeignKey) do
+      @connection.transaction(requires_new: true) do
+        @connection.execute("INSERT INTO #{second_schema}.bar (foo_id) VALUES (#{missing_fk_id})")
+      end
+    end
+
+    # This must succeed only if Rails disables triggers on BOTH "#{first_schema}.bar" and "#{second_schema}.bar".
+    @connection.disable_referential_integrity do
+      @connection.execute("INSERT INTO #{second_schema}.bar (foo_id) VALUES (#{missing_fk_id})")
+      @connection.execute("DELETE FROM #{second_schema}.bar WHERE foo_id = #{missing_fk_id}")
+    end
+
+    assert_raises(ActiveRecord::InvalidForeignKey) do
+      @connection.transaction(requires_new: true) do
+        @connection.execute("INSERT INTO #{second_schema}.bar (foo_id) VALUES (#{missing_fk_id})")
+      end
+    end
+  ensure
+    @connection.execute("SET search_path TO public")
+    @connection.drop_schema first_schema,  if_exists: true, cascade: true
+    @connection.drop_schema second_schema, if_exists: true, cascade: true
+  end
+
   private
     def assert_transaction_is_not_broken
       assert_equal 1, @connection.select_value("SELECT 1")
