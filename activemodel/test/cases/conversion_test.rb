@@ -62,6 +62,21 @@ class ConversionTest < ActiveModel::TestCase
     assert_equal "attack_helicopters/ah-64", Helicopter::Apache.new.to_partial_path
   end
 
+  test "#render_in defaults to rendering a partial with the object" do
+    contact = Contact.new
+    view_context = Object.new
+    def view_context.render(**options, &block)
+      [options, block.call]
+    end
+
+    options, rendered = contact.render_in(view_context, locals: { size: "small" }) { "block" }
+
+    assert_equal contact.to_partial_path, options[:partial]
+    assert_equal contact, options[:object]
+    assert_equal "small", options.dig(:locals, :size)
+    assert_equal "block", rendered
+  end
+
   test "#to_param_delimiter allows redefining the delimiter used in #to_param" do
     old_delimiter = Contact.param_delimiter
     Contact.param_delimiter = "_"

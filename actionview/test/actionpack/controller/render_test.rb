@@ -592,6 +592,10 @@ class TestController < ActionController::Base
     render partial: "hash_greeting", collection: [ { first_name: "Pratik" }, { first_name: "Amy" } ], locals: { greeting: "Hola" }
   end
 
+  def renderable_hash
+    render renderable: Quiz::Question.new(params[:name])
+  end
+
   def partial_with_implicit_local_assignment
     @customer = Customer.new("Marcel")
     render partial: "customer"
@@ -725,6 +729,7 @@ class RenderTest < ActionController::TestCase
     get :partial_with_nested_object_shorthand, to: "test#partial_with_nested_object_shorthand"
     get :partial_with_hashlike_locals, to: "test#partial_with_hashlike_locals"
     get :partials_list, to: "test#partials_list"
+    get :renderable_hash, to: "test#renderable_hash"
     get :render_action_hello_world, to: "test#render_action_hello_world"
     get :render_action_hello_world_as_string, to: "test#render_action_hello_world_as_string"
     get :render_action_hello_world_with_symbol, to: "test#render_action_hello_world_with_symbol"
@@ -1501,6 +1506,11 @@ class RenderTest < ActionController::TestCase
   def test_partial_hash_collection_with_locals
     get :partial_hash_collection_with_locals
     assert_equal "Hola: PratikHola: Amy", @response.body
+  end
+
+  def test_renderable_hash
+    get :renderable_hash, params: { name: "Why?" }
+    assert_equal "Why?", @response.body
   end
 
   def test_render_missing_partial_template

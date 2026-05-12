@@ -104,6 +104,30 @@ module ActiveModel
       self.class._to_partial_path
     end
 
+    # Renders the object into an Action View context.
+    #
+    #   # app/models/person.rb
+    #   class Person
+    #     include ActiveModel::Conversion
+    #
+    #     attr_reader :name
+    #
+    #     def initialize(name)
+    #       @name = name
+    #     end
+    #   end
+    #
+    #   # app/views/people/_person.html.erb
+    #   <p><%= person.name %></p>
+    #
+    #   person = Person.new name: "Ralph"
+    #
+    #   render(person)              # => "<p>Ralph</p>
+    #   render(renderable: person)  # => "<p>Ralph</p>
+    def render_in(view_context, **options, &block)
+      view_context.render(partial: to_partial_path, object: self, **options, &block)
+    end
+
     module ClassMethods # :nodoc:
       # Provide a class level cache for #to_partial_path. This is an
       # internal method and should not be accessed directly.
