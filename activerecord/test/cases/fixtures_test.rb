@@ -605,7 +605,9 @@ class FixturesTest < ActiveRecord::TestCase
     db_url_tmp = ENV["DATABASE_URL"]
     ENV["DATABASE_URL"] = "sqlite3::memory:"
     ActiveRecord::Base.stub(:configurations, {}) do
-      test_case = Class.new(ActiveRecord::TestCase) do
+      test_case = Class.new(ActiveSupport::TestCase) do
+        include ActiveRecord::TestFixtures
+        self.fixture_paths = [File.expand_path("../../fixtures", __FILE__)]
         fixtures :accounts
 
         def test_fixtures
@@ -628,7 +630,9 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_fixture_method_does_not_clash_with_a_test_case_method
-    test_case = Class.new(ActiveRecord::TestCase) do
+    test_case = Class.new(ActiveSupport::TestCase) do
+      include ActiveRecord::TestFixtures
+      self.fixture_paths = [File.expand_path("../../fixtures", __FILE__)]
       fixtures :accounts
 
       def test_fixtures
