@@ -1565,7 +1565,7 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     relation.stub(:find_by, find_by_mock) do
-      relation.stub(:find_by!, find_by_mock) do # create_or_find_by always call find_by! on retry
+      relation.stub(:take!, find_by_mock) do # create_or_find_by calls take! on retry (via rewhere)
         assert_equal bob, relation.find_or_create_by(nick: "bob")
       end
     end
@@ -1705,6 +1705,24 @@ class RelationTest < ActiveRecord::TestCase
     Subscriber.transaction do
       assert_equal subscriber, Subscriber.create_or_find_by!(nick: "bob")
       assert_not_equal subscriber, Subscriber.create_or_find_by!(nick: "cat")
+    end
+  end
+
+  def test_create_or_find_by_with_polluted_scope
+    subscriber = Subscriber.create!(nick: "bob")
+    scoped_relation = Subscriber.where(nick: "irvan")
+
+    Subscriber.transaction do
+      assert_equal subscriber, scoped_relation.create_or_find_by(nick: "bob")
+    end
+  end
+
+  def test_create_or_find_by_bang_with_polluted_scope
+    subscriber = Subscriber.create!(nick: "bob")
+    scoped_relation = Subscriber.where(nick: "irvan")
+
+    Subscriber.transaction do
+      assert_equal subscriber, scoped_relation.create_or_find_by!(nick: "bob")
     end
   end
 

@@ -280,7 +280,7 @@ module ActiveRecord
         record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
-          where(attributes).lock.find_by!(attributes)
+          rewhere(attributes).lock.take!
         else
           find_by!(attributes)
         end
@@ -300,7 +300,7 @@ module ActiveRecord
         record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
-          where(attributes).lock.find_by!(attributes)
+          rewhere(attributes).lock.take!
         else
           find_by!(attributes)
         end
