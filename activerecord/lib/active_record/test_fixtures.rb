@@ -140,7 +140,8 @@ module ActiveRecord
 
         if run_in_transaction?
           # Load fixtures once and begin transaction.
-          unless (@loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key])
+          @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key]
+          unless @loaded_fixtures
             invalidate_already_loaded_fixtures
             @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key] = load_fixtures(config)
           end
