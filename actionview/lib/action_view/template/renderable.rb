@@ -14,7 +14,9 @@ module ActionView
       end
 
       def render(context, locals)
-        if @renderable.method(:render_in).arity == 1
+        render_in_method = Kernel.instance_method(:method).bind_call(@renderable, :render_in)
+
+        if render_in_method.arity == 1
           ActionView.deprecator.warn <<~WARN
             Action View support for #render_in without options is deprecated.
 
