@@ -9,7 +9,7 @@ Rails generators and application templates are useful tools that can improve you
 * How to create a custom generator using templates.
 * How Rails searches for generators before invoking them.
 * How to customize Rails scaffolding by overriding generators and templates.
-* How to configure fallbacks to override only specific generators.
+* How to configure fallbacks to override specific generators.
 * How to use templates to create/customize Rails applications.
 * How to use the Rails Template API to write your own reusable application templates.
 
@@ -18,7 +18,7 @@ Rails generators and application templates are useful tools that can improve you
 What are Generators?
 --------------------
 
-When you create an application using the `rails` command, you are in fact using
+When you create an application using the `rails new` command, you are in fact using
 a Rails generator. Generators create specific files for your application to
 automate generating boilerplate code. You can get a list of all available
 generators by invoking `bin/rails generate` from within any Rails application:
@@ -139,7 +139,7 @@ To invoke our new generator, we run:
 $ bin/rails generate initializer
 ```
 
-This will create and empty file named `hello_generator.rb` within the `config/initializers` folder.
+This will create an empty file named `hello_generator.rb` within the `config/initializers` folder.
 
 Before we go on, let's check the description of our new generator:
 
