@@ -3,7 +3,7 @@
 # Finds a representation by a +signed_id+ and a +variation_key+, and redirects to a representation's expiring
 # service URL.
 #
-# The +signed_id+s make URLs hard to guess but permanent by design, allowing the URLs to be cached.
+# The <tt>signed_id</tt>s make URLs hard to guess but permanent by design, allowing the URLs to be cached.
 #
 # The URLs created for this controller are set to never expire by default.
 # To make URLs expire, pass the +expires_in+ option when generating the URL:
