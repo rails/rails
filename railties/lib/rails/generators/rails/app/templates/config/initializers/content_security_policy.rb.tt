@@ -26,4 +26,13 @@
 #
 #   # Report violations without enforcing the policy.
 #   # config.content_security_policy_report_only = true
+#
+#   # Define an application-wide permissions policy.
+#   # config.permissions_policy do |policy|
+#   #   policy.camera      :none
+#   #   policy.gyroscope   :none
+#   #   policy.microphone  :none
+#   #   policy.usb         :none
+#   #   policy.fullscreen  :self
+#   # end
 # end
