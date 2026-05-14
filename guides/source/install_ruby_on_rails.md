@@ -107,7 +107,7 @@ Once Ruby is installed, you can verify it works by running:
 
 ```bash
 $ ruby --version
-ruby 3.3.6
+ruby 3.4.9
 ```
 
 Installing Rails
@@ -125,7 +125,7 @@ To verify that Rails is installed correctly, run the following and you should se
 
 ```bash
 $ rails --version
-Rails 8.0.0
+Rails 8.1.3
 ```
 
 NOTE: If the `rails` command is not found, try restarting your terminal.
