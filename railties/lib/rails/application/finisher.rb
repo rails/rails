@@ -147,9 +147,13 @@ module Rails
             get ".well-known/appspecific/com.chrome.devtools.json" => "rails/devtools#show",      internal: true
           end
 
+          welcome_route_appended = false
           routes_reloader.run_after_load_paths = -> do
-            app.routes.append do
-              get "/" => "rails/welcome#index", internal: true
+            unless welcome_route_appended
+              app.routes.append do
+                get "/" => "rails/welcome#index", internal: true
+              end
+              welcome_route_appended = true
             end
           end
         end
