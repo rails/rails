@@ -1,3 +1,8 @@
+*   Deprecated `ActiveRecord::ConnectionAdapters::Column#auto_populated?` in favor of
+    `auto_populated_on_insert?`
+
+    *Rafael Mendonça França*
+
 *   Reload virtual columns on update in PostgreSQL
 
     Automatically reload virtual columns on `update` when using PostgreSQL. This is done by issuing a single
