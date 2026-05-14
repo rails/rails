@@ -223,10 +223,18 @@ class ActiveStorage::Blob < ActiveStorage::Record
     ActiveStorage::Filename.new(self[:filename])
   end
 
+  # Returns a Hash of the custom metadata to be stored on the cloud storage provider.
   def custom_metadata
     self[:metadata][:custom] || {}
   end
 
+  # Sets custom metadata to be stored on the cloud storage provider.
+  # Keys should not contain the cloud storage provider prefix as these get added automatically.
+  #
+  #   blob = ActiveStorage::Blob.new
+  #   blob.custom_metadata = { optimized: true }
+  #   blob.service_headers_for_direct_upload["x-amz-meta-optimized"]
+  #   => true
   def custom_metadata=(metadata)
     self[:metadata] = self[:metadata].merge(custom: metadata)
   end
