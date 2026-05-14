@@ -36,7 +36,8 @@ routing large files through your Rails servers.
 
 Active Storage also supports a `Disk` service which uses the local filesystem by default.
 
-### Setup
+Setup
+-----
 
 Let's see Active Storage in action with an example of allowing users to upload a
 profile photo. First step is to install Active Storage:
@@ -736,7 +737,7 @@ Removing Files
 To remove an attachment from a model, call [`purge`][Attached::One#purge] on the
 attachment. If your application is set up to use Active Job, removal can be done
 in the background instead by calling [`purge_later`][Attached::One#purge_later].
-Purging deletes the blob and the file from the storage service.
+Purging destroys the attachment record. If the blob has no more attachments it gets destroyed as well and the file is deleted from the storage service.
 
 ```ruby
 # Removes the profile_photo
@@ -777,9 +778,10 @@ Analyzing Files For Metadata
 ----------------------------
 
 Active Storage analyzes files to extract metadata like image dimensions, video
-duration, and audio bit rate. Analyzed files will store additional information
-in the metadata hash, including `analyzed: true`. You can check whether a blob
-has been analyzed by calling the [`analyzed?`][] method on it.
+duration, and audio bit rate.  Once a file has been analyzed, the metadata is stored in the
+`active_storage_blobs` table and can be viewed with
+the [`metadata`][] method :
+
 
 ```irb
 > user.profile_photo.analyzed?
