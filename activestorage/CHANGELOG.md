@@ -1,3 +1,11 @@
+*   Implement `attach!` as a bang counterpart to `attach`.
+
+    This method raises an exception if the attachment was not saved, similar
+    to how `save!` raises an exception if an Active Record object is found to
+    be invalid prior to be persisted.
+
+    *Quentin de Metz*
+
 *   Correct unexpected behavior resulting from dependent: :purge when using
     has_one_attached or has_many_attached. Fixes #36423.
 
