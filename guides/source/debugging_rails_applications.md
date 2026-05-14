@@ -899,7 +899,7 @@ application. Here is a list of useful plugins for debugging:
 
 * [Query Trace](https://github.com/ruckus/active-record-query-trace/tree/master) Adds query
   origin tracing to your logs.
-* [Exception Notifier](https://github.com/smartinez87/exception_notification/tree/master)
+* [Exception Notifier](https://github.com/kmcphillips/exception_notification/tree/main)
   Provides a mailer object and a default set of templates for sending email
   notifications when errors occur in a Rails application.
 * [Better Errors](https://github.com/charliesome/better_errors) Replaces the
