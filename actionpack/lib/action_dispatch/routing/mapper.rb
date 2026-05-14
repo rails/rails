@@ -1042,7 +1042,7 @@ module ActionDispatch
           @scope = @scope.parent
         end
 
-        POISON = Object.new # :nodoc:
+        POISON = Object.new.freeze # :nodoc:
 
         # Scopes routes to a specific controller
         #
@@ -2525,7 +2525,7 @@ module ActionDispatch
         ROOT = Scope.new({}, nil)
       end
 
-      DEFAULT = Object.new # :nodoc:
+      DEFAULT = Object.new.freeze # :nodoc:
 
       def initialize(set) # :nodoc:
         @set = set

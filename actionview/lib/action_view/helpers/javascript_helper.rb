@@ -6,7 +6,7 @@ module ActionView
     module JavaScriptHelper
       mattr_accessor :auto_include_nonce
 
-      JS_ESCAPE_MAP = { # rubocop:disable Style/MutableConstant
+      JS_ESCAPE_MAP = {
         "\\"    => "\\\\",
         "</"    => '<\/',
         "\r\n"  => '\n',
@@ -15,11 +15,10 @@ module ActionView
         '"'     => '\\"',
         "'"     => "\\'",
         "`"     => "\\`",
-        "$"     => "\\$"
-      }
-
-      JS_ESCAPE_MAP[(+"\342\200\250").force_encoding(Encoding::UTF_8).encode!] = "&#x2028;"
-      JS_ESCAPE_MAP[(+"\342\200\251").force_encoding(Encoding::UTF_8).encode!] = "&#x2029;"
+        "$"     => "\\$",
+        (+"\342\200\250").force_encoding(Encoding::UTF_8).encode!.freeze => "&#x2028;",
+        (+"\342\200\251").force_encoding(Encoding::UTF_8).encode!.freeze => "&#x2029;"
+      }.freeze
 
       # Escapes carriage returns and single and double quotes for JavaScript segments.
       #
