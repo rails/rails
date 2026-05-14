@@ -86,6 +86,39 @@ class RateLimitedSharedFourController < RateLimitedSharedController
   end
 end
 
+class RateLimitedWithDynamicStoreController < ActionController::Base
+  self.cache_store = ActiveSupport::Cache::MemoryStore.new
+  rate_limit to: 2, within: 2.seconds, store: :store_for_request, only: :limited
+
+  def limited
+    head :ok
+  end
+
+  private
+
+  def store_for_request
+    params[:use_alternate_store] ?
+      ActiveSupport::Cache::MemoryStore.new :
+      self.class.cache_store
+  end
+end
+
+class RateLimitedWithCallableStoreController < ActionController::Base
+  self.cache_store = ActiveSupport::Cache::MemoryStore.new
+  rate_limit to: 2,
+             within: 2.seconds,
+             store: -> {
+               params[:use_alternate_store] ?
+                 ActiveSupport::Cache::MemoryStore.new :
+                 self.class.cache_store
+             },
+             only: :limited
+
+  def limited
+    head :ok
+  end
+end
+
 class RateLimitingTest < ActionController::TestCase
   tests RateLimitedController
 
@@ -269,5 +302,45 @@ class RateLimitingTest < ActionController::TestCase
     end
   ensure
     RateLimitedSharedController.cache_store.clear
+  end
+
+  test "dynamic store via method" do
+    @controller = RateLimitedWithDynamicStoreController.new
+    RateLimitedWithDynamicStoreController.cache_store.clear
+
+    get :limited
+    assert_response :ok
+    get :limited
+    assert_response :ok
+    assert_raises ActionController::TooManyRequests do
+      get :limited
+    end
+
+    get :limited, params: { use_alternate_store: "true" }
+    assert_response :ok
+    get :limited, params: { use_alternate_store: "true" }
+    assert_response :ok
+    get :limited, params: { use_alternate_store: "true" }
+    assert_response :ok
+  end
+
+  test "dynamic store via callable" do
+    @controller = RateLimitedWithCallableStoreController.new
+    RateLimitedWithCallableStoreController.cache_store.clear
+
+    get :limited
+    assert_response :ok
+    get :limited
+    assert_response :ok
+    assert_raises ActionController::TooManyRequests do
+      get :limited
+    end
+
+    get :limited, params: { use_alternate_store: "true" }
+    assert_response :ok
+    get :limited, params: { use_alternate_store: "true" }
+    assert_response :ok
+    get :limited, params: { use_alternate_store: "true" }
+    assert_response :ok
   end
 end

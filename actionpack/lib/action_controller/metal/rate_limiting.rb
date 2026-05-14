@@ -36,7 +36,9 @@ module ActionController # :nodoc:
       # `config.action_controller.cache_store`, which itself defaults to the global
       # `config.cache_store`. If you don't want to store rate limits in the same
       # datastore as your general caches, you can pass a custom store in the `store`
-      # parameter.
+      # parameter. Like `to:` and `within:`, it can also be a method name (as a symbol)
+      # or a callable that will be evaluated in the context of the controller
+      # processing the request.
       #
       # If you want to use multiple rate limits per controller, you need to give each of
       # them an explicit name via the `name:` option.
@@ -62,6 +64,7 @@ module ActionController # :nodoc:
       #       rate_limit to: 10, within: 3.minutes, store: RATE_LIMIT_STORE
       #       rate_limit to: 100, within: 5.minutes, scope: :api_global
       #       rate_limit to: :max_requests, within: :time_window, by: -> { current_user.id }
+      #       rate_limit to: 1000, within: 1.minute, store: :rate_store
       #
       #       private
       #         def max_requests
@@ -70,6 +73,10 @@ module ActionController # :nodoc:
       #
       #         def time_window
       #           current_user.premium? ? 1.hour : 1.minute
+      #         end
+      #
+      #         def rate_store
+      #           current_user.premium? ? RATE_LIMIT_STORE : ActiveSupport::Cache::MemoryStore.new
       #         end
       #     end
       #
@@ -91,6 +98,7 @@ module ActionController # :nodoc:
         by = by.is_a?(Symbol) ? send(by) : instance_exec(&by)
         to = to.is_a?(Symbol) ? send(to) : (to.respond_to?(:call) ? instance_exec(&to) : to)
         within = within.is_a?(Symbol) ? send(within) : (within.respond_to?(:call) ? instance_exec(&within) : within)
+        store = store.is_a?(Symbol) ? send(store) : (store.respond_to?(:call) ? instance_exec(&store) : store)
 
         cache_key = ["rate-limit", scope, name, by].compact.join(":")
         count = store.increment(cache_key, 1, expires_in: within)
