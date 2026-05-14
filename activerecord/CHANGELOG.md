@@ -1,3 +1,18 @@
+*   Reset the optimistic locking column when a transaction is rolled back.
+
+    Previously, when a record with optimistic locking was successfully saved
+    inside a transaction that later rolled back, the in-memory `lock_version`
+    was left at the incremented value while the database row was reverted to
+    the previous one. Saving the same instance again then raised
+    `ActiveRecord::StaleObjectError` because the WHERE clause used the
+    incremented value that no longer existed in the database.
+
+    The locking column is now restored from the snapshot taken at the start
+    of the transaction, so retrying a save on the same record after a
+    rollback works without an explicit `reload`.
+
+    *Kenta Ishizaki*
+
 *   Fix handling of expressions in array syntax for `add_index`.
 
     This change allows passing expressions in array syntax for `add_index` method.
