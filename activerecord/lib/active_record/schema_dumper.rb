@@ -335,6 +335,7 @@ module ActiveRecord
             parts << "on_delete: #{foreign_key.on_delete.inspect}" if foreign_key.on_delete
             parts << "deferrable: #{foreign_key.deferrable.inspect}" if foreign_key.deferrable
             parts << "validate: #{foreign_key.validate?.inspect}" unless foreign_key.validate?
+            parts << "enforced: #{foreign_key.enforced?.inspect}" unless foreign_key.enforced?
 
             "  add_foreign_key #{parts.join(', ')}"
           end
