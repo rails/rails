@@ -1902,7 +1902,7 @@ module ActiveRecord
       def build_select(arel)
         if select_values.any?
           arel.project(*arel_columns(select_values))
-        elsif model.ignored_columns.any? || model.enumerate_columns_in_select_statements
+        elsif model.ignored_columns.any? || model.enumerate_columns_in_select_statements || model.only_columns.any?
           arel.project(*model.column_names.map { |field| table[field] })
         else
           arel.project(table[Arel.star])

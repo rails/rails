@@ -1910,6 +1910,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert query.include?("name")
   end
 
+  test "only columns are enumerated in SELECT" do
+    query = OnlyColumnsDeveloper.all.to_sql.downcase
+
+    # not in only_columns
+    assert_not query.include?("first_name")
+
+    # in only_columns
+    assert query.include?("name")
+  end
+
   test "column names are quoted when using #from clause and model has ignored columns" do
     assert_not_empty Developer.ignored_columns
     query = Developer.from("developers").to_sql
