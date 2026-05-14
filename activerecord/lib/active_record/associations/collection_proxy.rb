@@ -726,6 +726,10 @@ module ActiveRecord
       end
 
       def pluck(*column_names)
+        if proxy_association.violates_strict_loading?
+          Base.strict_loading_violation!(owner: proxy_association.owner.class, reflection: proxy_association.reflection)
+        end
+
         null_scope? ? scope.pluck(*column_names) : super
       end
 

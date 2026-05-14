@@ -1,3 +1,7 @@
+*   Fix `strict_loading` violations ignored when using `pluck`
+
+    *Johnson Chan*
+
 *   Fix incorrect callback execution order when `config.active_record.run_after_transaction_callbacks_in_order_defined = true`
     and using `after_commit` and `after_rollback` callbacks with `prepend: true`.
 
