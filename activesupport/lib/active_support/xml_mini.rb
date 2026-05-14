@@ -52,6 +52,7 @@ module ActiveSupport
       }
     end
     TYPE_NAMES["ActiveSupport::TimeWithZone"] = TYPE_NAMES["Time"]
+    TYPE_NAMES.freeze
 
     FORMATTING = {
       "symbol"   => Proc.new { |symbol| symbol.to_s },

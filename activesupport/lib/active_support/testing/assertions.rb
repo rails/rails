@@ -5,7 +5,7 @@ require "active_support/core_ext/enumerable"
 module ActiveSupport
   module Testing
     module Assertions
-      UNTRACKED = Object.new # :nodoc:
+      UNTRACKED = Object.new.freeze # :nodoc:
 
       # Asserts that an expression is not truthy. Passes if +object+ is +nil+ or
       # +false+. "Truthy" means "considered true in a conditional" like <tt>if

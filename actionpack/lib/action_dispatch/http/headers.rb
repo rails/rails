@@ -79,7 +79,7 @@ module ActionDispatch
       end
       alias :include? :key?
 
-      DEFAULT = Object.new # :nodoc:
+      DEFAULT = Object.new.freeze # :nodoc:
 
       # Returns the value for the given key mapped to @env.
       #

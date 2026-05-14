@@ -768,7 +768,7 @@ module ActiveRecord
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
                                      :includes, :eager_load, :preload, :from, :readonly,
-                                     :having, :optimizer_hints, :with])
+                                     :having, :optimizer_hints, :with]).freeze
 
     # Removes an unwanted relation that is already defined on a chain of relations.
     # This is useful when passing around chains of relations and would like to
@@ -2072,8 +2072,8 @@ module ActiveRecord
         arel.order(*orders) unless orders.empty?
       end
 
-      VALID_DIRECTIONS = [:asc, :desc, :ASC, :DESC,
-                          "asc", "desc", "ASC", "DESC"].to_set # :nodoc:
+      VALID_DIRECTIONS = Set.new([:asc, :desc, :ASC, :DESC,
+                          "asc", "desc", "ASC", "DESC"]).freeze # :nodoc:
 
       def validate_order_args(args)
         args.each do |arg|

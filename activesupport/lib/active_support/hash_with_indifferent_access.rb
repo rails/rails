@@ -349,7 +349,7 @@ module ActiveSupport
       dup.tap { |hash| hash.transform_values!(&block) }
     end
 
-    NOT_GIVEN = Object.new # :nodoc:
+    NOT_GIVEN = Object.new.freeze # :nodoc:
 
     def transform_keys(hash = NOT_GIVEN, &block)
       if NOT_GIVEN.equal?(hash)
