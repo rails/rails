@@ -95,12 +95,11 @@ class RateLimitedWithDynamicStoreController < ActionController::Base
   end
 
   private
-
-  def store_for_request
-    params[:use_alternate_store] ?
-      ActiveSupport::Cache::MemoryStore.new :
-      self.class.cache_store
-  end
+    def store_for_request
+      params[:use_alternate_store] ?
+        ActiveSupport::Cache::MemoryStore.new :
+        self.class.cache_store
+    end
 end
 
 class RateLimitedWithCallableStoreController < ActionController::Base

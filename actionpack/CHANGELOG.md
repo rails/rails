@@ -9,7 +9,7 @@
       rate_limit to: 1000, within: 1.minute, store: :rate_store
 
       private
-      
+
       def rate_store
         current_user.premium? ? premium_cache : default_cache
       end
