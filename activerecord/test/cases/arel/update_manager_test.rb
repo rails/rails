@@ -159,6 +159,34 @@ module Arel
       assert_equal table[:foo], um.key
     end
 
+    test "#returning accepts a returning clause" do
+      users   = Table.new :users
+      manager = Arel::UpdateManager.new
+      manager.table users
+      manager.returning Arel.star
+
+      assert_like %{
+          UPDATE "users" RETURNING *
+        }, manager.to_sql
+    end
+
+    test "#returning accepts multiple values as returning clause" do
+      users   = Table.new :users
+      manager = Arel::UpdateManager.new
+      manager.table users
+      manager.returning Arel.star
+      manager.returning [users[:id], users[:name]]
+
+      assert_like %{
+          UPDATE "users" RETURNING *, "users"."id", "users"."name"
+        }, manager.to_sql
+    end
+
+    test "#returning chains" do
+      manager = Arel::UpdateManager.new
+      assert_equal manager, manager.returning(Arel.star)
+    end
+
     private
       def build_manager(table = nil)
         Arel::UpdateManager.new(table)

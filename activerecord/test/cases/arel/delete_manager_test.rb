@@ -44,6 +44,35 @@ module Arel
       assert_equal dm, dm.where(table[:id].eq(10))
     end
 
+    test "#returning accepts a returning clause" do
+      users   = Table.new :users
+      manager = Arel::DeleteManager.new
+      manager.from users
+      manager.returning Arel.star
+
+      assert_like %{
+        DELETE FROM "users" RETURNING *
+      }, manager.to_sql
+    end
+
+    test "#returning accepts multiple values as returning clause" do
+      users   = Table.new :users
+      manager = Arel::DeleteManager.new
+      manager.from users
+      manager.returning Arel.star
+      manager.returning [users[:id], users[:name]]
+
+      assert_like %{
+        DELETE FROM "users" RETURNING *, "users"."id", "users"."name"
+      }, manager.to_sql
+    end
+
+    test "#returning chains" do
+      manager = Arel::UpdateManager.new
+
+      assert_equal manager, manager.returning(Arel.star)
+    end
+
     private
       def build_manager(table = nil)
         Arel::DeleteManager.new(table)
