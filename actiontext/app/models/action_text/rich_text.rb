@@ -39,7 +39,7 @@ module ActionText
     cattr_accessor :editors, instance_accessor: false, default: {}.freeze
     cattr_accessor :editor, instance_accessor: false
 
-    serialize :body, coder: ActionText::Content
+    serialize :body, coder: ActionText::Content, comparable: true
     delegate :to_s, :nil?, to: :body
 
     ##

@@ -81,6 +81,16 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_equal "Hello world", message.content.to_plain_text
   end
 
+  test "content stored with equivalent html entities is not dirty after load" do
+    message = Message.create!(subject: "Greetings", content: "Hello world")
+    html = "<div>Test with non-breaking space: \u00A0</div>"
+
+    # Bypass type serialization to reproduce rich text records written by older Rails versions.
+    ActionText::RichText.where(id: message.content.id).update_all(["body = ?", html])
+
+    assert_not_predicate Message.find(message.id).content, :body_changed?
+  end
+
   test "duplicating content" do
     message = Message.create!(subject: "Greetings", content: "<b>Hello!</b>")
     other_message = Message.create!(subject: "Greetings", content: message.content)

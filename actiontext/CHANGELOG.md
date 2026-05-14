@@ -1,3 +1,10 @@
+*   Avoid marking unchanged rich text bodies as dirty when stored HTML contains
+    equivalent entity representations.
+
+    Fixes #54812.
+
+    *Andrii Furmanets*
+
 *   Support block children in editor elements alongside value.
 
     Blocks were introduced in #55827, but only as an alternative to the value
