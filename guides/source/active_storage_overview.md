@@ -1415,36 +1415,42 @@ signed IDs, without requiring extra backend configuration.
 There are several ways to include the Active Storage JavaScript library in your
 application:
 
-1. Directly via `javascript_include_tag` - include the library in your HTML
-   without bundling through the asset pipeline. Autostart is enabled
-   automatically:
+#### `javascript_include_tag`
 
-   ```erb
-   <%= javascript_include_tag "activestorage" %>
-   ```
+Use `javascript_include_tag` to include the library in your HTML
+without bundling through the asset pipeline. Autostart is enabled
+automatically:
 
-2. Using Importmap (ESM) - pin the library in `config/importmap.rb`:
+```erb
+<%= javascript_include_tag "activestorage" %>
+```
 
-   ```ruby
-   pin "@rails/activestorage", to: "activestorage.esm.js"
-   ```
+#### Importmaps
 
-   Then import and start it in your HTML:
+Use Importmap (ESM) to pin the library in `config/importmap.rb`:
 
-   ```html
-   <script type="module-shim">
-     import * as ActiveStorage from "@rails/activestorage"
-     ActiveStorage.start()
-   </script>
-   ```
+```ruby
+pin "@rails/activestorage", to: "activestorage.esm.js"
+```
 
-3. Using the npm package - install via npm/yarn and import it in your JavaScript
-   bundle:
+Then import and start it in your HTML:
 
-   ```js
-   import * as ActiveStorage from "@rails/activestorage"
-   ActiveStorage.start()
-   ```
+```html
+<script type="module-shim">
+  import * as ActiveStorage from "@rails/activestorage"
+  ActiveStorage.start()
+</script>
+```
+
+#### npm package
+
+Install the npm package via npm/yarn and import it in your JavaScript
+bundle:
+
+```js
+import * as ActiveStorage from "@rails/activestorage"
+ActiveStorage.start()
+```
 
 All of these approaches provide the same functionality; choose the one that
 matches your application’s JavaScript setup.
