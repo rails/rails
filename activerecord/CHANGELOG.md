@@ -2,6 +2,25 @@
     scoped relation with conflicting attribute conditions inside a transaction.
 
     *Irvan Eksa Mahendra*
+*   Fix handling of expressions in array syntax for `add_index`.
+
+    This change allows passing expressions in array syntax for `add_index` method.
+    For example, `add_index :users, [ "lower(email)" ]` now works the same as
+    `add_index :users, "lower(email)"`.
+
+    ```ruby
+    # This now works properly:
+    add_index :users, [ "lower(email)" ]
+
+    # As does this:
+    add_index :users, [ "lower(email)", :status ]
+    ```
+
+    *Alexandre Camillo*
+
+*   Fix `strict_loading` violations ignored when using `pluck`
+
+    *Johnson Chan*
 
 *   Move the defaulting of `prevent_writes` to `true` when using the `reading` role into the parameters
     of the role switching methods, and raise an `ArgumentError` if `prevent_writes: false` is provided

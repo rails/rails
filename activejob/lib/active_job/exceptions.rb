@@ -167,7 +167,7 @@ module ActiveJob
     end
 
     private
-      JITTER_DEFAULT = Object.new
+      JITTER_DEFAULT = Object.new.freeze
       private_constant :JITTER_DEFAULT
 
       def determine_delay(seconds_or_duration_or_algorithm:, executions:, error: nil, jitter: JITTER_DEFAULT)

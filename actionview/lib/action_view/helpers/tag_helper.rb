@@ -44,6 +44,7 @@ module ActionView
       PRE_CONTENT_STRINGS             = Hash.new { "" }
       PRE_CONTENT_STRINGS[:textarea]  = "\n"
       PRE_CONTENT_STRINGS["textarea"] = "\n"
+      PRE_CONTENT_STRINGS.freeze
 
       # = Action View Tag Builder
       #

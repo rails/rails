@@ -62,7 +62,7 @@ module ActiveRecord
     CLAUSE_METHODS = [:where, :having, :from].freeze
     INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive].freeze
 
-    VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
+    VALUE_METHODS = (MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS).freeze
 
     include Enumerable
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation

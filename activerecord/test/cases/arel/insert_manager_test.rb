@@ -233,6 +233,34 @@ module Arel
       }, manager.to_sql
     end
 
+    test "#returning accepts a returning clause" do
+      users   = Table.new :users
+      manager = Arel::InsertManager.new
+      manager.into users
+      manager.returning Arel.star
+
+      assert_like %{
+        INSERT INTO "users" RETURNING *
+      }, manager.to_sql
+    end
+
+    test "#returning accepts multiple values as returning clause" do
+      users   = Table.new :users
+      manager = Arel::InsertManager.new
+      manager.into users
+      manager.returning Arel.star
+      manager.returning [users[:id], users[:name]]
+
+      assert_like %{
+        INSERT INTO "users" RETURNING *, "users"."id", "users"."name"
+      }, manager.to_sql
+    end
+
+    test "#returning chains" do
+      manager = Arel::InsertManager.new
+      assert_equal manager, manager.returning(Arel.star)
+    end
+
     private
       def build_manager(table = nil)
         Arel::InsertManager.new(table)

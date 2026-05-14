@@ -429,6 +429,22 @@ module RenderTestCases
     end
   end
 
+  def test_render_renderable_object_with_method_reader
+    renderable = Class.new do
+      attr_reader :method
+
+      def initialize
+        @method = :get
+      end
+
+      def render_in(view_context, **options)
+        view_context.render plain: "Hello, #{options[:locals][:name]} with #{method}!"
+      end
+    end.new
+
+    assert_equal "Hello, Renderable with get!", @view.render(renderable, name: "Renderable")
+  end
+
   def test_render_renderable_render_in
     assert_equal "Hello, World!", @view.render(TestRenderable.new)
     assert_equal "Hello, World!", @view.render(renderable: TestRenderable.new)
