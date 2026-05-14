@@ -1363,6 +1363,66 @@ module ActiveRecord
         conn.disconnect! if conn
       end
 
+      def test_alter_table_inside_transaction_preserves_cascade_fk_data
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :users do |t|
+          t.string :email
+          t.string :name
+        end
+
+        conn.create_table :payments do |t|
+          t.references :user, null: false, foreign_key: { on_delete: :cascade }
+          t.integer :amount, default: 0, null: false
+        end
+
+        conn.execute("INSERT INTO users (id, email, name) VALUES (1, 'a@e.com', 'A')")
+        conn.execute("INSERT INTO users (id, email, name) VALUES (2, 'b@e.com', 'B')")
+
+        conn.execute("INSERT INTO payments (id, user_id, amount) VALUES (1, 1, 100)")
+        conn.execute("INSERT INTO payments (id, user_id, amount) VALUES (2, 2, 200)")
+        conn.execute("INSERT INTO payments (id, user_id, amount) VALUES (3, 2, 300)")
+
+        conn.transaction do
+          conn.execute("DELETE FROM users WHERE id = 1")
+          conn.remove_column :users, :name
+          conn.rename_column :users, :email, :email2
+        end
+
+        assert_equal 1, conn.select_value("SELECT COUNT(*) FROM users")
+        assert_equal 2, conn.select_value("SELECT COUNT(*) FROM payments"),
+          "Payments were CASCADE-deleted during column alteration inside transaction"
+      ensure
+        conn.disconnect! if conn
+      end
+
+      def test_alter_table_inside_transaction_preserves_set_null_fk_data
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :users do |t|
+          t.string :email
+          t.string :name
+        end
+
+        conn.create_table :notes do |t|
+          t.integer :user_id
+          t.string :body, null: false
+        end
+        conn.add_foreign_key :notes, :users, on_delete: :nullify
+
+        conn.execute("INSERT INTO users (id, email, name) VALUES (1, 'a@e.com', 'A')")
+        conn.execute("INSERT INTO notes (id, user_id, body) VALUES (1, 1, 'hello')")
+
+        conn.transaction do
+          conn.remove_column :users, :name
+        end
+
+        assert_equal 1, conn.select_value("SELECT user_id FROM notes WHERE id = 1"),
+          "Notes.user_id was silently set to NULL during table alteration inside transaction"
+      ensure
+        conn.disconnect! if conn
+      end
+
       private
         def with_rails_root(&block)
           mod = Module.new do

@@ -1,3 +1,11 @@
+*   SQLite3: altering tables inside `ActiveRecord::Base.connection.transaction` was silently cascade removing child records.
+
+    SQLite silently ignores `PRAGMA foreign_keys = OFF` inside a transaction, causing `CASCADE` to delete child rows
+    and `SET NULL` to corrupt foreign key columns during table alteration. The transaction is now temporarily committed
+    before `disable_referential_integrity` runs so the `PRAGMA` takes effect.
+
+    *Eugene Mironichev*
+
 *   Move the defaulting of `prevent_writes` to `true` when using the `reading` role into the parameters
     of the role switching methods, and raise an `ArgumentError` if `prevent_writes: false` is provided
     with the `reading` role.
