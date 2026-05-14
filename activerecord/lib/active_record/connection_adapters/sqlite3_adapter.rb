@@ -153,6 +153,35 @@ module ActiveRecord
           end
       end
 
+      class AttachedDatabaseCollector # :nodoc:
+        attr_accessor :preparable, :retryable
+        attr_reader :databases
+
+        def initialize
+          @databases = Set.new
+        end
+
+        def <<(_)
+          self
+        end
+
+        def add_bind(*)
+          self
+        end
+
+        def add_binds(*)
+          self
+        end
+
+        def add_attached_database(config)
+          @databases << config
+        end
+
+        def value
+          databases
+        end
+      end
+
       def initialize(...)
         super
 
@@ -188,6 +217,7 @@ module ActiveRecord
           default_transaction_mode: :immediate,
           extensions: extensions
         )
+        reset_attached_databases
       end
 
       def database_exists?
@@ -279,8 +309,23 @@ module ActiveRecord
       def disconnect!
         super
 
+        reset_attached_databases
         @raw_connection&.close rescue nil
         @raw_connection = nil
+      end
+
+      def reset_attached_databases
+        @attached_databases = Set.new
+      end
+
+      def table_name_with_database(table, collector = nil)
+        if (config = attached_database_for(table))
+          collector.try(:add_attached_database, config)
+
+          "#{[config.env_name, config.name].compact.join("_")}.#{table.name}"
+        else
+          table.name
+        end
       end
 
       def supports_index_sort_order?
@@ -870,8 +915,55 @@ module ActiveRecord
 
         def connect
           @raw_connection = self.class.new_client(@connection_parameters)
+          reset_attached_databases
         rescue ConnectionNotEstablished => ex
           raise ex.set_pool(@pool)
+        end
+
+        def attach_database(config)
+          exec_query "ATTACH DATABASE '#{config.database}' AS #{[config.env_name, config.name].compact.join("_")}"
+        end
+
+        def deattach_database(config)
+          exec_query "DETACH DATABASE #{[config.env_name, config.name].compact.join("_")}"
+        end
+
+        def attach_databases(intent)
+          databases_needed_for_query(intent).each do |config|
+            next if @attached_databases.include?(config)
+
+            attach_database(config)
+            @attached_databases << config
+          end
+        end
+
+        def deattach_databases(intent)
+          databases_needed_for_query(intent).each do |config|
+            next unless @attached_databases.include?(config)
+
+            deattach_database(config)
+            @attached_databases.delete(config)
+          end
+        end
+
+        def databases_needed_for_query(intent)
+          arel = intent.arel
+          return {} unless arel
+
+          arel = arel.ast if arel.respond_to?(:ast)
+          return {} unless Arel.arel_node?(arel) && !(String === arel)
+
+          visitor.compile(arel, AttachedDatabaseCollector.new)
+        end
+
+        def attached_database_for(table)
+          config = table.klass&.connection_db_config
+
+          return unless config.present? && config.adapter == "sqlite3" &&
+            config.database != ":memory:" &&
+            pool.db_config != table.klass.connection_db_config
+
+          config
         end
 
         def reconnect

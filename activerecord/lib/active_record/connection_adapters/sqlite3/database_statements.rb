@@ -86,6 +86,12 @@ module ActiveRecord
           intent.finish
         end
 
+        def execute_intent(intent) # :nodoc:
+          super
+        ensure
+          deattach_databases(intent)
+        end
+
         private
           def internal_begin_transaction(mode, isolation)
             if isolation
@@ -107,6 +113,7 @@ module ActiveRecord
             if intent.batch
               raw_connection.execute_batch2(intent.processed_sql)
             else
+              attach_databases(intent)
               stmt = if intent.prepare
                 @statements[intent.processed_sql] ||= raw_connection.prepare(intent.processed_sql)
                 @statements[intent.processed_sql].reset!

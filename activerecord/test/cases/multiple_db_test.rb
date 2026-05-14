@@ -108,6 +108,32 @@ class MultipleDbTest < ActiveRecord::TestCase
         College.first.courses.first
       end
     end
+
+    if current_adapter?(:SQLite3Adapter)
+      def test_sqlite_joins_from_primary_to_custom_connection_attach_the_custom_database
+        entrants = Entrant.joins(:course).where(courses: { name: "Ruby Development" }).order(:id).pluck(:name)
+
+        assert_equal ["Ruby Developer", "Ruby Guru"], entrants
+      end
+
+      def test_sqlite_joins_from_custom_connection_to_primary_attach_the_primary_database
+        assert_equal 3, Course.joins(:entrants).count
+      end
+
+      def test_sqlite_attached_databases_do_not_leak_between_queries
+        assert_equal 3, Course.joins(:entrants).count
+
+        assert_raises(ActiveRecord::StatementInvalid) do
+          Course.lease_connection.execute("SELECT * FROM entrants")
+        end
+      end
+
+      def test_sqlite_does_not_collect_attached_database_from_raw_sql_join
+        assert_raises(ActiveRecord::StatementInvalid) do
+          Entrant.joins("INNER JOIN courses ON courses.id = entrants.course_id").load
+        end
+      end
+    end
   end
 
   def test_exception_contains_connection_pool

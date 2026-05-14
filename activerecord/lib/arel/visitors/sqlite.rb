@@ -59,6 +59,28 @@ module Arel # :nodoc: all
           collector << quote_table_name(o.name)
         end
 
+        def visit_Arel_Table(o, collector)
+          if Arel::Nodes::Node === o.name
+            visit o.name, collector
+          else
+            collector << quote_table_name(@connection.try(:table_name_with_database, o, collector) || o.name)
+          end
+
+          if o.table_alias
+            collector << " " << quote_table_name(o.table_alias)
+          end
+
+          collector
+        end
+
+        def visit_Arel_Attributes_Attribute(o, collector)
+          join_name = o.relation.table_alias ||
+            @connection.try(:table_name_with_database, o.relation, collector) ||
+            o.relation.name
+
+          collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
+        end
+
         # Locks are not supported in SQLite
         def visit_Arel_Nodes_Lock(o, collector)
           collector
