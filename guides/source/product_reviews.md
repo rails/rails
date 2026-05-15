@@ -315,7 +315,7 @@ class Products::ReviewsController < ApplicationController
     if @review.save
       redirect_to @product, notice: "Review was created successfully."
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -706,7 +706,7 @@ class Store::ReviewsController < Store::BaseController
     if @review.update(review_params)
       redirect_to store_review_path(@review)
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 
