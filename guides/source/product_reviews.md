@@ -18,7 +18,7 @@ After reading this guide, you will know how to:
 Introduction
 ------------
 
-An e-commerce stores isn't complete these days without product reviews. In this
+An e-commerce store isn't complete these days without product reviews. In this
 guide, we'll collect reviews for products, average the ratings, and give
 customers and admins a way to view and filter the reviews.
 
