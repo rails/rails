@@ -801,9 +801,9 @@ Let's also add a link to the product's show page in `app/views/store/products/sh
 <%# ... %>
 
 <section>
-  <%= link_to pluralize(@product.reviews_count), "review"), store_reviews_path(product_id: @product.id) %>
-  <%= link_to pluralize(@product.wishlists_count), "wishlist"), store_wishlists_path(product_id: @product.id) %>
-  <%= link_to pluralize(@product.subscribers_count), "subscriber"), store_subscribers_path(product_id: @product.id) %>
+  <%= link_to pluralize(@product.reviews_count, "review"), store_reviews_path(product_id: @product.id) %>
+  <%= link_to pluralize(@product.wishlists_count, "wishlist"), store_wishlists_path(product_id: @product.id) %>
+  <%= link_to pluralize(@product.subscribers_count, "subscriber"), store_subscribers_path(product_id: @product.id) %>
 </section>
 ```
 
