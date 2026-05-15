@@ -125,6 +125,7 @@ module ActiveModel
     #   render(person)              # => "<p>Ralph</p>
     #   render(renderable: person)  # => "<p>Ralph</p>
     def render_in(view_context, **options, &block)
+      options.delete(:object)
       view_context.render(partial: to_partial_path, object: self, **options, &block)
     end
 

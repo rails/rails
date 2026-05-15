@@ -77,6 +77,24 @@ class ConversionTest < ActiveModel::TestCase
     assert_equal "block", rendered
   end
 
+  test "#render_in caller-supplied :object is silently dropped, not an error" do
+    contact = Contact.new
+    other   = Contact.new
+    view_context = Object.new
+    def view_context.render(**options)
+      options
+    end
+
+    options = nil
+    assert_nothing_raised do
+      options = contact.render_in(view_context, object: other, locals: { foo: "bar" })
+    end
+
+    assert_equal contact, options[:object]
+    assert_equal "bar", options.dig(:locals, :foo)
+    assert_equal contact.to_partial_path, options[:partial]
+  end
+
   test "#to_param_delimiter allows redefining the delimiter used in #to_param" do
     old_delimiter = Contact.param_delimiter
     Contact.param_delimiter = "_"
