@@ -189,7 +189,7 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     assert_not_predicate @params.compact_blank!, :permitted?
   end
 
-  test "to_h returns a ActiveSupport::HashWithIndifferentAccess" do
+  test "to_h returns an ActiveSupport::HashWithIndifferentAccess" do
     @params.permit!
     params_hash = @params.to_h
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, params_hash

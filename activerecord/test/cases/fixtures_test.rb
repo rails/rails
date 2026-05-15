@@ -49,7 +49,7 @@ class FixturesTest < ActiveRecord::TestCase
 
   FIXTURES = %w( accounts binaries companies customers
                  developers developers_projects entrants
-                 movies projects subscribers topics tasks )
+                 movies projects subscribers topics tasks ).freeze
   MATCH_ATTRIBUTE_NAME = /[a-zA-Z][-\w]*/
 
   def setup
@@ -605,7 +605,9 @@ class FixturesTest < ActiveRecord::TestCase
     db_url_tmp = ENV["DATABASE_URL"]
     ENV["DATABASE_URL"] = "sqlite3::memory:"
     ActiveRecord::Base.stub(:configurations, {}) do
-      test_case = Class.new(ActiveRecord::TestCase) do
+      test_case = Class.new(ActiveSupport::TestCase) do
+        include ActiveRecord::TestFixtures
+        self.fixture_paths = [File.expand_path("../../fixtures", __FILE__)]
         fixtures :accounts
 
         def test_fixtures
@@ -628,7 +630,9 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_fixture_method_does_not_clash_with_a_test_case_method
-    test_case = Class.new(ActiveRecord::TestCase) do
+    test_case = Class.new(ActiveSupport::TestCase) do
+      include ActiveRecord::TestFixtures
+      self.fixture_paths = [File.expand_path("../../fixtures", __FILE__)]
       fixtures :accounts
 
       def test_fixtures
@@ -1349,7 +1353,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert_equal "b4b10018-ad47-595d-b42f-d8bdaa6d01bf", ActiveRecord::FixtureSet.identify(:sonny, :uuid)
   end
 
-  TIMESTAMP_COLUMNS = %w(created_at created_on updated_at updated_on)
+  TIMESTAMP_COLUMNS = %w(created_at created_on updated_at updated_on).freeze
 
   def test_populates_timestamp_columns
     TIMESTAMP_COLUMNS.each do |property|

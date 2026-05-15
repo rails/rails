@@ -85,11 +85,16 @@ module ActiveModel
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
+      #   Multiple methods or procs can be passed as an array to check multiple
+      #   conditions, all of which must pass for validation to occur
+      #   (e.g. <tt>if: [:allow_validation, Proc.new { |user| user.signup_step > 2 }]</tt>)
       # * <tt>:unless</tt> - Specifies a method, proc, or string to call to
       #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc, or string should return or evaluate to a +true+ or +false+
-      #   value.
+      #   value. Multiple methods or procs can be passed as an array to check
+      #   multiple conditions, all of which must pass for validation not to occur
+      #   (e.g. <tt>unless: [:skip_validation, Proc.new { |user| user.signup_step <= 2 }]</tt>)
       def validates_each(*attr_names, &block)
         validates_with BlockValidator, _merge_attributes(attr_names), &block
       end
@@ -155,11 +160,16 @@ module ActiveModel
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method or
       #   proc should return or evaluate to a +true+ or +false+ value.
+      #   Multiple methods or procs can be passed as an array to check multiple
+      #   conditions, all of which must pass for validation to occur
+      #   (e.g. <tt>if: [:allow_validation, Proc.new { |user| user.signup_step > 2 }]</tt>)
       # * <tt>:unless</tt> - Specifies a method or proc to call to
       #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method or proc should return or evaluate to a +true+ or +false+
-      #   value.
+      #   value. Multiple methods or procs can be passed as an array to check
+      #   multiple conditions, all of which must pass for validation not to occur
+      #   (e.g. <tt>unless: [:skip_validation, Proc.new { |user| user.signup_step <= 2 }]</tt>)
       #
       # NOTE: Calling +validate+ multiple times on the same method will overwrite previous definitions.
       #

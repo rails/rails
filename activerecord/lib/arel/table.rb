@@ -9,7 +9,7 @@ module Arel # :nodoc: all
     class << self; attr_accessor :engine; end
 
     attr_accessor :name
-    attr_reader :table_alias
+    attr_reader :table_alias, :klass
 
     def initialize(name, as: nil, klass: nil, type_caster: klass&.type_caster)
       name = name.name if name.is_a?(Symbol)

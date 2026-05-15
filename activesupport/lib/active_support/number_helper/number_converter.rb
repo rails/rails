@@ -115,7 +115,7 @@ module ActiveSupport
             }
           }
         }
-      }
+      }.freeze
 
       def self.convert(number, options)
         new(number, options).execute
@@ -180,7 +180,7 @@ module ActiveSupport
           when Float, Rational
             number.to_d(0)
           when String
-            BigDecimal(number, exception: false)
+            BigDecimal(number, exception: false) unless number.to_s.match?(/[de]/i)
           else
             number.to_d rescue nil
           end

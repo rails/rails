@@ -2,6 +2,204 @@
 
     *Igor Depolli*
 
+*   Add `start_day` argument to `this_week?` for consistency with `all_week`
+
+    `this_week?` now accepts an optional `start_day` argument, matching the
+    existing interface of `all_week`, `beginning_of_week`, and `end_of_week`.
+
+        date.this_week?              # Uses Date.beginning_of_week (default)
+        date.this_week?(:sunday)     # Checks against Sun-Sat week
+
+    *Kenta Ishizaki*
+
+*   Add `delete: true` option to `Rails.cache.read` for atomic read-and-delete (only supported by Redis cache store).
+
+    Uses the Redis [GETDEL](https://redis.io/docs/latest/commands/getdel/) command to atomically return a cached value and remove
+    it in a single operation. Useful for single-use values like OTP codes or
+    one-time tokens.
+
+    ```ruby
+    Rails.cache.write("otp", "123456")
+    Rails.cache.read("otp", delete: true)  # => "123456"
+    Rails.cache.read("otp")                # => nil
+    ```
+
+    *Glauco Custodio*
+
+*   Introduce `ActiveSupport::TestCase.around`
+
+    Add a callback, which runs between `TestCase#setup` and `TestCase#teardown`.
+    Yields the test class instance and the test case to the block:
+
+    ```ruby
+    class ClientTest < ActiveSupport::TestCase
+      around do |test_case, block|
+        Client.with(stubbed: true, &block)
+      end
+    end
+    ```
+
+    *Sean Doyle*
+
+*   Add `prepend: true` option to `ActiveSupport::Notifications.subscribe`.
+
+      When `prepend: true` is passed, the subscriber is added to the front of
+      the subscriber list for the given event, ensuring it runs before any
+      previously registered subscribers. This allows mutating the event payload
+      before other subscribers process it.
+
+      ```ruby
+      ActiveSupport::Notifications.subscribe("sql.active_record", prepend: true) do |event|
+        event.payload[:name] = "[IDC] #{event.payload[:name]}"
+      end
+      ```
+
+      *Jean Boussier*, *Federico Carrocera*
+
+*   Deprecate `require_dependency`.
+
+    `require_dependency` is deprecated without replacement and will be removed in Rails 9.
+
+    - Recommendations for applications:
+
+        - If the call is an old one written in the days of the classic
+          autoloader to ensure a certain constant is loaded for constant lookup
+          to work as expected, you can simply remove it.
+
+        - In order to preload classes when the application boots, which may be
+          necessary for things like STIs or Kafka consumers, please check the
+          autoloading guide for modern approaches.
+
+    - Recommendations for engines that depend on Rails >= 7.0:
+
+      Same recommendations as for applications, since the classic autoloader is
+      no longer available starting with Rails 7.0.
+
+    - Recommendations for engines that support Rails < 7.0:
+
+      Guard the call with a version check just in case the parent application is
+      using the classic autoloader:
+
+      ```ruby
+      require_dependency "some_file" if Rails::VERSION::MAJOR < 7
+      ```
+
+    *Xavier Noria*
+
+*   Add `group` method to `ActiveSupport::ContinuousIntegration` for parallel step execution.
+
+    Groups collect steps and run them concurrently using a thread pool, reducing CI times
+    by running independent checks in parallel. Sub-groups run sequentially within a single
+    parallel slot allowing dependent steps to be grouped together.
+
+    ```ruby
+    CI.run do
+      step "Setup", "bin/setup --skip-server"
+
+      group "Checks", parallel: 2 do
+        step "Style: Ruby", "bin/rubocop"
+        step "Security: Brakeman", "bin/brakeman --quiet"
+        step "Security: Gem audit", "bin/bundler-audit"
+
+        group "Tests" do
+          step "Tests: Rails", "bin/rails test"
+          step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant"
+        end
+      end
+    end
+    ```
+
+    *Donal McBreen*
+
+*   Introduce `this_week?`, `this_month?`, and `this_year?` methods to Date/Time
+
+    Similar to `today?`, `tomorrow?`, and `yesterday?`, these methods are useful to
+    query time instances against the current period.
+
+    ```ruby
+    unless post.created_at.this_week?
+      link_to "See week recap", week_recap_path(date)
+    end
+    ```
+
+    *Matheus Richard*
+
+*   Removed the deprecated `ActiveSupport::Multibyte::Chars` class.
+
+    As well as `String#mb_chars`
+
+    *Jean Boussier*
+
+*   Changed `ActiveSupport::EventReporter#subscribe` to only provide the event name during filtering.
+
+    Otherwise the event reporter would need to always build the expensive payload even when there is
+    no active subscriber, which is very wasteful.
+
+    *Jean Boussier*
+
+*   Fix inflections to better handle overlapping acronyms.
+
+    ```ruby
+    ActiveSupport::Inflector.inflections(:en) do |inflect|
+      inflect.acronym "USD"
+      inflect.acronym "USDC"
+    end
+
+    "USDC".underscore # => "usdc"
+    ```
+
+    *Said Kaldybaev*
+
+*   Add `ActiveSupport::CombinedConfiguration` to offer interchangeable access to configuration provided by
+    either ENV or encrypted credentials. Used by Rails to first look at ENV, then look in encrypted credentials,
+    but can be configured separately with any number of API-compatible backends in a first-look order.
+
+    The object is inspect safe and will only show keys, not values.
+
+    *DHH*, *Emmanuel Hayford*
+
+*   Add `ActiveSupport::EnvConfiguration` to provide access to ENV variables in a way that's compatible with
+    `ActiveSupport::EncryptedConfiguration` and therefore can be used by `ActiveSupport::CombinedConfiguration`.
+
+    The object is inspect safe and will only show keys, not values.
+
+    Examples:
+
+    ```ruby
+    conf = ActiveSupport::EnvConfiguration.new
+    conf.require(:db_host) # ENV.fetch("DB_HOST")
+    conf.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
+    conf.option(:cache_host) # ENV["CACHE_HOST"]
+    conf.option(:cache_host, default: "cache-host-1") # ENV["CACHE_HOST"] || "cache-host-1"
+    conf.option(:cache_host, default: -> { "cache-host-1" }) # ENV["CACHE_HOST"] || "cache-host-1"
+    ```
+
+    *DHH*, *Emmanuel Hayford*
+
+*   Make flaky parallel tests easier to diagnose by deterministically assigning
+    tests to workers.
+
+    Rails assigns tests to workers in round-robin order so the same `--seed`
+    and worker count will result in the same sequence of tests running on each
+    worker (whether processes or threads) increasing the odds of reproducing
+    test failures caused by test interdependence.
+
+    This can make test runtime slower and spikier when one worker gets most of
+    the slow tests. Enable `work_stealing: true` to allow idle workers to steal
+    tests from busy workers in deterministic order, smoothing out runtime at the
+    cost of less reproducible flaky-test failures.
+
+    *Jeremy Daer*
+
+*   Make `ActiveSupport::EventReporter#debug_mode?` true by default to emit debug events
+    outside of Rails application contexts.
+
+    *Gannon McGibbon*
+
+*   Add `SecureRandom.base32` for generating case-insensitive keys that are unambiguous to humans.
+
+    *Stanko Krtalic Rusendic & Miha Rekar*
+
 *   Add a fast failure mode to `ActiveSupport::ContinuousIntegration` that stops the rest of
     the run after a step fails. Invoke by running `bin/ci --fail-fast` or `bin/ci -f`.
 

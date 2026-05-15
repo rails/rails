@@ -47,7 +47,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     "description character varying(100)",
     "name_vector tsvector",
     "moment timestamp without time zone default now()"
-  ]
+  ].freeze
   PK_TABLE_NAME = "table_with_pk"
   UNMATCHED_SEQUENCE_NAME = "unmatched_primary_key_default_value_seq"
   UNMATCHED_PK_TABLE_NAME = "table_with_unmatched_sequence_for_pk"
@@ -241,18 +241,14 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   if ActiveRecord::Base.lease_connection.prepared_statements
     def test_schema_change_with_prepared_stmt
-      altered = false
       assert_nothing_raised do
         @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
         @connection.exec_query "alter table developers add column zomg int", "sql", []
-        altered = true
         @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
       end
       pass
     ensure
-      # We are not using DROP COLUMN IF EXISTS because that syntax is only
-      # supported by pg 9.X
-      @connection.exec_query("alter table developers drop column zomg", "sql", []) if altered
+      @connection.exec_query("alter table developers drop column if exists zomg", "sql", [])
     end
   end
 
@@ -535,7 +531,23 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
-  def test_reset_pk_sequence
+  def test_reset_column_sequences!
+    sequence_name = "#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
+    @connection.execute "SELECT setval('#{sequence_name}', 123)"
+    assert_equal 124, @connection.select_value("SELECT nextval('#{sequence_name}')")
+    @connection.reset_column_sequences!([["#{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME}", "id", sequence_name, nil, 1]])
+    assert_equal 1, @connection.select_value("SELECT nextval('#{sequence_name}')")
+  end
+
+  def test_reset_column_sequences_with_just_tables
+    sequence_name = "#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
+    @connection.execute "SELECT setval('#{sequence_name}', 123)"
+    assert_equal 124, @connection.select_value("SELECT nextval('#{sequence_name}')")
+    @connection.reset_column_sequences!([["#{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME}"]])
+    assert_equal 1, @connection.select_value("SELECT nextval('#{sequence_name}')")
+  end
+
+  def test_reset_pk_sequence!
     sequence_name = "#{SCHEMA_NAME}.#{UNMATCHED_SEQUENCE_NAME}"
     @connection.execute "SELECT setval('#{sequence_name}', 123)"
     assert_equal 124, @connection.select_value("SELECT nextval('#{sequence_name}')")
@@ -1011,6 +1023,12 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
       t.integer "test_table_id"
       t.foreign_key "test_schema.test_table"
     end
+    # Create a table in test_schema2 and a table in test_schema with a cross-schema foreign key
+    @connection.create_table("test_schema2.referenced_table")
+    @connection.create_table("test_schema.cross_schema_fk_table") do |t|
+      t.integer "referenced_table_id"
+      t.foreign_key "test_schema2.referenced_table"
+    end
   end
 
   def teardown
@@ -1064,6 +1082,15 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
         assert_includes output, 'add_foreign_key "test_schema.test_table2", "test_schema.test_table"'
         assert_not_includes output, 'add_foreign_key "public.authors", "public.author_addresses"'
       end
+    end
+  end
+
+  def test_schema_dump_with_cross_schema_foreign_key
+    with_dump_schemas(:all) do
+      output = dump_all_table_schema
+
+      assert_includes output, 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema2.referenced_table"'
+      assert_not_includes output, 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema.test_schema2.referenced_table"'
     end
   end
 end

@@ -21,9 +21,9 @@ module ActiveSupport # :nodoc:
       capitalize chomp chop delete delete_prefix delete_suffix
       downcase lstrip next reverse rstrip scrub squeeze strip
       succ swapcase tr tr_s unicode_normalize upcase
-    )
+    ).freeze
 
-    UNSAFE_STRING_METHODS_WITH_BACKREF = %w(gsub sub)
+    UNSAFE_STRING_METHODS_WITH_BACKREF = %w(gsub sub).freeze
 
     alias_method :original_concat, :concat
     private :original_concat
@@ -116,7 +116,7 @@ module ActiveSupport # :nodoc:
       new_string = super
       new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
       if @html_unsafe
-        new_safe_buffer.instance_variable_set(:@html_unsafe, true)
+        new_safe_buffer.mark_unsafe!
       end
       new_safe_buffer
     end
@@ -129,7 +129,11 @@ module ActiveSupport # :nodoc:
         escaped_args = Array(args).map { |arg| explicit_html_escape_interpolated_argument(arg) }
       end
 
-      self.class.new(super(escaped_args))
+      new_safe_buffer = self.class.new(super(escaped_args))
+      if @html_unsafe
+        new_safe_buffer.mark_unsafe!
+      end
+      new_safe_buffer
     end
 
     def html_safe?
@@ -193,6 +197,11 @@ module ActiveSupport # :nodoc:
         end                                             # end
       RUBY
     end
+
+    protected
+      def mark_unsafe!
+        @html_unsafe = true
+      end
 
     private
       def explicit_html_escape_interpolated_argument(arg)

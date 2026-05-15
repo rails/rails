@@ -160,9 +160,9 @@ module ActionController
   class Parameters
     include ActiveSupport::DeepMergeable
 
-    cattr_accessor :permit_all_parameters, instance_accessor: false, default: false
+    class_attribute :permit_all_parameters, instance_accessor: false, default: false
 
-    cattr_accessor :action_on_unpermitted_parameters, instance_accessor: false
+    class_attribute :action_on_unpermitted_parameters, instance_accessor: false
 
     ##
     # :method: deep_merge
@@ -812,7 +812,7 @@ module ActionController
     # are several options: With no other arguments, it will raise an
     # ActionController::ParameterMissing error; if a second argument is given, then
     # that is returned (converted to an instance of `ActionController::Parameters`
-    # if possible); if a block is given, then that will be run and its result
+    # if possible); if a block is given, the key is yielded to the block and its result
     # returned.
     #
     #     params = ActionController::Parameters.new(person: { name: "Francesco" })
@@ -820,17 +820,39 @@ module ActionController
     #     params.fetch(:none)                 # => ActionController::ParameterMissing: param is missing or the value is empty or invalid: none
     #     params.fetch(:none, {})             # => #<ActionController::Parameters {} permitted: false>
     #     params.fetch(:none, "Francesco")    # => "Francesco"
-    #     params.fetch(:none) { "Francesco" } # => "Francesco"
-    def fetch(key, *args)
+    #     params.fetch(:none) { |key| "Francesco" } # => "Francesco"
+    def fetch(key, *args, &block)
       convert_value_to_parameters(
         @parameters.fetch(key) {
           if block_given?
-            yield
+            yield key
           else
             args.fetch(0) { raise ActionController::ParameterMissing.new(key, @parameters.keys) }
           end
         }
       )
+    end
+
+    # Returns parameters for the given keys. If a key can't be found, there are
+    # several options: With no other arguments, it will raise an
+    # ActionController::ParameterMissing error; if a block is given, then that will
+    # be run and its result returned for the missing key.
+    #
+    #     params = ActionController::Parameters.new(name: "Francesco", age: 22)
+    #     params.fetch_values(:name, :age)                # => ["Francesco", 22]
+    #     params.fetch_values(:name, :none)               # => ActionController::ParameterMissing: param is missing or the value is empty or invalid: none
+    #     params.fetch_values(:name, :none) { |key| key } # => ["Francesco", :none]
+    def fetch_values(*keys)
+      original_key_lookup = keys.index_by { |key| key.to_s }
+      values = @parameters.fetch_values(*keys) do |missing_key|
+        original_key = original_key_lookup[missing_key]
+        if block_given?
+          yield original_key
+        else
+          raise ActionController::ParameterMissing.new(original_key, @parameters.keys)
+        end
+      end
+      values.map! { |value| convert_value_to_parameters(value) }
     end
 
     # Extracts the nested parameter from the given `keys` by calling `dig` at each
@@ -890,7 +912,7 @@ module ActionController
     #     params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
     #     params.transform_values { |x| x * 2 }
     #     # => #<ActionController::Parameters {"a"=>2, "b"=>4, "c"=>6} permitted: false>
-    def transform_values
+    def transform_values(&block)
       return to_enum(:transform_values) unless block_given?
       new_instance_with_inherited_permitted_status(
         @parameters.transform_values { |v| yield convert_value_to_parameters(v) }
@@ -899,7 +921,7 @@ module ActionController
 
     # Performs values transformation and returns the altered
     # `ActionController::Parameters` instance.
-    def transform_values!
+    def transform_values!(&block)
       return to_enum(:transform_values!) unless block_given?
       @parameters.transform_values! { |v| yield convert_value_to_parameters(v) }
       self
@@ -1011,20 +1033,20 @@ module ActionController
     end
 
     # Returns a new `ActionController::Parameters` instance with all keys from
-    # `other_hash` merged into current hash.
-    def merge(other_hash)
+    # `other_hashes` merged into current hash.
+    def merge(*other_hashes, &block)
       new_instance_with_inherited_permitted_status(
-        @parameters.merge(other_hash.to_h)
+        @parameters.merge(*other_hashes.map!(&:to_h), &block)
       )
     end
 
     ##
-    # :call-seq: merge!(other_hash)
+    # :call-seq: merge!(*other_hashes)
     #
-    # Returns the current `ActionController::Parameters` instance with `other_hash`
+    # Returns the current `ActionController::Parameters` instance with `other_hashes`
     # merged into current hash.
-    def merge!(other_hash, &block)
-      @parameters.merge!(other_hash.to_h, &block)
+    def merge!(*other_hashes, &block)
+      @parameters.merge!(*other_hashes.map!(&:to_h), &block)
       self
     end
 
@@ -1124,7 +1146,7 @@ module ActionController
         @parameters.any? { |k, v| Parameters.nested_attribute?(k, v) }
       end
 
-      def each_nested_attribute
+      def each_nested_attribute(&block)
         hash = self.class.new
         self.each { |k, v| hash[k] = yield v if Parameters.nested_attribute?(k, v) }
         hash
@@ -1313,7 +1335,7 @@ module ActionController
         IO,
         ActionDispatch::Http::UploadedFile,
         Rack::Test::UploadedFile,
-      ]
+      ].freeze
 
       def permitted_scalar?(value)
         PERMITTED_SCALAR_TYPES.any? { |type| value.is_a?(type) }
@@ -1348,8 +1370,8 @@ module ActionController
         value.is_a?(Array) || value.is_a?(Parameters)
       end
 
-      EMPTY_ARRAY = [] # :nodoc:
-      EMPTY_HASH  = {} # :nodoc:
+      EMPTY_ARRAY = [].freeze # :nodoc:
+      EMPTY_HASH  = {}.freeze # :nodoc:
       def hash_filter(params, filter, on_unpermitted: self.class.action_on_unpermitted_parameters, explicit_arrays: false)
         filter = filter.with_indifferent_access
 

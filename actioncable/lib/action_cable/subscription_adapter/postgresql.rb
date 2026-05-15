@@ -37,7 +37,7 @@ module ActionCable
       def with_subscriptions_connection(&block) # :nodoc:
         # Action Cable is taking ownership over this database connection, and will
         # perform the necessary cleanup tasks.
-        # We purposedly avoid #checkout to not end up with a pinned connection
+        # We purposely avoid #checkout to not end up with a pinned connection
         ar_conn = ActiveRecord::Base.connection_pool.new_connection
         pg_conn = ar_conn.raw_connection
 

@@ -30,7 +30,7 @@ module ActiveSupport
   #   Time.zone.now  # => Sun, 18 May 2008 14:30:44 EDT -04:00
   class TimeZone
     # Keys are \Rails TimeZone names, values are TZInfo identifiers.
-    MAPPING = {
+    MAPPING = { # rubocop:disable Style/MutableConstant
       "International Date Line West" => "Etc/GMT+12",
       "Midway Island"                => "Pacific/Midway",
       "American Samoa"               => "Pacific/Pago_Pago",
@@ -99,7 +99,7 @@ module ActiveSupport
       "Bucharest"                    => "Europe/Bucharest",
       "Cairo"                        => "Africa/Cairo",
       "Helsinki"                     => "Europe/Helsinki",
-      "Kyiv"                         => "Europe/Kiev",
+      "Kyiv"                         => "Europe/Kyiv",
       "Riga"                         => "Europe/Riga",
       "Sofia"                        => "Europe/Sofia",
       "Tallinn"                      => "Europe/Tallinn",
@@ -140,7 +140,7 @@ module ActiveSupport
       "Almaty"                       => "Asia/Almaty",
       "Astana"                       => "Asia/Almaty",
       "Novosibirsk"                  => "Asia/Novosibirsk",
-      "Rangoon"                      => "Asia/Rangoon",
+      "Rangoon"                      => "Asia/Yangon",
       "Bangkok"                      => "Asia/Bangkok",
       "Hanoi"                        => "Asia/Bangkok",
       "Jakarta"                      => "Asia/Jakarta",

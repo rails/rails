@@ -19,6 +19,19 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
           sql
         end
       end
+
+      alias_method :execute_batch_without_stub, :execute_batch
+      def execute_batch(statements, name = nil, **kwargs)
+        statements.each do |sql|
+          ActiveSupport::Notifications.instrumenter.instrument(
+            "sql.active_record",
+            sql: sql,
+            name: name,
+            connection: self) do
+            sql
+          end
+        end.join(";\n")
+      end
     end
   end
 
@@ -76,8 +89,35 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
       add_index(:people, :last_name, algorithm: :coyp)
     end
 
+    assert_raise ArgumentError do
+      add_index(:people, :last_name, lock: :invalid)
+    end
+
     expected = "CREATE INDEX `index_people_on_last_name_and_first_name` USING btree ON `people` (`last_name`(15), `first_name`(15))"
     assert_equal expected, add_index(:people, [:last_name, :first_name], length: 15, using: :btree)
+  end
+
+  def test_add_index_with_lock
+    %i(default none shared exclusive).each do |lock|
+      expected = "CREATE INDEX `index_people_on_last_name` ON `people` (`last_name`) LOCK = #{lock.upcase}"
+      assert_equal expected, add_index(:people, :last_name, lock: lock)
+    end
+  end
+
+  def test_add_index_with_algorithm_and_lock
+    expected = "CREATE INDEX `index_people_on_last_name` ON `people` (`last_name`) ALGORITHM = INPLACE LOCK = NONE"
+    assert_equal expected, add_index(:people, :last_name, algorithm: :inplace, lock: :none)
+  end
+
+  def test_remove_index_with_algorithm_and_lock
+    with_real_execute do
+      ActiveRecord::Base.lease_connection.create_table(:delete_me) { |t| t.string :name }
+      ActiveRecord::Base.lease_connection.add_index(:delete_me, :name)
+      ActiveRecord::Base.lease_connection.remove_index(:delete_me, :name, algorithm: :inplace, lock: :none)
+      assert_not ActiveRecord::Base.lease_connection.index_exists?(:delete_me, :name)
+    ensure
+      ActiveRecord::Base.lease_connection.drop_table(:delete_me) rescue nil
+    end
   end
 
   def test_index_in_create
@@ -96,6 +136,37 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
     assert_match expected, actual
   end
 
+  def test_change_column_with_algorithm_and_lock
+    with_real_execute do
+      ActiveRecord::Base.lease_connection.create_table(:delete_me) { |t| t.string :name, null: true }
+      ActiveRecord::Base.lease_connection.change_column(:delete_me, :name, :string, null: false, algorithm: :inplace, lock: :none)
+      col = ActiveRecord::Base.lease_connection.columns(:delete_me).find { |c| c.name == "name" }
+      assert_not col.null
+    ensure
+      ActiveRecord::Base.lease_connection.drop_table(:delete_me) rescue nil
+    end
+  end
+
+  def test_rename_column_with_algorithm_and_lock
+    with_real_execute do
+      ActiveRecord::Base.lease_connection.create_table(:delete_me) { |t| t.string :name }
+      ActiveRecord::Base.lease_connection.rename_column(:delete_me, :name, :full_name, algorithm: :inplace, lock: :none)
+      assert ActiveRecord::Base.lease_connection.column_exists?(:delete_me, :full_name)
+    ensure
+      ActiveRecord::Base.lease_connection.drop_table(:delete_me) rescue nil
+    end
+  end
+
+  def test_remove_column_with_algorithm_and_lock
+    with_real_execute do
+      ActiveRecord::Base.lease_connection.create_table(:delete_me) { |t| t.string :name; t.string :email }
+      ActiveRecord::Base.lease_connection.remove_column(:delete_me, :name, algorithm: :inplace, lock: :none)
+      assert_not ActiveRecord::Base.lease_connection.column_exists?(:delete_me, :name)
+    ensure
+      ActiveRecord::Base.lease_connection.drop_table(:delete_me) rescue nil
+    end
+  end
+
   def test_index_in_bulk_change
     %w(SPATIAL FULLTEXT UNIQUE).each do |type|
       expected = "ALTER TABLE `people` ADD #{type} INDEX `index_people_on_last_name` (`last_name`)"
@@ -110,6 +181,13 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
     assert_queries_match(expected) do
       ActiveRecord::Base.lease_connection.change_table(:people, bulk: true) do |t|
         t.index :last_name, length: 10, using: :btree, algorithm: :copy
+      end
+    end
+
+    expected = "ALTER TABLE `people` ADD INDEX `index_people_on_last_name` USING btree (`last_name`(10)), ALGORITHM = INPLACE, LOCK = NONE"
+    assert_queries_match(expected) do
+      ActiveRecord::Base.lease_connection.change_table(:people, bulk: true) do |t|
+        t.index :last_name, length: 10, using: :btree, algorithm: :inplace, lock: :none
       end
     end
   end
@@ -141,6 +219,11 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
 
   def test_add_column
     assert_equal "ALTER TABLE `people` ADD `last_name` varchar(255)", add_column(:people, :last_name, :string)
+  end
+
+  def test_add_column_with_algorithm_and_lock
+    expected = "ALTER TABLE `people` ADD `last_name` varchar(255), ALGORITHM = INPLACE, LOCK = NONE"
+    assert_equal expected, add_column(:people, :last_name, :string, algorithm: :inplace, lock: :none)
   end
 
   def test_add_column_with_limit
@@ -194,6 +277,10 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
         alias_method :execute_with_stub, :execute
         remove_method :execute
         alias_method :execute, :execute_without_stub
+
+        alias_method :execute_batch_with_stub, :execute_batch
+        remove_method :execute_batch
+        alias_method :execute_batch, :execute_batch_without_stub
       end
 
       yield
@@ -201,6 +288,9 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
       ActiveRecord::Base.lease_connection.singleton_class.class_eval do
         remove_method :execute
         alias_method :execute, :execute_with_stub
+
+        remove_method :execute_batch
+        alias_method :execute_batch, :execute_batch_with_stub
       end
     end
 

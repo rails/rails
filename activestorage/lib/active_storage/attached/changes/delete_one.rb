@@ -12,6 +12,10 @@ module ActiveStorage
       nil
     end
 
+    def analyze
+      # Nothing to analyze when deleting
+    end
+
     def save
       record.public_send("#{name}_attachment=", nil)
     end

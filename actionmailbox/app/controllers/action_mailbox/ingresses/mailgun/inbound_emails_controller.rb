@@ -78,14 +78,15 @@ module ActionMailbox
       end
 
       def key
-        Rails.application.credentials.dig(:action_mailbox, :mailgun_signing_key) || ENV["MAILGUN_INGRESS_SIGNING_KEY"]
+        Rails.app.credentials.dig(:action_mailbox, :mailgun_signing_key) || ENV["MAILGUN_INGRESS_SIGNING_KEY"]
       end
 
       class Authenticator
         attr_reader :key, :timestamp, :token, :signature
 
         def initialize(key:, timestamp:, token:, signature:)
-          @key, @timestamp, @token, @signature = key, Integer(timestamp), token, signature
+          @key, @timestamp, @token, @signature = key, timestamp.to_s, token, signature
+          @parsed_timestamp = Integer(timestamp, exception: false)
         end
 
         def authenticated?
@@ -99,7 +100,7 @@ module ActionMailbox
 
           # Allow for 2 minutes of drift between Mailgun time and local server time.
           def recent?
-            Time.at(timestamp) >= 2.minutes.ago
+            @parsed_timestamp && Time.at(@parsed_timestamp) >= 2.minutes.ago
           end
 
           def expected_signature

@@ -944,7 +944,7 @@ module ActiveSupport
             # HACK: We're making assumption on how `class_attribute` is implemented
             # to save constantly duping the callback hash. If this desync with class_attribute
             # we'll lose the optimization, but won't cause an actual behavior bug.
-            unless singleton_class.private_method_defined?(:__class_attr__callbacks, false)
+            unless singleton_class.private_method_defined?(:__class_attr__callbacks_owner, false)
               self.__callbacks = __callbacks.dup
             end
             name = name.to_sym

@@ -79,8 +79,8 @@ test:
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 amazon:
   service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  access_key_id: <%= Rails.app.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.app.credentials.dig(:aws, :secret_access_key) %>
   bucket: your_own_bucket-<%= Rails.env %>
   region: "" # e.g. 'us-east-1'
 ```
@@ -152,8 +152,8 @@ To connect to Amazon S3, declare an S3 service in `config/storage.yml`:
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 amazon:
   service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  access_key_id: <%= Rails.app.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.app.credentials.dig(:aws, :secret_access_key) %>
   region: "" # e.g. 'us-east-1'
   bucket: your_own_bucket-<%= Rails.env %>
 ```
@@ -164,10 +164,11 @@ Optionally provide client and upload options:
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 amazon:
   service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  access_key_id: <%= Rails.app.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.app.credentials.dig(:aws, :secret_access_key) %>
   region: "" # e.g. 'us-east-1'
   bucket: your_own_bucket-<%= Rails.env %>
+  default_digest_type: :md5 # or :sha256
   http_open_timeout: 0
   http_read_timeout: 0
   retry_limit: 0
@@ -197,8 +198,8 @@ To connect to an S3-compatible object storage API such as DigitalOcean Spaces, p
 digitalocean:
   service: S3
   endpoint: https://nyc3.digitaloceanspaces.com
-  access_key_id: <%= Rails.application.credentials.dig(:digitalocean, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:digitalocean, :secret_access_key) %>
+  access_key_id: <%= Rails.app.credentials.dig(:digitalocean, :access_key_id) %>
+  secret_access_key: <%= Rails.app.credentials.dig(:digitalocean, :secret_access_key) %>
   # ...and other options
 ```
 
@@ -225,8 +226,8 @@ google:
   credentials:
     type: "service_account"
     project_id: ""
-    private_key_id: <%= Rails.application.credentials.dig(:gcs, :private_key_id) %>
-    private_key: <%= Rails.application.credentials.dig(:gcs, :private_key).dump %>
+    private_key_id: <%= Rails.app.credentials.dig(:gcs, :private_key_id) %>
+    private_key: <%= Rails.app.credentials.dig(:gcs, :private_key).dump %>
     client_email: ""
     client_id: ""
     auth_uri: "https://accounts.google.com/o/oauth2/auth"
@@ -292,15 +293,15 @@ them by name when defining a mirror service:
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 s3_west_coast:
   service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  access_key_id: <%= Rails.app.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.app.credentials.dig(:aws, :secret_access_key) %>
   region: "" # e.g. 'us-west-1'
   bucket: your_own_bucket-<%= Rails.env %>
 
 s3_east_coast:
   service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  access_key_id: <%= Rails.app.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.app.credentials.dig(:aws, :secret_access_key) %>
   region: "" # e.g. 'us-east-1'
   bucket: your_own_bucket-<%= Rails.env %>
 
@@ -438,18 +439,28 @@ end
 <%= image_tag user.video.preview(:thumb) %>
 ```
 
-If you know in advance that your variants will be accessed, you can specify that
-Rails should generate them ahead of time:
+#### Variant Generation: Lazily, Later, Immediately
+
+When you know in advance which variants you'll generate, use the `process` option to control when they're generated:
+
+* `:lazily` (default) - Variants are created on the fly when first requested
+* `:later` - Variants are created in a background job after the attachment is saved
+* `:immediately` - Variants are created synchronously when the attachment is created
 
 ```ruby
 class User < ApplicationRecord
-  has_one_attached :video do |attachable|
-    attachable.variant :thumb, resize_to_limit: [100, 100], preprocessed: true
+  has_one_attached :avatar do |attachable|
+    # Create immediately when the avatar is attached
+    attachable.variant :thumb, resize_to_limit: [100, 100], process: :immediately
+
+    # Create in a background job after attachment
+    attachable.variant :medium, resize_to_limit: [300, 300], process: :later
+
+    # Create on demand when first requested (default)
+    attachable.variant :large, resize_to_limit: [800, 800], process: :lazily
   end
 end
 ```
-
-Rails will enqueue a job to generate the variant after the attachment is attached to the record.
 
 NOTE: Since Active Storage relies on polymorphic associations, and [polymorphic associations](./association_basics.html#polymorphic-associations) rely on storing class names in the database, that data must remain synchronized with the class name used by the Ruby code. When renaming classes that use `has_one_attached`, make sure to also update the class names in the `active_storage_attachments.record_type` polymorphic type column of the corresponding rows.
 
@@ -568,6 +579,8 @@ There is an additional parameter `key` that can be used to specify folders/sub-f
 in your S3 Bucket. AWS S3 otherwise uses a random key to name your files. This
 approach is helpful if you want to organize your S3 Bucket files better.
 
+NOTE: The `key` parameter is treated as trusted. Using untrusted user input as the key may result in unexpected behavior.
+
 ```ruby
 @message.images.attach(
   io: File.open("/path/to/file"),
@@ -681,10 +694,10 @@ Serving Files
 
 Active Storage supports two ways to serve files: redirecting and proxying.
 
-WARNING: All Active Storage controllers are publicly accessible by default. The
-generated URLs are hard to guess, but permanent by design. If your files
-require a higher level of protection consider implementing
-[Authenticated Controllers](#authenticated-controllers).
+WARNING: All Active Storage controllers are publicly accessible by default.
+Anyone who knows the URL can access the file, even if the rest of your
+application requires authentication. If your files require access control
+consider implementing [Authenticated Controllers](#authenticated-controllers).
 
 ### Redirect Mode
 
@@ -827,6 +840,16 @@ config.active_storage.draw_routes = false
 
 to prevent files being accessed with the publicly accessible URLs.
 
+If you only need to mount the Active Storage routes at a different path or with
+additional routing options, configure `config.active_storage.routes_prefix`
+instead. It accepts any value supported by `scope`, so you can pass a string path
+prefix or a hash of routing options:
+
+```ruby
+config.active_storage.routes_prefix = "/files"
+config.active_storage.routes_prefix = { path: "/files", subdomain: "assets" }
+```
+
 [`ActiveStorage::Blobs::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Blobs/RedirectController.html
 [`ActiveStorage::Blobs::ProxyController`]: https://api.rubyonrails.org/classes/ActiveStorage/Blobs/ProxyController.html
 [`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
@@ -862,9 +885,56 @@ It's important to know that the file is not yet available in the `after_create` 
 Analyzing Files
 ---------------
 
-Active Storage analyzes files once they've been uploaded by queuing a job in Active Job. Analyzed files will store additional information in the metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling [`analyzed?`][] on it.
+Active Storage analyzes files to extract metadata like image dimensions, video duration, and audio bit rate. Analyzed files store this information in their metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling [`analyzed?`][] on it.
 
 Image analysis provides `width` and `height` attributes. Video analysis provides these, as well as `duration`, `angle`, `display_aspect_ratio`, and `video` and `audio` booleans to indicate the presence of those channels. Audio analysis provides `duration` and `bit_rate` attributes.
+
+### Validating Attachment Metadata
+
+As of Rails 8.2, attachments are analyzed before validation by default, making metadata available for model validations:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar
+
+  validate :validate_avatar_dimensions, if: -> { avatar.attached? }
+
+  private
+    def validate_avatar_dimensions
+      if avatar.metadata[:width] < 200 || avatar.metadata[:height] < 200
+        errors.add(:avatar, "must be at least 200x200 pixels")
+      end
+    end
+end
+```
+
+NOTE: [Direct uploads](#direct-uploads) bypass the server so the file isn't locally available for analysis. In this case, `:immediately` falls back to `:later`, analyzing via background job after upload completes. Metadata isn't available for validation; validate on the client side using JavaScript instead.
+
+### Controlling When Analysis is Performed
+
+Pass the `analyze:` option to control when analysis is performed:
+
+```ruby
+class User < ApplicationRecord
+  # Analyze before validation (default in 8.2)
+  has_one_attached :avatar, analyze: :immediately
+
+  # Analyze after upload from local IO or via background job for direct uploads
+  has_one_attached :document, analyze: :later
+
+  # Skip automatic analysis - analyze on-demand when metadata is accessed
+  has_many_attached :files, analyze: :lazily
+end
+```
+
+NOTE: Attachments with `process: :immediately` variants automatically analyze immediately to ensure metadata is available before processing.
+
+You can set the global default in your application configuration:
+
+```ruby
+# config/application.rb
+config.active_storage.analyze = :later  # restore pre-8.2 behavior
+```
 
 [`analyzed?`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyzed-3F
 

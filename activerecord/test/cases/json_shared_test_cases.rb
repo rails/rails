@@ -148,7 +148,7 @@ module JSONSharedTestCases
     assert_equal "320×480", x.resolution
 
     payload = YAML.dump(x)
-    y = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+    y = YAML.unsafe_load(payload)
     assert_equal "320×480", y.resolution
   end
 

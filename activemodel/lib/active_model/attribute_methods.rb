@@ -204,7 +204,7 @@ module ActiveModel
         old_name = old_name.to_s
         new_name = new_name.to_s
         self.attribute_aliases = attribute_aliases.merge(new_name => old_name)
-        aliases_by_attribute_name[old_name] << new_name
+        aliases_by_attribute_name[old_name] |= [new_name]
         eagerly_generate_alias_attribute_methods(new_name, old_name)
       end
 

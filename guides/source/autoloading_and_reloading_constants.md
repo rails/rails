@@ -53,7 +53,7 @@ On the other hand, those loaders do not manage anything else. In particular, the
 Project Structure
 -----------------
 
-In a Rails application file names have to match the constants they define, with directories acting as namespaces.
+In a Rails application, file names have to match the constants they define, with directories acting as namespaces.
 
 For example, the file `app/helpers/users_helper.rb` should define `UsersHelper` and the file `app/controllers/admin/payments_controller.rb` should define `Admin::PaymentsController`.
 

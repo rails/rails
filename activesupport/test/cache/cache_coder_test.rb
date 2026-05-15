@@ -20,6 +20,33 @@ class CacheCoderTest < ActiveSupport::TestCase
     end
   end
 
+  test "handle corrupted payloads gracefully" do
+    coder = ActiveSupport::Cache::Coder.new(Marshal, Zlib)
+    entry = ActiveSupport::Cache::Entry.new(["test"], version: "12", expires_in: 34)
+
+    payload = coder.dump_compressed(entry, 1)
+
+    assert_error_reported do
+      assert_nil coder.load(payload.byteslice(1..-1))
+    end
+
+    lazy_entry = coder.load(payload.byteslice(0..-2))
+    assert_raises ActiveSupport::Cache::DeserializationError do
+      lazy_entry.value
+    end
+
+    payload = coder.dump(entry)
+
+    assert_error_reported do
+      assert_nil coder.load(payload.byteslice(1..-1))
+    end
+
+    lazy_entry = coder.load(payload.byteslice(0..-2))
+    assert_raises ActiveSupport::Cache::DeserializationError do
+      lazy_entry.value
+    end
+  end
+
   test "compresses values that are larger than the threshold" do
     COMPRESSIBLE_ENTRIES.each do |entry|
       dumped = @coder.dump(entry)
@@ -117,7 +144,7 @@ class CacheCoderTest < ActiveSupport::TestCase
       end
 
       def load(dumped)
-        Marshal.load(dumped.delete_prefix!("SERIALIZED:"))
+        Marshal.load(dumped.delete_prefix("SERIALIZED:"))
       end
     end
 
@@ -129,7 +156,7 @@ class CacheCoderTest < ActiveSupport::TestCase
       end
 
       def inflate(deflated)
-        Zlib.inflate(deflated.delete_prefix!("COMPRESSED:"))
+        Zlib.inflate(deflated.delete_prefix("COMPRESSED:"))
       end
     end
 
@@ -140,10 +167,10 @@ class CacheCoderTest < ActiveSupport::TestCase
       STRING.encode(Encoding::BINARY),
       STRING.encode(Encoding::US_ASCII),
       STRING.encode(Encoding::WINDOWS_1252),
-    ]
-    VALUES = [nil, true, 1, "", "ümlaut", [*0..255].pack("C*"), *COMPRESSIBLE_VALUES]
-    VERSIONS = [nil, "", "ümlaut", [*0..255].pack("C*"), "x" * 256]
-    EXPIRIES = [nil, 0, 100.years]
+    ].freeze
+    VALUES = [nil, true, 1, "", "ümlaut", [*0..255].pack("C*"), *COMPRESSIBLE_VALUES].freeze
+    VERSIONS = [nil, "", "ümlaut", [*0..255].pack("C*"), "x" * 256].freeze
+    EXPIRIES = [nil, 0, 100.years].freeze
 
     ENTRIES = VALUES.product(VERSIONS, EXPIRIES).map do |value, version, expires_in|
       ActiveSupport::Cache::Entry.new(value, version: version, expires_in: expires_in).freeze

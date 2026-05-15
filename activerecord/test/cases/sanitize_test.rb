@@ -13,29 +13,16 @@ class SanitizeTest < ActiveRecord::TestCase
   def test_sanitize_sql_array_handles_string_interpolation
     quoted_bambi = ActiveRecord::Base.lease_connection.quote_string("Bambi")
     assert_equal "name='#{quoted_bambi}'", Binary.sanitize_sql_array(["name='%s'", "Bambi"])
-    assert_deprecated ActiveSupport.deprecator do
-      assert_equal "name='#{quoted_bambi}'", Binary.sanitize_sql_array(["name='%s'", "Bambi".mb_chars])
-    end
 
     quoted_bambi_and_thumper = ActiveRecord::Base.lease_connection.quote_string("Bambi\nand\nThumper")
     assert_equal "name='#{quoted_bambi_and_thumper}'", Binary.sanitize_sql_array(["name='%s'", "Bambi\nand\nThumper"])
-
-    assert_deprecated ActiveSupport.deprecator do
-      assert_equal "name='#{quoted_bambi_and_thumper}'", Binary.sanitize_sql_array(["name='%s'", "Bambi\nand\nThumper".mb_chars])
-    end
   end
 
   def test_sanitize_sql_array_handles_bind_variables
     quoted_bambi = ActiveRecord::Base.lease_connection.quote("Bambi")
     assert_equal "name=#{quoted_bambi}", Binary.sanitize_sql_array(["name=?", "Bambi"])
-    assert_deprecated ActiveSupport.deprecator do
-      assert_equal "name=#{quoted_bambi}", Binary.sanitize_sql_array(["name=?", "Bambi".mb_chars])
-    end
     quoted_bambi_and_thumper = ActiveRecord::Base.lease_connection.quote("Bambi\nand\nThumper")
     assert_equal "name=#{quoted_bambi_and_thumper}", Binary.sanitize_sql_array(["name=?", "Bambi\nand\nThumper"])
-    assert_deprecated ActiveSupport.deprecator do
-      assert_equal "name=#{quoted_bambi_and_thumper}", Binary.sanitize_sql_array(["name=?", "Bambi\nand\nThumper".mb_chars])
-    end
   end
 
   def test_sanitize_sql_array_handles_named_bind_variables
@@ -234,13 +221,6 @@ class SanitizeTest < ActiveRecord::TestCase
     quoted_bambi_and_thumper = ActiveRecord::Base.lease_connection.quote("Bambi\nand\nThumper")
     assert_equal "name=#{quoted_bambi}", bind("name=?", "Bambi")
     assert_equal "name=#{quoted_bambi_and_thumper}", bind("name=?", "Bambi\nand\nThumper")
-    assert_deprecated ActiveSupport.deprecator do
-      assert_equal "name=#{quoted_bambi}", bind("name=?", "Bambi".mb_chars)
-    end
-
-    assert_deprecated ActiveSupport.deprecator do
-      assert_equal "name=#{quoted_bambi_and_thumper}", bind("name=?", "Bambi\nand\nThumper".mb_chars)
-    end
   end
 
   def test_named_bind_with_postgresql_type_casts

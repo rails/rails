@@ -38,7 +38,7 @@ module ActiveRecord
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
 
-      @unique_by = find_unique_index_for(@unique_by)
+      @unique_by = find_unique_index_for(@unique_by) if @on_duplicate != :raise
 
       configure_on_duplicate_update_logic
       ensure_valid_options_for_connection!
@@ -47,10 +47,10 @@ module ActiveRecord
     def execute
       return ActiveRecord::Result.empty if inserts.empty?
 
-      message = +"#{model} "
+      message = +"#{model.name} "
       message << "Bulk " if inserts.many?
       message << (on_duplicate == :update ? "Upsert" : "Insert")
-      connection.exec_insert_all to_sql, message
+      connection.exec_insert_all self, message
     end
 
     def updatable_columns
@@ -98,6 +98,10 @@ module ActiveRecord
       else
         keys.sort!
       end
+    end
+
+    def to_sql
+      connection.build_insert_sql(ActiveRecord::InsertAll::Builder.new(self))
     end
 
     private
@@ -191,12 +195,6 @@ module ActiveRecord
         end
       end
 
-
-      def to_sql
-        connection.build_insert_sql(ActiveRecord::InsertAll::Builder.new(self))
-      end
-
-
       def readonly_columns
         primary_keys + model.readonly_attributes
       end
@@ -244,7 +242,9 @@ module ActiveRecord
             elsif pks.include?(key) && value.nil?
               connection.default_insert_value(model.columns_hash[key])
             else
-              ActiveModel::Type::SerializeCastValue.serialize(type = types[key], type.cast(value))
+              type = types[key]
+              value = type.cast(value) unless type.serialized?
+              ActiveModel::Type::SerializeCastValue.serialize(type, value)
             end
           end
 

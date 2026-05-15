@@ -391,10 +391,12 @@ module SharedGeneratorTests
   def test_generated_files_have_no_rubocop_warnings
     run_generator
 
-    Dir.chdir(destination_root) do
-      output = `./bin/rubocop`
+    quietly do
+      Dir.chdir(destination_root) do
+        output = `./bin/rubocop`
 
-      assert_predicate $?, :success?, "bin/rubocop did not exit successfully:\n#{output}"
+        assert_predicate $?, :success?, "bin/rubocop did not exit successfully:\n#{output}"
+      end
     end
   end
 

@@ -100,7 +100,7 @@ module ActiveRecord
         end
       end
 
-      DEFAULT_READ_QUERY = [:begin, :commit, :explain, :release, :rollback, :savepoint, :select, :with] # :nodoc:
+      DEFAULT_READ_QUERY = [:begin, :commit, :explain, :release, :rollback, :savepoint, :select, :with].freeze # :nodoc:
       private_constant :DEFAULT_READ_QUERY
 
       def self.build_read_query_regexp(*parts) # :nodoc:
@@ -139,7 +139,7 @@ module ActiveRecord
 
       # Opens a database console session.
       def self.dbconsole(config, options = {})
-        raise NotImplementedError.new("#{self.class} should define `dbconsole` that accepts a db config and options to implement connecting to the db console")
+        raise NotImplementedError.new("#{self} should define `dbconsole` that accepts a db config and options to implement connecting to the db console")
       end
 
       def initialize(config_or_deprecated_connection, deprecated_logger = nil, deprecated_connection_options = nil, deprecated_config = nil) # :nodoc:
@@ -587,6 +587,10 @@ module ActiveRecord
         false
       end
 
+      def supports_update_returning?
+        false
+      end
+
       def supports_insert_on_duplicate_skip?
         false
       end
@@ -612,7 +616,11 @@ module ActiveRecord
       end
 
       def return_value_after_insert?(column) # :nodoc:
-        column.auto_populated?
+        column.auto_populated_on_insert?
+      end
+
+      def return_value_after_update?(column)
+        column.auto_populated_on_update?
       end
 
       def async_enabled? # :nodoc:
@@ -816,6 +824,12 @@ module ActiveRecord
         false
       end
 
+      def verify
+        return if @verified
+        return if (last_activity = seconds_since_last_activity) && last_activity < verify_timeout
+        verify!
+      end
+
       # Checks whether the connection to the database is still active (i.e. not stale).
       # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
@@ -875,10 +889,6 @@ module ActiveRecord
           @raw_connection_dirty = true
           conn
         end
-      end
-
-      def default_uniqueness_comparison(attribute, value) # :nodoc:
-        attribute.eq(value)
       end
 
       def case_sensitive_comparison(attribute, value) # :nodoc:
@@ -1060,7 +1070,7 @@ module ActiveRecord
         #
         def with_raw_connection(allow_retry: false, materialize_transactions: true)
           @lock.synchronize do
-            connect! if @raw_connection.nil? && reconnect_can_restore_state?
+            connect! if !connected? && reconnect_can_restore_state?
 
             self.materialize_transactions if materialize_transactions
 
@@ -1219,7 +1229,7 @@ module ActiveRecord
               name:              intent.name,
               binds:             intent.binds,
               type_casted_binds: intent.type_casted_binds,
-              async:             intent.async,
+              async:             intent.ran_async,
               allow_retry:       intent.allow_retry,
               connection:        self,
               transaction:       current_transaction.user_transaction.presence,

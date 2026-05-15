@@ -1,3 +1,341 @@
+*   Deprecated `ActiveRecord::ConnectionAdapters::Column#auto_populated?` in favor of
+    `auto_populated_on_insert?`
+
+    *Rafael Mendonça França*
+
+*   Reload virtual columns on update in PostgreSQL
+
+    Automatically reload virtual columns on `update` when using PostgreSQL. This is done by issuing a single
+    UPDATE query that includes a RETURNING clause.
+
+    Given a `Post` model represented by the following schema:
+
+    ```ruby
+    create_table :posts do |t|
+      t.integer :upvotes_count
+      t.integer :downvotes_count
+      t.virtual :total_votes_count, type: :integer, as: "upvotes_count + downvotes_count", stored: true
+    end
+    ```
+
+    `total_votes_count` will reflect the sum of upvotes and downvotes after `update` is successfully called.
+    Prior to this change calling `reload` would have been necessary to obtain the new value calculated by
+    the database.
+
+    ```ruby
+    post = Post.find(1)
+    post.update(upvotes_count: 2, downvotes_count: 2)
+    # Calling `post.reload` no longer necessary
+    post.total_votes => 4
+    ```
+
+    *Alex Baldwin*
+
+*   Reset the optimistic locking column when a transaction is rolled back.
+
+    Previously, when a record with optimistic locking was successfully saved
+    inside a transaction that later rolled back, the in-memory `lock_version`
+    was left at the incremented value while the database row was reverted to
+    the previous one. Saving the same instance again then raised
+    `ActiveRecord::StaleObjectError` because the WHERE clause used the
+    incremented value that no longer existed in the database.
+
+    The locking column is now restored from the snapshot taken at the start
+    of the transaction, so retrying a save on the same record after a
+    rollback works without an explicit `reload`.
+
+    *Kenta Ishizaki*
+
+*   Fix handling of expressions in array syntax for `add_index`.
+
+    This change allows passing expressions in array syntax for `add_index` method.
+    For example, `add_index :users, [ "lower(email)" ]` now works the same as
+    `add_index :users, "lower(email)"`.
+
+    ```ruby
+    # This now works properly:
+    add_index :users, [ "lower(email)" ]
+
+    # As does this:
+    add_index :users, [ "lower(email)", :status ]
+    ```
+
+    *Alexandre Camillo*
+
+*   Fix `strict_loading` violations ignored when using `pluck`
+
+    *Johnson Chan*
+
+*   Move the defaulting of `prevent_writes` to `true` when using the `reading` role into the parameters
+    of the role switching methods, and raise an `ArgumentError` if `prevent_writes: false` is provided
+    with the `reading` role.
+
+    *Joshua Young*
+
+*   Fix incorrect callback execution order when `config.active_record.run_after_transaction_callbacks_in_order_defined = true`
+    and using `after_commit` and `after_rollback` callbacks with `prepend: true`.
+
+    *Joshua Young*
+
+*   Accept encryption credentials as ENV
+
+    Taking advantage of Rails.apps.creds (#56455), the `primary_key`, `deterministic_key` and
+    `key_derivation_salt` required by ActiveRecord::Encryption can now also be provided through
+    environment variables named `ACTIVE_RECORD_ENCRYPTION__PRIMARY_KEY`,
+    `ACTIVE_RECORD_ENCRYPTION__DETERMINISTIC_KEY`, `ACTIVE_RECORD_ENCRYPTION__KEY_DERIVATION_SALT`.
+
+    *Claudio Baccigalupo*
+
+*   Treat `nil` values as `""` during multi-parameter attribute assignment
+
+    ```ruby
+    topic = Topic.where.not(last_read: nil).first
+    topic.attributes = { "last_read(1i)" => nil, "last_read(2i)" => nil, "last_read(3i)" => nil }
+    topic.last_read # => nil
+    ```
+
+    *Sean Doyle*
+
+*   Include record ID in error when uniqueness validation fails
+
+    When a uniqueness validation fails, the `errors.details` hash for the attribute
+    now includes an `:existing_id` key, holding the ID of the record that caused
+    the conflict.
+
+    ```ruby
+    # Before
+    errors.details[:name]
+    # => [{error: :taken, value: "John Doe"}]
+
+    # After
+    errors.details[:name]
+    # => [{error: :taken, value: "John Doe", existing_id: 123}]
+    ```
+
+    *Bruno Vicenzo*
+
+*   Bump the minimum PostgreSQL version to 10.0.
+
+    As part of this change, `supports_pgcrypto_uuid?` is deprecated because
+    `pgcrypto` provides `gen_random_uuid()` since PostgreSQL 9.4, which is
+    below the new 10.0 minimum.
+
+    *Yasuo Honda*
+
+*   Let `add_column` raise `ArgumentError` if `:null` is set to a true value
+    when defining a primary key.
+
+    Primary keys get a `NOT NULL` constraint unconditionally. In particular,
+    `null: true` was being ignored, thus not doing what the user specified.
+    We should rather raise to let the user know the call is invalid.
+
+    *Xavier Noria*
+
+*   Deprecate the `schema_order` option in PostgreSQL database configurations.
+
+    Use `schema_search_path` instead. The `schema_order` alias will be
+    removed in Rails 8.3.
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate the `strict` option in MySQL database configurations.
+
+    The `strict` option for MySQL will be removed in Rails 8.3 because it is the default behavior.
+
+    To change the default behavior of `strict`, use `variables: { sql_mode: "..." }` to configure `sql_mode` directly.
+
+
+    `strict: false` can be replaced with `variables: { sql_mode: "" }`, and `strict: :default` can be replaced with `variables: { sql_mode: :default }`.
+
+    *Eileen M. Uchitelle*
+
+*   Allow configuring `SET` queriers for the PostgreSQL and MySQL adapters.
+
+    Individual settings can be skipped by setting them to `false` in
+    `database.yml`, which is useful when connecting through a load balancer or
+    proxy that handles configuration:
+
+    PostgreSQL example:
+
+    ```yaml
+    production:
+      adapter: postgresql
+      standard_conforming_strings: false
+      intervalstyle: false
+      min_messages: false
+      schema_search_path: false
+    ```
+
+    MySQL example:
+
+    ```yaml
+    production:
+      adapter: mysql2
+      wait_timeout: false
+      variables:
+        sql_mode: false
+    ```
+
+    Also deprecates `set_standard_conforming_strings` — it is now handled
+    automatically through the consolidated settings hash.
+
+    *Eileen M. Uchitelle*, *Matthew Draper*
+
+*   MySQL error 1046 (`ER_NO_DB_ERROR: No database selected`) is now retryable as a `ConnectionFailed` exception
+
+    *Clay Harmon*
+
+*   Batch SQL statements when creating tables to improve performance.
+
+    *Andrew Novoselac*
+
+*   Support PostgreSQL `RESET` on readonly queries.
+
+    ```ruby
+    ActiveRecord::Base.connected_to(role: :reading, prevent_writes: true) do
+      ActiveRecord::Base.with_connection do |c|
+        c.execute("SET statement_timeout = '7s'")
+        # some queries
+        c.execute("RESET statement_timeout")
+        # => no longer raises ActiveRecord::ReadOnlyError
+      end
+    end
+    ```
+
+    *Francesco Rodriguez*
+
+*   Add MySQL `lock:` option for `add_index`, `remove_index`, and ALTER TABLE
+    column operations (`add_column`, `remove_column`, `change_column`, `rename_column`).
+
+    Also extend `algorithm:` option support to ALTER TABLE column operations on MySQL.
+
+    MySQL supports `ALGORITHM = {DEFAULT|COPY|INPLACE|INSTANT}` and
+    `LOCK = {DEFAULT|NONE|SHARED|EXCLUSIVE}` to control how DDL operations
+    are performed, enabling online schema changes without blocking reads or writes.
+
+    ```ruby
+    add_index :users, :email, algorithm: :inplace, lock: :none
+    remove_index :users, :email, algorithm: :inplace, lock: :none
+    add_column :users, :name, :string, algorithm: :instant, lock: :none
+    change_column :users, :name, :string, null: false, algorithm: :inplace, lock: :none
+    remove_column :users, :name, algorithm: :inplace, lock: :none
+    rename_column :users, :name, :full_name, algorithm: :inplace, lock: :none
+    ```
+
+    *Dominik Darnel*
+
+*   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
+
+    This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.
+
+    *Sorah Fukumori*
+
+*   Add `implicit_persistence_transaction` hook for customizing transaction behavior.
+
+    A new protected method `implicit_persistence_transaction` has been added that wraps
+    persistence operations (`save`, `destroy`, `touch`) in a transaction. This method can be
+    overridden in models to customize transaction behavior, such as setting a specific isolation
+    level or skipping transaction creation when one is already open.
+
+    Example skipping transaction creation if one is already open:
+
+    ```ruby
+    class Account < ApplicationRecord
+      private
+        def implicit_persistence_transaction(connection, &block)
+          if connection.transaction_open?
+            yield
+          else
+            super
+          end
+        end
+    end
+    ```
+
+    *Israel P Valverde*
+
+*   Pass sql query to query log tags.
+
+    ```ruby
+    config.active_record.query_log_tags = [
+      sql_length: ->(context) { context[:sql].length }
+    ]
+    ```
+
+    *fatkodima*
+
+*   Speedup `ActiveRecord::Migration.maintain_test_schema!` when using multiple databases.
+
+    Previously, Active Record would inefficiently connect twice to each database, now it only
+    connects once per database to reverify the schema.
+
+    *Iliana Hadzhiatanasova*
+
+*   Add `unique_by` option to `insert_all!`.
+
+    *Chedli Bourguiba*
+
+*   Fix PostgreSQL schema dumping to handle schema-qualified table names in foreign_key references that span different schemas.
+
+        # before
+        add_foreign_key "hst.event_log_attributes", "hst.event_logs" # emits correctly because they're in the same schema (hst)
+        add_foreign_key "hst.event_log_attributes", "hst.usr.user_profiles", column: "created_by_id" # emits hst.user.* when user.* is expected
+
+        # after
+        add_foreign_key "hst.event_log_attributes", "hst.event_logs"
+        add_foreign_key "hst.event_log_attributes", "usr.user_profiles", column: "created_by_id"
+
+    *Chiperific*
+
+*   Add `PostgreSQLAdapter.register_type_mapping` for custom SQL type registration.
+
+    Third-party gems can now register custom type mappings without prepending
+    internal methods:
+
+        ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.register_type_mapping do |type_map|
+          type_map.register_type("geometry") do |oid, fmod, sql_type|
+            MyGeometryType.new(sql_type)
+          end
+        end
+
+    Callbacks execute in registration order.
+
+    *Abdelkader Boudih*
+
+*   Yield the transaction object to the block when using `with_lock`.
+
+    *Ngan Pham*
+
+*   Fix bug when `current_transaction.isolation` would not have been reset in test env.
+
+    Additionally, extending the change in [#55549](https://github.com/rails/rails/pull/55549)
+    to handle `requires_new: true`.
+
+    *Kir Shatrov*
+
+*   Allow `schema_dump` configuration to be an absolute path.
+
+    Previously, the `schema_dump` configuration was always joined with the
+    `db_dir` path. Now, if an absolute path is provided, it will be used as-is.
+
+    *Mike Dalessio*
+
+*   Decode PostgreSQL bytea and money columns when they appear in direct
+    query results.
+
+    bytea columns are now decoded to binary-encoded Strings, and money columns
+    are decoded to BigDecimal instead of String.
+
+    ```ruby
+    ActiveRecord::Base.connection
+         .select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
+
+    ActiveRecord::Base.connection
+         .select_value("select '12.34'::money").class #=> BigDecimal
+    ```
+
+    *Matthew Draper*
+
 *   Add support for configuring migration strategy on a per-adapter basis.
 
     `migration_strategy` can now be set on individual adapter classes, overriding

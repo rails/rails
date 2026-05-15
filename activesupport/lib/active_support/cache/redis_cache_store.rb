@@ -14,6 +14,7 @@ require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/numeric/time"
 require "active_support/digest"
+require "active_support/inspect_backport"
 
 module ActiveSupport
   module Cache
@@ -34,12 +35,19 @@ module ActiveSupport
     # * +read_multi+ and +write_multi+ support for Redis mget/mset. Use
     #   +Redis::Distributed+ 4.0.1+ for distributed mget support.
     # * +delete_matched+ support for Redis KEYS globs.
+    # * +read+ supports <tt>delete: true</tt> to atomically read and delete
+    #   a cache entry using the Redis +GETDEL+ command.
+    #
+    #     cache.write("greeting", "hello")
+    #     cache.read("greeting", delete: true)  # => "hello"
+    #     cache.read("greeting")                 # => nil
+    #
     class RedisCacheStore < Store
       DEFAULT_REDIS_OPTIONS = {
         connect_timeout:    1,
         read_timeout:       1,
         write_timeout:      1,
-      }
+      }.freeze
 
       DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) do
         if logger
@@ -160,7 +168,7 @@ module ActiveSupport
                        (redis.respond_to?(:wrapped_pool) && redis.wrapped_pool.instance_of?(::ConnectionPool))
 
         if !already_pool && pool_options = self.class.send(:retrieve_pool_options, redis_options)
-          @redis = ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
+          @redis = ::ConnectionPool.new(**pool_options) { self.class.build_redis(**redis_options) }
         else
           @redis = self.class.build_redis(**redis_options)
         end
@@ -170,9 +178,7 @@ module ActiveSupport
         super(universal_options)
       end
 
-      def inspect
-        "#<#{self.class} options=#{options.inspect} redis=#{redis.inspect}>"
-      end
+      ActiveSupport::InspectBackport.apply(self)
 
       # Cache Store API implementation.
       #
@@ -322,6 +328,10 @@ module ActiveSupport
       end
 
       private
+        def instance_variables_to_inspect
+          [:@options, :@redis].freeze
+        end
+
         def pipeline_entries(entries, &block)
           redis.then { |c|
             if c.is_a?(Redis::Distributed)
@@ -342,7 +352,7 @@ module ActiveSupport
 
         def read_serialized_entry(key, raw: false, **options)
           failsafe :read_entry do
-            redis.then { |c| c.get(key) }
+            redis.then { |c| options[:delete] ? c.getdel(key) : c.get(key) }
           end
         end
 

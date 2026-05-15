@@ -232,11 +232,7 @@ module ActiveRecord
           if filename.include?(".dump")
             Marshal.load(file)
           else
-            if YAML.respond_to?(:unsafe_load)
-              YAML.unsafe_load(file)
-            else
-              YAML.load(file)
-            end
+            YAML.unsafe_load(file)
           end
         end
       end

@@ -5,6 +5,7 @@
 require "stringio"
 
 require "active_support/inflector"
+require "active_support/core_ext/enumerable"
 require "action_dispatch/http/headers"
 require "action_controller/metal/exceptions"
 require "rack/request"
@@ -116,25 +117,25 @@ module ActionDispatch
     end
 
     # HTTP methods from [RFC 2616: Hypertext Transfer Protocol -- HTTP/1.1](https://www.ietf.org/rfc/rfc2616.txt)
-    RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT)
+    RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT).freeze
     # HTTP methods from [RFC 2518: HTTP Extensions for Distributed Authoring -- WEBDAV](https://www.ietf.org/rfc/rfc2518.txt)
-    RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK)
+    RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK).freeze
     # HTTP methods from [RFC 3253: Versioning Extensions to WebDAV](https://www.ietf.org/rfc/rfc3253.txt)
-    RFC3253 = %w(VERSION-CONTROL REPORT CHECKOUT CHECKIN UNCHECKOUT MKWORKSPACE UPDATE LABEL MERGE BASELINE-CONTROL MKACTIVITY)
+    RFC3253 = %w(VERSION-CONTROL REPORT CHECKOUT CHECKIN UNCHECKOUT MKWORKSPACE UPDATE LABEL MERGE BASELINE-CONTROL MKACTIVITY).freeze
     # HTTP methods from [RFC 3648: WebDAV Ordered Collections Protocol](https://www.ietf.org/rfc/rfc3648.txt)
-    RFC3648 = %w(ORDERPATCH)
+    RFC3648 = %w(ORDERPATCH).freeze
     # HTTP methods from [RFC 3744: WebDAV Access Control Protocol](https://www.ietf.org/rfc/rfc3744.txt)
-    RFC3744 = %w(ACL)
+    RFC3744 = %w(ACL).freeze
     # HTTP methods from [RFC 5323: WebDAV SEARCH](https://www.ietf.org/rfc/rfc5323.txt)
-    RFC5323 = %w(SEARCH)
+    RFC5323 = %w(SEARCH).freeze
     # HTTP methods from [RFC 4791: Calendaring Extensions to WebDAV](https://www.ietf.org/rfc/rfc4791.txt)
-    RFC4791 = %w(MKCALENDAR)
+    RFC4791 = %w(MKCALENDAR).freeze
     # HTTP methods from [RFC 5789: PATCH Method for HTTP](https://www.ietf.org/rfc/rfc5789.txt)
-    RFC5789 = %w(PATCH)
+    RFC5789 = %w(PATCH).freeze
 
     HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789
 
-    HTTP_METHOD_LOOKUP = {}
+    HTTP_METHOD_LOOKUP = {} # rubocop:disable Style/MutableConstant
 
     # Populate the HTTP method lookup cache.
     HTTP_METHODS.each { |method|
@@ -467,6 +468,22 @@ module ActionDispatch
       get_header("X-HTTP_AUTHORIZATION") ||
       get_header("X_HTTP_AUTHORIZATION") ||
       get_header("REDIRECT_X_HTTP_AUTHORIZATION")
+    end
+
+    # Returns the bearer token embedded in the authorization header or nil if missing.
+    def bearer_token
+      authorization.to_s[/\ABearer (.+)\z/, 1]
+    end
+
+    # True if the request method is safe per RFC 9110 §9.2.1
+    # (GET, HEAD, OPTIONS, or TRACE).
+    def safe_method?
+      get? || head? || options? || trace?
+    end
+
+    # True if the request method may modify resources. Inverse of #safe_method?.
+    def unsafe_method?
+      !safe_method?
     end
 
     # True if the request came from localhost, 127.0.0.1, or ::1.

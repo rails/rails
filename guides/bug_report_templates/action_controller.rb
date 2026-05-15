@@ -43,7 +43,7 @@ class BugTest < ActiveSupport::TestCase
   def test_returns_success
     get "/"
     assert last_response.ok?
-    assert_equal last_response.body, "Home"
+    assert_equal "Home", last_response.body
   end
 
   private

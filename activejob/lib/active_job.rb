@@ -37,6 +37,7 @@ module ActiveJob
   autoload :Base
   autoload :QueueAdapters
   autoload :Arguments
+  autoload :Attributes
   autoload :DeserializationError, "active_job/arguments"
   autoload :SerializationError, "active_job/arguments"
   autoload :UnknownJobClassError, "active_job/core"

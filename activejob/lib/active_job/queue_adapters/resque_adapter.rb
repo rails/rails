@@ -28,6 +28,13 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :resque
     class ResqueAdapter < AbstractAdapter
+      def check_adapter
+        ActiveJob.deprecator.warn <<~MSG.squish
+          The built-in `resque` adapter is deprecated and will be removed in Rails 9.0.
+          Please upgrade `resque` gem to version 3.0 or later to use the `resque` gem's adapter.
+        MSG
+      end
+
       def enqueue(job) # :nodoc:
         JobWrapper.instance_variable_set(:@queue, job.queue_name)
         Resque.enqueue_to job.queue_name, JobWrapper, job.serialize

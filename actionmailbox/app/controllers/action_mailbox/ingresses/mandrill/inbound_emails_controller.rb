@@ -55,7 +55,7 @@ module ActionMailbox
       end
 
       def key
-        Rails.application.credentials.dig(:action_mailbox, :mandrill_api_key) || ENV["MANDRILL_INGRESS_API_KEY"]
+        Rails.app.credentials.dig(:action_mailbox, :mandrill_api_key) || ENV["MANDRILL_INGRESS_API_KEY"]
       end
 
       class Authenticator
@@ -66,7 +66,7 @@ module ActionMailbox
         end
 
         def authenticated?
-          ActiveSupport::SecurityUtils.secure_compare given_signature, expected_signature
+          given_signature.present? && ActiveSupport::SecurityUtils.secure_compare(given_signature, expected_signature)
         end
 
         private

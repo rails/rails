@@ -3,7 +3,7 @@
 # DATS = Deprecated Associations Test Suite.
 #
 # Minimal models defined ad-hoc for the test suite of deprecated associations.
-# They are persisted in exisiting tables for simplicity.
+# They are persisted in existing tables for simplicity.
 module DATS
   def self.table_name_prefix = ""
 

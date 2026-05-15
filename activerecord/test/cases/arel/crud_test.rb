@@ -31,35 +31,29 @@ module Arel
     end
   end
 
-  class CrudTest < Arel::Spec
-    describe "insert" do
-      it "should call insert on the connection" do
-        table = Table.new :users
-        fc = FakeCrudder.new
-        fc.from table
-        im = fc.compile_insert [[table[:id], "foo"]]
-        assert_instance_of Arel::InsertManager, im
-      end
+  class CrudTest < Arel::Test
+    test "insert should call insert on the connection" do
+      table = Table.new :users
+      fc = FakeCrudder.new
+      fc.from table
+      im = fc.compile_insert [[table[:id], "foo"]]
+      assert_instance_of Arel::InsertManager, im
     end
 
-    describe "update" do
-      it "should call update on the connection" do
-        table = Table.new :users
-        fc = FakeCrudder.new
-        fc.from table
-        stmt = fc.compile_update [[table[:id], "foo"]], Arel::Attributes::Attribute.new(table, "id")
-        assert_instance_of Arel::UpdateManager, stmt
-      end
+    test "update should call update on the connection" do
+      table = Table.new :users
+      fc = FakeCrudder.new
+      fc.from table
+      stmt = fc.compile_update [[table[:id], "foo"]], Arel::Attributes::Attribute.new(table, "id")
+      assert_instance_of Arel::UpdateManager, stmt
     end
 
-    describe "delete" do
-      it "should call delete on the connection" do
-        table = Table.new :users
-        fc = FakeCrudder.new
-        fc.from table
-        stmt = fc.compile_delete
-        assert_instance_of Arel::DeleteManager, stmt
-      end
+    test "delete should call delete on the connection" do
+      table = Table.new :users
+      fc = FakeCrudder.new
+      fc.from table
+      stmt = fc.compile_delete
+      assert_instance_of Arel::DeleteManager, stmt
     end
   end
 end

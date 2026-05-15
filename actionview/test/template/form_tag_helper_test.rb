@@ -439,6 +439,25 @@ class FormTagHelperTest < ActionView::TestCase
     assert_equal({ class: "pix", direct_upload: true }, original_options)
   end
 
+  def test_file_field_tag_with_direct_upload_includes_checksum_algorithm
+    @controller = WithActiveStorageRoutesControllers.new
+
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\" data-direct-upload-url=\"http://testtwo.host/rails/active_storage/direct_uploads\" data-checksum-algorithm=\"sha256\"/>",
+      file_field_tag("picsplz", class: "pix", direct_upload: true, data_checksum_algorithm: "sha256")
+    )
+  end
+
+  def test_file_field_tag_with_direct_upload_defaults_checksum_algorithm_to_md5
+    @controller = WithActiveStorageRoutesControllers.new
+
+    # Should not override existing data-checksum-algorithm
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\" data-direct-upload-url=\"http://testtwo.host/rails/active_storage/direct_uploads\" data-checksum-algorithm=\"md5\"/>",
+      file_field_tag("picsplz", class: "pix", direct_upload: true, data_checksum_algorithm: "md5")
+    )
+  end
+
   def test_password_field_tag
     actual = password_field_tag
     expected = %(<input id="password" name="password" type="password" />)
@@ -975,6 +994,79 @@ class FormTagHelperTest < ActionView::TestCase
   def test_range_input_tag
     expected = %{<input name="volume" step="0.1" max="11" id="volume" type="range" min="0" />}
     assert_dom_equal(expected, range_field_tag("volume", nil, in: 0..11, step: 0.1))
+  end
+
+  def test_empty_datalist
+    actual = datalist_tag("countries_datalist")
+    expected = %(<datalist id="countries_datalist"></datalist>)
+    assert_dom_equal(expected, actual)
+  end
+
+  def test_datalist_with_simple_option_tags
+    actual = datalist_tag("countries_datalist", %w[Argentina Brazil Chile])
+    expected = %(
+      <datalist id="countries_datalist">
+        <option value="Argentina">Argentina</option>
+        <option value="Brazil">Brazil</option>
+        <option value="Chile">Chile</option>
+      </datalist>
+    )
+    assert_dom_equal(expected, actual)
+  end
+
+  def test_datalist_with_label_and_value_option_tags
+    actual = datalist_tag("countries_datalist", { "Argentina" => "AR", "Brazil" => "BR", "Chile" => "CL" })
+    expected = %(
+      <datalist id="countries_datalist">
+        <option value="AR">Argentina</option>
+        <option value="BR">Brazil</option>
+        <option value="CL">Chile</option>
+      </datalist>
+    )
+    assert_dom_equal(expected, actual)
+  end
+
+  def test_datalist_with_label_and_value_option_tags_as_arrays
+    actual = datalist_tag("countries_datalist", [%w[Argentina AR], %w[Brazil BR], %w[Chile CL]])
+    expected = %(
+      <datalist id="countries_datalist">
+        <option value="AR">Argentina</option>
+        <option value="BR">Brazil</option>
+        <option value="CL">Chile</option>
+      </datalist>
+    )
+    assert_dom_equal(expected, actual)
+  end
+
+  def test_datalist_with_label_value_and_html_options_option_tags
+    actual = datalist_tag(
+      "countries_datalist",
+      ["Argentina", ["Brazil", { class: "brazilian_option" }], ["Chile", "CL", { disabled: :disabled }]]
+    )
+    expected = %(
+      <datalist id="countries_datalist">
+        <option value="Argentina">Argentina</option>
+        <option value="Brazil" class="brazilian_option">Brazil</option>
+        <option value="CL" disabled="disabled">Chile</option>
+      </datalist>
+    )
+    assert_dom_equal(expected, actual)
+  end
+
+  def test_datalist_with_option_with_data_attribute
+    actual = datalist_tag("countries_datalist", [["Brazil", { data: { beverage: "capirinha" } }]])
+    expected = %(
+      <datalist id="countries_datalist">
+        <option value="Brazil" data-beverage="capirinha">Brazil</option>
+      </datalist>
+    )
+    assert_dom_equal(expected, actual)
+  end
+
+  def test_datalist_with_html_options
+    actual = datalist_tag("countries_datalist", [], { class: "south-america", data: { limit: 3 } })
+    expected = %(<datalist id="countries_datalist" class="south-america" data-limit="3"></datalist>)
+    assert_dom_equal(expected, actual)
   end
 
   def test_field_set_tag_in_erb

@@ -358,6 +358,46 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_this_week
+    Date.stub(:current, Date.new(2000, 1, 5)) do # Wed, 2000-01-05
+      assert_equal false, Time.utc(2000, 1, 2, 23, 59, 59).this_week?
+      assert_equal true,  Time.utc(2000, 1, 3, 0, 0, 0).this_week?
+      assert_equal true,  Time.utc(2000, 1, 9, 23, 59, 59).this_week?
+      assert_equal false, Time.utc(2000, 1, 10, 0, 0, 0).this_week?
+    end
+  end
+
+  def test_this_week_with_start_day
+    Date.stub(:current, Date.new(2000, 1, 5)) do # Wed, 2000-01-05
+      # Default (Monday start): Mon Jan 3 - Sun Jan 9
+      assert_equal false, Time.utc(2000, 1, 2, 23, 59, 59).this_week?
+      assert_equal true,  Time.utc(2000, 1, 3, 0, 0, 0).this_week?
+
+      # Sunday start: Sun Jan 2 - Sat Jan 8
+      assert_equal true,  Time.utc(2000, 1, 2, 0, 0, 0).this_week?(:sunday)
+      assert_equal true,  Time.utc(2000, 1, 8, 23, 59, 59).this_week?(:sunday)
+      assert_equal false, Time.utc(2000, 1, 9, 0, 0, 0).this_week?(:sunday)
+    end
+  end
+
+  def test_this_month
+    Date.stub(:current, Date.new(2000, 1, 15)) do
+      assert_equal false, Time.utc(1999, 12, 31, 23, 59, 59).this_month?
+      assert_equal true,  Time.utc(2000, 1, 1, 0, 0, 0).this_month?
+      assert_equal true,  Time.utc(2000, 1, 31, 23, 59, 59).this_month?
+      assert_equal false, Time.utc(2000, 2, 1, 0, 0, 0).this_month?
+    end
+  end
+
+  def test_this_year
+    Date.stub(:current, Date.new(2000, 6, 30)) do
+      assert_equal false, Time.utc(1999, 12, 31, 23, 59, 59).this_year?
+      assert_equal true,  Time.utc(2000, 1, 1, 0, 0, 0).this_year?
+      assert_equal true,  Time.utc(2000, 12, 31, 23, 59, 59).this_year?
+      assert_equal false, Time.utc(2001, 1, 1, 0, 0, 0).this_year?
+    end
+  end
+
   def test_current_returns_date_today_when_zone_is_not_set
     with_env_tz "US/Eastern" do
       Time.stub(:now, Time.local(1999, 12, 31, 23, 59, 59)) do

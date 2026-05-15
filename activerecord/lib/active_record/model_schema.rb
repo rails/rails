@@ -178,8 +178,6 @@ module ActiveRecord
         alias_method :inheritance_column=, :real_inheritance_column=
       end
 
-      self.protected_environments = ["production"]
-
       self.ignored_columns = [].freeze
       self.only_columns = [].freeze
 
@@ -313,7 +311,14 @@ module ActiveRecord
       # The array of names of environments where destructive actions should be prohibited. By default,
       # the value is <tt>["production"]</tt>.
       def protected_environments
-        if defined?(@protected_environments)
+        ActiveRecord.deprecator.warn <<~MSG
+          ActiveRecord::Base.protected_environments is deprecated in favor of
+          ActiveRecord.protected_environments and will be removed in Rails 9.0.
+        MSG
+
+        if self == ActiveRecord::Base
+          ActiveRecord.protected_environments
+        elsif defined?(@protected_environments)
           @protected_environments
         else
           superclass.protected_environments
@@ -322,7 +327,16 @@ module ActiveRecord
 
       # Sets an array of names of environments where destructive actions should be prohibited.
       def protected_environments=(environments)
-        @protected_environments = environments.map(&:to_s)
+        ActiveRecord.deprecator.warn <<~MSG
+          ActiveRecord::Base.protected_environments= is deprecated in favor of
+          ActiveRecord.protected_environments= and will be removed in Rails 9.0.
+        MSG
+
+        if self == ActiveRecord::Base
+          ActiveRecord.protected_environments = environments
+        else
+          @protected_environments = environments.map(&:to_s)
+        end
       end
 
       def real_inheritance_column=(value) # :nodoc:
@@ -459,8 +473,10 @@ module ActiveRecord
         end
       end
 
-      def yaml_encoder # :nodoc:
-        @yaml_encoder ||= ActiveModel::AttributeSet::YAMLEncoder.new(attribute_types)
+      def _returning_columns_for_update(connection)
+        @_returning_columns_for_update ||= columns.filter_map do |c|
+          c.name if connection.return_value_after_update?(c)
+        end
       end
 
       # Returns the column object for the named attribute.
@@ -568,6 +584,7 @@ module ActiveRecord
 
         def reload_schema_from_cache(recursive = true)
           @_returning_columns_for_insert = nil
+          @_returning_columns_for_update = nil
           @arel_table = nil
           @column_names = nil
           @symbol_column_to_string_name_hash = nil
@@ -578,7 +595,6 @@ module ActiveRecord
           @columns_hash = nil
           @schema_loaded = false
           @attribute_names = nil
-          @yaml_encoder = nil
           if recursive
             subclasses.each do |descendant|
               descendant.send(:reload_schema_from_cache)
@@ -640,9 +656,8 @@ module ActiveRecord
           end
         end
 
-        def type_for_column(connection, column)
-          # TODO: Remove the need for a connection after we release 8.1.
-          type = column.fetch_cast_type(connection)
+        def type_for_column(column)
+          type = column.cast_type
 
           if immutable_strings_by_default && type.respond_to?(:to_immutable_string)
             type = type.to_immutable_string

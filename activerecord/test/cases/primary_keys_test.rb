@@ -517,7 +517,6 @@ class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_primary_key_integer_with_default_nil
-    skip if current_adapter?(:SQLite3Adapter)
     @connection.create_table(:int_defaults, id: :integer, default: nil, force: true)
     schema = dump_table_schema "int_defaults"
     assert_match %r{create_table "int_defaults", id: :integer, default: nil}, schema

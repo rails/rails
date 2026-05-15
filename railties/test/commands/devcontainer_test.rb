@@ -14,6 +14,14 @@ class Rails::Command::DevcontainerTest < ActiveSupport::TestCase
     require "solid_cable"
     require "solid_queue"
 
+    app_file "test/application_system_test_case.rb", <<~RUBY
+      require "test_helper"
+
+      class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+        driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ]
+      end
+    RUBY
+
     output = rails "devcontainer"
 
     assert_match "app_name: app_template", output

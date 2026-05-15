@@ -19,7 +19,7 @@ module ActiveRecord
         end
 
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
-          :close, :declare, :fetch, :move, :set, :show
+          :close, :declare, :fetch, :move, :set, :show, :reset
         ) # :nodoc:
         private_constant :READ_QUERY
 
@@ -53,7 +53,7 @@ module ActiveRecord
             unless sequence_name
               table_ref = extract_table_ref_from_insert_sql(intent.raw_sql)
               if table_ref
-                pk = primary_key(table_ref) if pk.nil?
+                pk = schema_cache.primary_keys(table_ref) if pk.nil?
                 pk = suppress_composite_primary_key(pk)
                 sequence_name = default_sequence_name(table_ref, pk)
               end
@@ -128,8 +128,24 @@ module ActiveRecord
           execute("SET CONSTRAINTS #{constraints} #{deferred.to_s.upcase}")
         end
 
+        def execute_batch(statements, name = nil, **kwargs) # :nodoc:
+          intent = QueryIntent.new(
+            adapter: self,
+            processed_sql: combine_multi_statements(statements),
+            name: name,
+            batch: true,
+            binds: kwargs[:binds] || [],
+            prepare: kwargs[:prepare] || false,
+            allow_async: kwargs[:async] || false,
+            allow_retry: kwargs[:allow_retry] || false,
+            materialize_transactions: kwargs[:materialize_transactions] != false
+          )
+          intent.execute!
+          intent.finish
+        end
+
         private
-          IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR]
+          IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR].freeze
           private_constant :IDLE_TRANSACTION_STATUSES
 
           def cancel_any_running_query
@@ -148,7 +164,6 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, intent)
-            update_typemap_for_default_timezone
             result = if intent.prepare
               begin
                 stmt_key = prepare_statement(intent.processed_sql, intent.binds, raw_connection)
@@ -190,8 +205,28 @@ module ActiveRecord
             else
               fields = result.fields
               types = Array.new(fields.size)
+              field_types = Array.new(fields.size)
+              missing_oids = []
+
               fields.size.times do |index|
                 ftype = result.ftype(index)
+                field_types[index] = ftype
+                missing_oids << ftype unless type_map.key?(ftype)
+              end
+
+              if missing_oids.any?
+                load_additional_types(missing_oids)
+
+                fields.size.times do |index|
+                  ftype = field_types[index]
+                  next if type_map.key?(ftype)
+
+                  register_unknown_oid_type(ftype, fields[index])
+                end
+              end
+
+              fields.size.times do |index|
+                ftype = field_types[index]
                 fmod  = result.fmod(index)
                 types[index] = get_oid_type(ftype, fmod, fields[index])
               end
@@ -207,22 +242,6 @@ module ActiveRecord
             affected_rows = result.cmd_tuples
             result.clear
             affected_rows
-          end
-
-          def execute_batch(statements, name = nil, **kwargs)
-            intent = QueryIntent.new(
-              adapter: self,
-              processed_sql: combine_multi_statements(statements),
-              name: name,
-              batch: true,
-              binds: kwargs[:binds] || [],
-              prepare: kwargs[:prepare] || false,
-              async: kwargs[:async] || false,
-              allow_retry: kwargs[:allow_retry] || false,
-              materialize_transactions: kwargs[:materialize_transactions] != false
-            )
-            intent.execute!
-            intent.finish
           end
 
           def build_truncate_statements(table_names)

@@ -5,7 +5,7 @@ require "active_support/core_ext/enumerable"
 
 module Rails
   class CodeStatistics
-    DIRECTORIES = [
+    DIRECTORIES = [ # rubocop:disable Style/MutableConstant
       %w(Controllers        app/controllers),
       %w(Helpers            app/helpers),
       %w(Jobs               app/jobs),
@@ -30,7 +30,7 @@ module Rails
       %w(System\ tests      test/system),
     ]
 
-    TEST_TYPES = ["Controller tests",
+    TEST_TYPES = ["Controller tests", # rubocop:disable Style/MutableConstant
                   "Helper tests",
                   "Model tests",
                   "Mailer tests",
@@ -40,12 +40,15 @@ module Rails
                   "Integration tests",
                   "System tests"]
 
-    HEADERS = { lines: " Lines", code_lines: "   LOC", classes: "Classes", methods: "Methods" }
+    HEADERS = { lines: " Lines", code_lines: "   LOC", classes: "Classes", methods: "Methods" }.freeze
 
-    PATTERN = /^(?!\.).*?\.(rb|js|ts|css|scss|coffee|rake|erb)$/
+    EXTENSIONS = %w[rb js ts css scss coffee rake erb] # rubocop:disable Style/MutableConstant
+
+    PATTERN = /^(?!\.).*?\.(#{EXTENSIONS.join("|")})$/
 
     class_attribute :directories, default: DIRECTORIES
     class_attribute :test_types, default: TEST_TYPES
+    class_attribute :extensions, default: EXTENSIONS
     class_attribute :pattern, default: PATTERN
 
     # Add directories to the output of the <tt>bin/rails stats</tt> command.
@@ -58,6 +61,14 @@ module Rails
     def self.register_directory(label, path, test_directory: false)
       self.directories << [label, path]
       self.test_types << label if test_directory
+    end
+
+    # Add extensions to the output of the <tt>bin/rails stats</tt> command.
+    #
+    #   Rails::CodeStatistics.register_extension("txt")
+    def self.register_extension(extension)
+      self.extensions += [extension]
+      self.pattern = /^(?!\.).*?\.(#{Regexp.union(extensions.map { |e| Regexp.escape(e) })})$/
     end
 
     def initialize(*pairs)

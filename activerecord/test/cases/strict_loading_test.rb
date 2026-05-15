@@ -232,8 +232,9 @@ class StrictLoadingTest < ActiveRecord::TestCase
     developer = Developer.first
     developer.strict_loading!
 
+
     assert_nothing_raised do
-      developer.audit_logs.build(message: message)
+      developer.audit_logs.build(message: "message")
     end
   end
 
@@ -354,6 +355,25 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_on_lazy_loading_and_strict_loading_with_pluck
+    with_strict_loading_by_default(Developer) do
+      dev = Developer.first
+
+      assert_raises ActiveRecord::StrictLoadingViolationError do
+        dev.audit_logs.pluck(:id)
+      end
+    end
+  end
+
+  def test_preload_audit_logs_are_strict_loading_with_pluck
+    with_strict_loading_by_default(Developer) do
+      dev = Developer.preload(:audit_logs).first
+
+      assert_nothing_raised do
+        dev.audit_logs.pluck(:id)
+      end
+    end
+  end
 
   def test_preload_audit_logs_are_strict_loading_because_parent_is_strict_loading
     developer = Developer.first

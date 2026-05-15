@@ -302,7 +302,7 @@ createConsumer('https://ws.example.com/cable')
 createConsumer(getWebSocketURL)
 
 function getWebSocketURL() {
-  const token = localStorage.get('auth-token')
+  const token = localStorage.getItem('auth-token')
   return `wss://example.com/cable?token=${token}`
 }
 ```
@@ -712,11 +712,6 @@ The channel has been instructed to stream everything that arrives at
 callback. The data passed as an argument is the hash sent as the second parameter
 to the server-side broadcast call, JSON encoded for the trip across the wire
 and unpacked for the data argument arriving as `received`.
-
-### More Complete Examples
-
-See the [rails/actioncable-examples](https://github.com/rails/actioncable-examples)
-repository for a full example of how to set up Action Cable in a Rails app and adding channels.
 
 ## Configuration
 

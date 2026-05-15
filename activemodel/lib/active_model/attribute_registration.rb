@@ -9,6 +9,11 @@ module ActiveModel
     extend ActiveSupport::Concern
 
     module ClassMethods # :nodoc:
+      def inherited(base)
+        super
+        base.instance_variable_set(:@pending_attribute_modifications, nil)
+      end
+
       def attribute(name, type = nil, default: (no_default = true), **options)
         name = resolve_attribute_name(name)
         type = resolve_type_name(type, **options) if type.is_a?(Symbol)

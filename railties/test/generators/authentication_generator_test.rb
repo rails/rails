@@ -105,7 +105,8 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "config/routes.rb" do |content|
-      assert_match(/resource :session/, content)
+      assert_match(/resource :session, only: \[:new, :create, :destroy\]/, content)
+      assert_match(/resources :passwords, param: :token, only: \[:new, :create, :edit, :update\]/, content)
     end
 
     assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
@@ -120,6 +121,26 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |content|
       assert_match("require_relative \"test_helpers/session_test_helper\"", content)
     end
+  end
+
+  def test_create_users_migration_is_skipped_when_user_model_already_exists
+    FileUtils.mkdir_p("#{destination_root}/app/models")
+    File.write("#{destination_root}/app/models/user.rb", <<~RUBY)
+      class User < ApplicationRecord
+      end
+    RUBY
+
+    generator([destination_root], force: true)
+
+    run_generator_instance
+
+    assert_not_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
+    assert_includes @rails_commands, "generate migration CreateSessions user:references ip_address:string user_agent:string --force"
+
+    assert_file "app/models/session.rb"
+    assert_file "app/models/current.rb"
+    assert_file "app/controllers/sessions_controller.rb"
+    assert_file "app/controllers/concerns/authentication.rb"
   end
 
   def test_model_test_is_skipped_if_test_framework_is_given
@@ -177,6 +198,10 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_file "app/controllers/passwords_controller.rb" do |content|
       assert_no_match(/def create\n    end/, content)
       assert_no_match(/rate_limit/, content)
+    end
+
+    assert_file "test/controllers/passwords_controller_test.rb" do |content|
+      assert_no_match(/assert_enqueued_email/, content)
     end
   ensure
     ActionMailer.const_set(:Railtie, old_value)

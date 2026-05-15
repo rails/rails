@@ -130,7 +130,7 @@ class ActiveRecord::EncryptionTestCase < ActiveRecord::TestCase
       key_derivation_salt support_unencrypted_data encrypt_fixtures
       forced_encoding_for_deterministic_encryption ],
     context: %i[ key_provider ]
-  }
+  }.freeze
 
   setup do
     ENCRYPTION_PROPERTIES_TO_RESET.each do |key, properties|

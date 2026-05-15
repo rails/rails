@@ -11,6 +11,8 @@ module ActiveJob
     config.active_job.custom_serializers = []
     config.active_job.log_query_tags_around_perform = true
 
+    guard_load_hooks(:active_job, :active_job_arguments, :active_job_continuable, :active_job_test_case)
+
     initializer "active_job.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_job] = ActiveJob.deprecator
     end
@@ -30,6 +32,11 @@ module ActiveJob
       ActiveSupport.on_load(:active_job) do
         ActiveSupport.on_load(:active_record) do
           ActiveJob::Base.include EnqueueAfterTransactionCommit
+
+          if app.config.active_job.key?(:enqueue_after_transaction_commit)
+            ActiveJob::Base.enqueue_after_transaction_commit =
+              app.config.active_job.enqueue_after_transaction_commit
+          end
         end
       end
     end

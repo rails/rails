@@ -21,6 +21,10 @@ module ActiveSupport
 
       def base_label
       end
+
+      def absolute_path
+        path
+      end
     end
 
     class BacktraceLocationProxy < ActiveSupport::Delegation::DelegateClass(Thread::Backtrace::Location) # :nodoc:

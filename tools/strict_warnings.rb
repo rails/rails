@@ -9,6 +9,7 @@ module RailsStrictWarnings # :nodoc:
   PROJECT_ROOT = File.expand_path("../", __dir__)
   ALLOWED_WARNINGS = Regexp.union(
     /circular require considered harmful.*delayed_job/, # Bug in delayed job.
+    /circular require considered harmful.*backburner/, # Bug in delayed job.
 
     # Expected non-verbose warning emitted by Rails.
     /Ignoring .*\.yml because it has expired/,
@@ -19,7 +20,10 @@ module RailsStrictWarnings # :nodoc:
     # TODO: remove if https://github.com/mikel/mail/pull/1557 or similar fix
     %r{/lib/mail/parsers/.*statement not reached},
     %r{/lib/mail/parsers/.*assigned but unused variable - disp_type_s},
-    %r{/lib/mail/parsers/.*assigned but unused variable - testEof}
+    %r{/lib/mail/parsers/.*assigned but unused variable - testEof},
+
+    # Emitted by zlib
+    /attempt to close unfinished zstream/,
   )
 
   def warn(message, ...)

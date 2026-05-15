@@ -27,12 +27,14 @@ require "active_record"
 require "active_support"
 require "active_support/rails"
 require "active_support/core_ext/numeric/time"
+require "active_support/core_ext/numeric/bytes"
 
 require "active_storage/version"
 require "active_storage/deprecator"
 require "active_storage/errors"
 
 require "marcel"
+require "openssl"
 
 # :markup: markdown
 # :include: ../README.md
@@ -55,6 +57,7 @@ module ActiveStorage
 
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers,  default: []
+  mattr_accessor :analyze,    default: :later
 
   mattr_accessor :paths, default: {}
 
@@ -352,15 +355,33 @@ module ActiveStorage
   ]
   mattr_accessor :unsupported_image_processing_arguments
 
+  mattr_accessor :streaming_chunk_max_size, default: 100.megabytes
   mattr_accessor :service_urls_expire_in, default: 5.minutes
   mattr_accessor :touch_attachment_records, default: true
   mattr_accessor :urls_expire_in
 
+  # Configures the mount point for the default Active Storage routes. Accepts any
+  # value supported by `scope`, such as a string path prefix or a hash of routing
+  # options.
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
   mattr_accessor :draw_routes, default: true
   mattr_accessor :resolve_model_to_route, default: :rails_storage_redirect
 
+  mattr_accessor :base_controller_parent, default: "::ActionController::Base"
+
   mattr_accessor :track_variants, default: false
+
+  singleton_class.attr_accessor :checksum_implementation
+  @checksum_implementation = OpenSSL::Digest::MD5
+  begin
+    @checksum_implementation.hexdigest("test")
+  rescue # OpenSSL may have MD5 disabled
+    require "digest/md5"
+    @checksum_implementation = Digest::MD5
+  end
+
+  singleton_class.attr_accessor :streaming_max_ranges
+  @streaming_max_ranges = 1
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 

@@ -1,3 +1,60 @@
+*   Add default `#render_in` implementation to `ActiveModel::Conversion`
+
+    With the following view partial:
+
+    ```erb
+    <%# app/views/people/_person.html.erb %>
+    <% local_assigns.with_defaults(shout: false) => { shout: } %>
+
+    <%= shout ? person.name.upcase : person.name %>
+    ```
+
+    Callers can render an instance of `Person` as a positional argument or a
+    `:renderable` option:
+
+    ```ruby
+    person = Person.new(name: "Ralph")
+
+    render person                                       # => "Ralph"
+    render person, shout: true                          # => "RALPH"
+    render renderable: person                           # => "Ralph"
+    render renderable: person, locals: { shout: true }  # => "RALPH"
+    ```
+
+    *Sean Doyle*
+
+*   Combine `:if`, `:unless`, and `:on` options when specified at both the
+    `validates` level and the per-validator level, instead of the per-validator
+    options silently replacing the top-level ones.
+
+    Before, `validates :title, presence: { if: :local? }, if: :global?` would
+    only check `local?`, ignoring `global?` entirely. Now both conditions must
+    pass for the validation to run.
+
+    Fixes #55761.
+
+    *Denis Savchuk*
+
+*   Add `has_json` and `has_delegated_json` to provide schema-enforced access to JSON attributes.
+
+    ```ruby
+    class Account < ApplicationRecord
+      has_json :settings, restrict_creation_to_admins: true, max_invites: 10, greeting: "Hello!"
+      has_delegated_json :flags, beta: false, staff: :boolean
+    end
+
+    a = Account.new
+    a.settings.restrict_creation_to_admins? # => true
+    a.settings.max_invites = "100" # => Set to integer 100
+    a.settings = { "restrict_creation_to_admins" => "false", "max_invites" => "500", "greeting" => "goodbye" }
+    a.settings.greeting # => "goodbye"
+    a.staff # => nil
+    a.staff = true
+    a.staff? # => true
+    ```
+
+    *DHH*
+
 *   Changes `ActiveModel::Validations#read_attribute_for_validation` to return `nil` if the record doesn't
     respond to the attribute instead of raising an error.
 

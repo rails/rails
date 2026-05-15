@@ -49,6 +49,8 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/gem "selenium-webdriver"/, content)
       assert_match(/# gem "jbuilder"/, content)
       assert_match(/# gem "rack-cors"/, content)
+      assert_match(/group :development do\n  # Deploy this application anywhere as a Docker container \[https:\/\/kamal-deploy\.org\]\n  gem "kamal", require: false\nend/, content)
+      assert_equal 1, content.scan(/^group :development do$/).size
     end
 
     assert_file "config/application.rb", /config\.api_only = true/
@@ -144,6 +146,9 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     generator [destination_root], ["--api"]
     run_generator_instance
 
+    assert_equal 1, @bundle_commands.count("binstubs kamal")
+    assert_equal 1, @bundle_commands.count("exec kamal init")
+
     assert_file "config/deploy.yml" do |content|
       assert_no_match(/asset_path:/, content)
       assert_no_match(/public\/assets/, content)
@@ -151,10 +156,20 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
   end
 
   private
+    def run_generator_instance
+      @bundle_commands = []
+      bundle_command_stub = -> (command, *) { @bundle_commands << command }
+
+      generator.stub :bundle_command, bundle_command_stub do
+        super
+      end
+    end
+
     def default_files
       %w(.gitignore
         .ruby-version
         .dockerignore
+        .env
         README.md
         Gemfile
         Rakefile

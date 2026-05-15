@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Rendering framework putting the V in MVC (part of Rails)."
   s.description = "Simple, battle-tested conventions and helpers for building web pages."
 
-  s.required_ruby_version = ">= 3.2.0"
+  s.required_ruby_version = ">= 3.3.1"
 
   s.license = "MIT"
 
@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.email    = "david@loudthinking.com"
   s.homepage = "https://rubyonrails.org"
 
-  s.files        = Dir["CHANGELOG.md", "README.rdoc", "MIT-LICENSE", "lib/**/*", "app/assets/javascripts/*.js"]
+  s.files        = Dir["CHANGELOG.md", "README.rdoc", "MIT-LICENSE", "lib/**/*"]
   s.require_path = "lib"
   s.requirements << "none"
 
@@ -37,7 +37,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "builder",       "~> 3.1"
   s.add_dependency "erubi",         "~> 1.11"
-  s.add_dependency "rails-html-sanitizer", "~> 1.6"
+  s.add_dependency "rails-html-sanitizer", "~> 1.7"
   s.add_dependency "rails-dom-testing", "~> 2.2"
 
   s.add_development_dependency "actionpack",  version

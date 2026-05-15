@@ -60,6 +60,20 @@ module ActiveModel
         assert_kind_of String, model.to_partial_path
       end
 
+      # Passes if the object's model responds to <tt>render_in</tt>
+      # calling this method returns a string. Fails otherwise.
+      #
+      # <tt>render_in</tt> is used for rendering an instance. For example,
+      # a BlogPost model might render itself into a "blog_posts/blog_post" partial.
+      def test_render_in
+        view_context = Object.new
+        def view_context.render(...)
+          ""
+        end
+        assert_respond_to model, :render_in
+        assert_kind_of String, model.render_in(view_context)
+      end
+
       # Passes if the object's model responds to <tt>persisted?</tt> and if
       # calling this method returns either +true+ or +false+. Fails otherwise.
       #

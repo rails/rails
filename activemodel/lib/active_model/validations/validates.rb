@@ -87,11 +87,16 @@ module ActiveModel
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
+      #   Multiple methods or procs can be passed as an array to check multiple
+      #   conditions, all of which must pass for validation to occur
+      #   (e.g. <tt>if: [:allow_validation, Proc.new { |user| user.signup_step > 2 }]</tt>)
       # * <tt>:unless</tt> - Specifies a method, proc, or string to call to determine
       #   if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc, or string should return or evaluate to a +true+ or
-      #   +false+ value.
+      #   +false+ value. Multiple methods or procs can be passed as an array to
+      #   check multiple conditions, all of which must pass for validation not to occur
+      #   (e.g. <tt>unless: [:skip_validation, Proc.new { |user| user.signup_step <= 2 }]</tt>)
       # * <tt>:allow_nil</tt> - Skip validation if the attribute is +nil+.
       # * <tt>:allow_blank</tt> - Skip validation if the attribute is blank.
       # * <tt>:strict</tt> - If the <tt>:strict</tt> option is set to true
@@ -108,6 +113,17 @@ module ActiveModel
       # and +:message+ can be given to one specific validator, as a hash:
       #
       #   validates :password, presence: { if: :password_required?, message: 'is forgotten.' }, confirmation: true
+      #
+      # When +:if+, +:unless+, or +:on+ appear at both the +validates+ level and
+      # inside a specific validator's options, they are combined rather than the
+      # inner option replacing the outer one. All +:if+ conditions must pass,
+      # any +:unless+ condition will skip validation, and +:on+ contexts are merged:
+      #
+      #   validates :password, presence: { if: :local_check? }, if: :global_check?
+      #   # Equivalent to: validates_presence_of :password, if: [:global_check?, :local_check?]
+      #
+      # Other per-validator options (+:allow_blank+, +:allow_nil+, +:strict+,
+      # +:message+) override the same option given at the +validates+ level.
       def validates(*attributes)
         defaults = attributes.extract_options!.dup
         validations = defaults.slice!(*_validates_default_keys)
@@ -128,7 +144,7 @@ module ActiveModel
 
           next unless options
 
-          validates_with(validator, defaults.merge(_parse_validates_options(options)))
+          validates_with(validator, _merge_validates_options(defaults, _parse_validates_options(options)))
         end
       end
 
@@ -161,6 +177,16 @@ module ActiveModel
       # additional default keys. This can be done by overwriting this method.
       def _validates_default_keys
         [:if, :unless, :on, :allow_blank, :allow_nil, :strict, :except_on]
+      end
+
+      def _merge_validates_options(defaults, validator_options)
+        defaults.merge(validator_options) do |key, default_val, validator_val|
+          if key == :if || key == :unless || key == :on
+            Array(default_val) + Array(validator_val)
+          else
+            validator_val
+          end
+        end
       end
 
       def _parse_validates_options(options)

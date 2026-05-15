@@ -40,7 +40,7 @@ class ValidatingPost < Post
 end
 
 class TestController < ActionController::Base
-  protect_from_forgery
+  protect_from_forgery with: :null_session
 
   before_action :set_variable_for_layout
 
@@ -592,6 +592,10 @@ class TestController < ActionController::Base
     render partial: "hash_greeting", collection: [ { first_name: "Pratik" }, { first_name: "Amy" } ], locals: { greeting: "Hola" }
   end
 
+  def renderable_hash
+    render renderable: Quiz::Question.new(params[:name])
+  end
+
   def partial_with_implicit_local_assignment
     @customer = Customer.new("Marcel")
     render partial: "customer"
@@ -603,6 +607,25 @@ class TestController < ActionController::Base
 
   def render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout
     render action: "calling_partial_with_layout", layout: "layouts/partial_with_layout"
+  end
+
+  def render_renderable
+    locals = params[:locals]
+    format = params[:format]
+
+    renderable = Object.new
+    renderable.singleton_class.define_method :render_in do |view_context, **, &|
+      view_context.render inline: <<~ERB.strip, locals: locals
+        Hello, <%= name %>
+      ERB
+    end
+    if format.present?
+      renderable.singleton_class.define_method :format do
+        format.to_sym
+      end
+    end
+
+    render renderable: renderable
   end
 
   before_action only: :render_with_filters do
@@ -706,6 +729,7 @@ class RenderTest < ActionController::TestCase
     get :partial_with_nested_object_shorthand, to: "test#partial_with_nested_object_shorthand"
     get :partial_with_hashlike_locals, to: "test#partial_with_hashlike_locals"
     get :partials_list, to: "test#partials_list"
+    get :renderable_hash, to: "test#renderable_hash"
     get :render_action_hello_world, to: "test#render_action_hello_world"
     get :render_action_hello_world_as_string, to: "test#render_action_hello_world_as_string"
     get :render_action_hello_world_with_symbol, to: "test#render_action_hello_world_with_symbol"
@@ -713,6 +737,7 @@ class RenderTest < ActionController::TestCase
     get :render_and_redirect, to: "test#render_and_redirect"
     get :render_call_to_partial_with_layout, to: "test#render_call_to_partial_with_layout"
     get :render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout, to: "test#render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout"
+    get :render_renderable, to: "test#render_renderable"
     get :render_custom_code, to: "test#render_custom_code"
     get :render_file_from_template, to: "test#render_file_from_template"
     get :render_file_not_using_full_path, to: "test#render_file_not_using_full_path"
@@ -1483,6 +1508,11 @@ class RenderTest < ActionController::TestCase
     assert_equal "Hola: PratikHola: Amy", @response.body
   end
 
+  def test_renderable_hash
+    get :renderable_hash, params: { name: "Why?" }
+    assert_equal "Why?", @response.body
+  end
+
   def test_render_missing_partial_template
     assert_raise(ActionView::MissingTemplate) do
       get :missing_partial
@@ -1497,6 +1527,13 @@ class RenderTest < ActionController::TestCase
   def test_render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout
     get :render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout
     assert_equal "Before (Anthony)\nInside from partial (Anthony)\nAfter\nBefore (David)\nInside from partial (David)\nAfter\nBefore (Ramm)\nInside from partial (Ramm)\nAfter", @response.body
+  end
+
+  def test_render_renderable
+    get :render_renderable, params: { format: :html, locals: { name: "Local" } }
+
+    assert_equal "Hello, Local", @response.body
+    assert_equal "text/html", @response.media_type
   end
 
   def with_annotations_enabled

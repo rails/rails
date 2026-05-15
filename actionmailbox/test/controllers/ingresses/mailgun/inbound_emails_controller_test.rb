@@ -76,6 +76,24 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsControllerTest < ActionDis
     assert_response :unauthorized
   end
 
+  test "rejecting an inbound email from Mailgun with a malformed timestamp" do
+    timestamp = "not-a-number"
+    token = "7VwW7k6Ak7zcTwoSoNm7aTtbk1g67MKAnsYLfUB7PdszbgR5Xi"
+    signature = OpenSSL::HMAC.hexdigest OpenSSL::Digest::SHA256.new, ENV["MAILGUN_INGRESS_SIGNING_KEY"], "#{timestamp}#{token}"
+
+    assert_no_difference -> { ActionMailbox::InboundEmail.count } do
+      travel_to "2018-10-09 15:15:00 EDT"
+      post rails_mailgun_inbound_emails_url, params: {
+        timestamp: timestamp,
+        token: token,
+        signature: signature,
+        "body-mime" => file_fixture("../files/welcome.eml").read
+      }
+    end
+
+    assert_response :unauthorized
+  end
+
   test "rejecting a forged inbound email from Mailgun" do
     assert_no_difference -> { ActionMailbox::InboundEmail.count } do
       travel_to "2018-10-09 15:15:00 EDT"

@@ -243,7 +243,7 @@ class AssertionsTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "`@object.num` didn't change. It was already 0.\nExpected 0 to not be equal to 0.", error.message
+    assert_match "`@object.num` didn't change. It was already 0.", error.message
   end
 
   def test_assert_changes_message_with_lambda
@@ -255,7 +255,7 @@ class AssertionsTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "`@object.num` didn't change. It was already 0.\nExpected 0 to not be equal to 0.", error.message
+    assert_match "`@object.num` didn't change. It was already 0.", error.message
   end
 
   def test_assert_changes_with_wrong_to_option

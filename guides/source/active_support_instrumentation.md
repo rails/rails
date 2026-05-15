@@ -534,6 +534,56 @@ The `:cache_hits` key is only included if the collection is rendered with `cache
 | `:job`       | Job object                             |
 | `:error`     | The error that caused the discard      |
 
+Jobs using [Continuation][] also emit the following events.
+
+#### `interrupt.active_job`
+
+| Key                | Value                                    |
+| ------------------ | ---------------------------------------- |
+| `:adapter`         | QueueAdapter object processing the job   |
+| `:job`             | Job object                               |
+| `:reason`          | Reason the job was interrupted           |
+| `:description`     | Description of the continuation state    |
+| `:completed_steps` | Array of completed step names            |
+| `:current_step`    | Current continuation step object, if any |
+
+#### `resume.active_job`
+
+| Key                | Value                                    |
+| ------------------ | ---------------------------------------- |
+| `:adapter`         | QueueAdapter object processing the job   |
+| `:job`             | Job object                               |
+| `:description`     | Description of the continuation state    |
+| `:completed_steps` | Array of completed step names            |
+| `:current_step`    | Current continuation step object, if any |
+
+#### `step.active_job`
+
+| Key            | Value                                  |
+| -------------- | -------------------------------------- |
+| `:adapter`     | QueueAdapter object processing the job |
+| `:job`         | Job object                             |
+| `:step`        | Continuation step object               |
+| `:interrupted` | Whether the step was interrupted       |
+
+#### `step_skipped.active_job`
+
+| Key        | Value                                  |
+| ---------- | -------------------------------------- |
+| `:adapter` | QueueAdapter object processing the job |
+| `:job`     | Job object                             |
+| `:step`    | Name of the skipped step               |
+
+#### `step_started.active_job`
+
+| Key        | Value                                  |
+| ---------- | -------------------------------------- |
+| `:adapter` | QueueAdapter object processing the job |
+| `:job`     | Job object                             |
+| `:step`    | Continuation step object               |
+
+[`Continuation`]: https://api.rubyonrails.org/classes/ActiveJob/Continuation.html
+
 ### Active Record
 
 #### `sql.active_record`

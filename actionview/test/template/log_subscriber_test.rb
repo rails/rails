@@ -117,7 +117,8 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
       @view.render(Customer.new("david"), greeting: "hi")
 
-      assert_equal 1, @logger.logged(:debug).size
+      assert_equal 2, @logger.logged(:debug).size
+      assert_match(/Rendering Customer/, @logger.logged(:debug).first)
       assert_match(/Rendered customers\/_customer\.html\.erb/, @logger.logged(:debug).last)
     end
   end

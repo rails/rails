@@ -55,6 +55,21 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_includes new_topic_model.attribute_aliases, "id_value"
   end
 
+  test "#id_value alias does not accumulate duplicates when table_name is reassigned" do
+    klass = Class.new(ActiveRecord::Base)
+
+    klass.table_name = "topics"
+    klass.first
+
+    klass.table_name = "authors"
+    klass.first
+
+    klass.table_name = "topics"
+    klass.first
+
+    assert_equal ["id_value"], klass.send(:aliases_by_attribute_name)["id"]
+  end
+
   test "#id_value alias is not defined if id_value column exist" do
     new_book_identifier_model = Class.new(ActiveRecord::Base) do
       self.table_name = "book_identifiers"
@@ -883,7 +898,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       record = Topic.new(id: 1)
       record.written_on = "Jan 01 00:00:00 2014"
       payload = YAML.dump(record)
-      assert_equal record, YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+      assert_equal record, YAML.unsafe_load(payload)
     end
   ensure
     # NOTE: Reset column info because global topics
