@@ -1,28 +1,3 @@
-*   Add default `#render_in` implementation to `ActiveModel::Conversion`
-
-    With the following view partial:
-
-    ```erb
-    <%# app/views/people/_person.html.erb %>
-    <% local_assigns.with_defaults(shout: false) => { shout: } %>
-
-    <%= shout ? person.name.upcase : person.name %>
-    ```
-
-    Callers can render an instance of `Person` as a positional argument or a
-    `:renderable` option:
-
-    ```ruby
-    person = Person.new(name: "Ralph")
-
-    render person                                       # => "Ralph"
-    render person, shout: true                          # => "RALPH"
-    render renderable: person                           # => "Ralph"
-    render renderable: person, locals: { shout: true }  # => "RALPH"
-    ```
-
-    *Sean Doyle*
-
 *   Combine `:if`, `:unless`, and `:on` options when specified at both the
     `validates` level and the per-validator level, instead of the per-validator
     options silently replacing the top-level ones.

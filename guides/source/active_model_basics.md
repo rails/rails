@@ -700,25 +700,6 @@ irb> person.to_partial_path
 => "people/person"
 ```
 
-The `ActiveModel::Conversion` module also defines a `render_in` method for
-integration with Action View. For example, consider a `people/person` partial:
-
-```erb
-<%# app/views/people/_person.html.erb %>
-<p>Persisted: <%= person.persisted? %></p>
-```
-
-By default, passing the object to `render` will invoke `to_partial_path` to
-determine the view partial to render:
-
-```ruby
-render person
-# => <p>Persisted: false</p>
-
-render renderable: person
-# => <p>Persisted: false</p>
-```
-
 ### Dirty
 
 [`ActiveModel::Dirty`](https://api.rubyonrails.org/classes/ActiveModel/Dirty.html)
