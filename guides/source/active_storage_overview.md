@@ -766,7 +766,7 @@ product.images.find(image_id).purge_later
 There are cases where a file is uploaded but never attached to a record. This
 can happen when using [Direct Uploads](#direct-uploads). You can query for
 unattached records using the [unattached scope](https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-c-unattached). Below is an
-example using a [custom rake task](command_line.html#custom-rake-tasks).
+example using a [custom rake task](command_line.html#custom-rake-tasks) to remove unattached files:
 
 ```ruby
 namespace :active_storage do
@@ -786,7 +786,7 @@ There is also a [`detach`](https://edgeapi.rubyonrails.org/classes/ActiveStorage
 user.profile_photo.detach
 ```
 
-This is useful if you want to disassociate a file from a record without deleting it from storage, in case the blob is referenced elsewhere. Note that you can later find such orphaned blobs using the `unattached` scope if needed.
+This can be useful if you want to disassociate a file from a record without deleting it from storage, in case the blob is referenced elsewhere. Note that you can later find such orphaned blobs using the `unattached` scope if needed.
 
 Analyzing Files For Metadata
 ----------------------------
