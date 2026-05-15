@@ -2,6 +2,54 @@
     scoped relation with conflicting attribute conditions inside a transaction.
 
     *Irvan Eksa Mahendra*
+*   Deprecated `ActiveRecord::ConnectionAdapters::Column#auto_populated?` in favor of
+    `auto_populated_on_insert?`
+
+    *Rafael Mendonça França*
+
+*   Reload virtual columns on update in PostgreSQL
+
+    Automatically reload virtual columns on `update` when using PostgreSQL. This is done by issuing a single
+    UPDATE query that includes a RETURNING clause.
+
+    Given a `Post` model represented by the following schema:
+
+    ```ruby
+    create_table :posts do |t|
+      t.integer :upvotes_count
+      t.integer :downvotes_count
+      t.virtual :total_votes_count, type: :integer, as: "upvotes_count + downvotes_count", stored: true
+    end
+    ```
+
+    `total_votes_count` will reflect the sum of upvotes and downvotes after `update` is successfully called.
+    Prior to this change calling `reload` would have been necessary to obtain the new value calculated by
+    the database.
+
+    ```ruby
+    post = Post.find(1)
+    post.update(upvotes_count: 2, downvotes_count: 2)
+    # Calling `post.reload` no longer necessary
+    post.total_votes => 4
+    ```
+
+    *Alex Baldwin*
+
+*   Reset the optimistic locking column when a transaction is rolled back.
+
+    Previously, when a record with optimistic locking was successfully saved
+    inside a transaction that later rolled back, the in-memory `lock_version`
+    was left at the incremented value while the database row was reverted to
+    the previous one. Saving the same instance again then raised
+    `ActiveRecord::StaleObjectError` because the WHERE clause used the
+    incremented value that no longer existed in the database.
+
+    The locking column is now restored from the snapshot taken at the start
+    of the transaction, so retrying a save on the same record after a
+    rollback works without an explicit `reload`.
+
+    *Kenta Ishizaki*
+
 *   Fix handling of expressions in array syntax for `add_index`.
 
     This change allows passing expressions in array syntax for `add_index` method.

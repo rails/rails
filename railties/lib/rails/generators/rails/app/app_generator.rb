@@ -187,6 +187,11 @@ module Rails
           remove_file "config/initializers/content_security_policy.rb"
         end
       end
+
+      current_version = "#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR}"
+      if remove_new_framework_defaults?(config_target_version, current_version)
+        remove_file "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
+      end
     end
 
     def master_key
@@ -609,6 +614,10 @@ module Rails
     # :startdoc:
 
     private
+      def remove_new_framework_defaults?(target_version, current_version)
+        Gem::Version.new(target_version.to_s) >= Gem::Version.new(current_version.to_s)
+      end
+
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)
         create_file(*args, &block)

@@ -981,3 +981,38 @@ class PessimisticLockingWhilePreventingWritesTest < ActiveRecord::TestCase
     end
   end
 end
+
+class OptimisticLockingRollbackTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  def setup
+    @person = Person.create!(first_name: "Michael")
+  end
+
+  def teardown
+    @person.delete
+  end
+
+  def test_lock_version_restored_after_full_transaction_rollback
+    p = Person.find(@person.id)
+    assert_equal 0, p.lock_version
+
+    Person.transaction do
+      p.update!(first_name: "rollback-target")
+      assert_equal 1, p.lock_version
+      raise ActiveRecord::Rollback
+    end
+
+    # The transaction rolled back lock_version to 0 in the database. The in-memory
+    # record should match, not be left in a stale-but-dirty state that would
+    # trigger StaleObjectError on the next save without an explicit reload.
+    assert_equal 0, Person.find(@person.id).lock_version
+    assert_equal 0, p.lock_version
+    assert_not p.will_save_change_to_attribute?(:lock_version)
+    assert_nothing_raised do
+      p.update!(first_name: "after-rollback")
+    end
+    assert_equal 1, p.lock_version
+    assert_equal "after-rollback", Person.find(@person.id).first_name
+  end
+end

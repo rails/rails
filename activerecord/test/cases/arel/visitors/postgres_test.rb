@@ -183,6 +183,56 @@ module Arel
         }, compile(query)
       end
 
+      test "insert statements render RETURNING" do
+        manager = InsertManager.new
+        manager.into @table
+        manager.insert [[@table[:name], "hello"]]
+        manager.returning @table[:id]
+
+        assert_like %{
+          INSERT INTO "users" ("name") VALUES ('hello') RETURNING "users"."id"
+        }, compile(manager.ast)
+      end
+
+      test "delete statements render RETURNING" do
+        manager = DeleteManager.new
+        manager.from @table
+        manager.where @table[:name].eq("hello")
+        manager.returning @table[:id]
+
+        assert_like %{
+          DELETE FROM "users" WHERE "users"."name" = 'hello' RETURNING "users"."id"
+        }, compile(manager.ast)
+      end
+
+      test "update statements render RETURNING" do
+        manager = UpdateManager.new
+        manager.table @table
+        manager.set [[@table[:name], "hello"]]
+        manager.returning @table[:id]
+
+        assert_like %{
+          UPDATE "users" SET "name" = 'hello' RETURNING "users"."id"
+        }, compile(manager.ast)
+      end
+
+      test "update statements with joins render RETURNING" do
+        posts = Table.new(:posts)
+        join_source = Arel::Nodes::JoinSource.new(
+          @table,
+          [@table.create_join(posts)]
+        )
+
+        manager = UpdateManager.new
+        manager.table join_source
+        manager.set [[@table[:name], "hello"]]
+        manager.returning @table[:id]
+
+        assert_like %{
+          UPDATE "users" SET "name" = 'hello' FROM CROSS JOIN "posts" RETURNING "users"."id"
+        }, compile(manager.ast)
+      end
+
       test "Nodes::Cube should know how to visit with array arguments" do
         node = Arel::Nodes::Cube.new([@table[:name], @table[:bool]])
         assert_like %{
