@@ -1740,9 +1740,10 @@ Be careful because this also means you're initializing a model record with only
 the fields that you've selected. If you attempt to access a field that is not in
 the initialized record you'll receive the following error:
 
-```ruby
+```text
 ActiveModel::MissingAttributeError: missing attribute '<attribute>' for Book
 ```
+
 In the above example, `<attribute>` would be the requested attribute. The `id`
 method will not raise the `ActiveRecord::MissingAttributeError`, so exercise
 caution when working with associations, which need the `id` method to function
