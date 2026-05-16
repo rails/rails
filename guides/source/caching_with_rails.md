@@ -20,8 +20,8 @@ What is Caching?
 
 Caching means storing content generated during the request-response cycle and
 reusing it when responding to similar requests. It avoids doing an expensive
-operation more than once - think of it like saving the result of something expensive
-so you can look it up later instead of recomputing it.
+operation more than once - think of it like saving the result of something
+expensive so you can look it up later instead of recomputing it.
 
 Caching is one of the most effective ways to boost an application's performance.
 It allows websites running on modest infrastructure, a single server with a
@@ -31,12 +31,9 @@ Rails provides a set of caching features out of the box which allows you to not
 only cache data, but also to tackle challenges like cache expiration, cache
 dependencies, and cache invalidation.
 
-This guide will explore Rails' comprehensive caching strategies, from fragment
-caching to SQL caching. With these techniques, your Rails application can serve
-millions of views while keeping response times low and server bills manageable.
 
-Types of Caching
-----------------
+Setup
+-----
 
 By default, [Action Controller
 Caching](https://api.rubyonrails.org/classes/ActionController/Caching.html) is
@@ -45,12 +42,54 @@ caching locally by running `bin/rails dev:cache`, or by setting
 [`config.action_controller.perform_caching`][] to `true` in
 `config/environments/development.rb`.
 
+```bash
+$ bin/rails dev:cache
+Development mode is now being cached.
+$ bin/rails dev:cache
+Development mode is no longer being cached.
+```
+
 NOTE: Changing the value of `config.action_controller.perform_caching` only
 affects caching provided by Action Controller. It will not impact [low-level
 caching](#low-level-caching-using-rails-cache).
 
+By default, new Rails applications use
+[`:memory_store`](#activesupport-cache-memorystore) as the cache store in
+development. If you want to use Solid Cache in development, set the
+`cache_store` configuration in `config/environments/development.rb`:
+
+```ruby
+config.cache_store = :solid_cache_store
+```
+
+and make sure the `cache` database is configured, created, and migrated:
+
+```yaml
+development:
+  primary:
+    <<: *default
+    database: storage/development.sqlite3
+  cache:
+    <<: *default
+    database: storage/development_cache.sqlite3
+    migrations_paths: db/cache_migrate
+```
+
+After configuring the database, run `bin/rails db:prepare` so the cache tables
+are created.
+
+TIP: To disable caching set `cache_store` to
+[`:null_store`](#activesupport-cache-nullstore)
+
 [`config.action_controller.perform_caching`]:
     configuring.html#config-action-controller-perform-caching
+
+Types of Caching
+----------------
+
+Rails provides several different caching strategies to suit different needs and
+use cases. Each approach has its own benefits and is useful in different
+scenarios.
 
 ### Low-Level Caching using `Rails.cache`
 
@@ -215,6 +254,11 @@ A cache version, derived from the product record, is stored in the cache entry.
 When the product is touched, the cache version changes, and any cached fragments
 that contain the previous version are ignored.
 
+Separating the cache key from the cache version allows Rails to reuse the cache
+key, instead of creating a new entry every time. No matter how frequently the
+product is touched, Rails writes to the same cache key. This reduces the total
+cache size because outdated cache entries are overwritten with the new entry.
+
 TIP: Cache stores like [Memcached](https://memcached.org) automatically evict
 old cache entries when they need to reclaim space.
 
@@ -337,7 +381,7 @@ cache call, you can add this comment anywhere in the template:
 <% end %>
 ```
 
-###### External Dependencies
+##### External Dependencies
 
 Changes outside the template file can also affect the cached output. For
 example, if a cached block calls a helper method, updating that helper will not
@@ -368,34 +412,34 @@ For example, take the following view:
 
 ```erb
 <% cache product do %>
-  <%= render product.games %>
+  <%= render product.reviews %>
 <% end %>
 ```
 
 Which in turn renders this view:
 
 ```erb
-<% cache game do %>
-  <%= render game %>
+<% cache review do %>
+  <%= render review %>
 <% end %>
 ```
 
-If a `game` changes, its `updated_at` value changes too, which expires that
+If a `review` changes, its `updated_at` value changes too, which expires that
 fragment. But the `product` record's `updated_at` does not change automatically,
 so the outer fragment can still serve stale data. To fix this, tie the models
 together with the `touch` method:
 
 ```ruby
 class Product < ApplicationRecord
-  has_many :games
+  has_many :reviews
 end
 
-class Game < ApplicationRecord
+class Review < ApplicationRecord
   belongs_to :product, touch: true
 end
 ```
 
-With `touch` set to `true`, any action which changes `updated_at` for a game
+With `touch` set to `true`, any action which changes `updated_at` for a review
 record will also change it for the associated product, thereby expiring the
 cache.
 
@@ -491,6 +535,19 @@ class ProductsController < ApplicationController
   def show
     @product = Product.find(params[:id])
     fresh_when last_modified: @product.published_at.utc, etag: @product
+  end
+end
+```
+
+Instead of an options hash, you can also pass in a model. Rails will use the
+`updated_at` and `cache_key_with_version` methods for setting `last_modified`
+and `etag`:
+
+```ruby
+class ProductsController < ApplicationController
+  def show
+    @product = Product.find(params[:id])
+    fresh_when @product
   end
 end
 ```
@@ -592,23 +649,16 @@ instantiates new model objects from that cached result.
 
 NOTE: Query caches are created at the start of an action and destroyed at the
 end of that action, so they persist only for the duration of the request. If
-you'd like to store query results in a more persistent fashion, you can with
-low-level caching.
+you'd like to store query results in a more persistent fashion, use low-level
+caching.
 
-Solid Cache
------------
+Default Store: Solid Cache
+--------------------------
 
-Solid Cache is a database-backed Active Support cache store. It leverages the
-speed of modern [SSDs](https://en.wikipedia.org/wiki/Solid-state_drive) (Solid
-State Drives) to offer cost-effective caching with larger storage capacity and
-simplified infrastructure. While SSDs are slightly slower than RAM, the
-difference is minimal for most applications. SSDs compensate for this by not
-needing to be invalidated as frequently, since they can store much more data. As
-a result, there are fewer cache misses on average, leading to fast response
-times.
-
-Solid Cache is a good fit when you want a larger, more durable cache without
-running a separate cache service such as Redis or Memcached.
+Solid Cache is a database-backed Active Support cache store. It is the default
+cache store for new Rails applications. Solid Cache is a good fit when you want
+a larger, more durable cache without running a separate cache service such as
+Redis or Memcached.
 
 Solid Cache uses a FIFO (First In, First Out) caching strategy, where the first
 item added to the cache is the first one to be removed when the cache reaches
@@ -622,7 +672,7 @@ New Rails applications generated with Rails 8.0 and later include Solid Cache by
 default. However, if you'd prefer not to use it, you can skip Solid Cache:
 
 ```bash
-rails new app_name --skip-solid
+$ bin/rails new app_name --skip-solid
 ```
 
 NOTE: Using the `--skip-solid` flag skips all parts of the Solid Trifecta (Solid
@@ -674,8 +724,8 @@ transaction.
 To use Solid Cache as your cache store, configure the environment accordingly:
 
 ```ruby
-  # config/environments/production.rb
-  config.cache_store = :solid_cache_store
+# config/environments/production.rb
+config.cache_store = :solid_cache_store
 ```
 
 You can [access the cache by calling
@@ -758,48 +808,6 @@ production:
 You will need to set up your application to use [Active Record
 Encryption](active_record_encryption.html).
 
-### Caching in Development
-
-By default, new Rails applications use
-[`:memory_store`](#activesupport-cache-memorystore) as the cache store in
-development. Action Controller caching is still disabled by default.
-
-To enable Action Controller caching Rails provides the `bin/rails dev:cache`
-command.
-
-```bash
-$ bin/rails dev:cache
-Development mode is now being cached.
-$ bin/rails dev:cache
-Development mode is no longer being cached.
-```
-
-If you want to use Solid Cache in development, set the `cache_store`
-configuration in `config/environments/development.rb`:
-
-```ruby
-config.cache_store = :solid_cache_store
-```
-
-and make sure the `cache` database is configured, created, and migrated:
-
-```yaml
-development:
-  primary:
-    <<: *default
-    database: storage/development.sqlite3
-  cache:
-    <<: *default
-    database: storage/development_cache.sqlite3
-    migrations_paths: db/cache_migrate
-```
-
-After configuring the database, run `bin/rails db:prepare` so the cache tables
-are created.
-
-TIP: To disable caching set `cache_store` to
-[`:null_store`](#activesupport-cache-nullstore)
-
 Other Cache Stores
 ------------------
 
@@ -829,8 +837,8 @@ use connection pooling. This means that if you're using Puma, or another
 threaded server, you can have multiple threads performing queries to the cache
 store at the same time.
 
-If you want to disable connection pooling, set `:pool` option to `false` when
-configuring the cache store:
+If you want to disable connection pooling, set the `:pool` option to `false`
+when configuring the cache store:
 
 ```ruby
 config.cache_store = :mem_cache_store, "cache.example.com", { pool: false }
@@ -891,11 +899,11 @@ config.cache_store = :memory_store, { size: 64.megabytes }
 ```
 
 If you're running multiple Ruby on Rails server processes (which is the case if
-you're using Phusion Passenger or puma clustered mode), then your Rails server
-process instances won't be able to share cache data with each other. This cache
-store is not appropriate for large application deployments. However, it can work
-well for small, low traffic sites with only a couple of server processes, as
-well as development and test environments.
+you're using Phusion Passenger or Puma in clustered mode), then your Rails
+server process instances won't be able to share cache data with each other. This
+cache store is not appropriate for large application deployments. However, it
+can work well for small, low traffic sites with only a couple of server
+processes, as well as development and test environments.
 
 New Rails applications use this cache store in development by default.
 
@@ -930,10 +938,10 @@ clear out old entries.
 
 ### `ActiveSupport::Cache::MemCacheStore`
 
-[`ActiveSupport::Cache::MemCacheStore`][] uses Danga's `memcached` server to
-provide a centralized cache for your application. Rails uses the bundled `dalli`
-gem by default. It can provide a single shared cache cluster with high
-performance and redundancy.
+[`ActiveSupport::Cache::MemCacheStore`][] uses [`memcached`][] to provide a
+centralized cache for your application. Rails uses the bundled `dalli` gem by
+default. It can provide a single shared cache cluster with high performance and
+redundancy.
 
 When initializing the cache, you should specify the addresses for all memcached
 servers in your cluster, or ensure the `MEMCACHE_SERVERS` environment variable
@@ -961,24 +969,24 @@ to memcached.
 
 [`ActiveSupport::Cache::MemCacheStore`]:
     https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemCacheStore.html
+[`memcached`]: https://memcached.org/
 [ActiveSupport::Cache::MemCacheStore#write]:
     https://api.rubyonrails.org/classes/ActiveSupport/Cache/MemCacheStore.html#method-i-write
 
 ### `ActiveSupport::Cache::RedisCacheStore`
 
-[`ActiveSupport::Cache::RedisCacheStore`][] takes advantage of Redis support for
-automatic eviction when it reaches max memory, allowing it to behave much like a
-Memcached cache server.
+[`ActiveSupport::Cache::RedisCacheStore`][] takes advantage of [Redis][] support
+for automatic eviction when it reaches max memory, allowing it to behave much
+like a Memcached cache server.
 
-Deployment note: Redis does not expire keys by default, so take care to use a
-dedicated Redis cache server. Don't fill up your persistent Redis server with
-volatile cache data! Read the [Redis cache server setup
-guide](https://redis.io/topics/lru-cache) in detail.
+NOTE: Redis does not expire keys by default, so you should use a dedicated Redis
+cache server and avoid filling your persistent Redis instance with volatile
+cache data. See the [Redis cache server setup
+guide](https://redis.io/topics/lru-cache) for more details.
 
 For a cache-only Redis server, set `maxmemory-policy` to one of the variants of
-allkeys. Redis 4+ supports least-frequently-used eviction (`allkeys-lfu`), an
-excellent default choice. Redis 3 and earlier should use least-recently-used
-eviction (`allkeys-lru`).
+allkeys. Least-frequently-used eviction (`allkeys-lfu`) is a good default
+choice.
 
 Set cache read and write timeouts relatively low. Regenerating a cached value is
 often faster than waiting more than a second to retrieve it. Both read and write
@@ -1029,6 +1037,7 @@ config.cache_store = :redis_cache_store, { url: cache_servers,
 
 [`ActiveSupport::Cache::RedisCacheStore`]:
     https://api.rubyonrails.org/classes/ActiveSupport/Cache/RedisCacheStore.html
+[Redis]: https://redis.io/
 
 ### `ActiveSupport::Cache::NullStore`
 
