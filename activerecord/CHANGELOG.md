@@ -2,6 +2,12 @@
     scoped relation with conflicting attribute conditions inside a transaction.
 
     *Irvan Eksa Mahendra*
+*   Revert alphabetical sorting of table columns inside `schema.rb`.
+
+    Alphabetical sorting of table columns inside the schema creates improper production tables when using `db:prepare`.
+
+    *Bert McCutchen*
+
 *   Deprecated `ActiveRecord::ConnectionAdapters::Column#auto_populated?` in favor of
     `auto_populated_on_insert?`
 
