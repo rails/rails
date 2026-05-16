@@ -1727,6 +1727,7 @@ For example, to select only `isbn` and `out_of_print` columns:
 Book.select(:isbn, :out_of_print)
 # OR
 Book.select("isbn, out_of_print")
+
 ```
 
 The SQL query used by this find call will be somewhat like:
