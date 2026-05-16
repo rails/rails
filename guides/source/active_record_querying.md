@@ -118,10 +118,10 @@ NOTE: These models use `id` as the primary key, unless specified otherwise.
 ![Diagram of all of the bookstore
 models](images/active_record_querying/bookstore_models.png)
 
-Retrieving Objects from the Database
+Retrieving Records from the Database
 ------------------------------------
 
-To retrieve objects from the database, Active Record provides several finder
+To retrieve records from the database, Active Record provides several finder
 methods. Each finder method allows you to pass arguments into it to perform
 certain queries on your database without writing raw SQL.
 
@@ -207,13 +207,13 @@ The primary operation of `ActiveRecord::Relation` can be summarized as:
 [`sqlcourse`]: https://www.khanacademy.org/computing/computer-programming/sql
 [`rdbmsinfo`]: https://www.devart.com/what-is-rdbms/
 
-### Retrieving a Single Object
+### Retrieving a Single Record
 
-Active Record provides several different ways of retrieving a single object.
+Active Record provides several different ways of retrieving a single record.
 
 #### `find`
 
-Using the [`find`][] method, you can retrieve the object corresponding to the
+Using the [`find`][] method, you can retrieve the record corresponding to the
 specified _primary key_ that matches any supplied options. For example:
 
 ```irb
@@ -231,7 +231,7 @@ SELECT * FROM customers WHERE (customers.id = 10) LIMIT 1
 The `find` method will raise an `ActiveRecord::RecordNotFound` exception if no
 matching record is found.
 
-You can also use this method to query for multiple objects. Call the `find`
+You can also use this method to query for multiple records. Call the `find`
 method and pass in an array of primary keys. The return value will be an array
 containing all of the matching records for the supplied _primary keys_. For
 example:
@@ -525,9 +525,9 @@ store(dev)> Customer.find_by_first_name_and_orders_count("Bhumi", 5)
 => #<Customer id: 25, first_name: "Bhumi">
 ```
 
-### Retrieving Multiple Objects
+### Retrieving Multiple Records
 
-Active Record provides several methods for retrieving multiple objects from the
+Active Record provides several methods for retrieving multiple records from the
 database. The most basic method is [`all`][], which returns all records for the
 model.
 
@@ -599,9 +599,9 @@ multiple Active Record methods together in a simple and straightforward way.
 
 You can chain methods in a statement when the previous method called returns an
 [`ActiveRecord::Relation`][], like `all`, `where`, and `joins`. Methods that
-return a single object must be at the end of the statement. You can read more
-about retrieving a single object in the [Retrieving a Single Object
-Section](#retrieving-a-single-object).
+return a single record must be at the end of the statement. You can read more
+about retrieving a single record in the [Retrieving a Single Record
+Section](#retrieving-a-single-record).
 
 When an Active Record method is called, the query is not immediately generated
 and sent to the database. Instead, the query is sent only when the data is
@@ -662,7 +662,7 @@ You can find records and values in the database using the following methods.
 #### `find_by_sql`
 
 If you'd like to use your own SQL to find records in a table you can use
-[`find_by_sql`][]. The `find_by_sql` method will return an array of objects even
+[`find_by_sql`][]. The `find_by_sql` method will return an array of records even
 if the underlying query returns just a single record. For example, you could run
 this query:
 
@@ -673,7 +673,7 @@ store(dev)> Customer.find_by_sql("SELECT * FROM customers INNER JOIN orders ON c
 ```
 
 `find_by_sql` provides you with a simple way of making custom calls to the
-database and retrieving instantiated objects.
+database and retrieving instantiated records.
 
 [`find_by_sql`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Querying.html#method-i-find_by_sql
@@ -681,10 +681,9 @@ database and retrieving instantiated objects.
 #### `select_all`
 
 `find_by_sql` has a close relative called [`lease_connection.select_all`][].
-`select_all` will retrieve objects from the database using custom SQL just like
+`select_all` will retrieve results from the database using custom SQL just like
 `find_by_sql` but will not instantiate them. This method will return an instance
-of `ActiveRecord::Result` class and calling `to_a` on this object would return
-you an array of hashes where each hash indicates a record.
+of `ActiveRecord::Result` class and calling `to_a` on it returns an array of hashes where each hash represents a row.
 
 ```irb
 store(dev)> Customer.lease_connection.select_all("SELECT first_name, created_at FROM customers WHERE id = \"1\"").to_a
@@ -842,7 +841,7 @@ SELECT customer_id FROM customers
 [`ids`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Calculations.html#method-i-ids
 
-Finding or Building a New Object
+Finding or Building a New Record
 --------------------------------
 
 It's common that you need to find a record or create it if it doesn't exist. You
@@ -956,7 +955,7 @@ store(dev)> nina.new_record?
 => true
 ```
 
-Since the object is not yet stored in the database, the SQL generated will look
+Since the record is not yet stored in the database, the SQL generated will look
 like this:
 
 ```sql
@@ -1056,7 +1055,7 @@ raising an exception.
     https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-create_or_find_by-21
 
 
-Existence of Objects
+Existence of Records
 --------------------
 
 You can check if a record or records exist in the database using the following
@@ -1064,10 +1063,10 @@ methods.
 
 ### `exists?`
 
-If you want to check for the existence of an object without instantiating the
-object there's a method called [`exists?`][]. This method will query the
-database using the same query as `find`, but instead of returning an object or
-collection of objects it will return either `true` or `false`.
+If you want to check for the existence of a record without instantiating the
+record there's a method called [`exists?`][]. This method will query the
+database using the same query as `find`, but instead of returning a record or
+collection of records it will return either `true` or `false`.
 
 ```irb
 store(dev)> Customer.exists?(1)
@@ -1159,7 +1158,7 @@ store(dev)> Customer.first.orders.many?
 [`exists?`]:
     https://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F
 
-### Retrieving Multiple Objects in Batches
+### Retrieving Multiple Records in Batches
 
 We often need to iterate over a large set of records, for example, when sending
 a newsletter to many customers, or when exporting data.
@@ -1175,8 +1174,8 @@ end
 
 However, this approach becomes increasingly impractical as the table size
 increases, since `Customer.all.each` instructs Active Record to fetch _the
-entire table_ in a single pass, build a model object per row, and then keep the
-entire array of model objects in memory. If we have a large number of records,
+entire table_ in a single pass, build a model record per row, and then keep the
+entire array of model records in memory. If we have a large number of records,
 the entire collection may exceed the amount of memory available.
 
 Rails provides two methods that address this problem by dividing records into
@@ -1511,7 +1510,7 @@ Book.where("out_of_print" => true)
 ```
 
 In the case of a belongs_to relationship, an association key can be used to
-specify the model if an Active Record object is used as the value. This method
+specify the model if an Active Record record is used as the value. This method
 works with [polymorphic
 relationships](association_basics.html#polymorphic-associations) as well.
 
@@ -1736,7 +1735,7 @@ The SQL query used by this find call will be somewhat like:
 SELECT isbn, out_of_print FROM books
 ```
 
-Be careful because this also means you're initializing a model object with only
+Be careful because this also means you're initializing a model record with only
 the fields that you've selected. If you attempt to access a field that is not in
 the initialized record you'll receive the following error:
 
@@ -1817,7 +1816,7 @@ For example, if you want to find a collection of orders grouped by status:
 Order.group("status")
 ```
 
-And this will give you a single `Order` object for each unique status value in
+And this will give you a single `Order` record for each unique status value in
 the database.
 
 The SQL that would be executed would be something like this:
@@ -1874,7 +1873,7 @@ SELECT customer_id, sum(total) as total_price
 This returns the customer ID and total price for each customer, grouped by
 customer, whose total order value exceeds $200.
 
-You can access the `total_price` for each order object returned like this:
+You can access the `total_price` for each order record returned like this:
 
 ```ruby
 big_orders = Order.select("customer_id, sum(total) as total_price")
@@ -1882,7 +1881,7 @@ big_orders = Order.select("customer_id, sum(total) as total_price")
                   .having("sum(total) > ?", 200)
 
 big_orders[0].total_price
-# Returns the total price for the first Order object
+# Returns the total price for the first Order record
 ```
 
 Overriding Clauses
@@ -2255,11 +2254,11 @@ Book.first.highlighted_reviews.average(:rating)
 # => Returns average rating of a book even when there are less than 5 reviews.
 ```
 
-Readonly Objects
+Readonly Records
 ----------------
 
 Active Record provides the [`readonly`][] method on a relation to explicitly
-disallow modification of any of the returned objects. Any attempt to alter a
+disallow modification of any of the returned records. Any attempt to alter a
 readonly record will not succeed, raising an `ActiveRecord::ReadOnlyRecord`
 exception.
 
@@ -2269,7 +2268,7 @@ customer.visits += 1
 customer.save # Raises an ActiveRecord::ReadOnlyRecord
 ```
 
-As `customer` is explicitly set to be a readonly object, the above code will
+As `customer` is explicitly set to be a readonly record, the above code will
 raise an `ActiveRecord::ReadOnlyRecord` exception when calling `customer.save`
 with an updated value of _visits_.
 
@@ -2447,7 +2446,7 @@ SELECT books.* FROM books
   INNER JOIN reviews ON reviews.book_id = books.id
 ```
 
-The SQL query will return a Book object for all books with reviews.
+The SQL query will return a Book record for all books with reviews.
 
 NOTE: You will see duplicate books if a book has more than one review.  If you
 want unique books, you can use `Book.joins(:reviews).distinct`.
@@ -2923,7 +2922,7 @@ store(dev)> Book.out_of_print
 => #<ActiveRecord::Relation> # all out of print books
 ```
 
-Or on an association consisting of `Book` objects:
+Or on an association consisting of `Book` records:
 
 ```irb
 store(dev)> author = Author.first
@@ -3269,7 +3268,7 @@ end
 ```
 
 Given the [`enum`][] declaration above, [scopes](#scopes) are created
-automatically for each enum value and can be used to find all objects with or
+automatically for each enum value and can be used to find all records with or
 without a particular value for `status`:
 
 ```irb
