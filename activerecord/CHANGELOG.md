@@ -2,6 +2,13 @@
     scoped relation with conflicting attribute conditions inside a transaction.
 
     *Irvan Eksa Mahendra*
+
+*   Fix `ActiveRecord::QueryMethods#in_order_of` when passing an out-of-range Integer
+
+    To match the behavior of the `Enumerable` version, `in_order_of` now ignores an out-of-range Integer.
+
+    *tejanium*
+
 *   Revert alphabetical sorting of table columns inside `schema.rb`.
 
     Alphabetical sorting of table columns inside the schema creates improper production tables when using `db:prepare`.
