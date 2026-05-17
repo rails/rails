@@ -77,6 +77,13 @@ module ActiveStorage
       attachments.any?
     end
 
+    # Returns the combined size in bytes of all attached blobs.
+    #
+    #   document.images.byte_size # => 2048
+    def byte_size
+      blobs.pluck(:byte_size).sum
+    end
+
     def as_json(options = nil)
       attachments.as_json(options)
     end
