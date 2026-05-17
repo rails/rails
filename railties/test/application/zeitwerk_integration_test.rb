@@ -30,6 +30,12 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_equal [Rails.autoloaders.main, Rails.autoloaders.once], Rails.autoloaders.to_a
   end
 
+  test "ActiveSupport.autoloader is set to the main autoloader" do
+    boot
+
+    assert_equal Rails.autoloaders.main, ActiveSupport.autoloader
+  end
+
   test "autoloaders inflect with Active Support" do
     app_file "config/initializers/inflections.rb", <<-RUBY
       ActiveSupport::Inflector.inflections(:en) do |inflect|
