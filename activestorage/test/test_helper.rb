@@ -210,6 +210,8 @@ class User < ActiveRecord::Base
   end
 end
 
+class SpecialUser < User; end
+
 class Group < ActiveRecord::Base
   has_one_attached :avatar
   has_many :users, autosave: true

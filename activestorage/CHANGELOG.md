@@ -1,3 +1,7 @@
+*   Preserve attachment changes when converting record to another class using STI.
+
+    *fatkodima*
+
 *   Add a helper to get the combined byte size of blobs attached via `has_many_attached`.
 
     ```ruby
