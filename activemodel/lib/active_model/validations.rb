@@ -190,9 +190,9 @@ module ActiveModel
 
         if options.key?(:except_on)
           options = options.dup
-          options[:except_on] = Array(options[:except_on])
+          options[:except_on] = Array(options[:except_on]).map(&:to_sym)
           options[:unless] = [
-            ->(o) { options[:except_on].intersect?(Array(o.validation_context)) },
+            ->(o) { options[:except_on].intersect?(Array(o.validation_context).map(&:to_sym)) },
             *options[:unless]
           ]
         end
@@ -310,7 +310,7 @@ module ActiveModel
         @@predicates_for_validation_contexts = {}
 
         def predicate_for_validation_context(context)
-          context = context.is_a?(Array) ? context.sort : Array(context)
+          context = context.is_a?(Array) ? context.map(&:to_sym).sort : Array(context&.to_sym)
 
           @@predicates_for_validation_contexts[context] ||= -> (model) do
             if model.validation_context.is_a?(Array)
@@ -376,6 +376,7 @@ module ActiveModel
     #   person.valid?(:new) # => false
     def valid?(context = nil)
       current_context = validation_context
+      context = context.is_a?(Array) ? context.map(&:to_sym) : context&.to_sym
       context_for_validation.context = context
       errors.clear
       run_validations!

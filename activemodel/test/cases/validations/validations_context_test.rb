@@ -67,4 +67,61 @@ class ValidationsContextTest < ActiveModel::TestCase
     assert_includes topic.errors[:base], ERROR_MESSAGE
     assert_includes topic.errors[:base], ANOTHER_ERROR_MESSAGE
   end
+
+  test "with a context defined as symbol and valid? called with a string" do
+    Topic.validates_with(ValidatorThatAddsErrors, on: :context1)
+
+    topic = Topic.new
+    assert topic.invalid?("context1"), "Validation did not run when 'on' is a symbol and valid? is called with a matching string"
+    assert_includes topic.errors[:base], ERROR_MESSAGE
+  end
+
+  test "with a context defined as string and valid? called with a symbol" do
+    Topic.validates_with(ValidatorThatAddsErrors, on: "context1")
+
+    topic = Topic.new
+    assert topic.invalid?(:context1), "Validation did not run when 'on' is a string and valid? is called with a matching symbol"
+    assert_includes topic.errors[:base], ERROR_MESSAGE
+  end
+
+  test "with a context defined as string and valid? called with a string" do
+    Topic.validates_with(ValidatorThatAddsErrors, on: "context1")
+
+    topic = Topic.new
+    assert topic.invalid?("context1"), "Validation did not run when 'on' is a string and valid? is called with a matching string"
+    assert_includes topic.errors[:base], ERROR_MESSAGE
+  end
+
+  test "with a mixed array context defined as on option and valid? called with a string" do
+    Topic.validates_with(ValidatorThatAddsErrors, on: ["context1", :context2])
+
+    topic = Topic.new
+    assert topic.invalid?(:context1), "Validation did not run when 'on' includes a string and valid? is called with a matching symbol"
+    assert_includes topic.errors[:base], ERROR_MESSAGE
+
+    assert topic.invalid?("context2"), "Validation did not run when 'on' includes a symbol and valid? is called with a matching string"
+    assert_includes topic.errors[:base], ERROR_MESSAGE
+  end
+
+  test "with an except_on defined as string and valid? called with a matching string" do
+    Topic.validates_with(ValidatorThatAddsErrors, except_on: "context1")
+
+    topic = Topic.new
+    assert topic.valid?("context1"), "Validation ran when 'except_on' is a string and valid? is called with a matching string context"
+
+    topic2 = Topic.new
+    assert topic2.invalid?("context2"), "Validation did not run on a non-excluded string context"
+    assert_includes topic2.errors[:base], ERROR_MESSAGE
+  end
+
+  test "with an except_on defined as symbol and valid? called with a matching string" do
+    Topic.validates_with(ValidatorThatAddsErrors, except_on: :context1)
+
+    topic = Topic.new
+    assert topic.valid?("context1"), "Validation ran when 'except_on' is a symbol and valid? is called with a matching string context"
+
+    topic2 = Topic.new
+    assert topic2.invalid?("context2"), "Validation did not run on a non-excluded string context"
+    assert_includes topic2.errors[:base], ERROR_MESSAGE
+  end
 end

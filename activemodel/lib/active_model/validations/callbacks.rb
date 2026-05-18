@@ -98,20 +98,20 @@ module ActiveModel
         private
           def set_options_for_callback(options)
             if options.key?(:on)
-              options[:on] = Array(options[:on])
+              options[:on] = Array(options[:on]).map(&:to_sym)
               options[:if] = [
                 ->(o) {
-                  options[:on].intersect?(Array(o.validation_context))
+                  options[:on].intersect?(Array(o.validation_context).map(&:to_sym))
                 },
                 *options[:if]
               ]
             end
 
             if options.key?(:except_on)
-              options[:except_on] = Array(options[:except_on])
+              options[:except_on] = Array(options[:except_on]).map(&:to_sym)
               options[:unless] = [
                 ->(o) {
-                  options[:except_on].intersect?(Array(o.validation_context))
+                  options[:except_on].intersect?(Array(o.validation_context).map(&:to_sym))
                 },
                 *options[:unless]
               ]
