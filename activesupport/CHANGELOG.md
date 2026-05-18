@@ -1,3 +1,15 @@
+*   Fix `number_to_phone` dropping only the first character of a
+    multi-character `:delimiter` when no area code is present.
+
+    The leading delimiter produced by an empty first capture group was
+    stripped with `slice!(0, 1)`, which assumed a single-character
+    delimiter. Multi-character (and multibyte) delimiters now work:
+
+        number_to_phone(5551234, delimiter: " - ")  # => "555 - 1234"
+        # was "- 555 - 1234"
+
+    *Kenta Ishizaki*
+
 *   Fix `titleize` inflector to consider Unicode characters
 
     ```ruby
