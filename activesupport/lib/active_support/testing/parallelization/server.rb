@@ -68,7 +68,7 @@ module ActiveSupport
           @distributor.interrupt
         end
 
-        def shutdown
+        def shutdown(timeout: nil)
           # Wait for initial queue to drain
           while @distributor.pending?
             sleep 0.1
@@ -76,7 +76,7 @@ module ActiveSupport
 
           @distributor.close
 
-          wait_for_active_workers
+          wait_for_active_workers(timeout: timeout)
 
           @in_flight.values.each do |(klass, name, reporter)|
             result = Minitest::Result.from(klass.new(name))
@@ -92,13 +92,18 @@ module ActiveSupport
 
           @distributor.close
 
-          wait_for_active_workers
+          wait_for_active_workers(timeout: timeout)
         end
 
         private
-          def wait_for_active_workers
+          def wait_for_active_workers(timeout: nil)
+            deadline = if timeout
+              Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout
+            end
+
             while active_workers?
               reap_dead_workers
+              break if deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
               sleep 0.1
             end
           end
