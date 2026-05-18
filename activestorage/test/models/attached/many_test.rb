@@ -1004,4 +1004,10 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     user = User.select("name AS highlights").find(@user.id)
     assert_nothing_raised { user.to_json }
   end
+
+  test "preserves attachment changes when using STI" do
+    user = User.new(name: "John", highlights: [create_blob(filename: "funky.jpg")])
+    special_user = user.becomes(SpecialUser)
+    assert_predicate special_user.highlights, :attached?
+  end
 end

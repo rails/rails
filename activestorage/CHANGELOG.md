@@ -1,3 +1,7 @@
+*   Preserve attachment changes when converting record to another class using STI.
+
+    *fatkodima*
+
 *   Correct unexpected behavior resulting from dependent: :purge when using
     has_one_attached or has_many_attached. Fixes #36423.
 
