@@ -59,15 +59,18 @@ module ActiveRecord
           end
         end
 
-        pool.reap
-        pool.connections.each do |conn|
-          if conn.in_use?
-            if conn.owner != Fiber.current && conn.owner != Thread.current
-              leaked_conn << [conn.owner, conn.owner.backtrace]
-              conn.owner&.kill
+        # Avoid racing the pool reaper while it is performing maintenance.
+        pool.reaper_lock do
+          pool.reap
+          pool.connections.each do |conn|
+            if conn.in_use?
+              if conn.owner != Fiber.current && conn.owner != Thread.current
+                leaked_conn << [conn.owner, conn.owner.backtrace]
+                conn.owner&.kill
+              end
+              conn.steal!
+              pool.checkin(conn)
             end
-            conn.steal!
-            pool.checkin(conn)
           end
         end
       end
