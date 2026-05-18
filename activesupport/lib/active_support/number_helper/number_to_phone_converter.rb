@@ -32,7 +32,7 @@ module ActiveSupport
           default_pattern = /(\d{0,3})(\d{3})(\d{4})$/
           number.gsub!(regexp_pattern(default_pattern),
                        "\\1#{delimiter}\\2#{delimiter}\\3")
-          number.slice!(0, 1) if start_with_delimiter?(number)
+          number.slice!(0, delimiter.length) if start_with_delimiter?(number)
           number
         end
 
