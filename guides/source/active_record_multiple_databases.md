@@ -26,7 +26,7 @@ At this time the following features are supported:
 * Automatic swapping between the writer and replica depending on the HTTP verb and recent writes
 * Rails tasks for creating, dropping, migrating, and interacting with the multiple databases
 
-The following features are not (yet) supported:
+The following features are not supported:
 
 * Load balancing replicas
 
@@ -34,6 +34,10 @@ The following features are not (yet) supported:
 
 While Rails tries to do most of the work for you, there are still some steps you'll
 need to do to get your application ready for multiple databases.
+
+New Rails applications generate a 3-tier production `config/database.yml` by default,
+and this same multiple database support is used by Solid Cache, queueing, and Action
+Cable.
 
 Let's say we have an application with a single writer database, and we need to add a
 new database for some new tables we're adding. The name of the new database will be
@@ -87,9 +91,14 @@ production:
 ```
 
 Connection URLs for databases can also be configured using environment variables. The variable
-name is formed by concatenating the connection name with `_DATABASE_URL`. For example, setting
-`ANIMALS_DATABASE_URL="mysql2://username:password@host/database"` is merged into the `animals`
-configuration in `database.yml` in the `production` environment. See
+name is formed by concatenating the connection name with `_DATABASE_URL`. For example:
+
+```bash
+ANIMALS_DATABASE_URL="mysql2://username:password@host/database"
+```
+
+This value is merged into the `animals` configuration in `database.yml` for the `production`
+environment. See
 [Configuring a Database](configuring.html#configuring-a-database) for details about how the
 merging works.
 
@@ -109,8 +118,18 @@ Lastly, for new writer databases, you need to set the `migrations_paths` key to 
 where you will store migrations for that database. We'll look more at `migrations_paths`
 later on in this guide.
 
-You can also configure the schema dump file by setting `schema_dump` to a custom schema file name
-or completely skip the schema dumping by setting `schema_dump: false`.
+You can also configure the schema dump file by setting `schema_dump` to a custom schema file name.
+For example:
+
+```yaml
+production:
+  animals:
+    database: my_animals_database
+    adapter: mysql2
+    schema_dump: db/animals_schema.rb
+```
+
+If you want to skip dumping the schema for a database entirely, set `schema_dump: false`.
 
 Now that we have a new database, let's set up the connection model.
 
@@ -222,7 +241,7 @@ Note that there is no command for creating the database users, and you'll need t
 to support the read-only users for your replicas. If you want to create just the animals
 database you can run `bin/rails db:create:animals`.
 
-## Connecting to Databases without Managing Schema and Migrations
+### Connecting to Databases without Managing Schema and Migrations
 
 If you would like to connect to an external database without any database
 management tasks such as schema management, migrations, seeds, etc., you can set
@@ -240,7 +259,7 @@ production:
     database_tasks: false
 ```
 
-## Generators and Migrations
+### Generators and Migrations
 
 Migrations for multiple databases should live in their own folders prefixed with the
 name of the database key in the configuration.
@@ -297,7 +316,7 @@ $ bin/rails generate scaffold Dog name:string --database animals --parent Animal
 This will skip generating `AnimalsRecord` since you've indicated to Rails that you want to
 use a different parent class.
 
-## Activating Automatic Role Switching
+### Activating Automatic Role Switching
 
 Finally, in order to use the read-only replica in your application, you'll need to activate
 the middleware for automatic switching.
@@ -374,7 +393,7 @@ config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelec
 config.active_record.database_resolver_context = MyCookieResolver
 ```
 
-## Using Manual Connection Switching
+### Using Manual Connection Switching
 
 There are some cases where you may want your application to connect to a writer or a replica
 and the automatic connection switching isn't adequate. For example, you may know that for a
@@ -416,7 +435,7 @@ database server, but maintain the same schema across "shards". This is commonly 
 sharding.
 
 The API for supporting horizontal sharding in Rails is similar to the multiple database / vertical
-sharding API that's existed since Rails 6.0.
+sharding API.
 
 Shards are declared in the three-tier config like this:
 
@@ -483,11 +502,11 @@ using sharding, both a `role` and a `shard` must be passed:
 
 ```ruby
 ShardRecord.connected_to(role: :writing, shard: :shard_one) do
-  @person = Person.create! # Creates a record in shard shard_one
+  @customer = Customer.create! # Creates a record in shard shard_one
 end
 
 ShardRecord.connected_to(role: :writing, shard: :shard_two) do
-  Person.find(@person.id) # Can't find record, doesn't exist because it was created
+  Customer.find(@customer.id) # Can't find record, doesn't exist because it was created
                    # in the shard named ":shard_one".
 end
 ```
@@ -497,11 +516,11 @@ role and the shard with the `connected_to` API.
 
 ```ruby
 ShardRecord.connected_to(role: :reading, shard: :shard_one) do
-  Person.first # Lookup record from read replica of shard one.
+  Customer.first # Lookup record from read replica of shard one.
 end
 ```
 
-## Activating Automatic Shard Switching
+### Activating Automatic Shard Switching
 
 Applications are able to automatically switch shards per request using the `ShardSelector`
 middleware, which allows an application to provide custom logic for determining the appropriate
@@ -555,8 +574,7 @@ config.active_record.shard_selector = { lock: true, class_name: "AnimalsRecord" 
 
 ## Granular Database Connection Switching
 
-Starting from Rails 6.1, it's possible to switch connections for one database
-instead of all databases globally.
+It's possible to switch connections for one database instead of all databases globally.
 
 With granular database connection switching, any abstract connection class
 will be able to switch connections without affecting other connections. This
@@ -597,27 +615,36 @@ connections globally.
 
 ### Handling Associations with Joins across Databases
 
-As of Rails 7.0+, Active Record has an option for handling associations that would perform
-a join across multiple databases. If you have a has many through or a has one through association
-that you want to disable joining and perform 2 or more queries, pass the `disable_joins: true` option.
+Active Record has an option for handling associations that would perform a join across multiple
+databases. If you have a has many through or a has one through association that you want to disable
+joining and perform 2 or more queries, pass the `disable_joins: true` option.
 
 For example:
 
 ```ruby
 class Dog < AnimalsRecord
+  has_many :humans, disable_joins: true
   has_many :treats, through: :humans, disable_joins: true
-  has_many :humans
 
   has_one :home
   has_one :yard, through: :home, disable_joins: true
 end
 
-class Home
+class Human < ApplicationRecord
+  belongs_to :dog
+  has_many :treats
+end
+
+class Treat < ApplicationRecord
+  belongs_to :human
+end
+
+class Home < ApplicationRecord
   belongs_to :dog
   has_one :yard
 end
 
-class Yard
+class Yard < ApplicationRecord
   belongs_to :home
 end
 ```
@@ -656,8 +683,14 @@ There are some important things to be aware of with this option:
 If you want to load a schema cache for each database you must set
 `schema_cache_path` in each database configuration and set
 `config.active_record.lazily_load_schema_cache = true` in your application
-configuration. Note that this will lazily load the cache when the database
-connections are established.
+configuration.
+
+Schema caching stores a snapshot of the database table and column metadata so Rails
+does not have to query the database for that information every time a connection is
+established.
+
+
+NOTE: With these settings the cache is loaded lazily when the database connections are established.
 
 ## Caveats
 
