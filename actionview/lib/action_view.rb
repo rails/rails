@@ -62,6 +62,11 @@ module ActionView
       autoload :StreamingTemplateRenderer
     end
 
+    autoload_under "testing" do
+      autoload :CapybaraAssertions
+      autoload :RailsDomTestingAssertions
+    end
+
     autoload_at "action_view/template/resolver" do
       autoload :Resolver
       autoload :FileSystemResolver

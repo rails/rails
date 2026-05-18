@@ -366,11 +366,7 @@ module ActionView
   end
 
   class CapybaraHTMLEncoderTest < ActionView::TestCase
-    include ::Capybara::Minitest::Assertions
-
-    def page
-      Capybara.string(rendered)
-    end
+    include ActionView::CapybaraAssertions
 
     test "document_root_element can be configured to utilize Capybara" do
       developer = DeveloperStruct.new("Eloy")
@@ -379,6 +375,16 @@ module ActionView
 
       assert_kind_of Capybara::Node::Simple, page
       assert_css "h1", text: developer.name
+    end
+
+    test "does not share #page across renders" do
+      render "developers/developer_with_h1", developer: DeveloperStruct.new("First")
+
+      assert_css "h1", text: "First"
+
+      render "developers/developer_with_h1", developer: DeveloperStruct.new("Second")
+
+      assert_css "h1", text: "Second"
     end
   end
 
