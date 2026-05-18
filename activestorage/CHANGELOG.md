@@ -1,3 +1,11 @@
+*   Add a helper to get the combined byte size of blobs attached via `has_many_attached`.
+
+    ```ruby
+    document.images.byte_size # => 2048
+    ```
+
+    *Sandip Mane*, *fatkodima*
+
 *   Implement `attach!` as a bang counterpart to `attach`.
 
     This method raises an exception if the attachment was not saved, similar

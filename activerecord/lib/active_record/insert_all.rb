@@ -243,7 +243,7 @@ module ActiveRecord
               connection.default_insert_value(model.columns_hash[key])
             else
               type = types[key]
-              value = type.cast(value) unless type.serialized?
+              value = type.cast(value) unless type.serialized? && !value.is_a?(String)
               ActiveModel::Type::SerializeCastValue.serialize(type, value)
             end
           end

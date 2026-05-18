@@ -82,6 +82,13 @@ Upgrading from Rails 8.1 to Rails 8.2
 
 For more information on changes made to Rails 8.2 please see the [release notes](8_2_release_notes.html).
 
+### The old Active Record 6.1 marshalling format was removed.
+
+If your application still sets `active_record.marshalling_format_version = 6.1`, which may
+be done by not calling `config.load_defaults` or calling it with a version older or equal to `6.1`,
+you MUST opt-in to the newer `7.1` marshal format before upgrading, and ensure all caches were
+either flushed or upgraded.
+
 ### The negative scopes for enums now include records with `nil` values.
 
 Active Record negative scopes for enums now include records with `nil` values.
