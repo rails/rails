@@ -1,3 +1,21 @@
+*   Support proc and symbol for `NumericalityValidator`s `:in` option
+
+    ```ruby
+    validates_numericality_of :price, in: ->(o) { 0..o.max_price }
+    ```
+
+    or
+
+    ```ruby
+    validates_numericality_of :price, in: :price_range
+
+    def price_range
+      0..max_price
+    end
+    ```
+
+    *Thomas Sevestre*
+
 *   Combine `:if`, `:unless`, and `:on` options when specified at both the
     `validates` level and the per-validator level, instead of the per-validator
     options silently replacing the top-level ones.
