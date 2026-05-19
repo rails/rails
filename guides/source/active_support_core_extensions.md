@@ -967,9 +967,48 @@ NOTE: Defined in `active_support/core_ext/module/redefine_method.rb`.
 Extensions to `Class`
 ---------------------
 
-### Class Attributes
+### `class_attribute`
 
-#### `class_attribute`
+Ruby itself provides two options for class-level data, *class variables* and *class instance variables*, but both have limitations when it comes to inheritance and sharing values.
+
+The [`class_attribute`](https://api.rubyonrails.org/classes/Class.html#method-i-class_attribute) method solves this by declaring an inheritable class-level attribute where subclasses inherit the value from their parent but can override it without affecting the parent or any other subclass. For example:
+
+```ruby
+class Base
+  class_attribute :pagination_limit
+  self.pagination_limit = 25
+end
+
+class AdminController < Base
+  self.pagination_limit = 100
+end
+
+Base.pagination_limit            # => 25
+AdminController.pagination_limit # => 100
+```
+
+The value is also readable at the instance level:
+
+```ruby
+Base.new.pagination_limit            # => 25
+AdminController.new.pagination_limit # => 100
+```
+
+Rails uses `class_attribute` extensively internally, for example, `ActionMailer::Base` uses it for define default options that each mailer can then override independently:
+
+```ruby
+class_attribute :default_params
+self.default_params = {
+  mime_version: "1.0",
+  charset: "UTF-8",
+  content_type: "text/plain",
+  parts_order: [ "text/plain", "text/enriched", "text/html" ]
+}.freeze
+```
+
+NOTE: Defined in `active_support/core_ext/class/attribute.rb`.
+
+### `class_attribute`
 
 The method [`class_attribute`][Class#class_attribute] declares one or more inheritable class attributes that can be overridden at any level down the hierarchy.
 
@@ -1053,7 +1092,7 @@ NOTE: Defined in `active_support/core_ext/class/attribute.rb`.
 
 [Class#class_attribute]: https://api.rubyonrails.org/classes/Class.html#method-i-class_attribute
 
-#### `cattr_reader`, `cattr_writer`, and `cattr_accessor`
+### `cattr_reader`, `cattr_writer`, and `cattr_accessor`
 
 The macros [`cattr_reader`][Module#cattr_reader], [`cattr_writer`][Module#cattr_writer], and [`cattr_accessor`][Module#cattr_accessor] are analogous to their `attr_*` counterparts but for classes. They initialize a class variable to `nil` unless it already exists, and generate the corresponding class methods to access it:
 
@@ -1114,9 +1153,9 @@ NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 [Module#cattr_reader]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_reader
 [Module#cattr_writer]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_writer
 
-### Descendants
 
-#### `descendants`
+
+### `descendants`
 
 The [`descendants`][Class#descendants] method returns all classes that are `<` than its receiver:
 
