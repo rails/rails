@@ -444,6 +444,35 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     ActiveStorage.analyze = original
   end
 
+  test "becomes copies pending has_one_attached change to became record" do
+    user = User.new
+    user.avatar = fixture_file_upload("racecar.jpg")
+    special_user = user.becomes(SpecialUser)
+    assert special_user.avatar.attached?
+  end
+
+  test "becomes copies pending has_many_attached change to became record" do
+    user = User.new
+    user.highlights = [fixture_file_upload("racecar.jpg")]
+    special_user = user.becomes(SpecialUser)
+    assert special_user.highlights.attached?
+  end
+
+  test "becomes does not mutate the original record's attachment_changes" do
+    user = User.new
+    user.avatar = fixture_file_upload("racecar.jpg")
+    original_change = user.attachment_changes["avatar"]
+    _special_user = user.becomes(SpecialUser)
+    assert_same user, user.attachment_changes["avatar"].record
+    assert_same original_change, user.attachment_changes["avatar"]
+  end
+
+  test "becomes on record with no attachment changes is safe" do
+    user = User.new
+    special_user = user.becomes(SpecialUser)
+    assert_empty special_user.attachment_changes
+  end
+
   private
     def assert_blob_identified_before_owner_validated(owner, blob, content_type)
       validated_content_type = nil

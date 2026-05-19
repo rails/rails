@@ -325,10 +325,19 @@ module ActiveStorage
 
     def becomes(klass) # :nodoc:
       super.tap do |became|
-        attachment_changes = @attachment_changes&.each_value do |change|
-          change.record = became
+        became_changes = (@attachment_changes || {}).transform_values do |change|
+          case change
+          when ActiveStorage::Attached::Changes::CreateOne
+            ActiveStorage::Attached::Changes::CreateOne.new(change.name, became, change.attachable)
+          when ActiveStorage::Attached::Changes::CreateMany
+            ActiveStorage::Attached::Changes::CreateMany.new(change.name, became, change.attachables)
+          when ActiveStorage::Attached::Changes::DeleteOne
+            ActiveStorage::Attached::Changes::DeleteOne.new(change.name, became)
+          when ActiveStorage::Attached::Changes::DeleteMany
+            ActiveStorage::Attached::Changes::DeleteMany.new(change.name, became)
+          end
         end
-        became.attachment_changes = attachment_changes
+        became.instance_variable_set(:@attachment_changes, became_changes)
       end
     end
   end
