@@ -36,8 +36,8 @@ routing large files through your Rails servers.
 
 Active Storage also supports a `Disk` service which uses the local filesystem by default.
 
-Setup
------
+Setup and Configuration
+-----------------------
 
 Let's see Active Storage in action with an example of allowing users to upload a
 profile photo. First step is to install Active Storage:
@@ -71,6 +71,28 @@ associations](association_basics.html#polymorphic-associations), which store
 Ruby class names in the database, you will need to manually update Active
 Storage tables if you rename related Ruby classes (e.g.
 `active_storage_attachments.record_type` table and column).
+
+### Third Party Software
+
+Various features of Active Storage depend on third-party software. Rails does
+not install these by default so you will need to do so separately:
+
+* [libvips](https://github.com/libvips/libvips) or
+  [ImageMagick](https://imagemagick.org/index.php) - for image analysis and
+  transformations.
+* [ffmpeg](http://ffmpeg.org/) - for video previews and ffprobe for video/audio
+  analysis.
+* [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) -
+  for PDF previews.
+
+TIP: ImageMagick is better known and more widely available. Libvips is a newer
+library that runs quickly and uses little memory.
+
+WARNING: Before you install and use third-party software, make sure you
+understand the licensing implications of doing so. MuPDF, in particular, is
+licensed under AGPL and requires a commercial license for some use.
+
+### Configuring Storage Service
 
 For local development and testing, you can use the `Disk` service to store
 uploaded files. It can be configured in `config/storage.yml` as follows:
@@ -107,25 +129,26 @@ config.active_storage.service = :amazon
 You can find detailed information about [configuring cloud
 services](#configuring-cloud-services) in a later section.
 
-### Third Party Software
+### Configuring Active Storage Routes
 
-Various features of Active Storage depend on third-party software. Rails does
-not install these by default so you will need to do so separately:
+Active Storage automatically adds routes to your application for serving files.
+These routes are mounted under `/rails/active_storage` by default. For example,
+So when someone requests a file attachment in your app, the URL may look like
+`https://example.com/rails/active_storage/blobs/redirect/eyJf.../photo.jpg`. You can see all the routes by running:
 
-* [libvips](https://github.com/libvips/libvips) or
-  [ImageMagick](https://imagemagick.org/index.php) - for image analysis and
-  transformations.
-* [ffmpeg](http://ffmpeg.org/) - for video previews and ffprobe for video/audio
-  analysis.
-* [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) -
-  for PDF previews.
+```bash
+bin/rails routes | grep active_storage
+```
 
-TIP: ImageMagick is better known and more widely available. Libvips is a newer
-library that runs quickly and uses little memory.
+To mount Active Storage routes at a different path, you can configure
+`config.active_storage.routes_prefix` in `config/application.rb`. It accepts any
+value supported by Rails'
+[`scope`](https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Scoping.html#method-i-scope) routing method:
 
-WARNING: Before you install and use third-party software, make sure you
-understand the licensing implications of doing so. MuPDF, in particular, is
-licensed under AGPL and requires a commercial license for some use.
+```ruby
+config.active_storage.routes_prefix = "/files"
+config.active_storage.routes_prefix = { path: "/files", subdomain: "assets" }
+```
 
 Attaching Files to Records
 --------------------------
@@ -653,7 +676,6 @@ This ensures that blobs and variants cannot be accessed through the built-in
 public controllers, and can only be served through your own authenticated
 routing and authorization logic.
 
-<<<<<<< bhumi-guides-active-storage
 [`ActiveStorage::Blobs::RedirectController`]:
 https://api.rubyonrails.org/classes/ActiveStorage/Blobs/RedirectController.html
 [`ActiveStorage::Blobs::ProxyController`]:
@@ -695,22 +717,6 @@ WARNING: The `expires_in` option is not a substitute for authenticated access
 control. An expired URL simply stops working, but a URL shared before expiration
 remains accessible for its full lifetime. For true access control, use
 Authenticated Controllers.
-=======
-If you only need to mount the Active Storage routes at a different path or with
-additional routing options, configure `config.active_storage.routes_prefix`
-instead. It accepts any value supported by `scope`, so you can pass a string path
-prefix or a hash of routing options:
-
-```ruby
-config.active_storage.routes_prefix = "/files"
-config.active_storage.routes_prefix = { path: "/files", subdomain: "assets" }
-```
-
-[`ActiveStorage::Blobs::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Blobs/RedirectController.html
-[`ActiveStorage::Blobs::ProxyController`]: https://api.rubyonrails.org/classes/ActiveStorage/Blobs/ProxyController.html
-[`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
-[`ActiveStorage::Representations::ProxyController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/ProxyController.html
->>>>>>> main
 
 Downloading Files
 -----------------
