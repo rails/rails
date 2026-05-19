@@ -784,7 +784,7 @@ module ActionController
     # instead of `ActionController::ParameterMissing`. Unlike `expect` which
     # will render a 400 response, `expect!` will raise an exception that is
     # not handled. This is intended for debugging invalid params for an
-    # internal API where incorrectly formatted params would indicate a bug
+    # internal \API where incorrectly formatted params would indicate a bug
     # in a client library that should be fixed.
     #
     def expect!(*filters)
