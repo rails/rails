@@ -10,25 +10,47 @@ After reading this guide you will know:
 * How to set up your application for multiple databases.
 * How automatic connection switching works.
 * How to use horizontal sharding for multiple databases.
-* What features are supported and what's still a work in progress.
+
 
 --------------------------------------------------------------------------------
 
-As an application grows in popularity and usage, you'll need to scale the application
-to support your new users and their data. One way in which your application may need
-to scale is on the database level. Rails supports using multiple databases, so you don't
-have to store your data all in one place.
+## Overview
 
-At this time the following features are supported:
+As your application grows, you may need to split data across more than one
+database. You might move a group of tables to its own database cluster, send
+read traffic to replicas, or partition the same set of tables across multiple
+shards.
 
-* Multiple writer databases and a replica for each
-* Automatic connection switching for the model you're working with
-* Automatic swapping between the writer and replica depending on the HTTP verb and recent writes
-* Rails tasks for creating, dropping, migrating, and interacting with the multiple databases
+Rails supports these common multiple database patterns:
 
-The following features are not supported:
+* Multiple writer databases, where each database stores a different part of
+  your application's data. For example, `User` records might live in the
+  `primary` database, while `Dog` records live in the `animals` database. This is
+  also called vertical partitioning.
+* Read replicas for each writer database, so reads can be sent to a replica
+  while writes continue to use the writer.
+* Automatic role switching between writers and replicas based on the HTTP verb
+  and whether the request recently performed a write.
+* Horizontal sharding, where each database has the same schema but stores a
+  different subset of the records.
+* Rails tasks for creating, dropping, migrating, loading schemas, dumping
+  schemas, and interacting with each database.
 
-* Load balancing replicas
+The right setup depends on what you are trying to accomplish:
+
+| If you need to...                                              | Use...                                                |
+| -------------------------------------------------------------- | ----------------------------------------------------- |
+| Move some models to a separate database                        | Multiple writer databases                             |
+| Send read traffic away from the writer                         | Read replicas and automatic role switching            |
+| Split records across databases that share the same schema      | Horizontal sharding                                   |
+| Connect to a legacy, reporting, or externally managed database | A database configuration with `database_tasks: false` |
+
+Rails handles the application-side plumbing for these configurations: connection
+definitions, abstract connection classes, role and shard switching, and database
+tasks. It does not provision database servers, create database users, manage
+replication, balance traffic across replicas, or provide distributed
+transactions across database clusters. Those responsibilities remain with your
+database infrastructure and application architecture.
 
 ## Setting up Your Application
 
