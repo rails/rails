@@ -1030,12 +1030,6 @@ class HttpCacheForeverTest < ActionController::TestCase
         render plain: "hello"
       end
     end
-
-    def cache_me_forever_last_modified
-      http_cache_forever(public: params[:public]) do
-        render plain: "hello"
-      end
-    end
   end
 
   tests HttpCacheForeverController
