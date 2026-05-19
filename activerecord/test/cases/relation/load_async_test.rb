@@ -9,7 +9,7 @@ require "concurrent/atomic/count_down_latch"
 
 module ActiveRecord
   class LoadAsyncTest < ActiveRecord::TestCase
-    include WaitForTestHelper
+    include WaitForAsyncTestHelper
 
     fixtures :posts, :comments, :categories, :categories_posts
 
@@ -428,7 +428,7 @@ module ActiveRecord
 
   class LoadAsyncMultiThreadPoolExecutorTest < ActiveRecord::TestCase
     unless in_memory_db?
-      include WaitForTestHelper
+      include WaitForAsyncTestHelper
 
       fixtures :posts, :comments
 
@@ -567,7 +567,7 @@ module ActiveRecord
 
   class LoadAsyncMixedThreadPoolExecutorTest < ActiveRecord::TestCase
     unless in_memory_db?
-      include WaitForTestHelper
+      include WaitForAsyncTestHelper
 
       fixtures :posts, :comments, :other_dogs
 

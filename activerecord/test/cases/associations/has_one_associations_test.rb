@@ -969,7 +969,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 end
 
 class AsyncHasOneAssociationsTest < ActiveRecord::TestCase
-  include WaitForTestHelper
+  include WaitForAsyncTestHelper
 
   self.use_transactional_tests = false
 
