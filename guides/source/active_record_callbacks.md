@@ -975,7 +975,7 @@ You can define association callbacks by adding options to the association.
 Suppose you have an example where an author has many books. Before
 adding a book to the authors collection, you want to log the new addition.
 You can do this by adding a `before_add` callback. Rails passes the object 
-being added or removed to the callback for you to use.
+being added to the callback for you to use.
 
 ```ruby
 class Author < ApplicationRecord
