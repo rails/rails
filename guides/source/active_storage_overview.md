@@ -792,10 +792,23 @@ Analyzing Files For Metadata
 ----------------------------
 
 Active Storage analyzes files to extract metadata like image dimensions, video
-duration, and audio bit rate.  Once a file has been analyzed, the metadata is stored in the
-`active_storage_blobs` table and can be viewed with
-the [`metadata`][] method :
+duration, and audio bit rate.  Once a file has been analyzed, the metadata is
+stored in the `active_storage_blobs` table and can be viewed with the
+[`metadata`][] method:
 
+```irb
+> user.profile_photo.metadata
+=> {"identified" => true, "width" => 112, "height" => 243, "created_at" => "2026-04-05T00:11:48+02:00", "analyzed" => true}
+```
+
+Analyzed files will store additional information in the metadata hash, including
+`analyzed: true`. You can check whether a blob has been analyzed by calling the
+[`analyzed?`][] method on it.
+
+```irb
+> user.profile_photo.analyzed?
+=> true
+```
 
 Image analysis provides `width` and `height` attributes. Video analysis provides
 these, as well as `duration`, `angle`, `display_aspect_ratio`, and `video` and
