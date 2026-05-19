@@ -68,6 +68,8 @@ module ActiveSupport
           assert_equal("800-555-1212", number_helper.number_to_phone(8005551212, extension: "  "))
           assert_equal("555.1212", number_helper.number_to_phone(5551212, delimiter: "."))
           assert_equal("555 - 1234", number_helper.number_to_phone(5551234, delimiter: " - "))
+          assert_equal("9009001234", number_helper.number_to_phone(9001234, delimiter: "900"))
+          assert_equal("9009009009001234", number_helper.number_to_phone(9009001234, delimiter: "900"))
           assert_equal("800 - 555 - 1212", number_helper.number_to_phone(8005551212, delimiter: " - "))
           assert_equal("555—1234", number_helper.number_to_phone(5551234, delimiter: "—"))
           assert_equal("800-555-1212", number_helper.number_to_phone("8005551212"))
