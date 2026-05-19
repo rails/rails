@@ -797,15 +797,6 @@ duration, and audio bit rate.  Once a file has been analyzed, the metadata is st
 the [`metadata`][] method :
 
 
-```irb
-> user.profile_photo.analyzed?
-=> true
-```
-
-Once a file has been analyzed, the metadata is stored in the
-`active_storage_blobs` table and can be viewed with
-`user.profile_photo.blob.metadata`.
-
 Image analysis provides `width` and `height` attributes. Video analysis provides
 these, as well as `duration`, `angle`, `display_aspect_ratio`, and `video` and
 `audio` booleans to indicate the presence of those channels. Audio analysis
@@ -869,6 +860,8 @@ locally available for analysis. In this case, `:immediately` falls back to
 validations using metadata isn't possible. You can validate on the client side
 using JavaScript instead.
 
+[`metadata`][]:
+https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-metadata
 [`analyzed?`]:
 https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyzed-3F
 
