@@ -1,3 +1,34 @@
+*   Add `enforced:` option to `add_foreign_key` and `change_foreign_key` for PostgreSQL 18.4+.
+
+    `NOT ENFORCED` foreign keys are available since PostgreSQL 18.0, but `DEFERRABLE`
+    was lost on them until 18.4 ("Fix loss of deferrability of foreign-key triggers",
+    https://www.postgresql.org/docs/release/18.4/). Rails therefore requires PostgreSQL
+    18.4 or later for this feature.
+
+    When `enforced: false` is passed to `add_foreign_key`, the constraint is created as `NOT ENFORCED`,
+    meaning PostgreSQL skips referential integrity checks during DML.
+    PostgreSQL marks `NOT ENFORCED` constraints as `NOT VALID` internally (and `VALIDATE CONSTRAINT`
+    does not apply to them), so the schema dumper outputs both
+    `enforced: false` and `validate: false`.
+
+    `change_foreign_key` toggles the enforced status of an existing foreign key. Without
+    this method, users would need to issue raw `ALTER TABLE ... ALTER CONSTRAINT` SQL
+    to disable enforcement temporarily (e.g., for bulk DML that loads the referenced
+    and referencing tables in arbitrary order) and then re-enable it.
+
+    ```ruby
+    add_foreign_key :articles, :authors, enforced: false
+    # => ALTER TABLE "articles" ADD CONSTRAINT ... FOREIGN KEY ("author_id") REFERENCES "authors" ("id") NOT ENFORCED
+
+    change_foreign_key :articles, :authors, enforced: true
+    # => ALTER TABLE "articles" ALTER CONSTRAINT "fk_rails_..." ENFORCED
+
+    change_foreign_key :articles, :authors, enforced: false
+    # => ALTER TABLE "articles" ALTER CONSTRAINT "fk_rails_..." NOT ENFORCED
+    ```
+
+    *Yasuo Honda*
+
 *   Expose `cursor`, `order` and `use_ranges` attributes for `BatchEnumerator`
 
     *fatkodima*

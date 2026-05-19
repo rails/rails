@@ -255,6 +255,13 @@ module ActiveRecord
         true
       end
 
+      def supports_enforced_foreign_keys?
+        # `NOT ENFORCED` foreign keys exist from PostgreSQL 18.0, but `DEFERRABLE` was lost on
+        # them until 18.4 ("Fix loss of deferrability of foreign-key triggers",
+        # https://www.postgresql.org/docs/release/18.4/).
+        database_version >= 18_00_04
+      end
+
       def supports_views?
         true
       end

@@ -746,13 +746,18 @@ module ActiveRecord
         def add_foreign_key(from_table, to_table, **options)
           assert_valid_deferrable(options[:deferrable])
 
+          if options.key?(:enforced) && !supports_enforced_foreign_keys?
+            raise ArgumentError, "NOT ENFORCED foreign key constraints require PostgreSQL 18.4+ (got #{database_version})"
+          end
+
           super
         end
 
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
+          conenforced_column = supports_enforced_foreign_keys? ? ", c.conenforced AS enforced" : ""
           fk_info = query_all(<<~SQL)
-            SELECT t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid,
+            SELECT t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid#{conenforced_column},
               (
                 SELECT array_agg(a.attname ORDER BY idx)
                 FROM (
@@ -798,6 +803,7 @@ module ActiveRecord
             options[:deferrable] = extract_constraint_deferrable(row["deferrable"], row["deferred"])
 
             options[:validate] = row["valid"]
+            options[:enforced] = row["enforced"] if supports_enforced_foreign_keys?
 
             ForeignKeyDefinition.new(table_name, to_table, options)
           end
@@ -1101,6 +1107,47 @@ module ActiveRecord
           fk_name_to_validate = foreign_key_for!(from_table, to_table: to_table, **options).name
 
           validate_constraint from_table, fk_name_to_validate
+        end
+
+        # Changes an existing foreign key constraint on a table.
+        #
+        # The +enforced+ option toggles whether PostgreSQL checks referential integrity
+        # during DML. Requires PostgreSQL 18.4+.
+        #
+        # Like +validate_foreign_key+, this is a runtime helper rather than a migration
+        # command: it is not registered as reversible, so use it from application code
+        # or explicit +up+/+down+ methods. Accepted options are +:enforced+ plus
+        # identifying keys (+:column+, +:name+, +:to_table+).
+        #
+        # Changes the foreign key on +accounts.branch_id+ to NOT ENFORCED.
+        #
+        #   change_foreign_key :accounts, :branches, enforced: false
+        #
+        # Changes the foreign key on +accounts.branch_id+ back to ENFORCED.
+        #
+        #   change_foreign_key :accounts, :branches, enforced: true
+        #
+        # Changes the foreign key on +accounts.owner_id+.
+        #
+        #   change_foreign_key :accounts, column: :owner_id, enforced: false
+        #
+        # Changes the foreign key named +special_fk_name+ on the +accounts+ table.
+        #
+        #   change_foreign_key :accounts, name: :special_fk_name, enforced: false
+        #
+        def change_foreign_key(from_table, to_table = nil, **options)
+          unless supports_enforced_foreign_keys?
+            raise ArgumentError, "change_foreign_key requires PostgreSQL 18.4+ (got #{database_version})"
+          end
+
+          unless options.key?(:enforced)
+            raise ArgumentError, "change_foreign_key requires at least one option (e.g. enforced:)"
+          end
+
+          enforced = options[:enforced]
+          fk_name = foreign_key_for!(from_table, to_table: to_table, **options.except(:enforced)).name
+
+          execute "ALTER TABLE #{quote_table_name(from_table)} ALTER CONSTRAINT #{quote_column_name(fk_name)} #{enforced ? 'ENFORCED' : 'NOT ENFORCED'}"
         end
 
         # Validates the given check constraint.
