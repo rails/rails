@@ -40,12 +40,14 @@ module ActiveRecord
         end
 
         def configured_migrate_path
-          return unless database = options[:database]
-
-          config = ActiveRecord::Base.configurations.configs_for(
-            env_name: Rails.env,
-            name: database
-          )
+          config = if database = options[:database]
+            ActiveRecord::Base.configurations.configs_for(
+              env_name: Rails.env,
+              name: database
+            )
+          else
+            ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).find(&:primary?)
+          end
 
           Array(config&.migrations_paths).first
         end

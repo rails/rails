@@ -327,6 +327,36 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_primary_database_is_selected_among_multiple_configurations_when_database_option_is_not_given
+    original_configurations = ActiveRecord::Base.configurations
+    ActiveRecord::Base.configurations = {
+      test: {
+        primary: {
+          adapter: "sqlite3",
+          database: "db/primary.sqlite3",
+          migrations_paths: "db/primary_migrate",
+        },
+        secondary: {
+          adapter: "sqlite3",
+          database: "db/secondary.sqlite3",
+          migrations_paths: "db/secondary_migrate",
+        },
+      },
+    }
+
+    run_generator ["create_books"]
+
+    assert_migration "db/primary_migrate/create_books.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :books/, change)
+      end
+    end
+    assert_no_migration "db/secondary_migrate/create_books.rb"
+    assert_no_migration "db/migrate/create_books.rb"
+  ensure
+    ActiveRecord::Base.configurations = original_configurations
+  end
+
   def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove_or_create
     migration = "delete_books"
     run_generator [migration, "title:string", "content:text"]

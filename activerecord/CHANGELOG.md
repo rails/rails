@@ -1,3 +1,7 @@
+*   Use the primary database when generating a migration without `--database`
+
+    *ddbrendan*
+
 *   Expose `cursor`, `order` and `use_ranges` attributes for `BatchEnumerator`
 
     *fatkodima*
