@@ -60,15 +60,18 @@ module ActiveRecord
           end
         end
 
-        pool.reap
-        pool.connections.each do |conn|
-          if conn.in_use?
-            if conn.owner != Fiber.current && conn.owner != Thread.current
-              leaked_conn << [conn.owner, conn.owner.backtrace]
-              conn.owner&.kill
+        # Avoid racing the pool reaper while it is performing maintenance.
+        pool.reaper_lock do
+          pool.reap
+          pool.connections.each do |conn|
+            if conn.in_use?
+              if conn.owner != Fiber.current && conn.owner != Thread.current
+                leaked_conn << [conn.owner, conn.owner.backtrace]
+                conn.owner&.kill
+              end
+              conn.steal!
+              pool.checkin(conn)
             end
-            conn.steal!
-            pool.checkin(conn)
           end
         end
       end
@@ -250,7 +253,7 @@ module ActiveRecord
     # This method makes sure that tests don't leak global state related to time zones.
     EXPECTED_ZONE = nil
     EXPECTED_DEFAULT_TIMEZONE = :utc
-    EXPECTED_AWARE_TYPES = [:datetime, :time]
+    EXPECTED_AWARE_TYPES = [:datetime, :time].freeze
     EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES = false
     def verify_default_timezone_config
       if Time.zone != EXPECTED_ZONE

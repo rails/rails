@@ -26,7 +26,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   # FIXME: these property should never have been stored in the metadata.
   # The blob table should be migrated to have dedicated columns for theses.
-  PROTECTED_METADATA = %w(analyzed identified composed)
+  PROTECTED_METADATA = %w(analyzed identified composed).freeze
   private_constant :PROTECTED_METADATA
   store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
 
@@ -185,6 +185,23 @@ class ActiveStorage::Blob < ActiveStorage::Record
   include Representable
   include Servable
 
+  ##
+  # :method: content_type
+  #
+  # Returns the content type of the associated file:
+  #
+  #   ActiveStorage::Blob.first.content_type
+  #   => "image/png"
+
+  ##
+  # :method: metadata
+  #
+  # Returns a Hash of metadata extracted from the associated file.
+  # ActiveStorage also stores whether the file has been identified and analyzed:
+  #
+  #   ActiveStorage::Blob.first.metadata
+  #   => {"identified" => true, "width" => 763, "height" => 588, "analyzed" => true}
+
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
   def signed_id(purpose: :blob_id, expires_in: nil, expires_at: nil)
     super
@@ -206,10 +223,18 @@ class ActiveStorage::Blob < ActiveStorage::Record
     ActiveStorage::Filename.new(self[:filename])
   end
 
+  # Returns a Hash of the custom metadata to be stored on the cloud storage provider.
   def custom_metadata
     self[:metadata][:custom] || {}
   end
 
+  # Sets custom metadata to be stored on the cloud storage provider.
+  # Keys should not contain the cloud storage provider prefix as these get added automatically.
+  #
+  #   blob = ActiveStorage::Blob.new
+  #   blob.custom_metadata = { optimized: true }
+  #   blob.service_headers_for_direct_upload["x-amz-meta-optimized"]
+  #   => true
   def custom_metadata=(metadata)
     self[:metadata] = self[:metadata].merge(custom: metadata)
   end

@@ -37,7 +37,7 @@ module ActionView
 
     # Holds accessors for the registered details.
     module Accessors # :nodoc:
-      DEFAULT_PROCS = {}
+      DEFAULT_PROCS = {} # rubocop:disable Style/MutableConstant
     end
 
     register_detail(:locale) do

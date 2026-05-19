@@ -8,7 +8,7 @@ module ActiveRecord
     class PostgresqlDbConsoleTest < ActiveRecord::PostgreSQLTestCase
       include ActiveSupport::Testing::MethodCallAssertions
 
-      ENV_VARS = %w(PGUSER PGHOST PGPORT PGPASSWORD PGSSLMODE PGSSLCERT PGSSLKEY PGSSLROOTCERT PGOPTIONS)
+      ENV_VARS = %w(PGUSER PGHOST PGPORT PGPASSWORD PGSSLMODE PGSSLCERT PGSSLKEY PGSSLROOTCERT PGOPTIONS).freeze
 
       def setup
         super

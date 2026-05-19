@@ -128,6 +128,15 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_nil return_value
   end
 
+  test "raises error when calling attach! to attach a blob to a persisted, unchanged, and invalid record" do
+    @user.update_attribute(:name, nil)
+    assert_not @user.valid?
+
+    assert_raises(ActiveRecord::RecordNotSaved) do
+      @user.avatar.attach! create_blob(filename: "funky.jpg")
+    end
+  end
+
   test "attaching a blob to a changed record, returns the attachment" do
     @user.name = "Tina"
     return_value = @user.avatar.attach create_blob(filename: "funky.jpg")
@@ -618,6 +627,16 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_nil user.attachment_changes["avatar"]
   end
 
+  test "purge attached blob now when the record is destroyed" do
+    @user.icon.attach create_blob(filename: "funky.jpg")
+    icon_key = @user.icon.key
+
+    @user.reload.destroy
+
+    assert_nil ActiveStorage::Blob.find_by(key: icon_key)
+    assert_not ActiveStorage::Blob.service.exist?(icon_key)
+  end
+
   test "purging later" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob
@@ -868,5 +887,26 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
 
     assert_match(/Cannot find variant :unknown for User#avatar_with_variants/, error.message)
+  end
+
+  test "as_json returns nil when no attachment is present" do
+    assert_nil @user.avatar.as_json
+  end
+
+  test "as_json returns the attachment record when attached" do
+    @user.avatar.attach(create_blob(filename: "funky.jpg"))
+    assert_equal @user.avatar_attachment.as_json, @user.avatar.as_json
+  end
+
+  test "to_json on the record does not stack overflow when an attribute shadows the attached name" do
+    @user.avatar.attach(create_blob(filename: "funky.jpg"))
+    user = User.select("name AS avatar").find(@user.id)
+    assert_nothing_raised { user.to_json }
+  end
+
+  test "preserves attachment changes when using STI" do
+    user = User.new(name: "John", avatar: create_blob(filename: "funky.jpg"))
+    special_user = user.becomes(SpecialUser)
+    assert_predicate special_user.avatar, :attached?
   end
 end

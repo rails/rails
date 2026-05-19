@@ -14,7 +14,7 @@ module ActionDispatch
           data = ActiveSupport::JSON.decode(raw_post)
           data.is_a?(Hash) ? data : { _json: data }
         }
-      }
+      }.freeze
 
       # Raised when raw data from the request cannot be parsed by the parser defined
       # for request's content MIME type.

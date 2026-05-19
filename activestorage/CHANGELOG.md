@@ -1,3 +1,57 @@
+*   Preserve attachment changes when converting record to another class using STI.
+
+    *fatkodima*
+
+*   Add a helper to get the combined byte size of blobs attached via `has_many_attached`.
+
+    ```ruby
+    document.images.byte_size # => 2048
+    ```
+
+    *Sandip Mane*, *fatkodima*
+
+*   Implement `attach!` as a bang counterpart to `attach`.
+
+    This method raises an exception if the attachment was not saved, similar
+    to how `save!` raises an exception if an Active Record object is found to
+    be invalid prior to be persisted.
+
+    *Quentin de Metz*
+
+*   Correct unexpected behavior resulting from dependent: :purge when using
+    has_one_attached or has_many_attached. Fixes #36423.
+
+    *Mark Oveson*
+
+*   Allow configuring Active Storage base controller parent class
+
+    This enables users to change the parent class for
+    `ActiveStorage::BaseController`, including the option to inherit from
+    `ActionController::API` for api-only apps.
+
+    *Andrew White*, *Santiago Bartesaghi*, *zzak*
+
+*   Fix image analyzer reporting wrong dimensions for EXIF orientations involving a mirror.
+
+    `rotated_image?` was swapping width/height for orientations 2 and 4 (flip-only, no 90°
+    rotation), which do not change portrait/landscape orientation. It was also missing orientations
+    5 and 7 (flip + 90° rotation), which do require a swap. Only orientations 5, 6, 7, and 8
+    involve a 90° or 270° rotation and should trigger a dimension swap.
+
+    *Bogdan Gusiev*
+
+*   Define `as_json` on `ActiveStorage::Attached::One` and `ActiveStorage::Attached::Many`.
+
+    The proxies hold a back-reference to the owning record in `@record`. Without an explicit
+    `as_json`, the default `Object#as_json` fall back serialized `instance_values`, which made
+    `record.to_json` recurse infinitely whenever the attached name collided with a model
+    attribute (e.g. an `ignored_columns` column brought back by `select('*')`).
+
+    `Attached::One#as_json` now returns the attachment record's JSON when attached and `nil`
+    otherwise. `Attached::Many#as_json` returns the attachment records' JSON as an array.
+
+    *Renxiang Cai*
+
 *   Configurable maximum streaming chunk size
 
     Makes sure that byte ranges for blobs don't exceed 100mb by default.

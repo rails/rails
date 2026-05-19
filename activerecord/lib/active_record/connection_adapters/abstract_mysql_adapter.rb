@@ -28,7 +28,7 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
       class_attribute :emulate_booleans, default: true
 
-      NATIVE_DATABASE_TYPES = {
+      NATIVE_DATABASE_TYPES = { # rubocop:disable Style/MutableConstant
         primary_key: "bigint auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
         text:        { name: "text" },
@@ -179,7 +179,7 @@ module ActiveRecord
       end
 
       def return_value_after_insert?(column) # :nodoc:
-        supports_insert_returning? ? column.auto_populated? : column.auto_increment?
+        supports_insert_returning? ? column.auto_populated_on_insert? : column.auto_increment?
       end
 
       # See https://dev.mysql.com/doc/refman/8.0/en/invisible-indexes.html for more details on MySQL feature.

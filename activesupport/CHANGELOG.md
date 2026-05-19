@@ -1,3 +1,42 @@
+*   Add `start_day` argument to `this_week?` for consistency with `all_week`
+
+    `this_week?` now accepts an optional `start_day` argument, matching the
+    existing interface of `all_week`, `beginning_of_week`, and `end_of_week`.
+
+        date.this_week?              # Uses Date.beginning_of_week (default)
+        date.this_week?(:sunday)     # Checks against Sun-Sat week
+
+    *Kenta Ishizaki*
+
+*   Add `delete: true` option to `Rails.cache.read` for atomic read-and-delete (only supported by Redis cache store).
+
+    Uses the Redis [GETDEL](https://redis.io/docs/latest/commands/getdel/) command to atomically return a cached value and remove
+    it in a single operation. Useful for single-use values like OTP codes or
+    one-time tokens.
+
+    ```ruby
+    Rails.cache.write("otp", "123456")
+    Rails.cache.read("otp", delete: true)  # => "123456"
+    Rails.cache.read("otp")                # => nil
+    ```
+
+    *Glauco Custodio*
+
+*   Introduce `ActiveSupport::TestCase.around`
+
+    Add a callback, which runs between `TestCase#setup` and `TestCase#teardown`.
+    Yields the test class instance and the test case to the block:
+
+    ```ruby
+    class ClientTest < ActiveSupport::TestCase
+      around do |test_case, block|
+        Client.with(stubbed: true, &block)
+      end
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Add `prepend: true` option to `ActiveSupport::Notifications.subscribe`.
 
       When `prepend: true` is passed, the subscriber is added to the front of

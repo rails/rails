@@ -100,7 +100,7 @@ module ActiveRecord
         end
       end
 
-      DEFAULT_READ_QUERY = [:begin, :commit, :explain, :release, :rollback, :savepoint, :select, :with] # :nodoc:
+      DEFAULT_READ_QUERY = [:begin, :commit, :explain, :release, :rollback, :savepoint, :select, :with].freeze # :nodoc:
       private_constant :DEFAULT_READ_QUERY
 
       def self.build_read_query_regexp(*parts) # :nodoc:
@@ -587,6 +587,10 @@ module ActiveRecord
         false
       end
 
+      def supports_update_returning?
+        false
+      end
+
       def supports_insert_on_duplicate_skip?
         false
       end
@@ -612,7 +616,11 @@ module ActiveRecord
       end
 
       def return_value_after_insert?(column) # :nodoc:
-        column.auto_populated?
+        column.auto_populated_on_insert?
+      end
+
+      def return_value_after_update?(column)
+        column.auto_populated_on_update?
       end
 
       def async_enabled? # :nodoc:

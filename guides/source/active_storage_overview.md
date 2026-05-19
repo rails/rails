@@ -653,6 +653,7 @@ This ensures that blobs and variants cannot be accessed through the built-in
 public controllers, and can only be served through your own authenticated
 routing and authorization logic.
 
+<<<<<<< bhumi-guides-active-storage
 [`ActiveStorage::Blobs::RedirectController`]:
 https://api.rubyonrails.org/classes/ActiveStorage/Blobs/RedirectController.html
 [`ActiveStorage::Blobs::ProxyController`]:
@@ -694,6 +695,22 @@ WARNING: The `expires_in` option is not a substitute for authenticated access
 control. An expired URL simply stops working, but a URL shared before expiration
 remains accessible for its full lifetime. For true access control, use
 Authenticated Controllers.
+=======
+If you only need to mount the Active Storage routes at a different path or with
+additional routing options, configure `config.active_storage.routes_prefix`
+instead. It accepts any value supported by `scope`, so you can pass a string path
+prefix or a hash of routing options:
+
+```ruby
+config.active_storage.routes_prefix = "/files"
+config.active_storage.routes_prefix = { path: "/files", subdomain: "assets" }
+```
+
+[`ActiveStorage::Blobs::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Blobs/RedirectController.html
+[`ActiveStorage::Blobs::ProxyController`]: https://api.rubyonrails.org/classes/ActiveStorage/Blobs/ProxyController.html
+[`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
+[`ActiveStorage::Representations::ProxyController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/ProxyController.html
+>>>>>>> main
 
 Downloading Files
 -----------------

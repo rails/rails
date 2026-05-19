@@ -46,6 +46,14 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "2005-02-01",          date.to_fs(:iso8601)
   end
 
+  def test_date_formats_can_be_extended
+    Date::DATE_FORMATS[:custom_date_format] = "%B %Y"
+
+    assert_equal "February 2005", Date.new(2005, 2, 21).to_fs(:custom_date_format)
+  ensure
+    Date::DATE_FORMATS.delete(:custom_date_format)
+  end
+
   def test_readable_inspect
     assert_equal "Mon, 21 Feb 2005", Date.new(2005, 2, 21).readable_inspect
     assert_equal Date.new(2005, 2, 21).readable_inspect, Date.new(2005, 2, 21).inspect

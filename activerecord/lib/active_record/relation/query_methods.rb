@@ -721,8 +721,16 @@ module ActiveRecord
       references = column_references([column])
       self.references_values |= references unless references.empty?
 
-      values = values.map { |value| model.type_caster.type_cast_for_database(column, value) }
-      arel_column = column.is_a?(Arel::Nodes::SqlLiteral) ? column : order_column(column.to_s)
+      if column.is_a?(Arel::Nodes::SqlLiteral)
+        arel_column = column
+      else
+        arel_column = order_column(column.to_s)
+
+        caster = arel_column.type_caster
+        values = values.map do |value|
+          caster.serialize(value) if caster.serializable?(value)
+        end
+      end
 
       scope = spawn.order!(build_case_for_value_position(arel_column, values, filter: filter))
 
@@ -768,7 +776,7 @@ module ActiveRecord
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
                                      :includes, :eager_load, :preload, :from, :readonly,
-                                     :having, :optimizer_hints, :with])
+                                     :having, :optimizer_hints, :with]).freeze
 
     # Removes an unwanted relation that is already defined on a chain of relations.
     # This is useful when passing around chains of relations and would like to
@@ -1048,13 +1056,13 @@ module ActiveRecord
     # Allows you to change a previously set where condition for a given attribute, instead of appending to that condition.
     #
     #   Post.where(trashed: true).where(trashed: false)
-    #   # WHERE `trashed` = 1 AND `trashed` = 0
+    #   # WHERE `trashed` = true AND `trashed` = false
     #
     #   Post.where(trashed: true).rewhere(trashed: false)
-    #   # WHERE `trashed` = 0
+    #   # WHERE `trashed` = false
     #
     #   Post.where(active: true).where(trashed: true).rewhere(trashed: false)
-    #   # WHERE `active` = 1 AND `trashed` = 0
+    #   # WHERE `active` = true AND `trashed` = false
     #
     # This is short-hand for <tt>unscope(where: conditions.keys).where(conditions)</tt>.
     # Note that unlike reorder, we're only unscoping the named conditions -- not the entire where statement.
@@ -1076,16 +1084,16 @@ module ActiveRecord
     #   end
     #
     #   User.where(accepted: true)
-    #   # WHERE `accepted` = 1
+    #   # WHERE `accepted` = true
     #
     #   User.where(accepted: true).invert_where
-    #   # WHERE `accepted` != 1
+    #   # WHERE `accepted` != true
     #
     #   User.active
-    #   # WHERE `accepted` = 1 AND `locked` = 0
+    #   # WHERE `accepted` = true AND `locked` = false
     #
     #   User.active.invert_where
-    #   # WHERE NOT (`accepted` = 1 AND `locked` = 0)
+    #   # WHERE NOT (`accepted` = true AND `locked` = false)
     #
     # Be careful because this inverts all conditions before +invert_where+ call.
     #
@@ -1096,7 +1104,7 @@ module ActiveRecord
     #
     #   # It also inverts `where(role: 'admin')` unexpectedly.
     #   User.where(role: 'admin').inactive
-    #   # WHERE NOT (`role` = 'admin' AND `accepted` = 1 AND `locked` = 0)
+    #   # WHERE NOT (`role` = 'admin' AND `accepted` = true AND `locked` = false)
     #
     def invert_where
       spawn.invert_where!
@@ -1463,6 +1471,8 @@ module ActiveRecord
     end
 
     def extending!(*modules, &block) # :nodoc:
+      return self if modules.empty? && !block
+
       modules << Module.new(&block) if block
       modules.flatten!
 
@@ -1777,14 +1787,16 @@ module ActiveRecord
 
       def build_from
         opts = from_clause.value
-        name = from_clause.name
+        name = from_clause.name&.to_s || "subquery"
         case opts
         when Relation
           if opts.eager_loading?
             opts = opts.send(:apply_join_dependency)
           end
-          name ||= "subquery"
-          opts.arel.as(name.to_s)
+          opts.arel.as(name)
+        when Arel::Nodes::Union, Arel::Nodes::UnionAll,
+             Arel::Nodes::Intersect, Arel::Nodes::Except
+          opts.as(name)
         else
           opts
         end
@@ -1898,7 +1910,7 @@ module ActiveRecord
       def build_select(arel)
         if select_values.any?
           arel.project(*arel_columns(select_values))
-        elsif model.ignored_columns.any? || model.enumerate_columns_in_select_statements
+        elsif model.ignored_columns.any? || model.enumerate_columns_in_select_statements || model.only_columns.any?
           arel.project(*model.column_names.map { |field| table[field] })
         else
           arel.project(table[Arel.star])
@@ -2068,8 +2080,8 @@ module ActiveRecord
         arel.order(*orders) unless orders.empty?
       end
 
-      VALID_DIRECTIONS = [:asc, :desc, :ASC, :DESC,
-                          "asc", "desc", "ASC", "DESC"].to_set # :nodoc:
+      VALID_DIRECTIONS = Set.new([:asc, :desc, :ASC, :DESC,
+                          "asc", "desc", "ASC", "DESC"]).freeze # :nodoc:
 
       def validate_order_args(args)
         args.each do |arg|

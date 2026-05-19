@@ -87,7 +87,7 @@ module ActiveRecord
         :primary_key,
         :if_exists,
         :if_not_exists
-      ]
+      ].freeze
 
       def primary_key?
         options[:primary_key]

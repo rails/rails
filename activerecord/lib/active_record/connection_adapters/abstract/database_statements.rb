@@ -259,6 +259,17 @@ module ActiveRecord
         intent.affected_rows
       end
 
+      # Executes the update statement and returns an ActiveRecord::Result
+      # Some adapters support the `returning` keyword argument
+      def update_with_result(arel, name = nil, binds = [], returning:) # :nodoc:
+        arel.returning(returning.map { |column| Arel.sql(quote_column_name(column)) })
+
+        intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
+
+        intent.execute!
+        intent.cast_result
+      end
+
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel, name = nil, binds = [])
         intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)

@@ -1151,44 +1151,28 @@ class TransactionInCachedSqlActiveRecordPayloadTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   def test_payload_without_open_transaction
-    asserted = false
-
-    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      if event.payload[:cached]
-        assert_nil event.payload.fetch(:transaction)
-        asserted = true
-      end
-    end
-    Task.cache do
-      2.times { Task.count }
-    end
-
-    assert asserted
-  ensure
-    ActiveSupport::Notifications.unsubscribe(subscriber)
-  end
-
-  def test_payload_with_open_transaction
-    asserted = false
-    expected_transaction = nil
-
-    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      if event.payload[:cached]
-        assert_same expected_transaction, event.payload[:transaction]
-        asserted = true
-      end
-    end
-
-    Task.transaction do |transaction|
-      expected_transaction = transaction
-
+    notification = assert_notification("sql.active_record", cached: true) do
       Task.cache do
         2.times { Task.count }
       end
     end
 
-    assert asserted
-  ensure
-    ActiveSupport::Notifications.unsubscribe(subscriber)
+    assert_nil notification.payload.fetch(:transaction)
+  end
+
+  def test_payload_with_open_transaction
+    expected_transaction = nil
+
+    notification = assert_notification("sql.active_record", cached: true) do
+      Task.transaction do |transaction|
+        expected_transaction = transaction
+
+        Task.cache do
+          2.times { Task.count }
+        end
+      end
+    end
+
+    assert_same expected_transaction, notification.payload[:transaction]
   end
 end

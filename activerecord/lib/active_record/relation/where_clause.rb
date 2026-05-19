@@ -200,7 +200,7 @@ module ActiveRecord
           end
         end
 
-        ARRAY_WITH_EMPTY_STRING = [""]
+        ARRAY_WITH_EMPTY_STRING = [""].freeze
         def non_empty_predicates
           predicates - ARRAY_WITH_EMPTY_STRING
         end

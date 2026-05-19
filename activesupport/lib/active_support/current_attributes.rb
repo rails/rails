@@ -94,7 +94,7 @@ module ActiveSupport
     include ActiveSupport::Callbacks
     define_callbacks :reset
 
-    INVALID_ATTRIBUTE_NAMES = [:set, :reset, :resets, :instance, :before_reset, :after_reset, :reset_all, :clear_all] # :nodoc:
+    INVALID_ATTRIBUTE_NAMES = [:set, :reset, :resets, :instance, :before_reset, :after_reset, :reset_all, :clear_all].freeze # :nodoc:
 
     NOT_SET = Object.new.freeze # :nodoc:
 

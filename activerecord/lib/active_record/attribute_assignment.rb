@@ -64,7 +64,7 @@ module ActiveRecord
           attribute_name = multiparameter_name.split("(").first
           attributes[attribute_name] ||= {}
 
-          parameter_value = value.empty? ? nil : type_cast_attribute_value(multiparameter_name, value)
+          parameter_value = value.blank? ? nil : type_cast_attribute_value(multiparameter_name, value)
           attributes[attribute_name][find_parameter_position(multiparameter_name)] ||= parameter_value
         end
 

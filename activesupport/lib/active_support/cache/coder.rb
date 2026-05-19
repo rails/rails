@@ -77,14 +77,14 @@ module ActiveSupport
           0x02 => Encoding::UTF_8,
           0x03 => Encoding::BINARY,
           0x04 => Encoding::US_ASCII,
-        }
+        }.freeze
 
         COMPRESSED_FLAG = 0x80
 
         PACKED_TEMPLATE = "CEl<"
-        PACKED_TYPE_TEMPLATE = "@#{SIGNATURE.bytesize}C"
-        PACKED_EXPIRES_AT_TEMPLATE = "@#{[0].pack(PACKED_TYPE_TEMPLATE).bytesize}E"
-        PACKED_VERSION_LENGTH_TEMPLATE = "@#{[0].pack(PACKED_EXPIRES_AT_TEMPLATE).bytesize}l<"
+        PACKED_TYPE_TEMPLATE = "@#{SIGNATURE.bytesize}C".freeze
+        PACKED_EXPIRES_AT_TEMPLATE = "@#{[0].pack(PACKED_TYPE_TEMPLATE).bytesize}E".freeze
+        PACKED_VERSION_LENGTH_TEMPLATE = "@#{[0].pack(PACKED_EXPIRES_AT_TEMPLATE).bytesize}l<".freeze
         PACKED_VERSION_INDEX = [0].pack(PACKED_VERSION_LENGTH_TEMPLATE).bytesize
 
         MARSHAL_SIGNATURE = "\x04\x08".b.freeze

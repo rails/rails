@@ -21,9 +21,9 @@ module ActiveSupport # :nodoc:
       capitalize chomp chop delete delete_prefix delete_suffix
       downcase lstrip next reverse rstrip scrub squeeze strip
       succ swapcase tr tr_s unicode_normalize upcase
-    )
+    ).freeze
 
-    UNSAFE_STRING_METHODS_WITH_BACKREF = %w(gsub sub)
+    UNSAFE_STRING_METHODS_WITH_BACKREF = %w(gsub sub).freeze
 
     alias_method :original_concat, :concat
     private :original_concat

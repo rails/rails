@@ -397,7 +397,7 @@ module ActionView
         :@_subscribers,
         :@html_document,
         :@__leak_checker_before_env,
-      ]
+      ].freeze
 
       def _user_defined_ivars
         instance_variables - INTERNAL_IVARS

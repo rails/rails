@@ -232,6 +232,18 @@ module ActiveRecord
         _create_record(attributes, true, &block)
       end
 
+      def violates_strict_loading?
+        return unless find_target?
+
+        return if @skip_strict_loading
+
+        return unless owner.validation_context.nil?
+
+        return reflection.strict_loading? if reflection.options.key?(:strict_loading)
+
+        owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
+      end
+
       # Whether the association represents a single record
       # or a collection of records.
       def collection?
@@ -279,16 +291,6 @@ module ActiveRecord
           yield
         ensure
           @skip_strict_loading = skip_strict_loading_was
-        end
-
-        def violates_strict_loading?
-          return if @skip_strict_loading
-
-          return unless owner.validation_context.nil?
-
-          return reflection.strict_loading? if reflection.options.key?(:strict_loading)
-
-          owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
         end
 
         # The scope for this association.

@@ -1,3 +1,44 @@
+*   Remove `new_framework_defaults` during `app:update` when `config.load_defaults`
+    already targets the current Rails version.
+
+    *Rune Philosof*
+
+*   Enable `config.asset_host` to read from environment by default
+
+    This makes it so no code changes are needed in order to setup a CDN to
+    serve static assets.
+
+    ```
+    config.asset_host = ENV["CDN_HOST"]
+    ```
+
+    *Steve Polito*
+
+*   Skip `CreateUsers` migration when the User model already exists in the authentication generator.
+
+    *John Topley*
+
+*   `app.reloaders` is now a `ReloadersCollection` that calls `deactivate`
+    on each reloader when `clear` or `delete` is called, giving reloaders a
+    chance to clean up external state.
+
+    *Dave Ariens*
+
+*   Enable Ruby `frozen_string_literal` by default.
+
+    New Rails apps now include a `config/bootsnap.rb` file that enables frozen string
+    literals. This only impact the application code, not the dependencies.
+
+    It is also possible to enable it for dependencies for reduce allocations, but
+    some older gems may not yet be compatible. If you do attempt this and run into
+    incompatibilites please do report it on the corresponding gem bug tracker.
+
+    Additionally, `.rubocop.yml` is configured to assume frozen string literals
+    are enabled, if you decide not to enable frozen string literals for your application,
+    make sure to update the rubocop configuration accordingly.
+
+    *Jean Boussier*
+
 *   Add offline fallback page to the PWA scaffold.
 
     New Rails apps now include an `app/views/pwa/offline.html.erb` template and

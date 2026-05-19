@@ -9,7 +9,7 @@ module Arel
         include Arel::FactoryMethods
       end
 
-      def setup
+      setup do
         @factory = Factory.new
       end
 

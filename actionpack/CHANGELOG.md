@@ -1,3 +1,52 @@
+*   Accept render options and block in `render` calls made with `:renderable`
+
+    ```ruby
+    class Greeting
+      def render_in(view_context, **)
+        if block_given?
+          view_context.render(html: yield)
+        else
+          view_context.render(inline: <<~ERB.strip, **)
+            Hello, <%= local_assigns[:name] || "World" %>
+          ERB
+        end
+      end
+    end
+
+    ApplicationController.render(Greeting.new)                                        # => "Hello, World"
+    ApplicationController.render(Greeting.new) { "Hello, Block" }                     # => "Hello, Block"
+    ApplicationController.render(renderable: Greeting.new)                            # => "Hello, World"
+    ApplicationController.render(renderable: Greeting.new, locals: { name: "Local" }) # => "Hello, Local"
+
+    *Sean Doyle*
+
+*   Support multiple arguments in `ActionController::Parameters#merge` and `#merge!`
+
+    Both methods now accept multiple hashes, matching Ruby's `Hash#merge` behavior.
+
+    ```ruby
+    params1 = ActionController::Parameters.new(a: 1)
+    params2 = ActionController::Parameters.new(b: 2)
+    params1.merge(params2, { c: 3 })
+    # => #<ActionController::Parameters {"a"=>1, "b"=>2, "c"=>3} permitted: false>
+    ```
+
+    *Bernie Chiu*
+
+*   Add `ActionController::Parameters#fetch_values` for fetching multiple parameter values
+
+    ```ruby
+    params = ActionController::Parameters.new(name: "Francesco", age: 22)
+    name, age = params.fetch_values(:name, :age)
+    # => ["Francesco", 22]
+
+    # With default values via block
+    name, email = params.fetch_values(:name, :email) { |key| "default_#{key}" }
+    # => ["Francesco", "default_email"]
+    ```
+
+    *Said Kaldybaev*
+
 *   Serve static CSS and HTML files with `charset=utf-8` in the Content-Type header.
 
     Static CSS and HTML files served by `ActionDispatch::Static` now include

@@ -162,7 +162,7 @@ module ActiveRecord
         end
 
         private
-          CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
+          CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"].freeze
 
           def row_format_dynamic_by_default?
             if mariadb?
