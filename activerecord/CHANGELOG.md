@@ -1,3 +1,7 @@
+*   Add `exclusion_constraint_exists?` and `unique_constraint_exists?` helpers
+
+    *fatkodima*
+
 *   Add `enforced:` option to `add_foreign_key` and `change_foreign_key` for PostgreSQL 18.4+.
 
     `NOT ENFORCED` foreign keys are available since PostgreSQL 18.0, but `DEFERRABLE`
