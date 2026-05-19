@@ -65,7 +65,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
-- [`config.active_record.core.dup_retains_readonly_state`](#config-active-record-core-dup-retains-readonly-state): `false`
+- [`config.active_record.dup_retains_readonly_state`](#config-active-record-dup-retains-readonly-state): `false`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 - [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
@@ -1595,7 +1595,7 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 7.1                   | `true`               |
 
-#### `config.active_record.core.dup_retains_readonly_state`
+#### `config.active_record.dup_retains_readonly_state`
 
 Specifies whether a duplicate record (initialized by calling `.dup`) should retain its readonly state.
 

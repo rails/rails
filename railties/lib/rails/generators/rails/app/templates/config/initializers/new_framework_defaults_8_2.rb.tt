@@ -63,7 +63,7 @@
 ###
 # Duplicated records are always read+write, instead of retaining the readonly state of the original.
 #++
-# Rails.application.config.active_record.core.dup_retains_readonly_state = false
+# Rails.application.config.active_record.dup_retains_readonly_state = false
 
 ###
 # Controls whether the PostgresqlAdapter should decode bytea and money columns automatically with manual queries.
