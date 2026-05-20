@@ -3,28 +3,14 @@
 require "time"
 require "active_support/inflector/methods"
 require "active_support/values/time_zone"
+require "active_support/time_formats"
 
 class Time
-  DATE_FORMATS = { # rubocop:disable Style/MutableConstant
-    db: "%Y-%m-%d %H:%M:%S",
-    inspect: "%Y-%m-%d %H:%M:%S.%9N %z",
-    number: "%Y%m%d%H%M%S",
-    nsec: "%Y%m%d%H%M%S%9N",
-    usec: "%Y%m%d%H%M%S%6N",
-    time: "%H:%M",
-    short: "%d %b %H:%M",
-    long: "%B %d, %Y %H:%M",
-    long_ordinal: lambda { |time|
-      day_format = ActiveSupport::Inflector.ordinalize(time.day)
-      time.strftime("%B #{day_format}, %Y %H:%M")
-    },
-    rfc822: lambda { |time|
-      offset_format = time.formatted_offset(false)
-      time.strftime("%a, %d %b %Y %H:%M:%S #{offset_format}")
-    },
-    rfc2822: lambda { |time| time.rfc2822 },
-    iso8601: lambda { |time| time.iso8601 }
-  }
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+
+  deprecate_constant :DATE_FORMATS, "ActiveSupport::TimeFormats::DEPRECATED_LIST",
+    deprecator: ActiveSupport.deprecator,
+    message: "Time::DATE_FORMATS is deprecated, to register custom time formats use ActiveSupport::TimeFormats.register"
 
   # Converts to a formatted string. See DATE_FORMATS for built-in formats.
   #
