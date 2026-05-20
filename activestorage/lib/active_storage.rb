@@ -385,6 +385,12 @@ module ActiveStorage
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
+  @content_type_aliases = {
+    "image/bmp;format=compressed" => "image/bmp",
+  }.freeze
+
+  singleton_class.attr_accessor :content_type_aliases
+
   module Transformers
     extend ActiveSupport::Autoload
 

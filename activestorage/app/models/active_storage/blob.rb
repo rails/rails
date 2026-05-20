@@ -239,6 +239,10 @@ class ActiveStorage::Blob < ActiveStorage::Record
     self[:metadata] = self[:metadata].merge(custom: metadata)
   end
 
+  def content_type=(content_type) # :nodoc:
+    super(ActiveStorage.content_type_aliases[content_type] || content_type)
+  end
+
   # Returns true if the content_type of this blob is in the image range, like image/png.
   def image?
     content_type&.start_with?("image")
