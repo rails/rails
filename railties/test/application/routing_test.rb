@@ -22,6 +22,17 @@ module ApplicationTests
       assert_equal 200, last_response.status
     end
 
+    test "rails/welcome is not duplicated when routes reload in development" do
+      app("development")
+
+      3.times { Rails.application.reload_routes! }
+
+      welcome_routes = Rails.application.routes.routes.select do |route|
+        route.defaults[:controller] == "rails/welcome" && route.defaults[:action] == "index"
+      end
+      assert_equal 1, welcome_routes.size
+    end
+
     test "rails/info in development" do
       app("development")
       get "/rails/info"

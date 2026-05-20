@@ -1,3 +1,8 @@
+*   Prevent the internal development welcome route from being duplicated on route reloads.
+
+    *Elliot Temple*
+
+
 ## Rails 8.1.3 (March 24, 2026) ##
 
 *   Add `libvips` to generated `ci.yml`
