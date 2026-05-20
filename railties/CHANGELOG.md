@@ -1,3 +1,7 @@
+*   Prevent the internal development welcome route from being duplicated on route reloads.
+
+    *Elliot Temple*
+
 *   Remove `new_framework_defaults` during `app:update` when `config.load_defaults`
     already targets the current Rails version.
 
