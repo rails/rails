@@ -834,14 +834,17 @@ configuration tells `ShardSelector` to switch shards using
 config.active_record.shard_selector = { lock: true, class_name: "ShardRecord" }
 ```
 
-## Granular Database Connection Switching
+## Granular Role and Shard Switching
 
-It's possible to switch connections for one database instead of all databases globally.
+By default, calling `connected_to` on `ActiveRecord::Base` switches the role or
+shard for all abstract connection classes. In a multiple database application,
+you may only want to switch one database connection while leaving the others
+unchanged.
 
-With granular database connection switching, any abstract connection class
-will be able to switch connections without affecting other connections. This
-is useful for switching your `AnimalsRecord` queries to read from the replica
-while ensuring your `ApplicationRecord` queries go to the primary.
+Granular role and shard switching lets you call `connected_to` on a specific
+abstract class. This is useful when you want `AnimalsRecord` queries to read
+from the replica while `ApplicationRecord` queries continue using the primary
+writer.
 
 ```ruby
 AnimalsRecord.connected_to(role: :reading) do
@@ -850,20 +853,24 @@ AnimalsRecord.connected_to(role: :reading) do
 end
 ```
 
-It's also possible to swap connections granularly for shards.
+Inside the block, only models that inherit from `AnimalsRecord` switch to the
+`reading` role. Models that inherit from `ApplicationRecord` keep using their
+current role.
+
+You can also switch one abstract class to a specific shard:
 
 ```ruby
 AnimalsRecord.connected_to(role: :reading, shard: :shard_one) do
-  # Will read from shard_one_replica. If no connection exists for shard_one_replica,
-  # a ConnectionNotEstablished error will be raised.
-  Dog.first
-
-  # Will read from primary writer.
-  Person.first
+  Dog.first # Reads from shard_one_replica.
+  Person.first  # Reads from primary writer.
 end
 ```
 
-To switch only the primary database cluster use `ApplicationRecord`:
+If no connection exists for the requested role and shard, Rails raises
+`ActiveRecord::ConnectionNotEstablished`.
+
+To switch only the primary database cluster, call `connected_to` on
+`ApplicationRecord`:
 
 ```ruby
 ApplicationRecord.connected_to(role: :reading, shard: :shard_one) do
@@ -872,8 +879,8 @@ ApplicationRecord.connected_to(role: :reading, shard: :shard_one) do
 end
 ```
 
-`ActiveRecord::Base.connected_to` maintains the ability to switch
-connections globally.
+Use `ActiveRecord::Base.connected_to` when you want to switch all abstract
+connection classes globally.
 
 ### Handling Associations with Joins across Databases
 
