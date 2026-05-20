@@ -235,6 +235,12 @@ production:
 If you want to skip dumping the schema for a database entirely, set
 `schema_dump: false`.
 
+### Models and Migrations
+
+Once the database configurations are in place, the next step is to connect
+models to those configurations and make sure migrations are generated in the
+right directories.
+
 #### Connecting Models to Databases
 
 Adding a database configuration tells Rails how to connect to the database, but
@@ -339,70 +345,11 @@ After changing the role names, use those names in `connects_to`:
 connects_to database: { default: :primary, readonly: :primary_replica }
 ```
 
-#### Running Database Tasks
+#### Using Generators
 
-Rails creates database tasks for each managed database configuration. Running a
-task without a database name applies it to all managed databases, for example:
-
-```bash
-$ bin/rails db:create
-$ bin/rails db:migrate
-$ bin/rails db:schema:dump
-```
-
-To run a task for one database, append the database configuration name:
-
-```bash
-$ bin/rails db:create:animals
-$ bin/rails db:migrate:animals
-$ bin/rails db:schema:dump:animals
-```
-
-The same pattern applies to the primary database:
-
-```bash
-$ bin/rails db:migrate:primary
-```
-
-Rails does not create database tasks for replicas. For example,
-`primary_replica` and `animals_replica` do not get migration tasks because they
-are marked with `replica: true`.
-
-Running `bin/rails db:create` will create both the primary and animals
-databases. Rails does not create database users; create writer and read-only
-replica users in your database system.
-
-For the full list of Rails database commands, see the
-[Command Line guide](command_line.html#managing-the-database).
-
-### Connecting to Databases Managed Outside Rails
-
-Some applications connect to databases that Rails should use but not manage.
-For example, you might connect to a legacy database, a reporting database, or a
-database owned by another application.
-
-In those cases, Rails needs the database configuration so models can connect to
-the database, but Rails should not run database management tasks such as
-creating, dropping, migrating, seeding, or dumping the schema for that database.
-Set `database_tasks: false` on the database configuration to opt out of those
-tasks. By default, `database_tasks` is `true`.
-
-```yaml
-production:
-  primary:
-    database: my_database
-    adapter: mysql2
-  reporting:
-    database: my_reporting_database
-    adapter: mysql2
-    database_tasks: false
-```
-
-In this example, Rails will still connect to the `reporting` database when a
-model uses that configuration, but commands such as `bin/rails db:create`,
-`bin/rails db:migrate`, and `bin/rails db:schema:dump` will skip it.
-
-### Generating Migrations and Models
+If you create models and migrations with Rails generators, pass the database
+name so Rails can place files in the right migration path and use the right
+abstract class.
 
 Each managed writer database needs a migration path. Keeping migrations
 separate lets Rails migrate one database without running migrations intended for
@@ -484,6 +431,69 @@ $ bin/rails generate scaffold Dog name:string --database animals --parent Animal
 
 This will skip generating `AnimalsRecord` since you've indicated to Rails that you want to
 use a different parent class.
+
+### Running Database Tasks
+
+Rails creates database tasks for each managed database configuration. Running a
+task without a database name applies it to all managed databases, for example:
+
+```bash
+$ bin/rails db:create
+$ bin/rails db:migrate
+$ bin/rails db:schema:dump
+```
+
+To run a task for one database, append the database configuration name:
+
+```bash
+$ bin/rails db:create:animals
+$ bin/rails db:migrate:animals
+$ bin/rails db:schema:dump:animals
+```
+
+The same pattern applies to the primary database:
+
+```bash
+$ bin/rails db:migrate:primary
+```
+
+Rails does not create database tasks for replicas. For example,
+`primary_replica` and `animals_replica` do not get migration tasks because they
+are marked with `replica: true`.
+
+Running `bin/rails db:create` will create both the primary and animals
+databases. Rails does not create database users; create writer and read-only
+replica users in your database system.
+
+For the full list of Rails database commands, see the
+[Command Line guide](command_line.html#managing-the-database).
+
+### Connecting to Databases Managed Outside Rails
+
+Some applications connect to databases that Rails should use but not manage.
+For example, you might connect to a legacy database, a reporting database, or a
+database owned by another application.
+
+In those cases, Rails needs the database configuration so models can connect to
+the database, but Rails should not run database management tasks such as
+creating, dropping, migrating, seeding, or dumping the schema for that database.
+Set `database_tasks: false` on the database configuration to opt out of those
+tasks. By default, `database_tasks` is `true`.
+
+```yaml
+production:
+  primary:
+    database: my_database
+    adapter: mysql2
+  reporting:
+    database: my_reporting_database
+    adapter: mysql2
+    database_tasks: false
+```
+
+In this example, Rails will still connect to the `reporting` database when a
+model uses that configuration, but commands such as `bin/rails db:create`,
+`bin/rails db:migrate`, and `bin/rails db:schema:dump` will skip it.
 
 ### Activating Automatic Role Switching
 
