@@ -3,6 +3,66 @@
 
     *Irvan Eksa Mahendra*
 
+*   On PostgreSQL 18.4+, `disable_referential_integrity` uses `NOT ENFORCED`/`ENFORCED`
+    instead of `DISABLE TRIGGER ALL`/`ENABLE TRIGGER ALL`, requiring only table ownership
+    rather than superuser privileges. Only currently `ENFORCED` foreign keys are toggled;
+    intentionally `NOT ENFORCED` foreign keys are left unchanged.
+
+    Unlike `ENABLE TRIGGER ALL`, restoring `ENFORCED` checks existing rows against the
+    constraint, so FK violations raise `ActiveRecord::InvalidForeignKey` rather than
+    `RuntimeError`. The toggle and restore run in a single transaction so a restoration
+    failure rolls back the initial `NOT ENFORCED` toggle too — preventing originally-
+    `ENFORCED` constraints from being left in a `NOT ENFORCED` state indistinguishable
+    from intentional ones.
+
+    Fixtures sharing FK relationships must be passed together to
+    `FixtureSet.create_fixtures` to ensure all referenced rows are present when
+    enforcement is restored.
+
+    `check_all_foreign_keys_valid!` skips `NOT ENFORCED` constraints on PostgreSQL 18.4+,
+    as `VALIDATE CONSTRAINT` cannot be applied to them.
+
+    Unlike `SET CONSTRAINTS ALL DEFERRED` (the approach attempted in rails/rails#27636
+    and reverted), `NOT ENFORCED` also suppresses referential actions such as
+    `ON DELETE CASCADE`, `SET NULL`, and `SET DEFAULT`.
+
+    *Yasuo Honda*
+
+*   Add `exclusion_constraint_exists?` and `unique_constraint_exists?` helpers
+
+    *fatkodima*
+
+*   Add `enforced:` option to `add_foreign_key` and `change_foreign_key` for PostgreSQL 18.4+.
+
+    `NOT ENFORCED` foreign keys are available since PostgreSQL 18.0, but `DEFERRABLE`
+    was lost on them until 18.4 ("Fix loss of deferrability of foreign-key triggers",
+    https://www.postgresql.org/docs/release/18.4/). Rails therefore requires PostgreSQL
+    18.4 or later for this feature.
+
+    When `enforced: false` is passed to `add_foreign_key`, the constraint is created as `NOT ENFORCED`,
+    meaning PostgreSQL skips referential integrity checks during DML.
+    PostgreSQL marks `NOT ENFORCED` constraints as `NOT VALID` internally (and `VALIDATE CONSTRAINT`
+    does not apply to them), so the schema dumper outputs both
+    `enforced: false` and `validate: false`.
+
+    `change_foreign_key` toggles the enforced status of an existing foreign key. Without
+    this method, users would need to issue raw `ALTER TABLE ... ALTER CONSTRAINT` SQL
+    to disable enforcement temporarily (e.g., for bulk DML that loads the referenced
+    and referencing tables in arbitrary order) and then re-enable it.
+
+    ```ruby
+    add_foreign_key :articles, :authors, enforced: false
+    # => ALTER TABLE "articles" ADD CONSTRAINT ... FOREIGN KEY ("author_id") REFERENCES "authors" ("id") NOT ENFORCED
+
+    change_foreign_key :articles, :authors, enforced: true
+    # => ALTER TABLE "articles" ALTER CONSTRAINT "fk_rails_..." ENFORCED
+
+    change_foreign_key :articles, :authors, enforced: false
+    # => ALTER TABLE "articles" ALTER CONSTRAINT "fk_rails_..." NOT ENFORCED
+    ```
+
+    *Yasuo Honda*
+
 *   Expose `cursor`, `order` and `use_ranges` attributes for `BatchEnumerator`
 
     *fatkodima*

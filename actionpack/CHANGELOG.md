@@ -1,3 +1,10 @@
+*   `http_cache_forever` now accept an optional `last_modified:` keyword parameter.
+
+    It still defaults to January 1st 2011, but you now can subtitute it for a relevant
+    time if there is one.
+
+    *Jean Boussier*
+
 *   Accept render options and block in `render` calls made with `:renderable`
 
     ```ruby

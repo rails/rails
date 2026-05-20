@@ -29,7 +29,7 @@ class ActiveStorage::Blobs::ProxyController < ActiveStorage::BaseController
     if request.headers["Range"].present?
       send_blob_byte_range_data @blob, request.headers["Range"]
     else
-      http_cache_forever public: true do
+      http_cache_forever public: true, last_modified: @blob.created_at do
         response.headers["Accept-Ranges"] = "bytes"
         response.headers["Content-Length"] = @blob.byte_size.to_s
 

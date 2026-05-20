@@ -10,9 +10,9 @@ module ActiveRecord
 
       class << self
         def included(base) # :nodoc:
-          dirties_query_cache base, :exec_query, :execute, :create, :insert, :update, :delete, :truncate,
-            :truncate_tables, :rollback_to_savepoint, :rollback_db_transaction, :restart_db_transaction,
-            :exec_insert_all
+          dirties_query_cache base, :exec_query, :execute, :create, :insert, :update, :update_with_result,
+            :delete, :truncate, :truncate_tables, :rollback_to_savepoint, :rollback_db_transaction,
+            :restart_db_transaction, :exec_insert_all
         end
 
         def dirties_query_cache(base, *method_names)

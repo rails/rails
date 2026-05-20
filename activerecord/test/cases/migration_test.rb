@@ -4,6 +4,7 @@ require "cases/helper"
 require "cases/migration/helper"
 require "bigdecimal/util"
 require "concurrent/atomic/count_down_latch"
+require "active_support/core_ext/object/with"
 
 require "models/person"
 require "models/topic"
@@ -1144,6 +1145,46 @@ class MigrationTest < ActiveRecord::TestCase
         e.message
       )
     end
+  end
+
+  def test_migration_say_basic
+    output, = capture_io do
+      ActiveRecord::Migration.with(verbose: true) do
+        ActiveRecord::Migration.say("Foo")
+      end
+    end
+
+    assert_equal "-- Foo\n", output
+  end
+
+  def test_migration_say_for_subitem
+    output, = capture_io do
+      ActiveRecord::Migration.with(verbose: true) do
+        ActiveRecord::Migration.say("Foo", true)
+      end
+    end
+
+    assert_equal "   -> Foo\n", output
+  end
+
+  def test_migration_say_with_time_with_integer_returning_in_block
+    output, = capture_io do
+      ActiveRecord::Migration.with(verbose: true) do
+        ActiveRecord::Migration.say_with_time("Bar") { 123 }
+      end
+    end
+
+    assert_match(/\A-- Bar\n   -> \d+\.\d{4}s\n   -> 123 rows\n\z/, output)
+  end
+
+  def test_migration_say_with_time_with_non_integer_returning_in_block
+    output, = capture_io do
+      ActiveRecord::Migration.with(verbose: true) do
+        ActiveRecord::Migration.say_with_time("Bar") { "ignored" }
+      end
+    end
+
+    assert_match(/\A-- Bar\n   -> \d+\.\d{4}s\n\z/, output)
   end
 
   private

@@ -106,7 +106,7 @@ module ActiveRecord
             @aliased_table = aliased_table
           end
 
-          def all_includes; nil; end
+          def all_includes(&); nil; end
         end
 
         def get_chain(reflection, association, tracker)

@@ -1,3 +1,13 @@
+*   ActiveStorage ProxyController now set relevant `Last-Modified`
+
+    It is now set to `Blob#created_at` instead of being hardcoded to January 1st 2011.
+
+    *Jean Boussier*
+
+*   Preserve attachment changes when converting record to another class using STI.
+
+    *fatkodima*
+
 *   Add a helper to get the combined byte size of blobs attached via `has_many_attached`.
 
     ```ruby

@@ -154,6 +154,10 @@ module ActiveRecord
       end
       alias validated? validate?
 
+      def enforced?
+        options.fetch(:enforced, true)
+      end
+
       def export_name_on_schema_dump?
         !ActiveRecord::SchemaDumper.fk_ignore_pattern.match?(name) if name
       end
