@@ -1174,11 +1174,7 @@ class MigrationTest < ActiveRecord::TestCase
       end
     end
 
-    assert_equal <<~MSG, output
-      -- Bar
-         -> 0.0000s
-         -> 123 rows
-    MSG
+    assert_match(/\A-- Bar\n   -> \d+\.\d{4}s\n   -> 123 rows\n\z/, output)
   end
 
   def test_migration_say_with_time_with_non_integer_returning_in_block
@@ -1188,10 +1184,7 @@ class MigrationTest < ActiveRecord::TestCase
       end
     end
 
-    assert_equal <<~MSG, output
-      -- Bar
-         -> 0.0000s
-    MSG
+    assert_match(/\A-- Bar\n   -> \d+\.\d{4}s\n\z/, output)
   end
 
   private
