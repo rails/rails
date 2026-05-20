@@ -375,23 +375,32 @@ replica users in your database system.
 For the full list of Rails database commands, see the
 [Command Line guide](command_line.html#managing-the-database).
 
-### Connecting to Databases without Managing Schema and Migrations
+### Connecting to Databases Managed Outside Rails
 
-If you would like to connect to an external database without any database
-management tasks such as schema management, migrations, seeds, etc., you can set
-the per database config option `database_tasks: false`. By default it is
-set to true.
+Some applications connect to databases that Rails should use but not manage.
+For example, you might connect to a legacy database, a reporting database, or a
+database owned by another application.
+
+In those cases, Rails needs the database configuration so models can connect to
+the database, but Rails should not run database management tasks such as
+creating, dropping, migrating, seeding, or dumping the schema for that database.
+Set `database_tasks: false` on the database configuration to opt out of those
+tasks. By default, `database_tasks` is `true`.
 
 ```yaml
 production:
   primary:
     database: my_database
     adapter: mysql2
-  animals:
-    database: my_animals_database
+  reporting:
+    database: my_reporting_database
     adapter: mysql2
     database_tasks: false
 ```
+
+In this example, Rails will still connect to the `reporting` database when a
+model uses that configuration, but commands such as `bin/rails db:create`,
+`bin/rails db:migrate`, and `bin/rails db:schema:dump` will skip it.
 
 ### Generators and Migrations
 
