@@ -639,14 +639,22 @@ also configure replica users as read-only in your database.
 
 ## Horizontal Sharding
 
-Horizontal sharding is when you split up your database to reduce the number of rows on each
-database server, but maintain the same schema across "shards". This is commonly called "multi-tenant"
-sharding.
+Horizontal sharding splits records across multiple databases that share the
+same schema. Each database is called a shard. For example, one shard might store
+customers 1 through 100, while another shard stores customers 101 through 200.
 
-The API for supporting horizontal sharding in Rails is similar to the multiple database / vertical
-sharding API.
+Sharding is different from replication. A replica copies the same data from its
+writer. A shard stores a different subset of records. Applications commonly use
+sharding when one database has too much data or traffic, or when tenant or
+account data should be distributed across database servers.
 
-Shards are declared in the three-tier config like this:
+The API for supporting horizontal sharding in Rails is similar to the multiple
+database, or vertical partitioning, API.
+
+### Configuring Shards
+
+Shards are declared as database configurations in `config/database.yml`. Each
+shard needs a writer configuration, and can also have a replica configuration:
 
 ```yaml
 production:
@@ -675,7 +683,21 @@ production:
     replica: true
 ```
 
-Models are then connected with the `connects_to` API via the `shards` key:
+In this example, `primary_shard_one` and `primary_shard_two` are database
+configuration names. Later, [the model connection maps those configurations to
+Rails shard names](#connecting-models-to-shards), such as `shard_one` and `shard_two`.
+
+Each shard can also have its own replica. `primary_shard_one` stores one subset
+of records, and `primary_shard_one_replica` is a read replica of that same
+shard. `primary_shard_two` stores a different subset of records, and
+`primary_shard_two_replica` is a read replica of that second shard. Shards split
+records across databases; replicas copy one shard's data so reads for that shard
+can be sent away from its writer.
+
+### Connecting Models to Shards
+
+Models are connected to shards with the `connects_to` API using the `shards`
+key:
 
 ```ruby
 class ApplicationRecord < ActiveRecord::Base
@@ -697,17 +719,41 @@ class Customer < ShardRecord
 end
 ```
 
-If you're using shards, make sure both `migrations_paths` and `schema_dump` remain unchanged for
-all the shards. When generating a migration you can pass the `--database` option and
-use one of the shard names. Since they all set the same path, it doesn't matter which
-one you choose.
+In this example, `Customer` inherits from `ShardRecord`, so `Customer` records
+can be stored on either `shard_one` or `shard_two`. The `shard_one` name maps to
+the `primary_shard_one` writer and `primary_shard_one_replica` replica. The
+`shard_two` name maps to the `primary_shard_two` writer and
+`primary_shard_two_replica` replica.
 
-```
-$ bin/rails g scaffold Dog name:string --database primary_shard_one
+### Generating Migrations for Shards
+
+Shards usually share a schema, so shard migrations should use the same
+`migrations_paths` and `schema_dump` settings across all shards.
+
+When generating a migration, pass `--database` with one of the shard database
+configuration names. Since both shards use the same migration path, it does not
+matter which shard configuration you choose.
+
+```bash
+$ bin/rails g scaffold Customer name:string --database primary_shard_one
 ```
 
-Then models can swap shards manually via the `connected_to` API. If
-using sharding, both a `role` and a `shard` must be passed:
+This command generates the scaffold and places the migration in the shared
+`db/migrate_shards` path.
+
+### Shard Switching
+
+Rails needs to know which shard to use for each operation. You can choose the
+shard manually with `connected_to`, or configure middleware to choose the shard
+for each request.
+
+#### Manual Shard Switching
+
+Use manual shard switching when you need to run a block of code against a
+specific shard. This is common in background jobs, data migrations, scripts, or
+service objects where there is no request middleware to choose the shard.
+
+To switch shards manually, use `connected_to` with both a `role` and a `shard`:
 
 ```ruby
 ShardRecord.connected_to(role: :writing, shard: :shard_one) do
@@ -720,8 +766,11 @@ ShardRecord.connected_to(role: :writing, shard: :shard_two) do
 end
 ```
 
-The horizontal sharding API also supports read replicas. You can swap the
-role and the shard with the `connected_to` API.
+The shard name must match one of the shard keys passed to `connects_to`, such
+as `shard_one` or `shard_two`.
+
+The horizontal sharding API also supports read replicas. To read from a shard's
+replica, use the `reading` role with the shard:
 
 ```ruby
 ShardRecord.connected_to(role: :reading, shard: :shard_one) do
@@ -729,20 +778,22 @@ ShardRecord.connected_to(role: :reading, shard: :shard_one) do
 end
 ```
 
-### Activating Automatic Shard Switching
+#### Automatic Shard Switching
 
-Applications are able to automatically switch shards per request using the `ShardSelector`
-middleware, which allows an application to provide custom logic for determining the appropriate
-shard for each request.
+Applications can automatically switch shards per request using the
+`ShardSelector` middleware. This is useful for tenant-based applications where
+each request can be mapped to a shard, for example from a subdomain or current
+account.
 
-The same generator used for the database selector above can be used to generate an initializer file
-for automatic shard swapping:
+The same generator used for the database selector above can be used to generate
+an initializer file for automatic shard swapping:
 
 ```bash
 $ bin/rails g active_record:multi_db
 ```
 
-Then in the generated `config/initializers/multi_db.rb` uncomment and modify the following code:
+Then in the generated `config/initializers/multi_db.rb`, uncomment and modify
+the following code:
 
 ```ruby
 Rails.application.configure do
@@ -751,7 +802,8 @@ Rails.application.configure do
 end
 ```
 
-Applications must provide a resolver to provide application-specific logic. An example resolver that
+Applications must provide a resolver because Rails cannot know how your
+application assigns tenants or accounts to shards. An example resolver that
 uses a subdomain to determine the shard might look like this:
 
 ```ruby
@@ -762,21 +814,24 @@ config.active_record.shard_resolver = ->(request) {
 }
 ```
 
-The behavior of `ShardSelector` can be altered through some configuration options.
+The behavior of `ShardSelector` can be altered through some configuration
+options.
 
-`lock` is true by default and will prohibit the request from switching shards during the request. If
-`lock` is false, then shard swapping will be allowed. For tenant-based sharding, `lock` should
-always be true to prevent application code from mistakenly switching between tenants.
+- `lock` is true by default and prevents the request from switching shards after
+the resolver chooses one. If `lock` is false, shard swapping is allowed during
+the request. For tenant-based sharding, `lock` should usually be true to
+prevent application code from accidentally switching between tenants.
 
-`class_name` is the name of the abstract connection class to switch. By default, the `ShardSelector`
-will use `ActiveRecord::Base`, but if the application has multiple databases, then this option
-should be set to the name of the sharded database's abstract connection class.
+- `class_name` is the name of the abstract connection class to switch. By
+default, the `ShardSelector` uses `ActiveRecord::Base`. If the application has
+multiple abstract connection classes, set `class_name` to the sharded
+database's abstract connection class.
 
-Options may be set in the application configuration. For example, this configuration tells
-`ShardSelector` to switch shards using `AnimalsRecord.connected_to`:
+Options may be set in the application configuration. For example, this
+configuration tells `ShardSelector` to switch shards using
+`AnimalsRecord.connected_to`:
 
-
-``` ruby
+```ruby
 config.active_record.shard_selector = { lock: true, class_name: "AnimalsRecord" }
 ```
 
