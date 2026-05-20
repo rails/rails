@@ -402,31 +402,54 @@ In this example, Rails will still connect to the `reporting` database when a
 model uses that configuration, but commands such as `bin/rails db:create`,
 `bin/rails db:migrate`, and `bin/rails db:schema:dump` will skip it.
 
-### Generators and Migrations
+### Generating Migrations and Models
 
-Migrations for multiple databases should live in their own folders prefixed with the
-name of the database key in the configuration.
+Each managed writer database needs a migration path. Keeping migrations
+separate lets Rails migrate one database without running migrations intended for
+another database. Replicas do not need migration paths because Rails does not
+run migrations against configurations marked with `replica: true`.
 
-You also need to set `migrations_paths` in the database configurations to tell
-Rails where to find the migrations.
+#### Migration Paths
 
-For example the `animals` database would look for migrations in the `db/animals_migrate` directory and
-`primary` would look in `db/migrate`. Rails generators now take a `--database` option
-so that the file is generated in the correct directory. The command can be run like so:
+Migrations for multiple databases should live in their own folders prefixed
+with the name of the database key in the configuration. You also need to set
+`migrations_paths` in the database configuration to tell Rails where to find
+those migrations.
+
+The `primary` database uses the default `db/migrate` path, so you usually only
+need to set `migrations_paths` for additional writer databases. In the example
+configuration, the `animals` database uses `db/animals_migrate`:
+
+```yaml
+production:
+  animals:
+    migrations_paths: db/animals_migrate
+```
+
+#### Generating Migrations
+
+Rails generators take a `--database` option so that generated migration files
+are placed in the correct directory:
 
 ```bash
 $ bin/rails generate migration CreateDogs name:string --database animals
 ```
 
-If you are using Rails generators, the scaffold and model generators will create the abstract
-class for you. Simply pass the database key to the command line.
+This creates the migration in `db/animals_migrate`. Without `--database
+animals`, the migration would be generated in the default migration path.
+
+#### Generating Models and Scaffolds
+
+The model and scaffold generators also take the `--database` option:
 
 ```bash
 $ bin/rails generate scaffold Dog name:string --database animals
 ```
 
-A class with the camelized database name and `Record` will be created. In this
-example the database is "animals" so we end up with `AnimalsRecord`:
+When you pass `--database`, Rails generates an abstract class for that database
+unless one already exists. The class name is the camelized database name
+followed by `Record`. In this example, the database is `animals`, so Rails
+generates `AnimalsRecord`:
 
 ```ruby
 class AnimalsRecord < ApplicationRecord
@@ -443,14 +466,17 @@ class Dog < AnimalsRecord
 end
 ```
 
-NOTE: Since Rails doesn't know which database is the replica for your writer you will need to
-add this to the abstract class after you're done.
+NOTE: Since Rails doesn't know which database is the replica for your writer you will need to add this to the abstract class after you're done: `connects_to database: { writing: :animals, reading: :animals_replica }`.
 
 Rails will only generate `AnimalsRecord` once. It will not be overwritten by new
-scaffolds or deleted if the scaffold is deleted.
+scaffolds or deleted if the scaffold is deleted, so your changes to the
+abstract class are preserved.
 
-If you already have an abstract class and its name differs from `AnimalsRecord`, you can pass
-the `--parent` option to indicate you want a different abstract class:
+#### Using a Custom Abstract Class
+
+If you already have an abstract class and its name differs from
+`AnimalsRecord`, pass the `--parent` option to tell Rails which class the model
+should inherit from:
 
 ```bash
 $ bin/rails generate scaffold Dog name:string --database animals --parent Animals::Record
@@ -458,9 +484,6 @@ $ bin/rails generate scaffold Dog name:string --database animals --parent Animal
 
 This will skip generating `AnimalsRecord` since you've indicated to Rails that you want to
 use a different parent class.
-
-Finally, in order to use the read-only replica in your application, you'll need to activate
-the middleware for automatic switching.
 
 ### Activating Automatic Role Switching
 
