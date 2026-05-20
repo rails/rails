@@ -8,8 +8,7 @@ module ActiveSupport
     @deprecated_list = Date::DATE_FORMATS
     Date.deprecate_constant :DATE_FORMATS
 
-    # :nodoc:
-    def self.lookup(format)
+    def self.lookup(format) # :nodoc:
       @list[format] || @deprecated_list[format]
     end
 
