@@ -882,7 +882,7 @@ end
 Use `ActiveRecord::Base.connected_to` when you want to switch all abstract
 connection classes globally.
 
-### Handling Associations with Joins across Databases
+## Handling Associations Across Databases
 
 Active Record has an option for handling associations that would perform a join across multiple
 databases. If you have a has many through or a has one through association that you want to disable
@@ -947,7 +947,7 @@ There are some important things to be aware of with this option:
    Rails can't guess this for you because association loading is lazy, to load `treats` in `@dog.treats`
    Rails already needs to know what SQL should be generated.
 
-### Schema Caching
+## Schema Caching
 
 If you want to load a schema cache for each database you must set
 `schema_cache_path` in each database configuration and set
