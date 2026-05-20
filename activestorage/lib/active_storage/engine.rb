@@ -114,8 +114,18 @@ module ActiveStorage
           when /image_processing/
             ActiveStorage.logger.warn <<~WARNING.squish
               Generating image variants require the image_processing gem.
-              Please add `gem "image_processing", "~> 1.2"` to your Gemfile
+              Please add `gem "image_processing", "~> 2.0"` to your Gemfile
               or set `config.active_storage.variant_processor = :disabled`.
+            WARNING
+          when /ruby-vips/
+            ActiveStorage.logger.warn <<~WARNING.squish
+              Generating image variants with libvips requires the ruby-vips gem.
+              Please add `gem "ruby-vips", "~> 2.3"` to your Gemfile.
+            WARNING
+          when /mini_magick/
+            ActiveStorage.logger.warn <<~WARNING.squish
+              Generating image variants with ImageMagick requires the mini_magick gem.
+              Please add `gem "mini_magick", "~> 5.0"` to your Gemfile.
             WARNING
           else
             raise
