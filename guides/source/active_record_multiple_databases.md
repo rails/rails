@@ -246,6 +246,15 @@ Each abstract class owns the connection for one database, or for one writer and
 replica pair. Concrete models then inherit from the abstract class for the
 database where their table lives.
 
+In `connects_to`, `writing` and `reading` are role names. The `writing` role
+points to the writer database, and the `reading` role points to the replica:
+
+```ruby
+connects_to database: { writing: :primary, reading: :primary_replica }
+```
+
+By default, Rails expects these role names to be `writing` and `reading`.
+
 ##### Connecting the Primary Model and Database
 
 The primary database and its replica can be configured in `ApplicationRecord`
@@ -316,21 +325,20 @@ specification name.
 
 #### Custom Role Names
 
-By default, Rails expects the database roles to be `writing` for the writer and
-`reading` for the replica. If you have a legacy system, you may already have
-roles set up that you don't want to change. In that case, you can set new role
-names in your application config:
+If your application already uses different role names, you can configure Rails
+to use those names instead:
 
 ```ruby
 config.active_record.writing_role = :default
 config.active_record.reading_role = :readonly
 ```
 
-WARNING. It's important to connect to each database from a single abstract class and
-then inherit from that class for the models stored in that database. Connecting
-multiple individual models to the same database multiplies the number of
-connections, because Rails uses the model class name for the connection
-specification name.
+After changing the role names, use those names in `connects_to`:
+
+```ruby
+connects_to database: { default: :primary, readonly: :primary_replica }
+```
+
 
 #### Running Database Tasks
 
