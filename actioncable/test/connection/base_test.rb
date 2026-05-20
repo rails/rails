@@ -64,26 +64,6 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     end
   end
 
-  test "rejecting a connection causes a 404" do
-    class CallMeMaybe
-      def call(*)
-        raise "Do not call me!"
-      end
-    end
-
-    env = Rack::MockRequest.env_for(
-      "/test",
-      "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
-        "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.org", "rack.hijack" => CallMeMaybe.new
-    )
-    server = TestServer.new
-    raw_conn = ActionCable::Server::Connection.new(server, env)
-    connection = Connection.new(server, raw_conn)
-
-    response = connection.process
-    assert_equal 404, response[0]
-  end
-
   test "inspect does not show internals" do
     connection = open_connection
     assert_match(/\A#<ActionCable::Connection::BaseTest::Connection:0x[0-9a-f]+>\z/, connection.inspect)

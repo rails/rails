@@ -252,7 +252,7 @@ module ActionCable::StreamTests
     test "concurrent unsubscribe_from_channel and stream_from do not raise RuntimeError" do
       threads = []
       run_in_eventmachine do
-        connection = TestConnection.new
+        connection = Connection.new(server, socket)
         connection.pubsub.unsubscribe_latency = 0.1
 
         channel = ChatChannel.new connection, "{id: 1}", id: 1

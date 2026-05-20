@@ -162,7 +162,7 @@ module ActionCable
                 begin
                   conn = @adapter.redis_connection_for_subscriptions
                   listen conn
-                rescue *CONNECTION_ERRORS
+                rescue *CONNECTION_ERRORS => e
                   reset
                   if retry_connecting?
                     logger&.warn "Redis connection failed: #{e.message}. Trying to reconnect..."

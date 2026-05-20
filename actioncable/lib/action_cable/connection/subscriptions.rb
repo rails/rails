@@ -40,7 +40,7 @@ module ActionCable
 
       class UnknownSubscription < Error
         def initialize(identifier)
-          "Unable to find subscription with identifier: #{identifier}"
+          super "Unable to find subscription with identifier: #{identifier}"
         end
       end
 
@@ -107,7 +107,7 @@ module ActionCable
           if subscription = subscriptions[data["identifier"]]
             subscription
           else
-            raise UnknownSubscription, data['identifier']
+            raise UnknownSubscription, data["identifier"]
           end
         end
 
