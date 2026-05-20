@@ -1,3 +1,9 @@
+*   Require image processing backend upfront when Active Storage is being loaded.
+
+    This removes extra overhead when processing first variant after deploy and improves copy-on-write for preforking web servers.
+
+    *Janko Marohnić*
+
 *   ActiveStorage ProxyController now set relevant `Last-Modified`
 
     It is now set to `Blob#created_at` instead of being hardcoded to January 1st 2011.
