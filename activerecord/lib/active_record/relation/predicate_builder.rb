@@ -57,15 +57,49 @@ module ActiveRecord
     def build(attribute, value, operator = nil)
       value = value.id if value.respond_to?(:id)
       if operator ||= table.type(attribute.name).force_equality?(value) && :eq
-        bind = build_bind_attribute(attribute.name, value)
-        attribute.public_send(operator, bind)
+        build_predicate(attribute, value, operator)
       else
         handler_for(value).call(attribute, value)
       end
     end
 
+    def build_predicate(attribute, value, operator = :eq)
+      right = query_value(attribute, value)
+      left = right.nil? ? attribute : query_attribute(attribute)
+
+      left.public_send(operator, right)
+    end
+
     def build_bind_attribute(column_name, value)
       Relation::QueryAttribute.new(column_name, value, table.type(column_name))
+    end
+
+    def query_attribute(attribute)
+      type = table.type(attribute.name)
+
+      if type.respond_to?(:query_attribute)
+        type.query_attribute(attribute)
+      else
+        attribute
+      end
+    end
+
+    def query_value(attribute, value)
+      bind = build_bind_attribute(attribute.name, value)
+      return bind if bind.nil? || bind.infinite? || bind.unboundable?
+
+      type = table.type(attribute.name)
+
+      if type.respond_to?(:query_value)
+        type.query_value(attribute, value, predicate_builder: self)
+      else
+        bind
+      end
+    end
+
+    def query_transformable?(attribute)
+      type = table.type(attribute.name)
+      type.respond_to?(:query_attribute) || type.respond_to?(:query_value)
     end
 
     def resolve_arel_attribute(table_name, column_name, &block)

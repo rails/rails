@@ -20,7 +20,14 @@ module ActiveRecord
           case values.length
           when 0 then NullPredicate
           when 1 then predicate_builder.build(attribute, values.first)
-          else Arel::Nodes::HomogeneousIn.new(values, attribute, :in)
+          else
+            if predicate_builder.query_transformable?(attribute)
+              predicate_builder.query_attribute(attribute).in(
+                values.map { |value| predicate_builder.query_value(attribute, value) }
+              )
+            else
+              Arel::Nodes::HomogeneousIn.new(values, attribute, :in)
+            end
           end
 
         if nils
