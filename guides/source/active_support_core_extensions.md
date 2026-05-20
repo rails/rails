@@ -971,7 +971,7 @@ Extensions to `Class`
 
 Ruby itself provides two options for class-level data, *class variables* and *class instance variables*, but both have limitations when it comes to inheritance and sharing values.
 
-The [`class_attribute`](https://api.rubyonrails.org/classes/Class.html#method-i-class_attribute) method solves this by declaring an inheritable class-level attribute where subclasses inherit the value from their parent but can override it without affecting the parent or any other subclass. For example:
+The [`class_attribute`](https://api.rubyonrails.org/classes/Class.html#method-i-class_attribute) method solves this by declaring an inheritable class level attribute where subclasses inherit the value from their parent but can override it without affecting the parent or any other subclass. For example:
 
 ```ruby
 class Base
@@ -994,7 +994,9 @@ Base.new.pagination_limit            # => 25
 AdminController.new.pagination_limit # => 100
 ```
 
-Rails uses `class_attribute` extensively internally, for example, `ActionMailer::Base` uses it for define default options that each mailer can then override independently:
+Rails uses `class_attribute` extensively internally, for example,
+`ActionMailer::Base` uses it for define default options that each mailer can
+then override independently:
 
 ```ruby
 class_attribute :default_params
@@ -1006,85 +1008,29 @@ self.default_params = {
 }.freeze
 ```
 
-NOTE: Defined in `active_support/core_ext/class/attribute.rb`.
-
-### `class_attribute`
-
-The method [`class_attribute`][Class#class_attribute] declares one or more inheritable class attributes that can be overridden at any level down the hierarchy.
+The generation of the writer instance method can be prevented by setting the option `:instance_writer` to `false`:
 
 ```ruby
-class A
-  class_attribute :x
+class Base
+  class_attribute :pagination_limit, instance_writer: false, default: 25
 end
 
-class B < A; end
-
-class C < B; end
-
-A.x = :a
-B.x # => :a
-C.x # => :a
-
-B.x = :b
-A.x # => :a
-C.x # => :b
-
-C.x = :c
-A.x # => :a
-B.x # => :b
+Base.new.pagination_limit = 100 # NoMethodError
 ```
 
-For example `ActionMailer::Base` defines:
+This can be useful as a way to prevent mass-assignment from setting the attribute.
+
+The generation of the reader instance method can be prevented by setting the option `:instance_reader` to `false`:
 
 ```ruby
-class_attribute :default_params
-self.default_params = {
-  mime_version: "1.0",
-  charset: "UTF-8",
-  content_type: "text/plain",
-  parts_order: [ "text/plain", "text/enriched", "text/html" ]
-}.freeze
-```
-
-They can also be accessed and overridden at the instance level.
-
-```ruby
-A.x = 1
-
-a1 = A.new
-a2 = A.new
-a2.x = 2
-
-a1.x # => 1, comes from A
-a2.x # => 2, overridden in a2
-```
-
-The generation of the writer instance method can be prevented by setting the option `:instance_writer` to `false`.
-
-```ruby
-module ActiveRecord
-  class Base
-    class_attribute :table_name_prefix, instance_writer: false, default: "my"
-  end
-end
-```
-
-A model may find that option useful as a way to prevent mass-assignment from setting the attribute.
-
-The generation of the reader instance method can be prevented by setting the option `:instance_reader` to `false`.
-
-```ruby
-class A
-  class_attribute :x, instance_reader: false
+class Base
+  class_attribute :pagination_limit, instance_reader: false
 end
 
-A.new.x = 1
-A.new.x # NoMethodError
+Base.new.pagination_limit # NoMethodError
 ```
 
-For convenience `class_attribute` also defines an instance predicate which is the double negation of what the instance reader returns. In the examples above it would be called `x?`.
-
-When `:instance_reader` is `false`, the instance predicate returns a `NoMethodError` just like the reader method.
+The `class_attribute` method also defines an instance predicate method — the double negation of what the instance reader returns. In the examples above it would be called `pagination_limit?`. When `:instance_reader` is `false`, the instance predicate returns a `NoMethodError` just like the reader method.
 
 If you do not want the instance predicate, pass `instance_predicate: false` and it will not be defined.
 
