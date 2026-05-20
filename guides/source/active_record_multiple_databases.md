@@ -261,6 +261,20 @@ connects_to database: { writing: :primary, reading: :primary_replica }
 
 By default, Rails expects these role names to be `writing` and `reading`.
 
+If your application already uses different role names, you can configure Rails
+to use those names instead:
+
+```ruby
+config.active_record.writing_role = :default
+config.active_record.reading_role = :readonly
+```
+
+After changing the role names, use those names in `connects_to`:
+
+```ruby
+connects_to database: { default: :primary, readonly: :primary_replica }
+```
+
 ##### Connecting the Primary Model and Database
 
 The primary database and its replica can be configured in `ApplicationRecord`
@@ -324,24 +338,10 @@ end
 database for reads when Rails is switched to the reading role.
 
 WARNING: It's important to connect to each database from a single abstract class
-and then inherit from that class for the models stored in that database. Connecting
-multiple individual models to the same database multiplies the number of
-connections, because Rails uses the model class name for the connection
-specification name.
-
-If your application already uses different role names, you can configure Rails
-to use those names instead:
-
-```ruby
-config.active_record.writing_role = :default
-config.active_record.reading_role = :readonly
-```
-
-After changing the role names, use those names in `connects_to`:
-
-```ruby
-connects_to database: { default: :primary, readonly: :primary_replica }
-```
+and then inherit from that class for the models stored in that database.
+Connecting multiple individual models to the same database multiplies the
+number of connections, because Rails uses the model class name for the
+connection specification name.
 
 If you create models and migrations with Rails generators, pass the database
 name so Rails can place files in the right migration path and use the right
@@ -407,7 +407,12 @@ class Dog < AnimalsRecord
 end
 ```
 
-NOTE: Since Rails doesn't know which database is the replica for your writer you will need to add this to the abstract class after you're done: `connects_to database: { writing: :animals, reading: :animals_replica }`.
+Since Rails doesn't know which database is the replica for your writer, add the
+replica to the abstract class after it's generated:
+
+```ruby
+connects_to database: { writing: :animals, reading: :animals_replica }
+```
 
 Rails will only generate `AnimalsRecord` once. It will not be overwritten by new
 scaffolds or deleted if the scaffold is deleted, so your changes to the
@@ -460,7 +465,7 @@ replica users in your database system.
 For the full list of Rails database commands, see the
 [Command Line guide](command_line.html#managing-the-database).
 
-### Connecting to Databases Managed Outside Rails
+### External Databases
 
 Some applications connect to databases that Rails should use but not manage.
 For example, you might connect to a legacy database, a reporting database, or a
@@ -494,13 +499,13 @@ These roles usually point to a writer database and its replica.
 
 #### Automatic Role Switching
 
-Automatic role switching, sometimes called automatic connection switching, lets
-Rails choose between the writer and replica for each request. You may want
-automatic role switching when your application uses replicas to reduce read
-traffic on the writer, but still needs users to see their own changes
-immediately after they write. It is implemented as middleware, so it applies to
-web requests.
+Automatic role switching lets Rails choose between the writer and replica for
+each request. This is sometimes called automatic connection switching.
 
+You may want automatic role switching when your application uses replicas to
+reduce read traffic on the writer, but still needs users to see their own
+changes immediately after they write. It is implemented as middleware, so it
+applies to web requests.
 
 The middleware chooses a role based on the HTTP verb and whether the same
 requesting user recently wrote to the database:
