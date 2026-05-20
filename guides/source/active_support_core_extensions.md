@@ -1040,66 +1040,55 @@ NOTE: Defined in `active_support/core_ext/class/attribute.rb`.
 
 ### `cattr_reader`, `cattr_writer`, and `cattr_accessor`
 
-The macros [`cattr_reader`][Module#cattr_reader], [`cattr_writer`][Module#cattr_writer], and [`cattr_accessor`][Module#cattr_accessor] are analogous to their `attr_*` counterparts but for classes. They initialize a class variable to `nil` unless it already exists, and generate the corresponding class methods to access it:
+These `cattr_*` methods ([cattr_accessor][], [cattr_reader][], and [cattr_writer][]) work like Ruby's `attr_*` methods but for classes. They declare a class level variable and generate class methods to read and write it.
+
+The key difference from `class_attribute` is that `cattr_*` uses a **shared class variable** (`@@foo`) across the entire class hierarchy. When any instance or subclass changes the value, it changes everywhere, for the class, all subclasses, and all instances. For example:
 
 ```ruby
-class MysqlAdapter < AbstractAdapter
-  # Generates class methods to access @@emulate_booleans.
-  cattr_accessor :emulate_booleans
+class Base
+  cattr_accessor :pagination_limit, default: 25
+end
+
+class AdminController < Base
+end
+
+Base.pagination_limit            # => 25
+AdminController.pagination_limit # => 25
+
+AdminController.pagination_limit = 100
+
+Base.pagination_limit            # => 100  (changed for everyone!)
+AdminController.pagination_limit # => 100
+```
+
+This is different from `class_attribute`, where a subclass can override a value without affecting the parent. Use `cattr_accessor` when you want a single shared value across the whole hierarchy, and `class_attribute` when you want subclasses to be able to override independently.
+
+Instance methods are also generated as a convenience, but they read and write the same shared class variable:
+
+```ruby
+instance = Base.new
+instance.pagination_limit        # => 25
+instance.pagination_limit = 100
+Base.pagination_limit            # => 100  (instance write affects the class)
+```
+
+You can restrict which methods are generated using `:instance_reader`, `:instance_writer`, or `:instance_accessor`:
+
+```ruby
+class Base
+  cattr_accessor :pagination_limit, instance_reader: false
+  cattr_accessor :per_page_limit, instance_writer: false
+  cattr_accessor :timeout, instance_accessor: false
 end
 ```
 
-Also, you can pass a block to `cattr_*` to set up the attribute with a default value:
-
-```ruby
-class MysqlAdapter < AbstractAdapter
-  # Generates class methods to access @@emulate_booleans with default value of true.
-  cattr_accessor :emulate_booleans, default: true
-end
-```
-
-Instance methods are also created for convenience, but they are simply proxies to the internal value which is shared among the class. As a result, when an instance modifies the value, this affects the entire class hierarchy. This behavior is different than `class_attribute` (see above).
-
-For example:
-
-```ruby
-class Foo
-  cattr_accessor :bar
-end
-
-instance = Foo.new
-
-Foo.bar = 1
-instance.bar # => 1
-
-instance.bar = 2
-Foo.bar # => 2
-```
-
-The generation of the reader instance method can be prevented by setting `:instance_reader` to `false` and the generation of the writer instance method can be prevented by setting `:instance_writer` to `false`. Generation of both methods can be prevented by setting `:instance_accessor` to `false`. In all cases, the value must be exactly `false` and not any false value.
-
-```ruby
-module A
-  class B
-    # No first_name instance reader is generated.
-    cattr_accessor :first_name, instance_reader: false
-    # No last_name= instance writer is generated.
-    cattr_accessor :last_name, instance_writer: false
-    # No surname instance reader or surname= writer is generated.
-    cattr_accessor :surname, instance_accessor: false
-  end
-end
-```
-
-A model may find it useful to set `:instance_accessor` to `false` as a way to prevent mass-assignment from setting the attribute.
+Setting `:instance_accessor` to `false` is useful for preventing mass-assignment from modifying the attribute at the instance level.
 
 NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 
-[Module#cattr_accessor]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_accessor
-[Module#cattr_reader]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_reader
-[Module#cattr_writer]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_writer
-
-
+[cattr_accessor]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_accessor
+[cattr_reader]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_reader
+[cattr_writer]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_writer
 
 ### `descendants`
 
