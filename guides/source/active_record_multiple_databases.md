@@ -648,8 +648,7 @@ writer. A shard stores a different subset of records. Applications commonly use
 sharding when one database has too much data or traffic, or when tenant or
 account data should be distributed across database servers.
 
-The API for supporting horizontal sharding in Rails is similar to the multiple
-database, or vertical partitioning, API.
+Rails uses the same `connects_to` and `connected_to` APIs for sharding.
 
 ### Configuring Shards
 
@@ -730,9 +729,9 @@ the `primary_shard_one` writer and `primary_shard_one_replica` replica. The
 Shards usually share a schema, so shard migrations should use the same
 `migrations_paths` and `schema_dump` settings across all shards.
 
-When generating a migration, pass `--database` with one of the shard database
-configuration names. Since both shards use the same migration path, it does not
-matter which shard configuration you choose.
+When generating a migration or scaffold, pass `--database` with one of the
+shard database configuration names. Since both shards use the same migration
+path, it does not matter which shard configuration you choose.
 
 ```bash
 $ bin/rails g scaffold Customer name:string --database primary_shard_one
@@ -818,21 +817,21 @@ The behavior of `ShardSelector` can be altered through some configuration
 options.
 
 - `lock` is true by default and prevents the request from switching shards after
-the resolver chooses one. If `lock` is false, shard swapping is allowed during
-the request. For tenant-based sharding, `lock` should usually be true to
-prevent application code from accidentally switching between tenants.
+  the resolver chooses one. If `lock` is false, shard swapping is allowed
+  during the request. For tenant-based sharding, `lock` should usually be true
+  to prevent application code from accidentally switching between tenants.
 
 - `class_name` is the name of the abstract connection class to switch. By
-default, the `ShardSelector` uses `ActiveRecord::Base`. If the application has
-multiple abstract connection classes, set `class_name` to the sharded
-database's abstract connection class.
+  default, the `ShardSelector` uses `ActiveRecord::Base`. If the application
+  has multiple abstract connection classes, set `class_name` to the sharded
+  database's abstract connection class.
 
 Options may be set in the application configuration. For example, this
 configuration tells `ShardSelector` to switch shards using
-`AnimalsRecord.connected_to`:
+`ShardRecord.connected_to`:
 
 ```ruby
-config.active_record.shard_selector = { lock: true, class_name: "AnimalsRecord" }
+config.active_record.shard_selector = { lock: true, class_name: "ShardRecord" }
 ```
 
 ## Granular Database Connection Switching
