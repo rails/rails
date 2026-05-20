@@ -47,7 +47,10 @@ The right setup depends on what you are trying to accomplish:
 
 Rails handles the application-side plumbing for these configurations: connection
 definitions, abstract connection classes, role and shard switching, and database
-tasks. It does not provision database servers, create database users, manage
+tasks.
+
+
+NOTE: Rails does not provision database servers, create database users, manage
 replication, balance traffic across replicas, or provide distributed
 transactions across database clusters. Those responsibilities remain with your
 database infrastructure and application architecture.
@@ -969,23 +972,40 @@ There are some tradeoffs to be aware of with this option:
 
 ## Schema Caching
 
-If you want to load a schema cache for each database you must set
-`schema_cache_path` in each database configuration and set
+Schema caching stores a snapshot of database table and column metadata. Rails
+uses this information for features like attribute type casting, query generation,
+and dynamically defining model attributes. Without schema caching, Rails may
+need to query the database for schema information each time a connection is
+established. By loading this metadata from the cache instead, applications can
+reduce unnecessary database queries and improve boot and connection performance.
+
+In a multiple database application, each database should use its own schema
+cache file. By default, the primary database uses `db/schema_cache.yml`, and
+other databases use `db/[DATABASE_CONFIGURATION_NAME]_schema_cache.yml`. For
+example, the `animals` database uses `db/animals_schema_cache.yml`.
+
+You can configure the schema cache path explicitly with `schema_cache_path`:
+
+```yaml#4,7
+production:
+  primary:
+    database: my_primary_database
+    schema_cache_path: db/schema_cache.yml
+  animals:
+    database: my_animals_database
+    schema_cache_path: db/animals_schema_cache.yml
+```
+
+To load schema cache files lazily as database connections are established, set
 `config.active_record.lazily_load_schema_cache = true` in your application
-configuration.
+configuration:
 
-Schema caching stores a snapshot of the database table and column metadata so Rails
-does not have to query the database for that information every time a connection is
-established.
+```ruby
+config.active_record.lazily_load_schema_cache = true
+```
 
+You can generate schema cache files with:
 
-NOTE: With these settings the cache is loaded lazily when the database connections are established.
-
-## Caveats
-
-### Load Balancing Replicas
-
-Rails doesn't support automatic load balancing of replicas. This is very
-dependent on your infrastructure. We may implement basic, primitive load
-balancing in the future, but for an application at scale this should be
-something your application handles outside of Rails.
+```bash
+$ bin/rails db:schema:cache:dump
+```
