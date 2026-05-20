@@ -30,10 +30,46 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_equal [Rails.autoloaders.main, Rails.autoloaders.once], Rails.autoloaders.to_a
   end
 
-  test "ActiveSupport.autoloader is set to the main autoloader" do
+  test "on_module_load runs block when autoloaded class is loaded" do
+    app_file "app/models/post.rb", <<-RUBY
+      class Post
+        class << self
+          attr_accessor :loaded
+        end
+      end
+    RUBY
+
+    app_file "config/initializers/post.rb", <<-RUBY
+      Rails.application.on_module_load("Post") do
+        self.loaded = true
+      end
+    RUBY
+
     boot
 
-    assert_equal Rails.autoloaders.main, ActiveSupport.autoloader
+    assert_not defined?(Post)
+    assert_equal true, Post.loaded
+  end
+
+  test "on_module_load runs block immediately if class is already loaded" do
+    app_file "app/models/comment.rb", <<-RUBY
+      class Comment
+        class << self
+          attr_accessor :loaded
+        end
+      end
+    RUBY
+
+    boot
+
+    assert_not defined?(Comment)
+    Comment # trigger autoload
+
+    Rails.application.on_module_load("Comment") do
+      self.loaded = true
+    end
+
+    assert_equal true, Comment.loaded
   end
 
   test "autoloaders inflect with Active Support" do

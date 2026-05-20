@@ -178,9 +178,5 @@ module ActiveSupport
           app.config.active_support.use_message_serializer_for_metadata
       end
     end
-
-    initializer "active_support.autoloader" do |app|
-      ActiveSupport.autoloader = app.autoloaders.main
-    end
   end
 end

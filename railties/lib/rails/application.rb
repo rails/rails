@@ -667,6 +667,15 @@ module Rails
       Rails.autoloaders.each(&:eager_load)
     end
 
+    # Declares a block that will be executed when an autoloadable module is fully
+    # loaded. If the module has already loaded, the block is executed
+    # immediately.
+    def on_module_load(name, &block)
+      autoloaders.main.on_load(name.to_s) do |mod|
+        mod.module_eval(&block)
+      end
+    end
+
   protected
     alias :build_middleware_stack :app
 
