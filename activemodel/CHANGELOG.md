@@ -1,3 +1,14 @@
+*   Limit the size of strings `ActiveModel::Type::Integer` will coerce with `to_i`.
+
+    Calling `to_i` on very long strings can take a long time and could be used as
+    a DoS vector. Integer casting now only considers the first `_limit * 4` bytes
+    of a string (16 bytes for a default 4-byte integer, 32 bytes for an 8-byte
+    bigint), which is enough to hold the maximum representable value plus a sign
+    or a short slug suffix.
+
+    *Aaron Patterson*, *Jean Boussier*
+
+
 ## Rails 8.1.3 (March 24, 2026) ##
 
 *   Fix Ruby 4.0 delegator warning when calling inspect on attributes.
