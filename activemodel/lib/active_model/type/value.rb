@@ -114,6 +114,18 @@ module ActiveModel
         false
       end
 
+      def transforms_query_predicates? # :nodoc:
+        false
+      end
+
+      def query_attribute(attribute) # :nodoc:
+        attribute
+      end
+
+      def query_value(attribute, value, predicate_builder:) # :nodoc:
+        predicate_builder.build_bind_attribute(attribute.name, value, self)
+      end
+
       def map(value, &) # :nodoc:
         value
       end

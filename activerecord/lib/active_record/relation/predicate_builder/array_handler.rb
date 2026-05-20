@@ -20,7 +20,7 @@ module ActiveRecord
           case values.length
           when 0 then NullPredicate
           when 1 then predicate_builder.build(attribute, values.first)
-          else Arel::Nodes::HomogeneousIn.new(values, attribute, :in)
+          else predicate_builder.build_array_predicate(attribute, values)
           end
 
         if nils
