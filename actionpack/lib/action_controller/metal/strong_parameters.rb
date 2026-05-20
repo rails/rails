@@ -3,6 +3,7 @@
 # :markup: markdown
 
 require "active_support/core_ext/hash/indifferent_access"
+require "active_support/core_ext/hash/deep_transform_values"
 require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/object/to_query"
@@ -961,6 +962,34 @@ module ActionController
       self
     end
 
+    # Returns a new `ActionController::Parameters` instance with the results of
+    # running `block` once for every value. This includes the values from the
+    # root hash and from all nested hashes and arrays. The keys are unchanged.
+    #
+    # The returned instance carries the same permitted status as the receiver,
+    # so the result still has to be filtered through `permit` / `expect` before
+    # being mass-assigned. Prefer this to `to_unsafe_h.deep_transform_values`,
+    # which discards the permitted/unpermitted distinction.
+    #
+    #     params = ActionController::Parameters.new(
+    #       user: { email: "  ALICE@EXAMPLE.COM  ", profile: { bio: "  Hello world  " } }
+    #     )
+    #     params.deep_transform_values { |v| v.is_a?(String) ? v.strip.downcase : v }
+    #     # => #<ActionController::Parameters {"user"=>#<ActionController::Parameters {"email"=>"alice@example.com", "profile"=>#<ActionController::Parameters {"bio"=>"hello world"} permitted: false>} permitted: false>} permitted: false>
+    def deep_transform_values(&block)
+      new_instance_with_inherited_permitted_status(
+        _deep_transform_values_in_object(@parameters, &block)
+      )
+    end
+
+    # Returns the same `ActionController::Parameters` instance with changed
+    # values. This includes the values from the root hash and from all nested
+    # hashes and arrays. The keys are unchanged.
+    def deep_transform_values!(&block)
+      @parameters = _deep_transform_values_in_object!(@parameters, &block)
+      self
+    end
+
     # Deletes a key-value pair from `Parameters` and returns the value. If `key` is
     # not found, returns `nil` (or, with optional code block, yields `key` and
     # returns the result). This method is similar to #extract!, which returns the
@@ -1252,6 +1281,40 @@ module ActionController
           object.map! { |e| _deep_transform_keys_in_object!(e, &block) }
         else
           object
+        end
+      end
+
+      def _deep_transform_values_in_object(object, &block)
+        case object
+        when Hash
+          object.transform_values { |value| _deep_transform_values_in_object(value, &block) }
+        when Parameters
+          if object.permitted?
+            object.to_h.deep_transform_values(&block)
+          else
+            object.to_unsafe_h.deep_transform_values(&block)
+          end
+        when Array
+          object.map { |e| _deep_transform_values_in_object(e, &block) }
+        else
+          yield(object)
+        end
+      end
+
+      def _deep_transform_values_in_object!(object, &block)
+        case object
+        when Hash
+          object.transform_values! { |value| _deep_transform_values_in_object!(value, &block) }
+        when Parameters
+          if object.permitted?
+            object.to_h.deep_transform_values!(&block)
+          else
+            object.to_unsafe_h.deep_transform_values!(&block)
+          end
+        when Array
+          object.map! { |e| _deep_transform_values_in_object!(e, &block) }
+        else
+          yield(object)
         end
       end
 
