@@ -42,10 +42,9 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_to_fs_with_custom_date_format
-    Time::DATE_FORMATS[:custom] = "%Y%m%d%H%M%S"
-    assert_equal "20050221143000", DateTime.new(2005, 2, 21, 14, 30, 0).to_fs(:custom)
-  ensure
-    Time::DATE_FORMATS.delete(:custom)
+    ActiveSupport::TimeFormats.stub(:lookup, ->(format) { { custom: "%Y%m%d%H%M%S" }[format] }) do
+      assert_equal "20050221143000", DateTime.new(2005, 2, 21, 14, 30, 0).to_fs(:custom)
+    end
   end
 
   def test_localtime

@@ -45,15 +45,15 @@ class Time
   #   time.to_fs(:iso8601)      # => "2007-01-18T06:10:17-06:00"
   #
   # == Adding your own time formats to +to_fs+
-  # You can add your own formats to the +Time::DATE_FORMATS+ hash.
-  # Use the format name as the hash key and either a strftime string
+  # You can add your own formats using the +ActiveSupport::TimeFormats.register+ method.
+  # Use the format name as the name and either a strftime string
   # or Proc instance that takes a time argument as the value.
   #
   #   # config/initializers/time_formats.rb
-  #   Time::DATE_FORMATS[:month_and_year] = '%B %Y'
-  #   Time::DATE_FORMATS[:short_ordinal]  = ->(time) { time.strftime("%B #{time.day.ordinalize}") }
+  #   ActiveSupport::TimeFormats.register(:month_and_year, '%B %Y')
+  #   ActiveSupport::TimeFormats.register(:short_ordinal, ->(time) { time.strftime("%B #{time.day.ordinalize}") })
   def to_fs(format = :default)
-    if formatter = DATE_FORMATS[format]
+    if formatter = ::ActiveSupport::TimeFormats.lookup(format)
       formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
     else
       to_s
