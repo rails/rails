@@ -1092,23 +1092,26 @@ NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 
 ### `descendants`
 
-The [`descendants`][Class#descendants] method returns all classes that are `<` than its receiver:
+The [`descendants`][Class#descendants] method returns all classes that inherit from the receiver, at any level of the hierarchy, not just direct subclasses. For example:
 
 ```ruby
-class C; end
-C.descendants # => []
+class Vehicle; end
+Vehicle.descendants # => []
 
-class B < C; end
-C.descendants # => [B]
+class Car < Vehicle; end
+Vehicle.descendants # => [Car]
 
-class A < B; end
-C.descendants # => [B, A]
+class Truck < Vehicle; end
+Vehicle.descendants # => [Car, Truck]
 
-class D < C; end
-C.descendants # => [B, A, D]
+class ElectricCar < Car; end
+Vehicle.descendants # => [Car, Truck, ElectricCar]
+
+class DriverlessCar < ElectricCar; end
+Vehicle.descendants # => [Truck, Car, ElectricCar, DriverlessCar]
 ```
 
-The order in which these classes are returned is unspecified.
+Notice that `ElectricCar` appears in `Vehicle.descendants` even though it inherits from `Car`, not directly from `Vehicle`. The method walks the entire inheritance tree downward. The order in which classes are returned is unspecified.
 
 NOTE: Defined in `active_support/core_ext/class/subclasses.rb`.
 
