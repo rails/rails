@@ -308,7 +308,13 @@ end
 `Dog` now uses the `animals` database for writes and the `animals_replica`
 database for reads when Rails is switched to the reading role.
 
-##### Custom Role Names
+WARNING. It's important to connect to each database from a single abstract class and
+then inherit from that class for the models stored in that database. Connecting
+multiple individual models to the same database multiplies the number of
+connections, because Rails uses the model class name for the connection
+specification name.
+
+#### Custom Role Names
 
 By default, Rails expects the database roles to be `writing` for the writer and
 `reading` for the replica. If you have a legacy system, you may already have
