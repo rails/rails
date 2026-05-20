@@ -339,53 +339,41 @@ After changing the role names, use those names in `connects_to`:
 connects_to database: { default: :primary, readonly: :primary_replica }
 ```
 
-
 #### Running Database Tasks
 
-Now that we have `config/database.yml` and the model classes set up, it's time
-to create the databases. Rails ships with all the commands you need to use
-multiple databases.
-
-You can run `bin/rails --help` to see all the commands you're able to run. You
-should see the following:
+Rails creates database tasks for each managed database configuration. Running a
+task without a database name applies it to all managed databases, for example:
 
 ```bash
-$ bin/rails --help
-...
-db:create                          # Create the database from DATABASE_URL or config/database.yml for the ...
-db:create:animals                  # Create animals database for current environment
-db:create:primary                  # Create primary database for current environment
-db:drop                            # Drop the database from DATABASE_URL or config/database.yml for the cu...
-db:drop:animals                    # Drop animals database for current environment
-db:drop:primary                    # Drop primary database for current environment
-db:migrate                         # Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)
-db:migrate:animals                 # Migrate animals database for current environment
-db:migrate:primary                 # Migrate primary database for current environment
-db:migrate:status                  # Display status of migrations
-db:migrate:status:animals          # Display status of migrations for animals database
-db:migrate:status:primary          # Display status of migrations for primary database
-db:reset                           # Drop and recreates all databases from their schema for the current environment and loads the seeds
-db:reset:animals                   # Drop and recreates the animals database from its schema for the current environment and loads the seeds
-db:reset:primary                   # Drop and recreates the primary database from its schema for the current environment and loads the seeds
-db:rollback                        # Roll the schema back to the previous version (specify steps w/ STEP=n)
-db:rollback:animals                # Rollback animals database for current environment (specify steps w/ STEP=n)
-db:rollback:primary                # Rollback primary database for current environment (specify steps w/ STEP=n)
-db:schema:dump                     # Create a database schema file (either db/schema.rb or db/structure.sql  ...
-db:schema:dump:animals             # Create a database schema file (either db/schema.rb or db/structure.sql  ...
-db:schema:dump:primary             # Create a db/schema.rb file that is portable against any DB supported  ...
-db:schema:load                     # Load a database schema file (either db/schema.rb or db/structure.sql  ...
-db:schema:load:animals             # Load a database schema file (either db/schema.rb or db/structure.sql  ...
-db:schema:load:primary             # Load a database schema file (either db/schema.rb or db/structure.sql  ...
-db:setup                           # Create all databases, loads all schemas, and initializes with the seed data (use db:reset to also drop all databases first)
-db:setup:animals                   # Create the animals database, loads the schema, and initializes with the seed data (use db:reset:animals to also drop the database first)
-db:setup:primary                   # Create the primary database, loads the schema, and initializes with the seed data (use db:reset:primary to also drop the database first)
-...
+$ bin/rails db:create
+$ bin/rails db:migrate
+$ bin/rails db:schema:dump
 ```
 
-Running a command like `bin/rails db:create` will create both the primary and animals databases.
-Note that there is no command for creating the database users, and you'll need to do that manually
-to support the read-only users for your replicas. If you want to create just the animals
-database you can run `bin/rails db:create:animals`.
+To run a task for one database, append the database configuration name:
+
+```bash
+$ bin/rails db:create:animals
+$ bin/rails db:migrate:animals
+$ bin/rails db:schema:dump:animals
+```
+
+The same pattern applies to the primary database:
+
+```bash
+$ bin/rails db:migrate:primary
+```
+
+Rails does not create database tasks for replicas. For example,
+`primary_replica` and `animals_replica` do not get migration tasks because they
+are marked with `replica: true`.
+
+Running `bin/rails db:create` will create both the primary and animals
+databases. Rails does not create database users; create writer and read-only
+replica users in your database system.
+
+For the full list of Rails database commands, see the
+[Command Line guide](command_line.html#managing-the-database).
 
 ### Connecting to Databases without Managing Schema and Migrations
 
@@ -462,10 +450,10 @@ $ bin/rails generate scaffold Dog name:string --database animals --parent Animal
 This will skip generating `AnimalsRecord` since you've indicated to Rails that you want to
 use a different parent class.
 
-### Activating Automatic Role Switching
-
 Finally, in order to use the read-only replica in your application, you'll need to activate
 the middleware for automatic switching.
+
+### Activating Automatic Role Switching
 
 Automatic switching allows the application to switch from the writer to the replica or the replica
 to the writer based on the HTTP verb and whether there was a recent write by the requesting user.
@@ -630,7 +618,7 @@ class ShardRecord < ApplicationRecord
   }
 end
 
-class Person < ShardRecord
+class Customer < ShardRecord
 end
 ```
 
@@ -716,7 +704,6 @@ Options may be set in the application configuration. For example, this configura
 ``` ruby
 config.active_record.shard_selector = { lock: true, class_name: "AnimalsRecord" }
 ```
-
 
 ## Granular Database Connection Switching
 
