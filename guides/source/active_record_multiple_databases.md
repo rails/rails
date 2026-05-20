@@ -487,15 +487,20 @@ In this example, Rails will still connect to the `reporting` database when a
 model uses that configuration, but commands such as `bin/rails db:create`,
 `bin/rails db:migrate`, and `bin/rails db:schema:dump` will skip it.
 
-### Automatic Role Switching
+### Role Switching
 
-Automatic role switching lets Rails choose between the writer and replica for
-each request. You may want automatic role switching when your application uses replicas to
-reduce read traffic on the writer, but still needs users to see their own
-changes immediately after they write. It is implemented as middleware, so it applies to web requests.
+Role switching lets Rails choose between the `writing` and `reading` roles.
+These roles usually point to a writer database and its replica.
 
-For scripts, console sessions, background jobs, or places where you need
-explicit control, use manual connection switching instead.
+#### Automatic Role Switching
+
+Automatic role switching, sometimes called automatic connection switching, lets
+Rails choose between the writer and replica for each request. You may want
+automatic role switching when your application uses replicas to reduce read
+traffic on the writer, but still needs users to see their own changes
+immediately after they write. It is implemented as middleware, so it applies to
+web requests.
+
 
 The middleware chooses a role based on the HTTP verb and whether the same
 requesting user recently wrote to the database:
@@ -577,40 +582,55 @@ config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelec
 config.active_record.database_resolver_context = MyCookieResolver
 ```
 
-### Using Manual Connection Switching
+#### Manual Role Switching
 
-There are some cases where you may want your application to connect to a writer or a replica
-and the automatic connection switching isn't adequate. For example, you may know that for a
-particular request you always want to send the request to a replica, even when you are in a
-POST request path.
+Manual role switching lets you choose the database role for a block of code.
+Use it when automatic role switching would choose the wrong role for a specific
+case, or when automatic role switching does not apply, such as in scripts,
+console sessions, and background jobs.
 
-To do this Rails provides a `connected_to` method that will switch to the connection you
-need.
+For example, automatic role switching sends `POST` requests to the writer, but
+you may have a `POST` request that only reads data and should use a replica.
+
+To switch roles manually, wrap the code in `connected_to`:
 
 ```ruby
 ActiveRecord::Base.connected_to(role: :reading) do
-  # All code in this block will be connected to the reading role.
+  # All code in this block uses the reading role.
 end
 ```
 
-The "role" in the `connected_to` call looks up the connections that are connected on that
-connection handler (or role). The `reading` connection handler will hold all the connections
-that were connected via `connects_to` with the role name of `reading`.
+The role passed to `connected_to` must match a role defined by `connects_to`.
+In the examples above, the `reading` role points to the replica configuration:
 
-Note that `connected_to` with a role will look up an existing connection and switch
-using the connection specification name. This means that if you pass an unknown role
-like `connected_to(role: :nonexistent)` you will get an error that says
+```ruby
+connects_to database: { writing: :primary, reading: :primary_replica }
+```
+
+If you pass an unknown role, Rails raises an error:
+
+```ruby
+ActiveRecord::Base.connected_to(role: :nonexistent) do
+  # ...
+end
+```
+
+The error will look like:
+
 `ActiveRecord::ConnectionNotEstablished (No connection pool for 'ActiveRecord::Base' found for the 'nonexistent' role.)`
 
-If you want Rails to ensure any queries performed are read-only, pass `prevent_writes: true`.
-This just prevents queries that look like writes from being sent to the database.
-You should also configure your replica database to run in read-only mode.
+If you want Rails to prevent write queries while using a role, pass
+`prevent_writes: true`. This prevents queries that look like writes from being
+sent to the database:
 
 ```ruby
 ActiveRecord::Base.connected_to(role: :reading, prevent_writes: true) do
   # Rails will check each query to ensure it's a read query.
 end
 ```
+
+This Rails-level check is not a substitute for database permissions. You should
+also configure replica users as read-only in your database.
 
 ## Horizontal Sharding
 
