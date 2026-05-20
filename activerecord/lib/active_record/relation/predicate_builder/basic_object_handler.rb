@@ -8,8 +8,7 @@ module ActiveRecord
       end
 
       def call(attribute, value)
-        bind = predicate_builder.build_bind_attribute(attribute.name, value)
-        attribute.eq(bind)
+        predicate_builder.build_predicate(attribute, value)
       end
 
       private

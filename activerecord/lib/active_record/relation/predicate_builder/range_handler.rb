@@ -10,9 +10,7 @@ module ActiveRecord
       end
 
       def call(attribute, value)
-        begin_bind = predicate_builder.build_bind_attribute(attribute.name, value.begin)
-        end_bind = predicate_builder.build_bind_attribute(attribute.name, value.end)
-        attribute.between(RangeWithBinds.new(begin_bind, end_bind, value.exclude_end?))
+        predicate_builder.build_range_predicate(attribute, value)
       end
 
       private
