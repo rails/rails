@@ -487,24 +487,37 @@ In this example, Rails will still connect to the `reporting` database when a
 model uses that configuration, but commands such as `bin/rails db:create`,
 `bin/rails db:migrate`, and `bin/rails db:schema:dump` will skip it.
 
-### Activating Automatic Role Switching
+### Automatic Role Switching
 
-Automatic switching allows the application to switch from the writer to the replica or the replica
-to the writer based on the HTTP verb and whether there was a recent write by the requesting user.
+Automatic role switching lets Rails choose between the writer and replica for
+each request. You may want automatic role switching when your application uses replicas to
+reduce read traffic on the writer, but still needs users to see their own
+changes immediately after they write. It is implemented as middleware, so it applies to web requests.
 
-If the application receives a POST, PUT, DELETE, or PATCH request, the application will
-automatically write to the writer database. If the request is not one of those methods,
-but the application recently made a write, the writer database will also be used. All
-other requests will use the replica database.
+For scripts, console sessions, background jobs, or places where you need
+explicit control, use manual connection switching instead.
 
-To activate the automatic connection switching middleware you can run the automatic swapping
-generator:
+The middleware chooses a role based on the HTTP verb and whether the same
+requesting user recently wrote to the database:
+
+* `POST`, `PUT`, `PATCH`, and `DELETE` requests use the writer database.
+* `GET` and `HEAD` requests use the replica, unless the user recently wrote to
+  the database.
+* `GET` and `HEAD` requests from a user who recently wrote to the database use
+  the writer until the configured delay has passed.
+
+This helps the application provide "read your own write" behavior. For example,
+after a user submits a form, a redirect back to a `GET` request can still read
+from the writer for a short time so the user can see their own change.
+
+To activate the automatic connection switching middleware, run the automatic
+swapping generator:
 
 ```bash
 $ bin/rails g active_record:multi_db
 ```
 
-And then uncomment the following lines:
+Then uncomment the following lines in the generated initializer:
 
 ```ruby
 Rails.application.configure do
@@ -514,19 +527,22 @@ Rails.application.configure do
 end
 ```
 
-Rails guarantees "read your own write" and will send your GET or HEAD request to the
-writer if it's within the `delay` window. By default the delay is set to 2 seconds. You
-should change this based on your database infrastructure. Rails doesn't guarantee "read
-a recent write" for other users within the delay window and will send GET and HEAD requests
-to the replicas unless they wrote recently.
+The `delay` controls how long Rails keeps sending a user's reads to the writer
+after that user writes. By default, the delay is set to 2 seconds. Change this
+based on your database infrastructure and expected replication lag.
 
-The automatic connection switching in Rails is relatively primitive and deliberately doesn't
-do a whole lot. The goal is a system that demonstrates how to do automatic connection
-switching that is flexible enough to be customizable by app developers.
+Rails does not guarantee that other users will immediately see a recent write.
+For users who did not perform the write, `GET` and `HEAD` requests can still go
+to the replica and may be affected by replication lag.
 
-The setup in Rails allows you to easily change how the switching is done and what
-parameters it's based on. Let's say you want to use a cookie instead of a session to
-decide when to swap connections. You can write your own class:
+Automatic role switching is intentionally simple. It does not inspect actual
+replication lag, load balance across multiple replicas, or decide per query
+which database should be used. The default behavior is designed to be a small,
+customizable starting point for applications.
+
+You can change how Rails tracks the last write. By default, Rails stores the
+last write timestamp in the session. If you want to use a cookie instead, you
+can write your own resolver context:
 
 ```ruby
 class MyCookieResolver < ActiveRecord::Middleware::DatabaseSelector::Resolver
