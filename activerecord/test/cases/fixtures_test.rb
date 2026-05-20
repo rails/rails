@@ -909,7 +909,11 @@ class FixturesWithForeignKeyViolationsTest < ActiveRecord::TestCase
     File.write(FIXTURES_ROOT + @path, fk_pointing_to_non_existent_object)
 
     with_verify_foreign_keys_for_fixtures do
-      if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+      if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.lease_connection.supports_enforced_foreign_keys?
+        assert_raise ActiveRecord::InvalidForeignKey do
+          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
+        end
+      elsif current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
         error = assert_raise RuntimeError do
           ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
         end

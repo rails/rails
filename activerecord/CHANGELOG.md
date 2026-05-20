@@ -1,3 +1,28 @@
+*   On PostgreSQL 18.4+, `disable_referential_integrity` uses `NOT ENFORCED`/`ENFORCED`
+    instead of `DISABLE TRIGGER ALL`/`ENABLE TRIGGER ALL`, requiring only table ownership
+    rather than superuser privileges. Only currently `ENFORCED` foreign keys are toggled;
+    intentionally `NOT ENFORCED` foreign keys are left unchanged.
+
+    Unlike `ENABLE TRIGGER ALL`, restoring `ENFORCED` checks existing rows against the
+    constraint, so FK violations raise `ActiveRecord::InvalidForeignKey` rather than
+    `RuntimeError`. The toggle and restore run in a single transaction so a restoration
+    failure rolls back the initial `NOT ENFORCED` toggle too — preventing originally-
+    `ENFORCED` constraints from being left in a `NOT ENFORCED` state indistinguishable
+    from intentional ones.
+
+    Fixtures sharing FK relationships must be passed together to
+    `FixtureSet.create_fixtures` to ensure all referenced rows are present when
+    enforcement is restored.
+
+    `check_all_foreign_keys_valid!` skips `NOT ENFORCED` constraints on PostgreSQL 18.4+,
+    as `VALIDATE CONSTRAINT` cannot be applied to them.
+
+    Unlike `SET CONSTRAINTS ALL DEFERRED` (the approach attempted in rails/rails#27636
+    and reverted), `NOT ENFORCED` also suppresses referential actions such as
+    `ON DELETE CASCADE`, `SET NULL`, and `SET DEFAULT`.
+
+    *Yasuo Honda*
+
 *   Add `exclusion_constraint_exists?` and `unique_constraint_exists?` helpers
 
     *fatkodima*
