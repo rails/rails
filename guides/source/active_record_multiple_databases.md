@@ -323,13 +323,11 @@ end
 `Dog` now uses the `animals` database for writes and the `animals_replica`
 database for reads when Rails is switched to the reading role.
 
-WARNING. It's important to connect to each database from a single abstract class and
-then inherit from that class for the models stored in that database. Connecting
+WARNING: It's important to connect to each database from a single abstract class
+and then inherit from that class for the models stored in that database. Connecting
 multiple individual models to the same database multiplies the number of
 connections, because Rails uses the model class name for the connection
 specification name.
-
-#### Custom Role Names
 
 If your application already uses different role names, you can configure Rails
 to use those names instead:
@@ -345,18 +343,16 @@ After changing the role names, use those names in `connects_to`:
 connects_to database: { default: :primary, readonly: :primary_replica }
 ```
 
-#### Using Generators
-
 If you create models and migrations with Rails generators, pass the database
 name so Rails can place files in the right migration path and use the right
 abstract class.
+
+#### Generating Migrations
 
 Each managed writer database needs a migration path. Keeping migrations
 separate lets Rails migrate one database without running migrations intended for
 another database. Replicas do not need migration paths because Rails does not
 run migrations against configurations marked with `replica: true`.
-
-#### Migration Paths
 
 Migrations for multiple databases should live in their own folders prefixed
 with the name of the database key in the configuration. You also need to set
@@ -372,8 +368,6 @@ production:
   animals:
     migrations_paths: db/animals_migrate
 ```
-
-#### Generating Migrations
 
 Rails generators take a `--database` option so that generated migration files
 are placed in the correct directory:
@@ -419,8 +413,6 @@ Rails will only generate `AnimalsRecord` once. It will not be overwritten by new
 scaffolds or deleted if the scaffold is deleted, so your changes to the
 abstract class are preserved.
 
-#### Using a Custom Abstract Class
-
 If you already have an abstract class and its name differs from
 `AnimalsRecord`, pass the `--parent` option to tell Rails which class the model
 should inherit from:
@@ -432,7 +424,7 @@ $ bin/rails generate scaffold Dog name:string --database animals --parent Animal
 This will skip generating `AnimalsRecord` since you've indicated to Rails that you want to
 use a different parent class.
 
-### Running Database Tasks
+### Database Tasks
 
 Rails creates database tasks for each managed database configuration. Running a
 task without a database name applies it to all managed databases, for example:
