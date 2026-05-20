@@ -857,11 +857,11 @@ Inside the block, only models that inherit from `AnimalsRecord` switch to the
 `reading` role. Models that inherit from `ApplicationRecord` keep using their
 current role.
 
-You can also switch one abstract class to a specific shard:
+You can also switch one sharded abstract class to a specific shard:
 
 ```ruby
-AnimalsRecord.connected_to(role: :reading, shard: :shard_one) do
-  Dog.first # Reads from shard_one_replica.
+ShardRecord.connected_to(role: :reading, shard: :shard_one) do
+  Customer.first # Reads from primary_shard_one_replica.
   Person.first  # Reads from primary writer.
 end
 ```
@@ -873,9 +873,9 @@ To switch only the primary database cluster, call `connected_to` on
 `ApplicationRecord`:
 
 ```ruby
-ApplicationRecord.connected_to(role: :reading, shard: :shard_one) do
-  Person.first # Reads from primary_shard_one_replica.
-  Dog.first # Reads from animals_primary.
+ApplicationRecord.connected_to(role: :reading) do
+  Person.first # Reads from primary_replica.
+  Dog.first # Reads from animals writer.
 end
 ```
 
