@@ -56,16 +56,65 @@ module ActiveRecord
 
     def build(attribute, value, operator = nil)
       value = value.id if value.respond_to?(:id)
-      if operator ||= table.type(attribute.name).force_equality?(value) && :eq
-        bind = build_bind_attribute(attribute.name, value)
-        attribute.public_send(operator, bind)
+      type = table.type(attribute.name)
+
+      if operator ||= type.force_equality?(value) && :eq
+        if type.transforms_query_predicates?
+          build_predicate(attribute, value, operator, type, true)
+        else
+          bind = build_bind_attribute(attribute.name, value, type)
+          attribute.public_send(operator, bind)
+        end
       else
         handler_for(value).call(attribute, value)
       end
     end
 
-    def build_bind_attribute(column_name, value)
-      Relation::QueryAttribute.new(column_name, value, table.type(column_name))
+    def build_predicate(attribute, value, operator = :eq, type = table.type(attribute.name), transformable = type.transforms_query_predicates?)
+      if transformable
+        right = query_value(attribute, value, type)
+        left = right.nil? ? attribute : type.query_attribute(attribute)
+      else
+        right = build_bind_attribute(attribute.name, value, type)
+        left = attribute
+      end
+
+      left.public_send(operator, right)
+    end
+
+    def build_array_predicate(attribute, values)
+      type = table.type(attribute.name)
+
+      if type.transforms_query_predicates?
+        type.query_attribute(attribute).in(
+          values.map { |value| query_value(attribute, value, type) }
+        )
+      else
+        Arel::Nodes::HomogeneousIn.new(values, attribute, :in)
+      end
+    end
+
+    def build_range_predicate(attribute, range)
+      type = table.type(attribute.name)
+
+      type.query_attribute(attribute).between(
+        RangeHandler::RangeWithBinds.new(
+          query_value(attribute, range.begin, type),
+          query_value(attribute, range.end, type),
+          range.exclude_end?
+        )
+      )
+    end
+
+    def build_bind_attribute(column_name, value, type = table.type(column_name))
+      Relation::QueryAttribute.new(column_name, value, type)
+    end
+
+    def query_value(attribute, value, type = table.type(attribute.name))
+      bind = build_bind_attribute(attribute.name, value, type)
+      return bind if bind.nil? || bind.infinite? || bind.unboundable?
+
+      type.query_value(attribute, value, predicate_builder: self)
     end
 
     def resolve_arel_attribute(table_name, column_name, &block)
