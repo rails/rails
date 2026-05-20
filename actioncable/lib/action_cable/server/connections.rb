@@ -13,16 +13,18 @@ module ActionCable
     module Connections # :nodoc:
       BEAT_INTERVAL = 3
 
-      def connections
-        @connections ||= []
+      def connections_map
+        @connections_map ||= {}
       end
 
+      def connections = connections_map.values
+
       def add_connection(connection)
-        connections << connection
+        connections_map[connection.object_id] = connection
       end
 
       def remove_connection(connection)
-        connections.delete connection
+        connections_map.delete connection.object_id
       end
 
       # WebSocket connection implementations differ on when they'll mark a connection
@@ -32,12 +34,12 @@ module ActionCable
       # disconnect.
       def setup_heartbeat_timer
         @heartbeat_timer ||= executor.timer(BEAT_INTERVAL) do
-          executor.post { connections.each(&:beat) }
+          executor.post { connections_map.each_value(&:beat) }
         end
       end
 
       def open_connections_statistics
-        connections.map(&:statistics)
+        connections_map.each_value.map(&:statistics)
       end
     end
   end
