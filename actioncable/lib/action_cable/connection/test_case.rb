@@ -100,15 +100,44 @@ module ActionCable
       def close
         @closed = true
       end
+
+      def perform_work(receiver, ...)
+        receiver.public_send(...)
+      end
+    end
+
+    class TestTimer
+      attr_reader :interval
+
+      def initialize(interval, &block)
+        @interval = interval
+        @block = block
+        @elapsed = 0
+        @shutdown = false
+      end
+
+      def shutdown
+        @shutdown = true
+      end
+
+      def advance(seconds)
+        return if @shutdown
+        @elapsed += seconds
+        while @elapsed >= @interval
+          @elapsed -= @interval
+          @block&.call
+        end
+      end
     end
 
     # TestServer provides test pub/sub and executor implementations
     class TestServer
-      attr_reader :streams, :config
+      attr_reader :streams, :config, :timers
 
       def initialize(server)
         @streams = Hash.new { |h, k| h[k] = [] }
         @config = server.config
+        @timers = []
       end
 
       alias_method :pubsub, :itself
@@ -118,8 +147,14 @@ module ActionCable
 
       # Inline async calls
       def post(&work) = work.call
-      # We don't support timers in unit tests yet
-      def timer(_every) = nil
+
+      def timer(every, &block)
+        TestTimer.new(every, &block).tap { |t| @timers << t }
+      end
+
+      def advance_time(seconds)
+        @timers.each { |timer| timer.advance(seconds) }
+      end
 
       #== Pub/sub interface ==
       def subscribe(stream, callback, success_callback = nil)

@@ -272,3 +272,46 @@ class BroadcastsTestChannelTest < ActionCable::Channel::TestCase
     end
   end
 end
+
+class PeriodicCounterChannel < ActionCable::Channel::Base
+  periodically :tick, every: 5
+
+  attr_reader :tick_count
+
+  def subscribed
+    @tick_count = 0
+  end
+
+  private
+    def tick
+      @tick_count += 1
+    end
+end
+
+class PeriodicCounterChannelTest < ActionCable::Channel::TestCase
+  tests PeriodicCounterChannel
+
+  def test_advance_time_fires_periodic_callback_when_interval_is_reached
+    subscribe
+    assert_equal 0, subscription.tick_count
+
+    advance_time 4
+    assert_equal 0, subscription.tick_count
+
+    advance_time 1
+    assert_equal 1, subscription.tick_count
+
+    advance_time 12
+    assert_equal 3, subscription.tick_count
+  end
+
+  def test_timer_stops_firing_after_unsubscribe
+    subscribe
+    advance_time 5
+    assert_equal 1, subscription.tick_count
+
+    unsubscribe
+    advance_time 100
+    assert_equal 1, subscription.tick_count
+  end
+end

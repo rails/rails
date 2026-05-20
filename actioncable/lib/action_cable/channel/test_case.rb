@@ -224,6 +224,18 @@ module ActionCable
           @subscription
         end
 
+        # Advances all registered periodic timers by the given number of seconds,
+        # firing their blocks for each elapsed interval:
+        #
+        #   def test_timer
+        #     subscribe
+        #     advance_time 5.seconds
+        #     assert_equal 1, subscription.tick_count
+        #   end
+        def advance_time(seconds)
+          testserver.advance_time(seconds)
+        end
+
         # Unsubscribe the subscription under test.
         def unsubscribe
           check_subscribed!
