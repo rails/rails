@@ -402,4 +402,38 @@
 
     *Thiago Youssef*
 
+*   Add the latest standardized features to `permissions_policy`
+
+    Add the following features that have been standardized since the list was last updated:
+
+    * `attribution-reporting`
+    * `battery`
+    * `bluetooth`
+    * `ch-ua`
+    * `ch-ua-arch`
+    * `ch-ua-bitness`
+    * `ch-ua-full-version`
+    * `ch-ua-full-version-list`
+    * `ch-ua-high-entropy-values`
+    * `ch-ua-mobile`
+    * `ch-ua-model`
+    * `ch-ua-platform`
+    * `ch-ua-platform-version`
+    * `ch-ua-wow64`
+    * `compute-pressure`
+    * `cross-origin-isolated`
+    * `direct-sockets`
+    * `execution-while-not-rendered`
+    * `execution-while-out-of-viewport`
+    * `identity-credentials-get`
+    * `mediasession`
+    * `navigation-override`
+    * `otp-credentials`
+    * `publickey-credentials-get`
+    * `storage-access`
+    * `window-management`
+    * `xr-spatial-tracking`
+
+    *Ruben Arakelyan*
+
 Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/actionpack/CHANGELOG.md) for previous changes.
