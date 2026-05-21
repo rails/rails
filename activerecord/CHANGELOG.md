@@ -1,3 +1,9 @@
+*   Fix duplicate `WHERE` conditions in `create_or_find_by`.
+
+    When `create_or_find_by` catches a `RecordNotUnique` error and retries the query, it now uses `rewhere` and `take!` to prevent duplicating existing scope conditions.
+
+    *Yavor Dashev*
+
 *   Fix `ActiveRecord::QueryMethods#in_order_of` when passing an out-of-range Integer
 
     To match the behavior of the `Enumerable` version, `in_order_of` now ignores an out-of-range Integer.
