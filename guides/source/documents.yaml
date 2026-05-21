@@ -232,7 +232,7 @@
       url: tuning_performance_for_deployment.html
       description: This guide covers performance and concurrency configuration for deploying your production Ruby on Rails application.
     -
-      name: "Caching with Rails: An Overview"
+      name: "Caching with Rails"
       url: caching_with_rails.html
       description: This guide is an introduction to speeding up your Rails application with caching.
     -
