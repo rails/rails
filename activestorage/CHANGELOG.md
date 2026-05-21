@@ -1,3 +1,9 @@
+*   Parallelize `exist?` checks and uploads in `MirrorService#mirror` using
+    the existing internal thread pool. With N mirrors, wall time drops from
+    O(N) to O(1) network round-trips for both phases.
+
+    *Denis Savchuk*
+
 *   Fix `MirrorService#mirror` raising `ActiveStorage::IntegrityError` when
     mirroring without a checksum (e.g., `track_variants: false`).
 
