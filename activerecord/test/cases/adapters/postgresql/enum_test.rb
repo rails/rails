@@ -30,10 +30,10 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   end
 
   teardown do
-    reset_connection
+    @connection.reset!
     @connection.drop_table "postgresql_enums", if_exists: true
     @connection.drop_enum "mood", if_exists: true
-    reset_connection
+    @connection.reset!
   end
 
   def test_column
@@ -191,7 +191,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     $stdout = original_stdout
     @connection.drop_table "pg_enum_array_schema_dump_accounts", if_exists: true
     @connection.drop_enum "pg_enum_array_schema_dump_account_type", if_exists: true
-    reset_connection
+    @connection.reset!
   end
 
   def test_drop_enum

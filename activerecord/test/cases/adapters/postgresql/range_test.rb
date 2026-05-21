@@ -99,7 +99,7 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_table "postgresql_ranges", if_exists: true
     @connection.execute "DROP TYPE IF EXISTS floatrange"
     @connection.execute "DROP TYPE IF EXISTS stringrange"
-    reset_connection
+    @connection.reset!
   end
 
   def test_data_type_of_range_types

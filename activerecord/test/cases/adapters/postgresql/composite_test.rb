@@ -33,7 +33,7 @@ module PostgresqlCompositeBehavior
 
     @connection.drop_table "postgresql_composites", if_exists: true
     @connection.execute "DROP TYPE IF EXISTS full_address"
-    reset_connection
+    @connection.reset!
     PostgresqlComposite.reset_column_information
   end
 end
