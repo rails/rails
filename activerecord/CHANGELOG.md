@@ -1,3 +1,9 @@
+*   Fix duplicate `WHERE` conditions in `create_or_find_by`.
+
+    When `create_or_find_by` catches a `RecordNotUnique` error and retries the query, it now uses `rewhere` and `take!` to prevent duplicating existing scope conditions.
+
+    *Yavor Dashev*
+
 *   Allow to pass array values to `in_order_of`
 
     Passing arrays allows to group records and order those groups with another query:
