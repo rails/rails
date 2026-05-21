@@ -43,24 +43,6 @@ module Rails
       end
 
       private
-        def run_query(expression)
-          expression = resolve_expression(expression)
-          page = [ options[:page], 1 ].max
-          per = [ [ options[:per], 1 ].max, 10_000 ].min
-
-          start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          result = if options[:sql]
-            with_readonly_connection do |connection|
-              execute_sql(connection: connection, sql: expression, page: page, per: per)
-            end
-          else
-            execute_ar(expression: expression, page: page, per: per)
-          end
-          elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).round(1)
-
-          say format_result(**result, elapsed_ms: elapsed_ms, page: page, per: per)
-        end
-
         def run_schema(table = nil)
           with_readonly_connection do |connection|
             if table
@@ -106,6 +88,26 @@ module Rails
               say format_result(columns: result.columns, rows: result.rows, sql: "EXPLAIN #{sql}")
             end
           end
+        end
+
+        def run_query(expression)
+          expression = resolve_expression(expression)
+          page = [ options[:page], 1 ].max
+          per = [ [ options[:per], 1 ].max, 10_000 ].min
+
+          start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+          result = if options[:sql]
+            with_readonly_connection do |connection|
+              execute_sql(connection: connection, sql: expression, page: page, per: per)
+            end
+          else
+            execute_ar(expression: expression, page: page, per: per)
+          end
+
+          elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).round(1)
+
+          say format_result(**result, elapsed_ms: elapsed_ms, page: page, per: per)
         end
 
         def with_readonly_connection(&block)
