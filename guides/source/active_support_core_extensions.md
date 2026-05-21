@@ -709,7 +709,7 @@ NOTE: Defined in `active_support/core_ext/module/attr_internal.rb`.
 
 ### `mattr_*`
 
-The macros [`mattr_reader`][Module#mattr_reader], [`mattr_writer`][Module#mattr_writer], and [`mattr_accessor`][Module#mattr_accessor] are the same as the `cattr_*` macros defined for class. In fact, the `cattr_*` macros are just aliases for the `mattr_*` macros. Check [Class Attributes](#class-attributes).
+The methods [`mattr_reader`][Module#mattr_reader], [`mattr_writer`][Module#mattr_writer], and [`mattr_accessor`][Module#mattr_accessor] are the same as their `cattr_*` equivalents [defined for class](#cattr_reader-cattr_writer-and-cattr_accessor). In fact, the `cattr_*` methoda are an aliases for the `mattr_*` ones.
 
 For example, the API for the logger of Active Storage is generated with `mattr_accessor`:
 
@@ -727,24 +727,26 @@ NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 
 ### `module_parent`
 
-The [`module_parent`][Module#module_parent] method on a nested named module returns the module that contains its corresponding constant:
+The [`module_parent`][Module#module_parent] method returns the module that directly contains the receiver. It is useful for navigating the namespace hierarchy of nested modules. For example:
 
 ```ruby
-module X
-  module Y
-    module Z
+module Blog
+  module Admin
+    module Settings
     end
   end
 end
-M = X::Y::Z
 
-X::Y::Z.module_parent # => X::Y
-M.module_parent       # => X::Y
+Blog::Admin::Settings.module_parent # => Blog::Admin
+Blog::Admin.module_parent           # => Blog
 ```
 
-If the module is anonymous or belongs to the top-level, `module_parent` returns `Object`.
+If the module is anonymous or belongs to the top level, `module_parent` returns `Object`, and calling `module_parent_name` on it will return `nil` rather than a string.
 
-WARNING: Note that in that case `module_parent_name` returns `nil`.
+```ruby
+Blog.module_parent # => Object
+Blog.module_parent_name # => nil
+```
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
