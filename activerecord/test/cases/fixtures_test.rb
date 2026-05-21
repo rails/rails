@@ -908,24 +908,25 @@ class FixturesWithForeignKeyViolationsTest < ActiveRecord::TestCase
     FIXTURE
     File.write(FIXTURES_ROOT + @path, fk_pointing_to_non_existent_object)
 
-    with_verify_foreign_keys_for_fixtures do
-      if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.lease_connection.supports_enforced_foreign_keys?
-        assert_raise ActiveRecord::InvalidForeignKey do
-          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
-        end
-      elsif current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
-        error = assert_raise RuntimeError do
-          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
-        end
-        assert_includes error.message, "Foreign key violations found in your fixture data. Ensure you aren't referring to labels that don't exist on associations."
-        assert_includes error.message, "fk_pointing_to_non_existent_objects"
-      else
-        assert_nothing_raised do
-          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
+    ActiveRecord::FixtureSet.without_parsing_cache do
+      with_verify_foreign_keys_for_fixtures do
+        if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.lease_connection.supports_enforced_foreign_keys?
+          assert_raise ActiveRecord::InvalidForeignKey do
+            ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
+          end
+        elsif current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+          error = assert_raise RuntimeError do
+            ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
+          end
+          assert_includes error.message, "Foreign key violations found in your fixture data. Ensure you aren't referring to labels that don't exist on associations."
+          assert_includes error.message, "fk_pointing_to_non_existent_objects"
+        else
+          assert_nothing_raised do
+            ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
+          end
         end
       end
     end
-
   ensure
     File.delete(FIXTURES_ROOT + @path)
     ActiveRecord::FixtureSet.reset_cache
