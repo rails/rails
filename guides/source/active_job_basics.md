@@ -1091,8 +1091,25 @@ If you need help figuring out where jobs are coming from, you can enable
 Alternate Queuing Backends
 --------------------------
 
-Active Job has other built-in adapters for multiple queuing backends (Resque, Delayed Job, and others). To get an up-to-date list of the adapters see
-the API Documentation for [`ActiveJob::QueueAdapters`][].
+Active Job can be used with multiple queuing backends.
+
+Here is a noncomprehensive list of queue backends supporting Active Job:
+
+- [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
+- [Resque](https://github.com/resque/resque#rails-example)
+- [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
+- [Good Job](https://github.com/bensheldon/good_job)
+- [Solid Queue](https://github.com/rails/solid_queue)
+- [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
+- [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
+- [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
+
+The early releases of Active Job had adapters built-in, but a decision was later made to
+let queue backends manage the adapter themselves. Thus, there are only adapters for a few
+early backends. But any backend can be used regardless of whether the adapter is built in or not.
+For example, Solid Queue which is maintained by the Rails team, doesn't have a built-in adapter.
+
+For the list of built-in adapters see the API Documentation for [`ActiveJob::QueueAdapters`][].
 
 [`ActiveJob::QueueAdapters`]:
     https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html
@@ -1133,13 +1150,3 @@ Since jobs run in parallel to your Rails application, most queuing libraries
 require that you start a library-specific queuing service (in addition to
 starting your Rails app) for the job processing to work. Refer to library
 documentation for instructions on starting your queue backend.
-
-Here is a noncomprehensive list of documentation:
-
-- [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
-- [Resque](https://github.com/resque/resque/wiki/ActiveJob)
-- [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
-- [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
-- [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
-- [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
-- [Good Job](https://github.com/bensheldon/good_job#readme)
