@@ -102,7 +102,7 @@ module Rails
               execute_sql(connection: connection, sql: expression, page: page, per: per)
             end
           else
-            execute_ar(expression: expression, page: page, per: per)
+            execute_expression(expression: expression, page: page, per: per)
           end
 
           elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).round(1)
@@ -149,7 +149,20 @@ module Rails
           false
         end
 
-        def execute_ar(expression:, page:, per:)
+        def execute_sql(connection:, sql:, page:, per:)
+          unless sql.gsub(/--.*$|\/\*.*?\*\//m, "").match?(/\bLIMIT\b/i)
+            offset = (page - 1) * per
+            sql = "#{sql.rstrip.chomp(';')} LIMIT #{per + 1}"
+            sql += " OFFSET #{offset}" if offset > 0
+          end
+
+          active_record_result = connection.select_all(sql)
+          rows = active_record_result.rows
+
+          tabular_result(columns: active_record_result.columns, rows: rows.first(per), sql: sql, truncated: rows.length > per)
+        end
+
+        def execute_expression(expression:, page:, per:)
           result = with_readonly_connection { eval(expression, TOPLEVEL_BINDING, "(query)", 1) }
           columns, rows, sql, truncated = tabular_result_parts_for(result, expression: expression, page: page, per: per)
 
@@ -191,19 +204,6 @@ module Rails
           else
             [ [ "result" ], [ [ result ] ], expression, false ]
           end
-        end
-
-        def execute_sql(connection:, sql:, page:, per:)
-          unless sql.gsub(/--.*$|\/\*.*?\*\//m, "").match?(/\bLIMIT\b/i)
-            offset = (page - 1) * per
-            sql = "#{sql.rstrip.chomp(';')} LIMIT #{per + 1}"
-            sql += " OFFSET #{offset}" if offset > 0
-          end
-
-          active_record_result = connection.select_all(sql)
-          rows = active_record_result.rows
-
-          tabular_result(columns: active_record_result.columns, rows: rows.first(per), sql: sql, truncated: rows.length > per)
         end
 
         def tabular_result(columns:, rows:, sql:, truncated: false)
