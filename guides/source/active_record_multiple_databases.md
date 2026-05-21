@@ -465,6 +465,11 @@ Running `bin/rails db:create` will create both the primary and animals
 databases. Rails does not create database users; create writer and read-only
 replica users in your database system.
 
+Other Rails commands can also target a database configuration by name. For
+example, `bin/rails dbconsole --database=animals` opens a database console for
+the `animals` database, and `bin/rails query "Dog.count" --database animals`
+runs a read-only query against that database configuration.
+
 For the full list of Rails database commands, see the
 [Command Line guide](command_line.html#managing-the-database).
 
@@ -1009,3 +1014,42 @@ You can generate schema cache files with:
 ```bash
 $ bin/rails db:schema:cache:dump
 ```
+
+For multiple databases, this command dumps a schema cache for each managed
+database configuration. Each database needs its own cache file because each
+database can have different tables, columns, and metadata.
+
+You can read more about schema management in the
+[Command Line guide](command_line.html#schema-management).
+
+## Caveats and Operational Considerations
+
+Multiple database applications have a few important limitations and production
+considerations.
+
+### Connection Pools
+
+Each database configuration can have its own connection pool. Roles, replicas,
+and shards can increase the total number of database connections your
+application may open. Make sure the pool sizes in `config/database.yml` match
+your web server and job worker concurrency, and that your database servers can
+handle the total number of connections.
+
+### Load Balancing Replicas
+
+Rails does not automatically load balance reads across multiple replicas. If
+your application needs replica load balancing, handle it in your database
+infrastructure or with application-specific connection logic.
+
+### Transactions Across Databases
+
+Rails does not provide distributed transactions across database clusters. A
+transaction is scoped to one database connection. If a workflow writes to
+multiple databases, design it so it can tolerate partial failure, retry safely,
+or reconcile data later.
+
+### Foreign Keys Across Databases
+
+Database-level foreign keys generally cannot span separate database clusters.
+Keep data that requires strict database-level integrity in the same database
+when possible, or enforce cross-database consistency in your application.
