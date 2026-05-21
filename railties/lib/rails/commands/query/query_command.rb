@@ -149,36 +149,45 @@ module Rails
 
         def execute_ar(expression:, page:, per:)
           result = with_readonly_connection { eval(expression, TOPLEVEL_BINDING, "(query)", 1) }
+          columns, rows, sql, truncated = tabular_result_parts_for(result, expression: expression, page: page, per: per)
 
+          tabular_result(columns: columns, rows: rows, sql: sql, truncated: truncated)
+        end
+
+        def tabular_result_parts_for(result, expression:, page:, per:)
           case result
           when ActiveRecord::Relation
             relation = result.offset((page - 1) * per).limit(per + 1)
-            sql = relation.to_sql
+            relation_sql = relation.to_sql
+
             with_readonly_connection_for(relation.model.connection_class_for_self) do |connection|
-              ar_result = connection.select_all(sql)
-              truncated = ar_result.rows.length > per
-              { columns: ar_result.columns, rows: ar_result.rows.first(per), sql: sql, truncated: truncated }
+              active_record_result = connection.select_all(relation_sql)
+              rows = active_record_result.rows
+
+              [ active_record_result.columns, rows.first(per), relation_sql, rows.length > per ]
             end
           when ActiveRecord::Result
-            { columns: result.columns, rows: result.rows, sql: expression, truncated: false }
+            [ result.columns, result.rows, expression, false ]
           when ActiveRecord::Base
-            attrs = result.attributes
-            { columns: attrs.keys, rows: [ attrs.values ], sql: expression, truncated: false }
+            attributes = result.attributes
+
+            [ attributes.keys, [ attributes.values ], expression, false ]
           when Hash
-            rows = result.map { |key, val| [ key, val ] }
-            { columns: [ "key", "value" ], rows: rows, sql: expression, truncated: false }
+            [ [ "key", "value" ], result.map { |key, val| [ key, val ] }, expression, false ]
           when Array
-            if result.first.is_a?(ActiveRecord::Base)
-              columns = result.first.attributes.keys
+            peek_on_result = result.first
+
+            if peek_on_result.is_a?(ActiveRecord::Base)
+              columns = peek_on_result.attribute_names
               rows = result.map { |record| record.attributes.values }
-              { columns: columns, rows: rows, sql: expression, truncated: false }
             else
-              rows = result.map { |val| Array(val) }
-              cols = Array.new(rows.first&.length.to_i) { |i| "column_#{i}" }
-              { columns: cols, rows: rows, sql: expression, truncated: false }
+              rows = result.map { |value| Array(value) }
+              columns = Array.new(rows.first&.length.to_i) { |index| "column_#{index}" }
             end
+
+            [ columns, rows, expression, false ]
           else
-            { columns: [ "result" ], rows: [ [ result ] ], sql: expression, truncated: false }
+            [ [ "result" ], [ [ result ] ], expression, false ]
           end
         end
 
@@ -189,9 +198,14 @@ module Rails
             sql += " OFFSET #{offset}" if offset > 0
           end
 
-          ar_result = connection.select_all(sql)
-          truncated = ar_result.rows.length > per
-          { columns: ar_result.columns, rows: ar_result.rows.first(per), sql: sql, truncated: truncated }
+          active_record_result = connection.select_all(sql)
+          rows = active_record_result.rows
+
+          tabular_result(columns: active_record_result.columns, rows: rows.first(per), sql: sql, truncated: rows.length > per)
+        end
+
+        def tabular_result(columns:, rows:, sql:, truncated: false)
+          { columns: columns, rows: rows, sql: sql, truncated: truncated }
         end
 
         def format_result(columns:, rows:, sql:, elapsed_ms: 0, page: 1, per: rows.length, truncated: false)
