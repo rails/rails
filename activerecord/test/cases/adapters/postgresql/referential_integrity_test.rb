@@ -335,6 +335,40 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_schema "referential_integrity_test_schema", if_exists: true
   end
 
+  def test_check_all_foreign_keys_valid_does_not_corrupt_not_valid_state_across_schemas
+    @connection.execute("CREATE SCHEMA ri_schema_a")
+    @connection.execute("CREATE SCHEMA ri_schema_b")
+
+    @connection.execute("CREATE TABLE ri_schema_a.nodes (id bigint PRIMARY KEY)")
+    @connection.execute("CREATE TABLE ri_schema_b.nodes (id bigint PRIMARY KEY)")
+
+    @connection.execute(<<~SQL)
+    CREATE TABLE ri_schema_a.edges (
+      id     bigint PRIMARY KEY,
+      source bigint
+        CONSTRAINT fk_edges_source REFERENCES ri_schema_a.nodes (id) NOT VALID
+    )
+    SQL
+    @connection.execute(<<~SQL)
+    CREATE TABLE ri_schema_b.edges (
+      id     bigint PRIMARY KEY,
+      source bigint
+        CONSTRAINT fk_edges_source REFERENCES ri_schema_b.nodes (id) NOT VALID
+    )
+    SQL
+
+    assert_not all_validated?("ri_schema_a", "edges", "fk_edges_source")
+    assert_not all_validated?("ri_schema_b", "edges", "fk_edges_source")
+
+    @connection.check_all_foreign_keys_valid!
+
+    assert all_validated?("ri_schema_a", "edges", "fk_edges_source")
+    assert all_validated?("ri_schema_b", "edges", "fk_edges_source")
+  ensure
+    @connection.execute("DROP SCHEMA IF EXISTS ri_schema_a CASCADE")
+    @connection.execute("DROP SCHEMA IF EXISTS ri_schema_b CASCADE")
+  end
+
   def test_all_foreign_keys_valid_having_foreign_keys_with_partitioned_table
     @connection.execute <<~SQL
       CREATE TABLE table_referenced_by_partioned_table (
@@ -371,5 +405,17 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
   private
     def assert_transaction_is_not_broken
       assert_equal 1, @connection.select_value("SELECT 1")
+    end
+
+    def all_validated?(schema, table, constraint)
+      @connection.query_value(<<~SQL)
+      SELECT convalidated
+      FROM pg_catalog.pg_constraint c
+      JOIN pg_catalog.pg_class     t  ON t.oid  = c.conrelid
+      JOIN pg_catalog.pg_namespace ns ON ns.oid = c.connamespace
+      WHERE ns.nspname = #{@connection.quote(schema)}
+        AND t.relname  = #{@connection.quote(table)}
+        AND c.conname  = #{@connection.quote(constraint)}
+      SQL
     end
 end
