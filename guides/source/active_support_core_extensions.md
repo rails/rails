@@ -638,25 +638,35 @@ NOTE: Defined in `active_support/core_ext/object/inclusion.rb`.
 Extensions to `Module`
 ----------------------
 
-### Attributes
+Todo: add an intro sentence or two.
 
-#### `alias_attribute`
+### `alias_attribute`
 
-Model attributes have a reader, a writer, and a predicate. You can alias a model attribute having the corresponding three methods all defined for you by using [`alias_attribute`][Module#alias_attribute]. As in other aliasing methods, the new name is the first argument, and the old name is the second (one mnemonic is that they go in the same order as if you did an assignment):
+The [`alias_attribute`][Module#alias_attribute] method creates an alias for a model attribute, defining all three of its methods — reader, writer, and predicate — under the new name at once.
+
+The new name is the first argument, the existing name is the second:
 
 ```ruby
 class User < ApplicationRecord
-  # You can refer to the email column as "login".
-  # This can be meaningful for authentication code.
   alias_attribute :login, :email
 end
 ```
+
+Now `email` is also accessible as `login`:
+
+```ruby
+user.login                      # same as user.email
+user.login = "jane@example.com" # same as user.email=
+user.login?                     # same as user.email?
+```
+
+This is useful when you want to use domain-specific language with an existing attribute. In this case, referring to `email` as `login` in authentication related code, for example.
 
 NOTE: Defined in `active_support/core_ext/module/aliasing.rb`.
 
 [Module#alias_attribute]: https://api.rubyonrails.org/classes/Module.html#method-i-alias_attribute
 
-#### Internal Attributes
+### `attr_internal_*`
 
 When you are defining an attribute in a class that is meant to be subclassed, name collisions are a risk. That's remarkably important for libraries.
 
@@ -699,7 +709,7 @@ NOTE: Defined in `active_support/core_ext/module/attr_internal.rb`.
 [Module#attr_internal_reader]: https://api.rubyonrails.org/classes/Module.html#method-i-attr_internal_reader
 [Module#attr_internal_writer]: https://api.rubyonrails.org/classes/Module.html#method-i-attr_internal_writer
 
-#### Module Attributes
+### `mattr_*`
 
 The macros [`mattr_reader`][Module#mattr_reader], [`mattr_writer`][Module#mattr_writer], and [`mattr_accessor`][Module#mattr_accessor] are the same as the `cattr_*` macros defined for class. In fact, the `cattr_*` macros are just aliases for the `mattr_*` macros. Check [Class Attributes](#class-attributes).
 
@@ -717,9 +727,7 @@ NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 [Module#mattr_reader]: https://api.rubyonrails.org/classes/Module.html#method-i-mattr_reader
 [Module#mattr_writer]: https://api.rubyonrails.org/classes/Module.html#method-i-mattr_writer
 
-### Parents
-
-#### `module_parent`
+### `module_parent`
 
 The [`module_parent`][Module#module_parent] method on a nested named module returns the module that contains its corresponding constant:
 
@@ -744,7 +752,7 @@ NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
 [Module#module_parent]: https://api.rubyonrails.org/classes/Module.html#method-i-module_parent
 
-#### `module_parent_name`
+### `module_parent_name`
 
 The [`module_parent_name`][Module#module_parent_name] method on a nested named module returns the fully qualified name of the module that contains its corresponding constant:
 
@@ -769,7 +777,7 @@ NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
 [Module#module_parent_name]: https://api.rubyonrails.org/classes/Module.html#method-i-module_parent_name
 
-#### `module_parents`
+### `module_parents`
 
 The method [`module_parents`][Module#module_parents] calls `module_parent` on the receiver and upwards until `Object` is reached. The chain is returned in an array, from bottom to top:
 
@@ -790,7 +798,7 @@ NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
 [Module#module_parents]: https://api.rubyonrails.org/classes/Module.html#method-i-module_parents
 
-### Anonymous
+### `anonymous?`
 
 A module may or may not have a name:
 
@@ -832,9 +840,7 @@ NOTE: Defined in `active_support/core_ext/module/anonymous.rb`.
 
 [Module#anonymous?]: https://api.rubyonrails.org/classes/Module.html#method-i-anonymous-3F
 
-### Method Delegation
-
-#### `delegate`
+### `delegate`
 
 The macro [`delegate`][Module#delegate] offers an easy way to forward methods.
 
@@ -928,7 +934,7 @@ NOTE: Defined in `active_support/core_ext/module/delegation.rb`
 
 [Module#delegate]: https://api.rubyonrails.org/classes/Module.html#method-i-delegate
 
-#### `delegate_missing_to`
+### `delegate_missing_to`
 
 Imagine you would like to delegate everything missing from the `User` object,
 to the `Profile` one. The [`delegate_missing_to`][Module#delegate_missing_to] macro lets you implement this
@@ -949,7 +955,7 @@ NOTE: Defined in `active_support/core_ext/module/delegation.rb`.
 
 [Module#delegate_missing_to]: https://api.rubyonrails.org/classes/Module.html#method-i-delegate_missing_to
 
-### Redefining Methods
+### `redefine_method`
 
 There are cases where you need to define a method with `define_method`, but don't know whether a method with that name already exists. If it does, a warning is issued if they are enabled. No big deal, but not clean either.
 
