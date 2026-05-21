@@ -1,3 +1,8 @@
+*   Fix `MirrorService#mirror` raising `ActiveStorage::IntegrityError` when
+    mirroring without a checksum (e.g., `track_variants: false`).
+
+    *Denis Savchuk*
+
 *   Preserve attachment changes when converting record to another class using STI.
 
     *fatkodima*
