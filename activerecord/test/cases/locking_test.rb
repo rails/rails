@@ -199,6 +199,41 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_not_predicate stale_person, :saved_changes?
   end
 
+  def test_preserve_lock_version_on_touch_skips_lock_version_bump
+    p1 = Person.find(1)
+    original_lock_version = p1.lock_version
+
+    travel 1.second do
+      ActiveRecord::Locking::Optimistic.preserve_lock_version_on_touch do
+        p1.touch
+      end
+    end
+
+    assert_equal original_lock_version, p1.lock_version
+    assert_equal original_lock_version, Person.find(1).lock_version
+    assert_equal ["updated_at"], p1.saved_changes.keys
+  end
+
+  def test_preserve_lock_version_on_touch_does_not_raise_on_stale_object
+    person = Person.create!(first_name: "Mehmet Emin")
+    stale_person = Person.find(person.id)
+    person.update!(gender: "M")
+
+    assert_nothing_raised do
+      ActiveRecord::Locking::Optimistic.preserve_lock_version_on_touch do
+        stale_person.touch
+      end
+    end
+  end
+
+  def test_preserve_lock_version_on_touch_only_affects_block_scope
+    p1 = Person.find(1)
+    ActiveRecord::Locking::Optimistic.preserve_lock_version_on_touch { p1.touch }
+    p1.touch
+
+    assert_equal 1, p1.lock_version
+  end
+
   def test_update_with_dirty_primary_key
     assert_raises(ActiveRecord::RecordNotUnique) do
       person = Person.find(1)
