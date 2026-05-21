@@ -1,3 +1,17 @@
+*   Reset `lock_version` after a nested savepoint rollback.
+
+    When a record was saved inside a `transaction(requires_new: true)` block
+    that later rolled back, the in-memory `lock_version` was left at the
+    incremented value while the database row was reverted by the savepoint.
+    Saving the same instance again raised `ActiveRecord::StaleObjectError`
+    because the WHERE clause used the bumped value that no longer existed in
+    the database.
+
+    Restore the locking column from the snapshot on savepoint rollback in
+    addition to the outermost transaction rollback handled in #57363.
+
+    *Kenta Ishizaki*
+
 *   Fix duplicate `WHERE` conditions in `create_or_find_by`.
 
     When `create_or_find_by` catches a `RecordNotUnique` error and retries the query, it now uses `rewhere` and `take!` to prevent duplicating existing scope conditions.
