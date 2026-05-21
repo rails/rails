@@ -101,3 +101,8 @@
 # Otherwise, when set to `nil`, only the first string of the backtrace is included, stripping the `Rails.root` from the controller path.
 #++
 # Rails.application.config.action_controller.rescue_from_event_backtrace = :array
+
+###
+# Controls whether or not to close the <form> element rendered by a call to form_with without a block
+#++
+# Rails.application.config.action_view.close_form_with_without_block = true

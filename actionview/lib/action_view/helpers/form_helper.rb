@@ -118,6 +118,10 @@ module ActionView
       include ModelNaming
       include RecordIdentifier
 
+      # Controls whether or not calls to +form_with+ without a block will render without a closing tag. Defaults to +false+
+      mattr_accessor :close_form_with_without_block
+      self.close_form_with_without_block = false
+
       attr_internal :default_form_builder
 
       # Creates a form that allows the user to create or update the attributes
@@ -775,6 +779,9 @@ module ActionView
           output  = capture(builder, &block)
           options[:multipart] ||= builder.multipart?
 
+          html_options = html_options_for_form_with(url, model, **options)
+          form_tag_with_body(html_options, output)
+        elsif close_form_with_without_block
           html_options = html_options_for_form_with(url, model, **options)
           form_tag_with_body(html_options, output)
         else

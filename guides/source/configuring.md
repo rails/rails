@@ -64,6 +64,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.forgery_protection_verification_strategy`](#config-action-controller-forgery-protection-verification-strategy): `:header_only`
 - [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
+- [`config.action_view.close_form_with_without_block`](#config-action-view-close-form-with-without-block): `true`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
@@ -2657,6 +2658,30 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `true`               |
 | 7.0                   | `false`              |
+
+#### `config.action_view.close_form_with_without_block`
+
+Controls whether or not calls to `form_with` without a block will render without a closing tag.
+
+When set to `false`, calls without a block will render `<form>` elements as open tags:
+
+```ruby
+form_with url: "https://example.com"
+# => <form action="https://example.com" method="post"><!-- Rails-generated hidden fields -->
+```
+
+When set to `true`, calls without a block will render `<form>` elements with closing tags:
+
+```ruby
+form_with url: "https://example.com"
+# => <form action="https://example.com" method="post"><!-- Rails-generated hidden fields --></form>
+```
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
+
 
 #### `config.action_view.prepend_content_exfiltration_prevention`
 
