@@ -9,7 +9,7 @@ module Rails
       include EnvironmentArgument
 
       class_option :sql, type: :boolean,
-        desc: "Treat input as raw SQL instead of an ActiveRecord expression"
+        desc: "Treat input as raw SQL instead of an Active Record expression"
 
       class_option :database, aliases: "--db", type: :string,
         desc: "Database configuration to use (e.g. primary_replica)"
