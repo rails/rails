@@ -99,7 +99,7 @@ module Rails
               say format_result(columns: result.columns, rows: result.rows, sql: "EXPLAIN #{expression}")
             end
           else
-            relation = eval(expression, TOPLEVEL_BINDING, "(query)", 1)
+            relation = with_readonly_connection { eval(expression, TOPLEVEL_BINDING, "(query)", 1) }
             sql = relation.to_sql
             with_readonly_connection_for(relation.model.connection_class_for_self) do |connection|
               result = connection.select_all("EXPLAIN #{sql}")
@@ -148,7 +148,7 @@ module Rails
         end
 
         def execute_ar(expression:, page:, per:)
-          result = eval(expression, TOPLEVEL_BINDING, "(query)", 1)
+          result = with_readonly_connection { eval(expression, TOPLEVEL_BINDING, "(query)", 1) }
 
           case result
           when ActiveRecord::Relation
@@ -161,13 +161,22 @@ module Rails
             end
           when ActiveRecord::Result
             { columns: result.columns, rows: result.rows, sql: expression, truncated: false }
+          when ActiveRecord::Base
+            attrs = result.attributes
+            { columns: attrs.keys, rows: [ attrs.values ], sql: expression, truncated: false }
           when Hash
             rows = result.map { |key, val| [ key, val ] }
             { columns: [ "key", "value" ], rows: rows, sql: expression, truncated: false }
           when Array
-            rows = result.map { |val| Array(val) }
-            cols = Array.new(rows.first&.length.to_i) { |i| "column_#{i}" }
-            { columns: cols, rows: rows, sql: expression, truncated: false }
+            if result.first.is_a?(ActiveRecord::Base)
+              columns = result.first.attributes.keys
+              rows = result.map { |record| record.attributes.values }
+              { columns: columns, rows: rows, sql: expression, truncated: false }
+            else
+              rows = result.map { |val| Array(val) }
+              cols = Array.new(rows.first&.length.to_i) { |i| "column_#{i}" }
+              { columns: cols, rows: rows, sql: expression, truncated: false }
+            end
           else
             { columns: [ "result" ], rows: [ [ result ] ], sql: expression, truncated: false }
           end
