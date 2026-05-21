@@ -1,3 +1,18 @@
+*   Fix `ActiveSupport::Concurrency::ShareLock` to honor `isolation_level`.
+
+    Lock ownership was keyed on `Thread.current`. Under
+    `config.active_support.isolation_level = :fiber`, all request fibers
+    on the same thread were treated as a single owner, and the reloader
+    interlock could admit an exclusive `:unload` while another fiber
+    still held a share — clearing autoloaded constants mid-request.
+
+    `ShareLock` now keys ownership on
+    `ActiveSupport::IsolatedExecutionState.context`, the same scope used
+    by `CurrentAttributes` and other per-execution state. Behavior under
+    `:thread` isolation is unchanged.
+
+    *Joel Junström*
+
 *   Introduce `ActiveSupport::TimeFormats` and `ActiveSupport::DateFormats`
     for registering custom date formats.
 
