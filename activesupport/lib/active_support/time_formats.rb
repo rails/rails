@@ -31,7 +31,7 @@ module ActiveSupport
       @list[format] || DEPRECATED_LIST[format]
     end
 
-    # Registers a new date format for formatting `Time` instances.
+    # Registers a new date format for formatting Time instances.
     # See +Time::DATE_FORMATS+ for built-in formats.
     # Use the format name as the name and either a strftime string or
     # Proc instance that takes a date argument as the value.
