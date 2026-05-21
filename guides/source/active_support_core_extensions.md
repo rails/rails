@@ -666,16 +666,14 @@ NOTE: Defined in `active_support/core_ext/module/aliasing.rb`.
 
 [Module#alias_attribute]: https://api.rubyonrails.org/classes/Module.html#method-i-alias_attribute
 
-### `attr_internal_*`
+### `attr_internal_reader`, `attr_internal_writer`, and `attr_internal_accessor`
 
-When you are defining an attribute in a class that is meant to be subclassed, name collisions are a risk. That's remarkably important for libraries.
+When defining attributes in a class meant to be subclassed, name collisions can be a real risk. Especially in libraries where subclasses written by others may unknowingly define attributes with the same name.
 
-Active Support defines the macros [`attr_internal_reader`][Module#attr_internal_reader], [`attr_internal_writer`][Module#attr_internal_writer], and [`attr_internal_accessor`][Module#attr_internal_accessor]. They behave like their Ruby built-in `attr_*` counterparts, except they name the underlying instance variable in a way that makes collisions less likely.
-
-The macro [`attr_internal`][Module#attr_internal] is a synonym for `attr_internal_accessor`:
+Active Support provides [`attr_internal_reader`][], [`attr_internal_writer`][], and [`attr_internal_accessor`][] to address this. They behave like Ruby's built-in `attr_*` methods, except the underlying instance variable is named in a special way that makes collisions far less likely. [`attr_internal`][] is a shorthand alias for `attr_internal_accessor`.
 
 ```ruby
-# library
+# library code
 class ThirdPartyLibrary::Crawler
   attr_internal :log_level
 end
@@ -686,11 +684,11 @@ class MyCrawler < ThirdPartyLibrary::Crawler
 end
 ```
 
-In the previous example it could be the case that `:log_level` does not belong to the public interface of the library and it is only used for development. The client code, unaware of the potential conflict, subclasses and defines its own `:log_level`. Thanks to `attr_internal` there's no collision.
+Here `MyCrawler` defines its own `log_level` attribute without knowing the library uses one too. Because the library used `attr_internal`, its underlying instance variable is stored as `@_log_level` rather than `@log_level`, so the two do not conflict.
 
-By default the internal instance variable is named with a leading underscore, `@_log_level` in the example above. That's configurable via `Module.attr_internal_naming_format` though, you can pass any `sprintf`-like format string with a leading `@` and a `%s` somewhere, which is where the name will be placed. The default is `"@_%s"`.
+By default, the internal instance variable is prefixed with an underscore. This is configurable via `Module.attr_internal_naming_format`, which accepts any `sprintf`-like format string beginning with `@` and containing `%s` as a placeholder for the name. The default is `"@_%s"`.
 
-Rails uses internal attributes in a few spots, for examples for views:
+Rails itself uses `attr_internal` in several places, for example in `ActionView::Base`:
 
 ```ruby
 module ActionView
@@ -704,10 +702,10 @@ end
 
 NOTE: Defined in `active_support/core_ext/module/attr_internal.rb`.
 
-[Module#attr_internal]: https://api.rubyonrails.org/classes/Module.html#method-i-attr_internal
-[Module#attr_internal_accessor]: https://api.rubyonrails.org/classes/Module.html#method-i-attr_internal_accessor
-[Module#attr_internal_reader]: https://api.rubyonrails.org/classes/Module.html#method-i-attr_internal_reader
-[Module#attr_internal_writer]: https://api.rubyonrails.org/classes/Module.html#method-i-attr_internal_writer
+[attr_internal]: https://api.rubyonrails.org/classes/Module.html#method-i-attr_internal
+[attr_internal_accessor]: https://api.rubyonrails.org/classes/Module.html#method-i-attr_internal_accessor
+[attr_internal_reader]: https://api.rubyonrails.org/classes/Module.html#method-i-attr_internal_reader
+[attr_internal_writer]: https://api.rubyonrails.org/classes/Module.html#method-i-attr_internal_writer
 
 ### `mattr_*`
 
