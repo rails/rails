@@ -137,7 +137,7 @@ So when someone requests a file attachment in your app, the URL may look like
 `https://example.com/rails/active_storage/blobs/redirect/eyJf.../photo.jpg`. You can see all the routes by running:
 
 ```bash
-bin/rails routes | grep active_storage
+$ bin/rails routes --grep active_storage
 ```
 
 To mount Active Storage routes at a different path, you can configure
