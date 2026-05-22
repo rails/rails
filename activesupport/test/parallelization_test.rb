@@ -308,4 +308,17 @@ class ParallelizationTest < ActiveSupport::TestCase
       end
     end
   end
+
+  test "shutdown calls run_cleanup_hooks" do
+    called = false
+    ActiveSupport::Testing::Parallelization.run_cleanup_hook { called = true }
+
+    parallelization = ActiveSupport::Testing::Parallelization.new(1)
+    parallelization.start
+    parallelization.shutdown
+
+    assert called, "run_cleanup_hooks should be called during shutdown"
+  ensure
+    ActiveSupport::Testing::Parallelization.class_variable_get(:@@run_cleanup_hooks).pop
+  end
 end
