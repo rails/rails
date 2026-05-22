@@ -1,3 +1,13 @@
+*   Include the mismatched keys in the error raised by `insert_all` / `upsert_all`
+    when the inserted objects have inconsistent attributes.
+
+    ```ruby
+    Book.insert_all [{ name: "Rework", author_id: 1 }, { name: "Remote", author_id: 1, isbn: "x" }]
+    # ArgumentError: All objects being inserted must have the same keys (extra: [:isbn])
+    ```
+
+    *Hammad Khan*
+
 *   Allow `create_join_table` to accept a primary key.
 
     This is useful for databases like PostgreSQL where logical replication requires primary
