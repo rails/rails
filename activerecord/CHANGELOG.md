@@ -1,3 +1,21 @@
+*   Add `ActiveRecord.preload_batch_size` to split preloader `WHERE IN` queries into batches.
+
+    When preloading associations on large record sets, the resulting
+    `WHERE id IN (...)` clause can be too large for some databases or
+    intermediate query proxies to handle efficiently. Setting
+    `preload_batch_size` limits the number of IDs per query; the preloader
+    issues multiple queries and merges the results transparently.
+
+    ```ruby
+    # config/application.rb
+    config.active_record.preload_batch_size = 1000
+    ```
+
+    When `nil` (the default), all IDs are included in a single query,
+    preserving the existing behavior.
+
+    *Francesco Rodriguez*
+
 *   Fix Active Record Pool Reaper thread leak after `Parallelization#shutdown`.
 
     After parallelized test runs, the parent process leaked the Active Record Pool

@@ -41,20 +41,30 @@ module ActiveRecord
           def load_records_for_keys(keys, &block)
             return [] if keys.empty?
 
-            if association_key_name.is_a?(Array)
-              query_constraints = Hash.new { |hsh, key| hsh[key] = Set.new }
-
-              keys.each_with_object(query_constraints) do |values_set, constraints|
-                association_key_name.zip(values_set).each do |key_name, value|
-                  constraints[key_name] << value
-                end
-              end
-
-              scope.where(query_constraints)
+            batch_size = ActiveRecord.preload_batch_size
+            if batch_size
+              keys.each_slice(batch_size).flat_map { |batch| query_records_for_keys(batch, &block) }
             else
-              scope.where(association_key_name => keys)
-            end.load(&block)
+              query_records_for_keys(keys, &block)
+            end
           end
+
+          private
+            def query_records_for_keys(keys, &block)
+              if association_key_name.is_a?(Array)
+                query_constraints = Hash.new { |hsh, key| hsh[key] = Set.new }
+
+                keys.each_with_object(query_constraints) do |values_set, constraints|
+                  association_key_name.zip(values_set).each do |key_name, value|
+                    constraints[key_name] << value
+                  end
+                end
+
+                scope.where(query_constraints)
+              else
+                scope.where(association_key_name => keys)
+              end.load(&block)
+            end
         end
 
         class LoaderRecords
