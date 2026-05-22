@@ -797,41 +797,34 @@ NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
 ### `anonymous?`
 
-A module may or may not have a name:
+In Ruby modules and classes can be created dynamically at runtime with
+`Module.new` or `Class.new`. These have no name until assigned to a constant.
+The [`Module#anonymous?`][] method lets you check for this explicitly. This is
+useful when you need to handle named and unnamed modules differently, for
+example, when serializing a class, referencing it by name, or displaying it in
+error messages and logs.
+
+A module gets a name when it is assigned to a constant, until then it is anonymous:
 
 ```ruby
-module M
+module Blog
 end
-M.name # => "M"
+Blog.name    # => "Blog"
 
-N = Module.new
-N.name # => "N"
-
-Module.new.name # => nil
+Blog.anonymous?          # => false
+Module.new.anonymous?    # => true
 ```
 
-You can check whether a module has a name with the predicate [`anonymous?`][Module#anonymous?]:
+Note that being unreachable is not the same as being anonymous. A module can lose its constant reference and become unreachable, but it still retains the name it was given:
 
 ```ruby
-module M
+module Blog
 end
-M.anonymous? # => false
-
-Module.new.anonymous? # => true
+detached = Object.send(:remove_const, :Blog)
+detached.anonymous? # => false  — still has the name "Blog"
 ```
 
-Note that being unreachable does not imply being anonymous:
-
-```ruby
-module M
-end
-
-m = Object.send(:remove_const, :M)
-
-m.anonymous? # => false
-```
-
-though an anonymous module is unreachable by definition.
+An anonymous module, by definition, is always unreachable, but a module can be unreachable without being anonymous.
 
 NOTE: Defined in `active_support/core_ext/module/anonymous.rb`.
 
@@ -839,9 +832,9 @@ NOTE: Defined in `active_support/core_ext/module/anonymous.rb`.
 
 ### `delegate`
 
-The macro [`delegate`][Module#delegate] offers an easy way to forward methods.
+The [`delegate`][Module#delegate] method offers an easy way to forward methods to another class.
 
-Let's imagine that users in some application have login information in the `User` model but name and other data in a separate `Profile` model:
+For example, users in the application below have login information in the `User` model but name and other data in a separate `Profile` model:
 
 ```ruby
 class User < ApplicationRecord
@@ -849,7 +842,7 @@ class User < ApplicationRecord
 end
 ```
 
-With that configuration you get a user's name via their profile, `user.profile.name`, but it could be handy to still be able to access such attribute directly:
+You get a user's name via their profile, `user.profile.name` above. But it could be handy to access `name` attribute more directly. With the below update, we can do `user.name`:
 
 ```ruby
 class User < ApplicationRecord
@@ -861,7 +854,7 @@ class User < ApplicationRecord
 end
 ```
 
-That is what `delegate` does for you:
+This is what `delegate` provides:
 
 ```ruby
 class User < ApplicationRecord
@@ -871,61 +864,50 @@ class User < ApplicationRecord
 end
 ```
 
-It is shorter, and the intention more obvious.
+The method must be public in the target. Using `delegate` makes the intention more obvious. 
 
-The method must be public in the target.
-
-The `delegate` macro accepts several methods:
+Multiple methods can be delegated in one call:
 
 ```ruby
-delegate :name, :age, :address, :twitter, to: :profile
+delegate :name, :age, :address, to: :profile
 ```
 
-When interpolated into a string, the `:to` option should become an expression that evaluates to the object the method is delegated to. Typically a string or symbol. Such an expression is evaluated in the context of the receiver:
+The `:to` option accepts any expression that evaluates to the target object in the context of the receiver, typically a symbol referencing a method, association, or constant:
 
 ```ruby
-# delegates to the Rails constant
-delegate :logger, to: :Rails
-
-# delegates to the receiver's class
-delegate :table_name, to: :class
+delegate :logger, to: :Rails      # delegates to the Rails constant
+delegate :table_name, to: :class  # delegates to the receiver's class
 ```
 
-WARNING: If the `:prefix` option is `true` this is less generic, see below.
-
-By default, if the delegation raises `NoMethodError` and the target is `nil` the exception is propagated. You can ask that `nil` is returned instead with the `:allow_nil` option:
+By default, if the target is `nil` and the delegation raises `NoMethodError`, the exception propagates. Use `:allow_nil` to return `nil` instead:
 
 ```ruby
 delegate :name, to: :profile, allow_nil: true
 ```
 
-With `:allow_nil` the call `user.name` returns `nil` if the user has no profile.
+With this option, `user.name` returns `nil` if the user has no profile rather than raising an error.
 
-The option `:prefix` adds a prefix to the name of the generated method. This may be handy for example to get a better name:
+The `:prefix` option prepends the target name to the generated method name:
 
 ```ruby
 delegate :street, to: :address, prefix: true
+# generates address_street rather than street
 ```
 
-The previous example generates `address_street` rather than `street`.
-
-WARNING: Since in this case the name of the generated method is composed of the target object and target method names, the `:to` option must be a method name.
-
-A custom prefix may also be configured:
+A custom prefix can also be specified:
 
 ```ruby
 delegate :size, to: :attachment, prefix: :avatar
+# generates avatar_size rather than attachment_size
 ```
 
-In the previous example the macro generates `avatar_size` rather than `size`.
+WARNING: When using `:prefix`, the `:to` option must be a method name, since it is used to compose the name of the generated method.
 
-The option `:private` changes methods scope:
+By default, delegated methods are public. Use `:private` to change that:
 
 ```ruby
 delegate :date_of_birth, to: :profile, private: true
 ```
-
-The delegated methods are public by default. Pass `private: true` to change that.
 
 NOTE: Defined in `active_support/core_ext/module/delegation.rb`
 
@@ -934,8 +916,7 @@ NOTE: Defined in `active_support/core_ext/module/delegation.rb`
 ### `delegate_missing_to`
 
 Imagine you would like to delegate everything missing from the `User` object,
-to the `Profile` one. The [`delegate_missing_to`][Module#delegate_missing_to] macro lets you implement this
-in a breeze:
+to the `Profile` one. The [`delegate_missing_to`][Module#delegate_missing_to] macro lets you implement exactly that:
 
 ```ruby
 class User < ApplicationRecord
@@ -954,13 +935,24 @@ NOTE: Defined in `active_support/core_ext/module/delegation.rb`.
 
 ### `redefine_method`
 
-There are cases where you need to define a method with `define_method`, but don't know whether a method with that name already exists. If it does, a warning is issued if they are enabled. No big deal, but not clean either.
+When using `define_method`, Ruby will issue a warning if a method with that name already exists. The [`redefine_method`][Module#redefine_method] avoids this by removing the existing method first before defining the new one:
 
-The method [`redefine_method`][Module#redefine_method] prevents such a potential warning, removing the existing method before if needed.
+```ruby
+class User
+  redefine_method(:full_name) do
+    "#{first_name} #{last_name}"
+  end
+end
+```
 
-You can also use [`silence_redefinition_of_method`][Module#silence_redefinition_of_method] if you need to define
-the replacement method yourself (because you're using `delegate`, for
-example).
+This is particularly useful in metaprogramming where methods are generated dynamically and may be defined more than once.
+
+If you need to define the replacement method yourself — for example when using `delegate` — use [`silence_redefinition_of_method`][Module#silence_redefinition_of_method] instead. It suppresses the warning without removing the existing method upfront:
+
+```ruby
+silence_redefinition_of_method :full_name
+delegate :full_name, to: :profile
+```
 
 NOTE: Defined in `active_support/core_ext/module/redefine_method.rb`.
 
