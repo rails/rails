@@ -2620,7 +2620,7 @@ module ActionView
       #
       # ==== Examples
       #   button("Create article")
-      #   # => <button name='button' type='submit'>Create article</button>
+      #   # => <button name="button" type="submit">Create article</button>
       #
       #   button(:draft, value: true)
       #   # => <button id="article_draft" name="article[draft]" value="true" type="submit">Create article</button>
@@ -2628,14 +2628,14 @@ module ActionView
       #   button do
       #     content_tag(:strong, 'Ask me!')
       #   end
-      #   # => <button name='button' type='submit'>
+      #   # => <button name="button" type="submit">
       #   #      <strong>Ask me!</strong>
       #   #    </button>
       #
       #   button do |text|
       #     content_tag(:strong, text)
       #   end
-      #   # => <button name='button' type='submit'>
+      #   # => <button name="button" type="submit">
       #   #      <strong>Create article</strong>
       #   #    </button>
       #
