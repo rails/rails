@@ -1,3 +1,13 @@
+*   Include the list of valid values in the `ArgumentError` raised when assigning
+    an invalid value to an enum attribute.
+
+    ```ruby
+    Book.new(status: "bogus")
+    # ArgumentError: 'bogus' is not a valid status. Valid values are: "proposed", "written", "published"
+    ```
+
+    *Hammad Khan*
+
 *   Include the mismatched keys in the error raised by `insert_all` / `upsert_all`
     when the inserted objects have inconsistent attributes.
 
