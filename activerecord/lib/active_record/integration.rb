@@ -34,7 +34,7 @@ module ActiveRecord
 
     # Returns a +String+, which Action Pack uses for constructing a URL to this
     # object. The default implementation returns this record's id as a +String+,
-    # or +nil+ if this record's unsaved.
+    # or +nil+ if this record is unsaved.
     #
     # For example, suppose that you have a User model, and that you have a
     # <tt>resources :users</tt> route. Normally, +user_path+ will
