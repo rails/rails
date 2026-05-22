@@ -638,8 +638,6 @@ NOTE: Defined in `active_support/core_ext/object/inclusion.rb`.
 Extensions to `Module`
 ----------------------
 
-Todo: add an intro sentence or two.
-
 ### `alias_attribute`
 
 The [`alias_attribute`][Module#alias_attribute] method creates an alias for a model attribute, defining all three of its methods — reader, writer, and predicate — under the new name at once.
@@ -3225,11 +3223,16 @@ NOTE: Defined in `active_support/core_ext/range/overlap.rb`.
 Extensions to `Date`
 --------------------
 
-### Calculations
+Working with `Date`, `Time`, and `DateTime`
+------------------------------------------
+
+
+
+
 
 INFO: The following calculation methods have edge cases in October 1582, since days 5..14 just do not exist. This guide does not document their behavior around those days for brevity, but it is enough to say that they do what you would expect. That is, `Date.new(1582, 10, 4).tomorrow` returns `Date.new(1582, 10, 15)` and so on. Please check `test/core_ext/date_ext_test.rb` in the Active Support test suite for expected behavior.
 
-#### `Date.current`
+### `Date.current`
 
 Active Support defines [`Date.current`][Date.current] to be today in the current time zone. That's like `Date.today`, except that it honors the user time zone, if defined. It also defines [`Date.yesterday`][Date.yesterday] and [`Date.tomorrow`][Date.tomorrow], and the instance predicates [`past?`][DateAndTime::Calculations#past?], [`today?`][DateAndTime::Calculations#today?], [`tomorrow?`][DateAndTime::Calculations#tomorrow?], [`next_day?`][DateAndTime::Calculations#next_day?], [`yesterday?`][DateAndTime::Calculations#yesterday?], [`prev_day?`][DateAndTime::Calculations#prev_day?], [`future?`][DateAndTime::Calculations#future?], [`on_weekday?`][DateAndTime::Calculations#on_weekday?] and [`on_weekend?`][DateAndTime::Calculations#on_weekend?], all of them relative to `Date.current`.
 
@@ -3245,9 +3248,7 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 [DateAndTime::Calculations#on_weekend?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-on_weekend-3F
 [DateAndTime::Calculations#past?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-past-3F
 
-#### Named Dates
-
-##### `beginning_of_week`, `end_of_week`
+### `beginning_of_week`, `end_of_week`
 
 The methods [`beginning_of_week`][DateAndTime::Calculations#beginning_of_week] and [`end_of_week`][DateAndTime::Calculations#end_of_week] return the dates for the
 beginning and end of the week, respectively. Weeks are assumed to start on
@@ -3272,7 +3273,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#beginning_of_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-beginning_of_week
 [DateAndTime::Calculations#end_of_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-end_of_week
 
-##### `monday`, `sunday`
+### `monday`, `sunday`
 
 The methods [`monday`][DateAndTime::Calculations#monday] and [`sunday`][DateAndTime::Calculations#sunday] return the dates for the previous Monday (or the same day if it is Monday) and
 next Sunday (or the same day if it is Sunday), respectively.
@@ -3294,7 +3295,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#monday]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-monday
 [DateAndTime::Calculations#sunday]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-sunday
 
-##### `prev_week`, `next_week`
+### `prev_week`, `next_week`
 
 The method [`next_week`][DateAndTime::Calculations#next_week] receives a symbol with a day name in English (default is the thread local [`Date.beginning_of_week`][Date.beginning_of_week], or [`config.beginning_of_week`][], or `:monday`) and it returns the date corresponding to that day.
 
@@ -3323,7 +3324,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#next_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-next_week
 [DateAndTime::Calculations#prev_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-prev_week
 
-##### `beginning_of_month`, `end_of_month`
+### `beginning_of_month`, `end_of_month`
 
 The methods [`beginning_of_month`][DateAndTime::Calculations#beginning_of_month] and [`end_of_month`][DateAndTime::Calculations#end_of_month] return the dates for the beginning and end of the month:
 
@@ -3342,7 +3343,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#beginning_of_month]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-beginning_of_month
 [DateAndTime::Calculations#end_of_month]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-end_of_month
 
-##### `quarter`, `beginning_of_quarter`, `end_of_quarter`
+### `quarter`, `beginning_of_quarter`, `end_of_quarter`
 
 The method [`quarter`][DateAndTime::Calculations#quarter] returns the quarter of the receiver's calendar year:
 
@@ -3369,7 +3370,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#beginning_of_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-beginning_of_quarter
 [DateAndTime::Calculations#end_of_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-end_of_quarter
 
-##### `beginning_of_year`, `end_of_year`
+### `beginning_of_year`, `end_of_year`
 
 The methods [`beginning_of_year`][DateAndTime::Calculations#beginning_of_year] and [`end_of_year`][DateAndTime::Calculations#end_of_year] return the dates for the beginning and end of the year:
 
@@ -3388,9 +3389,9 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#beginning_of_year]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-beginning_of_year
 [DateAndTime::Calculations#end_of_year]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-end_of_year
 
-#### Other Date Computations
+// #### Other Date Computations
 
-##### `years_ago`, `years_since`
+### `years_ago`, `years_since`
 
 The method [`years_ago`][DateAndTime::Calculations#years_ago] receives a number of years and returns the same date those many years ago:
 
@@ -3421,7 +3422,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#years_ago]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-years_ago
 [DateAndTime::Calculations#years_since]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-years_since
 
-##### `months_ago`, `months_since`
+### `months_ago`, `months_since`
 
 The methods [`months_ago`][DateAndTime::Calculations#months_ago] and [`months_since`][DateAndTime::Calculations#months_since] work analogously for months:
 
@@ -3445,7 +3446,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#months_ago]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-months_ago
 [DateAndTime::Calculations#months_since]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-months_since
 
-##### `weeks_ago`, `weeks_since`
+### `weeks_ago`, `weeks_since`
 
 The method [`weeks_ago`][DateAndTime::Calculations#weeks_ago] and [`weeks_since`][DateAndTime::Calculations#week_since] work analogously for weeks:
 
@@ -3459,7 +3460,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#weeks_ago]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-weeks_ago
 [DateAndTime::Calculations#weeks_since]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-weeks_since
 
-##### `advance`
+### `advance`
 
 The most generic way to jump to other days is [`advance`][Date#advance]. This method receives a hash with keys `:years`, `:months`, `:weeks`, `:days`, and returns a date advanced as much as the present keys indicate:
 
@@ -3475,7 +3476,7 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
 [Date#advance]: https://api.rubyonrails.org/classes/Date.html#method-i-advance
 
-#### Changing Components
+### `change`
 
 The method [`change`][Date#change] allows you to get a new date which is the same as the receiver except for the given year, month, or day:
 
@@ -3495,7 +3496,7 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
 [Date#change]: https://api.rubyonrails.org/classes/Date.html#method-i-change
 
-#### Durations
+### Durations
 
 [`Duration`][ActiveSupport::Duration] objects can be added to and subtracted from dates:
 
@@ -3517,11 +3518,11 @@ Date.new(1582, 10, 4) + 1.day
 
 [ActiveSupport::Duration]: https://api.rubyonrails.org/classes/ActiveSupport/Duration.html
 
-#### Timestamps
+// #### Timestamps
 
 INFO: The following methods return a `Time` object if possible, otherwise a `DateTime`. If set, they honor the user time zone.
 
-##### `beginning_of_day`, `end_of_day`
+### `beginning_of_day`, `end_of_day`
 
 The method [`beginning_of_day`][Date#beginning_of_day] returns a timestamp at the beginning of the day (00:00:00):
 
@@ -3547,7 +3548,7 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 [Date#end_of_day]: https://api.rubyonrails.org/classes/Date.html#method-i-end_of_day
 [Date#midnight]: https://api.rubyonrails.org/classes/Date.html#method-i-midnight
 
-##### `beginning_of_hour`, `end_of_hour`
+### `beginning_of_hour`, `end_of_hour`
 
 The method [`beginning_of_hour`][DateTime#beginning_of_hour] returns a timestamp at the beginning of the hour (hh:00:00):
 
@@ -3567,7 +3568,7 @@ date.end_of_hour # => Mon Jun 07 19:59:59 +0200 2010
 
 NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
-##### `beginning_of_minute`, `end_of_minute`
+### `beginning_of_minute`, `end_of_minute`
 
 The method [`beginning_of_minute`][DateTime#beginning_of_minute] returns a timestamp at the beginning of the minute (hh:mm:00):
 
@@ -3593,7 +3594,7 @@ NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 [DateTime#beginning_of_minute]: https://api.rubyonrails.org/classes/DateTime.html#method-i-beginning_of_minute
 [DateTime#end_of_minute]: https://api.rubyonrails.org/classes/DateTime.html#method-i-end_of_minute
 
-##### `ago`, `since`
+### `ago`, `since`
 
 The method [`ago`][Date#ago] receives a number of seconds as argument and returns a timestamp those many seconds ago from midnight:
 
