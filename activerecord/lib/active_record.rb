@@ -490,6 +490,21 @@ module ActiveRecord
   singleton_class.attr_accessor :generate_secure_token_on
   self.generate_secure_token_on = :create
 
+  ##
+  # :singleton-method: preload_batch_size
+  # Controls the maximum number of IDs used in each <tt>WHERE IN (...)</tt>
+  # query issued by the preloader. When +nil+ (the default), all IDs are
+  # loaded in a single query. When set to an integer, the IDs are split into
+  # batches of at most that size, issuing one query per batch.
+  #
+  # This is useful when preloading associations on large record sets and the
+  # resulting <tt>WHERE IN</tt> clause would be too large for the database or
+  # an intermediate proxy to handle efficiently.
+  #
+  #   ActiveRecord.preload_batch_size = 1000
+  singleton_class.attr_accessor :preload_batch_size
+  self.preload_batch_size = nil
+
   def self.deprecated_associations_options=(options)
     raise ArgumentError, "deprecated_associations_options must be a hash" unless options.is_a?(Hash)
 
