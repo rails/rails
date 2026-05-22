@@ -51,6 +51,31 @@ class ActiveRecord::Encryption::ContextsTest < ActiveRecord::EncryptionTestCase
     end
   end
 
+  test ".with_encryption_context dups share the default context's key provider" do
+    ActiveRecord::Encryption.reset_default_context
+
+    providers = []
+    3.times do
+      ActiveRecord::Encryption.with_encryption_context(message_serializer: ActiveRecord::Encryption::MessageSerializer.new) do
+        providers << ActiveRecord::Encryption.key_provider
+      end
+    end
+
+    assert_equal 1, providers.uniq(&:object_id).size
+    assert_same ActiveRecord::Encryption.default_context.key_provider, providers.first
+  end
+
+  test ".with_encryption_context(key_provider:) still overrides the inherited key provider" do
+    ActiveRecord::Encryption.reset_default_context
+    override = ActiveRecord::Encryption::DerivedSecretKeyProvider.new("a different 256 bits key for now")
+
+    ActiveRecord::Encryption.with_encryption_context(key_provider: override) do
+      assert_same override, ActiveRecord::Encryption.key_provider
+    end
+
+    assert_not_same override, ActiveRecord::Encryption.default_context.key_provider
+  end
+
   test ".without_encryption won't decrypt or encrypt data automatically" do
     ActiveRecord::Encryption.without_encryption do
       assert_equal @title_ciphertext, @post.reload.title

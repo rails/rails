@@ -32,6 +32,10 @@ module ActiveRecord
         # Encryption contexts can be nested.
         def with_encryption_context(properties)
           self.custom_contexts ||= []
+          # Memoize +@key_provider+ on the default context before duping it.
+          # Without this, every dup may build +DerivedSecretKeyProvider+ from
+          # scratch, running an expensive PBKDF2 derivation.
+          default_context.key_provider
           self.custom_contexts << default_context.dup
           properties.each do |key, value|
             self.current_custom_context.send("#{key}=", value)
