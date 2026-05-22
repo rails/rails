@@ -754,44 +754,41 @@ NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
 ### `module_parent_name`
 
-The [`module_parent_name`][Module#module_parent_name] method on a nested named module returns the fully qualified name of the module that contains its corresponding constant:
+The [`module_parent_name`][Module#module_parent_name] method works like `module_parent` but returns the fully qualified name of the containing module as a string rather than the module itself:
 
 ```ruby
-module X
-  module Y
-    module Z
+module Blog
+  module Admin
+    module Settings
     end
   end
 end
-M = X::Y::Z
 
-X::Y::Z.module_parent_name # => "X::Y"
-M.module_parent_name       # => "X::Y"
+Blog::Admin::Settings.module_parent_name # => "Blog::Admin"
+Blog::Admin.module_parent_name           # => "Blog"
 ```
 
-For top-level or anonymous modules `module_parent_name` returns `nil`.
-
-WARNING: Note that in that case `module_parent` returns `Object`.
+For top-level or anonymous modules, `module_parent_name` returns `nil`, whereas `module_parent` would return `Object`.
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
 [Module#module_parent_name]: https://api.rubyonrails.org/classes/Module.html#method-i-module_parent_name
 
+
 ### `module_parents`
 
-The method [`module_parents`][Module#module_parents] calls `module_parent` on the receiver and upwards until `Object` is reached. The chain is returned in an array, from bottom to top:
+The [`module_parents`][Module#module_parents] method calls `module_parent` on the receiver and continues upwards until `Object` is reached, returning the entire chain as an array from bottom to top:
 
 ```ruby
-module X
-  module Y
-    module Z
+module Blog
+  module Admin
+    module Settings
     end
   end
 end
-M = X::Y::Z
 
-X::Y::Z.module_parents # => [X::Y, X, Object]
-M.module_parents       # => [X::Y, X, Object]
+Blog::Admin::Settings.module_parents # => [Blog::Admin, Blog, Object]
+Blog::Admin.module_parents           # => [Blog, Object]
 ```
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
