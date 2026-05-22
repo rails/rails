@@ -48,7 +48,7 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_table :ri_pp_children, if_exists: true
     @connection.drop_table :ri_pp_parents_0, if_exists: true
     @connection.drop_table :ri_pp_parents, if_exists: true
-    reset_connection
+    reset_pool
     if ActiveRecord::Base.lease_connection.is_a?(MissingSuperuserPrivileges)
       raise "MissingSuperuserPrivileges patch was not removed"
     end

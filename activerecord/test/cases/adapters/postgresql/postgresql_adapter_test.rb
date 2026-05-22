@@ -323,7 +323,7 @@ module ActiveRecord
       end
 
       def test_queries_executed_on_fresh_connection_through_first_select
-        reset_connection
+        reset_pool
 
         queries = PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
           with_timezone_config(default: :utc) do
@@ -344,11 +344,11 @@ module ActiveRecord
         assert_equal expected_queries.size, queries.size
         assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
       ensure
-        reset_connection
+        reset_pool
       end
 
       def test_queries_executed_on_fresh_connection_with_all_settings_skipped
-        reset_connection
+        reset_pool
 
         queries = PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
           with_timezone_config(default: :utc) do
@@ -370,7 +370,7 @@ module ActiveRecord
         assert_equal expected_queries.size, queries.size
         assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
       ensure
-        reset_connection
+        reset_pool
       end
 
       def test_queries_executed_on_fresh_connection_with_first_custom_type_lookup
@@ -379,7 +379,7 @@ module ActiveRecord
           t.column :value, :postgresql_startup_lookup_enum
         end
         @connection.execute "INSERT INTO postgresql_startup_lookup_enums (value) VALUES ('good')"
-        reset_connection
+        reset_pool
 
         queries = PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
           with_timezone_config(default: :utc) do
@@ -404,7 +404,7 @@ module ActiveRecord
       ensure
         @connection.drop_table "postgresql_startup_lookup_enums", if_exists: true
         @connection.drop_enum "postgresql_startup_lookup_enum", if_exists: true
-        reset_connection
+        reset_pool
       end
 
       def test_queries_executed_on_fresh_connection_with_two_multi_oid_type_lookups
@@ -413,7 +413,7 @@ module ActiveRecord
 
         first_sql = "SELECT 'one'::postgresql_startup_lookup_one_a AS value_a, 'one'::postgresql_startup_lookup_one_b AS value_b"
         second_sql = "SELECT 'one'::postgresql_startup_lookup_two_a AS value_a, 'one'::postgresql_startup_lookup_two_b AS value_b"
-        reset_connection
+        reset_pool
 
         first_queries = nil
         second_queries = nil
@@ -457,7 +457,7 @@ module ActiveRecord
         @connection.drop_enum "postgresql_startup_lookup_one_b", if_exists: true
         @connection.drop_enum "postgresql_startup_lookup_two_a", if_exists: true
         @connection.drop_enum "postgresql_startup_lookup_two_b", if_exists: true
-        reset_connection
+        reset_pool
       end
 
       def test_schema_search_path_uses_parameter_status_on_pg18
@@ -943,11 +943,11 @@ module ActiveRecord
         assert_not @connection.send(:type_map).key?(enum_oid)
       ensure
         @connection.drop_enum "feeling", if_exists: true
-        reset_connection
+        reset_pool
       end
 
       def test_only_reload_type_map_once_for_every_unrecognized_type
-        reset_connection
+        reset_pool
         connection = ActiveRecord::Base.lease_connection
         connection.select_all "SELECT 1" # eagerly initialize the connection
 
@@ -970,7 +970,7 @@ module ActiveRecord
         assert_equal expected_queries.size, queries.size
         assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
       ensure
-        reset_connection
+        reset_pool
       end
 
       def test_bulk_loads_domains_after_first_unknown_oid_lookup
@@ -982,7 +982,7 @@ module ActiveRecord
         @connection.create_table("postgresql_domain_type_map_bulk_loads_two", force: true) do |t|
           t.column :value, :postgresql_domain_two
         end
-        reset_connection
+        reset_pool
 
         connection = ActiveRecord::Base.lease_connection
         connection.select_all "SELECT 1" # eagerly initialize the connection
@@ -1013,7 +1013,7 @@ module ActiveRecord
         @connection.drop_table "postgresql_domain_type_map_bulk_loads_two", if_exists: true
         @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_one"
         @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_two"
-        reset_connection
+        reset_pool
       end
 
       def test_bulk_oid_lookup_query_excludes_system_catalog_types_for_known_servers
@@ -1041,7 +1041,7 @@ module ActiveRecord
         @connection.execute "CREATE DOMAIN postgresql_domain_base AS integer"
         @connection.execute "CREATE DOMAIN postgresql_domain_nested AS postgresql_domain_base[]"
         nested_array_oid = @connection.query_value("SELECT 'postgresql_domain_nested[]'::regtype::oid").to_i
-        reset_connection
+        reset_pool
 
         connection = ActiveRecord::Base.lease_connection
         lookup_sql = "SELECT '{}'::postgresql_domain_nested[] AS value"
@@ -1076,11 +1076,11 @@ module ActiveRecord
       ensure
         @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_nested"
         @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_base"
-        reset_connection
+        reset_pool
       end
 
       def test_load_additional_types_cascades_dependency_lookups_after_initial_bulk_load
-        reset_connection
+        reset_pool
         connection = ActiveRecord::Base.lease_connection
         silence_warnings { connection.select_all "select 'pg_catalog.pg_class'::regclass" }
 
@@ -1097,11 +1097,11 @@ module ActiveRecord
       ensure
         connection&.execute "DROP DOMAIN IF EXISTS postgresql_domain_nested_after_bulk"
         connection&.execute "DROP DOMAIN IF EXISTS postgresql_domain_base_after_bulk"
-        reset_connection
+        reset_pool
       end
 
       def test_only_warn_on_first_encounter_of_unrecognized_oid
-        reset_connection
+        reset_pool
         connection = ActiveRecord::Base.lease_connection
 
         warning = capture(:stderr) {
@@ -1111,7 +1111,7 @@ module ActiveRecord
         }
         assert_match(/\Aunknown OID \d+: failed to recognize type of 'regclass'\. It will be treated as String\.\n\z/, warning)
       ensure
-        reset_connection
+        reset_pool
       end
 
       def test_unparsed_defaults_are_at_least_set_when_saving
