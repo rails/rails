@@ -160,9 +160,9 @@ module Rails
     #
     # The +each+ iterator allows you to iterate over both loaders:
     #
-    #  Rails.autoloaders.each do |loader|
-    #    loader.log!
-    #  end
+    #   Rails.autoloaders.each do |loader|
+    #     loader.log!
+    #   end
     #
     # which may be handy if you want to run the same code for both of them.
     #
