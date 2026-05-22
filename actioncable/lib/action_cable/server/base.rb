@@ -71,7 +71,7 @@ module ActionCable
       end
 
       def restart
-        connections.each do |connection|
+        each_connection do |connection|
           connection.close(reason: ActionCable::INTERNAL[:disconnect_reasons][:server_restart])
         end
 

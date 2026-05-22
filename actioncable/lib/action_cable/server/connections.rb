@@ -13,11 +13,11 @@ module ActionCable
     module Connections # :nodoc:
       BEAT_INTERVAL = 3
 
-      def connections_map
-        @connections_map ||= {}
-      end
-
       def connections = connections_map.values
+
+      def each_connection(...)
+        connections_map.each_value(...)
+      end
 
       def add_connection(connection)
         connections_map[connection.object_id] = connection
@@ -34,13 +34,18 @@ module ActionCable
       # disconnect.
       def setup_heartbeat_timer
         @heartbeat_timer ||= executor.timer(BEAT_INTERVAL) do
-          executor.post { connections_map.each_value(&:beat) }
+          executor.post { each_connection(&:beat) }
         end
       end
 
       def open_connections_statistics
-        connections_map.each_value.map(&:statistics)
+        each_connection.map(&:statistics)
       end
+
+      private
+        def connections_map
+          @connections_map ||= {}
+        end
     end
   end
 end

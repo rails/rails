@@ -106,7 +106,7 @@ class ActionCable::Server::SocketTest < ActionCable::TestCase
       socket.send :handle_close
       assert_not socket.connection.connected
 
-      assert_equal [], @server.connections
+      assert_empty @server.connections
     end
   end
 

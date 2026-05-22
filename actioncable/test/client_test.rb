@@ -303,7 +303,7 @@ class ClientTest < ActionCable::TestCase
       assert_equal({ "type" => "welcome" }, c.read_message)
       c.send_message command: "subscribe", identifier: identifier
       assert_equal({ "identifier" => "{\"channel\":\"ClientTest::EchoChannel\"}", "type" => "confirm_subscription" }, c.read_message)
-      assert_equal(1, app.connections.count)
+      assert_equal(1, app.connections.size)
 
       subscriptions = app.connections.first.subscriptions.send(:subscriptions)
       assert_not_equal 0, subscriptions.size, "Missing EchoChannel subscription"
@@ -314,7 +314,7 @@ class ClientTest < ActionCable::TestCase
       end
 
       # All data is removed: No more connection or subscription information!
-      assert_equal(0, app.connections.count)
+      assert_empty app.connections
     end
   end
 

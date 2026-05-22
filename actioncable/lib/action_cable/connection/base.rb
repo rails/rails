@@ -61,7 +61,6 @@ module ActionCable
       include ActiveSupport::Rescuable
 
       attr_reader :subscriptions, :logger
-      private attr_reader :server, :socket
 
       delegate :pubsub, :executor, :config, to: :server
       delegate :env, :request, :protocol, :perform_work, to: :socket, allow_nil: true
@@ -147,6 +146,8 @@ module ActionCable
       ActiveSupport::InspectBackport.apply(self)
 
       private
+        attr_reader :server, :socket
+
         def instance_variables_to_inspect
           [].freeze
         end
