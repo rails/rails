@@ -1,3 +1,16 @@
+*   Fix Active Record Pool Reaper thread leak after `Parallelization#shutdown`.
+
+    After parallelized test runs, the parent process leaked the Active Record Pool
+    Reaper thread, holding open connection pools and file descriptors for up to
+    `reaping_frequency` seconds (or indefinitely if never reaped).
+
+    Three fixes: `Parallelization#shutdown` now calls `run_cleanup_hooks`;
+    Active Record registers a cleanup hook that discards all connection pools; and
+    `ConnectionPool#discard!` now calls `Reaper.discard_pool`, which immediately
+    kills and joins the reaper thread when no pools remain at that frequency.
+
+    *Ruy Rocha*
+
 *   Fix `strict_loading` violations ignored when using `pluck`
 
     *Johnson Chan*

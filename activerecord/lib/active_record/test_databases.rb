@@ -8,6 +8,10 @@ module ActiveRecord
       create_and_load_schema(i, env_name: ActiveRecord::ConnectionHandling::DEFAULT_ENV.call)
     end
 
+    ActiveSupport::Testing::Parallelization.run_cleanup_hook do
+      ActiveRecord::Base.connection_handler.each_connection_pool.each(&:discard!)
+    end
+
     def self.create_and_load_schema(i, env_name:)
       old, ENV["VERBOSE"] = ENV["VERBOSE"], "false"
 

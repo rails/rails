@@ -36,6 +36,23 @@ module ActiveRecord
             end
           end
 
+          def discard_pool(pool) # :nodoc:
+            @mutex.synchronize do
+              @pools.each do |frequency, refs|
+                refs.reject! do |ref|
+                  ref.__getobj__ == pool
+                rescue WeakRef::RefError
+                  true
+                end
+
+                if refs.empty?
+                  @pools.delete(frequency)
+                  @threads.delete(frequency)&.tap { |t| t.kill; t.join }
+                end
+              end
+            end
+          end
+
           private
             def spawn_thread(frequency)
               Thread.new(frequency) do |t|

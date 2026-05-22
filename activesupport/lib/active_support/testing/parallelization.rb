@@ -60,6 +60,8 @@ module ActiveSupport
         rescue Errno::ECHILD
           nil
         end
+
+        Parallelization.run_cleanup_hooks.each(&:call)
       end
     end
   end

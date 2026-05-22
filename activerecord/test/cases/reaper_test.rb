@@ -182,6 +182,48 @@ module ActiveRecord
         pool.discard!
       end
 
+      def test_discard_pool_removes_pool_from_registry
+        pool_config = duplicated_pool_config(reaping_frequency: "0.1")
+        pool = ConnectionPool.new(pool_config)
+
+        assert ConnectionPool::Reaper.instance_variable_get(:@pools).any? { |_, refs|
+          refs.any? { |ref| ref.__getobj__ == pool rescue false }
+        }, "pool should be registered with the reaper"
+
+        pool.discard!
+
+        assert ConnectionPool::Reaper.instance_variable_get(:@pools).none? { |_, refs|
+          refs.any? { |ref| ref.__getobj__ == pool rescue false }
+        }, "pool should be removed from reaper registry after discard!"
+      end
+
+      def test_discard_pool_kills_reaper_thread_when_no_pools_remain
+        pool_config = duplicated_pool_config(reaping_frequency: "100")
+        pool = ConnectionPool.new(pool_config)
+
+        thread = ConnectionPool::Reaper.instance_variable_get(:@threads)[100.0]
+        assert thread&.alive?, "reaper thread should be alive before discard!"
+
+        pool.discard!
+
+        assert_not thread.alive?, "reaper thread should be dead after discard!"
+      end
+
+      def test_discard_pool_does_not_kill_thread_when_other_pools_remain
+        pool_config = duplicated_pool_config(reaping_frequency: "100")
+        pool1 = ConnectionPool.new(pool_config)
+        pool2 = ConnectionPool.new(pool_config)
+
+        thread = ConnectionPool::Reaper.instance_variable_get(:@threads)[100.0]
+        assert thread&.alive?, "reaper thread should be alive"
+
+        pool1.discard!
+
+        assert thread.alive?, "reaper thread should stay alive while pool2 is registered"
+      ensure
+        pool2.discard!
+      end
+
       private
         def duplicated_pool_config(merge_config_options = {})
           old_config = ActiveRecord::Base.connection_pool.db_config.configuration_hash.merge(merge_config_options)

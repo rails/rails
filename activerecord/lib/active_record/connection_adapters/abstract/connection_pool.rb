@@ -488,6 +488,7 @@ module ActiveRecord
       def discard! # :nodoc:
         synchronize do
           return if self.discarded?
+          Reaper.discard_pool(self)
           @connections.each do |conn|
             conn.discard!
           end
