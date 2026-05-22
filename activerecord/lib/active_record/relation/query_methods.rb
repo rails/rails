@@ -77,14 +77,14 @@ module ActiveRecord
       #
       #    Post.left_joins(:author).where.associated(:author)
       #    # SELECT "posts".* FROM "posts"
-      #    # LEFT OUTER JOIN "authors" "authors"."id" = "posts"."author_id"
+      #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # WHERE "authors"."id" IS NOT NULL
       #
       #    Post.left_joins(:comments).where.associated(:author)
       #    # SELECT "posts".* FROM "posts"
       #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
-      #   #  WHERE "author"."id" IS NOT NULL
+      #    # WHERE "authors"."id" IS NOT NULL
       def associated(*associations)
         associations.each do |association|
           reflection = scope_association_reflection(association)
@@ -583,10 +583,10 @@ module ActiveRecord
     # Allows you to change a previously set group statement.
     #
     #   Post.group(:title, :body)
-    #   # SELECT `posts`.`*` FROM `posts` GROUP BY `posts`.`title`, `posts`.`body`
+    #   # SELECT `posts`.* FROM `posts` GROUP BY `posts`.`title`, `posts`.`body`
     #
     #   Post.group(:title, :body).regroup(:title)
-    #   # SELECT `posts`.`*` FROM `posts` GROUP BY `posts`.`title`
+    #   # SELECT `posts`.* FROM `posts` GROUP BY `posts`.`title`
     #
     # This is short-hand for <tt>unscope(:group).group(fields)</tt>.
     # Note that we're unscoping the entire group statement.
