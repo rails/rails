@@ -74,6 +74,8 @@ module ActiveSupport
           nil
         end
 
+        DRb.stop_service
+
         Parallelization.run_cleanup_hooks.each(&:call)
       end
     end

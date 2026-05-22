@@ -51,6 +51,26 @@ class ParallelizationTest < ActiveSupport::TestCase
     assert_not server.active_workers?
   end
 
+  test "shutdown stops the DRb service started in initialize" do
+    skip "Process-based parallelization requires fork" unless Process.respond_to?(:fork)
+
+    parallelization = ActiveSupport::Testing::Parallelization.new(1)
+    parallelization.start
+    parallelization.shutdown
+
+    leaked = Thread.list
+      .reject { |t| t == Thread.main }
+      .select(&:alive?)
+      .select do |t|
+        bt = Array(t.backtrace).join("\n")
+        bt.include?("drb/drb.rb") && bt.match?(/accept_or_shutdown|main_loop/)
+      end
+
+    assert_empty leaked,
+      "Expected Parallelization#shutdown to call DRb.stop_service. Leaked:\n" +
+      leaked.map { |t| Array(t.backtrace).first(5).join("\n  ") }.join("\n---\n")
+  end
+
   test "shutdown calls run_cleanup_hooks" do
     called = false
     ActiveSupport::Testing::Parallelization.run_cleanup_hook { called = true }
