@@ -1560,6 +1560,11 @@ This will generate SQL like:
 SELECT * FROM books WHERE books.created_at >= "2008-12-21 00:00:00"
 ```
 
+NOTE: While beginless ranges support both `<=` and `<` by using `..end` and
+`...end`, endless ranges will always result in `>=` for both `start..` and
+`start...` ranges. As Ruby doesn't yet support excluding the start of a range,
+Rails doesn't support this either.
+
 #### Subset Conditions
 
 If you want to find records using the `IN` expression you can pass an array to
