@@ -615,11 +615,11 @@ module ActiveRecord
         assert_queries_match(/from pg_type/i, include_schema: true) do
           @connection.drop_enum "feeling", if_exists: true
         end
-        reset_connection
+        reset_pool
       end
 
       def test_only_reload_type_map_once_for_every_unrecognized_type
-        reset_connection
+        reset_pool
         connection = ActiveRecord::Base.lease_connection
         connection.select_all "SELECT 1" # eagerly initialize the connection
 
@@ -635,11 +635,11 @@ module ActiveRecord
           end
         end
       ensure
-        reset_connection
+        reset_pool
       end
 
       def test_only_warn_on_first_encounter_of_unrecognized_oid
-        reset_connection
+        reset_pool
         connection = ActiveRecord::Base.lease_connection
 
         warning = capture(:stderr) {
@@ -649,7 +649,7 @@ module ActiveRecord
         }
         assert_match(/\Aunknown OID \d+: failed to recognize type of 'regclass'\. It will be treated as String\.\n\z/, warning)
       ensure
-        reset_connection
+        reset_pool
       end
 
       def test_unparsed_defaults_are_at_least_set_when_saving
