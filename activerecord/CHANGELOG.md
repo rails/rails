@@ -1,3 +1,22 @@
+*   Avoid rebuilding the default encryption key provider on every
+    `ActiveRecord::Encryption.with_encryption_context` call.
+
+    `with_encryption_context` dups the default context and pops it after the
+    block. `Context#key_provider` is lazily memoized. If it had never been
+    called on the default context, every dup built its own
+    `DerivedSecretKeyProvider` from scratch - running an expensive PBKDF2
+    derivation — and discarded it on pop. Once the default context's
+    `@key_provider` was initialized (for example by any direct read outside of
+    `with_encryption_context`), subsequent dups inherited the reference and
+    the problem disappeared, which made the bug order-dependent and easy to
+    miss.
+
+    `with_encryption_context` now memoizes `@key_provider` on the default
+    context before duping it, so the original is built once and every dup
+    inherits the same reference.
+
+    *Michał Zaporski*
+
 *   Fix Active Record Pool Reaper thread leak after `Parallelization#shutdown`.
 
     After parallelized test runs, the parent process leaked the Active Record Pool
