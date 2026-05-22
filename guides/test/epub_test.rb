@@ -3,8 +3,9 @@
 require "test_helper"
 
 class EpubTest < ActiveSupport::TestCase
-  def setup
+  setup do
     @path = Dir.mktmpdir
+    @old_path = Dir.pwd
     Dir.chdir(@path)
     @html_file = File.join(@path, "test.html")
     @alternate_png_file = "images/sample.png"
@@ -17,7 +18,8 @@ class EpubTest < ActiveSupport::TestCase
     HTML
   end
 
-  def teardown
+  teardown do
+    Dir.chdir(@old_path)
     FileUtils.remove_entry(@path)
   end
 
