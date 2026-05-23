@@ -123,7 +123,7 @@ module ActionCable
           type: ActionCable::INTERNAL[:message_types][:disconnect],
           reason: reason,
           reconnect: reconnect
-        )
+        ) rescue nil
         socket.close
       end
 
