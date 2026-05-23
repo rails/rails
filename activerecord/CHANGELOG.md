@@ -1,4 +1,4 @@
-*   Fully qualify query criterias in `has_and_belongs_to_many` associations. 
+*   Fully qualify query criterias in `has_and_belongs_to_many` associations.
 
     Ensure that scopes with the same column name but in different tables aren't lost
     when following an HABTM association.
