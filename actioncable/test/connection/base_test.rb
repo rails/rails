@@ -82,6 +82,17 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     end
   end
 
+  test "#broadcast" do
+    connection = Connection.new(ActionCable.server, ActionCable::Server::Socket.new(ActionCable.server, {}))
+
+    messages = capture_broadcasts("test") do
+      connection.broadcast("test", { message: "hello" })
+    end
+
+    assert_equal 1, messages.size
+    assert_equal({ "message" => "hello" }, messages.first)
+  end
+
   private
     def open_connection
       server = TestServer.new
