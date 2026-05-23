@@ -507,6 +507,17 @@ module ActiveRecord
         end
       end
 
+      def test_index_with_comment_on_table_with_schema
+        @connection.create_schema("second_schema")
+        @connection.create_table("second_schema.posts")
+        @connection.add_index("second_schema.posts", :id, comment: "test comment")
+
+        index = @connection.indexes("second_schema.posts").first
+        assert_equal "test comment", index.comment
+      ensure
+        @connection.drop_schema("second_schema")
+      end
+
       def test_columns_for_distinct_zero_orders
         assert_equal "posts.id",
           @connection.columns_for_distinct("posts.id", [])
