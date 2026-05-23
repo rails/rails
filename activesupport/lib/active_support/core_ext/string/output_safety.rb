@@ -175,7 +175,7 @@ module ActiveSupport # :nodoc:
       class_eval <<~RUBY, __FILE__, __LINE__ + 1
         def #{unsafe_method}(*, **, &block)             # def gsub(*, **, &block)
           if block                                      #   if block
-            to_str.#{unsafe_method}(*, **) { |*params|  #     to_str.gsub(*, &&) { |*params|
+            to_str.#{unsafe_method}(*, **) { |*params|  #     to_str.gsub(*, **) { |*params|
               set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
               block.call(*params)                       #       block.call(*params)
             }                                           #     }
