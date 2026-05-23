@@ -20,7 +20,7 @@ module ActionMailbox
     def create
       raw_emails.each { |raw_email| ActionMailbox::InboundEmail.create_and_extract_message_id! raw_email }
       head :ok
-    rescue JSON::ParserError => error
+    rescue JSON::ParserError, MalformedEventsError => error
       logger.error error.message
       head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     end
@@ -30,12 +30,20 @@ module ActionMailbox
     end
 
     private
+      class MalformedEventsError < StandardError
+        def initialize(message = "Malformed Mandrill events payload")
+          super
+        end
+      end
+
       def raw_emails
         events.select { |event| event["event"] == "inbound" }.collect { |event| event.dig("msg", "raw_msg") }
       end
 
       def events
-        JSON.parse params.require(:mandrill_events)
+        JSON.parse(params.require(:mandrill_events)).tap do |parsed|
+          raise MalformedEventsError unless parsed.is_a?(Array) && parsed.all?(Hash)
+        end
       end
 
 
