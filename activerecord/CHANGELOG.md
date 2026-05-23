@@ -1,3 +1,10 @@
+*   Fully qualify query criterias in `has_and_belongs_to_many` associations. 
+
+    Ensure that scopes with the same column name but in different tables aren't lost
+    when following an HABTM association.
+
+    *Philip Maina*
+
 *   Fix Active Record Pool Reaper thread leak after `Parallelization#shutdown`.
 
     After parallelized test runs, the parent process leaked the Active Record Pool
