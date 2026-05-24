@@ -28,7 +28,24 @@ Rails.application.routes.draw do
   end
 
   resolve("ActiveStorage::Blob")       { |blob, options| route_for(ActiveStorage.resolve_model_to_route, blob, options) }
-  resolve("ActiveStorage::Attachment") { |attachment, options| route_for(ActiveStorage.resolve_model_to_route, attachment.blob, options) }
+  resolve("ActiveStorage::Attachment", "ActiveStorage::Attached::One") do |attachment, options|
+    route_for(ActiveStorage.resolve_model_to_route, attachment.blob, options)
+  end
+
+  { blob_class: "ActiveStorage::Blob", attachment_class: "ActiveStorage::Attachment" }.each do |slot, default|
+    unless ActiveStorage.class_variable_get(:"@@#{slot}") == default
+      model = ActiveStorage.public_send(slot)
+      names = [model.name]
+      names << model.model_name.name if model.respond_to?(:model_name)
+
+      names.uniq.each do |name|
+        resolve(name) do |record, options|
+          blob = slot == :attachment_class ? record.blob : record
+          route_for(ActiveStorage.resolve_model_to_route, blob, options)
+        end
+      end
+    end
+  end
 
   direct :rails_storage_proxy do |model, options|
     expires_in = options.delete(:expires_in) { ActiveStorage.urls_expire_in }

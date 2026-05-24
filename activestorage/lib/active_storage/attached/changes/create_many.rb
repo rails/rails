@@ -43,7 +43,7 @@ module ActiveStorage
       end
 
       def subchanges_without_blobs
-        subchanges.reject { |subchange| subchange.attachable.is_a?(ActiveStorage::Blob) }
+        subchanges.reject { |subchange| subchange.attachable.is_a?(ActiveStorage.blob_class) }
       end
 
       def assign_associated_attachments

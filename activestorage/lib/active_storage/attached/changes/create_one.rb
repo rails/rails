@@ -48,24 +48,24 @@ module ActiveStorage
       end
 
       def build_attachment
-        ActiveStorage::Attachment.new(record: record, name: name, blob: blob).tap do |attachment|
+        ActiveStorage.attachment_class.new(record: record, name: name, blob: blob).tap do |attachment|
           attachment.pending_upload = pending_upload?
         end
       end
 
       def pending_upload?
         case attachable
-        when ActiveStorage::Blob, String then false
+        when ActiveStorage.blob_class, String then false
         else true
         end
       end
 
       def find_or_build_blob
         case attachable
-        when ActiveStorage::Blob
+        when ActiveStorage.blob_class
           attachable
         when ActionDispatch::Http::UploadedFile
-          ActiveStorage::Blob.build_after_unfurling(
+          ActiveStorage.blob_class.build_after_unfurling(
             io: attachable.open,
             filename: attachable.original_filename,
             content_type: attachable.content_type,
@@ -73,7 +73,7 @@ module ActiveStorage
             service_name: attachment_service_name
           )
         when Rack::Test::UploadedFile
-          ActiveStorage::Blob.build_after_unfurling(
+          ActiveStorage.blob_class.build_after_unfurling(
             io: attachable.respond_to?(:open) ? attachable.open : attachable,
             filename: attachable.original_filename,
             content_type: attachable.content_type,
@@ -81,23 +81,23 @@ module ActiveStorage
             service_name: attachment_service_name
           )
         when Hash
-          ActiveStorage::Blob.build_after_unfurling(
+          ActiveStorage.blob_class.build_after_unfurling(
             **attachable.reverse_merge(
               record: record,
               service_name: attachment_service_name
             ).symbolize_keys
           )
         when String
-          ActiveStorage::Blob.find_signed!(attachable, record: record)
+          ActiveStorage.blob_class.find_signed!(attachable, record: record)
         when File, Tempfile
-          ActiveStorage::Blob.build_after_unfurling(
+          ActiveStorage.blob_class.build_after_unfurling(
             io: attachable,
             filename: File.basename(attachable),
             record: record,
             service_name: attachment_service_name
           )
         when Pathname
-          ActiveStorage::Blob.build_after_unfurling(
+          ActiveStorage.blob_class.build_after_unfurling(
             io: attachable.open,
             filename: File.basename(attachable),
             record: record,
@@ -159,7 +159,7 @@ module ActiveStorage
           attachable
         when Pathname
           attachable.open
-        when ActiveStorage::Blob, String
+        when ActiveStorage.blob_class, String
           nil
         else
           raise ArgumentError, "Could not upload: expected attachable, got #{attachable.inspect}"

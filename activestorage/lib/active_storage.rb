@@ -41,6 +41,10 @@ require "openssl"
 module ActiveStorage
   extend ActiveSupport::Autoload
 
+  @@blob_class           = "ActiveStorage::Blob"
+  @@attachment_class     = "ActiveStorage::Attachment"
+  @@variant_record_class = "ActiveStorage::VariantRecord"
+
   autoload :Attached
   autoload :FixtureSet
   autoload :Service
@@ -359,6 +363,46 @@ module ActiveStorage
   mattr_accessor :service_urls_expire_in, default: 5.minutes
   mattr_accessor :touch_attachment_records, default: true
   mattr_accessor :urls_expire_in
+
+  class << self
+    def blob_class
+      @blob_class_resolved ||= @@blob_class.constantize
+    end
+
+    def blob_class=(klass_or_name)
+      @@blob_class = class_name(klass_or_name)
+      @blob_class_resolved = nil
+    end
+
+    def attachment_class
+      @attachment_class_resolved ||= @@attachment_class.constantize
+    end
+
+    def attachment_class=(klass_or_name)
+      @@attachment_class = class_name(klass_or_name)
+      @attachment_class_resolved = nil
+    end
+
+    def variant_record_class
+      @variant_record_class_resolved ||= @@variant_record_class.constantize
+    end
+
+    def variant_record_class=(klass_or_name)
+      @@variant_record_class = class_name(klass_or_name)
+      @variant_record_class_resolved = nil
+    end
+
+    def clear_class_indirection_cache # :nodoc:
+      @blob_class_resolved = nil
+      @attachment_class_resolved = nil
+      @variant_record_class_resolved = nil
+    end
+
+    private
+      def class_name(klass_or_name)
+        klass_or_name.is_a?(String) ? klass_or_name : klass_or_name.name
+      end
+  end
 
   # Configures the mount point for the default Active Storage routes. Accepts any
   # value supported by `scope`, such as a string path prefix or a hash of routing
