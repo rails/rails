@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
-module ActiveStorage::Services # :nodoc:
-  @registry = {}
+# Public bridge for custom Active Storage backends to access the configured
+# service registry and default service.
+module ActiveStorage::Services
+  @registry = nil
 
   class << self
     attr_accessor :registry

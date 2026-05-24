@@ -226,7 +226,7 @@ module ActiveStorage
       end
     end
 
-    initializer "active_storage.validate_class_configuration", after: "active_storage.class_indirection" do
+    initializer "active_storage.validate_class_configuration", after: "active_storage.class_indirection" do |app|
       validate_classes = lambda do |*|
         required = {
           "blob_class" => ActiveStorage.class_variable_get(:@@blob_class),
@@ -269,10 +269,19 @@ module ActiveStorage
                    config.active_storage.variant_record_class = "MyVariantRecord"
           MSG
         end
+
+        if any_custom && defined?(ActiveStorage::Attached::Builder::ActiveRecordOwner)
+          declared_ar = ActiveStorage::Attached::Builder::ActiveRecordOwner.declared_classes
+          unless declared_ar.empty?
+            raise ActiveStorage::HybridConfigurationError,
+              "Custom storage classes configured but ActiveRecord owners (#{declared_ar.map(&:name).join(', ')}) declared Active Storage attachments. Hybrid configuration unsupported."
+          end
+        end
       end
 
       config.before_eager_load(&validate_classes)
       config.after_initialize(&validate_classes)
+      app.reloader.to_prepare(&validate_classes)
     end
 
     initializer "active_storage.verifier" do
@@ -334,6 +343,7 @@ module ActiveStorage
         "ActiveStorage::RecordNotFound" => :not_found,
         "ActiveStorage::RecordInvalid" => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
         "ActiveStorage::RecordNotSaved" => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
+        "ActiveStorage::RecordNotDestroyed" => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
       )
     end
   end
