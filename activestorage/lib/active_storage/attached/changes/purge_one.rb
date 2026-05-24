@@ -2,6 +2,8 @@
 
 module ActiveStorage
   class Attached::Changes::PurgeOne # :nodoc:
+    include ActiveStorage::Attached::Changes::OwnerDispatch
+
     attr_reader :name, :record, :attachment
 
     def initialize(name, record, attachment)
@@ -10,18 +12,12 @@ module ActiveStorage
 
     def purge
       attachment&.purge
-      reset
+      reset_attachment
     end
 
     def purge_later
       attachment&.purge_later
-      reset
+      reset_attachment
     end
-
-    private
-      def reset
-        record.attachment_changes.delete(name)
-        record.public_send("#{name}_attachment=", nil)
-      end
   end
 end

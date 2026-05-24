@@ -3,6 +3,10 @@
 module ActiveStorage
   class Attached::Changes::CreateOneOfMany < Attached::Changes::CreateOne # :nodoc:
     private
+      def many?
+        true
+      end
+
       def find_attachment
         if blob.persisted?
           record.public_send("#{name}_attachments").detect { |attachment| attachment.blob_id == blob.id }

@@ -5,6 +5,8 @@ require "action_dispatch/http/upload"
 
 module ActiveStorage
   class Attached::Changes::CreateOne # :nodoc:
+    include ActiveStorage::Attached::Changes::OwnerDispatch
+
     attr_reader :name, :attachable
     attr_accessor :record
 
@@ -14,26 +16,92 @@ module ActiveStorage
     end
 
     def analyze
-      with_local_io { blob.analyze_without_saving unless blob.analyzed? } if analyze_immediately?
+      return unless analyze_immediately?
+
+      with_local_io do
+        unless blob.analyzed?
+          blob.analyze_without_saving
+          record.send(:reconcile_attachment_metadata, blob) unless ar_owner?
+        end
+      end
     end
 
     def attachment
-      @attachment ||= find_or_build_attachment
+      @attachment ||= find_or_build_attachment.tap do |attachment|
+        attachment.blob = blob unless ar_owner?
+      end
     end
 
     def blob
       @blob ||= find_or_build_blob
     end
 
-    def upload
+    def upload(attachment: self.attachment)
+      return if !ar_owner? && uploaded?
+
       if io = open_attachable_io
         attachment.uploaded(io: io)
+        @uploaded = true
       end
     end
 
+    def upload_sources
+      pending_upload? ? [self] : []
+    end
+
+    def upload_io
+      open_attachable_io
+    end
+
+    def uploaded?
+      @uploaded == true
+    end
+
     def save
-      record.public_send("#{name}_attachment=", attachment)
-      record.public_send("#{name}_blob=", blob)
+      if ar_owner?
+        record.public_send("#{name}_attachment=", attachment)
+        record.public_send("#{name}_blob=", blob)
+      else
+        reset_deferred_purges
+
+        # Capture before the transaction so the rescue can clean up the right
+        # records: the rescue must wrap the whole +transaction+ (not just its
+        # body) because a backend that defers writes to commit can fail *after*
+        # the block returns, and that failure still has to roll back the new
+        # blob/attachment.
+        blob_was_new = !blob.persisted?
+        attachment_was_new = attachment.new_record?
+
+        begin
+          attachment_class.transaction do
+            blob.save!
+
+            attachment.assign_attributes(
+              record_type: polymorphic_owner_type,
+              record_id: record.id,
+              name: name,
+              blob_id: blob.id
+            )
+            attachment.save!
+
+            unless many?
+              attachment_class
+                .where(record_type: polymorphic_owner_type, record_id: record.id, name: name)
+                .where.not(blob_id: blob.id)
+                .each { |attachment| collect_deferred_purge(attachment) }
+            end
+          end
+        rescue StandardError
+          cleanup_new_records_after_failed_save(attachment_was_new, blob_was_new)
+          reset_deferred_purges
+          raise
+        end
+
+        unless many?
+          record.public_send("#{name}_attachment=", attachment)
+          record.public_send("#{name}_blob=", blob)
+        end
+      end
     end
 
     private
@@ -48,24 +116,29 @@ module ActiveStorage
       end
 
       def build_attachment
-        ActiveStorage.attachment_class.new(record: record, name: name, blob: blob).tap do |attachment|
+        attachment_class.new(record: record, name: name, blob: blob).tap do |attachment|
           attachment.pending_upload = pending_upload?
         end
       end
 
+      def cleanup_new_records_after_failed_save(attachment_was_new, blob_was_new)
+        cleanup_record_after_failed_save(attachment, "attachment") if attachment_was_new
+        cleanup_record_after_failed_save(blob, "blob") if blob_was_new
+      end
+
       def pending_upload?
         case attachable
-        when ActiveStorage.blob_class, String then false
+        when blob_class, String then false
         else true
         end
       end
 
       def find_or_build_blob
         case attachable
-        when ActiveStorage.blob_class
+        when blob_class
           attachable
         when ActionDispatch::Http::UploadedFile
-          ActiveStorage.blob_class.build_after_unfurling(
+          blob_class.build_after_unfurling(
             io: attachable.open,
             filename: attachable.original_filename,
             content_type: attachable.content_type,
@@ -73,7 +146,7 @@ module ActiveStorage
             service_name: attachment_service_name
           )
         when Rack::Test::UploadedFile
-          ActiveStorage.blob_class.build_after_unfurling(
+          blob_class.build_after_unfurling(
             io: attachable.respond_to?(:open) ? attachable.open : attachable,
             filename: attachable.original_filename,
             content_type: attachable.content_type,
@@ -81,23 +154,23 @@ module ActiveStorage
             service_name: attachment_service_name
           )
         when Hash
-          ActiveStorage.blob_class.build_after_unfurling(
+          blob_class.build_after_unfurling(
             **attachable.reverse_merge(
               record: record,
               service_name: attachment_service_name
             ).symbolize_keys
           )
         when String
-          ActiveStorage.blob_class.find_signed!(attachable, record: record)
+          blob_class.find_signed!(attachable, record: record)
         when File, Tempfile
-          ActiveStorage.blob_class.build_after_unfurling(
+          blob_class.build_after_unfurling(
             io: attachable,
             filename: File.basename(attachable),
             record: record,
             service_name: attachment_service_name
           )
         when Pathname
-          ActiveStorage.blob_class.build_after_unfurling(
+          blob_class.build_after_unfurling(
             io: attachable.open,
             filename: File.basename(attachable),
             record: record,
@@ -159,15 +232,25 @@ module ActiveStorage
           attachable
         when Pathname
           attachable.open
-        when ActiveStorage.blob_class, String
+        when blob_class, String
           nil
         else
           raise ArgumentError, "Could not upload: expected attachable, got #{attachable.inspect}"
         end
       end
 
+      def many?
+        false
+      end
+
       def with_local_io
-        io = open_attachable_io if pending_upload? && !blob.local_io
+        unless blob.local_io
+          if pending_upload?
+            io = open_attachable_io
+          elsif !ar_owner? && source = record.send(:attachment_upload_source, blob)
+            io = source.upload_io
+          end
+        end
 
         if io
           blob.local_io = io

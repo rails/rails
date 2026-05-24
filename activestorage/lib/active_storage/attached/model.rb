@@ -5,7 +5,11 @@ require "active_support/core_ext/object/try"
 module ActiveStorage
   # = Active Storage \Attached \Model
   #
-  # Provides the class-level DSL for declaring an Active Record model's attachments.
+  # Provides the class-level DSL for declaring an application's attachments.
+  # Active Record models include this module automatically. Other owner classes
+  # can include it when custom persistence classes are configured and they
+  # implement the callback and identity contracts described in the
+  # {Custom Active Storage Backends guide}[https://edgeguides.rubyonrails.org/active_storage_custom_backend.html].
   module Attached::Model
     extend ActiveSupport::Concern
 
@@ -20,6 +24,8 @@ module ActiveStorage
     # :method: *_attachments
     #
     # Returns the attachments for the +has_many_attached+.
+    # For non-Active Record owners, returns an enumerable collection that supports
+    # +find_by+, +pluck+, +reload+, and +delete_all+.
     #
     #   Gallery.last.photos_attachments
 
@@ -34,6 +40,8 @@ module ActiveStorage
     # :method: *_blobs
     #
     # Returns the blobs for the +has_many_attached+ attachments.
+    # For non-Active Record owners, returns an enumerable collection that supports
+    # +find_by+, +pluck+, and +reload+.
     #
     #   Gallery.last.photos_blobs
 
@@ -41,6 +49,7 @@ module ActiveStorage
     # :method: with_attached_*
     #
     # Includes the attached blobs in your query to avoid N+1 queries.
+    # Available only for Active Record owners.
     #
     # If +ActiveStorage.track_variants+ is enabled, it will also include the
     # variants record and their attached blobs.
@@ -61,7 +70,7 @@ module ActiveStorage
       # There is no column defined on the model side, Active Storage takes
       # care of the mapping between your records and the attachment.
       #
-      # Under the covers, this relationship is implemented as a +has_one+ association to an
+      # For Active Record owners, this relationship is implemented as a +has_one+ association to an
       # ActiveStorage::Attachment record and a +has_one-through+ association to an
       # ActiveStorage::Blob record. These associations are available as +avatar_attachment+
       # and +avatar_blob+. But you shouldn't need to work with these associations directly in
@@ -90,7 +99,7 @@ module ActiveStorage
       #     has_one_attached :avatar, service: ->(user) { user.in_europe_region? ? :s3_europe : :s3_usa }
       #   end
       #
-      # To avoid N+1 queries, you can include the attached blobs in your query like so:
+      # Active Record owners can include the attached blobs in their query to avoid N+1 queries:
       #
       #   User.with_attached_avatar
       #
@@ -100,6 +109,10 @@ module ActiveStorage
       #   class User < ApplicationRecord
       #     has_one_attached :avatar, strict_loading: true
       #   end
+      #
+      # Non-Active Record owners use the configured persistence classes for their
+      # attachment and blob accessors. Eager loading and +:strict_loading+ are not
+      # supported for these owners.
       #
       # Pass the +analyze:+ option to control when analysis is performed:
       #
@@ -131,7 +144,7 @@ module ActiveStorage
       # There are no columns defined on the model side, Active Storage takes
       # care of the mapping between your records and the attachments.
       #
-      # Under the covers, this relationship is implemented as a +has_many+ association to an
+      # For Active Record owners, this relationship is implemented as a +has_many+ association to an
       # ActiveStorage::Attachment record and a +has_many-through+ association to an
       # ActiveStorage::Blob record. These associations are available as +photos_attachments+
       # and +photos_blobs+. But you shouldn't need to work with these associations directly in
@@ -160,7 +173,7 @@ module ActiveStorage
       #     has_many_attached :photos, service: ->(gallery) { gallery.personal? ? :personal_s3 : :s3 }
       #   end
       #
-      # To avoid N+1 queries, you can include the attached blobs in your query like so:
+      # Active Record owners can include the attached blobs in their query to avoid N+1 queries:
       #
       #   Gallery.where(user: Current.user).with_attached_photos
       #
@@ -170,6 +183,10 @@ module ActiveStorage
       #   class Gallery < ApplicationRecord
       #     has_many_attached :photos, strict_loading: true
       #   end
+      #
+      # Non-Active Record owners use enumerable collections backed by the configured
+      # persistence classes. Eager loading and +:strict_loading+ are not supported
+      # for these owners.
       #
       # Pass the +analyze:+ option to control when analysis is performed:
       #
@@ -190,20 +207,43 @@ module ActiveStorage
 
     class << self
       def validate_service_configuration(service_name, model_class, association_name) # :nodoc:
+        return if !active_record_owner_class?(model_class) && !ActiveStorage::Services.configured?
+
         if service_name
-          ActiveStorage::Blob.services.fetch(service_name) do
-            raise ArgumentError, "Cannot configure service #{service_name.inspect} for #{model_class}##{association_name}"
-          end
+          validate_named_service_configuration(service_name, model_class, association_name)
         else
           validate_global_service_configuration(model_class)
         end
       end
 
       private
+        def validate_named_service_configuration(service_name, model_class, association_name)
+          if active_record_owner_class?(model_class)
+            ActiveStorage::Blob.services.fetch(service_name) do
+              raise ArgumentError, "Cannot configure service #{service_name.inspect} for #{model_class}##{association_name}"
+            end
+          else
+            ActiveStorage::Services.fetch(service_name) do
+              raise ArgumentError, "Cannot configure service #{service_name.inspect} for #{model_class}##{association_name}"
+            end
+          end
+        end
+
         def validate_global_service_configuration(model_class)
-          if model_class.connected? && ActiveStorage::Blob.table_exists? && Rails.configuration.active_storage.service.nil?
+          if active_record_owner_class?(model_class)
+            return unless model_class.respond_to?(:connected?) && model_class.connected? && ActiveStorage::Blob.table_exists?
+            return unless Rails.configuration.active_storage.service.nil?
+
             raise RuntimeError, "Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config/environments/#{Rails.env}.rb"
           end
+
+          if !active_record_owner_class?(model_class) && ActiveStorage::Services.default.nil?
+            raise RuntimeError, "Missing Active Storage service name. Specify config.active_storage.service or a service on each attachment declaration."
+          end
+        end
+
+        def active_record_owner_class?(model_class)
+          Attached::Builder.active_record_owner?(model_class)
         end
     end
 
@@ -211,29 +251,6 @@ module ActiveStorage
 
     def attachment_changes # :nodoc:
       @attachment_changes ||= {}
-    end
-
-    def changed_for_autosave? # :nodoc:
-      super || attachment_changes.any?
-    end
-
-    def initialize_dup(*) # :nodoc:
-      super
-      @active_storage_attached = nil
-      @attachment_changes = nil
-    end
-
-    def reload(*) # :nodoc:
-      super.tap { @attachment_changes = nil }
-    end
-
-    def becomes(klass) # :nodoc:
-      super.tap do |became|
-        attachment_changes = @attachment_changes&.each_value do |change|
-          change.record = became
-        end
-        became.attachment_changes = attachment_changes
-      end
     end
   end
 end
