@@ -42,8 +42,8 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
 
   private
     def named_disk_service(name)
-      ActiveStorage::Blob.services.fetch(name) do
-        ActiveStorage::Blob.service
+      ActiveStorage.blob_class.services.fetch(name) do
+        ActiveStorage.blob_class.service
       end
     end
 

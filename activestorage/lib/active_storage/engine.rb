@@ -29,6 +29,9 @@ module ActiveStorage
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
     config.active_storage.precompile_assets = true
+    config.active_storage.blob_class = "ActiveStorage::Blob"
+    config.active_storage.attachment_class = "ActiveStorage::Attachment"
+    config.active_storage.variant_record_class = "ActiveStorage::VariantRecord"
 
     config.active_storage.variable_content_types = %w(
       image/png
@@ -178,6 +181,18 @@ module ActiveStorage
 
       ActiveSupport.on_load(:active_record) do
         include ActiveStorage::Attached::Model
+      end
+    end
+
+    initializer "active_storage.class_indirection" do |app|
+      ActiveStorage.blob_class = app.config.active_storage.blob_class
+      ActiveStorage.attachment_class = app.config.active_storage.attachment_class
+      ActiveStorage.variant_record_class = app.config.active_storage.variant_record_class
+    end
+
+    initializer "active_storage.class_indirection_reloader" do |app|
+      app.reloader.to_prepare do
+        ActiveStorage.clear_class_indirection_cache
       end
     end
 
