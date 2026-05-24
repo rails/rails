@@ -1,3 +1,5 @@
+#Remove Rails
+#fixed rails issue 
 # Welcome to Rails
 
 ## What's Rails?
