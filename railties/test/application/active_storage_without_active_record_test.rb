@@ -47,8 +47,29 @@ module ApplicationTests
       ], output.lines.map(&:chomp).last(4)
     end
 
+    test "eager loads without active record when custom storage classes are configured" do
+      define_custom_storage_classes
+      add_to_config <<~RUBY
+        config.eager_load = true
+        config.active_storage.blob_class = "CustomActiveStorageBlob"
+        config.active_storage.attachment_class = "CustomActiveStorageAttachment"
+        config.active_storage.variant_record_class = "CustomActiveStorageVariantRecord"
+      RUBY
+
+      output = rails_runner <<~RUBY
+        puts defined?(::ActiveRecord::Base).inspect
+        puts ActiveStorage.blob_class.name
+      RUBY
+
+      assert_equal [ "nil", "CustomActiveStorageBlob" ], output.lines.map(&:chomp).last(2)
+    end
+
     private
       def use_active_storage_without_active_record
+        FileUtils.rm_rf "#{app_path}/app/channels"
+        FileUtils.rm_rf "#{app_path}/app/mailers"
+        FileUtils.rm_f "#{app_path}/app/models/application_record.rb"
+
         boot = File.read("#{app_path}/config/boot.rb")
         boot.gsub!("\nrequire \"rails/all\"", "")
         File.write("#{app_path}/config/boot.rb", boot)
