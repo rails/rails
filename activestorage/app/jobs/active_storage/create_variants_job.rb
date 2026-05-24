@@ -3,7 +3,8 @@
 class ActiveStorage::CreateVariantsJob < ActiveStorage::BaseJob
   queue_as { ActiveStorage.queues[:transform] }
 
-  discard_on ActiveRecord::RecordNotFound, ActiveJob::DeserializationError::RecordNotFound
+  discard_on ActiveStorage::RecordNotFound, ActiveJob::DeserializationError::RecordNotFound
+  discard_on ActiveRecord::RecordNotFound if defined?(::ActiveRecord::Base)
   retry_on ActiveStorage::IntegrityError, attempts: 10, wait: :polynomially_longer
 
   def perform(blob, variants:, process:)
