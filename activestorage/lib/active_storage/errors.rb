@@ -30,4 +30,41 @@ module ActiveStorage
   # Raised when a storage key resolves to a path outside the service's root
   # directory, indicating a potential path traversal attack.
   class InvalidKeyError < Error; end
+
+  # Raised by non-Active Record backends when a record cannot be found.
+  class RecordNotFound < Error; end
+
+  # Raised by non-Active Record backends when a record cannot be saved.
+  class RecordNotSaved < Error
+    attr_reader :record
+
+    def initialize(message = nil, record = nil)
+      super(message)
+      @record = record
+    end
+  end
+
+  # Raised by non-Active Record backends when a record is invalid.
+  class RecordInvalid < Error; end
+
+  # Raised by non-Active Record backends for foreign key violations.
+  class ForeignKeyViolation < Error; end
+
+  # Raised by non-Active Record backends for deadlock retries.
+  class Deadlocked < Error; end
+
+  # Raised for invalid Active Storage backend configuration.
+  class ConfigurationError < Error; end
+
+  # Raised when Active Record and custom storage classes are mixed unsafely.
+  class HybridConfigurationError < ConfigurationError; end
+
+  # Raised when an unsupported query method is called on a generic collection.
+  class QueryNotSupported < Error; end
+
+  # Raised when a non-Active Record owner does not satisfy Active Storage's callback contract.
+  class OwnerContractMissing < Error; end
+
+  # Raised when eager loading is requested for a non-Active Record attachment owner.
+  class EagerLoadingNotSupported < Error; end
 end

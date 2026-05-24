@@ -5,7 +5,7 @@
 # Like an ActiveStorage::Variant, but keeps detail about the variant in the database as an
 # ActiveStorage::VariantRecord. This is used if +ActiveStorage.track_variants+ is enabled.
 class ActiveStorage::VariantWithRecord
-  include ActiveStorage::Blob::Servable
+  include ActiveStorage::Servable
 
   attr_reader :blob, :variation
   delegate :service, to: :blob
@@ -72,18 +72,29 @@ class ActiveStorage::VariantWithRecord
 
     def create_or_find_record(image:)
       @record =
-        ActiveRecord::Base.connected_to(role: ActiveRecord.writing_role) do
-          blob.variant_records.create_or_find_by!(variation_digest: variation.digest) do |record|
-            record.image.attach(image)
+        with_writing_role do
+          if defined?(::ActiveStorage::Blob) && blob.is_a?(::ActiveStorage::Blob)
+            blob.variant_records.create_or_find_by!(variation_digest: variation.digest) do |record|
+              record.image.attach(image)
+            end
+          else
+            ActiveStorage.variant_record_class.create_or_find_by!(blob_id: blob.id, variation_digest: variation.digest) do |record|
+              record.image.attach(image)
+            end
           end
         end
     end
 
     def record
-      @record ||= if blob.variant_records.loaded?
-        blob.variant_records.find { |v| v.variation_digest == variation.digest }
-      else
-        blob.variant_records.find_by(variation_digest: variation.digest)
-      end
+      @record ||=
+        if defined?(::ActiveStorage::Blob) && blob.is_a?(::ActiveStorage::Blob)
+          if blob.variant_records.loaded?
+            blob.variant_records.find { |v| v.variation_digest == variation.digest }
+          else
+            blob.variant_records.find_by(variation_digest: variation.digest)
+          end
+        else
+          ActiveStorage.variant_record_class.find_by(blob_id: blob.id, variation_digest: variation.digest)
+        end
     end
 end
