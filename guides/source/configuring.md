@@ -3404,6 +3404,37 @@ The default value is `/https?:\/\/localhost:\d+/` in the `development` environme
 
 `config.active_storage` provides the following configuration options:
 
+#### `config.active_storage.blob_class`
+
+Configures the class used to store Active Storage blob metadata. The default is
+`"ActiveStorage::Blob"`.
+
+Custom storage backends must configure this together with
+`config.active_storage.attachment_class` and
+`config.active_storage.variant_record_class`. The three settings are
+all-or-nothing: leave all three at their defaults, or replace all three with
+backend-specific classes.
+
+Active Record owners cannot be mixed with custom Active Storage storage classes,
+and non-Active Record owners cannot use the default Active Record storage
+classes. See the [Custom Active Storage Backends](active_storage_custom_backend.html)
+guide for the required contracts.
+
+#### `config.active_storage.attachment_class`
+
+Configures the class used to store Active Storage attachment metadata. The
+default is `"ActiveStorage::Attachment"`. Custom backends must configure this
+with `config.active_storage.blob_class` and
+`config.active_storage.variant_record_class`.
+
+#### `config.active_storage.variant_record_class`
+
+Configures the class used to store tracked variant metadata when
+`config.active_storage.track_variants` is enabled. The default is
+`"ActiveStorage::VariantRecord"`. Custom backends must configure this with
+`config.active_storage.blob_class` and
+`config.active_storage.attachment_class`.
+
 #### `config.active_storage.variant_processor`
 
 Accepts a symbol `:mini_magick`, `:vips`, or `:disabled` specifying whether or not variant transformations and blob analysis will be performed with MiniMagick or ruby-vips.

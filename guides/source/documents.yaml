@@ -154,7 +154,14 @@
       description: >
         Active Storage facilitates uploading files to a cloud storage service,
         transforming uploads and extracting metadata. This guide covers how to
-        attach files to your Active Record models.
+        attach files to your application records.
+    -
+      name: Custom Active Storage Backends
+      url: active_storage_custom_backend.html
+      description: >
+        This guide describes how to provide custom Active Storage blob,
+        attachment, and variant record classes for applications that do not use
+        Active Record.
     -
       name: Action Cable Overview
       url: action_cable_overview.html

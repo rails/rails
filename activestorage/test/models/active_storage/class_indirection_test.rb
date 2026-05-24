@@ -45,6 +45,14 @@ class ActiveStorage::ClassIndirectionTest < ActiveSupport::TestCase
     assert_equal CustomVariantRecord, ActiveStorage.variant_record_class
   end
 
+  test "rejects anonymous class overrides" do
+    error = assert_raises(ArgumentError) do
+      ActiveStorage.blob_class = Class.new
+    end
+
+    assert_match "named class", error.message
+  end
+
   test "clears memoized class resolutions" do
     ActiveStorage.blob_class = CustomBlob
     assert_equal CustomBlob, ActiveStorage.blob_class
