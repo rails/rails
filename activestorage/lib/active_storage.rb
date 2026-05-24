@@ -29,6 +29,7 @@ require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/numeric/time"
 require "active_support/core_ext/numeric/bytes"
 require "concurrent/array"
+require "concurrent/map"
 
 require "active_storage/version"
 require "active_storage/deprecator"
@@ -45,6 +46,10 @@ module ActiveStorage
   @@blob_class           = "ActiveStorage::Blob"
   @@attachment_class     = "ActiveStorage::Attachment"
   @@variant_record_class = "ActiveStorage::VariantRecord"
+
+  # Metadata keys Active Storage owns internally and must not accept from direct-upload clients.
+  PROTECTED_BLOB_METADATA = %w(analyzed identified composed).freeze
+  private_constant :PROTECTED_BLOB_METADATA
 
   autoload :Attached
   autoload :FixtureSet
@@ -400,9 +405,26 @@ module ActiveStorage
       @variant_record_class_resolved = nil
     end
 
+    # Removes metadata keys that Active Storage owns internally.
+    def filter_blob_metadata(metadata)
+      if metadata.is_a?(Hash)
+        metadata.without(*PROTECTED_BLOB_METADATA)
+      else
+        metadata
+      end
+    end
+
     private
       def class_name(klass_or_name)
-        klass_or_name.is_a?(String) ? klass_or_name : klass_or_name.name
+        if klass_or_name.is_a?(String)
+          raise ArgumentError, "Active Storage class names cannot be blank" if klass_or_name.empty?
+
+          klass_or_name
+        elsif klass_or_name.respond_to?(:name) && klass_or_name.name
+          klass_or_name.name
+        else
+          raise ArgumentError, "Active Storage class configuration must be a class name or named class"
+        end
       end
   end
 

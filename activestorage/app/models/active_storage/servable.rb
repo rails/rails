@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-module ActiveStorage::Servable # :nodoc:
+# Provides serving helpers for blob-like records and previews.
+module ActiveStorage::Servable
   def content_type_for_serving
     forcibly_serve_as_binary? ? ActiveStorage.binary_content_type : content_type
   end
