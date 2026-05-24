@@ -14,11 +14,11 @@ module ActiveStorage
     end
 
     def attachments
-      ActiveStorage::Attachment.none
+      ActiveStorage.attachment_class.none
     end
 
     def blobs
-      ActiveStorage::Blob.none
+      ActiveStorage.blob_class.none
     end
 
     def analyze

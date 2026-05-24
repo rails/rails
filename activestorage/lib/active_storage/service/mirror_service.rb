@@ -68,7 +68,7 @@ module ActiveStorage
       instrument :mirror, key: key, checksum: checksum do
         mirrors_in_need_of_mirroring = mirrors_needing_mirroring(key)
         if mirrors_in_need_of_mirroring.any?
-          metadata = ActiveStorage::Blob.find_by(key: key)&.service_metadata || {}
+          metadata = ActiveStorage.blob_class.where(key: key).first&.service_metadata || {}
 
           primary.open(key, checksum: checksum, verify: checksum.present?) do |io|
             io.rewind
