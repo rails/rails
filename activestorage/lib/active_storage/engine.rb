@@ -189,6 +189,37 @@ module ActiveStorage
       ActiveStorage.variant_record_class = app.config.active_storage.variant_record_class
     end
 
+    # Rails engines automatically register app/models for eager loading, and the
+    # default Active Storage backend ships its blob/attachment/variant_record
+    # models there. A boot without Active Record -- or one that swaps in a custom
+    # storage backend -- must remove those Active Record model files from Zeitwerk
+    # before the main autoloader is set up, otherwise eager loading pulls them in.
+    # Declared after "active_storage.class_indirection" so a backend gem's class
+    # config (set from its Railtie before that initializer, as the guide
+    # recommends) is visible here, and before :setup_main_autoloader so the
+    # ignores take effect.
+    initializer "active_storage.zeitwerk_ignore_when_no_active_record", after: "active_storage.class_indirection", before: :setup_main_autoloader do |app|
+      custom_storage_configured =
+        app.config.active_storage.blob_class != "ActiveStorage::Blob" ||
+        app.config.active_storage.attachment_class != "ActiveStorage::Attachment" ||
+        app.config.active_storage.variant_record_class != "ActiveStorage::VariantRecord"
+
+      if !defined?(::ActiveRecord::Base) || custom_storage_configured
+        ar_paths = [
+          "app/models/active_storage/record.rb",
+          "app/models/active_storage/blob.rb",
+          "app/models/active_storage/attachment.rb",
+          "app/models/active_storage/variant_record.rb",
+          "app/models/active_storage/blob",
+        ]
+
+        ar_paths.each do |relative_path|
+          path = File.expand_path("../../#{relative_path}", __dir__)
+          Rails.autoloaders.main.ignore(path) if File.exist?(path)
+        end
+      end
+    end
+
     initializer "active_storage.class_indirection_reloader" do |app|
       app.reloader.to_prepare do
         ActiveStorage.clear_class_indirection_cache
@@ -292,7 +323,9 @@ module ActiveStorage
       end
 
       ActiveSupport.on_load(:active_support_test_case) do
-        ActiveStorage::FixtureSet.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
+        if defined?(::ActiveRecord::Base)
+          ActiveStorage::FixtureSet.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
+        end
       end
     end
 
