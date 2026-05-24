@@ -118,55 +118,8 @@ module ActiveStorage
       # When renaming classes that use <tt>has_one_attached</tt>, make sure to also update the class names in the
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
       # the corresponding rows.
-      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil)
-        Attached::Model.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
-
-        generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
-          # frozen_string_literal: true
-          def #{name}
-            @active_storage_attached ||= {}
-            @active_storage_attached[:#{name}] ||= ActiveStorage::Attached::One.new("#{name}", self)
-          end
-
-          def #{name}=(attachable)
-            attachment_changes["#{name}"] =
-              if attachable.nil? || attachable == ""
-                ActiveStorage::Attached::Changes::DeleteOne.new("#{name}", self)
-              else
-                ActiveStorage::Attached::Changes::CreateOne.new("#{name}", self, attachable)
-              end
-          end
-        CODE
-
-        has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
-        has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
-
-        scope :"with_attached_#{name}", -> {
-          if ActiveStorage.track_variants
-            includes("#{name}_attachment": { blob: {
-              variant_records: { image_attachment: :blob },
-              preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
-            } })
-          else
-            includes("#{name}_attachment": :blob)
-          end
-        }
-
-        before_validation { attachment_changes[name.to_s]&.analyze }
-
-        after_save { attachment_changes[name.to_s]&.save }
-
-        after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
-
-        reflection = ActiveRecord::Reflection.create(
-          :has_one_attached,
-          name,
-          nil,
-          { dependent: dependent, service_name: service, analyze: analyze },
-          self
-        )
-        yield reflection if block_given?
-        ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
+      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil, &block)
+        Attached::Builder.for(self).build_one(name, dependent: dependent, service: service, strict_loading: strict_loading, analyze: analyze, &block)
       end
 
       # Specifies the relation between multiple attachments and the model.
@@ -230,57 +183,8 @@ module ActiveStorage
       # When renaming classes that use <tt>has_many</tt>, make sure to also update the class names in the
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
       # the corresponding rows.
-      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil)
-        Attached::Model.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
-
-        generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
-          # frozen_string_literal: true
-          def #{name}
-            @active_storage_attached ||= {}
-            @active_storage_attached[:#{name}] ||= ActiveStorage::Attached::Many.new("#{name}", self)
-          end
-
-          def #{name}=(attachables)
-            attachables = Array(attachables).compact_blank
-            pending_uploads = attachment_changes["#{name}"].try(:pending_uploads)
-
-            attachment_changes["#{name}"] = if attachables.none?
-              ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
-            else
-              ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables, pending_uploads: pending_uploads)
-            end
-          end
-        CODE
-
-        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
-        has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
-
-        scope :"with_attached_#{name}", -> {
-          if ActiveStorage.track_variants
-            includes("#{name}_attachments": { blob: {
-              variant_records: { image_attachment: :blob },
-              preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
-            } })
-          else
-            includes("#{name}_attachments": :blob)
-          end
-        }
-
-        before_validation { attachment_changes[name.to_s]&.analyze }
-
-        after_save { attachment_changes[name.to_s]&.save }
-
-        after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
-
-        reflection = ActiveRecord::Reflection.create(
-          :has_many_attached,
-          name,
-          nil,
-          { dependent: dependent, service_name: service, analyze: analyze },
-          self
-        )
-        yield reflection if block_given?
-        ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
+      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil, &block)
+        Attached::Builder.for(self).build_many(name, dependent: dependent, service: service, strict_loading: strict_loading, analyze: analyze, &block)
       end
     end
 
