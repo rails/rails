@@ -1,3 +1,16 @@
+*   Add support for using Active Storage with non-Active Record owner and storage
+    classes.
+
+    Active Storage can now resolve custom blob, attachment, and variant record
+    classes, boot without Active Record when those classes are configured, and
+    attach files to ActiveModel-style owner records. The `activestorage` gem now
+    depends on `activemodel` instead of `activerecord`.
+
+    See the Custom Active Storage Backends guide for the required backend
+    contracts.
+
+    *Thomas Witt*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
