@@ -64,6 +64,37 @@ module ApplicationTests
       assert_equal [ "nil", "CustomActiveStorageBlob" ], output.lines.map(&:chomp).last(2)
     end
 
+    test "attaches downloads and purges without active record" do
+      require_in_memory_backend
+      add_to_config <<~RUBY
+        config.active_storage.service = :local
+        config.active_storage.service_configurations = {
+          local: { service: "Disk", root: Rails.root.join("tmp/storage") }
+        }
+        config.active_storage.blob_class = "ActiveStorage::InMemoryBackend::Blob"
+        config.active_storage.attachment_class = "ActiveStorage::InMemoryBackend::Attachment"
+        config.active_storage.variant_record_class = "ActiveStorage::InMemoryBackend::VariantRecord"
+
+        initializer "active_storage.in_memory_backend", after: "active_storage.class_indirection" do |app|
+          ActiveStorage::Services.setup_from_app_config(app)
+          ActiveStorage::InMemoryBackend.install
+        end
+      RUBY
+
+      output = rails_runner <<~RUBY
+        owner_class = ActiveStorage::ActiveModelOwnerFixture.define!
+        owner = owner_class.new(name: "Dorian")
+        owner.avatar.attach(io: StringIO.new("hello"), filename: "hello.txt", content_type: "text/plain")
+        owner.save!
+        puts defined?(::ActiveRecord::Base).inspect
+        puts owner.avatar.download
+        owner.avatar.purge
+        puts owner.avatar.attached?
+      RUBY
+
+      assert_equal [ "nil", "hello", "false" ], output.lines.map(&:chomp).last(3)
+    end
+
     private
       def use_active_storage_without_active_record
         FileUtils.rm_rf "#{app_path}/app/channels"
@@ -84,6 +115,14 @@ module ApplicationTests
           require "active_storage/engine"
         RUBY
         File.write("#{app_path}/config/application.rb", application)
+      end
+
+      def require_in_memory_backend
+        root = Pathname.new(__dir__).join("../../..").expand_path
+        add_to_top_of_config <<~RUBY
+          require #{root.join("activestorage/test/fixtures/active_storage/in_memory_backend").to_s.inspect}
+          require #{root.join("activestorage/test/fixtures/active_model_owner").to_s.inspect}
+        RUBY
       end
 
       def rails_runner(script, allow_failure: false)

@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "database/setup"
+require_relative "../fixtures/active_storage/in_memory_backend"
 
 if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].present?
   class ActiveStorage::S3DirectUploadsControllerTest < ActionDispatch::IntegrationTest
@@ -185,4 +186,65 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
     ensure
       ActiveRecord::Base.include_root_in_json = original
     end
+end
+
+class ActiveStorage::CustomBackendDirectUploadsControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    @raw_blob_class = ActiveStorage.class_variable_get(:@@blob_class)
+    @raw_attachment_class = ActiveStorage.class_variable_get(:@@attachment_class)
+    @raw_variant_record_class = ActiveStorage.class_variable_get(:@@variant_record_class)
+    @services_registry = ActiveStorage::Services.registry
+    @services_default = ActiveStorage::Services.default
+
+    ActiveStorage.class_variable_set(:@@blob_class, "ActiveStorage::InMemoryBackend::Blob")
+    ActiveStorage.class_variable_set(:@@attachment_class, "ActiveStorage::InMemoryBackend::Attachment")
+    ActiveStorage.class_variable_set(:@@variant_record_class, "ActiveStorage::InMemoryBackend::VariantRecord")
+    ActiveStorage.clear_class_indirection_cache
+    ActiveStorage::Services.registry = ActiveStorage::Service::Registry.new(Rails.configuration.active_storage.service_configurations)
+    ActiveStorage::Services.default = ActiveStorage::Services.registry.fetch(Rails.configuration.active_storage.service)
+    ActiveStorage::InMemoryBackend.install
+    ActiveStorage::InMemoryBackend.reset
+  end
+
+  teardown do
+    ActiveStorage::InMemoryBackend.reset
+    ActiveStorage.class_variable_set(:@@blob_class, @raw_blob_class)
+    ActiveStorage.class_variable_set(:@@attachment_class, @raw_attachment_class)
+    ActiveStorage.class_variable_set(:@@variant_record_class, @raw_variant_record_class)
+    ActiveStorage.clear_class_indirection_cache
+    ActiveStorage::Services.registry = @services_registry
+    ActiveStorage::Services.default = @services_default
+  end
+
+  test "creating new direct upload with a custom backend includes signed id and upload details" do
+    checksum = OpenSSL::Digest::MD5.base64digest("Hello")
+    metadata = { "foo" => "bar" }
+    all_metadata = metadata.merge(
+      "analyzed" => true,
+      "identified" => true,
+      "composed" => true
+    )
+
+    post rails_direct_uploads_url, params: { blob: {
+      filename: "hello.txt", byte_size: 5, checksum: checksum, content_type: "text/plain", metadata: all_metadata } }
+
+    response.parsed_body.tap do |details|
+      blob = ActiveStorage.blob_class.find(details["id"])
+
+      assert_instance_of ActiveStorage::InMemoryBackend::Blob, blob
+      assert_predicate details["signed_id"], :present?
+      assert_equal blob, ActiveStorage.blob_class.find_signed!(details["signed_id"])
+      assert_equal blob.key, details["key"]
+      assert_equal "hello.txt", details["filename"]
+      assert_equal blob.byte_size, details["byte_size"]
+      assert_equal checksum, details["checksum"]
+      assert_equal metadata, details["metadata"]
+      assert_equal metadata, blob.metadata
+      assert_equal "text/plain", details["content_type"]
+      assert_equal blob.service_name.to_s, details["service_name"]
+      assert_predicate details["created_at"], :present?
+      assert_match(/rails\/active_storage\/disk/, details["direct_upload"]["url"])
+      assert_equal({ "Content-Type" => "text/plain" }, details["direct_upload"]["headers"])
+    end
+  end
 end
