@@ -82,6 +82,24 @@ Upgrading from Rails 8.1 to Rails 8.2
 
 For more information on changes made to Rails 8.2 please see the [release notes](8_2_release_notes.html).
 
+### Active Storage no longer installs Active Record as a dependency
+
+The `activestorage` gem now depends on `activemodel` so applications can use a
+[custom persistence backend](active_storage_custom_backend.html) without
+installing Active Record.
+
+Applications that list `activestorage` individually in their Gemfile and use its
+default database-backed models must also list `activerecord`:
+
+```ruby
+gem "activestorage"
+gem "activerecord"
+```
+
+Applications that depend on the `rails` gem already receive Active Record and
+need no Gemfile change. Active Storage still loads Active Record when it is
+installed, including when applications require framework railties individually.
+
 ### The old Active Record 6.1 marshalling format was removed.
 
 If your application still sets `active_record.marshalling_format_version = 6.1`, which may

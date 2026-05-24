@@ -48,5 +48,25 @@ module ApplicationTests
         end
       end
     end
+
+    def test_reloading_routes_does_not_load_default_storage_models
+      app_file "app/models/user.rb", <<~RUBY
+        class User < ApplicationRecord
+          has_one_attached :avatar
+        end
+      RUBY
+      app_file "config/initializers/active_storage.rb", <<~RUBY
+        ActiveSupport.on_load(:active_storage_blob) { raise "ActiveStorage::Blob was loaded" }
+        ActiveSupport.on_load(:active_storage_attachment) { raise "ActiveStorage::Attachment was loaded" }
+      RUBY
+
+      output = rails "runner", <<~RUBY
+        User
+        Rails.application.reload_routes!
+        puts "routes reloaded"
+      RUBY
+
+      assert_includes output, "routes reloaded"
+    end
   end
 end

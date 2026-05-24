@@ -2,6 +2,7 @@
 
 require "service/shared_service_tests"
 require "database/setup"
+require "concurrent/array"
 
 class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
   mirror_config = (1..3).to_h do |i|

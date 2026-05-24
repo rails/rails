@@ -45,6 +45,23 @@ class ActiveStorage::ClassIndirectionTest < ActiveSupport::TestCase
     assert_equal CustomVariantRecord, ActiveStorage.variant_record_class
   end
 
+  test "rejects anonymous class overrides" do
+    error = assert_raises(ArgumentError) do
+      ActiveStorage.blob_class = Class.new
+    end
+
+    assert_match "named class", error.message
+  end
+
+  test "reports missing configured classes" do
+    %i[blob_class attachment_class variant_record_class].each do |option|
+      ActiveStorage.public_send("#{option}=", "MissingStorageClass")
+
+      error = assert_raises(ActiveStorage::ConfigurationError) { ActiveStorage.public_send(option) }
+      assert_includes error.message, "config.active_storage.#{option} = \"MissingStorageClass\" but that constant is not defined"
+    end
+  end
+
   test "clears memoized class resolutions" do
     ActiveStorage.blob_class = CustomBlob
     assert_equal CustomBlob, ActiveStorage.blob_class
