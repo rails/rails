@@ -101,6 +101,18 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "direct upload metadata filters protected symbol and string keys" do
+    [ { analyzed: true, identified: true, composed: true },
+      { "analyzed" => true, "identified" => true, "composed" => true } ].each do |metadata|
+      blob = ActiveStorage::Blob.create_before_direct_upload!(
+        filename: "hello.txt", byte_size: 5, checksum: OpenSSL::Digest::MD5.base64digest("Hello"),
+        metadata: metadata.merge(custom: { author: "Dorian" })
+      )
+
+      assert_equal({ "custom" => { "author" => "Dorian" } }, blob.reload.metadata)
+    end
+  end
+
   test "create_and_upload raises for non-rewindable io" do
     assert_raises(ArgumentError) do
       ActiveStorage::Blob.create_and_upload!(io: file_fixture("racecar.jpg"), filename: "racecar.jpg")

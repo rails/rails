@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "database/setup"
+require_relative "../fixtures/active_storage/in_memory_backend"
 
 if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].present?
   class ActiveStorage::S3DirectUploadsControllerTest < ActionDispatch::IntegrationTest
@@ -123,6 +124,16 @@ else
 end
 
 class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::IntegrationTest
+  test "direct uploads preserve Action Text serialization" do
+    post rails_direct_uploads_url, params: { blob: {
+      filename: "hello.txt", byte_size: 5, checksum: OpenSSL::Digest::MD5.base64digest("Hello"), content_type: "text/plain" } }
+
+    details = response.parsed_body
+    blob = ActiveStorage::Blob.find(details["id"])
+    assert_equal blob.attachable_sgid, details["attachable_sgid"]
+    assert_equal blob, ActionText::Attachable.from_attachable_sgid(details["attachable_sgid"])
+  end
+
   test "creating new direct upload" do
     checksum = OpenSSL::Digest::MD5.base64digest("Hello")
     metadata = {
@@ -185,4 +196,91 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
     ensure
       ActiveRecord::Base.include_root_in_json = original
     end
+end
+
+class ActiveStorage::CustomBackendDirectUploadsControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    @raw_blob_class = ActiveStorage.blob_class_name
+    @raw_attachment_class = ActiveStorage.attachment_class_name
+    @raw_variant_record_class = ActiveStorage.variant_record_class_name
+    @services_registry = ActiveStorage::Services.registry
+    @services_default = ActiveStorage::Services.default
+
+    ActiveStorage.blob_class = "ActiveStorage::InMemoryBackend::Blob"
+    ActiveStorage.attachment_class = "ActiveStorage::InMemoryBackend::Attachment"
+    ActiveStorage.variant_record_class = "ActiveStorage::InMemoryBackend::VariantRecord"
+    ActiveStorage::Services.registry = ActiveStorage::Service::Registry.new(Rails.configuration.active_storage.service_configurations)
+    ActiveStorage::Services.default = ActiveStorage::Services.registry.fetch(Rails.configuration.active_storage.service)
+    ActiveStorage::InMemoryBackend.install
+    ActiveStorage::InMemoryBackend.reset
+  end
+
+  teardown do
+    ActiveStorage::InMemoryBackend.reset
+    ActiveStorage.blob_class = @raw_blob_class
+    ActiveStorage.attachment_class = @raw_attachment_class
+    ActiveStorage.variant_record_class = @raw_variant_record_class
+    ActiveStorage::Services.registry = @services_registry
+    ActiveStorage::Services.default = @services_default
+  end
+
+  test "creating a direct upload reports missing service initialization" do
+    ActiveStorage::Services.registry = nil
+
+    error = assert_raises(ActiveStorage::ConfigurationError) do
+      post rails_direct_uploads_url, params: { blob: {
+        filename: "hello.txt", byte_size: 5, checksum: OpenSSL::Digest::MD5.base64digest("Hello"), content_type: "text/plain" } }
+    end
+
+    assert_match "services have not been configured", error.message
+  end
+
+  test "creating new direct upload with a custom backend includes signed id and upload details" do
+    checksum = OpenSSL::Digest::MD5.base64digest("Hello")
+    metadata = { "foo" => "bar" }
+    all_metadata = metadata.merge(
+      "analyzed" => true,
+      "identified" => true,
+      "composed" => true
+    )
+
+    post rails_direct_uploads_url, params: { blob: {
+      filename: "hello.txt", byte_size: 5, checksum: checksum, content_type: "text/plain", metadata: all_metadata } }
+
+    response.parsed_body.tap do |details|
+      blob = ActiveStorage.blob_class.find(details["id"])
+
+      assert_instance_of ActiveStorage::InMemoryBackend::Blob, blob
+      assert_predicate details["signed_id"], :present?
+      assert_equal blob, ActiveStorage.blob_class.find_signed!(details["signed_id"])
+      assert_equal blob.key, details["key"]
+      assert_equal "hello.txt", details["filename"]
+      assert_equal blob.byte_size, details["byte_size"]
+      assert_equal checksum, details["checksum"]
+      assert_equal metadata, details["metadata"]
+      assert_equal metadata, blob.metadata
+      assert_equal "text/plain", details["content_type"]
+      assert_equal blob.service_name.to_s, details["service_name"]
+      assert_predicate details["created_at"], :present?
+      assert_match(/rails\/active_storage\/disk/, details["direct_upload"]["url"])
+      assert_equal({ "Content-Type" => "text/plain" }, details["direct_upload"]["headers"])
+    end
+  end
+
+  test "filters protected metadata before calling the custom backend" do
+    create_blob = ActiveStorage.blob_class.method(:create_before_direct_upload!)
+    captured_metadata = nil
+    capture_arguments = ->(**attributes) do
+      captured_metadata = attributes[:metadata]
+      create_blob.call(**attributes)
+    end
+
+    ActiveStorage.blob_class.stub(:create_before_direct_upload!, capture_arguments) do
+      post rails_direct_uploads_url, params: { blob: {
+        filename: "hello.txt", byte_size: 5, checksum: OpenSSL::Digest::MD5.base64digest("Hello"),
+        metadata: { analyzed: true, identified: true, composed: true, custom: { author: "Dorian" } } } }
+    end
+
+    assert_equal({ "custom" => { "author" => "Dorian" } }, captured_metadata)
+  end
 end

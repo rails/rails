@@ -96,6 +96,24 @@ Rails.application.config.action_view.erb_implementation = :erubi
 
 Applications with a custom ERB implementation should set it through `config.action_view.erb_implementation`, since the framework default replaces an `ActionView::Base.erb_implementation` assignment made in an initializer.
 
+### Active Storage no longer installs Active Record as a dependency
+
+The `activestorage` gem now depends on `activemodel` so applications can use a
+[custom persistence backend](active_storage_custom_backend.html) without
+installing Active Record.
+
+Applications that list `activestorage` individually in their Gemfile and use its
+default database-backed models must also list `activerecord`:
+
+```ruby
+gem "activestorage"
+gem "activerecord"
+```
+
+Applications that depend on the `rails` gem already receive Active Record and
+need no Gemfile change. Active Storage still loads Active Record when it is
+installed, including when applications require framework railties individually.
+
 ### The old Active Record 6.1 marshalling format was removed.
 
 If your application still sets `active_record.marshalling_format_version = 6.1`, which may
