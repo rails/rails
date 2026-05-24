@@ -34,7 +34,7 @@ require "active_support/rails"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/numeric/time"
 require "active_support/core_ext/numeric/bytes"
-require "concurrent/array"
+require "concurrent/map"
 
 require "active_storage/version"
 require "active_storage/deprecator"
@@ -52,12 +52,18 @@ module ActiveStorage
   @@attachment_class     = "ActiveStorage::Attachment"
   @@variant_record_class = "ActiveStorage::VariantRecord"
 
+  # Metadata keys Active Storage owns internally and must not accept from direct-upload clients.
+  PROTECTED_BLOB_METADATA = %w(analyzed identified composed).flat_map { |key| [key, key.to_sym] }.freeze
+  private_constant :PROTECTED_BLOB_METADATA
+
   autoload :Attached
   autoload :FixtureSet
   autoload :Service
+  autoload :Servable
   autoload :Services
   autoload :Previewer
   autoload :Analyzer
+  autoload :Reflection
 
   mattr_accessor :logger
   mattr_accessor :verifier
@@ -373,28 +379,54 @@ module ActiveStorage
   mattr_accessor :urls_expire_in
 
   class << self
-    def blob_class
-      @blob_class_resolved ||= @@blob_class.constantize
+    attr_accessor :class_configuration_loaded # :nodoc:
+
+    def blob_class_name # :nodoc:
+      @@blob_class
     end
 
+    def attachment_class_name # :nodoc:
+      @@attachment_class
+    end
+
+    def variant_record_class_name # :nodoc:
+      @@variant_record_class
+    end
+
+    # Returns the configured class used to persist blobs. Defaults to ActiveStorage::Blob.
+    def blob_class
+      @blob_class_resolved ||= resolve_class(@@blob_class, :blob_class)
+    end
+
+    # Sets the blob persistence class and clears its cached constant.
+    #
+    # Accepts a named class or its constant name.
     def blob_class=(klass_or_name)
       @@blob_class = class_name(klass_or_name)
       @blob_class_resolved = nil
     end
 
+    # Returns the configured class used to persist attachments. Defaults to ActiveStorage::Attachment.
     def attachment_class
-      @attachment_class_resolved ||= @@attachment_class.constantize
+      @attachment_class_resolved ||= resolve_class(@@attachment_class, :attachment_class)
     end
 
+    # Sets the attachment persistence class and clears its cached constant.
+    #
+    # Accepts a named class or its constant name.
     def attachment_class=(klass_or_name)
       @@attachment_class = class_name(klass_or_name)
       @attachment_class_resolved = nil
     end
 
+    # Returns the configured class used to persist variants. Defaults to ActiveStorage::VariantRecord.
     def variant_record_class
-      @variant_record_class_resolved ||= @@variant_record_class.constantize
+      @variant_record_class_resolved ||= resolve_class(@@variant_record_class, :variant_record_class)
     end
 
+    # Sets the variant persistence class and clears its cached constant.
+    #
+    # Accepts a named class or its constant name.
     def variant_record_class=(klass_or_name)
       @@variant_record_class = class_name(klass_or_name)
       @variant_record_class_resolved = nil
@@ -406,9 +438,38 @@ module ActiveStorage
       @variant_record_class_resolved = nil
     end
 
+    # Removes metadata keys that Active Storage owns internally.
+    #
+    # Non-hash values are returned unchanged for the backend to validate.
+    def filter_blob_metadata(metadata)
+      if metadata.is_a?(Hash)
+        metadata.without(*PROTECTED_BLOB_METADATA)
+      else
+        metadata
+      end
+    end
+
     private
+      def resolve_class(name, option)
+        resolved = name.safe_constantize
+        unless resolved
+          raise ConfigurationError,
+            "config.active_storage.#{option} = #{name.inspect} but that constant is not defined. " \
+            "Ensure the third-party gem providing the class is required and its constant is loadable."
+        end
+        resolved
+      end
+
       def class_name(klass_or_name)
-        klass_or_name.is_a?(String) ? klass_or_name : klass_or_name.name
+        if klass_or_name.is_a?(String)
+          raise ArgumentError, "Active Storage class names cannot be blank" if klass_or_name.empty?
+
+          klass_or_name
+        elsif klass_or_name.respond_to?(:name) && klass_or_name.name
+          klass_or_name.name
+        else
+          raise ArgumentError, "Active Storage class configuration must be a class name or named class"
+        end
       end
   end
 

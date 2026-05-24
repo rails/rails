@@ -11,13 +11,18 @@ class ActiveStorage::DirectUploadsController < ActiveStorage::BaseController
 
   private
     def blob_args
-      params.expect(blob: [:filename, :byte_size, :checksum, :content_type, metadata: {}]).to_h.symbolize_keys
+      params.expect(blob: [:filename, :byte_size, :checksum, :content_type, metadata: {}]).to_h.symbolize_keys.tap do |args|
+        # Custom backends may not filter metadata; the default blob also filters direct model calls.
+        args[:metadata] = ActiveStorage.filter_blob_metadata(args[:metadata])
+      end
     end
 
     def direct_upload_json(blob)
-      blob.as_json(root: false, methods: :signed_id).merge(direct_upload: {
-        url: blob.service_url_for_direct_upload,
-        headers: blob.service_headers_for_direct_upload
-      })
+      blob.as_json(root: false, methods: :signed_id).merge(
+        direct_upload: {
+          url: blob.service_url_for_direct_upload,
+          headers: blob.service_headers_for_direct_upload
+        }
+      )
     end
 end

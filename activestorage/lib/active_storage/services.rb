@@ -1,17 +1,47 @@
 # frozen_string_literal: true
 
-module ActiveStorage::Services # :nodoc:
-  @registry = {}
+# :markup: markdown
+
+# Public bridge for custom Active Storage backends to access the configured
+# service registry and default service.
+module ActiveStorage::Services
+  @registry = nil
 
   class << self
-    attr_accessor :registry
-    attr_accessor :default
+    attr_writer :registry, :default
 
+    # Whether the application's service registry has been initialized.
+    def configured?
+      !@registry.nil?
+    end
+
+    # Returns the configured service registry.
+    def registry
+      unless configured?
+        raise ActiveStorage::ConfigurationError, "Active Storage services have not been configured"
+      end
+
+      @registry
+    end
+
+    # Returns the default service, which may be unset in a configured registry.
+    def default
+      registry
+      @default
+    end
+
+    # Looks up a service in the configured registry.
+    #
+    # Accepts a service name as a string or symbol.
     def fetch(name, &block)
       registry.fetch(name, &block)
     end
 
-    def setup_from_app_config(app)
+    # Initializes backend services and validates deferred attachment declarations.
+    #
+    # Pass the loaded blob class from a load hook to configure the newly loaded class
+    # during code reloading, before the cached class has been cleared.
+    def setup_from_app_config(app, blob_class: ActiveStorage.blob_class)
       configs = app.config.active_storage.service_configurations ||=
         begin
           config_file = Rails.root.join("config/storage/#{Rails.env}.yml")
@@ -24,18 +54,23 @@ module ActiveStorage::Services # :nodoc:
       self.registry = ActiveStorage::Service::Registry.new(configs)
       self.default = app.config.active_storage.service ? registry.fetch(app.config.active_storage.service) : nil
 
-      blob_class = ActiveStorage.blob_class
-      blob_class.services = registry if blob_class.respond_to?(:services=)
-      blob_class.service = default if blob_class.respond_to?(:service=)
+      configure_blob(blob_class)
 
-      if defined?(ActiveStorage::Attached::Model) && ActiveStorage::Attached::Model.respond_to?(:pending_service_validations)
-        ActiveStorage::Attached::Model.pending_service_validations.each do |model_class, name, service_name|
-          registry.fetch(service_name) do
-            raise ArgumentError, "Cannot configure service #{service_name.inspect} for #{model_class}##{name}"
+      ActiveStorage::Attached::Builder.declared_classes.each do |owner|
+        next if ActiveStorage::Attached::Builder.active_record_owner?(owner)
+
+        owner.attachment_reflections.each_value do |reflection|
+          service_name = reflection.options[:service_name]
+          unless service_name.is_a?(Proc)
+            ActiveStorage::Attached::Model.validate_service_configuration(service_name, owner, reflection.name)
           end
         end
-        ActiveStorage::Attached::Model.pending_service_validations.clear
       end
+    end
+
+    def configure_blob(blob_class) # :nodoc:
+      blob_class.services = registry if blob_class.respond_to?(:services=)
+      blob_class.service = default if blob_class.respond_to?(:service=)
     end
   end
 end

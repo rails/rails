@@ -44,6 +44,16 @@ module ActiveStorage
     end
   end
 
+  # Raised by non-Active Record backends when a record cannot be destroyed.
+  class RecordNotDestroyed < Error
+    attr_reader :record
+
+    def initialize(message = nil, record = nil)
+      super(message)
+      @record = record
+    end
+  end
+
   # Raised by non-Active Record backends when a record is invalid.
   class RecordInvalid < Error; end
 

@@ -10,6 +10,7 @@ class ActiveStorage::Attached::Builder::ActiveRecordOwner # :nodoc:
   end
 
   def build_one(name, dependent:, service:, strict_loading:, analyze:, &block)
+    refuse_if_storage_mismatch!
     ActiveStorage::Attached::Model.validate_service_configuration(service, model, name) unless service.is_a?(Proc)
 
     model.generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -58,9 +59,11 @@ class ActiveStorage::Attached::Builder::ActiveRecordOwner # :nodoc:
     )
     yield reflection if block
     ActiveRecord::Reflection.add_attachment_reflection(model, name, reflection)
+    ActiveStorage::Attached::Builder.register(model)
   end
 
   def build_many(name, dependent:, service:, strict_loading:, analyze:, &block)
+    refuse_if_storage_mismatch!
     ActiveStorage::Attached::Model.validate_service_configuration(service, model, name) unless service.is_a?(Proc)
 
     model.generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -111,5 +114,23 @@ class ActiveStorage::Attached::Builder::ActiveRecordOwner # :nodoc:
     )
     yield reflection if block
     ActiveRecord::Reflection.add_attachment_reflection(model, name, reflection)
+    ActiveStorage::Attached::Builder.register(model)
   end
+
+  private
+    def refuse_if_storage_mismatch!
+      blob_name = ActiveStorage.blob_class_name
+      attachment_name = ActiveStorage.attachment_class_name
+      variant_record_name = ActiveStorage.variant_record_class_name
+
+      return if blob_name == "ActiveStorage::Blob" &&
+        attachment_name == "ActiveStorage::Attachment" &&
+        variant_record_name == "ActiveStorage::VariantRecord"
+
+      raise ActiveStorage::HybridConfigurationError, <<~MSG
+        Cannot use Active Storage attachments on #{model.name}: #{model.name} is an ActiveRecord class, but non-default Active Storage storage classes are configured.
+
+        ActiveStorage does not support mixing ActiveRecord owners with non-ActiveRecord storage classes.
+      MSG
+    end
 end

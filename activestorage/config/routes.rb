@@ -33,7 +33,7 @@ Rails.application.routes.draw do
   end
 
   { blob_class: "ActiveStorage::Blob", attachment_class: "ActiveStorage::Attachment" }.each do |slot, default|
-    unless ActiveStorage.class_variable_get(:"@@#{slot}") == default
+    unless ActiveStorage.public_send("#{slot}_name") == default
       model = ActiveStorage.public_send(slot)
       names = [model.name]
       names << model.model_name.name if model.respond_to?(:model_name)

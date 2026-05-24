@@ -2,6 +2,8 @@
 
 module ActiveStorage
   class Attached::Changes::PurgeMany # :nodoc:
+    include ActiveStorage::Attached::Changes::OwnerDispatch
+
     attr_reader :name, :record, :attachments
 
     def initialize(name, record, attachments)
@@ -21,7 +23,11 @@ module ActiveStorage
     private
       def reset
         record.attachment_changes.delete(name)
-        record.public_send("#{name}_attachments").reset
+        record.public_send("#{name}_attachments").reset if record.public_send("#{name}_attachments").respond_to?(:reset)
+        if !ar_owner? && record.public_send("#{name}_blobs").respond_to?(:reset)
+          record.public_send("#{name}_blobs").reset
+        end
+        record.send(:prune_attachment_uploads) unless ar_owner?
       end
   end
 end

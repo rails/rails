@@ -2,12 +2,33 @@
 
 # :markup: markdown
 
-return if ActiveStorage.instance_variable_defined?(:@active_record_models_loaded)
-
-ActiveStorage.instance_variable_set(:@active_record_models_loaded, true)
-
 require "active_storage/attached"
 require "active_storage/reflection"
+
+module ActiveStorage::Attached::ActiveRecordExtensions # :nodoc:
+  def changed_for_autosave?
+    super || attachment_changes.any?
+  end
+
+  def initialize_dup(*)
+    super
+    @active_storage_attached = nil
+    @attachment_changes = nil
+  end
+
+  def reload(*)
+    super.tap { @attachment_changes = nil }
+  end
+
+  def becomes(klass)
+    super.tap do |became|
+      attachment_changes = @attachment_changes&.each_value do |change|
+        change.record = became
+      end
+      became.attachment_changes = attachment_changes
+    end
+  end
+end
 
 module ActiveStorage::Reflection
   class HasAttachedReflection < ::ActiveRecord::Reflection::MacroReflection # :nodoc:
@@ -62,4 +83,5 @@ end
 
 ::ActiveRecord::Reflection.singleton_class.prepend(ActiveStorage::Reflection::ReflectionExtension)
 ::ActiveRecord::Base.include(ActiveStorage::Attached::Model)
+::ActiveRecord::Base.include(ActiveStorage::Attached::ActiveRecordExtensions)
 ::ActiveRecord::Base.include(ActiveStorage::Reflection::ActiveRecordExtensions)
