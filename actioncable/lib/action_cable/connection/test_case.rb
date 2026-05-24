@@ -216,6 +216,9 @@ module ActionCable
         private
           def build_test_request(path, params: nil, headers: {}, session: {}, env: {})
             wrapped_headers = ActionDispatch::Http::Headers.from_hash(headers)
+            if session.respond_to?(:with_indifferent_access)
+              session = session.with_indifferent_access
+            end
 
             uri = URI.parse(path)
 
@@ -231,7 +234,7 @@ module ActionCable
             end
 
             TestRequest.create(request_env).tap do |request|
-              request.session = session.with_indifferent_access
+              request.session = session
               request.cookie_jar = cookies
             end
           end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "rack/test"
 
 class SimpleConnection < ActionCable::Connection::Base
   identified_by :user_id
@@ -65,6 +66,11 @@ class ConnectionSimpleTest < ActionCable::Connection::TestCase
     disconnect
 
     assert_equal "456", SimpleConnection.disconnected_user_id
+  end
+
+  def test_non_hash_session
+    session = Rack::MockSession.new("non-hash session")
+    assert_nothing_raised { connect session: session }
   end
 end
 
