@@ -23,11 +23,12 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require "active_record"
 require "active_support"
 require "active_support/rails"
+require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/numeric/time"
 require "active_support/core_ext/numeric/bytes"
+require "concurrent/array"
 
 require "active_storage/version"
 require "active_storage/deprecator"
@@ -48,6 +49,7 @@ module ActiveStorage
   autoload :Attached
   autoload :FixtureSet
   autoload :Service
+  autoload :Services
   autoload :Previewer
   autoload :Analyzer
 
