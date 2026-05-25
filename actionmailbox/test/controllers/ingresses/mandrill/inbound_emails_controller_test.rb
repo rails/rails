@@ -63,6 +63,16 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsControllerTest < ActionDi
     assert_response :unprocessable_content
   end
 
+  test "rejecting a Mandrill inbound event without a raw message" do
+    events = JSON.generate([{ event: "inbound", msg: {} }])
+    assert_no_difference -> { ActionMailbox::InboundEmail.count } do
+      post rails_mandrill_inbound_emails_url,
+        headers: { "X-Mandrill-Signature" => signature_for(events) }, params: { mandrill_events: events }
+    end
+
+    assert_response :unprocessable_content
+  end
+
   test "rejecting a Mandrill events payload that parses to a scalar" do
     events = "42"
     assert_no_difference -> { ActionMailbox::InboundEmail.count } do

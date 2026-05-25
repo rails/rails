@@ -37,7 +37,14 @@ module ActionMailbox
       end
 
       def raw_emails
-        events.select { |event| event["event"] == "inbound" }.collect { |event| event.dig("msg", "raw_msg") }
+        events.select { |event| event["event"] == "inbound" }.collect do |event|
+          message = event["msg"]
+          raise MalformedEventsError unless message.is_a?(Hash)
+
+          message["raw_msg"].tap do |raw_email|
+            raise MalformedEventsError unless raw_email.is_a?(String)
+          end
+        end
       end
 
       def events
