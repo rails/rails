@@ -158,6 +158,14 @@ module ActiveSupport
         end
       end
 
+      def test_to_delimited_with_non_finite_floats
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal "Infinity", number_helper.number_to_delimited(Float::INFINITY)
+          assert_equal "-Infinity", number_helper.number_to_delimited(-Float::INFINITY)
+          assert_equal "NaN", number_helper.number_to_delimited(Float::NAN)
+        end
+      end
+
       def test_to_delimited_with_options_hash
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal "12 345 678", number_helper.number_to_delimited(12345678, delimiter: " ")

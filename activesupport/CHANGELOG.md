@@ -1,3 +1,18 @@
+*   Fix `number_to_delimited` mangling non-finite floats.
+
+    `number_to_delimited(Float::INFINITY)` returned `"In,fin,ity"` because the
+    fast-path manual slicing introduced in commit `2d485aecf5` and made the
+    default in commit `33fbedb1b1` treated `Float::INFINITY.to_s` (the string
+    `"Infinity"`) as a sequence of digits to group every three characters.
+    `-Float::INFINITY` was similarly mangled to `"-In,fin,ity"`. `Float::NAN`
+    happened to survive only because `"NaN"` is exactly three characters long.
+
+    Now returns the underlying string representation (`"Infinity"`,
+    `"-Infinity"`, `"NaN"`) for non-finite floats, matching the pre-`2d485aecf5`
+    behavior.
+
+    *Kenta Ishizaki*
+
 *   Duplicate the `context` hash passed to `ActiveSupport::ErrorReport#handle` for each subscriber.
     This prevents mutations done on the `context` by one subscriber from effecting the others.
 
