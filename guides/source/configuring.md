@@ -569,6 +569,17 @@ in `config/credentials.yml.enc`. See the [`secret_key_base` API documentation](
 https://api.rubyonrails.org/classes/Rails/Application.html#method-i-secret_key_base)
 for more information and alternative configuration methods.
 
+#### `config.server_host`
+
+Sets a host name to display in the `bin/rails server` boot banner. When set, the
+URL line uses this host instead of the value passed to `--binding`/`-b`, and is
+shown even when running under Puma.
+
+Defaults to `nil`.
+
+Useful for developers using a custom local hostname (such as `myapp.local`) who
+want it surfaced in the boot output.
+
 #### `config.server_timing`
 
 When `true`, adds the [`ServerTiming` middleware](#actiondispatch-servertiming)

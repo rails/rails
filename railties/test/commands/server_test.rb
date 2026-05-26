@@ -348,9 +348,9 @@ class Rails::Command::ServerTest < ActiveSupport::TestCase
       Rails::Command::ServerCommand.new([], args).server_options
     end
 
-    def with_application_config(server_host:)
+    def with_application_config(server_host:, &block)
       config = Struct.new(:server_host).new(server_host)
       app = Struct.new(:config).new(config)
-      Rails.stub(:application, app) { yield }
+      Rails.stub(:application, app, &block)
     end
 end
