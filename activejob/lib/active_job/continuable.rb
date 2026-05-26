@@ -61,7 +61,10 @@ module ActiveJob
     end
 
     def checkpoint! # :nodoc:
-      interrupt!(reason: :stopping) if queue_adapter.stopping?
+      if (reason = queue_adapter.stopping?(self))
+        reason = :stopping if reason == true
+        interrupt!(reason: reason)
+      end
     end
 
     def interrupt!(reason:) # :nodoc:
