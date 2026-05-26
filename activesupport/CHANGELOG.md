@@ -1,3 +1,15 @@
+*   Fix `NumberHelper` raising `FloatDomainError` for `Infinity` / `NaN` with
+    `significant: true`.
+
+    `number_to_rounded(Float::INFINITY, precision: 3, significant: true)` (and
+    its callers `number_to_percentage`, `number_to_currency`, etc.) raised
+    `FloatDomainError` because `RoundingHelper#digit_count` called
+    `Math.log10(Float::INFINITY).floor`. The non-`significant` path already
+    formatted these values as `"Inf"` / `"-Inf"` / `"NaN"`; the two paths now
+    agree.
+
+    *Kenta Ishizaki*
+
 *   Fix `number_to_delimited` mangling non-finite floats.
 
     `number_to_delimited(Float::INFINITY)` returned `"In,fin,ity"` because the
