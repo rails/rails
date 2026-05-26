@@ -1,3 +1,10 @@
+*   Prevent `ActiveStorage.touch_attachment_records = false` from crashing the attachment of a Blob.
+
+    When `ActiveStorage.touch_attachment_records` was set to `false`, attaching a existing Blob to a Record
+    would raise an error. This is now fixed.
+
+    *Edouard Chin*
+
 *   Fix `MirrorService#mirror` raising `ActiveStorage::IntegrityError` when
     mirroring without a checksum (e.g., `track_variants: false`).
 
