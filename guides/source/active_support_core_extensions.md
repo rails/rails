@@ -3298,19 +3298,15 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ### `monday`, `sunday`
 
-The methods [`monday`][DateAndTime::Calculations#monday] and [`sunday`][DateAndTime::Calculations#sunday] return the dates for the previous Monday (or the same day if it is Monday) and
-next Sunday (or the same day if it is Sunday), respectively.
+The methods [`monday`][DateAndTime::Calculations#monday] and
+[`sunday`][DateAndTime::Calculations#sunday] return the dates for the previous
+Monday (or the same day if it is Monday) and next Sunday (or the same day if it
+is Sunday), respectively.
 
 ```ruby
-d = Date.new(2010, 5, 8)     # => Sat, 08 May 2010
-d.monday                     # => Mon, 03 May 2010
-d.sunday                     # => Sun, 09 May 2010
-
-d = Date.new(2012, 9, 10)    # => Mon, 10 Sep 2012
-d.monday                     # => Mon, 10 Sep 2012
-
-d = Date.new(2012, 9, 16)    # => Sun, 16 Sep 2012
-d.sunday                     # => Sun, 16 Sep 2012
+d = Date.new(2026, 05, 05)    # => Tue, 05 May 2026
+d.monday                      # => Mon, 04 May 2026
+d.sunday                      # => Sun, 10 May 2026
 ```
 
 NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
@@ -3320,25 +3316,23 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ### `prev_week`, `next_week`
 
-The method [`next_week`][DateAndTime::Calculations#next_week] receives a symbol with a day name in English (default is the thread local [`Date.beginning_of_week`][Date.beginning_of_week], or [`config.beginning_of_week`][], or `:monday`) and it returns the date corresponding to that day.
+The method [`next_week`][DateAndTime::Calculations#next_week] accepts a day name as a symbol and returns the date of that day in the following week. The default day is `:monday`, unless `config.beginning_of_week` has been set to something else:
 
 ```ruby
-d = Date.new(2010, 5, 9) # => Sun, 09 May 2010
-d.next_week              # => Mon, 10 May 2010
-d.next_week(:saturday)   # => Sat, 15 May 2010
+d = Date.new(2026, 5, 5)  # => Tue, 05 May 2026
+d.next_week               # => Mon, 11 May 2026
+d.next_week(:saturday)    # => Sat, 16 May 2026
 ```
 
-The method [`prev_week`][DateAndTime::Calculations#prev_week] is analogous:
+The method [`prev_week`][DateAndTime::Calculations#prev_week] works the same way but returns the date in the previous week. It is also aliased as `last_week`:
 
 ```ruby
-d.prev_week              # => Mon, 26 Apr 2010
-d.prev_week(:saturday)   # => Sat, 01 May 2010
-d.prev_week(:friday)     # => Fri, 30 Apr 2010
+d.prev_week               # => Mon, 27 Apr 2026
+d.prev_week(:saturday)    # => Sat, 02 May 2026
+d.prev_week(:friday)      # => Fri, 01 May 2026
 ```
 
-`prev_week` is aliased to [`last_week`][DateAndTime::Calculations#last_week].
-
-Both `next_week` and `prev_week` work as expected when `Date.beginning_of_week` or `config.beginning_of_week` are set.
+Both methods respect the `config.beginning_of_week` setting if configured.
 
 NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
@@ -3349,15 +3343,17 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ### `beginning_of_month`, `end_of_month`
 
-The methods [`beginning_of_month`][DateAndTime::Calculations#beginning_of_month] and [`end_of_month`][DateAndTime::Calculations#end_of_month] return the dates for the beginning and end of the month:
+The methods [`beginning_of_month`][DateAndTime::Calculations#beginning_of_month]
+and [`end_of_month`][DateAndTime::Calculations#end_of_month] return the dates
+for the beginning and end of the month:
 
 ```ruby
-d = Date.new(2010, 5, 9) # => Sun, 09 May 2010
-d.beginning_of_month     # => Sat, 01 May 2010
-d.end_of_month           # => Mon, 31 May 2010
+d = Date.new(2026, 5, 5)  # => Tue, 05 May 2026
+d.beginning_of_month      # => Fri, 01 May 2026
+d.end_of_month            # => Sun, 31 May 2026
 ```
 
-`beginning_of_month` is aliased to [`at_beginning_of_month`][DateAndTime::Calculations#at_beginning_of_month], and `end_of_month` is aliased to [`at_end_of_month`][DateAndTime::Calculations#at_end_of_month].
+There are aliases for `beginning_of_month` to [`at_beginning_of_month`][DateAndTime::Calculations#at_beginning_of_month], and `end_of_month` to [`at_end_of_month`][DateAndTime::Calculations#at_end_of_month].
 
 NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
@@ -3371,19 +3367,25 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 The method [`quarter`][DateAndTime::Calculations#quarter] returns the quarter of the receiver's calendar year:
 
 ```ruby
-d = Date.new(2010, 5, 9) # => Sun, 09 May 2010
-d.quarter                # => 2
+d = Date.new(2026, 5, 5)  # => Tue, 05 May 2026
+d.quarter                 # => 2
 ```
 
-The methods [`beginning_of_quarter`][DateAndTime::Calculations#beginning_of_quarter] and [`end_of_quarter`][DateAndTime::Calculations#end_of_quarter] return the dates for the beginning and end of the quarter of the receiver's calendar year:
+The methods
+[`beginning_of_quarter`][DateAndTime::Calculations#beginning_of_quarter] and
+[`end_of_quarter`][DateAndTime::Calculations#end_of_quarter] return the dates
+for the beginning and end of the quarter of the receiver's calendar year:
 
 ```ruby
-d = Date.new(2010, 5, 9) # => Sun, 09 May 2010
-d.beginning_of_quarter   # => Thu, 01 Apr 2010
-d.end_of_quarter         # => Wed, 30 Jun 2010
+d = Date.new(2026, 5, 5)  # => Tue, 05 May 2026
+d.beginning_of_quarter    # => Wed, 01 Apr 2026
+d.end_of_quarter          # => Tue, 30 Jun 2026
 ```
 
-`beginning_of_quarter` is aliased to [`at_beginning_of_quarter`][DateAndTime::Calculations#at_beginning_of_quarter], and `end_of_quarter` is aliased to [`at_end_of_quarter`][DateAndTime::Calculations#at_end_of_quarter].
+There are aliases for `beginning_of_quarter` to
+[`at_beginning_of_quarter`][DateAndTime::Calculations#at_beginning_of_quarter],
+and `end_of_quarter` to
+[`at_end_of_quarter`][DateAndTime::Calculations#at_end_of_quarter].
 
 NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
@@ -3398,12 +3400,14 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 The methods [`beginning_of_year`][DateAndTime::Calculations#beginning_of_year] and [`end_of_year`][DateAndTime::Calculations#end_of_year] return the dates for the beginning and end of the year:
 
 ```ruby
-d = Date.new(2010, 5, 9) # => Sun, 09 May 2010
-d.beginning_of_year      # => Fri, 01 Jan 2010
-d.end_of_year            # => Fri, 31 Dec 2010
+d = Date.new(2026, 5, 5)  # => Tue, 05 May 2026
+d.beginning_of_year       # => Thu, 01 Jan 2026
+d.end_of_year             # => Thu, 31 Dec 2026
 ```
 
-`beginning_of_year` is aliased to [`at_beginning_of_year`][DateAndTime::Calculations#at_beginning_of_year], and `end_of_year` is aliased to [`at_end_of_year`][DateAndTime::Calculations#at_end_of_year].
+There are aliases for `beginning_of_year` to
+[`at_beginning_of_year`][DateAndTime::Calculations#at_beginning_of_year], and
+`end_of_year` to [`at_end_of_year`][DateAndTime::Calculations#at_end_of_year].
 
 NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
