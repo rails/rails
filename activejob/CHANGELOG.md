@@ -1,3 +1,9 @@
+*   Avoid rescanning all Active Job descendants in `ActiveJob::TestHelper`
+    before and after each test by tracking classes that explicitly change
+    their queue adapter.
+
+    *Rafael Mendonça França*
+
 *   Add `ActiveJob::Attributes` for declaring typed attributes that persist across
     job serialization and deserialization. It is included by `ActiveJob::Continuable`
     but can also be used standalone.

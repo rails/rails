@@ -798,6 +798,10 @@ class QueueAdapterTest < ActiveJob::TestCase
     ActiveJob::QueueAdapters::TestAdapter.new
   end
 
+  test "queue_adapter_changed_jobs includes jobs with explicit queue adapters" do
+    assert_includes ActiveJob::Base._queue_adapter_changed_jobs, JobWithAnAdapter
+  end
+
   test "assert_enqueued_with enqueues a job with a queue_adapter and queue_adapter_for_test" do
     assert_enqueued_with(job: JobWithAnAdapter) do
       JobWithAnAdapter.perform_later

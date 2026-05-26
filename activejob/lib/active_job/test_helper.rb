@@ -17,11 +17,20 @@ module ActiveJob
 
       included do
         class_attribute :_test_adapter, instance_accessor: false, instance_predicate: false
+
+        @_queue_adapter_changed_jobs = Set.new << self
+        singleton_class.attr_reader :_queue_adapter_changed_jobs # :nodoc:
       end
 
       module ClassMethods
         def queue_adapter
           self._test_adapter.nil? ? super : self._test_adapter
+        end
+
+        def queue_adapter=(name_or_adapter) # :nodoc:
+          super.tap do
+            ActiveJob::Base._queue_adapter_changed_jobs << self
+          end
         end
 
         def disable_test_adapter
@@ -40,7 +49,7 @@ module ActiveJob
 
     def before_setup # :nodoc:
       queue_adapter_specific_to_this_test_class = queue_adapter_for_test
-      queue_adapter_changed_jobs.each do |klass|
+      ActiveJob::Base._queue_adapter_changed_jobs.each do |klass|
         if queue_adapter_specific_to_this_test_class
           klass.enable_test_adapter(queue_adapter_specific_to_this_test_class)
         elsif klass._queue_adapter.nil?
@@ -56,7 +65,7 @@ module ActiveJob
     def after_teardown # :nodoc:
       super
 
-      queue_adapter_changed_jobs.each { |klass| klass.disable_test_adapter }
+      ActiveJob::Base._queue_adapter_changed_jobs.each { |klass| klass.disable_test_adapter }
     end
 
     # Returns a queue adapter instance to use with all Active Job test helpers.
@@ -754,13 +763,6 @@ module ActiveJob
         job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
         job.send(:deserialize_arguments_if_needed) unless skip_deserialize_arguments
         job
-      end
-
-      def queue_adapter_changed_jobs
-        (ActiveJob::Base.descendants << ActiveJob::Base).select do |klass|
-          # only override explicitly set adapters, a quirk of `class_attribute`
-          klass.singleton_class.public_instance_methods(false).include?(:_queue_adapter)
-        end
       end
 
       def validate_option(only: nil, except: nil)
