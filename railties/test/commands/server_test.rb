@@ -308,11 +308,31 @@ class Rails::Command::ServerTest < ActiveSupport::TestCase
     end
   end
 
-  def test_served_url_when_server_prints_it
+  def test_served_url_suppressed_under_puma_without_server_host
     with_rails_env "development" do
       args = %w(-u puma -b 127.0.0.1 -p 4567)
       server = Rails::Server.new(parse_arguments(args))
       assert_nil server.served_url
+    end
+  end
+
+  def test_served_url_under_puma_when_config_server_host_set
+    with_rails_env "development" do
+      with_application_config(server_host: "example.com") do
+        args = %w(-u puma -b 127.0.0.1 -p 4567)
+        server = Rails::Server.new(parse_arguments(args))
+        assert_equal "http://example.com:4567", server.served_url
+      end
+    end
+  end
+
+  def test_served_url_config_server_host_overrides_bind_for_non_puma
+    with_rails_env "development" do
+      with_application_config(server_host: "example.com") do
+        args = %w(-u webrick -b 127.0.0.1 -p 4567)
+        server = Rails::Server.new(parse_arguments(args))
+        assert_equal "http://example.com:4567", server.served_url
+      end
     end
   end
 
@@ -326,5 +346,11 @@ class Rails::Command::ServerTest < ActiveSupport::TestCase
 
     def parse_arguments(args = [])
       Rails::Command::ServerCommand.new([], args).server_options
+    end
+
+    def with_application_config(server_host:)
+      config = Struct.new(:server_host).new(server_host)
+      app = Struct.new(:config).new(config)
+      Rails.stub(:application, app) { yield }
     end
 end

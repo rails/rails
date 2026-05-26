@@ -17,7 +17,7 @@ module Rails
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters, :precompile_filter_parameters,
                     :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
                     :log_tags, :silence_healthcheck_path, :railties_order, :relative_url_root,
-                    :ssl_options, :public_file_server,
+                    :server_host, :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x,
                     :content_security_policy_report_only,
@@ -87,6 +87,7 @@ module Rails
         @dom_testing_default_html_version        = :html4
         @yjit                                    = false
         @action_on_early_load_hook               = :log
+        @server_host                             = nil
       end
 
       # Loads default configuration values for a target version. This includes

@@ -56,10 +56,18 @@ module Rails
     end
 
     def served_url
-      "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}" unless use_puma?
+      "#{options[:SSLEnable] ? 'https' : 'http'}://#{display_host}:#{options[:Port]}" unless suppress_served_url?
     end
 
     private
+      def display_host
+        Rails.application&.config&.server_host || options[:Host]
+      end
+
+      def suppress_served_url?
+        use_puma? && Rails.application&.config&.server_host.nil?
+      end
+
       def setup_dev_caching
         if options[:environment] == "development"
           Rails::DevCaching.enable_by_argument(options[:caching])
