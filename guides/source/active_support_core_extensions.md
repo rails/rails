@@ -3423,25 +3423,25 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 The method [`years_ago`][DateAndTime::Calculations#years_ago] receives a number of years and returns the same date those many years ago:
 
 ```ruby
-date = Date.new(2010, 6, 7)
-date.years_ago(10) # => Wed, 07 Jun 2000
+date = Date.new(2026, 5, 5)
+date.years_ago(10) # => Sun, 05 May 2016
 ```
 
-[`years_since`][DateAndTime::Calculations#years_since] moves forward in time:
+The method [`years_since`][DateAndTime::Calculations#years_since] moves forward in time:
 
 ```ruby
-date = Date.new(2010, 6, 7)
-date.years_since(10) # => Sun, 07 Jun 2020
+date = Date.new(2026, 5, 5)
+date.years_since(10) # => Fri, 05 May 2036
 ```
 
 If such a day does not exist, the last day of the corresponding month is returned:
 
 ```ruby
-Date.new(2012, 2, 29).years_ago(3)     # => Sat, 28 Feb 2009
-Date.new(2012, 2, 29).years_since(3)   # => Sat, 28 Feb 2015
+Date.new(2024, 2, 29).years_ago(1)   # => Wed, 28 Feb 2023
+Date.new(2024, 2, 29).years_since(2) # => Sat, 28 Feb 2026
 ```
 
-[`last_year`][DateAndTime::Calculations#last_year] is short-hand for `#years_ago(1)`.
+The method [`last_year`][DateAndTime::Calculations#last_year] is short-hand for `years_ago`.
 
 NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
@@ -3454,18 +3454,18 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 The methods [`months_ago`][DateAndTime::Calculations#months_ago] and [`months_since`][DateAndTime::Calculations#months_since] work analogously for months:
 
 ```ruby
-Date.new(2010, 4, 30).months_ago(2)   # => Sun, 28 Feb 2010
-Date.new(2010, 4, 30).months_since(2) # => Wed, 30 Jun 2010
+Date.new(2026, 5, 5).months_ago(2)   # => Sun, 05 Mar 2026
+Date.new(2026, 5, 5).months_since(2) # => Sat, 05 Jul 2026
 ```
 
 If such a day does not exist, the last day of the corresponding month is returned:
 
 ```ruby
-Date.new(2010, 4, 30).months_ago(2)    # => Sun, 28 Feb 2010
-Date.new(2009, 12, 31).months_since(2) # => Sun, 28 Feb 2010
+Date.new(2026, 3, 31).months_ago(1)   # => Sat, 28 Feb 2026
+Date.new(2026, 1, 31).months_since(1) # => Sat, 28 Feb 2026
 ```
 
-[`last_month`][DateAndTime::Calculations#last_month] is short-hand for `#months_ago(1)`.
+The method [`last_month`][DateAndTime::Calculations#last_month] is short-hand for `months_ago`.
 
 NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
@@ -3478,8 +3478,8 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 The method [`weeks_ago`][DateAndTime::Calculations#weeks_ago] and [`weeks_since`][DateAndTime::Calculations#week_since] work analogously for weeks:
 
 ```ruby
-Date.new(2010, 5, 24).weeks_ago(1)   # => Mon, 17 May 2010
-Date.new(2010, 5, 24).weeks_since(2) # => Mon, 07 Jun 2010
+Date.new(2026, 5, 5).weeks_ago(1)   # => Tue, 28 Apr 2026
+Date.new(2026, 5, 5).weeks_since(2) # => Tue, 19 May 2026
 ```
 
 NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
@@ -3492,12 +3492,12 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 The most generic way to jump to other days is [`advance`][Date#advance]. This method receives a hash with keys `:years`, `:months`, `:weeks`, `:days`, and returns a date advanced as much as the present keys indicate:
 
 ```ruby
-date = Date.new(2010, 6, 6)
-date.advance(years: 1, weeks: 2)  # => Mon, 20 Jun 2011
-date.advance(months: 2, days: -2) # => Wed, 04 Aug 2010
+date = Date.new(2026, 5, 5)
+date.advance(years: 1, weeks: 2)  # => Wed, 19 May 2027
+date.advance(months: 2, days: -2) # => Mon, 03 Jul 2026
 ```
 
-Note in the previous example that increments may be negative.
+Note in the previous example that increments can be negative.
 
 NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
@@ -3505,17 +3505,17 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
 ### `change`
 
-The method [`change`][Date#change] allows you to get a new date which is the same as the receiver except for the given year, month, or day:
+The [`change`][Date#change] method returns a new date based on the receiver, with the specified year, month, or day swapped out:
 
 ```ruby
-Date.new(2010, 12, 23).change(year: 2011, month: 11)
-# => Wed, 23 Nov 2011
+Date.new(2026, 5, 5).change(year: 2027, month: 3)
+# => Fri, 05 Mar 2027
 ```
 
-This method is not tolerant to non-existing dates, if the change is invalid `ArgumentError` is raised:
+If the resulting date does not exist, `ArgumentError` is raised:
 
 ```ruby
-Date.new(2010, 1, 31).change(month: 2)
+Date.new(2026, 5, 31).change(month: 2)
 # => ArgumentError: invalid date
 ```
 
@@ -3525,23 +3525,22 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
 ### Durations
 
-[`Duration`][ActiveSupport::Duration] objects can be added to and subtracted from dates:
+The [`Duration`][ActiveSupport::Duration] objects can be added to and subtracted from dates:
 
 ```ruby
-d = Date.current
-# => Mon, 09 Aug 2010
-d + 1.year
-# => Tue, 09 Aug 2011
-d - 3.hours
-# => Sun, 08 Aug 2010 21:00:00 UTC +00:00
+d = Date.new(2026, 5, 5)   # => Tue, 05 May 2026
+d + 1.year                 # => Wed, 05 May 2027
+d - 3.months               # => Thu, 05 Feb 2026
 ```
 
-They translate to calls to `since` or `advance`. For example here we get the correct jump in the calendar reform:
+Under the hood these operations call `since` or `advance`, which means they correctly handle calendar edge cases. For example, the Gregorian calendar reform skipped 10 days in October 1582, the `Duration` arithmetic respects this:
 
 ```ruby
 Date.new(1582, 10, 4) + 1.day
 # => Fri, 15 Oct 1582
 ```
+
+NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
 [ActiveSupport::Duration]: https://api.rubyonrails.org/classes/ActiveSupport/Duration.html
 
