@@ -422,14 +422,19 @@ class ActiveStorage::Blob < ActiveStorage::Record
     end
 
     def touch_attachments
-      attachments.then do |relation|
-        if ActiveStorage.touch_attachment_records
-          relation.includes(:record)
-        else
-          relation
+      # The cascade exists to invalidate cache keys; it must not bump
+      # +lock_version+ on parents, since blob analysis does not modify any
+      # field of theirs and would otherwise race with concurrent edits.
+      ActiveRecord::Locking::Optimistic.preserve_lock_version_on_touch do
+        attachments.then do |relation|
+          if ActiveStorage.touch_attachment_records
+            relation.includes(:record)
+          else
+            relation
+          end
+        end.each do |attachment|
+          attachment.touch
         end
-      end.each do |attachment|
-        attachment.touch
       end
     end
 

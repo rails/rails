@@ -515,6 +515,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support NOT ENFORCED foreign key constraints?
+      def supports_enforced_foreign_keys?
+        false
+      end
+
       # Does this adapter support creating check constraints?
       def supports_check_constraints?
         false

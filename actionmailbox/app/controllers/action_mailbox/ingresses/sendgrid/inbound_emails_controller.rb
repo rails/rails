@@ -50,20 +50,32 @@ module ActionMailbox
 
     def create
       ActionMailbox::InboundEmail.create_and_extract_message_id! mail
-    rescue JSON::ParserError => error
+    rescue JSON::ParserError, MalformedEnvelopeError => error
       logger.error error.message
       head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     end
 
     private
-      def mail
-        params.require(:email).tap do |raw_email|
-          envelope["to"].each { |to| raw_email.prepend("X-Original-To: ", to, "\n") } if params.key?(:envelope)
+      class MalformedEnvelopeError < StandardError
+        def initialize(message = "Malformed SendGrid envelope")
+          super
         end
       end
 
-      def envelope
-        JSON.parse(params.require(:envelope))
+      def mail
+        params.require(:email).tap do |raw_email|
+          envelope_recipients.each { |to| raw_email.prepend("X-Original-To: ", to, "\n") } if params.key?(:envelope)
+        end
+      end
+
+      def envelope_recipients
+        envelope = JSON.parse(params.require(:envelope))
+        raise MalformedEnvelopeError unless envelope.is_a?(Hash)
+        raise MalformedEnvelopeError unless envelope.key?("to")
+
+        envelope["to"].tap do |recipients|
+          raise MalformedEnvelopeError unless recipients.is_a?(Array) && recipients.all?(String)
+        end
       end
   end
 end

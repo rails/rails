@@ -1,6 +1,149 @@
 *   Use the primary database when generating a migration without `--database`
 
     *ddbrendan*
+*   Include the list of valid values in the `ArgumentError` raised when assigning
+    an invalid value to an enum attribute.
+
+    ```ruby
+    Book.new(status: "bogus")
+    # ArgumentError: 'bogus' is not a valid status. Valid values are: "proposed", "written", "published"
+    ```
+
+    *Hammad Khan*
+
+*   Include the mismatched keys in the error raised by `insert_all` / `upsert_all`
+    when the inserted objects have inconsistent attributes.
+
+    ```ruby
+    Book.insert_all [{ name: "Rework", author_id: 1 }, { name: "Remote", author_id: 1, isbn: "x" }]
+    # ArgumentError: All objects being inserted must have the same keys (extra: [:isbn])
+    ```
+
+    *Hammad Khan*
+
+*   Allow `create_join_table` to accept a primary key.
+
+    This is useful for databases like PostgreSQL where logical replication requires primary
+    keys on all tables.
+
+    ```ruby
+    create_join_table :assemblies, :parts, primary_key: [:assembly_id, :part_id]
+    ```
+
+    This generates a join table with a composite primary key on both foreign key columns.
+
+    *Genadi Samokovarov*
+
+*   Fix Active Record Pool Reaper thread leak after `Parallelization#shutdown`.
+
+    After parallelized test runs, the parent process leaked the Active Record Pool
+    Reaper thread, holding open connection pools and file descriptors for up to
+    `reaping_frequency` seconds (or indefinitely if never reaped).
+
+    Three fixes: `Parallelization#shutdown` now calls `run_cleanup_hooks`;
+    Active Record registers a cleanup hook that discards all connection pools; and
+    `ConnectionPool#discard!` now calls `Reaper.discard_pool`, which immediately
+    kills and joins the reaper thread when no pools remain at that frequency.
+
+    *Ruy Rocha*
+
+*   Reset `lock_version` after a nested savepoint rollback.
+
+    When a record was saved inside a `transaction(requires_new: true)` block
+    that later rolled back, the in-memory `lock_version` was left at the
+    incremented value while the database row was reverted by the savepoint.
+    Saving the same instance again raised `ActiveRecord::StaleObjectError`
+    because the WHERE clause used the bumped value that no longer existed in
+    the database.
+
+    Restore the locking column from the snapshot on savepoint rollback in
+    addition to the outermost transaction rollback handled in #57363.
+
+    *Kenta Ishizaki*
+
+*   Fix duplicate `WHERE` conditions in `create_or_find_by`.
+
+    When `create_or_find_by` catches a `RecordNotUnique` error and retries the query, it now uses `rewhere` and `take!` to prevent duplicating existing scope conditions.
+
+    *Yavor Dashev*
+
+*   Allow to pass array values to `in_order_of`
+
+    Passing arrays allows to group records and order those groups with another query:
+
+    ```rb
+    Posts
+      .in_order_of(:state, [[:published, :canceled], :archived])
+      .order(created_at: :desc)
+    # =>
+    # SELECT "posts".* FROM "posts" WHERE "posts"."state" IN (1, 2, 3)
+    # ORDER BY CASE
+    #   WHEN "posts"."state" IN (1, 2) THEN 1
+    #   WHEN "posts"."state" = 3 THEN 2
+    #  END ASC, "posts"."created_at" DESC
+    ```
+
+    *Markus Doits*
+
+*   On PostgreSQL 18.4+, `disable_referential_integrity` uses `NOT ENFORCED`/`ENFORCED`
+    instead of `DISABLE TRIGGER ALL`/`ENABLE TRIGGER ALL`, requiring only table ownership
+    rather than superuser privileges. Only currently `ENFORCED` foreign keys are toggled;
+    intentionally `NOT ENFORCED` foreign keys are left unchanged.
+
+    Unlike `ENABLE TRIGGER ALL`, restoring `ENFORCED` checks existing rows against the
+    constraint, so FK violations raise `ActiveRecord::InvalidForeignKey` rather than
+    `RuntimeError`. The toggle and restore run in a single transaction so a restoration
+    failure rolls back the initial `NOT ENFORCED` toggle too — preventing originally-
+    `ENFORCED` constraints from being left in a `NOT ENFORCED` state indistinguishable
+    from intentional ones.
+
+    Fixtures sharing FK relationships must be passed together to
+    `FixtureSet.create_fixtures` to ensure all referenced rows are present when
+    enforcement is restored.
+
+    `check_all_foreign_keys_valid!` skips `NOT ENFORCED` constraints on PostgreSQL 18.4+,
+    as `VALIDATE CONSTRAINT` cannot be applied to them.
+
+    Unlike `SET CONSTRAINTS ALL DEFERRED` (the approach attempted in rails/rails#27636
+    and reverted), `NOT ENFORCED` also suppresses referential actions such as
+    `ON DELETE CASCADE`, `SET NULL`, and `SET DEFAULT`.
+
+    *Yasuo Honda*
+
+*   Add `exclusion_constraint_exists?` and `unique_constraint_exists?` helpers
+
+    *fatkodima*
+
+*   Add `enforced:` option to `add_foreign_key` and `change_foreign_key` for PostgreSQL 18.4+.
+
+    `NOT ENFORCED` foreign keys are available since PostgreSQL 18.0, but `DEFERRABLE`
+    was lost on them until 18.4 ("Fix loss of deferrability of foreign-key triggers",
+    https://www.postgresql.org/docs/release/18.4/). Rails therefore requires PostgreSQL
+    18.4 or later for this feature.
+
+    When `enforced: false` is passed to `add_foreign_key`, the constraint is created as `NOT ENFORCED`,
+    meaning PostgreSQL skips referential integrity checks during DML.
+    PostgreSQL marks `NOT ENFORCED` constraints as `NOT VALID` internally (and `VALIDATE CONSTRAINT`
+    does not apply to them), so the schema dumper outputs both
+    `enforced: false` and `validate: false`.
+
+    `change_foreign_key` toggles the enforced status of an existing foreign key. Without
+    this method, users would need to issue raw `ALTER TABLE ... ALTER CONSTRAINT` SQL
+    to disable enforcement temporarily (e.g., for bulk DML that loads the referenced
+    and referencing tables in arbitrary order) and then re-enable it.
+
+    ```ruby
+    add_foreign_key :articles, :authors, enforced: false
+    # => ALTER TABLE "articles" ADD CONSTRAINT ... FOREIGN KEY ("author_id") REFERENCES "authors" ("id") NOT ENFORCED
+
+    change_foreign_key :articles, :authors, enforced: true
+    # => ALTER TABLE "articles" ALTER CONSTRAINT "fk_rails_..." ENFORCED
+
+    change_foreign_key :articles, :authors, enforced: false
+    # => ALTER TABLE "articles" ALTER CONSTRAINT "fk_rails_..." NOT ENFORCED
+    ```
+
+    *Yasuo Honda*
 
 *   Expose `cursor`, `order` and `use_ranges` attributes for `BatchEnumerator`
 

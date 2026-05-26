@@ -1,3 +1,17 @@
+*   Validate subcommand in `rails plugin` command.
+
+    `rails plugin foo bar` silently ignored the invalid subcommand "foo"
+    and proceeded to create a plugin named "bar". Now it prints an error
+    and exits with status 1.
+
+    Fixes #57430.
+
+    *Ruy Rocha*
+
+*   Prevent the internal development welcome route from being duplicated on route reloads.
+
+    *Elliot Temple*
+
 *   Remove `new_framework_defaults` during `app:update` when `config.load_defaults`
     already targets the current Rails version.
 

@@ -89,7 +89,7 @@ module ActiveStorage
           )
         when String
           ActiveStorage::Blob.find_signed!(attachable, record: record)
-        when File
+        when File, Tempfile
           ActiveStorage::Blob.build_after_unfurling(
             io: attachable,
             filename: File.basename(attachable),
@@ -155,7 +155,7 @@ module ActiveStorage
           attachable.respond_to?(:open) ? attachable.open : attachable
         when Hash
           attachable.fetch(:io)
-        when File
+        when File, Tempfile
           attachable
         when Pathname
           attachable.open

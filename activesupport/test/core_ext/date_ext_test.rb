@@ -47,11 +47,18 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_date_formats_can_be_extended
-    Date::DATE_FORMATS[:custom_date_format] = "%B %Y"
+    ActiveSupport::DateFormats.stub(:lookup, ->(format) { { custom_date_format: "%B %Y" }[format] }) do
+      assert_equal "February 2005", Date.new(2005, 2, 21).to_fs(:custom_date_format)
+    end
+  end
 
-    assert_equal "February 2005", Date.new(2005, 2, 21).to_fs(:custom_date_format)
+  def test_deprecated_to_fs_custom_date_format
+    assert_deprecated(ActiveSupport.deprecator) do
+      Date::DATE_FORMATS[:custom] = "%B %Y"
+    end
+    assert_equal "February 2005", Date.new(2005, 2, 21).to_fs(:custom)
   ensure
-    Date::DATE_FORMATS.delete(:custom_date_format)
+    ActiveSupport::DateFormats::DEPRECATED_LIST.delete(:custom)
   end
 
   def test_readable_inspect

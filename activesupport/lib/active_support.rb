@@ -42,6 +42,7 @@ module ActiveSupport
   autoload :ConfigurationFile
   autoload :ContinuousIntegration
   autoload :CurrentAttributes
+  autoload :DateFormats
   autoload :Dependencies
   autoload :DescendantsTracker
   autoload :Editor
@@ -58,6 +59,7 @@ module ActiveSupport
   autoload :Notifications
   autoload :Reloader
   autoload :SecureCompareRotator
+  autoload :TimeFormats
 
   eager_autoload do
     autoload :BacktraceCleaner

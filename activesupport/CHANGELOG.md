@@ -1,3 +1,47 @@
+*   Fix `ActiveSupport::Concurrency::ShareLock` to honor `isolation_level`.
+
+    Lock ownership was keyed on `Thread.current`. Under
+    `config.active_support.isolation_level = :fiber`, all request fibers
+    on the same thread were treated as a single owner, and the reloader
+    interlock could admit an exclusive `:unload` while another fiber
+    still held a share — clearing autoloaded constants mid-request.
+
+    `ShareLock` now keys ownership on
+    `ActiveSupport::IsolatedExecutionState.context`, the same scope used
+    by `CurrentAttributes` and other per-execution state. Behavior under
+    `:thread` isolation is unchanged.
+
+    *Joel Junström*
+
+*   Introduce `ActiveSupport::TimeFormats` and `ActiveSupport::DateFormats`
+    for registering custom date formats.
+
+    This allows adding custom date formats to `to_fs` without modifying the
+    global `Time::DATE_FORMATS` or `Date::DATE_FORMATS` hashes. Custom formats
+    are added via `ActiveSupport::TimeFormats.register` or
+    `ActiveSupport::DateFormats.register`, and will only be available to
+    `Time#to_fs`, and `Date#to_fs` respectively.
+
+    At the same time, the existing `Time::DATE_FORMATS` and `Date::DATE_FORMATS`
+    constants are still supported for backward compatibility, but they are now
+    deprecated and will be removed in the next version of Rails. This encourages
+    users to migrate to the new approach for better encapsulation and to avoid
+    potential conflicts with other libraries that may also modify the global
+    date formats.
+
+    ```ruby
+    ActiveSupport::TimeFormats.register(:month_and_year, '%B %Y')
+    ActiveSupport::DateFormats.register(
+      :short_ordinal,
+      ->(date) { date.strftime("%B #{date.day.ordinalize}") }
+    )
+
+    Time.now.to_fs(:month_and_year) # => "February 2024"
+    Date.today.to_fs(:short_ordinal)  # => "February 21st"
+    ```
+
+    *Ufuk Kayserilioglu*
+
 *   Add `start_day` argument to `this_week?` for consistency with `all_week`
 
     `this_week?` now accepts an optional `start_day` argument, matching the

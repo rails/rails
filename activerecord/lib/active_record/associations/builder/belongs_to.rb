@@ -43,7 +43,16 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.touch_record(o, changes, foreign_key, name, touch) # :nodoc:
-      old_foreign_id = changes[foreign_key] && changes[foreign_key].first
+      old_foreign_id =
+        if foreign_key.is_a?(Array)
+          if foreign_key.any? { |fk| changes[fk] }
+            foreign_key.map do |fk|
+              changes[fk] ? changes[fk].first : o.read_attribute(fk)
+            end
+          end
+        elsif changes[foreign_key]
+          changes[foreign_key].first
+        end
 
       if old_foreign_id
         association = o.association(name)
@@ -56,7 +65,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
           klass = association.klass
         end
         primary_key = reflection.association_primary_key(klass)
-        old_record = klass.find_by(primary_key => old_foreign_id)
+        old_record = klass.find_by(primary_key => [old_foreign_id])
 
         if old_record
           if touch != true

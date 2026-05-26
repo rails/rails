@@ -77,14 +77,14 @@ module ActiveRecord
       #
       #    Post.left_joins(:author).where.associated(:author)
       #    # SELECT "posts".* FROM "posts"
-      #    # LEFT OUTER JOIN "authors" "authors"."id" = "posts"."author_id"
+      #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # WHERE "authors"."id" IS NOT NULL
       #
       #    Post.left_joins(:comments).where.associated(:author)
       #    # SELECT "posts".* FROM "posts"
       #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
-      #   #  WHERE "author"."id" IS NOT NULL
+      #    # WHERE "authors"."id" IS NOT NULL
       def associated(*associations)
         associations.each do |association|
           reflection = scope_association_reflection(association)
@@ -583,10 +583,10 @@ module ActiveRecord
     # Allows you to change a previously set group statement.
     #
     #   Post.group(:title, :body)
-    #   # SELECT `posts`.`*` FROM `posts` GROUP BY `posts`.`title`, `posts`.`body`
+    #   # SELECT `posts`.* FROM `posts` GROUP BY `posts`.`title`, `posts`.`body`
     #
     #   Post.group(:title, :body).regroup(:title)
-    #   # SELECT `posts`.`*` FROM `posts` GROUP BY `posts`.`title`
+    #   # SELECT `posts`.* FROM `posts` GROUP BY `posts`.`title`
     #
     # This is short-hand for <tt>unscope(:group).group(fields)</tt>.
     # Note that we're unscoping the entire group statement.
@@ -679,6 +679,16 @@ module ActiveRecord
     #   #     WHEN "users"."id" = 3 THEN 3
     #   #   END ASC
     #
+    # To group values together, an array can be passed as a value.
+    #
+    #   User.in_order_of(:id, [[1, 5], 3])
+    #   # SELECT "users".* FROM "users"
+    #   #   WHERE "users"."id" IN (1, 5, 3)
+    #   #   ORDER BY CASE
+    #   #     WHEN "users"."id" IN (1, 5) THEN 1
+    #   #     WHEN "users"."id" = 3 THEN 2
+    #   #   END ASC
+    #
     # +column+ can point to an enum column; the actual query generated may be different depending
     # on the database adapter and the column definition.
     #
@@ -728,13 +738,21 @@ module ActiveRecord
 
         caster = arel_column.type_caster
         values = values.map do |value|
-          caster.serialize(value) if caster.serializable?(value)
+          if value.is_a?(Array)
+            value.map do |current_value|
+              caster.serialize(current_value) if caster.serializable?(current_value)
+            end
+          else
+            caster.serialize(value) if caster.serializable?(value)
+          end
         end
       end
 
       scope = spawn.order!(build_case_for_value_position(arel_column, values, filter: filter))
 
       if filter
+        values = values.flatten(1)
+
         where_clause =
           if values.include?(nil)
             arel_column.in(values.compact).or(arel_column.eq(nil))
@@ -843,6 +861,26 @@ module ActiveRecord
       end
 
       self
+    end
+
+    def table_name_qualified_unscope_values
+      self.unscope_values.map do |scope|
+        case scope
+        when Hash
+          scope.transform_values do |target_value|
+            case target_value
+            when Array
+              target_value.map { |value| qualify_attribute_with_table_name(value) }
+            when Symbol, String
+              qualify_attribute_with_table_name(target_value)
+            else
+              target_value
+            end
+          end
+        else
+          scope
+        end
+      end
     end
 
     # Performs JOINs on +args+. The given symbol(s) should match the name of
@@ -2186,7 +2224,15 @@ module ActiveRecord
       def build_case_for_value_position(column, values, filter: true)
         node = Arel::Nodes::Case.new
         values.each.with_index(1) do |value, order|
-          node.when(column.eq(value)).then(order)
+          if value.is_a?(Array)
+            if value.include?(nil)
+              node.when(column.in(value.compact).or(column.eq(nil))).then(order)
+            else
+              node.when(column.in(value)).then(order)
+            end
+          else
+            node.when(column.eq(value)).then(order)
+          end
         end
 
         node = node.else(values.length + 1) unless filter
@@ -2215,6 +2261,10 @@ module ActiveRecord
             end
           end
         end
+      end
+
+      def qualify_attribute_with_table_name(attr)
+        attr.to_s.include?(".") ? attr : predicate_builder.resolve_arel_attribute(table_name, attr)
       end
 
       # Checks to make sure that the arguments are not blank. Note that if some

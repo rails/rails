@@ -1,3 +1,43 @@
+*   Parallelize `exist?` checks and uploads in `MirrorService#mirror` using
+    the existing internal thread pool. With N mirrors, wall time drops from
+    O(N) to O(1) network round-trips for both phases.
+
+    *Denis Savchuk*
+
+*   Fix `MirrorService#mirror` raising `ActiveStorage::IntegrityError` when
+    mirroring without a checksum (e.g., `track_variants: false`).
+
+    *Denis Savchuk*
+
+*   Don't bump `lock_version` on attachment records' parents during blob analysis.
+
+    `ActiveStorage::AnalyzeJob` writes only to `Blob#metadata`. The cascade
+    that touches attached records (and their parents) exists for cache-key
+    invalidation; when those records use optimistic locking, the previous
+    behavior bumped `lock_version`, causing concurrent form edits to raise
+    spurious `ActiveRecord::StaleObjectError`s. The `updated_at` cascade is
+    preserved; the `lock_version` bump on this code path is now suppressed.
+
+    Fixes #55764.
+
+    *Greg Pavlik*
+
+*   Accept Tempfile as ActiveStorage attachable.
+
+    ```ruby
+    tempfile = Tempfile.open(["users", ".csv"])
+    write_csv_to(tempfile)
+    export.csv.attach(tempfile)
+    ```
+
+    *Shouichi Kamiya*
+
+*   Require image processing backend upfront when Active Storage is being loaded.
+
+    This removes extra overhead when processing first variant after deploy and improves copy-on-write for preforking web servers.
+
+    *Janko Marohnić*
+
 *   ActiveStorage ProxyController now set relevant `Last-Modified`
 
     It is now set to `Blob#created_at` instead of being hardcoded to January 1st 2011.
