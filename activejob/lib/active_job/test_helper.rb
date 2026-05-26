@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/class/subclasses"
+require "active_support/descendants_tracker"
 require "active_support/testing/assertions"
 
 module ActiveJob
@@ -18,8 +19,25 @@ module ActiveJob
       included do
         class_attribute :_test_adapter, instance_accessor: false, instance_predicate: false
 
-        @_queue_adapter_changed_jobs = Set.new << self
+        @_queue_adapter_changed_jobs = ActiveSupport::DescendantsTracker::WeakSet.new
+        @_queue_adapter_changed_jobs << self
+        @_queue_adapter_changed_jobs_backfilled = false
         singleton_class.attr_reader :_queue_adapter_changed_jobs # :nodoc:
+        singleton_class.attr_accessor :_queue_adapter_changed_jobs_backfilled # :nodoc:
+
+        def self.backfill_queue_adapter_changed_jobs # :nodoc:
+          return if _queue_adapter_changed_jobs_backfilled
+
+          jobs_classes = ActiveJob::Base.descendants + [ActiveJob::Base]
+
+          jobs_classes.each do |klass|
+            if klass.singleton_class.private_method_defined?(:__class_attr__queue_adapter_owner, false)
+              _queue_adapter_changed_jobs << klass
+            end
+          end
+
+          self._queue_adapter_changed_jobs_backfilled = true
+        end
       end
 
       module ClassMethods
@@ -48,8 +66,10 @@ module ActiveJob
     end
 
     def before_setup # :nodoc:
+      ActiveJob::Base.backfill_queue_adapter_changed_jobs
+
       queue_adapter_specific_to_this_test_class = queue_adapter_for_test
-      ActiveJob::Base._queue_adapter_changed_jobs.each do |klass|
+      queue_adapter_changed_jobs.each do |klass|
         if queue_adapter_specific_to_this_test_class
           klass.enable_test_adapter(queue_adapter_specific_to_this_test_class)
         elsif klass._queue_adapter.nil?
@@ -65,7 +85,7 @@ module ActiveJob
     def after_teardown # :nodoc:
       super
 
-      ActiveJob::Base._queue_adapter_changed_jobs.each { |klass| klass.disable_test_adapter }
+      queue_adapter_changed_jobs.each { |klass| klass.disable_test_adapter }
     end
 
     # Returns a queue adapter instance to use with all Active Job test helpers.
@@ -763,6 +783,10 @@ module ActiveJob
         job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
         job.send(:deserialize_arguments_if_needed) unless skip_deserialize_arguments
         job
+      end
+
+      def queue_adapter_changed_jobs
+        ActiveJob::Base._queue_adapter_changed_jobs.to_a
       end
 
       def validate_option(only: nil, except: nil)

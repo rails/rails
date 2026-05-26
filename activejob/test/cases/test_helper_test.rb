@@ -799,7 +799,23 @@ class QueueAdapterTest < ActiveJob::TestCase
   end
 
   test "queue_adapter_changed_jobs includes jobs with explicit queue adapters" do
-    assert_includes ActiveJob::Base._queue_adapter_changed_jobs, JobWithAnAdapter
+    assert_includes ActiveJob::Base._queue_adapter_changed_jobs.to_a, JobWithAnAdapter
+  end
+
+  test "queue_adapter_changed_jobs does not retain garbage collected jobs" do
+    original_changed_jobs = ActiveJob::Base._queue_adapter_changed_jobs.to_a
+
+    Thread.new do
+      job_with_adapter = Class.new(ActiveJob::Base)
+      job_with_adapter.queue_adapter = :async
+
+      assert_includes ActiveJob::Base._queue_adapter_changed_jobs.to_a, job_with_adapter
+    end.join
+
+    4.times { GC.start }
+
+    assert_equal original_changed_jobs.map(&:object_id).sort,
+      ActiveJob::Base._queue_adapter_changed_jobs.to_a.map(&:object_id).sort
   end
 
   test "assert_enqueued_with enqueues a job with a queue_adapter and queue_adapter_for_test" do
