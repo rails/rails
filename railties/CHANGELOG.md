@@ -1,3 +1,11 @@
+*   Add `config.server_host` to display a custom host in the boot banner.
+
+    When set, the server URL line in `bin/rails server`'s boot output uses the configured
+    host instead of the bind address and is shown even under Puma, where it would
+    otherwise be suppressed. When unset, behavior is unchanged.
+
+    *Brendan Minder*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"
