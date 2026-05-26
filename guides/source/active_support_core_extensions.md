@@ -3226,17 +3226,35 @@ Extensions to `Date`
 Working with `Date`, `Time`, and `DateTime`
 ------------------------------------------
 
-
-
-
-
 INFO: The following calculation methods have edge cases in October 1582, since days 5..14 just do not exist. This guide does not document their behavior around those days for brevity, but it is enough to say that they do what you would expect. That is, `Date.new(1582, 10, 4).tomorrow` returns `Date.new(1582, 10, 15)` and so on. Please check `test/core_ext/date_ext_test.rb` in the Active Support test suite for expected behavior.
 
 ### `Date.current`
 
-Active Support defines [`Date.current`][Date.current] to be today in the current time zone. That's like `Date.today`, except that it honors the user time zone, if defined. It also defines [`Date.yesterday`][Date.yesterday] and [`Date.tomorrow`][Date.tomorrow], and the instance predicates [`past?`][DateAndTime::Calculations#past?], [`today?`][DateAndTime::Calculations#today?], [`tomorrow?`][DateAndTime::Calculations#tomorrow?], [`next_day?`][DateAndTime::Calculations#next_day?], [`yesterday?`][DateAndTime::Calculations#yesterday?], [`prev_day?`][DateAndTime::Calculations#prev_day?], [`future?`][DateAndTime::Calculations#future?], [`on_weekday?`][DateAndTime::Calculations#on_weekday?] and [`on_weekend?`][DateAndTime::Calculations#on_weekend?], all of them relative to `Date.current`.
+The Ruby method `Date.today` returns today's date based on the *system time zone*, which is the time zone of the server your Rails application runs on.
 
-When making Date comparisons using methods which honor the user time zone, make sure to use `Date.current` and not `Date.today`. There are cases where the user time zone might be in the future compared to the system time zone, which `Date.today` uses by default. This means `Date.today` may equal `Date.yesterday`.
+Active Support defines [`Date.current`][Date.current] as an alternative that returns today's date in the **user's time zone** if one has been set via `Time.zone`. This distinction matters in production applications that serve users across different time zones.
+
+Consider a server running in UTC and a user in Tokyo (UTC+9). At 11pm UTC on April 20th, it is already April 21st in Tokyo. In this situation:
+
+```ruby
+Date.today    # => Mon, 20 Apr 2026  (server system time, UTC)
+Date.current  # => Tue, 21 Apr 2026  (user's time zone, Tokyo)
+```
+
+This means `Date.today` could return what the user considers yesterday. Always use `Date.current` in application code when the result should reflect the user's local date.
+
+Active Support also defines [`Date.yesterday`][Date.yesterday] and [`Date.tomorrow`][Date.tomorrow], as well as a set of predicate methods relative to `Date.current`:
+
+```ruby
+date.past?        # => true if date is before Date.current
+date.today?       # => true if date is Date.current
+date.tomorrow?    # => true if date is Date.current + 1
+date.future?      # => true if date is after Date.current
+date.on_weekday?  # => true if date is Monday through Friday
+date.on_weekend?  # => true if date is Saturday or Sunday
+```
+
+WARNING: Always use `Date.current` rather than `Date.today` when making date comparisons in user facing application code. Using `Date.today` ignores the user's time zone and can produce incorrect results.
 
 NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
@@ -3250,20 +3268,25 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
 ### `beginning_of_week`, `end_of_week`
 
-The methods [`beginning_of_week`][DateAndTime::Calculations#beginning_of_week] and [`end_of_week`][DateAndTime::Calculations#end_of_week] return the dates for the
-beginning and end of the week, respectively. Weeks are assumed to start on
-Monday, but that can be changed passing an argument, setting thread local
-`Date.beginning_of_week` or [`config.beginning_of_week`][].
+The methods [`beginning_of_week`][DateAndTime::Calculations#beginning_of_week]
+and [`end_of_week`][DateAndTime::Calculations#end_of_week] return the dates for
+the beginning and end of the week, respectively.
+
+Weeks are assumed to start on Monday, but that can be changed passing an
+argument to `Date.beginning_of_week` or by setting
+[`config.beginning_of_week`][].
 
 ```ruby
-d = Date.new(2010, 5, 8)     # => Sat, 08 May 2010
-d.beginning_of_week          # => Mon, 03 May 2010
-d.beginning_of_week(:sunday) # => Sun, 02 May 2010
-d.end_of_week                # => Sun, 09 May 2010
-d.end_of_week(:sunday)       # => Sat, 08 May 2010
+d = Date.new(2026, 05, 05)    # => Tue, 05 May 2026
+d.beginning_of_week           # => Mon, 04 May 2026
+d.end_of_week                 # => Sun, 10 May 2026
+d.beginning_of_week(:sunday)  # => Sun, 03 May 2026
+d.end_of_week(:sunday)        # => Sat, 09 May 2026
 ```
 
-`beginning_of_week` is aliased to [`at_beginning_of_week`][DateAndTime::Calculations#at_beginning_of_week] and `end_of_week` is aliased to [`at_end_of_week`][DateAndTime::Calculations#at_end_of_week].
+There are alias for `beginning_of_week` to
+[`at_beginning_of_week`][DateAndTime::Calculations#at_beginning_of_week] and
+`end_of_week` to [`at_end_of_week`][DateAndTime::Calculations#at_end_of_week].
 
 NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
