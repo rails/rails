@@ -775,10 +775,15 @@ module ActiveRecord
     #   User.order('email DESC').reorder('id ASC').order('name ASC')
     #
     # generates a query with <tt>ORDER BY id ASC, name ASC</tt>.
+    #
+    # Calling +reorder+ without arguments (or with +nil+) removes any existing
+    # order, equivalent to <tt>reorder(nil)</tt>:
+    #
+    #   User.order('email DESC').reorder # generated SQL has no 'ORDER BY' clause
     def reorder(*args)
-      check_if_method_has_arguments!(__callee__, args) do
-        sanitize_order_arguments(args)
-      end
+      sanitize_order_arguments(args) unless args.empty?
+      args.flatten!
+      args.compact_blank!
       spawn.reorder!(*args)
     end
 

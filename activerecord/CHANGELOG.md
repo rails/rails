@@ -1,3 +1,15 @@
+*   Allow `reorder` to be called without arguments to remove an existing order.
+
+    Previously `reorder` required at least one argument and raised an
+    `ArgumentError` when called with none, so removing an order meant calling
+    `reorder(nil)`. It can now be called without arguments as a shorthand:
+
+    ```ruby
+    Post.order(:title).reorder # => no ORDER BY clause, same as reorder(nil)
+    ```
+
+    *Jean Mendonça*
+
 *   Raise `ActiveRecord::MultiparameterAssignmentErrors` instead of `NoMethodError`
     when assigning a malformed multiparameter attribute name.
 

@@ -588,7 +588,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, person_with_reader_and_post.size
   end
 
-  %w( references includes preload eager_load group order reorder reselect unscope
+  %w( references includes preload eager_load group order reselect unscope
       joins left_joins left_outer_joins optimizer_hints annotate regroup ).each do |method|
     class_eval <<~RUBY
       def test_no_arguments_to_#{method}_raise_errors
@@ -2016,6 +2016,13 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.order(:title).reorder(nil)
 
     assert_nil relation.order_values.first
+  end
+
+  def test_order_with_reorder_without_arguments_removes_the_order
+    relation = Post.order(:title).reorder
+
+    assert_empty relation.order_values
+    assert relation.reordering_value
   end
 
   def test_reverse_order_with_reorder_nil_removes_the_order
