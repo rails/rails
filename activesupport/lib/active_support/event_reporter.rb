@@ -290,7 +290,7 @@ module ActiveSupport
     self.context_store = EventContext
 
     def initialize(*subscribers, raise_on_error: false)
-      @subscribers = []
+      @subscribers = [].freeze
       subscribers.each { |subscriber| subscribe(subscriber) }
       @debug_mode = true
       @raise_on_error = raise_on_error
@@ -318,7 +318,7 @@ module ActiveSupport
       unless subscriber.respond_to?(:emit)
         raise ArgumentError, "Event subscriber #{subscriber.class.name} must respond to #emit"
       end
-      @subscribers << { subscriber: subscriber, filter: filter }
+      @subscribers = (@subscribers | [{ subscriber: subscriber, filter: filter }]).freeze
     end
 
     # Unregister an event subscriber. Accepts either a subscriber or a class.
@@ -330,7 +330,7 @@ module ActiveSupport
     #   # or
     #   Rails.event.unsubscribe(MyEventSubscriber)
     def unsubscribe(subscriber)
-      @subscribers.delete_if { |s| subscriber === s[:subscriber] }
+      @subscribers = @subscribers.reject { |s| subscriber === s[:subscriber] }.freeze
     end
 
     # Reports an event to all registered subscribers. An event name and payload can be provided:

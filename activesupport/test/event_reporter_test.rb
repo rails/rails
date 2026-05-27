@@ -56,6 +56,7 @@ module ActiveSupport
       reporter = ActiveSupport::EventReporter.new
       subscribers = reporter.subscribe(@subscriber)
       assert_equal([{ subscriber: @subscriber, filter: nil }], subscribers)
+      assert_predicate @reporter.subscribers, :frozen?
     end
 
     test "#subscribe with filter" do
@@ -101,6 +102,7 @@ module ActiveSupport
 
       assert_empty first_subscriber.events.select(&event_matcher(name: "last_event", payload: { key: "value" }))
       assert_empty second_subscriber.events.select(&event_matcher(name: "last_event", payload: { key: "value" }))
+      assert_predicate @reporter.subscribers, :frozen?
     end
 
     test "#notify with name" do

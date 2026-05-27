@@ -106,14 +106,11 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
   def test_no_event_reporter_subscribers
     ActiveSupport::StructuredEventSubscriber.attach_to :test, @subscriber
 
-    old_subscribers = ActiveSupport.event_reporter.subscribers.dup
-    ActiveSupport.event_reporter.subscribers.clear
-
-    assert_not_called @subscriber, :emit_event do
-      ActiveSupport::Notifications.instrument("event.test")
+    ActiveSupport.with(event_reporter: ActiveSupport::EventReporter.new) do
+      assert_not_called @subscriber, :emit_event do
+        ActiveSupport::Notifications.instrument("event.test")
+      end
     end
-  ensure
-    ActiveSupport.event_reporter.subscribers.push(*old_subscribers)
   end
 
   def test_emit_event_does_not_filter_payload
