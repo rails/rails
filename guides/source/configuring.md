@@ -2436,6 +2436,25 @@ Use `ActionDispatch::ExceptionWrapper.wrapper_exceptions` to observe the configu
 ]
 ```
 
+#### `config.action_dispatch.rescue_templates`
+
+Configures the templates used to render exceptions. It accepts a hash and you can specify pairs of exception => template.
+
+Use `ActionDispatch::ExceptionWrapper.rescue_templates` to observe the configuration. By default, it is defined as:
+
+```ruby
+{
+  "ActionView::MissingTemplate"            => "missing_template",
+  "ActionController::RoutingError"         => "routing_error",
+  "AbstractController::ActionNotFound"     => "unknown_action",
+  "ActiveRecord::StatementInvalid"         => "invalid_statement",
+  "ActionView::Template::Error"            => "template_error",
+  "ActionController::MissingExactTemplate" => "missing_exact_template",
+}
+```
+
+All exceptions that are not configured will map to Rails' built in diagnostics template.
+
 #### `config.action_dispatch.cookies_same_site_protection`
 
 Configures the default value of the `SameSite` attribute when setting cookies.
