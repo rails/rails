@@ -1,3 +1,9 @@
+*   Add a configuration for `ActionDispatch::ExceptionWrapper.wrapper_exceptions` at `config.action_dispatch.wrapper_exceptions`.
+
+    Exceptions on this list are unwrapped by the middleware and their cause is reported on instead.
+
+    *Andrew Novoselac*
+
 *   Release the executor state eagerly on rack hijack in
     `ActionDispatch::Executor`.
 

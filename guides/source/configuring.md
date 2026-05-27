@@ -2411,6 +2411,31 @@ Use `ActionDispatch::ExceptionWrapper.rescue_responses` to observe the configura
 
 Any exceptions that are not configured will be mapped to 500 Internal Server Error.
 
+#### `config.action_dispatch.wrapper_exceptions`
+
+Configures which exceptions are unwrapped. Wrapper exceptions will have their cause reported by the exception wrapper
+instead of themselves.
+
+```ruby
+config.action_dispatch.wrapper_exceptions += [WrapperException]
+
+begin
+  raise OriginalException
+rescue OriginalException
+  raise WrapperException
+end
+```
+
+In the above example the `WrapperException` will be unwrapped and the `OriginalException` will be reported.
+
+Use `ActionDispatch::ExceptionWrapper.wrapper_exceptions` to observe the configuration. By default, it is defined as:
+
+```ruby
+[
+  "ActionView::Template::Error"
+]
+```
+
 #### `config.action_dispatch.cookies_same_site_protection`
 
 Configures the default value of the `SameSite` attribute when setting cookies.

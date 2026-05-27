@@ -39,7 +39,7 @@ module ActionDispatch
 
     cattr_accessor :wrapper_exceptions, default: [
       "ActionView::Template::Error"
-    ]
+    ].freeze
 
     cattr_accessor :silent_exceptions, default: [
       "ActionController::RoutingError",
