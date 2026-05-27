@@ -1,6 +1,18 @@
 *   Use the primary database when generating a migration without `--database`
 
     *ddbrendan*
+    
+*   Raise `ActiveRecord::MultiparameterAssignmentErrors` instead of `NoMethodError`
+    when assigning a malformed multiparameter attribute name.
+
+    A key routed to the multiparameter code path but missing a closing parenthesis
+    (e.g. `"written_on("`) used to crash with `NoMethodError: undefined method
+    'first' for nil` inside `find_parameter_position`. It now raises the same
+    `MultiparameterAssignmentErrors` already used for other invalid multiparameter
+    input, so callers can rescue a single documented error class.
+
+    *Kenta Ishizaki*
+
 *   Include the list of valid values in the `ArgumentError` raised when assigning
     an invalid value to an enum attribute.
 

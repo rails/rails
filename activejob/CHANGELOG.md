@@ -1,3 +1,14 @@
+*   Allow queue adapters to inspect a job when deciding whether to interrupt at
+    a checkpoint, and to optionally return a specific interruption reason.
+
+    Queue adapters that implement `stopping?` must accept the job as an
+    optional positional argument, i.e. `def stopping?(job = nil)`, in order to
+    work with this version and older versions of Rails. A `true` return value
+    will use 'stopping' as the interruption reason, any other truthy value will
+    be used as-is.
+
+    *Bart de Water*
+
 *   Add `ActiveJob::Attributes` for declaring typed attributes that persist across
     job serialization and deserialization. It is included by `ActiveJob::Continuable`
     but can also be used standalone.

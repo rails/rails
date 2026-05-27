@@ -33,9 +33,12 @@ module ActiveJob
       #    perform_enqueued_jobs
       #    assert_equal [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], MyJob.items
       #  end
-      def interrupt_job_during_step(job, step, cursor: nil, &block)
+      #
+      # A custom interrupt reason can be provided with the +reason+ argument.
+      def interrupt_job_during_step(job_class, step, cursor: nil, reason: true, &block)
         require_active_job_test_adapter!("interrupt_job_during_step")
-        queue_adapter.with(stopping: ->() { during_step?(job, step, cursor: cursor) }, &block)
+        stopping = ->(job) { reason if job.is_a?(job_class) && during_step?(job, step, cursor: cursor) }
+        queue_adapter.with(stopping: stopping, &block)
       end
 
       # Interrupt a job after a step.
@@ -62,15 +65,17 @@ module ActiveJob
       #    perform_enqueued_jobs
       #    assert_equal [1, 2, 3, 4], MyJob.items
       #  end
-      def interrupt_job_after_step(job, step, &block)
+      #
+      # A custom interrupt reason can be provided with the +reason+ argument.
+      def interrupt_job_after_step(job_class, step, reason: true, &block)
         require_active_job_test_adapter!("interrupt_job_after_step")
-        queue_adapter.with(stopping: ->() { after_step?(job, step) }, &block)
+        stopping = ->(job) { reason if job.is_a?(job_class) && after_step?(job, step) }
+        queue_adapter.with(stopping: stopping, &block)
       end
 
       private
-        def continuation_for(klass)
-          job = ActiveSupport::ExecutionContext.to_h[:job]
-          job.send(:continuation)&.to_h if job && job.is_a?(klass)
+        def continuation_for(job)
+          job.send(:continuation)&.to_h
         end
 
         def during_step?(job, step, cursor: nil)

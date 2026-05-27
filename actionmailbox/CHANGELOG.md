@@ -1,3 +1,7 @@
+*   Return `422 Unprocessable Content` for Mandrill inbound events that are missing a raw message.
+
+    *Andrii Furmanets*
+
 *   Return `422 Unprocessable Content` for Mandrill events payloads that don't parse to a JSON array of objects.
 
     Previously, valid JSON of the wrong shape (e.g. `null`, a scalar, an object, or an array containing non-objects)

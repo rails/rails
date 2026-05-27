@@ -131,8 +131,10 @@ module ActiveJob
   # === Checkpoints
   #
   # A checkpoint is where a job can be interrupted. At a checkpoint the job will call
-  # +queue_adapter.stopping?+. If it returns true, the job will raise an
-  # ActiveJob::Continuation::Interrupt exception.
+  # +queue_adapter.stopping?+ with the job. If it returns true, the job will raise
+  # an ActiveJob::Continuation::Interrupt exception with +:stopping+ as the
+  # reason. If it returns another truthy value, the job will use that value as
+  # the interruption reason.
   #
   # There is an automatic checkpoint before the start of each step except for the first for
   # each job execution. Within a step one is created when calling +set!+, +advance!+ or +checkpoint!+.

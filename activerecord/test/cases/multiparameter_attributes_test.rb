@@ -400,4 +400,25 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
     )
     assert_not_predicate topic, :written_on_came_from_user?
   end
+
+  def test_multiparameter_attributes_with_unclosed_parenthesis_raises_multiparameter_assignment_errors
+    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
+      Topic.new("written_on(" => "2024")
+    end
+    assert_equal 1, ex.errors.size
+    assert_equal "written_on", ex.errors[0].attribute
+  end
+
+  def test_multiparameter_attributes_with_malformed_name_reports_remaining_errors_alongside_valid_pairs
+    ex = assert_raise(ActiveRecord::MultiparameterAssignmentErrors) do
+      Topic.new(
+        "written_on(1i)" => "2024",
+        "written_on(2i)" => "6",
+        "written_on(3i)" => "24",
+        "broken(" => "x",
+      )
+    end
+    assert_equal 1, ex.errors.size
+    assert_equal "broken", ex.errors[0].attribute
+  end
 end
