@@ -3640,7 +3640,7 @@ Moreover, the following methods are reimplemented directly in `DateTime` and do 
 - [`since`][DateTime#since] / [`in`][DateTime#in]
 [`advance`][DateTime#advance] and [`change`][DateTime#change] are also available with additional options covered below.
 
-The following methods are only in `DateTime` as they are only meaningful at a date level:
+The following methods are only in `DateTime` as they are not meaningful at a date level:
 
 - [`beginning_of_hour`][DateTime#beginning_of_hour] / [`at_beginning_of_hour`][DateTime#at_beginning_of_hour]
 - [`end_of_hour`][DateTime#end_of_hour]
@@ -3658,25 +3658,31 @@ WARNING: `DateTime` is not aware of [Daylight Saving Time (DST)](https://en.wiki
 [DateTime#in]: https://api.rubyonrails.org/classes/DateTime.html#method-i-in
 [DateTime#midnight]: https://api.rubyonrails.org/classes/DateTime.html#method-i-midnight
 
-// #### Named Datetimes
-
 ### `DateTime.current`
 
 Active Support defines [`DateTime.current`][DateTime.current] to be like `Time.now.to_datetime`, except that it honors the user time zone, if defined. The instance predicates [`past?`][DateAndTime::Calculations#past?] and [`future?`][DateAndTime::Calculations#future?] are defined relative to `DateTime.current`.
 
+```ruby
+DateTime.current # => Tue, 05 May 2026 12:00:00 +0000
+
+DateTime.current.past?   # => false
+DateTime.current.future? # => false
+
+DateTime.new(2025, 1, 1).past?   # => true
+DateTime.new(2027, 1, 1).future? # => true
+```
+
 NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
 [DateTime.current]: https://api.rubyonrails.org/classes/DateTime.html#method-c-current
-
-// #### Other Extensions
 
 ### `seconds_since_midnight`
 
 The method [`seconds_since_midnight`][DateTime#seconds_since_midnight] returns the number of seconds since midnight:
 
 ```ruby
-now = DateTime.current     # => Mon, 07 Jun 2010 20:26:36 +0000
-now.seconds_since_midnight # => 73596
+now = DateTime.current     # => Tue, 05 May 2026 12:00:00 +0000
+now.seconds_since_midnight # => 43200
 ```
 
 NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
@@ -3685,23 +3691,21 @@ NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
 ### `utc` and `utc?`
 
-The method [`utc`][DateTime#utc] gives you the same datetime in the receiver expressed in UTC.
+The  method [`utc`][DateTime#utc] returns the same moment in time as the receiver, converted to UTC:
 
 ```ruby
-now = DateTime.current # => Mon, 07 Jun 2010 19:27:52 -0400
-now.utc                # => Mon, 07 Jun 2010 23:27:52 +0000
+now = DateTime.current # => Tue, 05 May 2026 08:00:00 -0400
+now.utc                # => Tue, 05 May 2026 12:00:00 +0000
 ```
 
 This method is also aliased as [`getutc`][DateTime#getutc].
 
-NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
-
-The predicate [`utc?`][DateTime#utc?] says whether the receiver has UTC as its time zone:
+[`utc?`][DateTime#utc?] returns `true` if the receiver is already expressed in UTC:
 
 ```ruby
-now = DateTime.now # => Mon, 07 Jun 2010 19:30:47 -0400
-now.utc?           # => false
-now.utc.utc?       # => true
+now = DateTime.current # => Tue, 05 May 2026 08:00:00 -0400
+now.utc?               # => false
+now.utc.utc?           # => true
 ```
 
 NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
@@ -3712,34 +3716,27 @@ NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
 ### `advance`
 
-The most generic way to jump to another datetime is [`advance`][DateTime#advance]. This method receives a hash with keys `:years`, `:months`, `:weeks`, `:days`, `:hours`, `:minutes`, and `:seconds`, and returns a datetime advanced as much as the present keys indicate.
+The [`advance`][DateTime#advance] method works similarly to `Date#advance` but is augmented with time-level keys: `:hours`, `:minutes`, and `:seconds`, in addition to `:years`, `:months`, `:weeks`, and `:days`.
 
 ```ruby
-d = DateTime.current
-# => Thu, 05 Aug 2010 11:33:31 +0000
+d = DateTime.current  # => Tue, 05 May 2026 12:00:00 +0000
 d.advance(years: 1, months: 1, days: 1, hours: 1, minutes: 1, seconds: 1)
-# => Tue, 06 Sep 2011 12:34:32 +0000
+# => Fri, 06 Jun 2027 13:01:01 +0000
 ```
 
-This method first computes the destination date passing `:years`, `:months`, `:weeks`, and `:days` to `Date#advance` documented above. After that, it adjusts the time calling [`since`][DateTime#since] with the number of seconds to advance. This order is relevant, a different ordering would give different datetimes in some edge-cases. The example in `Date#advance` applies, and we can extend it to show order relevance related to the time bits.
-
-If we first move the date bits (that have also a relative order of processing, as documented before), and then the time bits we get for example the following computation:
+The method first advances the date using the date keys, then adjusts the time using the time keys. This order matters, advancing in a different order can produce different results in edge cases:
 
 ```ruby
-d = DateTime.new(2010, 2, 28, 23, 59, 59)
-# => Sun, 28 Feb 2010 23:59:59 +0000
+d = DateTime.new(2026, 2, 28, 23, 59, 59)
+# => Sat, 28 Feb 2026 23:59:59 +0000
 d.advance(months: 1, seconds: 1)
-# => Mon, 29 Mar 2010 00:00:00 +0000
-```
+# => Sun, 29 Mar 2026 00:00:00 +0000
 
-but if we computed them the other way around, the result would be different:
-
-```ruby
 d.advance(seconds: 1).advance(months: 1)
-# => Thu, 01 Apr 2010 00:00:00 +0000
+# => Wed, 01 Apr 2026 00:00:00 +0000
 ```
 
-WARNING: Since `DateTime` is not DST-aware you can end up in a non-existing point in time with no warning or error telling you so.
+WARNING: `DateTime` is not DST-aware, so advancing across a daylight saving boundary can result in an incorrect point in time with no warning or error.
 
 NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
@@ -3748,30 +3745,29 @@ NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
 ### `change`
 
-The method [`change`][DateTime#change] allows you to get a new datetime which is the same as the receiver except for the given options, which may include `:year`, `:month`, `:day`, `:hour`, `:min`, `:sec`, `:offset`, `:start`:
+The [`change`][DateTime#change] mehod works similarly to `Date#change` but is augmented with time-level options: `:hour`, `:min`, `:sec`, and `:offset`, in addition to `:year`, `:month`, `:day`, and `:start`.
 
 ```ruby
-now = DateTime.current
-# => Tue, 08 Jun 2010 01:56:22 +0000
-now.change(year: 2011, offset: Rational(-6, 24))
-# => Wed, 08 Jun 2011 01:56:22 -0600
+now = DateTime.current  # => Tue, 05 May 2026 12:00:00 +0000
+now.change(year: 2027, offset: Rational(-6, 24))
+# => Wed, 05 May 2027 12:00:00 -0600
 ```
 
-If hours are zeroed, then minutes and seconds are too (unless they have given values):
+NOTE: `Rational(-6, 24)` expresses a UTC offset as a fraction of a day, UTC-6, which is how `DateTime` represents time zone offsets internally.
+
+If hours are zeroed, minutes and seconds are zeroed too unless explicitly provided:
 
 ```ruby
-now.change(hour: 0)
-# => Tue, 08 Jun 2010 00:00:00 +0000
+now.change(hour: 0)  # => Tue, 05 May 2026 00:00:00 +0000
 ```
 
-Similarly, if minutes are zeroed, then seconds are too (unless it has given a value):
+Similarly, if minutes are zeroed, seconds are zeroed too unless explicitly provided:
 
 ```ruby
-now.change(min: 0)
-# => Tue, 08 Jun 2010 01:00:00 +0000
+now.change(min: 0)   # => Tue, 05 May 2026 12:00:00 +0000
 ```
 
-This method is not tolerant to non-existing dates, if the change is invalid `ArgumentError` is raised:
+If the resulting date does not exist, `ArgumentError` is raised:
 
 ```ruby
 DateTime.current.change(month: 2, day: 30)
@@ -3787,12 +3783,9 @@ NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 [`Duration`][ActiveSupport::Duration] objects can be added to and subtracted from datetimes:
 
 ```ruby
-now = DateTime.current
-# => Mon, 09 Aug 2010 23:15:17 +0000
-now + 1.year
-# => Tue, 09 Aug 2011 23:15:17 +0000
-now - 1.week
-# => Mon, 02 Aug 2010 23:15:17 +0000
+now = DateTime.current    # => Tue, 05 May 2026 12:00:00 +0000
+now + 1.year              # => Wed, 05 May 2027 12:00:00 +0000
+now - 1.week              # => Tue, 28 Apr 2026 12:00:00 +0000
 ```
 
 They translate to calls to `since` or `advance`. For example here we get the correct jump in the calendar reform:
