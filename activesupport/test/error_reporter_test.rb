@@ -232,6 +232,7 @@ class ErrorReporterTest < ActiveSupport::TestCase
 
     assert_equal 1, @subscriber.events.size
     assert_equal 1, second_subscriber.events.size
+    assert_predicate @reporter.instance_variable_get(:@subscribers), :frozen?
   end
 
   test "can unsubscribe" do
@@ -257,6 +258,7 @@ class ErrorReporterTest < ActiveSupport::TestCase
 
     assert_equal 2, @subscriber.events.size
     assert_equal 1, second_subscriber.events.size
+    assert_predicate @reporter.instance_variable_get(:@subscribers), :frozen?
   end
 
   test "handled errors default to :warning severity" do

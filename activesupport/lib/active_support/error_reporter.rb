@@ -35,7 +35,7 @@ module ActiveSupport
     UnexpectedError = Class.new(Exception)
 
     def initialize(*subscribers, logger: nil)
-      @subscribers = subscribers.flatten
+      @subscribers = subscribers.flatten.freeze
       @logger = logger
       @debug_mode = false
       @context_middlewares = ErrorContextMiddlewareStack.new
@@ -165,7 +165,7 @@ module ActiveSupport
       unless subscriber.respond_to?(:report)
         raise ArgumentError, "Error subscribers must respond to #report"
       end
-      @subscribers << subscriber
+      @subscribers = (@subscribers | [subscriber]).freeze
     end
 
     # Unregister an error subscriber. Accepts either a subscriber or a class.
@@ -177,7 +177,7 @@ module ActiveSupport
     #   # or
     #   Rails.error.unsubscribe(MyErrorSubscriber)
     def unsubscribe(subscriber)
-      @subscribers.delete_if { |s| subscriber === s }
+      @subscribers = @subscribers.reject { |s| subscriber === s }.freeze
     end
 
     # Prevent a subscriber from being notified of errors for the
@@ -299,7 +299,7 @@ module ActiveSupport
 
       class ErrorContextMiddlewareStack # :nodoc:
         def initialize
-          @stack = []
+          @stack = [].freeze
         end
 
         # Add a middleware to the error context stack.
@@ -308,7 +308,7 @@ module ActiveSupport
             raise ArgumentError, "Error context middleware must respond to #call"
           end
 
-          @stack << middleware
+          @stack = (@stack | [middleware]).freeze
         end
 
         # Run all middlewares in the stack
