@@ -18,6 +18,8 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
+NOTE: this document will not list every single core extension. The Rails API docs are a great resource for that. The goal of this doc is to highlight the use cases for the various extensions (group them by use cases) and show the breath of the methods Rails adds to Ruby.
+
 What are Core Extensions
 ------------------------
 
@@ -28,7 +30,7 @@ it.
  
 This is the mechanism Active Support Core Extensions use. They reopen Ruby's
 built-in classes and add dozens of utility methods that are useful in the
-development of the Rails framework as well as everyday applications.
+development of the Rails framework itself as well as everyday Rails applications.
 
 For example,
 [`blank?`](https://api.rubyonrails.org/classes/Object.html#method-i-blank-3F) is
@@ -3544,24 +3546,20 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
 [ActiveSupport::Duration]: https://api.rubyonrails.org/classes/ActiveSupport/Duration.html
 
-// #### Timestamps
+### Methods that Return Time or DateTime
 
-INFO: The following methods return a `Time` object if possible, otherwise a `DateTime`. If set, they honor the user time zone.
+The following methods return a `Time` object if possible, otherwise a `DateTime`. If set, they honor the user time zone.
 
-### `beginning_of_day`, `end_of_day`
+#### `beginning_of_day`, `end_of_day`
 
-The method [`beginning_of_day`][Date#beginning_of_day] returns a timestamp at the beginning of the day (00:00:00):
-
-```ruby
-date = Date.new(2010, 6, 7)
-date.beginning_of_day # => Mon Jun 07 00:00:00 +0200 2010
-```
-
-The method [`end_of_day`][Date#end_of_day] returns a timestamp at the end of the day (23:59:59):
+The methods [`beginning_of_day`][Date#beginning_of_day] and [`end_of_day`][Date#end_of_day] return a the timestamps with `00:00:00` and `23:59:59`, respectively:
 
 ```ruby
-date = Date.new(2010, 6, 7)
-date.end_of_day # => Mon Jun 07 23:59:59 +0200 2010
+date = Date.new(2026, 5, 5)
+date.beginning_of_day # => Tue May 05 00:00:00 +0000 2026
+
+date = Date.new(2026, 5, 5)
+date.end_of_day # => Tue May 05 23:59:59 +0000 2026
 ```
 
 `beginning_of_day` is aliased to [`at_beginning_of_day`][Date#at_beginning_of_day], [`midnight`][Date#midnight], [`at_midnight`][Date#at_midnight].
@@ -3574,45 +3572,33 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 [Date#end_of_day]: https://api.rubyonrails.org/classes/Date.html#method-i-end_of_day
 [Date#midnight]: https://api.rubyonrails.org/classes/Date.html#method-i-midnight
 
-### `beginning_of_hour`, `end_of_hour`
+INFO: `beginning_of_hour`, `end_of_hour`, `beginning_of_minute`, and `end_of_minute` are implemented for `Time` and `DateTime` but **not** `Date` as it does not make sense to request the beginning or end of an hour or minute on a `Date` instance.
 
-The method [`beginning_of_hour`][DateTime#beginning_of_hour] returns a timestamp at the beginning of the hour (hh:00:00):
+#### `beginning_of_hour`, `end_of_hour`
 
-```ruby
-date = DateTime.new(2010, 6, 7, 19, 55, 25)
-date.beginning_of_hour # => Mon Jun 07 19:00:00 +0200 2010
-```
-
-The method [`end_of_hour`][DateTime#end_of_hour] returns a timestamp at the end of the hour (hh:59:59):
+The methods [`beginning_of_hour`][DateTime#beginning_of_hour] and [`end_of_hour`][DateTime#end_of_hour] return timestamps at `hh:00:00` and `hh:59:59`, respectively:
 
 ```ruby
-date = DateTime.new(2010, 6, 7, 19, 55, 25)
-date.end_of_hour # => Mon Jun 07 19:59:59 +0200 2010
+date = DateTime.new(2026, 5, 5, 19, 55, 25)
+date.beginning_of_hour # => Tue May 05 19:00:00 +0000 2026
+date.end_of_hour       # => Tue May 05 19:59:59 +0000 2026
 ```
 
 `beginning_of_hour` is aliased to [`at_beginning_of_hour`][DateTime#at_beginning_of_hour].
 
 NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
-### `beginning_of_minute`, `end_of_minute`
+#### `beginning_of_minute`, `end_of_minute`
 
-The method [`beginning_of_minute`][DateTime#beginning_of_minute] returns a timestamp at the beginning of the minute (hh:mm:00):
-
-```ruby
-date = DateTime.new(2010, 6, 7, 19, 55, 25)
-date.beginning_of_minute # => Mon Jun 07 19:55:00 +0200 2010
-```
-
-The method [`end_of_minute`][DateTime#end_of_minute] returns a timestamp at the end of the minute (hh:mm:59):
+The methods [`beginning_of_minute`][DateTime#beginning_of_minute] and [`end_of_minute`][DateTime#end_of_minute] return timestamps at `hh:mm:00` and `hh:mm:59`, respectively:
 
 ```ruby
-date = DateTime.new(2010, 6, 7, 19, 55, 25)
-date.end_of_minute # => Mon Jun 07 19:55:59 +0200 2010
+date = DateTime.new(2026, 5, 5, 19, 55, 25)
+date.beginning_of_minute # => Tue May 05 19:55:00 +0000 2026
+date.end_of_minute       # => Tue May 05 19:55:59 +0000 2026
 ```
 
 `beginning_of_minute` is aliased to [`at_beginning_of_minute`][DateTime#at_beginning_of_minute].
-
-INFO: `beginning_of_hour`, `end_of_hour`, `beginning_of_minute`, and `end_of_minute` are implemented for `Time` and `DateTime` but **not** `Date` as it does not make sense to request the beginning or end of an hour or minute on a `Date` instance.
 
 NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
@@ -3620,20 +3606,20 @@ NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 [DateTime#beginning_of_minute]: https://api.rubyonrails.org/classes/DateTime.html#method-i-beginning_of_minute
 [DateTime#end_of_minute]: https://api.rubyonrails.org/classes/DateTime.html#method-i-end_of_minute
 
-### `ago`, `since`
+#### `ago`, `since`
 
 The method [`ago`][Date#ago] receives a number of seconds as argument and returns a timestamp those many seconds ago from midnight:
 
 ```ruby
-date = Date.current # => Fri, 11 Jun 2010
-date.ago(1)         # => Thu, 10 Jun 2010 23:59:59 EDT -04:00
+date = Date.current # => Tue, 05 May 2026
+date.ago(1)         # => Mon, 04 May 2026 23:59:59 EDT -04:00
 ```
 
 Similarly, [`since`][Date#since] moves forward:
 
 ```ruby
-date = Date.current # => Fri, 11 Jun 2010
-date.since(1)       # => Fri, 11 Jun 2010 00:00:01 EDT -04:00
+date = Date.current # => Tue, 05 May 2026
+date.since(1)       # => Tue, 05 May 2026 00:00:01 EDT -04:00
 ```
 
 NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
