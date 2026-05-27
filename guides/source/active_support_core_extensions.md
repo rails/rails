@@ -3900,12 +3900,12 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ### `prev_day`, `next_day`
 
-[`prev_day`][Time#prev_day] and [`next_day`][Time#next_day] return the time in the last or next day:
+The methods [`prev_day`][Time#prev_day] and [`next_day`][Time#next_day] return the time in the last or next day:
 
 ```ruby
-t = Time.new(2010, 5, 8) # => 2010-05-08 00:00:00 +0900
-t.prev_day               # => 2010-05-07 00:00:00 +0900
-t.next_day               # => 2010-05-09 00:00:00 +0900
+t = Time.new(2026, 5, 5)  # => 2026-05-05 00:00:00 +0000
+t.prev_day                # => 2026-05-04 00:00:00 +0000
+t.next_day                # => 2026-05-06 00:00:00 +0000
 ```
 
 NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
@@ -3915,21 +3915,21 @@ NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
 
 ### `prev_month`, `next_month`
 
-[`prev_month`][Time#prev_month] and [`next_month`][Time#next_month] return the time with the same day in the last or next month:
+The methods [`prev_month`][Time#prev_month] and [`next_month`][Time#next_month] return the time with the same day in the last or next month:
 
 ```ruby
-t = Time.new(2010, 5, 8) # => 2010-05-08 00:00:00 +0900
-t.prev_month             # => 2010-04-08 00:00:00 +0900
-t.next_month             # => 2010-06-08 00:00:00 +0900
+t = Time.new(2026, 5, 5)  # => 2026-05-05 00:00:00 +0000
+t.prev_month              # => 2026-04-05 00:00:00 +0000
+t.next_month              # => 2026-06-05 00:00:00 +0000
 ```
 
 If such a day does not exist, the last day of the corresponding month is returned:
 
 ```ruby
-Time.new(2000, 5, 31).prev_month # => 2000-04-30 00:00:00 +0900
-Time.new(2000, 3, 31).prev_month # => 2000-02-29 00:00:00 +0900
-Time.new(2000, 5, 31).next_month # => 2000-06-30 00:00:00 +0900
-Time.new(2000, 1, 31).next_month # => 2000-02-29 00:00:00 +0900
+Time.new(2026, 5, 31).prev_month # => 2026-04-30 00:00:00 +0000
+Time.new(2026, 3, 31).prev_month # => 2026-02-28 00:00:00 +0000
+Time.new(2026, 5, 31).next_month # => 2026-06-30 00:00:00 +0000
+Time.new(2026, 1, 31).next_month # => 2026-02-28 00:00:00 +0000
 ```
 
 NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
@@ -3939,20 +3939,20 @@ NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
 
 ### `prev_year`, `next_year`
 
-[`prev_year`][Time#prev_year] and [`next_year`][Time#next_year] return a time with the same day/month in the last or next year:
+The methods [`prev_year`][Time#prev_year] and [`next_year`][Time#next_year] return a time with the same day/month in the last or next year:
 
 ```ruby
-t = Time.new(2010, 5, 8) # => 2010-05-08 00:00:00 +0900
-t.prev_year              # => 2009-05-08 00:00:00 +0900
-t.next_year              # => 2011-05-08 00:00:00 +0900
+t = Time.new(2026, 5, 5)  # => 2026-05-05 00:00:00 +0000
+t.prev_year               # => 2025-05-05 00:00:00 +0000
+t.next_year               # => 2027-05-05 00:00:00 +0000
 ```
 
 If date is the 29th of February of a leap year, you obtain the 28th:
 
 ```ruby
-t = Time.new(2000, 2, 29) # => 2000-02-29 00:00:00 +0900
-t.prev_year               # => 1999-02-28 00:00:00 +0900
-t.next_year               # => 2001-02-28 00:00:00 +0900
+t = Time.new(2024, 2, 29)  # => 2024-02-29 00:00:00 +0000
+t.prev_year                # => 2023-02-28 00:00:00 +0000
+t.next_year                # => 2025-02-28 00:00:00 +0000
 ```
 
 NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
@@ -3962,21 +3962,21 @@ NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
 
 ### `prev_quarter`, `next_quarter`
 
-[`prev_quarter`][DateAndTime::Calculations#prev_quarter] and [`next_quarter`][DateAndTime::Calculations#next_quarter] return the date with the same day in the previous or next quarter:
+The methods [`prev_quarter`][DateAndTime::Calculations#prev_quarter] and [`next_quarter`][DateAndTime::Calculations#next_quarter] return the date with the same day in the previous or next quarter:
 
 ```ruby
-t = Time.local(2010, 5, 8) # => 2010-05-08 00:00:00 +0300
-t.prev_quarter             # => 2010-02-08 00:00:00 +0200
-t.next_quarter             # => 2010-08-08 00:00:00 +0300
+t = Time.local(2026, 5, 5)  # => 2026-05-05 00:00:00 +0000
+t.prev_quarter              # => 2026-02-05 00:00:00 +0000
+t.next_quarter              # => 2026-08-05 00:00:00 +0000
 ```
 
 If such a day does not exist, the last day of the corresponding month is returned:
 
 ```ruby
-Time.local(2000, 7, 31).prev_quarter  # => 2000-04-30 00:00:00 +0300
-Time.local(2000, 5, 31).prev_quarter  # => 2000-02-29 00:00:00 +0200
-Time.local(2000, 10, 31).prev_quarter # => 2000-07-31 00:00:00 +0300
-Time.local(2000, 11, 31).next_quarter # => 2001-03-01 00:00:00 +0200
+Time.local(2026, 7, 31).prev_quarter  # => 2026-04-30 00:00:00 +0000
+Time.local(2026, 5, 31).prev_quarter  # => 2026-02-28 00:00:00 +0000
+Time.local(2026, 10, 31).prev_quarter # => 2026-07-31 00:00:00 +0000
+Time.local(2026, 11, 30).next_quarter # => 2027-03-01 00:00:00 +0000
 ```
 
 `prev_quarter` is aliased to [`last_quarter`][DateAndTime::Calculations#last_quarter].
@@ -3988,7 +3988,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#prev_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-prev_quarter
 
 ### Time Constructors
-
+todo: combine this with Time.current above?
 Active Support defines [`Time.current`][Time.current] to be `Time.zone.now` if there's a user time zone defined, with fallback to `Time.now`:
 
 ```ruby
@@ -4004,15 +4004,15 @@ If the time to be constructed lies beyond the range supported by `Time` in the r
 
 ### Durations
 
-[`Duration`][ActiveSupport::Duration] objects can be added to and subtracted from time objects:
+The [`Duration`][ActiveSupport::Duration] objects can be added to and subtracted from time objects:
 
 ```ruby
 now = Time.current
-# => Mon, 09 Aug 2010 23:20:05 UTC +00:00
+# => Tue, 05 May 2026 12:00:00 UTC +00:00
 now + 1.year
-# => Tue, 09 Aug 2011 23:21:11 UTC +00:00
+# => Wed, 05 May 2027 12:00:00 UTC +00:00
 now - 1.week
-# => Mon, 02 Aug 2010 23:21:11 UTC +00:00
+# => Tue, 28 Apr 2026 12:00:00 UTC +00:00
 ```
 
 They translate to calls to `since` or `advance`. For example here we get the correct jump in the calendar reform:
