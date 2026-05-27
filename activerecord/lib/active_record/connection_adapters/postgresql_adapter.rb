@@ -1049,6 +1049,16 @@ module ActiveRecord
           connect unless @raw_connection
         end
 
+        # Canonical spellings for PostgreSQL GUC names that use non-lowercase
+        # casing. parameter_status is case-sensitive, so we need the exact
+        # name the server reports.
+        CANONICAL_GUC_NAMES = {
+          "datestyle" => "DateStyle",
+          "intervalstyle" => "IntervalStyle",
+          "timezone" => "TimeZone",
+        }.freeze
+        private_constant :CANONICAL_GUC_NAMES
+
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
         # This is called by #connect and should not be called manually.
         def configure_connection
@@ -1072,28 +1082,44 @@ module ActiveRecord
           # SETs by checking parameter_status.
           settings = {}
 
+          # We normalize to lowercase to dedup against built-ins, but retain
+          # the user's spelling just in case.
+          original_variable_names = CANONICAL_GUC_NAMES.dup
+
           # Use standard-conforming strings so we don't have to do the E'...' dance.
           settings["standard_conforming_strings"] = "on" unless @config[:standard_conforming_strings] == false
 
           # Set interval output format to ISO 8601 for ease of parsing by ActiveSupport::Duration.parse
-          settings["IntervalStyle"] = "iso_8601" unless @config[:intervalstyle] == false
+          settings["intervalstyle"] = "iso_8601" unless @config[:intervalstyle] == false
 
           unless @config[:min_messages] == false
             settings["client_min_messages"] = @config[:min_messages] || "warning"
           end
 
-          # Merge in user-provided variables from :variables config hash.
           # https://www.postgresql.org/docs/current/static/sql-set.html
           @config.fetch(:variables, {}).stringify_keys.each do |k, v|
-            if v == ":default" || v == :default
-              settings[k] = nil # nil signals "SET TO DEFAULT"
-            elsif !v.nil?
-              settings[k] = v
+            lower = k.dup
+            original_variable_names[lower] ||= k if lower.downcase!
+
+            case v
+            when :default, ":default"
+              # Server default; remove any Rails-default we've set above
+              settings.delete(lower)
+            when nil
+              # Rails default
+            else
+              settings[lower] = v
             end
           end
 
-          settings.each do |setting, value|
-            internal_set_config(setting, value)
+          server_default_tz = @raw_connection.parameter_status("TimeZone")
+          @static_timezone = settings.key?("timezone") ||
+            %w[UTC Etc/UTC].include?(server_default_tz)
+
+          settings["timezone"] = "UTC" if default_timezone == :utc && !@static_timezone
+
+          settings.each do |lower, value|
+            internal_set_config(original_variable_names[lower] || lower, value)
           end
 
           # search_path uses unquoted, comma-separated identifiers so it
@@ -1116,38 +1142,17 @@ module ActiveRecord
           reload_type_map
         end
 
-        def reconfigure_connection_timezone
-          variables = @config.fetch(:variables, {}).stringify_keys
-
-          # If it's been directly configured as a connection variable, we don't
-          # need to do anything here; it will be set up by configure_connection
-          # and then never changed.
-          return if variables["timezone"]
-
-          # If using Active Record's time zone support configure the connection
-          # to return TIMESTAMP WITH ZONE types in UTC.
-          if default_timezone == :utc
-            intent = QueryIntent.new(adapter: self, processed_sql: "SET SESSION timezone TO 'UTC'", name: "SCHEMA")
-            intent.execute!
-            intent.finish
-          else
-            intent = QueryIntent.new(adapter: self, processed_sql: "SET SESSION timezone TO DEFAULT", name: "SCHEMA")
-            intent.execute!
-            intent.finish
-          end
-        end
-
         # Sets a PostgreSQL session configuration variable. Uses parameter_status
         # to skip redundant SET commands when the server already has the desired
         # value. Pass nil as value to SET TO DEFAULT.
         def internal_set_config(setting, value)
-          if value
+          unless value.nil?
             with_raw_connection(allow_retry: false, materialize_transactions: false) do |conn|
-              return if conn.parameter_status(setting) == value.to_s
+              return if (conn.parameter_status(setting) || conn.parameter_status(setting.downcase)) == value.to_s
             end
           end
 
-          quoted_value = value ? quote(value) : "DEFAULT"
+          quoted_value = value.nil? ? "DEFAULT" : quote(value)
           query_command("SET SESSION #{setting} TO #{quoted_value}", "SCHEMA")
         end
 
@@ -1228,21 +1233,20 @@ module ActiveRecord
         end
 
         def update_typemap_for_default_timezone
-          if @raw_connection && @mapped_default_timezone != default_timezone && @timestamp_decoder
-            decoder_class = default_timezone == :utc ?
-              PG::TextDecoder::TimestampUtc :
-              PG::TextDecoder::TimestampWithoutTimeZone
+          return unless @raw_connection && @timestamp_decoder && @mapped_default_timezone != default_timezone
 
-            @timestamp_decoder = decoder_class.new(**@timestamp_decoder.to_h)
-            @raw_connection.type_map_for_results.add_coder(@timestamp_decoder)
+          initial_setup = @mapped_default_timezone.nil?
+          @mapped_default_timezone = default_timezone
 
-            @mapped_default_timezone = default_timezone
+          decoder_class = default_timezone == :utc ?
+            PG::TextDecoder::TimestampUtc :
+            PG::TextDecoder::TimestampWithoutTimeZone
 
-            # if default timezone has changed, we need to reconfigure the connection
-            # (specifically, the session time zone)
-            reconfigure_connection_timezone
+          @timestamp_decoder = decoder_class.new(**@timestamp_decoder.to_h)
+          @raw_connection.type_map_for_results.add_coder(@timestamp_decoder)
 
-            true
+          unless initial_setup || @static_timezone
+            internal_set_config("timezone", default_timezone == :utc ? "UTC" : nil)
           end
         end
 
