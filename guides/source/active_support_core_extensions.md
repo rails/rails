@@ -3798,35 +3798,58 @@ DateTime.new(1582, 10, 4, 23) + 1.hour
 Extensions to `Time`
 --------------------
 
-### Calculations
+The `Time` class supports all the same calculation methods as `DateTime` — `change`, `advance`, `since`, `ago`, and the duration arithmetic. The key difference is that unlike `DateTime`, `Time` is aware of Daylight Saving Time, making it the better choice for application code that deals with local times.
 
-They are analogous. Please refer to their documentation above and take into account the following differences:
-
-* [`change`][Time#change] accepts an additional `:usec` option.
-* `Time` understands DST, so you get correct DST calculations as in
+Because `Time` understands DST, advancing across a daylight saving boundary produces the correct result automatically:
 
 ```ruby
 Time.zone_default
-# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
+# => #<ActiveSupport::TimeZone:0x... @name="Madrid", ...>
 
-# In Barcelona, 2010/03/28 02:00 +0100 becomes 2010/03/28 03:00 +0200 due to DST.
-t = Time.local(2010, 3, 28, 1, 59, 59)
-# => Sun Mar 28 01:59:59 +0100 2010
+# In Madrid, clocks spring forward at 2am on March 29, 2026
+t = Time.local(2026, 3, 29, 1, 59, 59)
+# => Sun Mar 29 01:59:59 +0100 2026
 t.advance(seconds: 1)
-# => Sun Mar 28 03:00:00 +0200 2010
+# => Sun Mar 29 03:00:00 +0200 2026
 ```
 
-* If [`since`][Time#since] or [`ago`][Time#ago] jumps to a time that can't be expressed with `Time` a `DateTime` object is returned instead.
+This is where `Time` has a clear advantage over `DateTime` — the same operation on a `DateTime` object would produce `02:00:00` without any awareness that the clock skipped that hour entirely.
+
+The `change` method accepts an additional `:usec` option for microsecond precision:
+
+```ruby
+now = Time.current  # => Tue, 05 May 2026 12:00:00 UTC +00:00
+now.change(usec: 500)
+# => Tue, 05 May 2026 12:00:00.000500 UTC +00:00
+```
+
+WARNING: If `since` or `ago` produces a time outside the range that `Time` can represent, a `DateTime` object is returned instead. This is unlikely to affect most applications running on 64-bit systems, but if your code depends on the returned object being a `Time` (for example by calling Time-specific methods), you may see unexpected behavior when working with dates far in the past or future.
 
 [Time#ago]: https://api.rubyonrails.org/classes/Time.html#method-i-ago
 [Time#change]: https://api.rubyonrails.org/classes/Time.html#method-i-change
 [Time#since]: https://api.rubyonrails.org/classes/Time.html#method-i-since
 
-#### `Time.current`
+### `Time.current`
 
-Active Support defines [`Time.current`][Time.current] to be today in the current time zone. That's like `Time.now`, except that it honors the user time zone, if defined. It also defines the instance predicates [`past?`][DateAndTime::Calculations#past?], [`today?`][DateAndTime::Calculations#today?], [`tomorrow?`][DateAndTime::Calculations#tomorrow?], [`next_day?`][DateAndTime::Calculations#next_day?], [`yesterday?`][DateAndTime::Calculations#yesterday?], [`prev_day?`][DateAndTime::Calculations#prev_day?] and [`future?`][DateAndTime::Calculations#future?], all of them relative to `Time.current`.
+The Ruby method `Time.now` returns the current time based on the **system time zone**, which is the time zone of the server your Rails app runs on.
 
-When making Time comparisons using methods which honor the user time zone, make sure to use `Time.current` instead of `Time.now`. There are cases where the user time zone might be in the future compared to the system time zone, which `Time.now` uses by default. This means `Time.now.to_date` may equal `Date.yesterday`.
+Active Support defines [`Time.current`][Time.current] as an alternative that returns the current time in the **user's time zone** if one has been set via `Time.zone`. This mirrors the same distinction between `Date.today` and `Date.current`.
+
+Active Support also defines the following instance predicates, all relative to `Time.current`:
+
+```ruby
+time = Time.current
+
+time.past?      # => false
+time.today?     # => true
+time.tomorrow?  # => false
+time.next_day?  # => false
+time.yesterday? # => false
+time.prev_day?  # => false
+time.future?    # => false
+```
+
+NOTE: Use `Time.current` rather than `Time.now` in user-facing code. `Time.now` ignores the user's time zone and can produce incorrect results.
 
 NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
 
@@ -3836,32 +3859,34 @@ NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
 [DateAndTime::Calculations#tomorrow?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-tomorrow-3F
 [DateAndTime::Calculations#yesterday?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-yesterday-3F
 
-#### `all_day`, `all_week`, `all_month`, `all_quarter`, and `all_year`
+### `all_day`, `all_week`, `all_month`, `all_quarter`, and `all_year`
 
-The method [`all_day`][DateAndTime::Calculations#all_day] returns a range representing the whole day of the current time.
+The method [`all_day`][DateAndTime::Calculations#all_day] returns a time range representing the whole day of the current time, from `00:00:00` to `23:59:59`:
 
 ```ruby
 now = Time.current
-# => Mon, 09 Aug 2010 23:20:05 UTC +00:00
+# => Tue, 05 May 2026 12:00:00 UTC +00:00
 now.all_day
-# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Mon, 09 Aug 2010 23:59:59 UTC +00:00
+# => Tue, 05 May 2026 00:00:00 UTC +00:00..Tue, 05 May 2026 23:59:59 UTC +00:00
 ```
 
-Analogously, [`all_week`][DateAndTime::Calculations#all_week], [`all_month`][DateAndTime::Calculations#all_month], [`all_quarter`][DateAndTime::Calculations#all_quarter] and [`all_year`][DateAndTime::Calculations#all_year] all serve the purpose of generating time ranges.
+NOTE: The return type a `Range` of `ActiveSupport::TimeWithZone` objects.
+
+Similarly, [`all_week`][DateAndTime::Calculations#all_week], [`all_month`][DateAndTime::Calculations#all_month], [`all_quarter`][DateAndTime::Calculations#all_quarter], and [`all_year`][DateAndTime::Calculations#all_year] return ranges spanning their respective calendar periods, each from `00:00:00` on the first day to `23:59:59` on the last:
 
 ```ruby
 now = Time.current
-# => Mon, 09 Aug 2010 23:20:05 UTC +00:00
+# => Tue, 05 May 2026 12:00:00 UTC +00:00
 now.all_week
-# => Mon, 09 Aug 2010 00:00:00 UTC +00:00..Sun, 15 Aug 2010 23:59:59 UTC +00:00
+# => Mon, 04 May 2026 00:00:00 UTC +00:00..Sun, 10 May 2026 23:59:59 UTC +00:00
 now.all_week(:sunday)
-# => Sun, 16 Sep 2012 00:00:00 UTC +00:00..Sat, 22 Sep 2012 23:59:59 UTC +00:00
+# => Sun, 03 May 2026 00:00:00 UTC +00:00..Sat, 09 May 2026 23:59:59 UTC +00:00
 now.all_month
-# => Sat, 01 Aug 2010 00:00:00 UTC +00:00..Tue, 31 Aug 2010 23:59:59 UTC +00:00
+# => Fri, 01 May 2026 00:00:00 UTC +00:00..Sun, 31 May 2026 23:59:59 UTC +00:00
 now.all_quarter
-# => Thu, 01 Jul 2010 00:00:00 UTC +00:00..Thu, 30 Sep 2010 23:59:59 UTC +00:00
+# => Wed, 01 Apr 2026 00:00:00 UTC +00:00..Tue, 30 Jun 2026 23:59:59 UTC +00:00
 now.all_year
-# => Fri, 01 Jan 2010 00:00:00 UTC +00:00..Fri, 31 Dec 2010 23:59:59 UTC +00:00
+# => Thu, 01 Jan 2026 00:00:00 UTC +00:00..Thu, 31 Dec 2026 23:59:59 UTC +00:00
 ```
 
 NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
@@ -3873,7 +3898,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#all_year]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-all_year
 [Time.current]: https://api.rubyonrails.org/classes/Time.html#method-c-current
 
-#### `prev_day`, `next_day`
+### `prev_day`, `next_day`
 
 [`prev_day`][Time#prev_day] and [`next_day`][Time#next_day] return the time in the last or next day:
 
@@ -3888,7 +3913,7 @@ NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
 [Time#next_day]: https://api.rubyonrails.org/classes/Time.html#method-i-next_day
 [Time#prev_day]: https://api.rubyonrails.org/classes/Time.html#method-i-prev_day
 
-#### `prev_month`, `next_month`
+### `prev_month`, `next_month`
 
 [`prev_month`][Time#prev_month] and [`next_month`][Time#next_month] return the time with the same day in the last or next month:
 
@@ -3912,7 +3937,7 @@ NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
 [Time#next_month]: https://api.rubyonrails.org/classes/Time.html#method-i-next_month
 [Time#prev_month]: https://api.rubyonrails.org/classes/Time.html#method-i-prev_month
 
-#### `prev_year`, `next_year`
+### `prev_year`, `next_year`
 
 [`prev_year`][Time#prev_year] and [`next_year`][Time#next_year] return a time with the same day/month in the last or next year:
 
@@ -3935,7 +3960,7 @@ NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
 [Time#next_year]: https://api.rubyonrails.org/classes/Time.html#method-i-next_year
 [Time#prev_year]: https://api.rubyonrails.org/classes/Time.html#method-i-prev_year
 
-#### `prev_quarter`, `next_quarter`
+### `prev_quarter`, `next_quarter`
 
 [`prev_quarter`][DateAndTime::Calculations#prev_quarter] and [`next_quarter`][DateAndTime::Calculations#next_quarter] return the date with the same day in the previous or next quarter:
 
@@ -3977,7 +4002,7 @@ Analogously to `DateTime`, the predicates [`past?`][DateAndTime::Calculations#pa
 
 If the time to be constructed lies beyond the range supported by `Time` in the runtime platform, usecs are discarded and a `DateTime` object is returned instead.
 
-#### Durations
+### Durations
 
 [`Duration`][ActiveSupport::Duration] objects can be added to and subtracted from time objects:
 
