@@ -3630,25 +3630,22 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 Extensions to `DateTime`
 ------------------------
 
-WARNING: `DateTime` is not aware of DST rules and so some of these methods have edge cases when a DST change is going on. For example [`seconds_since_midnight`][DateTime#seconds_since_midnight] might not return the real amount in such a day.
+The class `DateTime` is a subclass of `Date`, so it inherits all the date calculation methods from Active Support. These methods behave identically but always return `DateTime` instances rather than `Date` instances.
 
-### Calculations
+Moreover, the following methods are reimplemented directly in `DateTime` and do not require loading the `Date` extensions:
 
-The class `DateTime` is a subclass of `Date` so by loading `active_support/core_ext/date/calculations.rb` you inherit these methods and their aliases, except that they will always return datetimes.
+- [`beginning_of_day`][DateTime#beginning_of_day] / [`midnight`][DateTime#midnight] / [`at_midnight`][DateTime#at_midnight] / [`at_beginning_of_day`][DateTime#at_beginning_of_day]
+- [`end_of_day`][DateTime#end_of_day]
+- [`ago`][DateTime#ago]
+- [`since`][DateTime#since] / [`in`][DateTime#in]
+[`advance`][DateTime#advance] and [`change`][DateTime#change] are also available with additional options covered below.
 
-The following methods are reimplemented so you do **not** need to load `active_support/core_ext/date/calculations.rb` for these ones:
+The following methods are only in `DateTime` as they are only meaningful at a date level:
 
-* [`beginning_of_day`][DateTime#beginning_of_day] / [`midnight`][DateTime#midnight] / [`at_midnight`][DateTime#at_midnight] / [`at_beginning_of_day`][DateTime#at_beginning_of_day]
-* [`end_of_day`][DateTime#end_of_day]
-* [`ago`][DateTime#ago]
-* [`since`][DateTime#since] / [`in`][DateTime#in]
+- [`beginning_of_hour`][DateTime#beginning_of_hour] / [`at_beginning_of_hour`][DateTime#at_beginning_of_hour]
+- [`end_of_hour`][DateTime#end_of_hour]
 
-On the other hand, [`advance`][DateTime#advance] and [`change`][DateTime#change] are also defined and support more options, they are documented below.
-
-The following methods are only implemented in `active_support/core_ext/date_time/calculations.rb` as they only make sense when used with a `DateTime` instance:
-
-* [`beginning_of_hour`][DateTime#beginning_of_hour] / [`at_beginning_of_hour`][DateTime#at_beginning_of_hour]
-* [`end_of_hour`][DateTime#end_of_hour]
+WARNING: `DateTime` is not aware of [Daylight Saving Time (DST)](https://en.wikipedia.org/wiki/Daylight_saving_time) rules and so some of these methods have edge cases when a DST change is going on. For example [`seconds_since_midnight`][DateTime#seconds_since_midnight] might not return the real amount in such a day.
 
 [DateTime#ago]: https://api.rubyonrails.org/classes/DateTime.html#method-i-ago
 [DateTime#at_beginning_of_day]: https://api.rubyonrails.org/classes/DateTime.html#method-i-at_beginning_of_day
@@ -3661,9 +3658,9 @@ The following methods are only implemented in `active_support/core_ext/date_time
 [DateTime#in]: https://api.rubyonrails.org/classes/DateTime.html#method-i-in
 [DateTime#midnight]: https://api.rubyonrails.org/classes/DateTime.html#method-i-midnight
 
-#### Named Datetimes
+// #### Named Datetimes
 
-##### `DateTime.current`
+### `DateTime.current`
 
 Active Support defines [`DateTime.current`][DateTime.current] to be like `Time.now.to_datetime`, except that it honors the user time zone, if defined. The instance predicates [`past?`][DateAndTime::Calculations#past?] and [`future?`][DateAndTime::Calculations#future?] are defined relative to `DateTime.current`.
 
@@ -3671,9 +3668,9 @@ NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
 [DateTime.current]: https://api.rubyonrails.org/classes/DateTime.html#method-c-current
 
-#### Other Extensions
+// #### Other Extensions
 
-##### `seconds_since_midnight`
+### `seconds_since_midnight`
 
 The method [`seconds_since_midnight`][DateTime#seconds_since_midnight] returns the number of seconds since midnight:
 
@@ -3686,7 +3683,7 @@ NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
 [DateTime#seconds_since_midnight]: https://api.rubyonrails.org/classes/DateTime.html#method-i-seconds_since_midnight
 
-##### `utc`
+### `utc` and `utc?`
 
 The method [`utc`][DateTime#utc] gives you the same datetime in the receiver expressed in UTC.
 
@@ -3699,11 +3696,6 @@ This method is also aliased as [`getutc`][DateTime#getutc].
 
 NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
-[DateTime#getutc]: https://api.rubyonrails.org/classes/DateTime.html#method-i-getutc
-[DateTime#utc]: https://api.rubyonrails.org/classes/DateTime.html#method-i-utc
-
-##### `utc?`
-
 The predicate [`utc?`][DateTime#utc?] says whether the receiver has UTC as its time zone:
 
 ```ruby
@@ -3714,9 +3706,11 @@ now.utc.utc?       # => true
 
 NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
+[DateTime#getutc]: https://api.rubyonrails.org/classes/DateTime.html#method-i-getutc
+[DateTime#utc]: https://api.rubyonrails.org/classes/DateTime.html#method-i-utc
 [DateTime#utc?]: https://api.rubyonrails.org/classes/DateTime.html#method-i-utc-3F
 
-##### `advance`
+### `advance`
 
 The most generic way to jump to another datetime is [`advance`][DateTime#advance]. This method receives a hash with keys `:years`, `:months`, `:weeks`, `:days`, `:hours`, `:minutes`, and `:seconds`, and returns a datetime advanced as much as the present keys indicate.
 
@@ -3752,7 +3746,7 @@ NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 [DateTime#advance]: https://api.rubyonrails.org/classes/DateTime.html#method-i-advance
 [DateTime#since]: https://api.rubyonrails.org/classes/DateTime.html#method-i-since
 
-#### Changing Components
+### `change`
 
 The method [`change`][DateTime#change] allows you to get a new datetime which is the same as the receiver except for the given options, which may include `:year`, `:month`, `:day`, `:hour`, `:min`, `:sec`, `:offset`, `:start`:
 
@@ -3788,7 +3782,7 @@ NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
 [DateTime#change]: https://api.rubyonrails.org/classes/DateTime.html#method-i-change
 
-#### Durations
+### Durations
 
 [`Duration`][ActiveSupport::Duration] objects can be added to and subtracted from datetimes:
 
