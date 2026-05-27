@@ -86,8 +86,8 @@ module ActionDispatch
         self.default_headers = app.config.action_dispatch.default_headers
       end
 
-      ActionDispatch::ExceptionWrapper.rescue_responses.merge!(config.action_dispatch.rescue_responses)
-      ActionDispatch::ExceptionWrapper.rescue_templates.merge!(config.action_dispatch.rescue_templates)
+      ActionDispatch::ExceptionWrapper.rescue_responses = ActionDispatch::ExceptionWrapper.rescue_responses.merge(config.action_dispatch.rescue_responses).freeze
+      ActionDispatch::ExceptionWrapper.rescue_templates = ActionDispatch::ExceptionWrapper.rescue_templates.merge(config.action_dispatch.rescue_templates).freeze
 
       config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie

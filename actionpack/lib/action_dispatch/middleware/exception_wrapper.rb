@@ -26,7 +26,7 @@ module ActionDispatch
       "ActionController::TooManyRequests"                  => :too_many_requests,
       "Rack::QueryParser::ParameterTypeError"              => :bad_request,
       "Rack::QueryParser::InvalidParameterError"           => :bad_request
-    )
+    ).freeze
 
     cattr_accessor :rescue_templates, default: Hash.new("diagnostics").merge!(
       "ActionView::MissingTemplate"            => "missing_template",
@@ -35,7 +35,7 @@ module ActionDispatch
       "ActiveRecord::StatementInvalid"         => "invalid_statement",
       "ActionView::Template::Error"            => "template_error",
       "ActionController::MissingExactTemplate" => "missing_exact_template",
-    )
+    ).freeze
 
     cattr_accessor :wrapper_exceptions, default: [
       "ActionView::Template::Error"
