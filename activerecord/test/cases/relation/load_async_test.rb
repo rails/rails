@@ -320,13 +320,20 @@ module ActiveRecord
       def test_simple_query
         expected_records = Post.where(author_id: 1).to_a
 
-        deferred_posts = Post.where(author_id: 1).load_async
-        events = capture_notifications("sql.active_record") { deferred_posts.to_a }
+        status = {}
 
-        event = events.find { _1.payload[:name] == "Post Load" }
-        assert_not_nil event
+        subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+          if event.payload[:name] == "Post Load"
+            status[:async] = event.payload[:async]
+          end
+        end
+
+        deferred_posts = Post.where(author_id: 1).load_async
+
         assert_equal expected_records, deferred_posts.to_a
-        assert_not_equal Post.lease_connection.supports_concurrent_connections?, event.payload[:async]
+        assert_not_equal Post.lease_connection.supports_concurrent_connections?, status[:async]
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
       end
 
       def test_load_async_from_transaction
@@ -346,21 +353,27 @@ module ActiveRecord
       def test_eager_loading_query
         expected_records = Post.where(author_id: 1).eager_load(:comments).to_a
 
+        status = {}
+
+        subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+          if event.payload[:name] == "SQL"
+            status[:async] = event.payload[:async]
+          end
+        end
+
         deferred_posts = Post.where(author_id: 1).eager_load(:comments).load_async
 
         assert_not_predicate deferred_posts, :scheduled?
 
-        events = capture_notifications("sql.active_record") { deferred_posts.to_a }
-
-        event = events.find { _1.payload[:name] == "SQL" }
-        assert_not_nil event
         assert_equal expected_records, deferred_posts.to_a
         assert_queries_count(0) do
           deferred_posts.each(&:comments)
         end
 
         assert_predicate Post.lease_connection, :supports_concurrent_connections?
-        assert_not event.payload[:async], "Expected async to be false with NullExecutor"
+        assert_not status[:async], "Expected async to be false with NullExecutor"
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
       end
 
       def test_contradiction
@@ -449,15 +462,21 @@ module ActiveRecord
       def test_simple_query
         expected_records = Post.where(author_id: 1).to_a
 
+        status = {}
+
+        subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+          if event.payload[:name] == "Post Load"
+            status[:async] = event.payload[:async]
+          end
+        end
+
         deferred_posts = Post.where(author_id: 1).load_async
         wait_for_async_query
 
-        events = capture_notifications("sql.active_record") { deferred_posts.to_a }
-
-        event = events.find { _1.payload[:name] == "Post Load" }
-        assert_not_nil event
         assert_equal expected_records, deferred_posts.to_a
-        assert_equal Post.lease_connection.supports_concurrent_connections?, event.payload[:async]
+        assert_equal Post.lease_connection.supports_concurrent_connections?, status[:async]
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
       end
 
       def test_load_async_from_transaction
@@ -477,20 +496,26 @@ module ActiveRecord
       def test_eager_loading_query
         expected_records = Post.where(author_id: 1).eager_load(:comments).to_a
 
+        status = {}
+
+        subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+          if event.payload[:name] == "Post Eager Load"
+            status[:async] = event.payload[:async]
+          end
+        end
+
         deferred_posts = Post.where(author_id: 1).eager_load(:comments).load_async
         wait_for_async_query
 
         assert_predicate deferred_posts, :scheduled?
 
-        events = capture_notifications("sql.active_record") { deferred_posts.to_a }
-
-        event = events.find { _1.payload[:name] == "Post Eager Load" }
-        assert_not_nil event
         assert_equal expected_records, deferred_posts.to_a
         assert_queries_count(0) do
           deferred_posts.each(&:comments)
         end
-        assert_equal Post.lease_connection.supports_concurrent_connections?, event.payload[:async]
+        assert_equal Post.lease_connection.supports_concurrent_connections?, status[:async]
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
       end
 
       def test_contradiction
@@ -574,25 +599,32 @@ module ActiveRecord
         expected_records = Post.where(author_id: 1).to_a
         expected_dogs = OtherDog.where(id: 1).to_a
 
+        status = {}
+        dog_status = {}
+
+        subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
+          if event.payload[:name] == "Post Load"
+            status[:async] = event.payload[:async]
+          end
+
+          if event.payload[:name] == "OtherDog Load"
+            dog_status[:async] = event.payload[:async]
+          end
+        end
+
         deferred_posts = Post.where(author_id: 1).load_async
         deferred_dogs = OtherDog.where(id: 1).load_async
 
         wait_for_async_query
         wait_for_async_query
 
-        events = capture_notifications("sql.active_record") do
-          deferred_posts.to_a
-          deferred_dogs.to_a
-        end
-
-        post_event = events.find { _1.payload[:name] == "Post Load" }
-        dog_event = events.find { _1.payload[:name] == "OtherDog Load" }
-        assert_not_nil post_event
-        assert_not_nil dog_event
         assert_equal expected_records, deferred_posts.to_a
         assert_equal expected_dogs, deferred_dogs.to_a
-        assert_equal Post.lease_connection.async_enabled?, post_event.payload[:async]
-        assert_equal OtherDog.lease_connection.async_enabled?, dog_event.payload[:async]
+
+        assert_equal Post.lease_connection.async_enabled?, status[:async]
+        assert_equal OtherDog.lease_connection.async_enabled?, dog_status[:async]
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
       end
     end
   end
