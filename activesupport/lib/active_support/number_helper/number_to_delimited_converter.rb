@@ -13,6 +13,8 @@ module ActiveSupport
 
       private
         def parts
+          return [number.to_s] if number.respond_to?(:finite?) && !number.finite?
+
           left, right = number.to_s.split(".")
           if delimiter_pattern
             left.gsub!(delimiter_pattern) do |digit_to_delimit|
