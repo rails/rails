@@ -2,17 +2,8 @@
 
 require "active_model/type"
 
+require "active_record/type/query_predicate"
 require "active_record/type/internal/timezone"
-
-require "active_record/type/date"
-require "active_record/type/date_time"
-require "active_record/type/decimal_without_scale"
-require "active_record/type/json"
-require "active_record/type/time"
-require "active_record/type/text"
-require "active_record/type/unsigned_integer"
-
-require "active_record/type/serialized"
 require "active_record/type/adapter_specific_registry"
 
 require "active_record/type/type_map"
@@ -56,15 +47,51 @@ module ActiveRecord
         end
     end
 
-    BigInteger = ActiveModel::Type::BigInteger
-    Binary = ActiveModel::Type::Binary
-    Boolean = ActiveModel::Type::Boolean
-    Decimal = ActiveModel::Type::Decimal
-    Float = ActiveModel::Type::Float
-    Integer = ActiveModel::Type::Integer
-    ImmutableString = ActiveModel::Type::ImmutableString
-    String = ActiveModel::Type::String
-    Value = ActiveModel::Type::Value
+    class Value < ActiveModel::Type::Value
+      include QueryPredicate
+    end
+
+    class BigInteger < ActiveModel::Type::BigInteger
+      include QueryPredicate
+    end
+
+    class Binary < ActiveModel::Type::Binary
+      include QueryPredicate
+    end
+
+    class Boolean < ActiveModel::Type::Boolean
+      include QueryPredicate
+    end
+
+    class Decimal < ActiveModel::Type::Decimal
+      include QueryPredicate
+    end
+
+    class Float < ActiveModel::Type::Float
+      include QueryPredicate
+    end
+
+    class Integer < ActiveModel::Type::Integer
+      include QueryPredicate
+    end
+
+    class ImmutableString < ActiveModel::Type::ImmutableString
+      include QueryPredicate
+    end
+
+    class String < ActiveModel::Type::String
+      include QueryPredicate
+    end
+
+    require "active_record/type/date"
+    require "active_record/type/date_time"
+    require "active_record/type/decimal_without_scale"
+    require "active_record/type/json"
+    require "active_record/type/time"
+    require "active_record/type/text"
+    require "active_record/type/unsigned_integer"
+
+    require "active_record/type/serialized"
 
     register(:big_integer, Type::BigInteger, override: false)
     register(:binary, Type::Binary, override: false)

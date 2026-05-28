@@ -4,7 +4,7 @@ require "active_support/json"
 
 module ActiveRecord
   module Type
-    class Json < ActiveModel::Type::Value
+    class Json < Value
       include ActiveModel::Type::Helpers::Mutable
 
       def type

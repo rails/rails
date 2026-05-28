@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Type
-    class DecimalWithoutScale < ActiveModel::Type::BigInteger # :nodoc:
+    class DecimalWithoutScale < BigInteger # :nodoc:
       def type
         :decimal
       end

@@ -3,6 +3,7 @@
 module ActiveRecord
   module Type
     class Time < ActiveModel::Type::Time
+      include QueryPredicate
       include Internal::Timezone
 
       Value = ActiveSupport::Delegation::DelegateClass(::Time) # :nodoc:

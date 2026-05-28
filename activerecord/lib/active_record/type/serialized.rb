@@ -5,6 +5,7 @@ module ActiveRecord
     class Serialized < ActiveSupport::Delegation::DelegateClass(ActiveModel::Type::Value) # :nodoc:
       undef to_yaml if method_defined?(:to_yaml)
 
+      include QueryPredicate
       include ActiveModel::Type::Helpers::Mutable
 
       attr_reader :subtype, :coder

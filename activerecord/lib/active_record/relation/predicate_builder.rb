@@ -59,8 +59,8 @@ module ActiveRecord
       type = table.type(attribute.name)
 
       if operator ||= type.force_equality?(value) && :eq
-        if query_transformable_type?(type)
-          build_predicate(attribute, value, operator, type)
+        if type.query_transformable?
+          build_predicate(attribute, value, operator, type, true)
         else
           bind = build_bind_attribute(attribute.name, value, type)
           attribute.public_send(operator, bind)
@@ -70,10 +70,10 @@ module ActiveRecord
       end
     end
 
-    def build_predicate(attribute, value, operator = :eq, type = table.type(attribute.name))
-      if query_transformable_type?(type)
+    def build_predicate(attribute, value, operator = :eq, type = table.type(attribute.name), transformable = type.query_transformable?)
+      if transformable
         right = query_value(attribute, value, type)
-        left = right.nil? ? attribute : query_attribute(attribute, type)
+        left = right.nil? ? attribute : type.query_attribute(attribute)
       else
         right = build_bind_attribute(attribute.name, value, type)
         left = attribute
@@ -85,8 +85,8 @@ module ActiveRecord
     def build_array_predicate(attribute, values)
       type = table.type(attribute.name)
 
-      if query_transformable_type?(type)
-        query_attribute(attribute, type).in(
+      if type.query_transformable?
+        type.query_attribute(attribute).in(
           values.map { |value| query_value(attribute, value, type) }
         )
       else
@@ -97,7 +97,7 @@ module ActiveRecord
     def build_range_predicate(attribute, range)
       type = table.type(attribute.name)
 
-      query_attribute(attribute, type).between(
+      type.query_attribute(attribute).between(
         RangeHandler::RangeWithBinds.new(
           query_value(attribute, range.begin, type),
           query_value(attribute, range.end, type),
@@ -110,27 +110,11 @@ module ActiveRecord
       Relation::QueryAttribute.new(column_name, value, type)
     end
 
-    def query_attribute(attribute, type = table.type(attribute.name))
-      if type.respond_to?(:query_attribute)
-        type.query_attribute(attribute)
-      else
-        attribute
-      end
-    end
-
     def query_value(attribute, value, type = table.type(attribute.name))
       bind = build_bind_attribute(attribute.name, value, type)
       return bind if bind.nil? || bind.infinite? || bind.unboundable?
 
-      if type.respond_to?(:query_value)
-        type.query_value(attribute, value, predicate_builder: self)
-      else
-        bind
-      end
-    end
-
-    def query_transformable_type?(type)
-      type.respond_to?(:query_attribute) || type.respond_to?(:query_value)
+      type.query_value(attribute, value, predicate_builder: self)
     end
 
     def resolve_arel_attribute(table_name, column_name, &block)
