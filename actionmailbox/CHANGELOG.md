@@ -1,3 +1,7 @@
+*   Return `422 Unprocessable Content` for malformed Mailgun, Postmark, and SendGrid raw email parameters.
+
+    *Andrii Furmanets*
+
 *   Return `422 Unprocessable Content` for malformed Mailgun and Postmark original recipient parameters.
 
     *Andrii Furmanets*

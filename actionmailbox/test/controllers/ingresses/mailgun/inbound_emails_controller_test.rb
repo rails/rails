@@ -83,6 +83,20 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsControllerTest < ActionDis
     assert_response ActionDispatch::Constants::UNPROCESSABLE_CONTENT
   end
 
+  test "rejecting an inbound email from Mailgun with a malformed raw email" do
+    assert_no_difference -> { ActionMailbox::InboundEmail.count } do
+      travel_to "2018-10-09 15:15:00 EDT"
+      post rails_mailgun_inbound_emails_url, params: {
+        timestamp: 1539112500,
+        token: "7VwW7k6Ak7zcTwoSoNm7aTtbk1g67MKAnsYLfUB7PdszbgR5Xi",
+        signature: "ef24c5225322217bb065b80bb54eb4f9206d764e3e16abab07f0a64d1cf477cc",
+        "body-mime" => [ file_fixture("../files/welcome.eml").read ]
+      }
+    end
+
+    assert_response ActionDispatch::Constants::UNPROCESSABLE_CONTENT
+  end
+
   test "rejecting a delayed inbound email from Mailgun" do
     assert_no_difference -> { ActionMailbox::InboundEmail.count } do
       travel_to "2018-10-09 15:26:00 EDT"
