@@ -1,3 +1,8 @@
+*   Strip unsafe characters from HTTP authentication realms before writing
+    `WWW-Authenticate` challenge headers.
+
+    *Andrii Furmanets*
+
 *   Release the executor state eagerly on rack hijack in
     `ActionDispatch::Executor`.
 

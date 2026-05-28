@@ -7,6 +7,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
   class DummyDigestController < ActionController::Base
     before_action :authenticate, only: :index
     before_action :authenticate_with_request, only: :display
+    before_action :authenticate_with_unsafe_realm, only: :unsafe_realm
 
     USERS = { "lifo" => "world", "pretty" => "please",
               "dhh" => OpenSSL::Digest::MD5.hexdigest(["dhh", "SuperSecret", "secret"].join(":")) }.freeze
@@ -17,6 +18,10 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
     def display
       render plain: "Definitely Maybe" if @logged_in
+    end
+
+    def unsafe_realm
+      render plain: "Only with a safe challenge"
     end
 
     private
@@ -33,6 +38,10 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
         else
           request_http_digest_authentication("SuperSecret", "Authentication Failed", "application/json")
         end
+      end
+
+      def authenticate_with_unsafe_realm
+        request_http_digest_authentication("Super\r\nSecret\"")
       end
   end
 
@@ -79,6 +88,14 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     assert_response :unauthorized
     assert_equal "Authentication Failed", @response.body
     assert_equal "application/json", @response.media_type
+    credentials = decode_credentials(@response.headers["WWW-Authenticate"])
+    assert_equal "SuperSecret", credentials[:realm]
+  end
+
+  test "authentication request strips unsafe realm characters" do
+    get :unsafe_realm
+
+    assert_response :unauthorized
     credentials = decode_credentials(@response.headers["WWW-Authenticate"])
     assert_equal "SuperSecret", credentials[:realm]
   end

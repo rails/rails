@@ -8,6 +8,7 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     before_action :authenticate_with_request, only: :display
     before_action :authenticate_long_credentials, only: :show
     before_action :auth_with_special_chars, only: :special_creds
+    before_action :authenticate_with_unsafe_realm, only: :unsafe_realm
 
     http_basic_authenticate_with name: "David", password: "Goliath", only: :search
     http_basic_authenticate_with name: "David", password: "Goliath", content_type: "application/json", only: :search_with_content_type
@@ -26,6 +27,10 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
 
     def special_creds
       render plain: "Only for special credentials"
+    end
+
+    def unsafe_realm
+      render plain: "Only with a safe challenge"
     end
 
     def search
@@ -62,6 +67,10 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
         authenticate_or_request_with_http_basic do |username, password|
           username == 'login!@#$%^&*()_+{}[];"\',./<>?`~ \n\r\t' && password == 'pwd:!@#$%^&*()_+{}[];"\',./<>?`~ \n\r\t'
         end
+      end
+
+      def authenticate_with_unsafe_realm
+        request_http_basic_authentication("Super\r\nSecret\"")
       end
 
       def authenticate_long_credentials
@@ -137,6 +146,13 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
 
     assert_response :unauthorized
     assert_equal "Authentication Failed\n", @response.body
+    assert_equal 'Basic realm="SuperSecret"', @response.headers["WWW-Authenticate"]
+  end
+
+  test "authentication request strips unsafe realm characters" do
+    get :unsafe_realm
+
+    assert_response :unauthorized
     assert_equal 'Basic realm="SuperSecret"', @response.headers["WWW-Authenticate"]
   end
 

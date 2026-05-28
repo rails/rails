@@ -7,6 +7,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     before_action :authenticate, only: :index
     before_action :authenticate_with_request, only: :display
     before_action :authenticate_long_credentials, only: :show
+    before_action :authenticate_with_unsafe_realm, only: :unsafe_realm
 
     def index
       render plain: "Hello Secret"
@@ -18,6 +19,10 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
     def show
       render plain: "Only for loooooong credentials"
+    end
+
+    def unsafe_realm
+      render plain: "Only with a safe challenge"
     end
 
     private
@@ -33,6 +38,10 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
         else
           request_http_token_authentication("SuperSecret", "Authentication Failed\n", "application/json")
         end
+      end
+
+      def authenticate_with_unsafe_realm
+        request_http_token_authentication("Super\r\nSecret\"")
       end
 
       def authenticate_long_credentials
@@ -119,6 +128,13 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_response :unauthorized
     assert_equal "Authentication Failed\n", @response.body
     assert_equal "application/json", @response.media_type
+    assert_equal 'Token realm="SuperSecret"', @response.headers["WWW-Authenticate"]
+  end
+
+  test "authentication request strips unsafe realm characters" do
+    get :unsafe_realm
+
+    assert_response :unauthorized
     assert_equal 'Token realm="SuperSecret"', @response.headers["WWW-Authenticate"]
   end
 

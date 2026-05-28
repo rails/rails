@@ -9,6 +9,12 @@ require "active_support/core_ext/array/access"
 module ActionController
   # HTTP Basic, Digest, and Token authentication.
   module HttpAuthentication
+    AUTHENTICATION_REALM_UNSAFE_CHARS = /[\x00-\x1F"]/
+
+    def self.authentication_realm(realm)
+      realm.to_s.gsub(AUTHENTICATION_REALM_UNSAFE_CHARS, "")
+    end
+
     # # HTTP Basic authentication
     #
     # ### Simple Basic example
@@ -137,7 +143,7 @@ module ActionController
 
       def authentication_request(controller, realm, message = nil, content_type = nil)
         message ||= "HTTP Basic: Access denied.\n"
-        controller.headers["WWW-Authenticate"] = %(Basic realm="#{realm.tr('"', "")}")
+        controller.headers["WWW-Authenticate"] = %(Basic realm="#{HttpAuthentication.authentication_realm(realm)}")
         controller.status = 401
         controller.content_type = content_type
         controller.response_body = message
@@ -276,7 +282,7 @@ module ActionController
         secret_key = secret_token(controller.request)
         nonce = self.nonce(secret_key)
         opaque = opaque(secret_key)
-        controller.headers["WWW-Authenticate"] = %(Digest realm="#{realm}", qop="auth", algorithm=MD5, nonce="#{nonce}", opaque="#{opaque}")
+        controller.headers["WWW-Authenticate"] = %(Digest realm="#{HttpAuthentication.authentication_realm(realm)}", qop="auth", algorithm=MD5, nonce="#{nonce}", opaque="#{opaque}")
       end
 
       def authentication_request(controller, realm, message = nil, content_type = nil)
@@ -556,7 +562,7 @@ module ActionController
       #
       def authentication_request(controller, realm, message = nil, content_type = nil)
         message ||= "HTTP Token: Access denied.\n"
-        controller.headers["WWW-Authenticate"] = %(Token realm="#{realm.tr('"', "")}")
+        controller.headers["WWW-Authenticate"] = %(Token realm="#{HttpAuthentication.authentication_realm(realm)}")
         controller.__send__ :render, plain: message, status: :unauthorized, content_type: content_type
       end
     end
