@@ -44,7 +44,7 @@ module ActionDispatch
     cattr_accessor :silent_exceptions, default: [
       "ActionController::RoutingError",
       "ActionDispatch::Http::MimeNegotiation::InvalidType"
-    ]
+    ].freeze
 
     attr_reader :backtrace_cleaner, :wrapped_causes, :exception_class_name, :exception
 

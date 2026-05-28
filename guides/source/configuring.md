@@ -2436,6 +2436,20 @@ Use `ActionDispatch::ExceptionWrapper.wrapper_exceptions` to observe the configu
 ]
 ```
 
+#### `config.action_dispatch.silent_exceptions`
+
+Configures which exceptions should not fall back to showing framework-level backtraces when there is no application
+backtrace. This is useful for silencing noisy backtraces for exceptions raised at the framework or plugin level.
+
+Use `ActionDispatch::ExceptionWrapper.silent_exceptions` to observe the configuration. By default, it is defined as:
+
+```ruby
+[
+  "ActionController::RoutingError",
+  "ActionDispatch::Http::MimeNegotiation::InvalidType"
+]
+```
+
 #### `config.action_dispatch.rescue_templates`
 
 Configures the templates used to render exceptions. It accepts a hash and you can specify pairs of exception => template.
