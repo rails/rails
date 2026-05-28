@@ -53,13 +53,18 @@ module ActiveSupport
           end
         end
 
-        type = dumped.unpack1(PACKED_TYPE_TEMPLATE)
-        expires_at = dumped.unpack1(PACKED_EXPIRES_AT_TEMPLATE)
-        version_length = dumped.unpack1(PACKED_VERSION_LENGTH_TEMPLATE)
+        begin
+          type = dumped.unpack1(PACKED_TYPE_TEMPLATE)
+          expires_at = dumped.unpack1(PACKED_EXPIRES_AT_TEMPLATE)
+          version_length = dumped.unpack1(PACKED_VERSION_LENGTH_TEMPLATE)
 
-        expires_at = nil if expires_at < 0
-        version = load_version(dumped.byteslice(PACKED_VERSION_INDEX, version_length)) if version_length >= 0
-        payload = dumped.byteslice((PACKED_VERSION_INDEX + [version_length, 0].max)..)
+          expires_at = nil if expires_at < 0
+          version = load_version(dumped.byteslice(PACKED_VERSION_INDEX, version_length)) if version_length >= 0
+          payload = dumped.byteslice((PACKED_VERSION_INDEX + [version_length, 0].max)..)
+        rescue ArgumentError, TypeError => error
+          ActiveSupport.error_reporter.report(error, source: "active_support.cache")
+          return
+        end
 
         compressor = @compressor if type & COMPRESSED_FLAG > 0
         serializer = STRING_DESERIALIZERS[type & ~COMPRESSED_FLAG] || @serializer
