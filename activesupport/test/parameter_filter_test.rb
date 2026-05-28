@@ -3,6 +3,7 @@
 require_relative "abstract_unit"
 require "active_support/core_ext/hash"
 require "active_support/parameter_filter"
+require "action_controller"
 
 class ParameterFilterTest < ActiveSupport::TestCase
   test "process parameter filter" do
@@ -182,5 +183,66 @@ class ParameterFilterTest < ActiveSupport::TestCase
   test "precompile_filters eliminate dead patterns" do
     assert_equal [/token/i], ActiveSupport::ParameterFilter.precompile_filters(["user.token", "token"])
     assert_equal [/password/i], ActiveSupport::ParameterFilter.precompile_filters(["user_password", "password"])
+  end
+
+  test "filter does not skip nested action controller parameters" do
+    filter = ActiveSupport::ParameterFilter.new(["secret"])
+
+    params = ActionController::Parameters.new(
+      "secret" => "root_secret",
+      "safe"   => "visible",
+      "nested" => { "secret" => "nested_secret", "safe" => "also_visible" }
+    )
+
+    filtered = filter.filter(params)
+
+    assert_equal "[FILTERED]",   filtered["secret"]
+    assert_equal "visible",      filtered["safe"]
+    assert_equal "[FILTERED]",   filtered.dig("nested", "secret")
+    assert_equal "also_visible", filtered.dig("nested", "safe")
+  end
+
+  test "filter handles deeply nested action controller parameters" do
+    filter = ActiveSupport::ParameterFilter.new(["token"])
+
+    params = ActionController::Parameters.new(
+      "level1" => { "level2" => { "token" => "deep_secret", "safe" => "ok" } }
+    )
+
+    filtered = filter.filter(params)
+
+    assert_equal "[FILTERED]", filtered.dig("level1", "level2", "token")
+    assert_equal "ok",         filtered.dig("level1", "level2", "safe")
+  end
+
+  test "filter applies proc filters inside nested action controller parameters" do
+    seen_keys = []
+    filter = ActiveSupport::ParameterFilter.new([
+      ->(k, v) { seen_keys << k if v.is_a?(String) }
+    ])
+
+    params = ActionController::Parameters.new(
+      "top"    => "hello",
+      "nested" => { "inner" => "world" }
+    )
+
+    filter.filter(params)
+
+    assert_includes seen_keys, "top"
+    assert_includes seen_keys, "inner"
+  end
+
+  test "filter masks nested keys in action controller parameters the same as in plain hashes" do
+    filter = ActiveSupport::ParameterFilter.new(["secret"])
+
+    hash_params = { "secret" => 1234, "nested" => { "secret" => 5678 } }
+    filtered_hash = filter.filter(hash_params)
+    assert_equal "[FILTERED]", filtered_hash["secret"]
+    assert_equal "[FILTERED]", filtered_hash.dig("nested", "secret")
+
+    ac_params = ActionController::Parameters.new("secret" => 1234, "nested" => { "secret" => 5678 })
+    filtered_ac = filter.filter(ac_params)
+    assert_equal "[FILTERED]", filtered_ac["secret"]
+    assert_equal "[FILTERED]", filtered_ac.dig("nested", "secret")
   end
 end

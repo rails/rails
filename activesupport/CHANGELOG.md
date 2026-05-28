@@ -1,3 +1,11 @@
+*   Fix `ActiveSupport::ParameterFilter` not filtering sensitive keys nested
+    inside `ActionController::Parameters`. Since `ActionController::Parameters`
+    no longer inherits from `Hash`, the `value.is_a?(Hash)` guard in
+    `value_for_key` was never entered for nested parameter objects, silently
+    leaving sensitive values unfiltered in logs.
+
+    *Ruy Rocha*
+
 *   Fix `NumberHelper` raising `FloatDomainError` for `Infinity` / `NaN` with
     `significant: true`.
 

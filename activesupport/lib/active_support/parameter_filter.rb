@@ -189,6 +189,8 @@ module ActiveSupport
         value = @mask
       elsif value.is_a?(Hash)
         value = call(value, full_key, original_params)
+      elsif value.respond_to?(:to_unsafe_h)
+        value = call(value.to_unsafe_h, full_key, original_params)
       elsif value.is_a?(Array)
         value = value.map { |v| value_for_key(key, v, full_parent_key, original_params) }
       elsif @blocks
