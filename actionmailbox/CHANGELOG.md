@@ -1,3 +1,7 @@
+*   Return `422 Unprocessable Content` for malformed Mailgun and Postmark original recipient parameters.
+
+    *Andrii Furmanets*
+
 *   Return `401 Unauthorized` for malformed Mailgun signatures.
 
     *Andrii Furmanets*

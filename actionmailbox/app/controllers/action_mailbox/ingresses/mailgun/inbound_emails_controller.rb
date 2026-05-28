@@ -48,12 +48,27 @@ module ActionMailbox
 
     def create
       ActionMailbox::InboundEmail.create_and_extract_message_id! mail
+    rescue MalformedRecipientError => error
+      logger.error error.message
+      head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     end
 
     private
+      class MalformedRecipientError < StandardError
+        def initialize(message = "Malformed Mailgun recipient")
+          super
+        end
+      end
+
       def mail
         params.require("body-mime").tap do |raw_email|
-          raw_email.prepend("X-Original-To: ", params.require(:recipient), "\n") if params.key?(:recipient)
+          raw_email.prepend("X-Original-To: ", recipient, "\n") if params.key?(:recipient)
+        end
+      end
+
+      def recipient
+        params.require(:recipient).tap do |recipient|
+          raise MalformedRecipientError unless recipient.is_a?(String)
         end
       end
 
