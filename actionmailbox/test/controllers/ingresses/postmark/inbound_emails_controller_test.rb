@@ -47,6 +47,18 @@ class ActionMailbox::Ingresses::Postmark::InboundEmailsControllerTest < ActionDi
     assert_equal "thisguy@domain.abcd", mail.header["X-Original-To"].decoded
   end
 
+  test "rejecting an inbound email from Postmark with a malformed original recipient" do
+    assert_no_difference -> { ActionMailbox::InboundEmail.count } do
+      post rails_postmark_inbound_emails_url,
+        headers: { authorization: credentials }, params: {
+          RawEmail: file_fixture("../files/welcome.eml").read,
+          OriginalRecipient: [ "thisguy@domain.abcd" ],
+        }
+    end
+
+    assert_response ActionDispatch::Constants::UNPROCESSABLE_CONTENT
+  end
+
   test "rejecting when RawEmail param is missing" do
     assert_no_difference -> { ActionMailbox::InboundEmail.count } do
       post rails_postmark_inbound_emails_url,
