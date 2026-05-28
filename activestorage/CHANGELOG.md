@@ -1,3 +1,15 @@
+*   Allow `config.active_storage.service_urls_expire_in` and `config.active_storage.urls_expire_in`
+    to be set to a callable, which is invoked on each read so the expiry can be computed dynamically.
+
+    This is useful in multi-tenant applications that need a different URL expiry per tenant without
+    having to override Active Storage internals:
+
+    ```ruby
+    config.active_storage.service_urls_expire_in = -> { Current.tenant&.url_expiry || 5.minutes }
+    ```
+
+    *Victor Campos*
+
 *   Prevent `ActiveStorage.touch_attachment_records = false` from crashing the attachment of a Blob.
 
     When `ActiveStorage.touch_attachment_records` was set to `false`, attaching a existing Blob to a Record

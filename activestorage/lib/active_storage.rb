@@ -356,9 +356,29 @@ module ActiveStorage
   mattr_accessor :unsupported_image_processing_arguments
 
   mattr_accessor :streaming_chunk_max_size, default: 100.megabytes
-  mattr_accessor :service_urls_expire_in, default: 5.minutes
+
+  singleton_class.attr_writer :service_urls_expire_in
+  @service_urls_expire_in = 5.minutes
+
+  # Returns the expiry duration of service URLs. When configured with a callable
+  # (for example a lambda), it is invoked on each read so the value can be computed
+  # dynamically, such as per request in multi-tenant applications.
+  def self.service_urls_expire_in
+    expiry = @service_urls_expire_in
+    expiry.respond_to?(:call) ? expiry.call : expiry
+  end
+
   mattr_accessor :touch_attachment_records, default: true
-  mattr_accessor :urls_expire_in
+
+  singleton_class.attr_writer :urls_expire_in
+
+  # Returns the expiry duration baked into Active Storage URLs. When configured
+  # with a callable (for example a lambda), it is invoked on each read so the value
+  # can be computed dynamically, such as per request in multi-tenant applications.
+  def self.urls_expire_in
+    expiry = @urls_expire_in
+    expiry.respond_to?(:call) ? expiry.call : expiry
+  end
 
   # Configures the mount point for the default Active Storage routes. Accepts any
   # value supported by `scope`, such as a string path prefix or a hash of routing
