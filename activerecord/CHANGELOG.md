@@ -1,3 +1,12 @@
+*   Reduce number of queries when introspecting MySQL/MariaDB tables.
+
+    A fix to support MariaDB function defaults caused the MySQL adapters to
+    issue one query per column when introspecting tables.
+
+    Now it only issue a single extra query per table, and only when using MariaDB.
+
+    *Iliana Hadzhiatanasova*
+
 *   Fully qualify query criterias in `has_and_belongs_to_many` associations.
 
     Ensure that scopes with the same column name but in different tables aren't lost

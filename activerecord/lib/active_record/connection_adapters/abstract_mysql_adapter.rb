@@ -991,7 +991,33 @@ module ActiveRecord
         end
 
         def column_definitions(table_name) # :nodoc:
-          internal_exec_query("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA", allow_retry: true)
+          fields = internal_exec_query("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA", allow_retry: true)
+
+          update_fields_for_mariadb(table_name, fields) if mariadb?
+
+          fields
+        end
+
+        def update_fields_for_mariadb(table_name, fields)
+          has_function_default_candidate = fields.any? do |field|
+            default = field["Default"]
+            default&.match?(/[a-zA-Z_]\w*\(/) && !/\ACURRENT_TIMESTAMP/i.match?(default)
+          end
+
+          if has_function_default_candidate
+            table_info = create_table_info(table_name)
+            fields.each do |field|
+              default = field["Default"]
+              next unless default&.match?(/[a-zA-Z_]\w*\(/)
+              next if /\ACURRENT_TIMESTAMP/i.match?(default)
+
+              field_name = field["Field"]
+              match = table_info&.match(/`#{field_name}` .+ DEFAULT ('|\d+|[A-z]+)/)
+              if match && match[1].match?(/\A[A-z]/)
+                field["Extra"] = "DEFAULT_GENERATED"
+              end
+            end
+          end
         end
 
         def create_table_info(table_name) # :nodoc:
