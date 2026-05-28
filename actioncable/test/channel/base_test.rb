@@ -63,6 +63,10 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
       @subscribed
     end
 
+    def after_subscribed_ran?
+      @after_subscribed_ran
+    end
+
     def get_latest
       transmit({ data: "latest" })
     end
@@ -198,7 +202,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
   end
 
   test "actions available on Channel" do
-    available_actions = %w(room last_action subscribed unsubscribed toggle_subscribed leave speak subscribed? get_latest receive chatters topic error_action).to_set
+    available_actions = %w(room last_action subscribed unsubscribed toggle_subscribed leave speak subscribed? after_subscribed_ran? get_latest receive chatters topic error_action).to_set
     assert_equal available_actions, ChatChannel.action_methods
   end
 
@@ -257,6 +261,17 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
   test "behaves like rescuable" do
     @channel.perform_action "action" => :error_action
     assert_equal [ :error_action ], @channel.last_action
+  end
+
+  class RejectBeforeSubscribeChannel < ChatChannel
+    before_subscribe { reject }
+  end
+
+  test "#reject in before_subscribe" do
+    channel = RejectBeforeSubscribeChannel.new @connection, "{id: 1}", id: 1
+    channel.subscribe_to_channel
+    assert_nil channel.room
+    assert_not channel.subscribed?
   end
 
   private

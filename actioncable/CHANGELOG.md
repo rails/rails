@@ -1,3 +1,9 @@
+*   Respect calls to `#reject` in `before_subscribe` callbacks.
+
+    It doesn't call `#subscribed` if a `before_subscribe` callback calls `#reject`.
+
+    *Joshua Young*
+
 *   Extract low-level Action Cable server responsibilities into `ActionCable::Server`
     abstractions.
 
