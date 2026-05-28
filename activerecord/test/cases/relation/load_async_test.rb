@@ -324,7 +324,6 @@ module ActiveRecord
 
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Load"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
         end
@@ -358,7 +357,6 @@ module ActiveRecord
 
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "SQL"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
         end
@@ -373,7 +371,7 @@ module ActiveRecord
         end
 
         assert_predicate Post.lease_connection, :supports_concurrent_connections?
-        assert_not status[:async], "Expected status[:async] to be false with NullExecutor"
+        assert_not status[:async], "Expected async to be false with NullExecutor"
       ensure
         ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
       end
@@ -465,9 +463,9 @@ module ActiveRecord
         expected_records = Post.where(author_id: 1).to_a
 
         status = {}
+
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Load"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
         end
@@ -499,9 +497,9 @@ module ActiveRecord
         expected_records = Post.where(author_id: 1).eager_load(:comments).to_a
 
         status = {}
+
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Eager Load"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
         end
@@ -606,12 +604,10 @@ module ActiveRecord
 
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Load"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
 
           if event.payload[:name] == "OtherDog Load"
-            dog_status[:executed] = true
             dog_status[:async] = event.payload[:async]
           end
         end

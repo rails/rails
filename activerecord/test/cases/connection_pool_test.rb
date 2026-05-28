@@ -864,36 +864,31 @@ module ActiveRecord
       end
 
       def test_connection_notification_is_called
-        payloads = []
-        subscription = ActiveSupport::Notifications.subscribe("!connection.active_record") do |name, started, finished, unique_id, payload|
-          payloads << payload
+        events = capture_notifications("!connection.active_record") do
+          @connection_test_model_class.establish_connection :arunit
         end
 
-        @connection_test_model_class.establish_connection :arunit
-
-        assert_equal [:config, :connection_name, :role, :shard], payloads[0].keys.sort
-        assert_equal @connection_test_model_class.name, payloads[0][:connection_name]
-        assert_equal ActiveRecord::Base.default_shard, payloads[0][:shard]
-        assert_equal :writing, payloads[0][:role]
+        payload = events.first.payload
+        assert_equal [:config, :connection_name, :role, :shard], payload.keys.sort
+        assert_equal @connection_test_model_class.name, payload[:connection_name]
+        assert_equal ActiveRecord::Base.default_shard, payload[:shard]
+        assert_equal :writing, payload[:role]
       ensure
         @connection_test_model_class.remove_connection
-        ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end
 
       def test_connection_notification_is_called_for_shard
-        payloads = []
-        subscription = ActiveSupport::Notifications.subscribe("!connection.active_record") do |name, started, finished, unique_id, payload|
-          payloads << payload
+        events = capture_notifications("!connection.active_record") do
+          @connection_test_model_class.connects_to shards: { default: { writing: :arunit } }
         end
-        @connection_test_model_class.connects_to shards: { default: { writing: :arunit } }
 
-        assert_equal [:config, :connection_name, :role, :shard], payloads[0].keys.sort
-        assert_equal @connection_test_model_class.name, payloads[0][:connection_name]
-        assert_equal :default, payloads[0][:shard]
-        assert_equal :writing, payloads[0][:role]
+        payload = events.first.payload
+        assert_equal [:config, :connection_name, :role, :shard], payload.keys.sort
+        assert_equal @connection_test_model_class.name, payload[:connection_name]
+        assert_equal :default, payload[:shard]
+        assert_equal :writing, payload[:role]
       ensure
         @connection_test_model_class.remove_connection
-        ActiveSupport::Notifications.unsubscribe(subscription) if subscription
       end
 
       def test_sets_pool_schema_reflection
