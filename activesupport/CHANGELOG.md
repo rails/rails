@@ -1,3 +1,19 @@
+*   Add shims for `Ractor` shareability methods so framework code can call them
+    unconditionally regardless of the Ruby version.
+
+    When `Ractor` is not defined, or the underlying method is not available, the
+    shim is a no-op that simply returns its argument (or the given block).
+    Otherwise the call is forwarded to the matching `Ractor` class method.
+
+    ```ruby
+    ractor_make_shareable(obj)        # => Ractor.make_shareable(obj)        or obj
+    ractor_shareable?(obj)            # => Ractor.shareable?(obj)            or obj
+    ractor_shareable_proc   { ... }   # => Ractor.shareable_proc   { ... }   or the block
+    ractor_shareable_lambda { ... }   # => Ractor.shareable_lambda { ... }   or the block
+    ```
+
+    *Andrew Novoselac*
+
 *   Fix `NumberHelper` raising `FloatDomainError` for `Infinity` / `NaN` with
     `significant: true`.
 
