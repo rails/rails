@@ -63,6 +63,15 @@ class ActionMailbox::Ingresses::Sendgrid::InboundEmailsControllerTest < ActionDi
     assert_rejects_malformed_envelope "{\"to\":[1],\"from\":\"jason@37signals.com\"}"
   end
 
+  test "rejecting an inbound email from Sendgrid with a malformed raw email" do
+    assert_no_difference -> { ActionMailbox::InboundEmail.count } do
+      post rails_sendgrid_inbound_emails_url,
+        headers: { authorization: credentials }, params: { email: [ file_fixture("../files/welcome.eml").read ] }
+    end
+
+    assert_response ActionDispatch::Constants::UNPROCESSABLE_CONTENT
+  end
+
   test "rejecting an unauthorized inbound email from Sendgrid" do
     assert_no_difference -> { ActionMailbox::InboundEmail.count } do
       post rails_sendgrid_inbound_emails_url, params: { email: file_fixture("../files/welcome.eml").read }
