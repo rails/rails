@@ -3,13 +3,24 @@
 require "test_helper"
 require "stubs/test_server"
 
-class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
-  class Connection < ActionCable::Connection::Base
+class ActionCable::Server::Socket::ClientSocketTest < ActionCable::TestCase
+  class TestSocket < ActionCable::Server::Socket
+    class TestConnection
+      def initialize(socket)
+        @socket = socket
+      end
+
+      def handle_open = @socket.connect
+
+      def handle_close = @socket.disconnect
+    end
+
     attr_reader :connected, :websocket, :errors
 
     def initialize(*)
       super
       @errors = []
+      @connection = TestConnection.new(self)
     end
 
     def connect
@@ -18,10 +29,6 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
 
     def disconnect
       @connected = false
-    end
-
-    def send_async(method, *args)
-      send method, *args
     end
 
     def on_error(message)
@@ -58,7 +65,7 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
       client.instance_variable_get("@stream")
         .instance_variable_get("@rack_hijack_io")
         .define_singleton_method(:close) { event.set }
-      connection.close(reason: "testing")
+      connection.close
       event.wait
     end
   end
@@ -76,8 +83,8 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
         end
       env["rack.hijack"] = -> { env["rack.hijack_io"] = io }
 
-      Connection.new(@server, env).tap do |connection|
-        connection.process
+      TestSocket.new(@server, env).tap do |socket|
+        socket.process
         if client_io
           # Make sure server returns handshake response
           Timeout.timeout(1) do
@@ -86,8 +93,8 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
             end
           end
         end
-        connection.send :handle_open
-        assert connection.connected
+        socket.send :handle_open
+        assert socket.connected
       end
     end
 end

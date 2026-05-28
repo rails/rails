@@ -3,19 +3,17 @@
 require "test_helper"
 require "stubs/test_server"
 
-class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
+class ActionCable::Server::Base::CrossSiteForgeryTest < ActionCable::TestCase
   HOST = "rubyonrails.com"
 
   class Connection < ActionCable::Connection::Base
-    def send_async(method, *args)
-      send method, *args
-    end
   end
 
   setup do
     @server = TestServer.new
     @server.config.allowed_request_origins = %w( http://rubyonrails.com )
     @server.config.allow_same_origin_as_host = false
+    @server.config.connection_class = -> { Connection }
   end
 
   teardown do
@@ -112,7 +110,7 @@ class ActionCable::Connection::CrossSiteForgeryTest < ActionCable::TestCase
       response = nil
 
       run_in_eventmachine do
-        response = Connection.new(@server, env_for_origin(origin, **options)).process
+        response = ActionCable::Server::Socket.new(@server, env_for_origin(origin, **options)).process
       end
 
       response
