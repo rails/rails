@@ -59,7 +59,7 @@ module ActiveRecord
       type = table.type(attribute.name)
 
       if operator ||= type.force_equality?(value) && :eq
-        if type.query_transformable?
+        if type.transforms_query_predicates?
           build_predicate(attribute, value, operator, type, true)
         else
           bind = build_bind_attribute(attribute.name, value, type)
@@ -70,7 +70,7 @@ module ActiveRecord
       end
     end
 
-    def build_predicate(attribute, value, operator = :eq, type = table.type(attribute.name), transformable = type.query_transformable?)
+    def build_predicate(attribute, value, operator = :eq, type = table.type(attribute.name), transformable = type.transforms_query_predicates?)
       if transformable
         right = query_value(attribute, value, type)
         left = right.nil? ? attribute : type.query_attribute(attribute)
@@ -85,7 +85,7 @@ module ActiveRecord
     def build_array_predicate(attribute, values)
       type = table.type(attribute.name)
 
-      if type.query_transformable?
+      if type.transforms_query_predicates?
         type.query_attribute(attribute).in(
           values.map { |value| query_value(attribute, value, type) }
         )

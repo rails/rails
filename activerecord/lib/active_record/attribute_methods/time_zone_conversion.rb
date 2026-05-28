@@ -6,8 +6,6 @@ module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
       class TimeZoneConverter < ActiveSupport::Delegation::DelegateClass(Type::Value) # :nodoc:
-        include Type::QueryPredicate
-
         def self.new(subtype)
           self === subtype ? subtype : super
         end

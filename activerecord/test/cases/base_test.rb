@@ -1698,7 +1698,7 @@ class BasicsTest < ActiveRecord::TestCase
   if current_adapter?(:PostgreSQLAdapter)
     def test_column_types_on_queries_on_postgresql
       result = ActiveRecord::Base.lease_connection.exec_query("SELECT 1 AS test")
-      assert_equal ActiveRecord::Type::Integer, result.column_types["test"].class
+      assert_equal ActiveModel::Type::Integer, result.column_types["test"].class
     end
   end
 

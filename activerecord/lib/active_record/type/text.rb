@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Type
-    class Text < String # :nodoc:
+    class Text < ActiveModel::Type::String # :nodoc:
       def type
         :text
       end

@@ -6,7 +6,7 @@ require "models/reply"
 module ActiveRecord
   class PredicateBuilderTest < ActiveRecord::TestCase
     class UnaccentedString < ActiveRecord::Type::String
-      def query_transformable?
+      def transforms_query_predicates?
         true
       end
 
@@ -30,7 +30,7 @@ module ActiveRecord
     class UuidToBinString < ActiveRecord::Type::String
       UUID_STRING = ActiveRecord::Type::String.new
 
-      def query_transformable?
+      def transforms_query_predicates?
         true
       end
 
