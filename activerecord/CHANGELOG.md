@@ -1,3 +1,35 @@
+*   Move adapter-specific migration compatibility logic to per-adapter modules.
+
+    Each built-in connection adapter (PostgreSQL, MySQL, SQLite3) now defines
+    its own `MigrationCompatibility` module under its namespace, mixed into the
+    migration's class hierarchy via a new `migration_compatibility_module_for`
+    hook on the abstract adapter. Third-party adapters can implement the hook
+    to ship per-version legacy behavior without monkey-patching
+    `ActiveRecord::Migration::Compatibility`. All `adapter_name` string
+    comparisons have been removed from
+    `ActiveRecord::Migration::Compatibility`.
+
+    *Yasuo Honda*
+
+*   Raise `ActiveRecord::Migration::Compatibility::ConflictError` when a single
+    migration base class would be associated with adapter-specific compatibility
+    behavior from more than one connection adapter type in the same process.
+
+    Active Record installs adapter-specific compatibility behavior on the
+    topmost user-defined class in a migration's ancestry. In a multi-database
+    app, sharing a single `ApplicationMigration`-style base class across
+    migrations that target different adapter types (e.g., a PostgreSQL primary
+    and a MySQL secondary) would accumulate every adapter's compatibility
+    behavior in the base class's ancestors, letting one adapter's defaults leak
+    into another adapter's migration runs.
+
+    The error message recommends using a distinct migration base class per
+    adapter type and points to the new "Sharing Migration Helpers Across
+    Different Database Adapters" section in the multiple databases guide.
+    Single-adapter applications are unaffected.
+
+    *Yasuo Honda*
+
 *   Raise `ActiveRecord::MultiparameterAssignmentErrors` instead of `NoMethodError`
     when assigning a malformed multiparameter attribute name.
 

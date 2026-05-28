@@ -116,6 +116,10 @@ module ActiveRecord
         true
       end
 
+      def migration_compatibility_module_for(migration_class) # :nodoc:
+        MySQL::MigrationCompatibility.module_for(migration_class)
+      end
+
       def connected?
         !(@raw_connection.nil? || @raw_connection.closed?)
       end

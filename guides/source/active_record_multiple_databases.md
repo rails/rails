@@ -297,6 +297,51 @@ $ bin/rails generate scaffold Dog name:string --database animals --parent Animal
 This will skip generating `AnimalsRecord` since you've indicated to Rails that you want to
 use a different parent class.
 
+### Sharing Migration Helpers Across Different Database Adapters
+
+If your application defines a shared migration base class (for example, an
+`ApplicationMigration` that adds custom helpers or safety checks) and your
+databases use different adapter types -- a PostgreSQL primary and a MySQL
+secondary, for instance -- define a separate migration base class per
+adapter type rather than sharing a single class across them.
+
+Active Record mixes adapter-specific compatibility behavior into the
+migration's base class on first use. A single base class shared across
+multiple adapter types would accumulate every adapter's compatibility
+behavior in its ancestors and let one adapter's defaults leak through to
+another adapter's migration runs -- for example, PostgreSQL's
+`uuid_generate_v4()` default firing while an older `Migration[5.0]` runs
+against MySQL on the same base class. Active Record raises
+`ActiveRecord::Migration::Compatibility::ConflictError` when it detects
+this configuration.
+
+Factor common helpers into a module and include the module in each
+adapter-specific base class:
+
+```ruby
+module MigrationHelpers
+  def add_index_safely(table, columns, **options)
+    # ...
+  end
+end
+
+# For migrations against the primary (PostgreSQL) database
+class ApplicationMigration < ActiveRecord::Migration[8.2]
+  include MigrationHelpers
+end
+
+# For migrations against the animals (MySQL) database
+class AnimalsMigration < ActiveRecord::Migration[8.2]
+  include MigrationHelpers
+end
+```
+
+Have each migration inherit from the base class for its target database.
+If multiple databases happen to use the same adapter type (for example,
+two PostgreSQL connections), sharing a single base class is fine -- the
+same compatibility module is reused, no conflict arises, and no
+`ConflictError` is raised.
+
 ## Activating Automatic Role Switching
 
 Finally, in order to use the read-only replica in your application, you'll need to activate

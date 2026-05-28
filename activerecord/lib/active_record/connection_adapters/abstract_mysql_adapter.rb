@@ -11,6 +11,7 @@ require "active_record/connection_adapters/mysql/schema_definitions"
 require "active_record/connection_adapters/mysql/schema_dumper"
 require "active_record/connection_adapters/mysql/schema_statements"
 require "active_record/connection_adapters/mysql/type_metadata"
+require "active_record/connection_adapters/mysql/migration_compatibility"
 
 module ActiveRecord
   module ConnectionAdapters

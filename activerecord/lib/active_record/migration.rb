@@ -569,7 +569,7 @@ module ActiveRecord
   # are in a Migration with <tt>self.disable_ddl_transaction!</tt>.
   class Migration
     autoload :CommandRecorder, "active_record/migration/command_recorder"
-    autoload :Compatibility, "active_record/migration/compatibility"
+    autoload :Compatibility, "active_record/connection_adapters/abstract/migration_compatibility"
     autoload :DefaultSchemaVersionsFormatter, "active_record/migration/default_schema_versions_formatter"
     autoload :JoinTable, "active_record/migration/join_table"
     autoload :ExecutionStrategy, "active_record/migration/execution_strategy"
@@ -1007,6 +1007,10 @@ module ActiveRecord
 
     def exec_migration(conn, direction)
       @connection = conn
+      if (mod = conn.migration_compatibility_module_for(self.class))
+        target = ActiveRecord::Migration::Compatibility.target_class_for(self.class)
+        ActiveRecord::Migration::Compatibility.apply(target, mod, adapter_name: conn.adapter_name)
+      end
       if respond_to?(:change)
         if direction == :down
           revert { change }
@@ -1560,6 +1564,7 @@ module ActiveRecord
         Base.logger.info "#{message} #{migration.name} (#{migration.version})" if Base.logger
 
         ddl_transaction(migration) do
+          apply_adapter_compatibility_module(migration)
           migration.migrate(@direction)
           record_version_state_after_migrating(migration.version)
         end
@@ -1568,6 +1573,18 @@ module ActiveRecord
         msg << "this and " if use_transaction?(migration)
         msg << "all later migrations canceled:\n\n#{e}"
         raise StandardError, msg, e.backtrace
+      end
+
+      def apply_adapter_compatibility_module(migration)
+        migration = migration.send(:migration) if migration.is_a?(MigrationProxy)
+        migration_class = migration.is_a?(Class) ? migration : migration.class
+        return if migration_class.instance_method(:migrate).owner == ActiveRecord::Migration
+
+        mod = connection.migration_compatibility_module_for(migration_class)
+        return unless mod
+
+        target = ActiveRecord::Migration::Compatibility.target_class_for(migration_class)
+        ActiveRecord::Migration::Compatibility.apply(target, mod, adapter_name: connection.adapter_name)
       end
 
       def target

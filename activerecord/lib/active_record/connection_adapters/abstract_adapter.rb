@@ -669,6 +669,10 @@ module ActiveRecord
       def drop_virtual_table(*) # :nodoc:
       end
 
+      def migration_compatibility_module_for(migration_class)
+        nil
+      end
+
       def advisory_locks_enabled? # :nodoc:
         supports_advisory_locks? && @advisory_locks_enabled
       end
