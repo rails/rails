@@ -919,8 +919,8 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-Mailer callbacks abort further processing if `body` is set to a non-nil value.
-`before_deliver` can abort with `throw :abort`.
+`before_action` callbacks abort further processing if `response_body` is set to a
+non-nil value. `before_deliver` can abort with `throw :abort`.
 
 [`after_action`]:
     https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action
