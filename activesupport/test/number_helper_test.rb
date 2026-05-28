@@ -248,6 +248,16 @@ module ActiveSupport
         end
       end
 
+      def test_to_rounded_with_significant_true_and_non_finite_value
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal "Inf",  number_helper.number_to_rounded(Float::INFINITY,  precision: 3, significant: true)
+          assert_equal "-Inf", number_helper.number_to_rounded(-Float::INFINITY, precision: 3, significant: true)
+          assert_equal "NaN",  number_helper.number_to_rounded(Float::NAN,       precision: 3, significant: true)
+          assert_equal "Inf%", number_helper.number_to_percentage(Float::INFINITY, precision: 3, significant: true)
+          assert_equal "$Inf", number_helper.number_to_currency(Float::INFINITY,   precision: 3, significant: true)
+        end
+      end
+
       def test_to_rounded_with_strip_insignificant_zeros
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal "9775.43", number_helper.number_to_rounded(9775.43, precision: 4, strip_insignificant_zeros: true)
