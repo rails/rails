@@ -95,7 +95,7 @@ module ActionMailbox
 
         private
           def signed?
-            ActiveSupport::SecurityUtils.secure_compare signature, expected_signature
+            signature.is_a?(String) && ActiveSupport::SecurityUtils.secure_compare(signature, expected_signature)
           end
 
           # Allow for 2 minutes of drift between Mailgun time and local server time.

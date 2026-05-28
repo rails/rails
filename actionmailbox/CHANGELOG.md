@@ -1,3 +1,7 @@
+*   Return `401 Unauthorized` for malformed Mailgun signatures.
+
+    *Andrii Furmanets*
+
 *   Return `422 Unprocessable Content` for Mandrill inbound events that are missing a raw message.
 
     *Andrii Furmanets*

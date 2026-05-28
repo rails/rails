@@ -114,6 +114,20 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsControllerTest < ActionDis
     assert_response :unauthorized
   end
 
+  test "rejecting an inbound email from Mailgun with a malformed signature" do
+    assert_no_difference -> { ActionMailbox::InboundEmail.count } do
+      travel_to "2018-10-09 15:15:00 EDT"
+      post rails_mailgun_inbound_emails_url, params: {
+        timestamp: 1539112500,
+        token: "7VwW7k6Ak7zcTwoSoNm7aTtbk1g67MKAnsYLfUB7PdszbgR5Xi",
+        signature: [ "ef24c5225322217bb065b80bb54eb4f9206d764e3e16abab07f0a64d1cf477cc" ],
+        "body-mime" => file_fixture("../files/welcome.eml").read
+      }
+    end
+
+    assert_response :unauthorized
+  end
+
   test "raising when the configured Mailgun Signing key is nil" do
     switch_key_to nil do
       assert_raises ArgumentError do
