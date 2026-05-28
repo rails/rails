@@ -1,3 +1,7 @@
+*   Use the primary database when generating a migration without `--database`
+
+    *ddbrendan*
+
 *   Raise `ActiveRecord::MultiparameterAssignmentErrors` instead of `NoMethodError`
     when assigning a malformed multiparameter attribute name.
 
