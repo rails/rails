@@ -92,6 +92,10 @@ module ActiveRecord
         true
       end
 
+      def migration_compatibility_module_for(migration_class) # :nodoc:
+        MySQL::MigrationCompatibility.module_for(migration_class)
+      end
+
       def error_number(exception)
         exception.error_number if exception.respond_to?(:error_number)
       end

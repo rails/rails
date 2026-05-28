@@ -18,6 +18,7 @@ require "active_record/connection_adapters/postgresql/schema_dumper"
 require "active_record/connection_adapters/postgresql/schema_statements"
 require "active_record/connection_adapters/postgresql/type_metadata"
 require "active_record/connection_adapters/postgresql/utils"
+require "active_record/connection_adapters/postgresql/migration_compatibility"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -202,6 +203,10 @@ module ActiveRecord
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
+
+      def migration_compatibility_module_for(migration_class) # :nodoc:
+        PostgreSQL::MigrationCompatibility.module_for(migration_class)
+      end
 
       def supports_bulk_alter?
         true
