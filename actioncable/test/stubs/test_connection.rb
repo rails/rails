@@ -3,7 +3,7 @@
 require "stubs/user"
 
 class TestConnection
-  attr_reader :identifiers, :logger, :current_user, :server, :subscriptions, :transmissions
+  attr_reader :identifiers, :logger, :current_user, :server, :subscriptions, :transmissions, :worker_pool
 
   delegate :pubsub, :config, to: :server
 
@@ -14,6 +14,7 @@ class TestConnection
     @current_user = user
     @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
     @server = TestServer.new(subscription_adapter: subscription_adapter)
+    @worker_pool = @server.worker_pool
     @transmissions = []
   end
 
