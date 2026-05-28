@@ -5,11 +5,12 @@ require "active_model"
 module ActiveJob
   # = Active Job \Attributes
   #
-  # The Attributes module provides typed attributes for jobs using the Active
-  # Model Attributes API. Declared attributes are automatically serialized with
-  # the job data and restored when the job is deserialized.
+  # The Attributes module provides typed attributes for jobs using the
+  # {Active Model Attributes API}[rdoc-ref:ActiveModel::Attributes]. Declared
+  # attributes are automatically serialized with the job data and restored when
+  # the job is deserialized.
   #
-  # This is especially useful with ActiveJob::Continuable, where a job may be
+  # This is especially useful with ActiveJob::Continuation, where a job may be
   # interrupted and resumed multiple times and you need to persist attributes
   # across steps until the job finishes.
   #
@@ -20,24 +21,24 @@ module ActiveJob
   #     attribute :billing_profile_id, :integer
   #
   #     def perform(enrollment)
-  #       step(:tokenize_payment_instrument) do
+  #       step :tokenize_payment_instrument do
   #         self.payment_token = PaymentGateway.tokenize(enrollment.user.payment_instrument)
   #       end
   #
-  #       step(:create_billing_profile) do
+  #       step :create_billing_profile do
   #         self.billing_profile_id = BillingProfileApi.create(customer_id: enrollment.user_id)
   #       end
   #
-  #       step(:submit_enrollment) do
-  #         submission_id = EnrollmentApi.submit(enrollment, billing_profile_id)
+  #       step :submit_enrollment do
+  #         submission_id = EnrollmentApi.submit(enrollment, payment_token, billing_profile_id)
   #         enrollment.update!(status: 'processing', submission_id: submission_id)
   #       end
   #     end
   #   end
   #
-  # Attributes also work without Continuable, persisting across retries.
+  # Attributes also work without Continuation, persisting across retries.
   #
-  # Attributes support all built-in Active Model types, see +ActiveModel::Attribute+
+  # Attributes support all built-in Active Model types, see +ActiveModel::Attributes+
   # for details. For custom types attribute values must be serializable
   # as Active Job arguments. See +ActiveJob::Arguments+ for the full list of
   # supported types.
