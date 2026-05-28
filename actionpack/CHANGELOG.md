@@ -1,3 +1,15 @@
+*   Add a configuration for `ActionDispatch::ExceptionWrapper.silent_exceptions` at `config.action_dispatch.silent_exceptions`.
+
+    Exceptions on this list do not fall back to framework-level backtraces when there is no application backtrace.
+
+    *Andrew Novoselac*
+
+*   Add a configuration for `ActionDispatch::ExceptionWrapper.wrapper_exceptions` at `config.action_dispatch.wrapper_exceptions`.
+
+    Exceptions on this list are unwrapped by the middleware and their cause is reported on instead.
+
+    *Andrew Novoselac*
+
 *   Release the executor state eagerly on rack hijack in
     `ActionDispatch::Executor`.
 
