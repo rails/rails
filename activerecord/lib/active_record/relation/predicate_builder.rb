@@ -56,27 +56,61 @@ module ActiveRecord
 
     def build(attribute, value, operator = nil)
       value = value.id if value.respond_to?(:id)
-      if operator ||= table.type(attribute.name).force_equality?(value) && :eq
-        build_predicate(attribute, value, operator)
+      type = table.type(attribute.name)
+
+      if operator ||= type.force_equality?(value) && :eq
+        if query_transformable_type?(type)
+          build_predicate(attribute, value, operator, type)
+        else
+          bind = build_bind_attribute(attribute.name, value, type)
+          attribute.public_send(operator, bind)
+        end
       else
         handler_for(value).call(attribute, value)
       end
     end
 
-    def build_predicate(attribute, value, operator = :eq)
-      right = query_value(attribute, value)
-      left = right.nil? ? attribute : query_attribute(attribute)
+    def build_predicate(attribute, value, operator = :eq, type = table.type(attribute.name))
+      if query_transformable_type?(type)
+        right = query_value(attribute, value, type)
+        left = right.nil? ? attribute : query_attribute(attribute, type)
+      else
+        right = build_bind_attribute(attribute.name, value, type)
+        left = attribute
+      end
 
       left.public_send(operator, right)
     end
 
-    def build_bind_attribute(column_name, value)
-      Relation::QueryAttribute.new(column_name, value, table.type(column_name))
-    end
-
-    def query_attribute(attribute)
+    def build_array_predicate(attribute, values)
       type = table.type(attribute.name)
 
+      if query_transformable_type?(type)
+        query_attribute(attribute, type).in(
+          values.map { |value| query_value(attribute, value, type) }
+        )
+      else
+        Arel::Nodes::HomogeneousIn.new(values, attribute, :in)
+      end
+    end
+
+    def build_range_predicate(attribute, range)
+      type = table.type(attribute.name)
+
+      query_attribute(attribute, type).between(
+        RangeHandler::RangeWithBinds.new(
+          query_value(attribute, range.begin, type),
+          query_value(attribute, range.end, type),
+          range.exclude_end?
+        )
+      )
+    end
+
+    def build_bind_attribute(column_name, value, type = table.type(column_name))
+      Relation::QueryAttribute.new(column_name, value, type)
+    end
+
+    def query_attribute(attribute, type = table.type(attribute.name))
       if type.respond_to?(:query_attribute)
         type.query_attribute(attribute)
       else
@@ -84,11 +118,9 @@ module ActiveRecord
       end
     end
 
-    def query_value(attribute, value)
-      bind = build_bind_attribute(attribute.name, value)
+    def query_value(attribute, value, type = table.type(attribute.name))
+      bind = build_bind_attribute(attribute.name, value, type)
       return bind if bind.nil? || bind.infinite? || bind.unboundable?
-
-      type = table.type(attribute.name)
 
       if type.respond_to?(:query_value)
         type.query_value(attribute, value, predicate_builder: self)
@@ -97,8 +129,7 @@ module ActiveRecord
       end
     end
 
-    def query_transformable?(attribute)
-      type = table.type(attribute.name)
+    def query_transformable_type?(type)
       type.respond_to?(:query_attribute) || type.respond_to?(:query_value)
     end
 
