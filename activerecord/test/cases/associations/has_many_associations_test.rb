@@ -656,6 +656,26 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal firm.limited_clients.length, firm.limited_clients.count
   end
 
+  def test_default_order
+    post = posts(:welcome)
+
+    comments = post.comments
+    assert_equal [1, 2], comments.pluck(:id)
+    assert_equal 1, comments.first.id
+
+    comments = post.comments.order(:body)
+    assert_equal [2, 1], comments.pluck(:id)
+    assert_equal 2, comments.first.id
+
+    comments = post.ordered_comments
+    assert_equal [2, 1], comments.pluck(:id)
+    assert_equal 2, comments.first.id
+
+    comments = post.ordered_comments.order(:id)
+    assert_equal [1, 2], comments.pluck(:id)
+    assert_equal 1, comments.first.id
+  end
+
   def test_finding
     assert_equal 3, Firm.first.clients.length
   end
@@ -3203,7 +3223,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of,
       :strict_loading, :query_constraints, :deprecated, :autosave, :class_name, :before_add,
       :after_add, :before_remove, :after_remove, :extend, :counter_cache, :join_table,
-      :index_errors, :as, :through
+      :index_errors, :default_order, :as, :through
     MESSAGE
   end
 
