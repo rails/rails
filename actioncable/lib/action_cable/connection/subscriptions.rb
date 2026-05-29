@@ -14,12 +14,6 @@ module ActionCable
     class Subscriptions # :nodoc:
       class Error < StandardError; end
 
-      class AlreadySubscribedError < Error
-        def initialize(identifier)
-          super "Already subscribed to #{identifier}"
-        end
-      end
-
       class ChannelNotFound < Error
         def initialize(channel_id)
           super "Channel not found: #{channel_id}"
@@ -64,7 +58,17 @@ module ActionCable
 
         raise MalformedCommandError, data unless id_key.present?
 
-        raise AlreadySubscribedError, id_key if subscriptions.key?(id_key)
+        # If the client re-subscribes to a channel it's already subscribed to,
+        # re-transmit the confirmation so the client's subscription guarantor
+        # can resolve. This is common with libraries that re-insert
+        # subscription tags into the DOM (e.g. Turbo's <turbo-cable-stream-source>
+        # across morph/refresh) and was the long-standing behaviour of
+        # ActionCable prior to its server adapterization refactor (see #44652,
+        # #48292, #24875).
+        if subscriptions.key?(id_key)
+          connection.transmit identifier: id_key, type: ActionCable::INTERNAL[:message_types][:confirmation]
+          return
+        end
 
         subscription = subscription_from_identifier(id_key)
 

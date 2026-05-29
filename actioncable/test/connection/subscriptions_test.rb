@@ -6,7 +6,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
   class ChatChannelError < Exception; end
 
   class Connection < ActionCable::Connection::Base
-    attr_reader :exceptions
+    attr_reader :exceptions, :socket
 
     rescue_from ChatChannelError, with: :error_handler
 
@@ -72,13 +72,21 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     assert_empty @subscriptions.identifiers
   end
 
-  test "double subscribe command" do
+  test "double subscribe command re-transmits confirmation and is idempotent" do
     setup_connection
+    channel = subscribe_to_chat_channel
 
-    subscribe_to_chat_channel
+    # Resubscribing must not raise, must not invoke `#subscribed` a second
+    # time (which would re-run user code and double up side-effects like
+    # `stream_from`), must leave the subscription set unchanged, and must
+    # transmit another `confirm_subscription` so the client's subscription
+    # guarantor stops retrying.
+    confirmation = { identifier: @chat_identifier, type: ActionCable::INTERNAL[:message_types][:confirmation] }
 
-    assert_raises ActionCable::Connection::Subscriptions::AlreadySubscribedError do
-      subscribe_to_chat_channel
+    assert_not_called(channel, :subscribed) do
+      assert_called_with(@connection.socket, :transmit, [confirmation]) do
+        @subscriptions.execute_command "command" => "subscribe", "identifier" => @chat_identifier
+      end
     end
 
     assert_equal 1, @subscriptions.identifiers.size

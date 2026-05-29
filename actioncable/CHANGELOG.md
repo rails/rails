@@ -1,3 +1,21 @@
+*   Make duplicate `subscribe` commands idempotent.
+
+    When a client sends a `subscribe` command for an identifier it is already
+    subscribed to, re-transmit `confirm_subscription` instead of raising
+    `Subscriptions::AlreadySubscribedError`. The `subscribed` callback is not
+    invoked a second time and no new subscription is registered. This
+    addresses long-standing reports (#24875, #44652, #48292) where clients
+    that legitimately re-issue subscribe commands (e.g. Turbo
+    `<turbo-cable-stream-source>` across morph/refresh cycles, React/Vue
+    components, reconnect loops) would either spin retrying because no
+    confirmation arrived, or, more recently, crash the connection on the
+    raised exception.
+
+    The `Subscriptions::AlreadySubscribedError` class is removed; it was
+    introduced in the unreleased adapterization refactor and never shipped.
+
+    *Samuel Williams*
+
 *   Respect calls to `#reject` in `before_subscribe` callbacks.
 
     It doesn't call `#subscribed` if a `before_subscribe` callback calls `#reject`.
