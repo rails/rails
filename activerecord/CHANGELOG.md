@@ -1,3 +1,8 @@
+*   Fix deadlock when pool-less connection materializes while fetching database
+    server version.
+
+    *Hartley McGuire*
+
 *   Fix PostgreSQL range columns corrupting bounds that contain a comma.
 
     `PostgreSQL::OID::Range#extract_bounds` split a range's textual
