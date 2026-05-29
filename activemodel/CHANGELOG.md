@@ -1,3 +1,9 @@
+*   `has_delegated_json` now applies `normalizes` declarations on assignment.
+
+    Fix #57464
+
+    *Ruy Rocha*
+
 *   Limit the size of strings `ActiveModel::Type::Integer` will coerce with `to_i`.
 
     Calling `to_i` on very long strings can take a long time and could be used as

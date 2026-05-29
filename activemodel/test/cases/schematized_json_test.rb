@@ -86,3 +86,30 @@ class SchematizedJsonTest < ActiveModel::TestCase
     end
   end
 end
+
+class AccountWithNormalization
+  extend ActiveModel::Callbacks
+  include ActiveModel::Attributes
+  include ActiveModel::Attributes::Normalization
+  include ActiveModel::SchematizedJson
+
+  attribute :flags
+  has_delegated_json :flags, name: :string, score: 0
+  normalizes :name, with: -> name { name.strip }
+end
+
+class SchematizedJsonNormalizationTest < ActiveModel::TestCase
+  setup do
+    @account = AccountWithNormalization.new
+  end
+
+  test "normalizes delegated json attribute on assignment" do
+    @account.name = "  hello  "
+    assert_equal "hello", @account.name
+  end
+
+  test "does not normalize delegated json attributes without a declared normalization" do
+    @account.score = 42
+    assert_equal 42, @account.score
+  end
+end

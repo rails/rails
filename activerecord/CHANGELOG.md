@@ -1,3 +1,9 @@
+*   `has_delegated_json` now applies `normalizes` declarations on assignment.
+
+    Fix #57464
+
+    *Ruy Rocha*
+
 *   Fix `serialize` with `coder: ActiveRecord::Coders::JSON` silently double-encoding
     a native `json`/`jsonb` column.
 

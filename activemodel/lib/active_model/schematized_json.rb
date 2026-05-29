@@ -61,13 +61,19 @@ module ActiveModel
         schema.each_key do |schema_key|
           define_method(schema_key)       { public_send(attr).public_send(schema_key) }
           define_method("#{schema_key}?") { public_send(attr).public_send("#{schema_key}?") }
-          define_method("#{schema_key}=") { |value| send(attr).public_send("#{schema_key}=", value) }
+          define_method("#{schema_key}=") do |value|
+            value = self.class.normalize_value_for(schema_key, value) if self.class.respond_to?(:normalize_value_for)
+            send(attr).public_send("#{schema_key}=", value)
+            _write_attribute(attr.to_s, send(attr).data)
+          end
         end
       end
     end
 
     # :nodoc:
     class DataAccessor
+      attr_reader :data
+
       def initialize(schema, data:)
         @schema, @data = schema, data
         update_data_with_schema_defaults
