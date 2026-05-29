@@ -3222,11 +3222,13 @@ NOTE: Defined in `active_support/core_ext/range/overlap.rb`.
 
 [Range#overlap?]: https://api.rubyonrails.org/classes/Range.html#method-i-overlaps-3F
 
-Extensions to `Date`
---------------------
+
 
 Working with `Date`, `Time`, and `DateTime`
 ------------------------------------------
+
+Extensions to `Date`
+--------------------
 
 INFO: The following calculation methods have edge cases in October 1582, since days 5..14 just do not exist. This guide does not document their behavior around those days for brevity, but it is enough to say that they do what you would expect. That is, `Date.new(1582, 10, 4).tomorrow` returns `Date.new(1582, 10, 15)` and so on. Please check `test/core_ext/date_ext_test.rb` in the Active Support test suite for expected behavior.
 
