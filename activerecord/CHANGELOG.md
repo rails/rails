@@ -1,3 +1,8 @@
+*   Fix deadlock when pool-less connection materializes while fetching database
+    server version.
+
+    *Hartley McGuire*
+
 *   Add `#default_order` query method and association option which can be used to order records when no other order is specified.
 
     This extends the functionality offered by `#implicit_order_column` to scopes and associations.
