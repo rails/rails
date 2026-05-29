@@ -1,9 +1,8 @@
 *   Add shims for `Ractor` shareability methods so framework code can call them
     unconditionally regardless of the Ruby version.
 
-    When `Ractor` is not defined, or the underlying method is not available, the
-    shim is a no-op that simply returns its argument (or the given block).
-    Otherwise the call is forwarded to the matching `Ractor` class method.
+    On Ruby 4.0 and above, these methods delegate to the corresponding +Ractor+ methods. On older
+    Ruby versions, these methods are no-ops that return their argument.
 
     ```ruby
     ractor_make_shareable(obj)        # => Ractor.make_shareable(obj)        or obj
