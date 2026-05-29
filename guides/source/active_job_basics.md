@@ -89,7 +89,7 @@ end
 You can generate a new job that inherits from it:
 
 ```bash
-bin/rails generate job process_payment --parent=payment_job
+$ bin/rails generate job process_payment --parent=payment_job
 ```
 
 The above creates a class that will use the `payments` queue:
@@ -174,7 +174,7 @@ class.
 [`set`]:
     https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set
 
-### Supported Parameter Types for `perform`
+### Supported Argument Types for `perform`
 
 ActiveJob supports the following types of arguments by default:
 
@@ -195,7 +195,7 @@ ActiveJob supports the following types of arguments by default:
 
 Active Job supports
 [GlobalID](https://github.com/rails/globalid/blob/main/README.md) for
-parameters. This makes it possible to pass live Active Record objects to your
+arguments. This makes it possible to pass live Active Record objects to your
 job instead of class/id pairs, which you then have to manually deserialize.
 
 For example, instead of having to do something like this:
@@ -209,7 +209,7 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
-Using GlobedId, you can simply do:
+Using GlobalID, you can simply do:
 
 ```ruby
 class GuestsCleanupJob < ApplicationJob
@@ -752,7 +752,7 @@ infrastructure dependency like Redis, Solid Queue uses your existing database to
 persist and process jobs. It supports delayed jobs, job priorities, concurrency
 controls, recurring jobs, and bulk enqueuing.
 
-### Set Up and Default Configuration
+### Setup and Default Configuration
 
 Solid Queue is already configured for production by default. For example, if you
 open `config/environments/production.rb`, you will see the following:
@@ -800,7 +800,7 @@ which is generated automatically. It will contain tables like
 Finally, to start the queue and start processing jobs you can run:
 
 ```bash
-bin/jobs start
+$ bin/jobs start
 ```
 
 #### Development Environment
@@ -810,7 +810,7 @@ in memory. With the default `async` adapter, if the process crashes or the
 machine is reset, then all outstanding jobs are lost. This can be acceptable for
 non-critical jobs in development.
 
-Alternatively, you can use Solid Queue in development. It can be configured it
+Alternatively, you can use Solid Queue in development. It can be configured
 in the same way as in the production environment:
 
 ```ruby#3
@@ -821,7 +821,6 @@ config.solid_queue.connects_to = { database: { writing: :queue } }
 
 Add `queue` to the development database configuration:
 
-```yaml#6
 # config/database.yml
 development:
   primary:
@@ -1012,21 +1011,22 @@ end
 ```
 
 In the above example:
-- The `to` option sets the maximum number of jobs that can run concurrently.
-- The `key` lambda computes a concurrency key from the job's arguments. In the
+
+- The `:to` option sets the maximum number of jobs that can run concurrently.
+- The `:key` lambda computes a concurrency key from the job's arguments. In the
   example above, the limit of 1 applies per account rather than globally.
-- The `duration` option acts as a failsafe. So if a worker dies mid-job and
+- The `:duration` option acts as a failsafe. So if a worker dies mid-job and
   fails to release its lock, any blocked jobs become candidates for release once
   duration has elapsed.
 
 When a job with concurrency controls is enqueued, Solid Queue checks a
 database-backed lock for the computed key. If the lock is available, the job is
-marked ready for execution. If not, the behavior depends on the `on_conflict:`
+marked ready for execution. If not, the behavior depends on the `:on_conflict`
 option. If `on_conflict` is set to `:block` (the default), the job is held in a
 blocked state and marked ready only when a running job finishes. The other
 option is `:discard`, in which case the job is dropped entirely.
 
-You can also scope limits across *different* job classes using the `group:`
+You can also scope limits across *different* job classes using the `:group`
 option:
 
 ```ruby
@@ -1048,7 +1048,7 @@ tracked and locks created and updated. So they should be used sparingly. For
 simple throughput limiting, constraining the number of worker threads per queue
 is more efficient.
 
-WARN: Concurrency controls are not compatible with bulk enqueuing via
+WARNING: Concurrency controls are not compatible with bulk enqueuing via
 `perform_all_later`. Since concurrency-controlled jobs need to be enqueued
 one-by-one to respect the configured limits.
 
@@ -1187,7 +1187,7 @@ Each task specifies a `class` or `command` and a `schedule` (parsed using
 [Fugit](https://github.com/floraison/fugit)). You can also pass arguments to
 jobs, such as in the example for `MyJob` where `args` are passed. This can be
 passed as a single argument, a hash, or an array of arguments that can also
-include key word arguments as the last element in the array.
+include keyword arguments as the last element in the array.
 
 You can learn more about [Recurring
 Tasks](https://github.com/rails/solid_queue?tab=readme-ov-file#recurring-tasks)
@@ -1266,7 +1266,7 @@ Monitoring and Handling Failed Jobs
 
 ### Monitoring With Mission Control
 
-The [Mission Control](https://github.com/rails/mission_control-jobs) tool is a
+The [Mission Control](https://github.com/rails/mission_control-jobs) engine is a
 Rails-based frontend to Active Job adapters to help centralize the monitoring
 and management of failed jobs. It provides insights into job status, failure
 reasons, and retry behaviors, enabling you to track and resolve issues more
