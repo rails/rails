@@ -1131,7 +1131,6 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def rollback_transaction(*args)
         @rollback_transaction_called = true
       end
-      def lock_thread=(lock_thread); end
       def connect!; end
     end.new
 

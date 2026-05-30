@@ -145,6 +145,83 @@ module ActiveRecord
         end
       end
 
+      def test_connection_lock_blocks_shared_queries_while_reconnecting
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        with_postgresql_adapter(db_config.configuration_hash.merge(connection_lock: "thread", connection_retries: 0)) do |connection|
+          connection.connect!
+          assert_equal [1], connection.select_values("SELECT 1")
+
+          reconnect_waiting = Concurrent::Event.new
+          allow_reconnect_to_finish = Concurrent::Event.new
+          query_started = Concurrent::Event.new
+
+          original_configure_connection = connection.method(:configure_connection)
+          original_with_raw_connection = connection.method(:with_raw_connection)
+          pause_configure = true
+
+          connection.singleton_class.define_method(:configure_connection) do
+            if pause_configure
+              pause_configure = false
+              @type_map = nil
+              @type_map_for_results = nil
+              reconnect_waiting.set
+              raise "Timed out waiting for reconnect to resume" unless allow_reconnect_to_finish.wait(5)
+            end
+
+            original_configure_connection.call
+          end
+
+          connection.singleton_class.define_method(:with_raw_connection) do |*args, **kwargs, &block|
+            query_started.set if Thread.current[:shared_connection_query]
+            original_with_raw_connection.call(*args, **kwargs, &block)
+          end
+
+          reconnect_thread = nil
+          query_thread = nil
+          reconnect_error = nil
+          query_result = nil
+          query_error = nil
+
+          reconnect_thread = Thread.new do
+            connection.reconnect!
+          rescue => error
+            reconnect_error = error
+          end
+
+          assert reconnect_waiting.wait(5), "Timed out waiting for reconnect! to pause inside configure_connection"
+
+          query_thread = Thread.new do
+            Thread.current[:shared_connection_query] = true
+            query_result = connection.select_values("SELECT 1")
+          rescue => error
+            query_error = error
+          end
+
+          assert query_started.wait(5), "Timed out waiting for the shared query to start"
+
+          10.times do
+            break if query_error || query_result
+            sleep 0.01
+          end
+
+          assert_nil query_error
+          assert_nil query_result
+
+          allow_reconnect_to_finish.set
+
+          assert reconnect_thread.join(5), "Timed out waiting for reconnect! to finish"
+          assert query_thread.join(5), "Timed out waiting for the shared query to finish"
+
+          assert_nil reconnect_error
+          assert_nil query_error
+          assert_equal [1], query_result
+        ensure
+          allow_reconnect_to_finish.set
+          reconnect_thread&.join(5)
+          query_thread&.join(5)
+        end
+      end
+
       def test_set_standard_conforming_strings_deprecation
         assert_deprecated(ActiveRecord.deprecator) do
           @connection.set_standard_conforming_strings

@@ -931,9 +931,11 @@ module ActiveRecord
         end
 
         def get_oid_type(oid, fmod, column_name, sql_type = "")
-          load_additional_types([oid]) unless type_map.key?(oid)
+          @lock.synchronize do
+            load_additional_types([oid]) unless type_map.key?(oid)
 
-          type_map.fetch(oid, fmod, sql_type) { register_unknown_oid_type(oid, column_name) }
+            type_map.fetch(oid, fmod, sql_type) { register_unknown_oid_type(oid, column_name) }
+          end
         end
 
         def load_additional_types(oids)

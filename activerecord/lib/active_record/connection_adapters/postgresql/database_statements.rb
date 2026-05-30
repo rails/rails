@@ -15,7 +15,10 @@ module ActiveRecord
           intent = internal_build_intent(sql, name, allow_retry:, materialize_transactions:)
           intent.execute!
           result = intent.raw_result
-          result.map_types!(@type_map_for_results).values
+
+          @lock.synchronize do
+            result.map_types!(@type_map_for_results).values
+          end
         end
 
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
@@ -200,42 +203,44 @@ module ActiveRecord
           end
 
           def cast_result(result)
-            ar_result = if result.fields.empty?
-              ActiveRecord::Result.empty(affected_rows: result.cmd_tuples)
-            else
-              fields = result.fields
-              types = Array.new(fields.size)
-              field_types = Array.new(fields.size)
-              missing_oids = []
+            @lock.synchronize do
+              ar_result = if result.fields.empty?
+                ActiveRecord::Result.empty(affected_rows: result.cmd_tuples)
+              else
+                fields = result.fields
+                types = Array.new(fields.size)
+                field_types = Array.new(fields.size)
+                missing_oids = []
 
-              fields.size.times do |index|
-                ftype = result.ftype(index)
-                field_types[index] = ftype
-                missing_oids << ftype unless type_map.key?(ftype)
-              end
+                fields.size.times do |index|
+                  ftype = result.ftype(index)
+                  field_types[index] = ftype
+                  missing_oids << ftype unless type_map.key?(ftype)
+                end
 
-              if missing_oids.any?
-                load_additional_types(missing_oids)
+                if missing_oids.any?
+                  load_additional_types(missing_oids)
+
+                  fields.size.times do |index|
+                    ftype = field_types[index]
+                    next if type_map.key?(ftype)
+
+                    register_unknown_oid_type(ftype, fields[index])
+                  end
+                end
 
                 fields.size.times do |index|
                   ftype = field_types[index]
-                  next if type_map.key?(ftype)
-
-                  register_unknown_oid_type(ftype, fields[index])
+                  fmod  = result.fmod(index)
+                  types[index] = get_oid_type(ftype, fmod, fields[index])
                 end
+
+                ActiveRecord::Result.new(fields, result.values, types.freeze, affected_rows: result.cmd_tuples)
               end
 
-              fields.size.times do |index|
-                ftype = field_types[index]
-                fmod  = result.fmod(index)
-                types[index] = get_oid_type(ftype, fmod, fields[index])
-              end
-
-              ActiveRecord::Result.new(fields, result.values, types.freeze, affected_rows: result.cmd_tuples)
+              result.clear
+              ar_result
             end
-
-            result.clear
-            ar_result
           end
 
           def affected_rows(result)

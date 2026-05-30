@@ -178,7 +178,8 @@ module ActiveRecord
         @allow_preconnect = false
         @visitor = arel_visitor
         @statements = build_statement_pool
-        self.lock_thread = nil
+        @configured_connection_lock = @config[:connection_lock]
+        @lock = build_adapter_lock(effective_connection_lock)
 
         @prepared_statements = !ActiveRecord.disable_prepared_statements && self.class.type_cast_config_to_boolean(
           @config.fetch(:prepared_statements) { default_prepared_statements }
@@ -204,12 +205,50 @@ module ActiveRecord
         "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} env_name=#{pool.db_config.env_name.inspect}#{name_field} role=#{role.inspect}#{shard_field}>"
       end
 
-      def lock_thread=(lock_thread) # :nodoc:
-        @lock =
-        case lock_thread
-        when Thread
+      def install_execution_context_lock(lock_context) # :nodoc:
+        @lock = build_adapter_lock(effective_connection_lock(lock_context))
+      end
+
+      def restore_configured_connection_lock # :nodoc:
+        @lock = build_adapter_lock(effective_connection_lock)
+      end
+
+      private def effective_connection_lock(lock_context = nil)
+        configured_lock =
+          case self.class.type_cast_config_to_boolean(@configured_connection_lock)
+          when nil, false
+            nil
+          when :thread, "thread"
+            :thread
+          when :monitor, "monitor"
+            :monitor
+          else
+            raise ArgumentError, "connection_lock must be one of nil, false, :thread, or :monitor"
+          end
+
+        return configured_lock unless lock_context
+
+        requested_lock =
+          case lock_context
+          when Thread
+            :thread
+          when Fiber
+            :monitor
+          else
+            raise ArgumentError, "lock_context must be a Thread or Fiber"
+          end
+
+        return :monitor if configured_lock == :monitor || requested_lock == :monitor
+        return :thread if configured_lock == :thread || requested_lock == :thread
+
+        nil
+      end
+
+      private def build_adapter_lock(lock_mode)
+        case lock_mode
+        when :thread
           ActiveSupport::Concurrency::ThreadMonitor.new
-        when Fiber
+        when :monitor
           ::Monitor.new
         else
           ActiveSupport::Concurrency::NullLock

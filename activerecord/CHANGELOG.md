@@ -1,3 +1,9 @@
+*   Add a `connection_lock` database configuration for applications that share
+    a connection across threads or fibers. When enabled, it prevents
+    PostgreSQL queries from racing with reconnects on that shared connection.
+
+    *oneearedrabbit*
+
 *   Fix deadlock when pool-less connection materializes while fetching database
     server version.
 
