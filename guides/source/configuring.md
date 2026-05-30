@@ -4028,6 +4028,28 @@ development:
   retry_deadline: 5 # Stop retrying queries after 5 seconds
 ```
 
+#### Configuring Connection Locks
+
+By default, Active Record connections do not synchronize general query execution.
+If your application shares a single adapter instance across threads, you can enable
+locking per database configuration with `connection_lock`.
+
+Supported values are:
+
+* `false` or omitted: no shared-connection lock
+* `thread`: use `ActiveSupport::Concurrency::ThreadMonitor`
+* `monitor`: use Ruby's `Monitor`
+
+```yaml
+development:
+  adapter: postgresql
+  connection_lock: thread
+```
+
+This is mainly useful for environments that manually share a connection object
+across threads and need reconnects and type-map reconfiguration to exclude
+concurrent queries on that adapter instance.
+
 #### Configuring Query Cache
 
 By default, Rails automatically caches the result sets returned by queries. If Rails encounters the same query

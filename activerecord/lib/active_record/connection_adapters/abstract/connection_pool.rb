@@ -373,7 +373,7 @@ module ActiveRecord
           @connections << @pinned_connection
         end
 
-        @pinned_connection.lock_thread = ActiveSupport::IsolatedExecutionState.context if lock_thread
+        @pinned_connection.install_execution_context_lock(ActiveSupport::IsolatedExecutionState.context) if lock_thread
         @pinned_connection.pinned = true
         @pinned_connection.begin_transaction joinable: false, _lazy: false
       end
@@ -398,7 +398,7 @@ module ActiveRecord
           if @pinned_connection.nil?
             connection.pinned = false
             connection.steal!
-            connection.lock_thread = nil
+            connection.restore_configured_connection_lock
             checkin(connection)
           end
         end

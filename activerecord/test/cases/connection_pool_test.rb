@@ -1059,6 +1059,20 @@ module ActiveRecord
         assert_predicate @pool, :connected?
       end
 
+      def test_connection_lock_configuration
+        assert_equal ActiveSupport::Concurrency::NullLock, new_pool_with_options(connection_lock: false).lease_connection.lock
+        assert_connection_lock new_pool_with_options(connection_lock: "thread").lease_connection.lock, :thread
+        assert_connection_lock new_pool_with_options(connection_lock: "monitor").lease_connection.lock, :monitor
+      end
+
+      def test_connection_lock_configuration_rejects_invalid_values
+        error = assert_raises ArgumentError do
+          new_pool_with_options(connection_lock: "bogus").lease_connection
+        end
+
+        assert_equal "connection_lock must be one of nil, false, :thread, or :monitor", error.message
+      end
+
       def test_pin_connection_synchronize_the_connection
         assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
         @pool.pin_connection!(true)
@@ -1068,6 +1082,32 @@ module ActiveRecord
 
         @pool.pin_connection!(false)
         assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+      end
+
+      def test_pin_connection_restores_configured_lock
+        pool = new_pool_with_options(connection_lock: "thread")
+        connection = pool.lease_connection
+
+        assert_connection_lock connection.lock, :thread
+
+        pool.pin_connection!(true)
+        assert_connection_lock connection.lock, stronger_lock_mode(:thread, current_context_lock_mode)
+
+        pool.unpin_connection!
+        assert_connection_lock connection.lock, :thread
+      end
+
+      def test_pin_connection_does_not_weaken_monitor_connection_lock
+        pool = new_pool_with_options(connection_lock: "monitor")
+        connection = pool.lease_connection
+
+        assert_connection_lock connection.lock, :monitor
+
+        pool.pin_connection!(true)
+        assert_connection_lock connection.lock, :monitor
+
+        pool.unpin_connection!
+        assert_connection_lock connection.lock, :monitor
       end
 
       def test_pin_connection_opens_a_transaction
@@ -1139,6 +1179,23 @@ module ActiveRecord
 
         @pool.unpin_connection!
         assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+      end
+
+      def test_pin_connection_nesting_restores_configured_lock
+        pool = new_pool_with_options(connection_lock: "thread")
+        connection = pool.lease_connection
+
+        pool.pin_connection!(false)
+        assert_connection_lock connection.lock, :thread
+
+        pool.pin_connection!(true)
+        assert_connection_lock connection.lock, stronger_lock_mode(:thread, current_context_lock_mode)
+
+        pool.unpin_connection!
+        assert_connection_lock connection.lock, stronger_lock_mode(:thread, current_context_lock_mode)
+
+        pool.unpin_connection!
+        assert_connection_lock connection.lock, :thread
       end
 
       def test_inspect_does_not_show_secrets
@@ -1240,6 +1297,33 @@ module ActiveRecord
           pool.connections.find_all(&:in_use?)
         end
 
+        def assert_connection_lock(lock, lock_mode)
+          case lock_mode
+          when nil
+            assert_equal ActiveSupport::Concurrency::NullLock, lock
+          when :thread
+            assert_instance_of ActiveSupport::Concurrency::ThreadMonitor, lock
+          when :monitor
+            assert_instance_of Monitor, lock
+          else
+            flunk "Unknown lock mode: #{lock_mode.inspect}"
+          end
+        end
+
+        def current_context_lock_mode
+          ActiveSupport::IsolatedExecutionState.context.is_a?(Fiber) ? :monitor : :thread
+        end
+
+        def stronger_lock_mode(*lock_modes)
+          lock_modes.compact.max_by do |lock_mode|
+            case lock_mode
+            when :thread then 1
+            when :monitor then 2
+            else 0
+            end
+          end
+        end
+
         def with_single_connection_pool(**options)
           config = @db_config.configuration_hash.merge(max_connections: 1, **options)
           db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", config)
@@ -1284,7 +1368,7 @@ module ActiveRecord
 
       def test_lock_thread_allow_fiber_reentrency
         connection = @pool.checkout
-        connection.lock_thread = ActiveSupport::IsolatedExecutionState.context
+        connection.install_execution_context_lock(ActiveSupport::IsolatedExecutionState.context)
         connection.transaction do
           enumerator = Enumerator.new do |yielder|
             connection.transaction do
