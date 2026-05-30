@@ -86,7 +86,7 @@ class RateLimitedSharedFourController < RateLimitedSharedController
   end
 end
 
-class RateLimitedWithDynamicStoreController < ActionController::Base
+class RateLimitedWithStoreFromMethodController < ActionController::Base
   self.cache_store = ActiveSupport::Cache::MemoryStore.new
   rate_limit to: 2, within: 2.seconds, store: :store_for_request, only: :limited
 
@@ -102,7 +102,7 @@ class RateLimitedWithDynamicStoreController < ActionController::Base
     end
 end
 
-class RateLimitedWithCallableStoreController < ActionController::Base
+class RateLimitedWithStoreFromCallableController < ActionController::Base
   self.cache_store = ActiveSupport::Cache::MemoryStore.new
   rate_limit to: 2,
              within: 2.seconds,
@@ -304,8 +304,8 @@ class RateLimitingTest < ActionController::TestCase
   end
 
   test "dynamic store via method" do
-    @controller = RateLimitedWithDynamicStoreController.new
-    RateLimitedWithDynamicStoreController.cache_store.clear
+    @controller = RateLimitedWithStoreFromMethodController.new
+    RateLimitedWithStoreFromMethodController.cache_store.clear
 
     get :limited
     assert_response :ok
@@ -324,8 +324,8 @@ class RateLimitingTest < ActionController::TestCase
   end
 
   test "dynamic store via callable" do
-    @controller = RateLimitedWithCallableStoreController.new
-    RateLimitedWithCallableStoreController.cache_store.clear
+    @controller = RateLimitedWithStoreFromCallableController.new
+    RateLimitedWithStoreFromCallableController.cache_store.clear
 
     get :limited
     assert_response :ok
