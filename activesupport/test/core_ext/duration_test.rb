@@ -81,6 +81,12 @@ class DurationTest < ActiveSupport::TestCase
     assert_in_delta 1.0, 365.days.in_years
   end
 
+  def test_in_units_preserve_sub_second_precision
+    assert_in_delta 1.5083333, 90.5.seconds.in_minutes, 0.0000001
+    assert_in_delta 1.0170833, 3661.5.seconds.in_hours, 0.0000001
+    assert_in_delta 0.0000058, 0.5.seconds.in_days, 0.0000001
+  end
+
   def test_eql
     assert 1.minute.eql?(1.minute)
     assert 1.minute.eql?(60.seconds)
