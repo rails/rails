@@ -1681,6 +1681,88 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal parrot.updated_at, updated_at
   end
 
+  def test_previously_affected_row_is_false_before_any_write
+    assert_not_predicate Topic.new, :previously_affected_row?
+    assert_not_predicate Topic.first, :previously_affected_row?
+  end
+
+  def test_previously_affected_row_after_create
+    topic = Topic.create!(title: "New topic")
+    assert_predicate topic, :previously_affected_row?
+  end
+
+  def test_previously_affected_row_after_update
+    topic = topics(:first)
+    topic.update!(title: "Another title")
+    assert_predicate topic, :previously_affected_row?
+  end
+
+  def test_previously_affected_row_after_update_attribute
+    topic = topics(:first)
+    topic.update_attribute(:title, "Yet another title")
+    assert_predicate topic, :previously_affected_row?
+  end
+
+  def test_previously_affected_row_is_false_after_no_op_save
+    topic = topics(:first)
+    assert topic.save, "expected a no-op save to report success"
+    assert_not_predicate topic, :previously_affected_row?, "no UPDATE is issued when nothing is dirty"
+  end
+
+  def test_previously_affected_row_after_no_op_save_without_partial_updates
+    klass = Class.new(Topic) do
+      self.partial_updates = false
+    end
+    topic = klass.first
+    assert topic.save
+    assert_predicate topic, :previously_affected_row?, "a full UPDATE is issued without partial updates"
+  end
+
+  def test_previously_affected_row_after_update_columns
+    topic = topics(:first)
+    topic.update_columns(title: "Columns title")
+    assert_predicate topic, :previously_affected_row?
+  end
+
+  def test_previously_affected_row_is_false_when_update_matches_no_rows
+    topic = topics(:first)
+    Topic.where(title: "does not match").scoping(all_queries: true) do
+      assert topic.update(title: "Scoped title")
+    end
+    assert_not_predicate topic, :previously_affected_row?
+  end
+
+  def test_previously_affected_row_after_touch
+    topic = topics(:first)
+    topic.touch
+    assert_predicate topic, :previously_affected_row?
+
+    topic.touch(:written_on)
+    assert_predicate topic, :previously_affected_row?
+  end
+
+  def test_previously_affected_row_after_delete
+    topic = topics(:first)
+    topic.delete
+    assert_predicate topic, :previously_affected_row?
+  end
+
+  def test_previously_affected_row_after_destroy
+    topic = topics(:first)
+    topic.destroy
+    assert_predicate topic, :previously_affected_row?
+  end
+
+  def test_previously_affected_row_after_increment_and_decrement
+    topic = topics(:first)
+
+    topic.increment!(:replies_count)
+    assert_predicate topic, :previously_affected_row?
+
+    topic.decrement!(:replies_count)
+    assert_predicate topic, :previously_affected_row?
+  end
+
   def test_reset_column_information_resets_children
     child_class = Class.new(Topic)
     child_class.new # force schema to load

@@ -141,16 +141,16 @@ module ActiveRecord
 
             self[locking_column] += 1
 
-            affected_rows = self.class._update_record(
+            @_previously_affected_rows = self.class._update_record(
               attributes_with_values(attribute_names),
               update_constraints
             )
 
-            if affected_rows != 1
+            if @_previously_affected_rows != 1
               raise ActiveRecord::StaleObjectError.new(self, attempted_action)
             end
 
-            affected_rows
+            @_previously_affected_rows
 
           # If something went wrong, revert the locking_column value.
           rescue Exception
@@ -164,13 +164,13 @@ module ActiveRecord
         end
 
         def destroy_row
-          affected_rows = super
+          super
 
-          if locking_enabled? && affected_rows != 1
+          if locking_enabled? && @_previously_affected_rows != 1
             raise ActiveRecord::StaleObjectError.new(self, "destroy")
           end
 
-          affected_rows
+          @_previously_affected_rows
         end
 
         def _lock_value_for_database(locking_column)

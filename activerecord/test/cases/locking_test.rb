@@ -41,6 +41,44 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 1, p1.lock_version
   end
 
+  def test_previously_affected_row_with_locking_save
+    p1 = Person.find(1)
+    p1.first_name = "anika2"
+    p1.save!
+
+    assert_predicate p1, :previously_affected_row?
+  end
+
+  def test_previously_affected_row_with_locking_destroy
+    p1 = Person.find(1)
+    assert p1.destroy
+
+    assert_predicate p1, :previously_affected_row?
+  end
+
+  def test_previously_affected_row_is_false_after_stale_save
+    p1 = Person.find(1)
+    p2 = Person.find(1)
+
+    p1.first_name = "stu"
+    p1.save!
+
+    p2.first_name = "sue"
+    assert_raise(ActiveRecord::StaleObjectError) { p2.save! }
+    assert_not_predicate p2, :previously_affected_row?
+  end
+
+  def test_previously_affected_row_is_false_after_stale_destroy
+    p1 = Person.find(1)
+    p2 = Person.find(1)
+
+    p1.first_name = "stu"
+    p1.save!
+
+    assert_raise(ActiveRecord::StaleObjectError) { p2.destroy }
+    assert_not_predicate p2, :previously_affected_row?
+  end
+
   def test_non_integer_lock_existing
     s1 = StringKeyObject.find("record1")
     s2 = StringKeyObject.find("record1")
