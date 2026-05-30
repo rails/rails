@@ -100,12 +100,10 @@ module ActionCable
         handler = worker_pool_stream_handler(broadcasting, callback || block, coder: coder)
         streams[broadcasting] = handler
 
-        connection.server.event_loop.post do
-          pubsub.subscribe(broadcasting, handler, lambda do
-            ensure_confirmation_sent
-            logger.info "#{self.class.name} is streaming from #{broadcasting}"
-          end)
-        end
+        pubsub.subscribe(broadcasting, handler, lambda do
+          ensure_confirmation_sent
+          logger.info "#{self.class.name} is streaming from #{broadcasting}"
+        end)
       end
 
       # Start streaming the pubsub queue for the `broadcastables` in this channel. Optionally,
@@ -115,8 +113,8 @@ module ActionCable
       # Pass `coder: ActiveSupport::JSON` to decode messages as JSON before passing to
       # the callback. Defaults to `coder: nil` which does no decoding, passes raw
       # messages.
-      def stream_for(broadcastables, callback = nil, coder: nil, &block)
-        stream_from(broadcasting_for(broadcastables), callback || block, coder: coder)
+      def stream_for(broadcastables, ...)
+        stream_from(broadcasting_for(broadcastables), ...)
       end
 
       # Unsubscribes streams from the named `broadcasting`.
@@ -164,7 +162,7 @@ module ActionCable
           handler = stream_handler(broadcasting, user_handler, coder: coder)
 
           -> message do
-            connection.worker_pool.async_invoke handler, :call, message, connection: connection
+            connection.perform_work handler, :call, message
           end
         end
 

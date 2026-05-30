@@ -51,6 +51,27 @@ module Notifications
       end
     end
 
+    def test_prepend_subscribe
+      calls = []
+      @notifier.subscribe("foo") do |event|
+        calls << :first
+      end
+
+      @notifier.subscribe("foo") do |event|
+        calls << :second
+      end
+
+      @notifier.subscribe("foo", prepend: true) do |event|
+        calls << :prepended
+      end
+
+      ActiveSupport::Notifications.instrument("foo") do |payload|
+        payload[:my_key] = "success!"
+      end
+
+      assert_equal([:prepended, :first, :second], calls)
+    end
+
     def test_subscribe_to_events_can_handle_nested_hashes_in_the_paylaod
       @notifier.subscribe do |event|
         assert_equal "success!", event.payload[:some_key][:key_one]

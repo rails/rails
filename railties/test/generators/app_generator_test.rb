@@ -31,6 +31,7 @@ DEFAULT_APP_FILES = %w(
   app/views/layouts/mailer.html.erb
   app/views/layouts/mailer.text.erb
   app/views/pwa/manifest.json.erb
+  app/views/pwa/offline.html.erb
   app/views/pwa/service-worker.js
   bin/brakeman
   bin/bundler-audit
@@ -87,7 +88,7 @@ DEFAULT_APP_FILES = %w(
   tmp/pids/.keep
   tmp/storage/.keep
   vendor/.keep
-)
+).freeze
 
 class AppGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -175,7 +176,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     run_app_update
 
-    assert_file defaults_path
+    assert_no_file defaults_path
     assert_no_file "config/initializers/cors.rb"
   end
 
@@ -424,6 +425,27 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_app_update
 
     assert_file "config/application.rb", /\s+config\.load_defaults 5\.1/
+  end
+
+  def test_app_update_generates_new_framework_defaults_when_load_defaults_is_previous_version
+    run_generator
+
+    defaults_path = "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
+
+    FileUtils.cd(destination_root) do
+      config = "config/application.rb"
+      current_version = "#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR}"
+      previous_version = "#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR - 1}"
+      content = File.read(config)
+
+      File.write(config, content.gsub(/config\.load_defaults #{current_version}/, "config.load_defaults #{previous_version}"))
+    end
+
+    assert_no_file defaults_path
+
+    run_app_update
+
+    assert_file defaults_path
   end
 
   def test_app_update_does_not_change_app_name_when_app_name_is_hyphenated_name
@@ -765,6 +787,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "config/deploy.yml"
     assert_file ".kamal/secrets"
+  end
+
+  def test_inclusion_of_bootsnap_files
+    generator [destination_root]
+    run_generator_instance
+
+    assert_file "config/bootsnap.rb"
   end
 
   def test_kamal_files_are_skipped_if_required
@@ -1188,6 +1217,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_skip_dev_gems
     run_generator [destination_root, "--skip-dev-gems"]
     assert_no_gem "web-console"
+    assert_no_gem "kamal"
+  end
+
+  def test_kamal_is_in_development_group
+    run_generator
+
+    assert_file "Gemfile" do |content|
+      assert_match(/group :development do\n  # Deploy this application anywhere as a Docker container \[https:\/\/kamal-deploy\.org\]\n  gem "kamal", require: false/, content)
+      assert_no_match(/^gem "kamal", require: false$/, content)
+      assert_equal 1, content.scan(/^group :development do$/).size
+    end
   end
 
   def test_bootsnap

@@ -175,7 +175,7 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
   end
 
   class MockSemanticLogger < MockLogger
-    LEVELS = [:debug, :info]
+    LEVELS = [:debug, :info].freeze
     def level
       LEVELS[super]
     end

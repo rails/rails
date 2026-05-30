@@ -640,6 +640,10 @@ module ActiveRecord
 
       def ordered_relation
         if order_values.empty?
+          if default_order_values.present?
+            return order(default_order_values)
+          end
+
           if !_order_columns.empty?
             return order(_order_columns.map { |column| table[column].asc })
           end

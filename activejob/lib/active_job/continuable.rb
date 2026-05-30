@@ -12,6 +12,7 @@ module ActiveJob
   #
   module Continuable
     extend ActiveSupport::Concern
+    include ActiveJob::Attributes
 
     included do
       class_attribute :max_resumptions, instance_writer: false
@@ -60,7 +61,10 @@ module ActiveJob
     end
 
     def checkpoint! # :nodoc:
-      interrupt!(reason: :stopping) if queue_adapter.stopping?
+      if (reason = queue_adapter.stopping?(self))
+        reason = :stopping if reason == true
+        interrupt!(reason: reason)
+      end
     end
 
     def interrupt!(reason:) # :nodoc:

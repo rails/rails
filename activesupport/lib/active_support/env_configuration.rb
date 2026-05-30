@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# require "active_support/core_ext/module/delegation"
-
 module ActiveSupport
   # Provide a better interface for accessing configuration options stored in ENV.
   # Keys are accepted as symbols and turned into upcased strings. Nesting is provided by double underscores.
@@ -14,8 +12,8 @@ module ActiveSupport
   #   require(:db_host)                                   # => ENV.fetch("DB_HOST")
   #   require(:database, :host)                           # => ENV.fetch("DATABASE__HOST")
   #   option(:database, :host)                            # => ENV["DATABASE__HOST"]
-  #   option(:debug, default: "true")                     # => ENV.fetch("DB_HOST") { "true" }
-  #   option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST") { default.call }
+  #   option(:debug, default: "true")                     # => ENV.fetch("DEBUG", "true")
+  #   option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST") { "missing" }
   class EnvConfiguration
     def initialize
       reload

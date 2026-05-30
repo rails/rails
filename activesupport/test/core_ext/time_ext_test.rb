@@ -861,10 +861,19 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_to_fs_custom_date_format
-    Time::DATE_FORMATS[:custom] = "%Y%m%d%H%M%S"
-    assert_equal "20050221143000", Time.local(2005, 2, 21, 14, 30, 0).to_fs(:custom)
+    ActiveSupport::TimeFormats.stub(:lookup, ->(format) { { custom: "%Y%m%d%H%M%S" }[format] }) do
+      assert_equal "20050221143000", Time.utc(2005, 2, 21, 14, 30, 0).to_fs(:custom)
+    end
+  end
+
+  def test_deprecated_to_fs_custom_date_format
+    assert_equal "2005-02-21 14:30:00 UTC", Time.utc(2005, 2, 21, 14, 30, 0).to_fs(:custom)
+    assert_deprecated(ActiveSupport.deprecator) do
+      Time::DATE_FORMATS[:custom] = "%Y%m%d%H%M%S"
+    end
+    assert_equal "20050221143000", Time.utc(2005, 2, 21, 14, 30, 0).to_fs(:custom)
   ensure
-    Time::DATE_FORMATS.delete(:custom)
+    ActiveSupport::TimeFormats::DEPRECATED_LIST.delete(:custom)
   end
 
   def test_rfc3339_with_fractional_seconds

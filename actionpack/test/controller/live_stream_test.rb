@@ -752,6 +752,28 @@ module ActionController
       buf = ActionController::Live::Buffer.new nil
       assert buf.call_on_error
     end
+
+    def test_write_returns_bytesize
+      response = ActionController::Live::Response.new
+      response.request = ActionDispatch::Request.empty
+      buf = ActionController::Live::Buffer.new response
+      result = buf.write "foo"
+      assert_equal 3, result
+    end
+
+    def test_write_dups_string_for_io_copy_stream_safety
+      response = ActionController::Live::Response.new
+      response.request = ActionDispatch::Request.empty
+      buf = response.stream
+      sio = StringIO.new("bar")
+      IO.copy_stream(sio, buf)
+      buf.write "baz"
+      buf.close
+
+      body = +""
+      response.each { |chunk| body << chunk }
+      assert_equal "barbaz", body
+    end
   end
 end
 

@@ -3,6 +3,7 @@
 # :markup: markdown
 
 require "active_support/core_ext/hash/indifferent_access"
+require "active_support/core_ext/hash/deep_transform_values"
 require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/object/to_query"
@@ -784,7 +785,7 @@ module ActionController
     # instead of `ActionController::ParameterMissing`. Unlike `expect` which
     # will render a 400 response, `expect!` will raise an exception that is
     # not handled. This is intended for debugging invalid params for an
-    # internal API where incorrectly formatted params would indicate a bug
+    # internal \API where incorrectly formatted params would indicate a bug
     # in a client library that should be fixed.
     #
     def expect!(*filters)
@@ -831,6 +832,28 @@ module ActionController
           end
         }
       )
+    end
+
+    # Returns parameters for the given keys. If a key can't be found, there are
+    # several options: With no other arguments, it will raise an
+    # ActionController::ParameterMissing error; if a block is given, then that will
+    # be run and its result returned for the missing key.
+    #
+    #     params = ActionController::Parameters.new(name: "Francesco", age: 22)
+    #     params.fetch_values(:name, :age)                # => ["Francesco", 22]
+    #     params.fetch_values(:name, :none)               # => ActionController::ParameterMissing: param is missing or the value is empty or invalid: none
+    #     params.fetch_values(:name, :none) { |key| key } # => ["Francesco", :none]
+    def fetch_values(*keys)
+      original_key_lookup = keys.index_by { |key| key.to_s }
+      values = @parameters.fetch_values(*keys) do |missing_key|
+        original_key = original_key_lookup[missing_key]
+        if block_given?
+          yield original_key
+        else
+          raise ActionController::ParameterMissing.new(original_key, @parameters.keys)
+        end
+      end
+      values.map! { |value| convert_value_to_parameters(value) }
     end
 
     # Extracts the nested parameter from the given `keys` by calling `dig` at each
@@ -939,6 +962,34 @@ module ActionController
       self
     end
 
+    # Returns a new `ActionController::Parameters` instance with the results of
+    # running `block` once for every value. This includes the values from the
+    # root hash and from all nested hashes and arrays. The keys are unchanged.
+    #
+    # The returned instance carries the same permitted status as the receiver,
+    # so the result still has to be filtered through `permit` / `expect` before
+    # being mass-assigned. Prefer this to `to_unsafe_h.deep_transform_values`,
+    # which discards the permitted/unpermitted distinction.
+    #
+    #     params = ActionController::Parameters.new(
+    #       user: { email: "  ALICE@EXAMPLE.COM  ", profile: { bio: "  Hello world  " } }
+    #     )
+    #     params.deep_transform_values { |v| v.is_a?(String) ? v.strip.downcase : v }
+    #     # => #<ActionController::Parameters {"user"=>#<ActionController::Parameters {"email"=>"alice@example.com", "profile"=>#<ActionController::Parameters {"bio"=>"hello world"} permitted: false>} permitted: false>} permitted: false>
+    def deep_transform_values(&block)
+      new_instance_with_inherited_permitted_status(
+        _deep_transform_values_in_object(@parameters, &block)
+      )
+    end
+
+    # Returns the same `ActionController::Parameters` instance with changed
+    # values. This includes the values from the root hash and from all nested
+    # hashes and arrays. The keys are unchanged.
+    def deep_transform_values!(&block)
+      @parameters = _deep_transform_values_in_object!(@parameters, &block)
+      self
+    end
+
     # Deletes a key-value pair from `Parameters` and returns the value. If `key` is
     # not found, returns `nil` (or, with optional code block, yields `key` and
     # returns the result). This method is similar to #extract!, which returns the
@@ -1011,20 +1062,20 @@ module ActionController
     end
 
     # Returns a new `ActionController::Parameters` instance with all keys from
-    # `other_hash` merged into current hash.
-    def merge(other_hash, &block)
+    # `other_hashes` merged into current hash.
+    def merge(*other_hashes, &block)
       new_instance_with_inherited_permitted_status(
-        @parameters.merge(other_hash.to_h, &block)
+        @parameters.merge(*other_hashes.map!(&:to_h), &block)
       )
     end
 
     ##
-    # :call-seq: merge!(other_hash)
+    # :call-seq: merge!(*other_hashes)
     #
-    # Returns the current `ActionController::Parameters` instance with `other_hash`
+    # Returns the current `ActionController::Parameters` instance with `other_hashes`
     # merged into current hash.
-    def merge!(other_hash, &block)
-      @parameters.merge!(other_hash.to_h, &block)
+    def merge!(*other_hashes, &block)
+      @parameters.merge!(*other_hashes.map!(&:to_h), &block)
       self
     end
 
@@ -1233,6 +1284,40 @@ module ActionController
         end
       end
 
+      def _deep_transform_values_in_object(object, &block)
+        case object
+        when Hash
+          object.transform_values { |value| _deep_transform_values_in_object(value, &block) }
+        when Parameters
+          if object.permitted?
+            object.to_h.deep_transform_values(&block)
+          else
+            object.to_unsafe_h.deep_transform_values(&block)
+          end
+        when Array
+          object.map { |e| _deep_transform_values_in_object(e, &block) }
+        else
+          yield(object)
+        end
+      end
+
+      def _deep_transform_values_in_object!(object, &block)
+        case object
+        when Hash
+          object.transform_values! { |value| _deep_transform_values_in_object!(value, &block) }
+        when Parameters
+          if object.permitted?
+            object.to_h.deep_transform_values!(&block)
+          else
+            object.to_unsafe_h.deep_transform_values!(&block)
+          end
+        when Array
+          object.map! { |e| _deep_transform_values_in_object!(e, &block) }
+        else
+          yield(object)
+        end
+      end
+
       def specify_numeric_keys?(filter)
         if filter.respond_to?(:keys)
           filter.keys.any? { |key| /\A-?\d+\z/.match?(key) }
@@ -1313,7 +1398,7 @@ module ActionController
         IO,
         ActionDispatch::Http::UploadedFile,
         Rack::Test::UploadedFile,
-      ]
+      ].freeze
 
       def permitted_scalar?(value)
         PERMITTED_SCALAR_TYPES.any? { |type| value.is_a?(type) }
@@ -1348,8 +1433,8 @@ module ActionController
         value.is_a?(Array) || value.is_a?(Parameters)
       end
 
-      EMPTY_ARRAY = [] # :nodoc:
-      EMPTY_HASH  = {} # :nodoc:
+      EMPTY_ARRAY = [].freeze # :nodoc:
+      EMPTY_HASH  = {}.freeze # :nodoc:
       def hash_filter(params, filter, on_unpermitted: self.class.action_on_unpermitted_parameters, explicit_arrays: false)
         filter = filter.with_indifferent_access
 

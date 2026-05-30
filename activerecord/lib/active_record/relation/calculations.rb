@@ -483,7 +483,7 @@ module ActiveRecord
       def execute_simple_calculation(operation, column_name, distinct) # :nodoc:
         if build_count_subquery?(operation, column_name, distinct)
           # Shortcut when limit is zero.
-          return 0 if limit_value == 0
+          return @async ? Promise::Complete.new(0) : 0 if limit_value == 0
 
           relation = self
           query_builder = build_count_subquery(spawn, column_name, distinct)

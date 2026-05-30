@@ -1,3 +1,31 @@
+*   Limit the size of strings `ActiveModel::Type::Integer` will coerce with `to_i`.
+
+    Calling `to_i` on very long strings can take a long time and could be used as
+    a DoS vector. Integer casting now only considers the first `_limit * 4` bytes
+    of a string (16 bytes for a default 4-byte integer, 32 bytes for an 8-byte
+    bigint), which is enough to hold the maximum representable value plus a sign
+    or a short slug suffix.
+
+    *Aaron Patterson*, *Jean Boussier*
+
+*   Support proc and symbol for `NumericalityValidator`s `:in` option
+
+    ```ruby
+    validates_numericality_of :price, in: ->(o) { 0..o.max_price }
+    ```
+
+    or
+
+    ```ruby
+    validates_numericality_of :price, in: :price_range
+
+    def price_range
+      0..max_price
+    end
+    ```
+
+    *Thomas Sevestre*
+
 *   Combine `:if`, `:unless`, and `:on` options when specified at both the
     `validates` level and the per-validator level, instead of the per-validator
     options silently replacing the top-level ones.

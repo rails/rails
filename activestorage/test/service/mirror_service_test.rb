@@ -79,6 +79,90 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
     assert_equal "Surprise!", @service.mirrors.third.download(key)
   end
 
+  test "mirroring a file without a checksum does not raise" do
+    key  = SecureRandom.base58(24)
+    data = "Something else entirely!"
+
+    @service.primary.upload key, StringIO.new(data)
+
+    assert_nothing_raised { @service.mirror key, checksum: nil }
+
+    @service.mirrors.each do |mirror|
+      assert_equal data, mirror.download(key)
+    end
+  ensure
+    @service.delete key
+  end
+
+  test "mirrors receive correct content when io is at EOF on yield" do
+    key  = SecureRandom.base58(24)
+    data = "Something else entirely!"
+
+    @service.primary.upload key, StringIO.new(data)
+
+    # Simulate io being at EOF when yielded (as happens when Tempfile.is_a?(File)
+    # and compute_checksum takes the File branch without rewinding).
+    @service.primary.define_singleton_method(:open) do |k, **opts, &block|
+      io = StringIO.new(data)
+      io.read # advance to EOF
+      block.call(io)
+    end
+
+    @service.mirror key, checksum: nil
+
+    @service.mirrors.each do |mirror|
+      assert_equal data, mirror.download(key)
+    end
+  ensure
+    @service.delete key
+  end
+
+  test "exist? checks run in parallel across mirrors" do
+    key  = SecureRandom.base58(24)
+    data = "Something else entirely!"
+
+    @service.primary.upload key, StringIO.new(data)
+
+    threads = Concurrent::Array.new
+    @service.mirrors.each do |mirror|
+      mirror.define_singleton_method(:exist?) do |k|
+        threads << Thread.current
+        super(k)
+      end
+    end
+
+    @service.mirror key, checksum: nil
+
+    assert_operator threads.map(&:object_id).uniq.size, :>, 1,
+      "Expected exist? checks to run on multiple threads, got: #{threads.map(&:object_id).uniq.size}"
+  ensure
+    @service.delete key
+  end
+
+  test "uploads to mirrors run in parallel" do
+    key      = SecureRandom.base58(24)
+    data     = "Something else entirely!"
+    checksum = OpenSSL::Digest::MD5.base64digest(data)
+
+    @service.primary.upload key, StringIO.new(data), checksum: checksum
+
+    threads = Concurrent::Array.new
+    @service.mirrors.each do |mirror|
+      mirror.define_singleton_method(:upload) do |k, io, **opts|
+        threads << Thread.current
+        super(k, io, **opts)
+      end
+    end
+
+    @service.mirror key, checksum: checksum
+
+    assert_operator threads.map(&:object_id).uniq.size, :>, 1,
+      "Expected uploads to run on multiple threads, got: #{threads.map(&:object_id).uniq.size}"
+    @service.mirrors.each { |mirror| assert_equal data, mirror.download(key) }
+  ensure
+    @service.delete key
+  end
+
   test "URL generation in primary service" do
     filename = ActiveStorage::Filename.new("test.txt")
 

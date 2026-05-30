@@ -103,7 +103,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.encryption.hash_digest_class`](#config-active-record-encryption-hash-digest-class): `OpenSSL::Digest::SHA256`
 - [`config.active_record.encryption.support_sha1_for_non_deterministic_encryption`](#config-active-record-encryption-support-sha1-for-non-deterministic-encryption): `false`
 - [`config.active_record.generate_secure_token_on`](#config-active-record-generate-secure-token-on): `:initialize`
-- [`config.active_record.marshalling_format_version`](#config-active-record-marshalling-format-version): `7.1`
 - [`config.active_record.query_log_tags_format`](#config-active-record-query-log-tags-format): `:sqlcommenter`
 - [`config.active_record.raise_on_assign_to_attr_readonly`](#config-active-record-raise-on-assign-to-attr-readonly): `true`
 - [`config.active_record.run_after_transaction_callbacks_in_order_defined`](#config-active-record-run-after-transaction-callbacks-in-order-defined): `true`
@@ -191,7 +190,7 @@ The following configuration methods are to be called on a `Rails::Railtie` objec
 #### `config.action_on_early_load_hook`
 
 Controls what happens when a load hook is violated before the Rails application is initialized.
-The value is `:log` by default, which will log when when a load hook is invoked early. The value can alternatively be `raise`, which will raise a `LoadError` instead of logging.
+The value is `:log` by default, which will log when a load hook is invoked early. The value can alternatively be `raise`, which will raise a `LoadError` instead of logging.
 
 #### `config.add_autoload_paths_to_load_path`
 
@@ -1337,16 +1336,12 @@ to get the parent every time the child record was updated, even when parent has 
 
 #### `config.active_record.marshalling_format_version`
 
-When set to `7.1`, enables a more efficient serialization of Active Record instance with `Marshal.dump`.
+Define which format to use when an Active Record object is serialized with Marshal.
 
-This changes the serialization format, so models serialized this
-way cannot be read by older (< 7.1) versions of Rails. However, messages that
-use the old format can still be read, regardless of whether this optimization is
-enabled.
+As of Rails 8.0, only the `7.1` is supported.
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
-| (original)            | `6.1`                |
 | 7.1                   | `7.1`                |
 
 #### `config.active_record.action_on_strict_loading_violation`
@@ -2415,6 +2410,64 @@ Use `ActionDispatch::ExceptionWrapper.rescue_responses` to observe the configura
 ```
 
 Any exceptions that are not configured will be mapped to 500 Internal Server Error.
+
+#### `config.action_dispatch.wrapper_exceptions`
+
+Configures which exceptions are unwrapped. Wrapper exceptions will have their cause reported by the exception wrapper
+instead of themselves.
+
+```ruby
+config.action_dispatch.wrapper_exceptions += [WrapperException]
+
+begin
+  raise OriginalException
+rescue OriginalException
+  raise WrapperException
+end
+```
+
+In the above example the `WrapperException` will be unwrapped and the `OriginalException` will be reported.
+
+Use `ActionDispatch::ExceptionWrapper.wrapper_exceptions` to observe the configuration. By default, it is defined as:
+
+```ruby
+[
+  "ActionView::Template::Error"
+]
+```
+
+#### `config.action_dispatch.silent_exceptions`
+
+Configures which exceptions should not fall back to showing framework-level backtraces when there is no application
+backtrace. This is useful for silencing noisy backtraces for exceptions raised at the framework or plugin level.
+
+Use `ActionDispatch::ExceptionWrapper.silent_exceptions` to observe the configuration. By default, it is defined as:
+
+```ruby
+[
+  "ActionController::RoutingError",
+  "ActionDispatch::Http::MimeNegotiation::InvalidType"
+]
+```
+
+#### `config.action_dispatch.rescue_templates`
+
+Configures the templates used to render exceptions. It accepts a hash and you can specify pairs of exception => template.
+
+Use `ActionDispatch::ExceptionWrapper.rescue_templates` to observe the configuration. By default, it is defined as:
+
+```ruby
+{
+  "ActionView::MissingTemplate"            => "missing_template",
+  "ActionController::RoutingError"         => "routing_error",
+  "AbstractController::ActionNotFound"     => "unknown_action",
+  "ActiveRecord::StatementInvalid"         => "invalid_statement",
+  "ActionView::Template::Error"            => "template_error",
+  "ActionController::MissingExactTemplate" => "missing_exact_template",
+}
+```
+
+All exceptions that are not configured will map to Rails' built in diagnostics template.
 
 #### `config.action_dispatch.cookies_same_site_protection`
 
@@ -3554,10 +3607,18 @@ Directs ActiveStorage::Attachments to touch its corresponding record when update
 
 #### `config.active_storage.routes_prefix`
 
-Can be used to set the route prefix for the routes served by Active Storage. Accepts a string that will be prepended to the generated routes.
+Can be used to set the route prefix for the routes served by Active Storage.
+Accepts any value supported by `scope`, such as a string path prefix or a hash of
+routing options.
 
 ```ruby
 config.active_storage.routes_prefix = "/files"
+```
+
+For example, to serve the Active Storage routes from a specific subdomain:
+
+```ruby
+config.active_storage.routes_prefix = { path: "/files", subdomain: "assets" }
 ```
 
 The default is `/rails/active_storage`.

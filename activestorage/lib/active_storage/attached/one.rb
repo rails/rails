@@ -45,6 +45,12 @@ module ActiveStorage
       !attached?
     end
 
+    # Returns the attachment record's JSON representation, or +nil+ when no
+    # attachment is present.
+    def as_json(options = nil)
+      attached? ? attachment.as_json(options) : nil
+    end
+
     # Attaches an +attachable+ to the record.
     #
     # If the record is persisted and unchanged, the attachment is saved to
@@ -61,6 +67,16 @@ module ActiveStorage
         return if !record.save
       end
       record.public_send("#{name}")
+    end
+
+    # Calls attach, and raises an exception if the record was meant to be saved but at least one of the validations failed.
+    #
+    #   person.avatar.attach!(params[:avatar]) # ActionDispatch::Http::UploadedFile object
+    #   person.avatar.attach!(params[:signed_blob_id]) # Signed reference to blob from direct upload
+    #   person.avatar.attach!(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
+    #   person.avatar.attach!(avatar_blob) # ActiveStorage::Blob object
+    def attach!(attachable)
+      attach(attachable) || raise(ActiveRecord::RecordNotSaved.new("Failed to save the record", record))
     end
 
     # Returns +true+ if an attachment has been made.

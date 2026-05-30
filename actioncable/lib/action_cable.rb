@@ -71,7 +71,7 @@ module ActionCable
     },
     default_mount_path: "/cable",
     protocols: ["actioncable-v1-json", "actioncable-unsupported"].freeze
-  }
+  }.freeze
 
   # Singleton instance of the server
   module_function def server

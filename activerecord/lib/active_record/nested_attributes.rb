@@ -407,7 +407,7 @@ module ActiveRecord
     private
       # Attribute hash keys that should not be assigned as normal attributes.
       # These hash keys are nested attributes implementation details.
-      UNASSIGNABLE_KEYS = %w( id _destroy )
+      UNASSIGNABLE_KEYS = %w( id _destroy ).freeze
 
       # Assigns the given attributes to the association.
       #

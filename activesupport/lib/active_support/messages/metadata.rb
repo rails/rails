@@ -9,14 +9,14 @@ module ActiveSupport
     module Metadata # :nodoc:
       singleton_class.attr_accessor :use_message_serializer_for_metadata
 
-      ENVELOPE_SERIALIZERS = [
+      ENVELOPE_SERIALIZERS = [ # rubocop:disable Style/MutableConstant
         *SerializerWithFallback::SERIALIZERS.values,
         ActiveSupport::JSON,
         ::JSON,
         Marshal,
       ]
 
-      TIMESTAMP_SERIALIZERS = [
+      TIMESTAMP_SERIALIZERS = [ # rubocop:disable Style/MutableConstant
         SerializerWithFallback::SERIALIZERS.fetch(:message_pack),
         SerializerWithFallback::SERIALIZERS.fetch(:message_pack_allow_marshal),
       ]

@@ -27,7 +27,7 @@ module ActionController
   #     end
   #
   # There are a few caveats with this module. You **cannot** write headers after
-  # the response has been committed (Response#committed? will return truthy).
+  # the response has been committed (`Response#committed?` will return truthy).
   # Calling `write` or `close` on the response stream will cause the response
   # object to be committed. Make sure all headers are set before calling write or
   # close on your stream.
@@ -50,7 +50,8 @@ module ActionController
   #
   #     def stream
   #       response.headers["Content-Type"] = "text/event-stream"
-  #       response.headers["Last-Modified"] = Time.now.httpdate # Add this line if your Rack version is 2.2.x
+  #       # Add this line if your Rack version is 2.2.x
+  #       response.headers["Last-Modified"] = Time.now.httpdate
   #       ...
   #     end
   #
@@ -62,26 +63,27 @@ module ActionController
   # You can configure which execution state keys should be excluded from being shared
   # using the `config.action_controller.live_streaming_excluded_keys` configuration:
   #
-  #   # config/application.rb
-  #   config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack]
+  #     # config/application.rb
+  #     config.action_controller.live_streaming_excluded_keys =
+  #       [:active_record_connected_to_stack]
   #
   # This is useful when using ActionController::Live inside a `connected_to` block. For example,
   # if the parent request is reading from a replica using `connected_to(role: :reading)`, you may
   # want the streaming thread to use its own connection context instead of inheriting the read-only
   # context:
   #
-  #   # Without configuration, streaming thread inherits read-only connection
-  #   ActiveRecord::Base.connected_to(role: :reading) do
-  #     @posts = Post.all
-  #     render stream: true # Streaming thread cannot write to database
-  #   end
+  #     # Without configuration, streaming thread inherits read-only connection
+  #     ActiveRecord::Base.connected_to(role: :reading) do
+  #       @posts = Post.all
+  #       render stream: true # Streaming thread cannot write to database
+  #     end
   #
-  #   # With configuration, streaming thread gets fresh connection context
-  #   # config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack]
-  #   ActiveRecord::Base.connected_to(role: :reading) do
-  #     @posts = Post.all
-  #     render stream: true # Streaming thread can write to database if needed
-  #   end
+  #     # With configuration, streaming thread gets fresh connection context
+  #     # config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack]
+  #     ActiveRecord::Base.connected_to(role: :reading) do
+  #       @posts = Post.all
+  #       render stream: true # Streaming thread can write to database if needed
+  #     end
   #
   # Common keys you might want to exclude:
   # - `:active_record_connected_to_stack` - Database connection routing and roles
@@ -152,7 +154,7 @@ module ActionController
     # Note: SSEs are not currently supported by IE. However, they are supported by
     # Chrome, Firefox, Opera, and Safari.
     class SSE
-      PERMITTED_OPTIONS = %w( retry event id )
+      PERMITTED_OPTIONS = %w( retry event id ).freeze
 
       def initialize(stream, options = {})
         @stream = stream
@@ -231,6 +233,8 @@ module ActionController
             raise ClientDisconnected, "client disconnected"
           end
         end
+
+        string.bytesize
       end
 
       # Same as `write` but automatically include a newline at the end of the string.

@@ -162,7 +162,7 @@ module ActiveRecord
         end
 
         private
-          CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
+          CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"].freeze
 
           def row_format_dynamic_by_default?
             if mariadb?
@@ -194,21 +194,7 @@ module ActiveRecord
             MySQL::TableDefinition.new(self, name, **options)
           end
 
-          def default_type(table_name, field_name)
-            match = create_table_info(table_name)&.match(/`#{field_name}` (.+) DEFAULT ('|\d+|[A-z]+)/)
-            default_pre = match[2] if match
-
-            if default_pre == "'"
-              :string
-            elsif default_pre&.match?(/^\d+$/)
-              :integer
-            elsif default_pre&.match?(/^[A-z]+$/)
-              :function
-            end
-          end
-
           def new_column_from_field(table_name, field, _definitions)
-            field_name = field.fetch("Field")
             type_metadata = fetch_type_metadata(field["Type"], field["Extra"])
             default, default_function = field["Default"], nil
 
@@ -216,16 +202,18 @@ module ActiveRecord
               default = "#{default} ON UPDATE #{default}" if /on update CURRENT_TIMESTAMP/i.match?(field["Extra"])
               default, default_function = nil, default
             elsif type_metadata.extra == "DEFAULT_GENERATED"
-              default = +"(#{default})" unless default.start_with?("(")
-              default = default.gsub("\\'", "'")
-              default, default_function = nil, default
+              if mariadb?
+                default, default_function = nil, default
+              else
+                default = "(#{default})" unless default.start_with?("(")
+                default = default.gsub("\\'", "'")
+                default, default_function = nil, default
+              end
             elsif type_metadata.type == :text && default&.start_with?("'")
               # strip and unescape quotes
               default = default[1...-1].gsub("\\'", "'")
             elsif default&.match?(/\A\d/)
               # Its a number so we can skip the query to check if it is a function
-            elsif default && default_type(table_name, field_name) == :function
-              default, default_function = nil, default
             end
 
             MySQL::Column.new(

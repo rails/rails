@@ -63,8 +63,8 @@ module ActiveRecord
         end
 
         module ClassMethods
-          ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast id_was id_in_database id_for_database).to_set
-          PRIMARY_KEY_NOT_SET = BasicObject.new
+          ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast id_was id_in_database id_for_database).to_set.freeze
+          PRIMARY_KEY_NOT_SET = Object.new.freeze
 
           def instance_method_already_implemented?(method_name)
             super || primary_key && ID_ATTRIBUTE_METHODS.include?(method_name)

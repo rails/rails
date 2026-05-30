@@ -131,8 +131,10 @@ module ActiveJob
   # === Checkpoints
   #
   # A checkpoint is where a job can be interrupted. At a checkpoint the job will call
-  # +queue_adapter.stopping?+. If it returns true, the job will raise an
-  # ActiveJob::Continuation::Interrupt exception.
+  # +queue_adapter.stopping?+ with the job. If it returns true, the job will raise
+  # an ActiveJob::Continuation::Interrupt exception with +:stopping+ as the
+  # reason. If it returns another truthy value, the job will use that value as
+  # the interruption reason.
   #
   # There is an automatic checkpoint before the start of each step except for the first for
   # each job execution. Within a step one is created when calling +set!+, +advance!+ or +checkpoint!+.
@@ -164,6 +166,13 @@ module ActiveJob
   #   step :slow_step, isolated: true
   #   step :quick_step2
   #   step :quick_step3
+  #
+  # === Persisting State Across Steps with \Attributes
+  #
+  # Steps store serialized progress but they do not persist any other state. For multi-step jobs where you need to use
+  # the results of one step in a later step, you can use +ActiveJob::Attributes+ to persist this state. This module is
+  # already included in +ActiveJob::Continuable+, so you can declare attributes on your job and they will be
+  # automatically serialized when the job is interrupted, and restored when the job resumes.
   #
   # === Errors
   #

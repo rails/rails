@@ -5,11 +5,16 @@ class CallbackMailer < ActionMailer::Base
   cattr_accessor :rescue_from_error
   cattr_accessor :after_deliver_instance
   cattr_accessor :around_deliver_instance
+  cattr_accessor :abort_before_action
   cattr_accessor :abort_before_deliver
   cattr_accessor :around_handles_error
 
   rescue_from CallbackMailerError do |error|
     @@rescue_from_error = error
+  end
+
+  before_action do
+    self.response_body = "abort" if @@abort_before_action
   end
 
   before_deliver do

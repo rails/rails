@@ -43,7 +43,16 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.touch_record(o, changes, foreign_key, name, touch) # :nodoc:
-      old_foreign_id = changes[foreign_key] && changes[foreign_key].first
+      old_foreign_id =
+        if foreign_key.is_a?(Array)
+          if foreign_key.any? { |fk| changes[fk] }
+            foreign_key.map do |fk|
+              changes[fk] ? changes[fk].first : o.read_attribute(fk)
+            end
+          end
+        elsif changes[foreign_key]
+          changes[foreign_key].first
+        end
 
       if old_foreign_id
         association = o.association(name)
@@ -56,7 +65,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
           klass = association.klass
         end
         primary_key = reflection.association_primary_key(klass)
-        old_record = klass.find_by(primary_key => old_foreign_id)
+        old_record = klass.find_by(primary_key => [old_foreign_id])
 
         if old_record
           if touch != true
@@ -140,8 +149,14 @@ module ActiveRecord::Associations::Builder # :nodoc:
             foreign_key = reflection.foreign_key
             foreign_type = reflection.foreign_type
 
-            record.read_attribute(foreign_key).nil? ||
-              record.attribute_changed?(foreign_key) ||
+            fk_missing_or_changed = if foreign_key.is_a?(Array)
+              foreign_key.any? { |fk| record.read_attribute(fk).nil? || record.attribute_changed?(fk) }
+            else
+              record.read_attribute(foreign_key).nil? ||
+                record.attribute_changed?(foreign_key)
+            end
+
+            fk_missing_or_changed ||
               (reflection.polymorphic? && (record.read_attribute(foreign_type).nil? || record.attribute_changed?(foreign_type)))
           }
 

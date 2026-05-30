@@ -15,6 +15,7 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
     CallbackMailer.after_deliver_instance = nil
     CallbackMailer.around_deliver_instance = nil
     CallbackMailer.abort_before_deliver = nil
+    CallbackMailer.abort_before_action = nil
     CallbackMailer.around_handles_error = nil
   end
 
@@ -25,6 +26,7 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
     CallbackMailer.after_deliver_instance = nil
     CallbackMailer.around_deliver_instance = nil
     CallbackMailer.abort_before_deliver = nil
+    CallbackMailer.abort_before_action = nil
     CallbackMailer.around_handles_error = nil
   end
 
@@ -42,6 +44,14 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
     CallbackMailer.test_message.deliver_now!
 
     assert_kind_of CallbackMailer, CallbackMailer.after_deliver_instance
+  end
+
+  test "before_action can abort message construction, resulting in NullMail" do
+    CallbackMailer.abort_before_action = true
+
+    message = CallbackMailer.test_message.message
+
+    assert_instance_of ActionMailer::Base::NullMail, message
   end
 
   test "before_deliver can abort the delivery and not run after_deliver callbacks" do

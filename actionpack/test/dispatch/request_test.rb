@@ -883,6 +883,24 @@ class RequestMethod < BaseRequestTest
   end
 end
 
+class RequestSafety < BaseRequestTest
+  %w[GET HEAD OPTIONS TRACE].each do |method|
+    test "#{method} is a safe method" do
+      request = stub_request("REQUEST_METHOD" => method)
+      assert_predicate request, :safe_method?
+      assert_not_predicate request, :unsafe_method?
+    end
+  end
+
+  %w[POST PUT PATCH DELETE].each do |method|
+    test "#{method} is an unsafe method" do
+      request = stub_request("REQUEST_METHOD" => method)
+      assert_not_predicate request, :safe_method?
+      assert_predicate request, :unsafe_method?
+    end
+  end
+end
+
 class RequestFormat < BaseRequestTest
   test "xml format" do
     request = stub_request "QUERY_STRING" => "format=xml"
@@ -961,7 +979,7 @@ class RequestFormat < BaseRequestTest
   test "format is not nil with unknown format" do
     request = stub_request("QUERY_STRING" => "format=hello")
 
-    assert_nil request.format
+    assert_equal true, request.format.nil?
     assert_not_predicate request.format, :html?
     assert_not_predicate request.format, :xml?
     assert_not_predicate request.format, :json?

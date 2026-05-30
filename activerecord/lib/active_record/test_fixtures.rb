@@ -142,14 +142,13 @@ module ActiveRecord
           # Load fixtures once and begin transaction.
           @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key]
           unless @loaded_fixtures
-            @@already_loaded_fixtures.clear
+            invalidate_already_loaded_fixtures
             @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key] = load_fixtures(config)
           end
 
           setup_transactional_fixtures
         else
           # Load fixtures for every test.
-          ActiveRecord::FixtureSet.reset_cache
           invalidate_already_loaded_fixtures
           @loaded_fixtures = load_fixtures(config)
         end
@@ -182,6 +181,7 @@ module ActiveRecord
       end
 
       def invalidate_already_loaded_fixtures
+        ActiveRecord::FixtureSet.reset_cache
         @@already_loaded_fixtures.clear
       end
 

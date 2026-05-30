@@ -12,6 +12,7 @@ After reading this guide, you will know:
 * How to configure and use Solid Queue.
 * How to run jobs in the background.
 * How to send emails from your application asynchronously.
+* How to write jobs that pause and resume progress during deploys.
 
 --------------------------------------------------------------------------------
 
@@ -721,6 +722,48 @@ makes it easier to build long-running or multi-phase jobs that can safely pause
 and resume without losing progress.
 For more details, see [ActiveJob::Continuation](https://api.rubyonrails.org/classes/ActiveJob/Continuation.html).
 
+### Job Attributes
+
+Active Job attributes let jobs declare typed state using the
+[`Active Model Attributes API`][]. Attribute values are serialized when the job
+is interrupted or retried, and restored when the job resumes. This is
+especially useful where one step may compute a value needed by a later step.
+`ActiveJob::Continuable` includes [`ActiveJob::Attributes`][], so continuable
+jobs can declare attributes directly:
+
+```ruby
+class SubmitEnrollmentJob < ApplicationJob
+  include ActiveJob::Continuable
+
+  attribute :payment_token, :string
+  attribute :billing_profile_id, :integer
+
+  def perform(enrollment)
+    step :tokenize_payment_instrument do
+      self.payment_token = PaymentGateway.tokenize(enrollment.user.payment_instrument)
+    end
+
+    step :create_billing_profile do
+      self.billing_profile_id = BillingProfileApi.create(customer_id: enrollment.user_id)
+    end
+
+    step :submit_enrollment do
+      submission_id = EnrollmentApi.submit(enrollment, payment_token, billing_profile_id)
+      enrollment.update!(status: "processing", submission_id: submission_id)
+    end
+  end
+end
+```
+
+Attribute values must be serializable as
+[Active Job arguments](#supported-types-for-arguments). For more details, see
+[`ActiveJob::Attributes`][].
+
+[`Active Model Attributes API`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Attributes.html
+[`ActiveJob::Attributes`]:
+    https://api.rubyonrails.org/classes/ActiveJob/Attributes.html
+
 Callbacks
 ---------
 
@@ -1091,8 +1134,25 @@ If you need help figuring out where jobs are coming from, you can enable
 Alternate Queuing Backends
 --------------------------
 
-Active Job has other built-in adapters for multiple queuing backends (Resque, Delayed Job, and others). To get an up-to-date list of the adapters see
-the API Documentation for [`ActiveJob::QueueAdapters`][].
+Active Job can be used with multiple queuing backends.
+
+Here is a noncomprehensive list of queue backends supporting Active Job:
+
+- [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
+- [Resque](https://github.com/resque/resque#rails-example)
+- [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
+- [Good Job](https://github.com/bensheldon/good_job)
+- [Solid Queue](https://github.com/rails/solid_queue)
+- [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
+- [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
+- [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
+
+The early releases of Active Job had adapters built-in, but a decision was later made to
+let queue backends manage the adapter themselves. Thus, there are only adapters for a few
+early backends. But any backend can be used regardless of whether the adapter is built in or not.
+For example, Solid Queue which is maintained by the Rails team, doesn't have a built-in adapter.
+
+For the list of built-in adapters see the API Documentation for [`ActiveJob::QueueAdapters`][].
 
 [`ActiveJob::QueueAdapters`]:
     https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html
@@ -1133,13 +1193,3 @@ Since jobs run in parallel to your Rails application, most queuing libraries
 require that you start a library-specific queuing service (in addition to
 starting your Rails app) for the job processing to work. Refer to library
 documentation for instructions on starting your queue backend.
-
-Here is a noncomprehensive list of documentation:
-
-- [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
-- [Resque](https://github.com/resque/resque/wiki/ActiveJob)
-- [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
-- [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
-- [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
-- [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
-- [Good Job](https://github.com/bensheldon/good_job#readme)

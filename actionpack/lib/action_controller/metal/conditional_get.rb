@@ -318,11 +318,13 @@ module ActionController
     # *   `public`: By default, HTTP responses are private, cached only on the
     #     user's web browser. To allow proxies to cache the response, set `true` to
     #     indicate that they can serve the cached response to all users.
-    def http_cache_forever(public: false, &block)
+    # *   `last_modified`: Default to a fixed date in the past, but can be passed to
+    #     a more relevant time.
+    def http_cache_forever(public: false, last_modified: nil, &block)
       expires_in 100.years, public: public, immutable: true
 
       yield if stale?(etag: request.fullpath,
-                      last_modified: Time.new(2011, 1, 1).utc,
+                      last_modified: (last_modified || Time.new(2011, 1, 1)).utc,
                       public: public)
     end
 

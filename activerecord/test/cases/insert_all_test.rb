@@ -10,6 +10,7 @@ require "models/ship"
 require "models/speedometer"
 require "models/subscription"
 require "models/subscriber"
+require "models/topic"
 
 class ReadonlyNameBook < Book
   attr_readonly :name
@@ -540,6 +541,27 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_raises ArgumentError do
       Book.upsert_all [{ id: 101, name: "Perelandra", author_id: 7, isbn: "1974522598" }], on_duplicate: "NAME=values(name)", update_only: :name
     end
+  end
+
+  def test_insert_all_raises_with_key_diff_when_attributes_mismatch
+    error = assert_raises ArgumentError do
+      Book.insert_all [
+        { name: "Rework", author_id: 1 },
+        { name: "Remote", author_id: 1, isbn: "1974522598" }
+      ]
+    end
+    assert_match(/All objects being inserted must have the same keys/, error.message)
+    assert_match(/extra: \["isbn"\]/, error.message)
+  end
+
+  def test_insert_all_raises_with_missing_key_when_attributes_mismatch
+    error = assert_raises ArgumentError do
+      Book.insert_all [
+        { name: "Rework", author_id: 1, isbn: "1974522598" },
+        { name: "Remote", author_id: 1 }
+      ]
+    end
+    assert_match(/missing: \["isbn"\]/, error.message)
   end
 
   def test_upsert_all_only_updates_the_column_provided_via_update_only
@@ -1101,6 +1123,79 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_not_deprecated(ActiveRecord.deprecator) do
       author.books.upsert({ title: "New Book" })
     end
+  end
+  class ReverseCoder
+    def self.dump(value)
+      return nil if value.nil?
+
+      "encoded:#{value.is_a?(String) ? value : value.inspect}"
+    end
+
+    def self.load(value)
+      return nil if value.nil?
+      value.delete_prefix("encoded:")
+    end
+  end
+
+  def test_insert_all_with_string_value_on_custom_coder_serialized_column_matches_create
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      serialize :content, coder: ReverseCoder
+    end
+
+    string_val = "hello world"
+
+    klass.insert_all!([{ title: "insert_str", content: string_val }])
+    klass.create!(title: "create_str", content: string_val)
+
+    via_insert = klass.find_by(title: "insert_str").content
+    via_create = klass.find_by(title: "create_str").content
+
+    assert_equal via_create, via_insert
+  end
+
+  def test_insert_all_with_string_does_not_double_encode_through_non_idempotent_coder
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      serialize :content, coder: ReverseCoder
+    end
+
+    klass.insert_all!([{ title: "double_enc", content: "plain text" }])
+    row = klass.find_by(title: "double_enc")
+
+    assert_equal "plain text", row.content
+  end
+
+  def test_insert_all_with_hash_value_on_custom_coder_serialized_column_still_takes_fast_path
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      serialize :content, coder: ReverseCoder
+    end
+
+    hash_val = { "key" => "value" }
+
+    klass.insert_all!([{ title: "insert_hash", content: hash_val }])
+    klass.create!(title: "create_hash", content: hash_val)
+
+    via_insert = klass.find_by(title: "insert_hash").content
+    via_create = klass.find_by(title: "create_hash").content
+
+    assert_equal via_create, via_insert
+  end
+
+  def test_insert_all_with_string_on_json_serialized_column_matches_create
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      serialize :content, coder: JSON
+    end
+
+    string_val = "a plain string"
+
+    klass.insert_all!([{ title: "json_str_insert", content: string_val }])
+    klass.create!(title: "json_str_create", content: string_val)
+
+    assert_equal klass.find_by(title: "json_str_create").content,
+                 klass.find_by(title: "json_str_insert").content
   end
 
   private

@@ -17,7 +17,7 @@ module ActiveRecord
       :to_ary, :to_set, :to_xml, :to_yaml, :join,
       :in_groups, :in_groups_of, :to_sentence, :to_formatted_s, :to_fs, :as_json,
       :intersect?
-    ]
+    ].freeze
 
     ARRAY_DELEGATES.each do |method|
       define_method "test_delegates_#{method}_to_Array" do

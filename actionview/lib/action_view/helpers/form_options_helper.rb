@@ -383,6 +383,11 @@ module ActionView
       #
       #   select_tag 'person', options_from_collection_for_select(@people, 'id', 'name')
       #
+      # The +value_method+ and +text_method+ can be a method name to call on each member of the +collection+,
+      # or a Proc that will be called for each member of the +collection+:
+      #
+      #   options_from_collection_for_select(@people, Proc.new { |person| person.id }, Proc.new { |person| person.name })
+      #
       # If +selected+ is specified as a value or array of values, the element(s) returning a match on +value_method+
       # will be selected option tag(s).
       #
@@ -415,14 +420,14 @@ module ActionView
       #
       # Parameters:
       # * +collection+ - An array of objects representing the <tt><optgroup></tt> tags.
-      # * +group_method+ - The name of a method which, when called on a member of +collection+, returns an
+      # * +group_method+ - The name of a method which, when called on a member of +collection+, or a Proc, which when called with a member of +collection+, returns an
       #   array of child objects representing the <tt><option></tt> tags.
-      # * +group_label_method+ - The name of a method which, when called on a member of +collection+, returns a
+      # * +group_label_method+ - The name of a method which, when called on a member of +collection+, or a Proc, which when called with a member of +collection+, returns a
       #   string to be used as the +label+ attribute for its <tt><optgroup></tt> tag.
       # * +option_key_method+ - The name of a method which, when called on a child object of a member of
-      #   +collection+, returns a value to be used as the +value+ attribute for its <tt><option></tt> tag.
+      #   +collection+, or a Proc, which when called with a child object of a member of +collection+, returns a value to be used as the +value+ attribute for its <tt><option></tt> tag.
       # * +option_value_method+ - The name of a method which, when called on a child object of a member of
-      #   +collection+, returns a value to be used as the contents of its <tt><option></tt> tag.
+      #   +collection+, or a Proc, which when called with a child object of a member of +collection+, returns a value to be used as the contents of its <tt><option></tt> tag.
       # * +selected_key+ - A value equal to the +value+ attribute for one of the <tt><option></tt> tags,
       #   which will have the +selected+ attribute set. Corresponds to the return value of one of the calls
       #   to +option_key_method+. If +nil+, no selection is made. Can also be a hash if disabled values are
@@ -923,6 +928,19 @@ module ActionView
       # Please refer to the documentation of the base helper for details.
       def collection_radio_buttons(method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         @template.collection_radio_buttons(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_html_options.merge(html_options), &block)
+      end
+
+      # Wraps ActionView::Helpers::FormTagHelper#datalist_tag for form builders.
+      #
+      #   <%= form_with model: @post do |f| %>
+      #     <%# Wire the input to the datalist using the same derived id: %>
+      #     <%= f.text_field :country, list: f.field_id(:country, :datalist) %>
+      #     <%= f.datalist  :country, ["Argentina", "Brazil", "Chile"] %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+      def datalist(method, choices = nil, html_options = {})
+        @template.datalist_tag(field_id(method, "datalist"), choices, html_options)
       end
     end
   end

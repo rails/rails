@@ -1,3 +1,149 @@
+*   Add shims for `Ractor` shareability methods so framework code can call them
+    unconditionally regardless of the Ruby version.
+
+    When `Ractor` is not defined, or the underlying method is not available, the
+    shim is a no-op that simply returns its argument (or the given block).
+    Otherwise the call is forwarded to the matching `Ractor` class method.
+
+    ```ruby
+    ractor_make_shareable(obj)        # => Ractor.make_shareable(obj)        or obj
+    ractor_shareable?(obj)            # => Ractor.shareable?(obj)            or obj
+    ractor_shareable_proc   { ... }   # => Ractor.shareable_proc   { ... }   or the block
+    ractor_shareable_lambda { ... }   # => Ractor.shareable_lambda { ... }   or the block
+    ```
+
+    *Andrew Novoselac*
+
+*   Fix `NumberHelper` raising `FloatDomainError` for `Infinity` / `NaN` with
+    `significant: true`.
+
+    `number_to_rounded(Float::INFINITY, precision: 3, significant: true)` (and
+    its callers `number_to_percentage`, `number_to_currency`, etc.) raised
+    `FloatDomainError` because `RoundingHelper#digit_count` called
+    `Math.log10(Float::INFINITY).floor`. The non-`significant` path already
+    formatted these values as `"Inf"` / `"-Inf"` / `"NaN"`; the two paths now
+    agree.
+
+    *Kenta Ishizaki*
+
+*   Fix `number_to_delimited` mangling non-finite floats.
+
+    `number_to_delimited(Float::INFINITY)` returned `"In,fin,ity"` because the
+    fast-path manual slicing introduced in commit `2d485aecf5` and made the
+    default in commit `33fbedb1b1` treated `Float::INFINITY.to_s` (the string
+    `"Infinity"`) as a sequence of digits to group every three characters.
+    `-Float::INFINITY` was similarly mangled to `"-In,fin,ity"`. `Float::NAN`
+    happened to survive only because `"NaN"` is exactly three characters long.
+
+    Now returns the underlying string representation (`"Infinity"`,
+    `"-Infinity"`, `"NaN"`) for non-finite floats, matching the pre-`2d485aecf5`
+    behavior.
+
+    *Kenta Ishizaki*
+
+*   Duplicate the `context` hash passed to `ActiveSupport::ErrorReport#handle` for each subscriber.
+    This prevents mutations done on the `context` by one subscriber from effecting the others.
+
+    *Andrew Novoselac*
+
+*   Fix `ActiveSupport::Concurrency::ShareLock` to honor `isolation_level`.
+
+    Lock ownership was keyed on `Thread.current`. Under
+    `config.active_support.isolation_level = :fiber`, all request fibers
+    on the same thread were treated as a single owner, and the reloader
+    interlock could admit an exclusive `:unload` while another fiber
+    still held a share — clearing autoloaded constants mid-request.
+
+    `ShareLock` now keys ownership on
+    `ActiveSupport::IsolatedExecutionState.context`, the same scope used
+    by `CurrentAttributes` and other per-execution state. Behavior under
+    `:thread` isolation is unchanged.
+
+    *Joel Junström*
+
+*   Introduce `ActiveSupport::TimeFormats` and `ActiveSupport::DateFormats`
+    for registering custom date formats.
+
+    This allows adding custom date formats to `to_fs` without modifying the
+    global `Time::DATE_FORMATS` or `Date::DATE_FORMATS` hashes. Custom formats
+    are added via `ActiveSupport::TimeFormats.register` or
+    `ActiveSupport::DateFormats.register`, and will only be available to
+    `Time#to_fs`, and `Date#to_fs` respectively.
+
+    At the same time, the existing `Time::DATE_FORMATS` and `Date::DATE_FORMATS`
+    constants are still supported for backward compatibility, but they are now
+    deprecated and will be removed in the next version of Rails. This encourages
+    users to migrate to the new approach for better encapsulation and to avoid
+    potential conflicts with other libraries that may also modify the global
+    date formats.
+
+    ```ruby
+    ActiveSupport::TimeFormats.register(:month_and_year, '%B %Y')
+    ActiveSupport::DateFormats.register(
+      :short_ordinal,
+      ->(date) { date.strftime("%B #{date.day.ordinalize}") }
+    )
+
+    Time.now.to_fs(:month_and_year) # => "February 2024"
+    Date.today.to_fs(:short_ordinal)  # => "February 21st"
+    ```
+
+    *Ufuk Kayserilioglu*
+
+*   Add `start_day` argument to `this_week?` for consistency with `all_week`
+
+    `this_week?` now accepts an optional `start_day` argument, matching the
+    existing interface of `all_week`, `beginning_of_week`, and `end_of_week`.
+
+        date.this_week?              # Uses Date.beginning_of_week (default)
+        date.this_week?(:sunday)     # Checks against Sun-Sat week
+
+    *Kenta Ishizaki*
+
+*   Add `delete: true` option to `Rails.cache.read` for atomic read-and-delete (only supported by Redis cache store).
+
+    Uses the Redis [GETDEL](https://redis.io/docs/latest/commands/getdel/) command to atomically return a cached value and remove
+    it in a single operation. Useful for single-use values like OTP codes or
+    one-time tokens.
+
+    ```ruby
+    Rails.cache.write("otp", "123456")
+    Rails.cache.read("otp", delete: true)  # => "123456"
+    Rails.cache.read("otp")                # => nil
+    ```
+
+    *Glauco Custodio*
+
+*   Introduce `ActiveSupport::TestCase.around`
+
+    Add a callback, which runs between `TestCase#setup` and `TestCase#teardown`.
+    Yields the test class instance and the test case to the block:
+
+    ```ruby
+    class ClientTest < ActiveSupport::TestCase
+      around do |test_case, block|
+        Client.with(stubbed: true, &block)
+      end
+    end
+    ```
+
+    *Sean Doyle*
+
+*   Add `prepend: true` option to `ActiveSupport::Notifications.subscribe`.
+
+      When `prepend: true` is passed, the subscriber is added to the front of
+      the subscriber list for the given event, ensuring it runs before any
+      previously registered subscribers. This allows mutating the event payload
+      before other subscribers process it.
+
+      ```ruby
+      ActiveSupport::Notifications.subscribe("sql.active_record", prepend: true) do |event|
+        event.payload[:name] = "[IDC] #{event.payload[:name]}"
+      end
+      ```
+
+      *Jean Boussier*, *Federico Carrocera*
+
 *   Deprecate `require_dependency`.
 
     `require_dependency` is deprecated without replacement and will be removed in Rails 9.

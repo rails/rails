@@ -1,25 +1,17 @@
 # frozen_string_literal: true
 
 require "date"
+require "active_support/date_formats"
 require "active_support/inflector/methods"
 require "active_support/core_ext/date/zones"
 require "active_support/core_ext/module/redefine_method"
 
 class Date
-  DATE_FORMATS = {
-    short: "%d %b",
-    long: "%B %d, %Y",
-    db: "%Y-%m-%d",
-    inspect: "%Y-%m-%d",
-    number: "%Y%m%d",
-    long_ordinal: lambda { |date|
-      day_format = ActiveSupport::Inflector.ordinalize(date.day)
-      date.strftime("%B #{day_format}, %Y") # => "April 25th, 2007"
-    },
-    rfc822: "%d %b %Y",
-    rfc2822: "%d %b %Y",
-    iso8601: lambda { |date| date.iso8601 }
-  }
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+
+  deprecate_constant :DATE_FORMATS, "ActiveSupport::DateFormats::DEPRECATED_LIST",
+    deprecator: ActiveSupport.deprecator,
+    message: "Date::DATE_FORMATS is deprecated, to register custom time formats use ActiveSupport::DateFormats.register"
 
   # Convert to a formatted string. See DATE_FORMATS for predefined formats.
   #
@@ -39,15 +31,15 @@ class Date
   #   date.to_fs(:iso8601)       # => "2007-11-10"
   #
   # == Adding your own date formats to to_fs
-  # You can add your own formats to the +Date::DATE_FORMATS+ hash.
-  # Use the format name as the hash key and either a strftime string
+  # You can add your own formats using the +ActiveSupport::DateFormats.register+ method.
+  # Use the format name as the name and either a strftime string
   # or Proc instance that takes a date argument as the value.
   #
   #   # config/initializers/date_formats.rb
-  #   Date::DATE_FORMATS[:month_and_year] = '%B %Y'
-  #   Date::DATE_FORMATS[:short_ordinal] = ->(date) { date.strftime("%B #{date.day.ordinalize}") }
+  #   ActiveSupport::DateFormats.register(:month_and_year, '%B %Y')
+  #   ActiveSupport::DateFormats.register(:short_ordinal, ->(date) { date.strftime("%B #{date.day.ordinalize}") })
   def to_fs(format = :default)
-    if formatter = DATE_FORMATS[format]
+    if formatter = ActiveSupport::DateFormats.lookup(format)
       if formatter.respond_to?(:call)
         formatter.call(self).to_s
       else

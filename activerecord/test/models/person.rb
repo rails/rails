@@ -129,7 +129,7 @@ class NestedPerson < ActiveRecord::Base
 end
 
 module Insure
-  INSURES = %W{life annuality}
+  INSURES = %W{life annuality}.freeze
 
   def self.load(mask)
     INSURES.select do |insure|

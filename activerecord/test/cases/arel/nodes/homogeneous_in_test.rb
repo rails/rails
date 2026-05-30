@@ -3,18 +3,19 @@
 require_relative "../helper"
 require "active_record/type_caster/map"
 require "active_model"
-class Arel::Nodes::HomogeneousInTest < Arel::Spec
-  def test_in
+
+class Arel::Nodes::HomogeneousInTest < Arel::Test
+  test "in" do
     table = Arel::Table.new :users, type_caster: fake_pg_caster
 
     expr = Arel::Nodes::HomogeneousIn.new(["Bobby", "Robert"], table[:name], :in)
 
-    _(expr.to_sql).must_be_like %{
+    assert_like %{
       "users"."name" IN (?, ?)
-    }
+    }, expr.to_sql
   end
 
-  def test_custom_attribute_node
+  test "custom attribute node" do
     table = Arel::Table.new :users, type_caster: fake_pg_caster
 
     node = TypedNode.new("COALESCE",
@@ -23,9 +24,9 @@ class Arel::Nodes::HomogeneousInTest < Arel::Spec
                         )
     expr = Arel::Nodes::HomogeneousIn.new(["Bobby", "Robert"], node, :in)
 
-    _(expr.to_sql).must_be_like %{
+    assert_like %{
       COALESCE("users"."nickname", "users"."name") IN (?, ?)
-    }
+    }, expr.to_sql
   end
 
   private

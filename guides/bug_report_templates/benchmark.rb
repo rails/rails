@@ -34,7 +34,7 @@ SCENARIOS = {
   "Two Spaces"        => "  ",
   "Mixed Whitespaces" => " \t\r\n",
   "Very Long String"  => " " * 100
-}
+}.freeze
 
 SCENARIOS.each_pair do |name, value|
   puts
