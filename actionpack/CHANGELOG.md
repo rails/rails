@@ -1,3 +1,23 @@
+*   Support dynamic `store:` option in `rate_limit`.
+
+    The `store:` option now accepts callables (lambdas or procs) and method
+    names (as symbols), in addition to static values. This allows runtime
+    resolution of the cache store based on request context.
+
+    ```ruby
+    class APIController < ApplicationController
+      rate_limit to: 1000, within: 1.minute, store: :rate_store
+
+      private
+
+      def rate_store
+        current_user.premium? ? premium_cache : default_cache
+      end
+    end
+    ```
+
+    *Charles Washington de Aquino dos Santos*
+
 *   Add a configuration for `ActionDispatch::ExceptionWrapper.silent_exceptions` at `config.action_dispatch.silent_exceptions`.
 
     Exceptions on this list do not fall back to framework-level backtraces when there is no application backtrace.
