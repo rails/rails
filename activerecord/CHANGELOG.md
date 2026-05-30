@@ -1,3 +1,13 @@
+*   Preserve IPv6 prefix when dumping PostgreSQL `cidr` / `inet` defaults to `schema.rb`.
+
+    The schema dumper used to omit the prefix whenever it equaled `/32`, which
+    is the full mask for IPv4 but not for IPv6. As a result, an IPv6 default
+    such as `"::/32"` was written as `"::"` in `schema.rb` and reloaded as
+    `::/128`, silently dropping the subnet information. The prefix is now only
+    omitted when it covers the full address (`/32` for IPv4, `/128` for IPv6).
+
+    *Kenta Ishizaki*
+
 *   Fix deadlock when pool-less connection materializes while fetching database
     server version.
 
