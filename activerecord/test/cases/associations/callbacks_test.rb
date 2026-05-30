@@ -176,7 +176,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
       activerecord.developers << developers(:david)
       activerecord.developers << developers(:jamis)
       activerecord.reload
-      assert activerecord.developers_with_callbacks.size == 2
+      assert_equal 2, activerecord.developers_with_callbacks.size
     end
     activerecord.developers_with_callbacks.flat_map { |d| ["before_removing#{d.id}", "after_removing#{d.id}"] }.sort
     assert activerecord.developers_with_callbacks.clear

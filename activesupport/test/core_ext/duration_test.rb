@@ -36,9 +36,9 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_equals
-    assert 1.day == 1.day
-    assert 1.day == 1.day.to_i
-    assert 1.day.to_i == 1.day
+    assert_equal 1.day, 1.day
+    assert_equal 1.day, 1.day.to_i
+    assert_equal 1.day.to_i, 1.day
     assert_not (1.day == "foo")
   end
 
