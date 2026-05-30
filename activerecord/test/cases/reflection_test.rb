@@ -354,6 +354,19 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_kind_of ThroughReflection, Subscriber.reflect_on_association(:books)
   end
 
+  def test_has_many_through_does_not_accept_strict_replace
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "posts"
+
+        has_many :readers
+        has_many :people, through: :readers, strict_replace: true
+      end
+    end
+
+    assert_equal "The :strict_replace option is not supported on has_many :through associations", error.message
+  end
+
   def test_chain
     expected = [
       Organization.reflect_on_association(:author_essay_categories),

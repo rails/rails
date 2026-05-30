@@ -148,6 +148,35 @@ module ActiveRecord
           end
         end
 
+        # When `ActiveRecord.has_many_strict_replace`
+        # or the `has_many` association's `:strict_replace` option is
+        # enabled, plain `has_many` associations re-read persisted rows so
+        # stale loaded targets do not miss records inserted by another session.
+        # The fresh read runs `scope.to_a` inside whatever transaction context
+        # is active. Under PostgreSQL's default READ COMMITTED isolation this
+        # correctly sees concurrent inserts. Under REPEATABLE READ the snapshot
+        # is taken at transaction start, so concurrently inserted rows may still
+        # be invisible and the race can persist.
+        # This adds an extra query and intentionally ignores preloaded state and
+        # strict loading validation for that internal refresh.
+        # `has_many :through` associations are excluded because their target is
+        # computed through the join model chain — refreshing would require
+        # reloading the join and source associations, not just the target scope,
+        # which can introduce less predictable query and callback behavior.
+        def replace_records_current_target
+          return target unless strict_replace?
+          return target if owner.new_record? || reflection.through_reflection?
+
+          skip_strict_loading do
+            fresh_target = reflection.klass.uncached { scope.to_a }
+            merge_target_lists(fresh_target, target.dup)
+          end
+        end
+
+        def strict_replace?
+          reflection.options[:strict_replace] || ActiveRecord.has_many_strict_replace
+        end
+
         def update_counter_if_success(saved_successfully, difference)
           if saved_successfully
             update_counter_in_memory(difference)

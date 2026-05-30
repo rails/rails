@@ -1,3 +1,32 @@
+*   Add `config.active_record.has_many_strict_replace` and the `has_many`
+    `:strict_replace` option to opt into reloading persisted rows before
+    collection replacement.
+
+    When enabled, replacing a loaded `has_many` association uses the current persisted association
+    state instead of only the stale in-memory target, which avoids leaving concurrently inserted
+    associated records behind. This adds an extra SQL query and skips strict loading validation
+    for that internal refresh.
+
+    The fresh read runs inside whatever transaction context is active. Under
+    PostgreSQL's default READ COMMITTED isolation this correctly sees concurrent
+    inserts. Under REPEATABLE READ the snapshot is taken at transaction start, so
+    concurrently inserted rows may still be invisible.
+
+    This option applies only to plain `has_many` associations. It is not
+    supported on `has_many :through` because through associations compute their
+    target via the join model chain — refreshing would require reloading the
+    join and source associations, not just the target scope.
+
+    ```ruby
+    config.active_record.has_many_strict_replace = true
+    ```
+
+    ```ruby
+    has_many :payment_schedule_terms, strict_replace: true
+    ```
+
+    *Andrei Andriichuk*
+
 *   Fix deadlock when pool-less connection materializes while fetching database
     server version.
 
