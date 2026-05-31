@@ -694,19 +694,7 @@ instead of restarting from the beginning.
 
 To use continuations, include the `ActiveJob::Continuable` module in your Job
 class. You can then define each step inside the `perform` method using
-[`step`](https://api.rubyonrails.org/classes/ActiveJob/Continuation/Step.html)
-inside.
-
-Steps can use an optional
-[cursor](https://api.rubyonrails.org/classes/ActiveJob/Continuation.html#class-ActiveJob::Continuation-label-Cursors)
-to track progress *within* the step. The code in the step is responsible for
-using the cursor to continue from the appropriate location after an
-interruption.
-
-Steps are executed as soon as they are encountered. Code that is not part of a
-step will be executed on each job run. If a job is interrupted, previously
-completed steps will be skipped. If a step is in progress, it will be restarted
-or resumed with the last recorded cursor if using cursors.  For example:
+[`step`](https://api.rubyonrails.org/classes/ActiveJob/Continuation/Step.html).
 
 ```ruby
 class ProcessImportJob < ApplicationJob
@@ -721,12 +709,8 @@ class ProcessImportJob < ApplicationJob
       @import.initialize
     end
 
-    # Step with a cursor
-    step :process do |step|
-      @import.records.find_each(start: step.cursor) do |record|
-        record.process
-        step.advance!
-      end
+    step :process do
+      @import.records.find_each { |record| record.process }
     end
 
     # Step defined by referencing a method
@@ -743,6 +727,39 @@ end
 Each step can be declared with a block or by referencing a method name. The
 block will be called with the step object as an argument. Methods can either
 take no arguments or a single argument for the step object.
+
+Steps are executed as soon as they are encountered. Code that is not part of a
+step will be executed on each job run. If a job is interrupted, previously
+completed steps will be skipped. If a step is in progress, it will be restarted
+or resumed with the last recorded cursor if using cursors.
+
+Steps can also use an optional
+[cursor](https://api.rubyonrails.org/classes/ActiveJob/Continuation.html#class-ActiveJob::Continuation-label-Cursors)
+to track progress *within* the step. The code in the step is responsible for
+using the cursor to continue from the appropriate location after an
+interruption. For example:
+
+```ruby
+class ProcessImportJob < ApplicationJob
+  include ActiveJob::Continuable
+
+  def perform(import_id)
+    # Always runs on job start, even when resuming from an interrupted step.
+    @import = Import.find(import_id)
+
+    # Step with a cursor
+    step :process do |step|
+      @import.records.find_each(start: step.cursor) do |record|
+        record.process
+        step.advance!
+      end
+    end
+
+  end
+end
+```
+
+In the above example, the cursor tracks the `id` of the last successfully processed record. If the job is interrupted midway through a large import, it resumes from where it left off rather than reprocessing records from the beginning, passing the saved cursor value to `find_each`.
 
 Job Continuations make it easier to build long-running or multi-phase jobs that
 can safely pause and resume without losing progress. For more details, see
@@ -1304,17 +1321,17 @@ You can enable additional logging to figure out where jobs are coming from with
 
 A failed job will not be retried, unless configured otherwise.
 
-It's possible to retry or discard a failed job by using [`retry_on`] or
+It's possible to either retry or discard a failed job by using [`retry_on`] or
 [`discard_on`], respectively. For example:
 
 ```ruby
 class RemoteServiceJob < ApplicationJob
   retry_on CustomAppException # defaults to 3s wait, 5 attempts
 
-  discard_on ActiveJob::DeserializationError
+  discard_on Net::OpenTimeout
 
   def perform(*args)
-    # Might raise CustomAppException or ActiveJob::DeserializationError
+    # Might raise CustomAppException or Net::OpenTimeout
   end
 end
 ```
@@ -1326,7 +1343,7 @@ end
 
 ### Missing Records
 
-GlobalID allows serializing full Active Record objects passed to `#perform`.
+GlobalID will use the unique identifier to locate the full Active Record object when calling `#perform`.
 
 If a passed record is deleted after the job is enqueued but before the
 `#perform` method is called Active Job will raise an
