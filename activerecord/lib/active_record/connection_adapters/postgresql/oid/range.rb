@@ -14,7 +14,10 @@ module ActiveRecord
           end
 
           def type_cast_for_schema(value)
-            value.inspect.gsub("Infinity", "::Float::INFINITY")
+            from = bound_for_schema(value.begin)
+            to   = bound_for_schema(value.end)
+            op   = value.exclude_end? ? "..." : ".."
+            "#{from}#{op}#{to}"
           end
 
           def cast_value(value)
@@ -58,6 +61,19 @@ module ActiveRecord
           end
 
           private
+            def bound_for_schema(bound)
+              case bound
+              when nil
+                "nil"
+              when ::Float::INFINITY
+                "::Float::INFINITY"
+              when -::Float::INFINITY
+                "-::Float::INFINITY"
+              else
+                @subtype.type_cast_for_schema(bound)
+              end
+            end
+
             def type_cast_single(value)
               infinity?(value) ? value : @subtype.deserialize(value)
             end
