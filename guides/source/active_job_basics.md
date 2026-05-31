@@ -381,7 +381,7 @@ class ProcessVideoJob < ApplicationJob
 end
 ```
 
-```irb
+```ruby
 last_video = Video.last
 ProcessVideoJob.perform_later(last_video)
 ```
@@ -392,6 +392,12 @@ option to `set`:
 ```ruby
 MyJob.set(queue: :another_queue).perform_later(record)
 ```
+
+TIP: One way to name queues is based on latency. So instead of "critical",
+"default", or "low", queues could be named "within_30_seconds",
+"within_5_minutes", and "within_1_hour". This can be enforced like a contract by
+configuring your queuing backend to notify your engineering team if a job sits
+in a given queue longer than the corresponding time.
 
 NOTE: If you choose to use an [alternate queuing
 backend](#alternate-queuing-backends) you may need to specify the queues to
@@ -834,13 +840,14 @@ development:
 
 ### Workers, Dispatchers, Supervisors
 
-Solid Queue uses three types of processes to handle job queueing and execution.
-*Workers* poll queues for jobs that are ready to run and execute them.
-*Dispatchers* handle scheduled jobs — they check for jobs due to run in the
-future and move them into the ready queue for workers to pick up. Both workers
-and dispatchers are managed by a *Supervisor*, which forks and monitors them.
+Solid Queue uses three types of processes to handle job queueing and execution:
 
-When you run `bin/rails jobs`, you're starting the supervisor process, which in
+1. Workers poll queues for jobs that are ready to run and execute them.
+2. Dispatchers handle scheduled jobs — they check for jobs due to run in the
+future and move them into the ready queue for workers to pick up.
+3. A Supervisor manages both workers and dispatchers, by forking and monitoring them.
+
+When you run `bin/jobs start`, you're starting the supervisor process, which in
 turn forks and manages the workers and dispatchers according to the
 configuration in `config/queue.yml`. Here is an example of the default
 configuration:
@@ -907,12 +914,6 @@ strict ordering (unlike other queuing backend which may allow relative weights
 so that lower priority queues still receive a proportional share of processing
 time). It is possible for lower queues to be starved if higher queues are
 consistently busy.
-
-NOTE: One way to name queues is based on latency. So instead of "critical",
-"default", or "low", queues could be named "within_30_seconds",
-"within_5_minutes", and "within_1_hour". This can be enforced like a contract by
-configuring your queuing backend to notify your engineering team if a job sits
-in a given queue longer than the corresponding time.
 
 It is possible to use a wildcard `*` within queue names. For example if the
 worker is configured with `queues:[active_storage*, mailers]`, it will fetch
@@ -1204,8 +1205,15 @@ alternative backend, such as [Sidekiq](https://github.com/sidekiq/sidekiq),
 (typically with no modifications to your job code), along with adding the
 queuing backend's adapter to your Gemfile.
 
-You can get an up-to-date list of the adapters in the the API Documentation for
-[`ActiveJob::QueueAdapters`](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
+Here is a noncomprehensive list of alternate queuing backends and documentation:
+
+- [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
+- [Resque](https://github.com/resque/resque/wiki/ActiveJob)
+- [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
+- [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
+- [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
+- [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
+- [Good Job](https://github.com/bensheldon/good_job#readme)
 
 To switch backends globally, you can set `config.active_job.queue_adapter` in
 your application configuration:
@@ -1250,16 +1258,6 @@ parallel temporarily to let existing jobs complete.
 TIP: If you use `config.active_job.queue_name_prefix`, make sure your new
 backend's worker configuration listens to the prefixed queue names, not the bare
 names.
-
-Here is a noncomprehensive list of documentation:
-
-- [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
-- [Resque](https://github.com/resque/resque/wiki/ActiveJob)
-- [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
-- [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
-- [Delayed Job](https://github.com/collectiveidea/delayed_job#active-job)
-- [Que](https://github.com/que-rb/que#additional-rails-specific-setup)
-- [Good Job](https://github.com/bensheldon/good_job#readme)
 
 Monitoring and Handling Failed Jobs
 -----------------------------------
