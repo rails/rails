@@ -21,8 +21,7 @@ What is Active Job?
 
 The Active Job Rails framework allows you to declare background jobs and execute
 them on a queuing backend. It provides a consistent, high-level interface for
-common asynchronous tasks such as sending emails, processing data, generating
-reports, and running periodic maintenance work like data clean-up or billing.
+common asynchronous tasks such as sending emails, processing data, or performing periodic maintenance tasks.
 
 The goal of background jobs is to move long-running or non-critical work out of
 the HTTP request-response cycle and into a background queue (such as the default
@@ -30,10 +29,6 @@ Solid Queue), and keep the web requests fast and responsive. This separation
 allows applications to perform work asynchronously, scale background processing
 independently, and execute multiple tasks in parallel without blocking user
 interactions.
-
-NOTE: Active Job is an interface, not a background job execution engine. It does
-not run jobs on its own, it needs a persistent queuing backend (such as Solid
-Queue) to process jobs reliably in the background.
 
 Creating Jobs
 -------------
@@ -125,6 +120,8 @@ To enqueue a job to be performed later:
 GuestsCleanupJob.perform_later(guest)
 ```
 
+The [`set`](https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set) method can specify exactly when to perform the job.
+ 
 To enqueue a job to be performed tomorrow at noon:
 
 ```ruby
