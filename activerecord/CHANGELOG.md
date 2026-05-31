@@ -1,3 +1,7 @@
+*   Respect `schema_search_path` on `rails dbconsole` for PostgreSQL.
+
+    *Gabriel Sobrinho*
+
 *   Preserve IPv6 prefix when dumping PostgreSQL `cidr` / `inet` defaults to `schema.rb`.
 
     The schema dumper used to omit the prefix whenever it equaled `/32`, which
