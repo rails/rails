@@ -150,10 +150,13 @@ module ActiveSupport
         class JSONGemCoderEncoder # :nodoc:
           JSON_NATIVE_TYPES = [Hash, Array, Float, String, Symbol, Integer, NilClass, TrueClass, FalseClass, ::JSON::Fragment].freeze
           CODER = ::JSON::Coder.new do |value, is_key|
-            json_value = value.as_json
+            # Serialize non-String/Symbol keys via #to_s based on the key's own type,
+            # mirroring the legacy `jsonify` encoder. (#as_json is intentionally not
+            # consulted here: Time#as_json returns an ISO8601 String, yet the key must
+            # still be emitted via #to_s for backward compatibility.)
+            next value.to_s if is_key && !(String === value) && !(Symbol === value)
 
-            # Keep compatibility by calling to_s on non-String keys
-            next value.to_s if is_key && !(String === json_value)
+            json_value = value.as_json
 
             # Handle objects returning self from as_json
             if json_value.equal?(value)

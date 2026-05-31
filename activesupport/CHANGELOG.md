@@ -1,3 +1,16 @@
+*   Fix JSON encoding of hash keys whose `#as_json` returns a string.
+
+    On `json` gem >= 2.15.2 the `JSON::Coder`-based encoder serialized a
+    non-`String`/`Symbol` hash key through `#as_json` instead of `#to_s`
+    whenever that `#as_json` happened to return a string. A `Time`,
+    `DateTime`, or `TimeWithZone` used as a hash key therefore changed format
+    (`{"2009-01-01 12:30:00 UTC":1}` became
+    `{"2009-01-01T12:30:00.000Z":1}`), diverging from both the legacy
+    encoder and the value-vs-key handling. Keys are now serialized via `#to_s`
+    based on the key's own type, matching the legacy encoder.
+
+    *Kenta Ishizaki*
+
 *   Add shims for `Ractor` shareability methods so framework code can call them
     unconditionally regardless of the Ruby version.
 
