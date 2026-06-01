@@ -1,3 +1,20 @@
+*   Fix `ActiveSupport::Duration#in_minutes`, `#in_hours`, `#in_days`,
+    `#in_weeks`, `#in_months`, and `#in_years` truncating sub-second precision.
+
+    These methods divided the duration's integer second count (`in_seconds`,
+    aliased to `to_i`) instead of its exact value, so any fractional second was
+    silently dropped before the conversion.
+
+    ```ruby
+    # Before
+    90.5.seconds.in_minutes # => 1.5
+
+    # After
+    90.5.seconds.in_minutes # => 1.5083333333333333
+    ```
+
+    *Kenta Ishizaki*
+
 *   Fix JSON encoding of non-String Hash keys.
 
     The old encoder would simply call `to_s` on them, the newer encoder
