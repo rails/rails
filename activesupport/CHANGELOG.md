@@ -1,3 +1,14 @@
+*   Fix JSON encoding of non-String Hash keys.
+
+    The old encoder would simply call `to_s` on them, the newer encoder
+    would incorrectly call `as_json` instead.
+
+    In the case of `Time`, `DateTime` and `TimeWithZone` this would result
+    in different serialization of time keys: `"2009-01-01T12:30:00.000Z"` (arguably better)
+    instead of `"2009-01-01 12:30:00 UTC"` (how it used to be).
+
+    *Kenta Ishizaki*
+
 *   Fix `number_to_phone` dropping only the first character of a
     multi-character `:delimiter` when no area code is present.
 
