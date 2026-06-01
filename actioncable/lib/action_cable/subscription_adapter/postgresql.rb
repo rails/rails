@@ -58,7 +58,13 @@ module ActionCable
 
       private
         def channel_identifier(channel)
-          channel.size > 63 ? OpenSSL::Digest::SHA1.hexdigest(channel) : channel
+          # PostgreSQL identifiers are limited to NAMEDATALEN-1 (63) *bytes*, not
+          # characters, and are silently truncated past that. Truncation makes the
+          # name we LISTEN/subscribe under differ from the one wait_for_notify hands
+          # back, so notifications would miss their subscribers. Hash on byte length
+          # so multibyte channel names that exceed the limit stay within it.
+          # See https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
+          channel.bytesize > 63 ? OpenSSL::Digest::SHA1.hexdigest(channel) : channel
         end
 
         def listener
