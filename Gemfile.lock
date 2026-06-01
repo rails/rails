@@ -174,7 +174,7 @@ GEM
     childprocess (5.1.0)
       logger (~> 1.5)
     concurrent-ruby (1.3.6)
-    connection_pool (2.5.4)
+    connection_pool (3.0.2)
     crack (1.0.0)
       bigdecimal
       rexml
@@ -453,7 +453,7 @@ GEM
     redcarpet (3.6.1)
     redis (5.4.1)
       redis-client (>= 0.22.0)
-    redis-client (0.25.2)
+    redis-client (0.28.0)
       connection_pool
     redis-namespace (1.11.0)
       redis (>= 4)
@@ -719,6 +719,7 @@ DEPENDENCIES
   rails!
   redcarpet (~> 3.6.1)
   redis (>= 4.0.1)
+  redis-client (>= 0.28.0)
   redis-namespace
   releaser!
   resque
@@ -799,7 +800,7 @@ CHECKSUMS
   chef-utils (18.6.2) sha256=d4d0a08fc2d0fd1c490dba4f09dcd6b4e6ddc5c594231c05ff87d2e54a13834a
   childprocess (5.1.0) sha256=9a8d484be2fd4096a0e90a0cd3e449a05bc3aa33f8ac9e4d6dcef6ac1455b6ec
   concurrent-ruby (1.3.6) sha256=6b56837e1e7e5292f9864f34b69c5a2cbc75c0cf5338f1ce9903d10fa762d5ab
-  connection_pool (2.5.4) sha256=e9e1922327416091f3f6542f5f4446c2a20745276b9aa796dd0bb2fd0ea1e70a
+  connection_pool (3.0.2) sha256=33fff5ba71a12d2aa26cb72b1db8bba2a1a01823559fb01d29eb74c286e62e0a
   crack (1.0.0) sha256=c83aefdb428cdc7b66c7f287e488c796f055c0839e6e545fec2c7047743c4a49
   crass (1.0.6) sha256=dc516022a56e7b3b156099abc81b6d2b08ea1ed12676ac7a5657617f012bd45d
   cssbundling-rails (1.4.1) sha256=4b21273d627b21890da9155c88c67efc9274373d8b0add09149c262cf56c7ce1
@@ -934,7 +935,7 @@ CHECKSUMS
   rdoc (6.15.0) sha256=0f0e68864969e77c2acd4063a9585baa5216d362701d827a93feaa9cbae78b05
   redcarpet (3.6.1) sha256=d444910e6aa55480c6bcdc0cdb057626e8a32c054c29e793fa642ba2f155f445
   redis (5.4.1) sha256=b5e675b57ad22b15c9bcc765d5ac26f60b675408af916d31527af9bd5a81faae
-  redis-client (0.25.2) sha256=aa37e34c29da39fdb0b8663e7a649adb0923959cd4a9351befe2cd19e6f8d6f0
+  redis-client (0.28.0) sha256=888892f9cd8787a41c0ece00bdf5f556dfff7770326ce40bb2bc11f1bfec824b
   redis-namespace (1.11.0) sha256=e91a1aa2b2d888b6dea1d4ab8d39e1ae6fac3426161feb9d91dd5cca598a2239
   regexp_parser (2.10.0) sha256=cb6f0ddde88772cd64bff1dbbf68df66d376043fe2e66a9ef77fcb1b0c548c61
   releaser (1.0.0)

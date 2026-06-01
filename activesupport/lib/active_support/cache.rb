@@ -21,6 +21,7 @@ module ActiveSupport
     autoload :MemCacheStore,    "active_support/cache/mem_cache_store"
     autoload :NullStore,        "active_support/cache/null_store"
     autoload :RedisCacheStore,  "active_support/cache/redis_cache_store"
+    autoload :DeprecatedRedisCacheStore,  "active_support/cache/deprecated_redis_cache_store"
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
