@@ -1,3 +1,14 @@
+*   Fix PostgreSQL range columns corrupting bounds that contain a comma.
+
+    `PostgreSQL::OID::Range#extract_bounds` split a range's textual
+    representation on the first comma, but PostgreSQL double-quotes any bound
+    that itself contains a comma (e.g. a range over a text subtype). A value
+    such as `["a,b","c,d")` was therefore split inside the first quoted bound
+    and read back with both endpoints corrupted. The split now skips over
+    double-quoted segments when locating the separating comma.
+
+    *Kenta Ishizaki*
+
 *   Fix store accessor `*_change` and `saved_change_to_*` reporting a change
     for unchanged keys.
 
