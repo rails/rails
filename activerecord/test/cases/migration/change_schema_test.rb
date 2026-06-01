@@ -274,7 +274,7 @@ module ActiveRecord
         assert_equal :datetime, column.type
 
         if current_adapter?(:PostgreSQLAdapter)
-          assert_equal "timestamp without time zone", column.sql_type
+          assert_equal "timestamp(6) without time zone", column.sql_type
         elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           assert_equal "timestamp", column.sql_type
         else
@@ -327,7 +327,7 @@ module ActiveRecord
         assert_equal :datetime, column.type
 
         if current_adapter?(:PostgreSQLAdapter)
-          assert_equal "timestamp without time zone", column.sql_type
+          assert_equal "timestamp(6) without time zone", column.sql_type
         elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           assert_equal "timestamp", column.sql_type
         else
