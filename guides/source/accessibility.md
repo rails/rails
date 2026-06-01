@@ -854,21 +854,9 @@ Two related attributes control what gets announced:
   Override it only when a removal is genuinely meaningful on its own.
 
 For example, a button that changes its visible text to reflect the current state
-needs a live region so screen readers announce the new label. A Stimulus
-controller manages the state with a value, and CSS shows the appropriate text:
-
-```js
-// app/javascript/controllers/swap_controller.js
-import { Controller } from "@hotwired/stimulus"
-
-export default class extends Controller {
-  static values = { pressed: Boolean }
-
-  toggle() {
-    this.pressedValue = !this.pressedValue
-  }
-}
-```
+needs a live region so screen readers announce the new label. The markup holds
+both labels, CSS shows the one for the current state, and a Stimulus controller
+toggles that state:
 
 ```html+erb
 <%= tag.button type: "button",
@@ -887,6 +875,19 @@ export default class extends Controller {
 [data-swap-pressed-value="false"] [data-swap-target="secondary"],
 [data-swap-pressed-value="true"] [data-swap-target="primary"] {
   display: none;
+}
+```
+
+```js
+// app/javascript/controllers/swap_controller.js
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static values = { pressed: Boolean }
+
+  toggle() {
+    this.pressedValue = !this.pressedValue
+  }
 }
 ```
 
@@ -943,6 +944,11 @@ space-separated list of tokens, like `aria-labelledby` and `aria-describedby`,
 passing an array joins the entries with a single space and drops `nil` or
 `false` entries. This keeps references to other elements declarative even when
 the list depends on the state of the record.
+
+```ruby
+tag.span aria: { labelledby: [ "title", false, "subtitle" ] }
+# => <span aria-labelledby="title subtitle"></span>
+```
 
 ### The First Rule of ARIA
 
