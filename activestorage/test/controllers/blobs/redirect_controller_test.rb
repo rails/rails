@@ -68,6 +68,38 @@ class ActiveStorage::Blobs::ExpiringRedirectControllerTest < ActionDispatch::Int
   end
 end
 
+class ActiveStorage::Blobs::CallableExpiringRedirectControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    @blob = create_file_blob filename: "racecar.jpg"
+    @old_urls_expire_in = ActiveStorage.urls_expire_in
+    @old_service_urls_expire_in = ActiveStorage.service_urls_expire_in
+    ActiveStorage.urls_expire_in = -> { 1.minute }
+    ActiveStorage.service_urls_expire_in = -> { 1.hour }
+  end
+
+  teardown do
+    ActiveStorage.urls_expire_in = @old_urls_expire_in
+    ActiveStorage.service_urls_expire_in = @old_service_urls_expire_in
+  end
+
+  test "callable urls_expire_in is resolved when signing the ID" do
+    get rails_storage_redirect_url(@blob)
+    assert_redirected_to(/racecar\.jpg/)
+  end
+
+  test "callable urls_expire_in expires the signed ID" do
+    url = rails_storage_redirect_url(@blob)
+    travel 2.minutes
+    get url
+    assert_response :not_found
+  end
+
+  test "callable service_urls_expire_in is resolved for the Cache-Control header" do
+    get rails_storage_redirect_url(@blob)
+    assert_equal "max-age=3600, private", response.headers["Cache-Control"]
+  end
+end
+
 class ActiveStorage::Blobs::RedirectControllerWithOpenRedirectTest < ActionDispatch::IntegrationTest
   if SERVICE_CONFIGURATIONS[:s3]
     test "showing existing blob stored in s3" do
