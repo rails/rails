@@ -1,3 +1,13 @@
+*   Fix the PostgreSQL subscription adapter dropping broadcasts to long multibyte stream names.
+
+    PostgreSQL identifiers are limited to 63 *bytes*, and the adapter hashes any
+    name over that limit to avoid silent truncation. The length check was done on
+    character count rather than byte size, so a multibyte stream name with 63 or
+    fewer characters but more than 63 bytes was silently truncated by PostgreSQL.
+
+    *Kenta Ishizaki*
+
+
 ## Rails 8.0.5 (March 24, 2026) ##
 
 *   No changes.
