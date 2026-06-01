@@ -121,7 +121,7 @@ GuestsCleanupJob.perform_later(guest)
 ```
 
 The [`set`](https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set) method can specify exactly when to perform the job.
- 
+
 To enqueue a job to be performed tomorrow at noon:
 
 ```ruby
@@ -841,6 +841,7 @@ config.solid_queue.connects_to = { database: { writing: :queue } }
 
 Add `queue` to the development database configuration:
 
+```yml
 # config/database.yml
 development:
   primary:
