@@ -274,6 +274,39 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_match "Success", response.body
   end
 
+  test "hosts configured with explicit port work" do
+    @app = build_app(["host.test:3000"])
+
+    get "/", env: {
+      "HOST" => "host.test:3000",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
+  test "blocks malformed hosts with extra ports" do
+    redirect_app = -> env do
+      request = ActionDispatch::Request.new(env)
+      uri = URI.parse("/login")
+      uri.scheme = request.scheme
+      uri.host = request.host
+
+      [301, { Rack::LOCATION => uri.to_s }, []]
+    end
+
+    @app = build_app(["www.example.com:80"], lint: false, app: redirect_app)
+
+    get "/", env: {
+      "HOST" => "www.example.com:80:80",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :forbidden
+    assert_match "Blocked hosts: www.example.com:80:80", response.body
+  end
+
   test "blocks requests with spoofed X-FORWARDED-HOST" do
     @app = build_app([IPAddr.new("127.0.0.1")])
 
