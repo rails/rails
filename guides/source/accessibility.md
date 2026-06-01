@@ -128,9 +128,8 @@ the web:
 * **Screen magnifiers:** Programs that enlarge portions of the screen for people
   with low vision. Users see only a small area of the page at a time and
   navigate by panning around. Good structure, consistent layouts, and clear
-  focus indicators help magnifier users orient themselves. Windows includes
-  Magnifier, macOS and iOS/iPadOS include Zoom, and Android includes
-  Magnification.
+  focus indicators help magnifier users orient themselves. macOS and iOS/iPadOS
+  include Zoom, Windows includes Magnifier, and Android includes Magnification.
 
 * **Voice control:** Software that allows users to speak commands instead of
   using a keyboard or mouse. A user might say "click Submit" or "click Email" to
@@ -148,7 +147,8 @@ the web:
 
 * **Hands-free pointing:** Head and eye trackers let people with significant
   motor limitations control a cursor without a mouse. Activation usually relies
-  on dwell-to-click, so adequate target size and pointer-friendly interactions
+  on dwell-to-click, where holding the pointer still over a target for a moment
+  triggers a click, so adequate target size and pointer-friendly interactions
   matter most for these users. macOS includes Head Pointer, iOS and iPadOS
   include Eye Tracking, and Windows offers Eye Control with compatible hardware.
 
@@ -241,11 +241,11 @@ between, then stop at whatever they want to read in full.
 The categories readers jump through are consistent everywhere: headings (and
 specific heading levels), landmark regions, links, buttons, form fields, tables,
 graphics, and lists. How each category is triggered differs per reader, though.
-NVDA and Orca assign one letter of the alphabet to each category: pressing that
-letter jumps to the next element of that type. VoiceOver on macOS calls the
-feature the **Rotor**, a category picker the user opens to choose what to step
-through, and also offers a single-letter mode called **Quick Nav** that behaves
-like NVDA and Orca.
+Screen readers NVDA and Orca assign one letter of the alphabet to each category:
+pressing that letter jumps to the next element of that type. VoiceOver on macOS
+calls the feature the **Rotor**, a category picker the user opens to choose what
+to step through, and also offers a single-letter mode called **Quick Nav** that
+behaves like NVDA and Orca.
 
 This is why HTML structure matters so much. Quick navigation only works when the
 page has the structure it jumps through. If a page has no headings, the heading
@@ -331,12 +331,16 @@ behavior that the `<button>` provides. A native `<button>`:
 * Submits its parent form when pressed.
 * Shows a native focus indicator.
 
-Some of this can be added manually: `tabindex="0"` for focus, `role="button"`
-for screen reader announcement, JavaScript handlers for Enter, Space, and click.
-But the browser provides many subtle behaviors for free, and it is easy to miss
-one: form submission, `disabled` state management, focus handling, interaction
-with screen reader modes, and more. The native element is what guarantees the
-keyboard and name/role/value plumbing that WCAG requires ([WCAG 2.1.1
+Some of this can be added manually:
+
+* `tabindex="0"` for focus.
+* JavaScript handlers for Enter, Space, and click.
+* `role="button"` for screen reader announcement.
+
+But the browser provides many subtle behaviors for free: form submission,
+`disabled` state management, focus handling, interaction with screen reader
+modes, and more. It is easy to miss one. The native element is what guarantees
+the keyboard and name/role/value plumbing that WCAG requires ([WCAG 2.1.1
 Keyboard][wcag-keyboard], [WCAG 4.1.2 Name, Role, Value][wcag-name-role-value]).
 
 [wcag-keyboard]: https://www.w3.org/WAI/WCAG22/Understanding/keyboard.html
@@ -392,6 +396,15 @@ directly as a string:
 The screen reader now announces "Delete article, button" instead of just
 "button."
 
+NOTE: The HTML [`title`][title-attr] attribute is sometimes used for the same
+purpose, but it is unreliable as the sole source of an accessible name. Browsers
+only reveal it as a tooltip on mouse hover, so touch and keyboard users cannot
+see it, and screen reader support varies. It can be useful as an additional hint
+on an element that already has a visible label or an `aria-label`, but do not
+rely on it to name a control.
+
+[title-attr]: https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/title
+
 Sometimes an element needs a name that is already visible on the page, for
 example when a page has multiple `<nav>` elements and screen reader users need
 to tell them apart. [`aria-labelledby`][aria-labelledby] solves this by
@@ -420,9 +433,11 @@ voice control users would say ([WCAG 2.5.3 Label in Name][wcag-label-in-name]).
 
 [wcag-label-in-name]: https://www.w3.org/WAI/WCAG22/Understanding/label-in-name.html
 
-The `aria-labelledby` attribute accepts more than one ID separated by spaces.
+The `aria-labelledby` attribute accepts more than one ID, separated by spaces.
 This lets the accessible name compose from several existing pieces of page
 content without duplicating strings.
+
+#### Naming Best Practices
 
 When an element does have visible text, any `aria-label` or `aria-labelledby`
 applied to it must contain that visible text verbatim, ideally as a prefix.
@@ -446,15 +461,6 @@ conflict with how the user has configured their reader. Name the control, trust
 the native announcement, and rewrite the name itself if it causes friction in
 pronunciation.
 
-NOTE: The HTML [`title`][title-attr] attribute is sometimes used for the same
-purpose, but it is unreliable as the sole source of an accessible name. Browsers
-only reveal it as a tooltip on mouse hover, so touch and keyboard users cannot
-see it, and screen reader support varies. It can be useful as an additional hint
-on an element that already has a visible label or an `aria-label`, but do not
-rely on it to name a control.
-
-[title-attr]: https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/title
-
 #### Naming Limitations and Visually Hidden Text
 
 `aria-label` and `aria-labelledby` only work on elements whose **role** supports
@@ -462,16 +468,27 @@ naming: interactive elements, landmarks, and other identifiable roles like
 `<img>`, `<table>`, `<dialog>`, `group`, or `list`. They are **prohibited** on
 elements with a role that does not support naming. A plain `<div>`, `<span>`, or
 `<p>` has a role (`generic` or `paragraph`) that prohibits naming, so
-`aria-label` on these elements is invalid and screen readers will ignore it.
-However, the restriction is on the *role*, not the *element*: `<div role="group"
-aria-label="...">` is valid because the `group` role supports naming, even
-though the underlying element is a `<div>`. The WAI-ARIA specification lists all
-[roles supporting name from
-author](https://www.w3.org/TR/wai-aria-1.2/#namefromauthor).
+`aria-label` on these elements is invalid. However, the restriction is on the
+*role*, not the *element*: `<div role="group" aria-label="...">` is valid
+because the `group` role supports naming, even though the underlying element is
+a `<div>`. The WAI-ARIA specification lists all [roles supporting
+naming](https://www.w3.org/TR/wai-aria-1.2/#namefromauthor).
 
-This means that on a generic element like a paragraph or a `<div>`, `aria-label`
-is ignored entirely. And on elements whose role does accept it, the attribute
-*replaces* the accessible name rather than adding to it.
+A notification badge is a common case where this goes wrong. Sighted users see a
+number beside a bell icon, but the number alone means nothing to a screen
+reader, and the instinct is to reach for an `aria-label` on the `<span>`.
+
+```html+erb
+<span aria-hidden="true">🔔</span>
+<span aria-label="unread notifications">3</span>
+```
+
+A plain `<span>` has the `generic` role, which is not meant to carry a label,
+making this `aria-label` invalid. Screen readers handle it inconsistently, and
+the "unread notifications" label reaches some users while others get only "3"
+with no hint of what it counts, so the context cannot be relied on. On an
+element whose role *does* support naming the attribute fails the other way,
+replacing the accessible name instead of adding to it.
 
 The solution is **visually hidden text**, a `<span>` that is visible to screen
 readers but hidden from sighted users with CSS. This is useful for adding
@@ -490,8 +507,6 @@ does not support naming, or when the context is part of a larger text flow:
 ```
 
 ```html+erb
-<%# A notification badge: sighted users see "3" next to a bell icon,
-    but a screen reader needs to know what "3" means %>
 <span aria-hidden="true">🔔</span>
 <span>3<span class="visually-hidden"> unread notifications</span></span>
 ```
@@ -559,8 +574,8 @@ visible on the page, such as a hint below a form field:
 The screen reader announces the label, the field type, and the description, for
 example: "Password, secure text field, Must be at least 12 characters."
 
-Like `aria-labelledby`, `aria-describedby` accepts more than one ID separated by
-spaces, so a description can compose from several existing pieces of page
+Like `aria-labelledby`, `aria-describedby` accepts more than one ID, separated
+by spaces, so a description can compose from several existing pieces of page
 content without duplicating strings.
 
 NOTE: Like `aria-label`, descriptions only work reliably on elements whose role
@@ -777,7 +792,9 @@ export default class extends Controller {
 When using `aria-pressed`, do not change the button's text to reflect the state.
 If the button says "Like" when unpressed and "Unlike" when pressed, the screen
 reader announces "Unlike, pressed", which contradicts itself. Keep the text
-stable and let `aria-pressed` carry the state.
+stable and let `aria-pressed` carry the state. If the design instead needs the
+label itself to change, that is also a valid approach, covered in [Announcing
+Dynamic Changes with `aria-live`](#announcing-dynamic-changes-with-aria-live).
 
 Also avoid toggle verbs like "Toggle sidebar" in the label: saying "toggle"
 duplicates what `aria-pressed` already communicates. Prefer action verbs like
@@ -822,8 +839,8 @@ Two related attributes control what gets announced:
 
 * [`aria-atomic="true"`][aria-atomic]: Announces the **entire** live region
   content when any part changes, not just the changed part. Useful when the
-  change only makes sense in context, for example a clock showing "12:35 PM"
-  where announcing just "35" would be meaningless.
+  change only makes sense in context. For example, a clock changing to "12:35
+  PM" should announce "12:35 PM", not just "35".
 * [`aria-relevant`][aria-relevant]: Controls which types of changes trigger
   announcements. Values can be combined (space-separated):
   * `additions`: New elements added to the region.
@@ -942,8 +959,10 @@ handle all other button behaviors by hand. And as the [Semantic
 HTML](#semantic-html) section explained, the result rarely matches the quality
 of the native element.
 
-This is why the most important rule of ARIA is: **if a native HTML element
+This is why [the W3C's first rule][using-aria] is: **if a native HTML element
 provides the semantics and behavior required, use it instead of adding ARIA.**
+
+[using-aria]: https://www.w3.org/TR/using-aria/#rule1
 
 NOTE: Incorrect ARIA is worse than no ARIA at all. The [WebAIM Million
 report](https://webaim.org/projects/million/) finds year after year that home
