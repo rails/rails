@@ -130,6 +130,20 @@ class StoreTest < ActiveRecord::TestCase
     assert_not @john.color_changed?
   end
 
+  test "changing one accessor does not report a change for a sibling accessor" do
+    @john.homepage = "http://www.example.com"
+    @john.save!
+
+    @john.color = "red"
+    assert_predicate @john, :color_changed?
+    assert_not @john.homepage_changed?
+    assert_nil @john.homepage_change
+
+    @john.save!
+    assert_predicate @john, :saved_change_to_color?
+    assert_nil @john.saved_change_to_homepage
+  end
+
   test "nullifying the store mark accessor as changed" do
     color = @john.color
     @john.settings = nil

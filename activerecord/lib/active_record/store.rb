@@ -152,7 +152,8 @@ module ActiveRecord
             define_method("#{accessor_key}_change") do
               return unless attribute_changed?(store_attribute)
               prev_store, new_store = changes[store_attribute]
-              [prev_store&.dig(key), new_store&.dig(key)]
+              prev_value, new_value = prev_store&.dig(key), new_store&.dig(key)
+              [prev_value, new_value] unless prev_value == new_value
             end
 
             define_method("#{accessor_key}_was") do
@@ -170,7 +171,8 @@ module ActiveRecord
             define_method("saved_change_to_#{accessor_key}") do
               return unless saved_change_to_attribute?(store_attribute)
               prev_store, new_store = saved_changes[store_attribute]
-              [prev_store&.dig(key), new_store&.dig(key)]
+              prev_value, new_value = prev_store&.dig(key), new_store&.dig(key)
+              [prev_value, new_value] unless prev_value == new_value
             end
 
             define_method("#{accessor_key}_before_last_save") do
