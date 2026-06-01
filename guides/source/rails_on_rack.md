@@ -572,7 +572,7 @@ A Rack response can be written in a Rails controller as:
 ```ruby
 class HomeController
   def index
-    self.response = [200, {}, ["I'm Home!"]]
+    self.response = Rack::Response[200, {}, ["I'm Home!"]]
   end
 end
 ```
