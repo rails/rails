@@ -1,3 +1,9 @@
+*   Update Active Storage for ImageProcessing 2.0.
+
+    ImageProcessing 2.0 now requires adding `ruby-vips` or `mini_magick` gems explicitly to the Gemfile.
+
+    *Janko Marohnić*
+
 *   Prevent `ActiveStorage.touch_attachment_records = false` from crashing the attachment of a Blob.
 
     When `ActiveStorage.touch_attachment_records` was set to `false`, attaching a existing Blob to a Record

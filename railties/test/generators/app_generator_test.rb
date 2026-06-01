@@ -419,12 +419,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     FileUtils.cd(destination_root) do
       config = "config/application.rb"
       content = File.read(config)
-      File.write(config, content.gsub(/config\.load_defaults #{Rails::VERSION::STRING.to_f}/, "config.load_defaults 5.1"))
+      File.write(config, content.gsub(/config\.load_defaults #{Rails::VERSION::STRING.to_f}/, "config.load_defaults 8.0"))
     end
 
     run_app_update
 
-    assert_file "config/application.rb", /\s+config\.load_defaults 5\.1/
+    assert_file "config/application.rb", /\s+config\.load_defaults 8\.0/
   end
 
   def test_app_update_generates_new_framework_defaults_when_load_defaults_is_previous_version

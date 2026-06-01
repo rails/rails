@@ -11,7 +11,7 @@
 # default, images will be processed with {libvips}[http://libvips.github.io/libvips/] using the
 # {ruby-vips}[https://github.com/libvips/ruby-vips] gem, but you can also switch to the
 # {ImageMagick}[http://imagemagick.org] processor operated by the {MiniMagick}[https://github.com/minimagick/minimagick]
-# gem).
+# gem). You'll need to add either <tt>gem "ruby-vips"</tt> or <tt>gem "mini_magick"</tt> to your Gemfile.
 #
 #   Rails.application.config.active_storage.variant_processor
 #   # => :vips

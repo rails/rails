@@ -37,19 +37,20 @@ module ApplicationTests
     def test_default_transformer_missing_gem_warning
       output = run_command("puts ActiveStorage.variant_transformer")
 
-      assert_includes(output, 'Generating image variants require the image_processing gem. Please add `gem "image_processing", "~> 1.2"` to your Gemfile')
+      assert_includes(output, 'Generating image variants require the image_processing gem. Please add `gem "image_processing", "~> 2.0"` to your Gemfile')
     end
 
     def test_default_transformer_with_gem_no_warning
       File.open("#{app_path}/Gemfile", "a") do |f|
         f.puts <<~GEMFILE
-          gem "image_processing", "~> 1.2"
+          gem "image_processing", "~> 2.0"
+          gem "ruby-vips", "~> 2.3"
         GEMFILE
       end
 
       output = run_command("puts ActiveStorage.variant_transformer")
 
-      assert_not_includes(output, 'Generating image variants require the image_processing gem. Please add `gem "image_processing", "~> 1.2"` to your Gemfile')
+      assert_not_includes(output, 'Generating image variants require the image_processing gem. Please add `gem "image_processing", "~> 2.0"` to your Gemfile')
       assert_includes(output, "ActiveStorage::Transformers::Vips")
     end
 
@@ -58,7 +59,7 @@ module ApplicationTests
 
       output = run_command("puts ActiveStorage.variant_transformer")
 
-      assert_not_includes(output, 'Generating image variants require the image_processing gem. Please add `gem "image_processing", "~> 1.2"` to your Gemfile')
+      assert_not_includes(output, 'Generating image variants require the image_processing gem. Please add `gem "image_processing", "~> 2.0"` to your Gemfile')
       assert_includes(output, "ActiveStorage::Transformers::NullTransformer")
     end
 
