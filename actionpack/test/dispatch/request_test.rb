@@ -1446,3 +1446,30 @@ class RequestSession < BaseRequestTest
     assert_instance_of(ActionDispatch::Request::Session::Options, ActionDispatch::Request::Session::Options.find(@request))
   end
 end
+
+class RequestIfModifiedSince < BaseRequestTest
+  # RFC 9110 §5.6.7 requires recipients to accept all three legal HTTP-date
+  # formats (IMF-fixdate, RFC 850, and asctime) in `If-Modified-Since`.
+  test "if_modified_since parses all three HTTP-date formats" do
+    expected = Time.utc(1994, 11, 6, 8, 49, 37)
+
+    {
+      "IMF-fixdate" => "Sun, 06 Nov 1994 08:49:37 GMT",
+      "RFC 850"     => "Sunday, 06-Nov-94 08:49:37 GMT",
+      "asctime"     => "Sun Nov  6 08:49:37 1994",
+    }.each do |format, header|
+      request = stub_request("HTTP_IF_MODIFIED_SINCE" => header)
+      assert_equal expected, request.if_modified_since, "expected #{format} If-Modified-Since to be parsed"
+      assert request.not_modified?(expected), "expected #{format} If-Modified-Since to satisfy not_modified?"
+    end
+  end
+
+  test "if_modified_since is nil for an unparseable header" do
+    request = stub_request("HTTP_IF_MODIFIED_SINCE" => "this is not a date")
+    assert_nil request.if_modified_since
+  end
+
+  test "if_modified_since is nil when the header is absent" do
+    assert_nil stub_request.if_modified_since
+  end
+end

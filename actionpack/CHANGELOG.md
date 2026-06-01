@@ -1,3 +1,15 @@
+*   Parse all three HTTP-date formats in the `If-Modified-Since` request header.
+
+    `If-Modified-Since` carries an HTTP-date, which RFC 9110 allows in any of
+    three formats (IMF-fixdate, RFC 850, or asctime), and requires recipients to
+    accept all three. The header was parsed with `Time.rfc2822`, which only
+    accepts the IMF-fixdate format, and the parse failure was swallowed — so a
+    conditional `GET` using an RFC 850 or asctime date silently failed to produce
+    a `304 Not Modified` and re-sent the full response. It is now parsed with
+    `Time.httpdate`, consistent with how `Last-Modified` and `Date` are read.
+
+    *Kenta Ishizaki*
+
 *   Fix response steam buffers compatibility with `IO.copy_stream`.
 
     `IO.copy_stream(src, response.stream)` raised `TypeError: no implicit
