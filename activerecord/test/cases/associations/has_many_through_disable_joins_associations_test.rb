@@ -16,6 +16,10 @@ require "models/parrot"
 require "models/hotel"
 require "models/department"
 
+require "models/cpk/author"
+require "models/cpk/book"
+require "models/cpk/order"
+
 class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :authors, :comments, :pirates, :author_addresses
 
@@ -193,5 +197,16 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
   def test_limit_and_scope_in_double_join_applies_limit_in_memory
     disable_joins_sql = capture_sql { @author.no_joins_members.unnamed.first }
     assert_no_match(/LIMIT 1/, disable_joins_sql.last)
+  end
+
+  def test_ordered_disable_joins_through_with_composite_primary_key_source
+    author = Cpk::Author.create!(name: "Eddie")
+    order1 = Cpk::Order.create!(shop_id: 1, status: "open")
+    order2 = Cpk::Order.create!(shop_id: 1, status: "closed")
+    Cpk::Book.create!(id: [author.id, 1], title: "first", order: order1)
+    Cpk::Book.create!(id: [author.id, 2], title: "second", order: order2)
+
+    assert_equal author.orders.to_a, author.no_joins_orders.to_a
+    assert_equal [order2, order1], author.no_joins_orders.to_a
   end
 end
