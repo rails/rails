@@ -22,7 +22,8 @@ What is Active Job?
 
 The Active Job Rails framework allows you to declare background jobs and execute
 them on a queuing backend. It provides a consistent, high-level interface for
-common asynchronous tasks such as sending emails, processing data, or performing periodic maintenance tasks.
+common asynchronous tasks such as sending emails, processing data, or performing
+periodic maintenance tasks.
 
 The goal of background jobs is to move long-running or non-critical work out of
 the HTTP request-response cycle and into a background queue (such as the default
@@ -121,7 +122,9 @@ To enqueue a job to be performed later:
 GuestsCleanupJob.perform_later(guest)
 ```
 
-The [`set`](https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set) method can specify exactly when to perform the job.
+The
+[`set`](https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set)
+method can specify exactly when to perform the job.
 
 To enqueue a job to be performed tomorrow at noon:
 
@@ -192,9 +195,9 @@ ActiveJob supports the following types of arguments by default:
   - `Class`
 
 Active Job supports
-[GlobalID](https://github.com/rails/globalid/blob/main/README.md) for
-arguments. This makes it possible to pass live Active Record objects to your
-job instead of class/id pairs, which you then have to manually deserialize.
+[GlobalID](https://github.com/rails/globalid/blob/main/README.md) for arguments.
+This makes it possible to pass live Active Record objects to your job instead of
+class/id pairs, which you then have to manually deserialize.
 
 For example, instead of having to do something like this:
 
@@ -560,12 +563,12 @@ enqueue jobs one by one.
 
 ### Job Attributes
 
-Active Job attributes let jobs declare typed state using the
-[`Active Model Attributes API`][]. Attribute values are serialized when the job
-is interrupted or retried, and restored when the job resumes. This is
-especially useful where one step may compute a value needed by a later step.
-`ActiveJob::Continuable` includes [`ActiveJob::Attributes`][], so continuable
-jobs can declare attributes directly:
+Active Job attributes let jobs declare typed state using the [`Active Model
+Attributes API`][]. Attribute values are serialized when the job is interrupted
+or retried, and restored when the job resumes. This is especially useful where
+one step may compute a value needed by a later step. `ActiveJob::Continuable`
+includes [`ActiveJob::Attributes`][], so continuable jobs can declare attributes
+directly:
 
 ```ruby
 class SubmitEnrollmentJob < ApplicationJob
@@ -591,8 +594,8 @@ class SubmitEnrollmentJob < ApplicationJob
 end
 ```
 
-Attribute values must be serializable as
-[Active Job arguments](#supported-types-for-arguments). For more details, see
+Attribute values must be serializable as Active Job supported
+arguments types. For more details, see
 [`ActiveJob::Attributes`][].
 
 [`Active Model Attributes API`]:
@@ -799,7 +802,10 @@ class ProcessImportJob < ApplicationJob
 end
 ```
 
-In the above example, the cursor tracks the `id` of the last successfully processed record. If the job is interrupted midway through a large import, it resumes from where it left off rather than reprocessing records from the beginning, passing the saved cursor value to `find_each`.
+In the above example, the cursor tracks the `id` of the last successfully
+processed record. If the job is interrupted midway through a large import, it
+resumes from where it left off rather than reprocessing records from the
+beginning, passing the saved cursor value to `find_each`.
 
 Job Continuations make it easier to build long-running or multi-phase jobs that
 can safely pause and resume without losing progress. For more details, see
@@ -873,8 +879,8 @@ in memory. With the default `async` adapter, if the process crashes or the
 machine is reset, then all outstanding jobs are lost. This can be acceptable for
 non-critical jobs in development.
 
-Alternatively, you can use Solid Queue in development. It can be configured
-in the same way as in the production environment:
+Alternatively, you can use Solid Queue in development. It can be configured in
+the same way as in the production environment:
 
 ```ruby#3
 # config/environments/development.rb
@@ -903,7 +909,8 @@ Solid Queue uses three types of processes to handle job queueing and execution:
 1. Workers poll queues for jobs that are ready to run and execute them.
 2. Dispatchers handle scheduled jobs — they check for jobs due to run in the
 future and move them into the ready queue for workers to pick up.
-3. A Supervisor manages both workers and dispatchers, by forking and monitoring them.
+3. A Supervisor manages both workers and dispatchers, by forking and monitoring
+   them.
 
 When you run `bin/jobs start`, you're starting the supervisor process, which in
 turn forks and manages the workers and dispatchers according to the
@@ -1389,7 +1396,8 @@ end
 
 ### Missing Records
 
-GlobalID will use the unique identifier to locate the full Active Record object when calling `#perform`.
+GlobalID will use the unique identifier to locate the full Active Record object
+when calling `#perform`.
 
 If a passed record is deleted after the job is enqueued but before the
 `#perform` method is called Active Job will raise an
