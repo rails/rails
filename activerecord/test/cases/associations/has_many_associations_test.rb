@@ -3247,6 +3247,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
   end
 
+  def test_ids_writer_with_composite_primary_key_and_string_ids
+    great_author = cpk_authors(:cpk_great_author)
+    book_ids = great_author.books.ids
+
+    # ids coming from request params, URLs, or JSON are strings.
+    great_author.book_ids = book_ids.map { |id| id.map(&:to_s) }
+
+    assert_equal book_ids.sort, great_author.reload.books.ids.sort
+  end
+
   private
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target
