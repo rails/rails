@@ -131,6 +131,21 @@ module ActiveRecord
             end
           end
 
+          def schema_precision(column)
+            if [:timestamp, :timestamptz].include?(column.type)
+              case column.precision
+              when nil
+                "nil"
+              when DEFAULT_DATETIME_PRECISION
+                nil
+              else
+                column.precision.inspect
+              end
+            else
+              super
+            end
+          end
+
           def schema_expression(column)
             super unless column.serial?
           end
