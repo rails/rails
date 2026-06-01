@@ -2032,8 +2032,9 @@ indicator (an arrow, bold text) showing which column is sorted and in which
 direction. A screen reader user has no way to perceive these visual cues.
 
 The [`aria-sort`][aria-sort] attribute on the `<th>` communicates the current
-sort state programmatically. It accepts `ascending`, `descending`, or `none`.
-Only the currently sorted column should have this attribute:
+sort state programmatically. It accepts `ascending`, `descending`, `none`, or
+`other` for a sort order that is neither ascending nor descending. Only the
+currently sorted column should have this attribute:
 
 [aria-sort]: https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-sort
 
