@@ -286,6 +286,18 @@ class HostAuthorizationTest < ActionDispatch::IntegrationTest
     assert_match "Success", response.body
   end
 
+  test "hosts configured with explicit port work (IPv6)" do
+    @app = build_app(["[2001:db8:3333:4444:5555:6666:7777:8888]:3000"])
+
+    get "/", env: {
+      "HOST" => "[2001:db8:3333:4444:5555:6666:7777:8888]:3000",
+      "action_dispatch.show_detailed_exceptions" => true
+    }
+
+    assert_response :ok
+    assert_match "Success", response.body
+  end
+
   test "blocks malformed hosts with extra ports" do
     redirect_app = -> env do
       request = ActionDispatch::Request.new(env)
