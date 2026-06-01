@@ -26,16 +26,16 @@ class DateTime
   #
   # ==== Adding your own datetime formats to +to_fs+
   #
-  # DateTime formats are shared with Time. You can add your own to the
-  # +Time::DATE_FORMATS+ hash. Use the format name as the hash key and
+  # DateTime formats are shared with Time. You can add your own format using the
+  # +ActiveSupport::TimeFormats.register+ method. Use the format name as the key and
   # either a strftime string or Proc instance that takes a time or
   # datetime argument as the value.
   #
   #   # config/initializers/time_formats.rb
-  #   Time::DATE_FORMATS[:month_and_year] = '%B %Y'
-  #   Time::DATE_FORMATS[:short_ordinal] = lambda { |time| time.strftime("%B #{time.day.ordinalize}") }
+  #   ActiveSupport::TimeFormats.register(:month_and_year, '%B %Y')
+  #   ActiveSupport::TimeFormats.register(:short_ordinal, ->(date) { date.strftime("%B #{date.day.ordinalize}") })
   def to_fs(format = :default)
-    if formatter = ::Time::DATE_FORMATS[format]
+    if formatter = ::ActiveSupport::TimeFormats.lookup(format)
       formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
     else
       to_s

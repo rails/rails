@@ -155,6 +155,14 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal(blog_post, comment.blog_post)
   end
 
+  def test_belongs_to_a_model_with_composite_primary_key_sets_inverse_of
+    order = cpk_orders(:cpk_groceries_order_1)
+    store_id, _order_id = order.id
+    book = order.books.create!(id: [store_id, 4], title: "Book")
+
+    assert_same book.order, book.order.books.first.order
+  end
+
   def test_belongs_to_a_cpk_model_by_id_attribute
     order = cpk_orders(:cpk_groceries_order_1)
     _order_shop_id, order_id = order.id
@@ -806,7 +814,7 @@ end
 class PreloaderTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories, :author_addresses,
            :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags, :sharded_tags,
-           :members, :member_details, :organizations, :cpk_orders, :cpk_order_agreements,
+           :members, :member_details, :organizations, :cpk_authors, :cpk_orders, :cpk_books, :cpk_order_agreements,
            :dogs, :other_dogs
 
   def test_preload_with_scope
@@ -1429,6 +1437,20 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_with_unpersisted_records_with_composite_foreign_key_no_ops
+    order = Cpk::Order.new
+    new_book_with_order = Cpk::Book.new(order: order)
+    new_book_without_order = Cpk::Book.new
+    books = [new_book_with_order, new_book_without_order]
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: books, associations: :order).call
+
+      assert_same order, new_book_with_order.order
+      assert_nil new_book_without_order.order
+    end
+  end
+
   def test_preload_wont_set_the_wrong_target
     post = posts(:welcome)
     post.update!(author_id: 54321)
@@ -1544,6 +1566,17 @@ class PreloaderTest < ActiveRecord::TestCase
       ActiveRecord::Associations::Preloader.new(records: [post], associations: :comments).call
 
       assert_equal [comment], post.comments.to_a
+    end
+  end
+
+  def test_preload_keeps_built_has_many_records_with_composite_key_no_ops
+    order = Cpk::Order.new
+    book = order.books.build
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [order], associations: :books).call
+
+      assert_equal [book], order.books.to_a
     end
   end
 

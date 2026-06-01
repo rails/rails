@@ -184,7 +184,7 @@ module ActiveRecord
       # The +options+ hash can include the following keys:
       # [<tt>:id</tt>]
       #   Whether to automatically add a primary key column. Defaults to true.
-      #   Join tables for {ActiveRecord::Base.has_and_belongs_to_many}[rdoc-ref:Associations::ClassMethods#has_and_belongs_to_many] should set it to false.
+      #   Join tables for {ActiveRecord::Base.has_and_belongs_to_many}[rdoc-ref:Associations::ClassMethods#has_and_belongs_to_many] set it to false by default.
       #
       #   A Symbol can be used to specify the type of the generated primary key column.
       #
@@ -302,33 +302,40 @@ module ActiveRecord
           raise ArgumentError, "Options `:force` and `:if_not_exists` cannot be used simultaneously."
         end
 
-        td = build_create_table_definition(table_name, id: id, primary_key: primary_key, force: force, **options, &block)
+        statements = []
 
         if force
-          drop_table(table_name, force: force, if_exists: true)
-        else
-          schema_cache.clear_data_source_cache!(table_name.to_s)
+          statements << drop_table_sql(table_name, force: force, if_exists: true)
         end
 
-        result = execute schema_creation.accept(td)
+        schema_cache.clear_data_source_cache!(table_name.to_s)
+
+        td = build_create_table_definition(table_name, id: id, primary_key: primary_key, force: force, **options, &block)
+        statements << schema_creation.accept(td)
 
         unless supports_indexes_in_create?
           td.indexes.each do |column_name, index_options|
-            add_index(table_name, column_name, **index_options, if_not_exists: td.if_not_exists)
+            index_definition = build_create_index_definition(table_name, column_name, **index_options, if_not_exists: td.if_not_exists)
+
+            statements << schema_creation.accept(index_definition)
+
+            if supports_comments? && !supports_comments_in_create?
+              statements << change_index_comment_sql(index_definition.index, table_name) if index_definition.index.comment.present?
+            end
           end
         end
 
         if supports_comments? && !supports_comments_in_create?
           if table_comment = td.comment.presence
-            change_table_comment(table_name, table_comment)
+            statements << change_table_comment_sql(table_name, table_comment)
           end
 
           td.columns.each do |column|
-            change_column_comment(table_name, column.name, column.comment) if column.comment.present?
+            statements << change_column_comment_sql(table_name, column.name, column.comment) if column.comment.present?
           end
         end
 
-        result
+        execute_batch statements
       end
 
       # Returns a TableDefinition object containing information about the table that would be created
@@ -372,6 +379,9 @@ module ActiveRecord
       # [<tt>:force</tt>]
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
+      # [<tt>:primary_key</tt>]
+      #   By default no primary key is added for join tables. Use this option to set the primary key
+      #   and it's name. If an array is passed, a composite primary key will be created.
       #
       # Note that #create_join_table does not create any indices by default; you can use
       # its block form to do so yourself:
@@ -405,14 +415,29 @@ module ActiveRecord
       #     part_id bigint NOT NULL,
       #   ) ENGINE=InnoDB DEFAULT CHARSET=utf8
       #
+      # ====== Add a composite primary key
+      #
+      #   create_join_table(:assemblies, :parts, primary_key: [:assembly_id, :part_id])
+      #
+      # generates:
+      #
+      #   CREATE TABLE assemblies_parts (
+      #     assembly_id bigint NOT NULL,
+      #     part_id bigint NOT NULL,
+      #   );
+      #
+      #  ALTER TABLE ONLY "assemblies_parts"
+      #      ADD CONSTRAINT assemblies_parts_pkey PRIMARY KEY (assembly_id, part_id);
+      #
       def create_join_table(table_1, table_2, column_options: {}, **options)
         join_table_name = find_join_table_name(table_1, table_2, options)
 
         column_options.reverse_merge!(null: false, index: false)
+        options.reverse_merge!(id: options[:primary_key] ? :primary_key : false)
 
         t1_ref, t2_ref = [table_1, table_2].map { |t| reference_name_for_table(t) }
 
-        create_table(join_table_name, **options.merge!(id: false)) do |td|
+        create_table(join_table_name, **options) do |td|
           td.references t1_ref, **column_options
           td.references t2_ref, **column_options
           yield td if block_given?
@@ -427,10 +452,11 @@ module ActiveRecord
       def build_create_join_table_definition(table_1, table_2, column_options: {}, **options) # :nodoc:
         join_table_name = find_join_table_name(table_1, table_2, options)
         column_options.reverse_merge!(null: false, index: false)
+        options.reverse_merge!(id: options[:primary_key] ? :primary_key : false)
 
         t1_ref, t2_ref = [table_1, table_2].map { |t| reference_name_for_table(t) }
 
-        build_create_table_definition(join_table_name, **options.merge!(id: false)) do |td|
+        build_create_table_definition(join_table_name, **options) do |td|
           td.references t1_ref, **column_options
           td.references t2_ref, **column_options
           yield td if block_given?
@@ -559,7 +585,7 @@ module ActiveRecord
       def drop_table(*table_names, **options)
         table_names.each do |table_name|
           schema_cache.clear_data_source_cache!(table_name.to_s)
-          execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}"
+          execute drop_table_sql(table_name, **options)
         end
       end
 
@@ -591,7 +617,10 @@ module ActiveRecord
       #   and number of bytes for <tt>:text</tt>, <tt>:binary</tt>, <tt>:blob</tt>, and <tt>:integer</tt> columns.
       #   This option is ignored by some backends.
       # * <tt>:null</tt> -
-      #   Allows or disallows +NULL+ values in the column.
+      #   Whether the column allows +NULL+ values. If unset, or set to true, the column
+      #   allows +NULL+ values. If set to +false+, a <tt>NOT NULL</tt> constraint is added.
+      #   Primary keys always get a <tt>NOT NULL</tt> constraint regardless. Setting this
+      #   option to true for primary keys raises +ArgumentError+.
       # * <tt>:precision</tt> -
       #   Specifies the precision for the <tt>:decimal</tt>, <tt>:numeric</tt>,
       #   <tt>:datetime</tt>, and <tt>:time</tt> columns.
@@ -823,7 +852,7 @@ module ActiveRecord
       #
       #   CREATE INDEX index_suppliers_on_name ON suppliers(name)
       #
-      # ====== Creating a index which already exists
+      # ====== Creating an index which already exists
       #
       #   add_index(:suppliers, :name, if_not_exists: true)
       #
@@ -1220,6 +1249,14 @@ module ActiveRecord
       #
       #   ALTER TABLE "articles" ADD CONSTRAINT fk_rails_e74ce85cbc FOREIGN KEY ("author_id") REFERENCES "authors" ("id") ON DELETE CASCADE
       #
+      # ====== Creating a not enforced foreign key (PostgreSQL 18.4+)
+      #
+      #   add_foreign_key :articles, :authors, enforced: false
+      #
+      # generates:
+      #
+      #   ALTER TABLE "articles" ADD CONSTRAINT fk_rails_e74ce85cbc FOREIGN KEY ("author_id") REFERENCES "authors" ("id") NOT ENFORCED
+      #
       # The +options+ hash can include the following keys:
       # [<tt>:column</tt>]
       #   The foreign key column name on +from_table+. Defaults to <tt>to_table.singularize + "_id"</tt>.
@@ -1241,6 +1278,11 @@ module ActiveRecord
       # [<tt>:deferrable</tt>]
       #   (PostgreSQL only) Specify whether or not the foreign key should be deferrable. Valid values are booleans or
       #   +:deferred+ or +:immediate+ to specify the default behavior. Defaults to +false+.
+      # [<tt>:enforced</tt>]
+      #   (PostgreSQL 18.4+) Specify whether or not
+      #   the foreign key should be enforced. Defaults to +true+. When set to +false+, the
+      #   constraint is created as +NOT ENFORCED+, meaning referential integrity is not
+      #   checked during DML.
       def add_foreign_key(from_table, to_table, **options)
         return unless use_foreign_keys?
 
@@ -1293,6 +1335,13 @@ module ActiveRecord
         at.drop_foreign_key fk_name_to_delete
 
         execute schema_creation.accept(at)
+      end
+
+      # Changes an existing foreign key on a table. Currently only the PostgreSQL
+      # adapter (version 18.4+) implements this; see
+      # PostgreSQL::SchemaStatements#change_foreign_key for details.
+      def change_foreign_key(from_table, to_table = nil, **options)
+        raise NotImplementedError, "change_foreign_key is not implemented"
       end
 
       # Checks to see if a foreign key exists on a table for a given foreign key definition.
@@ -1820,11 +1869,14 @@ module ActiveRecord
         end
 
         def index_column_names(column_names)
-          if expression_column_name?(column_names)
-            column_names
-          else
-            Array(column_names)
-          end
+          column_names = Array(column_names)
+          return column_names.join(", ") if has_expression_column_name?(column_names)
+
+          column_names
+        end
+
+        def has_expression_column_name?(column_names)
+          column_names.any? { |name| expression_column_name?(name) }
         end
 
         def index_name_options(column_names)
@@ -1997,6 +2049,24 @@ module ActiveRecord
         end
 
         def quoted_scope(name = nil, type: nil)
+          raise NotImplementedError
+        end
+
+        def drop_table_sql(table_name, if_exists: nil, force: nil, **)
+          exists = " IF EXISTS" if if_exists
+
+          "DROP TABLE#{exists} #{quote_table_name(table_name)}"
+        end
+
+        def change_table_comment_sql(table_name, comment_or_changes)
+          raise NotImplementedError
+        end
+
+        def change_column_comment_sql(table_name, column_name, comment_or_changes)
+          raise NotImplementedError
+        end
+
+        def change_index_comment_sql(index, table_name)
           raise NotImplementedError
         end
     end

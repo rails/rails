@@ -97,7 +97,7 @@ module ActionDispatch # :nodoc:
 
     CONTENT_TYPE = "Content-Type"
     SET_COOKIE   = "Set-Cookie"
-    NO_CONTENT_CODES = [100, 101, 102, 103, 204, 205, 304]
+    NO_CONTENT_CODES = [100, 101, 102, 103, 204, 205, 304].freeze
 
     cattr_accessor :default_charset, default: "utf-8"
     cattr_accessor :default_headers
@@ -119,7 +119,7 @@ module ActionDispatch # :nodoc:
         @str_body = nil
       end
 
-      BODY_METHODS = { to_ary: true }
+      BODY_METHODS = { to_ary: true }.freeze
 
       def respond_to?(method, include_private = false)
         if BODY_METHODS.key?(method)
@@ -150,7 +150,8 @@ module ActionDispatch # :nodoc:
 
         @str_body = nil
         @response.commit!
-        @buf.push string
+        @buf.push string.frozen? ? string : string.dup
+        string.bytesize
       end
       alias_method :<<, :write
 
@@ -557,7 +558,7 @@ module ActionDispatch # :nodoc:
         @response.body
       end
 
-      BODY_METHODS = { to_ary: true, each: true, call: true, to_path: true }
+      BODY_METHODS = { to_ary: true, each: true, call: true, to_path: true }.freeze
 
       def respond_to?(method, include_private = false)
         if BODY_METHODS.key?(method)

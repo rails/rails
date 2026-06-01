@@ -34,7 +34,7 @@ module ActiveRecord
     # * <tt>:password</tt> - Password to be used if the server demands password authentication.
     # * <tt>:database</tt> - Defaults to be the same as the username.
     # * <tt>:schema_search_path</tt> - An optional schema search path for the connection given
-    #   as a string of comma-separated schema names. This is backward-compatible with the <tt>:schema_order</tt> option.
+    #   as a string of comma-separated schema names.
     # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO
     #   <encoding></tt> call on the connection.
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a
@@ -71,7 +71,7 @@ module ActiveRecord
         end
 
         def dbconsole(config, options = {})
-          pg_config = config.configuration_hash
+          pg_config = config.configuration_hash.deep_dup
 
           ENV["PGUSER"]         = pg_config[:username] if pg_config[:username]
           ENV["PGHOST"]         = pg_config[:host] if pg_config[:host]
@@ -81,6 +81,11 @@ module ActiveRecord
           ENV["PGSSLCERT"]      = pg_config[:sslcert].to_s if pg_config[:sslcert]
           ENV["PGSSLKEY"]       = pg_config[:sslkey].to_s if pg_config[:sslkey]
           ENV["PGSSLROOTCERT"]  = pg_config[:sslrootcert].to_s if pg_config[:sslrootcert]
+
+          if pg_config[:schema_search_path]
+            pg_config[:variables] ||= {}
+            pg_config[:variables][:search_path] ||= pg_config[:schema_search_path]
+          end
           if pg_config[:variables]
             ENV["PGOPTIONS"] = pg_config[:variables].filter_map do |name, value|
               "-c #{name}=#{value.to_s.gsub(/[ \\]/, '\\\\\0')}" unless value == ":default" || value == :default
@@ -149,7 +154,7 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
       class_attribute :decode_bytea, default: false
 
-      NATIVE_DATABASE_TYPES = {
+      NATIVE_DATABASE_TYPES = { # rubocop:disable Style/MutableConstant
         primary_key: "bigserial primary key",
         string:      { name: "character varying" },
         text:        { name: "text" },
@@ -255,6 +260,13 @@ module ActiveRecord
         true
       end
 
+      def supports_enforced_foreign_keys?
+        # `NOT ENFORCED` foreign keys exist from PostgreSQL 18.0, but `DEFERRABLE` was lost on
+        # them until 18.4 ("Fix loss of deferrability of foreign-key triggers",
+        # https://www.postgresql.org/docs/release/18.4/).
+        database_version >= 18_00_04
+      end
+
       def supports_views?
         true
       end
@@ -282,9 +294,10 @@ module ActiveRecord
       def supports_insert_returning?
         true
       end
+      alias supports_update_returning? supports_insert_returning?
 
       def supports_insert_on_conflict?
-        database_version >= 9_05_00 # >= 9.5
+        true
       end
       alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
@@ -295,7 +308,7 @@ module ActiveRecord
       end
 
       def supports_identity_columns? # :nodoc:
-        database_version >= 10_00_00 # >= 10.0
+        true
       end
 
       def supports_nulls_not_distinct?
@@ -303,7 +316,7 @@ module ActiveRecord
       end
 
       def supports_native_partitioning? # :nodoc:
-        database_version >= 10_00_00 # >= 10.0
+        true
       end
 
       if PG::Connection.method_defined?(:close_prepared) # pg 1.6.0 & libpq 17
@@ -366,6 +379,7 @@ module ActiveRecord
 
         @max_identifier_length = nil
         @type_map = nil
+        @type_map_queried = false
         @raw_connection = nil
         @notice_receiver_sql_warnings = []
 
@@ -395,6 +409,7 @@ module ActiveRecord
           else
             @type_map = Type::HashLookupTypeMap.new
           end
+          @type_map_queried = false
 
           initialize_type_map
         end
@@ -443,8 +458,9 @@ module ActiveRecord
       end
 
       def set_standard_conforming_strings
-        query_command("SET standard_conforming_strings = on", "SCHEMA")
+        internal_set_config("standard_conforming_strings", "on")
       end
+      deprecate :set_standard_conforming_strings, deprecator: ActiveRecord.deprecator
 
       def supports_ddl_transactions?
         true
@@ -471,8 +487,9 @@ module ActiveRecord
       end
 
       def supports_pgcrypto_uuid?
-        database_version >= 9_04_00 # >= 9.4
+        true
       end
+      deprecate :supports_pgcrypto_uuid?, deprecator: ActiveRecord.deprecator
 
       def supports_optimizer_hints?
         unless defined?(@has_pg_hint_plan)
@@ -643,10 +660,6 @@ module ActiveRecord
 
       # Rename enum value on an existing enum type.
       def rename_enum_value(type_name, **options)
-        unless database_version >= 10_00_00 # >= 10.0
-          raise ArgumentError, "Renaming enum values is only supported in PostgreSQL 10 or later"
-        end
-
         from = options.fetch(:from) { raise ArgumentError, ":from is required" }
         to = options.fetch(:to) { raise ArgumentError, ":to is required" }
 
@@ -706,8 +719,8 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < 9_05_00 # < 9.5
-          raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 9.5."
+        if database_version < 10_00_00 # < 10.0
+          raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 10.0."
         end
       end
 
@@ -806,7 +819,7 @@ module ActiveRecord
           self.class.register_class_with_precision m, "timestamp", OID::Timestamp, timezone: @default_timezone
           self.class.register_class_with_precision m, "timestamptz", OID::TimestampWithTimeZone
 
-          load_additional_types
+          OID::WellKnown.register_types(m, server_version: database_version)
 
           @@type_mapping_callbacks = [] unless defined?(@@type_mapping_callbacks)
           @@type_mapping_callbacks.each { |block| block.call(m) }
@@ -923,40 +936,57 @@ module ActiveRecord
         end
 
         def get_oid_type(oid, fmod, column_name, sql_type = "")
-          if !type_map.key?(oid)
-            load_additional_types([oid])
-          end
+          load_additional_types([oid]) unless type_map.key?(oid)
 
-          type_map.fetch(oid, fmod, sql_type) {
-            warn "unknown OID #{oid}: failed to recognize type of '#{column_name}'. It will be treated as String."
-            Type.default_value.tap do |cast_type|
-              type_map.register_type(oid, cast_type)
-            end
-          }
+          type_map.fetch(oid, fmod, sql_type) { register_unknown_oid_type(oid, column_name) }
         end
 
-        def load_additional_types(oids = nil)
+        def load_additional_types(oids)
           initializer = OID::TypeMapInitializer.new(type_map)
-          load_types_queries(initializer, oids) do |query|
-            intent = internal_build_intent(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
-            intent.execute!
-            records = intent.raw_result
-            initializer.run(records)
+
+          queried_oids = Set.new
+          pending_oids = oids.map(&:to_i).uniq.reject { |oid| type_map.key?(oid) }
+
+          until pending_oids.empty?
+            queried_oids.merge(pending_oids)
+
+            load_types_queries(pending_oids, !@type_map_queried) do |query|
+              intent = internal_build_intent(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+              intent.execute!
+              initializer.run(intent.raw_result.to_a)
+            end
+
+            @type_map_queried = true
+
+            pending_oids = initializer.pending_oids.reject { |oid| queried_oids.include?(oid) }
           end
         end
 
-        def load_types_queries(initializer, oids)
-          query = <<~SQL
+        def load_types_queries(oids, initial_bulk_load)
+          query = <<~SQL.squish
             SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
-            FROM pg_type as t
-            LEFT JOIN pg_range as r ON oid = rngtypid
+            FROM pg_type AS t
+            LEFT JOIN pg_range AS r ON oid = rngtypid
           SQL
-          if oids
-            yield query + "WHERE t.oid IN (%s)" % oids.join(", ")
-          else
-            yield query + initializer.query_conditions_for_known_type_names
-            yield query + initializer.query_conditions_for_known_type_types
-            yield query + initializer.query_conditions_for_array_types
+
+          queries = []
+          queries << "#{query}\nWHERE t.oid IN (#{oids.join(", ")})" unless oids.empty?
+          if initial_bulk_load
+            bulk_filter = "t.typtype IN ('r', 'e', 'd')"
+
+            if database_version < OID::WellKnown::FIRST_UNKNOWN_PG_VERSION
+              bulk_filter += " AND t.typnamespace != 'pg_catalog'::regnamespace"
+            end
+
+            queries << "#{query}\nWHERE #{bulk_filter}"
+          end
+          yield queries.join("\nUNION\n")
+        end
+
+        def register_unknown_oid_type(oid, column_name)
+          warn "unknown OID #{oid}: failed to recognize type of '#{column_name}'. It will be treated as String."
+          Type.default_value.tap do |cast_type|
+            type_map.register_type(oid, cast_type)
           end
         end
 
@@ -1024,6 +1054,16 @@ module ActiveRecord
           connect unless @raw_connection
         end
 
+        # Canonical spellings for PostgreSQL GUC names that use non-lowercase
+        # casing. parameter_status is case-sensitive, so we need the exact
+        # name the server reports.
+        CANONICAL_GUC_NAMES = {
+          "datestyle" => "DateStyle",
+          "intervalstyle" => "IntervalStyle",
+          "timezone" => "TimeZone",
+        }.freeze
+        private_constant :CANONICAL_GUC_NAMES
+
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
         # This is called by #connect and should not be called manually.
         def configure_connection
@@ -1032,8 +1072,6 @@ module ActiveRecord
           if @config[:encoding]
             @raw_connection.set_client_encoding(@config[:encoding])
           end
-          self.client_min_messages = @config[:min_messages] || "warning"
-          self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
 
           unless ActiveRecord.db_warnings_action.nil?
             @raw_connection.set_notice_receiver do |result|
@@ -1044,23 +1082,61 @@ module ActiveRecord
             end
           end
 
-          # Use standard-conforming strings so we don't have to do the E'...' dance.
-          set_standard_conforming_strings
+          # Build a single hash of all settings we want to configure, then
+          # set them all through internal_set_config which can skip redundant
+          # SETs by checking parameter_status.
+          settings = {}
 
-          variables = @config.fetch(:variables, {}).stringify_keys
+          # We normalize to lowercase to dedup against built-ins, but retain
+          # the user's spelling just in case.
+          original_variable_names = CANONICAL_GUC_NAMES.dup
+
+          # Use standard-conforming strings so we don't have to do the E'...' dance.
+          settings["standard_conforming_strings"] = "on" unless @config[:standard_conforming_strings] == false
 
           # Set interval output format to ISO 8601 for ease of parsing by ActiveSupport::Duration.parse
-          query_command("SET intervalstyle = iso_8601", "SCHEMA")
+          settings["intervalstyle"] = "iso_8601" unless @config[:intervalstyle] == false
 
-          # SET statements from :variables config hash
+          unless @config[:min_messages] == false
+            settings["client_min_messages"] = @config[:min_messages] || "warning"
+          end
+
           # https://www.postgresql.org/docs/current/static/sql-set.html
-          variables.map do |k, v|
-            if v == ":default" || v == :default
-              # Sets the value to the global or compile default
-              query_command("SET SESSION #{k} TO DEFAULT", "SCHEMA")
-            elsif !v.nil?
-              query_command("SET SESSION #{k} TO #{quote(v)}", "SCHEMA")
+          @config.fetch(:variables, {}).stringify_keys.each do |k, v|
+            lower = k.dup
+            original_variable_names[lower] ||= k if lower.downcase!
+
+            case v
+            when :default, ":default"
+              # Server default; remove any Rails-default we've set above
+              settings.delete(lower)
+            when nil
+              # Rails default
+            else
+              settings[lower] = v
             end
+          end
+
+          server_default_tz = @raw_connection.parameter_status("TimeZone")
+          @static_timezone = settings.key?("timezone") ||
+            %w[UTC Etc/UTC].include?(server_default_tz)
+
+          settings["timezone"] = "UTC" if default_timezone == :utc && !@static_timezone
+
+          settings.each do |lower, value|
+            internal_set_config(original_variable_names[lower] || lower, value)
+          end
+
+          # search_path uses unquoted, comma-separated identifiers so it
+          # goes through the existing setter rather than internal_set_config.
+          unless @config[:schema_search_path] == false
+            if @config[:schema_order]
+              ActiveRecord.deprecator.warn(<<~MSG.squish)
+                The `schema_order` option in PostgreSQL database configurations is
+                deprecated and will be removed in Rails 8.3. Use `schema_search_path` instead.
+              MSG
+            end
+            self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
           end
 
           add_pg_encoders
@@ -1071,25 +1147,18 @@ module ActiveRecord
           reload_type_map
         end
 
-        def reconfigure_connection_timezone
-          variables = @config.fetch(:variables, {}).stringify_keys
-
-          # If it's been directly configured as a connection variable, we don't
-          # need to do anything here; it will be set up by configure_connection
-          # and then never changed.
-          return if variables["timezone"]
-
-          # If using Active Record's time zone support configure the connection
-          # to return TIMESTAMP WITH ZONE types in UTC.
-          if default_timezone == :utc
-            intent = QueryIntent.new(adapter: self, processed_sql: "SET SESSION timezone TO 'UTC'", name: "SCHEMA")
-            intent.execute!
-            intent.finish
-          else
-            intent = QueryIntent.new(adapter: self, processed_sql: "SET SESSION timezone TO DEFAULT", name: "SCHEMA")
-            intent.execute!
-            intent.finish
+        # Sets a PostgreSQL session configuration variable. Uses parameter_status
+        # to skip redundant SET commands when the server already has the desired
+        # value. Pass nil as value to SET TO DEFAULT.
+        def internal_set_config(setting, value)
+          unless value.nil?
+            with_raw_connection(allow_retry: false, materialize_transactions: false) do |conn|
+              return if (conn.parameter_status(setting) || conn.parameter_status(setting.downcase)) == value.to_s
+            end
           end
+
+          quoted_value = value.nil? ? "DEFAULT" : quote(value)
+          query_command("SET SESSION #{setting} TO #{quoted_value}", "SCHEMA")
         end
 
         # Returns the list of a table's column names, data types, and default values.
@@ -1169,21 +1238,20 @@ module ActiveRecord
         end
 
         def update_typemap_for_default_timezone
-          if @raw_connection && @mapped_default_timezone != default_timezone && @timestamp_decoder
-            decoder_class = default_timezone == :utc ?
-              PG::TextDecoder::TimestampUtc :
-              PG::TextDecoder::TimestampWithoutTimeZone
+          return unless @raw_connection && @timestamp_decoder && @mapped_default_timezone != default_timezone
 
-            @timestamp_decoder = decoder_class.new(**@timestamp_decoder.to_h)
-            @raw_connection.type_map_for_results.add_coder(@timestamp_decoder)
+          initial_setup = @mapped_default_timezone.nil?
+          @mapped_default_timezone = default_timezone
 
-            @mapped_default_timezone = default_timezone
+          decoder_class = default_timezone == :utc ?
+            PG::TextDecoder::TimestampUtc :
+            PG::TextDecoder::TimestampWithoutTimeZone
 
-            # if default timezone has changed, we need to reconfigure the connection
-            # (specifically, the session time zone)
-            reconfigure_connection_timezone
+          @timestamp_decoder = decoder_class.new(**@timestamp_decoder.to_h)
+          @raw_connection.type_map_for_results.add_coder(@timestamp_decoder)
 
-            true
+          unless initial_setup || @static_timezone
+            internal_set_config("timezone", default_timezone == :utc ? "UTC" : nil)
           end
         end
 
@@ -1191,6 +1259,7 @@ module ActiveRecord
           @mapped_default_timezone = nil
           @timestamp_decoder = nil
 
+          oids_by_name = OID::WellKnown.type_oids_for(server_version: database_version)
           coders_by_name = {
             "int2" => PG::TextDecoder::Integer,
             "int4" => PG::TextDecoder::Integer,
@@ -1207,16 +1276,12 @@ module ActiveRecord
           coders_by_name["money"] = MoneyDecoder if decode_money
           coders_by_name["bytea"] = decode_bytea ? ByteaDecoder : ByteaMarker
 
-          known_coder_types = coders_by_name.keys.map { |n| quote(n) }
-          query = <<~SQL % known_coder_types.join(", ")
-            SELECT t.oid, t.typname
-            FROM pg_type as t
-            WHERE t.typname IN (%s)
-          SQL
-          intent = internal_build_intent(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
-          intent.execute!
-          result = intent.raw_result
-          coders = result.filter_map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
+          coders = coders_by_name.filter_map do |type_name, coder_class|
+            next unless coder_class
+            next unless oid = oids_by_name[type_name]
+
+            coder_class.new(oid: oid, name: type_name)
+          end
 
           map = PG::TypeMapByOid.new
           coders.each { |coder| map.add_coder(coder) }
@@ -1230,11 +1295,6 @@ module ActiveRecord
           # extract timestamp decoder for use in update_typemap_for_default_timezone
           @timestamp_decoder = coders.find { |coder| coder.name == "timestamp" }
           update_typemap_for_default_timezone
-        end
-
-        def construct_coder(row, coder_class)
-          return unless coder_class
-          coder_class.new(oid: row["oid"].to_i, name: row["typname"])
         end
 
         class MoneyDecoder < PG::SimpleDecoder # :nodoc:

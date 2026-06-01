@@ -25,7 +25,7 @@ module ActiveSupport
           end
         end
       end
-    }
+    }.freeze
 
     # Convert range to a formatted string. See RANGE_FORMATS for predefined formats.
     #

@@ -373,9 +373,9 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record_encryption.configuration" do |app|
       ActiveSupport.on_load(:active_record_encryption) do
         ActiveRecord::Encryption.configure(
-          primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
-          deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
-          key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
+          primary_key: app.creds.option(:active_record_encryption, :primary_key),
+          deterministic_key: app.creds.option(:active_record_encryption, :deterministic_key),
+          key_derivation_salt: app.creds.option(:active_record_encryption, :key_derivation_salt),
           **app.config.active_record.encryption
         )
 

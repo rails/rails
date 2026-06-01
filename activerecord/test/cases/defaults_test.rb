@@ -234,8 +234,10 @@ class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
     def using_strict(strict)
       db_config = ActiveRecord::Base.connection_pool.db_config
       conn_hash = db_config.configuration_hash
-      ActiveRecord::Base.establish_connection conn_hash.merge(strict: strict)
-      yield
+      ActiveRecord.deprecator.silence do
+        ActiveRecord::Base.establish_connection conn_hash.merge(strict: strict)
+        yield
+      end
     ensure
       ActiveRecord::Base.establish_connection db_config
     end
@@ -314,7 +316,7 @@ class Sqlite3DefaultExpressionTest < ActiveRecord::TestCase
       assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       assert_match %r/t\.datetime\s+"modified_time_with_precision_0",\s+precision: 0,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
-      assert_match %r/t\.integer\s+"random_number",\s+default: -> { "ABS\(RANDOM\(\)\)" }/, output
+      assert_match %r/t\.integer\s+"random_number",\s+default: -> { "ABS\(RANDOM\(\) % 100\)" }/, output
     end
   end
 end

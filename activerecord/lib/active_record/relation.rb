@@ -52,17 +52,18 @@ module ActiveRecord
     end
 
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :left_outer_joins, :references,
-                            :extending, :unscope, :optimizer_hints, :annotate,
-                            :with]
+                            :order, :default_order, :joins, :left_outer_joins,
+                            :references, :extending, :unscope, :optimizer_hints,
+                            :annotate,
+                            :with].freeze
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering, :strict_loading,
-                            :reverse_order, :distinct, :create_with, :skip_query_cache]
+                            :reverse_order, :distinct, :create_with, :skip_query_cache].freeze
 
-    CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive]
+    CLAUSE_METHODS = [:where, :having, :from].freeze
+    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive].freeze
 
-    VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
+    VALUE_METHODS = (MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS).freeze
 
     include Enumerable
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
@@ -280,7 +281,7 @@ module ActiveRecord
         record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
-          where(attributes).lock.find_by!(attributes)
+          rewhere(attributes).lock.take!
         else
           find_by!(attributes)
         end
@@ -300,7 +301,7 @@ module ActiveRecord
         record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
-          where(attributes).lock.find_by!(attributes)
+          rewhere(attributes).lock.take!
         else
           find_by!(attributes)
         end

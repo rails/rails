@@ -38,11 +38,11 @@ module ActiveSupport
       :skip_nil,
       :raw,
       :max_key_size,
-    ]
+    ].freeze
 
     # Mapping of canonical option names to aliases that a store will recognize.
     OPTION_ALIASES = {
-      expires_in: [:expire_in, :expired_in]
+      expires_in: [:expire_in, :expired_in].freeze
     }.freeze
 
     DEFAULT_COMPRESS_LIMIT = 1.kilobyte
@@ -983,7 +983,7 @@ module ActiveSupport
         end
 
         def expand_and_namespace_key(key, options = nil)
-          str_key = expanded_key(key)
+          str_key = key.class == ::String ? key : expanded_key(key)
           raise(ArgumentError, "key cannot be blank") if !str_key || str_key.empty?
 
           namespace_key str_key, options

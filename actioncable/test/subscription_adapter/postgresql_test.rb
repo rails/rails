@@ -45,7 +45,6 @@ class PostgresqlAdapterTest < ActionCable::TestCase
   def test_clear_active_record_connections_adapter_still_works
     server = ActionCable::Server::Base.new
     server.config.cable = cable_config.with_indifferent_access
-    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
     adapter_klass = Class.new(server.config.pubsub_adapter) do
       def active?
@@ -75,7 +74,6 @@ class PostgresqlAdapterTest < ActionCable::TestCase
   def test_custom_subscription_connection_identifier
     server = ActionCable::Server::Base.new
     server.config.cable = cable_config.merge(id: "hello-world-42").with_indifferent_access
-    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
     adapter = server.config.pubsub_adapter.new(server)
 

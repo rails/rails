@@ -60,15 +60,9 @@ These values can be stored by copying and pasting the generated values into your
 existing [Rails credentials](/security.html#custom-credentials) file using
 `bin/rails credentials:edit`.
 
-Alternatively, the encryption keys can also be configured from other sources,
-such as environment variables:
-
-```ruby
-# config/application.rb
-config.active_record.encryption.primary_key = ENV["ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY"]
-config.active_record.encryption.deterministic_key = ENV["ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY"]
-config.active_record.encryption.key_derivation_salt = ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"]
-```
+Alternatively, they can be stored in environment variables with these exact names (with a
+double underscore): `ACTIVE_RECORD_ENCRYPTION__PRIMARY_KEY`,
+`ACTIVE_RECORD_ENCRYPTION__DETERMINISTIC_KEY`, `ACTIVE_RECORD_ENCRYPTION__KEY_DERIVATION_SALT`.
 
 WARNING: It's recommended to use Rails built-in credentials support to store
 keys. If you set them manually via configuration properties, make sure you don't

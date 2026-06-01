@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
 require_relative "../helper"
-require "active_model/attribute"
 
 module Arel
   module Visitors
     class TestDot < Arel::Test
-      def setup
+      setup do
         @visitor = Visitors::Dot.new
       end
 
@@ -230,6 +229,7 @@ module Arel
         assert_edge("columns", dot)
         assert_edge("values", dot)
         assert_edge("select", dot)
+        assert_edge("returning", dot)
       end
 
       def test_Arel_Nodes_UpdateStatement
@@ -245,6 +245,7 @@ module Arel
         assert_edge("limit", dot)
         assert_edge("offset", dot)
         assert_edge("key", dot)
+        assert_edge("returning", dot)
       end
 
       def test_Arel_Nodes_DeleteStatement
@@ -259,6 +260,7 @@ module Arel
         assert_edge("limit", dot)
         assert_edge("offset", dot)
         assert_edge("key", dot)
+        assert_edge("returning", dot)
       end
     end
   end

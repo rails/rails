@@ -13,6 +13,7 @@ After reading this guide, you will know:
 * How to configure and use Solid Queue.
 * How to run jobs in the background.
 * How to send emails from your application asynchronously.
+* How to write jobs that pause and resume progress during deploys.
 
 --------------------------------------------------------------------------------
 
@@ -556,6 +557,48 @@ bulk enqueuing with the `GoodJob::Bulk.enqueue` method.
 
 If the queue backend does *not* support bulk enqueuing, `perform_all_later` will
 enqueue jobs one by one.
+
+### Job Attributes
+
+Active Job attributes let jobs declare typed state using the
+[`Active Model Attributes API`][]. Attribute values are serialized when the job
+is interrupted or retried, and restored when the job resumes. This is
+especially useful where one step may compute a value needed by a later step.
+`ActiveJob::Continuable` includes [`ActiveJob::Attributes`][], so continuable
+jobs can declare attributes directly:
+
+```ruby
+class SubmitEnrollmentJob < ApplicationJob
+  include ActiveJob::Continuable
+
+  attribute :payment_token, :string
+  attribute :billing_profile_id, :integer
+
+  def perform(enrollment)
+    step :tokenize_payment_instrument do
+      self.payment_token = PaymentGateway.tokenize(enrollment.user.payment_instrument)
+    end
+
+    step :create_billing_profile do
+      self.billing_profile_id = BillingProfileApi.create(customer_id: enrollment.user_id)
+    end
+
+    step :submit_enrollment do
+      submission_id = EnrollmentApi.submit(enrollment, payment_token, billing_profile_id)
+      enrollment.update!(status: "processing", submission_id: submission_id)
+    end
+  end
+end
+```
+
+Attribute values must be serializable as
+[Active Job arguments](#supported-types-for-arguments). For more details, see
+[`ActiveJob::Attributes`][].
+
+[`Active Model Attributes API`]:
+    https://api.rubyonrails.org/classes/ActiveModel/Attributes.html
+[`ActiveJob::Attributes`]:
+    https://api.rubyonrails.org/classes/ActiveJob/Attributes.html
 
 Callbacks
 ---------

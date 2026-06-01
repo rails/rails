@@ -28,7 +28,7 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
       class_attribute :emulate_booleans, default: true
 
-      NATIVE_DATABASE_TYPES = {
+      NATIVE_DATABASE_TYPES = { # rubocop:disable Style/MutableConstant
         primary_key: "bigint auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
         text:        { name: "text" },
@@ -179,7 +179,7 @@ module ActiveRecord
       end
 
       def return_value_after_insert?(column) # :nodoc:
-        supports_insert_returning? ? column.auto_populated? : column.auto_increment?
+        supports_insert_returning? ? column.auto_populated_on_insert? : column.auto_increment?
       end
 
       # See https://dev.mysql.com/doc/refman/8.0/en/invisible-indexes.html for more details on MySQL feature.
@@ -384,7 +384,7 @@ module ActiveRecord
       # In that case, +options+ and the block will be used by #create_table except if you provide more than one table which is not supported.
       def drop_table(*table_names, **options)
         table_names.each { |table_name| schema_cache.clear_data_source_cache!(table_name.to_s) }
-        execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{table_names.map { |table_name| quote_table_name(table_name) }.join(', ')}#{' CASCADE' if options[:force] == :cascade}"
+        execute drop_table_sql(*table_names, **options)
       end
 
       def rename_index(table_name, old_name, new_name)
@@ -722,6 +722,15 @@ module ActiveRecord
       end
 
       def strict_mode?
+        if @config.key?(:strict) && !@strict_mode_deprecation_warned
+          @strict_mode_deprecation_warned = true
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            The `strict` option in database configurations is deprecated and
+            will be removed in Rails 8.3. Use `variables: { sql_mode: "..." }`
+            to configure sql_mode directly instead.
+          MSG
+        end
+
         self.class.type_cast_config_to_boolean(@config.fetch(:strict, true))
       end
 
@@ -896,6 +905,7 @@ module ActiveRecord
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
         ER_DB_CREATE_EXISTS     = 1007
         ER_FILSORT_ABORT        = 1028
+        ER_NO_DB_ERROR          = 1046
         ER_DUP_ENTRY            = 1062
         ER_SERVER_SHUTDOWN      = 1053
         ER_NOT_NULL_VIOLATION   = 1048
@@ -928,7 +938,7 @@ module ActiveRecord
             else
               super
             end
-          when ER_CONNECTION_KILLED, ER_SERVER_SHUTDOWN, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT
+          when ER_CONNECTION_KILLED, ER_SERVER_SHUTDOWN, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT, ER_NO_DB_ERROR
             ConnectionFailed.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_DB_CREATE_EXISTS
             DatabaseAlreadyExists.new(message, sql: sql, binds: binds, connection_pool: @pool)
@@ -1031,17 +1041,24 @@ module ActiveRecord
           variables = @config.fetch(:variables, {}).stringify_keys
 
           # Increase timeout so the server doesn't disconnect us.
-          wait_timeout = self.class.type_cast_config_to_integer(@config[:wait_timeout])
-          wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
-          variables["wait_timeout"] = wait_timeout
+          # Set to false in config to skip.
+          unless @config[:wait_timeout] == false
+            wait_timeout = self.class.type_cast_config_to_integer(@config[:wait_timeout])
+            wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
+            variables["wait_timeout"] = wait_timeout
+          end
 
           defaults = [":default", :default].to_set
 
           # Make MySQL reject illegal values rather than truncating or blanking them, see
           # https://dev.mysql.com/doc/refman/en/sql-mode.html#sqlmode_strict_all_tables
           # If the user has provided another value for sql_mode, don't replace it.
-          if sql_mode = variables.delete("sql_mode")
-            sql_mode = quote(sql_mode)
+          # Set sql_mode to false or :default in variables to skip.
+          if variables.key?("sql_mode")
+            sql_mode_value = variables.delete("sql_mode")
+            unless sql_mode_value == false || defaults.include?(sql_mode_value)
+              sql_mode = quote(sql_mode_value)
+            end
           elsif !defaults.include?(strict_mode?)
             if strict_mode?
               sql_mode = "CONCAT(@@sql_mode, ',STRICT_ALL_TABLES')"
@@ -1083,7 +1100,33 @@ module ActiveRecord
         end
 
         def column_definitions(table_name) # :nodoc:
-          query_all("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}")
+          fields = query_all("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}")
+
+          update_fields_for_mariadb(table_name, fields) if mariadb?
+
+          fields
+        end
+
+        def update_fields_for_mariadb(table_name, fields)
+          has_function_default_candidate = fields.any? do |field|
+            default = field["Default"]
+            default&.match?(/[a-zA-Z_]\w*\(/) && !/\ACURRENT_TIMESTAMP/i.match?(default)
+          end
+
+          if has_function_default_candidate
+            table_info = create_table_info(table_name)
+            fields.each do |field|
+              default = field["Default"]
+              next unless default&.match?(/[a-zA-Z_]\w*\(/)
+              next if /\ACURRENT_TIMESTAMP/i.match?(default)
+
+              field_name = field["Field"]
+              match = table_info&.match(/`#{field_name}` .+ DEFAULT ('|\d+|[A-z]+)/)
+              if match && match[1].match?(/\A[A-z]/)
+                field["Extra"] = "DEFAULT_GENERATED"
+              end
+            end
+          end
         end
 
         def create_table_info(table_name) # :nodoc:
@@ -1144,6 +1187,15 @@ module ActiveRecord
           else
             raise DatabaseVersionError, "Unable to parse MySQL version from #{full_version_string.inspect}"
           end
+        end
+
+        def drop_table_sql(*table_names, if_exists: nil, force: nil, temporary: nil, **)
+          temporary = " TEMPORARY" if temporary
+          exists = " IF EXISTS" if if_exists
+          quoted_table_names = table_names.map { |table_name| quote_table_name(table_name) }.join(", ")
+          cascade = " CASCADE" if force == :cascade
+
+          "DROP#{temporary} TABLE#{exists} #{quoted_table_names}#{cascade}"
         end
     end
   end

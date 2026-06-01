@@ -401,7 +401,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(topics(:second).title, topics.first.title)
   end
 
-  GUESSED_CLASSES = [Category, Smarts, CreditCard, CreditCard::PinNumber, CreditCard::PinNumber::CvvCode, CreditCard::SubPinNumber, CreditCard::Brand, MasterCreditCard]
+  GUESSED_CLASSES = [Category, Smarts, CreditCard, CreditCard::PinNumber, CreditCard::PinNumber::CvvCode, CreditCard::SubPinNumber, CreditCard::Brand, MasterCreditCard].freeze
 
   def test_table_name_guesses
     assert_equal "topics", Topic.table_name
@@ -1910,6 +1910,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert query.include?("name")
   end
 
+  test "only columns are enumerated in SELECT" do
+    query = OnlyColumnsDeveloper.all.to_sql.downcase
+
+    # not in only_columns
+    assert_not query.include?("first_name")
+
+    # in only_columns
+    assert query.include?("name")
+  end
+
   test "column names are quoted when using #from clause and model has ignored columns" do
     assert_not_empty Developer.ignored_columns
     query = Developer.from("developers").to_sql
@@ -1994,7 +2004,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "`connects_to` can only be called on ActiveRecord::Base or abstract classes", error.message
   end
 
-  test "cannot call connected_to with role and shard on non-abstract classes" do
+  test "cannot call #connected_to with role and shard on non-abstract classes" do
     error = assert_raises(NotImplementedError) do
       Bird.connected_to(role: :reading, shard: :default) { }
     end
@@ -2002,18 +2012,36 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes.", error.message
   end
 
-  test "can call connected_to with role and shard on abstract classes" do
+  test "can call #connected_to with role and shard on abstract classes" do
     SecondAbstractClass.connected_to(role: :reading, shard: :default) do
       assert SecondAbstractClass.connected_to?(role: :reading, shard: :default)
     end
   end
 
-  test "cannot call connected_to on the abstract class that did not establish the connection" do
+  test "cannot call #connected_to on the abstract class that did not establish the connection" do
     error = assert_raises(NotImplementedError) do
       ThirdAbstractClass.connected_to(role: :reading) { }
     end
 
     assert_equal "calling `connected_to` is only allowed on the abstract class that established the connection.", error.message
+  end
+
+  test "#connected_to sets prevent_writes if role is reading" do
+    assert_not SecondAbstractClass.connected_to?(role: :reading)
+    assert_not SecondAbstractClass.current_preventing_writes
+
+    SecondAbstractClass.connected_to(role: :reading) do
+      assert SecondAbstractClass.connected_to?(role: :reading)
+      assert SecondAbstractClass.current_preventing_writes
+    end
+  end
+
+  test "#connected_to cannot be called with the reading role and prevent_writes: false" do
+    error = assert_raises ArgumentError do
+      SecondAbstractClass.connected_to(role: :reading, prevent_writes: false) { }
+    end
+
+    assert_equal "cannot set `prevent_writes` to false when `role` is `reading`.", error.message
   end
 
   test "#connecting_to with role" do
@@ -2042,6 +2070,26 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.connected_to_stack.pop
   end
 
+  test "#connecting_to sets prevent_writes if role is reading" do
+    assert_not SecondAbstractClass.connected_to?(role: :reading)
+    assert_not SecondAbstractClass.current_preventing_writes
+
+    SecondAbstractClass.connecting_to(role: :reading)
+
+    assert SecondAbstractClass.connected_to?(role: :reading)
+    assert SecondAbstractClass.current_preventing_writes
+  ensure
+    ActiveRecord::Base.connected_to_stack.pop
+  end
+
+  test "#connecting_to cannot be called with the reading role and prevent_writes: false" do
+    error = assert_raises ArgumentError do
+      SecondAbstractClass.connecting_to(role: :reading, prevent_writes: false)
+    end
+
+    assert_equal "cannot set `prevent_writes` to false when `role` is `reading`.", error.message
+  end
+
   test "#connected_to_many cannot be called on anything but ActiveRecord::Base" do
     assert_raises NotImplementedError do
       SecondAbstractClass.connected_to_many([SecondAbstractClass], role: :writing)
@@ -2055,24 +2103,35 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "#connected_to_many sets prevent_writes if role is reading" do
+    assert_not SecondAbstractClass.current_preventing_writes
+    assert_not ActiveRecord::Base.current_preventing_writes
+
     ActiveRecord::Base.connected_to_many([SecondAbstractClass], role: :reading) do
       assert SecondAbstractClass.current_preventing_writes
       assert_not ActiveRecord::Base.current_preventing_writes
     end
   end
 
+  test "#connected_to_many cannot be called with the reading role and prevent_writes: false" do
+    error = assert_raises ArgumentError do
+      ActiveRecord::Base.connected_to_many([SecondAbstractClass], role: :reading, prevent_writes: false) { }
+    end
+
+    assert_equal "cannot set `prevent_writes` to false when `role` is `reading`.", error.message
+  end
+
   test "#connected_to_many with a single argument for classes" do
     ActiveRecord::Base.connected_to_many(SecondAbstractClass, role: :reading) do
-      assert SecondAbstractClass.current_preventing_writes
-      assert_not ActiveRecord::Base.current_preventing_writes
+      assert SecondAbstractClass.connected_to?(role: :reading)
+      assert_not ActiveRecord::Base.connected_to?(role: :reading)
     end
   end
 
   test "#connected_to_many with a multiple classes without brackets works" do
     ActiveRecord::Base.connected_to_many(FirstAbstractClass, SecondAbstractClass, role: :reading) do
-      assert FirstAbstractClass.current_preventing_writes
-      assert SecondAbstractClass.current_preventing_writes
-      assert_not ActiveRecord::Base.current_preventing_writes
+      assert FirstAbstractClass.connected_to?(role: :reading)
+      assert SecondAbstractClass.connected_to?(role: :reading)
+      assert_not ActiveRecord::Base.connected_to?(role: :reading)
     end
   end
 

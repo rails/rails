@@ -200,69 +200,51 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
 
   test "#select_all when query cache is enabled fires the same notification payload for uncached and cached queries" do
     @conn.cache do
-      event_fired = false
-      subscription = ->(name, start, finish, id, payload) {
-        next if payload[:name] == "SCHEMA"
-
-        event_fired = true
-
-        # First, we test keys that are defined by default by the AbstractAdapter
-        assert_includes payload, :sql
-        assert_equal "SELECT * FROM posts", payload[:sql]
-
-        assert_includes payload, :name
-        assert_equal "uncached query", payload[:name]
-
-        assert_includes payload, :connection
-        assert_equal @conn, payload[:connection]
-
-        assert_includes payload, :binds
-        assert_equal [], payload[:binds]
-
-        assert_includes payload, :type_casted_binds
-        assert_equal [], payload[:type_casted_binds]
-
-        assert_nil payload[:statement_name]
-
-        assert_not_includes payload, :cached
-      }
-      ActiveSupport::Notifications.subscribed(subscription, "sql.active_record") do
+      notification = assert_notification("sql.active_record", name: "uncached query") do
         @conn.select_all "SELECT * FROM posts", "uncached query"
       end
-      assert event_fired
+      payload = notification.payload
 
-      event_fired = false
-      subscription = ->(name, start, finish, id, payload) {
-        next if payload[:name] == "SCHEMA"
+      # First, we test keys that are defined by default by the AbstractAdapter
+      assert_includes payload, :sql
+      assert_equal "SELECT * FROM posts", payload[:sql]
 
-        event_fired = true
+      assert_includes payload, :connection
+      assert_equal @conn, payload[:connection]
 
-        # First, we test keys that are defined by default by the AbstractAdapter
-        assert_includes payload, :sql
-        assert_equal "SELECT * FROM posts", payload[:sql]
+      assert_includes payload, :binds
+      assert_equal [], payload[:binds]
 
-        assert_includes payload, :name
-        assert_equal "cached query", payload[:name]
+      assert_includes payload, :type_casted_binds
+      assert_equal [], payload[:type_casted_binds]
 
-        assert_includes payload, :connection
-        assert_equal @conn, payload[:connection]
+      assert_nil payload[:statement_name]
 
-        assert_includes payload, :binds
-        assert_equal [], payload[:binds]
+      assert_not_includes payload, :cached
 
-        assert_includes payload, :type_casted_binds
-        assert_equal [], payload[:type_casted_binds].is_a?(Proc) ? payload[:type_casted_binds].call : payload[:type_casted_binds]
-
-        # Rails does not include :statement_name for cached queries 🤷‍♂️
-        assert_not_includes payload, :statement_name
-
-        assert_includes payload, :cached
-        assert_equal true, payload[:cached]
-      }
-      ActiveSupport::Notifications.subscribed(subscription, "sql.active_record") do
+      notification = assert_notification("sql.active_record", name: "cached query") do
         @conn.select_all "SELECT * FROM posts", "cached query"
       end
-      assert event_fired
+      payload = notification.payload
+
+      # First, we test keys that are defined by default by the AbstractAdapter
+      assert_includes payload, :sql
+      assert_equal "SELECT * FROM posts", payload[:sql]
+
+      assert_includes payload, :connection
+      assert_equal @conn, payload[:connection]
+
+      assert_includes payload, :binds
+      assert_equal [], payload[:binds]
+
+      assert_includes payload, :type_casted_binds
+      assert_equal [], payload[:type_casted_binds].is_a?(Proc) ? payload[:type_casted_binds].call : payload[:type_casted_binds]
+
+      # Rails does not include :statement_name for cached queries 🤷‍♂️
+      assert_not_includes payload, :statement_name
+
+      assert_includes payload, :cached
+      assert_equal true, payload[:cached]
     end
   end
 

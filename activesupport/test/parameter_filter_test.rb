@@ -122,6 +122,41 @@ class ParameterFilterTest < ActiveSupport::TestCase
     end
   end
 
+  test "anchored exact-match regexp filters" do
+    parameter_filter = ActiveSupport::ParameterFilter.new([/^token$/, /\Astate\z/, /password/])
+    result = parameter_filter.filter("token" => "t0k3n", "state" => "abc", "password" => "pass", "user_password" => "pass", "not_secret" => "visible")
+    assert_equal({ "token" => "[FILTERED]", "state" => "[FILTERED]", "password" => "[FILTERED]", "user_password" => "[FILTERED]", "not_secret" => "visible" }, result)
+  end
+
+  test "^...$ anchored regexp filters still match keys containing newlines" do
+    parameter_filter = ActiveSupport::ParameterFilter.new([/^token$/])
+
+    assert_equal "[FILTERED]", parameter_filter.filter_param("token\nfoo", "secret")
+    assert_equal "[FILTERED]", parameter_filter.filter_param("foo\ntoken", "secret")
+    assert_equal "[FILTERED]", parameter_filter.filter_param("foo\ntoken\nbar", "secret")
+    assert_equal "visible", parameter_filter.filter_param("not_token\nfoo", "visible")
+  end
+
+  test "\\A...\\z anchored regexp filters do not match keys containing newlines" do
+    parameter_filter = ActiveSupport::ParameterFilter.new([/\Atoken\z/])
+
+    assert_equal "[FILTERED]", parameter_filter.filter_param("token", "secret")
+    assert_equal "visible", parameter_filter.filter_param("token\nfoo", "visible")
+    assert_equal "visible", parameter_filter.filter_param("foo\ntoken", "visible")
+  end
+
+  test "mixed-anchor regexp filters preserve their asymmetric semantics" do
+    first_line_filter = ActiveSupport::ParameterFilter.new([/\Atoken$/])
+    assert_equal "[FILTERED]", first_line_filter.filter_param("token", "secret")
+    assert_equal "[FILTERED]", first_line_filter.filter_param("token\nfoo", "secret")
+    assert_equal "visible", first_line_filter.filter_param("foo\ntoken", "visible")
+
+    last_line_filter = ActiveSupport::ParameterFilter.new([/^token\z/])
+    assert_equal "[FILTERED]", last_line_filter.filter_param("token", "secret")
+    assert_equal "visible", last_line_filter.filter_param("token\nfoo", "visible")
+    assert_equal "[FILTERED]", last_line_filter.filter_param("foo\ntoken", "secret")
+  end
+
   test "precompile_filters" do
     patterns = [/A.a/, /b.B/i, "ccC", :ddD]
     keys = ["Aaa", "Bbb", "Ccc", "Ddd"]

@@ -47,7 +47,7 @@ module ActionDispatch
 
           ALPHA = "a-zA-Z"
           DIGIT = "0-9"
-          UNRESERVED = "#{ALPHA}#{DIGIT}\\-\\._~"
+          UNRESERVED = "#{ALPHA}#{DIGIT}\\-\\._~".freeze
           SUB_DELIMS = "!\\$&'\\(\\)\\*\\+,;="
 
           ESCAPED  = /%[a-zA-Z0-9]{2}/

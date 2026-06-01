@@ -78,7 +78,7 @@ module ActiveRecord
     trilogy:    :mysql_tasks,
     postgresql: :postgresql_tasks,
     sqlite3:    :sqlite_tasks
-  }
+  }.freeze
 
   class DatabaseTasksCheckProtectedEnvironmentsTest < ActiveRecord::TestCase
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?

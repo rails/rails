@@ -59,7 +59,10 @@ class Array
     if empty?
       nil.to_query(prefix)
     else
-      collect { |value| value.to_query(prefix) }.join "&"
+      filter_map { |value|
+        q = value.to_query(prefix)
+        q unless q.empty?
+      }.join "&"
     end
   end
 end

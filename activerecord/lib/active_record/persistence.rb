@@ -261,21 +261,18 @@ module ActiveRecord
       end
 
       def _update_record(values, constraints) # :nodoc:
-        constraints = constraints.map { |name, value| predicate_builder[name, value] }
-
-        default_constraint = build_default_constraint
-        constraints << default_constraint if default_constraint
-
-        if current_scope = self.global_current_scope
-          constraints << current_scope.where_clause.ast
-        end
-
-        um = Arel::UpdateManager.new(arel_table)
-        um.set(values.transform_keys { |name| arel_table[name] })
-        um.wheres = constraints
+        um = _build_update_manager(values, constraints)
 
         with_connection do |c|
           c.update(um, "#{self} Update")
+        end
+      end
+
+      def _update_record_with_result(values, constraints, returning) # :nodoc:
+        um = _build_update_manager(values, constraints)
+
+        with_connection do |c|
+          c.update_with_result(um, "#{self} Update", returning: returning)
         end
       end
 
@@ -330,6 +327,22 @@ module ActiveRecord
 
           default_where_clause = default_scoped(all_queries: true).where_clause
           default_where_clause.ast unless default_where_clause.empty?
+        end
+
+        def _build_update_manager(values, constraints)
+          constraints = constraints.map { |name, value| predicate_builder[name, value] }
+
+          default_constraint = build_default_constraint
+          constraints << default_constraint if default_constraint
+
+          if current_scope = self.global_current_scope
+            constraints << current_scope.where_clause.ast
+          end
+
+          Arel::UpdateManager.new(arel_table).tap do |update_manager|
+            update_manager.set(values.transform_keys { |name| arel_table[name] })
+            update_manager.wheres = constraints
+          end
         end
     end
 
@@ -496,6 +509,7 @@ module ActiveRecord
         becoming.instance_variable_set(:@new_record, new_record?)
         becoming.instance_variable_set(:@previously_new_record, previously_new_record?)
         becoming.instance_variable_set(:@destroyed, destroyed?)
+        becoming.instance_variable_set(:@marked_for_destruction, marked_for_destruction?)
         becoming.errors.copy!(errors)
       end
 
@@ -915,10 +929,36 @@ module ActiveRecord
       end
 
       def _update_row(attribute_names, attempted_action = "update")
-        self.class._update_record(
-          attributes_with_values(attribute_names),
-          _query_constraints_hash
-        )
+        returning_columns = self.class.with_connection do |c|
+          if c.supports_update_returning?
+            self.class._returning_columns_for_update(c)
+          else
+            []
+          end
+        end
+
+        if returning_columns.present?
+          result = self.class._update_record_with_result(
+            attributes_with_values(attribute_names),
+            _query_constraints_hash,
+            returning_columns
+          )
+
+          returning_values = result.rows.first
+
+          returning_columns.zip(returning_values).each do |column, value|
+            _write_attribute(column, value)
+          end if returning_values.present?
+
+          result.affected_rows
+        else
+          result = self.class._update_record(
+            attributes_with_values(attribute_names),
+            _query_constraints_hash,
+          )
+
+          result
+        end
       end
 
       def create_or_update(**, &block)

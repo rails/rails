@@ -191,6 +191,47 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_equal :missing, key
   end
 
+  test "fetch_values returns values for given keys" do
+    params = ActionController::Parameters.new(name: "Francesco", age: 22)
+    name, age = params.fetch_values(:name, :age)
+
+    assert_equal "Francesco", name
+    assert_equal 22, age
+  end
+
+  test "fetch_values raises ParameterMissing when string key not found" do
+    params = ActionController::Parameters.new(name: "Francesco")
+    error = assert_raises(ActionController::ParameterMissing) do
+      params.fetch_values(:name, "missing_key")
+    end
+    assert_equal "missing_key", error.param
+  end
+
+  test "fetch_values raises ParameterMissing when symbol key not found" do
+    params = ActionController::Parameters.new(name: "Francesco")
+    error = assert_raises(ActionController::ParameterMissing) do
+      params.fetch_values(:name, :missing_key)
+    end
+    assert_equal :missing_key, error.param
+  end
+
+  test "fetch_values with block returns block result for missing keys" do
+    params = ActionController::Parameters.new(name: "Francesco")
+    assert_equal ["Francesco", :age], params.fetch_values(:name, :age, &:itself)
+    assert_equal ["Francesco", "age"], params.fetch_values(:name, "age", &:itself)
+  end
+
+  test "fetch_values retains permitted status" do
+    @params.permit!
+    values = @params.fetch_values(:person)
+    assert_predicate values[0], :permitted?
+  end
+
+  test "fetch_values retains unpermitted status" do
+    values = @params.fetch_values(:person)
+    assert_not_predicate values[0], :permitted?
+  end
+
   test "has_key? returns true if the given key is present in the params" do
     assert @params.has_key?(:person)
   end
@@ -291,6 +332,34 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "deep_transform_keys retains unpermitted status" do
     assert_not_predicate @params.deep_transform_keys { |k| k }, :permitted?
+  end
+
+  test "deep_transform_values retains permitted status" do
+    @params.permit!
+    assert_predicate @params.deep_transform_values { |v| v }, :permitted?
+  end
+
+  test "deep_transform_values retains unpermitted status" do
+    assert_not_predicate @params.deep_transform_values { |v| v }, :permitted?
+  end
+
+  test "deep_transform_values yields only leaf values" do
+    yielded = []
+    @params.deep_transform_values { |v| yielded << v; v }
+
+    assert_includes yielded, "32"
+    assert_includes yielded, "David"
+    assert_includes yielded, "Heinemeier Hansson"
+    assert_includes yielded, "Chicago"
+    assert_includes yielded, "Illinois"
+    assert_not(yielded.any? { |v| v.is_a?(Hash) || v.is_a?(ActionController::Parameters) || v.is_a?(Array) })
+  end
+
+  test "deep_transform_values returns a new ActionController::Parameters" do
+    result = @params.deep_transform_values { |v| v }
+
+    assert_kind_of ActionController::Parameters, result
+    assert_not_same @params, result
   end
 
   test "transform_values retains permitted status" do

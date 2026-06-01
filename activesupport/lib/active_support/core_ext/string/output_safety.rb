@@ -21,9 +21,9 @@ module ActiveSupport # :nodoc:
       capitalize chomp chop delete delete_prefix delete_suffix
       downcase lstrip next reverse rstrip scrub squeeze strip
       succ swapcase tr tr_s unicode_normalize upcase
-    )
+    ).freeze
 
-    UNSAFE_STRING_METHODS_WITH_BACKREF = %w(gsub sub)
+    UNSAFE_STRING_METHODS_WITH_BACKREF = %w(gsub sub).freeze
 
     alias_method :original_concat, :concat
     private :original_concat
@@ -35,7 +35,7 @@ module ActiveSupport # :nodoc:
       end
     end
 
-    def [](*args)
+    def [](*)
       if html_safe?
         new_string = super
 
@@ -43,12 +43,12 @@ module ActiveSupport # :nodoc:
 
         string_into_safe_buffer(new_string, true)
       else
-        to_str[*args]
+        to_str[*]
       end
     end
     alias_method :slice, :[]
 
-    def slice!(*args)
+    def slice!(...)
       new_string = super
 
       return new_string if !html_safe? || new_string.nil?
@@ -116,7 +116,7 @@ module ActiveSupport # :nodoc:
       new_string = super
       new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
       if @html_unsafe
-        new_safe_buffer.instance_variable_set(:@html_unsafe, true)
+        new_safe_buffer.mark_unsafe!
       end
       new_safe_buffer
     end
@@ -129,7 +129,11 @@ module ActiveSupport # :nodoc:
         escaped_args = Array(args).map { |arg| explicit_html_escape_interpolated_argument(arg) }
       end
 
-      self.class.new(super(escaped_args))
+      new_safe_buffer = self.class.new(super(escaped_args))
+      if @html_unsafe
+        new_safe_buffer.mark_unsafe!
+      end
+      new_safe_buffer
     end
 
     def html_safe?
@@ -155,11 +159,11 @@ module ActiveSupport # :nodoc:
     UNSAFE_STRING_METHODS.each do |unsafe_method|
       if unsafe_method.respond_to?(unsafe_method)
         class_eval <<~RUBY, __FILE__, __LINE__ + 1
-          def #{unsafe_method}(*args, &block)       # def capitalize(*args, &block)
-            to_str.#{unsafe_method}(*args, &block)  #   to_str.capitalize(*args, &block)
+          def #{unsafe_method}(...)                 # def capitalize(...)
+            to_str.#{unsafe_method}(...)            #   to_str.capitalize(...)
           end                                       # end
 
-          def #{unsafe_method}!(*args)              # def capitalize!(*args)
+          def #{unsafe_method}!(...)                # def capitalize!(...)
             @html_unsafe = true                     #   @html_unsafe = true
             super                                   #   super
           end                                       # end
@@ -169,21 +173,21 @@ module ActiveSupport # :nodoc:
 
     UNSAFE_STRING_METHODS_WITH_BACKREF.each do |unsafe_method|
       class_eval <<~RUBY, __FILE__, __LINE__ + 1
-        def #{unsafe_method}(*args, &block)             # def gsub(*args, &block)
+        def #{unsafe_method}(*, **, &block)             # def gsub(*, **, &block)
           if block                                      #   if block
-            to_str.#{unsafe_method}(*args) { |*params|  #     to_str.gsub(*args) { |*params|
+            to_str.#{unsafe_method}(*, **) { |*params|  #     to_str.gsub(*, **) { |*params|
               set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
               block.call(*params)                       #       block.call(*params)
             }                                           #     }
           else                                          #   else
-            to_str.#{unsafe_method}(*args)              #     to_str.gsub(*args)
+            to_str.#{unsafe_method}(*, **)              #     to_str.gsub(*, **)
           end                                           #   end
         end                                             # end
 
-        def #{unsafe_method}!(*args, &block)            # def gsub!(*args, &block)
+        def #{unsafe_method}!(*, **, &block)            # def gsub!(*, **, &block)
           @html_unsafe = true                           #   @html_unsafe = true
           if block                                      #   if block
-            super(*args) { |*params|                    #     super(*args) { |*params|
+            super(*, **) { |*params|                    #     super(*, **) { |*params|
               set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
               block.call(*params)                       #       block.call(*params)
             }                                           #     }
@@ -193,6 +197,11 @@ module ActiveSupport # :nodoc:
         end                                             # end
       RUBY
     end
+
+    protected
+      def mark_unsafe!
+        @html_unsafe = true
+      end
 
     private
       def explicit_html_escape_interpolated_argument(arg)

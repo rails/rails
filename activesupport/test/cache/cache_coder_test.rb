@@ -167,10 +167,10 @@ class CacheCoderTest < ActiveSupport::TestCase
       STRING.encode(Encoding::BINARY),
       STRING.encode(Encoding::US_ASCII),
       STRING.encode(Encoding::WINDOWS_1252),
-    ]
-    VALUES = [nil, true, 1, "", "ümlaut", [*0..255].pack("C*"), *COMPRESSIBLE_VALUES]
-    VERSIONS = [nil, "", "ümlaut", [*0..255].pack("C*"), "x" * 256]
-    EXPIRIES = [nil, 0, 100.years]
+    ].freeze
+    VALUES = [nil, true, 1, "", "ümlaut", [*0..255].pack("C*"), *COMPRESSIBLE_VALUES].freeze
+    VERSIONS = [nil, "", "ümlaut", [*0..255].pack("C*"), "x" * 256].freeze
+    EXPIRIES = [nil, 0, 100.years].freeze
 
     ENTRIES = VALUES.product(VERSIONS, EXPIRIES).map do |value, version, expires_in|
       ActiveSupport::Cache::Entry.new(value, version: version, expires_in: expires_in).freeze

@@ -26,7 +26,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_equal 2736, blob.metadata[:height]
   end
 
-  test "attaching a un-analyzable blob" do
+  test "attaching an un-analyzable blob" do
     blob = create_blob(filename: "blank.txt")
 
     assert_not_predicate blob, :analyzed?
@@ -51,6 +51,23 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     )
 
     assert_equal(1, user.callback_counter)
+  end
+
+  test "attaching a blob to a record works when ActiveStorage.touch_attachment_records is false" do
+    ActiveStorage.with(touch_attachment_records: false) do
+      data = "Something else entirely!"
+      io = StringIO.new(data)
+      blob = create_blob_before_direct_upload byte_size: data.size, checksum: ActiveStorage.checksum_implementation.base64digest(data)
+      blob.upload(io)
+
+      assert_nothing_raised do
+        User.create!(
+          name: "Roger",
+          avatar: blob.signed_id,
+          record_callbacks: true,
+        )
+      end
+    end
   end
 
   test "attaching a record doesn't reset the previously_new_record flag" do
@@ -121,7 +138,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_equal blob, ActiveStorage::Blob.find_signed!(signed_id, purpose: :custom_purpose)
   end
 
-  test "getting a signed blob ID from an attachment with a expires_in" do
+  test "getting a signed blob ID from an attachment with an expires_in" do
     blob = create_blob
     @user.avatar.attach(blob)
 
@@ -138,7 +155,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_nil ActiveStorage::Blob.find_signed(signed_id)
   end
 
-  test "getting a signed blob ID from an attachment with a expires_at" do
+  test "getting a signed blob ID from an attachment with an expires_at" do
     blob = create_blob
     @user.avatar.attach(blob)
 

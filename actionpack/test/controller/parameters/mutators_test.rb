@@ -147,6 +147,43 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     assert_not_predicate @params.deep_transform_keys! { |k| k }, :permitted?
   end
 
+  test "deep_transform_values! retains permitted status" do
+    @params.permit!
+    assert_predicate @params.deep_transform_values! { |v| v }, :permitted?
+  end
+
+  test "deep_transform_values! retains unpermitted status" do
+    assert_not_predicate @params.deep_transform_values! { |v| v }, :permitted?
+  end
+
+  test "deep_transform_values! transforms nested values" do
+    @params.permit!
+    @params.deep_transform_values! { |v| v.is_a?(String) ? v.upcase : v }
+
+    expected_hash = { "person" => { "age" => "32", "name" => { "first" => "DAVID", "last" => "HEINEMEIER HANSSON" }, "addresses" => [{ "city" => "CHICAGO", "state" => "ILLINOIS" }] } }
+    assert_equal expected_hash, @params.to_hash
+  end
+
+  test "deep_transform_values transforms nested values" do
+    original_hash = @params.to_unsafe_h
+    @params.permit!
+    new_params = @params.deep_transform_values { |v| v.is_a?(String) ? v.upcase : v }
+
+    assert_equal original_hash, @params.to_hash
+
+    expected_hash = { "person" => { "age" => "32", "name" => { "first" => "DAVID", "last" => "HEINEMEIER HANSSON" }, "addresses" => [{ "city" => "CHICAGO", "state" => "ILLINOIS" }] } }
+    assert_equal expected_hash, new_params.to_hash
+  end
+
+  test "deep_transform_values does not yield Hash, Array, or Parameters branches" do
+    @params.deep_transform_values do |v|
+      assert_not_kind_of Hash, v
+      assert_not_kind_of Array, v
+      assert_not_kind_of ActionController::Parameters, v
+      v
+    end
+  end
+
   test "compact retains permitted status" do
     @params.permit!
     assert_predicate @params.compact, :permitted?
@@ -189,7 +226,7 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     assert_not_predicate @params.compact_blank!, :permitted?
   end
 
-  test "to_h returns a ActiveSupport::HashWithIndifferentAccess" do
+  test "to_h returns an ActiveSupport::HashWithIndifferentAccess" do
     @params.permit!
     params_hash = @params.to_h
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, params_hash

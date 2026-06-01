@@ -300,6 +300,7 @@ ActiveRecord::Schema.define do
     t.integer :shop_id
     t.string :status
     t.integer :books_count, default: 0
+    t.timestamps
   end
 
   create_table :cpk_order_tags, primary_key: [:order_id, :tag_id], force: true do |t|
@@ -1005,6 +1006,7 @@ ActiveRecord::Schema.define do
     t.integer :indestructible_tags_count, default: 0
     t.integer :tags_with_destroy_count, default: 0
     t.integer :tags_with_nullify_count, default: 0
+    t.datetime :deleted_at
   end
 
   create_table :postesques, force: true do |t|

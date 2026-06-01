@@ -16,6 +16,7 @@ class Rails::CredsTest < ActiveSupport::TestCase
     app("production")
 
     ENV["MYSTERY"] = "hidden"
+    Rails.app.creds.reload
     assert_equal "hidden", Rails.app.creds.require(:mystery)
 
     ENV.delete("MYSTERY")
@@ -32,6 +33,7 @@ class Rails::CredsTest < ActiveSupport::TestCase
 
     ENV["MYSTERY"] = "hidden"
     Rails.app.creds = ActiveSupport::CombinedConfiguration.new(Rails.app.envs)
+    Rails.app.creds.reload
     assert_equal "hidden", Rails.app.creds.require(:mystery)
 
     ENV.delete("MYSTERY")

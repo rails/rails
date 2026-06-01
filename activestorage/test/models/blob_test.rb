@@ -84,6 +84,17 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal data, blob.download
   end
 
+  test "create_and_upload! with a path traversal key raises on Disk service" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      ActiveStorage::Blob.create_and_upload!(
+        key: "../../etc/passwd",
+        io: StringIO.new("malicious content"),
+        filename: "exploit.txt",
+        content_type: "text/plain"
+      )
+    end
+  end
+
   test "create_and_upload accepts a record for overrides" do
     assert_nothing_raised do
       create_blob(record: User.new)
@@ -108,6 +119,42 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
     assert_changes -> { user.reload.updated_at } do
       user.avatar.blob.analyze
+    end
+  end
+
+  test "analyze does not bump lock_version on the attachment record" do
+    user = User.create!(
+      name: "Nate",
+      avatar: {
+        content_type: "image/jpeg",
+        filename: "racecar.jpg",
+        io: file_fixture("racecar.jpg").open,
+      }
+    )
+    original_lock_version = user.reload.lock_version
+
+    assert_changes -> { user.reload.updated_at } do
+      user.avatar.blob.analyze
+    end
+
+    assert_equal original_lock_version, user.reload.lock_version
+  end
+
+  test "saving a stale-but-lock-valid record after analyze does not raise StaleObjectError" do
+    user = User.create!(
+      name: "Nate",
+      avatar: {
+        content_type: "image/jpeg",
+        filename: "racecar.jpg",
+        io: file_fixture("racecar.jpg").open,
+      }
+    )
+    stale_user = User.find(user.id)
+
+    user.avatar.blob.analyze
+
+    assert_nothing_raised do
+      stale_user.update!(name: "Nathan")
     end
   end
 

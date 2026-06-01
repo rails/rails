@@ -30,7 +30,7 @@ DOCKER = ENV["DOCKER"] || exe?("podman") || exe?("docker")
 
 VARS = {
   "localWorkspaceFolderBasename" => Dir.pwd.split(File::SEPARATOR).last
-}
+}.freeze
 
 data = File.binread ".devcontainer/devcontainer.json"
 data.gsub!(/^\s*\/\/.*$/, "") # strip comments

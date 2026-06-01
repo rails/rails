@@ -18,12 +18,12 @@ module ActiveRecord
 
       def initialize
         super()
-        @mutex = Mutex.new
+        @monitor = Monitor.new
         @server_version = nil
       end
 
       def server_version(connection) # :nodoc:
-        @server_version || @mutex.synchronize { @server_version ||= connection.get_database_version }
+        @server_version || @monitor.synchronize { @server_version ||= connection.get_database_version }
       end
 
       def schema_reflection
@@ -455,13 +455,13 @@ module ActiveRecord
           begin
             yield lease.connection
           ensure
-            lease.sticky = sticky_was if prevent_permanent_checkout && !sticky_was
+            lease.sticky = sticky_was if prevent_permanent_checkout
           end
         else
           begin
             yield lease.connection = checkout
           ensure
-            lease.sticky = sticky_was if prevent_permanent_checkout && !sticky_was
+            lease.sticky = sticky_was if prevent_permanent_checkout
             release_connection(lease) unless lease.sticky
           end
         end
@@ -555,6 +555,7 @@ module ActiveRecord
         @reaper_lock.synchronize do
           synchronize do
             return if self.discarded?
+            Reaper.discard_pool(self)
             @connections.each do |conn|
               conn.discard!
             end
@@ -807,13 +808,15 @@ module ActiveRecord
       # having to wait for a connection to be established when first using it
       # after checkout.
       def preconnect
-        sequential_maintenance -> c { (!c.connected? || !c.verified?) && c.allow_preconnect } do |conn|
-          conn.connect!
-        rescue
-          # Wholesale rescue: there's nothing we can do but move on. The
-          # connection will go back to the pool, and the next consumer will
-          # presumably try to connect again -- which will either work, or
-          # fail and they'll be able to report the exception.
+        reaper_lock do
+          sequential_maintenance -> c { (!c.connected? || !c.verified?) && c.allow_preconnect } do |conn|
+            conn.connect!
+          rescue
+            # Wholesale rescue: there's nothing we can do but move on. The
+            # connection will go back to the pool, and the next consumer will
+            # presumably try to connect again -- which will either work, or
+            # fail and they'll be able to report the exception.
+          end
         end
       end
 

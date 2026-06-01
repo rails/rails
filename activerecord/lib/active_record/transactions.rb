@@ -4,7 +4,7 @@ module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
     extend ActiveSupport::Concern
-    ACTIONS = [:create, :destroy, :update] # :nodoc:
+    ACTIONS = [:create, :destroy, :update].freeze # :nodoc:
 
     included do
       define_callbacks :commit, :rollback,
@@ -265,7 +265,7 @@ module ActiveRecord
       end
 
       def before_commit(*args, &block) # :nodoc:
-        set_options_for_callbacks!(args)
+        set_options_for_callbacks!(:before, args)
         set_callback(:before_commit, :before, *args, &block)
       end
 
@@ -282,31 +282,31 @@ module ActiveRecord
       #   after_commit :do_bar_baz, on: [:update, :destroy]
       #
       def after_commit(*args, &block)
-        set_options_for_callbacks!(args, prepend_option)
+        set_options_for_callbacks!(:after, args)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: [ :create, :update ]</tt>.
       def after_save_commit(*args, &block)
-        set_options_for_callbacks!(args, on: [ :create, :update ], **prepend_option)
+        set_options_for_callbacks!(:after, args, on: [ :create, :update ])
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :create</tt>.
       def after_create_commit(*args, &block)
-        set_options_for_callbacks!(args, on: :create, **prepend_option)
+        set_options_for_callbacks!(:after, args, on: :create)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :update</tt>.
       def after_update_commit(*args, &block)
-        set_options_for_callbacks!(args, on: :update, **prepend_option)
+        set_options_for_callbacks!(:after, args, on: :update)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :destroy</tt>.
       def after_destroy_commit(*args, &block)
-        set_options_for_callbacks!(args, on: :destroy, **prepend_option)
+        set_options_for_callbacks!(:after, args, on: :destroy)
         set_callback(:commit, :after, *args, &block)
       end
 
@@ -314,7 +314,7 @@ module ActiveRecord
       #
       # Please check the documentation of #after_commit for options.
       def after_rollback(*args, &block)
-        set_options_for_callbacks!(args, prepend_option)
+        set_options_for_callbacks!(:after, args)
         set_callback(:rollback, :after, *args, &block)
       end
 
@@ -338,16 +338,11 @@ module ActiveRecord
       end
 
       private
-        def prepend_option
-          if ActiveRecord.run_after_transaction_callbacks_in_order_defined
-            { prepend: true }
-          else
-            {}
-          end
-        end
+        def set_options_for_callbacks!(position, args, enforced_options = {})
+          options = args.extract_options!
+          enforced_options.merge!(enforced_prepend_option(position, options))
+          options.merge!(enforced_options)
 
-        def set_options_for_callbacks!(args, enforced_options = {})
-          options = args.extract_options!.merge!(enforced_options)
           args << options
 
           if options[:on]
@@ -357,6 +352,14 @@ module ActiveRecord
               -> { transaction_include_any_action?(fire_on) },
               *options[:if]
             ]
+          end
+        end
+
+        def enforced_prepend_option(position, options)
+          if position == :after && ActiveRecord.run_after_transaction_callbacks_in_order_defined
+            { prepend: !options[:prepend] }
+          else
+            {}
           end
         end
 
@@ -492,8 +495,21 @@ module ActiveRecord
           if force_restore_state || restore_state[:level] <= 1
             @new_record = restore_state[:new_record]
             @previously_new_record = restore_state[:previously_new_record]
-            @destroyed  = restore_state[:destroyed]
+            @destroyed = restore_state[:destroyed]
+            locking_column = self.class.locking_column if self.class.locking_enabled?
             @attributes = restore_state[:attributes].map do |attr|
+              if attr.name == locking_column
+                # The locking column is bumped by `_update_row` itself, not the caller, and
+                # `_update_row` writes the new value into the same `@attributes` object that
+                # the snapshot is holding a reference to (because the snapshot wraps the
+                # `AttributeSet` rather than deep-duping it). After a successful save,
+                # `forget_attribute_assignments` reassigns `@attributes`, so subsequent
+                # operations see a clean attribute, but the snapshot retains the dirty one.
+                # Forcibly rebuild the locking column attribute from its (still-correct)
+                # original value so the next save uses the pristine value in the WHERE
+                # clause and doesn't raise `StaleObjectError` after a rollback.
+                next attr.with_value_from_database(attr.original_value)
+              end
               value = @attributes.fetch_value(attr.name)
               attr = attr.with_value_from_user(value) if attr.value != value
               attr
@@ -512,6 +528,19 @@ module ActiveRecord
               end
             end
             freeze if restore_state[:frozen?]
+          elsif self.class.locking_enabled?
+            # Nested savepoint rollback. The full restore above only runs at the
+            # outermost level, but the same `_update_row` mutation that bumps the
+            # in-memory locking column happens for saves performed inside the
+            # savepoint too. Leaving the bumped value in memory after the
+            # savepoint reverts those rows raises `StaleObjectError` on the next
+            # save in the surrounding transaction. Reset just the locking column
+            # so subsequent saves can match the row that the savepoint restored.
+            locking_column = self.class.locking_column
+            attr = restore_state[:attributes][locking_column]
+            if attr
+              @attributes.write_from_database(locking_column, attr.original_value)
+            end
           end
         end
       end
