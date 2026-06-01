@@ -42,6 +42,13 @@ estimates][who-disability] that roughly one in six people lives with a
 significant disability, so the gap between that audience and the inaccessible
 state of the web is large.
 
+Those figures count permanent disability, but the same barriers reach further.
+They also affect people temporarily, like someone with a broken arm or blurred
+vision after an eye exam, and situationally, like a parent holding a child with
+one free hand or anyone reading a phone screen in bright sunlight. Designing for
+the permanent case improves the experience for everyone who meets the same
+barrier.
+
 This guide is a practical reference for closing that gap in a Rails application.
 It covers the specific mistakes that lock out part of an audience, and it shows
 where Rails helpers and modern HTML already do the work. Building accessibility
@@ -761,8 +768,8 @@ about whether they just liked or unliked something.
 state. It announces "pressed" or "not pressed" along with the button's name,
 which is how the toggle state becomes programmatically available ([WCAG 4.1.2
 Name, Role, Value][wcag-name-role-value]). A [Stimulus
-controller][stimulus-controllers] can manage this, using a value so the initial
-state can be set from the server:
+controller][stimulus-controllers] can toggle it, with the server rendering the
+initial state:
 
 [aria-pressed]: https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-pressed
 [stimulus-controllers]: https://stimulus.hotwired.dev/reference/controllers
@@ -772,24 +779,16 @@ state can be set from the server:
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static values = { pressed: Boolean }
-
-  pressedValueChanged() {
-    this.element.ariaPressed = this.pressedValue
-  }
-
   press() {
-    this.pressedValue = !this.pressedValue
+    this.element.ariaPressed = this.element.ariaPressed !== "true"
   }
 }
 ```
 
 ```html+erb
 <%= tag.button "Like", type: "button",
-      data: {
-        controller: "toggle-button",
-        toggle_button_pressed_value: @article.liked_by?(current_user),
-        action: "toggle-button#press" } %>
+      aria: { pressed: @article.liked_by?(current_user) },
+      data: { controller: "toggle-button", action: "toggle-button#press" } %>
 ```
 
 When using `aria-pressed`, do not change the button's text to reflect the state.
@@ -1299,6 +1298,10 @@ they describe two different kinds of control:
   form, publishing an article, toggling a setting, opening a dialog. Assistive
   technologies announce it as "button".
 
+They also behave differently from the keyboard. A `<button>` activates with both
+Enter and Space, while an `<a>` responds only to Enter, so a link used as a
+button will not respond to Space.
+
 Screen readers and voice control tools treat the two as separate categories,
 each with its own navigation shortcuts and voice commands, as covered in [How
 People Use the Web](#how-people-use-the-web). Using a link where a button
@@ -1363,6 +1366,11 @@ every platform lets the user open a link in a new tab or window. Does it make
 sense to open "Publish article" or "Delete" in a new tab? Clearly not. Only
 `GET` requests are safe to repeat or open out of context, which is exactly why
 actions that change server state should not be links in the first place.
+
+NOTE: A plain `<button>` defaults to `type="submit"` and submits its form, which
+is what `button_to` and form submit buttons want. A button that only triggers
+client-side behavior, like toggling a setting or opening a dialog, should set
+`type="button"` so it does not submit a surrounding form.
 
 ### Buttons inside Other Forms
 
@@ -1525,7 +1533,9 @@ answer is to not render a link at all. The classic example is pagination, where
 the next control disappears at the end of the list:
 
 ```html+erb
-<%= link_to "Next", url_for(page: @page.next_param) unless @page.last? %>
+<% unless @page.last? %>
+  <%= link_to "Next", url_for(page: @page.next_param) %>
+<% end %>
 ```
 
 When `@page.last?` is true, the link is not rendered at all, so screen readers
@@ -2025,6 +2035,11 @@ This gives screen readers the same structure as a native `<table>`, but it
 requires significantly more markup and is easier to get wrong. Prefer a native
 `<table>` whenever possible.
 
+There is a testing benefit, too. Since a real `<table>` carries its own
+structure, Capybara can find it by its caption and assert on its rows, so a
+system test exercises the same relationships a screen reader relies on. See
+[Writing Accessible System Tests](#writing-accessible-system-tests).
+
 ### Sortable Tables
 
 When a table can be sorted by its column headers, sighted users see a visual
@@ -2220,6 +2235,11 @@ This generates HTML where each `<label>` has a `for` attribute matching the
 This explicit association has multiple benefits: screen readers announce "Name"
 when the input is focused, voice control users can say "click Name" to focus the
 field, and clicking the label focuses the input (enlarging the clickable area).
+
+Good labels also make forms easier to test. Capybara locates controls by their
+label (and groups by their `<fieldset>` legend), so a well-labeled form lets
+system tests act on fields the way a user would, without brittle CSS selectors.
+See [Writing Accessible System Tests](#writing-accessible-system-tests).
 
 WARNING: Never rely on the [`placeholder`][placeholder-attr] attribute as a
 substitute for a label. Placeholders disappear once the user starts typing, both
@@ -4431,12 +4451,14 @@ end
 
 Write system tests that interact with the application the way assistive
 technology users do. [Rails system tests](testing.html#system-testing) use
-[Capybara][capybara] under the hood, and its finders already work in terms of
-the accessible name. Prefer finding elements by their **accessible names**
+[Capybara][capybara] under the hood, and its [selectors][capybara-selectors]
+already match elements by their accessible name, so the finders built on them
+work the same way. Prefer finding elements by their **accessible names**
 (labels, text content) instead of by implementation details like IDs, `name`
 attributes, placeholders, or CSS classes:
 
 [capybara]: https://teamcapybara.github.io/capybara/
+[capybara-selectors]: https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Selector
 
 ```ruby
 # Avoid: relies on implementation details
@@ -4482,6 +4504,13 @@ within :element, "nav", "aria-label" => "Footer" do
 end
 ```
 
+TIP: The [capybara_accessible_selectors][capybara-a11y-selectors] gem adds
+selectors for accessibility concepts, including landmarks, so `within :element,
+"nav", "aria-label" => "Primary"` can be written as `within :navigation,
+"Primary"`.
+
+[capybara-a11y-selectors]: https://github.com/citizensadvice/capybara_accessible_selectors
+
 A table's caption is its accessible name, so scope assertions on tabular data by
 caption. Rows are then checked as a group rather than as free text somewhere on
 the page:
@@ -4491,6 +4520,23 @@ assert_table "Users", with_rows: [
   { "Email address" => "user@example.com", "Name" => "User" },
   { "Email address" => "other@example.com", "Name" => "Other" }
 ]
+```
+
+`within_table` scopes a query to the table with a given id or caption, which
+matters when a page shows more than one:
+
+```ruby
+within_table "Users" do
+  assert_link "user@example.com"
+end
+```
+
+`within_fieldset` scopes a query to a `<fieldset>` by its id or `<legend>`:
+
+```ruby
+within_fieldset "Billing cycle" do
+  choose "Monthly"
+end
 ```
 
 Capybara's finders also accept filters for the same states assistive
