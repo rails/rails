@@ -566,6 +566,76 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal('ca"t'...'do\\g', escaped_range.string_range)
   end
 
+  def test_ranges_correctly_parse_quoted_bounds_with_commas
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (107, '["a,b","c,d")')
+    SQL
+
+    range = PostgresqlRange.find(107)
+    assert_equal("a,b"..."c,d", range.string_range)
+  end
+
+  def test_ranges_parse_quoted_bounds_with_commas_quotes_and_backslashes
+    # Lower bound is `a,"b` (comma + embedded quote), upper is `c\,d`
+    # (backslash + comma); PostgreSQL emits these as ["a,""b","c\\,d").
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (108, '["a,""b","c\\\\,d")')
+    SQL
+
+    assert_equal('a,"b'...'c\\,d', PostgresqlRange.find(108).string_range)
+  end
+
+  def test_ranges_parse_partially_quoted_bounds_with_commas
+    # Only the lower bound is quoted (it contains a comma); the upper bound
+    # is emitted bare, so the separating comma is the first unquoted one.
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (109, '["x,y",z)')
+    SQL
+
+    assert_equal("x,y"..."z", PostgresqlRange.find(109).string_range)
+  end
+
+  def test_ranges_parse_open_bounds_with_commas
+    # Upper bound omitted (endless); lower bound quoted with a comma.
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (110, '["a,b",)')
+    SQL
+    assert_equal("a,b"...nil, PostgresqlRange.find(110).string_range)
+
+    # Lower bound omitted (beginless); upper bound quoted with a comma.
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (111, '[,"c,d")')
+    SQL
+    assert_equal(nil..."c,d", PostgresqlRange.find(111).string_range)
+  end
+
+  def test_ranges_parse_bounds_containing_newlines
+    # Bounds with a newline are double-quoted by PostgreSQL and the newline is
+    # kept verbatim; the upper bound's newline exercises the regexp's /m flag.
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (112, stringrange('a' || chr(10) || 'b', 'c' || chr(10) || 'd', '[)'))
+    SQL
+
+    assert_equal("a\nb"..."c\nd", PostgresqlRange.find(112).string_range)
+  end
+
+  def test_ranges_parse_empty_string_bounds
+    # An empty-string bound is double-quoted ("") and must stay an empty
+    # string -- distinct from an omitted bound, which is infinity (nil).
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (113, '["","z")')
+    SQL
+
+    assert_equal(""..."z", PostgresqlRange.find(113).string_range)
+  end
+
   def test_infinity_values
     PostgresqlRange.create!(int4_range: 1..Float::INFINITY,
                             int8_range: -Float::INFINITY..0,
