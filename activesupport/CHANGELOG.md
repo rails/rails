@@ -1,3 +1,10 @@
+*   Add `RedisClient::Error` to `ActiveSupport::Cache::RedisCacheStore`'s failsafe rescue list.
+
+    The redis-rb gem normally translates `RedisClient::*` errors into `Redis::*` errors but in
+    some rare cases, such as when using sentinels, `RedisClient::*` errors may slip through.
+
+    *David Arrunategui*
+
 *   Fix `ActiveSupport::Duration#in_minutes`, `#in_hours`, `#in_days`,
     `#in_weeks`, `#in_months`, and `#in_years` truncating sub-second precision.
 

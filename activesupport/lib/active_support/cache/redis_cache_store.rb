@@ -481,9 +481,17 @@ module ActiveSupport
           @supports_expire_nx = redis_versions.all? { |v| Gem::Version.new(v) >= Gem::Version.new("7.0.0") }
         end
 
+        FAILSAFE_ERRORS = [
+          ::Redis::BaseError,
+          ConnectionPool::Error,
+          ConnectionPool::TimeoutError,
+          (::RedisClient::Error if defined?(::RedisClient::Error)),
+        ].compact.freeze
+        private_constant :FAILSAFE_ERRORS
+
         def failsafe(method, returning: nil)
           yield
-        rescue ::Redis::BaseError, ConnectionPool::Error, ConnectionPool::TimeoutError => error
+        rescue *FAILSAFE_ERRORS => error
           @error_handler&.call(method: method, exception: error, returning: returning)
           returning
         end
