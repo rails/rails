@@ -1,3 +1,15 @@
+*   Fix PostgreSQL `daterange` / `tsrange` / `tstzrange` schema dump producing
+    invalid Ruby.
+
+    The schema dumper used to render range defaults via `Range#inspect`, which
+    falls back to `Date#inspect` / `Time#inspect` for the bounds. The resulting
+    `schema.rb` literal (for example `default: Mon, 01 Jan 2024..Wed, 01 Jan 2025`)
+    raised a `SyntaxError` on `db:schema:load`. The bounds are now rendered via
+    the subtype's `type_cast_for_schema`, so date and timestamp range defaults
+    round-trip through `schema.rb` like any other column.
+
+    *Kenta Ishizaki*
+
 *   Fix deadlock when pool-less connection materializes while fetching database
     server version.
 

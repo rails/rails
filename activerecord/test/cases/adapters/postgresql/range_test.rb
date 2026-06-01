@@ -651,6 +651,90 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_nil record.float_range
   end
 
+  def test_type_cast_for_schema_with_integer_subtype
+    type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(
+      ActiveModel::Type::Integer.new, :int4range
+    )
+    assert_equal "1...10",  type.type_cast_for_schema(1...10)
+    assert_equal "1..10",   type.type_cast_for_schema(1..10)
+  end
+
+  def test_type_cast_for_schema_with_date_subtype
+    type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(
+      ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Date.new, :daterange
+    )
+    assert_equal %("2024-01-01"..."2025-01-01"),
+                 type.type_cast_for_schema(::Date.new(2024, 1, 1)...::Date.new(2025, 1, 1))
+  end
+
+  def test_type_cast_for_schema_with_timestamp_subtype
+    type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(
+      ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Timestamp.new, :tsrange
+    )
+    assert_equal %("2024-01-01 00:00:00"..."2025-01-01 00:00:00"),
+                 type.type_cast_for_schema(Time.utc(2024, 1, 1)...Time.utc(2025, 1, 1))
+  end
+
+  def test_type_cast_for_schema_with_infinity
+    type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(
+      ActiveModel::Type::Float.new, :numrange
+    )
+    assert_equal "-::Float::INFINITY..::Float::INFINITY",
+                 type.type_cast_for_schema(-::Float::INFINITY..::Float::INFINITY)
+  end
+
+  def test_type_cast_for_schema_with_nil_bounds
+    type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(
+      ActiveModel::Type::Integer.new, :int4range
+    )
+    # beginless / endless ranges round-trip as nil literals (valid Ruby).
+    assert_equal "nil..10", type.type_cast_for_schema(::Range.new(nil, 10))
+    assert_equal "1..nil", type.type_cast_for_schema(::Range.new(1, nil))
+  end
+
+  def test_type_cast_for_schema_with_infinity_date_range
+    type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(
+      ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Date.new, :daterange
+    )
+    assert_equal %(-::Float::INFINITY..."2025-01-01"),
+                 type.type_cast_for_schema(::Range.new(-::Float::INFINITY, ::Date.new(2025, 1, 1), true))
+    assert_equal %("2024-01-01"...::Float::INFINITY),
+                 type.type_cast_for_schema(::Range.new(::Date.new(2024, 1, 1), ::Float::INFINITY, true))
+  end
+
+  def test_type_cast_for_schema_with_nil_date_range
+    type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(
+      ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Date.new, :daterange
+    )
+    assert_equal %(nil..."2025-01-01"),
+                 type.type_cast_for_schema(::Range.new(nil, ::Date.new(2025, 1, 1), true))
+    assert_equal %("2024-01-01"...nil),
+                 type.type_cast_for_schema(::Range.new(::Date.new(2024, 1, 1), nil, true))
+  end
+
+  def test_type_cast_for_schema_returns_valid_ruby
+    # Regression: previously a daterange / tsrange / tstzrange default was
+    # dumped via Range#inspect, producing literals like
+    # `"Mon, 01 Jan 2024..Wed, 01 Jan 2025"` that cannot be loaded as
+    # Ruby in schema.rb. Now every supported subtype must round-trip.
+    [
+      [::ActiveModel::Type::Integer.new, :int4range,   1...10],
+      [::ActiveModel::Type::Float.new,   :numrange,    1.5..2.5],
+      [ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Date.new, :daterange, ::Date.new(2024, 1, 1)...::Date.new(2025, 1, 1)],
+      [ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Timestamp.new, :tsrange, Time.utc(2024, 1, 1)...Time.utc(2025, 1, 1)],
+      [ActiveRecord::ConnectionAdapters::PostgreSQL::OID::TimestampWithTimeZone.new, :tstzrange, Time.utc(2024, 1, 1)...Time.utc(2025, 1, 1)],
+    ].each do |subtype, sql_type, range|
+      type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(subtype, sql_type)
+      dump = type.type_cast_for_schema(range)
+      compiled = begin
+        RubyVM::InstructionSequence.compile(dump)
+      rescue SyntaxError => e
+        flunk "schema literal #{dump.inspect} for #{sql_type} is not valid Ruby: #{e.message}"
+      end
+      assert_kind_of RubyVM::InstructionSequence, compiled
+    end
+  end
+
   private
     def assert_equal_round_trip(range, attribute, value)
       round_trip(range, attribute, value)
