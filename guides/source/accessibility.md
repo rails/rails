@@ -134,9 +134,10 @@ the web:
 * **Voice control:** Software that allows users to speak commands instead of
   using a keyboard or mouse. A user might say "click Submit" or "click Email" to
   interact with buttons and form fields. For this to work, every interactive
-  element needs a visible text label: if a button has no text, voice control
-  users cannot refer to it by name. Voice control is built into all major
-  platforms: Voice Control on macOS/iOS, Voice Access on Windows and Android.
+  element needs an accessible name, ideally its visible text. A control with no
+  name at all, like an unlabeled icon button, gives voice control nothing to
+  match. Voice control is built into all major platforms: Voice Control on
+  macOS/iOS, Voice Access on Windows and Android.
 
 * **Switch devices:** Physical devices used by people with significant motor
   limitations. A switch device might be a single button or a sip-and-puff
@@ -578,10 +579,12 @@ Like `aria-labelledby`, `aria-describedby` accepts more than one ID, separated
 by spaces, so a description can compose from several existing pieces of page
 content without duplicating strings.
 
-NOTE: Like `aria-label`, descriptions only work reliably on elements whose role
-supports them: interactive elements, landmarks, and other identifiable roles.
-They will not work on a plain `<div>`, `<span>`, or `<p>`, unless the element
-has an explicit role that supports naming.
+NOTE: Unlike `aria-label`, the `aria-description` and `aria-describedby`
+attributes are valid on any element, not only ones with a particular role. In
+practice, though, a screen reader announces the description reliably only on an
+interactive control. On a plain `<div>` or `<span>`, some readers announce it
+and others stay silent, so keep descriptions on the control they belong to
+rather than relying on them elsewhere.
 
 WARNING: Descriptions are auto-announced every time the element receives focus,
 and users cannot always silence them. Do not add a description when the
