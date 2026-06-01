@@ -1,3 +1,14 @@
+*   Fix collection association `ids=` writers (e.g. `author.book_ids=`) raising
+    `ActiveRecord::RecordNotFound` for existing records when a composite primary
+    key model is assigned string ids (the shape ids take from request params).
+
+    Each id component is now cast against its own column type, instead of casting
+    the whole tuple against an array of column names, which `type_for_attribute`
+    can't resolve to a real type (so the cast was a no-op and the string ids
+    never matched the loaded records).
+
+    *Kenta Ishizaki*
+
 *   Fix `find` with multiple composite primary key ids passed as strings
     silently returning `[]`.
 
