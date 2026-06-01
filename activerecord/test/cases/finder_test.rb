@@ -2058,6 +2058,13 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal books.map(&:id), Cpk::Book.order(author_id: :asc).find(books.map(&:id)).map(&:id)
   end
 
+  test "find with multiple sets of composite primary key given as strings" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+    string_ids = books.map { |book| book.id.map(&:to_s) }
+
+    assert_equal books.map(&:id), Cpk::Book.find(string_ids).map(&:id)
+  end
+
   test "#find_by with composite primary key" do
     book = cpk_books(:cpk_book_with_generated_pk)
     assert_equal cpk_reviews(:first_book_review), Cpk::Review.find_by(book: book)
