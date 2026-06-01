@@ -574,9 +574,17 @@ module ActiveRecord
         result = relation.records
 
         if result.size == ids.size
-          result.in_order_of(:id, ids.map { |id| model.type_for_attribute(primary_key).cast(id) })
+          result.in_order_of(:id, ids.map { |id| cast_primary_key(id) })
         else
           raise_record_not_found_exception!(ids, result.size, ids.size)
+        end
+      end
+
+      def cast_primary_key(id)
+        if model.composite_primary_key?
+          primary_key.zip(id).map! { |attr, value| model.type_for_attribute(attr).cast(value) }
+        else
+          model.type_for_attribute(primary_key).cast(id)
         end
       end
 
