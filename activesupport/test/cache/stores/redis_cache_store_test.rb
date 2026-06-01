@@ -388,6 +388,16 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
   end
 
+  class RedisClientErrorRedisClient < Redis::Client
+    def ensure_connected(...)
+      raise RedisClient::Error
+    end
+
+    def self.translate_error!(error, **)
+      raise error
+    end
+  end
+
   class FailureRaisingFromUnavailableClientTest < StoreTest
     include FailureRaisingBehavior
 
@@ -442,6 +452,21 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       def emulating_unavailability
         old_client = Redis.send(:remove_const, :Client)
         Redis.const_set(:Client, MaxClientsReachedRedisClient)
+
+        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace)
+      ensure
+        Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, old_client)
+      end
+  end
+
+  class FailureSafetyFromRedisClientErrorTest < StoreTest
+    include FailureSafetyBehavior
+
+    private
+      def emulating_unavailability
+        old_client = Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, RedisClientErrorRedisClient)
 
         yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace)
       ensure
