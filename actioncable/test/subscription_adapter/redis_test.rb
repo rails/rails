@@ -45,18 +45,18 @@ class RedisAdapterTest < ActionCable::TestCase
 
   private
     def redis_conn
-      @redis_conn ||= ::Redis.new(cable_config.except(:adapter))
+      @redis_conn ||= ::RedisClient.config(**cable_config.except(:adapter)).new_client
     end
 
     def drop_pubsub_connections
       # Emulate connection failure by dropping all connections
-      redis_conn.client("kill", "type", "pubsub")
+      redis_conn.call("client", "kill", "type", "pubsub")
     end
 
     def wait_pubsub_connection(redis_conn, channel, timeout: 5)
       wait = timeout
       loop do
-        break if redis_conn.pubsub("numsub", channel).last > 0
+        break if redis_conn.call("pubsub", "numsub", channel).last > 0
 
         sleep 0.1
         wait -= 0.1
@@ -84,7 +84,7 @@ class RedisAdapterTest::ConnectorDefaultID < ActionCable::TestCase
   end
 
   def cable_config
-    { url: 1, host: 2, port: 3, db: 4, password: 5 }
+    { url: "redis://example.com" }
   end
 
   def connection_id
@@ -96,8 +96,11 @@ class RedisAdapterTest::ConnectorDefaultID < ActionCable::TestCase
   end
 
   test "sets connection id for connection" do
-    assert_called_with ::Redis, :new, [ expected_connection.symbolize_keys ] do
-      @adapter.send(:redis_connection)
+    client = @adapter.send(:redis_connection)
+    if connection_id.nil?
+      assert_nil connection_id
+    else
+      assert_equal connection_id, client.id
     end
   end
 end
@@ -153,8 +156,7 @@ class RedisAdapterTest::SentinelConfigAsHash < ActionCable::TestCase
   end
 
   test "sets sentinels as array of hashes with keyword arguments" do
-    assert_called_with ::Redis, :new, [ expected_connection ] do
-      @adapter.send(:redis_connection)
-    end
+    redis_client = @adapter.send(:redis_connection)
+    assert_kind_of RedisClient::SentinelConfig, redis_client.config
   end
 end
