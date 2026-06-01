@@ -1707,7 +1707,7 @@ module ActionView
       end
 
       def self._to_partial_path
-        @_to_partial_path ||= name.demodulize.underscore.sub!(/_builder$/, "")
+        @_to_partial_path ||= name.demodulize.underscore.sub(/_builder$/, "")
       end
 
       def to_partial_path
