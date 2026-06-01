@@ -768,6 +768,12 @@ with:
 Rails.application.config.hosts << "product.com"
 ```
 
+Adding a specific port will make sure only that port is authorized:
+
+```ruby
+Rails.application.config.hosts << "product.com:3000"
+```
+
 The host of a request is checked against the `hosts` entries with the case
 operator (`#===`), which lets `hosts` support entries of type `Regexp`,
 `Proc` and `IPAddr` to name a few. Here is an example with a regexp.
