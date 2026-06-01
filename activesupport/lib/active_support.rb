@@ -91,6 +91,7 @@ module ActiveSupport
     autoload :TaggedLogging
     autoload :XmlMini
     autoload :ArrayInquirer
+    autoload :Ractors
   end
 
   autoload :Rescuable

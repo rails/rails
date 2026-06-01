@@ -522,46 +522,6 @@ NOTE: Defined in `active_support/core_ext/kernel/reporting.rb`.
 [Kernel#silence_warnings]: https://api.rubyonrails.org/classes/Kernel.html#method-i-silence_warnings
 [Kernel#suppress]: https://api.rubyonrails.org/classes/Kernel.html#method-i-suppress
 
-### Ractor shareability
-
-Active Support provides shims for Ruby's Ractor shareability APIs so framework
-code can call them regardless of the Ruby version.
-
-The method [`ractor_make_shareable`][Kernel#ractor_make_shareable] delegates to
-`Ractor.make_shareable` when available, and otherwise returns the object
-unchanged:
-
-```ruby
-ractor_make_shareable({})
-# => Ractor.make_shareable({}) if supported, otherwise {}
-```
-
-The predicate [`ractor_shareable?`][Kernel#ractor_shareable?] delegates to
-`Ractor.shareable?` when available, and otherwise returns the object unchanged:
-
-```ruby
-ractor_shareable?(Object.new)
-# => Ractor.shareable?(Object.new) if supported, otherwise the object
-```
-
-The methods [`ractor_shareable_proc`][Kernel#ractor_shareable_proc] and
-[`ractor_shareable_lambda`][Kernel#ractor_shareable_lambda] delegate to
-`Ractor.shareable_proc` and `Ractor.shareable_lambda` when available. On Ruby
-versions without those APIs, they return the given block unchanged:
-
-```ruby
-handler = ractor_shareable_proc { |event| event.name }
-# => Ractor.shareable_proc { |event| event.name } if supported,
-#    otherwise the block
-```
-
-NOTE: Defined in `active_support/core_ext/kernel/ractor_shareability.rb`.
-
-[Kernel#ractor_make_shareable]: https://api.rubyonrails.org/classes/Kernel.html#method-i-ractor_make_shareable
-[Kernel#ractor_shareable?]: https://api.rubyonrails.org/classes/Kernel.html#method-i-ractor_shareable-3F
-[Kernel#ractor_shareable_proc]: https://api.rubyonrails.org/classes/Kernel.html#method-i-ractor_shareable_proc
-[Kernel#ractor_shareable_lambda]: https://api.rubyonrails.org/classes/Kernel.html#method-i-ractor_shareable_lambda
-
 ### `in?`
 
 The predicate [`in?`][Object#in?] tests if an object is included in another object. An `ArgumentError` exception will be raised if the argument passed does not respond to `include?`.
