@@ -4097,6 +4097,17 @@ class FormHelperTest < ActionView::TestCase
 
   class LabelledFormBuilderSubclass < LabelledFormBuilder; end
 
+  def test_to_partial_path_for_subclass_without_builder_suffix
+    path = nil
+
+    form_for(@post, builder: LabelledFormBuilderSubclass) do |f|
+      path = f.to_partial_path
+      ""
+    end
+
+    assert_equal "labelled_form_builder_subclass", path
+  end
+
   def test_form_for_with_labelled_builder_with_nested_fields_for_with_custom_builder
     klass = nil
 
