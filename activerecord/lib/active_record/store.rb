@@ -154,7 +154,8 @@ module ActiveRecord
               return unless attribute_changed?(store_attribute)
               prev_store, new_store = changes[store_attribute]
               accessor = store_accessor_for(store_attribute)
-              [accessor.get(prev_store, key), accessor.get(new_store, key)]
+              prev_value, new_value = accessor.get(prev_store, key), accessor.get(new_store, key)
+              [prev_value, new_value] unless prev_value == new_value
             end
 
             define_method("#{accessor_key}_was") do
@@ -175,7 +176,8 @@ module ActiveRecord
               return unless saved_change_to_attribute?(store_attribute)
               prev_store, new_store = saved_changes[store_attribute]
               accessor = store_accessor_for(store_attribute)
-              [accessor.get(prev_store, key), accessor.get(new_store, key)]
+              prev_value, new_value = accessor.get(prev_store, key), accessor.get(new_store, key)
+              [prev_value, new_value] unless prev_value == new_value
             end
 
             define_method("#{accessor_key}_before_last_save") do

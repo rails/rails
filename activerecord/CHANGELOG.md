@@ -1,3 +1,16 @@
+*   Fix store accessor `*_change` and `saved_change_to_*` reporting a change
+    for unchanged keys.
+
+    When one key of a `store` column changed, the generated `<key>_change` and
+    `saved_change_to_<key>` methods returned a `[value, value]` pair for the
+    column's *other* keys too, even though their matching `<key>_changed?` /
+    `saved_change_to_<key>?` correctly returned `false` and standard attribute
+    `_change` / `saved_change_to_*` methods return `nil` when unchanged. The
+    methods now return `nil` unless that specific key actually changed,
+    matching their predicate counterparts.
+
+    *Kenta Ishizaki*
+
 *   Reduce number of queries when introspecting MySQL/MariaDB tables.
 
     A fix to support MariaDB function defaults caused the MySQL adapters to
