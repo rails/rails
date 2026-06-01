@@ -1309,9 +1309,14 @@ documentation for any additional setup — most backends require a separate work
 process to be started alongside your Rails application, and some (like Sidekiq)
 require additional infrastructure such as Redis.
 
-NOTE: Switching backends doesn't migrate jobs already sitting in the old queue.
-You'll need to drain the old queue before switching, or run both backends in
-parallel temporarily to let existing jobs complete.
+Note that switching backends doesn't migrate jobs already sitting in the old
+queue. You'll need to drain the old queue before switching, or run both backends
+in parallel temporarily to let existing jobs complete.
+
+NOTE: The early releases of Active Job had adapters built-in, but a decision was
+later made to let queueing backends providers manage the adapter themselves. Any
+backend can be used with Active Job regardless of whether the adapter is built
+in or not.
 
 TIP: If you use `config.active_job.queue_name_prefix`, make sure your new
 backend's worker configuration listens to the prefixed queue names, not the bare
