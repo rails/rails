@@ -1069,6 +1069,14 @@ module ActiveRecord
               raise ArgumentError, "enum_type is required for enums" if enum_type.nil?
 
               enum_type
+            when "timestamptz"
+              if precision.nil?
+                super
+              elsif (0..6) === precision
+                "timestamptz(#{precision})"
+              else
+                raise ArgumentError, "The timestamptz type does not allow a precision of #{precision}. The allowed range is from 0 to 6."
+              end
             else
               super
             end
