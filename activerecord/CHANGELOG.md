@@ -1,3 +1,16 @@
+*   Fix `find` with multiple composite primary key ids passed as strings
+    silently returning `[]`.
+
+    `Model.find([["1", "10"], ["1", "20"]])` (the shape ids take when they come
+    from request parameters) returned an empty array instead of the records and
+    without raising `RecordNotFound`. The ids were cast against the array of key
+    column names as a whole — which is a no-op — so the string tuples never
+    compared equal to the records' integer ids when ordering the result. Each
+    component is now cast against its own column type, matching the documented
+    coercion already performed for single-column keys.
+
+    *Kenta Ishizaki*
+
 *   Fix PostgreSQL range columns corrupting bounds that contain a comma.
 
     `PostgreSQL::OID::Range#extract_bounds` split a range's textual
