@@ -679,6 +679,92 @@ class SchemaDumperTest < ActiveRecord::TestCase
       $stdout = original
     end
 
+    def test_schema_dump_with_timestamp_precision
+      original, $stdout = $stdout, StringIO.new
+
+      migration = Class.new(ActiveRecord::Migration::Current) do
+        def up
+          create_table("timestamps") do |t|
+            t.timestamp :timestamp_default
+            t.timestamp :timestamp_with_precision0, precision: 0
+            t.timestamp :timestamp_with_precision3, precision: 3
+            t.timestamp :timestamp_with_precision6, precision: 6
+            t.timestamp :timestamp_without_precision, precision: nil
+            t.timestamptz :timestamptz_default
+            t.timestamptz :timestamptz_with_precision0, precision: 0
+            t.timestamptz :timestamptz_with_precision3, precision: 3
+            t.timestamptz :timestamptz_with_precision6, precision: 6
+            t.timestamptz :timestamptz_without_precision, precision: nil
+          end
+        end
+        def down
+          drop_table("timestamps")
+        end
+      end
+
+      migration.migrate(:up)
+      output = dump_table_schema("timestamps")
+
+      assert_match %r{t\.datetime "timestamp_default"$}, output
+      assert_match %r{t\.datetime "timestamp_with_precision0", precision: 0$}, output
+      assert_match %r{t\.datetime "timestamp_with_precision3", precision: 3$}, output
+      assert_match %r{t\.datetime "timestamp_with_precision6"$}, output
+      assert_match %r{t\.datetime "timestamp_without_precision", precision: nil$}, output
+
+      assert_match %r{t\.timestamptz "timestamptz_default"$}, output
+      assert_match %r{t\.timestamptz "timestamptz_with_precision0", precision: 0$}, output
+      assert_match %r{t\.timestamptz "timestamptz_with_precision3", precision: 3$}, output
+      assert_match %r{t\.timestamptz "timestamptz_with_precision6"$}, output
+      assert_match %r{t\.timestamptz "timestamptz_without_precision", precision: nil$}, output
+    ensure
+      migration.migrate(:down)
+      $stdout = original
+    end
+
+    def test_schema_dump_with_timestamp_precision_and_datetime_as_timestamptz
+      migration, original, $stdout = nil, $stdout, StringIO.new
+
+      with_postgresql_datetime_type(:timestamptz) do
+        migration = Class.new(ActiveRecord::Migration::Current) do
+          def up
+            create_table("timestamps") do |t|
+              t.timestamp :timestamp_default
+              t.timestamp :timestamp_with_precision0, precision: 0
+              t.timestamp :timestamp_with_precision3, precision: 3
+              t.timestamp :timestamp_with_precision6, precision: 6
+              t.timestamp :timestamp_without_precision, precision: nil
+              t.timestamptz :timestamptz_default
+              t.timestamptz :timestamptz_with_precision0, precision: 0
+              t.timestamptz :timestamptz_with_precision3, precision: 3
+              t.timestamptz :timestamptz_with_precision6, precision: 6
+              t.timestamptz :timestamptz_without_precision, precision: nil
+            end
+          end
+          def down
+            drop_table("timestamps")
+          end
+        end
+
+        migration.migrate(:up)
+        output = dump_table_schema("timestamps")
+
+        assert_match %r{t\.timestamp "timestamp_default"$}, output
+        assert_match %r{t\.timestamp "timestamp_with_precision0", precision: 0$}, output
+        assert_match %r{t\.timestamp "timestamp_with_precision3", precision: 3$}, output
+        assert_match %r{t\.timestamp "timestamp_with_precision6"$}, output
+        assert_match %r{t\.timestamp "timestamp_without_precision", precision: nil$}, output
+
+        assert_match %r{t\.datetime "timestamptz_default"$}, output
+        assert_match %r{t\.datetime "timestamptz_with_precision0", precision: 0$}, output
+        assert_match %r{t\.datetime "timestamptz_with_precision3", precision: 3$}, output
+        assert_match %r{t\.datetime "timestamptz_with_precision6"$}, output
+        assert_match %r{t\.datetime "timestamptz_without_precision", precision: nil$}, output
+      end
+    ensure
+      migration.migrate(:down)
+      $stdout = original
+    end
+
     def test_timestamps_schema_dump_before_rails_7
       migration, original, $stdout = nil, $stdout, StringIO.new
 

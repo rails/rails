@@ -207,3 +207,68 @@ class PostgresqlTimestampMigrationTest < ActiveRecord::PostgreSQLTestCase
     $stdout = original
   end
 end
+
+class PostgresqlTimestampPrecisionTest < ActiveRecord::PostgreSQLTestCase
+  setup do
+    @connection = ActiveRecord::Base.lease_connection
+    @connection.create_table(:postgresql_timestamp_precisions, force: true) do |t|
+      t.timestamp :timestamp_with_precision, precision: 3
+      t.timestamp :timestamp_with_precision_0, precision: 0
+      t.timestamp :timestamp_without_precision, precision: nil
+      t.timestamp :timestamp_default
+
+      t.timestamptz :timestamptz_with_precision, precision: 3
+      t.timestamptz :timestamptz_with_precision_0, precision: 0
+      t.timestamptz :timestamptz_without_precision, precision: nil
+      t.timestamptz :timestamptz_default
+    end
+  end
+
+  teardown do
+    @connection.drop_table :postgresql_timestamp_precisions, if_exists: true
+  end
+
+  def test_timestamp_with_default_precision
+    assert_equal 6, column(:timestamp_default).precision
+  end
+
+  def test_timestamptz_with_default_precision
+    assert_equal 6, column(:timestamptz_default).precision
+  end
+
+  def test_timestamp_with_explicit_precision
+    assert_equal 3, column(:timestamp_with_precision).precision
+  end
+
+  def test_timestamptz_with_explicit_precision
+    assert_equal 3, column(:timestamptz_with_precision).precision
+  end
+
+  def test_timestamp_with_zero_precision
+    assert_equal 0, column(:timestamp_with_precision_0).precision
+  end
+
+  def test_timestamptz_with_zero_precision
+    assert_equal 0, column(:timestamptz_with_precision_0).precision
+  end
+
+  def test_timestamp_with_nil_precision
+    assert_nil column(:timestamp_without_precision).precision
+  end
+
+  def test_timestamptz_with_nil_precision
+    assert_nil column(:timestamptz_without_precision).precision
+  end
+
+  def test_timestamptz_rejects_invalid_precision
+    assert_raises ArgumentError do
+      @connection.add_column :postgresql_timestamp_precisions, :timestamptz_with_invalid_precision, :timestamptz, precision: 7
+    end
+  end
+
+  private
+
+  def column(name)
+    @connection.columns(:postgresql_timestamp_precisions).detect { |column| column.name == name.to_s }
+  end
+end
