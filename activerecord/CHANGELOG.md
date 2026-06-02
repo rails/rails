@@ -1,3 +1,27 @@
+*   Add query predicate hooks for Active Model types.
+
+    Types can override `transforms_query_predicates?`, `query_attribute`, and
+    `query_value` to customize how hash `where` predicates are built while
+    preserving normal casting and serialization behavior.
+
+    For example, a UUID type stored in MySQL `binary(16)` can accept UUID
+    strings while rendering predicates as `id = UUID_TO_BIN(?)`:
+
+    ```ruby
+    def transforms_query_predicates?
+      true
+    end
+
+    def query_value(attribute, value, predicate_builder:)
+      Arel::Nodes::NamedFunction.new(
+        "UUID_TO_BIN",
+        [predicate_builder.build_bind_attribute(attribute.name, value, self)]
+      )
+    end
+    ```
+
+    *Kir Shatrov*
+
 *   Batch SQL statements when creating tables to improve performance.
 
     *Andrew Novoselac*

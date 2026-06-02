@@ -15,7 +15,7 @@ module ActiveRecord
       end
 
       def query_value(attribute, value, predicate_builder:)
-        normalize(predicate_builder.build_bind_attribute(attribute.name, value))
+        normalize(predicate_builder.build_bind_attribute(attribute.name, value, self))
       end
 
       private
