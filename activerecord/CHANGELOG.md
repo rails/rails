@@ -1,3 +1,29 @@
+*   Fix PostgreSQL migrations ignoring `precision` option for `timestamptz` columns.
+
+    Previously, columns with an explicit `timestamptz` type were always created
+    without a precision specifier, regardless if the `precision` option was passed
+    and what it was set to.
+
+    *Kuba Suder*
+
+*   Change default precision for `timestamp` and `timestamptz` columns in
+    PostgreSQL migrations to be 6 like in `datetime` columns.
+
+    `datetime` column type maps to either `timestamp` or `timestamptz` in
+    PostgreSQL databases, depending on the `datetime_type` setting. However,
+    while `datetime` has a default precision of 6 since Rails 7.0, migrations
+    that added columns with type passed as explicit `timestamp` or `timestamptz`
+    used a default precision of `nil` if no `precision` option was added.
+
+    This change makes the `timestamp` and `timestamptz` columns always use a
+    default precision of 6, regardless if the type is specified as `datetime`
+    or an explicit `timestamp(tz)` in the migration. This also affects how
+    columns with these types (if they aren't rendered as `datetime`) are dumped
+    into the `schema.rb`: `precision: nil` is added if the column doesn't have
+    a precision specifier, and `precision: 6` is not added if the precision is 6.
+
+    *Kuba Suder*
+
 *   Fix collection association `ids=` writers (e.g. `author.book_ids=`) raising
     `ActiveRecord::RecordNotFound` for existing records when a composite primary
     key model is assigned string ids (the shape ids take from request params).
