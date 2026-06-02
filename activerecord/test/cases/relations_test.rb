@@ -2038,6 +2038,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, comments.first.id
   end
 
+  def test_reverse_order_reverses_default_order
+    # reverse_order should reverse the default order, just like a regular
+    # order, rather than discarding it in favor of the primary key.
+    assert_equal Post.order("title ASC").reverse_order.ids, Post.default_order("title ASC").reverse_order.ids
+
+    relation = Post.default_order("title ASC").reverse_order
+    assert_match(/ORDER BY title DESC/, relation.to_sql)
+  end
+
   def test_reorder_with_first
     post = nil
 
