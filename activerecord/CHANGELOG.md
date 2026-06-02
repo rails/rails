@@ -1,3 +1,9 @@
+*   Fix `has_many`/`has_one :through` associations with `disable_joins: true`
+    silently returning an empty result when the source points to a composite
+    primary key model.
+
+    *Kenta Ishizaki*
+
 *   Fix collection association `ids=` writers (e.g. `author.book_ids=`) raising
     `ActiveRecord::RecordNotFound` for existing records when a composite primary
     key model is assigned string ids (the shape ids take from request params).
