@@ -359,6 +359,23 @@ module ActiveRecord
       @previously_new_record
     end
 
+    # Returns true if the most recent write (insert, update, touch, or
+    # delete/destroy) performed through this instance affected exactly one
+    # database row.
+    #
+    # Returns false when no row was affected — for example when a scoped UPDATE
+    # matched nothing — and before any write has occurred. Combined with
+    # ActiveRecord::Relation#scoping(all_queries: true), it can detect whether a
+    # scoped write actually resulted in a database change:
+    #
+    #   Post.where(body: old_body).scoping(all_queries: true) do
+    #     record.update(body: "new_body")
+    #   end
+    #   handle_it unless record.previously_affected_row? # another process changed body first
+    def previously_affected_row?
+      @_previously_affected_rows == 1
+    end
+
     # Returns true if this object was previously persisted but now it has been deleted.
     def previously_persisted?
       !new_record? && destroyed?
@@ -663,6 +680,7 @@ module ActiveRecord
         update_constraints
       )
 
+      @_previously_affected_rows = affected_rows
       affected_rows == 1
     end
 
@@ -691,7 +709,7 @@ module ActiveRecord
 
       increment(attribute, by)
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
-      self.class.update_counters(id, attribute => change, touch: touch)
+      @_previously_affected_rows = self.class.update_counters(id, attribute => change, touch: touch)
       public_send(:"clear_#{attribute}_change")
       self
     end
@@ -861,6 +879,7 @@ module ActiveRecord
       def init_internals
         super
         @_trigger_destroy_callback = @_trigger_update_callback = nil
+        @_previously_affected_rows = nil
         @previously_new_record = false
       end
 
@@ -915,7 +934,7 @@ module ActiveRecord
       end
 
       def _delete_row
-        self.class._delete_record(_query_constraints_hash)
+        @_previously_affected_rows = self.class._delete_record(_query_constraints_hash)
       end
 
       def _touch_row(attribute_names, time)
@@ -925,7 +944,7 @@ module ActiveRecord
           _write_attribute(attr_name, time)
         end
 
-        _update_row(attribute_names, "touch")
+        @_previously_affected_rows = _update_row(attribute_names, "touch")
       end
 
       def _update_row(attribute_names, attempted_action = "update")
@@ -976,9 +995,11 @@ module ActiveRecord
         if attribute_names.empty?
           affected_rows = 0
           @_trigger_update_callback = true
+          @_previously_affected_rows = nil
         else
           affected_rows = _update_row(attribute_names)
           @_trigger_update_callback = affected_rows == 1
+          @_previously_affected_rows = affected_rows
         end
 
         @previously_new_record = false
@@ -1009,6 +1030,7 @@ module ActiveRecord
 
         @new_record = false
         @previously_new_record = true
+        @_previously_affected_rows = 1
 
         yield(self) if block_given?
 

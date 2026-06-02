@@ -1,3 +1,19 @@
+*   Add `ActiveRecord::Base#previously_affected_row?`, which returns whether the
+    most recent write (insert, update, touch, or delete/destroy) performed through
+    the record actually affected a database row.
+
+    This lifts the row-counting that powers optimistic locking into a general
+    predicate. Combined with `scoping(all_queries: true)`, it can detect whether a
+    scoped write actually resulted in a database change:
+
+    ```ruby
+    Post.where(body: post.body).scoping(all_queries: true) do
+      post.update(body: "new body")
+    end
+    handle_it unless post.previously_affected_row? # another process changed body first
+    ```
+
+    *Ben Sheldon*
 *   Fix `has_many`/`has_one :through` associations with `disable_joins: true`
     silently returning an empty result when the source points to a composite
     primary key model.

@@ -427,6 +427,31 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_previously_affected_row_detects_scoped_update_match
+    post = Post.first
+    old_body = post.body
+
+    Post.where(body: old_body).scoping(all_queries: true) do
+      assert post.update(body: "a brand new body")
+    end
+
+    assert_predicate post, :previously_affected_row?
+  end
+
+  def test_previously_affected_row_detects_scoped_update_miss
+    post = Post.first
+    old_body = post.body
+
+    # Another process changes the body out from under us.
+    Post.where(id: post.id).update_all(body: "changed elsewhere")
+
+    Post.where(body: old_body).scoping(all_queries: true) do
+      assert post.update(body: "a brand new body"), "update still reports success"
+    end
+
+    assert_not_predicate post, :previously_affected_row?
+  end
+
   def test_raises_error_if_all_queries_is_set_to_false_while_nested
     Author.all.limit(5).update_all(organization_id: 1)
 
