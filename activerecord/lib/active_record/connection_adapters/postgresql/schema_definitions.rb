@@ -268,6 +268,8 @@ module ActiveRecord
           case type
           when :virtual
             type = options[:type]
+          when :timestamp, :timestamptz
+            options[:precision] = 6 unless options.key?(:precision)
           end
 
           super
