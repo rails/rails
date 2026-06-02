@@ -5,7 +5,7 @@ module ActiveSupport
   # unconditionally regardless of the Ruby version.
   module Ractors # :nodoc:
     class << self
-      if defined?(Ractor) && Ractor.respond_to?(:make_shareable)
+      if defined?(Ractor) && RUBY_VERSION >= "4.0"
         # Makes +obj+ Ractor-shareable by delegating to +Ractor.make_shareable+.
         #
         # The +copy:+ option is forwarded unchanged. On Ruby versions without
@@ -13,13 +13,7 @@ module ActiveSupport
         def make_shareable(...)
           Ractor.make_shareable(...)
         end
-      else
-        def make_shareable(obj, copy: false)
-          obj
-        end
-      end
 
-      if defined?(Ractor) && Ractor.respond_to?(:shareable?)
         # Returns whether +obj+ is Ractor-shareable by delegating to
         # +Ractor.shareable?+.
         #
@@ -28,13 +22,7 @@ module ActiveSupport
         def shareable?(obj)
           Ractor.shareable?(obj)
         end
-      else
-        def shareable?(obj)
-          obj
-        end
-      end
 
-      if defined?(Ractor) && Ractor.respond_to?(:shareable_proc)
         # Returns a Ractor-shareable proc by delegating to +Ractor.shareable_proc+.
         #
         # The optional +self:+ value is forwarded as the proc's receiver. On Ruby
@@ -43,13 +31,7 @@ module ActiveSupport
         def shareable_proc(...)
           Ractor.shareable_proc(...)
         end
-      else
-        def shareable_proc(self: nil, &block)
-          block
-        end
-      end
 
-      if defined?(Ractor) && Ractor.respond_to?(:shareable_lambda)
         # Returns a Ractor-shareable lambda by delegating to
         # +Ractor.shareable_lambda+.
         #
@@ -60,7 +42,19 @@ module ActiveSupport
           Ractor.shareable_lambda(...)
         end
       else
-        def shareable_lambda(&block)
+        def make_shareable(obj, copy: false)
+          obj
+        end
+
+        def shareable?(obj)
+          obj
+        end
+
+        def shareable_proc(self: nil, &block)
+          block
+        end
+
+        def shareable_lambda(self: nil, &block)
           block
         end
       end
