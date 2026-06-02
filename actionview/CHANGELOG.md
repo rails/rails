@@ -1,3 +1,8 @@
+*   Fix `ActionView::TestCase#render` to reset `rendered`.
+    The behavior was changed when memoization was added in #51093. Now it once again conforms to the documentation.
+
+    *Jeroen Versteeg*
+
 *   Fix `FormBuilder#to_partial_path` returning `nil` for subclasses whose
     name does not end in `Builder`.
 
