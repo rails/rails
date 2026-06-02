@@ -351,12 +351,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
       ActiveRecord.message_verifiers = app.message_verifiers
 
       use_legacy_signed_id_verifier = app.config.active_record.use_legacy_signed_id_verifier
-      legacy_options = { digest: "SHA256", serializer: JSON, url_safe: true }
+      legacy_options = { digest: "SHA256", serializer: JSON, url_safe: true }.freeze
 
       if use_legacy_signed_id_verifier == :generate_and_verify
-        app.message_verifiers.prepend { |salt| legacy_options if salt == "active_record/signed_id" }
+        app.message_verifiers.prepend(&ActiveSupport::Ractors.shareable_proc { |salt| legacy_options if salt == "active_record/signed_id" })
       elsif use_legacy_signed_id_verifier == :verify
-        app.message_verifiers.rotate { |salt| legacy_options if salt == "active_record/signed_id" }
+        app.message_verifiers.rotate(&ActiveSupport::Ractors.shareable_proc { |salt| legacy_options if salt == "active_record/signed_id" })
       elsif use_legacy_signed_id_verifier
         raise ArgumentError, "Unrecognized value for config.active_record.use_legacy_signed_id_verifier: #{use_legacy_signed_id_verifier.inspect}"
       end
@@ -452,6 +452,18 @@ To keep using the current cache store, you can turn off cache versioning entirel
           require "active_record/message_pack"
           ActiveRecord::MessagePack::Extensions.install(ActiveSupport::MessagePack::CacheSerializer)
         end
+      end
+    end
+
+    initializer "active_record.freeze_configurations" do
+      config.after_initialize do
+        ActiveSupport::Ractors.make_shareable(ActiveRecord.protected_environments)
+        ActiveSupport::Ractors.make_shareable(ActiveRecord.schema_cache_ignored_tables)
+        ActiveSupport::Ractors.make_shareable(ActiveRecord.database_cli)
+        ActiveSupport::Ractors.make_shareable(ActiveRecord.db_warnings_ignore)
+        ActiveSupport::Ractors.make_shareable(ActiveRecord.queues)
+        ActiveSupport::Ractors.make_shareable(ActiveRecord.query_transformers)
+        ActiveSupport::Ractors.make_shareable(ActiveRecord.yaml_column_permitted_classes)
       end
     end
   end

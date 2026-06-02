@@ -2118,6 +2118,20 @@ module ApplicationTests
       assert_equal([Symbol, Time], ActiveRecord.yaml_column_permitted_classes)
     end
 
+    test "active_record configurations are frozen by the railtie" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "production"
+
+      assert_predicate ActiveRecord.protected_environments, :frozen?
+      assert_predicate ActiveRecord.schema_cache_ignored_tables, :frozen?
+      assert_predicate ActiveRecord.database_cli, :frozen?
+      assert_predicate ActiveRecord.db_warnings_ignore, :frozen?
+      assert_predicate ActiveRecord.queues, :frozen?
+      assert_predicate ActiveRecord.query_transformers, :frozen?
+      assert_predicate ActiveRecord.yaml_column_permitted_classes, :frozen?
+    end
+
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
       make_basic_app do |application|
         application.config.annotations.register_extensions("coffee") do |tag|
