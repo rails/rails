@@ -192,19 +192,19 @@ module ActiveSupport
 
         gems_regexp = %r{\A(#{gems_paths.join('|')})/(bundler/)?gems/([^/]+)-([\w.]+)/(.*)}
         gems_result = '\3 (\4) \5'
-        add_filter { |line| line.sub(gems_regexp, gems_result) }
+        add_filter(&Ractors.shareable_proc  { |line| line.sub(gems_regexp, gems_result) })
       end
 
       def add_core_silencer
-        add_silencer { |line| line.include?("<internal:") }
+        add_silencer(&Ractors.shareable_proc { |line| line.include?("<internal:") })
       end
 
       def add_gem_silencer
-        add_silencer { |line| FORMATTED_GEMS_PATTERN.match?(line) }
+        add_silencer(&Ractors.shareable_proc  { |line| FORMATTED_GEMS_PATTERN.match?(line) })
       end
 
       def add_stdlib_silencer
-        add_silencer { |line| line.start_with?(RbConfig::CONFIG["rubylibdir"]) }
+        add_silencer(&Ractors.shareable_proc  { |line| line.start_with?(RbConfig::CONFIG["rubylibdir"]) })
       end
 
       def filter_backtrace(backtrace)

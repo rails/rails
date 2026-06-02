@@ -2,8 +2,11 @@
 
 require "abstract_unit"
 require "rails/backtrace_cleaner"
+require "active_support/testing/ractors_assertions"
 
 class BacktraceCleanerTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   def setup
     @cleaner = Rails::BacktraceCleaner.new
   end
@@ -88,5 +91,9 @@ class BacktraceCleanerTest < ActiveSupport::TestCase
     method_name = ActionView::Template.new(nil, "app/views/application/index.html.erb", nil, locals: []).send :method_name
     frame = @cleaner.clean_frame("app/views/application/index.html.erb:4:in 'block in #{method_name}'", :all)
     assert_equal "app/views/application/index.html.erb:4", frame
+  end
+
+  test "backtrace cleaner is Ractor shareable" do
+    assert_ractor_shareable @cleaner
   end
 end
