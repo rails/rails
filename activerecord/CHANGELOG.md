@@ -1,3 +1,7 @@
+*   Fix `rename_index` to preserve a partial index's `WHERE` for SQLite and older MySQL/MariaDB versions.
+
+    *Kenta Ishizaki*
+
 *   Fix PostgreSQL `foreign_keys` returning a corrupted `to_table` for a foreign key
     that references a table in a quoted schema.
 
