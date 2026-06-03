@@ -401,6 +401,15 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello Big[...]", "Hello Big World!".truncate_words(2, omission: "[...]")
   end
 
+  def test_truncate_words_with_zero_count
+    assert_equal "Hello Big World", "Hello Big World".truncate_words(0)
+    assert_equal "Hello Big World", "Hello Big World".truncate_words(0, omission: "[...]")
+  end
+
+  def test_truncate_words_with_negative_count
+    assert_equal "Hello Big World", "Hello Big World".truncate_words(-1)
+  end
+
   def test_truncate_words_with_separator
     assert_equal "Hello<br>Big<br>World!...", "Hello<br>Big<br>World!<br>".truncate_words(3, separator: "<br>")
     assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, separator: "<br>")
@@ -449,6 +458,22 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "This is a good day to die", original
     assert_equal "This is a good day", original.remove!(" to ", /die/)
     assert_equal "This is a good day", original
+  end
+
+  def test_remove_with_no_patterns_returns_unchanged_copy
+    original = "This is a good day to die"
+    result = original.remove
+
+    assert_equal original, result
+    assert_not_same original, result
+  end
+
+  def test_remove_bang_with_no_patterns_returns_self
+    original = +"This is a good day to die"
+    result = original.remove!
+
+    assert_equal "This is a good day to die", result
+    assert_same original, result
   end
 
   def test_constantize
