@@ -49,6 +49,7 @@ module ActiveRecord
       def init_internals
         super
         @_defer_touch_attrs = nil
+        @_applying_deferred_touch = false
       end
 
       def surreptitiously_touch(attr_names)
@@ -60,11 +61,19 @@ module ActiveRecord
 
       def touch_deferred_attributes
         @_skip_dirty_tracking = true
+        previous_applying_deferred_touch = @_applying_deferred_touch
+        @_applying_deferred_touch = true
         touch(time: @_touch_time)
+      ensure
+        @_applying_deferred_touch = previous_applying_deferred_touch
       end
 
       def has_defer_touch_attrs?
         @_defer_touch_attrs.present?
+      end
+
+      def applying_deferred_touch?
+        @_applying_deferred_touch
       end
   end
 end

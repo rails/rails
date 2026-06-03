@@ -52,7 +52,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       model.after_create_commit { association(name).reset_negative_cache }
       model.after_update callback, if: :saved_changes?
       model.after_destroy callback
-      model.after_touch callback
+      model.after_touch callback, unless: :applying_deferred_touch?
     end
 
     private_class_method :macro, :valid_options, :valid_dependent_options, :add_destroy_callbacks,
