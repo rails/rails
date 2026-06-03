@@ -46,6 +46,20 @@ module ActiveRecord
         assert connection.index_name_exists?(table_name, "new_idx")
       end
 
+      def test_rename_index_preserves_where_clause
+        skip unless connection.supports_partial_index?
+
+        # keep the names short to make Oracle and similar behave
+        connection.add_index(table_name, [:foo], name: "old_idx", where: "administrator")
+        old_where = connection.indexes(table_name).find { |i| i.name == "old_idx" }.where
+
+        connection.rename_index(table_name, "old_idx", "new_idx")
+
+        new_index = connection.indexes(table_name).find { |i| i.name == "new_idx" }
+        assert_not_nil new_index
+        assert_equal old_where, new_index.where
+      end
+
       def test_rename_index_too_long
         too_long_index_name = good_index_name + "x"
         # keep the names short to make Oracle and similar behave
