@@ -175,6 +175,12 @@ module ActionController
         end
       end
 
+      def send_stream_with_null_byte_filename
+        send_stream(filename: "sample\0.csv") do |stream|
+          stream.write "streamed data"
+        end
+      end
+
       def send_stream_with_implicit_content_type
         send_stream(filename: "sample.csv", type: :csv) do |stream|
           stream.writeln "fruit,quantity"
@@ -444,6 +450,14 @@ module ActionController
       content_type = @response.headers.fetch("Content-Type")
       assert_equal String, content_type.class
       assert_equal "text/csv", content_type
+    end
+
+    def test_send_stream_with_null_byte_filename
+      get :send_stream_with_null_byte_filename
+
+      assert_equal "streamed data", @response.body
+      assert_equal "application/octet-stream", @response.headers.fetch("Content-Type")
+      assert_equal %(attachment; filename="sample%00.csv"; filename*=UTF-8''sample%00.csv), @response.headers["Content-Disposition"]
     end
 
     def test_delayed_autoload_after_write_within_interlock_hook
