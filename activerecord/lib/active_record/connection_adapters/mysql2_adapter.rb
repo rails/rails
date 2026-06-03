@@ -56,7 +56,6 @@ module ActiveRecord
       def initialize(...)
         super
 
-        @affected_rows_before_warnings = nil
         @config[:flags] ||= 0
 
         if @config[:flags].kind_of? Array
