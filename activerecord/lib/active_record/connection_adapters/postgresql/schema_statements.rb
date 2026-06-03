@@ -640,7 +640,7 @@ module ActiveRecord
           SQL
 
           fk_info.map do |row|
-            to_table = Utils.unquote_identifier(row["to_table"])
+            to_table = Utils.extract_schema_qualified_name(row["to_table"]).to_s
 
             column = decode_string_array(row["conkey_names"])
             primary_key = decode_string_array(row["confkey_names"])

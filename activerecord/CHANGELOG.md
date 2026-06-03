@@ -1,3 +1,8 @@
+*   Fix PostgreSQL `foreign_keys` returning a corrupted `to_table` for a foreign key
+    that references a table in a quoted schema.
+
+    *Kenta Ishizaki*
+
 *   Fix grouped calculations (e.g. `count`) grouped by a `belongs_to` association
     that points to a composite primary key model.
 

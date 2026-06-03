@@ -659,6 +659,25 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           end
         end
 
+        if current_adapter?(:PostgreSQLAdapter)
+          def test_foreign_key_to_table_in_quoted_schema
+            @connection.execute('DROP SCHEMA IF EXISTS "Aerospace" CASCADE')
+            @connection.execute('CREATE SCHEMA "Aerospace"')
+            @connection.execute('CREATE TABLE "Aerospace".boosters (id serial primary key)')
+            @connection.add_column :astronauts, :booster_id, :integer
+            @connection.execute(<<~SQL)
+              ALTER TABLE astronauts
+              ADD CONSTRAINT fk_booster FOREIGN KEY (booster_id) REFERENCES "Aerospace".boosters(id)
+            SQL
+
+            fk = @connection.foreign_keys("astronauts").find { |k| k.name == "fk_booster" }
+            assert_not_nil fk
+            assert_equal "Aerospace.boosters", fk.to_table
+          ensure
+            @connection.execute('DROP SCHEMA IF EXISTS "Aerospace" CASCADE')
+          end
+        end
+
         def test_does_not_create_foreign_keys_when_bypassed_by_config
           require "active_record/connection_adapters/sqlite3_adapter"
           connection = ActiveRecord::ConnectionAdapters::SQLite3Adapter.new(
