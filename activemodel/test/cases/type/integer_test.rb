@@ -32,6 +32,11 @@ module ActiveModel
         assert_nil type.cast(::Object.new)
       end
 
+      test "casting a Symbol returns nil" do
+        type = Type::Integer.new
+        assert_nil type.cast(:not_an_integer)
+      end
+
       test "casting nan and infinity" do
         type = Type::Integer.new
         assert_nil type.cast(::Float::NAN)
