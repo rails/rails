@@ -496,8 +496,6 @@ module ActiveRecord
           raise ArgumentError, "Hash or Array expected for `#{association_name}` attributes, got #{attributes_collection.class.name}"
         end
 
-        check_record_limit!(options[:limit], attributes_collection)
-
         if attributes_collection.is_a? Hash
           keys = attributes_collection.keys
           attributes_collection = if keys.include?("id") || keys.include?(:id)
@@ -506,6 +504,8 @@ module ActiveRecord
             attributes_collection.values
           end
         end
+
+        check_record_limit!(options[:limit], attributes_collection)
 
         association = association(association_name)
 
