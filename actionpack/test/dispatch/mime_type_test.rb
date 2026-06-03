@@ -221,6 +221,16 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_not Mime[:js].match?("text/html")
   end
 
+  test "=~ and match? return false for nil" do
+    assert_not (Mime[:js] =~ nil)
+    assert_not Mime[:js].match?(nil)
+  end
+
+  test "=== matches when the type is included in an array" do
+    assert Mime[:html] === [Mime[:html], Mime[:xml]]
+    assert_not Mime[:html] === [Mime[:xml], Mime[:json]]
+  end
+
   test "can be initialized with wildcards" do
     assert_equal "*/*", Mime::Type.new("*/*").to_s
     assert_equal "text/*", Mime::Type.new("text/*").to_s
