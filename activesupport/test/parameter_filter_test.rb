@@ -88,6 +88,15 @@ class ParameterFilterTest < ActiveSupport::TestCase
     assert_equal "bar", parameter_filter.filter_param("foo", "bar")
   end
 
+  test "filter with empty filters returns a dup of the params" do
+    parameter_filter = ActiveSupport::ParameterFilter.new
+    original = { "foo" => "bar" }
+    filtered = parameter_filter.filter(original)
+
+    assert_equal original, filtered
+    assert_not_same original, filtered
+  end
+
   test "parameter filter should maintain hash with indifferent access" do
     test_hashes = [
       [{ "foo" => "bar" }.with_indifferent_access, ["blah"]],
