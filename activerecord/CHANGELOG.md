@@ -1,3 +1,7 @@
+*   Fix `reset_column_sequences!` for tables in quoted schemas.
+
+    *Kenta Ishizaki*
+
 *   Fix `accepts_nested_attributes_for` `:limit` miscounting a single-record hash.
 
     *Kenta Ishizaki*
