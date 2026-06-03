@@ -1,3 +1,9 @@
+*   Serialize concurrent `attach` calls on the same record instance.
+
+    Fixes #52660.
+
+    *Sergei Voronin*
+
 *   Update Active Storage for ImageProcessing 2.0.
 
     ImageProcessing 2.0 now requires adding `ruby-vips` or `mini_magick` gems explicitly to the Gemfile.

@@ -49,11 +49,13 @@ module ActiveStorage
     #   document.images.attach(io: File.open("/path/to/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpeg")
     #   document.images.attach([ first_blob, second_blob ])
     def attach(*attachables)
-      record.public_send("#{name}=", blobs + attachables.flatten)
-      if record.persisted? && !record.changed?
-        return if !record.save
+      record.attachment_changes_lock.exclusive do
+        record.public_send("#{name}=", blobs + attachables.flatten)
+        if record.persisted? && !record.changed?
+          return if !record.save
+        end
+        record.public_send("#{name}")
       end
-      record.public_send("#{name}")
     end
 
     # Calls attach, and raises an exception if the record was meant to be saved but at least one of the validations failed.

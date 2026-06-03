@@ -62,11 +62,13 @@ module ActiveStorage
     #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
     #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
     def attach(attachable)
-      record.public_send("#{name}=", attachable)
-      if record.persisted? && !record.changed?
-        return if !record.save
+      record.attachment_changes_lock.exclusive do
+        record.public_send("#{name}=", attachable)
+        if record.persisted? && !record.changed?
+          return if !record.save
+        end
+        record.public_send("#{name}")
       end
-      record.public_send("#{name}")
     end
 
     # Calls attach, and raises an exception if the record was meant to be saved but at least one of the validations failed.

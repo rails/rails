@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/concurrency/share_lock"
 require "active_support/core_ext/object/try"
 
 module ActiveStorage
@@ -309,6 +310,10 @@ module ActiveStorage
       @attachment_changes ||= {}
     end
 
+    def attachment_changes_lock # :nodoc:
+      @attachment_changes_lock ||= ActiveSupport::Concurrency::ShareLock.new
+    end
+
     def changed_for_autosave? # :nodoc:
       super || attachment_changes.any?
     end
@@ -317,6 +322,7 @@ module ActiveStorage
       super
       @active_storage_attached = nil
       @attachment_changes = nil
+      @attachment_changes_lock = nil
     end
 
     def reload(*) # :nodoc:
