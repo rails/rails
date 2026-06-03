@@ -1,3 +1,7 @@
+*   Fix `accepts_nested_attributes_for` `:limit` miscounting a single-record hash.
+
+    *Kenta Ishizaki*
+
 *   Fix `rename_index` to preserve a partial index's `WHERE` for SQLite and older MySQL/MariaDB versions.
 
     *Kenta Ishizaki*
