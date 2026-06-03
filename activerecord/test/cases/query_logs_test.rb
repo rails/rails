@@ -19,7 +19,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord.query_transformers += [ActiveRecord::QueryLogs]
     ActiveRecord::QueryLogs.prepend_comment = false
     ActiveRecord::QueryLogs.cache_query_log_tags = false
-    ActiveRecord::QueryLogs.cached_comment = nil
+    ActiveRecord::QueryLogs.clear_cache
     ActiveRecord::QueryLogs.taggings = {
       application: -> { "active_record" }
     }
@@ -200,6 +200,42 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_per_pool_format_overrides_global_format
+    ActiveRecord::QueryLogs.tags_formatter = :legacy
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_query_log_tags_format("sqlcommenter") do |connection|
+      assert_equal "select 1 /*application='active_record'*/",
+        ActiveRecord::QueryLogs.call("select 1", connection)
+    end
+  end
+
+  def test_per_pool_format_falls_back_to_global_when_not_set
+    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_query_log_tags_format(nil) do |connection|
+      assert_equal "select 1 /*application='active_record'*/",
+        ActiveRecord::QueryLogs.call("select 1", connection)
+    end
+  end
+
+  def test_cache_is_kept_per_formatter
+    ActiveRecord::QueryLogs.cache_query_log_tags = true
+    ActiveRecord::QueryLogs.tags_formatter = :legacy
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_query_log_tags_format(nil) do |legacy_connection|
+      with_query_log_tags_format("sqlcommenter") do |sqlcommenter_connection|
+        # Different formats must not serve each other's cached comment.
+        assert_equal "select 1 /*application:active_record*/",
+          ActiveRecord::QueryLogs.call("select 1", legacy_connection)
+        assert_equal "select 1 /*application='active_record'*/",
+          ActiveRecord::QueryLogs.call("select 1", sqlcommenter_connection)
+      end
+    end
+  end
+
   def test_custom_basic_tags
     ActiveRecord::QueryLogs.tags = [ :application, { custom_string: "test content" } ]
 
@@ -288,4 +324,17 @@ class QueryLogsTest < ActiveRecord::TestCase
       Dashboard.first
     end
   end
+
+  private
+    def with_query_log_tags_format(format, &block)
+      base_config = ActiveRecord::Base.connection_pool.db_config
+      configuration_hash = base_config.configuration_hash
+      configuration_hash = configuration_hash.merge(query_log_tags_format: format) if format
+      db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(base_config.env_name, base_config.name, configuration_hash)
+
+      pool = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default).pool
+      pool.with_connection(&block)
+    ensure
+      pool&.disconnect!
+    end
 end
