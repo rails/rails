@@ -107,7 +107,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         model.after_destroy callback.(:changes_to_save)
       end
 
-      model.after_touch callback.(:changes_to_save)
+      model.after_touch callback.(:changes_to_save), unless: :applying_deferred_touch?
     end
 
     def self.add_default_callbacks(model, reflection)

@@ -123,6 +123,21 @@ class TouchLaterTest < ActiveRecord::TestCase
     assert_not_equal trees(:root).reload.updated_at, previous_tree_updated_at
   end
 
+  def test_nested_touch_later_does_not_touch_parent_on_next_transaction
+    tree = nil
+
+    ActiveRecord::Base.transaction do
+      tree = Tree.create!
+      parent = Node.create!(tree: tree)
+      Node.create!(tree: tree, parent: parent)
+    end
+
+    timestamp = 4.days.ago
+    tree.update!(updated_at: timestamp)
+
+    assert_equal timestamp.to_i, tree.updated_at.to_i
+  end
+
   def test_touching_through_nested_attributes_without_before_committed_on_all_records
     original = ActiveRecord.before_committed_on_all_records
     ActiveRecord.before_committed_on_all_records = false

@@ -1,3 +1,8 @@
+*   Fix nested `touch_later` calls from touching parent records again in the next
+    transaction.
+
+    *Sergei Voronin*
+
 *   Fix grouped calculations (e.g. `count`) grouped by a `belongs_to` association
     that points to a composite primary key model.
 
