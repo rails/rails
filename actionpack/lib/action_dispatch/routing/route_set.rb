@@ -685,7 +685,7 @@ module ActionDispatch
         def initialize(name, defaults, &block)
           @name = name
           @defaults = defaults
-          @block = block
+          @block = ActiveSupport::Ractors.try_shareable_proc(block)
         end
 
         def call(t, args, only_path = false)
