@@ -298,5 +298,9 @@ class RangeTest < ActiveSupport::TestCase
     assert_raises(Enumerable::SoleItemExpectedError, match: "infinite range '..1' cannot represent a sole item") do
       (..1).sole
     end
+
+    assert_raises(Enumerable::SoleItemExpectedError, match: "infinite range '1..' cannot represent a sole item") do
+      (1..).sole
+    end
   end
 end
