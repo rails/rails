@@ -1,3 +1,13 @@
+*   Add `config.action_dispatch.strict_accept_header` to stop forcing an
+    HTML response when the `Accept` header contains the `*/*` wildcard.
+
+    Rails used to treat any `Accept` header containing `*/*` as a browser and default
+    to HTML. When enabled, a request with `Accept: application/json, */*` returns JSON.
+
+    Defaults to `false`; new applications enable it via `load_defaults 8.2`.
+
+    *Willian Tenfen Wazilewski*, *Hartley McGuire*
+
 *   Rate limiting calls `cache_key` on `by:` if the object responds to it.
 
     ```ruby
