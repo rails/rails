@@ -608,6 +608,41 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal "HTML", @response.body
   end
 
+  def test_rfc9110_accept_header_respects_specificity
+    ActionDispatch::Request.respect_accept_header_rfc9110 = true
+
+    begin
+      # With RFC 9110 enabled, more specific types should be respected
+      # even when */* is present
+      @request.accept = "application/json, application/xml, */*"
+      get :json_xml_or_html
+      assert_equal "JSON", @response.body
+
+      @request.accept = "application/xml, */*"
+      get :json_xml_or_html
+      assert_equal "XML", @response.body
+    ensure
+      ActionDispatch::Request.respect_accept_header_rfc9110 = false
+    end
+  end
+
+  def test_rfc9110_with_xhr_request
+    ActionDispatch::Request.respect_accept_header_rfc9110 = true
+
+    begin
+      # XHR requests should get JS even without explicit Accept header
+      get :js_or_html, xhr: true
+      assert_equal "JS", @response.body
+
+      # XHR requests with specific Accept should still work
+      @request.accept = "application/json, */*"
+      get :json_xml_or_html, xhr: true
+      assert_equal "JSON", @response.body
+    ensure
+      ActionDispatch::Request.respect_accept_header_rfc9110 = false
+    end
+  end
+
   def test_handle_any_with_template
     @request.accept = "*/*"
 

@@ -101,3 +101,24 @@
 # Otherwise, when set to `nil`, only the first string of the backtrace is included, stripping the `Rails.root` from the controller path.
 #++
 # Rails.application.config.action_controller.rescue_from_event_backtrace = :array
+
+###
+# Respect RFC 9110 for Accept header content negotiation.
+#
+# When enabled, Rails will fully respect the Accept header according to RFC 9110,
+# prioritizing more specific media types over wildcards. For example, a request with
+# Accept: application/json, */* will return JSON instead of HTML.
+#
+# Previously, Rails assumed any Accept header containing */* was from a browser and
+# would default to HTML. This workaround was added to handle broken browsers (IE7, 2010)
+# and is no longer necessary for modern browsers.
+#
+# Modern browsers send properly formatted Accept headers where HTML has appropriate
+# priority without relying on */* detection. API clients that include */* as a fallback
+# will now get their requested format instead of HTML.
+#
+# Note: This setting only applies when `config.action_dispatch.ignore_accept_header`
+# is false (the default). If you've set `ignore_accept_header` to true, the Accept
+# header is completely ignored regardless of this setting.
+#++
+# Rails.application.config.action_dispatch.respect_accept_header_rfc9110 = true

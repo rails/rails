@@ -1,3 +1,28 @@
+*   Add `config.action_dispatch.respect_accept_header_rfc9110` to enable RFC 9110 compliant
+    Accept header content negotiation.
+
+    When enabled, Rails will fully respect the Accept header according to RFC 9110,
+    prioritizing more specific media types over wildcards (`*/*`). For example, a request
+    with `Accept: application/json, */*` will return JSON instead of HTML.
+
+    Previously, Rails assumed any Accept header containing `*/*` was from a browser and
+    would default to HTML. This workaround was added to handle broken browsers (IE7, 2010)
+    and is no longer necessary for modern browsers.
+
+    The setting defaults to `false` to maintain backward compatibility. Opt-in via the
+    new framework defaults file:
+
+    ```ruby
+    # config/initializers/new_framework_defaults_8_2.rb
+    Rails.application.config.action_dispatch.respect_accept_header_rfc9110 = true
+    ```
+
+    Note: When both `ignore_accept_header` and `respect_accept_header_rfc9110` are enabled,
+    `ignore_accept_header` takes precedence and the RFC 9110 setting has no effect. A warning
+    is logged if this configuration conflict is detected.
+
+    *Willian Tenfen Wazilewski*
+
 *   Rate limiting calls `cache_key` on `by:` if the object responds to it.
 
     ```ruby

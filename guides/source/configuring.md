@@ -64,6 +64,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.forgery_protection_verification_strategy`](#config-action-controller-forgery-protection-verification-strategy): `:header_only`
 - [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
+- [`config.action_dispatch.respect_accept_header_rfc9110`](#config-action-dispatch-respect-accept-header-rfc9110): `true`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
@@ -2309,6 +2310,14 @@ config.action_dispatch.domain_extractor = CustomDomainExtractor
 #### `config.action_dispatch.ignore_accept_header`
 
 Is used to determine whether to ignore accept headers from a request. Defaults to `false`.
+
+#### `config.action_dispatch.respect_accept_header_rfc9110`
+
+When enabled, respects the Accept header according to RFC 9110, prioritizing more specific media types over wildcards. For example, `Accept: application/json, */*` will return JSON instead of HTML.
+
+Previously, Rails assumed any Accept header containing `*/*` was from a browser and would default to HTML. This workaround was necessary for IE7 but is no longer required for modern browsers.
+
+Defaults to `true` for new Rails 8.2 applications. For applications upgrading from earlier versions, this defaults to `false` to maintain backward compatibility. Set to `true` to enable RFC 9110 compliant behavior.
 
 #### `config.action_dispatch.x_sendfile_header`
 
