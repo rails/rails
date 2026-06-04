@@ -291,14 +291,22 @@ module ActiveRecord
 
     def clean_up_connection_handler
       handler = ActiveRecord::Base.connection_handler
-      handler.instance_variable_get(:@connection_name_to_pool_manager).each do |owner, pool_manager|
+      pool_managers = handler.instance_variable_get(:@connection_name_to_pool_manager)
+      removed_pool_configs = []
+
+      pool_managers.each do |owner, pool_manager|
         pool_manager.role_names.each do |role_name|
           next if role_name == ActiveRecord::Base.default_role &&
                   # TODO: Remove this helper when `remove_connection` for different shards is fixed.
                   # See https://github.com/rails/rails/pull/49382.
                   ["ActiveRecord::Base", "ARUnit2Model", "Contact", "ContactSti"].include?(owner)
-          pool_manager.remove_role(role_name)
+          removed_pool_configs.concat(pool_manager.remove_role(role_name)&.values || [])
         end
+      end
+
+      remaining_pool_configs = pool_managers.values.flat_map(&:pool_configs)
+      removed_pool_configs.compact.uniq.each do |pool_config|
+        pool_config.disconnect! unless remaining_pool_configs.include?(pool_config)
       end
     end
 
