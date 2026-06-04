@@ -629,9 +629,21 @@ module ActiveRecord
           intent.notification_payload = notification_payload
           with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: false) do |conn|
             should_dirty = intent.materialize_transactions
-            result = perform_query(conn, intent)
-            intent.raw_result = result
-            handle_warnings(result, intent.processed_sql)
+            begin
+              result = perform_query(conn, intent)
+              intent.raw_result = result
+
+              query_completed = true
+            ensure
+              begin
+                handle_warnings(result, intent.processed_sql)
+              rescue
+                raise if query_completed
+
+                # The query failed, so we need to swallow this exception
+                # from handle_warnings to avoid masking the original.
+              end
+            end
           end
         end
       ensure

@@ -29,21 +29,6 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        # Executes an SQL statement, returning a PG::Result object on success
-        # or raising a PG::Error exception otherwise.
-        #
-        # Setting +allow_retry+ to true causes the db to reconnect and retry
-        # executing the SQL statement in case of a connection-related exception.
-        # This option should only be enabled for known idempotent queries.
-        #
-        # Note: the PG::Result object is manually memory managed; if you don't
-        # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
-        def execute(...) # :nodoc:
-          super
-        ensure
-          @notice_receiver_sql_warnings = []
-        end
-
         def _exec_insert(intent, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
           if use_insert_returning? || pk == false
             super
@@ -257,7 +242,9 @@ module ActiveRecord
           end
 
           def handle_warnings(result, sql)
-            @notice_receiver_sql_warnings.each do |warning|
+            warnings, @notice_receiver_sql_warnings = @notice_receiver_sql_warnings, []
+
+            warnings.each do |warning|
               next if warning_ignored?(warning)
 
               warning.sql = sql
