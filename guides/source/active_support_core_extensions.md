@@ -1446,7 +1446,7 @@ NOTE: Defined in `active_support/core_ext/string/indent.rb`.
 
 #### `at(position)`
 
-The [`at`][String#at] method returns the character of the string at position `position`:
+The [`at`][String#at] method returns the character of the string at a given position:
 
 ```ruby
 "hello".at(0)  # => "h"
@@ -1461,7 +1461,7 @@ NOTE: Defined in `active_support/core_ext/string/access.rb`.
 
 #### `from(position)`
 
-The [`from`][String#from] method returns the substring of the string starting at position `position`:
+The [`from`][String#from] method returns a substring of the string starting at a given position:
 
 ```ruby
 "hello".from(0)  # => "hello"
@@ -1476,7 +1476,7 @@ NOTE: Defined in `active_support/core_ext/string/access.rb`.
 
 #### `to(position)`
 
-The [`to`][String#to] method returns the substring of the string up to position `position`:
+The [`to`][String#to] method returns a substring of the string up to a given position:
 
 ```ruby
 "hello".to(0)  # => "h"
@@ -1491,9 +1491,13 @@ NOTE: Defined in `active_support/core_ext/string/access.rb`.
 
 #### `first(limit = 1)`
 
-The [`first`][String#first] method returns a substring containing the first `limit` characters of the string.
+The `first` method returns a substring containing the first `limit` characters of the string. The default value of `limit` is `1`, so calling `first` without an argument returns 1 character:
 
-The call `str.first(n)` is equivalent to `str.to(n-1)` if `n` > 0, and returns an empty string for `n` == 0.
+```ruby
+"Hello, World".first     # => "H"
+"Hello, World".first(5)  # => "Hello"
+"Hello, World".first(0)  # => ""
+```
 
 NOTE: Defined in `active_support/core_ext/string/access.rb`.
 
@@ -1501,9 +1505,13 @@ NOTE: Defined in `active_support/core_ext/string/access.rb`.
 
 #### `last(limit = 1)`
 
-The [`last`][String#last] method returns a substring containing the last `limit` characters of the string.
+The `last` method returns a substring containing the last `limit` characters of the string:
 
-The call `str.last(n)` is equivalent to `str.from(-n)` if `n` > 0, and returns an empty string for `n` == 0.
+```ruby
+"Hello, World".last     # => "d"
+"Hello, World".last(5)  # => "World"
+"Hello, World".last(0)  # => ""
+```
 
 NOTE: Defined in `active_support/core_ext/string/access.rb`.
 
