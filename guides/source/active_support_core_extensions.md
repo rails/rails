@@ -1339,7 +1339,8 @@ NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
 ### `inquiry`
 
-The [`inquiry`][String#inquiry] method converts a string into a `StringInquirer` object making equality checks prettier.
+The [`inquiry`][String#inquiry] method converts a string into a `StringInquirer`
+object making equality checks prettier.
 
 ```ruby
 "production".inquiry.production? # => true
@@ -1352,37 +1353,52 @@ NOTE: Defined in `active_support/core_ext/string/inquiry.rb`.
 
 ### `starts_with?` and `ends_with?`
 
-Active Support defines 3rd person aliases of `String#start_with?` and `String#end_with?`:
+Active Support defines aliases of Ruby's `String#start_with?` and `String#end_with?` which read more like natural language such as:
 
 ```ruby
-"foo".starts_with?("f") # => true
-"foo".ends_with?("o")   # => true
+"hello".starts_with?("h") # => true
+"hello".ends_with?("o")   # => true
 ```
 
 NOTE: Defined in `active_support/core_ext/string/starts_ends_with.rb`.
 
 ### `strip_heredoc`
 
-The method [`strip_heredoc`][String#strip_heredoc] strips indentation in heredocs.
-
-For example in
-
+A heredoc is Ruby's syntax for defining a multiline string in code. The string content is written inline, indented to match the surrounding code:
+ 
+```ruby
+if options[:usage]
+  puts <<-USAGE
+    This command does such and such.
+    Supported options are:
+      -h         This message
+  USAGE
+end
+```
+ 
+The problem is that the resulting string preserves all the leading whitespace used for indentation, which means the output will be indented too.
+ 
+The [`strip_heredoc`][String#strip_heredoc] method solves this by finding the least indented line in the string and removing that amount of leading whitespace from every line, so the output appears flush against the left margin:
+ 
 ```ruby
 if options[:usage]
   puts <<-USAGE.strip_heredoc
     This command does such and such.
-
     Supported options are:
       -h         This message
-      ...
   USAGE
 end
 ```
-
-the user would see the usage message aligned against the left margin.
-
-Technically, it looks for the least indented line in the whole string, and removes
-that amount of leading whitespace.
+ 
+The user would see:
+ 
+```
+This command does such and such.
+Supported options are:
+  -h         This message
+```
+ 
+NOTE: Ruby 2.3+ introduced the squiggly heredoc (`<<~`) which does the same thing natively. The `strip_heredoc` core extension predates this and remains available for compatibility, but in modern Ruby `<<~` is the preferred approach.
 
 NOTE: Defined in `active_support/core_ext/string/strip.rb`.
 
@@ -1390,13 +1406,13 @@ NOTE: Defined in `active_support/core_ext/string/strip.rb`.
 
 ### `indent`
 
-The [`indent`][String#indent] method indents the lines in the receiver:
+The `indent` method indents the lines in the receiver by a given number of characters:
 
 ```ruby
-<<EOS.indent(2)
-def some_method
-  some_code
-end
+<<~EOS.indent(2)
+  def some_method
+    some_code
+  end
 EOS
 # =>
   def some_method
@@ -1404,7 +1420,7 @@ EOS
   end
 ```
 
-The second argument, `indent_string`, specifies which indent string to use. The default is `nil`, which tells the method to make an educated guess peeking at the first indented line, and fallback to a space if there is none.
+The second argument specifies the indent string to use. The default is `nil`, which causes the `indent` method to guess based on the first indented line, defaulting to a space:
 
 ```ruby
 "  foo".indent(2)        # => "    foo"
@@ -1412,16 +1428,14 @@ The second argument, `indent_string`, specifies which indent string to use. The 
 "foo".indent(2, "\t")    # => "\t\tfoo"
 ```
 
-While `indent_string` is typically one space or tab, it may be any string.
-
-The third argument, `indent_empty_lines`, is a flag that says whether empty lines should be indented. Default is false.
+The third argument is a flag for whether empty lines should be indented. It defaults to `false`:
 
 ```ruby
 "foo\n\nbar".indent(2)            # => "  foo\n\n  bar"
 "foo\n\nbar".indent(2, nil, true) # => "  foo\n  \n  bar"
 ```
 
-The [`indent!`][String#indent!] method performs indentation in-place.
+The `indent!` method performs the same operation in place.
 
 NOTE: Defined in `active_support/core_ext/string/indent.rb`.
 
