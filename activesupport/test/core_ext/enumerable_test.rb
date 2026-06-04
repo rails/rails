@@ -322,6 +322,14 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal [], [].pluck(:dollars, :cents)
   end
 
+  def test_pluck_with_a_key_missing_from_some_elements
+    assert_equal ["David", nil], [{ name: "David" }, { age: 9 }].pluck(:name)
+  end
+
+  def test_pluck_with_multiple_keys_missing_from_some_elements
+    assert_equal [[5, 99], [10, nil]], [{ dollars: 5, cents: 99 }, { dollars: 10 }].pluck(:dollars, :cents)
+  end
+
   def test_pick
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
     assert_equal 5, payments.pick(:price)
@@ -337,10 +345,22 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_nil [].pick(:dollars, :cents)
   end
 
+  def test_pick_with_keys_missing_from_the_first_element
+    assert_nil [{ age: 9 }].pick(:name)
+    assert_equal [5, nil], [{ dollars: 5 }].pick(:dollars, :cents)
+  end
+
   def test_compact_blank
     values = GenericEnumerable.new([1, "", nil, 2, " ", [], {}, false, true])
 
     assert_equal [1, 2, true], values.compact_blank
+  end
+
+  def test_compact_blank_on_a_set_returns_an_array
+    result = Set.new([nil, "", 1, false, 2]).compact_blank
+
+    assert_equal [1, 2], result
+    assert_instance_of Array, result
   end
 
   def test_array_compact_blank!
