@@ -110,31 +110,23 @@ the hood.
 In the examples below, the methods can be called from anywhere in your Rails
 application, most commonly from controllers, models, or other jobs.
 
-To run a job immediately without enqueuing it:
-
 ```ruby
+# To run a job immediately without enqueuing it
 GuestsCleanupJob.perform_now(guest)
-```
 
-To enqueue a job to be performed later:
-
-```ruby
+# To enqueue a job to be performed later
 GuestsCleanupJob.perform_later(guest)
 ```
 
-The
+Use the
 [`set`](https://api.rubyonrails.org/classes/ActiveJob/Core/ClassMethods.html#method-i-set)
-method can specify exactly when to perform the job.
-
-To enqueue a job to be performed tomorrow at noon:
+method to specify exactly when to perform a job.
 
 ```ruby
+# Enqueue a job to be performed tomorrow at noon
 GuestsCleanupJob.set(wait_until: Date.tomorrow.noon).perform_later(guest)
-```
 
-To enqueue a job to be performed one week from now:
-
-```ruby
+# Enqueue a job to be performed one week from now
 GuestsCleanupJob.set(wait: 1.week).perform_later(guest)
 ```
 
