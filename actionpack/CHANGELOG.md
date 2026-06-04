@@ -1,3 +1,8 @@
+*   Respect `config.action_dispatch.cookies_same_site_protection` for session
+    cookies written by Rails session stores.
+
+    *Bart de Water*
+
 *   Rate limiting calls `cache_key` on `by:` if the object responds to it.
 
     ```ruby
