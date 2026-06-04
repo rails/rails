@@ -546,6 +546,7 @@ module ActiveRecord
     # Also see #update_column.
     def update_attribute(name, value)
       name = name.to_s
+      name = self.class.attribute_aliases[name] || name
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
 
@@ -568,6 +569,7 @@ module ActiveRecord
     # ActiveRecord::Callbacks for further details.
     def update_attribute!(name, value)
       name = name.to_s
+      name = self.class.attribute_aliases[name] || name
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
 
