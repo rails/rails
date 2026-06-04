@@ -1,3 +1,7 @@
+*   Fix `update_attribute`/`update_attribute!` to raise for a readonly attribute referenced by an alias.
+
+    *Kenta Ishizaki*
+
 *   Fix `reset_column_sequences!` for tables in quoted schemas.
 
     *Kenta Ishizaki*
