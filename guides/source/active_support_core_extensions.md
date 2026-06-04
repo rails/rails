@@ -1209,13 +1209,18 @@ Calling `dup` or `clone` on safe strings yields safe strings.
 
 ### `remove`
 
-The method [`remove`][String#remove] will remove all occurrences of the pattern:
+The method [`remove`][String#remove] will remove all occurrences of the pattern. There is a destructive version as well `remove!` which modifies the string in place.
 
 ```ruby
-"Hello World".remove(/Hello /) # => "World"
+str = "Hello, World"
+str.remove("Hello, ")   # => "World"
+str                     # => "Hello, World"  (unchanged)
+
+str.remove!("Hello, ")  # => "World"
+str                     # => "World"  (modified in place)
 ```
 
-There's also the destructive version `String#remove!`.
+In plain Ruby you would use `gsub` with an empty string to achieve the same result, Active Support's `remove` is the more readable addition.
 
 NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
@@ -1229,9 +1234,9 @@ The method [`squish`][String#squish] strips leading and trailing whitespace, and
 " \n  foo\n\r \t bar \n".squish # => "foo bar"
 ```
 
-There's also the destructive version `String#squish!`.
+There's also the version `String#squish!` which modifies the string in place.
 
-Note that it handles both ASCII and Unicode whitespace.
+Note that `squish` handles both ASCII and Unicode whitespace.
 
 NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
@@ -1239,39 +1244,38 @@ NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
 ### `truncate`
 
-The method [`truncate`][String#truncate] returns a copy of its receiver truncated after a given `length`:
+[`truncate`][String#truncate] returns a copy of the receiver cut to a given length, with an ellipsis appended to indicate the string was shortened:
 
 ```ruby
 "Oh dear! Oh dear! I shall be late!".truncate(20)
 # => "Oh dear! Oh dear!..."
 ```
 
-Ellipsis can be customized with the `:omission` option:
+The ellipsis can be customized with the `:omission` option. Note that the omission string counts toward the total length:
 
 ```ruby
 "Oh dear! Oh dear! I shall be late!".truncate(20, omission: "&hellip;")
 # => "Oh dear! Oh &hellip;"
 ```
 
-Note in particular that truncation takes into account the length of the omission string.
+NOTE: `&hellip;` is the HTML entity for the ellipsis character `...`.
 
-Pass a `:separator` to truncate the string at a natural break:
+By default, truncation can cut in the middle of a word. Pass `:separator` to truncate only at a natural break such as a space or word boundary:
 
 ```ruby
 "Oh dear! Oh dear! I shall be late!".truncate(18)
 # => "Oh dear! Oh dea..."
+
 "Oh dear! Oh dear! I shall be late!".truncate(18, separator: " ")
 # => "Oh dear! Oh..."
 ```
 
-The option `:separator` can be a regexp:
+`:separator` can also be a regexp:
 
 ```ruby
 "Oh dear! Oh dear! I shall be late!".truncate(18, separator: /\s/)
 # => "Oh dear! Oh..."
 ```
-
-In above examples "dear" gets cut first, but then `:separator` prevents it.
 
 NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
@@ -1299,28 +1303,30 @@ NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
 ### `truncate_words`
 
-The method [`truncate_words`][String#truncate_words] returns a copy of its receiver truncated after a given number of words:
+[`truncate_words`][String#truncate_words] returns a copy of the receiver truncated after a given number of words:
 
 ```ruby
 "Oh dear! Oh dear! I shall be late!".truncate_words(4)
 # => "Oh dear! Oh dear!..."
 ```
 
-Ellipsis can be customized with the `:omission` option:
+The ellipsis can be customized with the `:omission` option:
 
 ```ruby
 "Oh dear! Oh dear! I shall be late!".truncate_words(4, omission: "&hellip;")
 # => "Oh dear! Oh dear!&hellip;"
 ```
 
-Pass a `:separator` to truncate the string at a natural break:
+By default words are split on whitespace. Pass `:separator` to change what counts as a word boundary:
 
 ```ruby
 "Oh dear! Oh dear! I shall be late!".truncate_words(3, separator: "!")
 # => "Oh dear! Oh dear! I shall be late..."
 ```
 
-The option `:separator` can be a regexp:
+Here `"!"` is the separator, so each `!`-delimited segment is treated as a "word" — the string is truncated after the third one.
+
+`:separator` can also be a regexp:
 
 ```ruby
 "Oh dear! Oh dear! I shall be late!".truncate_words(4, separator: /\s/)
@@ -4119,3 +4125,15 @@ content = Pathname.new("file").existence&.read
 NOTE: Defined in `active_support/core_ext/pathname/existence.rb`.
 
 [Pathname#existence]: https://api.rubyonrails.org/classes/Pathname.html#method-i-existence
+
+
+
+--------------------------------------------------------------------
+
+Filtering
+---------
+
+
+
+Extracting and Accessing
+------------------------ 
