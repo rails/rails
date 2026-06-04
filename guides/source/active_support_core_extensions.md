@@ -1631,26 +1631,19 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `underscore`
 
-The method [`underscore`][String#underscore] goes the other way around, from camel case to paths:
+The [`underscore`][String#underscore] method takes a string from camel case to words separated by underscores or paths. It works with string that start with a lowercase too. This method does not accept any argument.
 
 ```ruby
 "Product".underscore   # => "product"
 "AdminUser".underscore # => "admin_user"
+"visualEffect".underscore # => "visual_effect"
 ```
 
-Also converts "::" back to "/":
+Also converts `::` back to `/`:
 
 ```ruby
 "Backoffice::Session".underscore # => "backoffice/session"
 ```
-
-and understands strings that start with lowercase:
-
-```ruby
-"visualEffect".underscore # => "visual_effect"
-```
-
-`underscore` accepts no argument though.
 
 Rails uses `underscore` to get a lowercased name for controller classes:
 
@@ -1663,7 +1656,7 @@ end
 
 For example, that value is the one you get in `params[:controller]`.
 
-INFO: As a rule of thumb you can think of `underscore` as the inverse of `camelize`, though there are cases where that does not hold. For example, `"SSLError".underscore.camelize` gives back `"SslError"`.
+INFO: You can think of `underscore` as the inverse of `camelize`, though there are cases where that does not hold. For example, `"SSLError".underscore.camelize` gives back `"SslError"`.
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
@@ -1671,14 +1664,14 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `titleize`
 
-The method [`titleize`][String#titleize] capitalizes the words in the receiver:
+The [`titleize`][String#titleize] method capitalizes the words in the receiver:
 
 ```ruby
 "alice in wonderland".titleize # => "Alice In Wonderland"
 "fermat's enigma".titleize     # => "Fermat's Enigma"
 ```
 
-`titleize` is aliased to [`titlecase`][String#titlecase].
+This method is aliased to [`titlecase`][String#titlecase].
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
@@ -1687,7 +1680,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `dasherize`
 
-The method [`dasherize`][String#dasherize] replaces the underscores in the receiver with dashes:
+The [`dasherize`][String#dasherize] method replaces the underscores in the receiver with dashes:
 
 ```ruby
 "name".dasherize         # => "name"
@@ -1710,7 +1703,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `demodulize`
 
-Given a string with a qualified constant name, [`demodulize`][String#demodulize] returns the very constant name, that is, the rightmost part of it:
+When working with namespaced constants, the [`demodulize`][String#demodulize] method strips the module path and returns just the constant name at the end:
 
 ```ruby
 "Product".demodulize                        # => "Product"
@@ -1720,7 +1713,7 @@ Given a string with a qualified constant name, [`demodulize`][String#demodulize]
 "".demodulize                               # => ""
 ```
 
-Active Record for example uses this method to compute the name of a counter cache column:
+Active Record uses this method to compute the name of a counter cache column:
 
 ```ruby
 # active_record/reflection.rb
@@ -1739,7 +1732,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `deconstantize`
 
-Given a string with a qualified constant reference expression, [`deconstantize`][String#deconstantize] removes the rightmost segment, generally leaving the name of the constant's container:
+The [`deconstantize`][String#deconstantize]  method is the complement of demodulize, it removes the rightmost segment in a qualified string, returning the containing namespace instead:
 
 ```ruby
 "Product".deconstantize                        # => ""
@@ -1753,14 +1746,14 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `parameterize`
 
-The method [`parameterize`][String#parameterize] normalizes its receiver in a way that can be used in pretty URLs.
+The [`parameterize`][String#parameterize] method normalizes its receiver in a way that can be used in URLs.
 
 ```ruby
 "John Smith".parameterize # => "john-smith"
 "Kurt Gödel".parameterize # => "kurt-godel"
 ```
 
-To preserve the case of the string, set the `preserve_case` argument to true. By default, `preserve_case` is set to false.
+To preserve the case of the string, set the `preserve_case` argument to `true`. By default, `preserve_case` is set to `false`.
 
 ```ruby
 "John Smith".parameterize(preserve_case: true) # => "John-Smith"
