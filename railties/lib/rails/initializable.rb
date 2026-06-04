@@ -47,6 +47,17 @@ module Rails
         concat(initializers) if initializers
       end
 
+      def freeze
+        return self if self.frozen?
+
+        @order.default_proc = nil
+        @resolve.default_proc = nil
+        @order.freeze
+        @resolve.freeze
+        @collection.freeze
+        super
+      end
+
       def to_a
         @collection
       end

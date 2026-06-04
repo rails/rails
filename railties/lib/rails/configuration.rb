@@ -116,9 +116,25 @@ module Rails
         @after_generate_callbacks = []
       end
 
+      def freeze
+        return self if self.frozen?
+
+        @aliases.default_proc = nil
+        @options.default_proc = nil
+        @aliases.freeze
+        @options.freeze
+        @fallbacks.freeze
+        @templates.freeze
+        @hidden_namespaces.freeze
+        @after_generate_callbacks.freeze
+        super
+      end
+
       def initialize_copy(source)
         @aliases = @aliases.deep_dup
+        @aliases.default_proc = ->(h, k) { h[k] = {} }
         @options = @options.deep_dup
+        @options.default_proc = ->(h, k) { h[k] = {} }
         @fallbacks = @fallbacks.deep_dup
         @templates = @templates.dup
       end
