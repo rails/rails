@@ -85,6 +85,17 @@ module ActiveRecord
   # using the {SQLCommenter}[https://open-telemetry.github.io/opentelemetry-sqlcommenter/] format. This can be changed
   # via {config.active_record.query_log_tags_format}[https://guides.rubyonrails.org/configuring.html#config-active-record-query-log-tags-format]
   #
+  # The format can also be overridden per connection pool by setting +query_log_tags_format+
+  # in a +database.yml+ entry. Connections checked out from that pool use the configured
+  # format, while pools without any explicit configuration fall back to the global default:
+  #
+  #     production:
+  #       primary:
+  #         database: primary
+  #       analytics:
+  #         database: analytics
+  #         query_log_tags_format: sqlcommenter
+  #
   # Tag comments can be prepended to the query:
   #
   #     config.active_record.query_log_tags_prepend_comment = true
@@ -130,7 +141,7 @@ module ActiveRecord
     @cache_query_log_tags = false
     @tags_formatter = false
 
-    thread_mattr_accessor :cached_comment, instance_accessor: false
+    thread_mattr_accessor :cached_comments, instance_accessor: false
 
     class << self
       attr_reader :tags, :taggings, :tags_formatter # :nodoc:
@@ -147,14 +158,7 @@ module ActiveRecord
       end
 
       def tags_formatter=(format) # :nodoc:
-        @formatter = case format
-        when :legacy
-          LegacyFormatter
-        when :sqlcommenter
-          SQLCommenter
-        else
-          raise ArgumentError, "Formatter is unsupported: #{format}"
-        end
+        @formatter = formatter_for(format)
         @tags_formatter = format
       end
 
@@ -171,7 +175,7 @@ module ActiveRecord
       end
 
       def clear_cache # :nodoc:
-        self.cached_comment = nil
+        self.cached_comments = nil
       end
 
       def query_source_location # :nodoc:
@@ -181,6 +185,25 @@ module ActiveRecord
       ActiveSupport::ExecutionContext.after_change { ActiveRecord::QueryLogs.clear_cache }
 
       private
+        def formatter_for(format)
+          case format
+          when :legacy
+            LegacyFormatter
+          when :sqlcommenter
+            SQLCommenter
+          else
+            raise ArgumentError, "Formatter is unsupported: #{format}"
+          end
+        end
+
+        def resolve_formatter(connection)
+          if (format = connection.pool.db_config.query_log_tags_format)
+            formatter_for(format)
+          else
+            @formatter
+          end
+        end
+
         def rebuild_handlers
           handlers = []
           @tags.each do |i|
@@ -213,15 +236,20 @@ module ActiveRecord
         # Returns an SQL comment +String+ containing the query log tags.
         # Sets and returns a cached comment if <tt>cache_query_log_tags</tt> is +true+.
         def comment(extra_context)
+          formatter = resolve_formatter(extra_context[:connection])
+
           if cache_query_log_tags
-            self.cached_comment ||= uncached_comment(extra_context)
+            cache = (self.cached_comments ||= {})
+            cache.fetch(formatter) do
+              cache[formatter] = uncached_comment(extra_context, formatter)
+            end
           else
-            uncached_comment(extra_context)
+            uncached_comment(extra_context, formatter)
           end
         end
 
-        def uncached_comment(extra_context)
-          content = tag_content(extra_context)
+        def uncached_comment(extra_context, formatter)
+          content = tag_content(extra_context, formatter)
 
           if content.present?
             "/*#{escape_sql_comment(content)}*/"
@@ -241,15 +269,15 @@ module ActiveRecord
           comment
         end
 
-        def tag_content(extra_context)
+        def tag_content(extra_context, formatter)
           context = ActiveSupport::ExecutionContext.to_h
           context.reverse_merge!(extra_context)
 
           pairs = @handlers.filter_map do |(key, handler)|
             val = handler.call(context)
-            @formatter.format(key, val) unless val.nil?
+            formatter.format(key, val) unless val.nil?
           end
-          @formatter.join(pairs)
+          formatter.join(pairs)
         end
     end
 
