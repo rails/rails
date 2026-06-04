@@ -193,6 +193,7 @@ module ActiveRecord
         @raw_connection_dirty = false
         @last_activity = nil
         @verified = false
+        @needs_reconnect = false
 
         @pool_jitter = rand * max_jitter
       end
@@ -737,6 +738,7 @@ module ActiveRecord
             @allow_preconnect = false
 
             reconnect
+            @needs_reconnect = false
 
             enable_lazy_transactions!
             @raw_connection_dirty = false
@@ -776,6 +778,7 @@ module ActiveRecord
           @connected_since = nil
           @last_activity = nil
           @verified = false
+          @needs_reconnect = false
         end
       end
 
@@ -839,12 +842,13 @@ module ActiveRecord
       # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
       def verify!
-        unless active?
+        if @needs_reconnect || !active?
           @lock.synchronize do
             if @unconfigured_connection
               attempt_configure_connection do
                 @raw_connection = @unconfigured_connection
                 @unconfigured_connection = nil
+                @needs_reconnect = false
                 configure_connection
                 @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
                 @verified = true
@@ -876,6 +880,10 @@ module ActiveRecord
 
       def verified? # :nodoc:
         @verified
+      end
+
+      def needs_reconnect? # :nodoc:
+        @needs_reconnect
       end
 
       # Provides access to the underlying database driver for this adapter. For
@@ -1083,14 +1091,18 @@ module ActiveRecord
             deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
             reconnectable = reconnect_can_restore_state?
 
-            if @verified
+            if @verified && !@needs_reconnect
               # Cool, we're confident the connection's ready to use. (Note this might have
               # become true during the above #materialize_transactions.)
-            elsif (last_activity = seconds_since_last_activity) && last_activity < verify_timeout
+            elsif !@needs_reconnect && (last_activity = seconds_since_last_activity) && last_activity < verify_timeout
               # We haven't actually verified the connection since we acquired it, but it
               # has been used very recently. We're going to assume it's still okay.
             elsif reconnectable
-              if allow_retry
+              if @needs_reconnect
+                # This connection has been flagged for replacement; don't trust
+                # it even when the upcoming query would be retryable.
+                verify!
+              elsif allow_retry
                 # Not sure about the connection yet, but if anything goes wrong we can
                 # just reconnect and re-run our query
               else
@@ -1126,13 +1138,7 @@ module ActiveRecord
                 end
               end
 
-              unless retryable_query_error?(translated_exception)
-                # Barring a known-retryable error inside the query (regardless of
-                # whether we were in a _position_ to retry it), we should infer that
-                # there's likely a real problem with the connection.
-                @last_activity = nil
-                @verified = false
-              end
+              downgrade_connection_after_error(translated_exception)
 
               raise translated_exception
             ensure
@@ -1166,6 +1172,20 @@ module ActiveRecord
           return false if current_transaction.invalidated?
 
           exception.is_a?(Deadlocked) || exception.is_a?(LockWaitTimeout)
+        end
+
+        def downgrade_connection_after_error(exception)
+          unless retryable_query_error?(exception)
+            # Barring a known-retryable error inside the query (regardless of
+            # whether we were in a _position_ to retry it), we should infer that
+            # there's likely a real problem with the connection.
+            @last_activity = nil
+            @verified = false
+
+            if retryable_connection_error?(exception)
+              @needs_reconnect = true
+            end
+          end
         end
 
         def backoff(counter)

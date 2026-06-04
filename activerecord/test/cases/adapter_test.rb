@@ -722,6 +722,17 @@ module ActiveRecord
         end
       end
 
+      test "querying a connection marked for reconnect replaces it first" do
+        previous_connection_id = connection_id_from_server(@connection)
+        @connection.instance_variable_set(:@needs_reconnect, true)
+        @connection.clean! # this simulates a fresh checkout from the pool
+
+        assert_predicate @connection, :needs_reconnect?
+        assert_predicate Post, :exists?
+        assert_not_equal previous_connection_id, connection_id_from_server(@connection)
+        assert_not_predicate @connection, :needs_reconnect?
+      end
+
       test "quoting a string on a 'clean' failed connection will not prevent reconnecting" do
         remote_disconnect @connection
 
