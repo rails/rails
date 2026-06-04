@@ -326,6 +326,10 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     def capture_redis_commands(&block)
       capture_notifications("redis_query.active_support_test", &block).flat_map { |e| e.payload.fetch(:commands) }
     end
+
+    def lookup_store(options = {})
+      super(options.merge(error_handler: ->(method:, returning:, exception:) { raise exception }))
+    end
   end
 
   class RedisCacheStoreWithDistributedRedisTest < RedisCacheStoreCommonBehaviorTest
