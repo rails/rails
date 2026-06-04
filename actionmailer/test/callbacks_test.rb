@@ -17,6 +17,7 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
     CallbackMailer.abort_before_deliver = nil
     CallbackMailer.abort_before_action = nil
     CallbackMailer.around_handles_error = nil
+    CallbackMailer.deliver_callback_log = []
   end
 
   teardown do
@@ -28,6 +29,7 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
     CallbackMailer.abort_before_deliver = nil
     CallbackMailer.abort_before_action = nil
     CallbackMailer.around_handles_error = nil
+    CallbackMailer.deliver_callback_log = []
   end
 
   test "deliver_now should call after_deliver callback and can access sent message" do
@@ -72,6 +74,32 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
     end
     assert_kind_of CallbackMailer, CallbackMailer.after_deliver_instance
     assert_not_empty CallbackMailer.after_deliver_instance.message.message_id
+  end
+
+  test "deliver callbacks support only conditions" do
+    CallbackMailer.test_message.deliver_now
+
+    assert_includes CallbackMailer.deliver_callback_log, :before_only
+    assert_includes CallbackMailer.deliver_callback_log, :after_only
+    assert_includes CallbackMailer.deliver_callback_log, :around_only_before
+    assert_includes CallbackMailer.deliver_callback_log, :around_only_after
+    assert_not_includes CallbackMailer.deliver_callback_log, :before_except
+    assert_not_includes CallbackMailer.deliver_callback_log, :after_except
+    assert_not_includes CallbackMailer.deliver_callback_log, :around_except_before
+    assert_not_includes CallbackMailer.deliver_callback_log, :around_except_after
+  end
+
+  test "deliver callbacks support except conditions" do
+    CallbackMailer.another_test_message.deliver_now
+
+    assert_includes CallbackMailer.deliver_callback_log, :before_except
+    assert_includes CallbackMailer.deliver_callback_log, :after_except
+    assert_includes CallbackMailer.deliver_callback_log, :around_except_before
+    assert_includes CallbackMailer.deliver_callback_log, :around_except_after
+    assert_not_includes CallbackMailer.deliver_callback_log, :before_only
+    assert_not_includes CallbackMailer.deliver_callback_log, :after_only
+    assert_not_includes CallbackMailer.deliver_callback_log, :around_only_before
+    assert_not_includes CallbackMailer.deliver_callback_log, :around_only_after
   end
 
   test "around_deliver is called after rescue_from on action processing exceptions" do
