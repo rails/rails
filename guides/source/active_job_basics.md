@@ -586,6 +586,8 @@ class SubmitEnrollmentJob < ApplicationJob
       self.billing_profile_id = BillingProfileApi.create(customer_id: enrollment.user_id)
     end
 
+    # Use the serialized payment_token and billing_profile_id
+    # when resuming at the following step.
     step :submit_enrollment do
       submission_id = EnrollmentApi.submit(enrollment, payment_token, billing_profile_id)
       enrollment.update!(status: "processing", submission_id: submission_id)
@@ -641,7 +643,7 @@ end
 
 ### Available Callbacks
 
-There are several other callbacks that Active Job supports.
+There are several callbacks that Active Job supports.
 
 * [`before_enqueue`][] runs before a job is enqueued.
 * [`around_enqueue`][] wraps the enqueuing process, allowing logic to run both
