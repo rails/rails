@@ -763,6 +763,60 @@ module ActiveRecord
         end
       end
 
+      def test_clears_warnings_after_handling_non_execute_query
+        warning_sql = "do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$"
+        warnings = []
+        warning_action = ->(warning) { warnings << [warning.message, warning.sql] }
+
+        with_db_warnings_action(warning_action) do
+          @connection.exec_query(warning_sql)
+          @connection.exec_query("SELECT 1")
+        end
+
+        assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
+      end
+
+      def test_clears_warnings_after_non_execute_warning_action_raises
+        with_db_warnings_action(:raise) do
+          assert_raises(ActiveRecord::SQLWarning) do
+            @connection.exec_query("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$")
+          end
+
+          assert_nothing_raised do
+            @connection.exec_query("SELECT 1")
+          end
+        end
+      end
+
+      def test_handles_warnings_after_non_execute_query_raises
+        warning_sql = "do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; RAISE EXCEPTION 'PostgreSQL SQL error'; END; $$"
+        warnings = []
+        warning_action = ->(warning) { warnings << [warning.message, warning.sql] }
+
+        with_db_warnings_action(warning_action) do
+          assert_raises(ActiveRecord::StatementInvalid) do
+            @connection.exec_query(warning_sql)
+          end
+
+          @connection.exec_query("SELECT 1")
+        end
+
+        assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
+      end
+
+      def test_warning_action_does_not_hide_non_execute_query_error
+        with_db_warnings_action(:raise) do
+          error = assert_raises(ActiveRecord::StatementInvalid) do
+            @connection.exec_query("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; RAISE EXCEPTION 'PostgreSQL SQL error'; END; $$")
+          end
+          assert_match(/PostgreSQL SQL error/, error.message)
+
+          assert_nothing_raised do
+            @connection.exec_query("SELECT 1")
+          end
+        end
+      end
+
       def test_allowlist_of_warnings_to_ignore
         with_db_warnings_action(:raise, [/PostgreSQL SQL warning/]) do
           result = @connection.execute("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$")

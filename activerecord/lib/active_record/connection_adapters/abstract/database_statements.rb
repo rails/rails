@@ -568,8 +568,20 @@ module ActiveRecord
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds, async: async, allow_retry: allow_retry) do |notification_payload|
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-              result = perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload, batch: batch)
-              handle_warnings(result, sql)
+              begin
+                result = perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload, batch: batch)
+                query_completed = true
+              ensure
+                begin
+                  handle_warnings(result, sql)
+                rescue
+                  raise if query_completed
+
+                  # The query failed, so we need to swallow this exception
+                  # from handle_warnings to avoid masking the original.
+                end
+              end
+
               result
             end
           end
