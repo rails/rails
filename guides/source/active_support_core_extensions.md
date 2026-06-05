@@ -1318,6 +1318,12 @@ Active Support defines aliases of Ruby's `String#start_with?` and `String#end_wi
 "hello".starts_with?("h") # => true
 "hello".ends_with?("o")   # => true
 ```
+These methods work with `Symbol` class also:
+
+```ruby
+:hello.starts_with?("h") # => true
+:hello.ends_with?("o")   # => true
+```
 
 NOTE: Defined in `active_support/core_ext/string/starts_ends_with.rb`.
 
@@ -1936,26 +1942,14 @@ NOTE: Defined in `active_support/core_ext/string/conversions.rb`.
 [String#to_time]: https://api.rubyonrails.org/classes/String.html#method-i-to_time
 [`Date._parse`]: https://docs.ruby-lang.org/en/3.4/Date.html#method-c-parse
 
-Extensions to `Symbol`
-----------------------
 
-### `starts_with?` and `ends_with?`
-
-Active Support defines 3rd person aliases of `Symbol#start_with?` and `Symbol#end_with?`:
-
-```ruby
-:foo.starts_with?("f") # => true
-:foo.ends_with?("o")   # => true
-```
-
-NOTE: Defined in `active_support/core_ext/symbol/starts_ends_with.rb`.
 
 Extensions to `Numeric`
 -----------------------
 
-### Bytes
+### `bytes`, `kilobytes`, etc.
 
-All numbers respond to these methods:
+All numbers respond the below methods for converting to bytes:
 
 * [`bytes`][Numeric#bytes]
 * [`kilobytes`][Numeric#kilobytes]
@@ -1966,7 +1960,7 @@ All numbers respond to these methods:
 * [`exabytes`][Numeric#exabytes]
 * [`zettabytes`][Numeric#zettabytes]
 
-They return the corresponding amount of bytes, using a conversion factor of 1024:
+They return the corresponding number of bytes, using a conversion factor of 1 kilobyte = 1024 bytes:
 
 ```ruby
 2.kilobytes   # => 2048
@@ -1994,31 +1988,30 @@ NOTE: Defined in `active_support/core_ext/numeric/bytes.rb`.
 
 ### Time
 
-The following methods:
+Active Support adds the following methods to numbers for expressing and calculating durations:
 
-* [`seconds`][Numeric#seconds]
-* [`minutes`][Numeric#minutes]
-* [`hours`][Numeric#hours]
-* [`days`][Numeric#days]
-* [`weeks`][Numeric#weeks]
-* [`fortnights`][Numeric#fortnights]
+- [`seconds`][Numeric#seconds]
+- [`minutes`][Numeric#minutes]
+- [`hours`][Numeric#hours]
+- [`days`][Numeric#days]
+- [`weeks`][Numeric#weeks]
+- [`fortnights`][Numeric#fortnights]
 
-enable time declarations and calculations, like `45.minutes + 2.hours + 4.weeks`. Their return values can also be added to or subtracted from Time objects.
-
-These methods can be combined with [`from_now`][Duration#from_now], [`ago`][Duration#ago], etc, for precise date calculations. For example:
+These return `ActiveSupport::Duration` objects that can be combined and used in time calculations:
 
 ```ruby
-# equivalent to Time.current.advance(days: 1)
-1.day.from_now
+45.minutes + 2.hours + 4.weeks    # => 4 weeks, 2 hours, and 45 minutes
 
-# equivalent to Time.current.advance(weeks: 2)
-2.weeks.from_now
-
-# equivalent to Time.current.advance(days: 4, weeks: 5)
-(4.days + 5.weeks).from_now
+1.day.from_now                    # => Time.current.advance(days: 1)
+2.weeks.from_now                  # => Time.current.advance(weeks: 2)
+(4.days + 5.weeks).from_now       # => Time.current.advance(days: 4, weeks: 5)
 ```
 
-WARNING. For other durations please refer to the time extensions to `Integer`.
+They can also be used with [`ago`][Duration#ago] to calculate times in the past:
+
+```ruby
+2.hours.ago                       # => Time.current.advance(hours: -2)
+```
 
 NOTE: Defined in `active_support/core_ext/numeric/time.rb`.
 
@@ -2031,91 +2024,65 @@ NOTE: Defined in `active_support/core_ext/numeric/time.rb`.
 [Numeric#seconds]: https://api.rubyonrails.org/classes/Numeric.html#method-i-seconds
 [Numeric#weeks]: https://api.rubyonrails.org/classes/Numeric.html#method-i-weeks
 
-### Formatting
+### Formatting with `to_fs`
 
-Enables the formatting of numbers in a variety of ways.
+Active Support adds `to_fs` to numbers with a variety of formatting options.
 
-Produce a string representation of a number as a telephone number:
+Phone numbers:
 
 ```ruby
-5551234.to_fs(:phone)
-# => 555-1234
-1235551234.to_fs(:phone)
-# => 123-555-1234
-1235551234.to_fs(:phone, area_code: true)
-# => (123) 555-1234
-1235551234.to_fs(:phone, delimiter: " ")
-# => 123 555 1234
-1235551234.to_fs(:phone, area_code: true, extension: 555)
-# => (123) 555-1234 x 555
-1235551234.to_fs(:phone, country_code: 1)
-# => +1-123-555-1234
+1235551234.to_fs(:phone)                            # => "123-555-1234"
+1235551234.to_fs(:phone, area_code: true)           # => "(123) 555-1234"
+1235551234.to_fs(:phone, country_code: 1)           # => "+1-123-555-1234"
+1235551234.to_fs(:phone, area_code: true, extension: 555) # => "(123) 555-1234 x 555"
 ```
 
-Produce a string representation of a number as currency:
+Currency:
 
 ```ruby
-1234567890.50.to_fs(:currency)                 # => $1,234,567,890.50
-1234567890.506.to_fs(:currency)                # => $1,234,567,890.51
-1234567890.506.to_fs(:currency, precision: 3)  # => $1,234,567,890.506
+1234567890.50.to_fs(:currency)                  # => "$1,234,567,890.50"
+1234567890.506.to_fs(:currency, precision: 3)   # => "$1,234,567,890.506"
+```
+Percentages:
+
+```ruby
+100.to_fs(:percentage)                          # => "100.000%"
+100.to_fs(:percentage, precision: 0)            # => "100%"
+302.24398923423.to_fs(:percentage, precision: 5) # => "302.24399%"
 ```
 
-Produce a string representation of a number as a percentage:
+Delimited numbers:
 
 ```ruby
-100.to_fs(:percentage)
-# => 100.000%
-100.to_fs(:percentage, precision: 0)
-# => 100%
-1000.to_fs(:percentage, delimiter: ".", separator: ",")
-# => 1.000,000%
-302.24398923423.to_fs(:percentage, precision: 5)
-# => 302.24399%
+12345678.to_fs(:delimited)                      # => "12,345,678"
+12345678.05.to_fs(:delimited)                   # => "12,345,678.05"
+12345678.to_fs(:delimited, delimiter: ".")      # => "12.345.678"
 ```
 
-Produce a string representation of a number in delimited form:
+Rounded numbers:
 
 ```ruby
-12345678.to_fs(:delimited)                     # => 12,345,678
-12345678.05.to_fs(:delimited)                  # => 12,345,678.05
-12345678.to_fs(:delimited, delimiter: ".")     # => 12.345.678
-12345678.to_fs(:delimited, delimiter: ",")     # => 12,345,678
-12345678.05.to_fs(:delimited, separator: " ")  # => 12,345,678 05
+111.2345.to_fs(:rounded)                        # => "111.235"
+111.2345.to_fs(:rounded, precision: 2)          # => "111.23"
+389.32314.to_fs(:rounded, precision: 0)         # => "389"
 ```
 
-Produce a string representation of a number rounded to a precision:
+Human readable byte sizes:
 
 ```ruby
-111.2345.to_fs(:rounded)                     # => 111.235
-111.2345.to_fs(:rounded, precision: 2)       # => 111.23
-13.to_fs(:rounded, precision: 5)             # => 13.00000
-389.32314.to_fs(:rounded, precision: 0)      # => 389
-111.2345.to_fs(:rounded, significant: true)  # => 111
+1234.to_fs(:human_size)                         # => "1.21 KB"
+1234567.to_fs(:human_size)                      # => "1.18 MB"
+1234567890.to_fs(:human_size)                   # => "1.15 GB"
+1234567890123.to_fs(:human_size)                # => "1.12 TB"
 ```
 
-Produce a string representation of a number as a human-readable number of bytes:
+Human readable large numbers:
 
 ```ruby
-123.to_fs(:human_size)                  # => 123 Bytes
-1234.to_fs(:human_size)                 # => 1.21 KB
-12345.to_fs(:human_size)                # => 12.1 KB
-1234567.to_fs(:human_size)              # => 1.18 MB
-1234567890.to_fs(:human_size)           # => 1.15 GB
-1234567890123.to_fs(:human_size)        # => 1.12 TB
-1234567890123456.to_fs(:human_size)     # => 1.1 PB
-1234567890123456789.to_fs(:human_size)  # => 1.07 EB
-```
-
-Produce a string representation of a number in human-readable words:
-
-```ruby
-123.to_fs(:human)               # => "123"
-1234.to_fs(:human)              # => "1.23 Thousand"
-12345.to_fs(:human)             # => "12.3 Thousand"
-1234567.to_fs(:human)           # => "1.23 Million"
-1234567890.to_fs(:human)        # => "1.23 Billion"
-1234567890123.to_fs(:human)     # => "1.23 Trillion"
-1234567890123456.to_fs(:human)  # => "1.23 Quadrillion"
+1234.to_fs(:human)                              # => "1.23 Thousand"
+1234567.to_fs(:human)                           # => "1.23 Million"
+1234567890.to_fs(:human)                        # => "1.23 Billion"
+1234567890123.to_fs(:human)                     # => "1.23 Trillion"
 ```
 
 NOTE: Defined in `active_support/core_ext/numeric/conversions.rb`.
