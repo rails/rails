@@ -46,6 +46,20 @@ module ActiveRecord
           build_default_scope(scope, all_queries: all_queries)
         end
 
+        def all_queries_scope # :nodoc:
+          scope = if default_scopes?(all_queries: true)
+            default_scoped(all_queries: true)
+          else
+            raw_relation
+          end
+
+          if current_scope = global_current_scope
+            scope = scope.merge!(current_scope)
+          end
+
+          scope
+        end
+
         def default_extensions # :nodoc:
           (scope_for_association || build_default_scope).extensions
         end
