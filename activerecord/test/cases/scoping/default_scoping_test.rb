@@ -851,6 +851,48 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
     assert_match(/must be symbols or strings/, error.message)
   end
+
+  def test_named_default_scopes_not_included_on_reload
+    dev = DeveloperWithNamedDefaultScopes.create!(name: "David", mentor_id: 1, firm_id: 2)
+    reload_sql = capture_sql { dev.reload }.first
+
+    assert_no_match(/mentor_id/, reload_sql)
+    assert_no_match(/firm_id/, reload_sql)
+  end
+
+  def test_all_queries_named_defaults_included_on_reload
+    dev = DeveloperWithNamedAllQueriesDefaultScope.create!(name: "David", mentor_id: 1, firm_id: 2)
+    reload_sql = capture_sql { dev.reload }.first
+
+    assert_match(/mentor_id/, reload_sql)
+  end
+
+  def test_named_default_scopes_included_on_unscoped_reload
+    dev = DeveloperWithNamedDefaultScopes.create!(name: "David", mentor_id: 1, firm_id: 1)
+    reload_sql = capture_sql { dev.reload(unscoped: true) }.first
+
+    assert_match(/mentor_id/, reload_sql)
+    assert_match(/firm_id/, reload_sql)
+    assert_no_match(/salary/, reload_sql)
+  end
+
+  def test_unscope_named_default_scopes_from_reload
+    dev = DeveloperWithNamedDefaultScopes.create!(name: "David", mentor_id: 1, firm_id: 1)
+    reload_sql = capture_sql { dev.reload(unscoped: [:firm]) }.first
+
+    assert_match(/mentor_id/, reload_sql)
+    assert_match(/salary/, reload_sql)
+    assert_no_match(/firm_id/, reload_sql)
+  end
+
+  def test_unscope_named_defaults_and_unnamed_default_scopes_from_reload
+    dev = DeveloperWithNamedDefaultScopes.create!(name: "David", mentor_id: 1, firm_id: 1)
+    reload_sql = capture_sql { dev.reload(unscoped: [:firm, :mentor, true]) }.first
+
+    assert_no_match(/mentor_id/, reload_sql)
+    assert_no_match(/firm_id/, reload_sql)
+    assert_no_match(/salary/, reload_sql)
+  end
 end
 
 class DefaultScopingWithThreadTest < ActiveRecord::TestCase
