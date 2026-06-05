@@ -197,6 +197,13 @@ module ActiveSupport
     class << self
       attr_accessor :notifier
 
+      # Returns a singleton no-op instrumenter that executes blocks without
+      # publishing any notifications. Useful for suppressing instrumentation
+      # on specific connections or components.
+      def null_instrumenter
+        @null_instrumenter ||= NullInstrumenter.new
+      end
+
       def publish(name, *args)
         notifier.publish(name, *args)
       end
