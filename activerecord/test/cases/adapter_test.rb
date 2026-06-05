@@ -977,24 +977,26 @@ module ActiveRecord
       end
     end
 
-    test "suppresses notifications when sql_notifications=false" do
-      run_without_connection do |orig_connection|
-        ActiveRecord::Base.establish_connection(orig_connection.merge(sql_notifications: false))
+    unless in_memory_db?
+      test "suppresses notifications when sql_notifications=false" do
+        run_without_connection do |orig_connection|
+          ActiveRecord::Base.establish_connection(orig_connection.merge(sql_notifications: false))
 
+          notifications = capture_notifications("sql.active_record") do
+            Post.first
+          end
+
+          assert_empty notifications
+        end
+      end
+
+      test "sql_notifications are enabled by default" do
         notifications = capture_notifications("sql.active_record") do
           Post.first
         end
 
-        assert_empty notifications
+        assert_not_empty notifications
       end
-    end
-
-    test "sql_notifications are enabled by default" do
-      notifications = capture_notifications("sql.active_record") do
-        Post.first
-      end
-
-      assert_not_empty notifications
     end
   end
 
