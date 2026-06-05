@@ -1953,32 +1953,29 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `to_date`, `to_time`, `to_datetime`
 
-The methods [`to_date`][String#to_date], [`to_time`][String#to_time], and [`to_datetime`][String#to_datetime] are basically convenience wrappers around `Date._parse`:
+The `to_date`, `to_time`, and `to_datetime` methods are convenience wrappers around [`Date._parse`][] from Ruby that convert a string into the corresponding date or time object:
 
 ```ruby
-"2010-07-27".to_date              # => Tue, 27 Jul 2010
-"2010-07-27 23:37:00".to_time     # => 2010-07-27 23:37:00 +0200
-"2010-07-27 23:37:00".to_datetime # => Tue, 27 Jul 2010 23:37:00 +0000
+"2026-05-05".to_date              # => Tue, 05 May 2026
+"2026-05-05 23:37:00".to_time     # => 2026-05-05 23:37:00 +0000
+"2026-05-05 23:37:00".to_datetime # => Tue, 05 May 2026 23:37:00 +0000
 ```
 
-`to_time` receives an optional argument `:utc` or `:local`, to indicate which time zone you want the time in:
+The `to_time` method accepts an optional `:utc` or `:local` argument to specify the time zone. The default is `:local`:
 
 ```ruby
-"2010-07-27 23:42:00".to_time(:utc)   # => 2010-07-27 23:42:00 UTC
-"2010-07-27 23:42:00".to_time(:local) # => 2010-07-27 23:42:00 +0200
+"2026-05-05 23:42:00".to_time(:utc)   # => 2026-05-05 23:42:00 UTC
+"2026-05-05 23:42:00".to_time(:local) # => 2026-05-05 23:42:00 +0200
 ```
 
-Default is `:local`.
-
-Please refer to the documentation of `Date._parse` for further details.
-
-INFO: The three of them return `nil` for blank receivers.
+INFO: All three methods return `nil` for blank strings. Refer to the documentation of `Date._parse` for further details on supported string formats.
 
 NOTE: Defined in `active_support/core_ext/string/conversions.rb`.
 
 [String#to_date]: https://api.rubyonrails.org/classes/String.html#method-i-to_date
 [String#to_datetime]: https://api.rubyonrails.org/classes/String.html#method-i-to_datetime
 [String#to_time]: https://api.rubyonrails.org/classes/String.html#method-i-to_time
+[`Date._parse`]: https://docs.ruby-lang.org/en/3.4/Date.html#method-c-parse
 
 Extensions to `Symbol`
 ----------------------
