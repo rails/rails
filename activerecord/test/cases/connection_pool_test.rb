@@ -831,6 +831,7 @@ module ActiveRecord
       def test_checkout_fairness
         skip_fiber_testing
 
+        @pool.checkout_timeout = 5
         @pool.instance_variable_set(:@max_connections, 10)
         expected = (1..@pool.size).to_a.freeze
         # check out all connections so our threads start out waiting
@@ -878,6 +879,8 @@ module ActiveRecord
       def test_checkout_fairness_by_group
         skip_fiber_testing
 
+        group_wait_timeout = 5
+        @pool.checkout_timeout = group_wait_timeout + 1
         @pool.instance_variable_set(:@max_connections, 10)
         # take all the connections
         conns = (1..10).map { @pool.checkout }
@@ -915,7 +918,7 @@ module ActiveRecord
 
         checkin.call(group1.size)         # should wake up all group1
 
-        wait_for(message: "group1 threads did not finish", interval: 0.1) do
+        wait_for(message: "group1 threads did not finish", timeout: group_wait_timeout, interval: 0.1) do
           mutex.synchronize { (successes.size + errors.size) == group1.size }
         end
 
