@@ -379,8 +379,8 @@ automatic filtering, you can use this configuration:
 config.active_record.encryption.excluded_from_filter_parameters = [:catchphrase]
 ```
 
-NOTE: When generating the filter parameter, Rails will use the model name as a
-prefix. E.g: For `User#email`, the filter parameter will be `user.email`.
+NOTE: When generating the filter parameter, Rails uses the model name as a
+prefix. For example, for `User#email`, the filter parameter is `user.email`.
 
 ### Action Text
 
