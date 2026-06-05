@@ -1,3 +1,10 @@
+*   Fix model `filter_attributes` to not add useless filters into `config.filter_parameters`.
+
+    Proc and Regexp filters would be improperly turned into string matchers.
+    Now they are skipped.
+
+    *Jonathan Calvert*
+
 *   Fix `ActiveRecord::MessagePack` serialization raising `NoMethodError`
     for any record with a populated `time` column, which made such records
     uncacheable through the MessagePack cache serializer.
