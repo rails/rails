@@ -1450,6 +1450,7 @@ module ActiveRecord
       # available connections slowly, ensuring the wakeup order is
       # correct in this case.
       def test_checkout_fairness
+        @pool.checkout_timeout = 5
         @pool.instance_variable_set(:@max_connections, 10)
         expected = (1..@pool.size).to_a.freeze
         # check out all connections so our threads start out waiting
@@ -1495,6 +1496,8 @@ module ActiveRecord
       # group1 threads, and the fact that only group1 and no group2
       # threads acquired a connection is enforced.
       def test_checkout_fairness_by_group
+        group_wait_timeout = 5
+        @pool.checkout_timeout = group_wait_timeout + 1
         @pool.instance_variable_set(:@max_connections, 10)
         # take all the connections
         conns = (1..10).map { @pool.checkout }
@@ -1532,7 +1535,7 @@ module ActiveRecord
 
         checkin.call(group1.size)         # should wake up all group1
 
-        wait_for(message: "group1 threads did not finish", interval: 0.1) do
+        wait_for(message: "group1 threads did not finish", timeout: group_wait_timeout, interval: 0.1) do
           mutex.synchronize { (successes.size + errors.size) == group1.size }
         end
 
