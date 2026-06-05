@@ -2513,8 +2513,8 @@ SELECT authors.* FROM authors
   INNER JOIN suppliers ON suppliers.id = books.supplier_id
 ```
 
-The SQL query will return all authors that have books with reviews _and_ have
-been ordered by a customer, _and_ the suppliers for those books.
+The SQL query will return all authors that have a book which has
+both a review from a customer that has placed an order _and_ a supplier.
 
 #### Specifying Conditions on the Joined Tables
 
