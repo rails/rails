@@ -18,7 +18,7 @@ module ActiveRecord
       # Force known GUC defaults at connect time so query-count
       # assertions are deterministic regardless of server configuration.
       # TimeZone must be non-UTC so the :utc/:local distinction is visible.
-      KNOWN_SERVER_DEFAULTS = "-c TimeZone=US/Eastern -c IntervalStyle=postgres -c standard_conforming_strings=on -c client_min_messages=notice"
+      KNOWN_SERVER_DEFAULTS = "-c TimeZone=America/New_York -c IntervalStyle=postgres -c standard_conforming_strings=on -c client_min_messages=notice"
 
       def setup
         @connection = ActiveRecord::Base.lease_connection
