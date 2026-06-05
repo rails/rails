@@ -185,6 +185,12 @@ class DeveloperWithNamedDefaultScopes < ActiveRecord::Base
   belongs_to :mentor, class_name: "MentorWithNamedScopeDeveloper"
 end
 
+class DeveloperWithNamedAllQueriesDefaultScope < ActiveRecord::Base
+  self.table_name = "developers"
+  default_scope -> { where(salary: 70000) }
+  default_scope :mentor, -> { where(mentor_id: 1) }, all_queries: true
+end
+
 class MentorWithNamedScopeDeveloper < ActiveRecord::Base
   self.table_name = "mentors"
   has_many :developers, class_name: "DeveloperWithNamedDefaultScopes", foreign_key: :mentor_id
