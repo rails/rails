@@ -2095,8 +2095,8 @@ Extensions to `Integer`
 The method [`multiple_of?`][Integer#multiple_of?] tests whether an integer is multiple of the argument:
 
 ```ruby
-2.multiple_of?(1) # => true
-1.multiple_of?(2) # => false
+42.multiple_of?(7) # => true
+42.multiple_of?(8) # => false
 ```
 
 NOTE: Defined in `active_support/core_ext/integer/multiple.rb`.
@@ -2105,7 +2105,7 @@ NOTE: Defined in `active_support/core_ext/integer/multiple.rb`.
 
 ### `ordinal`
 
-The method [`ordinal`][Integer#ordinal] returns the ordinal suffix string corresponding to the receiver integer:
+The [`ordinal`][Integer#ordinal] method returns the suffix string that corresponds to an integer's position in an ordered sequence — "st", "nd", "rd", or "th":
 
 ```ruby
 1.ordinal    # => "st"
@@ -2122,7 +2122,7 @@ NOTE: Defined in `active_support/core_ext/integer/inflections.rb`.
 
 ### `ordinalize`
 
-The method [`ordinalize`][Integer#ordinalize] returns the ordinal string corresponding to the receiver integer. In comparison, note that the `ordinal` method returns **only** the suffix string.
+While the `ordinal` method  only returns the suffix string, the [`ordinalize`][Integer#ordinalize] method returns the full ordinal string corresponding to the receiver integer.
 
 ```ruby
 1.ordinalize    # => "1st"
@@ -2139,27 +2139,15 @@ NOTE: Defined in `active_support/core_ext/integer/inflections.rb`.
 
 ### Time
 
-The following methods:
-
-* [`months`][Integer#months]
-* [`years`][Integer#years]
-
-enable time declarations and calculations, like `4.months + 5.years`. Their return values can also be added to or subtracted from Time objects.
-
-These methods can be combined with [`from_now`][Duration#from_now], [`ago`][Duration#ago], etc, for precise date calculations. For example:
-
+Active Support adds [`months`][Integer#months] and [`years`][Integer#years] to integers for expressing calendar level durations:
+ 
 ```ruby
-# equivalent to Time.current.advance(months: 1)
-1.month.from_now
-
-# equivalent to Time.current.advance(years: 2)
-2.years.from_now
-
-# equivalent to Time.current.advance(months: 4, years: 5)
-(4.months + 5.years).from_now
+1.month.from_now                          # => Time.current.advance(months: 1)
+2.years.from_now                          # => Time.current.advance(years: 2)
+(4.months + 5.years).from_now            # => Time.current.advance(months: 4, years: 5)
 ```
-
-WARNING. For other durations please refer to the time extensions to `Numeric`.
+ 
+For smaller durations less than a month, such as seconds, minutes, hours, days, and weeks, see the time extensions to `Numeric`.
 
 NOTE: Defined in `active_support/core_ext/integer/time.rb`.
 
@@ -2171,16 +2159,11 @@ Extensions to `BigDecimal`
 
 ### `to_s`
 
-The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating-point representation instead of scientific notation:
+Active Support sets the default specifier for `BigDecimal#to_s` to `"F"`, so calling `to_s` without arguments returns a plain floating point representation rather than scientific notation:
 
 ```ruby
-BigDecimal(5.00, 6).to_s       # => "5.0"
-```
-
-Scientific notation is still supported:
-
-```ruby
-BigDecimal(5.00, 6).to_s("e")  # => "0.5E1"
+BigDecimal(5.00, 6).to_s      # => "5.0"
+BigDecimal(5.00, 6).to_s("e") # => "0.5E1" ("e" for scientific notation)
 ```
 
 Extensions to `Enumerable`
