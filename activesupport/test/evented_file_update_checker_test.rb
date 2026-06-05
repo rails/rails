@@ -110,8 +110,10 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
       [WeakRef.new(checker), Thread.list - threads_before_checker]
     end.value
 
-    GC.start
-    listener_threads.each { |t| t.join(1) }
+    5.times do
+      GC.start
+      listener_threads.each { |thread| thread.join(0.4) }
+    end
 
     assert_not checker_ref.weakref_alive?, "EventedFileUpdateChecker was not garbage collected"
     assert_empty Thread.list & listener_threads
