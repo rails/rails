@@ -1773,7 +1773,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `tableize`
 
-The method [`tableize`][String#tableize] is `underscore` followed by `pluralize`.
+The `tableize` method converts a class name into the snake_case plural form. It is generally equivalent to calling `underscore` followed by `pluralize`:
 
 ```ruby
 "Person".tableize      # => "people"
@@ -1781,7 +1781,7 @@ The method [`tableize`][String#tableize] is `underscore` followed by `pluralize`
 "InvoiceLine".tableize # => "invoice_lines"
 ```
 
-As a rule of thumb, `tableize` returns the table name that corresponds to a given model for simple cases. The actual implementation in Active Record is not straight `tableize` indeed, because it also demodulizes the class name and checks a few options that may affect the returned string.
+One use case for `tableize` is deriving database table names that corrospond to Active Record model class name. Active Record's actual table name resolution is more involved, it also handles namespacing and respects configuration options like `table_name_prefix`. So the `tableize` method can be thought of as a close approximation but not the exact implementation.
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
@@ -1789,7 +1789,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `classify`
 
-The method [`classify`][String#classify] is the inverse of `tableize`. It gives you the class name corresponding to a table name:
+The [`classify`][String#classify] method is the inverse of `tableize`. It gives you the class name corresponding to a table name:
 
 ```ruby
 "people".classify        # => "Person"
@@ -1811,7 +1811,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `constantize`
 
-The method [`constantize`][String#constantize] resolves the constant reference expression in its receiver:
+The `constantize` method resolves a string to the constant it references:
 
 ```ruby
 "Integer".constantize # => Integer
@@ -1822,24 +1822,22 @@ end
 "M::X".constantize # => 1
 ```
 
-If the string evaluates to no known constant, or its content is not even a valid constant name, `constantize` raises `NameError`.
+If the string does not correspond to a known constant or is not a valid constant name, `constantize` raises `NameError`.
 
-Constant name resolution by `constantize` starts always at the top-level `Object` even if there is no leading "::".
+Constant resolution always starts from the top-level `Object`, regardless of the current scope and even without a leading `::`. This means it can behave differently from how Ruby resolves constants in the same context:
 
 ```ruby
 X = :in_Object
+
 module M
   X = :in_M
-
-  X                 # => :in_M
-  "::X".constantize # => :in_Object
-  "X".constantize   # => :in_Object (!)
+  X                  # => :in_M        (Ruby resolves from current scope)
+  "X".constantize    # => :in_Object   (constantize always starts from Object)
+  "::X".constantize  # => :in_Object
 end
 ```
 
-So, it is in general not equivalent to what Ruby would do in the same spot, had a real constant be evaluated.
-
-Mailer test cases obtain the mailer being tested from the name of the test class using `constantize`:
+A practical example of `constantize` in Rails is in Action Mailer's test helper, which infers the mailer class from the test class name:
 
 ```ruby
 # action_mailer/test_case.rb
@@ -1849,6 +1847,8 @@ rescue NameError => e
   raise NonInferrableMailerError.new(name)
 end
 ```
+
+So `UserMailerTest` automatically resolves to `UserMailer`.
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
