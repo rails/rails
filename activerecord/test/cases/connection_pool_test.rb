@@ -710,44 +710,50 @@ module ActiveRecord
       end
 
       def test_idle_through_keepalive
-        pool = new_pool_with_options(keepalive: 0.1, pool_jitter: 0, idle_timeout: 0.5, async: false, reaping_frequency: 30)
-        conn = pool.checkout
-        conn.connect!
-        pool.checkin conn
+        monotonic_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        real_clock_gettime = Process.method(:clock_gettime)
 
-        assert_predicate conn, :connected?
-        assert_operator conn.seconds_since_last_activity, :<, 0.1
-        assert_operator conn.seconds_idle, :<, 0.1
+        Process.stub(:clock_gettime, ->(clock_id, *args) {
+          if clock_id == Process::CLOCK_MONOTONIC
+            monotonic_time
+          else
+            real_clock_gettime.call(clock_id, *args)
+          end
+        }) do
+          pool = new_pool_with_options(keepalive: 0.1, pool_jitter: 0, idle_timeout: 0.5, async: false, reaping_frequency: nil)
+          conn = pool.checkout
+          conn.connect!
+          pool.checkin conn
 
-        # This test is about the interaction between multiple "last use"
-        # timers, so manual fudging is a bit too intimate / relies on
-        # knowledge of the implementation. So instead, we have to live
-        # with a bit of sleeping (and hope we don't lose any races).
+          assert_predicate conn, :connected?
+          assert_operator conn.seconds_since_last_activity, :<, 0.1
+          assert_operator conn.seconds_idle, :<, 0.1
 
-        sleep 0.2
+          monotonic_time += 0.2
 
-        assert_operator conn.seconds_since_last_activity, :>, 0.1
-        assert_operator conn.seconds_idle, :>, 0.1
-        assert_operator conn.seconds_idle, :<, 0.5
+          assert_operator conn.seconds_since_last_activity, :>, 0.1
+          assert_operator conn.seconds_idle, :>, 0.1
+          assert_operator conn.seconds_idle, :<, 0.5
 
-        pool.keep_alive # sends a keep-alive query
-        pool.flush # no-op
+          pool.keep_alive # sends a keep-alive query
+          pool.flush # no-op
 
-        assert_predicate conn, :connected?
-        assert_operator conn.seconds_since_last_activity, :<, 0.1
-        assert_operator conn.seconds_idle, :>, 0.1
-        assert_operator conn.seconds_idle, :<, 0.5
+          assert_predicate conn, :connected?
+          assert_operator conn.seconds_since_last_activity, :<, 0.1
+          assert_operator conn.seconds_idle, :>, 0.1
+          assert_operator conn.seconds_idle, :<, 0.5
 
-        sleep 0.4
+          monotonic_time += 0.4
 
-        assert_predicate conn, :connected?
-        assert_operator conn.seconds_since_last_activity, :>, 0.1
-        assert_operator conn.seconds_idle, :>, 0.5
+          assert_predicate conn, :connected?
+          assert_operator conn.seconds_since_last_activity, :>, 0.1
+          assert_operator conn.seconds_idle, :>, 0.5
 
-        pool.keep_alive # sends another query, though it doesn't matter
-        pool.flush # drops the idle connection
+          pool.keep_alive # sends another query, though it doesn't matter
+          pool.flush # drops the idle connection
 
-        assert_not_predicate conn, :connected?
+          assert_not_predicate conn, :connected?
+        end
       end
 
       def test_remove_connection
