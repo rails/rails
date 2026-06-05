@@ -528,7 +528,7 @@ You can also run a test at a specific line by providing the line number.
 $ bin/rails test test/models/article_test.rb:6 # run specific test and line
 ```
 
-You can also run a range of tests by providing the line range.
+You can also run a range of tests by providing the line range:
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6-20 # runs tests from line 6 to 20
@@ -557,7 +557,7 @@ Examples:
 
         bin/rails test test/models/user_test.rb:27
 
-    You can run multiple tests with in a line range by appending the line range to a filename:
+    You can run multiple tests within a line range by appending the line range to a filename:
 
         bin/rails test test/models/user_test.rb:10-20
 
