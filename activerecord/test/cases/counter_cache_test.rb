@@ -68,6 +68,25 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "update counters uses only all-query default scopes" do
+    assert_difference -> { @topic.reload.replies_count } do
+      ScopedCounterCacheTopic.update_counters(@topic.id, replies_count: 1)
+    end
+  end
+
+  test "reset counters uses only all-query default scopes" do
+    @topic.update_columns(replies_count: 0)
+    ScopedCounterCacheTopic.reset_counters(@topic.id, :replies)
+
+    assert_equal 1, @topic.reload.replies_count
+  end
+
+  test "belongs_to counter cache uses only all-query default scopes" do
+    assert_difference -> { @topic.reload.replies_count } do
+      ScopedCounterCacheChild.create!(title: "Counter cache child", parent_id: @topic.id, approved: true)
+    end
+  end
+
   test "increment counter by specific amount" do
     assert_difference -> { @topic.reload.replies_count }, +2 do
       Topic.increment_counter(:replies_count, @topic.id, by: 2)

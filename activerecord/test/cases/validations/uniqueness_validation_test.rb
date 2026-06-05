@@ -122,8 +122,8 @@ class UniquenessValidationTest < ActiveRecord::TestCase
       self.table_name = "topics"
       self.inheritance_column = :_type_disabled
 
-      default_scope -> { where(approved: true) }
-      default_scope -> { where(parent_id: 1) }, all_queries: true
+      default_scope :approved, -> { where(approved: true) }
+      default_scope :parent, -> { where(parent_id: 1) }, all_queries: true
 
       validates_uniqueness_of :title
     end

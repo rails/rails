@@ -880,8 +880,7 @@ module ActiveRecord
           self.class.all_queries_scope
         else
           self.class.all
-        end
-        base = base.preload(strict_loaded_associations)
+        end.preload(strict_loaded_associations)
 
         if options && options[:lock]
           base.lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)

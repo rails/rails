@@ -512,8 +512,8 @@ class FixturesTest < ActiveRecord::TestCase
       self.table_name = "topics"
       self.inheritance_column = :_type_disabled
 
-      default_scope -> { where(approved: true) }
-      default_scope -> { where(id: 1) }, all_queries: true
+      default_scope :approved, -> { where(approved: true) }
+      default_scope :first, -> { where(id: 1) }, all_queries: true
     end
 
     ActiveRecord::FixtureSet.reset_cache
