@@ -1,3 +1,8 @@
+*   Fix replacing or clearing a polymorphic `has_one` leaving a stale type column
+    on the removed record.
+
+    *Kenta Ishizaki*
+
 *   Fix `accepts_nested_attributes_for` `:limit` miscounting a single-record hash.
 
     *Kenta Ishizaki*
