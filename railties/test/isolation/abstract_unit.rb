@@ -48,7 +48,11 @@ module TestHelpers
     end
 
     def tmp_path(*args)
-      @tmp_path ||= File.realpath(Dir.mktmpdir(nil, File.join(RAILS_FRAMEWORK_ROOT, "tmp")))
+      @tmp_path = nil if @tmp_path && !File.directory?(@tmp_path)
+      @tmp_path ||= begin
+        FileUtils.mkdir_p(File.join(RAILS_FRAMEWORK_ROOT, "tmp"))
+        File.realpath(Dir.mktmpdir(nil, File.join(RAILS_FRAMEWORK_ROOT, "tmp")))
+      end
       File.join(@tmp_path, *args)
     end
 
@@ -160,7 +164,8 @@ module TestHelpers
       ENV["RAILS_ENV"] = @prev_rails_env if @prev_rails_env
       Rails.app_class = @prev_rails_app_class if @prev_rails_app_class
       Rails.application = @prev_rails_application if @prev_rails_application
-      FileUtils.rm_rf(tmp_path)
+      FileUtils.rm_rf(@tmp_path) if @tmp_path
+      @tmp_path = nil
     end
 
     def with_test_database_cleanup(adapter)
