@@ -1856,49 +1856,41 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `humanize`
 
-The method [`humanize`][String#humanize] tweaks an attribute name for display to end users.
+The `humanize` method converts an attribute name into a more readable form suitable for display to end users. It applies the following transformations in order:
 
-Specifically, it performs these transformations:
-
-  * Applies human inflection rules to the argument.
-  * Deletes leading underscores, if any.
-  * Removes a "_id" suffix if present.
-  * Replaces underscores with spaces, if any.
-  * Downcases all words except acronyms.
-  * Capitalizes the first word.
-
-The capitalization of the first word can be turned off by setting the
-`:capitalize` option to false (default is true).
+- Applies human inflection rules
+- Removes leading underscores
+- Removes a `_id` suffix if present
+- Replaces underscores with spaces
+- Downcases all words except acronyms
+- Capitalizes the first word
 
 ```ruby
-"name".humanize                         # => "Name"
-"author_id".humanize                    # => "Author"
+"name".humanize           # => "Name"
+"author_id".humanize      # => "Author"
+"comments_count".humanize # => "Comments count"
+"_id".humanize            # => "Id"
+"ssl_error".humanize      # => "SSL error"  (if "SSL" is defined as an acronym)
+```
+
+The capitalization of the first word can be disabled with `:capitalize`:
+
+```ruby
 "author_id".humanize(capitalize: false) # => "author"
-"comments_count".humanize               # => "Comments count"
-"_id".humanize                          # => "Id"
 ```
 
-If "SSL" was defined to be an acronym:
+Rails uses `humanize` internally in `full_messages` to build human readable validation error messages from attribute names:
 
 ```ruby
-"ssl_error".humanize # => "SSL error"
-```
-
-The helper method `full_messages` uses `humanize` as a fallback to include
-attribute names:
-
-```ruby
-def full_messages
-  map { |attribute, message| full_message(attribute, message) }
-end
-
+# activemodel/lib/active_model/errors.rb
 def full_message
-  # ...
   attr_name = attribute.to_s.tr(".", "_").humanize
   attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
   # ...
 end
 ```
+
+So an attribute like `email_address` would appear as `"Email address"` in a validation error message.
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
@@ -1906,7 +1898,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 #### `foreign_key`
 
-The method [`foreign_key`][String#foreign_key] gives a foreign key column name from a class name. To do so it demodulizes, underscores, and adds "_id":
+The method [`foreign_key`][String#foreign_key] derives a foreign key column name from a class name. To do so it demodulizes, underscores, and adds `_id`:
 
 ```ruby
 "User".foreign_key           # => "user_id"
@@ -1914,7 +1906,7 @@ The method [`foreign_key`][String#foreign_key] gives a foreign key column name f
 "Admin::Session".foreign_key # => "session_id"
 ```
 
-Pass a false argument if you do not want the underscore in "_id":
+Pass a `false` argument if you do not want the underscore in front of `id`:
 
 ```ruby
 "User".foreign_key(false) # => "userid"
