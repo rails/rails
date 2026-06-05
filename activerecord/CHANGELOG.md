@@ -1,3 +1,9 @@
+*   Fix `ActiveRecord::MessagePack` serialization raising `NoMethodError`
+    for any record with a populated `time` column, which made such records
+    uncacheable through the MessagePack cache serializer.
+
+    *Kenta Ishizaki*
+
 *   Fix replacing or clearing a polymorphic `has_one` leaving a stale type column
     on the removed record.
 
