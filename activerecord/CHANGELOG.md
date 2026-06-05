@@ -1,3 +1,9 @@
+*   Fix bug with reloading models with all-queries default scopes. The previous
+    implementation allowed non-all-queries on the current scope to leak into
+    the scope used for reloading.
+
+    *Andrew Novoselac* and *Matthew Draper*
+
 *   `insert!` now accepts the `:unique_by` option, consistent with `insert`.
 
     *Kenta Ishizaki*
