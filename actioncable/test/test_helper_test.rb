@@ -111,12 +111,12 @@ class TransmittedDataTest < ActionCable::TestCase
   def test_assert_broadcast_on_with_no_block
     assert_nothing_raised do
       ActionCable.server.broadcast "test", "hello"
-      assert_broadcast_on "test", "hello"
+      assert_broadcast_on "test", '"hello"'
     end
 
     assert_nothing_raised do
       ActionCable.server.broadcast "test", "world"
-      assert_broadcast_on "test", "world"
+      assert_broadcast_on "test", '"world"'
     end
   end
 
@@ -127,7 +127,7 @@ class TransmittedDataTest < ActionCable::TestCase
     end
 
     assert_match(/No messages sent/, error.message)
-    assert_match(/Message\(s\) found:\nhello/, error.message)
+    assert_match(/Message\(s\) found:\n"hello"/, error.message)
   end
 
   def test_assert_broadcast_on_message_with_empty_channel
