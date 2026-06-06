@@ -1,3 +1,8 @@
+*   Fix `serialize` with `coder: ActiveRecord::Coders::JSON` silently double-encoding
+    a native `json`/`jsonb` column.
+
+    *Kenta Ishizaki*
+
 *   Fix `update_all` / `delete_all` ignoring `group` and `having`, updating or
     deleting every row in the table instead of only the rows that satisfy the
     `HAVING` clause.
