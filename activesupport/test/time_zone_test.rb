@@ -93,7 +93,7 @@ class TimeZoneTest < ActiveSupport::TestCase
       def zone.time_now; Time.local(2000); end
       assert_instance_of ActiveSupport::TimeWithZone, zone.now
       assert_equal Time.utc(2000, 1, 1, 5), zone.now.utc
-      assert_equal Time.utc(2000), zone.now.time
+      assert_equal Time.local(2000), zone.now.time
       assert_equal zone, zone.now.time_zone
     end
   end
@@ -105,7 +105,7 @@ class TimeZoneTest < ActiveSupport::TestCase
         Time.local(2006, 4, 2, 2) # 2AM springs forward to 3AM
       end
 
-      assert_equal Time.utc(2006, 4, 2, 3), zone.now.time
+      assert_equal Time.local(2006, 4, 2, 3), zone.now.time
       assert_equal true, zone.now.dst?
     end
   end
@@ -244,12 +244,14 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_at
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    secs = 946684800.0
-    twz = zone.at(secs)
-    assert_equal Time.utc(1999, 12, 31, 19), twz.time
-    assert_equal Time.utc(2000), twz.utc
-    assert_equal zone, twz.time_zone
-    assert_equal secs, twz.to_f
+    with_env_tz zone do
+      secs = 946684800.0
+      twz = zone.at(secs)
+      assert_equal Time.local(1999, 12, 31, 19), twz.time
+      assert_equal Time.utc(2000), twz.utc
+      assert_equal zone, twz.time_zone
+      assert_equal secs, twz.to_f
+    end
   end
 
   def test_at_with_old_date
@@ -290,10 +292,12 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_iso8601_with_zone
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    twz = zone.iso8601("1999-12-31T14:00:00-10:00")
-    assert_equal Time.utc(1999, 12, 31, 19), twz.time
-    assert_equal Time.utc(2000), twz.utc
-    assert_equal zone, twz.time_zone
+    with_env_tz zone do
+      twz = zone.iso8601("1999-12-31T14:00:00-10:00")
+      assert_equal Time.local(1999, 12, 31, 19), twz.time
+      assert_equal Time.utc(2000), twz.utc
+      assert_equal zone, twz.time_zone
+    end
   end
 
   def test_iso8601_with_invalid_string
@@ -509,19 +513,23 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_rfc3339
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    twz = zone.rfc3339("1999-12-31T14:00:00-10:00")
-    assert_equal Time.utc(1999, 12, 31, 19), twz.time
-    assert_equal Time.utc(2000), twz.utc
-    assert_equal zone, twz.time_zone
+    with_env_tz zone do
+      twz = zone.rfc3339("1999-12-31T14:00:00-10:00")
+      assert_equal Time.local(1999, 12, 31, 19), twz.time
+      assert_equal Time.utc(2000), twz.utc
+      assert_equal zone, twz.time_zone
+    end
   end
 
   def test_rfc3339_with_fractional_seconds
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    twz = zone.iso8601("1999-12-31T14:00:00.750-10:00")
-    assert_equal 750000, twz.time.usec
-    assert_equal Time.utc(1999, 12, 31, 19, 0, 0 + Rational(3, 4)), twz.time
-    assert_equal Time.utc(2000, 1, 1, 0, 0, 0 + Rational(3, 4)), twz.utc
-    assert_equal zone, twz.time_zone
+    with_env_tz zone do
+      twz = zone.iso8601("1999-12-31T14:00:00.750-10:00")
+      assert_equal 750000, twz.time.usec
+      assert_equal Time.local(1999, 12, 31, 19, 0, 0 + Rational(3, 4)), twz.time
+      assert_equal Time.utc(2000, 1, 1, 0, 0, 0 + Rational(3, 4)), twz.utc
+      assert_equal zone, twz.time_zone
+    end
   end
 
   def test_rfc3339_with_missing_time
@@ -596,7 +604,7 @@ class TimeZoneTest < ActiveSupport::TestCase
     with_env_tz "US/Eastern" do
       zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
       twz = zone.iso8601("2013-03-10T02:00:00-05:00")
-      assert_equal Time.utc(2013, 3, 10, 3, 0, 0), twz.time
+      assert_equal Time.local(2013, 3, 10, 3, 0, 0), twz.time
     end
   end
 
@@ -622,38 +630,46 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_strptime_with_explicit_time_zone_as_abbrev
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    twz = zone.strptime("1999-12-31 12:00:00 PST", "%Y-%m-%d %H:%M:%S %Z")
-    assert_equal Time.utc(1999, 12, 31, 20), twz
-    assert_equal Time.utc(1999, 12, 31, 15), twz.time
-    assert_equal Time.utc(1999, 12, 31, 20), twz.utc
-    assert_equal zone, twz.time_zone
+    with_env_tz zone do
+      twz = zone.strptime("1999-12-31 12:00:00 PST", "%Y-%m-%d %H:%M:%S %Z")
+      assert_equal Time.utc(1999, 12, 31, 20), twz
+      assert_equal Time.utc(1999, 12, 31, 20), twz.utc
+      assert_equal Time.local(1999, 12, 31, 15), twz.time
+      assert_equal zone, twz.time_zone
+    end
   end
 
   def test_strptime_with_explicit_time_zone_as_h_offset
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    twz = zone.strptime("1999-12-31 12:00:00 -08", "%Y-%m-%d %H:%M:%S %:::z")
-    assert_equal Time.utc(1999, 12, 31, 20), twz
-    assert_equal Time.utc(1999, 12, 31, 15), twz.time
-    assert_equal Time.utc(1999, 12, 31, 20), twz.utc
-    assert_equal zone, twz.time_zone
+    with_env_tz zone do
+      twz = zone.strptime("1999-12-31 12:00:00 -08", "%Y-%m-%d %H:%M:%S %:::z")
+      assert_equal Time.utc(1999, 12, 31, 20), twz
+      assert_equal Time.utc(1999, 12, 31, 20), twz.utc
+      assert_equal Time.local(1999, 12, 31, 15), twz.time
+      assert_equal zone, twz.time_zone
+    end
   end
 
   def test_strptime_with_explicit_time_zone_as_hm_offset
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    twz = zone.strptime("1999-12-31 12:00:00 -08:00", "%Y-%m-%d %H:%M:%S %:z")
-    assert_equal Time.utc(1999, 12, 31, 20), twz
-    assert_equal Time.utc(1999, 12, 31, 15), twz.time
-    assert_equal Time.utc(1999, 12, 31, 20), twz.utc
-    assert_equal zone, twz.time_zone
+    with_env_tz zone do
+      twz = zone.strptime("1999-12-31 12:00:00 -08:00", "%Y-%m-%d %H:%M:%S %:z")
+      assert_equal Time.utc(1999, 12, 31, 20), twz
+      assert_equal Time.utc(1999, 12, 31, 20), twz.utc
+      assert_equal Time.local(1999, 12, 31, 15), twz.time
+      assert_equal zone, twz.time_zone
+    end
   end
 
   def test_strptime_with_explicit_time_zone_as_hms_offset
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
-    twz = zone.strptime("1999-12-31 12:00:00 -08:00:00", "%Y-%m-%d %H:%M:%S %::z")
-    assert_equal Time.utc(1999, 12, 31, 20), twz
-    assert_equal Time.utc(1999, 12, 31, 15), twz.time
-    assert_equal Time.utc(1999, 12, 31, 20), twz.utc
-    assert_equal zone, twz.time_zone
+    with_env_tz zone do
+      twz = zone.strptime("1999-12-31 12:00:00 -08:00:00", "%Y-%m-%d %H:%M:%S %::z")
+      assert_equal Time.utc(1999, 12, 31, 20), twz
+      assert_equal Time.utc(1999, 12, 31, 20), twz.utc
+      assert_equal Time.local(1999, 12, 31, 15), twz.time
+      assert_equal zone, twz.time_zone
+    end
   end
 
   def test_strptime_with_almost_explicit_time_zone
