@@ -1,3 +1,8 @@
+*   Fix `ActiveRecord::Relation#cache_key` / `cache_version` for a loaded collection
+    containing a record without a timestamp.
+
+    *Kenta Ishizaki*
+
 *   Fix `ActiveRecord::MessagePack` serialization raising `NoMethodError`
     for any record with a populated `time` column, which made such records
     uncacheable through the MessagePack cache serializer.

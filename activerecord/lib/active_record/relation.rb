@@ -486,7 +486,7 @@ module ActiveRecord
       if loaded?
         size = records.size
         if size > 0
-          timestamp = records.map { |record| record.read_attribute(timestamp_column) }.max
+          timestamp = records.filter_map { |record| record.read_attribute(timestamp_column) }.max
         end
       else
         collection = eager_loading? ? apply_join_dependency : self
