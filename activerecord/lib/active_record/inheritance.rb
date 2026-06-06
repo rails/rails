@@ -244,6 +244,7 @@ module ActiveRecord
         end
 
         def reload_schema_from_cache(*) # :nodoc:
+          @finder_needs_type_condition = nil
           if @_new_optimized
             singleton_class.remove_method(:new)
             @_new_optimized = false
