@@ -1,3 +1,9 @@
+*   Fix `update_all` / `delete_all` ignoring `group` and `having`, updating or
+    deleting every row in the table instead of only the rows that satisfy the
+    `HAVING` clause.
+
+    *Kenta Ishizaki*
+
 *   Fix `ActiveRecord::Relation#cache_key` / `cache_version` for a loaded collection
     containing a record without a timestamp.
 
