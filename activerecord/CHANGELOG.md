@@ -1,3 +1,8 @@
+*   Fix `ActiveRecord::Relation#cache_key` / `cache_version` for a loaded collection
+    containing a record without a timestamp.
+
+    *Kenta Ishizaki*
+
 *   Fix model `filter_attributes` to not add useless filters into `config.filter_parameters`.
 
     Proc and Regexp filters would be improperly turned into string matchers.
