@@ -1,3 +1,9 @@
+*   Fix reading a `store_accessor` on a `NULL` structured column (`json`, `jsonb`,
+    or `hstore`) marking the record as changed and overwriting the `NULL` with an
+    empty hash on the next save.
+
+    *Kenta Ishizaki*
+
 *   Fix `update_all` corrupting the optimistic locking column when it is set
     through an `alias_attribute`.
 
