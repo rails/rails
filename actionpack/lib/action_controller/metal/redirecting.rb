@@ -204,6 +204,12 @@ module ActionController
     end
 
     def _compute_redirect_to_location(request, options) # :nodoc:
+      # Browsers strip leading and trailing whitespace from URLs before
+      # navigating, so do the same here. Otherwise an otherwise valid URL like
+      # " https://example.com" would be misclassified as a path relative
+      # redirect because of the leading space.
+      options = options.strip if options.is_a?(String)
+
       case options
       # The scheme name consist of a letter followed by any combination of letters,
       # digits, and the plus ("+"), period ("."), or hyphen ("-") characters; and is

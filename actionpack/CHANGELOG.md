@@ -1,3 +1,12 @@
+*   Strip leading and trailing whitespace from string URLs passed to `redirect_to`.
+
+    Browsers ignore surrounding whitespace when navigating, so `redirect_to " https://example.com"`
+    now redirects to `https://example.com` instead of being misclassified as a path relative
+    redirect and producing a broken `Location`. Trimming happens before the redirect protections
+    run, so genuinely path relative and cross-host URLs are still flagged as before.
+
+    *Dominic Baratta*
+
 *   Rate limiting calls `cache_key` on `by:` if the object responds to it.
 
     ```ruby

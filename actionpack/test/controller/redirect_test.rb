@@ -147,6 +147,10 @@ class RedirectController < ActionController::Base
     redirect_to "http://example.com/query?status=new"
   end
 
+  def redirect_to_url_with_leading_and_trailing_whitespace
+    redirect_to "  http://www.rubyonrails.org/  "
+  end
+
   def redirect_to_url_with_complex_scheme
     redirect_to "x-test+scheme.complex:redirect"
   end
@@ -161,6 +165,10 @@ class RedirectController < ActionController::Base
 
   def redirect_to_path_relative_url_starting_with_an_at
     redirect_to "@example.com"
+  end
+
+  def redirect_to_path_relative_url_with_surrounding_whitespace
+    redirect_to "  example.com  "
   end
 
   def redirect_to_query_string_url
@@ -340,6 +348,12 @@ class RedirectTest < ActionController::TestCase
     get :redirect_to_url_with_unescaped_query_string
     assert_response :redirect
     assert_redirected_to "http://example.com/query?status=new"
+  end
+
+  def test_redirect_to_url_strips_leading_and_trailing_whitespace
+    get :redirect_to_url_with_leading_and_trailing_whitespace
+    assert_response :redirect
+    assert_redirected_to "http://www.rubyonrails.org/"
   end
 
   def test_redirect_to_url_with_complex_scheme
@@ -729,6 +743,22 @@ class RedirectTest < ActionController::TestCase
     end
   end
 
+  def test_redirect_to_path_relative_url_with_surrounding_whitespace_is_still_host_prefixed
+    get :redirect_to_path_relative_url_with_surrounding_whitespace
+    assert_response :redirect
+    assert_equal "http://test.hostexample.com", redirect_to_url
+  end
+
+  def test_redirect_to_path_relative_url_with_surrounding_whitespace_with_raise
+    with_path_relative_redirect(:raise) do
+      error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
+        get :redirect_to_path_relative_url_with_surrounding_whitespace
+      end
+
+      assert_equal 'Path relative URL redirect detected: "example.com"', error.message
+    end
+  end
+
   def test_redirect_to_absolute_url_does_not_log
     with_path_relative_redirect(:log) do
       with_logger do |logger|
@@ -776,6 +806,14 @@ class RedirectTest < ActionController::TestCase
       get :redirect_to_url_with_network_path_reference
       assert_response :redirect
       assert_equal "//www.rubyonrails.org/", redirect_to_url
+    end
+  end
+
+  def test_redirect_to_whitespace_padded_absolute_url_does_not_raise_path_relative
+    with_path_relative_redirect(:raise) do
+      get :redirect_to_url_with_leading_and_trailing_whitespace
+      assert_response :redirect
+      assert_equal "http://www.rubyonrails.org/", redirect_to_url
     end
   end
 

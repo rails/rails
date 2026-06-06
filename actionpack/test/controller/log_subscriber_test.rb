@@ -38,7 +38,7 @@ class ACLogSubscriberTest < ActionController::TestCase
       end
 
       def filterable_redirector_bad_uri
-        redirect_to " s:/invalid-string0uri"
+        redirect_to "s:/invalid string0uri"
       end
 
       def data_sender
