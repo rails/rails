@@ -381,10 +381,11 @@ module ActiveRecord
 
     # Returns true if there are no records.
     #
-    # When a pattern argument is given, this method checks whether elements in
-    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
+    # When an argument is given, returns true if no records match the argument
+    # via the case-equality operator (<tt>===</tt>).
     #
-    #   posts.none?(Comment) # => true or false
+    #   posts.none?(Post)    # => true if posts is empty
+    #   posts.none?(Comment) # => true
     def none?(*args)
       return true if @none
 
@@ -394,10 +395,12 @@ module ActiveRecord
 
     # Returns true if there are any records.
     #
-    # When a pattern argument is given, this method checks whether elements in
-    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
     #
-    #    posts.any?(Post) # => true or false
+    # When an argument is given, returns true if at least one records matches
+    # the argument via the case-equality operator (<tt>===</tt>).
+    #
+    #    posts.any?(Post)    # => true if at least one record
+    #    posts.any?(Comment) # => false
     def any?(*args)
       return false if @none
 
@@ -407,10 +410,11 @@ module ActiveRecord
 
     # Returns true if there is exactly one record.
     #
-    # When a pattern argument is given, this method checks whether elements in
-    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
+    # When an argument is given, returns true if exactly one records matches the
+    # argument via the case-equality operator (<tt>===</tt>).
     #
-    #    posts.one?(Post) # => true or false
+    #    posts.one?(Post) # => true if exactly one record
+    #    posts.any?(Comment) # => false
     def one?(*args)
       return false if @none
 
