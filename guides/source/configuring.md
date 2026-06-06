@@ -559,7 +559,7 @@ Revision can be accessed via `Rails.app.revision`.
 
 #### `config.sandbox_by_default`
 
-When `true`, rails console starts in sandbox mode. To start rails console in non-sandbox mode, `--no-sandbox` must be specified. This is helpful to avoid accidental writing to the production database. Defaults to `false`.
+When `true`, Rails console starts in sandbox mode by default, and `--no-sandbox` must be specified to start Rails console without sandbox mode. This helps prevent accidental writes to production databases. Defaults to `false`.
 
 #### `config.secret_key_base`
 
