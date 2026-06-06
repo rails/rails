@@ -36,8 +36,7 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
   if available_pty?
     def test_console_command_work_inside_engine
       primary, replica = PTY.open
-      cmd = "console"
-      spawn_command(cmd, replica, env: { "TERM" => "dumb" })
+      spawn_command("console", replica, env: { "TERM" => "dumb" })
       assert_output(">", primary)
     ensure
       primary.puts "quit"
@@ -50,33 +49,36 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
     ensure
       primary.puts ".exit"
     end
+  end
 
-    def test_server_command_work_inside_engine
-      primary, replica = PTY.open
-      pid = spawn_command("server", replica)
-      assert_output("Listening on", primary)
-    ensure
-      kill(pid)
+  def test_server_command_work_inside_engine
+    read, write = IO.pipe
+    pid = spawn_command("server", write)
+    assert_output("Listening on", read)
+  ensure
+    read.close
+    write.close
+    kill(pid) if pid
+  end
+
+  def test_server_command_broadcast_logs
+    read, write = IO.pipe
+    pid = spawn_command("server", write, env: { "RAILS_ENV" => "development" })
+
+    assert_output("Listening on", read)
+
+    Net::HTTP.get("127.0.0.1", "/", 3000)
+
+    in_plugin_context(plugin_path) do
+      logs = File.read("test/dummy/log/development.log")
+      assert_match("Processing by Rails::WelcomeController", logs)
     end
 
-    def test_server_command_broadcast_logs
-      primary, replica = PTY.open
-      pid = spawn_command("server", replica, env: { "RAILS_ENV" => "development" })
-      assert_output("Listening on", primary)
-
-      Net::HTTP.new("127.0.0.1", 3000).tap do |net|
-        net.get("/")
-      end
-
-      in_plugin_context(plugin_path) do
-        logs = File.read("test/dummy/log/development.log")
-        assert_match("Processing by Rails::WelcomeController", logs)
-      end
-
-      assert_output("Processing by Rails::WelcomeController", primary)
-    ensure
-      kill(pid)
-    end
+    assert_output("Processing by Rails::WelcomeController", read)
+  ensure
+    read.close
+    write.close
+    kill(pid) if pid
   end
 
   private
