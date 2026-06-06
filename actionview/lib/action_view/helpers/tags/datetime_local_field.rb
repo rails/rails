@@ -5,7 +5,7 @@ module ActionView
     module Tags # :nodoc:
       class DatetimeLocalField < DatetimeField # :nodoc:
         def initialize(object_name, method_name, template_object, options = {})
-          @include_seconds = options.delete(:include_seconds) { true }
+          @include_seconds = options.delete(:include_seconds) { false }
           super
         end
 
