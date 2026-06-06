@@ -236,7 +236,7 @@ module ActiveRecord
           end
 
           def type_incompatible_with_serialize?(cast_type, coder, type)
-            cast_type.is_a?(ActiveRecord::Type::Json) && coder == ::JSON ||
+            cast_type.is_a?(ActiveRecord::Type::Json) && (coder == ::JSON || coder == Coders::JSON) ||
               cast_type.respond_to?(:type_cast_array, true) && type == ::Array
           end
       end
