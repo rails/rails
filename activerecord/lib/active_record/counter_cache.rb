@@ -69,7 +69,7 @@ module ActiveRecord
           counter_name = reflection.counter_cache_column
 
           counts =
-            unscoped
+            all_queries_scope
               .joins(counter_association)
               .where(primary_key => ids)
               .group(primary_key)
@@ -92,7 +92,7 @@ module ActiveRecord
         end
 
         updates.each do |id, record_updates|
-          unscoped.where(primary_key => [id]).update_all(record_updates)
+          all_queries_scope.where(primary_key => [id]).update_all(record_updates)
         end
 
         true
@@ -141,7 +141,7 @@ module ActiveRecord
       #   #  WHERE id IN (10, 15)
       def update_counters(id, counters)
         id = [id] if composite_primary_key? && id.is_a?(Array) && !id[0].is_a?(Array)
-        unscoped.where!(primary_key => id).update_counters(counters)
+        all_queries_scope.where!(primary_key => id).update_counters(counters)
       end
 
       # Increment a numeric field by one, via a direct SQL update.
