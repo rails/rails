@@ -333,6 +333,25 @@ module ActiveRecord
         { concurrently: "CONCURRENTLY" }
       end
 
+      class ErrorResultSnapshot # :nodoc:
+        def initialize(result)
+          @fields = PG.constants.
+            grep(/\APG_DIAG_/).
+            map { PG.const_get(_1) }.
+            index_with { result.error_field(_1) }
+
+          @error_message = result.error_message
+        end
+
+        def error_field(field)
+          @fields[field]
+        end
+        alias :result_error_field :error_field
+
+        attr_reader :error_message
+        alias :result_error_message :error_message
+      end
+
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         def initialize(connection, max)
           super(max)
@@ -382,6 +401,7 @@ module ActiveRecord
         @type_map_queried = false
         @raw_connection = nil
         @notice_receiver_sql_warnings = []
+        @notice_receiver_fatal_error = nil
 
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
@@ -440,6 +460,7 @@ module ActiveRecord
           super
           @raw_connection&.close rescue nil
           @raw_connection = nil
+          @notice_receiver_fatal_error = nil
         end
       end
 
@@ -817,6 +838,32 @@ module ActiveRecord
           severity == "FATAL" || severity == "PANIC"
         end
 
+        def capture_fatal_notice(result)
+          return false unless connection_terminating_severity?(result)
+
+          begin
+            result.check
+          rescue PG::Error => error
+            # result will be cleared when the notice handler returns, so
+            # we need to replace it on the exception with a snapshot.
+            snapshot = ErrorResultSnapshot.new(result)
+            error.define_singleton_method(:result) { snapshot }
+
+            @notice_receiver_fatal_error = error
+          end
+
+          @last_activity = nil
+          @verified = false
+          @needs_reconnect = true
+
+          true
+        end
+
+        def consume_notice_receiver_fatal_error
+          consumed, @notice_receiver_fatal_error = @notice_receiver_fatal_error, nil
+          consumed
+        end
+
         def initialize_type_map(m = type_map)
           self.class.initialize_type_map(m)
 
@@ -1083,8 +1130,11 @@ module ActiveRecord
             @raw_connection.set_client_encoding(@config[:encoding])
           end
 
-          unless ActiveRecord.db_warnings_action.nil?
-            @raw_connection.set_notice_receiver do |result|
+          @notice_receiver_fatal_error = nil
+          @raw_connection.set_notice_receiver do |result|
+            next if capture_fatal_notice(result)
+
+            if ActiveRecord.db_warnings_action
               message = result.error_field(PG::Result::PG_DIAG_MESSAGE_PRIMARY)
               code = result.error_field(PG::Result::PG_DIAG_SQLSTATE)
               level = result.error_field(PG::Result::PG_DIAG_SEVERITY)

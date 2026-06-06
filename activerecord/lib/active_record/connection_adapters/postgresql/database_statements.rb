@@ -164,6 +164,10 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, intent)
+            if fatal = consume_notice_receiver_fatal_error
+              raise fatal
+            end
+
             raw_connection.discard_results
 
             if intent.prepare
