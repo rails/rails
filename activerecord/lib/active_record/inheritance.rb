@@ -237,6 +237,11 @@ module ActiveRecord
       end
 
       protected
+        def reload_schema_from_cache(*) # :nodoc:
+          @finder_needs_type_condition = nil
+          super
+        end
+
         # Returns the class type of the record using the current module as a prefix. So descendants of
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
