@@ -1,3 +1,12 @@
+*   Fix `has_many :through` preload leaking sibling STI records into subclass associations.
+
+    Preloading a base-class through association (e.g. `:categories`) alongside an STI
+    subclass through association (e.g. `:special_categories`) would cause the subclass
+    association to contain records of sibling STI types. `ThroughAssociation#records_by_owner`
+    now filters records by the reflection's class when the association targets an STI subclass.
+
+    *Ruy Rocha*
+
 *   Fix `ActiveRecord::MessagePack` serialization raising `NoMethodError`
     for any record with a populated `time` column, which made such records
     uncacheable through the MessagePack cache serializer.

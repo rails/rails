@@ -29,6 +29,10 @@ module ActiveRecord
               source_records_by_owner[record]
             end
 
+            if reflection.klass != reflection.klass.base_class
+              records = records.select { |r| r.is_a?(reflection.klass) }
+            end
+
             records.compact!
             records.sort_by! { |rhs| preload_index[rhs] } if scope.order_values.any?
             records.uniq! if scope.distinct_value

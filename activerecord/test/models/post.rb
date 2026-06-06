@@ -186,6 +186,7 @@ class Post < ActiveRecord::Base
   has_many :author_using_custom_pk,  through: :standard_categorizations
   has_many :authors_using_custom_pk, through: :standard_categorizations
   has_many :named_categories, through: :standard_categorizations
+  has_many :special_named_categories, through: :standard_categorizations, class_name: "SpecialCategory", source: :category
 
   has_many :readers
   has_many :secure_readers

@@ -1738,6 +1738,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [[comment.blog_id, comment.id]], ids
   end
 
+  def test_preload_sti_subclass_association_alongside_base_class_association
+    post = Post.create!(title: "STI preload test", body: "body")
+    category         = Category.create!(name: "General")
+    special_category = SpecialCategory.create!(name: "Sports")
+    Categorization.create!(post: post, category: category)
+    Categorization.create!(post: post, category: special_category)
+
+    preloaded = Post.preload(:named_categories, :special_named_categories).find(post.id)
+
+    assert_no_queries { preloaded.special_named_categories.to_a }
+    assert_equal [special_category], preloaded.special_named_categories,
+      "expected only SpecialCategory, got: #{preloaded.special_named_categories.map { |c| [c.class.name, c.name] }}"
+  end
+
   private
     def make_model(name)
       Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
