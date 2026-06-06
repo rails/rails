@@ -1,3 +1,18 @@
+*   Reflect a variant's format in its representation URL filename.
+
+    When a variant changed the format (e.g. `variant(format: :webp)`), the generated
+    URL still used the original blob's filename, so it ended with the original
+    extension (e.g. `.jpg`) instead of the variant's (e.g. `.webp`). This could
+    confuse CDNs, download tools, and browsers. The URL now uses the variant's
+    filename, which reflects the variant format.
+
+    Processed preview URLs likewise reflect the preview image's format (e.g. `.png`
+    for a PDF, `.jpg` for a video) rather than the source file's extension, matching
+    what is served. Unprocessed previews still fall back to the blob's filename, so
+    generating a URL never triggers preview processing.
+
+    *Dominic Baratta*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
