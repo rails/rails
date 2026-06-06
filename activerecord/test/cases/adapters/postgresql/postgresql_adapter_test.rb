@@ -1007,6 +1007,35 @@ module ActiveRecord
         end
       end
 
+      def test_terminate_backend_preserves_typed_exception
+        pid = connection_id_from_server(@connection)
+
+        # Put in a dirty transaction so auto-reconnect can't mask the error
+        @connection.execute("BEGIN")
+        @connection.execute("CREATE TEMP TABLE _typed_exception_probe()")
+
+        kill_connection_from_server(pid)
+        sleep 0.1
+
+        error = assert_raises(ActiveRecord::ConnectionFailed) { @connection.execute("SELECT 1") }
+        assert_kind_of PG::AdminShutdown, error.cause
+        assert_equal "57P01", error.cause.result.error_field(PG::PG_DIAG_SQLSTATE)
+      ensure
+        @connection&.disconnect!
+      end
+
+      def test_idle_in_transaction_timeout_preserves_typed_exception
+        @connection.execute("BEGIN")
+        @connection.execute("SET idle_in_transaction_session_timeout = '10ms'")
+        sleep 0.1
+
+        error = assert_raises(ActiveRecord::ConnectionFailed) { @connection.execute("SELECT 1") }
+        assert_kind_of PG::IdleInTransactionSessionTimeout, error.cause
+        assert_equal "25P03", error.cause.result.error_field(PG::PG_DIAG_SQLSTATE)
+      ensure
+        @connection&.disconnect!
+      end
+
       def test_reload_type_map_for_newly_defined_types
         @connection.create_enum "feeling", ["good", "bad"]
         enum_oid = @connection.query_value("SELECT 'feeling'::regtype::oid").to_i

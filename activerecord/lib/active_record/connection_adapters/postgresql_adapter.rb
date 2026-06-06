@@ -812,6 +812,11 @@ module ActiveRecord
       private
         attr_reader :type_map
 
+        def connection_terminating_severity?(result)
+          severity = result&.error_field(PG::PG_DIAG_SEVERITY_NONLOCALIZED)
+          severity == "FATAL" || severity == "PANIC"
+        end
+
         def initialize_type_map(m = type_map)
           self.class.initialize_type_map(m)
 
@@ -920,7 +925,11 @@ module ActiveRecord
           when QUERY_CANCELED
             QueryCanceled.new(message, sql: sql, binds: binds, connection_pool: @pool)
           else
-            super
+            if connection_terminating_severity?(exception.result)
+              ConnectionFailed.new(exception, connection_pool: @pool)
+            else
+              super
+            end
           end
         end
 
@@ -1025,12 +1034,12 @@ module ActiveRecord
           unless @statements.key? sql_key
             nextkey = @statements.next_key
             begin
-              conn.prepare nextkey, sql
+              conn.send_prepare(nextkey, sql)
+              result = get_result(conn)
+              result&.check
             rescue => e
               raise translate_exception_class(e, sql, binds)
             end
-            # Clear the queue
-            conn.get_last_result
             @statements[sql_key] = nextkey
           end
           @statements[sql_key]
