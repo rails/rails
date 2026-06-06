@@ -1874,6 +1874,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     def assert_gem_for_active_storage
       assert_gem "image_processing"
+      assert_gem "ruby-vips", /.*require: false/
     end
 
     def assert_frameworks_are_not_required_when_active_storage_is_skipped
@@ -1890,6 +1891,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     def assert_gems_when_active_storage_is_skipped
       assert_no_gem "image_processing"
+      assert_no_gem "ruby-vips"
     end
 
     def assert_gitattributes_does_not_have_schema_file
