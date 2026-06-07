@@ -1516,15 +1516,17 @@ end
 
 That may be handy to compute method names in a language that follows that convention, for example JavaScript.
 
-INFO: As a rule of thumb you can think of `camelize` as the inverse of `underscore`, though there are cases where that does not hold: `"SSLError".underscore.camelize` gives back `"SslError"`. To support cases such as this, Active Support allows you to specify acronyms in `config/initializers/inflections.rb`:
+As a rule of thumb you can think of `camelize` as the inverse of `underscore`, though there are cases where that does not hold: `"RESTful".underscore.camelize` gives back `"Restful"`. To support cases such as this, Active Support allows you to specify acronyms in `config/initializers/inflections.rb`:
 
 ```ruby
 ActiveSupport::Inflector.inflections do |inflect|
-  inflect.acronym "SSL"
+  inflect.acronym "RESTful"
 end
 
-"SSLError".underscore.camelize # => "SSLError"
+"RESTful".underscore.camelize # => "RESTful"
 ```
+
+WARNING: Custom inflection rules are global — they affect the entire Ruby process, including third-party gems. Avoid them unless absolutely necessary, especially for common terms like API, ID, or JSON. If you only need custom inflections for autoloading, use [Zeitwerk's inflector](autoloading_and_reloading_constants.html#customizing-inflections) instead.
 
 `camelize` is aliased to [`camelcase`][String#camelcase].
 
