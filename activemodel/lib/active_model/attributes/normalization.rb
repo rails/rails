@@ -138,8 +138,21 @@ module ActiveModel
 
       private
         def normalize_changed_in_place_attributes
+          attributes = @attributes
           self.class.normalized_attributes.each do |name|
-            normalize_attribute(name) if attribute_changed_in_place?(name)
+            attribute = attributes[name.to_s]
+
+            # +changed_in_place?+ is a cheap gate, but on an unpersisted record
+            # it reports any attribute that has been read as changed.
+            # Confirm a real in-place mutation before re-normalizing, or
+            # the normalizer compounds on every validation.
+            next unless attribute.changed_in_place?
+
+            if attribute.value == attribute.type.cast(attribute.value_before_type_cast)
+              attributes[name.to_s] = attribute.with_value_from_user(attribute.value_before_type_cast)
+            else
+              normalize_attribute(name)
+            end
           end
         end
 
