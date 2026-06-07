@@ -778,6 +778,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     end
   end
 
+  def test_includes_and_joins_with_scope_with_string_joins
+    assert_nothing_raised do
+      Post.includes(:author).joins(:very_special_comment_with_string_joins).to_sql
+    end
+  end
+
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)
