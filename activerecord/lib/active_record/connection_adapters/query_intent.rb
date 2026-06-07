@@ -20,6 +20,14 @@ module ActiveRecord
           end
         end
 
+        def build_handle(name, payload)
+          DeferredHandle.new(self, @instrumenter, name, payload)
+        end
+
+        def add_event(event)
+          @events << event
+        end
+
         def flush
           events, @events = @events, []
           events.each do |event|
@@ -27,12 +35,33 @@ module ActiveRecord
             ActiveSupport::Notifications.publish_event(event)
           end
         end
+
+        class DeferredHandle
+          def initialize(buffer, instrumenter, name, payload)
+            @buffer = buffer
+            @event = instrumenter.new_event(name, payload)
+          end
+
+          def start
+            @event.start!
+          end
+
+          def finish
+            @event.finish!
+            @buffer.add_event(@event)
+          end
+
+          def payload
+            @event.payload
+          end
+        end
       end
 
       attr_reader :arel, :name, :prepare, :allow_retry, :allow_async,
-                  :materialize_transactions, :batch, :pool, :session, :lock_wait
+                  :materialize_transactions, :batch, :pool, :session, :lock_wait,
+                  :event_buffer
       attr_writer :raw_sql, :session
-      attr_accessor :adapter, :binds, :ran_async, :notification_payload
+      attr_accessor :adapter, :binds, :ran_async, :notification_payload, :log_handle
 
       def initialize(adapter:, arel: nil, raw_sql: nil, processed_sql: nil, name: "SQL", binds: [], prepare: false, allow_async: false,
                      allow_retry: false, materialize_transactions: true, batch: false)
@@ -66,6 +95,7 @@ module ActiveRecord
         @error = nil
         @lock_wait = nil
         @event_buffer = nil
+        @log_handle = nil
       end
 
       # Returns a hash representation of the QueryIntent for debugging/introspection

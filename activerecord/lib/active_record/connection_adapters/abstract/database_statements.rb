@@ -625,8 +625,8 @@ module ActiveRecord
           materialize_transactions
         end
 
-        log(intent) do |notification_payload|
-          intent.notification_payload = notification_payload
+        start_intent_log(intent)
+        begin
           with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: false) do |conn|
             should_dirty = intent.materialize_transactions
             begin
@@ -645,9 +645,52 @@ module ActiveRecord
               end
             end
           end
+          finish_intent_log(intent)
+        rescue => error
+          error.set_query(intent.processed_sql, intent.binds) if error.is_a?(StatementInvalid)
+          finish_intent_log(intent, exception: error)
+          raise
         end
       ensure
         dirty_current_transaction if should_dirty
+      end
+
+      def start_intent_log(intent) # :nodoc:
+        return if intent.log_handle
+
+        payload = {
+          sql:               intent.processed_sql,
+          name:              intent.name,
+          binds:             intent.binds,
+          type_casted_binds: intent.type_casted_binds,
+          async:             intent.ran_async,
+          allow_retry:       intent.allow_retry,
+          connection:        self,
+          transaction:       current_transaction.user_transaction.presence,
+          affected_rows:     0,
+          row_count:         0,
+        }
+        intent.notification_payload = payload
+
+        active_record_instrumenter = intent.event_buffer || instrumenter
+        handle = active_record_instrumenter.build_handle("sql.active_record", payload)
+        handle.start
+        intent.log_handle = handle
+      end
+
+      def finish_intent_log(intent, exception: nil) # :nodoc:
+        handle = intent.log_handle
+        return unless handle
+
+        intent.log_handle = nil
+
+        if exception
+          payload = intent.notification_payload
+          payload[:exception] = [exception.class.name, exception.message]
+          payload[:exception_object] = exception
+        end
+
+        handle.finish
       end
 
       # Executes SQL statements in the context of this connection without
