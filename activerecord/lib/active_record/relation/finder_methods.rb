@@ -542,10 +542,6 @@ module ActiveRecord
       def find_some(ids)
         return find_some_ordered(ids) unless order_values.present?
 
-        relation = where(primary_key => ids)
-        relation = relation.select(table[primary_key]) unless select_values.empty?
-        result = relation.to_a
-
         expected_size =
           if limit_value && ids.size > limit_value
             limit_value
@@ -554,9 +550,17 @@ module ActiveRecord
           end
 
         # 11 ids with limit 3, offset 9 should give 2 results.
-        if offset_value && (ids.size - offset_value < expected_size)
-          expected_size = ids.size - offset_value
+        if offset_value
+          if ids.size <= offset_value
+            return []
+          elsif ids.size - offset_value < expected_size
+            expected_size = ids.size - offset_value
+          end
         end
+
+        relation = where(primary_key => ids)
+        relation = relation.select(table[primary_key]) unless select_values.empty?
+        result = relation.to_a
 
         if result.size == expected_size
           result
@@ -567,6 +571,7 @@ module ActiveRecord
 
       def find_some_ordered(ids)
         ids = ids.slice(offset_value || 0, limit_value || ids.size) || []
+        return [] if ids.empty?
 
         relation = except(:limit, :offset)
         relation = relation.where(primary_key => ids)
