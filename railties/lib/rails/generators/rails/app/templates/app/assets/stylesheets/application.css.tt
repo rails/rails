@@ -1,10 +1,8 @@
 /*
- * This is a manifest file that'll be compiled into application.css.
+ * Propshaft serves assets efficiently without preprocessing. By default, each
+ * stylesheet is linked individually hence this file should be used for global
+ * styles only. Consider organizing styles into separate files for maintainability.
  *
- * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
- * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
- * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
- * depending on specificity.
- *
- * Consider organizing styles into separate files for maintainability.
+ * You may transpile and bundle your CSS using the `cssbundling-rails` gem which
+ * integrates with Propshaft.
  */
