@@ -104,6 +104,36 @@ module ActiveRecord
         assert_equal 0, active_connections(pool).size
       end
 
+      def test_checkin_finalizes_unfinished_intent_logs
+        pool.with_connection { }
+        intent = nil
+        finalized_before_checkin_callbacks = nil
+        adapter_class = ActiveRecord::ConnectionAdapters::AbstractAdapter
+        checkin_callback = -> { finalized_before_checkin_callbacks = intent&.finalized? }
+        adapter_class.set_callback(:checkin, :before, checkin_callback)
+
+        events = capture_notifications("sql.active_record") do
+          pool.with_connection do |connection|
+            intent = QueryIntent.new(
+              adapter: connection,
+              raw_sql: "SELECT 1",
+              name: "SQL",
+              materialize_transactions: false
+            )
+            connection.start_intent_log(intent)
+
+            assert_not_predicate intent, :finalized?
+          end
+        end
+
+        event = events.find { |notification| notification.payload[:sql] == "SELECT 1" }
+        assert_predicate intent, :finalized?
+        assert_equal true, finalized_before_checkin_callbacks
+        assert_not_nil event
+      ensure
+        adapter_class&.skip_callback(:checkin, :before, checkin_callback) if checkin_callback
+      end
+
       def test_new_connection_no_query
         skip("Can't test with in-memory dbs") if in_memory_db?
         assert_equal 0, pool.connections.size
