@@ -198,6 +198,7 @@ module ActiveRecord
         @last_activity = nil
         @verified = false
         @needs_reconnect = false
+        @unfinalized_intents = []
 
         @pool_jitter = rand * max_jitter
       end
@@ -349,6 +350,8 @@ module ActiveRecord
               "it is owned by a different thread: #{@owner}. " \
               "Current thread: #{ActiveSupport::IsolatedExecutionState.context}."
           end
+
+          finalize_remaining_intents
 
           _run_checkin_callbacks do
             @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC) if update_idle
