@@ -726,10 +726,8 @@ module ActiveRecord
       else
         arel_column = order_column(column.to_s)
 
-        caster = arel_column.type_caster
-        values = values.map do |value|
-          caster.serialize(value) if caster.serializable?(value)
-        end
+        values = cast_values_for_in_order_of(values, arel_column.type_caster)
+        return spawn.none! if values.empty?
       end
 
       scope = spawn.order!(build_case_for_value_position(arel_column, values, filter: filter))
@@ -2272,6 +2270,24 @@ module ActiveRecord
             field
           end
         end
+      end
+
+      def cast_values_for_in_order_of(values, type_caster)
+        bad_value = Symbol # use some object that can not be a valid value
+
+        values = values.map do |value|
+          serialized = type_caster.serialize(value) if type_caster.serializable?(value)
+
+          if value.nil?
+            nil
+          elsif !serialized.nil?
+            serialized
+          else
+            bad_value
+          end
+        end
+
+        values.without(bad_value)
       end
 
       def arel_column_aliases_from_hash(fields)
