@@ -284,6 +284,79 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
+  # --- Vips transformer validation (CVE-2025-24293) ---
+
+  test "vips variations with dangerous argument string raise UnsupportedImageProcessingArgument" do
+    process_variants_with :vips do
+      blob = create_file_blob(filename: "racecar.jpg")
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(resize: "-PaTh /tmp/file.erb").processed
+      end
+    end
+  end
+
+  test "vips variations with dangerous argument array raise UnsupportedImageProcessingArgument" do
+    process_variants_with :vips do
+      blob = create_file_blob(filename: "racecar.jpg")
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(resize: [123, "-write", "/tmp/file.erb"]).processed
+      end
+    end
+  end
+
+  test "vips variations with dangerous argument in a nested array raise UnsupportedImageProcessingArgument" do
+    process_variants_with :vips do
+      blob = create_file_blob(filename: "racecar.jpg")
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(resize: [123, ["-write", "/tmp/file.erb"], "/tmp/file.erb"]).processed
+      end
+
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(resize: [123, { "-write /tmp/file.erb": "something" }, "/tmp/file.erb"]).processed
+      end
+    end
+  end
+
+  test "vips variations with dangerous argument hash raise UnsupportedImageProcessingArgument" do
+    process_variants_with :vips do
+      blob = create_file_blob(filename: "racecar.jpg")
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(resize: { "-write": "/tmp/file.erb" }).processed
+      end
+    end
+  end
+
+  test "vips variations with dangerous argument in a nested hash raise UnsupportedImageProcessingArgument" do
+    process_variants_with :vips do
+      blob = create_file_blob(filename: "racecar.jpg")
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(resize: { "something": { "-write": "/tmp/file.erb" } }).processed
+      end
+
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
+        blob.variant(resize: { "something": ["-write", "/tmp/file.erb"] }).processed
+      end
+    end
+  end
+
+  test "vips variations with unsupported methods raise UnsupportedImageProcessingMethod" do
+    process_variants_with :vips do
+      blob = create_file_blob(filename: "racecar.jpg")
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingMethod) do
+        blob.variant(system: "touch /tmp/dangerous").processed
+      end
+    end
+  end
+
+  test "vips variations with instance_eval raise UnsupportedImageProcessingMethod" do
+    process_variants_with :vips do
+      blob = create_file_blob(filename: "racecar.jpg")
+      assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingMethod) do
+        blob.variant(instance_eval: "`id > /tmp/pwned`").processed
+      end
+    end
+  end
+
   test "destroy deletes file from service" do
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(resize_to_limit: [100, 100]).processed
