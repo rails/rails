@@ -200,6 +200,9 @@ module ActionDispatch
           return unless raw_ip
 
           ip = IPAddr.new(raw_ip)
+          # Match IPv4-mapped IPv6 addresses (e.g. "::ffff:127.0.0.1") against
+          # IPv4 ranges, as the ipaddr gem did before Ruby 3.1.
+          ip = ip.native if ip.ipv4_mapped?
           @proxies.none? do |proxy|
             if proxy.is_a?(IPAddr)
               proxy.include?(ip)
