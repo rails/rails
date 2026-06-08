@@ -105,7 +105,7 @@ module ActiveSupport
     end
 
     def ==(other)
-      to_h == other.to_h
+      other.is_a?(Hash) && to_h == other.to_h
     end
 
     def inspect
