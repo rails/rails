@@ -89,6 +89,9 @@ module Rails
 
       desc "console", "Start the Rails console"
       def perform
+        require_application!
+        Rails.application.config.disable_file_watcher = true
+
         boot_application!
 
         wrap_with_executor = !options[:skip_executor]
