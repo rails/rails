@@ -223,6 +223,15 @@ xml.groups do
 end
 ```
 
+You'll also need to add two modules to your Application Controller. These are excluded by default for API applications. The `jbuilder` gem automatically adds them back in, but `builder` does not.
+
+```ruby
+class ApplicationController < ActionController::API
+  include ActionView::Rendering
+  include ActionController::ImplicitRender
+end
+```
+
 Ensure your controller action is rendering implicitly (alternatively, you can use `render formats: :xml`):
 
 ```ruby
@@ -251,6 +260,8 @@ $ curl -s localhost:3000/groups
   </group>
 </groups>
 ```
+
+NOTE: If `ActionView::Rendering` is not included, attempting to render a template of any format will silently return a `204 No Content` response. It will not raise an error.
 
 #### ERB
 
