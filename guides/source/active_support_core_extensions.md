@@ -2559,53 +2559,59 @@ NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
 
 ### Wrapping
 
-The method [`Array.wrap`][Array.wrap] wraps its argument in an array unless it is already an array (or array-like).
-
-Specifically:
-
-* If the argument is `nil` an empty array is returned.
-* Otherwise, if the argument responds to `to_ary` it is invoked, and if the value of `to_ary` is not `nil`, it is returned.
-* Otherwise, an array with the argument as its single element is returned.
+The [`Array.wrap`][Array.wrap] method wraps its argument in an array unless it is already an array. This is useful when you want to normalize input that could be either a single value or a collection.
 
 ```ruby
 Array.wrap(nil)       # => []
 Array.wrap([1, 2, 3]) # => [1, 2, 3]
 Array.wrap(0)         # => [0]
+Array.wrap("hello")   # => ["hello"]
 ```
 
-This method is similar in purpose to `Kernel#Array`, but there are some differences:
+The rules are as follows:
 
-* If the argument responds to `to_ary` the method is invoked. `Kernel#Array` moves on to try `to_a` if the returned value is `nil`, but `Array.wrap` returns an array with the argument as its single element right away.
-* If the returned value from `to_ary` is neither `nil` nor an `Array` object, `Kernel#Array` raises an exception, while `Array.wrap` does not, it just returns the value.
-* It does not call `to_a` on the argument, if the argument does not respond to `to_ary` it returns an array with the argument as its single element.
+- `nil` returns an empty array
+- An array is returned as is
+- Anything else is wrapped in a single element array
 
-The last point is particularly worth comparing for some enumerables:
+#### `Array.wrap` vs `Kernel#Array`
+
+`Array.wrap` is similar to Ruby's built-in `Kernel#Array`, but behaves more predictably in edge cases. The most notable difference is with hashes:
 
 ```ruby
-Array.wrap(foo: :bar) # => [{:foo=>:bar}]
-Array(foo: :bar)      # => [[:foo, :bar]]
+Array.wrap(foo: :bar) # => [{ foo: :bar }]  — hash is wrapped as a single element
+Array(foo: :bar)      # => [[:foo, :bar]]   — hash is converted to key/value pairs
 ```
 
-There's also a related idiom that uses the splat operator:
+`Kernel#Array` calls `to_a` on the argument if `to_ary` returns `nil`, which causes hashes to be decomposed into pairs. `Array.wrap` never calls `to_a`, so a hash stays a hash.
+
+The `Array.wrap` method does not raise an exception if `to_ary` returns a non-Array value (other than `nil`), it simply returns that value.
+
+NOTE: `to_ary` and `to_a` are both array conversion methods but signal different intent. `to_ary` declares that an object is array-like and can be used anywhere an array is expected. `to_a` is a general conversion that may transform the object significantly, like a Hash becoming an array of key/value pairs.
+
+There is a related Ruby idiom using the splat operator:
 
 ```ruby
 [*object]
 ```
 
+This behaves similarly but has its own edge cases — for example, `[*nil]` returns `[]` in Ruby, which matches `Array.wrap`, but `[*{foo: :bar}]` returns `[[:foo, :bar]]`, decomposing the hash just like `Kernel#Array`.
+
 NOTE: Defined in `active_support/core_ext/array/wrap.rb`.
 
 [Array.wrap]: https://api.rubyonrails.org/classes/Array.html#method-c-wrap
 
-### Duplicating
+### `Array#deep_dup`
 
-The method [`Array#deep_dup`][Array#deep_dup] duplicates itself and all objects inside
-recursively with the Active Support method `Object#deep_dup`. It works like `Array#map`, sending `deep_dup` method to each object inside.
+The [`Array#deep_dup`][Array#deep_dup] method duplicates the array and all objects inside it recursively. Unlike Ruby's built-in `dup`, which produces a shallow copy where nested objects are still shared, `deep_dup` ensures that modifying a nested object in the copy does not affect the original:
 
 ```ruby
 array = [1, [2, 3]]
 dup = array.deep_dup
-dup[1][2] = 4
-array[1][2] == nil   # => true
+ 
+dup[1] << 4
+dup[1]   # => [2, 3, 4]
+array[1] # => [2, 3]  — original is unchanged
 ```
 
 NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
@@ -2616,7 +2622,7 @@ NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
 #### `in_groups_of(number, fill_with = nil)`
 
-The method [`in_groups_of`][Array#in_groups_of] splits an array into consecutive groups of a certain size. It returns an array with the groups:
+The method [`in_groups_of`][Array#in_groups_of] splits an array into consecutive groups of a given size. It returns an array with the groups (as arrays):
 
 ```ruby
 [1, 2, 3].in_groups_of(2) # => [[1, 2], [3, nil]]
@@ -2654,7 +2660,7 @@ NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
 
 #### `in_groups(number, fill_with = nil)`
 
-The method [`in_groups`][Array#in_groups] splits an array into a certain number of groups. The method returns an array with the groups:
+The method [`in_groups`][Array#in_groups] divides an array into a given number of groups. The method returns an array with the groups:
 
 ```ruby
 %w(1 2 3 4 5 6 7).in_groups(3)
@@ -2670,7 +2676,7 @@ or yields them in turn if a block is passed:
 ["6", "7", nil]
 ```
 
-The examples above show that `in_groups` fills some groups with a trailing `nil` element as needed. A group can get at most one of these extra elements, the rightmost one if any. And the groups that have them are always the last ones.
+The examples above show that `in_groups` fills some groups with a trailing `nil` element as needed. A group can get at most one of these extra elements, the right most one if any. And the groups that have them are always the last ones.
 
 You can change this padding value using the second optional argument:
 
@@ -2694,23 +2700,24 @@ NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
 
 #### `split(value = nil)`
 
-The method [`split`][Array#split] divides an array by a separator and returns the resulting chunks.
+The [`Array#split`][Array#split] method divides an array into chunks separated by a given value or condition, similar to how `String#split` works on strings.
 
-If a block is passed the separators are those elements of the array for which the block returns true:
+When passed a block, elements for which the block returns true act as the separators and are excluded from the result:
 
 ```ruby
-(-5..5).to_a.split { |i| i.multiple_of?(4) }
-# => [[-5], [-3, -2, -1], [1, 2, 3], [5]]
+(1..10).to_a.split { |i| i.multiple_of?(4) }
+# => [[1, 2, 3], [5, 6, 7], [9, 10]]
+# 4 and 8 are multiples of 4, so they act as separators
 ```
 
-Otherwise, the value received as argument, which defaults to `nil`, is the separator:
+When passed a value, that value is used as the separator. The default is `nil`:
 
 ```ruby
 [0, 1, -5, 1, 1, "foo", "bar"].split(1)
 # => [[0], [-5], [], ["foo", "bar"]]
 ```
 
-TIP: Observe in the previous example that consecutive separators result in empty arrays.
+Consecutive separators produce empty arrays in the result, as shown above where two `1`s appear next to each other.
 
 NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
 
