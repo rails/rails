@@ -3074,25 +3074,24 @@ Extensions to `Regexp`
 
 ### `multiline?`
 
-The method [`multiline?`][Regexp#multiline?] says whether a regexp has the `/m` flag set, that is, whether the dot matches newlines.
+By default, the `.` character in a Ruby regular expression matches any character except a newline. Adding the `/m` flag changes this so that `.` matches newlines too — this is called multiline mode.
+
+The [`multiline?`][Regexp#multiline?] method returns `true` if the regexp has the `/m` flag set:
 
 ```ruby
-%r{.}.multiline?  # => false
-%r{.}m.multiline? # => true
-
+%r{.}.multiline?                              # => false
+%r{.}m.multiline?                             # => true
 Regexp.new(".").multiline?                    # => false
 Regexp.new(".", Regexp::MULTILINE).multiline? # => true
 ```
 
-Rails uses this method in a single place, also in the routing code. Multiline regexps are disallowed for route requirements and this flag eases enforcing that constraint.
+Rails uses this in the routing code to disallow multiline regexps in route requirements. A route constraint like `constraints id: /foo.bar/` should match only within a single line, allowing `.` to match newlines could cause a route to match unintended paths. Rails enforces this with:
 
 ```ruby
 def verify_regexp_requirements(requirements)
-  # ...
   if requirement.multiline?
     raise ArgumentError, "Regexp multiline option is not allowed in routing requirements: #{requirement.inspect}"
   end
-  # ...
 end
 ```
 
@@ -3105,7 +3104,7 @@ Extensions to `Range`
 
 ### `to_fs`
 
-Active Support defines `Range#to_fs` as an alternative to `to_s` that understands an optional format argument. As of this writing the only supported non-default format is `:db`:
+Active Support defines `Range#to_fs` as an alternative to `to_s` that understands an optional format argument, such as `:db`:
 
 ```ruby
 (Date.today..Date.tomorrow).to_fs
@@ -3115,37 +3114,41 @@ Active Support defines `Range#to_fs` as an alternative to `to_s` that understand
 # => "BETWEEN '2009-10-25' AND '2009-10-26'"
 ```
 
-As the example depicts, the `:db` format generates a `BETWEEN` SQL clause. That is used by Active Record in its support for range values in conditions.
+As shown in the example above, the `:db` format generates a `BETWEEN` SQL clause. This is useful in Active Record queries to support range values in conditions.
 
 NOTE: Defined in `active_support/core_ext/range/conversions.rb`.
 
 ### `===` and `include?`
 
-The methods `Range#===` and `Range#include?` say whether some value falls between the ends of a given instance:
+Ruby's `Range#===` and `Range#include?` check whether a single value falls within a range:
 
 ```ruby
-(2..3).include?(Math::E) # => true
+(2..3).include?(Math::E) # => true  — Math::E is 2.718...
 ```
 
-Active Support extends these methods so that the argument may be another range in turn. In that case we test whether the ends of the argument range belong to the receiver themselves:
+Active Support extends both methods to also accept another range as the argument. In this case the check becomes this: does the receiver range fully contain the argument range? Both the start and end of the argument must fall within the receiver:
 
 ```ruby
-(1..10) === (3..7)  # => true
-(1..10) === (0..7)  # => false
-(1..10) === (3..11) # => false
-(1...9) === (3..9)  # => false
+(1..10) === (3..7)   # => true   — 3 and 7 are both within 1..10
+(1..10) === (0..7)   # => false  — 0 is outside 1..10
+(1..10) === (3..11)  # => false  — 11 is outside 1..10
+(1...9) === (3..9)   # => false  — 9 is excluded from 1...9
+```
 
-(1..10).include?(3..7)  # => true
-(1..10).include?(0..7)  # => false
-(1..10).include?(3..11) # => false
-(1...9).include?(3..9)  # => false
+[`include?`][Range#include?] behaves identically:
+
+```ruby
+(1..10).include?(3..7)   # => true
+(1..10).include?(0..7)   # => false
+(1..10).include?(3..11)  # => false
+(1...9).include?(3..9)   # => false
 ```
 
 NOTE: Defined in `active_support/core_ext/range/compare_range.rb`.
 
 ### `overlap?`
 
-The method [`Range#overlap?`][Range#overlap?] says whether any two given ranges have non-void intersection:
+The method [`Range#overlap?`][Range#overlap?] checks whether two given ranges have overlapping values:
 
 ```ruby
 (1..10).overlap?(7..11)  # => true
@@ -3156,7 +3159,6 @@ The method [`Range#overlap?`][Range#overlap?] says whether any two given ranges 
 NOTE: Defined in `active_support/core_ext/range/overlap.rb`.
 
 [Range#overlap?]: https://api.rubyonrails.org/classes/Range.html#method-i-overlaps-3F
-
 
 
 Working with `Date`, `Time`, and `DateTime`
