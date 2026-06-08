@@ -568,7 +568,7 @@ end
 ### Creating a Join Table
 
 The migration method [`create_join_table`][] creates an [HABTM (has and belongs
-to many)](association_basics.html#the-has-and-belongs-to-many-association) join
+to many)](association_basics.html#has-and-belongs-to-many) join
 table. A typical use would be:
 
 ```ruby
