@@ -2169,18 +2169,27 @@ BigDecimal(5.00, 6).to_s("e") # => "0.5E1" ("e" for scientific notation)
 Extensions to `Enumerable`
 --------------------------
 
+Any class that includes Ruby's `Enumerable` and implements `each` gets a rich set of iteration and collection methods, such as `map`, `select`, `reject`, `find`, `sort`, etc.
+
+In Rails, classes like `Array`, `Hash`, `Range` and Active Record query results all include `Enumerable`, so these methods are available everywhere.
+
+Active Support extends `Enumerable` with higher level convenience methods.
+
 ### `index_by`
 
-The method [`index_by`][Enumerable#index_by] generates a hash with the elements of an enumerable indexed by some key.
-
-It iterates through the collection and passes each element to a block. The element will be keyed by the value returned by the block:
+The [`index_by`][Enumerable#index_by] method transforms an enumerable into a hash, using the block's return value as the key for each element:
 
 ```ruby
-invoices.index_by(&:number)
-# => {"2009-032" => <Invoice ...>, "2009-008" => <Invoice ...>, ...}
+users = [
+  User.new(id: 1, name: "Alice"),
+  User.new(id: 2, name: "Bob")
+]
+
+users.index_by(&:id)
+# => { 1 => #<User name: "Alice">, 2 => #<User name: "Bob"> }
 ```
 
-WARNING. Keys should normally be unique. If the block returns the same value for different elements no collection is built for that key. The last item will win.
+WARNING: Keys must be unique. If the block returns the same value for multiple elements, only the last one is kept.
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
@@ -2188,17 +2197,17 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
 ### `index_with`
 
-The method [`index_with`][Enumerable#index_with] generates a hash with the elements of an enumerable as keys. The value
-is either a passed default or returned in a block.
+The [`index_with`][Enumerable#index_with] method builds a hash using the elements of an enumerable as keys. Values are either set from a block or a single default value passed as an argument:
 
 ```ruby
+# Value is set to a default
+%i[monday tuesday wednesday].index_with("available")
+# => { monday: "available", tuesday: "available", wednesday: "available" }
+
+# Values come from a block
 post = Post.new(title: "hey there", body: "what's up?")
-
-%i( title body ).index_with { |attr_name| post.public_send(attr_name) }
+%i[title body].index_with { |attr| post.public_send(attr) }
 # => { title: "hey there", body: "what's up?" }
-
-WEEKDAYS.index_with(Interval.all_day)
-# => { monday: [ 0, 1440 ], … }
 ```
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
@@ -2207,7 +2216,7 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
 ### `many?`
 
-The method [`many?`][Enumerable#many?] is shorthand for `collection.size > 1`:
+The [`many?`][Enumerable#many?] method is a readable shorthand for `collection.size > 1`:
 
 ```erb
 <% if pages.many? %>
@@ -2215,10 +2224,10 @@ The method [`many?`][Enumerable#many?] is shorthand for `collection.size > 1`:
 <% end %>
 ```
 
-If an optional block is given, `many?` only takes into account those elements that return true:
+An optional block narrows the check to elements matching a condition:
 
 ```ruby
-@see_more = videos.many? { |video| video.category == params[:category] }
+videos.many? { |video| video.category == params[:category] }
 ```
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
@@ -2227,9 +2236,12 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
 ### `exclude?`
 
-The predicate [`exclude?`][Enumerable#exclude?] tests whether a given object does **not** belong to the collection. It is the negation of the built-in `include?`:
+The [`exclude?`][Enumerable#exclude?] method returns `true` if a given object is not present in the collection. It is the complement of Ruby's built-in `include?`:
 
 ```ruby
+visited.include?(node)  # => true
+visited.exclude?(node)  # => false
+
 to_visit << node if visited.exclude?(node)
 ```
 
@@ -2239,11 +2251,11 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
 ### `including`
 
-The method [`including`][Enumerable#including] returns a new enumerable that includes the passed elements:
+The [`including`][Enumerable#including] method returns a new enumerable with the given elements appended:
 
 ```ruby
-[ 1, 2, 3 ].including(4, 5)                    # => [ 1, 2, 3, 4, 5 ]
-["David", "Rafael"].including %w[ Aaron Todd ] # => ["David", "Rafael", "Aaron", "Todd"]
+[1, 2, 3].including(4, 5)                     # => [1, 2, 3, 4, 5]
+["Alice", "Bob"].including("Carol", "Dave")    # => ["Alice", "Bob", "Carol", "Dave"]
 ```
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
@@ -2252,14 +2264,14 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
 ### `excluding`
 
-The method [`excluding`][Enumerable#excluding] returns a copy of an enumerable with the specified elements
-removed:
+The [`excluding`][Enumerable#excluding] method returns a copy of an
+enumerable with the specified elements removed:
 
 ```ruby
 ["David", "Rafael", "Aaron", "Todd"].excluding("Aaron", "Todd") # => ["David", "Rafael"]
 ```
 
-`excluding` is aliased to [`without`][Enumerable#without].
+This method is aliased to [`without`][Enumerable#without].
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
@@ -2268,7 +2280,7 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
 ### `pluck`
 
-The method [`pluck`][Enumerable#pluck] extracts the given key from each element:
+The [`pluck`][Enumerable#pluck] method extracts the given key from each element:
 
 ```ruby
 [{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pluck(:name) # => ["David", "Rafael", "Aaron"]
@@ -2281,7 +2293,7 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
 ### `pick`
 
-The method [`pick`][Enumerable#pick] extracts the given key from the first element:
+The [`pick`][Enumerable#pick] method extracts the given key from the first element:
 
 ```ruby
 [{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pick(:name) # => "David"
