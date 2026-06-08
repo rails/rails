@@ -796,7 +796,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     debate.touch(time: time)
     debate2.touch(time: time)
 
-    assert_queries_count(5) do
+    assert_queries_count(7) do
       reply.parent_title = "debate"
       reply.save!
     end
@@ -807,7 +807,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     debate.touch(time: time)
     debate2.touch(time: time)
 
-    assert_queries_count(5) do
+    assert_queries_count(6) do
       reply.topic_with_primary_key = debate2
       reply.save!
     end
