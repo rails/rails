@@ -158,6 +158,28 @@ module ActiveSupport
         end
       end
 
+      def test_to_delimited_with_negative_numbers
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal("-1", number_helper.number_to_delimited(-1))
+          assert_equal("-12", number_helper.number_to_delimited(-12))
+          assert_equal("-123", number_helper.number_to_delimited(-123))
+          assert_equal("-1,234", number_helper.number_to_delimited(-1234))
+          assert_equal("-123,456", number_helper.number_to_delimited(-123456))
+          assert_equal("-123,456,789", number_helper.number_to_delimited(-123456789))
+          assert_equal("-123,456.78", number_helper.number_to_delimited(-123456.78))
+          assert_equal("-123,456", number_helper.number_to_delimited("-123456"))
+        end
+      end
+
+      def test_to_delimited_with_leading_plus_sign
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal("+123", number_helper.number_to_delimited("+123"))
+          assert_equal("+1,234", number_helper.number_to_delimited("+1234"))
+          assert_equal("+123,456", number_helper.number_to_delimited("+123456"))
+          assert_equal("+123,456.78", number_helper.number_to_delimited("+123456.78"))
+        end
+      end
+
       def test_to_delimited_with_non_finite_floats
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal "Infinity", number_helper.number_to_delimited(Float::INFINITY)
