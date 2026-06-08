@@ -85,6 +85,25 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_equal "town.jpg", @user.avatar.filename.to_s
   end
 
+  test "attaching files concurrently to the same record instance" do
+    barrier = Concurrent::CyclicBarrier.new(20)
+    errors = Queue.new
+
+    threads = 20.times.map do
+      Thread.new do
+        barrier.wait
+        @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
+      rescue => error
+        errors << error
+      end
+    end
+
+    threads.each(&:join)
+
+    assert_predicate errors, :empty?, -> { errors.size.times.map { errors.pop.full_message }.join("\n") }
+    assert_predicate @user.reload.avatar, :attached?
+  end
+
   test "attaching a new blob from a Hash with a path traversal key raises on Disk service" do
     assert_raises ActiveStorage::InvalidKeyError do
       @user.avatar.attach key: "../../etc/passwd", io: StringIO.new("malicious"), filename: "exploit.txt", content_type: "text/plain"

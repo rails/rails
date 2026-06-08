@@ -95,6 +95,25 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal "town.jpg", @user.highlights.second.filename.to_s
   end
 
+  test "attaching files concurrently to the same record instance" do
+    barrier = Concurrent::CyclicBarrier.new(20)
+    errors = Queue.new
+
+    threads = 20.times.map do
+      Thread.new do
+        barrier.wait
+        @user.highlights.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
+      rescue => error
+        errors << error
+      end
+    end
+
+    threads.each(&:join)
+
+    assert_predicate errors, :empty?, -> { errors.size.times.map { errors.pop.full_message }.join("\n") }
+    assert_predicate @user.reload.highlights, :attached?
+  end
+
   test "attaching new blobs from uploaded files to an existing, changed record" do
     @user.name = "Tina"
     assert_predicate @user, :changed?
