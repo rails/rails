@@ -2309,98 +2309,101 @@ Extensions to `Array`
 
 ### Accessing
 
-Active Support augments the API of arrays to ease certain ways of accessing them. For example, [`to`][Array#to] returns the subarray of elements up to the one at the passed index:
+Active Support augments the Array API with several convenience accessors.
+
+The [`to`][Array#to] method returns a subarray from the beginning up to and including the element at the given index:
 
 ```ruby
-%w(a b c d).to(2) # => ["a", "b", "c"]
-[].to(7)          # => []
+%w[a b c d].to(2)  # => ["a", "b", "c"]
+[].to(7)           # => []
 ```
 
-Similarly, [`from`][Array#from] returns the tail from the element at the passed index to the end. If the index is greater than the length of the array, it returns an empty array.
+The [`from`][Array#from] method returns the tail of the array starting at the given index. Returns an empty array if the index is out of bounds:
 
 ```ruby
-%w(a b c d).from(2)  # => ["c", "d"]
-%w(a b c d).from(10) # => []
-[].from(0)           # => []
+%w[a b c d].from(2)  # => ["c", "d"]
+%w[a b c d].from(10) # => []
 ```
 
-The method [`including`][Array#including] returns a new array that includes the passed elements:
+The [`including`][Array#including] method returns a new array with the given elements appended:
 
 ```ruby
-[ 1, 2, 3 ].including(4, 5)          # => [ 1, 2, 3, 4, 5 ]
-[ [ 0, 1 ] ].including([ [ 1, 0 ] ]) # => [ [ 0, 1 ], [ 1, 0 ] ]
+[1, 2, 3].including(4, 5)            # => [1, 2, 3, 4, 5]
 ```
 
-The method [`excluding`][Array#excluding] returns a copy of the Array excluding the specified elements.
-This is an optimization of `Enumerable#excluding` that uses `Array#-`
-instead of `Array#reject` for performance reasons.
+The [`excluding`][Array#excluding] method returns a copy of the array with the specified elements removed:
 
 ```ruby
-["David", "Rafael", "Aaron", "Todd"].excluding("Aaron", "Todd") # => ["David", "Rafael"]
-[ [ 0, 1 ], [ 1, 0 ] ].excluding([ [ 1, 0 ] ])                  # => [ [ 0, 1 ] ]
+["Alice", "Bob", "Carol"].excluding("Carol") # => ["Alice", "Bob"]
 ```
 
-The methods [`second`][Array#second], [`third`][Array#third], [`fourth`][Array#fourth], and [`fifth`][Array#fifth] return the corresponding element, as do [`second_to_last`][Array#second_to_last] and [`third_to_last`][Array#third_to_last] (`first` and `last` are built-in). Thanks to social wisdom and positive constructiveness all around, [`forty_two`][Array#forty_two] is also available.
+Active Support also provides positional accessors [`second`][Array#second], [`third`][Array#third], [`fourth`][Array#fourth], [`fifth`][Array#fifth], [`second_to_last`][Array#second_to_last], and [`third_to_last`][Array#third_to_last] (`first` and `last` are built into Ruby). [`forty_two`][Array#forty_two] is also available:
 
 ```ruby
-%w(a b c d).third # => "c"
-%w(a b c d).fifth # => nil
+%w[a b c d e].second # => "b"
+%w[a b c d e].third  # => "c"
+%w[a b c d e].fifth  # => "e"
 ```
 
 NOTE: Defined in `active_support/core_ext/array/access.rb`.
 
-[Array#excluding]: https://api.rubyonrails.org/classes/Array.html#method-i-excluding
-[Array#fifth]: https://api.rubyonrails.org/classes/Array.html#method-i-fifth
-[Array#forty_two]: https://api.rubyonrails.org/classes/Array.html#method-i-forty_two
-[Array#fourth]: https://api.rubyonrails.org/classes/Array.html#method-i-fourth
+[Array#to]: https://api.rubyonrails.org/classes/Array.html#method-i-to
 [Array#from]: https://api.rubyonrails.org/classes/Array.html#method-i-from
 [Array#including]: https://api.rubyonrails.org/classes/Array.html#method-i-including
+[Array#excluding]: https://api.rubyonrails.org/classes/Array.html#method-i-excluding
 [Array#second]: https://api.rubyonrails.org/classes/Array.html#method-i-second
-[Array#second_to_last]: https://api.rubyonrails.org/classes/Array.html#method-i-second_to_last
 [Array#third]: https://api.rubyonrails.org/classes/Array.html#method-i-third
+[Array#fourth]: https://api.rubyonrails.org/classes/Array.html#method-i-fourth
+[Array#fifth]: https://api.rubyonrails.org/classes/Array.html#method-i-fifth
+[Array#second_to_last]: https://api.rubyonrails.org/classes/Array.html#method-i-second_to_last
 [Array#third_to_last]: https://api.rubyonrails.org/classes/Array.html#method-i-third_to_last
-[Array#to]: https://api.rubyonrails.org/classes/Array.html#method-i-to
+[Array#forty_two]: https://api.rubyonrails.org/classes/Array.html#method-i-forty_two
 
-### Extracting
+### `extract!`
 
-The method [`extract!`][Array#extract!] removes and returns the elements for which the block returns a true value.
-If no block is given, an Enumerator is returned instead.
+The [`extract!`][Array#extract!] method removes and returns the elements for which the block returns true, modifying the original array in place:
 
 ```ruby
 numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-odd_numbers = numbers.extract! { |number| number.odd? } # => [1, 3, 5, 7, 9]
-numbers # => [0, 2, 4, 6, 8]
+odd_numbers = numbers.extract! { |n| n.odd? } # => [1, 3, 5, 7, 9]
+numbers                                        # => [0, 2, 4, 6, 8]
 ```
 
 NOTE: Defined in `active_support/core_ext/array/extract.rb`.
 
 [Array#extract!]: https://api.rubyonrails.org/classes/Array.html#method-i-extract-21
 
-### Options Extraction
+### `extract_options!`
 
-When the last argument in a method call is a hash, except perhaps for a `&block` argument, Ruby allows you to omit the brackets:
+Ruby allows you to omit the curly braces when passing a hash as the last argument to a method:
 
 ```ruby
 User.exists?(email: params[:email])
 ```
 
-That syntactic sugar is used a lot in Rails to avoid positional arguments where there would be too many, offering instead interfaces that emulate named parameters. In particular it is very idiomatic to use a trailing hash for options.
+Rails uses this convention extensively to simulate named parameters,particularly for passing options to methods that accept a variable number of arguments via `*`. The problem is that when a method uses `*args`, the trailing hash gets absorbed into the args array and loses its identity as an options hash.
 
-If a method expects a variable number of arguments and uses `*` in its declaration, however, such an options hash ends up being an item of the array of arguments, where it loses its role.
+The [`extract_options!`][Array#extract_options!] method solves this. It checks whether the last element of an array is a hash. If so, it removes and returns the hash. Otherwise it returns an empty hash.
 
-In those cases, you may give an options hash a distinguished treatment with [`extract_options!`][Array#extract_options!]. This method checks the type of the last item of an array. If it is a hash it pops it and returns it, otherwise it returns an empty hash.
-
-Let's see for example the definition of the `caches_action` controller macro:
+Here's how Rails uses it in the `caches_action` controller macro:
 
 ```ruby
 def caches_action(*actions)
   return unless cache_configured?
   options = actions.extract_options!
-  # ...
+  # options contains the hash, actions contains only the action names
 end
 ```
 
-This method receives an arbitrary number of action names, and an optional hash of options as last argument. With the call to `extract_options!` you obtain the options hash and remove it from `actions` in a simple and explicit way.
+This allows callers to pass any number of action names followed by an optional options hash:
+
+```ruby
+caches_action :index, :show, expires_in: 1.hour
+
+# Inside the method:
+# actions  => [:index, :show]
+# options  => { expires_in: 1.hour }
+```
 
 NOTE: Defined in `active_support/core_ext/array/extract_options.rb`.
 
