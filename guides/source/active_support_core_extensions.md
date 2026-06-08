@@ -2424,9 +2424,12 @@ The method [`to_sentence`][Array#to_sentence] turns an array into a string conta
 
 This method accepts three options:
 
-* `:two_words_connector`: What is used for arrays of length 2. Default is " and ".
-* `:words_connector`: What is used to join the elements of arrays with 3 or more elements, except for the last two. Default is ", ".
-* `:last_word_connector`: What is used to join the last items of an array with 3 or more elements. Default is ", and ".
+* `:two_words_connector`: What is used for arrays of length 2. Default is " and
+  ".
+* `:words_connector`: What is used to join the elements of arrays with 3 or more
+  elements, except for the last two. Default is ", ".
+* `:last_word_connector`: What is used to join the last items of an array with 3
+  or more elements. Default is ", and ".
 
 The defaults for these options can be localized, their keys are:
 
@@ -2444,9 +2447,9 @@ NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
 
 The method [`to_fs`][Array#to_fs] acts like `to_s` by default.
 
-If the array contains items that respond to `id`, however, the symbol
-`:db` may be passed as argument. That's typically used with
-collections of Active Record objects. Returned strings are:
+If the array contains items that respond to `id`, however, the symbol `:db` may
+be passed as argument. That's typically used with collections of Active Record
+objects. Returned strings are:
 
 ```ruby
 [].to_fs(:db)            # => "null"
@@ -2454,7 +2457,7 @@ collections of Active Record objects. Returned strings are:
 invoice.lines.to_fs(:db) # => "23,567,556,12"
 ```
 
-Integers in the example above are supposed to come from the respective calls to `id`.
+Integers in the example above come from the respective calls to `id`.
 
 NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
 
@@ -2462,7 +2465,9 @@ NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
 
 #### `to_xml`
 
-The method [`to_xml`][Array#to_xml] returns a string containing an XML representation of its receiver:
+The [`to_xml`][Array#to_xml] method serializes an array into an XML string by calling `to_xml` on each element and wrapping the results in a root node. All elements must respond to `to_xml`.
+
+The root element name is automatically inferred from the class of the first element, pluralized and dasherized:
 
 ```ruby
 Contributor.limit(2).order(:rank).to_xml
@@ -2470,25 +2475,21 @@ Contributor.limit(2).order(:rank).to_xml
 # <?xml version="1.0" encoding="UTF-8"?>
 # <contributors type="array">
 #   <contributor>
-#     <id type="integer">4356</id>
-#     <name>Jeremy Kemper</name>
+#     <id type="integer">1</id>
+#     <name>Frodo Baggins</name>
 #     <rank type="integer">1</rank>
-#     <url-id>jeremy-kemper</url-id>
+#     <url-id>frodo-baggins</url-id>
 #   </contributor>
 #   <contributor>
-#     <id type="integer">4404</id>
-#     <name>David Heinemeier Hansson</name>
+#     <id type="integer">2</id>
+#     <name>Gandalf the Grey</name>
 #     <rank type="integer">2</rank>
-#     <url-id>david-heinemeier-hansson</url-id>
+#     <url-id>gandalf-the-grey</url-id>
 #   </contributor>
 # </contributors>
 ```
 
-To do so it sends `to_xml` to every item in turn, and collects the results under a root node. All items must respond to `to_xml`, an exception is raised otherwise.
-
-By default, the name of the root element is the underscored and dasherized plural of the name of the class of the first item, provided the rest of elements belong to that type (checked with `is_a?`) and they are not hashes. In the example above that's "contributors".
-
-If there's any element that does not belong to the type of the first one the root node becomes "objects":
+If the collection contains mixed types, the root element falls back to `"objects"`:
 
 ```ruby
 [Contributor.first, Commit.first].to_xml
@@ -2496,27 +2497,22 @@ If there's any element that does not belong to the type of the first one the roo
 # <?xml version="1.0" encoding="UTF-8"?>
 # <objects type="array">
 #   <object>
-#     <id type="integer">4583</id>
-#     <name>Aaron Batalion</name>
-#     <rank type="integer">53</rank>
-#     <url-id>aaron-batalion</url-id>
+#     <id type="integer">1</id>
+#     <name>Frodo Baggins</name>
+#     <rank type="integer">1</rank>
 #   </object>
 #   <object>
-#     <author>Joshua Peek</author>
-#     <authored-timestamp type="datetime">2009-09-02T16:44:36Z</authored-timestamp>
-#     <branch>origin/master</branch>
-#     <committed-timestamp type="datetime">2009-09-02T16:44:36Z</committed-timestamp>
-#     <committer>Joshua Peek</committer>
-#     <git-show nil="true"></git-show>
-#     <id type="integer">190316</id>
-#     <imported-from-svn type="boolean">false</imported-from-svn>
-#     <message>Kill AMo observing wrap_with_notifications since ARes was only using it</message>
+#     <author>Samwise Gamgee</author>
+#     <authored-timestamp type="datetime">2026-05-05T12:00:00Z</authored-timestamp>
+#     <branch>origin/main</branch>
+#     <id type="integer">2</id>
+#     <message>Fix bug in authentication flow</message>
 #     <sha1>723a47bfb3708f968821bc969a9a3fc873a3ed58</sha1>
 #   </object>
 # </objects>
 ```
 
-If the receiver is an array of hashes the root element is by default also "objects":
+If the receiver is an array of hashes, the root element is also `"objects"` by default:
 
 ```ruby
 [{ a: 1, b: 2 }, { c: 3 }].to_xml
@@ -2524,8 +2520,8 @@ If the receiver is an array of hashes the root element is by default also "objec
 # <?xml version="1.0" encoding="UTF-8"?>
 # <objects type="array">
 #   <object>
-#     <b type="integer">2</b>
 #     <a type="integer">1</a>
+#     <b type="integer">2</b>
 #   </object>
 #   <object>
 #     <c type="integer">3</c>
@@ -2533,11 +2529,9 @@ If the receiver is an array of hashes the root element is by default also "objec
 # </objects>
 ```
 
-WARNING. If the collection is empty the root element is by default "nil-classes". That's a gotcha, for example the root element of the list of contributors above would not be "contributors" if the collection was empty, but "nil-classes". You may use the `:root` option to ensure a consistent root element.
-
-The name of children nodes is by default the name of the root node singularized. In the examples above we've seen "contributor" and "object". The option `:children` allows you to set these node names.
-
-The default XML builder is a fresh instance of `Builder::XmlMarkup`. You can configure your own builder via the `:builder` option. The method also accepts options like `:dasherize` and friends, they are forwarded to the builder:
+WARNING: If the collection is empty, the root element defaults to `"nil-classes"` rather than the expected plural class name. Use the `:root` option to ensure a consistent root element when the collection may be empty.
+ 
+The name of child nodes is the singularized form of the root node by default. Use the `:children` option to override this. The default XML builder is a fresh instance of `Builder::XmlMarkup`, you can provide your own via the `:builder` option. Other options like `:dasherize` and `:skip_types` are forwarded to the builder:
 
 ```ruby
 Contributor.limit(2).order(:rank).to_xml(skip_types: true)
@@ -2545,16 +2539,16 @@ Contributor.limit(2).order(:rank).to_xml(skip_types: true)
 # <?xml version="1.0" encoding="UTF-8"?>
 # <contributors>
 #   <contributor>
-#     <id>4356</id>
-#     <name>Jeremy Kemper</name>
+#     <id>1</id>
+#     <name>Frodo Baggins</name>
 #     <rank>1</rank>
-#     <url-id>jeremy-kemper</url-id>
+#     <url-id>frodo-baggins</url-id>
 #   </contributor>
 #   <contributor>
-#     <id>4404</id>
-#     <name>David Heinemeier Hansson</name>
+#     <id>2</id>
+#     <name>Gandalf the Grey</name>
 #     <rank>2</rank>
-#     <url-id>david-heinemeier-hansson</url-id>
+#     <url-id>gandalf-the-grey</url-id>
 #   </contributor>
 # </contributors>
 ```
