@@ -223,7 +223,7 @@ xml.groups do
 end
 ```
 
-You'll also need to add two modules to your Application Controller. These are excluded by default for API applications. The `jbuilder` gem automatically adds them back in, but `builder` does not.
+You'll also need to add two modules to your Application Controller. These are [excluded by default](#api-controller-modules) for API applications. The `jbuilder` gem automatically adds them back in, but `builder` does not.
 
 ```ruby
 class ApplicationController < ActionController::API
