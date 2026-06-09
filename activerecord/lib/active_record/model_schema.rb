@@ -458,7 +458,7 @@ module ActiveRecord
       end
 
       def columns
-        @columns ||= columns_hash.values.freeze
+        @columns ||= columns_hash.values.sort_by(&:name_sym).freeze
       end
 
       def _returning_columns_for_insert(connection) # :nodoc:
@@ -510,8 +510,7 @@ module ActiveRecord
       end
 
       def symbol_column_to_string(name_symbol) # :nodoc:
-        @symbol_column_to_string_name_hash ||= column_names.index_by(&:to_sym)
-        @symbol_column_to_string_name_hash[name_symbol]
+        columns.bsearch { |column| name_symbol <=> column.name_sym }&.name
       end
 
       # Returns an array of column objects where the primary id, all columns ending in "_id" or "_count",
@@ -584,11 +583,11 @@ module ActiveRecord
           @_returning_columns_for_insert = nil
           @_returning_columns_for_update = nil
           @arel_table = nil
-          @symbol_column_to_string_name_hash = nil
           @content_columns = nil
           @column_defaults = nil
           @columns = nil
           @columns_hash = nil
+          @columns_by_name_sym = nil
           @schema_loaded = false
           @attribute_names = nil
           if recursive

@@ -5,6 +5,12 @@ require "cases/helper"
 module ActiveRecord
   module ConnectionAdapters
     class ColumnTest < ActiveRecord::TestCase
+      def test_name_sym
+        column = Column.new("token", Type::Value.new, nil)
+
+        assert_same :token, column.name_sym
+      end
+
       def test_auto_populated_is_deprecated_in_favor_of_auto_populated_on_insert
         column = Column.new("token", Type::Value.new, nil, nil, true, "gen_random_uuid()")
 
