@@ -246,8 +246,7 @@ module ActiveRecord
         end
 
         def self.read(object, attribute, key)
-          store_object = prepare(object, attribute)
-          store_object[key]
+          get(object.public_send(attribute), key)
         end
 
         def self.write(object, attribute, key, value)
@@ -282,6 +281,12 @@ module ActiveRecord
       end
 
       class IndifferentHashAccessor < ActiveRecord::Store::HashAccessor # :nodoc:
+        def self.get(store_object, key)
+          if store_object
+            IndifferentCoder.as_indifferent_hash(store_object)[key]
+          end
+        end
+
         def self.prepare(object, attribute)
           store_object = object.public_send(attribute)
 

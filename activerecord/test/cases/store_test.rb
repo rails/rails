@@ -202,6 +202,27 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal true, @john.enable_friend_requests_before_last_save
   end
 
+  test "reading a store accessor on a null structured column does not mutate or persist the store" do
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && ActiveRecord::Base.lease_connection.mariadb?
+      skip "MariaDB doesn't support JSON store_accessor"
+    end
+
+    john = Admin::User.find(@john.id)
+    assert_nil john.json_options
+    assert_not_predicate john, :changed?
+
+    # A pure read of a store accessor must not mutate the record.
+    assert_nil john.enable_friend_requests
+
+    assert_not_predicate john, :changed?
+    assert_nil john.json_options
+
+    # Saving an unrelated change must not overwrite the NULL column with {}.
+    john.name = "John Roe"
+    john.save!
+    assert_nil john.reload.json_options
+  end
+
   test "object initialization with not nullable column" do
     assert_equal true, @john.remember_login
   end
