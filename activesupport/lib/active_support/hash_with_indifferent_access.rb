@@ -75,7 +75,7 @@ module ActiveSupport
         update(constructor)
 
         hash = constructor.is_a?(Hash) ? constructor : constructor.to_hash
-        self.default = hash.default if hash.default
+        self.default = hash.default unless hash.default.nil?
         self.default_proc = hash.default_proc if hash.default_proc
       else
         super(constructor)
