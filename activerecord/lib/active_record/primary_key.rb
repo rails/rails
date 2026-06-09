@@ -26,26 +26,24 @@ module ActiveRecord
   # +String+, an +Array+, or +nil+) is still available through #name, so the
   # public API is unchanged.
   #
-  # This is an abstract base class; instantiate it through PrimaryKey.new, which
-  # returns the appropriate subclass for the given key.
+  # This is an abstract base class; build instances through PrimaryKey.for,
+  # which returns the appropriate subclass for the given key.
   class PrimaryKey
     include Enumerable
 
-    # Builds the PrimaryKey implementation appropriate for +name+: a Composite
+    # Returns the PrimaryKey implementation appropriate for +name+: a Composite
     # for an +Array+, None for +nil+, otherwise a Single.
     #
-    # Subclasses are instantiated normally (this dispatch only kicks in when
-    # +new+ is sent to PrimaryKey itself).
-    def self.new(*args)
-      return super unless equal?(PrimaryKey)
-
-      case (name = args.first)
+    # This is the only public way to build a primary key. The subclass
+    # constructors are private, so the factory reaches them through +send+.
+    def self.for(name)
+      case name
       when Array
-        Composite.new(name)
+        Composite.send(:new, name)
       when nil, false
-        None.new
+        None.send(:new)
       else
-        Single.new(name)
+        Single.send(:new, name)
       end
     end
 
@@ -130,7 +128,11 @@ module ActiveRecord
     end
 
     # A conventional single-column primary key, e.g. "id".
+    #
+    # Construct it through PrimaryKey.new; the constructor is private.
     class Single < PrimaryKey
+      private_class_method :new
+
       def initialize(name)
         @name = -name.to_s
         @columns = [@name].freeze
@@ -140,7 +142,7 @@ module ActiveRecord
         false
       end
 
-      #   Single.new("id").where_hash(5) # => { "id" => 5 }
+      #   PrimaryKey.new("id").where_hash(5) # => { "id" => 5 }
       def where_hash(values)
         { @name => values }
       end
@@ -168,7 +170,11 @@ module ActiveRecord
     end
 
     # A composite primary key spanning several columns, e.g. ["shop_id", "id"].
+    #
+    # Construct it through PrimaryKey.new; the constructor is private.
     class Composite < PrimaryKey
+      private_class_method :new
+
       def initialize(columns)
         @columns = columns.map { |column| -column.to_s }.freeze
         @name = @columns
@@ -178,7 +184,7 @@ module ActiveRecord
         true
       end
 
-      #   Composite.new([:shop_id, :id]).where_hash([1, 5])
+      #   PrimaryKey.new([:shop_id, :id]).where_hash([1, 5])
       #   # => { "shop_id" => 1, "id" => 5 }
       def where_hash(values)
         @columns.zip(values).to_h
@@ -211,7 +217,8 @@ module ActiveRecord
 
     # Null object for a model without a primary key. It behaves like a Single
     # key whose name is +nil+, preserving the historical behavior of a +nil+
-    # primary key while keeping callers free of nil checks.
+    # primary key while keeping callers free of nil checks. The private
+    # constructor is inherited from Single.
     class None < Single
       def initialize
         @name = nil

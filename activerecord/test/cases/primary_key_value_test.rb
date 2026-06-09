@@ -9,13 +9,20 @@ require "models/topic"
 class PrimaryKeyValueTest < ActiveRecord::TestCase
   Key = ActiveRecord::PrimaryKey
 
-  def test_new_dispatches_to_polymorphic_subclass
-    assert_instance_of Key::Single, Key.new("id")
-    assert_instance_of Key::Composite, Key.new([:shop_id, :id])
-    assert_instance_of Key::None, Key.new(nil)
+  def test_for_dispatches_to_polymorphic_subclass
+    assert_instance_of Key::Single, Key.for("id")
+    assert_instance_of Key::Composite, Key.for([:shop_id, :id])
+    assert_instance_of Key::None, Key.for(nil)
 
-    assert_kind_of Key, Key.new("id")
-    assert_kind_of Key, Key.new([:shop_id, :id])
+    assert_kind_of Key, Key.for("id")
+    assert_kind_of Key, Key.for([:shop_id, :id])
+  end
+
+  def test_subclasses_cannot_be_constructed_directly
+    # PrimaryKey.for is the only public entry point.
+    assert_raises(NoMethodError) { Key::Single.new("id") }
+    assert_raises(NoMethodError) { Key::Composite.new([:shop_id, :id]) }
+    assert_raises(NoMethodError) { Key::None.new }
   end
 
   def test_each_subclass_owns_its_polymorphic_behavior
@@ -25,7 +32,7 @@ class PrimaryKeyValueTest < ActiveRecord::TestCase
     assert_raises(NotImplementedError) { Key.allocate.composite? }
 
     # ...and each concrete subclass provides its own implementation, so the
-    # branching lives only in PrimaryKey.new, never inside the methods.
+    # branching lives only in PrimaryKey.for, never inside the methods.
     polymorphic.each do |method|
       assert_includes Key::Single.instance_methods(false), method
       assert_includes Key::Composite.instance_methods(false), method
@@ -33,7 +40,7 @@ class PrimaryKeyValueTest < ActiveRecord::TestCase
   end
 
   def test_simple_key_shape
-    pk = Key.new("id")
+    pk = Key.for("id")
 
     assert_not_predicate pk, :composite?
     assert_predicate pk, :present?
@@ -43,7 +50,7 @@ class PrimaryKeyValueTest < ActiveRecord::TestCase
   end
 
   def test_composite_key_shape
-    pk = Key.new([:shop_id, :id])
+    pk = Key.for([:shop_id, :id])
 
     assert_predicate pk, :composite?
     assert_predicate pk, :present?
@@ -53,7 +60,7 @@ class PrimaryKeyValueTest < ActiveRecord::TestCase
   end
 
   def test_missing_key
-    pk = Key.new(nil)
+    pk = Key.for(nil)
 
     assert_not_predicate pk, :composite?
     assert_not_predicate pk, :present?
@@ -62,32 +69,32 @@ class PrimaryKeyValueTest < ActiveRecord::TestCase
   end
 
   def test_columns_are_frozen_strings
-    pk = Key.new([:shop_id, :id])
+    pk = Key.for([:shop_id, :id])
 
     assert pk.columns.frozen?
     assert(pk.columns.all?(&:frozen?))
   end
 
   def test_where_hash_for_simple_key
-    assert_equal({ "id" => 5 }, Key.new("id").where_hash(5))
-    assert_equal({ "id" => [1, 2, 3] }, Key.new("id").where_hash([1, 2, 3]))
+    assert_equal({ "id" => 5 }, Key.for("id").where_hash(5))
+    assert_equal({ "id" => [1, 2, 3] }, Key.for("id").where_hash([1, 2, 3]))
   end
 
   def test_where_hash_for_composite_key
-    pk = Key.new([:shop_id, :id])
+    pk = Key.for([:shop_id, :id])
 
     assert_equal({ "shop_id" => 1, "id" => 5 }, pk.where_hash([1, 5]))
   end
 
   def test_expects_multiple_ids_for_simple_key
-    pk = Key.new("id")
+    pk = Key.for("id")
 
     assert_not pk.expects_multiple_ids?(5)
     assert pk.expects_multiple_ids?([1, 2, 3])
   end
 
   def test_expects_multiple_ids_for_composite_key
-    pk = Key.new([:shop_id, :id])
+    pk = Key.for([:shop_id, :id])
 
     # A single composite id is itself an Array...
     assert_not pk.expects_multiple_ids?([1, 5])
@@ -96,9 +103,9 @@ class PrimaryKeyValueTest < ActiveRecord::TestCase
   end
 
   def test_inferred_id_picks_id_from_tenant_shaped_key
-    assert_equal "id", Key.new([:shop_id, :id]).inferred_id
-    assert_equal ["shop_id", "owner_id"], Key.new([:shop_id, :owner_id]).inferred_id
-    assert_equal "id", Key.new("id").inferred_id
+    assert_equal "id", Key.for([:shop_id, :id]).inferred_id
+    assert_equal ["shop_id", "owner_id"], Key.for([:shop_id, :owner_id]).inferred_id
+    assert_equal "id", Key.for("id").inferred_id
   end
 
   def test_cast_uses_model_column_types
