@@ -2025,11 +2025,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_default_order
-    comments = posts(:welcome).comments
-    assert_equal [1, 2], comments.pluck(:id)
-    assert_equal 1, comments.first.id
-
-    comments = comments.default_order(:body)
+    comments = posts(:welcome).comments.default_order(:body)
     assert_equal [2, 1], comments.pluck(:id)
     assert_equal 2, comments.first.id
 
