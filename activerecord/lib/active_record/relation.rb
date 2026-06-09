@@ -619,8 +619,7 @@ module ActiveRecord
 
       if updates.is_a?(Hash)
         if model.locking_enabled? &&
-            !updates.key?(model.locking_column) &&
-            !updates.key?(model.locking_column.to_sym)
+            updates.keys.none? { |key| (model.attribute_alias(key) || key.to_s) == model.locking_column }
           attr = table[model.locking_column]
           updates[attr.name] = _increment_attribute(attr)
         end

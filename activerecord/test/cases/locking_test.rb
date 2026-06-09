@@ -28,6 +28,11 @@ class ReadonlyNameShip < Ship
   attr_readonly :name
 end
 
+class PersonWithAliasedLockVersion < ActiveRecord::Base
+  self.table_name = :people
+  alias_attribute :aliased_lock_version, :lock_version
+end
+
 class OptimisticLockingTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references, :string_key_objects, :peoples_treasures
 
@@ -39,6 +44,19 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p1.save!
 
     assert_equal 1, p1.lock_version
+  end
+
+  def test_update_all_with_lock_column_set_through_an_alias
+    person = PersonWithAliasedLockVersion.create!(first_name: "aliased")
+    assert_equal 0, person.lock_version
+
+    # Setting the locking column through an alias must not also auto-increment
+    # it: two assignments to the same column would silently drop the value on
+    # SQLite/MySQL and raise on PostgreSQL.
+    affected = PersonWithAliasedLockVersion.where(id: person.id).update_all(aliased_lock_version: 10)
+
+    assert_equal 1, affected
+    assert_equal 10, person.reload.lock_version
   end
 
   def test_non_integer_lock_existing
