@@ -1,3 +1,7 @@
+*   Add `ActiveSupport::Ractors.on_main` and `ActiveSupport::Ractors.main?` for delegating work to the main Ractor.
+
+    *Gannon McGibbon*
+
 *   `assert_difference`, `assert_no_difference`, `assert_changes`, and
     `assert_no_changes` now raise `ArgumentError` when given an expression that
     is not a callable (like a Proc), String, or Symbol.
