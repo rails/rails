@@ -936,6 +936,85 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     end
   end
 
+  def test_autosaved_parent_should_not_get_saved_with_duplicate_children_records
+    topic_class, reply_class = nested_uniqueness_topic_and_reply_classes
+
+    assert_no_difference -> { topic_class.count } do
+      assert_no_difference -> { reply_class.count } do
+        topic = topic_class.new(title: "Nested uniqueness")
+        topic.nested_unique_replies.build([
+          { content: "Best content" },
+          { content: "Best content" }
+        ])
+
+        assert_not topic.save
+        assert_equal ["has already been taken"], topic.errors[:"nested_unique_replies.content"]
+        assert_empty topic.nested_unique_replies.first.errors[:content]
+        assert_equal ["has already been taken"], topic.nested_unique_replies.last.errors[:content]
+      end
+    end
+  end
+
+  def test_autosaved_existing_parent_should_not_get_saved_with_duplicate_new_children_records
+    topic_class, reply_class = nested_uniqueness_topic_and_reply_classes
+    topic = topic_class.create!(title: "Nested uniqueness")
+
+    assert_no_difference -> { reply_class.count } do
+      assert_not topic.update(nested_unique_replies_attributes: [
+        { content: "Best content" },
+        { content: "Best content" }
+      ])
+
+      assert_equal ["has already been taken"], topic.errors[:"nested_unique_replies.content"]
+      assert_empty topic.nested_unique_replies.first.errors[:content]
+      assert_equal ["has already been taken"], topic.nested_unique_replies.last.errors[:content]
+    end
+  end
+
+  def test_autosaved_duplicate_children_records_can_skip_uniqueness_validation
+    topic_class, reply_class = nested_uniqueness_topic_and_reply_classes
+
+    assert_difference -> { topic_class.count }, 1 do
+      assert_difference -> { reply_class.count }, 2 do
+        topic = topic_class.new(
+          title: "Nested uniqueness",
+          nested_unique_replies_attributes: [
+            { content: "Best content" },
+            { content: "Best content" }
+          ]
+        )
+
+        assert topic.save(validate: false)
+      end
+    end
+  end
+
+  def nested_uniqueness_topic_and_reply_classes
+    topic_class = Class.new(Topic) do
+      def self.name; "NestedUniquenessTopic"; end
+    end
+
+    reply_class = Class.new(Reply) do
+      def self.name; "NestedUniquenessReply"; end
+
+      validates :content, uniqueness: { scope: :parent_id }
+    end
+
+    reply_class.belongs_to :nested_uniqueness_topic,
+      anonymous_class: topic_class,
+      foreign_key: "parent_id",
+      inverse_of: :nested_unique_replies
+
+    topic_class.has_many :nested_unique_replies,
+      anonymous_class: reply_class,
+      foreign_key: "parent_id",
+      inverse_of: :nested_uniqueness_topic,
+      autosave: true
+    topic_class.accepts_nested_attributes_for :nested_unique_replies
+
+    [topic_class, reply_class]
+  end
+
   def test_invalid_build
     new_client = companies(:first_firm).clients_of_firm.build
     assert_not_predicate new_client, :persisted?
