@@ -100,6 +100,18 @@ module ActiveRecord
   #
   #     config.active_record.query_log_tags_prepend_comment = true
   #
+  # Whether the comment is prepended can also be overridden per connection pool by setting
+  # +query_log_tags_prepend_comment+ in a +database.yml+ entry. Connections checked out from
+  # that pool use the configured value, while pools without any explicit configuration fall
+  # back to the global default:
+  #
+  #     production:
+  #       primary:
+  #         database: primary
+  #       analytics:
+  #         database: analytics
+  #         query_log_tags_prepend_comment: true
+  #
   # For applications where the content will not change during the lifetime of
   # the request or job execution, the tags can be cached for reuse in every query:
   #
@@ -167,7 +179,7 @@ module ActiveRecord
 
         if comment.blank?
           sql
-        elsif prepend_comment
+        elsif resolve_prepend_comment(connection)
           "#{comment} #{sql}"
         else
           "#{sql} #{comment}"
@@ -202,6 +214,11 @@ module ActiveRecord
           else
             @formatter
           end
+        end
+
+        def resolve_prepend_comment(connection)
+          prepend = connection.pool.db_config.query_log_tags_prepend_comment
+          prepend.nil? ? prepend_comment : prepend
         end
 
         def rebuild_handlers

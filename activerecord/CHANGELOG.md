@@ -1,3 +1,21 @@
+*   Allow configuring whether query log tags are prepended per connection pool.
+
+    A `query_log_tags_prepend_comment` key in a `database.yml` entry overrides
+    the global `config.active_record.query_log_tags_prepend_comment` for
+    connections in that pool, so different databases can prepend or append the
+    query comment.
+
+    ```yaml
+    production:
+      primary:
+        database: primary
+      analytics:
+        database: analytics
+        query_log_tags_prepend_comment: true
+    ```
+
+    *Hartley McGuire*
+
 *   `insert!` now accepts the `:unique_by` option, consistent with `insert`.
 
     *Kenta Ishizaki*
