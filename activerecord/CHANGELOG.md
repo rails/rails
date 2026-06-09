@@ -1,3 +1,9 @@
+*   `has_delegated_json` now applies `normalizes` declarations on assignment.
+
+    Fix #57464
+
+    *Ruy Rocha*
+
 *   Fix `update_all` corrupting the optimistic locking column when it is set
     through an `alias_attribute`.
 
