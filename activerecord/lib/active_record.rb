@@ -57,6 +57,7 @@ module ActiveRecord
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
+  autoload :Key
   autoload :LogSubscriber
   autoload :Marshalling
   autoload :Migration
@@ -65,7 +66,6 @@ module ActiveRecord
   autoload :NestedAttributes
   autoload :NoTouching
   autoload :Persistence
-  autoload :PrimaryKey
   autoload :QueryCache
   autoload :QueryLogs
   autoload :Querying

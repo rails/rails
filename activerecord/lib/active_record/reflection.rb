@@ -561,11 +561,7 @@ module ActiveRecord
 
       def foreign_key(infer_from_inverse_of: true)
         @foreign_key ||= if options[:foreign_key]
-          if options[:foreign_key].is_a?(Array)
-            options[:foreign_key].map { |fk| -fk.to_s.freeze }.freeze
-          else
-            options[:foreign_key].to_s.freeze
-          end
+          ActiveRecord::Key.for(options[:foreign_key]).name
         elsif options[:query_constraints]
           options[:query_constraints].map { |fk| -fk.to_s.freeze }.freeze
         else
@@ -575,11 +571,7 @@ module ActiveRecord
             derived_fk = derive_fk_query_constraints(derived_fk)
           end
 
-          if derived_fk.is_a?(Array)
-            derived_fk.map { |fk| -fk.freeze }.freeze
-          else
-            -derived_fk.freeze
-          end
+          ActiveRecord::Key.for(derived_fk).name
         end
       end
 
@@ -594,7 +586,7 @@ module ActiveRecord
       def active_record_primary_key
         custom_primary_key = options[:primary_key]
         @active_record_primary_key ||= if custom_primary_key
-          ActiveRecord::PrimaryKey.for(custom_primary_key).name
+          ActiveRecord::Key.for(custom_primary_key).name
         elsif active_record.has_query_constraints? || options[:query_constraints]
           active_record.query_constraints_list
         elsif active_record.composite_primary_key?
@@ -935,7 +927,7 @@ module ActiveRecord
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
         if primary_key = options[:primary_key]
-          @association_primary_key ||= ActiveRecord::PrimaryKey.for(primary_key).name
+          @association_primary_key ||= ActiveRecord::Key.for(primary_key).name
         elsif (klass || self.klass).has_query_constraints? || options[:query_constraints]
           (klass || self.klass).composite_query_constraints_list
         elsif (klass || self.klass).composite_primary_key?
@@ -1091,7 +1083,7 @@ module ActiveRecord
         # Get the "actual" source reflection if the immediate source reflection has a
         # source reflection itself
         if primary_key = actual_source_reflection.options[:primary_key]
-          @association_primary_key ||= ActiveRecord::PrimaryKey.for(primary_key).name
+          @association_primary_key ||= ActiveRecord::Key.for(primary_key).name
         else
           primary_key(klass || self.klass)
         end

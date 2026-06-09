@@ -132,7 +132,7 @@ module ActiveRecord
           #
           #   Project.primary_key # => "foo_id"
           def primary_key=(value)
-            @primary_key_definition = ActiveRecord::PrimaryKey.for(value)
+            @primary_key_definition = ActiveRecord::Key.for(value)
             @primary_key = @primary_key_definition.name
 
             include CompositePrimaryKey if @primary_key_definition.composite?

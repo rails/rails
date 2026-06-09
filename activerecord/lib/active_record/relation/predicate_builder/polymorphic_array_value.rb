@@ -43,7 +43,7 @@ module ActiveRecord
 
         def convert_to_id(value)
           if value.is_a?(Base)
-            ActiveRecord::PrimaryKey.for(primary_key(value)).value_of(value)
+            ActiveRecord::Key.for(primary_key(value)).value_of(value)
           elsif value.is_a?(Relation)
             value.select(primary_key(value))
           else

@@ -1,41 +1,42 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  # = Active Record \PrimaryKey
+  # = Active Record \Key
   #
-  # Represents a model's primary key. Rather than branching on
-  # <tt>primary_key.is_a?(Array)</tt> throughout the codebase, the shape of the
-  # key is resolved once -- when the object is built -- into one of three
-  # polymorphic implementations:
+  # Represents a database key -- one or more columns used together, such as a
+  # primary key or a foreign key. Rather than branching on
+  # <tt>key.is_a?(Array)</tt> throughout the codebase, the shape of the key is
+  # resolved once -- when the object is built -- into one of three polymorphic
+  # implementations:
   #
-  # * PrimaryKey::Single    - a single-column key (the common case)
-  # * PrimaryKey::Composite - a key spanning several columns
-  # * PrimaryKey::None      - a model without a primary key
+  # * Key::Single    - a single-column key (the common case)
+  # * Key::Composite - a key spanning several columns
+  # * Key::None      - the absence of a key
   #
   # Each responds to the same interface with no internal conditionals, so
   # callers never need to know which kind of key they are holding:
   #
-  #   pk = model.primary_key_definition
-  #   pk.composite?          # => false / true
-  #   pk.columns             # => always an Array of column-name Strings
-  #   pk.where_hash(value)   # => conditions Hash suitable for #where
-  #   pk.arel_columns(table) # => Arel column reference(s)
-  #   pk.cast(value, model)  # => type-cast id value(s)
+  #   key = model.primary_key_definition
+  #   key.composite?          # => false / true
+  #   key.columns             # => always an Array of column-name Strings
+  #   key.where_hash(value)   # => conditions Hash suitable for #where
+  #   key.arel_columns(table) # => Arel column reference(s)
+  #   key.cast(value, model)  # => type-cast value(s)
   #
   # The raw value historically returned by ActiveRecord::Base.primary_key (a
   # +String+, an +Array+, or +nil+) is still available through #name, so the
   # public API is unchanged.
   #
-  # This is an abstract base class; build instances through PrimaryKey.for,
-  # which returns the appropriate subclass for the given key.
-  class PrimaryKey
+  # This is an abstract base class; build instances through Key.for, which
+  # returns the appropriate subclass for the given key.
+  class Key
     include Enumerable
 
-    # Returns the PrimaryKey implementation appropriate for +name+: a Composite
-    # for an +Array+, None for +nil+, otherwise a Single.
+    # Returns the Key implementation appropriate for +name+: a Composite for an
+    # +Array+, None for +nil+, otherwise a Single.
     #
-    # This is the only public way to build a primary key. The subclass
-    # constructors are private, so the factory reaches them through +send+.
+    # This is the only public way to build a key. The subclass constructors are
+    # private, so the factory reaches them through +send+.
     def self.for(name)
       case name
       when Array
@@ -47,18 +48,18 @@ module ActiveRecord
       end
     end
 
-    # The value returned by ActiveRecord::Base.primary_key:
+    # The raw key value:
     #
     # * a +String+ for a single-column key,
     # * a frozen +Array+ of +String+s for a composite key,
-    # * +nil+ when the model has no primary key.
+    # * +nil+ when there is no key.
     attr_reader :name
 
     # Always a frozen +Array+ of +String+ column names. Empty when there is no
-    # primary key.
+    # key.
     attr_reader :columns
 
-    # Whether the model has a primary key at all.
+    # Whether there is a key at all.
     def present?
       !@columns.empty?
     end
@@ -81,7 +82,7 @@ module ActiveRecord
     end
 
     def ==(other)
-      other.is_a?(PrimaryKey) && name == other.name
+      other.is_a?(Key) && name == other.name
     end
     alias_method :eql?, :==
 
@@ -89,13 +90,13 @@ module ActiveRecord
       name.hash
     end
 
-    # Whether the primary key spans more than one column.
+    # Whether the key spans more than one column.
     def composite?
       raise NotImplementedError
     end
 
-    # Pairs the primary key column(s) with the matching value(s), producing a
-    # Hash that can be passed straight to #where.
+    # Pairs the key column(s) with the matching value(s), producing a Hash that
+    # can be passed straight to #where.
     def where_hash(values)
       raise NotImplementedError
     end
@@ -127,10 +128,10 @@ module ActiveRecord
       raise NotImplementedError
     end
 
-    # A conventional single-column primary key, e.g. "id".
+    # A conventional single-column key, e.g. "id".
     #
-    # Construct it through PrimaryKey.new; the constructor is private.
-    class Single < PrimaryKey
+    # Construct it through Key.for; the constructor is private.
+    class Single < Key
       private_class_method :new
 
       def initialize(name)
@@ -142,7 +143,7 @@ module ActiveRecord
         false
       end
 
-      #   PrimaryKey.new("id").where_hash(5) # => { "id" => 5 }
+      #   Key.for("id").where_hash(5) # => { "id" => 5 }
       def where_hash(values)
         { @name => values }
       end
@@ -169,10 +170,10 @@ module ActiveRecord
       end
     end
 
-    # A composite primary key spanning several columns, e.g. ["shop_id", "id"].
+    # A composite key spanning several columns, e.g. ["shop_id", "id"].
     #
-    # Construct it through PrimaryKey.new; the constructor is private.
-    class Composite < PrimaryKey
+    # Construct it through Key.for; the constructor is private.
+    class Composite < Key
       private_class_method :new
 
       def initialize(columns)
@@ -184,7 +185,7 @@ module ActiveRecord
         true
       end
 
-      #   PrimaryKey.new([:shop_id, :id]).where_hash([1, 5])
+      #   Key.for([:shop_id, :id]).where_hash([1, 5])
       #   # => { "shop_id" => 1, "id" => 5 }
       def where_hash(values)
         @columns.zip(values).to_h
@@ -215,10 +216,10 @@ module ActiveRecord
       end
     end
 
-    # Null object for a model without a primary key. It behaves like a Single
-    # key whose name is +nil+, preserving the historical behavior of a +nil+
-    # primary key while keeping callers free of nil checks. The private
-    # constructor is inherited from Single.
+    # Null object for the absence of a key. It behaves like a Single key whose
+    # name is +nil+, preserving the historical behavior of a +nil+ primary key
+    # while keeping callers free of nil checks. The private constructor is
+    # inherited from Single.
     class None < Single
       def initialize
         @name = nil

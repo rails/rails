@@ -4,10 +4,10 @@ require "cases/helper"
 require "models/cpk"
 require "models/topic"
 
-# Unit tests for the ActiveRecord::PrimaryKey value object that encapsulates
-# the single-column vs. composite primary key distinction.
-class PrimaryKeyValueTest < ActiveRecord::TestCase
-  Key = ActiveRecord::PrimaryKey
+# Unit tests for the ActiveRecord::Key value object that encapsulates the
+# single-column vs. composite key distinction.
+class KeyTest < ActiveRecord::TestCase
+  Key = ActiveRecord::Key
 
   def test_for_dispatches_to_polymorphic_subclass
     assert_instance_of Key::Single, Key.for("id")
@@ -19,7 +19,7 @@ class PrimaryKeyValueTest < ActiveRecord::TestCase
   end
 
   def test_subclasses_cannot_be_constructed_directly
-    # PrimaryKey.for is the only public entry point.
+    # Key.for is the only public entry point.
     assert_raises(NoMethodError) { Key::Single.new("id") }
     assert_raises(NoMethodError) { Key::Composite.new([:shop_id, :id]) }
     assert_raises(NoMethodError) { Key::None.new }
@@ -32,7 +32,7 @@ class PrimaryKeyValueTest < ActiveRecord::TestCase
     assert_raises(NotImplementedError) { Key.allocate.composite? }
 
     # ...and each concrete subclass provides its own implementation, so the
-    # branching lives only in PrimaryKey.for, never inside the methods.
+    # branching lives only in Key.for, never inside the methods.
     polymorphic.each do |method|
       assert_includes Key::Single.instance_methods(false), method
       assert_includes Key::Composite.instance_methods(false), method
