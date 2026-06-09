@@ -16,7 +16,7 @@ module ActionMailer
       # message is sent to the delivery method.
       def before_deliver(*filters, &blk)
         _insert_callbacks(filters, blk) do |name, options|
-          set_callback(:deliver, :before, name, options, &blk)
+          set_callback(:deliver, :before, name, options)
         end
       end
 
@@ -24,14 +24,14 @@ module ActionMailer
       # message's delivery method is finished.
       def after_deliver(*filters, &blk)
         _insert_callbacks(filters, blk) do |name, options|
-          set_callback(:deliver, :after, name, options, &blk)
+          set_callback(:deliver, :after, name, options)
         end
       end
 
       # Defines a callback that will get called around the message's deliver method.
       def around_deliver(*filters, &blk)
         _insert_callbacks(filters, blk) do |name, options|
-          set_callback(:deliver, :around, name, options, &blk)
+          set_callback(:deliver, :around, name, options)
         end
       end
 

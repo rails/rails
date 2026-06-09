@@ -11,6 +11,7 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
   setup do
     @previous_delivery_method = ActionMailer::Base.delivery_method
     ActionMailer::Base.delivery_method = :test
+    CallbackMailer.raise_on_missing_callback_actions = false
     CallbackMailer.rescue_from_error = nil
     CallbackMailer.after_deliver_instance = nil
     CallbackMailer.around_deliver_instance = nil
@@ -23,6 +24,7 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
   teardown do
     ActionMailer::Base.deliveries.clear
     ActionMailer::Base.delivery_method = @previous_delivery_method
+    CallbackMailer.raise_on_missing_callback_actions = false
     CallbackMailer.rescue_from_error = nil
     CallbackMailer.after_deliver_instance = nil
     CallbackMailer.around_deliver_instance = nil
@@ -100,6 +102,32 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
     assert_not_includes CallbackMailer.deliver_callback_log, :after_only
     assert_not_includes CallbackMailer.deliver_callback_log, :around_only_before
     assert_not_includes CallbackMailer.deliver_callback_log, :around_only_after
+  end
+
+  test "deliver callbacks with only option follow the mailer action name" do
+    CallbackMailer.test_raise_action.deliver_now
+    assert_not_includes CallbackMailer.deliver_callback_log, [:only_action, "test_raise_action"]
+
+    CallbackMailer.test_message.deliver_now
+    assert_includes CallbackMailer.deliver_callback_log, [:only_action, "test_message"]
+  end
+
+  test "deliver callbacks with except option ignore missing actions by default" do
+    CallbackMailer.test_raise_action.deliver_now
+    assert_includes CallbackMailer.deliver_callback_log, [:except_action, "test_raise_action"]
+
+    CallbackMailer.test_message.deliver_now
+    assert_not_includes CallbackMailer.deliver_callback_log, [:except_action, "test_message"]
+  end
+
+  test "raise_on_missing_callback_actions raises for missing deliver callback actions" do
+    CallbackMailer.raise_on_missing_callback_actions = true
+
+    error = assert_raises(AbstractController::ActionNotFound) do
+      CallbackMailer.test_raise_action.deliver_now
+    end
+
+    assert_match(/The non_existent_action action could not be found/, error.message)
   end
 
   test "around_deliver is called after rescue_from on action processing exceptions" do

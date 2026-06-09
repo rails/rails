@@ -30,6 +30,14 @@ class CallbackMailer < ActionMailer::Base
     CallbackMailer.deliver_callback_log << :before_except
   end
 
+  before_deliver(only: :test_message) do
+    CallbackMailer.deliver_callback_log << [:only_action, action_name]
+  end
+
+  before_deliver(except: [:test_message, :non_existent_action]) do
+    CallbackMailer.deliver_callback_log << [:except_action, action_name]
+  end
+
   after_deliver do
     @@after_deliver_instance = self
   end
