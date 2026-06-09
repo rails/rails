@@ -1,3 +1,7 @@
+*   Add `ActiveSupport::Ractors.on_main` for delegating work to the main Ractor.
+
+    *Gannon McGibbon*
+
 *   Add `ActiveSupport::Notifications::NullInstrumenter`, a stateless no-op
     instrumenter that executes blocks without publishing any notifications.
 
