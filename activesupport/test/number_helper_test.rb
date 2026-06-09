@@ -111,6 +111,9 @@ module ActiveSupport
           assert_equal("$0.00", number_helper.number_to_currency(-0.0))
           assert_equal("$0.00", number_helper.number_to_currency("-0.0"))
           assert_equal("$1.23", number_helper.number_to_currency(NumberWithToD.new(1.23)))
+          assert_equal("$1,234.5678", number_helper.number_to_currency(1234.5678, precision: nil))
+          assert_equal("-$1,234.5678", number_helper.number_to_currency(-1234.5678, precision: nil))
+          assert_equal("-$1,234.5678", number_helper.number_to_currency("-1234.5678", precision: nil))
         end
       end
 
