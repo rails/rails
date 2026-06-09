@@ -127,16 +127,11 @@ module ActiveRecord
             self._primary_key_definition = ActiveRecord::Key.for(value)
 
             include CompositePrimaryKey if primary_key_definition.composite?
-
-            @attributes_builder = nil
           end
 
           private
             def inherited(base)
               super
-              base.class_eval do
-                @attributes_builder = nil
-              end
             end
         end
     end

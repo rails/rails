@@ -4,6 +4,10 @@ require_relative "helper"
 
 module Arel
   class TableTest < Arel::Test
+    class User < FakeRecord::Base
+      self.table_name = "users"
+    end
+
     setup do
       @relation = Table.new(:users)
     end
@@ -171,6 +175,17 @@ module Arel
       relation2 = Table.new(:users, as: "zomg2")
       array = [relation1, relation2]
       assert_equal 2, array.uniq.size
+    end
+
+    test "works with only klass" do
+      table = Table.new(klass: User)
+      assert_equal "users", table.name
+    end
+
+    test "raises without klass or name" do
+      assert_raises(ArgumentError) do
+        Table.new
+      end
     end
   end
 end
