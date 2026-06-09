@@ -10,14 +10,10 @@ module ActiveRecord
 
       def queries
         key = ActiveRecord::Key.for(reflection.join_foreign_key)
-        if key.composite?
-          id_list = ids
-          id_list = id_list.pluck(primary_key) if id_list.is_a?(Relation)
+        id_list = ids
+        id_list = id_list.pluck(primary_key) if key.composite? && id_list.is_a?(Relation)
 
-          id_list.map { |ids_set| key.where_hash(ids_set) }
-        else
-          [ key.where_hash(ids) ]
-        end
+        key.where_clauses(id_list)
       end
 
       private

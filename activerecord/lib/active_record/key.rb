@@ -1,65 +1,22 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  # = Active Record \Key
-  #
-  # Represents a database key -- one or more columns used together, such as a
-  # primary key or a foreign key. Rather than branching on
-  # <tt>key.is_a?(Array)</tt> throughout the codebase, the shape of the key is
-  # resolved once -- when the object is built -- into one of three polymorphic
-  # implementations:
-  #
-  # * Key::Single    - a single-column key (the common case)
-  # * Key::Composite - a key spanning several columns
-  # * Key::None      - the absence of a key
-  #
-  # Each responds to the same interface with no internal conditionals, so
-  # callers never need to know which kind of key they are holding:
-  #
-  #   key = model.primary_key_definition
-  #   key.composite?          # => false / true
-  #   key.columns             # => always an Array of column-name Strings
-  #   key.where_hash(value)   # => conditions Hash suitable for #where
-  #   key.arel_columns(table) # => Arel column reference(s)
-  #   key.cast(value, model)  # => type-cast value(s)
-  #
-  # The raw value historically returned by ActiveRecord::Base.primary_key (a
-  # +String+, an +Array+, or +nil+) is still available through #name, so the
-  # public API is unchanged.
-  #
-  # This is an abstract base class; build instances through Key.for, which
-  # returns the appropriate subclass for the given key.
-  class Key
+  class Key # :nodoc:
     include Enumerable
 
-    # Returns the Key implementation appropriate for +name+: a Composite for an
-    # +Array+, None for +nil+, otherwise a Single.
-    #
-    # This is the only public way to build a key. The subclass constructors are
-    # private, so the factory reaches them through +send+.
     def self.for(name)
       case name
       when Array
-        Composite.send(:new, name)
+        Composite.new(name)
       when nil, false
-        None.send(:new)
+        None.new
       else
-        Single.send(:new, name)
+        Single.new(name)
       end
     end
 
-    # The raw key value:
-    #
-    # * a +String+ for a single-column key,
-    # * a frozen +Array+ of +String+s for a composite key,
-    # * +nil+ when there is no key.
-    attr_reader :name
+    attr_reader :name, :columns
 
-    # Always a frozen +Array+ of +String+ column names. Empty when there is no
-    # key.
-    attr_reader :columns
-
-    # Whether there is a key at all.
     def present?
       !@columns.empty?
     end
@@ -90,50 +47,39 @@ module ActiveRecord
       name.hash
     end
 
-    # Whether the key spans more than one column.
     def composite?
       raise NotImplementedError
     end
 
-    # Pairs the key column(s) with the matching value(s), producing a Hash that
-    # can be passed straight to #where.
     def where_hash(values)
       raise NotImplementedError
     end
 
-    # Builds the Arel column reference(s) for this key against +table+, as
-    # expected by +compile_update+ and +compile_delete+.
     def arel_columns(table)
       raise NotImplementedError
     end
 
-    # Type casts +values+ using +model+'s column type(s).
     def cast(values, model)
       raise NotImplementedError
     end
 
-    # Reads this key's value(s) from +record+.
     def value_of(record)
       raise NotImplementedError
     end
 
-    # Whether +value+ (the argument supplied to a finder such as #find)
-    # represents *several* ids rather than a single one.
     def expects_multiple_ids?(value)
       raise NotImplementedError
     end
 
-    # The primary key an association joins on when the owner has this key.
     def inferred_id
       raise NotImplementedError
     end
 
-    # A conventional single-column key, e.g. "id".
-    #
-    # Construct it through Key.for; the constructor is private.
-    class Single < Key
-      private_class_method :new
+    def where_clauses(values)
+      raise NotImplementedError
+    end
 
+    class Single < Key # :nodoc:
       def initialize(name)
         @name = -name.to_s
         @columns = [@name].freeze
@@ -143,7 +89,6 @@ module ActiveRecord
         false
       end
 
-      #   Key.for("id").where_hash(5) # => { "id" => 5 }
       def where_hash(values)
         { @name => values }
       end
@@ -160,22 +105,21 @@ module ActiveRecord
         record._read_attribute(@name)
       end
 
-      # For a simple key, an Array argument means multiple ids.
       def expects_multiple_ids?(value)
         value.is_a?(Array)
       end
 
+      # Only composite keys have a single id to infer.
       def inferred_id
-        @name
+        nil
+      end
+
+      def where_clauses(values)
+        [where_hash(values)]
       end
     end
 
-    # A composite key spanning several columns, e.g. ["shop_id", "id"].
-    #
-    # Construct it through Key.for; the constructor is private.
-    class Composite < Key
-      private_class_method :new
-
+    class Composite < Key # :nodoc:
       def initialize(columns)
         @columns = columns.map { |column| -column.to_s }.freeze
         @name = @columns
@@ -185,8 +129,6 @@ module ActiveRecord
         true
       end
 
-      #   Key.for([:shop_id, :id]).where_hash([1, 5])
-      #   # => { "shop_id" => 1, "id" => 5 }
       def where_hash(values)
         @columns.zip(values).to_h
       end
@@ -203,24 +145,24 @@ module ActiveRecord
         @columns.map { |column| record._read_attribute(column) }
       end
 
-      # A single composite id is *itself* an Array, so several ids are an Array
-      # of Arrays.
+      # A single composite id is itself an Array, so several ids are an Array of
+      # Arrays.
       def expects_multiple_ids?(value)
         value.first.is_a?(Array)
       end
 
-      # When a composite key follows the conventional <tt>[tenant_key, "id"]</tt>
-      # shape, associations join on "id" alone; otherwise the whole key is used.
+      # When a composite key has the conventional [tenant_key, "id"] shape,
+      # associations join on "id" alone; otherwise the whole key is used.
       def inferred_id
         @columns.include?("id") ? "id" : @name
       end
+
+      def where_clauses(values)
+        values.map { |set| where_hash(set) }
+      end
     end
 
-    # Null object for the absence of a key. It behaves like a Single key whose
-    # name is +nil+, preserving the historical behavior of a +nil+ primary key
-    # while keeping callers free of nil checks. The private constructor is
-    # inherited from Single.
-    class None < Single
+    class None < Single # :nodoc:
       def initialize
         @name = nil
         @columns = [].freeze

@@ -4,8 +4,6 @@ require "cases/helper"
 require "models/cpk"
 require "models/topic"
 
-# Unit tests for the ActiveRecord::Key value object that encapsulates the
-# single-column vs. composite key distinction.
 class KeyTest < ActiveRecord::TestCase
   Key = ActiveRecord::Key
 
@@ -16,27 +14,6 @@ class KeyTest < ActiveRecord::TestCase
 
     assert_kind_of Key, Key.for("id")
     assert_kind_of Key, Key.for([:shop_id, :id])
-  end
-
-  def test_subclasses_cannot_be_constructed_directly
-    # Key.for is the only public entry point.
-    assert_raises(NoMethodError) { Key::Single.new("id") }
-    assert_raises(NoMethodError) { Key::Composite.new([:shop_id, :id]) }
-    assert_raises(NoMethodError) { Key::None.new }
-  end
-
-  def test_each_subclass_owns_its_polymorphic_behavior
-    polymorphic = %i[composite? where_hash arel_columns cast value_of expects_multiple_ids? inferred_id]
-
-    # The base class declares the interface as abstract...
-    assert_raises(NotImplementedError) { Key.allocate.composite? }
-
-    # ...and each concrete subclass provides its own implementation, so the
-    # branching lives only in Key.for, never inside the methods.
-    polymorphic.each do |method|
-      assert_includes Key::Single.instance_methods(false), method
-      assert_includes Key::Composite.instance_methods(false), method
-    end
   end
 
   def test_simple_key_shape
@@ -105,7 +82,7 @@ class KeyTest < ActiveRecord::TestCase
   def test_inferred_id_picks_id_from_tenant_shaped_key
     assert_equal "id", Key.for([:shop_id, :id]).inferred_id
     assert_equal ["shop_id", "owner_id"], Key.for([:shop_id, :owner_id]).inferred_id
-    assert_equal "id", Key.for("id").inferred_id
+    assert_nil Key.for("id").inferred_id
   end
 
   def test_cast_uses_model_column_types

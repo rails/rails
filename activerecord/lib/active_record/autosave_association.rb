@@ -580,11 +580,8 @@ module ActiveRecord
           query_constraints
         elsif record.class.has_query_constraints? && !reflection.options[:foreign_key]
           record.class.query_constraints_list
-        elsif record.class.composite_primary_key?
-          # If record has a composite primary key of shape [:<tenant_key>, :id], infer primary_key as :id
-          record.class.primary_key_definition.inferred_id
         else
-          record.class.primary_key
+          record.class.primary_key_definition.inferred_id || record.class.primary_key
         end
       end
 

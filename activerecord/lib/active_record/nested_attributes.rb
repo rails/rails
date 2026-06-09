@@ -626,8 +626,6 @@ module ActiveRecord
       end
 
       def find_record_by_id(records, id)
-        # +record.id+ is already a scalar or an Array depending on the key, so
-        # normalizing both sides handles single and composite keys alike.
         id = Array(id).map(&:to_s)
         records.find { |record| Array(record.id).map(&:to_s) == id }
       end

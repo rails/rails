@@ -584,17 +584,12 @@ module ActiveRecord
       end
 
       def active_record_primary_key
-        custom_primary_key = options[:primary_key]
-        @active_record_primary_key ||= if custom_primary_key
-          ActiveRecord::Key.for(custom_primary_key).name
-        elsif active_record.has_query_constraints? || options[:query_constraints]
-          active_record.query_constraints_list
-        elsif active_record.composite_primary_key?
-          # If active_record has a composite primary key of shape [:<tenant_key>, :id], infer primary_key as :id
-          active_record.primary_key_definition.inferred_id
-        else
-          primary_key(active_record).freeze
-        end
+        @active_record_primary_key ||=
+          if options[:primary_key]
+            ActiveRecord::Key.for(options[:primary_key]).name
+          else
+            derive_primary_key(active_record) { |model| model.query_constraints_list }
+          end
       end
 
       def join_primary_key(klass = nil)
@@ -820,6 +815,20 @@ module ActiveRecord
           end
         end
 
+        # Shared by +active_record_primary_key+ and +association_primary_key+ to
+        # resolve the key from +model+ once a custom +primary_key+ is ruled out.
+        # The block is yielded +model+ to supply its query-constraints list.
+        def derive_primary_key(model)
+          if model.has_query_constraints? || options[:query_constraints]
+            yield model
+          else
+            # inferred_id is nil unless the key is composite; otherwise fall back
+            # to +primary_key+, which respects a custom getter (it may return an
+            # unfrozen string) and raises UnknownPrimaryKey when there is no key.
+            model.primary_key_definition.inferred_id || primary_key(model).freeze
+          end
+        end
+
         def derive_class_name
           class_name = name.to_s
           class_name = class_name.singularize if collection?
@@ -926,15 +935,10 @@ module ActiveRecord
 
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
-        if primary_key = options[:primary_key]
-          @association_primary_key ||= ActiveRecord::Key.for(primary_key).name
-        elsif (klass || self.klass).has_query_constraints? || options[:query_constraints]
-          (klass || self.klass).composite_query_constraints_list
-        elsif (klass || self.klass).composite_primary_key?
-          # If klass has a composite primary key of shape [:<tenant_key>, :id], infer primary_key as :id
-          (klass || self.klass).primary_key_definition.inferred_id
+        if options[:primary_key]
+          @association_primary_key ||= ActiveRecord::Key.for(options[:primary_key]).name
         else
-          primary_key(klass || self.klass)
+          derive_primary_key(klass || self.klass) { |model| model.composite_query_constraints_list }
         end
       end
 
