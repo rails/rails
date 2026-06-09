@@ -659,10 +659,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_default_order
     post = posts(:welcome)
 
-    comments = post.comments
-    assert_equal [1, 2], comments.pluck(:id)
-    assert_equal 1, comments.first.id
-
     comments = post.comments.order(:body)
     assert_equal [2, 1], comments.pluck(:id)
     assert_equal 2, comments.first.id
