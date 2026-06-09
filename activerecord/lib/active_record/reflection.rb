@@ -602,9 +602,8 @@ module ActiveRecord
         elsif active_record.has_query_constraints? || options[:query_constraints]
           active_record.query_constraints_list
         elsif active_record.composite_primary_key?
-          # If active_record has composite primary key of shape [:<tenant_key>, :id], infer primary_key as :id
-          primary_key = primary_key(active_record)
-          primary_key.include?("id") ? "id" : primary_key.freeze
+          # If active_record has a composite primary key of shape [:<tenant_key>, :id], infer primary_key as :id
+          active_record.primary_key_definition.inferred_id
         else
           primary_key(active_record).freeze
         end
@@ -948,9 +947,8 @@ module ActiveRecord
         elsif (klass || self.klass).has_query_constraints? || options[:query_constraints]
           (klass || self.klass).composite_query_constraints_list
         elsif (klass || self.klass).composite_primary_key?
-          # If klass has composite primary key of shape [:<tenant_key>, :id], infer primary_key as :id
-          primary_key = (klass || self.klass).primary_key
-          primary_key.include?("id") ? "id" : primary_key
+          # If klass has a composite primary key of shape [:<tenant_key>, :id], infer primary_key as :id
+          (klass || self.klass).primary_key_definition.inferred_id
         else
           primary_key(klass || self.klass)
         end

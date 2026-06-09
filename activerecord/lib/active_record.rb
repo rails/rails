@@ -65,6 +65,7 @@ module ActiveRecord
   autoload :NestedAttributes
   autoload :NoTouching
   autoload :Persistence
+  autoload :PrimaryKey
   autoload :QueryCache
   autoload :QueryLogs
   autoload :Querying
