@@ -1,3 +1,22 @@
+*   Add a `self:` option to `normalizes` for normalization that depends on the
+    record.
+
+    When `self: true` is passed, the `with:` normalizer runs with the record as
+    `self`, so it can read other attributes. In record-less contexts (queries
+    and `normalize_value_for`) the value is left unchanged.
+
+    *Yaroslav Markin*
+
+*   Fix `normalizes` re-applying normalizations on every validation of an
+    unpersisted record, and speed up validation of normalized attributes.
+
+    The in-place mutation check re-ran the normalizer on every `valid?` of an
+    unpersisted record: wasteful for idempotent normalizers and compounded the
+    result for non-idempotent ones. Normalizations are now re-applied only on a
+    genuine in-place mutation.
+
+    *Yaroslav Markin*
+
 *   Limit the size of strings `ActiveModel::Type::Integer` will coerce with `to_i`.
 
     Calling `to_i` on very long strings can take a long time and could be used as

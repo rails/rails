@@ -10,6 +10,7 @@ class NormalizedAttributeTest < ActiveModel::TestCase
 
     attribute :manufactured_at, :datetime, default: -> { Time.current }
     attribute :name, :string
+    attribute :nickname, :string
     attribute :wheels_count, :integer, default: 0
     attribute :wheels_owned_at, :datetime
   end
@@ -17,6 +18,14 @@ class NormalizedAttributeTest < ActiveModel::TestCase
   class NormalizedAircraft < Aircraft
     normalizes :name, with: -> name { name.presence&.titlecase }
     normalizes :manufactured_at, with: -> time { time.noon }
+
+    # Record-aware normalization (self: true): the normalizer runs with the
+    # record as +self+, so it can read other attributes. In record-less contexts
+    # the value passes through unchanged. A blank nickname defaults to the model
+    # (the name without its manufacturer), e.g. "Boeing 777" => "777".
+    normalizes :nickname, self: true, with: -> nickname do
+      nickname.presence || name.to_s.split.drop(1).join(" ")
+    end
 
     attr_accessor :validated_name
     validate { self.validated_name = name.dup }
@@ -79,6 +88,23 @@ class NormalizedAttributeTest < ActiveModel::TestCase
     assert_equal "Untitled", including_nil.normalize_value_for(:name, nil)
   end
 
+  test "normalizes using the record on assignment" do
+    boeing = NormalizedAircraft.new(name: "Boeing 777")
+    boeing.nickname = ""
+    assert_equal "777", boeing.nickname
+  end
+
+  test "leaves a present record-aware value untouched" do
+    airbus = NormalizedAircraft.new(name: "Airbus A380", nickname: "Superjumbo")
+    assert_equal "Superjumbo", airbus.nickname
+  end
+
+  test "skips record-aware normalization without a record" do
+    # With a record a blank nickname is derived from the name (see above);
+    # without one there is nothing to read, so the value is left unchanged.
+    assert_equal "", NormalizedAircraft.normalize_value_for(:nickname, "")
+  end
+
   test "can stack normalizations" do
     titlecase_then_reverse = Class.new(NormalizedAircraft) do
       normalizes :name, with: -> name { name.reverse }
@@ -86,6 +112,19 @@ class NormalizedAttributeTest < ActiveModel::TestCase
 
     assert_equal "esreveR nehT esaceltiT", titlecase_then_reverse.normalize_value_for(:name, "titlecase THEN reverse")
     assert_equal "Only Titlecase", NormalizedAircraft.normalize_value_for(:name, "ONLY titlecase")
+  end
+
+  test "does not re-apply normalization on repeated validation" do
+    succ = Class.new(Aircraft) do
+      normalizes :name, with: -> name { name.succ }
+    end
+
+    aircraft = succ.new(name: "a")
+    assert_equal "b", aircraft.name
+
+    aircraft.valid?
+    aircraft.valid?
+    assert_equal "b", aircraft.name
   end
 
   test "minimizes number of times normalization is applied" do
