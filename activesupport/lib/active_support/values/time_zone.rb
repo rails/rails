@@ -594,7 +594,7 @@ module ActiveSupport
         return if parts.empty?
 
         if parts[:seconds]
-          time = Time.at(parts[:seconds])
+          time = Time.at(parts[:seconds] + parts.fetch(:sec_fraction, 0))
         else
           time = Time.new(
             parts.fetch(:year, now.year),
