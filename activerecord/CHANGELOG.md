@@ -1,3 +1,8 @@
+*   Fix `update_all` corrupting the optimistic locking column when it is set
+    through an `alias_attribute`.
+
+    *Kenta Ishizaki*
+
 *   Fix `serialize` with `coder: ActiveRecord::Coders::JSON` silently double-encoding
     a native `json`/`jsonb` column.
 
