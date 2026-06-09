@@ -47,4 +47,5 @@ Gem::Specification.new do |s|
   s.add_dependency "logger", ">= 1.4.2"
   s.add_dependency "securerandom", ">= 0.3"
   s.add_dependency "uri", ">= 0.13.1"
+  s.add_dependency "ractor-dispatch", ">= 0.2.0"
 end
