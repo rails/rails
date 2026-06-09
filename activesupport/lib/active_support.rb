@@ -54,6 +54,7 @@ module ActiveSupport
   autoload :EventedFileUpdateChecker
   autoload :ForkTracker
   autoload :LogSubscriber
+  autoload :ShareableLogger
   autoload :StructuredEventSubscriber
   autoload :IsolatedExecutionState
   autoload :Notifications
