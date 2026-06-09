@@ -9,6 +9,29 @@ require "models/topic"
 class PrimaryKeyValueTest < ActiveRecord::TestCase
   Key = ActiveRecord::PrimaryKey
 
+  def test_new_dispatches_to_polymorphic_subclass
+    assert_instance_of Key::Single, Key.new("id")
+    assert_instance_of Key::Composite, Key.new([:shop_id, :id])
+    assert_instance_of Key::None, Key.new(nil)
+
+    assert_kind_of Key, Key.new("id")
+    assert_kind_of Key, Key.new([:shop_id, :id])
+  end
+
+  def test_each_subclass_owns_its_polymorphic_behavior
+    polymorphic = %i[composite? where_hash arel_columns cast value_of expects_multiple_ids? inferred_id]
+
+    # The base class declares the interface as abstract...
+    assert_raises(NotImplementedError) { Key.allocate.composite? }
+
+    # ...and each concrete subclass provides its own implementation, so the
+    # branching lives only in PrimaryKey.new, never inside the methods.
+    polymorphic.each do |method|
+      assert_includes Key::Single.instance_methods(false), method
+      assert_includes Key::Composite.instance_methods(false), method
+    end
+  end
+
   def test_simple_key_shape
     pk = Key.new("id")
 
