@@ -806,14 +806,17 @@ is the same as `Rails.backtrace_cleaner`.
 
 #### `service_update_metadata.active_storage`
 
-This event is only emitted when using the Google Cloud Storage service.
+| Key                | Value                            |
+| ------------------ | -------------------------------- |
+| `:key`             | Secure token                     |
+| `:service`         | Name of the service              |
+| `:content_type`    | HTTP `Content-Type` field        |
+| `:disposition`     | HTTP `Content-Disposition` field |
+| `:filename`        | Name of the file                 |
+| `:custom_metadata` | Custom metadata of the file      |
 
-| Key             | Value                            |
-| --------------- | -------------------------------- |
-| `:key`          | Secure token                     |
-| `:service`      | Name of the service              |
-| `:content_type` | HTTP `Content-Type` field        |
-| `:disposition`  | HTTP `Content-Disposition` field |
+NOTE: Only the Google Cloud Storage service stores the metadata; for other
+services updating the metadata is a no-op, though the event is still emitted.
 
 ### Active Support: Caching
 

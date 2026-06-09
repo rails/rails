@@ -57,7 +57,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   after_update :touch_attachments
 
-  after_update_commit :update_service_metadata, if: -> { content_type_previously_changed? || metadata_previously_changed? }
+  after_update_commit :sync_metadata_later, if: -> { content_type_previously_changed? || metadata_previously_changed? }
 
   before_destroy(prepend: true) do
     raise ActiveRecord::InvalidForeignKey if attachments.exists?
@@ -378,6 +378,10 @@ class ActiveStorage::Blob < ActiveStorage::Record
     ActiveStorage::PurgeJob.perform_later(self)
   end
 
+  def sync_metadata # :nodoc:
+    service.update_metadata key, **service_metadata if service_metadata.any?
+  end
+
   # Returns an instance of service, which can be configured globally or per attachment
   def service
     services.fetch(service_name) if service_name
@@ -438,8 +442,8 @@ class ActiveStorage::Blob < ActiveStorage::Record
       end
     end
 
-    def update_service_metadata
-      service.update_metadata key, **service_metadata if service_metadata.any?
+    def sync_metadata_later
+      ActiveStorage::SyncMetadataJob.perform_later(self)
     end
 end
 

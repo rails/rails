@@ -31,7 +31,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
 
     assert_not_predicate blob, :analyzed?
 
-    assert_no_enqueued_jobs do
+    assert_no_enqueued_jobs only: ActiveStorage::AnalyzeJob do
       @user.highlights.attach(blob)
     end
 
