@@ -1,3 +1,7 @@
+*   `insert!` now accepts the `:unique_by` option, consistent with `insert`.
+
+    *Kenta Ishizaki*
+
 *   Fix reading a `store_accessor` on a `NULL` structured column (`json`, `jsonb`,
     or `hstore`) marking the record as changed and overwriting the `NULL` with an
     empty hash on the next save.
