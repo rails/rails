@@ -224,6 +224,16 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal 1, hash[:e]
   end
 
+  def test_indifferent_preserves_falsy_default_from_source_hash
+    source = Hash.new(false)
+    source["a"] = 1
+    hash = HashWithIndifferentAccess.new(source)
+
+    assert_equal false, hash.default
+    assert_equal false, hash[:missing]
+    assert_equal 1, hash[:a]
+  end
+
   def test_indifferent_writing
     hash = HashWithIndifferentAccess.new
     hash[:a] = 1
