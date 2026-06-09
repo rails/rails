@@ -43,12 +43,7 @@ module ActiveRecord
 
         def convert_to_id(value)
           if value.is_a?(Base)
-            primary_key = primary_key(value)
-            if primary_key.is_a?(Array)
-              primary_key.map { |column| value._read_attribute(column) }
-            else
-              value._read_attribute(primary_key)
-            end
+            ActiveRecord::PrimaryKey.for(primary_key(value)).value_of(value)
           elsif value.is_a?(Relation)
             value.select(primary_key(value))
           else

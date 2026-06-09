@@ -594,11 +594,7 @@ module ActiveRecord
       def active_record_primary_key
         custom_primary_key = options[:primary_key]
         @active_record_primary_key ||= if custom_primary_key
-          if custom_primary_key.is_a?(Array)
-            custom_primary_key.map { |pk| pk.to_s.freeze }.freeze
-          else
-            custom_primary_key.to_s.freeze
-          end
+          ActiveRecord::PrimaryKey.for(custom_primary_key).name
         elsif active_record.has_query_constraints? || options[:query_constraints]
           active_record.query_constraints_list
         elsif active_record.composite_primary_key?
@@ -939,11 +935,7 @@ module ActiveRecord
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
         if primary_key = options[:primary_key]
-          @association_primary_key ||= if primary_key.is_a?(Array)
-            primary_key.map { |pk| pk.to_s.freeze }.freeze
-          else
-            -primary_key.to_s
-          end
+          @association_primary_key ||= ActiveRecord::PrimaryKey.for(primary_key).name
         elsif (klass || self.klass).has_query_constraints? || options[:query_constraints]
           (klass || self.klass).composite_query_constraints_list
         elsif (klass || self.klass).composite_primary_key?
@@ -1099,11 +1091,7 @@ module ActiveRecord
         # Get the "actual" source reflection if the immediate source reflection has a
         # source reflection itself
         if primary_key = actual_source_reflection.options[:primary_key]
-          @association_primary_key ||= if primary_key.is_a?(Array)
-            primary_key.map { |pk| pk.to_s.freeze }.freeze
-          else
-            -primary_key.to_s
-          end
+          @association_primary_key ||= ActiveRecord::PrimaryKey.for(primary_key).name
         else
           primary_key(klass || self.klass)
         end

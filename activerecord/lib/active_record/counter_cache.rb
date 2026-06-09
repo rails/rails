@@ -132,7 +132,8 @@ module ActiveRecord
       #   #    `updated_at` = '2016-10-13T09:59:23-05:00'
       #   #  WHERE id IN (10, 15)
       def update_counters(id, counters)
-        id = [id] if composite_primary_key? && id.is_a?(Array) && !id[0].is_a?(Array)
+        pk = primary_key_definition
+        id = [id] if pk.composite? && id.is_a?(Array) && !pk.expects_multiple_ids?(id)
         unscoped.where!(primary_key => id).update_counters(counters)
       end
 
