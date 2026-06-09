@@ -103,7 +103,7 @@ module ActiveRecord
     #
     #   class Member < ActiveRecord::Base
     #     has_many :posts
-    #     accepts_nested_attributes_for :posts
+    #     accepts_nested_attributes_for :posts, allow_destroy: true
     #   end
     #
     # You can now set or update attributes on the associated posts through
@@ -112,7 +112,8 @@ module ActiveRecord
     #
     # For each hash that does _not_ have an <tt>id</tt> key a new record will
     # be instantiated, unless the hash also contains a <tt>_destroy</tt> key
-    # that evaluates to +true+.
+    # that evaluates to +true+ and the <tt>:allow_destroy</tt> option is
+    # enabled.
     #
     #   params = { member: {
     #     name: 'joe', posts_attributes: [
@@ -313,8 +314,9 @@ module ActiveRecord
       #   that checks whether a record should be built for a certain attribute
       #   hash. The hash is passed to the supplied Proc or the method
       #   and it should return either +true+ or +false+. When no +:reject_if+
-      #   is specified, a record will be built for all attribute hashes that
-      #   do not have a <tt>_destroy</tt> value that evaluates to true.
+      #   is specified, a record will be built for all attribute hashes, unless
+      #   the <tt>:allow_destroy</tt> option is enabled and the hash has a
+      #   <tt>_destroy</tt> value that evaluates to true.
       #   Passing <tt>:all_blank</tt> instead of a Proc will create a proc
       #   that will reject a record where all the attributes are blank excluding
       #   any value for +_destroy+.
