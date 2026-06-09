@@ -66,10 +66,12 @@ module ActiveStorage
     def mirror(key, checksum:)
       instrument :mirror, key: key, checksum: checksum do
         if (mirrors_in_need_of_mirroring = mirrors.select { |service| !service.exist?(key) }).any?
+          metadata = ActiveStorage::Blob.find_by(key: key)&.service_metadata || {}
+
           primary.open(key, checksum: checksum, verify: checksum.present?) do |io|
             mirrors_in_need_of_mirroring.each do |service|
               io.rewind
-              service.upload key, io, checksum: checksum
+              service.upload key, io, checksum: checksum, **metadata
             end
           end
         end

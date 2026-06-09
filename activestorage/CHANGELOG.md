@@ -1,3 +1,13 @@
+*   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
+
+    Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
+    because `content_type`, `filename`, `disposition`, and `custom_metadata` were
+    dropped. Forward the blob's `service_metadata` to each mirror's upload.
+
+    Fixes #57270.
+
+    *Maksim Romanov* + *Andrii Furmanets*
+
 *   Prevent `ActiveStorage.touch_attachment_records = false` from crashing the attachment of a Blob.
 
     When `ActiveStorage.touch_attachment_records` was set to `false`, attaching a existing Blob to a Record

@@ -282,6 +282,16 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.compose(keys, key, **service_metadata)
   end
 
+  def service_metadata # :nodoc:
+    if forcibly_serve_as_binary?
+      { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
+    elsif !allowed_inline?
+      { content_type: content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
+    else
+      { content_type: content_type, custom_metadata: custom_metadata }
+    end
+  end
+
   # Downloads the file associated with this blob. If no block is given, the entire file is read into memory and returned.
   # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
   def download(&block)
@@ -369,16 +379,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
     def web_image?
       ActiveStorage.web_image_content_types.include?(content_type)
-    end
-
-    def service_metadata
-      if forcibly_serve_as_binary?
-        { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
-      elsif !allowed_inline?
-        { content_type: content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
-      else
-        { content_type: content_type, custom_metadata: custom_metadata }
-      end
     end
 
     def touch_attachments
