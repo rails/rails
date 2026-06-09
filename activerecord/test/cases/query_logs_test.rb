@@ -245,6 +245,36 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_per_pool_prepend_comment_overrides_global
+    ActiveRecord::QueryLogs.prepend_comment = false
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config(query_log_tags: { prepend_comment: true }) do |connection|
+      assert_equal "/*application:active_record*/ select 1",
+        ActiveRecord::QueryLogs.call("select 1", connection)
+    end
+  end
+
+  def test_per_pool_prepend_comment_falls_back_to_global_when_not_set
+    ActiveRecord::QueryLogs.prepend_comment = true
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config do |connection|
+      assert_equal "/*application:active_record*/ select 1",
+        ActiveRecord::QueryLogs.call("select 1", connection)
+    end
+  end
+
+  def test_per_pool_prepend_comment_can_disable_global
+    ActiveRecord::QueryLogs.prepend_comment = true
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config(query_log_tags: { prepend_comment: false }) do |connection|
+      assert_equal "select 1 /*application:active_record*/",
+        ActiveRecord::QueryLogs.call("select 1", connection)
+    end
+  end
+
   def test_custom_basic_tags
     ActiveRecord::QueryLogs.tags = [ :application, { custom_string: "test content" } ]
 

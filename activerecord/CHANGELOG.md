@@ -69,12 +69,13 @@
 
 *   Allow query log tags to be configured per connection pool.
 
-    A `query_log_tags` key in a `database.yml` entry configures tagging for
-    connections checked out from that pool. Set it to `false` to opt a pool out
-    of tagging even when tags are enabled globally, or to a hash of options:
-    `format` will override the global
-    `config.active_record.query_log_tags_format` so different databases can emit
-    `:legacy` or `:sqlcommenter` formatted comments.
+    Several query log tag settings can be overridden per pool with a `query_log_tags`
+    key in a `database.yml` entry. Its `format` and `prepend_comment` options override
+    the global `config.active_record.query_log_tags_format` and
+    `config.active_record.query_log_tags_prepend_comment`, so different databases can
+    emit `:legacy` or `:sqlcommenter` comments and prepend or append them. Setting
+    `query_log_tags` to `false` instead opts a pool out of tagging entirely, even when
+    tags are enabled globally.
 
     ```yaml
     production:
@@ -84,6 +85,7 @@
         database: analytics
         query_log_tags:
           format: sqlcommenter
+          prepend_comment: false
       replica:
         database: replica
         replica: true
