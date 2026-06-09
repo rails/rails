@@ -136,7 +136,6 @@ module ActiveRecord
             end
 
             @composite_primary_key = value.is_a?(Array)
-            @attributes_builder = nil
           end
 
           private
@@ -145,7 +144,6 @@ module ActiveRecord
               base.class_eval do
                 @primary_key = PRIMARY_KEY_NOT_SET
                 @composite_primary_key = false
-                @attributes_builder = nil
               end
             end
         end

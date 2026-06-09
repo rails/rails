@@ -448,10 +448,8 @@ module ActiveRecord
       end
 
       def attributes_builder # :nodoc:
-        @attributes_builder ||= begin
-          defaults = _default_attributes.except(*(column_names - Array(primary_key)))
-          ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
-        end
+        defaults = _default_attributes.except(*(column_names - Array(primary_key)))
+        ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
       end
 
       def columns_hash # :nodoc:
@@ -508,7 +506,7 @@ module ActiveRecord
 
       # Returns an array of column names as strings.
       def column_names
-        @column_names ||= columns.map(&:name).freeze
+        columns.map(&:name).freeze
       end
 
       def symbol_column_to_string(name_symbol) # :nodoc:
@@ -586,11 +584,9 @@ module ActiveRecord
           @_returning_columns_for_insert = nil
           @_returning_columns_for_update = nil
           @arel_table = nil
-          @column_names = nil
           @symbol_column_to_string_name_hash = nil
           @content_columns = nil
           @column_defaults = nil
-          @attributes_builder = nil
           @columns = nil
           @columns_hash = nil
           @schema_loaded = false

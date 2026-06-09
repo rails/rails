@@ -68,6 +68,7 @@ module ActiveModel
     CALL_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?]?\z/
 
     included do
+      @attribute_method_patterns_cache = Concurrent::Map.new(initial_capacity: 4)
       class_attribute :attribute_aliases, instance_writer: false, default: {}
       class_attribute :attribute_method_patterns, instance_writer: false, default: [ ClassMethods::AttributeMethodPattern.new ]
     end
@@ -387,7 +388,7 @@ module ActiveModel
         def inherited(base) # :nodoc:
           super
           base.class_eval do
-            @attribute_method_patterns_cache = nil
+            @attribute_method_patterns_cache = Concurrent::Map.new(initial_capacity: 4)
             @aliases_by_attribute_name = nil
             @generated_attribute_methods = nil
           end
@@ -415,7 +416,7 @@ module ActiveModel
         # significantly (in our case our test suite finishes 10% faster with
         # this cache).
         def attribute_method_patterns_cache
-          @attribute_method_patterns_cache ||= Concurrent::Map.new(initial_capacity: 4)
+          @attribute_method_patterns_cache
         end
 
         def attribute_method_patterns_matching(method_name)
