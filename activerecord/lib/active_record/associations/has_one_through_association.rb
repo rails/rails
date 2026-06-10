@@ -8,8 +8,12 @@ module ActiveRecord
 
       # Override reader to walk the loaded through chain when possible,
       # avoiding an unnecessary database query for preloaded associations.
+      #
+      # The optimization conservatively disables itself for scoped and
+      # polymorphic-source associations, where walking the chain could
+      # return a record the scoped/typed query would have excluded.
       def reader
-        if !loaded? && !stale_target? && through_chain_loaded?
+        if !loaded? && through_chain_loaded?
           self.target = resolve_target_from_through_chain
         end
 
@@ -18,6 +22,10 @@ module ActiveRecord
 
       private
         def through_chain_loaded?
+          # Bail when equivalence with the scoped query isn't guaranteed
+          return false if reflection.scope
+          return false if reflection.options[:source_type]
+
           through_assoc = through_association
           return false unless through_assoc.loaded?
 
