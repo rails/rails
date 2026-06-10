@@ -65,6 +65,11 @@ module ActiveSupport
       def tags_text
         tag_stack.format_message("")
       end
+
+      def freeze
+        tag_stack
+        super
+      end
     end
 
     class TagStack # :nodoc:
