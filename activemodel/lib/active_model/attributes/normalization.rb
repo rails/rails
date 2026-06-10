@@ -139,8 +139,13 @@ module ActiveModel
       private
         def normalize_changed_in_place_attributes
           self.class.normalized_attributes.each do |name|
-            normalize_attribute(name) if attribute_changed_in_place?(name)
+            attribute = @attributes[name.to_s]
+            normalize_attribute(name) if normalized_attribute_changed_in_place?(attribute)
           end
+        end
+
+        def normalized_attribute_changed_in_place?(attribute)
+          attribute.changed_in_place? && attribute.value != attribute.type.cast(attribute.value_before_type_cast)
         end
 
         class NormalizedValueType < ActiveSupport::Delegation::DelegateClass(ActiveModel::Type::Value) # :nodoc:
