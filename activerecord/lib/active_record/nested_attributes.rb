@@ -438,7 +438,7 @@ module ActiveRecord
         existing_record = send(association_name)
 
         if (options[:update_only] || !attributes["id"].blank?) && existing_record &&
-            (options[:update_only] || existing_record.id.to_s == attributes["id"].to_s)
+            (options[:update_only] || ids_match?(existing_record, attributes["id"]))
           assign_to_or_mark_for_destruction(existing_record, attributes, options[:allow_destroy]) unless call_reject_if(association_name, attributes)
 
         elsif attributes["id"].present?
@@ -626,8 +626,15 @@ module ActiveRecord
       end
 
       def find_record_by_id(records, id)
-        id = Array(id).map(&:to_s)
-        records.find { |record| Array(record.id).map(&:to_s) == id }
+        records.find { |record| ids_match?(record, id) }
+      end
+
+      def ids_match?(record, id)
+        if record.class.composite_primary_key?
+          Array(record.id).map(&:to_s) == Array(id).map(&:to_s)
+        else
+          record.id.to_s == id.to_s
+        end
       end
   end
 end
