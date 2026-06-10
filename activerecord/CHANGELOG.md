@@ -1,3 +1,17 @@
+*   Fix `distinct.count` raising `ActiveRecord::StatementInvalid` for models with
+    a composite primary key.
+
+    ```ruby
+    Cpk::Book.distinct.count
+    # Before: ActiveRecord::StatementInvalid, generated
+    #   SELECT COUNT(DISTINCT ["author_id", "id"]) FROM "cpk_books"
+    # After: counts distinct rows via a subquery
+    ```
+
+    Fixes #55401.
+
+    *Augusto Xavier*
+
 *   Avoid deadlocks when concurrent `find_or_create_by` calls read back the same
     record within MySQL transactions.
 
