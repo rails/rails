@@ -668,6 +668,17 @@ module Rails
       Rails.autoloaders.each(&:eager_load)
     end
 
+    def ractorize! # :nodoc:
+      warn "WARNING: Rails' Ractor support is experimental. Don't try this at home!", category: :experimental, uplevel: 1
+
+      env_config
+      routes
+
+      @autoloaders, @reloaders, @routes_reloader = nil, nil, nil
+
+      Ractor.make_shareable(self)
+    end
+
   protected
     alias :build_middleware_stack :app
 
