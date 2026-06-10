@@ -195,6 +195,34 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_equal "updated", Topic.second.content
   end
 
+  def test_update_with_single_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+
+    updated = Cpk::Book.update(book.id, title: "updated")
+
+    assert_equal book.id, updated.id
+    assert_equal "updated", book.reload.title
+  end
+
+  def test_update_bang_with_single_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+
+    updated = Cpk::Book.update!(book.id, title: "updated")
+
+    assert_equal book.id, updated.id
+    assert_equal "updated", book.reload.title
+  end
+
+  def test_update_many_with_composite_primary_keys
+    first = cpk_books(:cpk_great_author_first_book)
+    second = cpk_books(:cpk_great_author_second_book)
+
+    Cpk::Book.update([first.id, second.id], [{ title: "first updated" }, { title: "second updated" }])
+
+    assert_equal "first updated", first.reload.title
+    assert_equal "second updated", second.reload.title
+  end
+
   def test_class_level_update_without_ids
     topics = Topic.all
     assert_equal 5, topics.length
