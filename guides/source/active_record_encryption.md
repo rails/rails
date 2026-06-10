@@ -375,6 +375,12 @@ config.active_record.encryption.excluded_from_filter_parameters = [:catchphrase]
 
 NOTE: When generating the filter parameter, Rails uses the model name as a
 prefix. For example, for `User#email`, the filter parameter is `user.email`.
+Filters are also generated for subclasses of the model declaring the encrypted
+attribute and for nested attribute params named after the model (e.g.
+`user_attributes.email`, `users_attributes.email`). Params nested under a
+custom association name (e.g. `accepts_nested_attributes_for :members,
+class_name: "User"`) are not covered — add those to
+`config.filter_parameters` manually.
 
 ### Action Text
 
