@@ -492,15 +492,16 @@ module ActiveRecord
       def find_with_ids(*ids)
         raise UnknownPrimaryKey.new(model) if primary_key.nil?
 
+        first_item = ids.first
+        return [] if first_item.is_a?(Array) && first_item.empty?
+
         expects_array = if model.composite_primary_key?
-          ids.first.first.is_a?(Array)
+          first_item.first.is_a?(Array)
         else
-          ids.first.is_a?(Array)
+          first_item.is_a?(Array)
         end
 
-        return [] if expects_array && ids.first.empty?
-
-        ids = ids.first if expects_array
+        ids = first_item if expects_array
 
         ids = ids.compact.uniq
 
