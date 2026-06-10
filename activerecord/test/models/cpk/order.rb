@@ -16,6 +16,10 @@ module Cpk
     has_many :tags, through: :order_tags
   end
 
+  class OrderWithNestedBook < Order
+    accepts_nested_attributes_for :book
+  end
+
   class BrokenOrder < Order
     self.primary_key = [:shop_id, :status]
 
