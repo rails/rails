@@ -1,3 +1,23 @@
+*   Add load hooks for all Active Storage job classes.
+
+    Applications can now use the lazy load hook system to extend Active Storage
+    jobs without eager loading them, e.g. to register additional retry or
+    discard handlers:
+
+    ```ruby
+    ActiveSupport.on_load(:active_storage_create_variants_job) do
+      discard_on Vips::Error
+    end
+    ```
+
+    The following hooks are available: `active_storage_base_job`,
+    `active_storage_analyze_job`, `active_storage_create_variants_job`,
+    `active_storage_mirror_job`, `active_storage_preview_image_job`,
+    `active_storage_purge_job`, `active_storage_sync_metadata_job`, and
+    `active_storage_transform_job`.
+
+    *Chedli Bourguiba*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
