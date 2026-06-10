@@ -257,6 +257,43 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_one_through_preloaded_returns_same_object_as_manual_chain
+    members = Member.includes(member_detail: :organization).where(name: "Groucho Marx").to_a
+    member = members.first
+
+    manual = member.member_detail.organization
+    through = member.organization
+
+    assert_same manual, through,
+      "has_one :through should return the exact same object as manual chain traversal"
+  end
+
+  def test_has_one_through_falls_back_to_query_when_scoped
+    member = Member.includes(membership: :club).where(name: "Groucho Marx").first
+
+    assert member.association(:membership).loaded?, "through association should be loaded"
+
+    # favorite_club has a scope (where favorite: true) — the optimization
+    # must bail out and query, because the preloaded chain was loaded
+    # without the scope applied.
+    assert_queries_count(1) do
+      member.favorite_club
+    end
+  end
+
+  def test_has_one_through_falls_back_to_query_with_source_type
+    club = Club.includes(sponsor: :sponsorable).where(name: "Moustache and Eyebrow Fancier Club").first
+
+    assert club.association(:sponsor).loaded?, "through association should be loaded"
+
+    # sponsored_member uses source_type: :Member — the optimization
+    # must bail out and query, because the chain could hold a record
+    # of a different type.
+    assert_queries_count(1) do
+      club.sponsored_member
+    end
+  end
+
   def test_has_one_through_polymorphic_with_source_type
     assert_equal members(:groucho), clubs(:moustache_club).sponsored_member
   end
