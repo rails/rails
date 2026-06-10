@@ -111,6 +111,10 @@ module ActiveRecord
         @query_log_tags_format = configuration_hash[:query_log_tags_format]&.to_sym
       end
 
+      def query_log_tags_prepend_comment # :nodoc:
+        configuration_hash[:query_log_tags_prepend_comment]
+      end
+
       def max_queue
         max_threads * 4
       end
