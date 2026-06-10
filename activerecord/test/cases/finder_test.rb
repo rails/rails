@@ -2073,6 +2073,13 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [book], Cpk::Book.find([book.id])
   end
 
+  test "find with an empty array on a composite primary key" do
+    empty_array = []
+    result = Cpk::Book.find(empty_array)
+    assert_equal [], result
+    assert_not_same empty_array, result
+  end
+
   test "find with a multiple sets of composite primary key" do
     books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
     ids = books.map(&:id)
