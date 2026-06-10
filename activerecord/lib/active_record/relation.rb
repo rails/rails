@@ -1081,6 +1081,10 @@ module ActiveRecord
     def delete(id_or_array)
       return 0 if id_or_array.nil? || (id_or_array.is_a?(Array) && id_or_array.empty?)
 
+      if model.composite_primary_key? && !id_or_array.first.is_a?(Array)
+        id_or_array = [id_or_array]
+      end
+
       where(model.primary_key => id_or_array).delete_all
     end
 

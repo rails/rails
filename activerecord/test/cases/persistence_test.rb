@@ -436,6 +436,25 @@ class PersistenceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_delete_with_single_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_difference("Cpk::Book.count", -1) do
+      assert_equal 1, Cpk::Book.delete(book.id)
+    end
+  end
+
+  def test_delete_with_multiple_composite_primary_keys
+    books = [
+      cpk_books(:cpk_great_author_first_book),
+      cpk_books(:cpk_great_author_second_book),
+    ]
+
+    assert_difference("Cpk::Book.count", -2) do
+      assert_equal 2, Cpk::Book.delete(books.map(&:id))
+    end
+  end
+
   def test_becomes
     assert_kind_of Reply, topics(:first).becomes(Reply)
     assert_equal "The First Topic", topics(:first).becomes(Reply).title
