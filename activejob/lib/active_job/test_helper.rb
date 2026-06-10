@@ -766,8 +766,9 @@ module ActiveJob
           end
 
           if arguments[:at].acts_like?(:time)
-            at_range = arguments[:at] - 1..arguments[:at] + 1
-            arguments[:at] = ->(at) { at_range.cover?(at) }
+            expected_at = arguments[:at]
+            # Tolerate sub-second drift from Float serialization round-trips.
+            arguments[:at] = ->(at) { (at - expected_at).abs < 1.second }
           end
         end
       end
