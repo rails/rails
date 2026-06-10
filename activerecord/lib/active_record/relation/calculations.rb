@@ -448,7 +448,7 @@ module ActiveRecord
             if !distinct
               distinct = distinct_select?(select_for_count) if group_values.empty?
             elsif group_values.any? || select_values.empty? && order_values.empty?
-              column_name = primary_key
+              column_name = primary_key unless model.composite_primary_key?
             end
           elsif distinct_select?(column_name)
             distinct = nil
