@@ -772,7 +772,7 @@ module Rails
       end
 
       def coerce_same_site_protection(protection)
-        protection.respond_to?(:call) ? protection : proc { protection }
+        protection.respond_to?(:call) ? protection : ActiveSupport::Ractors.shareable_proc { protection }
       end
 
       def filter_parameters
