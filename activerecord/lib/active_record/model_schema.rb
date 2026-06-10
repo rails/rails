@@ -449,7 +449,7 @@ module ActiveRecord
 
       def attributes_builder # :nodoc:
         @attributes_builder ||= begin
-          defaults = _default_attributes.except(*(column_names - [primary_key]))
+          defaults = _default_attributes.except(*(column_names - Array(primary_key)))
           ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
         end
       end
