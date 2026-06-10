@@ -1,3 +1,22 @@
+*   Fix automatic filtering of encrypted attributes not covering subclasses and
+    nested attributes params.
+
+    Attributes encrypted with `encrypts` are automatically added to
+    `config.filter_parameters`, but the generated filter only matched params
+    scoped under the declaring model's own param key. The same attribute leaked
+    into the logs when submitted for a subclass (`user_special[email]`) or
+    through `accepts_nested_attributes_for` (`users_attributes[0][email]`).
+
+    Nested params are matched by the model name (`user_attributes`,
+    `users_attributes`); params nested under a custom association name still
+    need a manual `config.filter_parameters` entry. The
+    `ActiveRecord::Encryption.on_encrypted_attribute_declared` callback now
+    also fires when a model with encrypted attributes is subclassed.
+
+    Fixes #47913.
+
+    *fatkodima*, *Augusto Xavier*
+
 *   `insert!` now accepts the `:unique_by` option, consistent with `insert`.
 
     *Kenta Ishizaki*

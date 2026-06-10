@@ -14,6 +14,18 @@ module ActiveRecord
       end
 
       class_methods do
+        def inherited(subclass) # :nodoc:
+          super
+          # Anonymous subclasses are skipped: they would register an unscoped
+          # filter for the bare attribute name, filtering every param with that
+          # name across the app.
+          if subclass.name
+            encrypted_attributes&.each do |name|
+              ActiveRecord::Encryption.encrypted_attribute_was_declared(subclass, name)
+            end
+          end
+        end
+
         # Encrypts the +name+ attribute.
         #
         # ==== Options

@@ -54,6 +54,56 @@ class ActiveRecord::Encryption::ConfigurableTest < ActiveRecord::EncryptionTestC
     assert_includes application.config.filter_parameters, "named_pirate.catchphrase"
   end
 
+  test "installing autofiltered parameters will filter the encrypted attribute in nested attributes params" do
+    application = Struct.new(:config).new(Struct.new(:filter_parameters).new([]))
+
+    with_auto_filtered_parameters(application) do
+      NestedPirate = Class.new(Pirate) do
+        self.table_name = "pirates"
+      end
+      NestedPirate.encrypts :catchphrase
+    end
+
+    parameter_filter = ActiveSupport::ParameterFilter.new(application.config.filter_parameters)
+
+    filtered = parameter_filter.filter({ "ship" => { "nested_pirate_attributes" => { "catchphrase" => "secret" } } })
+    assert_equal "[FILTERED]", filtered.dig("ship", "nested_pirate_attributes", "catchphrase")
+
+    filtered = parameter_filter.filter({ "ship" => { "nested_pirates_attributes" => { "0" => { "catchphrase" => "secret" } } } })
+    assert_equal "[FILTERED]", filtered.dig("ship", "nested_pirates_attributes", "0", "catchphrase")
+
+    filtered = parameter_filter.filter({ "ship" => { "nested_pirates_attributes" => { "new0" => { "catchphrase" => "secret" } } } })
+    assert_equal "[FILTERED]", filtered.dig("ship", "nested_pirates_attributes", "new0", "catchphrase")
+
+    filtered = parameter_filter.filter({ "ship" => { "name" => "The Black Pearl" } })
+    assert_equal "The Black Pearl", filtered.dig("ship", "name")
+  end
+
+  test "installing autofiltered parameters will work with child classes" do
+    application = Struct.new(:config).new(Struct.new(:filter_parameters).new([]))
+
+    with_auto_filtered_parameters(application) do
+      assert_not defined?(ChildEncryptedPirate), "Other test required models/child_encrypted_pirate.rb file?"
+      require "models/child_encrypted_pirate"
+    end
+
+    assert_includes application.config.filter_parameters, "child_encrypted_pirate.catchphrase"
+  end
+
+  test "anonymous subclasses of a model with encrypted attributes don't register unscoped filter parameters" do
+    application = Struct.new(:config).new(Struct.new(:filter_parameters).new([]))
+
+    with_auto_filtered_parameters(application) do
+      InheritedPirate = Class.new(Pirate) do
+        self.table_name = "pirates"
+      end
+      InheritedPirate.encrypts :catchphrase
+      Class.new(InheritedPirate)
+    end
+
+    assert_not_includes application.config.filter_parameters, "catchphrase"
+  end
+
   test "installing autofiltered parameters will work with unnamed classes" do
     application = Struct.new(:config).new(Struct.new(:filter_parameters).new([]))
 
