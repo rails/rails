@@ -1,3 +1,12 @@
+*   Fix SQLite `bin/rails db:reset` (and `db:drop` followed by `db:create`) silently
+    discarding the schema when `database.yml` defines a single environment. `drop` now
+    disconnects before removing the database file, so the subsequent `create` reconnects
+    to the new file instead of reusing the stale connection pointing at the deleted one.
+
+    Fixes #53832.
+
+    *Rosa Gutierrez*, *Augusto Xavier*
+
 *   `insert!` now accepts the `:unique_by` option, consistent with `insert`.
 
     *Kenta Ishizaki*
