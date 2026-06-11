@@ -80,6 +80,7 @@ class DateTime
   # largest to smallest. This order can affect the result around the end of a
   # month.
   def advance(options)
+    options = options.dup
     unless options[:weeks].nil?
       options[:weeks], partial_weeks = options[:weeks].divmod(1)
       options[:days] = options.fetch(:days, 0) + 7 * partial_weeks
