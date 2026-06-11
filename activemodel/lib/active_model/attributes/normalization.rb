@@ -145,7 +145,7 @@ module ActiveModel
         end
 
         def normalized_attribute_changed_in_place?(attribute)
-          attribute.changed_in_place? && attribute.value != attribute.type.cast(attribute.value_before_type_cast)
+          attribute.changed_in_place? && attribute.value != attribute.type_cast(attribute.value_before_type_cast)
         end
 
         class NormalizedValueType < DelegateClass(ActiveModel::Type::Value) # :nodoc:
