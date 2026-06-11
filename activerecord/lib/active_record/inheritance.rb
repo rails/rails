@@ -91,8 +91,7 @@ module ActiveRecord
       end
 
       def finder_needs_type_condition? # :nodoc:
-        # This is like this because benchmarking justifies the strange :false stuff
-        :true == (@finder_needs_type_condition ||= descends_from_active_record? ? :false : :true)
+        !descends_from_active_record?
       end
 
       # Returns the first class in the inheritance hierarchy that descends from either an

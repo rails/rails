@@ -7,7 +7,8 @@ module ActiveRecord
     class Column
       include Deduplicable
 
-      attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment, :cast_type
+      attr_reader :name, :name_sym, :default, :sql_type_metadata, :null, :default_function
+      attr_reader :collation, :comment, :cast_type
 
       delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
 
@@ -19,6 +20,7 @@ module ActiveRecord
       # +null+ determines if this column allows +NULL+ values.
       def initialize(name, cast_type, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, **)
         @name = name.freeze
+        @name_sym = @name.to_sym
         @cast_type = cast_type
         @sql_type_metadata = sql_type_metadata
         @null = null
@@ -46,6 +48,7 @@ module ActiveRecord
 
       def init_with(coder)
         @name = coder["name"]
+        @name_sym = @name.to_sym
         @cast_type = coder["cast_type"]
         @sql_type_metadata = coder["sql_type_metadata"]
         @null = coder["null"]
@@ -119,6 +122,7 @@ module ActiveRecord
       private
         def deduplicated
           @name = -name
+          @name_sym = @name.to_sym
           @sql_type_metadata = sql_type_metadata.deduplicate if sql_type_metadata
           @default = -default if String === default
           @default_function = -default_function if default_function
