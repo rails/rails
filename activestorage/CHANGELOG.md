@@ -1,3 +1,16 @@
+*   Make Active Storage signed IDs URL-safe.
+
+    `ActiveStorage.verifier` did not set `url_safe: true`, so signed IDs (and the
+    other tokens it produces) could contain `+` or `/` characters. Because a blob's
+    signed ID is used as a path segment in the Active Storage routes, a `/` in the
+    value broke routing and resulted in a 404. This was most likely to surface with
+    a binary-dense message serializer such as `:message_pack`.
+
+    The verifier is now configured to generate URL-safe messages, mirroring the fix
+    applied to `ActiveRecord::SignedId`. Existing tokens remain valid.
+
+    *Augusto Xavier*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
