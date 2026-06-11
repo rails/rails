@@ -1,3 +1,9 @@
+*   Fix `where.missing` and `where.associated` generating a where clause on the
+    wrong table when an association with an explicit `:class_name` has the same
+    name as the model's table.
+
+    *Sampo Kuokkanen*
+
 *   Fix bug with reloading models with all-queries default scopes. The previous
     implementation allowed non-all-queries on the current scope to leak into
     the scope used for reloading.
