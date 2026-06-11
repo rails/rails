@@ -32,6 +32,7 @@ require "models/cpk"
 require "concurrent/atomic/count_down_latch"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/kernel/reporting"
+require "active_support/testing/ractors_assertions"
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
@@ -103,6 +104,8 @@ class LintTest < ActiveRecord::TestCase
 end
 
 class BasicsTest < ActiveRecord::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts,
     :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories,
     :posts, :cpk_books
