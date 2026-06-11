@@ -94,8 +94,6 @@ module ActiveSupport
     include ActiveSupport::Callbacks
     define_callbacks :reset
 
-    INVALID_ATTRIBUTE_NAMES = [:set, :reset, :resets, :instance, :before_reset, :after_reset, :reset_all, :clear_all].freeze # :nodoc:
-
     NOT_SET = Object.new.freeze # :nodoc:
 
     class << self
@@ -239,5 +237,10 @@ module ActiveSupport
           end
         end
       end
+
+      # Declaring an attribute by one of these names would shadow the methods
+      # CurrentAttributes itself relies on. Computed at the very end of the
+      # class body so that all the methods defined above are captured.
+      INVALID_ATTRIBUTE_NAMES = (methods(false) + private_methods(false) + instance_methods(false) + private_instance_methods(false)).uniq.sort.freeze # :nodoc:
   end
 end
