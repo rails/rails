@@ -1,3 +1,17 @@
+*   `assert_difference`, `assert_no_difference`, `assert_changes`, and
+    `assert_no_changes` now raise `ArgumentError` when given an expression that
+    is not a callable (like a Proc), String, or Symbol.
+
+    This helps catch issues where you accidentally pass a single static value
+    (like `assert_no_changes(a.size)`). The same value would seen before
+    and after the block, so no change would ever be found, silently passing
+    the assertion even if there *was* an unexpected change.
+
+    To be reevaluated correctly, the expression should wrapped in a lambda like
+    `assert_no_changes(-> { a.size })`, or quoted in a String that can be `eval`-ed.
+
+    *Alexander Momchilov*
+
 *   Add `ActiveSupport::Notifications::NullInstrumenter`, a stateless no-op
     instrumenter that executes blocks without publishing any notifications.
 
