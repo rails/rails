@@ -68,7 +68,7 @@ $ rails new my_api_app --api
 
 This will:
 
-- Set `ApplicationController` to inherit from [`ActionController::API`][] instead of [`ActionController::Base`][], which [excludes the modules](#action-controller-modules) for browser-related functionality.
+- Set `ApplicationController` to inherit from [`ActionController::API`][] instead of [`ActionController::Base`][], which [excludes the modules](#api-controller-modules) for browser-related functionality.
 - Configure the generators to skip generating views, helpers, and assets when you scaffold a new resource.
 - Exclude [Rack middleware](https://guides.rubyonrails.org/rails_on_rack.html) related to browser applications, such as support for cookies.
 
