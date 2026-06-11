@@ -105,6 +105,12 @@ module ActiveRecord
         configuration_hash[:query_cache]
       end
 
+      def query_log_tags_format # :nodoc:
+        return @query_log_tags_format if defined? @query_log_tags_format
+
+        @query_log_tags_format = configuration_hash[:query_log_tags_format]&.to_sym
+      end
+
       def max_queue
         max_threads * 4
       end

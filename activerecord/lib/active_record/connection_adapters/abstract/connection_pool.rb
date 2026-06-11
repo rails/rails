@@ -18,12 +18,12 @@ module ActiveRecord
 
       def initialize
         super()
-        @mutex = Mutex.new
+        @monitor = Monitor.new
         @server_version = nil
       end
 
       def server_version(connection) # :nodoc:
-        @server_version || @mutex.synchronize { @server_version ||= connection.get_database_version }
+        @server_version || @monitor.synchronize { @server_version ||= connection.get_database_version }
       end
 
       def schema_reflection

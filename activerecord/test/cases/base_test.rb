@@ -81,6 +81,7 @@ previous_value, ActiveRecord.raise_on_assign_to_attr_readonly = ActiveRecord.rai
 
 class NonRaisingPost < Post
   attr_readonly :title
+  alias_attribute :headline, :title
 end
 
 ActiveRecord.raise_on_assign_to_attr_readonly = previous_value
@@ -837,6 +838,16 @@ class BasicsTest < ActiveRecord::TestCase
     post.reload
     assert_equal "cannot change this", post.title
     assert_equal "changed via []=", post.body
+  end
+
+  def test_update_attribute_raises_for_a_readonly_aliased_attribute_when_configured_to_not_raise
+    post = NonRaisingPost.create!(title: "cannot change this", body: "changeable")
+
+    assert_raises(ActiveRecord::ActiveRecordError) { post.update_attribute(:headline, "changed") }
+    assert_raises(ActiveRecord::ActiveRecordError) { post.update_attribute!(:headline, "changed") }
+
+    post.reload
+    assert_equal "cannot change this", post.title
   end
 
   def test_readonly_attributes_on_belongs_to_association

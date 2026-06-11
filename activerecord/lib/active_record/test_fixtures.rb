@@ -263,19 +263,28 @@ module ActiveRecord
 
       def teardown_shared_connection_pool
         handler = ActiveRecord::Base.connection_handler
+        removed_pool_configs = []
+        pool_managers = handler.send(:connection_name_to_pool_manager)
 
         @saved_pool_configs.each_pair do |name, shards|
-          pool_manager = handler.send(:connection_name_to_pool_manager)[name]
+          pool_manager = pool_managers[name]
           shards.each_pair do |shard_name, roles|
             roles.each_pair do |role, pool_config|
-              next unless pool_manager.get_pool_config(role, shard_name)
-
-              pool_manager.set_pool_config(role, shard_name, pool_config)
+              if pool_manager.get_pool_config(role, shard_name)
+                pool_manager.set_pool_config(role, shard_name, pool_config)
+              else
+                removed_pool_configs << pool_config
+              end
             end
           end
         end
 
         @saved_pool_configs.clear
+
+        remaining_pool_configs = pool_managers.values.flat_map(&:pool_configs)
+        removed_pool_configs.compact.uniq.each do |pool_config|
+          pool_config.disconnect! unless remaining_pool_configs.include?(pool_config)
+        end
       end
 
       def load_fixtures(config)

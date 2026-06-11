@@ -2,6 +2,7 @@
 
 require_relative "abstract_unit"
 require "rails/test_unit/line_filtering"
+require "active_support/testing/ractors_assertions"
 
 class BacktraceCleanerFilterTest < ActiveSupport::TestCase
   def setup
@@ -93,6 +94,8 @@ class BacktraceCleanerFilterAndSilencerTest < ActiveSupport::TestCase
 end
 
 class BacktraceCleanerDefaultFilterAndSilencerTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   def setup
     @bc = ActiveSupport::BacktraceCleaner.new
   end
@@ -135,6 +138,10 @@ class BacktraceCleanerDefaultFilterAndSilencerTest < ActiveSupport::TestCase
     backtrace = [Gem.default_dir, *Gem.path].map { |path| "/parent#{path}/gems/nosuchgem-1.2.3/lib/foo.rb" }
 
     assert_equal backtrace, @bc.clean(backtrace)
+  end
+
+  test "backtrace cleaner is Ractor shareable" do
+    assert_ractor_shareable @bc
   end
 end
 

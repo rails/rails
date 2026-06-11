@@ -965,7 +965,10 @@ transformations or parameters to variant processors. This can potentially enable
 command injection vulnerabilities in your app. It is also recommended to
 implement a strict [ImageMagick security
 policy](https://imagemagick.org/script/security-policy.php) when MiniMagick is
-the variant processor of choice.
+the variant processor of choice. With ruby-vips, you can
+[block untrusted formats][https://www.libvips.org/2022/05/28/What's-new-in-8.13.html#blocking-of-unfuzzed-loaders]
+by setting `VIPS_BLOCK_UNTRUSTED` environment variable or calling
+`Vips.block_untrusted(true)` in an initializer.
 
 ### Non-image Previews
 

@@ -2025,17 +2025,22 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_default_order
-    comments = posts(:welcome).comments
-    assert_equal [1, 2], comments.pluck(:id)
-    assert_equal 1, comments.first.id
-
-    comments = comments.default_order(:body)
+    comments = posts(:welcome).comments.default_order(:body)
     assert_equal [2, 1], comments.pluck(:id)
     assert_equal 2, comments.first.id
 
     comments = comments.order(:id)
     assert_equal [1, 2], comments.pluck(:id)
     assert_equal 1, comments.first.id
+  end
+
+  def test_reverse_order_reverses_default_order
+    # reverse_order should reverse the default order, just like a regular
+    # order, rather than discarding it in favor of the primary key.
+    assert_equal Post.order("title ASC").reverse_order.ids, Post.default_order("title ASC").reverse_order.ids
+
+    relation = Post.default_order("title ASC").reverse_order
+    assert_match(/ORDER BY title DESC/, relation.to_sql)
   end
 
   def test_reorder_with_first

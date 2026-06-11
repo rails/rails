@@ -559,7 +559,7 @@ Revision can be accessed via `Rails.app.revision`.
 
 #### `config.sandbox_by_default`
 
-When `true`, rails console starts in sandbox mode. To start rails console in non-sandbox mode, `--no-sandbox` must be specified. This is helpful to avoid accidental writing to the production database. Defaults to `false`.
+When `true`, Rails console starts in sandbox mode by default, and `--no-sandbox` must be specified to start Rails console without sandbox mode. This helps prevent accidental writes to production databases. Defaults to `false`.
 
 #### `config.secret_key_base`
 
@@ -766,6 +766,12 @@ with:
 
 ```ruby
 Rails.application.config.hosts << "product.com"
+```
+
+Adding a specific port will make sure only that port is authorized:
+
+```ruby
+Rails.application.config.hosts << "product.com:3000"
 ```
 
 The host of a request is checked against the `hosts` entries with the case
@@ -2966,6 +2972,10 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `ActionMailer::MailDeliveryJob` |
 | 6.0                   | `"ActionMailer::MailDeliveryJob"` |
+
+#### `config.action_mailer.raise_on_missing_callback_actions`
+
+Mirrors `config.action_controller.raise_on_missing_callback_actions`, but applies to mailers. Defaults to `false`.
 
 ### Configuring Active Support
 

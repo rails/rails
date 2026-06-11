@@ -546,6 +546,7 @@ module ActiveRecord
     # Also see #update_column.
     def update_attribute(name, value)
       name = name.to_s
+      name = self.class.attribute_aliases[name] || name
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
 
@@ -568,6 +569,7 @@ module ActiveRecord
     # ActiveRecord::Callbacks for further details.
     def update_attribute!(name, value)
       name = name.to_s
+      name = self.class.attribute_aliases[name] || name
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
 
@@ -872,7 +874,17 @@ module ActiveRecord
 
       def _find_record(options)
         all_queries = options ? options[:all_queries] : nil
-        base = self.class.all(all_queries: all_queries).preload(strict_loaded_associations)
+        base = if all_queries
+          self.class.default_scoped(all_queries: true)
+        else
+          self.class.all
+        end
+
+        if all_queries && (current_scope = self.class.global_current_scope)
+          base = base.merge!(current_scope)
+        end
+
+        base = base.preload(strict_loaded_associations)
 
         if options && options[:lock]
           base.lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)

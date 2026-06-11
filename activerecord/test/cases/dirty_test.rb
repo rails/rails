@@ -607,17 +607,15 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not pirate.previous_changes.key?("created_on")
   end
 
-  class Testings < ActiveRecord::Base; end
   def test_field_named_field
-    ActiveRecord::Base.lease_connection.create_table :testings do |t|
-      t.string :field
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "pirates"
+      attribute :field, :string
     end
+
     assert_nothing_raised do
-      Testings.new.attributes
+      klass.new.attributes
     end
-  ensure
-    ActiveRecord::Base.lease_connection.drop_table :testings rescue nil
-    ActiveRecord::Base.clear_cache!
   end
 
   def test_datetime_attribute_can_be_updated_with_fractional_seconds

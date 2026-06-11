@@ -5,35 +5,20 @@ require "active_support/cache"
 require "active_support/cache/redis_cache_store"
 require_relative "../behaviors"
 
-# Emulates a latency on Redis's back-end for the key latency to facilitate
-# connection pool testing.
-class SlowRedis < Redis
-  def get(key)
-    if /latency/.match?(key)
-      sleep 0.2
-      super
-    else
-      super
-    end
-  end
-end
-
 module ActiveSupport::Cache::RedisCacheStoreTests
   REDIS_URL = ENV["REDIS_URL"] || "redis://localhost:6379/0"
   REDIS_URLS = ENV["REDIS_URLS"]&.split(",") || %w[ redis://localhost:6379/0 redis://localhost:6379/1 ]
 
-  if ENV["BUILDKITE"]
-    REDIS_UP = true
-  else
-    begin
-      redis = Redis.new(url: REDIS_URL)
-      redis.ping
+  redis_up = begin
+    RedisClient.new(url: REDIS_URL, protocol: 2).call("ping")
+    true
+  rescue RedisClient::ConnectionError
+    false
+  end
 
-      REDIS_UP = true
-    rescue Redis::BaseConnectionError
-      $stderr.puts "Skipping redis tests. Start redis and try again."
-      REDIS_UP = false
-    end
+  REDIS_UP = redis_up || ENV["BUILDKITE"]
+  unless REDIS_UP
+    $stderr.puts "Skipping redis tests. Start redis and try again."
   end
 
   class LookupTest < ActiveSupport::TestCase
@@ -45,69 +30,67 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
   class InitializationTest < ActiveSupport::TestCase
     test "omitted URL uses Redis client with default settings" do
-      assert_called_with Redis, :new, [
-        connect_timeout: 1, read_timeout: 1, write_timeout: 1
-      ] do
-        build
-      end
+      @cache = ActiveSupport::Cache::RedisCacheStore.new
+      assert_equal 1, @cache.redis.connect_timeout
+      assert_equal 1, @cache.redis.read_timeout
+      assert_equal 1, @cache.redis.write_timeout
+      assert_equal "redis://localhost:6379", @cache.redis.config.server_url
     end
 
     test "no URLs uses Redis client with default settings" do
-      assert_called_with Redis, :new, [
-        connect_timeout: 1, read_timeout: 1, write_timeout: 1
-      ] do
-        build url: []
-      end
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(url: [])
+      assert_equal 1, @cache.redis.connect_timeout
+      assert_equal 1, @cache.redis.read_timeout
+      assert_equal 1, @cache.redis.write_timeout
+      assert_equal "redis://localhost:6379", @cache.redis.config.server_url
     end
 
     test "singular URL uses Redis client" do
-      assert_called_with Redis, :new, [
-        url: REDIS_URL,
-        connect_timeout: 1, read_timeout: 1, write_timeout: 1
-      ] do
-        build url: REDIS_URL
-      end
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(url: REDIS_URL)
+      assert_equal 1, @cache.redis.connect_timeout
+      assert_equal 1, @cache.redis.read_timeout
+      assert_equal 1, @cache.redis.write_timeout
+      assert_equal REDIS_URL.delete_suffix("/0"), @cache.redis.config.server_url
     end
 
     test "one URL uses Redis client" do
-      assert_called_with Redis, :new, [
-        url: REDIS_URL,
-        connect_timeout: 1, read_timeout: 1, write_timeout: 1
-      ] do
-        build url: [ REDIS_URL ]
-      end
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(url: [REDIS_URL])
+      assert_equal 1, @cache.redis.connect_timeout
+      assert_equal 1, @cache.redis.read_timeout
+      assert_equal 1, @cache.redis.write_timeout
+      assert_equal REDIS_URL.delete_suffix("/0"), @cache.redis.config.server_url
     end
 
-    test "multiple URLs uses Redis::Distributed client" do
-      default_args = {
-        connect_timeout: 1,
-        read_timeout: 1,
-        write_timeout: 1
-      }
-
-      mock = Minitest::Mock.new
-      mock.expect(:call, Redis.new, [{ url: REDIS_URLS.first }.merge(default_args)])
-      mock.expect(:call, Redis.new, [{ url: REDIS_URLS.last }.merge(default_args)])
-
-      Redis.stub(:new, mock) do
-        @cache = build url: REDIS_URLS
-        assert_kind_of ::Redis::Distributed, @cache.redis
-      end
-
-      assert_mock(mock)
+    test "multiple URLs uses RedisClient::HashRing client" do
+      @cache = build url: REDIS_URLS
+      assert_kind_of ::RedisClient::HashRing, @cache.redis
+      assert_equal REDIS_URLS.size, @cache.redis.nodes.size
+      assert_equal REDIS_URLS.map { |u| u.delete_suffix("/0") }, @cache.redis.nodes.map { |n| n.config.server_url }
     end
 
-    test "block argument uses yielded client" do
-      block = -> { :custom_redis_client }
-      assert_called block, :call do
-        build redis: block
-      end
+    test "one :client Config" do
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(client: RedisClient.config(url: REDIS_URL))
+      assert_equal 1, @cache.redis.connect_timeout
+      assert_equal 1, @cache.redis.read_timeout
+      assert_equal 1, @cache.redis.write_timeout
+      assert_equal REDIS_URL.delete_suffix("/0"), @cache.redis.config.server_url
+      assert_kind_of ::RedisClient::Pooled, @cache.redis
     end
 
-    test "instance of Redis uses given instance" do
-      redis_instance = Redis.new
-      @cache = build(redis: redis_instance)
-      assert_same @cache.redis, redis_instance
+    test "one :client callback" do
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(client: -> { RedisClient.config(url: REDIS_URL) })
+      assert_equal 1, @cache.redis.connect_timeout
+      assert_equal 1, @cache.redis.read_timeout
+      assert_equal 1, @cache.redis.write_timeout
+      assert_equal REDIS_URL.delete_suffix("/0"), @cache.redis.config.server_url
+      assert_kind_of ::RedisClient::Pooled, @cache.redis
+    end
+
+    test "deprecated :redis argument" do
+      @cache = assert_deprecated(/Passing a Redis or ConnectionPool instance/, ActiveSupport.deprecator) do
+        ActiveSupport::Cache::RedisCacheStore.new(redis: -> { Redis.new(url: REDIS_URL) })
+      end
+      assert_kind_of ActiveSupport::Cache::DeprecatedRedisCacheStore, @cache
     end
 
     test "validate pool arguments" do
@@ -138,33 +121,43 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     private
       def build(**kwargs)
-        ActiveSupport::Cache::RedisCacheStore.new(pool: false, **kwargs).tap(&:redis)
+        ActiveSupport::Cache::RedisCacheStore.new(url: REDIS_URL, **kwargs).tap(&:redis)
       end
   end
 
   class StoreTest < ActiveSupport::TestCase
+    module NotificationMiddleware
+      def call(command, _redis_config)
+        ActiveSupport::Notifications.instrument("redis_query.active_support_test", commands: [command]) { super }
+      end
+
+      def call_pipelined(commands, _redis_config)
+        ActiveSupport::Notifications.instrument("redis_query.active_support_test", commands: commands) { super }
+      end
+    end
+
     setup do
       @cache = nil
       skip "Redis server is not up" unless REDIS_UP
       @namespace = "test-#{SecureRandom.hex}"
 
-      @cache = lookup_store(expires_in: 60)
+      @cache = lookup_store(url: REDIS_URL, expires_in: 60, middlewares: [NotificationMiddleware])
       # @cache.logger = Logger.new($stdout)  # For test debugging
 
-      @cache_no_ttl = lookup_store
+      @cache_no_ttl = lookup_store(url: REDIS_URL)
 
       # For LocalCacheBehavior tests
-      @peek = lookup_store(expires_in: 60)
+      @peek = lookup_store(url: REDIS_URL, expires_in: 60)
     end
 
     def lookup_store(options = {})
-      ActiveSupport::Cache.lookup_store(:redis_cache_store, { timeout: 0.1, namespace: @namespace, pool: false }.merge(options))
+      ActiveSupport::Cache.lookup_store(:redis_cache_store, { url: REDIS_URL, timeout: 0.1, namespace: @namespace, pool: false }.merge(options))
     end
 
     teardown do
-      @cache.clear
-      @cache.redis.with do |r|
-        r.respond_to?(:on_each_node, true) ? r.send(:on_each_node, :disconnect!) : r.disconnect!
+      if @cache
+        @cache.clear
+        @cache.redis.nodes.each(&:close)
       end
     end
   end
@@ -183,25 +176,31 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include EncodedKeyCacheBehavior
 
     def test_fetch_multi_uses_redis_mget
-      assert_called(redis_backend, :mget, returns: []) do
-        @cache.fetch_multi("a", "b", "c") do |key|
-          key * 2
+      commands = capture_redis_commands do
+        2.times do
+          result = @cache.fetch_multi("a", "b", "c") do |key|
+            key * 2
+          end
+          assert_equal({ "a" => "aa", "b" => "bb", "c" => "cc" }, result)
         end
       end
+      assert_includes commands.map(&:first), "mget"
     end
 
     def test_fetch_multi_with_namespace
-      assert_called_with(redis_backend, :mget, ["custom-namespace:a", "custom-namespace:b", "custom-namespace:c"], returns: []) do
-        @cache.fetch_multi("a", "b", "c", namespace: "custom-namespace") do |key|
+      commands = capture_redis_commands do
+        result = @cache.fetch_multi("a", "b", "c", namespace: "custom-namespace") do |key|
           key * 2
         end
+        assert_equal({ "a" => "aa", "b" => "bb", "c" => "cc" }, result)
       end
+      assert_equal ["custom-namespace:a", "custom-namespace:b", "custom-namespace:c"], commands.select { |c| c.shift if c.first == "mget" }.flatten.sort
     end
 
     def test_write_expires_at
       @cache.write "key_with_expires_at", "bar", expires_at: 30.minutes.from_now
-      redis_backend do |r|
-        assert r.ttl("#{@namespace}:key_with_expires_at") > 0
+      redis_node_for("#{@namespace}:key_with_expires_at") do |r, k|
+        assert r.call("ttl", k) > 0
       end
     end
 
@@ -212,79 +211,94 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     def test_increment_ttl
       # existing key
-      redis_backend(@cache_no_ttl) { |r| r.set "#{@namespace}:jar", 10 }
-      @cache_no_ttl.increment "jar", 1
-      redis_backend(@cache_no_ttl) do |r|
-        assert r.get("#{@namespace}:jar").to_i == 11
-        assert r.ttl("#{@namespace}:jar") < 0
+      redis_node_for("#{@namespace}:jar", @cache_no_ttl) do |r, key|
+        r.call("set", key, 10)
+
+        @cache_no_ttl.increment "jar", 1
+
+        assert r.call("get", key).to_i == 11
+        assert r.call("ttl", key) < 0
       end
 
       # new key
-      @cache_no_ttl.increment "kar", 1
-      redis_backend(@cache_no_ttl) do |r|
-        assert r.get("#{@namespace}:kar").to_i == 1
-        assert r.ttl("#{@namespace}:kar") < 0
+      redis_node_for("#{@namespace}:kar", @cache_no_ttl) do |r, new_key|
+        @cache_no_ttl.increment "kar", 1
+
+        assert r.call("get", new_key).to_i == 1
+        assert r.call("ttl", new_key) < 0
       end
     end
 
     def test_increment_expires_in
       @cache.increment "foo", expires_in: 60
-      redis_backend do |r|
-        assert r.exists?("#{@namespace}:foo")
-        assert r.ttl("#{@namespace}:foo") > 0
+      redis_node_for("#{@namespace}:foo") do |r, key|
+        assert_equal 1, r.call("exists", key)
+        assert r.call("ttl", key) > 0
       end
 
       # key and ttl exist
-      redis_backend { |r| r.setex "#{@namespace}:bar", 120, 1 }
-      @cache.increment "bar", expires_in: 60
-      redis_backend do |r|
-        assert r.ttl("#{@namespace}:bar") > 60
+      redis_node_for("#{@namespace}:bar") do |r, key|
+        r.call("setex", key, 120, 1)
+
+        @cache.increment "bar", expires_in: 60
+
+        assert r.call("ttl", key) > 60
       end
 
       # key exist but not have expire
-      redis_backend(@cache_no_ttl) { |r| r.set "#{@namespace}:dar", 10 }
-      @cache_no_ttl.increment "dar", expires_in: 60
-      redis_backend(@cache_no_ttl) do |r|
-        assert r.ttl("#{@namespace}:dar") > 0
+      redis_node_for("#{@namespace}:dar", @cache_no_ttl) do |r, key|
+        r.call("set", key, 10)
+
+        @cache_no_ttl.increment "dar", expires_in: 60
+
+        assert r.call("ttl", key) > 0
       end
     end
 
     def test_decrement_ttl
       # existing key
-      redis_backend(@cache_no_ttl) { |r| r.set "#{@namespace}:jar", 10 }
-      @cache_no_ttl.decrement "jar", 1
-      redis_backend(@cache_no_ttl) do |r|
-        assert r.get("#{@namespace}:jar").to_i == 9
-        assert r.ttl("#{@namespace}:jar") < 0
+      redis_node_for("#{@namespace}:jar", @cache_no_ttl) do |r, key|
+        r.call("set", key, 10)
+
+        @cache_no_ttl.decrement "jar", 1
+
+        assert r.call("get", key).to_i == 9
+        assert r.call("ttl", key) < 0
       end
 
       # new key
-      @cache_no_ttl.decrement "kar", 1
-      redis_backend(@cache_no_ttl) do |r|
-        assert r.get("#{@namespace}:kar").to_i == -1
-        assert r.ttl("#{@namespace}:kar") < 0
+      redis_node_for("#{@namespace}:kar", @cache_no_ttl) do |r, key|
+        @cache_no_ttl.decrement "kar", 1
+
+        assert r.call("get", key).to_i == -1
+        assert r.call("ttl", key) < 0
       end
     end
 
     def test_decrement_expires_in
       @cache.decrement "foo", 1, expires_in: 60
-      redis_backend do |r|
-        assert r.exists?("#{@namespace}:foo")
-        assert r.ttl("#{@namespace}:foo") > 0
+
+      redis_node_for("#{@namespace}:foo") do |r, key|
+        assert_equal 1, r.call("exists", key)
+        assert r.call("ttl", key) > 0
       end
 
       # key and ttl exist
-      redis_backend { |r| r.setex "#{@namespace}:bar", 120, 1 }
-      @cache.decrement "bar", 1, expires_in: 60
-      redis_backend do |r|
-        assert r.ttl("#{@namespace}:bar") > 60
+      redis_node_for("#{@namespace}:bar") do |r, key|
+        r.call "setex", key, 120, 1
+
+        @cache.decrement "bar", 1, expires_in: 60
+
+        assert r.call("ttl", "#{@namespace}:bar") > 60
       end
 
       # key exist but not have expire
-      redis_backend(@cache_no_ttl) { |r| r.set "#{@namespace}:dar", 10 }
-      @cache_no_ttl.decrement "dar", 1, expires_in: 60
-      redis_backend(@cache_no_ttl) do |r|
-        assert r.ttl("#{@namespace}:dar") > 0
+      redis_node_for("#{@namespace}:dar", @cache_no_ttl) do |r, key|
+        r.call "set", "#{@namespace}:dar", 10
+
+        @cache_no_ttl.decrement "dar", 1, expires_in: 60
+
+        assert r.call("ttl", "#{@namespace}:dar") > 0
       end
     end
 
@@ -303,17 +317,30 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
-    def redis_backend(cache = @cache)
-      cache.redis.with do |r|
-        yield r if block_given?
-        return r
+    def redis_node_for(key, cache = @cache)
+      cache.redis.node_for(key).with do |c|
+        yield c, key
       end
+    end
+
+    def capture_redis_commands(&block)
+      capture_notifications("redis_query.active_support_test", &block).flat_map { |e| e.payload.fetch(:commands) }
+    end
+
+    def lookup_store(options = {})
+      super(options.merge(error_handler: ->(method:, returning:, exception:) { raise exception }))
     end
   end
 
   class RedisCacheStoreWithDistributedRedisTest < RedisCacheStoreCommonBehaviorTest
     def lookup_store(options = {})
-      super(options.merge(pool: { size: 5 }, url: [ENV["REDIS_URL"] || "redis://localhost:6379/0"] * 2))
+      url = URI(ENV["REDIS_URL"] || "redis://localhost:6379/0")
+      urls = [
+        url.dup.tap { |u| u.path = "/1" },
+        url.dup.tap { |u| u.path = "/2" },
+      ]
+
+      super(options.merge(pool: { size: 5 }, url: urls))
     end
   end
 
@@ -322,40 +349,8 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     def test_pool_options_work
       cache = ActiveSupport::Cache.lookup_store(:redis_cache_store, pool: { size: 2, timeout: 1 })
-      pool = cache.redis # loads 'connection_pool' gem
-      assert_kind_of ::ConnectionPool, pool
-      assert_equal 2, pool.size
-      assert_equal 1, pool.instance_variable_get(:@timeout)
-    end
-
-    def test_connection_pooling_by_default
-      cache = ActiveSupport::Cache.lookup_store(:redis_cache_store)
-      pool = cache.redis
-      assert_kind_of ::ConnectionPool, pool
-      assert_equal 5, pool.size
-      assert_equal 5, pool.instance_variable_get(:@timeout)
-    end
-
-    def test_no_connection_pooling_by_default_when_already_a_pool
-      redis = ::ConnectionPool.new(size: 10, timeout: 2.5) { Redis.new }
-      cache = ActiveSupport::Cache.lookup_store(:redis_cache_store, redis: redis)
-      pool = cache.redis
-      assert_kind_of ::ConnectionPool, pool
-      assert_same redis, pool
-      assert_equal 10, pool.size
-      assert_equal 2.5, pool.instance_variable_get(:@timeout)
-    end
-
-    def test_no_connection_pooling_by_default_when_already_wrapped_in_a_pool
-      redis = ::ConnectionPool::Wrapper.new(size: 10, timeout: 2.5) { Redis.new }
-      cache = ActiveSupport::Cache.lookup_store(:redis_cache_store, redis: redis)
-      wrapped_redis = cache.redis
-      assert_kind_of ::Redis, wrapped_redis
-      assert_same redis, wrapped_redis
-      pool = wrapped_redis.wrapped_pool
-      assert_kind_of ::ConnectionPool, pool
-      assert_equal 10, pool.size
-      assert_equal 2.5, pool.instance_variable_get(:@timeout)
+      assert_kind_of ::RedisClient::Pooled, cache.redis
+      assert_equal 2, cache.redis.size
     end
 
     private
@@ -363,14 +358,13 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         [:redis_cache_store]
       end
 
-      def emulating_latency
-        old_redis = Object.send(:remove_const, :Redis)
-        Object.const_set(:Redis, SlowRedis)
-
-        yield
-      ensure
-        Object.send(:remove_const, :Redis)
-        Object.const_set(:Redis, old_redis)
+      def emulating_latency(&block)
+        callback = ->(event) do
+          if event.payload[:commands].any? { |c| c.first.downcase == "get" && c.second.match?(/latency/) }
+            sleep 0.2
+          end
+        end
+        ActiveSupport::Notifications.subscribed(callback, "redis_query.active_support_test", &block)
       end
   end
 
@@ -384,15 +378,23 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   class StoreAPITest < StoreTest
   end
 
-  class UnavailableRedisClient < Redis::Client
-    def ensure_connected(...)
-      raise Redis::BaseConnectionError
+  module UnavailableRedisMiddleware
+    def call(...)
+      raise ::RedisClient::ConnectionError
+    end
+
+    def call_pipelined(...)
+      raise ::RedisClient::ConnectionError
     end
   end
 
-  class MaxClientsReachedRedisClient < Redis::Client
-    def ensure_connected(...)
-      raise Redis::CommandError
+  module MaxClientsReachedRedisMiddleware
+    def call(...)
+      raise ::RedisClient::CannotConnectError
+    end
+
+    def call_pipelined(...)
+      raise ::RedisClient::CannotConnectError
     end
   end
 
@@ -400,15 +402,16 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include FailureRaisingBehavior
 
     private
-      def emulating_unavailability
-        old_client = Redis.send(:remove_const, :Client)
-        Redis.const_set(:Client, UnavailableRedisClient)
+      def assert_raise_redis_error(...)
+        assert_raise(RedisClient::ConnectionError, ...)
+      end
 
-        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace,
-                                                        error_handler: -> (method:, returning:, exception:) { raise exception })
-      ensure
-        Redis.send(:remove_const, :Client)
-        Redis.const_set(:Client, old_client)
+      def emulating_unavailability
+        yield ActiveSupport::Cache::RedisCacheStore.new(
+          namespace: @namespace,
+          middlewares: [UnavailableRedisMiddleware],
+          error_handler: -> (method:, returning:, exception:) { raise exception },
+        )
       end
   end
 
@@ -416,15 +419,16 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include FailureRaisingBehavior
 
     private
-      def emulating_unavailability
-        old_client = Redis.send(:remove_const, :Client)
-        Redis.const_set(:Client, MaxClientsReachedRedisClient)
+      def assert_raise_redis_error(...)
+        assert_raise(RedisClient::ConnectionError, ...)
+      end
 
-        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace,
-                                                        error_handler: -> (method:, returning:, exception:) { raise exception })
-      ensure
-        Redis.send(:remove_const, :Client)
-        Redis.const_set(:Client, old_client)
+      def emulating_unavailability
+        yield ActiveSupport::Cache::RedisCacheStore.new(
+          namespace: @namespace,
+          middlewares: [MaxClientsReachedRedisMiddleware],
+          error_handler: -> (method:, returning:, exception:) { raise exception },
+        )
       end
   end
 
@@ -433,13 +437,10 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     private
       def emulating_unavailability
-        old_client = Redis.send(:remove_const, :Client)
-        Redis.const_set(:Client, UnavailableRedisClient)
-
-        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace)
-      ensure
-        Redis.send(:remove_const, :Client)
-        Redis.const_set(:Client, old_client)
+        yield ActiveSupport::Cache::RedisCacheStore.new(
+          namespace: @namespace,
+          middlewares: [UnavailableRedisMiddleware],
+        )
       end
   end
 
@@ -448,13 +449,10 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     private
       def emulating_unavailability
-        old_client = Redis.send(:remove_const, :Client)
-        Redis.const_set(:Client, MaxClientsReachedRedisClient)
-
-        yield ActiveSupport::Cache::RedisCacheStore.new(namespace: @namespace)
-      ensure
-        Redis.send(:remove_const, :Client)
-        Redis.const_set(:Client, old_client)
+        yield ActiveSupport::Cache::RedisCacheStore.new(
+          namespace: @namespace,
+          middlewares: [MaxClientsReachedRedisMiddleware],
+        )
       end
   end
 
@@ -494,15 +492,16 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       other_key = SecureRandom.uuid
 
       @cache.write(key, SecureRandom.alphanumeric)
-      @cache.redis.set(other_key, SecureRandom.alphanumeric)
+      @cache.redis.node_for(other_key).call("set", other_key, SecureRandom.alphanumeric)
       @cache.clear
 
       assert_not @cache.exist?(key)
-      assert @cache.redis.exists?(other_key)
-      @cache.redis.del(other_key)
+      r = @cache.redis.node_for(other_key)
+      assert_equal 1, r.call("exists", other_key)
+      r.call("del", other_key)
     end
 
-    test "clear all cache key with Redis::Distributed" do
+    test "clear all cache key with RedisClient::HashRing" do
       cache = ActiveSupport::Cache::RedisCacheStore.new(
         url: REDIS_URLS,
         timeout: 0.1, namespace: @namespace, expires_in: 60)
@@ -539,7 +538,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @cache.write("foo", "bar")
       @cache.read("foo", delete: true)
       redis_backend do |r|
-        assert_not r.exists?("#{@namespace}:foo")
+        assert_equal 0, r.call("exists", "#{@namespace}:foo")
       end
     end
 

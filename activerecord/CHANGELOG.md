@@ -17,6 +17,179 @@
 
     *German DZ*
 
+*   Fix bug with reloading models with all-queries default scopes. The previous
+    implementation allowed non-all-queries on the current scope to leak into
+    the scope used for reloading.
+
+    *Andrew Novoselac* and *Matthew Draper*
+
+*   `insert!` now accepts the `:unique_by` option, consistent with `insert`.
+
+    *Kenta Ishizaki*
+
+*   Fix reading a `store_accessor` on a `NULL` structured column (`json`, `jsonb`,
+    or `hstore`) marking the record as changed and overwriting the `NULL` with an
+    empty hash on the next save.
+
+    *Kenta Ishizaki*
+
+*   Fix `update_all` corrupting the optimistic locking column when it is set
+    through an `alias_attribute`.
+
+    *Kenta Ishizaki*
+
+*   Fix `serialize` with `coder: ActiveRecord::Coders::JSON` silently double-encoding
+    a native `json`/`jsonb` column.
+
+    *Kenta Ishizaki*
+
+*   Fix `update_all` / `delete_all` ignoring `group` and `having`, updating or
+    deleting every row in the table instead of only the rows that satisfy the
+    `HAVING` clause.
+
+    *Kenta Ishizaki*
+
+*   Fix `ActiveRecord::Relation#cache_key` / `cache_version` for a loaded collection
+    containing a record without a timestamp.
+
+    *Kenta Ishizaki*
+
+*   Fix `ActiveRecord::MessagePack` serialization raising `NoMethodError`
+    for any record with a populated `time` column, which made such records
+    uncacheable through the MessagePack cache serializer.
+
+    *Kenta Ishizaki*
+
+*   Fix replacing or clearing a polymorphic `has_one` leaving a stale type column
+    on the removed record.
+
+    *Kenta Ishizaki*
+
+*   Add `sql_notifications` connection configuration option to disable SQL
+    notifications for specific database connections.
+
+    Libraries like Solid Cache and Solid Queue that use separate database
+    connections via `connects_to` can suppress internal SQL notification
+    overhead by setting `sql_notifications: false` in `database.yml`:
+
+    ```yaml
+    cache:
+      adapter: postgresql
+      database: myapp_cache
+      sql_notifications: false
+    ```
+
+    *Rosa Gutierrez*
+
+*   Allow the query log tags format to be configured per connection pool.
+
+    A `query_log_tags_format` key in a `database.yml` entry overrides the global
+    `config.active_record.query_log_tags_format` for connections in that pool, so
+    different databases can emit `:legacy` or `:sqlcommenter` formatted comments.
+
+    ```yaml
+    production:
+      primary:
+        database: primary
+      analytics:
+        database: analytics
+        query_log_tags_format: sqlcommenter
+    ```
+
+    *Hartley McGuire*
+
+*   Fix `update_attribute`/`update_attribute!` to raise for a readonly attribute referenced by an alias.
+
+    *Kenta Ishizaki*
+
+*   Fix `reset_column_sequences!` for tables in quoted schemas.
+
+    *Kenta Ishizaki*
+
+*   Fix `accepts_nested_attributes_for` `:limit` miscounting a single-record hash.
+
+    *Kenta Ishizaki*
+
+*   Fix `rename_index` to preserve a partial index's `WHERE` for SQLite and older MySQL/MariaDB versions.
+
+    *Kenta Ishizaki*
+
+*   Fix PostgreSQL `foreign_keys` returning a corrupted `to_table` for a foreign key
+    that references a table in a quoted schema.
+
+    *Kenta Ishizaki*
+
+*   Fix grouped calculations (e.g. `count`) grouped by a `belongs_to` association
+    that points to a composite primary key model.
+
+    `Book.group(:order).count`, where `Book belongs_to :order` and `Order` has a
+    composite primary key, raised `ArgumentError: Expected corresponding value
+    for ["shop_id", "id"] to be an Array`. The grouped result is now keyed by the
+    associated records as it already is for single-column keys.
+
+    *Kenta Ishizaki*
+
+*   Fix `has_many`/`has_one :through` associations with `disable_joins: true`
+    silently returning an empty result when the source points to a composite
+    primary key model.
+
+    *Kenta Ishizaki*
+
+*   Fix collection association `ids=` writers (e.g. `author.book_ids=`) raising
+    `ActiveRecord::RecordNotFound` for existing records when a composite primary
+    key model is assigned string ids (the shape ids take from request params).
+
+    Each id component is now cast against its own column type, instead of casting
+    the whole tuple against an array of column names, which `type_for_attribute`
+    can't resolve to a real type (so the cast was a no-op and the string ids
+    never matched the loaded records).
+
+    *Kenta Ishizaki*
+
+*   Fix `find` with multiple composite primary key ids passed as strings
+    silently returning `[]`.
+
+    `Model.find([["1", "10"], ["1", "20"]])` (the shape ids take when they come
+    from request parameters) returned an empty array instead of the records and
+    without raising `RecordNotFound`. The ids were cast against the array of key
+    column names as a whole — which is a no-op — so the string tuples never
+    compared equal to the records' integer ids when ordering the result. Each
+    component is now cast against its own column type, matching the documented
+    coercion already performed for single-column keys.
+
+    *Kenta Ishizaki*
+
+*   Fix PostgreSQL `daterange` / `tsrange` / `tstzrange` schema dump producing
+    invalid Ruby.
+
+    The schema dumper used to render range defaults via `Range#inspect`, which
+    falls back to `Date#inspect` / `Time#inspect` for the bounds. The resulting
+    `schema.rb` literal (for example `default: Mon, 01 Jan 2024..Wed, 01 Jan 2025`)
+    raised a `SyntaxError` on `db:schema:load`. The bounds are now rendered via
+    the subtype's `type_cast_for_schema`, so date and timestamp range defaults
+    round-trip through `schema.rb` like any other column.
+
+    *Kenta Ishizaki*
+
+*   Respect `schema_search_path` on `rails dbconsole` for PostgreSQL.
+
+    *Gabriel Sobrinho*
+
+*   Preserve IPv6 prefix when dumping PostgreSQL `cidr` / `inet` defaults to `schema.rb`.
+
+    The schema dumper used to omit the prefix whenever it equaled `/32`, which
+    is the full mask for IPv4 but not for IPv6. As a result, an IPv6 default
+    such as `"::/32"` was written as `"::"` in `schema.rb` and reloaded as
+    `::/128`, silently dropping the subnet information. The prefix is now only
+    omitted when it covers the full address (`/32` for IPv4, `/128` for IPv6).
+
+    *Kenta Ishizaki*
+
+*   Fix deadlock when pool-less connection materializes while fetching database
+    server version.
+
+    *Hartley McGuire*
+
 *   Add `#default_order` query method and association option which can be used to order records when no other order is specified.
 
     This extends the functionality offered by `#implicit_order_column` to scopes and associations.

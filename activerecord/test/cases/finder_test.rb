@@ -658,6 +658,41 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "Jamis", last_devs[1].name
   end
 
+  def test_find_with_order_and_offset_past_the_ids_returns_empty
+    ids = Developer.order(:id).limit(3).ids
+    assert_equal 3, ids.size
+
+    # unordered, offset greater than the number of ids
+    assert_equal [], Developer.offset(9999).find(ids)
+
+    # ordered, offset greater than the number of ids
+    assert_equal [], Developer.order(:id).offset(9999).find(ids)
+
+    # ordered, offset equal to the number of ids
+    assert_equal [], Developer.order(:id).offset(3).find(ids)
+  end
+
+  def test_find_with_order_limit_and_offset_matches_unordered_path
+    ids = Developer.order(:id).ids
+    assert_equal 11, ids.size
+
+    # For every limit/offset combination, the ordered path must return
+    # the same records as the unordered path: the ids sliced by offset then limit.
+    # Covers offsets within range, limits that run past the end, the boundary
+    # offset == ids.size, and offsets past the end.
+    [[3, 2], [4, 7], [3, 9], [5, 9], [2, 11], [3, 15], [11, 0]].each do |limit, offset|
+      expected = ids.slice(offset, limit) || []
+
+      ordered = Developer.order(:id).limit(limit).offset(offset).find(ids)
+      assert_equal expected, ordered.map(&:id),
+        "ordered find with limit #{limit}, offset #{offset}"
+
+      unordered = Developer.limit(limit).offset(offset).find(ids)
+      assert_equal expected.sort, unordered.map(&:id).sort,
+        "unordered find with limit #{limit}, offset #{offset}"
+    end
+  end
+
   def test_find_with_large_number
     assert_queries_count(0) do
       assert_raises(ActiveRecord::RecordNotFound) { Topic.find("9999999999999999999999999999999") }
@@ -2086,6 +2121,13 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [book], Cpk::Book.find([book.id])
   end
 
+  test "find with an empty array on a composite primary key" do
+    empty_array = []
+    result = Cpk::Book.find(empty_array)
+    assert_equal [], result
+    assert_not_same empty_array, result
+  end
+
   test "find with a multiple sets of composite primary key" do
     books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
     ids = books.map(&:id)
@@ -2104,6 +2146,13 @@ class FinderTest < ActiveRecord::TestCase
     books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
 
     assert_equal books.map(&:id), Cpk::Book.order(author_id: :asc).find(books.map(&:id)).map(&:id)
+  end
+
+  test "find with multiple sets of composite primary key given as strings" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+    string_ids = books.map { |book| book.id.map(&:to_s) }
+
+    assert_equal books.map(&:id), Cpk::Book.find(string_ids).map(&:id)
   end
 
   test "#find_by with composite primary key" do

@@ -382,10 +382,11 @@ module ActiveRecord
 
     # Returns true if there are no records.
     #
-    # When a pattern argument is given, this method checks whether elements in
-    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
+    # When an argument is given, returns true if no records match the argument
+    # via the case-equality operator (<tt>===</tt>).
     #
-    #   posts.none?(Comment) # => true or false
+    #   posts.none?(Post)    # => true if posts is empty
+    #   posts.none?(Comment) # => true
     def none?(*args)
       return true if @none
 
@@ -395,10 +396,12 @@ module ActiveRecord
 
     # Returns true if there are any records.
     #
-    # When a pattern argument is given, this method checks whether elements in
-    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
     #
-    #    posts.any?(Post) # => true or false
+    # When an argument is given, returns true if at least one records matches
+    # the argument via the case-equality operator (<tt>===</tt>).
+    #
+    #    posts.any?(Post)    # => true if at least one record
+    #    posts.any?(Comment) # => false
     def any?(*args)
       return false if @none
 
@@ -408,10 +411,11 @@ module ActiveRecord
 
     # Returns true if there is exactly one record.
     #
-    # When a pattern argument is given, this method checks whether elements in
-    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
+    # When an argument is given, returns true if exactly one records matches the
+    # argument via the case-equality operator (<tt>===</tt>).
     #
-    #    posts.one?(Post) # => true or false
+    #    posts.one?(Post) # => true if exactly one record
+    #    posts.any?(Comment) # => false
     def one?(*args)
       return false if @none
 
@@ -486,7 +490,7 @@ module ActiveRecord
       if loaded?
         size = records.size
         if size > 0
-          timestamp = records.map { |record| record.read_attribute(timestamp_column) }.max
+          timestamp = records.filter_map { |record| record.read_attribute(timestamp_column) }.max
         end
       else
         collection = eager_loading? ? apply_join_dependency : self
@@ -615,8 +619,7 @@ module ActiveRecord
 
       if updates.is_a?(Hash)
         if model.locking_enabled? &&
-            !updates.key?(model.locking_column) &&
-            !updates.key?(model.locking_column.to_sym)
+            updates.keys.none? { |key| (model.attribute_alias(key) || key.to_s) == model.locking_column }
           attr = table[model.locking_column]
           updates[attr.name] = _increment_attribute(attr)
         end
@@ -751,8 +754,8 @@ module ActiveRecord
     # go through Active Record's type casting and serialization.
     #
     # See #insert_all! for more.
-    def insert!(attributes, returning: nil, record_timestamps: nil)
-      insert_all!([ attributes ], returning: returning, record_timestamps: record_timestamps)
+    def insert!(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
+      insert_all!([ attributes ], returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
     end
 
     # Inserts multiple records into the database in a single SQL INSERT
@@ -1089,6 +1092,10 @@ module ActiveRecord
     #   Todo.delete([2,3,4])
     def delete(id_or_array)
       return 0 if id_or_array.nil? || (id_or_array.is_a?(Array) && id_or_array.empty?)
+
+      if model.composite_primary_key? && !id_or_array.first.is_a?(Array)
+        id_or_array = [id_or_array]
+      end
 
       where(model.primary_key => id_or_array).delete_all
     end

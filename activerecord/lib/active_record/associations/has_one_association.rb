@@ -120,6 +120,7 @@ module ActiveRecord
           Array(reflection.foreign_key).each do |foreign_key_column|
             record[foreign_key_column] = nil unless foreign_key_column.in?(Array(record.class.primary_key))
           end
+          record[reflection.type] = nil if reflection.type.present?
         end
 
         def transaction_if(value, &block)

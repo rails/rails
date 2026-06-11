@@ -1,3 +1,13 @@
+*   Fix `ActionView::TestCase#render` to reset `rendered`.
+    The behavior was changed when memoization was added in #51093. Now it once again conforms to the documentation.
+
+    *Jeroen Versteeg*
+
+*   Fix `FormBuilder#to_partial_path` returning `nil` for subclasses whose
+    name does not end in `Builder`.
+
+    *Kenta Ishizaki*
+
 *   Fix `collection_radio_buttons` and `collection_check_boxes` generating
     a label `for` attribute that does not match the input `id` when a
     collection value is `nil`.

@@ -1,18 +1,24 @@
-*   Add shims for `Ractor` shareability methods so framework code can call them
-    unconditionally regardless of the Ruby version.
+*   Add `ActiveSupport::Notifications::NullInstrumenter`, a stateless no-op
+    instrumenter that executes blocks without publishing any notifications.
 
-    When `Ractor` is not defined, or the underlying method is not available, the
-    shim is a no-op that simply returns its argument (or the given block).
-    Otherwise the call is forwarded to the matching `Ractor` class method.
+    Available via `ActiveSupport::Notifications.null_instrumenter`, this is
+    useful for suppressing instrumentation on specific components, such as
+    database connections that don't need SQL notification overhead.
 
-    ```ruby
-    ractor_make_shareable(obj)        # => Ractor.make_shareable(obj)        or obj
-    ractor_shareable?(obj)            # => Ractor.shareable?(obj)            or obj
-    ractor_shareable_proc   { ... }   # => Ractor.shareable_proc   { ... }   or the block
-    ractor_shareable_lambda { ... }   # => Ractor.shareable_lambda { ... }   or the block
-    ```
+    *Rosa Gutierrez*
 
-    *Andrew Novoselac*
+*   `ActiveSupport::Cache::RedisCacheStore` entirely reimplemented.
+
+    Now depends on the much lighter `redis-client >= 0.28.0` instead of `redis >= 4.0.1`.
+
+    The change shouldn't be noticeable unless the cache is configured with the `:redis` argument.
+    In such case it will keep working for now, but will issue a deprecation warning.
+
+    Prefer configuring Redis Cache Store with an `:url` argument instead, but if you need advanced options
+    not supported by Redis Cache Store constructor, you can alternatively pass a custom `RedisClient::Config` instance
+    via the `:client` argument.
+
+    *Jean Boussier*
 
 *   Fix `NumberHelper` raising `FloatDomainError` for `Infinity` / `NaN` with
     `significant: true`.

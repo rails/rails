@@ -63,6 +63,12 @@ class OutputSafetyHelperTest < ActionView::TestCase
     assert_equal("&lt;script&gt;", actual)
   end
 
+  test "to_sentence handles an empty array" do
+    actual = to_sentence([])
+    assert_equal "", actual
+    assert_predicate actual, :html_safe?
+  end
+
   test "to_sentence does not double escape if single value is html_safe" do
     assert_equal("&lt;script&gt;", to_sentence([ERB::Util.html_escape("<script>")]))
     assert_equal("&lt;script&gt;", to_sentence(["&lt;script&gt;".html_safe]))

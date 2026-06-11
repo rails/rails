@@ -18,7 +18,7 @@ module ActiveRecord
       # Force known GUC defaults at connect time so query-count
       # assertions are deterministic regardless of server configuration.
       # TimeZone must be non-UTC so the :utc/:local distinction is visible.
-      KNOWN_SERVER_DEFAULTS = "-c TimeZone=US/Eastern -c IntervalStyle=postgres -c standard_conforming_strings=on -c client_min_messages=notice"
+      KNOWN_SERVER_DEFAULTS = "-c TimeZone=America/New_York -c IntervalStyle=postgres -c standard_conforming_strings=on -c client_min_messages=notice"
 
       def setup
         @connection = ActiveRecord::Base.lease_connection
@@ -1309,6 +1309,60 @@ module ActiveRecord
 
           assert_equal "PostgreSQL SQL warning", warning_message
           assert_equal "WARNING", warning_level
+        end
+      end
+
+      def test_clears_warnings_after_handling_non_execute_query
+        warning_sql = "do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$"
+        warnings = []
+        warning_action = ->(warning) { warnings << [warning.message, warning.sql] }
+
+        with_db_warnings_action(warning_action) do
+          @connection.exec_query(warning_sql)
+          @connection.exec_query("SELECT 1")
+        end
+
+        assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
+      end
+
+      def test_clears_warnings_after_non_execute_warning_action_raises
+        with_db_warnings_action(:raise) do
+          assert_raises(ActiveRecord::SQLWarning) do
+            @connection.exec_query("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$")
+          end
+
+          assert_nothing_raised do
+            @connection.exec_query("SELECT 1")
+          end
+        end
+      end
+
+      def test_handles_warnings_after_non_execute_query_raises
+        warning_sql = "do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; RAISE EXCEPTION 'PostgreSQL SQL error'; END; $$"
+        warnings = []
+        warning_action = ->(warning) { warnings << [warning.message, warning.sql] }
+
+        with_db_warnings_action(warning_action) do
+          assert_raises(ActiveRecord::StatementInvalid) do
+            @connection.exec_query(warning_sql)
+          end
+
+          @connection.exec_query("SELECT 1")
+        end
+
+        assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
+      end
+
+      def test_warning_action_does_not_hide_non_execute_query_error
+        with_db_warnings_action(:raise) do
+          error = assert_raises(ActiveRecord::StatementInvalid) do
+            @connection.exec_query("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; RAISE EXCEPTION 'PostgreSQL SQL error'; END; $$")
+          end
+          assert_match(/PostgreSQL SQL error/, error.message)
+
+          assert_nothing_raised do
+            @connection.exec_query("SELECT 1")
+          end
         end
       end
 

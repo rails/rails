@@ -57,7 +57,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   after_update :touch_attachments
 
-  after_update_commit :update_service_metadata, if: -> { content_type_previously_changed? || metadata_previously_changed? }
+  after_update_commit :sync_metadata_later, if: -> { content_type_previously_changed? || metadata_previously_changed? }
 
   before_destroy(prepend: true) do
     raise ActiveRecord::InvalidForeignKey if attachments.exists?
@@ -313,6 +313,16 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.compose(keys, key, **service_metadata)
   end
 
+  def service_metadata # :nodoc:
+    if forcibly_serve_as_binary?
+      { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
+    elsif !allowed_inline?
+      { content_type: content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
+    else
+      { content_type: content_type, custom_metadata: custom_metadata }
+    end
+  end
+
   # Downloads the file associated with this blob. If no block is given, the entire file is read into memory and returned.
   # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
   def download(&block)
@@ -378,6 +388,10 @@ class ActiveStorage::Blob < ActiveStorage::Record
     ActiveStorage::PurgeJob.perform_later(self)
   end
 
+  def sync_metadata # :nodoc:
+    service.update_metadata key, **service_metadata if service_metadata.any?
+  end
+
   # Returns an instance of service, which can be configured globally or per attachment
   def service
     services.fetch(service_name) if service_name
@@ -411,16 +425,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
       ActiveStorage.web_image_content_types.include?(content_type)
     end
 
-    def service_metadata
-      if forcibly_serve_as_binary?
-        { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
-      elsif !allowed_inline?
-        { content_type: content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
-      else
-        { content_type: content_type, custom_metadata: custom_metadata }
-      end
-    end
-
     def touch_attachments
       # The cascade exists to invalidate cache keys; it must not bump
       # +lock_version+ on parents, since blob analysis does not modify any
@@ -438,8 +442,8 @@ class ActiveStorage::Blob < ActiveStorage::Record
       end
     end
 
-    def update_service_metadata
-      service.update_metadata key, **service_metadata if service_metadata.any?
+    def sync_metadata_later
+      ActiveStorage::SyncMetadataJob.perform_later(self)
     end
 end
 

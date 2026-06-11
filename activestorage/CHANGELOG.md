@@ -1,3 +1,40 @@
+*   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
+
+    Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
+    because `content_type`, `filename`, `disposition`, and `custom_metadata` were
+    dropped. Forward the blob's `service_metadata` to each mirror's upload.
+
+    Fixes #57270.
+
+    *Maksim Romanov* + *Andrii Furmanets*
+
+*   Offload ActiveStorage::Blob#metadata sync to background
+
+    Problem:
+
+    A data race can occur when both a http server and a background worker (
+    `ActiveStorage::AnalyzeJob`) attempt to update a blob's metadata
+    simultaneously. This leads to a 409 conflict on GCS.
+
+    Solution:
+
+    Offload the metadata upload to a background job so the 409 no longer breaks
+    the request with a 500. Applications can add `retry_on` to
+    `ActiveStorage::SyncMetadataJob` to retry the conflict for their service.
+
+    `ActiveStorage::Service#update_metadata` now instruments the work and
+    delegates it to a new `update_metadata_for` method. Custom services that
+    overrode `update_metadata` should override `update_metadata_for` instead, so
+    the work runs inside the instrumentation.
+
+    *Shouichi Kamiya*
+
+*   Update Active Storage for ImageProcessing 2.0.
+
+    ImageProcessing 2.0 now requires adding `ruby-vips` or `mini_magick` gems explicitly to the Gemfile.
+
+    *Janko Marohnić*
+
 *   Prevent `ActiveStorage.touch_attachment_records = false` from crashing the attachment of a Blob.
 
     When `ActiveStorage.touch_attachment_records` was set to `false`, attaching a existing Blob to a Record

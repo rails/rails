@@ -419,12 +419,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     FileUtils.cd(destination_root) do
       config = "config/application.rb"
       content = File.read(config)
-      File.write(config, content.gsub(/config\.load_defaults #{Rails::VERSION::STRING.to_f}/, "config.load_defaults 5.1"))
+      File.write(config, content.gsub(/config\.load_defaults #{Rails::VERSION::STRING.to_f}/, "config.load_defaults 8.0"))
     end
 
     run_app_update
 
-    assert_file "config/application.rb", /\s+config\.load_defaults 5\.1/
+    assert_file "config/application.rb", /\s+config\.load_defaults 8\.0/
   end
 
   def test_app_update_generates_new_framework_defaults_when_load_defaults_is_previous_version
@@ -1576,7 +1576,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
           "context" => "..",
           "dockerfile" => ".devcontainer/Dockerfile"
         },
-        "volumes" => ["../../tmp:/workspaces/tmp:cached"],
+        "volumes" => ["../../tmp:/workspaces/tmp:cached", "bundle-cache:/home/vscode/.local/share"],
         "command" => "sleep infinity",
         "depends_on" => ["selenium"]
       }
@@ -1629,7 +1629,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_compose_file do |compose_config|
       assert_not_includes compose_config["services"]["rails-app"]["depends_on"], "redis"
       assert_nil compose_config["services"]["redis"]
-      assert_nil compose_config["volumes"]
+      assert_includes compose_config["volumes"].keys, "bundle-cache"
     end
 
     assert_devcontainer_json_file do |content|
@@ -1874,6 +1874,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     def assert_gem_for_active_storage
       assert_gem "image_processing"
+      assert_gem "ruby-vips", /.*require: false/
     end
 
     def assert_frameworks_are_not_required_when_active_storage_is_skipped
@@ -1890,6 +1891,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     def assert_gems_when_active_storage_is_skipped
       assert_no_gem "image_processing"
+      assert_no_gem "ruby-vips"
     end
 
     def assert_gitattributes_does_not_have_schema_file
