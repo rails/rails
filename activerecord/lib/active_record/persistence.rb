@@ -693,7 +693,9 @@ module ActiveRecord
 
       increment(attribute, by)
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
-      self.class.update_counters(id, attribute => change, touch: touch)
+      counters = { attribute => change, touch: touch }
+
+      self.class.unscoped.where!(_query_constraints_hash).update_counters(counters)
       public_send(:"clear_#{attribute}_change")
       self
     end
