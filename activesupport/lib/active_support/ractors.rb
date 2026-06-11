@@ -5,6 +5,36 @@ module ActiveSupport
   # unconditionally regardless of the Ruby version.
   module Ractors # :nodoc:
     class << self
+      attr_accessor :unshareable_proc_action
+
+      # Attempts to return a Ractor-shareable copy of +proc+ when configured.
+      #
+      # +unshareable_proc_action+ controls what happens if the proc can't be
+      # made shareable:
+      #
+      # * +:raise+ raises the original +Ractor::IsolationError+
+      # * +:warn+ emits a deprecation warning and returns the original proc
+      # * +nil+ returns the original proc without attempting to make it shareable
+      def shareable_proc_attempt(proc = nil, &block)
+        proc ||= block
+        return proc unless unshareable_proc_action
+
+        shareable_proc(&proc)
+      rescue Ractor::IsolationError
+        case unshareable_proc_action
+        when :raise
+          raise
+        when :warn
+          ActiveSupport.deprecator.warn(<<~MSG.squish)
+            Rails attempted to make a Proc from your application Ractor shareable but a Ractor
+            isolation error was raised. The proc being returned is not Ractor safe and a runtime
+            error may occur anytime during the request lifecycle.
+          MSG
+
+          proc
+        end
+      end
+
       if defined?(Ractor) && RUBY_VERSION >= "4.0"
         # Makes +obj+ Ractor-shareable by delegating to +Ractor.make_shareable+.
         #
