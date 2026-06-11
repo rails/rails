@@ -632,11 +632,7 @@ module ActiveRecord
         arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
-        key = if model.composite_primary_key?
-          primary_key.map { |pk| table[pk] }
-        else
-          table[primary_key]
-        end
+        key = model.primary_key_definition.arel_columns(table)
         stmt = arel.compile_update(values, key)
         c.update(stmt, "#{model} Update All").tap { reset }
       end
@@ -1061,11 +1057,7 @@ module ActiveRecord
         arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
-        key = if model.composite_primary_key?
-          primary_key.map { |pk| table[pk] }
-        else
-          table[primary_key]
-        end
+        key = model.primary_key_definition.arel_columns(table)
         stmt = arel.compile_delete(key)
 
         c.delete(stmt, "#{model} Delete All").tap { reset }
@@ -1121,13 +1113,7 @@ module ActiveRecord
     #   todos = [1,2,3]
     #   Todo.destroy(todos)
     def destroy(id)
-      multiple_ids = if model.composite_primary_key?
-        id.first.is_a?(Array)
-      else
-        id.is_a?(Array)
-      end
-
-      if multiple_ids
+      if model.primary_key_definition.expects_multiple_ids?(id)
         find(id).each(&:destroy)
       else
         find(id).destroy
