@@ -1,3 +1,16 @@
+*   Make Active Storage signed IDs URL-safe.
+
+    `ActiveStorage.verifier` did not set `url_safe: true`, so signed IDs (and the
+    other tokens it produces) could contain `+` or `/` characters. Because a blob's
+    signed ID is used as a path segment in the Active Storage routes, a `/` in the
+    value broke routing and resulted in a 404. This was most likely to surface with
+    a binary-dense message serializer such as `:message_pack`.
+
+    The verifier is now configured to generate URL-safe messages, mirroring the fix
+    applied to `ActiveRecord::SignedId`. Existing tokens remain valid.
+
+    *Augusto Xavier*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.
