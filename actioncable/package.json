@@ -27,17 +27,16 @@
     "@eslint/js": "^9.24.0",
     "@rollup/plugin-commonjs": "^19.0.1",
     "@rollup/plugin-node-resolve": "^11.0.1",
+    "@web/test-runner": "^0.20.2",
+    "@web/test-runner-saucelabs": "^0.13.0",
     "eslint": "^9.24.0",
     "eslint-plugin-import": "^2.31.0",
     "globals": "^14.0.0",
-    "karma": "^6.4.2",
-    "karma-chrome-launcher": "^2.2.0",
-    "karma-qunit": "^2.1.0",
-    "karma-sauce-launcher": "^1.2.0",
     "mock-socket": "^2.0.0",
-    "qunit": "^2.8.0",
+    "qunit": "^2.20.0",
     "rollup": "^2.35.1",
-    "rollup-plugin-terser": "^7.0.2"
+    "rollup-plugin-terser": "^7.0.2",
+    "web-test-runner-qunit": "^2.0.0"
   },
   "scripts": {
     "prebuild": "yarn lint && bundle exec rake assets:codegen",
@@ -45,6 +44,6 @@
     "lint": "eslint app/javascript",
     "prepublishOnly": "rm -rf src && cp -R app/javascript/action_cable src",
     "pretest": "bundle exec rake assets:codegen && rollup --config rollup.config.test.js",
-    "test": "karma start"
+    "test": "web-test-runner --config web-test-runner.config.mjs"
   }
 }
