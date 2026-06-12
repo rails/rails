@@ -36,6 +36,18 @@ module ActiveSupport
       end
 
       if defined?(Ractor) && RUBY_VERSION >= "4.0"
+        gem "ractor-dispatch"
+        require "ractor/dispatch"
+
+        def on_main(obj = nil, &block)
+          if Ractor.main?
+            obj.instance_eval(&block)
+          else
+            shareable_block = shareable_proc(&block)
+            Ractor::Dispatch.main.run { obj.instance_eval(&shareable_block) }
+          end
+        end
+
         # Makes +obj+ Ractor-shareable by delegating to +Ractor.make_shareable+.
         #
         # The +copy:+ option is forwarded unchanged. On Ruby versions without
@@ -72,6 +84,10 @@ module ActiveSupport
           Ractor.shareable_lambda(...)
         end
       else
+        def on_main(obj = nil, &block)
+          obj.instance_eval(&block)
+        end
+
         def make_shareable(obj, copy: false)
           obj
         end

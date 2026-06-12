@@ -161,3 +161,7 @@ gem "tzinfo-data", platforms: [:windows, :jruby]
 gem "wdm", ">= 0.1.0", platforms: [:windows]
 
 gem "launchy"
+
+install_if -> { RUBY_VERSION >= "4.0" } do
+  gem "ractor-dispatch"
+end
