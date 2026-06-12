@@ -1,3 +1,12 @@
+*   `ActiveRecord::Base.with` now calls `Object#with` when given a block.
+
+    The class-level `with` delegates to the relation's CTE query method, which
+    does not accept a block. When a block is passed, it now delegates to
+    `Object#with` instead, so it can be used to temporarily set attributes on
+    the class for the duration of the block.
+
+    *Janko Marohnić*
+
 *   Fix `increment!` / `decrement!` on models with query constraints to include
     every query constraint column in the counter update.
 
