@@ -24,6 +24,27 @@ class BaseTest < ActionCable::TestCase
     end
   end
 
+  test "#each_connection iterates a snapshot so connections can be added during iteration" do
+    beating = Class.new do
+      def initialize(server)
+        @server = server
+      end
+
+      def beat
+        @server.add_connection(Object.new)
+      end
+    end.new(@server)
+
+    @server.add_connection(beating)
+
+    # A connection completing its handshake (add_connection) on a worker thread
+    # while the 3s heartbeat iterates the live connections must not raise
+    # "can't add a new key into hash during iteration".
+    assert_nothing_raised do
+      @server.each_connection(&:beat)
+    end
+  end
+
   test "#restart shuts down worker pool" do
     assert_called(@server.worker_pool, :halt) do
       @server.restart
