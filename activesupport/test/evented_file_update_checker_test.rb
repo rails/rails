@@ -72,6 +72,11 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
       # has been touched.
       IO.select([touch_reader])
 
+      10.times do
+        break if checker.updated?
+        wait
+      end
+
       assert_predicate checker, :updated?
     rescue Exception => ex
       result_writer.write("#{ex.class.name}: #{ex.message}")
