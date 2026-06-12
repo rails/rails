@@ -140,6 +140,42 @@ module Arel # :nodoc: all
           visit o.right, collector
         end
 
+        # Opt-in via Arel.array_bind: compile a homogeneous IN/NOT IN predicate
+        # as +col = ANY($1)+ / +col <> ALL($1)+, binding the whole list as a
+        # single array parameter instead of expanding every value into
+        # +IN (1, 2, ..., N)+.
+        #
+        # This keeps the SQL text a constant size regardless of how many values
+        # are matched. The single bind is sent over the wire even when prepared
+        # statements are disabled (see
+        # Arel::Collectors::SubstituteBinds#add_bind_param).
+        #
+        # Only wire nodes take this path; ordinary +where(col: array)+ queries
+        # fall back to the default +IN (...)+ expansion. A wire +HomogeneousIn+
+        # never carries +nil+ values or fewer than two elements
+        # (PredicateBuilder::ArrayBindHandler splits those off beforehand), so
+        # the +ANY+/+ALL+ NULL-handling caveats do not apply here.
+        def visit_Arel_Nodes_HomogeneousIn(o, collector)
+          return super unless o.wire?
+
+          bind = @connection.build_homogeneous_in_bind(o.attribute, o.values)
+          return super if bind.nil?
+
+          collector.preparable = false
+
+          visit o.left, collector
+
+          if o.type == :in
+            collector << " = ANY("
+          else
+            collector << " <> ALL("
+          end
+
+          collector.add_bind_param(bind, &bind_block)
+
+          collector << ")"
+        end
+
         BIND_BLOCK = ActiveSupport::Ractors.shareable_proc { |i| "$#{i}" }
         private_constant :BIND_BLOCK
 
