@@ -76,6 +76,13 @@ module ActionCable
         class Listener < SubscriberMap::Async
           delegate :logger, to: :@adapter
 
+          # A permanent internal subscription keeps the Redis subscription count
+          # above zero while any user channel comes and goes, so removing the
+          # last user channel doesn't end the listen loop. Only an explicit
+          # shutdown (which unsubscribes from everything) drives the count to
+          # zero and stops the listener.
+          INTERNAL_CHANNEL = "_action_cable_internal"
+
           def initialize(adapter, config_options, executor)
             super(executor)
 
@@ -101,6 +108,8 @@ module ActionCable
 
             @reconnect_attempt = 0
             @subscribed_client = pubsub_client
+
+            pubsub_client.call("subscribe", INTERNAL_CHANNEL)
 
             until @when_connected.empty?
               @when_connected.shift.call
