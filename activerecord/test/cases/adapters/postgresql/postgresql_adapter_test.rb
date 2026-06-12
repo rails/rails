@@ -988,11 +988,14 @@ module ActiveRecord
         assert_raises ActiveRecord::ConnectionNotEstablished do
           @connection.execute("SELECT 1")
         end
+      ensure
+        @connection&.disconnect!
       end
 
       def test_translate_no_connection_exception_to_not_established
-        pid = @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
-        @connection.pool.checkout.execute("SELECT pg_terminate_backend(#{pid})")
+        raw_connection = @connection.raw_connection
+        pid = connection_id_from_server(@connection)
+        kill_connection_from_server(pid)
         # If you run `@connection.execute` after the backend process has been terminated,
         # you will get the "server closed the connection unexpectedly" rather than "no connection to the server".
         # Because what we want to test here is an error that occurs during `send_query`,
@@ -1000,11 +1003,107 @@ module ActiveRecord
         # The `send_query` changes the internal `PG::Connection#status` to `CONNECTION_BAD`,
         # so any subsequent queries will get the "no connection to the server" error.
         # https://github.com/postgres/postgres/blob/REL_17_0/src/interfaces/libpq/fe-exec.c#L1686-L1691
-        @connection.instance_variable_get(:@raw_connection).send_query("SELECT 1")
+        raw_connection.send_query("SELECT 1")
 
         assert_raise ActiveRecord::ConnectionNotEstablished do
           @connection.execute("SELECT 1")
         end
+      end
+
+      def test_terminate_backend_preserves_typed_exception
+        pid = connection_id_from_server(@connection)
+
+        # Put in a dirty transaction so auto-reconnect can't mask the error
+        @connection.execute("BEGIN")
+        @connection.execute("CREATE TEMP TABLE _typed_exception_probe()")
+
+        kill_connection_from_server(pid)
+        sleep 0.1
+
+        error = assert_raises(ActiveRecord::ConnectionFailed) { @connection.execute("SELECT 1") }
+        assert_kind_of PG::AdminShutdown, error.cause
+        assert_equal "57P01", error.cause.result.error_field(PG::PG_DIAG_SQLSTATE)
+      ensure
+        @connection&.disconnect!
+      end
+
+      def test_idle_in_transaction_timeout_preserves_typed_exception
+        @connection.execute("BEGIN")
+        @connection.execute("SET idle_in_transaction_session_timeout = '10ms'")
+        sleep 0.1
+
+        error = assert_raises(ActiveRecord::ConnectionFailed) { @connection.execute("SELECT 1") }
+        assert_kind_of PG::IdleInTransactionSessionTimeout, error.cause
+        assert_equal "25P03", error.cause.result.error_field(PG::PG_DIAG_SQLSTATE)
+      ensure
+        @connection&.disconnect!
+      end
+
+      def test_fatal_via_notice_channel_recovers_before_the_next_query
+        pid = connection_id_from_server(@connection)
+        kill_connection_from_server(pid)
+
+        # Force the FATAL through the notice channel rather than as a result:
+        # read it while idle (a bare get_result). Reach @raw_connection directly
+        # -- the #raw_connection accessor would mark the connection dirty and
+        # defeat recovery; in real use the notice is captured during AR's own
+        # get_result.
+        raw = @connection.instance_variable_get(:@raw_connection)
+        raw.socket_io.wait_readable(1)
+        raw.consume_input
+        assert_nil raw.get_result
+
+        # Having already learned the connection is dead, the next query doesn't
+        # pay for it: pre-query verification reconnects, exactly as it does for
+        # any connection we knew in advance had gone bad.
+        assert_equal 1, @connection.select_value("SELECT 1")
+        assert_not_equal pid, connection_id_from_server(@connection)
+      ensure
+        @connection&.disconnect!
+      end
+
+      def test_fatal_via_notice_channel_preserves_typed_cause_when_unrecoverable
+        pid = connection_id_from_server(@connection)
+        kill_connection_from_server(pid)
+
+        # Same notice-channel delivery as above, but reach the raw connection via
+        # the #raw_connection accessor, which marks it dirty -> non-recoverable.
+        # With no clean reconnect available, the next query surfaces the failure
+        # -- and it must carry the captured FATAL as its cause, not the generic
+        # socket error that merely tripped over the already-dead connection.
+        raw = @connection.raw_connection
+        raw.socket_io.wait_readable(1)
+        raw.consume_input
+        assert_nil raw.get_result
+
+        error = assert_raises(ActiveRecord::ConnectionFailed) { @connection.select_value("SELECT 1") }
+        assert_kind_of PG::AdminShutdown, error.cause
+        assert_equal "57P01", error.cause.result.error_field(PG::PG_DIAG_SQLSTATE)
+      ensure
+        @connection&.disconnect!
+      end
+
+      def test_flush_on_dead_connection_translates_to_connection_failed
+        pid = connection_id_from_server(@connection)
+        raw_connection = @connection.raw_connection
+
+        # Queue a slow query, then kill the backend while it's running
+        raw_connection.send_query("SELECT pg_sleep(1)")
+        kill_connection_from_server(pid)
+        sleep 0.1
+
+        # Drain results: first the FATAL, then the socket death
+        loop do
+          raw_connection.get_result || break
+        rescue PG::Error
+          break
+        end
+
+        error = assert_raises(PG::Error) { raw_connection.flush }
+        assert_not_kind_of PG::ConnectionBad, error
+
+        translated = @connection.send(:translate_exception_class, error, nil, nil)
+        assert_kind_of ActiveRecord::ConnectionFailed, translated
       end
 
       def test_reload_type_map_for_newly_defined_types
@@ -1251,13 +1350,9 @@ module ActiveRecord
 
       def test_ignores_warnings_when_behavior_ignore
         with_db_warnings_action(:ignore) do
-          # libpq prints a warning to stderr from C, so we need to stub
-          # the whole file descriptors, not just Ruby's $stdout/$stderr.
-          _out, err = capture_subprocess_io do
-            result = @connection.execute("do $$ BEGIN RAISE WARNING 'foo'; END; $$")
-            assert_equal [], result.to_a
-          end
-          assert_match(/WARNING:  foo/, err)
+          result = @connection.execute("do $$ BEGIN RAISE WARNING 'foo'; END; $$")
+
+          assert_equal [], result.to_a
         end
       end
 
