@@ -304,6 +304,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, omission: "[...]", separator: " ")
   end
 
+  def test_truncate_with_separator_and_omission_longer_than_truncate_to
+    assert_equal "[...]", "Hello Big World!".truncate(2, omission: "[...]", separator: " ")
+    assert_equal "[...]", "Hello Big World!".truncate(2, omission: "[...]", separator: /\s/)
+  end
+
   def test_truncate_with_omission_and_regexp_separator
     assert_equal "Hello[...]", "Hello Big World!".truncate(13, omission: "[...]", separator: /\s/)
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, omission: "[...]", separator: /\s/)

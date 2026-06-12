@@ -72,6 +72,8 @@ class String
 
     omission = options[:omission] || "..."
     length_with_room_for_omission = truncate_to - omission.length
+    return omission.dup if length_with_room_for_omission <= 0
+
     stop = \
       if options[:separator]
         rindex(options[:separator], length_with_room_for_omission) || length_with_room_for_omission
