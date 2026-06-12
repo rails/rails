@@ -1612,8 +1612,8 @@ module ActiveRecord
     alias :without :excluding
 
     def excluding!(records) # :nodoc:
-      predicates = [ predicate_builder[primary_key, records].invert ]
-      self.where_clause += Relation::WhereClause.new(predicates)
+      ids = records.map { |record| record.is_a?(model) ? record.id : record }
+      self.where_clause += build_where_clause(primary_key => ids).invert
       self
     end
 
