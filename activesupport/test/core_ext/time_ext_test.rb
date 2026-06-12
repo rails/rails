@@ -664,6 +664,18 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal t, t.advance(months: 0)
   end
 
+  def test_advance_does_not_mutate_options
+    options = { weeks: 1, days: 2 }
+    Time.new(2024, 1, 1).advance(options)
+    assert_equal({ weeks: 1, days: 2 }, options)
+  end
+
+  def test_advance_with_frozen_options
+    assert_nothing_raised do
+      Time.new(2024, 1, 1).advance({ weeks: 1, days: 2 }.freeze)
+    end
+  end
+
   def test_advance_gregorian_proleptic
     assert_equal Time.local(1582, 10, 14, 15, 15, 10), Time.local(1582, 10, 15, 15, 15, 10).advance(days: -1)
     assert_equal Time.local(1582, 10, 15, 15, 15, 10), Time.local(1582, 10, 14, 15, 15, 10).advance(days: 1)
