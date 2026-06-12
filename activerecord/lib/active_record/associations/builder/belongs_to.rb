@@ -149,11 +149,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
             foreign_key = reflection.foreign_key
             foreign_type = reflection.foreign_type
 
-            fk_missing_or_changed = if foreign_key.is_a?(Array)
-              foreign_key.any? { |fk| record.read_attribute(fk).nil? || record.attribute_changed?(fk) }
-            else
-              record.read_attribute(foreign_key).nil? ||
-                record.attribute_changed?(foreign_key)
+            fk_missing_or_changed = Array(foreign_key).any? do |fk|
+              record.read_attribute(fk).nil? || record.attribute_changed?(fk)
             end
 
             fk_missing_or_changed ||

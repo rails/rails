@@ -1,21 +1,7 @@
-*   Ensure deterministic ordering for `first`, `last`, and related finder methods.
+*   Fix `increment!` / `decrement!` on models with query constraints to include
+    every query constraint column in the counter update.
 
-    When a relation has an explicit order that may have ties (e.g., ordering by a
-    non-unique column), ActiveRecord now automatically appends the model's default
-    order columns (primary key, `implicit_order_column`, or `query_constraints`) as
-    a secondary sort. This ensures consistent results between loaded and non-loaded
-    relations, and prevents `first` and `last` from potentially returning the same
-    record when the explicit order has duplicate values.
-
-        # Before: could return same record if multiple pets have same name
-        owner.pets.first  # ORDER BY pets.name DESC LIMIT 1
-        owner.pets.last   # ORDER BY pets.name ASC LIMIT 1
-
-        # After: deterministic results with secondary sort by primary key
-        owner.pets.first  # ORDER BY pets.name DESC, pet_id ASC LIMIT 1
-        owner.pets.last   # ORDER BY pets.name ASC, pet_id DESC LIMIT 1
-
-    *German DZ*
+    *Jean-Samuel Aubry-Guzzi*
 
 *   Fix bug with reloading models with all-queries default scopes. The previous
     implementation allowed non-all-queries on the current scope to leak into
@@ -870,5 +856,24 @@
     SQLite3Adapter will create the parent directory if it does not exist.
 
     *Mike Dalessio*
+
+*   Ensure deterministic ordering for `first`, `last`, and related finder methods.
+
+    When a relation has an explicit order that may have ties (e.g., ordering by a
+    non-unique column), ActiveRecord now automatically appends the model's default
+    order columns (primary key, `implicit_order_column`, or `query_constraints`) as
+    a secondary sort. This ensures consistent results between loaded and non-loaded
+    relations, and prevents `first` and `last` from potentially returning the same
+    record when the explicit order has duplicate values.
+
+        # Before: could return same record if multiple pets have same name
+        owner.pets.first  # ORDER BY pets.name DESC LIMIT 1
+        owner.pets.last   # ORDER BY pets.name ASC LIMIT 1
+
+        # After: deterministic results with secondary sort by primary key
+        owner.pets.first  # ORDER BY pets.name DESC, pet_id ASC LIMIT 1
+        owner.pets.last   # ORDER BY pets.name ASC, pet_id DESC LIMIT 1
+
+    *German DZ*
 
 Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activerecord/CHANGELOG.md) for previous changes.

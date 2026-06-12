@@ -1761,6 +1761,28 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_match(/WHERE .*color/, sql)
   end
 
+  def test_increment_and_decrement_use_query_constraints_not_composite_pk
+    topic_class = Class.new(Topic) do
+      self.inheritance_column = :_type_disabled
+      query_constraints :author_name, :id
+    end
+    topic = topic_class.create!(title: "New Topic", author_name: "Not David", replies_count: 0)
+
+    sql = nil
+    assert_difference -> { topic.reload.replies_count }, +1 do
+      sql = capture_sql { topic.increment!(:replies_count) }.first
+    end
+    assert_match(/WHERE .*author_name/, sql)
+    assert_match(/WHERE .*id/, sql)
+
+    sql = nil
+    assert_difference -> { topic.reload.replies_count }, -1 do
+      sql = capture_sql { topic.decrement!(:replies_count) }.first
+    end
+    assert_match(/WHERE .*author_name/, sql)
+    assert_match(/WHERE .*id/, sql)
+  end
+
   def test_it_is_possible_to_update_parts_of_the_query_constraints_config
     clothing_item = clothing_items(:green_t_shirt)
     clothing_item.color = "blue"
