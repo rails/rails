@@ -261,7 +261,7 @@ module XmlMiniTest
     def test_date
       parser = @parsing["date"]
       assert_equal Date.new(2013, 11, 12), parser.call("2013-11-12T0211Z")
-      assert_raises(TypeError) { parser.call(1384190018) }
+      assert_raises(ArgumentError) { parser.call(1384190018) }
       assert_raises(ArgumentError) { parser.call("not really a date") }
     end
 
