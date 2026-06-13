@@ -88,4 +88,33 @@ class BaseTest < ActionCable::TestCase
     assert_same ActionCable::Configuration, ActionCable::Server::Configuration
     assert_instance_of ActionCable::Configuration, ActionCable::Server::Base.config
   end
+
+  # Records every timer it builds, sleeping to widen the lazy-init race window.
+  class RecordingExecutor
+    attr_reader :built_timers
+
+    def initialize
+      @built_timers = Concurrent::Array.new
+    end
+
+    def timer(interval, &block)
+      sleep 0.05
+      FakeTimer.new.tap { |t| @built_timers << t }
+    end
+
+    class FakeTimer
+      def shutdown; end
+    end
+  end
+
+  test "#setup_heartbeat_timer builds a single timer under concurrent connections" do
+    executor = RecordingExecutor.new
+    @server.instance_variable_set(:@executor, executor)
+
+    threads = 5.times.map { Thread.new { @server.send(:setup_heartbeat_timer) } }
+    threads.each(&:join)
+
+    assert_equal 1, executor.built_timers.size,
+      "concurrent first connections each built a heartbeat timer, leaking all but the last"
+  end
 end
