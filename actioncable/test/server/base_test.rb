@@ -35,4 +35,15 @@ class BaseTest < ActionCable::TestCase
       @server.restart
     end
   end
+
+  test "#restart shuts down the heartbeat timer" do
+    @server.send(:setup_heartbeat_timer)
+    timer = @server.instance_variable_get(:@heartbeat_timer)
+    assert_predicate timer, :running?
+
+    @server.restart
+
+    assert_not timer.running?
+    assert_nil @server.instance_variable_get(:@heartbeat_timer)
+  end
 end
