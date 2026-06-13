@@ -32,7 +32,7 @@ module ActionCable
       end
 
       def shutdown
-        listener.shutdown
+        @listener.shutdown if @listener
       end
 
       def with_subscriptions_connection(&block) # :nodoc:
