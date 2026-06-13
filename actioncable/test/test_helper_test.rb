@@ -147,3 +147,28 @@ class TransmittedDataTest < ActionCable::TestCase
     assert_match(/No message found for test/, error.message)
   end
 end
+
+class CaptureBroadcastsRedeliveryTest < ActionCable::TestCase
+  # Runs the test adapter's delivery inline so the live subscriber is invoked
+  # synchronously and the delivery count is deterministic.
+  class InlineExecutor
+    def post
+      yield
+    end
+  end
+
+  def test_capture_does_not_redeliver_to_live_subscribers
+    adapter = ActionCable.server.pubsub
+    adapter.instance_variable_set(:@executor, InlineExecutor.new)
+
+    received = []
+    adapter.subscribe("test", ->(message) { received << message })
+
+    capture_broadcasts("test") do
+      ActionCable.server.broadcast "test", "hello"
+    end
+
+    assert_equal 1, received.size,
+      "the message was re-delivered to live subscribers while restoring captured broadcasts"
+  end
+end
