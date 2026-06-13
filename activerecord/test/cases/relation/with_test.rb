@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "models/comment"
 require "models/post"
 require "models/company"
@@ -136,10 +137,24 @@ module ActiveRecord
         assert_equal POSTS_WITH_COMMENTS, records.filter_map { _1.id if _1.has_comments }
       end
 
-      def test_raises_when_using_block
+      def test_relation_with_raises_when_using_block
         assert_raises(ArgumentError, match: "does not accept a block") do
-          Post.with(attributes_for_inspect: :id) { }
+          Post.all.with(attributes_for_inspect: :id) { }
         end
+      end
+
+      def test_class_with_calls_object_with_when_given_a_block
+        original = Post.attributes_for_inspect
+
+        captured = nil
+        result = Post.with(attributes_for_inspect: [:id]) do
+          captured = Post.attributes_for_inspect
+          :block_value
+        end
+
+        assert_equal [:id], captured
+        assert_equal :block_value, result
+        assert_equal original, Post.attributes_for_inspect
       end
 
       def test_unscoping
