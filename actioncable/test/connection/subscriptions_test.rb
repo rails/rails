@@ -152,6 +152,15 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     assert_equal [ data ], channel.lines
   end
 
+  test "message command without a data key" do
+    setup_connection
+    subscribe_to_chat_channel
+
+    assert_raises ActionCable::Connection::Subscriptions::MalformedCommandError do
+      @subscriptions.execute_command "command" => "message", "identifier" => @chat_identifier
+    end
+  end
+
   test "accessing exceptions thrown during command execution" do
     setup_connection
     subscribe_to_chat_channel
