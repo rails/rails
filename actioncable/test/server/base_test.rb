@@ -24,6 +24,22 @@ class BaseTest < ActionCable::TestCase
     end
   end
 
+  class ClosableConnection
+    def close(*); end
+  end
+
+  test "#restart clears the connections registry" do
+    @server.add_connection(ClosableConnection.new)
+    assert_equal 1, @server.connections.size
+
+    @server.restart
+
+    # remove_connection normally runs via the worker pool, which restart halts,
+    # so the closed connections must be dropped here or they leak (e.g. on every
+    # dev-mode code reload, which calls restart on the singleton server).
+    assert_empty @server.connections
+  end
+
   test "#each_connection iterates a snapshot so connections can be added during iteration" do
     beating = Class.new do
       def initialize(server)

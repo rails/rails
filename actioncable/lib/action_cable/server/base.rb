@@ -76,6 +76,10 @@ module ActionCable
         end
 
         @mutex.synchronize do
+          # Drop the closed connections. remove_connection normally runs on the
+          # worker pool, which we halt below, so the entries would otherwise leak.
+          connections_map.clear
+
           # Shutdown the heartbeat timer
           @heartbeat_timer.shutdown if @heartbeat_timer
           @heartbeat_timer = nil
