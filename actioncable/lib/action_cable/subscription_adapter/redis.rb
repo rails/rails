@@ -17,7 +17,7 @@ module ActionCable
       # using Makara proxies for distributed Redis.
       cattr_accessor :redis_connector, default: ->(config) do
         config = config.except(:adapter, :channel_prefix)
-        config[:id] ||= "ActionCable-PID-#{$$}"
+        config[:id] = "ActionCable-PID-#{$$}" unless config.key?(:id)
 
         redis_config = if config.key?(:sentinels)
           ::RedisClient.sentinel(**config)
