@@ -48,7 +48,7 @@ module ActiveSupport
         end
 
         def debug_only(method)
-          self.debug_methods << method
+          self.debug_methods += [method]
           set_silenced_events
         end
     end

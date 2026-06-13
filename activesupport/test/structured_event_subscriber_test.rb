@@ -25,8 +25,13 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
     debug_only :debug_only_event
   end
 
-  def setup
+  setup do
     @subscriber = TestSubscriber.new
+  end
+
+  teardown do
+    TestSubscriber.detach_from :test
+    ActiveSupport::StructuredEventSubscriber.detach_from :test
   end
 
   def test_emit_event_calls_event_reporter_notify
@@ -79,7 +84,7 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_debug_only_methods
-    ActiveSupport::StructuredEventSubscriber.attach_to :test, @subscriber
+    TestSubscriber.attach_to :test, @subscriber
 
     event_reporter_subscriber = TestEventReporterSubscriber.new
     ActiveSupport.event_reporter.subscribe(event_reporter_subscriber)
@@ -95,6 +100,24 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
     end
   ensure
     ActiveSupport.event_reporter.unsubscribe(event_reporter_subscriber)
+  end
+
+  def test_debug_only_does_not_leak_across_subclasses
+    base_methods = ActiveSupport::StructuredEventSubscriber.debug_methods.dup
+
+    subscriber_a = Class.new(ActiveSupport::StructuredEventSubscriber) do
+      def foo(event); end
+      debug_only :foo
+    end
+
+    subscriber_b = Class.new(ActiveSupport::StructuredEventSubscriber) do
+      def bar(event); end
+      debug_only :bar
+    end
+
+    assert_equal [:foo], subscriber_a.debug_methods
+    assert_equal [:bar], subscriber_b.debug_methods
+    assert_equal base_methods, ActiveSupport::StructuredEventSubscriber.debug_methods
   end
 
   def test_no_event_reporter_subscribers
