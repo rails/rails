@@ -223,6 +223,26 @@ class PerformUnsubscribedTestChannelTest < ActionCable::Channel::TestCase
   end
 end
 
+class SymbolBroadcastTestChannel < ActionCable::Channel::Base
+end
+
+class SymbolBroadcastTestChannelTest < ActionCable::Channel::TestCase
+  def test_assert_broadcasts_with_string_stream_name
+    # Control: a String stream name already works.
+    assert_broadcasts("my_room", 1) do
+      ActionCable.server.broadcast("my_room", { text: "hi" })
+    end
+  end
+
+  def test_assert_broadcasts_with_symbol_stream_name
+    # A Symbol naming a literal stream must be treated as that stream, like
+    # stream_from(:my_room) does, not scoped to the channel as a broadcastable.
+    assert_broadcasts(:my_room, 1) do
+      ActionCable.server.broadcast("my_room", { text: "hi" })
+    end
+  end
+end
+
 class BroadcastsTestChannel < ActionCable::Channel::Base
   def broadcast(data)
     ActionCable.server.broadcast(
