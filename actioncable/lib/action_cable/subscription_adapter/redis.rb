@@ -206,7 +206,6 @@ module ActionCable
             def reset
               @subscription_lock.synchronize do
                 @subscribed_client = nil
-                @subscribe_callbacks.clear
                 @when_connected.clear
               end
             end
