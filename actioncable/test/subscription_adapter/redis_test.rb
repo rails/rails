@@ -98,7 +98,7 @@ class RedisAdapterTest::ConnectorDefaultID < ActionCable::TestCase
   test "sets connection id for connection" do
     client = @adapter.send(:redis_connection)
     if connection_id.nil?
-      assert_nil connection_id
+      assert_nil client.id
     else
       assert_equal connection_id, client.id
     end
