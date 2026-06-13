@@ -177,3 +177,76 @@ class RedisAdapterTest::SentinelConfigAsHash < ActionCable::TestCase
     assert_kind_of RedisClient::SentinelConfig, redis_client.config
   end
 end
+
+class RedisAdapterTest::ListenerReconnection < ActionCable::TestCase
+  # Drives the real Listener#listen/reset/resubscribe path with a fake pub/sub
+  # connection so we can deterministically simulate a connection drop while a
+  # subscription confirmation is still in flight. The blocking event queue is the
+  # only point at which the listener loop advances, so the test fully controls the
+  # ordering of the drop and the acknowledgements; no real Redis is involved.
+  class FakePubSub
+    def initialize(events)
+      @events = events
+    end
+
+    def call(*)
+    end
+
+    def next_event(_timeout)
+      event = @events.pop
+      raise RedisClient::ConnectionError, "connection dropped" if event == :drop
+      event
+    end
+  end
+
+  class FakeConnection
+    def initialize(pubsub)
+      @pubsub = pubsub
+    end
+
+    attr_reader :pubsub
+  end
+
+  class FakeAdapter
+    def initialize(connection)
+      @connection = connection
+    end
+
+    def redis_connection_for_subscriptions
+      @connection
+    end
+
+    def logger
+      nil
+    end
+  end
+
+  # Runs posted work inline so the test stays single-threaded apart from the
+  # listener loop itself.
+  class InlineExecutor
+    def post(task = nil, &block)
+      (task || block).call
+    end
+  end
+
+  test "an in-flight subscription confirmation is delivered after a reconnect" do
+    events = Queue.new
+    listener = ActionCable::SubscriptionAdapter::Redis::Listener.new(
+      FakeAdapter.new(FakeConnection.new(FakePubSub.new(events))), {}, InlineExecutor.new
+    )
+
+    confirmed = Concurrent::Event.new
+    listener.add_subscriber("channel", ->(_message) { }, -> { confirmed.set })
+
+    # The "subscribe" acknowledgement never arrives before the connection drops,
+    # so the confirmation is still pending when the listener resets...
+    events << :drop
+    # ...and after it reconnects and re-subscribes, the acknowledgement for the
+    # still-pending subscription must fire its confirmation callback.
+    events << ["subscribe", "channel", 1]
+
+    assert confirmed.wait(2), "expected the in-flight subscription confirmation to be delivered after reconnect"
+  ensure
+    listener.instance_variable_get(:@thread)&.kill
+  end
+end
