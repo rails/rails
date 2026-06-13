@@ -734,6 +734,26 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_counter_cache_column_defaults_when_counter_cache_is_true
+    model = Class.new(ActiveRecord::Base) do
+      def self.name = "CounterCacheTrueAuthor"
+      self.table_name = "authors"
+      has_many :books, foreign_key: "author_id", counter_cache: true
+    end
+
+    assert_equal "books_count", model.reflect_on_association(:books).counter_cache_column
+  end
+
+  def test_counter_cache_column_defaults_when_counter_cache_hash_omits_column
+    model = Class.new(ActiveRecord::Base) do
+      def self.name = "CounterCacheActiveFalseAuthor"
+      self.table_name = "authors"
+      has_many :books, foreign_key: "author_id", counter_cache: { active: false }
+    end
+
+    assert_equal "books_count", model.reflect_on_association(:books).counter_cache_column
+  end
+
   private
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)

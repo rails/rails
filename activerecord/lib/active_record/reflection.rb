@@ -250,7 +250,7 @@ module ActiveRecord
               counter_cache[:column] || -"#{active_record.name.demodulize.underscore.pluralize}_count"
             end
           else
-            -((counter_cache && -counter_cache[:column]) || "#{name}_count")
+            -((counter_cache && counter_cache[:column]) || "#{name}_count")
           end
         end
       end
