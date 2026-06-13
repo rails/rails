@@ -16,6 +16,23 @@ class RedisAdapterTest < ActionCable::TestCase
     end
   end
 
+  def test_resubscribe_after_removing_the_last_channel
+    subscribe_as_queue("channel") do |queue|
+      @tx_adapter.broadcast("channel", "hello world")
+
+      assert_equal "hello world", queue.pop
+    end
+
+    # The block above unsubscribed from the only channel, driving the Redis
+    # subscription count to zero. The listener must stay alive so a brand-new
+    # subscription on the same adapter still receives broadcasts.
+    subscribe_as_queue("channel") do |queue|
+      @tx_adapter.broadcast("channel", "hallo welt")
+
+      assert_equal "hallo welt", queue.pop
+    end
+  end
+
   def test_reconnections
     subscribe_as_queue("channel") do |queue|
       subscribe_as_queue("other channel") do |queue_2|
