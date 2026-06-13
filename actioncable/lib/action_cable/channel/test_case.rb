@@ -329,7 +329,7 @@ module ActionCable
           end
 
           def broadcasting_for(stream_or_object)
-            return stream_or_object if stream_or_object.is_a?(String)
+            return String(stream_or_object) if stream_or_object.is_a?(String) || stream_or_object.is_a?(Symbol)
 
             self.class.channel_class.broadcasting_for(stream_or_object)
           end
