@@ -219,6 +219,21 @@ module ActionCable::StreamTests
       assert_equal 1, subscribers["room_two"].size
     end
 
+    test "stop_stream_from with a non-string broadcasting matches stream_from" do
+      connection = Connection.new(server, socket)
+
+      channel = ChatChannel.new connection, "{id: 3}"
+      channel.subscribe_to_channel
+
+      channel.stream_from :room_one
+
+      assert_equal 1, subscribers_of(connection).size
+
+      channel.stop_stream_from :room_one
+
+      assert_equal 0, subscribers_of(connection).size
+    end
+
     test "stop_stream_for" do
       connection = Connection.new(server, socket)
 
