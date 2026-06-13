@@ -141,6 +141,12 @@ module ActiveRecord
         assert_equal 1, config.max_threads
       end
 
+      def test_max_threads_not_capped_for_large_finite_pool
+        config = HashConfig.new("default_env", "primary", max_connections: 20, adapter: "abstract")
+        assert_equal 20, config.max_connections
+        assert_equal 20, config.max_threads
+      end
+
       def test_max_queue_is_max_threads_multiplied_by_4
         config = HashConfig.new("default_env", "primary", adapter: "abstract")
         assert_equal 5, config.max_threads
