@@ -283,7 +283,7 @@ module ActiveRecord
         if connection.transaction_open?
           rewhere(attributes).lock.take!
         else
-          find_by!(attributes)
+          rewhere(attributes).take!
         end
       end
     end
@@ -303,7 +303,7 @@ module ActiveRecord
         if connection.transaction_open?
           rewhere(attributes).lock.take!
         else
-          find_by!(attributes)
+          rewhere(attributes).take!
         end
       end
     end
