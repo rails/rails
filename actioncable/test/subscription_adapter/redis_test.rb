@@ -33,6 +33,49 @@ class RedisAdapterTest < ActionCable::TestCase
     end
   end
 
+  def test_listener_thread_is_restarted_after_it_dies
+    # A dedicated rx adapter that gives up reconnecting immediately, so a dropped
+    # pubsub connection kills the listener thread (exhausted retries) instead of
+    # recovering it. The sentinel only prevents the count-to-zero death; this
+    # exercises ensure_listener_running reviving a thread that died otherwise.
+    server = ActionCable::Server::Base.new
+    server.config.cable = cable_config.merge(reconnect_attempts: 0).with_indifferent_access
+    rx_adapter = server.config.pubsub_adapter.new(server)
+
+    before_queue = Queue.new
+    subscription_confirmed = Concurrent::Event.new
+    rx_adapter.subscribe("channel", ->(data) { before_queue << data }, -> { subscription_confirmed.set })
+    assert subscription_confirmed.wait(WAIT_WHEN_EXPECTING_EVENT)
+
+    @tx_adapter.broadcast("channel", "before")
+    assert_equal "before", before_queue.pop
+
+    listener = rx_adapter.send(:listener)
+    original_listener_thread = listener.instance_variable_get(:@thread)
+    assert original_listener_thread.alive?
+
+    drop_pubsub_connections
+    wait_for(message: "the listener thread did not die after the connection drop") do
+      !original_listener_thread.alive?
+    end
+
+    # Subscribing to a *new* channel goes through add_channel (a re-subscribe to
+    # an existing channel would not), which must restart the dead listener.
+    after_queue = Queue.new
+    resubscription_confirmed = Concurrent::Event.new
+    rx_adapter.subscribe("other channel", ->(data) { after_queue << data }, -> { resubscription_confirmed.set })
+    assert resubscription_confirmed.wait(WAIT_WHEN_EXPECTING_EVENT)
+
+    restarted_listener_thread = listener.instance_variable_get(:@thread)
+    assert_not_same original_listener_thread, restarted_listener_thread
+    assert restarted_listener_thread.alive?
+
+    @tx_adapter.broadcast("other channel", "after")
+    assert_equal "after", after_queue.pop
+  ensure
+    rx_adapter&.shutdown
+  end
+
   def test_reconnections
     subscribe_as_queue("channel") do |queue|
       subscribe_as_queue("other channel") do |queue_2|
