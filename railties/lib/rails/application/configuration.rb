@@ -698,7 +698,7 @@ module Rails
 
           return random_key if random_key.present?
 
-          random_key = SecureRandom.hex(64)
+          random_key = SecureRandom.alphanumeric(128)
           FileUtils.mkdir_p(key_file.dirname)
           File.binwrite(key_file, random_key)
           random_key
