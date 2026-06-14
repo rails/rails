@@ -1,7 +1,7 @@
 /* global process */
 
-import { createSauceLabsLauncher } from "@web/test-runner-saucelabs"
 import { createRequire } from "module"
+import { createSauceLabsLauncher } from "./test/javascript/sauce_labs.mjs"
 
 const require = createRequire(`${process.cwd()}/web-test-runner.config.mjs`)
 
