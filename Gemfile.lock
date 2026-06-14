@@ -338,6 +338,7 @@ GEM
       mixlib-cli (~> 2.1, >= 2.1.1)
       mixlib-config (>= 2.2.1, < 4)
       mixlib-shellout
+    megatest (0.11.0)
     mini_magick (5.3.1)
       logger
     mini_mime (1.1.5)
@@ -701,6 +702,7 @@ DEPENDENCIES
   libxml-ruby
   listen (~> 3.3)
   mdl (!= 0.13.0)
+  megatest
   mini_magick (~> 5.0)
   minitest (~> 6.0)
   minitest-mock
@@ -869,6 +871,7 @@ CHECKSUMS
   marcel (1.2.1) sha256=1678e9360e32f9eafa917c80029e2f6d10b2715c66a4b87b6d0da9b9cd1f859f
   matrix (0.4.2) sha256=71083ccbd67a14a43bfa78d3e4dc0f4b503b9cc18e5b4b1d686dc0f9ef7c4cc0
   mdl (0.12.0) sha256=66718347ba0ad8126173f431bb99028b0300196f9b9ba90802a221ebd51364be
+  megatest (0.11.0) sha256=fdc3124cc3d10bfd54294616c2b15312ee0c313a77dc33a71cb936ded9f920c4
   mini_magick (5.3.1) sha256=29395dfd76badcabb6403ee5aff6f681e867074f8f28ce08d78661e9e4a351c4
   mini_mime (1.1.5) sha256=8681b7e2e4215f2a159f9400b5816d85e9d8c6c6b491e96a12797e798f8bccef
   mini_portile2 (2.8.9) sha256=0cd7c7f824e010c072e33f68bc02d85a00aeb6fce05bb4819c03dfd3c140c289

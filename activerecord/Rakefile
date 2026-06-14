@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "shellwords"
-require "rake/testtask"
+require "megatest/test_task"
 
 require_relative "test/config"
 require_relative "test/support/config"
@@ -50,17 +50,6 @@ namespace :test do
     end
     abort "Errors running integration for #{errors.join(', ')}" if errors.any?
   end
-
-  Rake::TestTask.new(:arel) do |t|
-    t.libs << "test"
-    t.test_files = FileList["test/cases/arel/**/*_test.rb"]
-
-    t.warning = true
-    if ENV["CI"]
-      t.verbose = true
-      t.options = "--profile --defer-output"
-    end
-  end
 end
 
 namespace :db do
@@ -73,52 +62,29 @@ end
 
 adapters.each do |adapter|
   namespace :test do
-    Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
-      adapter_short = adapter[/^[a-z0-9]+/]
-      t.libs << "test"
-      files = (FileList["test/cases/**/*_test.rb"].reject {
-        |x| x.include?("/adapters/") || x.include?("/encryption/performance")
-      } + FileList["test/cases/adapters/#{adapter_short}/**/*_test.rb"])
-      files = files + FileList["test/cases/adapters/abstract_mysql_adapter/**/*_test.rb"] if ["mysql2", "trilogy"].include?(adapter)
-
-      t.test_files = files
-      t.warning = true
-      if ENV["CI"]
-        t.verbose = true
-        t.options = "--profile --defer-output"
-      end
-      t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+    Megatest::TestTask.create(adapter => ["#{adapter}:env"]) do |t|
+      t.full_backtrace = true
+      t.command = "bin/test"
+      t.pwd = "../" if ENV["BUILDKITE"]
     end
 
     namespace :integration do
       # Active Job Integration Tests
       namespace :active_job do
-        Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
-          t.libs << "test"
-          t.test_files = FileList["test/activejob/*_test.rb"]
-          t.warning = true
-          if ENV["CI"]
-            t.verbose = true
-            t.options = "--profile --defer-output"
-          end
-          t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+        Megatest::TestTask.create(adapter => "#{adapter}:env") do |t|
+          t.full_backtrace = true
+          t.command = "bin/test"
+          t.tests = FileList["test/activejob/*_test.rb"]
         end
       end
     end
 
     namespace :encryption do
       namespace :performance do
-        Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
-          t.description = "Encryption performance tests for #{adapter}"
-          t.libs << "test"
-          t.test_files = FileList["test/cases/encryption/performance/*_test.rb"]
-
-          t.warning = true
-          if ENV["CI"]
-            t.verbose = true
-            t.options = "--profile --defer-output"
-          end
-          t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
+        Megatest::TestTask.create(adapter => "#{adapter}:env") do |t|
+          t.full_backtrace = true
+          t.command = "bin/test"
+          t.tests = FileList["test/cases/encryption/performance/*_test.rb"]
         end
       end
     end

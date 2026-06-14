@@ -6,9 +6,7 @@ module ActiveRecord
 
     module ClassMethods
       def repair_validations(*model_classes)
-        teardown do
-          model_classes.each(&:clear_validators!)
-        end
+        teardown { repair_validations(*model_classes) }
       end
     end
 
@@ -17,5 +15,10 @@ module ActiveRecord
     ensure
       model_classes.each(&:clear_validators!)
     end
+
+    private
+      def active_record_clear_validators!
+        model_classes.each(&:clear_validators!)
+      end
   end
 end

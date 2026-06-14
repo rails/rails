@@ -10,8 +10,8 @@ class HabtmDestroyOrderTest < ActiveRecord::TestCase
     ben = Student.new(name: "Ben Bitdiddle")
     sicp.students << ben
     sicp.save!
-    assert_raises LessonError do
-      assert_no_difference("Lesson.count") do
+    assert_no_difference("Lesson.count") do
+      assert_raises LessonError do
         sicp.destroy
       end
     end

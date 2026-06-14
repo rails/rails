@@ -62,7 +62,7 @@ module ActiveRecord
     end
 
     class RegistrationIsolatedTest < ActiveRecord::TestCase
-      include ActiveSupport::Testing::Isolation
+      tag isolated: true
 
       def setup
         @original_adapters = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup

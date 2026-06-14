@@ -1370,7 +1370,7 @@ module ActiveRecord
               Pathname.new("/app")
             end
           end
-          stub_const(Object, :Rails, mod, &block)
+          stub_const(Object, :Rails, mod, exists: defined?(Rails), &block)
         end
 
         def assert_logged(logs)

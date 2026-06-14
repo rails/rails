@@ -4,7 +4,7 @@ require "activejob/helper"
 require "active_job/continuable"
 require "active_record/railties/job_checkpoints"
 
-class JobCheckpointTest < ActiveSupport::TestCase
+class JobCheckpointTest < ActiveRecord::TestCase
   class CheckpointInTransactionJob < ActiveJob::Base
     include ActiveJob::Continuable
     include ActiveRecord::Railties::JobCheckpoints

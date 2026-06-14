@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "time"
+require "active_support"
 require "active_support/inflector/methods"
 require "active_support/values/time_zone"
 require "active_support/time_formats"
