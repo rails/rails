@@ -1247,11 +1247,15 @@ module ActiveRecord
         pg_type_scan_nodes = plan_nodes(plan).select { |node| node["Relation Name"] == "pg_type" }
         # Keep anti-OR behavior from #40876 visible: OID lookups should stay index-driven,
         # and only the typtype='d' branch may seq-scan.
-        scan_summary = pg_type_scan_nodes.map { |node| [node["Index Name"], node["Filter"]] }.sort_by { |(index_name, filter)| [index_name.to_s, filter.to_s] }
+        scan_summary = pg_type_scan_nodes.map do |node|
+          index_name = plan_nodes(node).pluck("Index Name").compact.first
+          [index_name, node["Filter"]]
+        end.sort_by { |(index_name, filter)| [index_name.to_s, filter.to_s] }
+
         assert_equal 2, scan_summary.length
         assert_includes scan_summary, ["pg_type_oid_index", nil]
 
-        seq_scan_filter = scan_summary.find { |index_name, _| index_name.nil? }.last
+        seq_scan_filter = scan_summary.find { |index_name, filter| index_name.nil? && filter }.last
         assert_includes seq_scan_filter, "typtype = ANY ('{r,e,d}'::\"char\"[])"
       ensure
         @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_nested"
