@@ -387,6 +387,7 @@ module Rails
           if respond_to?(:active_record)
             active_record.postgresql_adapter_decode_bytea = true
             active_record.postgresql_adapter_decode_money = true
+            active_record.dup_retains_readonly_state = false
           end
 
           if respond_to?(:active_storage)
