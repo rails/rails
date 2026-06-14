@@ -166,6 +166,17 @@ module ActionCable
 
           private
             def ensure_listener_running
+              # The internal sentinel subscription keeps the listener alive in
+              # normal operation, but the thread can still die for other reasons
+              # (e.g. exhausting the Redis reconnect attempts). Since this method
+              # memoizes with `||=`, a dead thread would never be replaced and
+              # every later subscribe would queue forever. Drop a dead thread so
+              # the next subscribe spawns a fresh listener.
+              if @thread && !@thread.alive?
+                @thread = nil
+                @reconnect_attempt = 0
+              end
+
               @thread ||= Thread.new do
                 Thread.current.abort_on_exception = true
 
