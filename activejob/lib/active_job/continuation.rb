@@ -206,7 +206,7 @@ module ActiveJob
     class UnadvanceableCursorError < Error; end
 
     # Raised when a job has reached its limit of the number of resumes.
-    # The limit is defined by the +max_resumes+ class attribute.
+    # The limit is defined by the +max_resumptions+ class attribute.
     class ResumeLimitError < Error; end
 
     include Validation
