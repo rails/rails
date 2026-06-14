@@ -1,3 +1,8 @@
+*   Fall back to the default send file content type when MIME inference cannot
+    read the provided filename extension.
+
+    *Andrii Furmanets*
+
 *   Rate limiting calls `cache_key` on `by:` if the object responds to it.
 
     ```ruby

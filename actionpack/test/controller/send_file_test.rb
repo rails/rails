@@ -187,6 +187,13 @@ class SendFileTest < ActionController::TestCase
     end
   end
 
+  def test_send_file_headers_with_null_byte_in_filename
+    get :test_send_file_headers_guess_type_from_extension, params: { filename: "image\0.png" }
+
+    assert_equal "application/octet-stream", response.content_type
+    assert_equal %(attachment; filename="image%00.png"; filename*=UTF-8''image%00.png), response.get_header("Content-Disposition")
+  end
+
   def test_send_file_with_default_content_disposition_header
     process("data")
     assert_equal "attachment", @controller.headers["Content-Disposition"]
