@@ -49,12 +49,11 @@ module ActiveJob
       def advance!(from: nil)
         from = cursor if from.nil?
 
-        begin
-          to = from.succ
-        rescue NoMethodError
+        unless from.respond_to?(:succ)
           raise UnadvanceableCursorError, "Cursor class '#{from.class}' does not implement 'succ'"
         end
 
+        to = from.succ
         set! to
       end
 
