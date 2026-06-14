@@ -154,6 +154,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "id", exception.primary_key
   end
 
+  def test_find_with_no_id_passed_on_composite_primary_key_model
+    assert_raises(ActiveRecord::RecordNotFound) { Cpk::Book.find }
+    assert_raises(ActiveRecord::RecordNotFound) { Cpk::Book.find(nil) }
+  end
+
   def test_find_with_ids_with_id_out_of_range
     exception = assert_raises(ActiveRecord::RecordNotFound) do
       Topic.find("9999999999999999999999999999999")
