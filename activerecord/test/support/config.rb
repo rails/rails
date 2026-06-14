@@ -34,6 +34,14 @@ module ARTest
 
             connection[name]["database"] ||= dbname
             connection[name]["adapter"]  ||= adapter == "sqlite3_mem" ? "sqlite3" : adapter
+
+            # Disable the reaper in test pools to prevent flaky failures.
+            # The reaper thread can cause false-positive leak detections in
+            # check_connection_leaks and Trilogy::SynchronizationError when
+            # it accesses connections from its background thread during test
+            # setup/teardown. Reaper behavior is tested in reaper_test.rb
+            # with dedicated pools that set their own reaping_frequency.
+            connection[name]["reaping_frequency"] ||= 0
           end
         end
 
