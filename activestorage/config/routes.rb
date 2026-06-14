@@ -44,7 +44,7 @@ Rails.application.routes.draw do
     else
       signed_blob_id = model.blob.signed_id(expires_in: expires_in, expires_at: expires_at)
       variation_key  = model.variation.key
-      filename       = model.blob.filename
+      filename       = model.filename
 
       route_for(
         :rails_blob_representation_proxy,
@@ -70,7 +70,7 @@ Rails.application.routes.draw do
     else
       signed_blob_id = model.blob.signed_id(expires_in: expires_in, expires_at: expires_at)
       variation_key  = model.variation.key
-      filename       = model.blob.filename
+      filename       = model.filename
 
       route_for(
         :rails_blob_representation,
