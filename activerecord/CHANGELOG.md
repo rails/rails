@@ -1,3 +1,12 @@
+*   Touch the owner of a `has_many :through` association when associated records are
+    removed via collection assignment (`tags = []`, `tag_ids = []`), `delete`, or
+    `clear`. The owner is now touched on the `delete_all` path too, mirroring the
+    existing `counter_cache` handling.
+
+    Fixes #29078.
+
+    *Willian Tenfen Wazilewski*
+
 *   Fix `increment!` / `decrement!` on models with query constraints to include
     every query constraint column in the counter update.
 

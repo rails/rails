@@ -47,6 +47,22 @@ require "models/interest"
 require "models/human"
 require "models/dats"
 
+class TouchableThroughOwner < ActiveRecord::Base
+  self.table_name = "pets"
+  self.primary_key = :pet_id
+
+  has_many :touch_through_links, foreign_key: :pet_id, class_name: "TouchThroughLink"
+  has_many :treasures, through: :touch_through_links, source: :treasure
+  has_many :destroyable_treasures, through: :touch_through_links, source: :treasure, dependent: :destroy
+end
+
+class TouchThroughLink < ActiveRecord::Base
+  self.table_name = "pets_treasures"
+
+  belongs_to :touchable_through_owner, foreign_key: :pet_id, touch: true
+  belongs_to :treasure
+end
+
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
@@ -664,6 +680,53 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_no_difference "post.reload.indestructible_tags_count" do
       posts(:welcome).indestructible_tags.destroy(tag)
     end
+  end
+
+  def test_touch_owner_when_removing_through_record_via_collection_assignment
+    owner = TouchableThroughOwner.create!(name: "owner")
+    owner.treasures = [Treasure.create!, Treasure.create!]
+
+    assert_touches(owner) { owner.treasures = [] }
+  end
+
+  def test_touch_owner_when_removing_through_record_via_ids_writer
+    owner = TouchableThroughOwner.create!(name: "owner")
+    owner.treasures = [Treasure.create!, Treasure.create!]
+
+    assert_touches(owner) { owner.treasure_ids = [] }
+  end
+
+  def test_touch_owner_when_removing_through_record_via_delete
+    owner = TouchableThroughOwner.create!(name: "owner")
+    treasure = Treasure.create!
+    owner.treasures = [treasure, Treasure.create!]
+
+    assert_touches(owner) { owner.treasures.delete(treasure) }
+  end
+
+  def test_touch_owner_when_removing_through_record_via_clear
+    owner = TouchableThroughOwner.create!(name: "owner")
+    owner.treasures = [Treasure.create!, Treasure.create!]
+
+    assert_touches(owner) { owner.treasures.clear }
+  end
+
+  def test_touch_owner_only_once_when_removing_through_record_with_dependent_destroy
+    owner = TouchableThroughOwner.create!(name: "owner")
+    owner.destroyable_treasures = [Treasure.create!]
+
+    assert_touches(owner) { owner.destroyable_treasures = [] }
+  end
+
+  def test_does_not_touch_owner_when_no_through_record_is_removed
+    owner = TouchableThroughOwner.create!(name: "owner")
+    owner.treasures = [Treasure.create!]
+    owner.update_column(:updated_at, 1.day.ago)
+    previous = owner.reload.updated_at
+
+    owner.treasures.delete(Treasure.create!) # not a member, nothing removed
+
+    assert_equal previous, owner.reload.updated_at
   end
 
   def test_replace_association
@@ -1755,6 +1818,15 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       lesson.has_many :lesson_students, anonymous_class: lesson_student
       lesson.has_many :students, through: :lesson_students, anonymous_class: student
       [lesson, lesson_student, student]
+    end
+
+    def assert_touches(owner)
+      owner.update_column(:updated_at, 1.day.ago)
+      previous = owner.reload.updated_at
+
+      yield
+
+      assert_operator owner.reload.updated_at, :>, previous
     end
 end
 
