@@ -34,6 +34,7 @@ require "models/admin"
 require "models/admin/user"
 require "models/user"
 require "models/dats"
+require "models/cpk/book"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -70,6 +71,10 @@ class ReflectionTest < ActiveRecord::TestCase
     content_column_names   = content_columns.map(&:name)
     assert_equal 14, content_columns.length
     assert_equal %w(title author_name author_email_address written_on bonus_time last_read content important binary_content group approved parent_title created_at updated_at).sort, content_column_names.sort
+  end
+
+  def test_content_columns_excludes_all_composite_primary_key_components
+    assert_equal %w(title revision), Cpk::Book.content_columns.map(&:name)
   end
 
   def test_column_string_type_and_limit
