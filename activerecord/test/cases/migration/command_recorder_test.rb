@@ -295,6 +295,12 @@ module ActiveRecord
         end
       end
 
+      def test_invert_remove_column_with_options_but_no_type
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :remove_column, [:table, :column, { null: false }]
+        end
+      end
+
       def test_invert_rename_column
         rename = @recorder.inverse_of :rename_column, [:table, :old, :new]
         assert_equal [:rename_column, [:table, :new, :old]], rename
