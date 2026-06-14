@@ -148,7 +148,7 @@ module ActiveRecord
       # A single composite id is itself an Array, so several ids are an Array of
       # Arrays.
       def expects_multiple_ids?(value)
-        value.first.is_a?(Array)
+        value.is_a?(Array) && value.first.is_a?(Array)
       end
 
       # When a composite key has the conventional [tenant_key, "id"] shape,
