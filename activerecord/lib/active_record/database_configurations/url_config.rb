@@ -53,6 +53,8 @@ module ActiveRecord
 
         to_boolean!(@configuration_hash, :replica)
         to_boolean!(@configuration_hash, :database_tasks)
+        to_boolean!(@configuration_hash, :seeds)
+        to_boolean!(@configuration_hash, :use_metadata_table)
 
         @configuration_hash.freeze
       end

@@ -48,6 +48,16 @@ module ActiveRecord
         config = UrlConfig.new("default_env", "primary", "postgres://localhost/foo?database_tasks=false", {})
         assert_equal false, config.database_tasks?
       end
+
+      def test_seeds_parsing
+        config = UrlConfig.new("default_env", "primary", "postgres://localhost/foo?seeds=false", {})
+        assert_equal false, config.seeds?
+      end
+
+      def test_use_metadata_table_parsing
+        config = UrlConfig.new("default_env", "primary", "postgres://localhost/foo?use_metadata_table=false", {})
+        assert_equal false, config.use_metadata_table?
+      end
     end
   end
 end
