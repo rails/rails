@@ -5,11 +5,11 @@
 module ActionCable
   module SubscriptionAdapter
     class Base
-      attr_reader :logger, :server
+      delegate :logger, to: :config
 
       def initialize(server)
-        @server = server
-        @logger = @server.logger
+        @executor = server.executor
+        @config = server.config
       end
 
       def broadcast(channel, payload)
@@ -29,9 +29,12 @@ module ActionCable
       end
 
       def identifier
-        @server.config.cable[:id] = "ActionCable-PID-#{$$}" unless @server.config.cable.key?(:id)
-        @server.config.cable[:id]
+        config.cable[:id] = "ActionCable-PID-#{$$}" unless config.cable.key?(:id)
+        config.cable[:id]
       end
+
+      private
+        attr_reader :executor, :config
     end
   end
 end

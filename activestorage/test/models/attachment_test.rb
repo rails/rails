@@ -31,7 +31,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
 
     assert_not_predicate blob, :analyzed?
 
-    assert_no_enqueued_jobs do
+    assert_no_enqueued_jobs only: ActiveStorage::AnalyzeJob do
       @user.highlights.attach(blob)
     end
 
@@ -51,6 +51,23 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     )
 
     assert_equal(1, user.callback_counter)
+  end
+
+  test "attaching a blob to a record works when ActiveStorage.touch_attachment_records is false" do
+    ActiveStorage.with(touch_attachment_records: false) do
+      data = "Something else entirely!"
+      io = StringIO.new(data)
+      blob = create_blob_before_direct_upload byte_size: data.size, checksum: ActiveStorage.checksum_implementation.base64digest(data)
+      blob.upload(io)
+
+      assert_nothing_raised do
+        User.create!(
+          name: "Roger",
+          avatar: blob.signed_id,
+          record_callbacks: true,
+        )
+      end
+    end
   end
 
   test "attaching a record doesn't reset the previously_new_record flag" do

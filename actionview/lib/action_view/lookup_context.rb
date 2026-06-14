@@ -15,12 +15,15 @@ module ActionView
   class LookupContext # :nodoc:
     attr_accessor :prefixes
 
-    singleton_class.attr_accessor :registered_details
-    self.registered_details = []
+    singleton_class.attr_accessor :default_procs
+    self.default_procs = {}.freeze
+
+    def self.registered_details
+      self.default_procs.keys
+    end
 
     def self.register_detail(name, &block)
-      registered_details << name
-      Accessors::DEFAULT_PROCS[name] = block
+      self.default_procs = self.default_procs.merge(name => block).freeze
 
       Accessors.define_method(:"default_#{name}", &block)
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
@@ -37,7 +40,6 @@ module ActionView
 
     # Holds accessors for the registered details.
     module Accessors # :nodoc:
-      DEFAULT_PROCS = {}
     end
 
     register_detail(:locale) do
@@ -193,7 +195,7 @@ module ActionView
             if k == :variants
               details[k] = :any
             else
-              details[k] = Accessors::DEFAULT_PROCS[k].call
+              details[k] = LookupContext.default_procs[k].call
             end
           end
 
@@ -252,7 +254,7 @@ module ActionView
 
     def initialize_details(target, details)
       LookupContext.registered_details.each do |k|
-        target[k] = details[k] || Accessors::DEFAULT_PROCS[k].call
+        target[k] = details[k] || LookupContext.default_procs[k].call
       end
       target
     end

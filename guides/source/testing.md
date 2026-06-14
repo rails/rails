@@ -528,7 +528,7 @@ You can also run a test at a specific line by providing the line number.
 $ bin/rails test test/models/article_test.rb:6 # run specific test and line
 ```
 
-You can also run a range of tests by providing the line range.
+You can also run a range of tests by providing the line range:
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6-20 # runs tests from line 6 to 20
@@ -557,7 +557,7 @@ Examples:
 
         bin/rails test test/models/user_test.rb:27
 
-    You can run multiple tests with in a line range by appending the line range to a filename:
+    You can run multiple tests within a line range by appending the line range to a filename:
 
         bin/rails test test/models/user_test.rb:10-20
 
@@ -2488,6 +2488,194 @@ end
 
 This method is not recommended in general, as it circumvents some parts of the
 framework, such as argument serialization.
+
+Testing Active Storage
+----------------------
+
+There is a [`file_fixture_upload`][] helper method to test uploading a file in an integration or controller test, for example:
+
+```ruby#5
+class SignupController < ActionDispatch::IntegrationTest
+  test "user can sign up" do
+    post signup_path, params: {
+      email: "me@example.com",
+      profile_photo: file_fixture_upload("my-photo.png", "image/png")
+    }
+
+    user = User.order(:created_at).last
+    assert user.profile_photo.attached?
+  end
+end
+```
+
+[`file_fixture_upload`]: https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html#method-i-file_fixture_upload
+
+### Discarding Files Created During Tests
+
+In general, database transactions are rolled back to clean up test data. While
+entries in the Active Storage related tables are removed, files attached during
+tests are not automatically deleted. Here is how to manually clean up orphaned
+files from integration tests and system tests.
+
+#### Integration Tests
+
+To clean up files uploaded during Integration Tests, you use a `teardown` callback.
+
+```ruby
+class ActionDispatch::IntegrationTest
+  def after_teardown
+    super
+    FileUtils.rm_rf(ActiveStorage::Blob.service.root)
+  end
+end
+```
+
+If you're using [parallel tests][] and the Disk service, you can configure
+each process to use its own folder for Active Storage. This way, the `teardown`
+callback will only delete files from the relevant process' tests.
+
+```ruby
+class ActionDispatch::IntegrationTest
+  parallelize_setup do |i|
+    ActiveStorage::Blob.service.root = "#{ActiveStorage::Blob.service.root}-#{i}"
+  end
+end
+```
+
+If your tests verify the deletion of a model with attachments and you're
+using Active Job, you will need to set your test environment to use the inline
+queue adapter so the purge job is executed immediately rather at an unknown time
+in the future.
+
+```ruby
+config.active_job.queue_adapter = :inline
+```
+
+[parallel tests]: testing.html#parallel-testing
+
+#### System Tests
+
+In order to clear these files, you use a `after_teardown` callback. Doing it
+there ensures that all connections created during the test are complete and you
+won't receive an error from Active Storage saying it can't find a file.
+
+```ruby
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  # ...
+  def after_teardown
+    super
+    FileUtils.rm_rf(ActiveStorage::Blob.service.root)
+  end
+  # ...
+end
+```
+
+### Adding Attachments to Fixtures
+
+You can add attachments to your existing [fixtures][]. First, you'll want to create a separate storage service:
+
+```yml
+# config/storage.yml
+
+test_fixtures:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage_fixtures") %>
+```
+
+This tells Active Storage where to "upload" fixture files to, so it should be a
+temporary directory. By making it a different directory to your regular `test`
+service, you can separate fixture files from files uploaded during a test.
+
+Next, create fixture files for the Active Storage classes:
+
+```yml
+# test/fixtures/active_storage/attachments.yml
+user_one_profile_photo:
+  name: user_one
+  record: user_one (User)
+  blob: user_one_profile_photo_blob
+```
+
+```yml
+# test/fixtures/active_storage/blobs.yml
+user_one_profile_photo_blob: <%= ActiveStorage::FixtureSet.blob filename: "user_one.png", service_name: "test_fixtures" %>
+```
+
+Then put a file in your fixtures directory (the default path is
+`test/fixtures/files`) with the corresponding filename. See the
+[`ActiveStorage::FixtureSet`][] docs for more information.
+
+Once everything is set up, you'll be able to access attachments in your tests:
+
+```ruby
+class UserTest < ActiveSupport::TestCase
+  def test_profile_photo
+    profile_photo = users(:user_one).profile_photo
+
+    assert profile_photo.attached?
+    assert_not_nil profile_photo.download
+    assert_equal 1000, profile_photo.byte_size
+  end
+end
+```
+
+#### Cleaning up Fixtures
+
+While files uploaded in tests are cleaned up [at the end of each
+test](#discarding-files-created-during-tests), you only need to clean up fixture
+files once: when all your tests complete.
+
+If you're using parallel tests, call `parallelize_teardown`:
+
+```ruby
+class ActiveSupport::TestCase
+  # ...
+  parallelize_teardown do |i|
+    FileUtils.rm_rf(ActiveStorage::Blob.services.fetch(:test_fixtures).root)
+  end
+  # ...
+end
+```
+
+If you're not running parallel tests, use `Minitest.after_run` or the equivalent
+for your test framework (e.g. `after(:suite)` for RSpec):
+
+```ruby
+# test_helper.rb
+Minitest.after_run do
+  FileUtils.rm_rf(ActiveStorage::Blob.services.fetch(:test_fixtures).root)
+end
+```
+
+[fixtures]: testing.html#fixtures
+[`ActiveStorage::FixtureSet`]: https://api.rubyonrails.org/classes/ActiveStorage/FixtureSet.html
+
+### Configuring services
+
+You can use the `config/storage/test.yml` file to configure services to be used
+in test environment. This is useful when the `service` option is used:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar, service: :s3
+end
+```
+
+Without configuring a test `s3` service in `config/storage/test.yml`, the `s3` service configured in `config/storage.yml` is used - even when running tests.
+
+The default configuration would be used and files would be uploaded to the service provider configured in `config/storage.yml`.
+
+In this case, you can add `config/storage/test.yml` and use Disk service for a service named `s3` to prevent sending requests to S3.
+
+```yaml
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+
+s3:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+```
 
 Testing Action Cable
 --------------------

@@ -265,7 +265,7 @@ module ActionController
       Rescue,
       Instrumentation,
       ParamsWrapper
-    ]
+    ].freeze
 
     # Note: Documenting these severely degrades the performance of rdoc
     # :stopdoc:

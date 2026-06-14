@@ -87,7 +87,7 @@ module ActiveRecord
         :primary_key,
         :if_exists,
         :if_not_exists
-      ]
+      ].freeze
 
       def primary_key?
         options[:primary_key]
@@ -153,6 +153,10 @@ module ActiveRecord
         options.fetch(:validate, true)
       end
       alias validated? validate?
+
+      def enforced?
+        options.fetch(:enforced, true)
+      end
 
       def export_name_on_schema_dump?
         !ActiveRecord::SchemaDumper.fk_ignore_pattern.match?(name) if name

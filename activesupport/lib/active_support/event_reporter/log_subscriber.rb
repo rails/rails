@@ -9,7 +9,7 @@ module ActiveSupport
         debug: -> (logger) { logger.debug? },
         info: -> (logger) { logger.info? },
         error: -> (logger) { logger.error? },
-      }
+      }.freeze
 
       class << self
         def event_log_level(method_name, level)

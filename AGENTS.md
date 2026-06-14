@@ -31,13 +31,19 @@ From within the component directory (preferred method):
 ```bash
 cd actionview && bin/test                    # Run all tests
 cd actionview && bin/test test/template/form_helper_test.rb
-cd actionview && bin/test -n "/test_name/"   # Filter by test name pattern
+cd actionview && bin/test -i "/test_name/"   # Filter by test name pattern
 ```
 
-How to run specific test method:
+How to run a specific test method:
 
 ```bash
-cd actionview && bin/test test/template/form_helper_test.rb::FormHelperTest#test_hidden_field
+cd actionview && bin/test test/template/form_helper_test.rb -i test_hidden_field
+```
+
+How to run the test at a specific line:
+
+```bash
+cd actionview && bin/test test/template/form_helper_test.rb:123
 ```
 
 ### Running Tests from Root
@@ -51,8 +57,7 @@ rake actionview:test
 Run tests across all components:
 
 ```bash
-rake test          # Run all non-isolated tests
-rake test:isolated # Run isolated tests
+rake test          # Run all tests
 rake smoke         # Quick smoke test
 ```
 

@@ -107,7 +107,7 @@ module CacheInstrumentationBehavior
 
   def test_increment_instrumentation
     key_1 = SecureRandom.uuid
-    @cache.write(key_1, 0)
+    @cache.write(key_1, 0, raw: true)
 
     events = capture_notifications("cache_increment.active_support") { @cache.increment(key_1) }
 
@@ -119,7 +119,7 @@ module CacheInstrumentationBehavior
 
   def test_decrement_instrumentation
     key_1 = SecureRandom.uuid
-    @cache.write(key_1, 0)
+    @cache.write(key_1, 0, raw: true)
 
     events = capture_notifications("cache_decrement.active_support") { @cache.decrement(key_1) }
 

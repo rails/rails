@@ -42,10 +42,9 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_to_fs_with_custom_date_format
-    Time::DATE_FORMATS[:custom] = "%Y%m%d%H%M%S"
-    assert_equal "20050221143000", DateTime.new(2005, 2, 21, 14, 30, 0).to_fs(:custom)
-  ensure
-    Time::DATE_FORMATS.delete(:custom)
+    ActiveSupport::TimeFormats.stub(:lookup, ->(format) { { custom: "%Y%m%d%H%M%S" }[format] }) do
+      assert_equal "20050221143000", DateTime.new(2005, 2, 21, 14, 30, 0).to_fs(:custom)
+    end
   end
 
   def test_localtime
@@ -201,6 +200,18 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2012, 9, 29, 13, 15, 10),  DateTime.civil(2012, 9, 28, 1, 15, 10).advance(days: 1.5)
     assert_equal DateTime.civil(2012, 9, 28, 13, 15, 10),  DateTime.civil(2012, 9, 28, 1, 15, 10).advance(days: 0.5)
     assert_equal DateTime.civil(2012, 10, 29, 13, 15, 10), DateTime.civil(2012, 9, 28, 1, 15, 10).advance(days: 1.5, months: 1)
+  end
+
+  def test_advance_does_not_mutate_options
+    options = { weeks: 1, days: 2 }
+    DateTime.civil(2024, 1, 1).advance(options)
+    assert_equal({ weeks: 1, days: 2 }, options)
+  end
+
+  def test_advance_with_frozen_options
+    assert_nothing_raised do
+      DateTime.civil(2024, 1, 1).advance({ weeks: 1, days: 2 }.freeze)
+    end
   end
 
   def test_advanced_processes_first_the_date_deltas_and_then_the_time_deltas
@@ -364,6 +375,19 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
       assert_equal true,  Time.utc(2000, 1, 3, 0, 0, 0).this_week?
       assert_equal true,  Time.utc(2000, 1, 9, 23, 59, 59).this_week?
       assert_equal false, Time.utc(2000, 1, 10, 0, 0, 0).this_week?
+    end
+  end
+
+  def test_this_week_with_start_day
+    Date.stub(:current, Date.new(2000, 1, 5)) do # Wed, 2000-01-05
+      # Default (Monday start): Mon Jan 3 - Sun Jan 9
+      assert_equal false, Time.utc(2000, 1, 2, 23, 59, 59).this_week?
+      assert_equal true,  Time.utc(2000, 1, 3, 0, 0, 0).this_week?
+
+      # Sunday start: Sun Jan 2 - Sat Jan 8
+      assert_equal true,  Time.utc(2000, 1, 2, 0, 0, 0).this_week?(:sunday)
+      assert_equal true,  Time.utc(2000, 1, 8, 23, 59, 59).this_week?(:sunday)
+      assert_equal false, Time.utc(2000, 1, 9, 0, 0, 0).this_week?(:sunday)
     end
   end
 

@@ -21,6 +21,7 @@ module ActiveSupport
     autoload :MemCacheStore,    "active_support/cache/mem_cache_store"
     autoload :NullStore,        "active_support/cache/null_store"
     autoload :RedisCacheStore,  "active_support/cache/redis_cache_store"
+    autoload :DeprecatedRedisCacheStore,  "active_support/cache/deprecated_redis_cache_store"
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
@@ -38,11 +39,11 @@ module ActiveSupport
       :skip_nil,
       :raw,
       :max_key_size,
-    ]
+    ].freeze
 
     # Mapping of canonical option names to aliases that a store will recognize.
     OPTION_ALIASES = {
-      expires_in: [:expire_in, :expired_in]
+      expires_in: [:expire_in, :expired_in].freeze
     }.freeze
 
     DEFAULT_COMPRESS_LIMIT = 1.kilobyte
@@ -701,7 +702,7 @@ module ActiveSupport
         return 0 if names.empty?
 
         options = merged_options(options)
-        names.map! { |key| normalize_key(key, options) }
+        names = names.map { |key| normalize_key(key, options) }
 
         instrument_multi(:delete_multi, names, options) do
           delete_multi_entries(names, **options)

@@ -4,10 +4,10 @@ require "prism"
 
 module ActionView
   class RenderParser # :nodoc:
-    ALL_KNOWN_KEYS = [:partial, :template, :layout, :formats, :locals, :object, :collection, :as, :status, :content_type, :location, :spacer_template]
-    RENDER_TYPE_KEYS = [:partial, :template, :layout]
+    ALL_KNOWN_KEYS = [:partial, :template, :layout, :formats, :locals, :object, :collection, :as, :status, :content_type, :location, :spacer_template].freeze
+    RENDER_TYPE_KEYS = [:partial, :template, :layout].freeze
     RENDER_CALL_METHODS = /\A(render|render_to_string)\z/
-    LAYOUT_CALL_METHOD = /\Alayout\z/
+    LAYOUT_CALL_METHOD = /\Alayout\z/ main
 
     RenderCallInfo = Struct.new(:virtual_path, :locals_keys)
 

@@ -120,7 +120,7 @@ module ActiveRecord
       #
       class_attribute :strict_strings_by_default, default: false
 
-      NATIVE_DATABASE_TYPES = {
+      NATIVE_DATABASE_TYPES = { # rubocop:disable Style/MutableConstant
         primary_key:  "integer PRIMARY KEY AUTOINCREMENT NOT NULL",
         string:       { name: "varchar" },
         text:         { name: "text" },
@@ -142,7 +142,7 @@ module ActiveRecord
         "mmap_size"           => 134217728, # 128 megabytes
         "journal_size_limit"  => 67108864, # 64 megabytes
         "cache_size"          => 2000
-      }
+      }.freeze
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         alias reset clear

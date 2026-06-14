@@ -121,8 +121,8 @@ module CacheStoreCompressionBehavior
     SMALL_STRING = "0" * 100
     LARGE_STRING = "0" * 2.kilobytes
 
-    SMALL_OBJECT = { data: SMALL_STRING }
-    LARGE_OBJECT = { data: LARGE_STRING }
+    SMALL_OBJECT = { data: SMALL_STRING }.freeze
+    LARGE_OBJECT = { data: LARGE_STRING }.freeze
 
     def with_format(format_version, &block)
       ActiveSupport::Cache.with(format_version: format_version, &block)

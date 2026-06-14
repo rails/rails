@@ -71,7 +71,7 @@ module ActiveRecord
         end
 
         def dbconsole(config, options = {})
-          pg_config = config.configuration_hash
+          pg_config = config.configuration_hash.deep_dup
 
           ENV["PGUSER"]         = pg_config[:username] if pg_config[:username]
           ENV["PGHOST"]         = pg_config[:host] if pg_config[:host]
@@ -81,6 +81,11 @@ module ActiveRecord
           ENV["PGSSLCERT"]      = pg_config[:sslcert].to_s if pg_config[:sslcert]
           ENV["PGSSLKEY"]       = pg_config[:sslkey].to_s if pg_config[:sslkey]
           ENV["PGSSLROOTCERT"]  = pg_config[:sslrootcert].to_s if pg_config[:sslrootcert]
+
+          if pg_config[:schema_search_path]
+            pg_config[:variables] ||= {}
+            pg_config[:variables][:search_path] ||= pg_config[:schema_search_path]
+          end
           if pg_config[:variables]
             ENV["PGOPTIONS"] = pg_config[:variables].filter_map do |name, value|
               "-c #{name}=#{value.to_s.gsub(/[ \\]/, '\\\\\0')}" unless value == ":default" || value == :default
@@ -149,7 +154,7 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
       class_attribute :decode_bytea, default: false
 
-      NATIVE_DATABASE_TYPES = {
+      NATIVE_DATABASE_TYPES = { # rubocop:disable Style/MutableConstant
         primary_key: "bigserial primary key",
         string:      { name: "character varying" },
         text:        { name: "text" },
@@ -255,6 +260,13 @@ module ActiveRecord
         true
       end
 
+      def supports_enforced_foreign_keys?
+        # `NOT ENFORCED` foreign keys exist from PostgreSQL 18.0, but `DEFERRABLE` was lost on
+        # them until 18.4 ("Fix loss of deferrability of foreign-key triggers",
+        # https://www.postgresql.org/docs/release/18.4/).
+        database_version >= 18_00_04
+      end
+
       def supports_views?
         true
       end
@@ -282,6 +294,7 @@ module ActiveRecord
       def supports_insert_returning?
         true
       end
+      alias supports_update_returning? supports_insert_returning?
 
       def supports_insert_on_conflict?
         true
@@ -318,6 +331,25 @@ module ActiveRecord
 
       def index_algorithms
         { concurrently: "CONCURRENTLY" }
+      end
+
+      class ErrorResultSnapshot # :nodoc:
+        def initialize(result)
+          @fields = PG.constants.
+            grep(/\APG_DIAG_/).
+            map { PG.const_get(_1) }.
+            index_with { result.error_field(_1) }
+
+          @error_message = result.error_message
+        end
+
+        def error_field(field)
+          @fields[field]
+        end
+        alias :result_error_field :error_field
+
+        attr_reader :error_message
+        alias :result_error_message :error_message
       end
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
@@ -369,6 +401,7 @@ module ActiveRecord
         @type_map_queried = false
         @raw_connection = nil
         @notice_receiver_sql_warnings = []
+        @notice_receiver_fatal_error = nil
 
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
@@ -427,6 +460,7 @@ module ActiveRecord
           super
           @raw_connection&.close rescue nil
           @raw_connection = nil
+          @notice_receiver_fatal_error = nil
         end
       end
 
@@ -799,6 +833,37 @@ module ActiveRecord
       private
         attr_reader :type_map
 
+        def connection_terminating_severity?(result)
+          severity = result&.error_field(PG::PG_DIAG_SEVERITY_NONLOCALIZED)
+          severity == "FATAL" || severity == "PANIC"
+        end
+
+        def capture_fatal_notice(result)
+          return false unless connection_terminating_severity?(result)
+
+          begin
+            result.check
+          rescue PG::Error => error
+            # result will be cleared when the notice handler returns, so
+            # we need to replace it on the exception with a snapshot.
+            snapshot = ErrorResultSnapshot.new(result)
+            error.define_singleton_method(:result) { snapshot }
+
+            @notice_receiver_fatal_error = error
+          end
+
+          @last_activity = nil
+          @verified = false
+          @needs_reconnect = true
+
+          true
+        end
+
+        def consume_notice_receiver_fatal_error
+          consumed, @notice_receiver_fatal_error = @notice_receiver_fatal_error, nil
+          consumed
+        end
+
         def initialize_type_map(m = type_map)
           self.class.initialize_type_map(m)
 
@@ -868,7 +933,8 @@ module ActiveRecord
           when nil
             if exception.message.match?(/connection is closed/i) || exception.message.match?(/no connection to the server/i)
               ConnectionNotEstablished.new(exception, connection_pool: @pool)
-            elsif exception.is_a?(PG::ConnectionBad)
+            elsif exception.is_a?(PG::ConnectionBad) ||
+                  (exception.is_a?(PG::Error) && exception.connection&.status == PG::CONNECTION_BAD)
               # libpq message style always ends with a newline; the pg gem's internal
               # errors do not. We separate these cases because a pg-internal
               # ConnectionBad means it failed before it managed to send the query,
@@ -907,7 +973,11 @@ module ActiveRecord
           when QUERY_CANCELED
             QueryCanceled.new(message, sql: sql, binds: binds, connection_pool: @pool)
           else
-            super
+            if connection_terminating_severity?(exception.result)
+              ConnectionFailed.new(exception, connection_pool: @pool)
+            else
+              super
+            end
           end
         end
 
@@ -1012,12 +1082,12 @@ module ActiveRecord
           unless @statements.key? sql_key
             nextkey = @statements.next_key
             begin
-              conn.prepare nextkey, sql
+              conn.send_prepare(nextkey, sql)
+              result = get_result(conn)
+              result&.check
             rescue => e
               raise translate_exception_class(e, sql, binds)
             end
-            # Clear the queue
-            conn.get_last_result
             @statements[sql_key] = nextkey
           end
           @statements[sql_key]
@@ -1041,6 +1111,16 @@ module ActiveRecord
           connect unless @raw_connection
         end
 
+        # Canonical spellings for PostgreSQL GUC names that use non-lowercase
+        # casing. parameter_status is case-sensitive, so we need the exact
+        # name the server reports.
+        CANONICAL_GUC_NAMES = {
+          "datestyle" => "DateStyle",
+          "intervalstyle" => "IntervalStyle",
+          "timezone" => "TimeZone",
+        }.freeze
+        private_constant :CANONICAL_GUC_NAMES
+
         # Configures the encoding, verbosity, schema search path, and time zone of the connection.
         # This is called by #connect and should not be called manually.
         def configure_connection
@@ -1050,8 +1130,11 @@ module ActiveRecord
             @raw_connection.set_client_encoding(@config[:encoding])
           end
 
-          unless ActiveRecord.db_warnings_action.nil?
-            @raw_connection.set_notice_receiver do |result|
+          @notice_receiver_fatal_error = nil
+          @raw_connection.set_notice_receiver do |result|
+            next if capture_fatal_notice(result)
+
+            if ActiveRecord.db_warnings_action
               message = result.error_field(PG::Result::PG_DIAG_MESSAGE_PRIMARY)
               code = result.error_field(PG::Result::PG_DIAG_SQLSTATE)
               level = result.error_field(PG::Result::PG_DIAG_SEVERITY)
@@ -1064,28 +1147,44 @@ module ActiveRecord
           # SETs by checking parameter_status.
           settings = {}
 
+          # We normalize to lowercase to dedup against built-ins, but retain
+          # the user's spelling just in case.
+          original_variable_names = CANONICAL_GUC_NAMES.dup
+
           # Use standard-conforming strings so we don't have to do the E'...' dance.
           settings["standard_conforming_strings"] = "on" unless @config[:standard_conforming_strings] == false
 
           # Set interval output format to ISO 8601 for ease of parsing by ActiveSupport::Duration.parse
-          settings["IntervalStyle"] = "iso_8601" unless @config[:intervalstyle] == false
+          settings["intervalstyle"] = "iso_8601" unless @config[:intervalstyle] == false
 
           unless @config[:min_messages] == false
             settings["client_min_messages"] = @config[:min_messages] || "warning"
           end
 
-          # Merge in user-provided variables from :variables config hash.
           # https://www.postgresql.org/docs/current/static/sql-set.html
           @config.fetch(:variables, {}).stringify_keys.each do |k, v|
-            if v == ":default" || v == :default
-              settings[k] = nil # nil signals "SET TO DEFAULT"
-            elsif !v.nil?
-              settings[k] = v
+            lower = k.dup
+            original_variable_names[lower] ||= k if lower.downcase!
+
+            case v
+            when :default, ":default"
+              # Server default; remove any Rails-default we've set above
+              settings.delete(lower)
+            when nil
+              # Rails default
+            else
+              settings[lower] = v
             end
           end
 
-          settings.each do |setting, value|
-            internal_set_config(setting, value)
+          server_default_tz = @raw_connection.parameter_status("TimeZone")
+          @static_timezone = settings.key?("timezone") ||
+            %w[UTC Etc/UTC].include?(server_default_tz)
+
+          settings["timezone"] = "UTC" if default_timezone == :utc && !@static_timezone
+
+          settings.each do |lower, value|
+            internal_set_config(original_variable_names[lower] || lower, value)
           end
 
           # search_path uses unquoted, comma-separated identifiers so it
@@ -1108,38 +1207,17 @@ module ActiveRecord
           reload_type_map
         end
 
-        def reconfigure_connection_timezone
-          variables = @config.fetch(:variables, {}).stringify_keys
-
-          # If it's been directly configured as a connection variable, we don't
-          # need to do anything here; it will be set up by configure_connection
-          # and then never changed.
-          return if variables["timezone"]
-
-          # If using Active Record's time zone support configure the connection
-          # to return TIMESTAMP WITH ZONE types in UTC.
-          if default_timezone == :utc
-            intent = QueryIntent.new(adapter: self, processed_sql: "SET SESSION timezone TO 'UTC'", name: "SCHEMA")
-            intent.execute!
-            intent.finish
-          else
-            intent = QueryIntent.new(adapter: self, processed_sql: "SET SESSION timezone TO DEFAULT", name: "SCHEMA")
-            intent.execute!
-            intent.finish
-          end
-        end
-
         # Sets a PostgreSQL session configuration variable. Uses parameter_status
         # to skip redundant SET commands when the server already has the desired
         # value. Pass nil as value to SET TO DEFAULT.
         def internal_set_config(setting, value)
-          if value
+          unless value.nil?
             with_raw_connection(allow_retry: false, materialize_transactions: false) do |conn|
-              return if conn.parameter_status(setting) == value.to_s
+              return if (conn.parameter_status(setting) || conn.parameter_status(setting.downcase)) == value.to_s
             end
           end
 
-          quoted_value = value ? quote(value) : "DEFAULT"
+          quoted_value = value.nil? ? "DEFAULT" : quote(value)
           query_command("SET SESSION #{setting} TO #{quoted_value}", "SCHEMA")
         end
 
@@ -1220,21 +1298,20 @@ module ActiveRecord
         end
 
         def update_typemap_for_default_timezone
-          if @raw_connection && @mapped_default_timezone != default_timezone && @timestamp_decoder
-            decoder_class = default_timezone == :utc ?
-              PG::TextDecoder::TimestampUtc :
-              PG::TextDecoder::TimestampWithoutTimeZone
+          return unless @raw_connection && @timestamp_decoder && @mapped_default_timezone != default_timezone
 
-            @timestamp_decoder = decoder_class.new(**@timestamp_decoder.to_h)
-            @raw_connection.type_map_for_results.add_coder(@timestamp_decoder)
+          initial_setup = @mapped_default_timezone.nil?
+          @mapped_default_timezone = default_timezone
 
-            @mapped_default_timezone = default_timezone
+          decoder_class = default_timezone == :utc ?
+            PG::TextDecoder::TimestampUtc :
+            PG::TextDecoder::TimestampWithoutTimeZone
 
-            # if default timezone has changed, we need to reconfigure the connection
-            # (specifically, the session time zone)
-            reconfigure_connection_timezone
+          @timestamp_decoder = decoder_class.new(**@timestamp_decoder.to_h)
+          @raw_connection.type_map_for_results.add_coder(@timestamp_decoder)
 
-            true
+          unless initial_setup || @static_timezone
+            internal_set_config("timezone", default_timezone == :utc ? "UTC" : nil)
           end
         end
 

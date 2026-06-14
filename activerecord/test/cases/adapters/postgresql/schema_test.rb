@@ -47,7 +47,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     "description character varying(100)",
     "name_vector tsvector",
     "moment timestamp without time zone default now()"
-  ]
+  ].freeze
   PK_TABLE_NAME = "table_with_pk"
   UNMATCHED_SEQUENCE_NAME = "unmatched_primary_key_default_value_seq"
   UNMATCHED_PK_TABLE_NAME = "table_with_unmatched_sequence_for_pk"
@@ -555,6 +555,19 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal 1, @connection.select_value("SELECT nextval('#{sequence_name}')")
   end
 
+  def test_reset_column_sequences_with_quoted_schema
+    @connection.execute('CREATE SCHEMA "Test_CamelSchema"')
+    @connection.execute('CREATE TABLE "Test_CamelSchema".widgets (id serial primary key)')
+    @connection.execute('INSERT INTO "Test_CamelSchema".widgets (id) VALUES (100)')
+
+    @connection.reset_column_sequences!([['"Test_CamelSchema".widgets']])
+
+    next_id = @connection.select_value(%Q{SELECT nextval(pg_get_serial_sequence('"Test_CamelSchema".widgets', 'id'))})
+    assert_operator next_id.to_i, :>, 100
+  ensure
+    @connection.execute('DROP SCHEMA IF EXISTS "Test_CamelSchema" CASCADE')
+  end
+
   def test_set_pk_sequence
     table_name = "#{SCHEMA_NAME}.#{PK_TABLE_NAME}"
     _, sequence_name = @connection.pk_and_sequence_for table_name
@@ -681,6 +694,7 @@ end
 
 class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
+  include PGSchemaHelper
 
   setup do
     @connection = ActiveRecord::Base.lease_connection
@@ -720,6 +734,22 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
 
     assert_match(/opclass: :gin_trgm_ops/, output)
     assert_match(/opclass: \{ position: :text_pattern_ops \}/, output)
+  end
+
+  def test_opclass_class_parsing_from_another_schema
+    @connection.create_schema("test_schema")
+    @connection.enable_extension("test_schema.pg_trgm")
+    @connection.execute "CREATE INDEX trains_position ON trains USING gin(position test_schema.gin_trgm_ops)"
+
+    with_dump_schemas(:schema_search_path) do
+      with_schema_search_path("public,test_schema") do
+        output = dump_table_schema "trains"
+
+        assert_match(/opclass: :gin_trgm_ops/, output)
+      end
+    end
+  ensure
+    @connection.drop_schema("test_schema")
   end
 end
 

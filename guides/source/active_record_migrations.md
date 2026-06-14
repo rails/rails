@@ -569,7 +569,7 @@ end
 ### Creating a Join Table
 
 The migration method [`create_join_table`][] creates an [HABTM (has and belongs
-to many)](association_basics.html#the-has-and-belongs-to-many-association) join
+to many)](association_basics.html#has-and-belongs-to-many) join
 table. A typical use would be:
 
 ```ruby
@@ -1829,11 +1829,17 @@ files. Here’s why:
 - **Performance**: Data migrations can take a long time to run and may lock your
   tables, affecting application performance and availability.
 
-Instead, consider using the
-[`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks) gem. This
-gem provides a framework for creating and managing data migrations and other
-maintenance tasks in a way that is safe and easy to manage without interfering
-with schema migrations.
+Instead consider using the built-in `script/` directory or a dedicated gem
+such as [`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks).
+
+Scripts can be generated using the `rails generate script my_script` syntax. These are placed
+within the `script/` folder and can be run with `rails runner script/my_script.rb`. This offers a
+dedicated location for one-off scripts and data migrations.
+
+If you require more functionality, then the
+[`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks) gem provides a framework for
+creating and managing data migrations and other maintenance tasks in a way that is safe and easy to
+manage without interfering with schema migrations.
 
 Customizing Migration Behavior with Swappable Strategies
 --------------------------------------------------------

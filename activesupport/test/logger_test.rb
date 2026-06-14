@@ -384,6 +384,15 @@ class LoggerTest < ActiveSupport::TestCase
     ActiveSupport::IsolatedExecutionState.isolation_level = previous_isolation_level
   end
 
+  def test_copied_logger_has_an_independent_local_level
+    copy = @logger.clone
+
+    copy.log_at(:fatal) do
+      assert_equal Logger::FATAL, copy.level
+      assert_equal Logger::DEBUG, @logger.level
+    end
+  end
+
   def test_logger_freeze
     logger = @logger.clone
     logger.freeze

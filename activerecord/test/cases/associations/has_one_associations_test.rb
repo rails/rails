@@ -25,6 +25,15 @@ require "models/room"
 require "models/user"
 require "models/dats"
 
+class HasOneStaleTypeChild < ActiveRecord::Base
+  self.table_name = "faces"
+end
+
+class HasOneStaleTypeOwner < ActiveRecord::Base
+  self.table_name = "humans"
+  has_one :stale_type_child, class_name: "HasOneStaleTypeChild", as: :poly_human_without_inverse
+end
+
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
@@ -137,6 +146,22 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_nil chef.employable_id
     assert_nil chef.employable_type
+  end
+
+  def test_replacing_a_polymorphic_has_one_nullifies_the_type_column
+    owner = HasOneStaleTypeOwner.create!
+    child = HasOneStaleTypeChild.create!
+    owner.stale_type_child = child
+
+    child.reload
+    assert_equal owner.id, child.poly_human_without_inverse_id
+    assert_equal "HasOneStaleTypeOwner", child.poly_human_without_inverse_type
+
+    owner.stale_type_child = nil
+
+    child.reload
+    assert_nil child.poly_human_without_inverse_id
+    assert_nil child.poly_human_without_inverse_type
   end
 
   def test_nullification_on_destroyed_association
@@ -971,7 +996,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 end
 
 class AsyncHasOneAssociationsTest < ActiveRecord::TestCase
-  include WaitForAsyncTestHelper
+  include WaitForTestHelper
 
   self.use_transactional_tests = false
 

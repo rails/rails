@@ -997,7 +997,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_response 500
 
     assert_match %r{<button onclick="copyAsText\.bind\(this\)\(\)">Copy as text</button>}, body
-    assert_match %r{<script type="text/plain" id="exception-message-for-copy">.*RuntimeError \(puke}m, body
+    assert_match %r{<textarea hidden id="exception-message-for-copy">.*RuntimeError \(puke}m, body
   end
 
   test "copy button not shown for XHR requests" do
@@ -1010,6 +1010,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_no_match %r{<button}, body
+    assert_no_match %r{<textarea}, body
   end
 
   test "exception message includes causes for nested exceptions" do
@@ -1017,9 +1018,9 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/nested_exceptions", headers: { "action_dispatch.show_exceptions" => :all }
 
-    script_content = body[%r{<script type="text/plain" id="exception-message-for-copy">(.*?)</script>}m, 1]
-    assert_match %r{Third error}, script_content
-    assert_match %r{Caused by:.*Second error}m, script_content
+    content = body[%r{<textarea hidden id="exception-message-for-copy">(.*?)</textarea>}m, 1]
+    assert_match %r{Third error}, content
+    assert_match %r{Caused by:.*Second error}m, content
   end
 
   test "translate_path_for_editor returns original path when RAILS_HOST_APP_PATH is not set" do

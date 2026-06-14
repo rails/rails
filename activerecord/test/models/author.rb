@@ -10,6 +10,7 @@ class Author < ActiveRecord::Base
   has_many :posts_with_comments_sorted_by_comment_id, -> { includes(:comments).order("comments.id") }, class_name: "Post"
   has_many :posts_sorted_by_id, -> { order(:id) }, class_name: "Post"
   has_many :posts_sorted_by_id_limited, -> { order("posts.id").limit(1) }, class_name: "Post"
+  has_many :posts_with_default_order, class_name: "Post", default_order: "posts.id DESC"
   has_many :posts_with_categories, -> { includes(:categories) }, class_name: "Post"
   has_many :posts_with_comments_and_categories, -> { includes(:comments, :categories).order("posts.id") }, class_name: "Post"
   has_many :posts_with_special_categorizations, class_name: "PostWithSpecialCategorization"
@@ -96,6 +97,9 @@ class Author < ActiveRecord::Base
   has_many :special_posts
   has_many :special_post_comments, through: :special_posts, source: :comments
   has_many :special_posts_with_default_scope, class_name: "SpecialPostWithDefaultScope"
+
+  has_many :posts_with_where_default_scope, class_name: "PostWithWhereDefaultScope"
+  has_many :comments_on_posts_with_where_default_scope, through: :posts_with_where_default_scope, source: :comments
 
   has_many :sti_posts, class_name: "StiPost"
   has_many :sti_post_comments, through: :sti_posts, source: :comments

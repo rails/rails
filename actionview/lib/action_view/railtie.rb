@@ -110,6 +110,10 @@ module ActionView
       end
     end
 
+    initializer "action_view.set_render_tracker" do |app|
+      ActionView.render_tracker = app.config.action_view.render_tracker
+    end
+
     initializer "action_view.setup_action_pack" do |app|
       ActiveSupport.on_load(:action_controller) do
         ActionView::RoutingUrlFor.include(ActionDispatch::Routing::UrlFor)

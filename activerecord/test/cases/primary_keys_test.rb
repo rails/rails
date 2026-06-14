@@ -423,6 +423,13 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     Cpk::Book.delete_all
   end
 
+  def test_reading_composite_primary_key_after_partial_select_returns_nil
+    book = Cpk::Book.select(:title).first
+
+    assert_nil book.author_id
+    assert_equal [nil, nil], book.id
+  end
+
   def test_assigning_a_non_array_value_to_model_with_composite_primary_key_raises
     book = Cpk::Book.new
 

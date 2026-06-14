@@ -9,7 +9,7 @@ module Rails
       include EnvironmentArgument
 
       class_option :sql, type: :boolean,
-        desc: "Treat input as raw SQL instead of an ActiveRecord expression"
+        desc: "Treat input as raw SQL instead of an Active Record expression"
 
       class_option :database, aliases: "--db", type: :string,
         desc: "Database configuration to use (e.g. primary_replica)"
@@ -43,24 +43,6 @@ module Rails
       end
 
       private
-        def run_query(expression)
-          expression = resolve_expression(expression)
-          page = [ options[:page], 1 ].max
-          per = [ [ options[:per], 1 ].max, 10_000 ].min
-
-          start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          result = if options[:sql]
-            with_readonly_connection do |connection|
-              execute_sql(connection: connection, sql: expression, page: page, per: per)
-            end
-          else
-            execute_ar(expression: expression, page: page, per: per)
-          end
-          elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).round(1)
-
-          say format_result(**result, elapsed_ms: elapsed_ms, page: page, per: per)
-        end
-
         def run_schema(table = nil)
           with_readonly_connection do |connection|
             if table
@@ -99,13 +81,33 @@ module Rails
               say format_result(columns: result.columns, rows: result.rows, sql: "EXPLAIN #{expression}")
             end
           else
-            relation = eval(expression, TOPLEVEL_BINDING, "(query)", 1)
+            relation = with_readonly_connection { eval(expression, TOPLEVEL_BINDING, "(query)", 1) }
             sql = relation.to_sql
             with_readonly_connection_for(relation.model.connection_class_for_self) do |connection|
               result = connection.select_all("EXPLAIN #{sql}")
               say format_result(columns: result.columns, rows: result.rows, sql: "EXPLAIN #{sql}")
             end
           end
+        end
+
+        def run_query(expression)
+          expression = resolve_expression(expression)
+          page = [ options[:page], 1 ].max
+          per = [ [ options[:per], 1 ].max, 10_000 ].min
+
+          start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+          result = if options[:sql]
+            with_readonly_connection do |connection|
+              execute_sql(connection: connection, sql: expression, page: page, per: per)
+            end
+          else
+            execute_expression(expression: expression, page: page, per: per)
+          end
+
+          elapsed_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) * 1000).round(1)
+
+          say format_result(**result, elapsed_ms: elapsed_ms, page: page, per: per)
         end
 
         def with_readonly_connection(&block)
@@ -147,32 +149,6 @@ module Rails
           false
         end
 
-        def execute_ar(expression:, page:, per:)
-          result = eval(expression, TOPLEVEL_BINDING, "(query)", 1)
-
-          case result
-          when ActiveRecord::Relation
-            relation = result.offset((page - 1) * per).limit(per + 1)
-            sql = relation.to_sql
-            with_readonly_connection_for(relation.model.connection_class_for_self) do |connection|
-              ar_result = connection.select_all(sql)
-              truncated = ar_result.rows.length > per
-              { columns: ar_result.columns, rows: ar_result.rows.first(per), sql: sql, truncated: truncated }
-            end
-          when ActiveRecord::Result
-            { columns: result.columns, rows: result.rows, sql: expression, truncated: false }
-          when Hash
-            rows = result.map { |key, val| [ key, val ] }
-            { columns: [ "key", "value" ], rows: rows, sql: expression, truncated: false }
-          when Array
-            rows = result.map { |val| Array(val) }
-            cols = Array.new(rows.first&.length.to_i) { |i| "column_#{i}" }
-            { columns: cols, rows: rows, sql: expression, truncated: false }
-          else
-            { columns: [ "result" ], rows: [ [ result ] ], sql: expression, truncated: false }
-          end
-        end
-
         def execute_sql(connection:, sql:, page:, per:)
           unless sql.gsub(/--.*$|\/\*.*?\*\//m, "").match?(/\bLIMIT\b/i)
             offset = (page - 1) * per
@@ -180,9 +156,58 @@ module Rails
             sql += " OFFSET #{offset}" if offset > 0
           end
 
-          ar_result = connection.select_all(sql)
-          truncated = ar_result.rows.length > per
-          { columns: ar_result.columns, rows: ar_result.rows.first(per), sql: sql, truncated: truncated }
+          active_record_result = connection.select_all(sql)
+          rows = active_record_result.rows
+
+          tabular_result(columns: active_record_result.columns, rows: rows.first(per), sql: sql, truncated: rows.length > per)
+        end
+
+        def execute_expression(expression:, page:, per:)
+          result = with_readonly_connection { eval(expression, TOPLEVEL_BINDING, "(query)", 1) }
+          columns, rows, sql, truncated = tabular_result_parts_for(result, expression: expression, page: page, per: per)
+
+          tabular_result(columns: columns, rows: rows, sql: sql, truncated: truncated)
+        end
+
+        def tabular_result_parts_for(result, expression:, page:, per:)
+          case result
+          when ActiveRecord::Relation
+            relation = result.offset((page - 1) * per).limit(per + 1)
+            relation_sql = relation.to_sql
+
+            with_readonly_connection_for(relation.model.connection_class_for_self) do |connection|
+              active_record_result = connection.select_all(relation_sql)
+              rows = active_record_result.rows
+
+              [ active_record_result.columns, rows.first(per), relation_sql, rows.length > per ]
+            end
+          when ActiveRecord::Result
+            [ result.columns, result.rows, expression, false ]
+          when ActiveRecord::Base
+            attributes = result.attributes
+
+            [ attributes.keys, [ attributes.values ], expression, false ]
+          when Hash
+            [ [ "key", "value" ], result.map { |key, val| [ key, val ] }, expression, false ]
+          when Array
+            peek_on_result = result.first
+
+            if peek_on_result.is_a?(ActiveRecord::Base)
+              columns = peek_on_result.attribute_names
+              rows = result.map { |record| record.attributes.values }
+            else
+              rows = result.map { |value| Array(value) }
+              columns = Array.new(rows.first&.length.to_i) { |index| "column_#{index}" }
+            end
+
+            [ columns, rows, expression, false ]
+          else
+            [ [ "result" ], [ [ result ] ], expression, false ]
+          end
+        end
+
+        def tabular_result(columns:, rows:, sql:, truncated: false)
+          { columns: columns, rows: rows, sql: sql, truncated: truncated }
         end
 
         def format_result(columns:, rows:, sql:, elapsed_ms: 0, page: 1, per: rows.length, truncated: false)

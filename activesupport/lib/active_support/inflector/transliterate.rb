@@ -66,7 +66,10 @@ module ActiveSupport
       raise ArgumentError, "Cannot transliterate strings with #{string.encoding} encoding" unless ALLOWED_ENCODINGS_FOR_TRANSLITERATE.include?(string.encoding)
 
       return string.dup if string.ascii_only?
-      string = string.dup if string.frozen?
+
+      # Operate on a copy so the in-place force_encoding/encode! below never
+      # mutate the caller's (possibly non-frozen) string.
+      string = string.dup
 
       input_encoding = string.encoding
 

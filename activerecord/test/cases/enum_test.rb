@@ -317,7 +317,8 @@ class EnumTest < ActiveRecord::TestCase
     e = assert_raises(ArgumentError) do
       @book.status = :unknown
     end
-    assert_equal "'unknown' is not a valid status", e.message
+    assert_match(/\A'unknown' is not a valid status\./, e.message)
+    assert_match(/"proposed"/, e.message)
   end
 
   test "validation with 'validate: true' option" do

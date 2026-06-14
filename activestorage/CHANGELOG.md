@@ -1,3 +1,135 @@
+*   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
+
+    Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
+    because `content_type`, `filename`, `disposition`, and `custom_metadata` were
+    dropped. Forward the blob's `service_metadata` to each mirror's upload.
+
+    Fixes #57270.
+
+    *Maksim Romanov* + *Andrii Furmanets*
+
+*   Offload ActiveStorage::Blob#metadata sync to background
+
+    Problem:
+
+    A data race can occur when both a http server and a background worker (
+    `ActiveStorage::AnalyzeJob`) attempt to update a blob's metadata
+    simultaneously. This leads to a 409 conflict on GCS.
+
+    Solution:
+
+    Offload the metadata upload to a background job so the 409 no longer breaks
+    the request with a 500. Applications can add `retry_on` to
+    `ActiveStorage::SyncMetadataJob` to retry the conflict for their service.
+
+    `ActiveStorage::Service#update_metadata` now instruments the work and
+    delegates it to a new `update_metadata_for` method. Custom services that
+    overrode `update_metadata` should override `update_metadata_for` instead, so
+    the work runs inside the instrumentation.
+
+    *Shouichi Kamiya*
+
+*   Update Active Storage for ImageProcessing 2.0.
+
+    ImageProcessing 2.0 now requires adding `ruby-vips` or `mini_magick` gems explicitly to the Gemfile.
+
+    *Janko Marohnić*
+
+*   Prevent `ActiveStorage.touch_attachment_records = false` from crashing the attachment of a Blob.
+
+    When `ActiveStorage.touch_attachment_records` was set to `false`, attaching a existing Blob to a Record
+    would raise an error. This is now fixed.
+
+    *Edouard Chin*
+
+*   Parallelize `exist?` checks and uploads in `MirrorService#mirror` using
+    the existing internal thread pool. With N mirrors, wall time drops from
+    O(N) to O(1) network round-trips for both phases.
+
+    *Denis Savchuk*
+
+*   Fix `MirrorService#mirror` raising `ActiveStorage::IntegrityError` when
+    mirroring without a checksum (e.g., `track_variants: false`).
+
+    *Denis Savchuk*
+
+*   Don't bump `lock_version` on attachment records' parents during blob analysis.
+
+    `ActiveStorage::AnalyzeJob` writes only to `Blob#metadata`. The cascade
+    that touches attached records (and their parents) exists for cache-key
+    invalidation; when those records use optimistic locking, the previous
+    behavior bumped `lock_version`, causing concurrent form edits to raise
+    spurious `ActiveRecord::StaleObjectError`s. The `updated_at` cascade is
+    preserved; the `lock_version` bump on this code path is now suppressed.
+
+    Fixes #55764.
+
+    *Greg Pavlik*
+
+*   Accept Tempfile as ActiveStorage attachable.
+
+    ```ruby
+    tempfile = Tempfile.open(["users", ".csv"])
+    write_csv_to(tempfile)
+    export.csv.attach(tempfile)
+    ```
+
+    *Shouichi Kamiya*
+
+*   Require image processing backend upfront when Active Storage is being loaded.
+
+    This removes extra overhead when processing first variant after deploy and improves copy-on-write for preforking web servers.
+
+    *Janko Marohnić*
+
+*   ActiveStorage ProxyController now set relevant `Last-Modified`
+
+    It is now set to `Blob#created_at` instead of being hardcoded to January 1st 2011.
+
+    *Jean Boussier*
+
+*   Preserve attachment changes when converting record to another class using STI.
+
+    *fatkodima*
+
+*   Add a helper to get the combined byte size of blobs attached via `has_many_attached`.
+
+    ```ruby
+    document.images.byte_size # => 2048
+    ```
+
+    *Sandip Mane*, *fatkodima*
+
+*   Implement `attach!` as a bang counterpart to `attach`.
+
+    This method raises an exception if the attachment was not saved, similar
+    to how `save!` raises an exception if an Active Record object is found to
+    be invalid prior to be persisted.
+
+    *Quentin de Metz*
+
+*   Correct unexpected behavior resulting from dependent: :purge when using
+    has_one_attached or has_many_attached. Fixes #36423.
+
+    *Mark Oveson*
+
+*   Allow configuring Active Storage base controller parent class
+
+    This enables users to change the parent class for
+    `ActiveStorage::BaseController`, including the option to inherit from
+    `ActionController::API` for api-only apps.
+
+    *Andrew White*, *Santiago Bartesaghi*, *zzak*
+
+*   Fix image analyzer reporting wrong dimensions for EXIF orientations involving a mirror.
+
+    `rotated_image?` was swapping width/height for orientations 2 and 4 (flip-only, no 90°
+    rotation), which do not change portrait/landscape orientation. It was also missing orientations
+    5 and 7 (flip + 90° rotation), which do require a swap. Only orientations 5, 6, 7, and 8
+    involve a 90° or 270° rotation and should trigger a dimension swap.
+
+    *Bogdan Gusiev*
+
 *   Define `as_json` on `ActiveStorage::Attached::One` and `ActiveStorage::Attached::Many`.
 
     The proxies hold a back-reference to the owning record in `@record`. Without an explicit

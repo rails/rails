@@ -62,7 +62,7 @@ module ActiveRecord
         :create_schema, :drop_schema,
         :create_virtual_table, :drop_virtual_table,
         :enable_index, :disable_index
-      ]
+      ].freeze
       include JoinTable
 
       attr_accessor :commands, :delegate, :reverting
@@ -239,7 +239,9 @@ module ActiveRecord
         end
 
         def invert_remove_column(args)
-          raise ActiveRecord::IrreversibleMigration, "remove_column is only reversible if given a type." if args.size <= 2
+          if args.size <= 2 || args[2].is_a?(Hash)
+            raise ActiveRecord::IrreversibleMigration, "remove_column is only reversible if given a type."
+          end
           super
         end
 

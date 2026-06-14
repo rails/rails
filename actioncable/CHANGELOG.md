@@ -1,3 +1,20 @@
+*   Respect calls to `#reject` in `before_subscribe` callbacks.
+
+    It doesn't call `#subscribed` if a `before_subscribe` callback calls `#reject`.
+
+    *Joshua Young*
+
+*   Extract low-level Action Cable server responsibilities into `ActionCable::Server`
+    abstractions.
+
+    This refactoring separates socket handling, concurrency primitives, and
+    other transport-specific behavior from application-level connections and
+    channels. It makes Action Cable more flexible as a framework and opens the
+    door to alternative server implementations without changing user-facing
+    channel and connection code.
+
+    *Vladimir Dementyev*
+
 *   Fix Action Cable origin check to respect `X-Forwarded-Host` behind reverse proxies.
 
     The `allow_same_origin_as_host` check previously compared against the raw

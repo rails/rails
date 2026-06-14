@@ -70,7 +70,7 @@ module ActiveSupport
       debug: -> (logger) { !logger.debug? },
       info: -> (logger) { !logger.info? },
       error: -> (logger) { !logger.error? },
-    }
+    }.freeze
 
     class << self
       def logger

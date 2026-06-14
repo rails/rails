@@ -88,6 +88,19 @@ class NormalizedAttributeTest < ActiveModel::TestCase
     assert_equal "Only Titlecase", NormalizedAircraft.normalize_value_for(:name, "ONLY titlecase")
   end
 
+  test "does not re-apply normalization on repeated validation" do
+    succ = Class.new(Aircraft) do
+      normalizes :name, with: -> name { name.succ }
+    end
+
+    aircraft = succ.new(name: "a")
+    assert_equal "b", aircraft.name
+
+    aircraft.valid?
+    aircraft.valid?
+    assert_equal "b", aircraft.name
+  end
+
   test "minimizes number of times normalization is applied" do
     count_applied = Class.new(Aircraft) do
       normalizes :name, with: -> name { name.succ }

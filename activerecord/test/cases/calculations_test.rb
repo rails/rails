@@ -29,7 +29,7 @@ require "models/cpk"
 class CalculationsTest < ActiveRecord::TestCase
   include AsyncHelper
 
-  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments, :cpk_books
+  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments, :cpk_books, :cpk_orders
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -306,7 +306,10 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_count_should_shortcut_with_limit_zero
     accounts = Account.limit(0)
 
-    assert_no_queries { assert_equal 0, accounts.count }
+    assert_no_queries do
+      assert_equal 0, accounts.count
+      assert_async_equal 0, accounts.async_count
+    end
   end
 
   def test_limit_is_kept
@@ -438,6 +441,16 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_count_for_a_composite_primary_key_model_with_includes_and_references
     assert_equal Cpk::Book.count, Cpk::Book.includes(:chapters).references(:chapters).count
+  end
+
+  def test_group_by_a_belongs_to_association_with_a_composite_primary_key_model
+    order = cpk_orders(:cpk_book_order_1)
+    books = Cpk::Book.where(shop_id: order.shop_id, order_id: order.id)
+    assert_predicate books, :any?
+
+    result = books.group(:order).count
+
+    assert_equal({ order => books.count }, result)
   end
 
   def test_should_group_by_summed_field_having_condition

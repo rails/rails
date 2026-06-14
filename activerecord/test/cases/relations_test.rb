@@ -1565,7 +1565,7 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     relation.stub(:find_by, find_by_mock) do
-      relation.stub(:find_by!, find_by_mock) do # create_or_find_by always call find_by! on retry
+      relation.stub(:take!, find_by_mock) do # use :take! instead of :find_by! because of the rewhere change
         assert_equal bob, relation.find_or_create_by(nick: "bob")
       end
     end
@@ -1607,6 +1607,21 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal subscriber, Subscriber.create_or_find_by(nick: "bob")
     assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
+  end
+
+  def test_create_or_find_by_with_polluted_scope
+    subscriber = Subscriber.create!(nick: "bob")
+
+    scoped_relation = Subscriber.where(nick: "alice")
+
+    assert_equal subscriber, scoped_relation.create_or_find_by(nick: "bob")
+  end
+
+  def test_create_or_find_by_bang_with_polluted_scope
+    subscriber = Subscriber.create!(nick: "bob")
+    scoped_relation = Subscriber.where(nick: "alice")
+
+    assert_equal subscriber, scoped_relation.create_or_find_by!(nick: "bob")
   end
 
   def test_create_or_find_by_rollbacks_a_transaction
@@ -2007,6 +2022,25 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.order(:title).reverse_order.reorder(nil)
 
     assert_nil relation.order_values.first
+  end
+
+  def test_default_order
+    comments = posts(:welcome).comments.default_order(:body)
+    assert_equal [2, 1], comments.pluck(:id)
+    assert_equal 2, comments.first.id
+
+    comments = comments.order(:id)
+    assert_equal [1, 2], comments.pluck(:id)
+    assert_equal 1, comments.first.id
+  end
+
+  def test_reverse_order_reverses_default_order
+    # reverse_order should reverse the default order, just like a regular
+    # order, rather than discarding it in favor of the primary key.
+    assert_equal Post.order("title ASC").reverse_order.ids, Post.default_order("title ASC").reverse_order.ids
+
+    relation = Post.default_order("title ASC").reverse_order
+    assert_match(/ORDER BY title DESC/, relation.to_sql)
   end
 
   def test_reorder_with_first

@@ -370,7 +370,7 @@ module ActionView
       #   # => "<p>We want to put a paragraph...</p>\n\n<p>...right there.</p>"
       #
       #   simple_format("Look ma! A class!", class: 'description')
-      #   # => "<p class='description'>Look ma! A class!</p>"
+      #   # => "<p class=\"description\">Look ma! A class!</p>"
       #
       #   simple_format("<blink>Unblinkable.</blink>")
       #   # => "<p>Unblinkable.</p>"

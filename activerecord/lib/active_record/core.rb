@@ -574,11 +574,7 @@ module ActiveRecord
     def init_attributes(_) # :nodoc:
       attrs = @attributes.deep_dup
 
-      if self.class.composite_primary_key?
-        @primary_key.each { |key| attrs.reset(key) }
-      else
-        attrs.reset(@primary_key)
-      end
+      self.class.primary_key_definition.each { |key| attrs.reset(key) }
 
       attrs
     end

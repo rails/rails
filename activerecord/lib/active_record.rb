@@ -57,6 +57,7 @@ module ActiveRecord
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
+  autoload :Key
   autoload :LogSubscriber
   autoload :Marshalling
   autoload :Migration

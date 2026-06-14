@@ -72,7 +72,7 @@ TIP: Any commands prefaced with a dollar sign `$` should be run in the terminal.
 
 For this project, you will need:
 
-* Ruby 3.3 or newer
+* Ruby 3.4 or newer
 * Rails 8.2.0 or newer
 * A code editor
 
@@ -1237,7 +1237,7 @@ will look like this:
 
 ```html
 <form action="/products" accept-charset="UTF-8" method="post">
-  <input type="hidden" name="authenticity_token" value="UHQSKXCaFqy_aoK760zpSMUPy6TMnsLNgbPMABwN1zpW-Jx6k-2mISiF0ulZOINmfxPdg5xMyZqdxSW1UK-H-Q" autocomplete="off">
+  <input type="hidden" name="authenticity_token" value="UHQSKXCaFqy_aoK760zpSMUPy6TMnsLNgbPMABwN1zpW-Jx6k-2mISiF0ulZOINmfxPdg5xMyZqdxSW1UK-H-Q">
 
   <div>
     <label for="product_name">Name</label>

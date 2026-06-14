@@ -656,6 +656,43 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal firm.limited_clients.length, firm.limited_clients.count
   end
 
+  def test_default_order
+    post = posts(:welcome)
+
+    comments = post.comments.order(:body)
+    assert_equal [2, 1], comments.pluck(:id)
+    assert_equal 2, comments.first.id
+
+    comments = post.ordered_comments
+    assert_equal [2, 1], comments.pluck(:id)
+    assert_equal 2, comments.first.id
+
+    comments = post.ordered_comments.order(:id)
+    assert_equal [1, 2], comments.pluck(:id)
+    assert_equal 1, comments.first.id
+  end
+
+  def test_default_order_is_applied_when_the_target_is_loaded
+    author = authors(:david)
+
+    # The generated SQL (used by pluck/count/to_sql) honors default_order.
+    assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.pluck(:id)
+
+    # The materialized collection must honor it too, not come back in
+    # arbitrary database order.
+    assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.to_a.map(&:id)
+    assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.reload.map(&:id)
+  end
+
+  def test_default_order_keeps_using_the_statement_cache
+    author = authors(:david)
+    association = author.association(:posts_with_default_order)
+
+    # The ORDER BY is baked into the cached SQL, so the statement cache must
+    # not be bypassed.
+    assert_not association.send(:skip_statement_cache?, association.scope)
+  end
+
   def test_finding
     assert_equal 3, Firm.first.clients.length
   end
@@ -3203,7 +3240,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of,
       :strict_loading, :query_constraints, :deprecated, :autosave, :class_name, :before_add,
       :after_add, :before_remove, :after_remove, :extend, :counter_cache, :join_table,
-      :index_errors, :as, :through
+      :index_errors, :default_order, :as, :through
     MESSAGE
   end
 
@@ -3247,6 +3284,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
   end
 
+  def test_ids_writer_with_composite_primary_key_and_string_ids
+    great_author = cpk_authors(:cpk_great_author)
+    book_ids = great_author.books.ids
+
+    # ids coming from request params, URLs, or JSON are strings.
+    great_author.book_ids = book_ids.map { |id| id.map(&:to_s) }
+
+    assert_equal book_ids.sort, great_author.reload.books.ids.sort
+  end
+
   private
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target
@@ -3254,7 +3301,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 end
 
 class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
-  include WaitForAsyncTestHelper
+  include WaitForTestHelper
 
   self.use_transactional_tests = false
 
