@@ -97,6 +97,7 @@ module ActionController
         end
 
         def authenticate_with_http_basic(&login_procedure)
+          return false unless request.ssl?
           HttpAuthentication::Basic.authenticate(request, &login_procedure)
         end
 
@@ -248,12 +249,12 @@ module ActionController
       # ha1 digest instead of a plain-text password.
       def expected_response(http_method, uri, credentials, password, password_is_ha1 = true)
         ha1 = password_is_ha1 ? password : ha1(credentials, password)
-        ha2 = OpenSSL::Digest::MD5.hexdigest([http_method.to_s.upcase, uri].join(":"))
-        OpenSSL::Digest::MD5.hexdigest([ha1, credentials[:nonce], credentials[:nc], credentials[:cnonce], credentials[:qop], ha2].join(":"))
+        ha2 = OpenSSL::Digest::SHA256.hexdigest([http_method.to_s.upcase, uri].join(":"))
+        OpenSSL::Digest::SHA256.hexdigest([ha1, credentials[:nonce], credentials[:nc], credentials[:cnonce], credentials[:qop], ha2].join(":"))
       end
 
       def ha1(credentials, password)
-        OpenSSL::Digest::MD5.hexdigest([credentials[:username], credentials[:realm], password].join(":"))
+        OpenSSL::Digest::SHA256.hexdigest([credentials[:username], credentials[:realm], password].join(":"))
       end
 
       def encode_credentials(http_method, credentials, password, password_is_ha1)
@@ -276,7 +277,7 @@ module ActionController
         secret_key = secret_token(controller.request)
         nonce = self.nonce(secret_key)
         opaque = opaque(secret_key)
-        controller.headers["WWW-Authenticate"] = %(Digest realm="#{realm}", qop="auth", algorithm=MD5, nonce="#{nonce}", opaque="#{opaque}")
+        controller.headers["WWW-Authenticate"] = %(Digest realm="#{realm}", qop="auth", algorithm=SHA-256, nonce="#{nonce}", opaque="#{opaque}")
       end
 
       def authentication_request(controller, realm, message = nil, content_type = nil)
@@ -332,7 +333,7 @@ module ActionController
       def nonce(secret_key, time = Time.now)
         t = time.to_i
         hashed = [t, secret_key]
-        digest = OpenSSL::Digest::MD5.hexdigest(hashed.join(":"))
+        digest = OpenSSL::Digest::SHA256.hexdigest(hashed.join(":"))
         ::Base64.strict_encode64("#{t}:#{digest}")
       end
 
@@ -348,7 +349,7 @@ module ActionController
 
       # Opaque based on digest of secret key
       def opaque(secret_key)
-        OpenSSL::Digest::MD5.hexdigest(secret_key)
+        OpenSSL::Digest::SHA256.hexdigest(secret_key)
       end
     end
 
