@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "concurrent/map"
+require "delegate"
 
 class Object
   # An object is blank if it's false, empty, or a whitespace string.
@@ -195,5 +196,17 @@ class Time # :nodoc:
 
   def present?
     true
+  end
+end
+
+class Delegator # :nodoc:
+  # Returns self.
+  #
+  # This is defined on Delegator to avoid delegating +presence+ to the wrapped
+  # object, which may return a different object and break method chaining.
+  #
+  # @return [self]
+  def presence
+    self
   end
 end
