@@ -989,4 +989,47 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     special_user = user.becomes(SpecialUser)
     assert_predicate special_user.highlights, :attached?
   end
+
+  test "attaching does not delete attachments added concurrently" do
+    group = Group.create!
+    group.files.attach create_blob(filename: "a.txt")
+
+    one = Group.find(group.id)
+    two = Group.find(group.id)
+    one.files_blobs.to_a
+    two.files_blobs.to_a
+
+    one.files.attach create_blob(filename: "b.txt")
+    two.files.attach create_blob(filename: "c.txt")
+
+    assert_equal %w[ a.txt b.txt c.txt ], group.reload.files_blobs.map { |blob| blob.filename.to_s }.sort
+  end
+
+  test "attaching after changing another attribute does not delete attachments added concurrently" do
+    group = Group.create!
+    group.files.attach create_blob(filename: "a.txt")
+
+    one = Group.find(group.id)
+    two = Group.find(group.id)
+    one.files_blobs.to_a
+    two.files_blobs.to_a
+
+    one.files.attach create_blob(filename: "b.txt")
+
+    two.name = "Renamed"
+    two.files.attach create_blob(filename: "c.txt")
+    two.save!
+
+    assert_equal %w[ a.txt b.txt c.txt ], group.reload.files_blobs.map { |blob| blob.filename.to_s }.sort
+  end
+
+  test "assigning then attaching on an existing record replaces and then appends" do
+    group = Group.create!
+    group.files.attach create_blob(filename: "old.txt")
+
+    group.files = [ create_blob(filename: "new.txt") ]
+    group.files.attach create_blob(filename: "added.txt")
+
+    assert_equal %w[ added.txt new.txt ], group.reload.files_blobs.map { |blob| blob.filename.to_s }.sort
+  end
 end
