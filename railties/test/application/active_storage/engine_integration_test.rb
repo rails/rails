@@ -63,6 +63,35 @@ module ApplicationTests
       assert_includes(output, "ActiveStorage::Transformers::NullTransformer")
     end
 
+    def test_signed_ids_are_url_safe_with_message_pack_serializer
+      File.open("#{app_path}/Gemfile", "a") do |f|
+        f.puts 'gem "msgpack"'
+      end
+
+      add_to_config <<~RUBY
+        config.secret_key_base = "secret"
+        config.active_support.message_serializer = :message_pack
+      RUBY
+
+      # A blob's signed ID is used as a path segment in the Active Storage routes,
+      # so a "+" or "/" in its Base64 encoding breaks routing. Pick a blob id whose
+      # non-URL-safe encoding exposes the problem, then assert it is encoded safely.
+      script = <<~RUBY.gsub("\n", " ")
+        secret = Rails.application.key_generator.generate_key('ActiveStorage');
+        unsafe = ActiveSupport::MessageVerifier.new(secret);
+        blob_id = (1..1000).find { |id| s = unsafe.generate(id, purpose: :blob_id); s.include?('+') || s.include?('/') };
+        signed = ActiveStorage.verifier.generate(blob_id, purpose: :blob_id);
+        url_safe = !(signed.include?('+') || signed.include?('/'));
+        round_trips = ActiveStorage.verifier.verified(signed, purpose: :blob_id) == blob_id;
+        puts(url_safe && round_trips ? 'URL_SAFE_OK' : 'URL_SAFE_FAIL');
+      RUBY
+
+      output = run_command(script)
+
+      assert_includes(output, "URL_SAFE_OK")
+      assert_not_includes(output, "URL_SAFE_FAIL")
+    end
+
     private
       def run_command(cmd)
         Dir.chdir(app_path) do
