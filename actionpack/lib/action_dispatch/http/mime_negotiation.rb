@@ -18,6 +18,7 @@ module ActionDispatch
 
       included do
         mattr_accessor :ignore_accept_header, default: false
+        mattr_accessor :respect_accept_header_rfc9110, default: false
       end
 
       # The MIME type of the HTTP request, such as [Mime](:xml).
@@ -227,8 +228,11 @@ module ActionDispatch
         end
 
         def valid_accept_header
-          (xhr? && (accept.present? || content_mime_type)) ||
-            (accept.present? && !accept.match?(BROWSER_LIKE_ACCEPTS))
+          if xhr?
+            accept.present? || content_mime_type
+          elsif accept.present?
+            self.class.respect_accept_header_rfc9110 || !accept.match?(BROWSER_LIKE_ACCEPTS)
+          end
         end
 
         def use_accept_header

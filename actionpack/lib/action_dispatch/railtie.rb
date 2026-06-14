@@ -16,6 +16,7 @@ module ActionDispatch
     config.action_dispatch.show_exceptions = :all
     config.action_dispatch.tld_length = 1
     config.action_dispatch.ignore_accept_header = false
+    config.action_dispatch.respect_accept_header_rfc9110 = false
     config.action_dispatch.rescue_templates = {}
     config.action_dispatch.rescue_responses = {}
     config.action_dispatch.wrapper_exceptions = []
@@ -76,10 +77,22 @@ module ActionDispatch
         ActionDispatch::QueryParser.strict_query_string_separator = app.config.action_dispatch.strict_query_string_separator
       end
 
+      # Warn if both ignore_accept_header and respect_accept_header_rfc9110 are true
+      if app.config.action_dispatch.ignore_accept_header &&
+         app.config.action_dispatch.respect_accept_header_rfc9110
+        (Rails.logger || ActiveSupport::Logger.new($stdout)).warn(
+          "WARNING: Both 'ignore_accept_header' and 'respect_accept_header_rfc9110' are enabled. " \
+          "'ignore_accept_header' takes precedence, disabling Accept header processing entirely. " \
+          "The 'respect_accept_header_rfc9110' setting will have no effect. " \
+          "Remove one of these configurations."
+        )
+      end
+
       ActionDispatch.verbose_redirect_logs = app.config.action_dispatch.verbose_redirect_logs
 
       ActiveSupport.on_load(:action_dispatch_request) do
         self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
+        self.respect_accept_header_rfc9110 = app.config.action_dispatch.respect_accept_header_rfc9110
         ActionDispatch::Request::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
       end
 
