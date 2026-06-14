@@ -86,7 +86,7 @@ module ActiveJob
         raise
       rescue StandardError => e
         if resume_errors_after_advancing? && continuation.advanced?
-          resume_job(exception: e)
+          resume_job(e)
         else
           raise
         end

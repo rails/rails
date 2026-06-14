@@ -251,6 +251,19 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     end
   end
 
+  test "records the exception message as the exception_executions key when resuming after an error" do
+    IteratingRecord.records = [ 123, 432, 6565, 3243, 234, 13, 22 ].map { |i| IteratingRecord.new(i, "item_#{i}") }
+
+    IteratingJob.perform_later(raise_when_cursor: 433)
+
+    assert_enqueued_jobs 1, only: IteratingJob do
+      perform_enqueued_jobs
+    end
+
+    job = queue_adapter.enqueued_jobs.first
+    assert_equal({ "Cursor error" => 1 }, job["exception_executions"])
+  end
+
   test "passes the job to the queue adapter stopping predicate" do
     LinearJob.items = []
     LinearJob.perform_later
