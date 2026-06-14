@@ -206,6 +206,25 @@ class RequestIP < BaseRequestTest
     assert_nil request.remote_ip
   end
 
+  test "remote ip v4 mapped v6 addresses are matched against v4 trusted proxies" do
+    request = stub_request "REMOTE_ADDR" => "::ffff:127.0.0.1",
+                           "HTTP_X_FORWARDED_FOR" => "3.4.5.6"
+    assert_equal "3.4.5.6", request.remote_ip
+
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "3.4.5.6,::ffff:127.0.0.1"
+    assert_equal "3.4.5.6", request.remote_ip
+
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "3.4.5.6,::ffff:10.0.0.1"
+    assert_equal "3.4.5.6", request.remote_ip
+
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "3.4.5.6, ::ffff:172.31.4.4, ::ffff:192.168.0.1"
+    assert_equal "3.4.5.6", request.remote_ip
+
+    # An IPv4-mapped address that is not a trusted proxy is still the client.
+    request = stub_request "HTTP_X_FORWARDED_FOR" => "::ffff:3.4.5.6,127.0.0.1"
+    assert_equal "::ffff:3.4.5.6", request.remote_ip
+  end
+
   test "remote ip v6 spoof detection" do
     request = stub_request "HTTP_X_FORWARDED_FOR" => "2001:0db8:85a3:0000:0000:8a2e:0370:7335",
                            "HTTP_CLIENT_IP"       => "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
