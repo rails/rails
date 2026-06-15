@@ -1184,6 +1184,52 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "users/home#index", @response.body
   end
 
+  def test_namespace_with_deprecated_path_hash_option
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        namespace :users, { path: "usuarios" } do
+          root to: "home#index"
+        end
+      end
+    end
+
+    get "/usuarios"
+    assert_equal "/usuarios", users_root_path
+    assert_equal "users/home#index", @response.body
+  end
+
+  def test_namespace_with_deprecated_shallow_path_hash_option
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        namespace :foo, { shallow_path: "bar" } do
+          resources :posts, only: [:index, :show] do
+            resources :comments, only: [:index, :show], shallow: true
+          end
+        end
+      end
+    end
+
+    get "/bar/comments/2"
+    assert_equal "/bar/comments/2", foo_comment_path("2")
+    assert_equal "foo/comments#show", @response.body
+  end
+
+  def test_namespace_with_deprecated_shallow_prefix_hash_option
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        namespace :foo, { shallow_prefix: "bar" } do
+          resources :posts, only: [:index, :show] do
+            resources :comments, only: [:index, :show], shallow: true
+          end
+        end
+      end
+    end
+
+    get "/foo/comments/2"
+    assert_equal "/foo/comments/2", bar_comment_path("2")
+    assert_equal "foo/comments#show", @response.body
+  end
+
   def test_namespaced_shallow_routes_with_module_option
     draw do
       namespace :foo, module: "bar" do
