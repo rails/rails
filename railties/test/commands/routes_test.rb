@@ -419,6 +419,109 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
     MESSAGE
   end
 
+  test "rails routes with mounted engines" do
+    engine "blog" do |e|
+      e.write "lib/blog.rb", <<-RUBY
+        module Blog
+          class Engine < Rails::Engine
+            isolate_namespace Blog
+          end
+        end
+      RUBY
+
+      e.write "app/controllers/blog/posts_controller.rb", <<-RUBY
+        class Blog::PostsController < ActionController::Base
+          def index; end
+        end
+      RUBY
+
+      e.write "config/routes.rb", <<-RUBY
+        Blog::Engine.routes.draw do
+          mount Auth::Engine => "/auth"
+          get "/posts", to: "posts#index"
+        end
+      RUBY
+    end
+
+    engine "auth" do |e|
+      e.write "lib/auth.rb", <<-RUBY
+        module Auth
+          class Engine < Rails::Engine; end
+        end
+      RUBY
+
+      e.write "config/routes.rb", <<-RUBY
+        Auth::Engine.routes.draw do
+          get "/login", to: "sessions#create"
+        end
+      RUBY
+    end
+
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get "/cart", to: "cart#show"
+        mount Blog::Engine => "/blog"
+      end
+    RUBY
+
+    output = run_routes_command
+    s = " " * 73
+
+    assert_includes output, <<~OUTPUT
+      Routes for application:
+                                        Prefix Verb URI Pattern         #{s}     Controller#Action
+                                          cart GET  /cart(.:format)     #{s}     cart#show
+                                          blog      /blog               #{s}     Blog::Engine
+    OUTPUT
+    assert_includes output, <<~OUTPUT
+      Routes for Blog::Engine:
+           Prefix Verb URI Pattern      Controller#Action
+      auth_engine      /auth            Auth::Engine
+            posts GET  /posts(.:format) blog/posts#index
+
+      Routes for Auth::Engine:
+      Prefix Verb URI Pattern      Controller#Action
+       login GET  /login(.:format) sessions#create
+    OUTPUT
+
+    assert_equal <<~OUTPUT, run_routes_command([ "-c", "blog/posts" ])
+      Routes for application:
+      No routes were found for this controller.
+      For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.
+
+      Routes for Blog::Engine:
+      Prefix Verb URI Pattern      Controller#Action
+       posts GET  /posts(.:format) blog/posts#index
+
+      Routes for Auth::Engine:
+      No routes were found for this controller.
+    OUTPUT
+
+    assert_equal <<~OUTPUT, run_routes_command([ "--brief", "-c", "blog/posts" ])
+      Routes for Blog::Engine:
+      Prefix Verb URI Pattern      Controller#Action
+       posts GET  /posts(.:format) blog/posts#index
+    OUTPUT
+
+    assert_equal <<~OUTPUT, run_routes_command([ "-g", "cart|login" ])
+      Routes for application:
+      Prefix Verb URI Pattern     Controller#Action
+        cart GET  /cart(.:format) cart#show
+
+      Routes for Blog::Engine:
+      No routes were found for this grep pattern.
+
+      Routes for Auth::Engine:
+      Prefix Verb URI Pattern      Controller#Action
+       login GET  /login(.:format) sessions#create
+    OUTPUT
+
+    assert_equal <<~OUTPUT, run_routes_command([ "--brief", "-g", "unknown" ])
+      No routes were found for this grep pattern.
+      For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.
+    OUTPUT
+  end
+
   test "rails routes with unused option" do
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
