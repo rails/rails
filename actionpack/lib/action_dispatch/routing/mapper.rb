@@ -989,7 +989,7 @@ module ActionDispatch
         def scope(*args, only: nil, except: nil, **options)
           if args.grep(Hash).any? && (deprecated_options = args.extract_options!)
             only ||= assign_deprecated_option(deprecated_options, :only, :scope)
-            only ||= assign_deprecated_option(deprecated_options, :except, :scope)
+            except ||= assign_deprecated_option(deprecated_options, :except, :scope)
             assign_deprecated_options(deprecated_options, options, :scope)
           end
 
@@ -1097,9 +1097,9 @@ module ActionDispatch
         def namespace(name, deprecated_options = nil, as: DEFAULT, path: DEFAULT, shallow_path: DEFAULT, shallow_prefix: DEFAULT, **options, &block)
           if deprecated_options.is_a?(Hash)
             as = assign_deprecated_option(deprecated_options, :as, :namespace) if deprecated_options.key?(:as)
-            path ||= assign_deprecated_option(deprecated_options, :path, :namespace)  if deprecated_options.key?(:path)
-            shallow_path ||= assign_deprecated_option(deprecated_options, :shallow_path, :namespace) if deprecated_options.key?(:shallow_path)
-            shallow_prefix ||= assign_deprecated_option(deprecated_options, :shallow_prefix, :namespace)  if deprecated_options.key?(:shallow_prefix)
+            path = assign_deprecated_option(deprecated_options, :path, :namespace) if deprecated_options.key?(:path)
+            shallow_path = assign_deprecated_option(deprecated_options, :shallow_path, :namespace) if deprecated_options.key?(:shallow_path)
+            shallow_prefix = assign_deprecated_option(deprecated_options, :shallow_prefix, :namespace) if deprecated_options.key?(:shallow_prefix)
             assign_deprecated_options(deprecated_options, options, :namespace)
           end
 
