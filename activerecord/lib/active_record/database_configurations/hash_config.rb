@@ -89,7 +89,7 @@ module ActiveRecord
       end
 
       def max_threads
-        (configuration_hash[:max_threads] || (max_connections || 5).clamp(0, 5)).to_i
+        (configuration_hash[:max_threads] || max_connections || 5).to_i
       end
 
       def max_age
