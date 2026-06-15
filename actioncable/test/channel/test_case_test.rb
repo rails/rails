@@ -140,6 +140,31 @@ class StreamsTestChannelTest < ActionCable::Channel::TestCase
   end
 end
 
+class SymbolStreamsTestChannel < ActionCable::Channel::Base
+  def subscribed
+    stream_from :my_room
+  end
+end
+
+class SymbolStreamsTestChannelTest < ActionCable::Channel::TestCase
+  def test_assert_has_stream_with_symbol_broadcasting
+    subscribe
+
+    # stream_from coerces the broadcasting with String(), so it is stored as a
+    # String; the assertion must coerce its argument the same way to match.
+    assert_equal ["my_room"], subscription.stream_names
+    assert_has_stream :my_room
+  end
+
+  def test_assert_has_no_stream_with_symbol_broadcasting
+    subscribe
+
+    # The stream is active, so asserting its absence must fail loudly rather
+    # than silently passing because the raw Symbol never matched the String key.
+    assert_raises(Minitest::Assertion) { assert_has_no_stream :my_room }
+  end
+end
+
 class StreamsForTestChannel < ActionCable::Channel::Base
   def subscribed
     stream_for User.new(params[:id])
