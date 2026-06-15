@@ -17,6 +17,12 @@ module ActiveRecord
       end
 
       def drop
+        unless db_config.database == ":memory:"
+          ActiveRecord::Base.connection_handler.connection_pool_list(:all).each do |pool|
+            pool.disconnect! if pool.db_config.database == db_config.database
+          end
+        end
+
         file = ConnectionAdapters::SQLite3Adapter.resolve_path(db_config.database, root: root)
         FileUtils.rm(file)
         FileUtils.rm_f(["#{file}-shm", "#{file}-wal"])
