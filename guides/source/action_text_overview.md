@@ -249,16 +249,26 @@ Storage as well as attachments that are linked to a Signed GlobalID.
 
 ### Active Storage
 
-When uploading an image within your rich text editor, it uses Action Text which
-in turn uses Active Storage. However, [Active Storage has some
-dependencies](active_storage_overview.html#requirements) which are not provided
-by Rails. To use the built-in previewers, you must install these libraries.
-
-Some, but not all of these libraries are required and they are dependent on the
+[Active Storage](active_storage_overview.html) is used to upload images in the
+rich text editor. Active Storage has some dependencies which are not provided
+by Rails. Some of these libraries are required and they are dependent on the
 kind of uploads you are expecting within the editor. A common error that users
 encounter when working with Action Text and Active Storage is that images do not
 render correctly in the editor. This is usually due to the `libvips` dependency
-not being installed.
+not being installed. See the [Active Storage installation guide](active_storage_overview.html#requirements)
+for more information.
+
+#### Expiring URLs
+
+The `urls_expire_in` Active Storage config is not compatible with Action Text.
+If you will be using Action Text with Active Storage attachments, you need to set
+
+```ruby
+# config/application.rb
+config.active_storage.urls_expire_in = nil
+```
+
+Or remove the config entirely, since `nil` is the default.
 
 #### Attachment Direct Upload JavaScript Events
 
