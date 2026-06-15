@@ -1,3 +1,9 @@
+*   Fix `has_many` and `has_one` associations on a new record returning an empty
+    result when the owner has a composite primary key, even when every primary
+    key column is populated.
+
+    *Jean-Samuel Aubry-Guzzi*
+
 *   Fix `increment!` / `decrement!` on models with query constraints to include
     every query constraint column in the counter update.
 
