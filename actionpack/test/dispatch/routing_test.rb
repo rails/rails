@@ -886,6 +886,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "replies#unmark_as_answer", @response.body
   end
 
+  def test_scope_with_deprecated_except_hash_option
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        scope({ except: :destroy }) do
+          resources :posts
+        end
+      end
+    end
+
+    get "/posts"
+    assert_equal "posts#index", @response.body
+
+    delete "/posts/1"
+    assert_equal "pass", @response.headers["x-cascade"]
+  end
+
   def test_resource_routes_with_only_and_except
     draw do
       resources :posts, only: [:index, :show] do
