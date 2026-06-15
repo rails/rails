@@ -123,6 +123,17 @@ module ActiveSupport
       new ActiveSupport::Logger.new(*args, **kwargs)
     end
 
+    # Returns a logger that can be used from Ractors. Accepts the same arguments
+    # as Logger.new. The returned logger is an ActiveSupport::ShareableLogger
+    # (a ::Logger subclass whose device proxies writes to a background Writer)
+    # wrapped with tagged logging, so it can be made shareable and used from any
+    # Ractor.
+    def self.shareable_logger(*args, **kwargs) # :nodoc:
+      require "active_support/shareable_logger"
+
+      new(ActiveSupport::ShareableLogger.new(*args, **kwargs))
+    end
+
     def self.new(logger)
       logger = logger.clone
 
