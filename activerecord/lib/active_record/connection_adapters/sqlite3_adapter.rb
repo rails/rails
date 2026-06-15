@@ -48,7 +48,20 @@ module ActiveRecord
 
       class << self
         def new_client(config)
-          ::SQLite3::Database.new(config[:database].to_s, config)
+          database = config[:database].to_s
+          new_database = !database.include?(":memory:") && !File.exist?(database)
+
+          db = ::SQLite3::Database.new(database, config)
+
+          # auto_vacuum must be set before journal_mode=wal (applied by
+          # configure_connection) because WAL initialization finalizes the
+          # database file format, after which auto_vacuum cannot be changed.
+          if new_database
+            pragmas = config[:pragmas] || {}
+            db.auto_vacuum = pragmas[:auto_vacuum] || pragmas["auto_vacuum"] || :incremental
+          end
+
+          db
         rescue Errno::ENOENT => error
           if error.message.include?("No such file or directory")
             raise ActiveRecord::NoDatabaseError
