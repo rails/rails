@@ -1,3 +1,27 @@
+*   Add template precompilation support.
+
+    View templates can now be eagerly compiled at boot time when
+    `config.action_view.precompile_templates = true` (enabled by default in
+    `load_defaults "8.2"`) and `config.eager_load` is also `true`. This
+    improves cold render times and allows more memory to be shared via
+    copy-on-write on forking web servers.
+
+    The precompiler scans view templates, controllers, and helpers for
+    `render` calls, detects implicit controller action renders, and supports
+    engine view paths.
+
+    Additional directories can be scanned for `render` calls using
+    `config.action_view.precompile_additional_paths`.
+
+    Emits a `precompile_templates.action_view` notification with `:count`
+    in the payload.
+
+    Based on the `actionview_precompiler` gem by John Hawthorn. GitHub has
+    used this optimization for over 5 years, saving an estimated ~500MB of
+    memory per container (each with 11 forked workers) for ~7,000 templates.
+
+    *Joel Hawksley*, *John Hawthorn*
+
 *   Fix `ActionView::TestCase#render` to reset `rendered`.
     The behavior was changed when memoization was added in #51093. Now it once again conforms to the documentation.
 

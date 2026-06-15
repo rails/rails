@@ -101,3 +101,14 @@
 # Otherwise, when set to `nil`, only the first string of the backtrace is included, stripping the `Rails.root` from the controller path.
 #++
 # Rails.application.config.action_controller.rescue_from_event_backtrace = :array
+
+###
+# Precompile view templates at boot time.
+#
+# When enabled (and config.eager_load is also true), all view templates are
+# eagerly compiled during application startup. This improves cold render times
+# and allows more memory to be shared via copy-on-write on forking web servers
+# like Puma (clustered mode) and Unicorn. Templates are detected by scanning
+# views, controllers, and helpers for render calls.
+#++
+# Rails.application.config.action_view.precompile_templates = true

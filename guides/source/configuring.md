@@ -64,6 +64,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.forgery_protection_verification_strategy`](#config-action-controller-forgery-protection-verification-strategy): `:header_only`
 - [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
+- [`config.action_view.precompile_templates`](#config-action-view-precompile-templates): `true`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
@@ -2725,6 +2726,21 @@ The default value depends on the `config.load_defaults` target version:
 #### `config.action_view.prepend_content_exfiltration_prevention`
 
 Determines whether or not the `form_tag` and `button_to` helpers will produce HTML tags prepended with browser-safe (but technically invalid) HTML that guarantees their contents cannot be captured by any preceding unclosed tags. The default value is `false`.
+
+#### `config.action_view.precompile_templates`
+
+When `true` and `config.eager_load` is also `true`, all view templates are eagerly compiled during application startup. This improves cold render times and allows more memory to be shared via copy-on-write on forking web servers like Puma (clustered mode) and Unicorn.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
+
+#### `config.action_view.precompile_additional_paths`
+
+An array of additional directories to scan for `render` calls when precompiling templates. Useful for applications with controllers or helpers outside of the standard engine paths. Defaults to `[]`.
 
 #### `config.action_view.sanitizer_vendor`
 
