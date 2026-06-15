@@ -195,6 +195,34 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_equal "updated", Topic.second.content
   end
 
+  def test_update_with_single_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+
+    updated = Cpk::Book.update(book.id, title: "updated")
+
+    assert_equal book.id, updated.id
+    assert_equal "updated", book.reload.title
+  end
+
+  def test_update_bang_with_single_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+
+    updated = Cpk::Book.update!(book.id, title: "updated")
+
+    assert_equal book.id, updated.id
+    assert_equal "updated", book.reload.title
+  end
+
+  def test_update_many_with_composite_primary_keys
+    first = cpk_books(:cpk_great_author_first_book)
+    second = cpk_books(:cpk_great_author_second_book)
+
+    Cpk::Book.update([first.id, second.id], [{ title: "first updated" }, { title: "second updated" }])
+
+    assert_equal "first updated", first.reload.title
+    assert_equal "second updated", second.reload.title
+  end
+
   def test_class_level_update_without_ids
     topics = Topic.all
     assert_equal 5, topics.length
@@ -459,6 +487,25 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) do
       ids = books.map { |book| book.id.first }
       Cpk::Book.destroy(ids)
+    end
+  end
+
+  def test_delete_with_single_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_difference("Cpk::Book.count", -1) do
+      assert_equal 1, Cpk::Book.delete(book.id)
+    end
+  end
+
+  def test_delete_with_multiple_composite_primary_keys
+    books = [
+      cpk_books(:cpk_great_author_first_book),
+      cpk_books(:cpk_great_author_second_book),
+    ]
+
+    assert_difference("Cpk::Book.count", -2) do
+      assert_equal 2, Cpk::Book.delete(books.map(&:id))
     end
   end
 
@@ -1740,6 +1787,28 @@ class PersistenceTest < ActiveRecord::TestCase
     sql = capture_sql { clothing_item.update_attribute(:description, "Lovely green t-shirt") }.second
     assert_match(/WHERE .*clothing_type/, sql)
     assert_match(/WHERE .*color/, sql)
+  end
+
+  def test_increment_and_decrement_use_query_constraints_not_composite_pk
+    topic_class = Class.new(Topic) do
+      self.inheritance_column = :_type_disabled
+      query_constraints :author_name, :id
+    end
+    topic = topic_class.create!(title: "New Topic", author_name: "Not David", replies_count: 0)
+
+    sql = nil
+    assert_difference -> { topic.reload.replies_count }, +1 do
+      sql = capture_sql { topic.increment!(:replies_count) }.first
+    end
+    assert_match(/WHERE .*author_name/, sql)
+    assert_match(/WHERE .*id/, sql)
+
+    sql = nil
+    assert_difference -> { topic.reload.replies_count }, -1 do
+      sql = capture_sql { topic.decrement!(:replies_count) }.first
+    end
+    assert_match(/WHERE .*author_name/, sql)
+    assert_match(/WHERE .*id/, sql)
   end
 
   def test_it_is_possible_to_update_parts_of_the_query_constraints_config

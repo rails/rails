@@ -134,6 +134,40 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration, + 1.second
   end
 
+  def test_unary_minus_negates_value_and_parts
+    assert_equal(-86400, (-1.day).value)
+    assert_equal({ days: -1 }, (-1.day).parts)
+    assert_equal({ years: -1, days: -1 }, (-(1.year + 1.day)).parts)
+    assert_instance_of ActiveSupport::Duration, -1.day
+  end
+
+  def test_build_decomposes_seconds_into_parts
+    assert_equal({ years: 1 }, ActiveSupport::Duration.build(31556952).parts)
+    assert_equal({ months: 1, days: 1 }, ActiveSupport::Duration.build(2716146).parts)
+    assert_equal 2716146, ActiveSupport::Duration.build(2716146).value
+  end
+
+  def test_parts_returns_an_independent_copy
+    duration = 5.minutes
+    parts = duration.parts
+    parts[:minutes] = 99
+
+    assert_equal({ minutes: 5 }, duration.parts)
+  end
+
+  def test_compare_returns_nil_for_an_incomparable_object
+    assert_nil(1.day <=> "foo")
+  end
+
+  def test_coerce_with_a_duration
+    one_minute = 1.minute
+    scalar, duration = one_minute.coerce(2.hours)
+
+    assert_instance_of ActiveSupport::Duration::Scalar, scalar
+    assert_equal 7200, scalar.value
+    assert_same one_minute, duration
+  end
+
   def test_plus
     assert_equal 2.seconds, 1.second + 1.second
     assert_instance_of ActiveSupport::Duration, 1.second + 1.second

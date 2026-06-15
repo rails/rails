@@ -6,6 +6,16 @@
     Fixes #53832.
 
     *Rosa Gutierrez*, *Augusto Xavier*
+*   Fix `increment!` / `decrement!` on models with query constraints to include
+    every query constraint column in the counter update.
+
+    *Jean-Samuel Aubry-Guzzi*
+
+*   Fix bug with reloading models with all-queries default scopes. The previous
+    implementation allowed non-all-queries on the current scope to leak into
+    the scope used for reloading.
+
+    *Andrew Novoselac* and *Matthew Draper*
 
 *   `insert!` now accepts the `:unique_by` option, consistent with `insert`.
 

@@ -185,7 +185,7 @@ module ActiveJob
           delay + delay_jitter
         when Proc
           algorithm = seconds_or_duration_or_algorithm
-          algorithm.arity == 1 ? algorithm.call(executions) : algorithm.call(executions, error)
+          algorithm.arity == 2 || algorithm.arity < -1 ? algorithm.call(executions, error) : algorithm.call(executions)
         else
           raise "Couldn't determine a delay based on #{seconds_or_duration_or_algorithm.inspect}"
         end

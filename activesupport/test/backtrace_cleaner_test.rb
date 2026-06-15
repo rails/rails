@@ -140,8 +140,8 @@ class BacktraceCleanerDefaultFilterAndSilencerTest < ActiveSupport::TestCase
     assert_equal backtrace, @bc.clean(backtrace)
   end
 
-  test "backtrace cleaner is Ractor shareable" do
-    assert_ractor_shareable @bc
+  test "backtrace cleaner can be made Ractor shareable" do
+    assert_ractor_make_shareable @bc
   end
 end
 
