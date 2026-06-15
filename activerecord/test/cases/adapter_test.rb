@@ -270,6 +270,14 @@ module ActiveRecord
 
         assert_not_nil error.cause
       end
+
+      def test_range_error_is_raised_for_out_of_range_integer_on_create
+        error = assert_raises(ActiveRecord::RangeError) do
+          Book.create!(author_id: 9223372036854775808)
+        end
+
+        assert_kind_of RangeError, error.cause
+      end
     end
 
     def test_exceptions_from_notifications_are_not_translated
