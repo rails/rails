@@ -311,7 +311,8 @@ module ActionController
 
     def process(name)
       t1 = Thread.current
-      locals = t1.keys.map { |key| [key, t1[key]] }
+      thread_locals = t1.thread_variables.map { |key| [key, t1.thread_variable_get(key)] }
+      fiber_locals = t1.keys.map { |key| [key, t1[key]] }
 
       # The IsolatedExecutionState context may be a Fiber, not a Thread
       context = ActiveSupport::IsolatedExecutionState.context
@@ -326,7 +327,8 @@ module ActionController
 
           # Since we're processing the view in a different thread, copy the thread locals
           # from the main thread to the child thread. :'(
-          locals.each { |k, v| t2[k] = v }
+          thread_locals.each { |k, v| t2.thread_variable_set(k, v) }
+          fiber_locals.each { |k, v| t2[k] = v }
 
           ActiveSupport::IsolatedExecutionState.share_with(context, except: self.class.live_streaming_excluded_keys) do
             super(name)
@@ -345,7 +347,7 @@ module ActionController
               error = e
             end
           ensure
-            clean_up_thread_locals(locals, t2)
+            clean_up_thread_locals(thread_locals, fiber_locals, t2)
 
             @_response.commit!
           end
@@ -418,8 +420,9 @@ module ActionController
       end
 
       # Ensure we clean up any thread locals we copied so that the thread can reused.
-      def clean_up_thread_locals(locals, thread) # :nodoc:
-        locals.each { |k, _| thread[k] = nil }
+      def clean_up_thread_locals(thread_locals, fiber_locals, thread) # :nodoc:
+        thread_locals.each { |k, _| thread.thread_variable_set(k, nil) }
+        fiber_locals.each { |k, _| thread[k] = nil }
       end
 
       def self.live_thread_pool_executor
