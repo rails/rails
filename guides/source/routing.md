@@ -159,7 +159,7 @@ For example, adding `resources :photos` to the route file will generate these `_
 | --------- | ---------------- |
 | `photos_path` | /photos |
 | `new_photo_path` | /photos/new |
-| `edit_photo_path(:id)` | /photos/:id/edit` |
+| `edit_photo_path(:id)` | /photos/:id/edit |
 | `photo_path(:id)` | /photos/:id |
 
 Parameters to the path helpers, such as `:id` above, are passed to the generated URL, such that `edit_photo_path(10)` will return `/photos/10/edit`.
