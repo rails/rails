@@ -102,7 +102,7 @@ module ActionMailer
     #
     #   def test_email_with_parameters
     #     ContactMailer.with(greeting: "Hello").welcome.deliver_later
-    #     assert_enqueued_email_with ContactMailer, :welcome, args: { greeting: "Hello" }
+    #     assert_enqueued_email_with ContactMailer, :welcome, params: { greeting: "Hello" }
     #   end
     #
     #   def test_email_with_arguments
@@ -143,15 +143,6 @@ module ActionMailer
     #   def test_email_in_block
     #     assert_enqueued_email_with ContactMailer, :welcome do
     #       ContactMailer.welcome.deliver_later
-    #     end
-    #   end
-    #
-    # If +args+ is provided as a Hash, a parameterized email is matched.
-    #
-    #   def test_parameterized_email
-    #     assert_enqueued_email_with ContactMailer, :welcome,
-    #       args: {email: 'user@example.com'} do
-    #       ContactMailer.with(email: 'user@example.com').welcome.deliver_later
     #     end
     #   end
     def assert_enqueued_email_with(mailer, method, params: nil, args: nil, queue: nil, &block)
