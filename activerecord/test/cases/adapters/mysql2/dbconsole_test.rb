@@ -64,14 +64,15 @@ module ActiveRecord
       end
 
       def test_mysql_can_use_alternative_cli
-        ActiveRecord.database_cli[:mysql] = "mycli"
+        old_database_cli = ActiveRecord.database_cli
+        ActiveRecord.database_cli = ActiveRecord.database_cli.merge(mysql: "mycli")
         config = make_db_config(adapter: "mysql2", database: "db", database_cli: "mycli")
 
         assert_find_cmd_and_exec_called_with(["mycli", "db"]) do
           Mysql2Adapter.dbconsole(config)
         end
       ensure
-        ActiveRecord.database_cli[:mysql] = %w[mysql mysql5]
+        ActiveRecord.database_cli = old_database_cli
       end
 
       private

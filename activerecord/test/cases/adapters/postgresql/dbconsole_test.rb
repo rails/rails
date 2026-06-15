@@ -113,14 +113,15 @@ module ActiveRecord
       end
 
       def test_postgresql_can_use_alternative_cli
-        ActiveRecord.database_cli[:postgresql] = "pgcli"
+        old_database_cli = ActiveRecord.database_cli
+        ActiveRecord.database_cli = ActiveRecord.database_cli.merge(postgresql: "pgcli")
         config = make_db_config(adapter: "postgresql", database: "db")
 
         assert_find_cmd_and_exec_called_with(["pgcli", "db"]) do
           PostgreSQLAdapter.dbconsole(config)
         end
       ensure
-        ActiveRecord.database_cli[:postgresql] = "psql"
+        ActiveRecord.database_cli = old_database_cli
       end
 
       private
