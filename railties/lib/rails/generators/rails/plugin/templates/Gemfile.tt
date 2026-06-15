@@ -1,4 +1,4 @@
-source "https://rubygems.org"
+source "https://rubygems.org", cooldown: 7
 <% unless options[:skip_gemspec] -%>
 
 # Specify your gem's dependencies in <%= name %>.gemspec.
