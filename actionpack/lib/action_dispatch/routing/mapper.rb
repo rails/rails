@@ -989,7 +989,7 @@ module ActionDispatch
         def scope(*args, only: nil, except: nil, **options)
           if args.grep(Hash).any? && (deprecated_options = args.extract_options!)
             only ||= assign_deprecated_option(deprecated_options, :only, :scope)
-            only ||= assign_deprecated_option(deprecated_options, :except, :scope)
+            except ||= assign_deprecated_option(deprecated_options, :except, :scope)
             assign_deprecated_options(deprecated_options, options, :scope)
           end
 
