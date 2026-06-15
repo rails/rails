@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 begin
   require "openssl"
@@ -66,6 +67,8 @@ else
   end
 
   class CachingKeyGeneratorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
     def setup
       @secret    = SecureRandom.hex(64)
       @generator = ActiveSupport::KeyGenerator.new(@secret, iterations: 2)
@@ -112,11 +115,9 @@ else
       caching_generator = ActiveSupport::CachingKeyGenerator.new(key_generator)
       ActiveSupport::Ractors.make_shareable(caching_generator)
 
-      port = Ractor::Port.new
-      Ractor.new(port, caching_generator) do |port, caching_generator|
-        port.send caching_generator.generate_key("some_salt", 32)
-      end.join
-      key = port.receive
+      key = on_ractor(caching_generator) do |caching_generator|
+        caching_generator.generate_key("some_salt", 32)
+      end
 
       assert_equal key, caching_generator.generate_key("some_salt", 32)
     end
