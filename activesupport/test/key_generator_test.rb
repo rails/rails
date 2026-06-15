@@ -100,5 +100,25 @@ else
 
       assert_not_equal derived_key, different_length_key
     end
+
+    test "CachingKeyGenerator can work across ractors" do
+      # OpenSSL::Digest are not Ractor-safe, but the fix is already merged upstream. This test can be updated
+      # to use our implementation once a version of Ruby ships with ruby/openssl@502bc6c
+      key_generator = Class.new(ActiveSupport::KeyGenerator) do
+        def generate_key(salt, key_size)
+          OpenSSL::PKCS5.pbkdf2_hmac(@secret, salt, @iterations, key_size, "SHA1")
+        end
+      end.new("foo", iterations: 2)
+      caching_generator = ActiveSupport::CachingKeyGenerator.new(key_generator)
+      ActiveSupport::Ractors.make_shareable(caching_generator)
+
+      port = Ractor::Port.new
+      Ractor.new(port, caching_generator) do |port, caching_generator|
+        port.send caching_generator.generate_key("some_salt", 32)
+      end.join
+      key = port.receive
+
+      assert_equal key, caching_generator.generate_key("some_salt", 32)
+    end
   end
 end
