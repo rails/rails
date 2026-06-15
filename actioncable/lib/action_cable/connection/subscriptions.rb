@@ -97,6 +97,8 @@ module ActionCable
       end
 
       def perform_action(data)
+        raise MalformedCommandError, data unless data["data"].present?
+
         subscription = find(data)
         raise UnknownSubscription.new(data["identifier"]) unless subscription
         subscription.perform_action ActiveSupport::JSON.decode(data["data"])
