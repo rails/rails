@@ -325,7 +325,7 @@ module ActionView
       #   word_wrap('Once upon a time', line_width: 1, break_sequence: "\r\n")
       #   # => "Once\r\nupon\r\na\r\ntime"
       def word_wrap(text, line_width: 80, break_sequence: "\n")
-        return +"" if text.empty?
+        return +"" if text.nil? || text.empty?
 
         # Match up to `line_width` characters, followed by one of
         #   (1) non-newline whitespace plus an optional newline
