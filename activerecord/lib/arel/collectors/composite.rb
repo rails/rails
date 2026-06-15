@@ -29,6 +29,12 @@ module Arel # :nodoc: all
         self
       end
 
+      def add_bind_param(bind, &block)
+        left.add_bind_param bind, &block
+        right.add_bind_param bind, &block
+        self
+      end
+
       def add_binds(binds, proc_for_binds = nil, &block)
         left.add_binds(binds, proc_for_binds, &block)
         right.add_binds(binds, proc_for_binds, &block)
