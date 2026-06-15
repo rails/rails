@@ -1001,6 +1001,7 @@ module ActionController
     # Returns a new `ActionController::Parameters` instance with only items that the
     # block evaluates to true.
     def select(&block)
+      return to_enum(:select) unless block_given?
       new_instance_with_inherited_permitted_status(@parameters.select(&block))
     end
 
@@ -1014,6 +1015,7 @@ module ActionController
     # Returns a new `ActionController::Parameters` instance with items that the
     # block evaluates to true removed.
     def reject(&block)
+      return to_enum(:reject) unless block_given?
       new_instance_with_inherited_permitted_status(@parameters.reject(&block))
     end
 
