@@ -154,8 +154,9 @@ module ActionCable
         new_messages = broadcasts(stream)
         clear_messages(stream)
 
-        # Restore all sent messages
-        (old_messages + new_messages).each { |m| pubsub_adapter.broadcast(stream, m) }
+        # Restore all recorded messages without re-delivering them to live
+        # subscribers (pubsub_adapter.broadcast would dispatch them again).
+        broadcasts(stream).concat(old_messages + new_messages)
 
         new_messages
       end
