@@ -179,4 +179,21 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     message2.content = ""
     assert_not_predicate message2, :valid?
   end
+
+  test "concurrent save of new rich text reconciles instead of raising" do
+    message = Message.create!
+
+    request_a = Message.find(message.id)
+    request_b = Message.find(message.id)
+
+    request_a.content = "from request A"
+    request_b.update!(content: "from request B")
+
+    assert_nothing_raised do
+      request_a.save!
+    end
+
+    assert_equal 1, ActionText::RichText.where(record: message, name: "content").count
+    assert_equal "from request A", request_a.reload.content.to_plain_text
+  end
 end
