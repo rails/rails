@@ -65,5 +65,91 @@ module ActiveRecord
         pool.checkin(conn)
       end
     end
+
+    def test_check_connection_leaks_does_not_report_connections_held_for_async_reaper_maintenance
+      pool = ActiveRecord::Base.connection_pool
+      original_async_executor = pool.async_executor
+
+      async_executor = FakeAsyncExecutor.new
+      pool.instance_variable_set(:@async_executor, async_executor)
+
+      conn = ActiveRecord::Base.lease_connection
+      conn.select_value("SELECT 1")
+      ActiveRecord::Base.connection_handler.clear_active_connections!
+
+      release_maintenance = Concurrent::Event.new
+
+      pool.reaper_lock do
+        pool.send(:sequential_maintenance, ->(candidate) { candidate.equal?(conn) }) do
+          release_maintenance.wait
+        end
+      end
+
+      wait_for(message: "connection was not checked out for async maintenance", timeout: 1) do
+        conn.in_use?
+      end
+      assert_not_equal ActiveSupport::IsolatedExecutionState.context, conn.owner
+
+      original_wait_method = method(:wait_for_pool_maintenance)
+
+      stub(:wait_for_pool_maintenance, ->(waiting_pool) do
+        if waiting_pool.equal?(pool)
+          assert_predicate conn, :in_use?
+          release_maintenance.set
+          original_wait_method.call(waiting_pool)
+          assert_not_predicate conn, :in_use?
+        else
+          original_wait_method.call(waiting_pool)
+        end
+      end) do
+        check_connection_leaks
+      end
+    ensure
+      release_maintenance&.set
+      async_executor&.threads&.each(&:join)
+      pool&.instance_variable_set(:@async_executor, original_async_executor)
+
+      if conn&.in_use?
+        conn.steal!
+        pool.checkin(conn)
+      end
+    end
+
+    class FakeAsyncExecutor
+      attr_reader :threads
+
+      def initialize
+        @threads = []
+        @mutex = Mutex.new
+        @scheduled_task_count = 0
+        @completed_task_count = 0
+      end
+
+      def post(&block)
+        @mutex.synchronize do
+          @scheduled_task_count += 1
+        end
+
+        @threads << Thread.new do
+          block.call
+        ensure
+          @mutex.synchronize do
+            @completed_task_count += 1
+          end
+        end
+      end
+
+      def scheduled_task_count
+        @mutex.synchronize do
+          @scheduled_task_count
+        end
+      end
+
+      def completed_task_count
+        @mutex.synchronize do
+          @completed_task_count
+        end
+      end
+    end
   end
 end
