@@ -7,49 +7,45 @@ This guide covers using multiple databases with your Rails application.
 
 After reading this guide you will know:
 
-* How to set up your application for multiple databases.
-* How automatic connection switching works.
-* How to use horizontal sharding for multiple databases.
-
+* How to configure multiple databases and connect models to them.
+* How to run database tasks for multiple databases.
+* How to use read replicas and how automatic connection switching works.
+* How to use horizontal sharding.
 
 --------------------------------------------------------------------------------
 
 ## Overview
 
-As your application grows, you may need to split data across more than one
-database. You might send read traffic to replicas, move a group of tables to
-its own database cluster, or partition the same set of tables across multiple
-shards.
+As your application grows, a single database may no longer be sufficient for all of its data and traffic. High read volumes, large datasets, reporting workloads, or the need to isolate different parts of an application can all place pressure on a single database server. Rails supports connecting to multiple databases so different models, reads, writes, or groups of records can use separate database connections when needed.
 
-Rails supports these common multiple database patterns:
+### General Terminology
 
-* Read replicas for each writer database, so reads can be sent to a replica
-  while writes continue to use the writer.
-* Multiple writer databases, where each database stores a different part of
-  your application's data. For example, `User` records might live in the
-  `primary` database, while `Dog` records live in the `animals` database. This is
-  also called vertical partitioning.
-* Automatic role switching between writers and replicas based on the HTTP verb
-  and whether the request performed a write within the configured delay.
-* Horizontal sharding, where each database has the same schema but stores a
-  different subset of the records.
+| Term                   | Meaning                                                                                               |
+| ---------------------- | ----------------------------------------------------------------------------------------------------- |
+| Writer                 | A database that handles inserts, updates, and deletes.                                                |
+| Replica                | A copy of a writer database that can serve read queries.                                              |
+| Role                   | A connection type, such as `writing` or `reading`, that Rails uses to choose a database connection.   |
+| Database cluster       | A group of database servers that work together, such as a writer and its replicas.                    |
+| Shard                  | One of several databases with the same schema, where each shard stores a different subset of records. |
+| Database configuration | A named entry in `config/database.yml` that tells Rails how to connect to a database.                 |
+| Managed database       | A database configuration that Rails creates, drops, migrates, and dumps schemas for.                  |
+| Vertical partitioning  | Splitting different tables or models across different databases.                                      |
+| Horizontal sharding    | Splitting records from the same tables across different databases with the same schema.               |
 
-Rails provides tasks for creating, dropping, and migrating tables, as well as
-loading and dumping schemas and interacting with each database.
+### Choosing a Setup
 
 The right setup depends on what you are trying to accomplish:
 
 | If you need to...                                              | Use...                                                |
 | -------------------------------------------------------------- | ----------------------------------------------------- |
 | Move some models to a separate database                        | Multiple writer databases                             |
-| Send read traffic away from the writer                         | Read replicas and automatic role switching            |
+| Send read queries to replicas                                  | Read replicas and automatic role switching            |
 | Split records across databases that share the same schema      | Horizontal sharding                                   |
 | Connect to a legacy, reporting, or externally managed database | A database configuration with `database_tasks: false` |
 
 Rails handles the application-side plumbing for these configurations: connection
 definitions, abstract connection classes, role and shard switching, and database
 tasks.
-
 
 NOTE: Rails does not provision database servers, create database users, manage
 replication, balance traffic across replicas, or provide distributed
@@ -167,7 +163,7 @@ INFO: Read replicas are database servers that keep a copy of a writer database's
 and structure. The database system, not Rails, handles replication from the
 writer to the replica. Replication can be delayed, so applications need to
 account for the possibility that a replica has not received the latest write
-yet.
+yet. Refer to your database documentation for replication setup and behavior.
 
 #### Database Connection URLs
 
