@@ -1,28 +1,32 @@
 # frozen_string_literal: true
 
-require_relative "../../../tools/strict_warnings"
-require "active_support"
-require "active_support/testing/autorun"
-require "active_support/testing/method_call_assertions"
-require "active_support/testing/stream"
+require_relative "../../tools/strict_warnings"
+require_relative "../../tools/test_helper"
+
+require "active_record"
 require "active_record/testing/query_assertions"
 require "active_record/fixtures"
 
 require "cases/validations_repair_helper"
-require_relative "../support/config"
-require_relative "../support/connection"
-require_relative "../support/adapter_helper"
-require_relative "../support/load_schema_helper"
-require_relative "../support/postgresql_config"
+require_relative "support/config"
+require_relative "support/connection"
+require_relative "support/adapter_helper"
+require_relative "support/load_schema_helper"
+require_relative "support/postgresql_config"
+require_relative "config"
+
+require "models/college"
+require "models/course"
+require "models/professor"
+require "models/other_dog"
 
 module ActiveRecord
   # = Active Record Test Case
   #
   # Defines some test assertions to test against SQL queries.
-  class TestCase < ActiveSupport::TestCase # :nodoc:
-    include ActiveSupport::Testing::MethodCallAssertions
-    include ActiveSupport::Testing::Stream
+  class TestCase < RailsTestCase # :nodoc:
     include ActiveRecord::Assertions::QueryAssertions
+
     include ActiveRecord::TestFixtures
     include ActiveRecord::ValidationsRepairHelper
     include AdapterHelper
@@ -112,21 +116,8 @@ module ActiveRecord
     end
 
     # Redefine existing assertion method to explicitly not materialize transactions.
-    def assert_queries_match(match, count: nil, include_schema: false, &block)
-      counter = SQLCounter.new
-      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
-        result = _assert_nothing_raised_or_warn("assert_queries_match", &block)
-        queries = include_schema ? counter.log_all : counter.log
-        matched_queries = queries.select { |query| match === query }
-
-        if count
-          assert_equal count, matched_queries.size, "#{matched_queries.size} instead of #{count} queries were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
-        else
-          assert_operator matched_queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
-        end
-
-        result
-      end
+    def assert_queries_match(*args, **kwargs, &block)
+      super(*args, **kwargs, materialize_transactions: false, &block)
     end
 
     def assert_column(model, column_name, msg = nil)
@@ -215,7 +206,7 @@ module ActiveRecord
       adapter.remove_instance_variable(:@native_database_types) if adapter.instance_variable_defined?(:@native_database_types)
     end
 
-    def with_env_tz(new_tz = "America/New_York")
+    def with_env_tz(new_tz = "US/Eastern")
       old_tz, ENV["TZ"] = ENV["TZ"], new_tz
       yield
     ensure
@@ -292,28 +283,22 @@ module ActiveRecord
 
     def clean_up_connection_handler
       handler = ActiveRecord::Base.connection_handler
-      pool_managers = handler.instance_variable_get(:@connection_name_to_pool_manager)
-      removed_pool_configs = []
-
-      pool_managers.each do |owner, pool_manager|
+      handler.instance_variable_get(:@connection_name_to_pool_manager).each do |owner, pool_manager|
         pool_manager.role_names.each do |role_name|
           next if role_name == ActiveRecord::Base.default_role &&
                   # TODO: Remove this helper when `remove_connection` for different shards is fixed.
                   # See https://github.com/rails/rails/pull/49382.
                   ["ActiveRecord::Base", "ARUnit2Model", "Contact", "ContactSti"].include?(owner)
-          removed_pool_configs.concat(pool_manager.remove_role(role_name)&.values || [])
+          pool_manager.remove_role(role_name)
         end
-      end
-
-      remaining_pool_configs = pool_managers.values.flat_map(&:pool_configs)
-      removed_pool_configs.compact.uniq.each do |pool_config|
-        pool_config.disconnect! unless remaining_pool_configs.include?(pool_config)
       end
     end
 
     def quote_table_name(name)
       ActiveRecord::Base.adapter_class.quote_table_name(name)
     end
+
+    alias_method :skip, :force_skip # FIXME: Active Record tests should adhere to TestCommons::DisableSkipping
 
     # Connect to the database
     ARTest.connect
@@ -351,3 +336,78 @@ module ActiveRecord
     end
   end
 end
+
+require "config"
+
+require "stringio"
+
+require "active_support/dependencies"
+require "active_support/logger"
+require "active_support/core_ext/kernel/reporting"
+require "active_support/core_ext/kernel/singleton_class"
+
+require "support/global_config"
+require "support/adapter_config"
+require "support/encryption_config"
+
+ARTest::GlobalConfig.apply
+
+class ActiveRecord::TestCase
+  class SQLSubscriber
+    attr_reader :logged
+    attr_reader :payloads
+
+    def initialize
+      @logged = []
+      @payloads = []
+    end
+
+    def start(name, id, payload)
+      @payloads << payload
+      @logged << [payload[:sql].squish, payload[:name], payload[:binds]]
+    end
+
+    def finish(name, id, payload); end
+  end
+
+  module InTimeZone
+    private
+      def in_time_zone(zone)
+        old_zone  = Time.zone
+        old_tz    = ActiveRecord::Base.time_zone_aware_attributes
+
+        Time.zone = zone ? ActiveSupport::TimeZone[zone] : nil
+        ActiveRecord::Base.time_zone_aware_attributes = !zone.nil?
+        yield
+      ensure
+        Time.zone = old_zone
+        ActiveRecord::Base.time_zone_aware_attributes = old_tz
+      end
+  end
+
+  module WaitForTestHelper
+    private
+      def wait_for(message: "condition not met", timeout: 5, interval: 0.01)
+        deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout
+        loop do
+          return if yield
+          if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+            raise Timeout::Error, "#{message} after #{timeout} seconds"
+          end
+          sleep interval
+        end
+      end
+
+      def wait_for_async_query(connection = ActiveRecord::Base.lease_connection, timeout: 5)
+        return unless connection.async_enabled?
+
+        executor = connection.pool.async_executor
+        wait_for(message: "The async executor wasn't drained", timeout: timeout) do
+          executor.scheduled_task_count <= executor.completed_task_count
+        end
+      end
+  end
+end
+
+TestCommons::MandatoryTestClass.test_class = ActiveRecord::TestCase
+TestCommons::MandatoryTestClass.framework = "activerecord"

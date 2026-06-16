@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "tempfile"
+
 module ActiveSupport
   module Testing
     module Stream # :nodoc:
@@ -32,9 +34,9 @@ module ActiveSupport
           stream_io.rewind
           captured_stream.read
         ensure
-          captured_stream.close
-          captured_stream.unlink
-          stream_io.reopen(origin_stream)
+          captured_stream&.close
+          captured_stream&.unlink
+          stream_io&.reopen(origin_stream)
         end
     end
   end

@@ -396,6 +396,9 @@ Minitest/AssertRaisesWithRegexpArgument:
 
 Minitest/AssertWithExpectedArgument:
   Enabled: true
+  Exclude:
+    - activemodel/**/*
+    - activerecord/**/*
 
 Minitest/LiteralAsActualArgument:
   Enabled: true

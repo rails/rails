@@ -236,13 +236,13 @@ class TimestampTest < ActiveRecord::TestCase
 
     @developer = klass.create!
     @previously_updated_at = @developer.updated_at
-    @previous_name = @developer.name
+    assert_nil @developer.name
 
     travel(1.second) do
       @developer.save!
     end
 
-    assert_not_equal @previous_name, @developer.name
+    assert_not_nil @developer.name
     assert_not_equal @previously_updated_at, @developer.updated_at
   end
 
@@ -264,7 +264,7 @@ class TimestampTest < ActiveRecord::TestCase
 
     @developer = klass.create!
     @previously_updated_at = @developer.updated_at
-    @previous_name = @developer.name
+    assert_nil @developer.name
 
     travel(1.second) do
       @developer.save!
@@ -272,7 +272,7 @@ class TimestampTest < ActiveRecord::TestCase
 
     @developer.reload
 
-    assert_not_equal @previous_name, @developer.name
+    assert_not_nil @developer.name
     assert_not_equal @previously_updated_at, @developer.updated_at
   end
 

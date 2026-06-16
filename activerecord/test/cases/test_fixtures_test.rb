@@ -24,14 +24,14 @@ class TestFixturesTest < ActiveRecord::TestCase
   end
 
   def test_inclusion_runs_active_record_fixtures_load_hook
+    called = false
     ActiveSupport.on_load(:active_record_fixtures) do
-      self.fixture_paths << "test/fixtures"
+      called = true
     end
-    klass = Class.new
 
-    klass.include(ActiveRecord::TestFixtures)
+    Class.new.include(ActiveRecord::TestFixtures)
 
-    assert_includes klass.fixture_paths, "test/fixtures"
+    assert_equal true, called, ":active_record_fixtures hook wasn't called"
   end
 
   unless in_memory_db?

@@ -609,12 +609,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     # option is not given on the association.
     ship = Ship.create(name: "Countless")
 
-    assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed unless counter_cache is given on the relation" do
+    assert_no_difference lambda { ship.reload.treasures_count }, message: "treasures_count should not be changed unless counter_cache is given on the relation" do
       treasure = Treasure.new(name: "Gold", ship: ship)
       treasure.save
     end
 
-    assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed unless counter_cache is given on the relation" do
+    assert_no_difference lambda { ship.reload.treasures_count }, message: "treasures_count should not be changed unless counter_cache is given on the relation" do
       treasure = ship.treasures.first
       treasure.destroy
     end

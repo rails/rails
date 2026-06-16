@@ -1,29 +1,10 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-adapter_index = ARGV.index("--adapter") || ARGV.index("-a")
-if adapter_index
+env = { "MEGATEST_PROGRAM_NAME" => $0 }
+if (adapter_index = ARGV.find_index("-a") || ARGV.find_index("--adapter"))
   ARGV.delete_at(adapter_index)
-  ENV["ARCONN"] = ARGV.delete_at(adapter_index).strip
+  env["ARCONN"] = ARGV.delete_at(adapter_index)
 end
 
-ENV["ARCONN"] ||= "sqlite3_mem"
-
-COMPONENT_ROOT = File.expand_path("..", __dir__)
-require_relative "../test/support/tools"
-
-module Minitest
-  def self.plugin_active_record_options(opts, options)
-    opts.separator ""
-    opts.separator "Active Record options:"
-    opts.on("-a", "--adapter [ADAPTER]",
-            "Run tests using a specific adapter (sqlite3, sqlite3_mem, mysql2, trilogy, postgresql)") do |adapter|
-      ENV["ARCONN"] = adapter.strip
-    end
-
-    opts
-  end
-end
-
-Minitest.load_plugins
-Minitest.extensions.unshift "active_record"
+exec(env, "bundle", "exec", "megatest", *ARGV)

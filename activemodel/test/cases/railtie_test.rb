@@ -4,7 +4,7 @@ require "cases/helper"
 require "active_support/testing/isolation"
 
 class RailtieTest < ActiveModel::TestCase
-  include ActiveSupport::Testing::Isolation
+  tag isolated: true
 
   def setup
     require "active_model/railtie"

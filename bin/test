@@ -1,16 +1,24 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+if ARGV.empty?
+  $stderr.puts "Usage: bin/test [test_file or directory]"
+  exit 1
+end
+
 raw_directory = ARGV.first.split("/").first
 directory = File.join(raw_directory, "/")
 args = ARGV.filter_map do |arg|
   if arg == raw_directory
     nil
   else
-    arg.delete_prefix(directory)
+    arg = arg.delete_prefix(directory)
+    arg = nil if arg.empty?
+    arg
   end
 end
 
-ENV["RAILS_TEST_PWD"] = Dir.pwd
+ENV["MEGATEST_PWD"] = ENV["RAILS_TEST_PWD"] = Dir.pwd
+
 Dir.chdir(directory)
 exec("bin/test", *args)

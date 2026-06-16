@@ -1377,11 +1377,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     # Count should come from sql count() of treasures rather than treasures_count attribute
     assert_equal 0, ship.treasures.size
 
-    assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed" do
+    assert_no_difference lambda { ship.reload.treasures_count }, message: "treasures_count should not be changed" do
       ship.treasures.create(name: "Gold")
     end
 
-    assert_no_difference lambda { ship.reload.treasures_count }, "treasures_count should not be changed" do
+    assert_no_difference lambda { ship.reload.treasures_count }, message: "treasures_count should not be changed" do
       ship.treasures.destroy_all
     end
   end

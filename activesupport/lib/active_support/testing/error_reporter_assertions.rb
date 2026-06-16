@@ -93,7 +93,7 @@ module ActiveSupport
         if reports.empty?
           assert(false, "Expected a #{error_class.name} to be reported, but there were no errors reported.")
         elsif (report = reports.find { |r| error_class === r.error })
-          self.assertions += 1
+          assert(true) # self.assertions += 1
           report
         else
           message = "Expected a #{error_class.name} to be reported, but none of the " \
