@@ -101,7 +101,7 @@ module ActiveSupport
     end
 
     def to_h
-      @parent.merge(self)
+      @parent.to_h.merge(self)
     end
 
     def ==(other)
