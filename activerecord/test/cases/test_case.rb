@@ -46,7 +46,13 @@ module ActiveRecord
       # which could lead to some slow wait in a subsequent thread.
       leaked_conn = []
       ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
-        # Ensure all in flights tasks are completed.
+        # Wait for any in-progress reaper maintenance to complete.
+        # The reaper temporarily checks out connections via
+        # checkout_for_maintenance during preconnect, keep_alive, etc.
+        # which would otherwise be flagged as leaks.
+        pool.reaper_lock { }
+
+        # Ensure all in-flight async executor tasks are completed.
         # Otherwise they may still hold a connection.
         if pool.async_executor
           if pool.async_executor.scheduled_task_count != pool.async_executor.completed_task_count
