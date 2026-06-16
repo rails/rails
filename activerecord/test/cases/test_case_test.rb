@@ -77,17 +77,18 @@ module ActiveRecord
       conn.select_value("SELECT 1")
       ActiveRecord::Base.connection_handler.clear_active_connections!
 
+      maintenance_started = Concurrent::Event.new
       release_maintenance = Concurrent::Event.new
 
       pool.reaper_lock do
         pool.send(:sequential_maintenance, ->(candidate) { candidate.equal?(conn) }) do
+          maintenance_started.set
           release_maintenance.wait
         end
       end
 
-      wait_for(message: "connection was not checked out for async maintenance", timeout: 1) do
-        conn.in_use?
-      end
+      maintenance_started.wait
+      assert_predicate conn, :in_use?
       assert_not_equal ActiveSupport::IsolatedExecutionState.context, conn.owner
 
       original_wait_method = method(:wait_for_pool_maintenance)
