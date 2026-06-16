@@ -119,6 +119,21 @@ class ExceptionsTest < ActiveSupport::TestCase
       end
     end
 
+    test "float wait job" do
+      travel_to Time.now
+      random_amount = 1
+      delay_for_jitter = random_amount * 2 * ActiveJob::Base.retry_jitter
+
+      Kernel.stub(:rand, random_amount) do
+        RetryJob.perform_later "FloatWaitError", 2, :log_scheduled_at
+        assert_equal [
+          "Raised FloatWaitError for the 1st time",
+          "Next execution scheduled at #{(Time.now + 2.seconds + delay_for_jitter).to_f}",
+          "Successfully completed job"
+        ], JobBuffer.values
+      end
+    end
+
     test "polynomially retrying job includes jitter" do
       travel_to Time.now
 

@@ -179,7 +179,7 @@ module ActiveJob
           delay = executions**4
           delay_jitter = determine_jitter_for_delay(delay, jitter)
           delay + delay_jitter + 2
-        when ActiveSupport::Duration, Integer
+        when ActiveSupport::Duration, Integer, Float
           delay = seconds_or_duration_or_algorithm.to_i
           delay_jitter = determine_jitter_for_delay(delay, jitter)
           delay + delay_jitter
