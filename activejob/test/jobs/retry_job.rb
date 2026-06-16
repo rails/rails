@@ -9,6 +9,7 @@ class ZeroJitterError < StandardError; end
 class FirstRetryableErrorOfTwo < StandardError; end
 class SecondRetryableErrorOfTwo < StandardError; end
 class LongWaitError < StandardError; end
+class FloatWaitError < StandardError; end
 class ShortWaitTenAttemptsError < StandardError; end
 class PolynomialWaitTenAttemptsError < StandardError; end
 class CustomWaitTenAttemptsError < StandardError; end
@@ -33,6 +34,7 @@ class RetryJob < ActiveJob::Base
   retry_on ZeroJitterError, jitter: 0.0
   retry_on FirstRetryableErrorOfTwo, SecondRetryableErrorOfTwo, attempts: 4
   retry_on LongWaitError, wait: 1.hour, attempts: 10
+  retry_on FloatWaitError, wait: 2.5, attempts: 10
   retry_on ShortWaitTenAttemptsError, wait: 1.second, attempts: 10
   retry_on PolynomialWaitTenAttemptsError, wait: :polynomially_longer, attempts: 10
   retry_on CustomWaitTenAttemptsError, wait: ->(executions) { executions * 2 }, attempts: 10
