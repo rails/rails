@@ -17,24 +17,25 @@ After reading this guide you will know:
 ## Overview
 
 As your application grows, you may need to split data across more than one
-database. You might move a group of tables to its own database cluster, send
-read traffic to replicas, or partition the same set of tables across multiple
+database. You might send read traffic to replicas, move a group of tables to
+its own database cluster, or partition the same set of tables across multiple
 shards.
 
 Rails supports these common multiple database patterns:
 
+* Read replicas for each writer database, so reads can be sent to a replica
+  while writes continue to use the writer.
 * Multiple writer databases, where each database stores a different part of
   your application's data. For example, `User` records might live in the
   `primary` database, while `Dog` records live in the `animals` database. This is
   also called vertical partitioning.
-* Read replicas for each writer database, so reads can be sent to a replica
-  while writes continue to use the writer.
 * Automatic role switching between writers and replicas based on the HTTP verb
-  and whether the request recently performed a write.
+  and whether the request performed a write within the configured delay.
 * Horizontal sharding, where each database has the same schema but stores a
   different subset of the records.
-* Rails tasks for creating, dropping, migrating, loading schemas, dumping
-  schemas, and interacting with each database.
+
+Rails provides tasks for creating, dropping, and migrating tables, as well as
+loading and dumping schemas and interacting with each database.
 
 The right setup depends on what you are trying to accomplish:
 
@@ -62,31 +63,49 @@ names a database configuration that Rails can connect to, and Rails uses those
 configuration names later when you connect models, run database tasks, and
 switch between writers, replicas, or shards.
 
-Rails supports two layouts for `config/database.yml`. A two-tier configuration
-has the environment, such as `development`, point directly to one database
-configuration. A three-tier configuration has the environment point to multiple
-named database configurations, such as `primary`, `primary_replica`, `animals`,
-and `animals_replica`.
+Rails supports two layouts for `config/database.yml`. If an environment has one
+database configuration, the database settings can live directly under the
+environment:
 
-INFO: Three-tier configuration refers to the YAML nesting: environment, database configuration name, and then database settings.<br><br><code class="yaml">production:          # tier 1: environment
-  primary:           # tier 2: database configuration name
-    database: ...    # tier 3: adapter/database/credentials/settings
-</code>
-<br>
+```yaml
+production:
+  database: my_primary_database
+  adapter: mysql2
+```
+
+This is called a two-tier configuration because the YAML has two levels: the
+environment, and then the database settings.
+
+When an environment has multiple database configurations, add another level
+under the environment. This third level names each database configuration:
+
+```yaml
+production:
+  primary: # database configuration name
+    database: my_primary_database
+  animals: # database configuration name
+    database: my_animals_database
+```
+
+This is called a three-tier configuration because the YAML has three levels: the
+environment, the database configuration name, and then the database settings.
+The database configuration names, such as `primary`, `primary_replica`,
+`animals`, and `animals_replica`, are used later when you connect models, run
+database tasks, and switch between writers and replicas.
+
 In a default Rails application, `development` and `test` often use a two-tier
 configuration, while `production` may already use a three-tier configuration
 for `primary`, `cache`, `queue`, and `cable`.
 
-The examples in this guide start with a three-tier production configuration
-that has one primary database. The application then adds a second database
-named `animals`. Models such as `User` will continue to use the primary
-database, while models such as `Dog` will use the animals database. Later
-sections build on this example by adding replicas and showing how Rails
-switches between them.
+The examples in this guide start with one primary production database. The
+application then adds a second database named `animals`. Models such as `User`
+will continue to use the primary database, while models such as `Dog` will use
+the animals database. Later sections build on this example by adding replicas
+and showing how Rails switches between them.
 
 ### Database Configurations
 
-Suppose you have an application with a single primary database configuration:
+Consider the following database configuration with a single primary database:
 
 ```yaml
 production:
@@ -97,15 +116,19 @@ production:
     password: <%= ENV['ROOT_PASSWORD'] %>
 ```
 
-To add the `animals` database and replicas for both databases, add new named
-database configurations under `production`.
-
 If a `primary` configuration key is provided, it will be used as the default
 configuration. If there is no configuration named `primary`, Rails will use the
-first configuration as the default for each environment. The default
-configuration uses the default Rails filenames. For example, a `primary`
-configuration will use `db/schema.rb` for the schema file, whereas other entries
-will use `db/[CONFIGURATION_NAMESPACE]_schema.rb`.
+first configuration as the default for each environment.
+
+The default configuration uses the default Rails filenames for schema and
+schema cache files. For example, a `primary` configuration will use
+`db/schema.rb` for the schema file and `db/schema_cache.yml` for the schema
+cache file. Other entries use names based on the database configuration name,
+such as `db/[CONFIGURATION_NAMESPACE]_schema.rb` and
+`db/[CONFIGURATION_NAMESPACE]_schema_cache.yml`.
+
+Let's now add an `animals` database and replicas for the `production`
+environment:
 
 ```yaml
 production:
@@ -140,6 +163,12 @@ and deletes. Each writer also has a replica: `primary_replica` copies data from
 `primary`, and `animals_replica` copies data from `animals`, so Rails can send
 read queries to a replica when appropriate.
 
+INFO: Read replicas are database servers that keep a copy of a writer database's data
+and structure. The database system, not Rails, handles replication from the
+writer to the replica. Replication can be delayed, so applications need to
+account for the possibility that a replica has not received the latest write
+yet.
+
 #### Database Connection URLs
 
 A database connection URL is a single string that contains the adapter,
@@ -154,7 +183,7 @@ Rails looks for an environment variable named `ANIMALS_DATABASE_URL`:
 ANIMALS_DATABASE_URL="mysql2://animals_root:password@localhost/my_animals_database"
 ```
 
-Rails combines the matching environment variable with the matching
+Rails matches the environment variable with the corresponding
 `database.yml` entry. The URL supplies the connection details, while
 `database.yml` can keep Rails-specific options such as `migrations_paths`.
 
@@ -173,7 +202,7 @@ When Rails loads the `animals` configuration, it uses
 `migrations_paths` from `database.yml`.
 
 See [Configuring a Database](configuring.html#configuring-a-database) for
-details about how the merging works.
+details about how the configurations are merged.
 
 #### Configuration Settings
 
@@ -181,8 +210,7 @@ When using multiple databases, there are a few important settings.
 
 First, the database name for a writer and its replica should be the same because
 they contain the same data. This means `primary` and `primary_replica` should
-point to the same database, and `animals` and `animals_replica` should point to
-the same database.
+have the same name, as should `animals` and `animals_replica`.
 
 ```yaml#3,5
 production:
@@ -192,8 +220,8 @@ production:
     database: my_primary_database
 ```
 
-Second, the username for the writers and replicas should be different, and the
-replica user's database permissions should be set to only read and not write.
+Second, a different username can be used for each replica, and set
+the replica user's database permissions to only read and not write.
 
 ```yaml#3,5
 production:
@@ -206,7 +234,9 @@ production:
 When using a replica database, you need to add `replica: true` to the replica
 configuration in `config/database.yml`. Rails otherwise has no way of knowing
 which configuration is the replica and which one is the writer. Rails will not
-run certain tasks, such as migrations, against replicas.
+run certain tasks, such as migrations, against configurations marked as
+replicas. If you forget `replica: true`, Rails will treat the replica as
+another writer database and may run database tasks against it.
 
 ```yaml#3
 production:
@@ -216,7 +246,7 @@ production:
 
 Lastly, for new writer databases, you need to set the `migrations_paths` key to
 the directory where you will store migrations for that database. We'll look more
-at `migrations_paths` later on in this guide.
+at `migrations_paths` later in [Generating Migrations](#generating-migrations).
 
 ```yaml#3
 production:
@@ -225,7 +255,9 @@ production:
 ```
 
 You can also configure the schema dump file by setting `schema_dump` to a
-custom schema file name. For example:
+custom schema file name. By default, the primary configuration uses
+`db/schema.rb`, and other configurations use
+`db/[CONFIGURATION_NAMESPACE]_schema.rb`. For example:
 
 ```yaml#5
 production:
@@ -255,8 +287,26 @@ Each abstract class owns the connection for one database, or for one writer and
 replica pair. Concrete models then inherit from the abstract class for the
 database where their table lives.
 
-In `connects_to`, `writing` and `reading` are role names. The `writing` role
-points to the writer database, and the `reading` role points to the replica:
+For example, an application with `primary` and `animals` databases might have
+one abstract class for each database:
+
+```ruby
+class ApplicationRecord < ActiveRecord::Base
+  primary_abstract_class
+
+  connects_to database: { writing: :primary, reading: :primary_replica }
+end
+
+class AnimalsRecord < ApplicationRecord
+  self.abstract_class = true
+
+  connects_to database: { writing: :animals, reading: :animals_replica }
+end
+```
+
+In [`connects_to`](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionHandling.html#method-i-connects_to),
+`writing` and `reading` are role names. The `writing` role points to the writer
+database, and the `reading` role points to the replica:
 
 ```ruby
 connects_to database: { writing: :primary, reading: :primary_replica }
@@ -295,9 +345,9 @@ Models that inherit from `ApplicationRecord` will use the `primary` database for
 writes and the `primary_replica` database for reads when Rails is switched to
 the reading role.
 
-If you use a differently named class for your application record, set
-`primary_abstract_class` so that Rails knows which class `ActiveRecord::Base`
-should share a connection with:
+If you're using a custom name for the base class of your database-backed
+models, set `primary_abstract_class` on that class. This marks it as the primary
+abstract class that shares a connection with `ActiveRecord::Base`:
 
 ```ruby
 class PrimaryApplicationRecord < ActiveRecord::Base
@@ -346,16 +396,21 @@ Connecting multiple individual models to the same database multiplies the
 number of connections, because Rails uses the model class name for the
 connection specification name.
 
-If you create models and migrations with Rails generators, pass the database
-name so Rails can place files in the right migration path and use the right
-abstract class.
-
 #### Generating Migrations
 
 Each managed writer database needs a migration path. Keeping migrations
 separate lets Rails migrate one database without running migrations intended for
 another database. Replicas do not need migration paths because Rails does not
 run migrations against configurations marked with `replica: true`.
+
+For example, a migration that creates a table in the primary database belongs in
+`db/migrate`, while a migration that creates a table in the `animals` database
+belongs in `db/animals_migrate`:
+
+```text
+db/migrate/20240501000000_create_users.rb
+db/animals_migrate/20240501000000_create_dogs.rb
+```
 
 Migrations for multiple databases should live in their own folders prefixed
 with the name of the database key in the configuration. You also need to set
@@ -379,8 +434,9 @@ are placed in the correct directory:
 $ bin/rails generate migration CreateDogs name:string --database animals
 ```
 
-This creates the migration in `db/animals_migrate`. Without `--database
-animals`, the migration would be generated in the default migration path.
+This creates the migration in `db/animals_migrate`. Without
+`--database animals`, the migration would be generated in the default migration
+path.
 
 #### Generating Models and Scaffolds
 
@@ -429,8 +485,8 @@ should inherit from:
 $ bin/rails generate scaffold Dog name:string --database animals --parent Animals::Record
 ```
 
-This will skip generating `AnimalsRecord` since you've indicated to Rails that you want to
-use a different parent class.
+This will skip generating `AnimalsRecord` since you've indicated to Rails that
+you want to use a different parent class.
 
 ### Database Tasks
 
@@ -523,6 +579,9 @@ requesting user recently wrote to the database:
   the database.
 * `GET` and `HEAD` requests from a user who recently wrote to the database use
   the writer until the configured delay has passed.
+
+By default, the delay is 2 seconds. You can configure it in the generated
+initializer, as shown below.
 
 This helps the application provide "read your own write" behavior. For example,
 after a user submits a form, a redirect back to a `GET` request can still read
