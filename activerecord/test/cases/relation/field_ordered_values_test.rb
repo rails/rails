@@ -160,4 +160,24 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     assert_empty(Book.in_order_of(:nullable_status, [:bogus], filter: false).ids)
     assert_empty(Book.in_order_of(:nullable_status, [:bogus]).ids)
   end
+
+  if ActiveRecord::Base.lease_connection.supports_common_table_expressions?
+    def test_in_order_of_with_column_from_cte
+      Book.destroy_all
+      Book.create!(format: "paperback")
+      Book.create!(format: "ebook")
+      Book.create!(format: "hardcover")
+
+      cte = Book.select(:id, format: :book_format)
+      order = ["hardcover", "paperback", "ebook"]
+
+      books = Book
+        .with(cte_books: cte)
+        .from("cte_books")
+        .select(:id, :book_format)
+        .in_order_of(:book_format, order)
+
+      assert_equal(order, books.map(&:book_format))
+    end
+  end
 end
