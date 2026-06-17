@@ -175,6 +175,6 @@ module AdapterHelper
       skip("kill_connection_from_server unsupported")
     end
 
-    actor_connection.close
+    actor_connection.disconnect!
   end
 end
