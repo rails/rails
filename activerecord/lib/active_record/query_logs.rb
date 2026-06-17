@@ -85,16 +85,23 @@ module ActiveRecord
   # using the {SQLCommenter}[https://open-telemetry.github.io/opentelemetry-sqlcommenter/] format. This can be changed
   # via {config.active_record.query_log_tags_format}[https://guides.rubyonrails.org/configuring.html#config-active-record-query-log-tags-format]
   #
-  # The format can also be overridden per connection pool by setting +query_log_tags_format+
-  # in a +database.yml+ entry. Connections checked out from that pool use the configured
-  # format, while pools without any explicit configuration fall back to the global default:
+  # Query log tags can also be configured per connection pool through a +database.yml+
+  # entry. Setting +query_log_tags+ to +false+ opts a pool out of tagging even when
+  # tags are enabled globally, and a +Hash+ value can override options such as the +format+.
+  # Connections checked out from a pool use its configured options, while pools without
+  # any explicit configuration fall back to the global defaults:
   #
   #     production:
   #       primary:
   #         database: primary
   #       analytics:
   #         database: analytics
-  #         query_log_tags_format: sqlcommenter
+  #         query_log_tags:
+  #           format: sqlcommenter
+  #       replica:
+  #         database: replica
+  #         replica: true
+  #         query_log_tags: false
   #
   # Tag comments can be prepended to the query:
   #
@@ -163,6 +170,8 @@ module ActiveRecord
       end
 
       def call(sql, connection) # :nodoc:
+        return sql if connection.pool.db_config.query_log_tags_config == false
+
         comment = self.comment(sql: sql, connection: connection)
 
         if comment.blank?

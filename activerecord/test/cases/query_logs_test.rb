@@ -204,7 +204,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.tags_formatter = :legacy
     ActiveRecord::QueryLogs.tags = [ :application ]
 
-    with_db_config(query_log_tags_format: "sqlcommenter") do |connection|
+    with_db_config(query_log_tags: { format: "sqlcommenter" }) do |connection|
       assert_equal "select 1 /*application='active_record'*/",
         ActiveRecord::QueryLogs.call("select 1", connection)
     end
@@ -220,13 +220,22 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_per_pool_can_be_disabled
+    ActiveRecord::QueryLogs.tags_formatter = :legacy
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config(query_log_tags: false) do |connection|
+      assert_equal "select 1", ActiveRecord::QueryLogs.call("select 1", connection)
+    end
+  end
+
   def test_cache_is_kept_per_formatter
     ActiveRecord::QueryLogs.cache_query_log_tags = true
     ActiveRecord::QueryLogs.tags_formatter = :legacy
     ActiveRecord::QueryLogs.tags = [ :application ]
 
     with_db_config do |legacy_connection|
-      with_db_config(query_log_tags_format: "sqlcommenter") do |sqlcommenter_connection|
+      with_db_config(query_log_tags: { format: "sqlcommenter" }) do |sqlcommenter_connection|
         # Different formats must not serve each other's cached comment.
         assert_equal "select 1 /*application:active_record*/",
           ActiveRecord::QueryLogs.call("select 1", legacy_connection)
