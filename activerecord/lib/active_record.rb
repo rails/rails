@@ -123,7 +123,7 @@ module ActiveRecord
     end
   end
 
-  module Coders
+  module Coders # :nodoc:
     autoload :ColumnSerializer, "active_record/coders/column_serializer"
     autoload :JSON, "active_record/coders/json"
     autoload :YAMLColumn, "active_record/coders/yaml_column"
