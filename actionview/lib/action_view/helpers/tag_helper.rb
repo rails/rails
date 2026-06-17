@@ -41,7 +41,7 @@ module ActionView
       TAG_TYPES.merge! CLASS_PREFIXES.index_with(:class)
       TAG_TYPES.freeze
 
-      PRE_CONTENT_STRINGS             = Hash.new(&ActiveSupport::Ractors.shareable_proc { "" })
+      PRE_CONTENT_STRINGS             = Hash.new("")
       PRE_CONTENT_STRINGS[:textarea]  = "\n"
       PRE_CONTENT_STRINGS["textarea"] = "\n"
       PRE_CONTENT_STRINGS.freeze
