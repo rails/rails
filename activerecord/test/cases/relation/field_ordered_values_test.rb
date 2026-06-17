@@ -180,4 +180,24 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     books = Book.in_order_of(:format, order).order(Book.arel_table[:format].desc.nulls_last)
     assert_equal(["ebook", "paperback", "digital", nil, "letter"], books.map(&:format))
   end
+
+  if ActiveRecord::Base.lease_connection.supports_common_table_expressions?
+    def test_in_order_of_with_column_from_cte
+      Book.destroy_all
+      Book.create!(format: "paperback")
+      Book.create!(format: "ebook")
+      Book.create!(format: "hardcover")
+
+      cte = Book.select(:id, format: :book_format)
+      order = ["hardcover", "paperback", "ebook"]
+
+      books = Book
+        .with(cte_books: cte)
+        .from("cte_books")
+        .select(:id, :book_format)
+        .in_order_of(:book_format, order)
+
+      assert_equal(order, books.map(&:book_format))
+    end
+  end
 end
