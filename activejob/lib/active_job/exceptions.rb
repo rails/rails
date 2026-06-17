@@ -64,6 +64,14 @@ module ActiveJob
       #    end
       #  end
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT, report: false)
+        case wait
+        when :polynomially_longer, Integer, Float, ActiveSupport::Duration, Proc
+          # Supported wait type, continue.
+        else
+          raise ArgumentError, "Unsupported argument type for :wait, expected an Integer, Float, " \
+            "ActiveSupport::Duration, Proc, or :polynomially_longer, but got #{wait.inspect}"
+        end
+
         rescue_from(*exceptions) do |error|
           executions = executions_for(exceptions)
           if attempts == :unlimited || executions < attempts

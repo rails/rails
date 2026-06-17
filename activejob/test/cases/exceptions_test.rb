@@ -443,4 +443,25 @@ class ExceptionsTest < ActiveSupport::TestCase
       assert_equal expected_array, JobBuffer.values.last(2)
     end
   end
+
+  test "retry_on raises ArgumentError for an unsupported wait type" do
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveJob::Base) do
+        retry_on StandardError, wait: "soon"
+      end
+    end
+    assert_match(/Unsupported argument type for :wait/, error.message)
+  end
+
+  test "retry_on accepts all supported wait types" do
+    assert_nothing_raised do
+      Class.new(ActiveJob::Base) do
+        retry_on StandardError, wait: 5
+        retry_on StandardError, wait: 2.5
+        retry_on StandardError, wait: 5.minutes
+        retry_on StandardError, wait: :polynomially_longer
+        retry_on StandardError, wait: ->(executions) { executions * 2 }
+      end
+    end
+  end
 end
