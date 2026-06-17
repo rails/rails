@@ -665,11 +665,11 @@ module ActionDispatch
 
         private
           def assign_deprecated_option(deprecated_options, key, method_name)
-            if (deprecated_value = deprecated_options.delete(key))
+            if deprecated_options.key?(key)
               ActionDispatch.deprecator.warn(<<~MSG.squish)
                 #{method_name} received a hash argument #{key}. Please use a keyword instead. Support to hash argument will be removed in Rails 8.2.
               MSG
-              deprecated_value
+              deprecated_options.delete(key)
             end
           end
 
