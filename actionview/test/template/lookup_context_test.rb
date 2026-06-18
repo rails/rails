@@ -127,28 +127,6 @@ class LookupContextTest < ActiveSupport::TestCase
     end
   end
 
-  test "generates a new details key for each details hash" do
-    keys = []
-    keys << @lookup_context.details_key
-    assert_equal 1, keys.uniq.size
-
-    @lookup_context.locale = :da
-    keys << @lookup_context.details_key
-    assert_equal 2, keys.uniq.size
-
-    @lookup_context.locale = :en
-    keys << @lookup_context.details_key
-    assert_equal 2, keys.uniq.size
-
-    @lookup_context.formats = [:html]
-    keys << @lookup_context.details_key
-    assert_equal 3, keys.uniq.size
-
-    @lookup_context.formats = nil
-    keys << @lookup_context.details_key
-    assert_equal 3, keys.uniq.size
-  end
-
   test "uses details as part of cache key" do
     fixtures = {
       "test/_foo.erb" => "Foo",

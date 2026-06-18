@@ -107,13 +107,6 @@ module ActionView
     module DetailsCache
       attr_accessor :cache
 
-      # Calculate the details key. Remove the handlers from calculation to improve performance
-      # since the user cannot modify it explicitly.
-      def details_key # :nodoc:
-        @details_key ||= DetailsKey.details_cache_key(@details) if @cache
-      end
-
-      # Temporary skip passing the details_key forward.
       def disable_cache
         old_value, @cache = @cache, false
         yield
@@ -123,9 +116,8 @@ module ActionView
 
     private
       def _set_detail(key, value) # :doc:
-        @details = @details.dup if @digest_cache || @details_key
+        @details = @details.dup if @digest_cache
         @digest_cache = nil
-        @details_key = nil
         @details[key] = value
       end
     end
@@ -136,33 +128,28 @@ module ActionView
 
       def find(name, prefixes = [], partial = false, keys = [], options = {})
         name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for(options)
-        @view_paths.find(name, prefixes, partial, details, details_key, keys)
+        @view_paths.find(name, prefixes, partial, detail_args_for(options), @cache, keys)
       end
 
       def find!(name, prefixes = [], partial = false, keys = [], options = {})
         name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for(options)
-        @view_paths.find!(name, prefixes, partial, details, details_key, keys)
+        @view_paths.find!(name, prefixes, partial, detail_args_for(options), @cache, keys)
       end
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
         name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for(options)
-        @view_paths.find_all(name, prefixes, partial, details, details_key, keys)
+        @view_paths.find_all(name, prefixes, partial, detail_args_for(options), @cache, keys)
       end
 
       def exists?(name, prefixes = [], partial = false, keys = [], **options)
         name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for(options)
-        @view_paths.exists?(name, prefixes, partial, details, details_key, keys)
+        @view_paths.exists?(name, prefixes, partial, detail_args_for(options), @cache, keys)
       end
       alias :template_exists? :exists?
 
       def any?(name, prefixes = [], partial = false)
         name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for_any
-        @view_paths.exists?(name, prefixes, partial, details, details_key, [])
+        @view_paths.exists?(name, prefixes, partial, detail_args_for_any, @cache, [])
       end
       alias :any_templates? :any?
 
@@ -191,16 +178,8 @@ module ActionView
 
       # Compute details hash and key according to user options (e.g. passed from #render).
       def detail_args_for(options) # :doc:
-        return @details, details_key if options.empty? # most common path.
-        user_details = @details.merge(options)
-
-        if @cache
-          details_key = DetailsKey.details_cache_key(user_details)
-        else
-          details_key = nil
-        end
-
-        [user_details, details_key]
+        return @details if options.empty? # most common path.
+        @details.merge(options)
       end
 
       def detail_args_for_any
@@ -215,11 +194,7 @@ module ActionView
             end
           end
 
-          if @cache
-            [details, DetailsKey.details_cache_key(details)]
-          else
-            [details, nil]
-          end
+          details
         end
       end
 
@@ -248,7 +223,6 @@ module ActionView
     include ViewPaths
 
     def initialize(view_paths, details = {}, prefixes = [])
-      @details_key = nil
       @digest_cache = nil
       @cache = true
       @prefixes = prefixes
