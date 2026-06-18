@@ -112,6 +112,89 @@ module ActiveRecord
     end
   end
 
+  class SqliteDBDropAndRecreateTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    unless in_memory_db?
+      def test_drop_then_create_persists_to_the_recreated_database_file
+        dir = Dir.mktmpdir
+        file = File.join(dir, "phantom.sqlite3")
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(
+          "arunit", "primary", adapter: "sqlite3", database: file
+        )
+
+        ActiveRecord::Base.establish_connection(db_config)
+        ActiveRecord::Base.lease_connection.create_table(:dogs)
+
+        quietly do
+          ActiveRecord::Tasks::DatabaseTasks.drop(db_config, dir)
+          ActiveRecord::Tasks::DatabaseTasks.create(db_config, dir)
+        end
+
+        assert File.exist?(file), "expected db:create to recreate the database file on disk"
+
+        ActiveRecord::Base.lease_connection.create_table(:cats)
+        ActiveRecord::Base.connection_handler.clear_all_connections!
+        ActiveRecord::Base.establish_connection(db_config)
+
+        assert ActiveRecord::Base.lease_connection.table_exists?(:cats),
+          "expected the schema created after db:create to persist to the new file"
+      ensure
+        ActiveRecord::Base.connection_handler.clear_all_connections!
+        FileUtils.remove_entry(dir) if dir
+        ActiveRecord::Base.establish_connection :arunit
+      end
+
+      def test_drop_does_not_recreate_a_missing_database
+        dir = Dir.mktmpdir
+        file = File.join(dir, "missing.sqlite3")
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(
+          "arunit", "primary", adapter: "sqlite3", database: file
+        )
+
+        ActiveRecord::Base.establish_connection(db_config)
+        assert_not File.exist?(file), "test setup: the database file must not exist yet"
+
+        output = capture(:stderr) do
+          ActiveRecord::Tasks::DatabaseTasks.drop(db_config, dir)
+        end
+
+        assert_not File.exist?(file), "drop must not create the missing database file"
+        assert_match "Database '#{file}' does not exist", output
+      ensure
+        FileUtils.remove_entry(dir) if dir
+        ActiveRecord::Base.establish_connection :arunit
+      end
+
+      def test_drop_does_not_disconnect_a_different_database
+        dir = Dir.mktmpdir
+        dropped = File.join(dir, "dropped.sqlite3")
+        live = File.join(dir, "live.sqlite3")
+        live_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(
+          "arunit", "primary", adapter: "sqlite3", database: live
+        )
+        dropped_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(
+          "arunit", "primary", adapter: "sqlite3", database: dropped
+        )
+
+        ActiveRecord::Base.establish_connection(live_config)
+        ActiveRecord::Base.lease_connection.create_table(:bees)
+        assert_predicate ActiveRecord::Base.lease_connection, :active?
+
+        File.write(dropped, "")
+        quietly { ActiveRecord::Tasks::DatabaseTasks.drop(dropped_config, dir) }
+
+        assert_not File.exist?(dropped), "expected the dropped database file to be removed"
+        assert_predicate ActiveRecord::Base.lease_connection, :active?,
+          "dropping a different database must not disconnect the active connection"
+      ensure
+        ActiveRecord::Base.connection_handler.clear_all_connections!
+        FileUtils.remove_entry(dir) if dir
+        ActiveRecord::Base.establish_connection :arunit
+      end
+    end
+  end
+
   class SqliteDBCharsetTest < ActiveRecord::TestCase
     def setup
       @database      = "db_create.sqlite3"
