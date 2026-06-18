@@ -19,6 +19,12 @@ module ActionView
       [:locale, :formats, :variants, :handlers]
     end
 
+    def self.clear
+      ActionView::PathRegistry.all_resolvers.each(&:clear_cache)
+      reset_view_context_class
+      Digestor.clear_cache
+    end
+
     class Details
       def initialize(locale: nil, formats: nil, variants: nil, handlers: nil)
         @locale   = locale   && Array(locale)
@@ -158,16 +164,6 @@ module ActionView
         def to_cache_key
           [locale, Template.normalized_formats(formats) || formats, variants, handlers].freeze
         end
-    end
-
-    class DetailsKey # :nodoc:
-      def self.clear
-        ActionView::PathRegistry.all_resolvers.each do |resolver|
-          resolver.clear_cache
-        end
-        ActionView::LookupContext.reset_view_context_class
-        Digestor.clear_cache
-      end
     end
 
     def self.reset_view_context_class

@@ -21,7 +21,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     @old_logger = ActionView::LogSubscriber.logger
     ActionView::LogSubscriber.logger = @logger
 
-    ActionView::LookupContext::DetailsKey.clear
+    ActionView::LookupContext.clear
 
     view_paths = ActionController::Base.view_paths
 

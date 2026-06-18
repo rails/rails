@@ -14,7 +14,7 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
 
   def teardown
     super
-    ActionView::LookupContext::DetailsKey.clear
+    ActionView::LookupContext.clear
   end
 
   def test_template_with_nil_erb_return
