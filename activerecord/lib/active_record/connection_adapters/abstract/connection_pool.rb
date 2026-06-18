@@ -128,7 +128,7 @@ module ActiveRecord
           # FIXME: On 3.3 we could use ObjectSpace::WeakKeyMap
           # but it currently cause GC crashes: https://github.com/byroot/rails/pull/3
           def initialize
-            @map = {}
+            @map = Concurrent::Map.new
           end
 
           def clear
@@ -140,7 +140,9 @@ module ActiveRecord
           end
 
           def []=(key, value)
-            @map.select! { |c, _| c&.alive? }
+            @map.each_pair do |thread, _|
+              @map.delete(thread) unless thread&.alive?
+            end
             @map[key] = value
           end
         end
