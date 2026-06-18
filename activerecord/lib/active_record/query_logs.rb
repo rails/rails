@@ -85,20 +85,40 @@ module ActiveRecord
   # using the {SQLCommenter}[https://open-telemetry.github.io/opentelemetry-sqlcommenter/] format. This can be changed
   # via {config.active_record.query_log_tags_format}[https://guides.rubyonrails.org/configuring.html#config-active-record-query-log-tags-format]
   #
-  # The format can also be overridden per connection pool by setting +query_log_tags_format+
-  # in a +database.yml+ entry. Connections checked out from that pool use the configured
-  # format, while pools without any explicit configuration fall back to the global default:
+  # The format can also be overridden per connection pool through the +query_log_tags+
+  # key of a +database.yml+ entry. Connections checked out from that pool use the
+  # configured +format+, while setting +query_log_tags+ to +false+ instead opts the
+  # pool out of tagging entirely. Pools without any explicit configuration fall back
+  # to the global defaults:
   #
   #     production:
   #       primary:
   #         database: primary
   #       analytics:
   #         database: analytics
-  #         query_log_tags_format: sqlcommenter
+  #         query_log_tags:
+  #           format: sqlcommenter
+  #       replica:
+  #         database: replica
+  #         replica: true
+  #         query_log_tags: false
   #
   # Tag comments can be prepended to the query:
   #
   #     config.active_record.query_log_tags_prepend_comment = true
+  #
+  # Whether the comment is prepended can also be overridden per connection pool with a
+  # +prepend_comment+ key under +query_log_tags+ in a +database.yml+ entry. Connections
+  # checked out from that pool use the configured value, while pools without any explicit
+  # configuration fall back to the global default:
+  #
+  #     production:
+  #       primary:
+  #         database: primary
+  #       analytics:
+  #         database: analytics
+  #         query_log_tags:
+  #           prepend_comment: true
   #
   # For applications where the content will not change during the lifetime of
   # the request or job execution, the tags can be cached for reuse in every query:
@@ -163,11 +183,13 @@ module ActiveRecord
       end
 
       def call(sql, connection) # :nodoc:
+        return sql if connection.pool.db_config.query_log_tags_config == false
+
         comment = self.comment(sql: sql, connection: connection)
 
         if comment.blank?
           sql
-        elsif prepend_comment
+        elsif resolve_prepend_comment(connection)
           "#{comment} #{sql}"
         else
           "#{sql} #{comment}"
@@ -202,6 +224,11 @@ module ActiveRecord
           else
             @formatter
           end
+        end
+
+        def resolve_prepend_comment(connection)
+          prepend = connection.pool.db_config.query_log_tags_prepend_comment
+          prepend.nil? ? prepend_comment : prepend
         end
 
         def rebuild_handlers
