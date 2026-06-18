@@ -1,3 +1,15 @@
+*   Add `Arel.array_bind` to send an `IN`/`NOT IN` list as a single array bind
+    parameter instead of expanding every value into the SQL text.
+
+    On PostgreSQL, `where(id: Arel.array_bind(ids))` compiles to
+    `WHERE "posts"."id" = ANY($1)` (and `where.not` to `<> ALL($1)`), keeping
+    the statement a constant size no matter how many values are matched. This
+    avoids oversized SQL and per-element parameter limits for large lists, even
+    when prepared statements are disabled. Adapters without array-bind support
+    fall back to a regular `IN (...)` expansion.
+
+    *Said Kaldybaev*
+
 *   Fix `increment!` / `decrement!` on models with query constraints to include
     every query constraint column in the counter update.
 

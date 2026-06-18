@@ -5,10 +5,18 @@ module Arel # :nodoc: all
     class HomogeneousIn < Node
       attr_reader :attribute, :values, :type
 
-      def initialize(values, attribute, type)
+      def initialize(values, attribute, type, wire: false)
         @values = values
         @attribute = attribute
         @type = type
+        @wire = wire
+      end
+
+      # When true, adapters that support it (PostgreSQL) bind the values as a
+      # single array parameter (+col = ANY($1)+) instead of expanding them into
+      # +IN (1, 2, ..., N)+. Set via Arel.array_bind.
+      def wire?
+        @wire
       end
 
       def hash
@@ -25,7 +33,7 @@ module Arel # :nodoc: all
       end
 
       def invert
-        Arel::Nodes::HomogeneousIn.new(values, attribute, type == :in ? :notin : :in)
+        Arel::Nodes::HomogeneousIn.new(values, attribute, type == :in ? :notin : :in, wire: @wire)
       end
 
       def left
@@ -61,7 +69,7 @@ module Arel # :nodoc: all
 
       protected
         def ivars
-          [@attribute, @values, @type]
+          [@attribute, @values, @type, @wire]
         end
     end
   end
