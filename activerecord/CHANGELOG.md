@@ -1,3 +1,22 @@
+*   Make `ActiveRecord::Base.primary_key` inheritable.
+
+    Previously setting `primary_key` on a model wouldn't impact child
+    classes. Now the property is inherited by subclasses as well.
+
+    ``` ruby
+    class AbstractShardedModel < ApplicationRecord
+        self.abstract_class = true
+        self.primary_key = ["tenant_id", "id"]
+    end
+
+    class Invoice < AbstractShardedModel
+    end
+
+    Invoice.primary_key # => ["tenant_id", "id"]
+    ```
+
+    *Iliana Hadzhiatanasova*
+
 *   Fix `has_many` and `has_one` associations on a new record returning an empty
     result when the owner has a composite primary key, even when every primary
     key column is populated.
