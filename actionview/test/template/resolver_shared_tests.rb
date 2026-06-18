@@ -102,17 +102,17 @@ module ResolverSharedTests
   def test_found_template_is_cached
     with_file "test/hello_world.html.erb", "Hello HTML!"
 
-    a = context.find("hello_world", "test", false, [], {})
-    b = context.find("hello_world", "test", false, [], {})
+    a = context.find("hello_world", "test", false, [])
+    b = context.find("hello_world", "test", false, [])
     assert_same a, b
   end
 
   def test_different_templates_when_cache_disabled
     with_file "test/hello_world.html.erb", "Hello HTML!"
 
-    a = context.find("hello_world", "test", false, [], {})
-    b = context.disable_cache { context.find("hello_world", "test", false, [], {}) }
-    c = context.find("hello_world", "test", false, [], {})
+    a = context.find("hello_world", "test", false, [])
+    b = context.disable_cache { context.find("hello_world", "test", false, []) }
+    c = context.find("hello_world", "test", false, [])
 
     # disable_cache should give us a new object
     assert_not_same a, b
@@ -124,8 +124,8 @@ module ResolverSharedTests
   def test_same_template_from_different_details_is_same_object
     with_file "test/hello_world.html.erb", "Hello HTML!"
 
-    a = context.find("hello_world", "test", false, [], locale: [:en])
-    b = context.find("hello_world", "test", false, [], locale: [:fr])
+    a = context.find("hello_world", "test", false, [], ActionView::LookupContext::Details.new(locale: [:en]))
+    b = context.find("hello_world", "test", false, [], ActionView::LookupContext::Details.new(locale: [:fr]))
     assert_same a, b
   end
 
@@ -133,8 +133,8 @@ module ResolverSharedTests
     with_file "test/hello_world.text.erb", "Generic plain text!"
     with_file "test/hello_world.fr.text.erb", "Texte en Francais!"
 
-    en = context.find_all("hello_world", "test", false, [], locale: [:en])
-    fr = context.find_all("hello_world", "test", false, [], locale: [:fr])
+    en = context.find_all("hello_world", "test", false, [], ActionView::LookupContext::Details.new(locale: [:en]))
+    fr = context.find_all("hello_world", "test", false, [], ActionView::LookupContext::Details.new(locale: [:fr]))
 
     assert_equal 1, en.size
     assert_equal 2, fr.size
@@ -188,18 +188,18 @@ module ResolverSharedTests
     with_file "test/hello_world.html+tricorder.erb", "Hello Spock!"
     with_file "test/hello_world.html+lcars.erb", "Hello Geordi!"
 
-    tricorder = context.find("hello_world", "test", false, [], { variants: [:tricorder] })
-    lcars = context.find("hello_world", "test", false, [], { variants: [:lcars] })
+    tricorder = context.find("hello_world", "test", false, [], ActionView::LookupContext::Details.new(variants: [:tricorder]))
+    lcars = context.find("hello_world", "test", false, [], ActionView::LookupContext::Details.new(variants: [:lcars]))
 
     assert_equal "Hello Spock!", tricorder.source
     assert_equal "tricorder", tricorder.variant
     assert_equal "Hello Geordi!", lcars.source
     assert_equal "lcars", lcars.variant
 
-    templates = context.find_all("hello_world", "test", false, [], { variants: [:tricorder, :lcars] })
+    templates = context.find_all("hello_world", "test", false, [], ActionView::LookupContext::Details.new(variants: [:tricorder, :lcars]))
     assert_equal [tricorder, lcars], templates
 
-    templates = context.find_all("hello_world", "test", false, [], { variants: [:lcars, :tricorder] })
+    templates = context.find_all("hello_world", "test", false, [], ActionView::LookupContext::Details.new(variants: [:lcars, :tricorder]))
     assert_equal [lcars, tricorder], templates
   end
 
@@ -230,13 +230,13 @@ module ResolverSharedTests
   def test_returns_no_results_with_dot
     with_file "test/hello_world.html.erb", "Hello html!"
 
-    assert_empty context.find_all("hello_world.html", "test", false, [], {})
+    assert_empty context.find_all("hello_world.html", "test", false, [])
   end
 
   def test_finds_template_with_lowdash_format
     with_file "test/hello_world.es_AR.text.erb", "Texto simple!"
 
-    es_ar = context.find_all("hello_world", "test", false, [], locale: [:es_AR])
+    es_ar = context.find_all("hello_world", "test", false, [], ActionView::LookupContext::Details.new(locale: [:es_AR]))
 
     assert_equal 1, es_ar.size
 
@@ -247,7 +247,7 @@ module ResolverSharedTests
     I18n.backend.store_translations(:en_customer1, { hello: "hello" })
     with_file "test/hello_world.en_customer1.text.erb", "Good day, world."
 
-    templates = context.find_all("hello_world", "test", false, [], locale: [:en_customer1])
+    templates = context.find_all("hello_world", "test", false, [], ActionView::LookupContext::Details.new(locale: [:en_customer1]))
 
     assert_equal 1, templates.size
     assert_equal "Good day, world.", templates[0].source
@@ -258,8 +258,8 @@ module ResolverSharedTests
   def test_strict_locals_reuses_same_template
     with_file "test/hello_world.html.erb", %q{<%# locals: (message: "hello")%>\n<%= message %>}
 
-    template = context.find_all("hello_world", "test", false, [:message], {})[0]
-    template2 = context.find_all("hello_world", "test", false, [], {})[0]
+    template = context.find_all("hello_world", "test", false, [:message])[0]
+    template2 = context.find_all("hello_world", "test", false, [])[0]
 
     assert_same template, template2
 

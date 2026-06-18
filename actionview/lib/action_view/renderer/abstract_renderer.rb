@@ -154,20 +154,6 @@ module ActionView
     end
 
     private
-      NO_DETAILS = {}.freeze
-
-      def extract_details(options) # :doc:
-        details = nil
-        LookupContext.registered_details.each do |key|
-          value = options[key]
-
-          if value
-            (details ||= {})[key] = Array(value)
-          end
-        end
-        details || NO_DETAILS
-      end
-
       def prepend_formats(formats) # :doc:
         formats = Array(formats)
         return if formats.empty? || @lookup_context.html_fallback_for_js

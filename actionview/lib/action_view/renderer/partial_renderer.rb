@@ -240,7 +240,7 @@ module ActionView
       super(lookup_context)
       @options = options
       @locals  = @options[:locals] || {}
-      @details = extract_details(@options)
+      @details = @lookup_context.details_for(@options)
     end
 
     def render(partial, context, block)
