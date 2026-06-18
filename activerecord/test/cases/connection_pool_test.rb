@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/error_reporter/test_helper"
 require "concurrent/atomic/count_down_latch"
 
 module ActiveRecord
@@ -709,44 +710,50 @@ module ActiveRecord
       end
 
       def test_idle_through_keepalive
-        pool = new_pool_with_options(keepalive: 0.1, pool_jitter: 0, idle_timeout: 0.5, async: false, reaping_frequency: 30)
-        conn = pool.checkout
-        conn.connect!
-        pool.checkin conn
+        monotonic_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        real_clock_gettime = Process.method(:clock_gettime)
 
-        assert_predicate conn, :connected?
-        assert_operator conn.seconds_since_last_activity, :<, 0.1
-        assert_operator conn.seconds_idle, :<, 0.1
+        Process.stub(:clock_gettime, ->(clock_id, *args) {
+          if clock_id == Process::CLOCK_MONOTONIC
+            monotonic_time
+          else
+            real_clock_gettime.call(clock_id, *args)
+          end
+        }) do
+          pool = new_pool_with_options(keepalive: 0.1, pool_jitter: 0, idle_timeout: 0.5, async: false, reaping_frequency: nil)
+          conn = pool.checkout
+          conn.connect!
+          pool.checkin conn
 
-        # This test is about the interaction between multiple "last use"
-        # timers, so manual fudging is a bit too intimate / relies on
-        # knowledge of the implementation. So instead, we have to live
-        # with a bit of sleeping (and hope we don't lose any races).
+          assert_predicate conn, :connected?
+          assert_operator conn.seconds_since_last_activity, :<, 0.1
+          assert_operator conn.seconds_idle, :<, 0.1
 
-        sleep 0.2
+          monotonic_time += 0.2
 
-        assert_operator conn.seconds_since_last_activity, :>, 0.1
-        assert_operator conn.seconds_idle, :>, 0.1
-        assert_operator conn.seconds_idle, :<, 0.5
+          assert_operator conn.seconds_since_last_activity, :>, 0.1
+          assert_operator conn.seconds_idle, :>, 0.1
+          assert_operator conn.seconds_idle, :<, 0.5
 
-        pool.keep_alive # sends a keep-alive query
-        pool.flush # no-op
+          pool.keep_alive # sends a keep-alive query
+          pool.flush # no-op
 
-        assert_predicate conn, :connected?
-        assert_operator conn.seconds_since_last_activity, :<, 0.1
-        assert_operator conn.seconds_idle, :>, 0.1
-        assert_operator conn.seconds_idle, :<, 0.5
+          assert_predicate conn, :connected?
+          assert_operator conn.seconds_since_last_activity, :<, 0.1
+          assert_operator conn.seconds_idle, :>, 0.1
+          assert_operator conn.seconds_idle, :<, 0.5
 
-        sleep 0.4
+          monotonic_time += 0.4
 
-        assert_predicate conn, :connected?
-        assert_operator conn.seconds_since_last_activity, :>, 0.1
-        assert_operator conn.seconds_idle, :>, 0.5
+          assert_predicate conn, :connected?
+          assert_operator conn.seconds_since_last_activity, :>, 0.1
+          assert_operator conn.seconds_idle, :>, 0.5
 
-        pool.keep_alive # sends another query, though it doesn't matter
-        pool.flush # drops the idle connection
+          pool.keep_alive # sends another query, though it doesn't matter
+          pool.flush # drops the idle connection
 
-        assert_not_predicate conn, :connected?
+          assert_not_predicate conn, :connected?
+        end
       end
 
       def test_remove_connection
@@ -824,6 +831,7 @@ module ActiveRecord
       def test_checkout_fairness
         skip_fiber_testing
 
+        @pool.checkout_timeout = 5
         @pool.instance_variable_set(:@max_connections, 10)
         expected = (1..@pool.size).to_a.freeze
         # check out all connections so our threads start out waiting
@@ -871,6 +879,8 @@ module ActiveRecord
       def test_checkout_fairness_by_group
         skip_fiber_testing
 
+        group_wait_timeout = 5
+        @pool.checkout_timeout = group_wait_timeout + 1
         @pool.instance_variable_set(:@max_connections, 10)
         # take all the connections
         conns = (1..10).map { @pool.checkout }
@@ -908,7 +918,7 @@ module ActiveRecord
 
         checkin.call(group1.size)         # should wake up all group1
 
-        wait_for(message: "group1 threads did not finish", interval: 0.1) do
+        wait_for(message: "group1 threads did not finish", timeout: group_wait_timeout, interval: 0.1) do
           mutex.synchronize { (successes.size + errors.size) == group1.size }
         end
 
@@ -951,6 +961,60 @@ module ActiveRecord
         end
       ensure
         pool&.disconnect!
+      end
+
+      def test_disconnect_closes_in_use_connections_when_checkin_fails
+        connection = @pool.lease_connection
+        connection.connect!
+
+        checkin_error = StandardError.new("error during checkin")
+        proc_to_raise = -> { raise checkin_error }
+        subscriber = ActiveSupport::ErrorReporter::TestHelper::ErrorSubscriber.new
+        ActiveSupport.error_reporter.subscribe(subscriber)
+        ActiveRecord::ConnectionAdapters::AbstractAdapter.set_callback(:checkin, :before, proc_to_raise)
+
+        assert_nothing_raised do
+          @pool.disconnect!
+        end
+
+        assert_not_predicate connection, :connected?
+        assert_empty @pool.connections
+        assert_equal [[checkin_error, true, :warning, "active_record.connection_pool", {}]], subscriber.events
+      ensure
+        ActiveRecord::ConnectionAdapters::AbstractAdapter.skip_callback(:checkin, :before, proc_to_raise) if proc_to_raise
+        ActiveSupport.error_reporter.unsubscribe(subscriber) if subscriber
+        connection&.disconnect! rescue nil
+      end
+
+      def test_disconnect_continues_when_connection_disconnect_fails
+        first_connection = @pool.checkout
+        second_connection = @pool.checkout
+        disconnect_error = StandardError.new("error during disconnect")
+        disconnected = []
+        subscriber = ActiveSupport::ErrorReporter::TestHelper::ErrorSubscriber.new
+        ActiveSupport.error_reporter.subscribe(subscriber)
+
+        first_connection.define_singleton_method(:disconnect!) do
+          disconnected << self
+          raise disconnect_error
+        end
+        second_connection.define_singleton_method(:disconnect!) do
+          disconnected << self
+        end
+
+        assert_nothing_raised do
+          @pool.disconnect!
+        end
+
+        assert_equal [first_connection, second_connection], disconnected
+        assert_empty @pool.connections
+        assert_equal [[disconnect_error, true, :warning, "active_record.connection_pool", {}]], subscriber.events
+      ensure
+        ActiveSupport.error_reporter.unsubscribe(subscriber) if subscriber
+        first_connection&.singleton_class&.remove_method(:disconnect!) rescue nil
+        second_connection&.singleton_class&.remove_method(:disconnect!) rescue nil
+        first_connection&.disconnect! rescue nil
+        second_connection&.disconnect! rescue nil
       end
 
       def test_pool_sets_connection_visitor

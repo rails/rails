@@ -97,42 +97,44 @@ module ActiveRecord
 
       def test_reconnect_after_bad_connection_on_check_version_with_0_return
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash.merge(connection_retries: 0))
-        connection.connect!
+        with_postgresql_adapter(db_config.configuration_hash.merge(connection_retries: 0)) do |connection|
+          connection.connect!
 
-        # mimic a connection that hasn't checked and cached the server version yet i.e. without a raw_connection
-        connection.pool.instance_variable_set(:@server_version, nil)
-        connection.raw_connection.stub(:server_version, 0) do
-          error = assert_raises ActiveRecord::ConnectionNotEstablished do
+          # mimic a connection that hasn't checked and cached the server version yet i.e. without a raw_connection
+          connection.pool.instance_variable_set(:@server_version, nil)
+          connection.raw_connection.stub(:server_version, 0) do
+            error = assert_raises ActiveRecord::ConnectionNotEstablished do
+              connection.reconnect!
+            end
+            assert_equal "Could not determine PostgreSQL version", error.message
+          end
+
+          # can reconnect after a bad connection
+          assert_nothing_raised do
             connection.reconnect!
           end
-          assert_equal "Could not determine PostgreSQL version", error.message
-        end
-
-        # can reconnect after a bad connection
-        assert_nothing_raised do
-          connection.reconnect!
         end
       end
 
       def test_reconnect_after_bad_connection_on_check_version_with_native_exception
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash.merge(connection_retries: 0))
-        connection.connect!
+        with_postgresql_adapter(db_config.configuration_hash.merge(connection_retries: 0)) do |connection|
+          connection.connect!
 
-        # mimic a connection that hasn't checked and cached the server version yet i.e. without a raw_connection
-        connection.pool.instance_variable_set(:@server_version, nil)
-        # https://github.com/ged/ruby-pg/commit/a565e153d4d05955342ad24d4845378eee956935
-        connection.raw_connection.stub(:server_version, -> { raise PG::ConnectionBad, "PQserverVersion() can't get server version" }) do
-          error = assert_raises ActiveRecord::ConnectionNotEstablished do
+          # mimic a connection that hasn't checked and cached the server version yet i.e. without a raw_connection
+          connection.pool.instance_variable_set(:@server_version, nil)
+          # https://github.com/ged/ruby-pg/commit/a565e153d4d05955342ad24d4845378eee956935
+          connection.raw_connection.stub(:server_version, -> { raise PG::ConnectionBad, "PQserverVersion() can't get server version" }) do
+            error = assert_raises ActiveRecord::ConnectionNotEstablished do
+              connection.reconnect!
+            end
+            assert_equal "PQserverVersion() can't get server version", error.message
+          end
+
+          # can reconnect after a bad connection
+          assert_nothing_raised do
             connection.reconnect!
           end
-          assert_equal "PQserverVersion() can't get server version", error.message
-        end
-
-        # can reconnect after a bad connection
-        assert_nothing_raised do
-          connection.reconnect!
         end
       end
 
@@ -207,31 +209,35 @@ module ActiveRecord
       end
 
       def test_exec_insert_with_returning_disabled
-        connection = connection_without_insert_returning
-        result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id", "postgresql_partitioned_table_parent_id_seq")
-        expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
-        assert_equal expect.to_i, result.rows.first.first
+        connection_without_insert_returning do |connection|
+          result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id", "postgresql_partitioned_table_parent_id_seq")
+          expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
+          assert_equal expect.to_i, result.rows.first.first
+        end
       end
 
       def test_exec_insert_with_returning_disabled_and_no_sequence_name_given
-        connection = connection_without_insert_returning
-        result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id")
-        expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
-        assert_equal expect.to_i, result.rows.first.first
+        connection_without_insert_returning do |connection|
+          result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id")
+          expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
+          assert_equal expect.to_i, result.rows.first.first
+        end
       end
 
       def test_exec_insert_default_values_with_returning_disabled_and_no_sequence_name_given
-        connection = connection_without_insert_returning
-        result = connection.exec_insert("insert into postgresql_partitioned_table_parent DEFAULT VALUES", nil, [], "id")
-        expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
-        assert_equal expect.to_i, result.rows.first.first
+        connection_without_insert_returning do |connection|
+          result = connection.exec_insert("insert into postgresql_partitioned_table_parent DEFAULT VALUES", nil, [], "id")
+          expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
+          assert_equal expect.to_i, result.rows.first.first
+        end
       end
 
       def test_exec_insert_default_values_quoted_schema_with_returning_disabled_and_no_sequence_name_given
-        connection = connection_without_insert_returning
-        result = connection.exec_insert('insert into "public"."postgresql_partitioned_table_parent" DEFAULT VALUES', nil, [], "id")
-        expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
-        assert_equal expect.to_i, result.rows.first.first
+        connection_without_insert_returning do |connection|
+          result = connection.exec_insert('insert into "public"."postgresql_partitioned_table_parent" DEFAULT VALUES', nil, [], "id")
+          expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
+          assert_equal expect.to_i, result.rows.first.first
+        end
       end
 
       def test_serial_sequence
@@ -609,11 +615,11 @@ module ActiveRecord
         assert_queries_match(/from pg_type/i, include_schema: true) do
           @connection.drop_enum "feeling", if_exists: true
         end
-        reset_connection
+        reset_pool
       end
 
       def test_only_reload_type_map_once_for_every_unrecognized_type
-        reset_connection
+        reset_pool
         connection = ActiveRecord::Base.lease_connection
         connection.select_all "SELECT 1" # eagerly initialize the connection
 
@@ -629,11 +635,11 @@ module ActiveRecord
           end
         end
       ensure
-        reset_connection
+        reset_pool
       end
 
       def test_only_warn_on_first_encounter_of_unrecognized_oid
-        reset_connection
+        reset_pool
         connection = ActiveRecord::Base.lease_connection
 
         warning = capture(:stderr) {
@@ -643,7 +649,7 @@ module ActiveRecord
         }
         assert_match(/\Aunknown OID \d+: failed to recognize type of 'regclass'\. It will be treated as String\.\n\z/, warning)
       ensure
-        reset_connection
+        reset_pool
       end
 
       def test_unparsed_defaults_are_at_least_set_when_saving
@@ -790,22 +796,22 @@ module ActiveRecord
 
       def test_date_decoding_enabled
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
-
-        with_postgresql_apdater_decode_dates do
-          date = connection.select_value("select '2024-01-01'::date")
-          assert_equal Date.new(2024, 01, 01), date
-          assert_equal Date, date.class
+        with_postgresql_adapter(db_config.configuration_hash) do |connection|
+          with_postgresql_apdater_decode_dates do
+            date = connection.select_value("select '2024-01-01'::date")
+            assert_equal Date.new(2024, 01, 01), date
+            assert_equal Date, date.class
+          end
         end
       end
 
       def test_date_decoding_disabled
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
-
-        date = connection.select_value("select '2024-01-01'::date")
-        assert_equal "2024-01-01", date
-        assert_equal String, date.class
+        with_postgresql_adapter(db_config.configuration_hash) do |connection|
+          date = connection.select_value("select '2024-01-01'::date")
+          assert_equal "2024-01-01", date
+          assert_equal String, date.class
+        end
       end
 
       def test_disable_extension_with_schema
@@ -848,9 +854,19 @@ module ActiveRecord
           super(@connection, "ex", definition, &block)
         end
 
-        def connection_without_insert_returning
+        # Yields a freshly built PostgreSQLAdapter and disconnects it when the
+        # block exits. Used so tests don't leak the underlying PG socket
+        # waiting for the pg gem's finalizer to fire at GC time.
+        def with_postgresql_adapter(config_hash)
+          connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(config_hash)
+          yield connection
+        ensure
+          connection&.disconnect!
+        end
+
+        def connection_without_insert_returning(&block)
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-          ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash.merge(insert_returning: false))
+          with_postgresql_adapter(db_config.configuration_hash.merge(insert_returning: false), &block)
         end
     end
   end
