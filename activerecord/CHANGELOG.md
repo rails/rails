@@ -1,3 +1,17 @@
+*   Fix `has_one :through` to use preloaded associations instead of querying.
+
+    When a `has_one :through` association's entire chain was preloaded via
+    `includes`, accessing the association still fired a database query.
+    `HasOneThroughAssociation` now detects when the through chain is loaded
+    and resolves the target from memory. The optimization conservatively
+    disables itself for scoped and polymorphic-source (`source_type`)
+    associations, where chain-walking could return a record the query
+    would have excluded.
+
+    Fixes #56978.
+
+    *Tyler Wood*
+
 *   Fix `increment!` / `decrement!` on models with query constraints to include
     every query constraint column in the counter update.
 
