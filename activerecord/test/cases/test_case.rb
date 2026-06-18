@@ -38,13 +38,13 @@ module ActiveRecord
       check_connection_leaks
     end
 
-    def check_connection_leaks
+    def check_connection_leaks(connection_pools = nil)
       return if in_memory_db?
 
       # Make sure tests didn't leave a connection owned by some background thread
       # which could lead to some slow wait in a subsequent thread.
       leaked_conn = []
-      ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
+      (connection_pools || ActiveRecord::Base.connection_handler.each_connection_pool).each do |pool|
         # Ensure all in flights tasks are completed.
         # Otherwise they may still hold a connection.
         if pool.async_executor
