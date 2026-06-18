@@ -107,7 +107,7 @@ module ActionView
       end
 
       def digest_cache
-        @digest_cache ||= DetailsKey.digest_cache(to_h)
+        @digest_cache ||= DetailsKey.digest_cache(to_cache_key)
       end
 
       def merge(options)
@@ -154,6 +154,10 @@ module ActionView
             rank(variants, value)
           end
         end
+
+        def to_cache_key
+          [locale, Template.normalized_formats(formats) || formats, variants, handlers].freeze
+        end
     end
 
     class DetailsKey # :nodoc:
@@ -162,8 +166,8 @@ module ActionView
       @details_keys = Concurrent::Map.new
       @digest_cache = Concurrent::Map.new
 
-      def self.digest_cache(details)
-        @digest_cache[details_cache_key(details)] ||= Concurrent::Map.new
+      def self.digest_cache(key)
+        @digest_cache[key] ||= Concurrent::Map.new
       end
 
       def self.details_cache_key(details)
