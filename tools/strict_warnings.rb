@@ -24,6 +24,9 @@ module RailsStrictWarnings # :nodoc:
 
     # Emitted by zlib
     /attempt to close unfinished zstream/,
+
+    # Emitted by Ruby whenever the (still experimental) Ractor API is used.
+    /Ractor API is experimental and may change in future versions of Ruby/,
   )
 
   def warn(message, ...)
