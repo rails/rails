@@ -121,16 +121,6 @@ module ActiveRecord
           #   class Project < ActiveRecord::Base
           #     self.primary_key = 'sysid'
           #   end
-          #
-          # You can also define the #primary_key method yourself:
-          #
-          #   class Project < ActiveRecord::Base
-          #     def self.primary_key
-          #       'foo_' + super
-          #     end
-          #   end
-          #
-          #   Project.primary_key # => "foo_id"
           def primary_key=(value)
             @primary_key_definition = ActiveRecord::Key.for(value)
             @primary_key = @primary_key_definition.name
