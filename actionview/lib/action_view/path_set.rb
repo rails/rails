@@ -38,12 +38,16 @@ module ActionView # :nodoc:
     end
 
     def find(path, prefixes, partial, details, cache, locals)
-      find_all(path, prefixes, partial, details, cache, locals).first
+      search_combinations(prefixes) do |resolver, prefix|
+        template = resolver.find(path, prefix, partial, details, cache, locals)
+        return template if template
+      end
+      nil
     end
 
     def find!(path, prefixes, partial, details, cache, locals)
       find(path, prefixes, partial, details, cache, locals) ||
-        raise(MissingTemplate.new(self, path, prefixes, partial, details, cache, locals))
+        raise(MissingTemplate.new(self, path, prefixes, partial, details.to_h, cache, locals))
     end
 
     def find_all(path, prefixes, partial, details, cache, locals)

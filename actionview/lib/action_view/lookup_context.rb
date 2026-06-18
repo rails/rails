@@ -120,6 +120,15 @@ module ActionView
         )
       end
 
+      def template_rank(template)
+        d = template.details
+        format  = rank(formats, d.format)     or return
+        locale  = rank(self.locale, d.locale) or return
+        variant = variant_rank(d.variant)     or return
+        handler = rank(handlers, d.handler)   or return
+        [format, locale, variant, handler]
+      end
+
       def to_h
         { locale: locale, formats: formats, variants: variants, handlers: handlers }
       end
@@ -128,6 +137,22 @@ module ActionView
         def initialize_copy(other)
           @digest_cache = nil
           super
+        end
+
+        def rank(requested, value)
+          if requested
+            requested.index(value) || (requested.size if value.nil?)
+          elsif value.nil?
+            0
+          end
+        end
+
+        def variant_rank(value)
+          if variants == :any
+            value.nil? ? 0 : 1
+          else
+            rank(variants, value)
+          end
         end
     end
 
@@ -237,12 +262,12 @@ module ActionView
 
       # Compute details hash and key according to user options (e.g. passed from #render).
       def detail_args_for(options) # :doc:
-        return @details.to_h if options.empty? # most common path.
-        @details.merge(options).to_h
+        return @details if options.empty? # most common path.
+        @details.merge(options)
       end
 
       def detail_args_for_any
-        @detail_args_for_any ||= Details.new(variants: :any).to_h
+        @detail_args_for_any ||= Details.new(variants: :any)
       end
 
       # Fix when prefix is specified as part of the template name
