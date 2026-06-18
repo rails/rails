@@ -1,3 +1,8 @@
+*   Fix `take(n)` on a relation with an existing `limit` returning more
+    records than the limit allows.
+
+    *Kenta Ishizaki*
+
 *   `connected_to_all_shards` now raises `ArgumentError` when called on a model
     that is not connected to any shards, rather than silently doing nothing.
 
