@@ -336,6 +336,28 @@ module ActiveRecord
         assert_equal :reading, ActiveRecord.reading_role
       end
 
+      def test_clean_up_connection_handler_disconnects_pools
+        handler = ActiveRecord::Base.connection_handler
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        pool_manager = handler.instance_variable_get(:@connection_name_to_pool_manager)["ActiveRecord::Base"]
+
+        leaked_pools = []
+        assert_nothing_raised do # "too many clients"
+          25.times do
+            pool_config = ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :reading, :default)
+            pool_manager.set_pool_config(:reading, :default, pool_config)
+
+            pool = pool_config.pool
+            connections = 5.times.map { pool.checkout }
+            connections.each { |c| c.execute("SELECT 1") }
+            connections.each { |c| pool.checkin(c) }
+            leaked_pools << pool
+
+            clean_up_connection_handler
+          end
+        end
+      end
+
       if Process.respond_to?(:fork)
         def test_connection_pool_per_pid
           object_id = ActiveRecord::Base.lease_connection.object_id
