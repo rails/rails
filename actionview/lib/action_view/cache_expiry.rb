@@ -52,7 +52,7 @@ module ActionView
 
       private
         def reload!
-          ActionView::LookupContext::DetailsKey.clear
+          ActionView::LookupContext.clear
         end
 
         def build_watcher

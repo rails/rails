@@ -12,7 +12,7 @@ module ActionView
     def setup
       super
 
-      ActionView::LookupContext::DetailsKey.clear
+      ActionView::LookupContext.clear
 
       view_paths = ActionController::Base.view_paths
 

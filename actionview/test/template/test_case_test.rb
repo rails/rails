@@ -26,7 +26,7 @@ module ActionView
 
     module SharedTests
       def setup
-        ActionView::LookupContext::DetailsKey.clear
+        ActionView::LookupContext.clear
         super
       end
 

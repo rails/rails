@@ -845,7 +845,7 @@ class FrozenStringLiteralEnabledViewRenderTest < ActiveSupport::TestCase
   include RenderTestCases
 
   def setup
-    ActionView::LookupContext::DetailsKey.clear
+    ActionView::LookupContext.clear
 
     @previous_frozen_literal = ActionView::Template.frozen_string_literal
     ActionView::Template.frozen_string_literal = true
@@ -871,7 +871,7 @@ class CachedViewRenderTest < ActiveSupport::TestCase
 
   # Ensure view path cache is primed
   def setup
-    ActionView::LookupContext::DetailsKey.clear
+    ActionView::LookupContext.clear
     view_paths = ActionController::Base.view_paths
     assert_equal ActionView::FileSystemResolver, view_paths.first.class
     setup_view(view_paths)
@@ -909,7 +909,7 @@ class LazyViewRenderTest < ActiveSupport::TestCase
   # Test the same thing as above, but make sure the view path
   # is not eager loaded
   def setup
-    ActionView::LookupContext::DetailsKey.clear
+    ActionView::LookupContext.clear
     path = ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH)
     view_paths = ActionView::PathSet.new([path])
     assert_equal ActionView::FileSystemResolver.new(FIXTURE_LOAD_PATH), view_paths.first
@@ -962,7 +962,7 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
 
   # Ensure view path cache is primed
   setup do
-    ActionView::LookupContext::DetailsKey.clear
+    ActionView::LookupContext.clear
 
     view_paths = ActionController::Base.view_paths
     assert_equal ActionView::FileSystemResolver, view_paths.first.class

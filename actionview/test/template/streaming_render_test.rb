@@ -7,7 +7,7 @@ end
 
 class SetupFiberedBase < ActiveSupport::TestCase
   def setup
-    ActionView::LookupContext::DetailsKey.clear
+    ActionView::LookupContext.clear
 
     view_paths = ActionController::Base.view_paths
 
