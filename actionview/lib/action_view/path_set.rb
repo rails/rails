@@ -59,7 +59,10 @@ module ActionView # :nodoc:
     end
 
     def exists?(path, prefixes, partial, details, cache, locals)
-      find_all(path, prefixes, partial, details, cache, locals).any?
+      search_combinations(prefixes) do |resolver, prefix|
+        return true if resolver.find(path, prefix, partial, details, cache, locals)
+      end
+      false
     end
 
     private
