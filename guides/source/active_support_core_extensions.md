@@ -2871,18 +2871,38 @@ NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
 [Hash#deep_dup]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_dup
 
+### `with_indifferent_access`
+
+The [`with_indifferent_access`][Hash#with_indifferent_access] method converts a hash into an [`ActiveSupport::HashWithIndifferentAccess`][ActiveSupport::HashWithIndifferentAccess], which allows keys to be accessed as either strings or symbols interchangeably:
+
+```ruby
+{ a: 1 }.with_indifferent_access["a"] # => 1
+{ a: 1 }.with_indifferent_access[:a]  # => 1
+```
+
+NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
+
+[ActiveSupport::HashWithIndifferentAccess]: https://api.rubyonrails.org/classes/ActiveSupport/HashWithIndifferentAccess.html
+[Hash#with_indifferent_access]: https://api.rubyonrails.org/classes/Hash.html#method-i-with_indifferent_access
+
 ### Working with Keys
 
 #### `except!`
 
-The method [`except!`][Hash#except!] is identical to the built-in `except` method but removes keys in place, returning `self`.
+Ruby added `except` to `Hash` as a built-in method. It returns a new hash with the given keys removed, leaving the original unchanged:
 
 ```ruby
-{ a: 1, b: 2 }.except!(:a) # => {:b=>2}
-{ a: 1, b: 2 }.except!(:c) # => {:a=>1, :b=>2}
+{ a: 1, b: 2 }.except(:a) # => { b: 2 }
 ```
 
-If the receiver responds to `convert_key`, the method is called on each of the arguments. This allows `except!` (and `except`) to play nice with hashes with indifferent access for instance:
+Active Support adds [`except!`][Hash#except!], the in-place version that removes the keys from the receiver itself:
+
+```ruby
+{ a: 1, b: 2 }.except!(:a) # => { b: 2 }
+{ a: 1, b: 2 }.except!(:c) # => { a: 1, b: 2 }
+```
+
+Both methods work with indifferent access, accepting keys as either strings or symbols:
 
 ```ruby
 { a: 1 }.with_indifferent_access.except!(:a)  # => {}
@@ -2920,11 +2940,11 @@ def to_checkbox_tag(options = {}, checked_value = "1", unchecked_value = "0")
 end
 ```
 
-The second line can safely access the "type" key, and let the user to pass either `:type` or "type".
+This way the `options["type"]` line can safely access the key as "type", while allowing the user to pass either `:type` or "type".
 
 There's also the bang variant [`stringify_keys!`][Hash#stringify_keys!] that stringifies keys in place.
 
-Besides that, one can use [`deep_stringify_keys`][Hash#deep_stringify_keys] and [`deep_stringify_keys!`][Hash#deep_stringify_keys!] to stringify all the keys in the given hash and all the hashes nested in it. An example of the result is:
+You can use [`deep_stringify_keys`][Hash#deep_stringify_keys] and [`deep_stringify_keys!`][Hash#deep_stringify_keys!] to stringify all the keys in the given hash and all the hashes nested in it. For example:
 
 ```ruby
 { nil => nil, 1 => 1, nested: { a: 3, 5 => 5 } }.deep_stringify_keys
@@ -2940,14 +2960,12 @@ NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
 #### `symbolize_keys` and `symbolize_keys!`
 
-The method [`symbolize_keys`][Hash#symbolize_keys] returns a hash that has a symbolized version of the keys in the receiver, where possible. It does so by sending `to_sym` to them:
+The method [`symbolize_keys`][Hash#symbolize_keys] returns a hash that has a symbolized version of the keys in the receiver, where possible. It does so by calling `to_sym` on them:
 
 ```ruby
 { nil => nil, 1 => 1, "a" => "a" }.symbolize_keys
 # => {nil=>nil, 1=>1, :a=>"a"}
 ```
-
-WARNING. Note in the previous example only one key was symbolized.
 
 In case of key collision, the value will be the one most recently inserted into the hash:
 
@@ -2956,7 +2974,7 @@ In case of key collision, the value will be the one most recently inserted into 
 # => {:a=>2}
 ```
 
-This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionText::TagHelper` defines
+This method is useful in allowing both symbols and strings in an options hash. For instance, here's a method in `ActionText::TagHelper`:
 
 ```ruby
 def rich_textarea_tag(name, value = nil, options = {})
@@ -2967,16 +2985,18 @@ def rich_textarea_tag(name, value = nil, options = {})
 end
 ```
 
-The third line can safely access the `:input` key, and let the user to pass either `:input` or "input".
+The line with `options[:input]` can safely access the key `:input` as a symbol, and let the user to pass either `:input` or "input".
 
 There's also the bang variant [`symbolize_keys!`][Hash#symbolize_keys!] that symbolizes keys in place.
 
-Besides that, one can use [`deep_symbolize_keys`][Hash#deep_symbolize_keys] and [`deep_symbolize_keys!`][Hash#deep_symbolize_keys!] to symbolize all the keys in the given hash and all the hashes nested in it. An example of the result is:
+You can use [`deep_symbolize_keys`][Hash#deep_symbolize_keys] and [`deep_symbolize_keys!`][Hash#deep_symbolize_keys!] to symbolize all the keys in the given hash and all the hashes nested in it. An example of the result is:
 
 ```ruby
 { nil => nil, 1 => 1, "nested" => { "a" => 3, 5 => 5 } }.deep_symbolize_keys
 # => {nil=>nil, 1=>1, nested:{a:3, 5=>5}}
 ```
+
+The methods [`to_options`][Hash#to_options] and [`to_options!`][Hash#to_options!] are aliases of `symbolize_keys` and `symbolize_keys!`, respectively.
 
 NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
@@ -2984,26 +3004,28 @@ NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 [Hash#deep_symbolize_keys]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_symbolize_keys
 [Hash#symbolize_keys!]: https://api.rubyonrails.org/classes/Hash.html#method-i-symbolize_keys-21
 [Hash#symbolize_keys]: https://api.rubyonrails.org/classes/Hash.html#method-i-symbolize_keys
-
-#### `to_options` and `to_options!`
-
-The methods [`to_options`][Hash#to_options] and [`to_options!`][Hash#to_options!] are aliases of `symbolize_keys` and `symbolize_keys!`, respectively.
-
-NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
-
 [Hash#to_options!]: https://api.rubyonrails.org/classes/Hash.html#method-i-to_options-21
 [Hash#to_options]: https://api.rubyonrails.org/classes/Hash.html#method-i-to_options
 
 #### `assert_valid_keys`
 
-The method [`assert_valid_keys`][Hash#assert_valid_keys] receives an arbitrary number of arguments, and checks whether the receiver has any key outside that list. If it does `ArgumentError` is raised.
+The [`assert_valid_keys`][Hash#assert_valid_keys] method checks that the hash contains only the keys provided as arguments. If any unexpected key is found, it raises an `ArgumentError`. This is useful for validating options hashes passed to methods.
 
 ```ruby
-{ a: 1 }.assert_valid_keys(:a)  # passes
-{ a: 1 }.assert_valid_keys("a") # ArgumentError
+{ a: 1 }.assert_valid_keys(:a)        # => passes
+{ a: 1 }.assert_valid_keys(:a, :b)    # => passes
+{ a: 1, b: 2 }.assert_valid_keys(:a)  # => ArgumentError: Unknown key: :b. Valid keys are: :a
+{ a: 1 }.assert_valid_keys("a")       # => ArgumentError: Unknown key: :a. Valid keys are: "a"
 ```
 
-Active Record does not accept unknown options when building associations, for example. It implements that control via `assert_valid_keys`.
+Note that key type matters, so `:a` and `"a"` are considered different keys.
+
+Rails uses this internally in Active Record when building associations to reject unknown options before they cause confusing errors later on:
+
+```ruby
+has_many :posts, dependent: :destroy, unknown_option: true
+# => ArgumentError: Unknown key: :unknown_option
+```
 
 NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
@@ -3013,16 +3035,18 @@ NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
 #### `deep_transform_values` and `deep_transform_values!`
 
-The method [`deep_transform_values`][Hash#deep_transform_values] returns a new hash with all values converted by the block operation. This includes the values from the root hash and from all nested hashes and arrays.
+The [`deep_transform_values`][Hash#deep_transform_values] method returns a new hash with every value transformed by the given block. Unlike Ruby's built-in `transform_values`, which only operates on the top level values, `deep_transform_values` recurses into nested hashes and arrays:
 
 ```ruby
-hash = { person: { name: "Rob", age: "28" } }
+hash = { person: { name: "Frodo", age: 33, hobbies: ["reading", "walking"] } }
 
 hash.deep_transform_values { |value| value.to_s.upcase }
-# => {person: {name: "ROB", age: "28"}}
+# => { person: { name: "FRODO", age: "33", hobbies: ["READING", "WALKING"] } }
 ```
 
-There's also the bang variant [`deep_transform_values!`][Hash#deep_transform_values!] that destructively converts all values by using the block operation.
+The integer `33` and the strings inside the nested array are all transformed.
+
+The [`deep_transform_values!`][Hash#deep_transform_values!] variant performs the same transformation in place, modifying the original hash.
 
 NOTE: Defined in `active_support/core_ext/hash/deep_transform_values.rb`.
 
@@ -3073,20 +3097,6 @@ hash.extract!(:a).class
 NOTE: Defined in `active_support/core_ext/hash/slice.rb`.
 
 [Hash#extract!]: https://api.rubyonrails.org/classes/Hash.html#method-i-extract-21
-
-### `with_indifferent_access`
-
-The [`with_indifferent_access`][Hash#with_indifferent_access] method converts a hash into an [`ActiveSupport::HashWithIndifferentAccess`][ActiveSupport::HashWithIndifferentAccess], which allows keys to be accessed as either strings or symbols interchangeably:
-
-```ruby
-{ a: 1 }.with_indifferent_access["a"] # => 1
-{ a: 1 }.with_indifferent_access[:a]  # => 1
-```
-
-NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
-
-[ActiveSupport::HashWithIndifferentAccess]: https://api.rubyonrails.org/classes/ActiveSupport/HashWithIndifferentAccess.html
-[Hash#with_indifferent_access]: https://api.rubyonrails.org/classes/Hash.html#method-i-with_indifferent_access
 
 Extensions to `Regexp`
 ----------------------
