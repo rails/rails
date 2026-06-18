@@ -122,6 +122,23 @@ module ActiveRecord
           !(through_reflection.belongs_to? && Array(through_reflection.foreign_key).all? { |foreign_key_column| owner[foreign_key_column].blank? })
         end
 
+        # Returns the +:touch+ option of the join model's +belongs_to+ that points
+        # back to the owner, or +nil+ when none is configured.
+        def through_belongs_to_touch
+          candidates = if (inverse = through_reflection.inverse_of)
+            [inverse]
+          else
+            through_reflection.klass.reflect_on_all_associations(:belongs_to)
+          end
+
+          reflection = candidates.find do |candidate|
+            candidate.options[:touch] &&
+              (candidate.polymorphic? || candidate.klass == through_reflection.active_record)
+          end
+
+          reflection && reflection.options[:touch]
+        end
+
         def update_through_counter?(method)
           case method
           when :destroy
@@ -163,6 +180,10 @@ module ActiveRecord
           if source_reflection.options[:counter_cache] && method != :destroy
             counter = source_reflection.counter_cache_column
             klass.decrement_counter counter, records.map(&:id)
+          end
+
+          if count > 0 && method != :destroy && owner.persisted? && (touch = through_belongs_to_touch)
+            touch == true ? owner.touch : owner.touch(touch)
           end
 
           if through_reflection.collection? && update_through_counter?(method)
