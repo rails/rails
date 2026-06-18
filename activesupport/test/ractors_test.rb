@@ -25,7 +25,6 @@ class RactorsTest < ActiveSupport::TestCase
       end.value
 
       assert value
-    rescue RailsStrictWarnings::WarningError
     end
 
     def test_on_main_evaluates_block_against_object
@@ -38,7 +37,6 @@ class RactorsTest < ActiveSupport::TestCase
       end.join
 
       assert_equal :bar, object.foo
-    rescue RailsStrictWarnings::WarningError
     end
 
     def test_ractor_make_shareable_returns_a_shareable_object
