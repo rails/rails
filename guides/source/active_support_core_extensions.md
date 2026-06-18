@@ -2730,7 +2730,7 @@ Extensions to `Hash`
 
 #### `to_xml`
 
-The method [`to_xml`][Hash#to_xml] returns a string containing an XML representation of its receiver:
+The [`to_xml`][Hash#to_xml] method returns a string containing an XML representation of a hash:
 
 ```ruby
 { foo: 1, bar: 2 }.to_xml
@@ -2742,17 +2742,42 @@ The method [`to_xml`][Hash#to_xml] returns a string containing an XML representa
 # </hash>
 ```
 
-To do so, the method loops over the pairs and builds nodes that depend on the _values_. Given a pair `key`, `value`:
+To build the XML, the method loops over each key/value pair and decides how to render the node based on the type of the value:
 
-* If `value` is a hash there's a recursive call with `key` as `:root`.
+- If the value is a hash, it recurses, using the key as the new root
+- If the value is an array, it recurses, using the key as the root and the singularized key as the name for each child
+- If the value responds to `to_xml`, that method is called with the key as the root
+- Otherwise, the value is rendered as text inside a node named after the key, with a `type` attribute added automatically (unless `:skip_types` is set)
 
-* If `value` is an array there's a recursive call with `key` as `:root`, and `key` singularized as `:children`.
+Here's a hash that combines a nested hash, an array, and plain values to illustrate all three cases:
 
-* If `value` is a callable object it must expect one or two arguments. Depending on the arity, the callable is invoked with the `options` hash as first argument with `key` as `:root`, and `key` singularized as second argument. Its return value becomes a new node.
+```ruby
+{
+  name: "Frodo",
+  age: 33,
+  address: { city: "Hobbiton", region: "The Shire" },
+  friends: ["Sam", "Merry", "Pippin"]
+}.to_xml
+# =>
+# <?xml version="1.0" encoding="UTF-8"?>
+# <hash>
+#   <name>Frodo</name>
+#   <age type="integer">33</age>
+#   <address>
+#     <city>Hobbiton</city>
+#     <region>The Shire</region>
+#   </address>
+#   <friends type="array">
+#     <friend>Sam</friend>
+#     <friend>Merry</friend>
+#     <friend>Pippin</friend>
+#   </friends>
+# </hash>
+```
 
-* If `value` responds to `to_xml` the method is invoked with `key` as `:root`.
+Notice that `address` becomes its own nested node, while `friends` becomes an array of `friend` elements.
 
-* Otherwise, a node with `key` as tag is created with a string representation of `value` as text node. If `value` is `nil` an attribute "nil" set to "true" is added. Unless the option `:skip_types` exists and is true, an attribute "type" is added as well according to the following mapping:
+The automatic type attributes follow this mapping:
 
 ```ruby
 XML_TYPE_NAMES = {
@@ -2768,9 +2793,7 @@ XML_TYPE_NAMES = {
 }
 ```
 
-By default the root node is "hash", but that's configurable via the `:root` option.
-
-The default XML builder is a fresh instance of `Builder::XmlMarkup`. You can configure your own builder with the `:builder` option. The method also accepts options like `:dasherize` and friends, they are forwarded to the builder.
+By default the root node is `"hash"`, configurable via the `:root` option. The default XML builder is `Builder::XmlMarkup`, which can be replaced via the `:builder` option. Other options like `:dasherize` are forwarded to the builder.
 
 NOTE: Defined in `active_support/core_ext/hash/conversions.rb`.
 
@@ -2778,64 +2801,49 @@ NOTE: Defined in `active_support/core_ext/hash/conversions.rb`.
 
 ### Merging
 
-Ruby has a built-in method `Hash#merge` that merges two hashes:
+Ruby's built-in `Hash#merge` combines two hashes, with the argument's values winning on key collisions:
 
 ```ruby
 { a: 1, b: 1 }.merge(a: 0, c: 2)
-# => {:a=>0, :b=>1, :c=>2}
+# => { a: 0, b: 1, c: 2 }
 ```
 
-Active Support defines a few more ways of merging hashes that may be convenient.
+Active Support adds a few more ways to merge hashes for common scenarios.
 
 #### `reverse_merge` and `reverse_merge!`
 
-In case of collision the key in the hash of the argument wins in `merge`. You can support option hashes with default values in a compact way with this idiom:
+Since `merge` favors the argument on collisions, you have to supply default values for an options hash like this:
 
 ```ruby
 options = { length: 30, omission: "..." }.merge(options)
 ```
 
-Active Support defines [`reverse_merge`][Hash#reverse_merge] in case you prefer this alternative notation:
+The [`reverse_merge`][Hash#reverse_merge] method lets you express the same thing with the defaults as the argument, which often reads more naturally:
 
 ```ruby
 options = options.reverse_merge(length: 30, omission: "...")
 ```
 
-And a bang version [`reverse_merge!`][Hash#reverse_merge!] that performs the merge in place:
-
-```ruby
-options.reverse_merge!(length: 30, omission: "...")
-```
-
-WARNING. Take into account that `reverse_merge!` may change the hash in the caller, which may or may not be a good idea.
+The method [`reverse_merge!`][Hash#reverse_merge!] performs the same merge in place, modifying the caller. [`reverse_update`][Hash#reverse_update] is an alias for it.
 
 NOTE: Defined in `active_support/core_ext/hash/reverse_merge.rb`.
 
 [Hash#reverse_merge!]: https://api.rubyonrails.org/classes/Hash.html#method-i-reverse_merge-21
 [Hash#reverse_merge]: https://api.rubyonrails.org/classes/Hash.html#method-i-reverse_merge
-
-#### `reverse_update`
-
-The method [`reverse_update`][Hash#reverse_update] is an alias for `reverse_merge!`, explained above.
-
-WARNING. Note that `reverse_update` has no bang.
-
-NOTE: Defined in `active_support/core_ext/hash/reverse_merge.rb`.
-
 [Hash#reverse_update]: https://api.rubyonrails.org/classes/Hash.html#method-i-reverse_update
 
 #### `deep_merge` and `deep_merge!`
 
-As you can see in the previous example if a key is found in both hashes the value in the one in the argument wins.
+With a regular `merge`, if the same key exists in both hashes, the argument's value replaces the original entirely. This might not be desirable when both values are themselves hashes.
 
-Active Support defines [`Hash#deep_merge`][Hash#deep_merge]. In a deep merge, if a key is found in both hashes and their values are hashes in turn, then their _merge_ becomes the value in the resulting hash:
+The [`deep_merge`][Hash#deep_merge] method handles this case by merging the values that share a key recursively instead of replacing one with the other. For example:
 
 ```ruby
 { a: { b: 1 } }.deep_merge(a: { c: 2 })
-# => {:a=>{:b=>1, :c=>2}}
+# => { a: { b: 1, c: 2 } }
 ```
 
-The method [`deep_merge!`][Hash#deep_merge!] performs a deep merge in place.
+The [`deep_merge!`][Hash#deep_merge!] method performs the same merge in place.
 
 NOTE: Defined in `active_support/core_ext/hash/deep_merge.rb`.
 
