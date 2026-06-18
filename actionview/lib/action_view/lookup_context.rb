@@ -161,28 +161,11 @@ module ActionView
     end
 
     class DetailsKey # :nodoc:
-      alias :eql? :equal?
-
-      @details_keys = Concurrent::Map.new
-
-      def self.details_cache_key(details)
-        @details_keys.fetch(details) do
-          if formats = details[:formats]
-            if normalized = Template.normalized_formats(formats)
-              details = details.dup
-              details[:formats] = normalized
-            end
-          end
-          @details_keys[details] ||= TemplateDetails::Requested.new(**details)
-        end
-      end
-
       def self.clear
         ActionView::PathRegistry.all_resolvers.each do |resolver|
           resolver.clear_cache
         end
         ActionView::LookupContext.reset_view_context_class
-        @details_keys.clear
         Digestor.clear_cache
       end
     end
