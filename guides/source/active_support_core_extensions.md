@@ -2850,20 +2850,21 @@ NOTE: Defined in `active_support/core_ext/hash/deep_merge.rb`.
 [Hash#deep_merge!]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_merge-21
 [Hash#deep_merge]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_merge
 
-### Deep Duplicating
+### `deep_dup`
 
-The method [`Hash#deep_dup`][Hash#deep_dup] duplicates itself and all keys and values
-inside recursively with Active Support method `Object#deep_dup`. It works like `Enumerator#each_with_object` with sending `deep_dup` method to each pair inside.
+The [`Hash#deep_dup`][Hash#deep_dup] method duplicates a hash along with all the keys and values inside it, recursively. Unlike Ruby's built-in `dup`, which produces a shallow copy where nested objects are still shared, `deep_dup` ensures that modifying a nested value in the copy does not affect the original:
 
 ```ruby
 hash = { a: 1, b: { c: 2, d: [3, 4] } }
-
 dup = hash.deep_dup
+
 dup[:b][:e] = 5
 dup[:b][:d] << 5
 
-hash[:b][:e] == nil      # => true
-hash[:b][:d] == [3, 4]   # => true
+hash[:b][:e] # => nil       — original is unaffected
+hash[:b][:d] # => [3, 4]    — original array is unaffected
+dup[:b][:e]  # => 5
+dup[:b][:d]  # => [3, 4, 5]
 ```
 
 NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
@@ -3028,35 +3029,44 @@ NOTE: Defined in `active_support/core_ext/hash/deep_transform_values.rb`.
 [Hash#deep_transform_values!]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_transform_values-21
 [Hash#deep_transform_values]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_transform_values
 
-### Slicing
+### `slice` and `slice!`
 
-The method [`slice!`][Hash#slice!] replaces the hash with only the given keys and returns a hash containing the removed key/value pairs.
+The [`slice`][Hash#slice] method returns a new hash containing only the given keys, leaving the original hash unchanged:
 
 ```ruby
-hash = { a: 1, b: 2 }
-rest = hash.slice!(:a) # => {:b=>2}
-hash                   # => {:a=>1}
+hash = { a: 1, b: 2, c: 3 }
+hash.slice(:a, :c) # => { a: 1, c: 3 }
+hash               # => { a: 1, b: 2, c: 3 }  — unchanged
+```
+
+The [`slice!`][Hash#slice!] method does the opposite in terms of mutation. It modifies the caller to keep only the specified keys and returns a hash of the rest of the removed key/value pairs:
+
+```ruby
+hash = { a: 1, b: 2, c: 3 }
+rest = hash.slice!(:a) # => { b: 2, c: 3 }
+hash                   # => { a: 1 }
 ```
 
 NOTE: Defined in `active_support/core_ext/hash/slice.rb`.
 
+[Hash#slice]: https://api.rubyonrails.org/classes/Hash.html#method-i-slice
 [Hash#slice!]: https://api.rubyonrails.org/classes/Hash.html#method-i-slice-21
 
-### Extracting
+### `extract!`
 
-The method [`extract!`][Hash#extract!] removes and returns the key/value pairs matching the given keys.
+The [`extract!`][Hash#extract!] method removes and returns the key/value pairs matching the given keys. It's the inverse of `slice!`, where `slice!` keeps the given keys and returns the rest.
 
 ```ruby
 hash = { a: 1, b: 2 }
-rest = hash.extract!(:a) # => {:a=>1}
-hash                     # => {:b=>2}
+rest = hash.extract!(:a) # => { a: 1 }
+hash                     # => { b: 2 }
 ```
 
-The method `extract!` returns the same subclass of Hash that the receiver is.
+The `extract!` method preserves the subclass of the receiver, so calling it on an `ActiveSupport::HashWithIndifferentAccess` returns the same type:
 
 ```ruby
 hash = { a: 1, b: 2 }.with_indifferent_access
-rest = hash.extract!(:a).class
+hash.extract!(:a).class
 # => ActiveSupport::HashWithIndifferentAccess
 ```
 
@@ -3064,12 +3074,13 @@ NOTE: Defined in `active_support/core_ext/hash/slice.rb`.
 
 [Hash#extract!]: https://api.rubyonrails.org/classes/Hash.html#method-i-extract-21
 
-### Indifferent Access
+### `with_indifferent_access`
 
-The method [`with_indifferent_access`][Hash#with_indifferent_access] returns an [`ActiveSupport::HashWithIndifferentAccess`][ActiveSupport::HashWithIndifferentAccess] out of its receiver:
+The [`with_indifferent_access`][Hash#with_indifferent_access] method converts a hash into an [`ActiveSupport::HashWithIndifferentAccess`][ActiveSupport::HashWithIndifferentAccess], which allows keys to be accessed as either strings or symbols interchangeably:
 
 ```ruby
 { a: 1 }.with_indifferent_access["a"] # => 1
+{ a: 1 }.with_indifferent_access[:a]  # => 1
 ```
 
 NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
