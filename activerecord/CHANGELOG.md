@@ -1,3 +1,8 @@
+*   Fix `take(n)` on a relation with an existing `limit` returning more
+    records than the limit allows.
+
+    *Kenta Ishizaki*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective
