@@ -22,7 +22,7 @@ module ResolverSharedTests
   def test_can_find_with_no_extensions
     with_file "test/hello_world", "Hello default!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [:en], formats: [:html], variants: [:phone], handlers: [:erb])
+    templates = resolver.find_all("hello_world", "test", false, ActionView::LookupContext::Details.new(locale: [:en], formats: [:html], variants: [:phone], handlers: [:erb]))
     assert_equal 1, templates.size
     assert_equal "Hello default!",   templates[0].source
     assert_equal "test/hello_world", templates[0].virtual_path
@@ -34,7 +34,7 @@ module ResolverSharedTests
   def test_can_find_with_just_handler
     with_file "test/hello_world.erb", "Hello erb!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [:en], formats: [:html], variants: [:phone], handlers: [:erb])
+    templates = resolver.find_all("hello_world", "test", false, ActionView::LookupContext::Details.new(locale: [:en], formats: [:html], variants: [:phone], handlers: [:erb]))
     assert_equal 1, templates.size
     assert_equal "Hello erb!",   templates[0].source
     assert_equal "test/hello_world", templates[0].virtual_path
@@ -46,7 +46,7 @@ module ResolverSharedTests
   def test_can_find_with_format_and_handler
     with_file "test/hello_world.text.builder", "Hello plain text!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [:en], formats: [:html, :text], variants: [:phone], handlers: [:erb, :builder])
+    templates = resolver.find_all("hello_world", "test", false, ActionView::LookupContext::Details.new(locale: [:en], formats: [:html, :text], variants: [:phone], handlers: [:erb, :builder]))
     assert_equal 1, templates.size
     assert_equal "Hello plain text!", templates[0].source
     assert_equal "test/hello_world",  templates[0].virtual_path
@@ -58,7 +58,7 @@ module ResolverSharedTests
   def test_can_find_with_variant_format_and_handler
     with_file "test/hello_world.html+phone.erb", "Hello plain text!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [:en], formats: [:html], variants: [:phone], handlers: [:erb])
+    templates = resolver.find_all("hello_world", "test", false, ActionView::LookupContext::Details.new(locale: [:en], formats: [:html], variants: [:phone], handlers: [:erb]))
     assert_equal 1, templates.size
     assert_equal "Hello plain text!", templates[0].source
     assert_equal "test/hello_world",  templates[0].virtual_path
@@ -70,7 +70,7 @@ module ResolverSharedTests
   def test_can_find_with_any_variant_format_and_handler
     with_file "test/hello_world.html+phone.erb", "Hello plain text!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [:en], formats: [:html], variants: :any, handlers: [:erb])
+    templates = resolver.find_all("hello_world", "test", false, ActionView::LookupContext::Details.new(locale: [:en], formats: [:html], variants: :any, handlers: [:erb]))
     assert_equal 1, templates.size
     assert_equal "Hello plain text!", templates[0].source
     assert_equal "test/hello_world",  templates[0].virtual_path
@@ -83,7 +83,7 @@ module ResolverSharedTests
     dir = "test +()[]{}"
     with_file "#{dir}/hello_world", "Hello funky path!"
 
-    templates = resolver.find_all("hello_world", dir, false, locale: [:en], formats: [:html], variants: [:phone], handlers: [:erb])
+    templates = resolver.find_all("hello_world", dir, false, ActionView::LookupContext::Details.new(locale: [:en], formats: [:html], variants: [:phone], handlers: [:erb]))
     assert_equal 1, templates.size
     assert_equal "Hello funky path!", templates[0].source
     assert_equal "#{dir}/hello_world", templates[0].virtual_path
@@ -92,10 +92,10 @@ module ResolverSharedTests
   def test_doesnt_find_template_with_wrong_details
     with_file "test/hello_world.html.erb", "Hello plain text!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:xml], variants: :any, handlers: [:builder])
+    templates = resolver.find_all("hello_world", "test", false, ActionView::LookupContext::Details.new(locale: [], formats: [:xml], variants: :any, handlers: [:builder]))
     assert_equal 0, templates.size
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:xml], variants: :any, handlers: [:erb])
+    templates = resolver.find_all("hello_world", "test", false, ActionView::LookupContext::Details.new(locale: [], formats: [:xml], variants: :any, handlers: [:erb]))
     assert_equal 0, templates.size
   end
 
@@ -150,7 +150,7 @@ module ResolverSharedTests
     with_file "test/hello_world.html.erb", "Hello HTML!"
     with_file "test/hello_world.json.builder", "Hello JSON!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:json, :html], variants: :any, handlers: [:erb, :builder])
+    templates = resolver.find_all("hello_world", "test", false, ActionView::LookupContext::Details.new(locale: [], formats: [:json, :html], variants: :any, handlers: [:erb, :builder]))
 
     assert_equal 2, templates.size
     assert_equal "Hello JSON!", templates[0].source
@@ -163,7 +163,7 @@ module ResolverSharedTests
     with_file "test/hello_world.html.erb", "Hello HTML!"
     with_file "test/hello_world.json.builder", "Hello JSON!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder])
+    templates = resolver.find_all("hello_world", "test", false, ActionView::LookupContext::Details.new(locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder]))
 
     assert_equal 2, templates.size
     assert_equal "Hello HTML!", templates[0].source
@@ -175,7 +175,7 @@ module ResolverSharedTests
   def test_templates_with_variant
     with_file "test/hello_world.html+mobile.erb", "Hello HTML!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder])
+    templates = resolver.find_all("hello_world", "test", false, ActionView::LookupContext::Details.new(locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder]))
 
     assert_equal 1, templates.size
     assert_equal "Hello HTML!", templates[0].source
@@ -206,7 +206,7 @@ module ResolverSharedTests
   def test_templates_no_format_with_variant
     with_file "test/hello_world+mobile.erb", "Hello HTML!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder])
+    templates = resolver.find_all("hello_world", "test", false, ActionView::LookupContext::Details.new(locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder]))
 
     assert_equal 1, templates.size
     assert_equal "Hello HTML!", templates[0].source
@@ -218,7 +218,7 @@ module ResolverSharedTests
   def test_templates_no_format_or_handler_with_variant
     with_file "test/hello_world+mobile", "Hello HTML!"
 
-    templates = resolver.find_all("hello_world", "test", false, locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder])
+    templates = resolver.find_all("hello_world", "test", false, ActionView::LookupContext::Details.new(locale: [], formats: [:html, :json], variants: :any, handlers: [:erb, :builder]))
 
     assert_equal 1, templates.size
     assert_equal "Hello HTML!", templates[0].source

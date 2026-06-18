@@ -33,22 +33,6 @@ module ActionView
       @variant = variant
     end
 
-    def matches?(requested)
-      requested.formats_idx[@format] &&
-        requested.locale_idx[@locale] &&
-        requested.variants_idx[@variant] &&
-        requested.handlers_idx[@handler]
-    end
-
-    def sort_key_for(requested)
-      [
-        requested.formats_idx[@format],
-        requested.locale_idx[@locale],
-        requested.variants_idx[@variant],
-        requested.handlers_idx[@handler]
-      ]
-    end
-
     def handler_class
       Template.handler_for_extension(handler)
     end
