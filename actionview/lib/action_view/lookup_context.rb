@@ -107,7 +107,7 @@ module ActionView
       end
 
       def digest_cache
-        @digest_cache ||= DetailsKey.digest_cache(to_cache_key)
+        @digest_cache ||= Digestor.cache(to_cache_key)
       end
 
       def merge(options)
@@ -164,11 +164,6 @@ module ActionView
       alias :eql? :equal?
 
       @details_keys = Concurrent::Map.new
-      @digest_cache = Concurrent::Map.new
-
-      def self.digest_cache(key)
-        @digest_cache[key] ||= Concurrent::Map.new
-      end
 
       def self.details_cache_key(details)
         @details_keys.fetch(details) do
@@ -188,11 +183,7 @@ module ActionView
         end
         ActionView::LookupContext.reset_view_context_class
         @details_keys.clear
-        @digest_cache.clear
-      end
-
-      def self.digest_caches
-        @digest_cache.values
+        Digestor.clear_cache
       end
     end
 

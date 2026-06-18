@@ -1,12 +1,26 @@
 # frozen_string_literal: true
 
+require "concurrent/map"
 require "action_view/dependency_tracker"
 
 module ActionView
   class Digestor
     @@digest_mutex = Mutex.new
+    @cache = Concurrent::Map.new
 
     class << self
+      def cache(details_key)
+        @cache[details_key] ||= Concurrent::Map.new
+      end
+
+      def digest_caches
+        @cache.values
+      end
+
+      def clear_cache
+        @cache.clear
+      end
+
       # Supported options:
       #
       # * <tt>name</tt>         - Template name

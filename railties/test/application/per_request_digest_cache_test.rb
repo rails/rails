@@ -56,7 +56,7 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
     get "/customers"
     assert_equal 200, last_response.status
 
-    values = ActionView::LookupContext::DetailsKey.digest_caches.first.values
+    values = ActionView::Digestor.digest_caches.first.values
     assert_equal [ "ddb451d2c1b2374caa676005893bb776" ], values
     assert_equal %w(david dingus), last_response.body.split.map(&:strip)
   end
