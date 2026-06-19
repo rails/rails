@@ -35,6 +35,67 @@ module ActiveRecord
       end
     end
 
+    test "warning collection failures are delivered through the intent" do
+      connection = @connection
+      collect_warnings = ->(_result) { raise ActiveRecord::StatementInvalid, "warning collection failed" }
+
+      connection.stub(:collect_warnings, collect_warnings) do
+        intent = build_intent(connection)
+        intent.execute!
+
+        assert_predicate intent, :raw_result_available?
+        error = assert_raises(ActiveRecord::StatementInvalid) do
+          intent.cast_result
+        end
+        assert_equal "warning collection failed", error.message
+      end
+    end
+
+    test "delivered warnings are handled once when the result is observed" do
+      connection = @connection
+      intent = build_intent(connection)
+      warning = ActiveRecord::SQLWarning.new("warning")
+      handled_warnings = []
+      handle_warnings = ->(_intent, warnings) do
+        handled_warnings.concat(warnings)
+        raise warnings.first
+      end
+
+      connection.stub(:handle_warnings, handle_warnings) do
+        intent.deliver_result(nil, warnings: [warning])
+
+        assert_empty handled_warnings
+        assert_same warning, assert_raises(ActiveRecord::SQLWarning) { intent.raw_result }
+        assert_equal [warning], handled_warnings
+
+        assert_same warning, assert_raises(ActiveRecord::SQLWarning) { intent.raw_result }
+        assert_equal [warning], handled_warnings
+      end
+    end
+
+    test "delivered warnings do not mask a query failure" do
+      connection = @connection
+      intent = build_intent(connection)
+      warning = ActiveRecord::SQLWarning.new("warning")
+      query_error = ActiveRecord::StatementInvalid.new("query failed")
+      handled_warnings = []
+      handle_warnings = ->(_intent, warnings) do
+        handled_warnings.concat(warnings)
+        raise warnings.first
+      end
+
+      connection.stub(:handle_warnings, handle_warnings) do
+        intent.deliver_failure(query_error, warnings: [warning])
+
+        assert_empty handled_warnings
+        assert_same query_error, assert_raises(ActiveRecord::StatementInvalid) { intent.raw_result }
+        assert_equal [warning], handled_warnings
+
+        assert_same query_error, assert_raises(ActiveRecord::StatementInvalid) { intent.raw_result }
+        assert_equal [warning], handled_warnings
+      end
+    end
+
     test "only delivered outcomes that materialize transactions dirty the transaction" do
       connection = @connection
       dirty_count = 0
@@ -86,6 +147,26 @@ module ActiveRecord
       assert_predicate intent, :finalized?
       assert_not_nil event
       assert_instance_of interruption, event.payload[:exception_object]
+    end
+
+    test "handled failures are not retried again when observed repeatedly" do
+      connection = @connection
+      intent = build_intent(connection)
+      retry_checks = 0
+      error = ActiveRecord::StatementInvalid.new("boom")
+      attempt_retry = ->(*) do
+        retry_checks += 1
+        false
+      end
+
+      connection.stub(:attempt_retry, attempt_retry) do
+        intent.deliver_failure(error)
+
+        assert_same error, assert_raises(ActiveRecord::StatementInvalid) { intent.raw_result }
+        assert_same error, assert_raises(ActiveRecord::StatementInvalid) { intent.raw_result }
+      end
+
+      assert_equal 1, retry_checks
     end
 
     test "a retried query returns its result through one notification" do
