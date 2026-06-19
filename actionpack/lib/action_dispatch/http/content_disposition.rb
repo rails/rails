@@ -9,6 +9,12 @@ module ActionDispatch
         new(disposition: disposition, filename: filename).to_s
       end
 
+      def self.filename_extension(filename) # :nodoc:
+        File.extname(filename).downcase.delete(".")
+      rescue ArgumentError
+        ""
+      end
+
       attr_reader :disposition, :filename
 
       def initialize(disposition:, filename:)
