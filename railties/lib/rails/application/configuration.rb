@@ -376,6 +376,7 @@ module Rails
           end
 
           if respond_to?(:action_dispatch)
+            action_dispatch.strict_accept_header = true
             action_dispatch.default_headers = {
               "X-Frame-Options" => "SAMEORIGIN",
               "X-Content-Type-Options" => "nosniff",
