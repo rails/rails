@@ -164,12 +164,11 @@ module ActionView
 
     eager_autoload do
       autoload :Error
+      autoload :HTML
+      autoload :Handlers
+      autoload :Inline
       autoload :RawFile
       autoload :Renderable
-      autoload :Handlers
-      autoload :HTML
-      autoload :Inline
-      autoload :Types
       autoload :Sources
       autoload :Text
       autoload :Types
@@ -188,6 +187,16 @@ module ActionView
           remove_const(:Types)
           const_set(:Types, implementation)
         end
+      end
+
+      def validate_formats(formats)
+        return if Types.valid_symbols?(formats)
+        invalid = formats - Types.symbols
+        raise ArgumentError, "Invalid formats: #{invalid.map(&:inspect).join(", ")}"
+      end
+
+      def normalized_formats(formats)
+        formats & Types.symbols unless Types.valid_symbols?(formats)
       end
     end
 

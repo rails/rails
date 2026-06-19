@@ -67,9 +67,9 @@ module ActionView
       def self.details_cache_key(details)
         @details_keys.fetch(details) do
           if formats = details[:formats]
-            unless Template::Types.valid_symbols?(formats)
+            if normalized = Template.normalized_formats(formats)
               details = details.dup
-              details[:formats] &= Template::Types.symbols
+              details[:formats] = normalized
             end
           end
           @details_keys[details] ||= TemplateDetails::Requested.new(**details)
@@ -268,10 +268,7 @@ module ActionView
         values.concat(default_formats) if values.delete "*/*"
         values.uniq!
 
-        unless Template::Types.valid_symbols?(values)
-          invalid_values = values - Template::Types.symbols
-          raise ArgumentError, "Invalid formats: #{invalid_values.map(&:inspect).join(", ")}"
-        end
+        Template.validate_formats(values)
 
         if (values.length == 1) && (values[0] == :js)
           values << :html
