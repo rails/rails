@@ -644,36 +644,35 @@ module ActiveRecord
       end
 
       def perform_sync_attempt(intent) # :nodoc:
-        begin
-          result = perform_query(@raw_connection, intent)
-          query_completed = true
-        rescue ::RangeError
-          raise
-        rescue => error
-          translated = translate_exception_class(error, intent.processed_sql, intent.binds)
-          invalidate_transaction(translated)
-          intent.deliver_failure(translated)
-          return
-        rescue Exception
-          # A non-StandardError (a Timeout, or a fiber scheduler's cancel) abandoned
-          # the query partway through, so we mark the connection unverified, just as
-          # a failed query would, forcing a reconnect before it's used again.
-          @last_activity = nil
-          @verified = false
-          dirty_current_transaction if intent.materialize_transactions
-          raise
-        ensure
-          begin
-            handle_warnings(result, intent.processed_sql)
-          rescue
-            raise if query_completed
+        result = perform_query(@raw_connection, intent)
+        query_completed = true
+        warnings = collect_warnings(result)
+      rescue ::RangeError
+        raise
+      rescue => error
+        translated = translate_exception_class(error, intent.processed_sql, intent.binds)
+        invalidate_transaction(translated)
 
+        unless query_completed
+          begin
+            warnings = collect_warnings(nil)
+          rescue
             # The query failed, so we need to swallow this exception
-            # from handle_warnings to avoid masking the original.
+            # from collect_warnings to avoid masking the original.
           end
         end
 
-        intent.deliver_result(result)
+        intent.deliver_failure(translated, warnings: warnings)
+      rescue Exception
+        # A non-StandardError (a Timeout, or a fiber scheduler's cancel) abandoned
+        # the query partway through, so we mark the connection unverified, just as
+        # a failed query would, forcing a reconnect before it's used again.
+        @last_activity = nil
+        @verified = false
+        dirty_current_transaction if intent.materialize_transactions
+        raise
+      else
+        intent.deliver_result(result, warnings: warnings)
       end
 
       def start_intent_log(intent) # :nodoc:
@@ -746,6 +745,17 @@ module ActiveRecord
         end
       end
 
+      def handle_warnings(intent, warnings) # :nodoc:
+        return unless action = ActiveRecord.db_warnings_action
+
+        warnings&.each do |warning|
+          next if warning_ignored?(warning)
+
+          warning.sql = intent.processed_sql
+          action.call(warning)
+        end
+      end
+
       private
         DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
         private_constant :DEFAULT_INSERT_VALUE
@@ -754,7 +764,8 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        def handle_warnings(raw_result, sql)
+        def collect_warnings(raw_result)
+          []
         end
 
         # Receive a native adapter result object and returns an ActiveRecord::Result object.

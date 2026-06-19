@@ -91,6 +91,9 @@ module ActiveRecord
         @notification_payload = nil
         @raw_result = nil
         @raw_result_available = false
+        @warnings = nil
+        @outcome_handled = false
+        @warning_error = nil
         @executed = false
         @write_query = nil
 
@@ -228,11 +231,12 @@ module ActiveRecord
         nil
       end
 
-      def deliver_result(value)
+      def deliver_result(value, warnings: nil)
         raise FinalizedError, "delivering result to a finalized intent" if @finalized
 
         adapter.lock.synchronize do
           @raw_result = value
+          @warnings = warnings
           @error = nil
 
           mark_transaction_dirty
@@ -243,11 +247,12 @@ module ActiveRecord
         finish_log
       end
 
-      def deliver_failure(exception)
+      def deliver_failure(exception, warnings: nil)
         raise FinalizedError, "delivering failure to a finalized intent" if @finalized
 
         adapter.lock.synchronize do
           @error = exception
+          @warnings = warnings
 
           adapter.downgrade_connection_after_error(exception)
           retryable = adapter.retryable_failure?(exception, @retry_budget)
@@ -262,6 +267,9 @@ module ActiveRecord
 
         @raw_result = nil
         @raw_result_available = false
+        @warnings = nil
+        @outcome_handled = false
+        @warning_error = nil
         @error = nil
       end
 
@@ -278,6 +286,12 @@ module ActiveRecord
 
       # Ensure the result is available, blocking if necessary
       def ensure_result
+        if @outcome_handled
+          raise @error if @error
+          raise @warning_error if @warning_error
+          return
+        end
+
         if @session
           # Async was scheduled: wait for result (sets lock_wait)
           execute_or_wait
@@ -288,11 +302,28 @@ module ActiveRecord
         @event_buffer&.flush
 
         if @error
+          begin
+            adapter.handle_warnings(self, @warnings)
+          rescue
+            # The query failed, so we need to swallow this exception
+            # from handle_warnings to avoid masking the original.
+          end
           finish_log(exception: @error)
+          @outcome_handled = true
           @event_buffer&.flush
           raise @error
         end
 
+        begin
+          adapter.handle_warnings(self, @warnings)
+        rescue => warning_error
+          @warning_error = warning_error
+          @outcome_handled = true
+          @event_buffer&.flush
+          raise
+        end
+
+        @outcome_handled = true
         @event_buffer&.flush
       end
 

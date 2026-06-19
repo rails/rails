@@ -254,15 +254,9 @@ module ActiveRecord
             pk unless pk.is_a?(Array)
           end
 
-          def handle_warnings(result, sql)
+          def collect_warnings(_result)
             warnings, @notice_receiver_sql_warnings = @notice_receiver_sql_warnings, []
-
-            warnings.each do |warning|
-              next if warning_ignored?(warning)
-
-              warning.sql = sql
-              ActiveRecord.db_warnings_action.call(warning)
-            end
+            warnings
           end
 
           def warning_ignored?(warning)

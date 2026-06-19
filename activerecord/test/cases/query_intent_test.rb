@@ -24,6 +24,26 @@ module ActiveRecord
       end
     end
 
+    test "warning collection failures are delivered through the intent" do
+      connection = Post.lease_connection
+      singleton_class = connection.singleton_class
+
+      singleton_class.define_method(:collect_warnings) do |_result|
+        raise ActiveRecord::StatementInvalid, "warning collection failed"
+      end
+
+      intent = build_intent(connection)
+      intent.execute!
+
+      assert_predicate intent, :raw_result_available?
+      error = assert_raises(ActiveRecord::StatementInvalid) do
+        intent.cast_result
+      end
+      assert_equal "warning collection failed", error.message
+    ensure
+      singleton_class.remove_method(:collect_warnings) if singleton_class&.instance_methods(false)&.include?(:collect_warnings)
+    end
+
     test "delivered outcomes dirty materialized transactions" do
       connection = Post.lease_connection
       dirty_count = 0
@@ -77,6 +97,27 @@ module ActiveRecord
     ensure
       singleton_class&.remove_method(:perform_query) if singleton_class&.instance_methods(false)&.include?(:perform_query)
       singleton_class&.remove_method(:dirty_current_transaction) if singleton_class&.instance_methods(false)&.include?(:dirty_current_transaction)
+    end
+
+    test "handled failures are not retried again when observed repeatedly" do
+      connection = Post.lease_connection
+      intent = build_intent(connection)
+      singleton_class = class << connection; self; end
+      retry_checks = 0
+      error = ActiveRecord::StatementInvalid.new("boom")
+
+      singleton_class.define_method(:attempt_retry) do |*|
+        retry_checks += 1
+        false
+      end
+
+      intent.deliver_failure(error)
+
+      assert_same error, assert_raises(ActiveRecord::StatementInvalid) { intent.raw_result }
+      assert_same error, assert_raises(ActiveRecord::StatementInvalid) { intent.raw_result }
+      assert_equal 1, retry_checks
+    ensure
+      singleton_class&.remove_method(:attempt_retry) if singleton_class&.method_defined?(:attempt_retry)
     end
 
     test "retry re-enters execute_intent" do
