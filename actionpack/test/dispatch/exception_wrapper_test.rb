@@ -50,6 +50,11 @@ module ActionDispatch
       @cleaner = ActiveSupport::BacktraceCleaner.new
       @cleaner.remove_filters!
       @cleaner.add_silencer { |line| !line.start_with?("lib") }
+      @old_rescue_responses = ExceptionWrapper.rescue_responses.dup
+    end
+
+    teardown do
+      ExceptionWrapper.rescue_responses.replace(@old_rescue_responses)
     end
 
     class_eval "def index; raise TestError; end", "lib/file.rb", 42
@@ -208,6 +213,23 @@ module ActionDispatch
       assert_equal 400, wrapper.status_code
     end
 
+    test "#status_code walks ancestors to find registered parent exception" do
+      class UnregisteredRoutingError < ActionController::RoutingError; end
+
+      exception = UnregisteredRoutingError.new("")
+      wrapper = ExceptionWrapper.new(@cleaner, exception)
+      assert_equal 404, wrapper.status_code
+    end
+
+    test "#status_code prefers subclass registration over superclass" do
+      class RegisteredRoutingError < ActionController::RoutingError; end
+      ActionDispatch::ExceptionWrapper.rescue_responses[RegisteredRoutingError.name] = :service_unavailable
+
+      exception = RegisteredRoutingError.new("")
+      wrapper = ExceptionWrapper.new(@cleaner, exception)
+      assert_equal 503, wrapper.status_code
+    end
+
     test "#rescue_response? returns false for an exception that's not in rescue_responses" do
       exception = RuntimeError.new
       wrapper = ExceptionWrapper.new(@cleaner, exception)
@@ -216,6 +238,23 @@ module ActionDispatch
 
     test "#rescue_response? returns true for an exception that is in rescue_responses" do
       exception = ActionController::RoutingError.new("")
+      wrapper = ExceptionWrapper.new(@cleaner, exception)
+      assert_equal true, wrapper.rescue_response?
+    end
+
+    test "#rescue_response? returns true for a subclass of a registered exception" do
+      class UnregisteredRoutingError < ActionController::RoutingError; end
+
+      exception = UnregisteredRoutingError.new("")
+      wrapper = ExceptionWrapper.new(@cleaner, exception)
+      assert_equal true, wrapper.rescue_response?
+    end
+
+    test "#rescue_response? returns true when subclass has its own registration" do
+      class RegisteredRoutingError < ActionController::RoutingError; end
+      ActionDispatch::ExceptionWrapper.rescue_responses[RegisteredRoutingError.name] = :service_unavailable
+
+      exception = RegisteredRoutingError.new("")
       wrapper = ExceptionWrapper.new(@cleaner, exception)
       assert_equal true, wrapper.rescue_response?
     end
