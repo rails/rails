@@ -2155,17 +2155,6 @@ NOTE: Defined in `active_support/core_ext/integer/time.rb`.
 [Integer#months]: https://api.rubyonrails.org/classes/Integer.html#method-i-months
 [Integer#years]: https://api.rubyonrails.org/classes/Integer.html#method-i-years
 
-Extensions to `BigDecimal`
---------------------------
-
-### `to_s`
-
-Active Support sets the default specifier for `BigDecimal#to_s` to `"F"`, so calling `to_s` without arguments returns a plain floating point representation rather than scientific notation:
-
-```ruby
-BigDecimal(5.00, 6).to_s      # => "5.0"
-BigDecimal(5.00, 6).to_s("e") # => "0.5E1" ("e" for scientific notation)
-```
 
 Extensions to `Enumerable`
 --------------------------
@@ -3099,36 +3088,6 @@ NOTE: Defined in `active_support/core_ext/hash/slice.rb`.
 
 [Hash#extract!]: https://api.rubyonrails.org/classes/Hash.html#method-i-extract-21
 
-Extensions to `Regexp`
-----------------------
-
-### `multiline?`
-
-By default, the `.` character in a Ruby regular expression matches any character except a newline. Adding the `/m` flag changes this so that `.` matches newlines too — this is called multiline mode.
-
-The [`multiline?`][Regexp#multiline?] method returns `true` if the regexp has the `/m` flag set:
-
-```ruby
-%r{.}.multiline?                              # => false
-%r{.}m.multiline?                             # => true
-Regexp.new(".").multiline?                    # => false
-Regexp.new(".", Regexp::MULTILINE).multiline? # => true
-```
-
-Rails uses this in the routing code to disallow multiline regexps in route requirements. A route constraint like `constraints id: /foo.bar/` should match only within a single line, allowing `.` to match newlines could cause a route to match unintended paths. Rails enforces this with:
-
-```ruby
-def verify_regexp_requirements(requirements)
-  if requirement.multiline?
-    raise ArgumentError, "Regexp multiline option is not allowed in routing requirements: #{requirement.inspect}"
-  end
-end
-```
-
-NOTE: Defined in `active_support/core_ext/regexp.rb`.
-
-[Regexp#multiline?]: https://api.rubyonrails.org/classes/Regexp.html#method-i-multiline-3F
-
 Extensions to `Range`
 ---------------------
 
@@ -3992,47 +3951,10 @@ Time.utc(1582, 10, 3) + 5.days
 # => Mon Oct 18 00:00:00 UTC 1582
 ```
 
-Extensions to `File`
---------------------
+Exception Class Extensions
+--------------------------
 
-### `atomic_write`
-
-Ruby's standard `File.write` method can leave a file in a partially written state if another process reads it mid-write. The [`File.atomic_write`][File.atomic_write] method is an Active Support addition that solves this. It writes to a temporary file first and then renames it to the target path in a single atomic operation, so any reader always sees either the old complete file or the new complete file, never a half written one.
-
-The method takes a filename and yields a file handle:
-
-```ruby
-File.atomic_write(joined_asset_path) do |cache|
-  cache.write(join_asset_file_contents(asset_paths))
-end
-```
-
-Action Pack uses this to write asset cache files like `all.css`, where serving a partial file to a browser would cause errors.
-
-Under the hood, `atomic_write` writes to a temporary file in the system's temp directory. When the block completes, the temp file is renamed to the target path (a POSIX-atomic operation). If the target file already exists, it is overwritten and its ownership and permissions are preserved where possible.
-
-A few things to be aware of:
-
-- You cannot append to a file with `atomic_write`, it's write-only.
-- If the target file has an ACL (Access Control List) set, it will be recalculated after the write due to the `chmod` operation `atomic_write` performs.
-- If ownership or permissions cannot be copied, the error is silently skipped and the filesystem's defaults apply.
-
-NOTE: An ACL (Access Control List) is a set of fine-grained user and process permissions that go beyond standard Unix read/write/execute bits. If your application relies on ACL rules on files, be aware they may be modified after an atomic write.
-
-You can pass a custom directory for the temporary file as the second argument:
-
-```ruby
-File.atomic_write(target_path, "/my/tmp/dir") do |file|
-  file.write(content)
-end
-```
-
-NOTE: Defined in `active_support/core_ext/file/atomic.rb`.
-
-[File.atomic_write]: https://api.rubyonrails.org/classes/File.html#method-c-atomic_write
-
-Extensions to `NameError`
--------------------------
+### NameError
 
 Active Support adds [`missing_name?`][NameError#missing_name?] to `NameError`, which checks whether the exception was raised because of a specific constant name.
 
@@ -4071,8 +3993,7 @@ NOTE: Defined in `active_support/core_ext/name_error.rb`.
 
 [NameError#missing_name?]: https://api.rubyonrails.org/classes/NameError.html#method-i-missing_name-3F
 
-Extensions to `LoadError`
--------------------------
+### LoadError
 
 Active Support adds [`is_missing?`][LoadError#is_missing?] to `LoadError`. Given a file path, it checks whether the exception was raised because that specific file could not be found (the `.rb` extension is optional in the check):
 
@@ -4102,10 +4023,55 @@ NOTE: Defined in `active_support/core_ext/load_error.rb`.
 
 [LoadError#is_missing?]: https://api.rubyonrails.org/classes/LoadError.html#method-i-is_missing-3F
 
-Extensions to Pathname
-----------------------
+Other Extensions
+----------------
 
-### `existence`
+### BigDecimal
+
+Active Support sets the default specifier for `BigDecimal#to_s` to `"F"`, so calling `to_s` without arguments returns a plain floating point representation rather than scientific notation:
+
+```ruby
+BigDecimal(5.00, 6).to_s      # => "5.0"
+BigDecimal(5.00, 6).to_s("e") # => "0.5E1" ("e" for scientific notation)
+```
+
+### File (``atomic_write`)
+
+Ruby's standard `File.write` method can leave a file in a partially written state if another process reads it mid-write. The [`File.atomic_write`][File.atomic_write] method is an Active Support addition that solves this. It writes to a temporary file first and then renames it to the target path in a single atomic operation, so any reader always sees either the old complete file or the new complete file, never a half written one.
+
+The method takes a filename and yields a file handle:
+
+```ruby
+File.atomic_write(joined_asset_path) do |cache|
+  cache.write(join_asset_file_contents(asset_paths))
+end
+```
+
+Action Pack uses this to write asset cache files like `all.css`, where serving a partial file to a browser would cause errors.
+
+Under the hood, `atomic_write` writes to a temporary file in the system's temp directory. When the block completes, the temp file is renamed to the target path (a POSIX-atomic operation). If the target file already exists, it is overwritten and its ownership and permissions are preserved where possible.
+
+A few things to be aware of:
+
+- You cannot append to a file with `atomic_write`, it's write-only.
+- If the target file has an ACL (Access Control List) set, it will be recalculated after the write due to the `chmod` operation `atomic_write` performs.
+- If ownership or permissions cannot be copied, the error is silently skipped and the filesystem's defaults apply.
+
+NOTE: An ACL (Access Control List) is a set of fine-grained user and process permissions that go beyond standard Unix read/write/execute bits. If your application relies on ACL rules on files, be aware they may be modified after an atomic write.
+
+You can pass a custom directory for the temporary file as the second argument:
+
+```ruby
+File.atomic_write(target_path, "/my/tmp/dir") do |file|
+  file.write(content)
+end
+```
+
+NOTE: Defined in `active_support/core_ext/file/atomic.rb`.
+
+[File.atomic_write]: https://api.rubyonrails.org/classes/File.html#method-c-atomic_write
+
+### Pathname (`existence`)
 
 The [`existence`][Pathname#existence] method returns the receiver if the named file exists otherwise returns `nil`. It is useful for idioms like this:
 
@@ -4117,13 +4083,30 @@ NOTE: Defined in `active_support/core_ext/pathname/existence.rb`.
 
 [Pathname#existence]: https://api.rubyonrails.org/classes/Pathname.html#method-i-existence
 
+### Regexp (`multiline?`)
 
-Filtering
----------
+By default, the `.` character in a Ruby regular expression matches any character except a newline. Adding the `/m` flag changes this so that `.` matches newlines too — this is called multiline mode.
 
-Todo
+The [`multiline?`][Regexp#multiline?] method returns `true` if the regexp has the `/m` flag set:
 
-Extracting and Accessing
-------------------------
+```ruby
+%r{.}.multiline?                              # => false
+%r{.}m.multiline?                             # => true
+Regexp.new(".").multiline?                    # => false
+Regexp.new(".", Regexp::MULTILINE).multiline? # => true
+```
 
-Todo
+Rails uses this in the routing code to disallow multiline regexps in route requirements. A route constraint like `constraints id: /foo.bar/` should match only within a single line, allowing `.` to match newlines could cause a route to match unintended paths. Rails enforces this with:
+
+```ruby
+def verify_regexp_requirements(requirements)
+  if requirement.multiline?
+    raise ArgumentError, "Regexp multiline option is not allowed in routing requirements: #{requirement.inspect}"
+  end
+end
+```
+
+NOTE: Defined in `active_support/core_ext/regexp.rb`.
+
+[Regexp#multiline?]: https://api.rubyonrails.org/classes/Regexp.html#method-i-multiline-3F
+
