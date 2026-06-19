@@ -27,7 +27,7 @@ Ruby has a distinct feature, *open classes*, that sets it apart from many other
 programming languages. In Ruby, any class, including built-in ones like
 `String`, `Integer`, or `Array`, can be reopened and have new methods added to
 it.
- 
+
 This is the mechanism Active Support Core Extensions use. They reopen Ruby's
 built-in classes and add dozens of utility methods that are useful in the
 development of the Rails framework itself as well as everyday Rails applications.
@@ -36,14 +36,14 @@ For example,
 [`blank?`](https://api.rubyonrails.org/classes/Object.html#method-i-blank-3F) is
 one such convenience method. This method is added directly to Ruby's `Object`
 class, making it available on any Ruby object:
- 
+
 ```ruby
 class Object
   def blank?
     respond_to?(:empty?) ? empty? : !self
   end
 end
- 
+
 "".blank?      # => true
 nil.blank?     # => true
 "hello".blank? # => false
@@ -54,7 +54,7 @@ This method enhances Ruby's built-in `empty` method and works for `nil`.
 Rails has shipped these extensions since its earliest versions, and they have
 come to define a style of Ruby code that is expressive and reads close
 to natural language.
- 
+
 WARNING: Because open classes modify Ruby's built-in types globally, they are a
 form of **monkey patching**. A method added to `String` in one part of your
 program affects every string everywhere. This can lead to subtle bugs if
@@ -64,7 +64,6 @@ non-Rails project, prefer [selective
 loading](#cherry-picking-a-single-extension) over `require "active_support/all"`
 to limit the surface area. Avoid writing your own monkey patches on top of
 Active Support's, and never monkey patch classes in a gem you do not own.
-
 
 How to Load Core Extensions
 ---------------------------
@@ -864,7 +863,7 @@ class User < ApplicationRecord
 end
 ```
 
-The method must be public in the target. Using `delegate` makes the intention more obvious. 
+The method must be public in the target. Using `delegate` makes the intention more obvious.
 
 Multiple methods can be delegated in one call:
 
@@ -1318,6 +1317,7 @@ Active Support defines aliases of Ruby's `String#start_with?` and `String#end_wi
 "hello".starts_with?("h") # => true
 "hello".ends_with?("o")   # => true
 ```
+
 These methods work with `Symbol` class also:
 
 ```ruby
@@ -1330,7 +1330,7 @@ NOTE: Defined in `active_support/core_ext/string/starts_ends_with.rb`.
 ### `strip_heredoc`
 
 A heredoc is Ruby's syntax for defining a multiline string in code. The string content is written inline, indented to match the surrounding code:
- 
+
 ```ruby
 if options[:usage]
   puts <<-USAGE
@@ -1340,11 +1340,11 @@ if options[:usage]
   USAGE
 end
 ```
- 
+
 The problem is that the resulting string preserves all the leading whitespace used for indentation, which means the output will be indented too.
- 
+
 The [`strip_heredoc`][String#strip_heredoc] method solves this by finding the least indented line in the string and removing that amount of leading whitespace from every line, so the output appears flush against the left margin:
- 
+
 ```ruby
 if options[:usage]
   puts <<-USAGE.strip_heredoc
@@ -1354,15 +1354,15 @@ if options[:usage]
   USAGE
 end
 ```
- 
+
 The user would see:
- 
+
 ```
 This command does such and such.
 Supported options are:
   -h         This message
 ```
- 
+
 NOTE: Ruby 2.3+ introduced the squiggly heredoc (`<<~`) which does the same thing natively. The `strip_heredoc` core extension predates this and remains available for compatibility, but in modern Ruby `<<~` is the preferred approach.
 
 NOTE: Defined in `active_support/core_ext/string/strip.rb`.
@@ -2043,6 +2043,7 @@ Currency:
 1234567890.50.to_fs(:currency)                  # => "$1,234,567,890.50"
 1234567890.506.to_fs(:currency, precision: 3)   # => "$1,234,567,890.506"
 ```
+
 Percentages:
 
 ```ruby
@@ -2140,13 +2141,13 @@ NOTE: Defined in `active_support/core_ext/integer/inflections.rb`.
 ### Time
 
 Active Support adds [`months`][Integer#months] and [`years`][Integer#years] to integers for expressing calendar level durations:
- 
+
 ```ruby
 1.month.from_now                          # => Time.current.advance(months: 1)
 2.years.from_now                          # => Time.current.advance(years: 2)
 (4.months + 5.years).from_now            # => Time.current.advance(months: 4, years: 5)
 ```
- 
+
 For smaller durations less than a month, such as seconds, minutes, hours, days, and weeks, see the time extensions to `Numeric`.
 
 NOTE: Defined in `active_support/core_ext/integer/time.rb`.
@@ -2530,7 +2531,7 @@ If the receiver is an array of hashes, the root element is also `"objects"` by d
 ```
 
 WARNING: If the collection is empty, the root element defaults to `"nil-classes"` rather than the expected plural class name. Use the `:root` option to ensure a consistent root element when the collection may be empty.
- 
+
 The name of child nodes is the singularized form of the root node by default. Use the `:children` option to override this. The default XML builder is a fresh instance of `Builder::XmlMarkup`, you can provide your own via the `:builder` option. Other options like `:dasherize` and `:skip_types` are forwarded to the builder:
 
 ```ruby
@@ -2608,7 +2609,7 @@ The [`Array#deep_dup`][Array#deep_dup] method duplicates the array and all objec
 ```ruby
 array = [1, [2, 3]]
 dup = array.deep_dup
- 
+
 dup[1] << 4
 dup[1]   # => [2, 3, 4]
 array[1] # => [2, 3]  — original is unchanged
@@ -3956,6 +3957,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#prev_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-prev_quarter
 
 ### Time Constructors
+
 todo: combine this with Time.current above?
 Active Support defines [`Time.current`][Time.current] to be `Time.zone.now` if there's a user time zone defined, with fallback to `Time.now`:
 
@@ -4033,9 +4035,9 @@ Extensions to `NameError`
 -------------------------
 
 Active Support adds [`missing_name?`][NameError#missing_name?] to `NameError`, which checks whether the exception was raised because of a specific constant name.
- 
+
 The name can be given as a symbol or a string, and each is matched differently:
- 
+
 - A symbol is matched against only the bare constant name, the last segment, with no namespace.
 - A string is matched against the fully qualified constant name, the complete path, including any namespace.
 
@@ -4049,11 +4051,11 @@ rescue NameError => e
   e.missing_name?("Garage::Vehicle")   # => true   (exact full path)
 end
 ```
- 
+
 Use a symbol if you only know the short name of the constant you're checking for. Use a string if you know (and want to match) the exact namespaced path.
- 
+
 TIP: A symbol can also represent a fully qualified name, like `:"ActiveRecord::Base"` — this works for convenience, not because symbols carry namespace information.
- 
+
 The `missing_name?` method is useful for distinguishing between "this constant doesn't exist, which is fine" and "a real error occurred while loading something." For example, Rails optimistically tries to load a controller's matching helper module. If the helper module simply doesn't exist, that's fine and the error can be silenced. But if the helper file exists and itself raises a `NameError` due to an unrelated typo, that error needs to propagate:
 
 ```ruby
@@ -4116,13 +4118,12 @@ NOTE: Defined in `active_support/core_ext/pathname/existence.rb`.
 [Pathname#existence]: https://api.rubyonrails.org/classes/Pathname.html#method-i-existence
 
 
-
---------------------------------------------------------------------
-
 Filtering
 ---------
 
-
+Todo
 
 Extracting and Accessing
------------------------- 
+------------------------
+
+Todo
