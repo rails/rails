@@ -3995,11 +3995,9 @@ Extensions to `File`
 
 ### `atomic_write`
 
-With the class method [`File.atomic_write`][File.atomic_write] you can write to a file in a way that will prevent any reader from seeing half-written content.
+Ruby's standard `File.write` method can leave a file in a partially written state if another process reads it mid-write. The [`File.atomic_write`][File.atomic_write] method is an Active Support addition that solves this. It writes to a temporary file first and then renames it to the target path in a single atomic operation, so any reader always sees either the old complete file or the new complete file, never a half written one.
 
-The name of the file is passed as an argument, and the method yields a file handle opened for writing. Once the block is done `atomic_write` closes the file handle and completes its job.
-
-For example, Action Pack uses this method to write asset cache files like `all.css`:
+The method takes a filename and yields a file handle:
 
 ```ruby
 File.atomic_write(joined_asset_path) do |cache|
@@ -4007,13 +4005,25 @@ File.atomic_write(joined_asset_path) do |cache|
 end
 ```
 
-To accomplish this `atomic_write` creates a temporary file. That's the file the code in the block actually writes to. On completion, the temporary file is renamed, which is an atomic operation on POSIX systems. If the target file exists `atomic_write` overwrites it and keeps owners and permissions. However there are a few cases where `atomic_write` cannot change the file ownership or permissions, this error is caught and skipped over trusting in the user/filesystem to ensure the file is accessible to the processes that need it.
+Action Pack uses this to write asset cache files like `all.css`, where serving a partial file to a browser would cause errors.
 
-NOTE. Due to the chmod operation `atomic_write` performs, if the target file has an ACL set on it this ACL will be recalculated/modified.
+Under the hood, `atomic_write` writes to a temporary file in the system's temp directory. When the block completes, the temp file is renamed to the target path (a POSIX-atomic operation). If the target file already exists, it is overwritten and its ownership and permissions are preserved where possible.
 
-WARNING. Note you can't append with `atomic_write`.
+A few things to be aware of:
 
-The auxiliary file is written in a standard directory for temporary files, but you can pass a directory of your choice as second argument.
+- You cannot append to a file with `atomic_write`, it's write-only.
+- If the target file has an ACL (Access Control List) set, it will be recalculated after the write due to the `chmod` operation `atomic_write` performs.
+- If ownership or permissions cannot be copied, the error is silently skipped and the filesystem's defaults apply.
+
+NOTE: An ACL (Access Control List) is a set of fine-grained user and process permissions that go beyond standard Unix read/write/execute bits. If your application relies on ACL rules on files, be aware they may be modified after an atomic write.
+
+You can pass a custom directory for the temporary file as the second argument:
+
+```ruby
+File.atomic_write(target_path, "/my/tmp/dir") do |file|
+  file.write(content)
+end
+```
 
 NOTE: Defined in `active_support/core_ext/file/atomic.rb`.
 
