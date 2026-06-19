@@ -1,3 +1,9 @@
+*   Fix `has_many` and `has_one` associations on a new record returning an empty
+    result when the owner has a composite primary key, even when every primary
+    key column is populated.
+
+    *Jean-Samuel Aubry-Guzzi*
+
 *   Fix inverse association matching for `has_many` and `has_one` associations
     with association-specific composite primary keys.
 
