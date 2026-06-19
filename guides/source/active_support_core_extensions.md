@@ -86,7 +86,7 @@ Active Support ships as its own gem and can be used in any Ruby project independ
 
 #### Cherry-picking a Single Extension
 
-You can load just the extension you need. For example, to use a [`Hash#with_indifferent_access`](#https://api.rubyonrails.org/classes/ActiveSupport/HashWithIndifferentAccess.html) where the keys `:foo` and `"foo"` are considered the same:
+You can load just the extension you need. For example, to use a [`Hash#with_indifferent_access`](https://api.rubyonrails.org/classes/ActiveSupport/HashWithIndifferentAccess.html) where the keys `:foo` and `"foo"` are considered the same:
 
 ```ruby
 require "active_support/core_ext/hash/indifferent_access"
@@ -709,7 +709,7 @@ NOTE: Defined in `active_support/core_ext/module/attr_internal.rb`.
 
 ### `mattr_*`
 
-The methods [`mattr_reader`][Module#mattr_reader], [`mattr_writer`][Module#mattr_writer], and [`mattr_accessor`][Module#mattr_accessor] are the same as their `cattr_*` equivalents [defined for class](#cattr_reader-cattr_writer-and-cattr_accessor). In fact, the `cattr_*` methoda are an aliases for the `mattr_*` ones.
+The methods [`mattr_reader`][Module#mattr_reader], [`mattr_writer`][Module#mattr_writer], and [`mattr_accessor`][Module#mattr_accessor] are the same as their `cattr_*` equivalents [defined for class](#cattr-reader-cattr-writer-and-cattr-accessor). In fact, the `cattr_*` method are an aliases for the `mattr_*` ones.
 
 For example, the API for the logger of Active Storage is generated with `mattr_accessor`:
 
@@ -4032,23 +4032,36 @@ NOTE: Defined in `active_support/core_ext/file/atomic.rb`.
 Extensions to `NameError`
 -------------------------
 
-Active Support adds [`missing_name?`][NameError#missing_name?] to `NameError`, which tests whether the exception was raised because of the name passed as argument.
+Active Support adds [`missing_name?`][NameError#missing_name?] to `NameError`, which checks whether the exception was raised because of a specific constant name.
+ 
+The name can be given as a symbol or a string, and each is matched differently:
+ 
+- A symbol is matched against only the bare constant name, the last segment, with no namespace.
+- A string is matched against the fully qualified constant name, the complete path, including any namespace.
 
-The name may be given as a symbol or string. A symbol is tested against the bare constant name, a string is against the fully qualified constant name.
-
-TIP: A symbol can represent a fully qualified constant name as in `:"ActiveRecord::Base"`, so the behavior for symbols is defined for convenience, not because it has to be that way technically.
-
-For example, when an action of `ArticlesController` is called Rails tries optimistically to use `ArticlesHelper`. It is OK that the helper module does not exist, so if an exception for that constant name is raised it should be silenced. But it could be the case that `articles_helper.rb` raises a `NameError` due to an actual unknown constant. That should be reraised. The method `missing_name?` provides a way to distinguish both cases:
+```ruby
+begin
+  Garage::Vehicle
+rescue NameError => e
+  e.missing_name?(:Vehicle)            # => true   (bare name matches, namespace ignored)
+  e.missing_name?(:"Garage::Vehicle")  # => false  (bare name lookup, doesn't match "Vehicle")
+  e.missing_name?("Vehicle")           # => false  (not the full path)
+  e.missing_name?("Garage::Vehicle")   # => true   (exact full path)
+end
+```
+ 
+Use a symbol if you only know the short name of the constant you're checking for. Use a string if you know (and want to match) the exact namespaced path.
+ 
+TIP: A symbol can also represent a fully qualified name, like `:"ActiveRecord::Base"` — this works for convenience, not because symbols carry namespace information.
+ 
+The `missing_name?` method is useful for distinguishing between "this constant doesn't exist, which is fine" and "a real error occurred while loading something." For example, Rails optimistically tries to load a controller's matching helper module. If the helper module simply doesn't exist, that's fine and the error can be silenced. But if the helper file exists and itself raises a `NameError` due to an unrelated typo, that error needs to propagate:
 
 ```ruby
 def default_helper_module!
   module_name = name.delete_suffix("Controller")
-  module_path = module_name.underscore
-  helper module_path
-rescue LoadError => e
-  raise e unless e.is_missing? "helpers/#{module_path}_helper"
+  helper module_name.underscore
 rescue NameError => e
-  raise e unless e.missing_name? "#{module_name}Helper"
+  raise e unless e.missing_name?("#{module_name}Helper")
 end
 ```
 
@@ -4059,11 +4072,17 @@ NOTE: Defined in `active_support/core_ext/name_error.rb`.
 Extensions to `LoadError`
 -------------------------
 
-Active Support adds [`is_missing?`][LoadError#is_missing?] to `LoadError`.
+Active Support adds [`is_missing?`][LoadError#is_missing?] to `LoadError`. Given a file path, it checks whether the exception was raised because that specific file could not be found (the `.rb` extension is optional in the check):
 
-Given a path name `is_missing?` tests whether the exception was raised due to that particular file (except perhaps for the ".rb" extension).
+```ruby
+begin
+  require "articles_helper"
+rescue LoadError => e
+  e.is_missing?("articles_helper") # => true
+end
+```
 
-For example, when an action of `ArticlesController` is called Rails tries to load `articles_helper.rb`, but that file may not exist. That's fine, the helper module is not mandatory so Rails silences a load error. But it could be the case that the helper module does exist and in turn requires another library that is missing. In that case Rails must reraise the exception. The method `is_missing?` provides a way to distinguish both cases:
+This serves the same purpose as `missing_name?` does for `NameError`, but at the file level. When Rails tries to load a controller's helper file, it's fine if that file simply doesn't exist. But if the file exists and itself fails to load a missing dependency, that error should propagate rather than being silently swallowed:
 
 ```ruby
 def default_helper_module!
@@ -4071,9 +4090,9 @@ def default_helper_module!
   module_path = module_name.underscore
   helper module_path
 rescue LoadError => e
-  raise e unless e.is_missing? "helpers/#{module_path}_helper"
+  raise e unless e.is_missing?("helpers/#{module_path}_helper")
 rescue NameError => e
-  raise e unless e.missing_name? "#{module_name}Helper"
+  raise e unless e.missing_name?("#{module_name}Helper")
 end
 ```
 
@@ -4082,7 +4101,7 @@ NOTE: Defined in `active_support/core_ext/load_error.rb`.
 [LoadError#is_missing?]: https://api.rubyonrails.org/classes/LoadError.html#method-i-is_missing-3F
 
 Extensions to Pathname
--------------------------
+----------------------
 
 ### `existence`
 
