@@ -1,3 +1,16 @@
+*   Match IPv4-mapped IPv6 addresses against IPv4 trusted proxies in
+    `ActionDispatch::RemoteIp`.
+
+    Since Ruby 3.1 (ipaddr 1.2.3), `IPAddr#include?` no longer matches
+    IPv4-mapped IPv6 addresses against IPv4 ranges, so a proxy reporting
+    an address like `::ffff:10.0.0.1` was no longer recognized as trusted
+    and would be returned as the client IP. IPv4-mapped addresses are now
+    converted to their native IPv4 form before being compared.
+
+    Fixes #52862.
+
+    *Nityesh Agarwal*
+
 *   Rate limiting calls `cache_key` on `by:` if the object responds to it.
 
     ```ruby
