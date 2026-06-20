@@ -50,6 +50,76 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
     load_schema
   end
 
+  def test_type_for_column_resolves_extension_type_when_cast_type_is_missing
+    # A schema cache dumped against another database carries an hstore OID this
+    # one lacks, so the cached cast type comes back nil. It must still resolve via
+    # the portable SQL type name -- for scalar and array columns alike.
+    @connection.create_table("hstore_oid_cache_test", force: true) do |t|
+      t.hstore "data"
+      t.hstore "labels", array: true
+    end
+    klass = Class.new(ActiveRecord::Base) { self.table_name = "hstore_oid_cache_test" }
+    columns = @connection.columns("hstore_oid_cache_test").index_by(&:name)
+
+    scalar = ActiveRecord::ConnectionAdapters::PostgreSQL::Column.new(
+      "data", nil, nil, columns["data"].sql_type_metadata, columns["data"].null
+    )
+    array = ActiveRecord::ConnectionAdapters::PostgreSQL::Column.new(
+      "labels", nil, nil, columns["labels"].sql_type_metadata, columns["labels"].null
+    )
+    assert_nil scalar.cast_type
+    assert_nil array.cast_type
+
+    # Drop hstore (a base type, not bulk-loaded) from the type map so the fallback
+    # fetches the OID on demand -- the state an unknown local OID produces.
+    @connection.reload_type_map
+
+    assert_instance_of ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Hstore,
+      klass.send(:type_for_column, scalar)
+
+    array_type = klass.send(:type_for_column, array)
+    assert_instance_of ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Array, array_type
+    assert_instance_of ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Hstore, array_type.subtype
+  ensure
+    @connection.drop_table("hstore_oid_cache_test", if_exists: true)
+  end
+
+  def test_standard_columns_do_not_trigger_a_type_lookup
+    # The fallback fires only for nil cached cast types; standard types resolve
+    # from the static map and must never emit a `::regtype` lookup.
+    @connection.create_table("hstore_plain", force: true) do |t|
+      t.string :name
+      t.integer :count
+      t.boolean :flag
+    end
+    klass = Class.new(ActiveRecord::Base) { self.table_name = "hstore_plain" }
+    klass.create!(name: "x", count: 1, flag: true) # warm the schema
+
+    type_lookups = 0
+    counter = ->(*, payload) { type_lookups += 1 if payload[:sql] =~ /::regtype/ }
+    ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+      klass.reset_column_information
+      record = klass.create!(name: "y", count: 2, flag: false)
+      assert_equal [2, false], [record.reload.count, record.flag]
+    end
+
+    assert_equal 0, type_lookups
+  ensure
+    @connection.drop_table("hstore_plain", if_exists: true)
+  end
+
+  def test_lookup_cast_type_raises_a_clean_error_for_a_missing_type
+    # A cache so stale the type no longer exists must surface the database error,
+    # not loop or raise an opaque Ruby error.
+    assert_raises(ActiveRecord::StatementInvalid) do
+      # Wrapped in a savepoint so the deliberately failing lookup doesn't abort
+      # the surrounding test transaction.
+      @connection.transaction(requires_new: true) do
+        @connection.lookup_cast_type("a_type_that_does_not_exist")
+      end
+    end
+  end
+
   def test_column
     assert_equal :hstore, @column.type
     assert_equal "hstore", @column.sql_type
