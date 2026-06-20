@@ -937,6 +937,13 @@ module ActiveRecord
       def association_primary_key(klass = nil)
         if options[:primary_key]
           @association_primary_key ||= ActiveRecord::Key.for(options[:primary_key]).name
+        elsif polymorphic? && options[:inverse_of] && klass
+          inverse = klass.reflect_on_association(options[:inverse_of])
+          if inverse && inverse.options[:primary_key]
+            ActiveRecord::Key.for(inverse.options[:primary_key]).name
+          else
+            derive_primary_key(klass) { |model| model.composite_query_constraints_list }
+          end
         else
           derive_primary_key(klass || self.klass) { |model| model.composite_query_constraints_list }
         end
