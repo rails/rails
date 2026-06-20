@@ -14,6 +14,9 @@ Rails.application.configure do
   # recommended that you enable it in continuous integration systems to ensure eager
   # loading is working properly before deploying your code.
   config.eager_load = ENV["CI"].present?
+
+  # In Rake tasks, the previous assigment is ignored, config.eager_load is set
+  # from config.rake_eager_load.
   config.rake_eager_load = ENV["CI"].present?
 
   # Configure public file server for tests with cache-control for performance.
