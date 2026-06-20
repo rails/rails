@@ -389,7 +389,7 @@ module ActiveRecord
         elsif abstract_class?
           "#{super}(abstract)"
         elsif !schema_loaded? && !connected?
-          "#{super} (call '#{super}.load_schema' to load schema informations)"
+          "#{super} (call '#{super}.load_schema' to load schema information)"
         elsif table_exists?
           attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ", "
           "#{super}(#{attr_list})"
