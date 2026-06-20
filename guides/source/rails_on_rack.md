@@ -80,19 +80,19 @@ class MyMiddleware
     # Operations before the request hits the main application
     # -------------------------------------------------------
 
-    # Propgate the request down the middleware stack
+    # Propagate the request down the middleware stack
     status, headers, body = @app.call(env)
 
     # ---------------------------------------
     # Operations after the request comes back
 
-    # Propogate the response up the middleware stack
+    # Propagate the response up the middleware stack
     [status, headers, body]
   end
 end
 ```
 
-Middleware can short-circuit the stack by skipping `@app.call` completely and returning a reponse by itself. This means the request never hits the main application or the remaining middleware in the stack. A middleware to authenticate a request might use this technique.
+Middleware can short-circuit the stack by skipping `@app.call` completely and returning a response by itself. This means the request never hits the main application or the remaining middleware in the stack. A middleware to authenticate a request might use this technique.
 
 ```ruby
 class AuthenticateRequest
@@ -414,7 +414,7 @@ The unique request id can be used to trace a request end-to-end and would typica
 
 #### `Rack::ETag`
 
-[`Rack::ETag`][] adds an `ETag` header on all String bodies. ETags are used to validate the cache to faciliate "Conditional `GET`" requests as described above. See the [Caching with Rails](caching_with_rails.html#conditional-get-support) for further information.
+[`Rack::ETag`][] adds an `ETag` header on all String bodies. ETags are used to validate the cache to facilitate "Conditional `GET`" requests as described above. See the [Caching with Rails](caching_with_rails.html#conditional-get-support) for further information.
 
 [`Rack::ETag`]: https://rack.github.io/rack/3.2/Rack/ETag.html
 
