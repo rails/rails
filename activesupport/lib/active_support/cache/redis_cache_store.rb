@@ -99,7 +99,7 @@ module ActiveSupport
       #   :url    Array   ->  RedisClient::HashRing.new([RedisClient.config(url: …).new_pool, ...])
       #
       # If you need some advanced configuration for the client, or want to use an alternative implementation
-      # like `redis-cluster-client`, you can pass an already configued client via the +:client+ option:
+      # like `redis-cluster-client`, you can pass an already configured client via the +:client+ option:
       #
       #   config.cache_store = :redis_cache_store, client: RedisClient.config(...)
       #   config.cache_store = :redis_cache_store, client: [RedisClient.config(...), RedisClient.config(...)]
