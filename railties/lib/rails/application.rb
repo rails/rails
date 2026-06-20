@@ -586,7 +586,8 @@ module Rails
     #
     # In development mode, this configuration backend is automatically part of `Rails.app.creds`.
     def dotenvs(path = Rails.root.join(".env"))
-      @dotenvs ||= ActiveSupport::DotEnvConfiguration.new(path)
+      @dotenvs ||= {}
+      @dotenvs[path] ||= ActiveSupport::DotEnvConfiguration.new(path)
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for the

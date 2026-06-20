@@ -46,6 +46,16 @@ class Rails::CredsTest < ActiveSupport::TestCase
     ENV.delete("MYSTERY")
   end
 
+  test "dotenvs honors an explicit path even after the default has been accessed" do
+    File.write("#{app_path}/.env", "MYSTERY=default_env")
+    File.write("#{app_path}/.env.custom", "MYSTERY=custom_env")
+
+    app("development")
+
+    assert_equal "default_env", Rails.app.dotenvs.require(:mystery)
+    assert_equal "custom_env", Rails.app.dotenvs("#{app_path}/.env.custom").require(:mystery)
+  end
+
   test "dotenvs are available only in development mode" do
     write_credentials_override(:development)
     write_credentials_override(:production)
