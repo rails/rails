@@ -241,7 +241,7 @@ module ActiveStorage
           end
 
           def #{name}=(attachables)
-            attachables = Array(attachables).compact_blank
+            attachables = Array.wrap(attachables).compact_blank
             pending_uploads = attachment_changes["#{name}"].try(:pending_uploads)
 
             attachment_changes["#{name}"] = if attachables.none?
