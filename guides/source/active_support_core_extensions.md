@@ -1914,9 +1914,7 @@ NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
 [String#downcase_first]: https://api.rubyonrails.org/classes/String.html#method-i-downcase_first
 
-### Conversions
-
-#### `to_date`, `to_time`, `to_datetime`
+### Date and Time Conversions For Strings
 
 The `to_date`, `to_time`, and `to_datetime` methods are convenience wrappers around [`Date._parse`][] from Ruby that convert a string into the corresponding date or time object:
 
@@ -1941,8 +1939,6 @@ NOTE: Defined in `active_support/core_ext/string/conversions.rb`.
 [String#to_datetime]: https://api.rubyonrails.org/classes/String.html#method-i-to_datetime
 [String#to_time]: https://api.rubyonrails.org/classes/String.html#method-i-to_time
 [`Date._parse`]: https://docs.ruby-lang.org/en/3.4/Date.html#method-c-parse
-
-
 
 Extensions to `Numeric`
 -----------------------
@@ -1986,7 +1982,7 @@ NOTE: Defined in `active_support/core_ext/numeric/bytes.rb`.
 [Numeric#terabytes]: https://api.rubyonrails.org/classes/Numeric.html#method-i-terabytes
 [Numeric#zettabytes]: https://api.rubyonrails.org/classes/Numeric.html#method-i-zettabytes
 
-### Time
+### `hours`, `days`, etc.
 
 Active Support adds the following methods to numbers for expressing and calculating durations:
 
@@ -2138,7 +2134,7 @@ NOTE: Defined in `active_support/core_ext/integer/inflections.rb`.
 
 [Integer#ordinalize]: https://api.rubyonrails.org/classes/Integer.html#method-i-ordinalize
 
-### Time
+### Time Calculations
 
 Active Support adds [`months`][Integer#months] and [`years`][Integer#years] to integers for expressing calendar level durations:
 
@@ -2154,7 +2150,6 @@ NOTE: Defined in `active_support/core_ext/integer/time.rb`.
 
 [Integer#months]: https://api.rubyonrails.org/classes/Integer.html#method-i-months
 [Integer#years]: https://api.rubyonrails.org/classes/Integer.html#method-i-years
-
 
 Extensions to `Enumerable`
 --------------------------
@@ -2547,7 +2542,7 @@ NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
 
 [Array#to_xml]: https://api.rubyonrails.org/classes/Array.html#method-i-to_xml
 
-### Wrapping
+### `Array.wrap`
 
 The [`Array.wrap`][Array.wrap] method wraps its argument in an array unless it is already an array. This is useful when you want to normalize input that could be either a single value or a collection.
 
@@ -2591,7 +2586,7 @@ NOTE: Defined in `active_support/core_ext/array/wrap.rb`.
 
 [Array.wrap]: https://api.rubyonrails.org/classes/Array.html#method-c-wrap
 
-### `Array#deep_dup`
+### `deep_dup`
 
 The [`Array#deep_dup`][Array#deep_dup] method duplicates the array and all objects inside it recursively. Unlike Ruby's built-in `dup`, which produces a shallow copy where nested objects are still shared, `deep_dup` ensures that modifying a nested object in the copy does not affect the original:
 
@@ -3152,13 +3147,33 @@ NOTE: Defined in `active_support/core_ext/range/overlap.rb`.
 
 Working with `Date`, `Time`, and `DateTime`
 ------------------------------------------
+ 
+Ruby provides three classes for representing dates and times: `Date`,
+`DateTime`, and `Time`. Active Support extends all three with a shared set of
+calculation methods. Some methods, such as `prev_day` and `beginning_of_week`,
+are defined once in a common module (`DateAndTime::Calculations`) and mixed into
+each class.
+ 
+TIP: Most Rails developers face the question of which class to use when. The
+answer comes down one practical distinction: `Time` understands time zones and
+daylight saving time, while `DateTime` does not. In most modern applications,
+you are better off using `Time` (or more specifically
+`ActiveSupport::TimeWithZone`, the time-zone-aware wrapper that `Time.zone.now`
+and `Time.current` return). Treat `DateTime` as a legacy class kept around for
+compatibility. Use `Date` whenever you only care about a calendar day and have
+no need for a time component at all.
+ 
+This section covers the calculation methods Active Support adds across all three
+classes, and points out where the classes diverge and the choice of class
+matters.
+ 
+### Creating Dates and Times
 
-Extensions to `Date`
---------------------
+Active Support adds `Date.current`, `Time.current`, and `DateTime.current` to create Date and Time objects. There are the built in Ruby constructors such as `Date.new`, `Time.new`, and `DateTime.new`. The advantage of the Active support method is that they are time zone aware. 
 
-INFO: The following calculation methods have edge cases in October 1582, since days 5..14 just do not exist. This guide does not document their behavior around those days for brevity, but it is enough to say that they do what you would expect. That is, `Date.new(1582, 10, 4).tomorrow` returns `Date.new(1582, 10, 15)` and so on. Please check `test/core_ext/date_ext_test.rb` in the Active Support test suite for expected behavior.
+NOTE: Date and Time objects and also be created from Strings, see the [Date and Time Conversions For Strings](#date-and-time-conversions-for-strings).
 
-### `Date.current`
+#### `Date.current`
 
 The Ruby method `Date.today` returns today's date based on the *system time zone*, which is the time zone of the server your Rails application runs on.
 
@@ -3195,6 +3210,154 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 [DateAndTime::Calculations#on_weekday?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-on_weekday-3F
 [DateAndTime::Calculations#on_weekend?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-on_weekend-3F
 [DateAndTime::Calculations#past?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-past-3F
+
+#### `Time.current` and `ActiveSupport::TimeWithZone`
+
+The Ruby method `Time.now` returns the current time based on the **system time zone**, which is the time zone of the server your Rails app runs on.
+
+Active Support defines [`Time.current`][Time.current] as an alternative that returns the current time in the **user's time zone** if one has been set via `Time.zone`. This mirrors the same distinction between `Date.today` and `Date.current`.
+
+Active Support also defines the following instance predicates, all relative to `Time.current`:
+
+```ruby
+time = Time.current
+
+time.past?      # => false
+time.today?     # => true
+time.tomorrow?  # => false
+time.next_day?  # => false
+time.yesterday? # => false
+time.prev_day?  # => false
+time.future?    # => false
+```
+
+NOTE: Use `Time.current` rather than `Time.now` in user-facing code. `Time.now` ignores the user's time zone and can produce incorrect results.
+
+NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
+
+[DateAndTime::Calculations#next_day?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-next_day-3F
+[DateAndTime::Calculations#prev_day?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-prev_day-3F
+[DateAndTime::Calculations#today?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-today-3F
+[DateAndTime::Calculations#tomorrow?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-tomorrow-3F
+[DateAndTime::Calculations#yesterday?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-yesterday-3F
+
+#### `DateTime.current`
+
+Active Support defines [`DateTime.current`][DateTime.current] to be like `Time.now.to_datetime`, except that it honors the user time zone, if defined. The instance predicates [`past?`][DateAndTime::Calculations#past?] and [`future?`][DateAndTime::Calculations#future?] are defined relative to `DateTime.current`.
+
+```ruby
+DateTime.current # => Tue, 05 May 2026 12:00:00 +0000
+
+DateTime.current.past?   # => false
+DateTime.current.future? # => false
+
+DateTime.new(2025, 1, 1).past?   # => true
+DateTime.new(2027, 1, 1).future? # => true
+```
+
+NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
+
+[DateTime.current]: https://api.rubyonrails.org/classes/DateTime.html#method-c-current
+
+#### Methods that Return Time or DateTime
+
+The following methods return a `Time` object if possible, otherwise a `DateTime`. If set, they honor the user time zone.
+
+##### `beginning_of_day`, `end_of_day`
+
+The methods [`beginning_of_day`][Date#beginning_of_day] and [`end_of_day`][Date#end_of_day] return a the timestamps with `00:00:00` and `23:59:59`, respectively:
+
+```ruby
+date = Date.new(2026, 5, 5)
+date.beginning_of_day # => Tue May 05 00:00:00 +0000 2026
+
+date = Date.new(2026, 5, 5)
+date.end_of_day # => Tue May 05 23:59:59 +0000 2026
+```
+
+`beginning_of_day` is aliased to [`at_beginning_of_day`][Date#at_beginning_of_day], [`midnight`][Date#midnight], [`at_midnight`][Date#at_midnight].
+
+NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
+
+[Date#at_beginning_of_day]: https://api.rubyonrails.org/classes/Date.html#method-i-at_beginning_of_day
+[Date#at_midnight]: https://api.rubyonrails.org/classes/Date.html#method-i-at_midnight
+[Date#beginning_of_day]: https://api.rubyonrails.org/classes/Date.html#method-i-beginning_of_day
+[Date#end_of_day]: https://api.rubyonrails.org/classes/Date.html#method-i-end_of_day
+[Date#midnight]: https://api.rubyonrails.org/classes/Date.html#method-i-midnight
+
+INFO: `beginning_of_hour`, `end_of_hour`, `beginning_of_minute`, and `end_of_minute` are implemented for `Time` and `DateTime` but **not** `Date` as it does not make sense to request the beginning or end of an hour or minute on a `Date` instance.
+
+##### `beginning_of_hour`, `end_of_hour`
+
+The methods [`beginning_of_hour`][DateTime#beginning_of_hour] and [`end_of_hour`][DateTime#end_of_hour] return timestamps at `hh:00:00` and `hh:59:59`, respectively:
+
+```ruby
+date = DateTime.new(2026, 5, 5, 19, 55, 25)
+date.beginning_of_hour # => Tue May 05 19:00:00 +0000 2026
+date.end_of_hour       # => Tue May 05 19:59:59 +0000 2026
+```
+
+`beginning_of_hour` is aliased to [`at_beginning_of_hour`][DateTime#at_beginning_of_hour].
+
+NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
+
+##### `beginning_of_minute`, `end_of_minute`
+
+The methods [`beginning_of_minute`][DateTime#beginning_of_minute] and [`end_of_minute`][DateTime#end_of_minute] return timestamps at `hh:mm:00` and `hh:mm:59`, respectively:
+
+```ruby
+date = DateTime.new(2026, 5, 5, 19, 55, 25)
+date.beginning_of_minute # => Tue May 05 19:55:00 +0000 2026
+date.end_of_minute       # => Tue May 05 19:55:59 +0000 2026
+```
+
+`beginning_of_minute` is aliased to [`at_beginning_of_minute`][DateTime#at_beginning_of_minute].
+
+NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
+
+[DateTime#at_beginning_of_minute]: https://api.rubyonrails.org/classes/DateTime.html#method-i-at_beginning_of_minute
+[DateTime#beginning_of_minute]: https://api.rubyonrails.org/classes/DateTime.html#method-i-beginning_of_minute
+[DateTime#end_of_minute]: https://api.rubyonrails.org/classes/DateTime.html#method-i-end_of_minute
+
+##### `ago`, `since`
+
+The method [`ago`][Date#ago] receives a number of seconds as argument and returns a timestamp those many seconds ago from midnight:
+
+```ruby
+date = Date.current # => Tue, 05 May 2026
+date.ago(1)         # => Mon, 04 May 2026 23:59:59 EDT -04:00
+```
+
+Similarly, [`since`][Date#since] moves forward:
+
+```ruby
+date = Date.current # => Tue, 05 May 2026
+date.since(1)       # => Tue, 05 May 2026 00:00:01 EDT -04:00
+```
+
+NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
+
+[Date#ago]: https://api.rubyonrails.org/classes/Date.html#method-i-ago
+[Date#since]: https://api.rubyonrails.org/classes/Date.html#method-i-since
+
+todo next
+
+### Calculations
+ 
+### Stepping Through Time
+ 
+### Beginnings and Ends
+ 
+### Time Zones and UTC
+
+
+Extensions to `Date`
+--------------------
+
+INFO: The following calculation methods have edge cases in October 1582, since days 5..14 just do not exist. This guide does not document their behavior around those days for brevity, but it is enough to say that they do what you would expect. That is, `Date.new(1582, 10, 4).tomorrow` returns `Date.new(1582, 10, 15)` and so on. Please check `test/core_ext/date_ext_test.rb` in the Active Support test suite for expected behavior.
+
+### `Date.current`
+
 
 ### `beginning_of_week`, `end_of_week`
 
@@ -3476,84 +3639,6 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
 ### Methods that Return Time or DateTime
 
-The following methods return a `Time` object if possible, otherwise a `DateTime`. If set, they honor the user time zone.
-
-#### `beginning_of_day`, `end_of_day`
-
-The methods [`beginning_of_day`][Date#beginning_of_day] and [`end_of_day`][Date#end_of_day] return a the timestamps with `00:00:00` and `23:59:59`, respectively:
-
-```ruby
-date = Date.new(2026, 5, 5)
-date.beginning_of_day # => Tue May 05 00:00:00 +0000 2026
-
-date = Date.new(2026, 5, 5)
-date.end_of_day # => Tue May 05 23:59:59 +0000 2026
-```
-
-`beginning_of_day` is aliased to [`at_beginning_of_day`][Date#at_beginning_of_day], [`midnight`][Date#midnight], [`at_midnight`][Date#at_midnight].
-
-NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
-
-[Date#at_beginning_of_day]: https://api.rubyonrails.org/classes/Date.html#method-i-at_beginning_of_day
-[Date#at_midnight]: https://api.rubyonrails.org/classes/Date.html#method-i-at_midnight
-[Date#beginning_of_day]: https://api.rubyonrails.org/classes/Date.html#method-i-beginning_of_day
-[Date#end_of_day]: https://api.rubyonrails.org/classes/Date.html#method-i-end_of_day
-[Date#midnight]: https://api.rubyonrails.org/classes/Date.html#method-i-midnight
-
-INFO: `beginning_of_hour`, `end_of_hour`, `beginning_of_minute`, and `end_of_minute` are implemented for `Time` and `DateTime` but **not** `Date` as it does not make sense to request the beginning or end of an hour or minute on a `Date` instance.
-
-#### `beginning_of_hour`, `end_of_hour`
-
-The methods [`beginning_of_hour`][DateTime#beginning_of_hour] and [`end_of_hour`][DateTime#end_of_hour] return timestamps at `hh:00:00` and `hh:59:59`, respectively:
-
-```ruby
-date = DateTime.new(2026, 5, 5, 19, 55, 25)
-date.beginning_of_hour # => Tue May 05 19:00:00 +0000 2026
-date.end_of_hour       # => Tue May 05 19:59:59 +0000 2026
-```
-
-`beginning_of_hour` is aliased to [`at_beginning_of_hour`][DateTime#at_beginning_of_hour].
-
-NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
-
-#### `beginning_of_minute`, `end_of_minute`
-
-The methods [`beginning_of_minute`][DateTime#beginning_of_minute] and [`end_of_minute`][DateTime#end_of_minute] return timestamps at `hh:mm:00` and `hh:mm:59`, respectively:
-
-```ruby
-date = DateTime.new(2026, 5, 5, 19, 55, 25)
-date.beginning_of_minute # => Tue May 05 19:55:00 +0000 2026
-date.end_of_minute       # => Tue May 05 19:55:59 +0000 2026
-```
-
-`beginning_of_minute` is aliased to [`at_beginning_of_minute`][DateTime#at_beginning_of_minute].
-
-NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
-
-[DateTime#at_beginning_of_minute]: https://api.rubyonrails.org/classes/DateTime.html#method-i-at_beginning_of_minute
-[DateTime#beginning_of_minute]: https://api.rubyonrails.org/classes/DateTime.html#method-i-beginning_of_minute
-[DateTime#end_of_minute]: https://api.rubyonrails.org/classes/DateTime.html#method-i-end_of_minute
-
-#### `ago`, `since`
-
-The method [`ago`][Date#ago] receives a number of seconds as argument and returns a timestamp those many seconds ago from midnight:
-
-```ruby
-date = Date.current # => Tue, 05 May 2026
-date.ago(1)         # => Mon, 04 May 2026 23:59:59 EDT -04:00
-```
-
-Similarly, [`since`][Date#since] moves forward:
-
-```ruby
-date = Date.current # => Tue, 05 May 2026
-date.since(1)       # => Tue, 05 May 2026 00:00:01 EDT -04:00
-```
-
-NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
-
-[Date#ago]: https://api.rubyonrails.org/classes/Date.html#method-i-ago
-[Date#since]: https://api.rubyonrails.org/classes/Date.html#method-i-since
 
 Extensions to `DateTime`
 ------------------------
@@ -3588,21 +3673,6 @@ WARNING: `DateTime` is not aware of [Daylight Saving Time (DST)](https://en.wiki
 
 ### `DateTime.current`
 
-Active Support defines [`DateTime.current`][DateTime.current] to be like `Time.now.to_datetime`, except that it honors the user time zone, if defined. The instance predicates [`past?`][DateAndTime::Calculations#past?] and [`future?`][DateAndTime::Calculations#future?] are defined relative to `DateTime.current`.
-
-```ruby
-DateTime.current # => Tue, 05 May 2026 12:00:00 +0000
-
-DateTime.current.past?   # => false
-DateTime.current.future? # => false
-
-DateTime.new(2025, 1, 1).past?   # => true
-DateTime.new(2027, 1, 1).future? # => true
-```
-
-NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
-
-[DateTime.current]: https://api.rubyonrails.org/classes/DateTime.html#method-c-current
 
 ### `seconds_since_midnight`
 
@@ -3759,33 +3829,7 @@ WARNING: If `since` or `ago` produces a time outside the range that `Time` can r
 
 ### `Time.current`
 
-The Ruby method `Time.now` returns the current time based on the **system time zone**, which is the time zone of the server your Rails app runs on.
 
-Active Support defines [`Time.current`][Time.current] as an alternative that returns the current time in the **user's time zone** if one has been set via `Time.zone`. This mirrors the same distinction between `Date.today` and `Date.current`.
-
-Active Support also defines the following instance predicates, all relative to `Time.current`:
-
-```ruby
-time = Time.current
-
-time.past?      # => false
-time.today?     # => true
-time.tomorrow?  # => false
-time.next_day?  # => false
-time.yesterday? # => false
-time.prev_day?  # => false
-time.future?    # => false
-```
-
-NOTE: Use `Time.current` rather than `Time.now` in user-facing code. `Time.now` ignores the user's time zone and can produce incorrect results.
-
-NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
-
-[DateAndTime::Calculations#next_day?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-next_day-3F
-[DateAndTime::Calculations#prev_day?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-prev_day-3F
-[DateAndTime::Calculations#today?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-today-3F
-[DateAndTime::Calculations#tomorrow?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-tomorrow-3F
-[DateAndTime::Calculations#yesterday?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-yesterday-3F
 
 ### `all_day`, `all_week`, `all_month`, `all_quarter`, and `all_year`
 
@@ -3914,22 +3958,6 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#last_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-last_quarter
 [DateAndTime::Calculations#next_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-next_quarter
 [DateAndTime::Calculations#prev_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-prev_quarter
-
-### Time Constructors
-
-todo: combine this with Time.current above?
-Active Support defines [`Time.current`][Time.current] to be `Time.zone.now` if there's a user time zone defined, with fallback to `Time.now`:
-
-```ruby
-Time.zone_default
-# => #<ActiveSupport::TimeZone:0x7f73654d4f38 @utc_offset=nil, @name="Madrid", ...>
-Time.current
-# => Fri, 06 Aug 2010 17:11:58 CEST +02:00
-```
-
-Analogously to `DateTime`, the predicates [`past?`][DateAndTime::Calculations#past?], and [`future?`][DateAndTime::Calculations#future?] are relative to `Time.current`.
-
-If the time to be constructed lies beyond the range supported by `Time` in the runtime platform, usecs are discarded and a `DateTime` object is returned instead.
 
 ### Durations
 
