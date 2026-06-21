@@ -3379,7 +3379,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ##### `weeks_ago`, `weeks_since`
 
-The method [`weeks_ago`][DateAndTime::Calculations#weeks_ago] and [`weeks_since`][DateAndTime::Calculations#week_since] work analogously for weeks:
+The methods [`weeks_ago`][DateAndTime::Calculations#weeks_ago] and [`weeks_since`][DateAndTime::Calculations#week_since] work analogously for weeks:
 
 ```ruby
 Date.new(2010, 5, 24).weeks_ago(1)   # => Mon, 17 May 2010

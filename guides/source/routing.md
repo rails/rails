@@ -39,7 +39,7 @@ get "/users/:id", to: "users#show"
 
 The request is matched to the `UsersController` class's `show` action with `{ id: '17' }` in the `params` hash.
 
-The `to:` option expects a `controller#action` format when passed a string. Alternatively, You can pass a symbol and use the `action:` option, instead of `to:`. You can also pass a string without a `#`, in which case the `controller:` option is used instead to `to:`. For example:
+The `to:` option expects a `controller#action` format when passed a string. Alternatively, you can pass a symbol and use the `action:` option, instead of `to:`. You can also pass a string without a `#`, in which case the `controller:` option is used instead of `to:`. For example:
 
 ```ruby
 get "/users/:id", controller: "users", action: :show
@@ -327,7 +327,7 @@ In addition to the routes for magazines, this declaration will also route ads to
 | PATCH/PUT | /magazines/:magazine_id/ads/:id      | ads#update        | update a specific ad belonging to a specific magazine                      |
 | DELETE    | /magazines/:magazine_id/ads/:id      | ads#destroy       | delete a specific ad belonging to a specific magazine                      |
 
-This will also create the usual path and url routing helpers such as `magazine_ads_url` and `edit_magazine_ad_path`. Since the `ads` resource is nested below `magazines`, The ad URLs require a magazine. The helpers can take an instance of `Magazine` as the first parameter (`edit_magazine_ad_path(@magazine, @ad)`).
+This will also create the usual path and url routing helpers such as `magazine_ads_url` and `edit_magazine_ad_path`. Since the `ads` resource is nested below `magazines`, the ad URLs require a magazine. The helpers can take an instance of `Magazine` as the first parameter (`edit_magazine_ad_path(@magazine, @ad)`).
 
 #### Limits to Nesting
 
@@ -869,7 +869,7 @@ Rails.application.routes.draw do
 end
 ```
 
-Both the `matches?` method and the lambda gets the `request` object as an argument.
+Both the `matches?` method and the lambda get the `request` object as an argument.
 
 #### Constraints in a Block Form
 
@@ -1555,4 +1555,4 @@ NOTE: You can use the normal routing DSL inside a secondary routing file such as
 
 [`draw`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-draw
 
-NOTE: Don't use this feature unless you really need it. Having multiple routing files make it harder to discover routes in one place. For most applications - even those with a few hundred routes - it's easier for developers to have a single routing file. The Rails routing DSL already offers a way to break routes in an organized manner with `namespace` and `scope`.
+NOTE: Don't use this feature unless you really need it. Having multiple routing files makes it harder to discover routes in one place. For most applications - even those with a few hundred routes - it's easier for developers to have a single routing file. The Rails routing DSL already offers a way to break routes in an organized manner with `namespace` and `scope`.

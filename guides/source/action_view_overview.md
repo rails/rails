@@ -176,7 +176,7 @@ Builder templates are a more programmatic alternative to ERB. It's similar to
 An `XmlMarkup` object named `xml` is automatically made available to templates
 with a `.builder` extension.
 
-Here is a basic examples:
+Here is a basic example:
 
 ```ruby
 xml.em("emphasized")
@@ -629,7 +629,7 @@ end
 ```
 
 When the number of combinations is small, it's not really a problem, but if it's large it can waste
-a sizeable amount of memory and take a long time to compile. To counter act this you can use
+a sizeable amount of memory and take a long time to compile. To counteract this you can use
 strict locals to define the compiled partial signature, and ensure only a single version of the partial is compiled:
 
 ```html+erb
