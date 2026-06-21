@@ -365,14 +365,14 @@ module ActiveRecord
         def invert_add_unique_constraint(args)
           options = args.dup.extract_options!
 
-          raise ActiveRecord::IrreversibleMigration, "add_unique_constraint is not reversible if given an using_index." if options[:using_index]
+          raise ActiveRecord::IrreversibleMigration, "add_unique_constraint is not reversible if given a using_index." if options[:using_index]
           super
         end
 
         def invert_remove_unique_constraint(args)
           _table, columns = args.dup.tap(&:extract_options!)
 
-          raise ActiveRecord::IrreversibleMigration, "remove_unique_constraint is only reversible if given an column_name." if columns.blank?
+          raise ActiveRecord::IrreversibleMigration, "remove_unique_constraint is only reversible if given a column_name." if columns.blank?
           super
         end
 
