@@ -793,7 +793,7 @@ end
 Action Mailer Callbacks
 -----------------------
 
-Action Mailer allows for you to specify `*_action` callbacks to configure the message, and `*_deliver` callbacks to control the delivery.
+Action Mailer allows you to specify `*_action` callbacks to configure the message, and `*_deliver` callbacks to control the delivery.
 
 Here is a list with all the available Action Mailer callbacks, listed **in the order in which they will get called** when sending an email:
 
