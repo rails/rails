@@ -62,7 +62,9 @@ class BaseTest < ActionCable::TestCase
   end
 
   test "#restart shuts down worker pool" do
-    assert_called(@server.worker_pool, :halt) do
+    worker_pool = @server.send(:worker_pool)
+
+    assert_called(worker_pool, :halt) do
       @server.restart
     end
   end
@@ -87,6 +89,49 @@ class BaseTest < ActionCable::TestCase
   test "server configuration is available from ActionCable" do
     assert_same ActionCable::Configuration, ActionCable::Server::Configuration
     assert_instance_of ActionCable::Configuration, ActionCable::Server::Base.config
+  end
+
+  test "#perform_work dispatches work through the server" do
+    receiver = Class.new do
+      attr_reader :called_with
+
+      def call(value)
+        @called_with = value
+      end
+    end.new
+
+    @server.perform_work(Object.new, receiver, :call, "hello")
+
+    wait_for { receiver.called_with == "hello" }
+    assert_equal "hello", receiver.called_with
+  end
+
+  test "#post dispatches asynchronous work" do
+    called = false
+
+    @server.post { called = true }
+
+    wait_for { called }
+    assert called
+  end
+
+  test "#timer schedules recurring work" do
+    called = false
+    timer = @server.timer(0.01) { called = true }
+
+    wait_for { called }
+    assert called
+  ensure
+    timer&.shutdown
+  end
+
+  test "#schedule runs blocking work independently" do
+    called = false
+
+    @server.schedule { called = true }
+
+    wait_for { called }
+    assert called
   end
 
   test "ActionCable.server uses configured server class" do

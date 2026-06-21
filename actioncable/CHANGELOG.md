@@ -1,3 +1,13 @@
+*   Route Action Cable internal work scheduling through the server.
+
+    Servers now expose `#perform_work`, `#post`, `#timer`, and `#schedule`
+    as the scheduling surface used by sockets, channels, and subscription
+    adapters. The default server keeps the existing threaded behavior, while
+    alternative server implementations can own work dispatch without exposing
+    the default server's executor or worker pool internals.
+
+    *Samuel Williams*
+
 *   Allow configuring the Action Cable server implementation.
 
     `config.action_cable.server_class` can now be set to a server class. The

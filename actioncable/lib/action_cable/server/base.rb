@@ -107,34 +107,28 @@ module ActionCable
         @event_loop || @mutex.synchronize { @event_loop ||= StreamEventLoop.new }
       end
 
-      # The worker pool is where we run connection callbacks and channel actions. We
-      # do as little as possible on the server's main thread. The worker pool is an
-      # executor service that's backed by a pool of threads working from a task queue.
-      # The thread pool size maxes out at 4 worker threads by default. Tune the size
-      # yourself with `config.action_cable.worker_pool_size`.
-      #
-      # Using Active Record, Redis, etc within your channel actions means you'll get a
-      # separate connection from each thread in the worker pool. Plan your deployment
-      # accordingly: 5 servers each running 5 Puma workers each running an 8-thread
-      # worker pool means at least 200 database connections.
-      #
-      # Also, ensure that your database connection pool size is as least as large as
-      # your worker pool size. Otherwise, workers may oversubscribe the database
-      # connection pool and block while they wait for other workers to release their
-      # connections. Use a smaller worker pool or a larger database connection pool
-      # instead.
-      def worker_pool
-        @worker_pool || @mutex.synchronize { @worker_pool ||= ActionCable::Server::Worker.new(max_size: config.worker_pool_size) }
+      def perform_work(connection, receiver, method, *args, &block)
+        worker_pool.async_invoke(receiver, method, *args, connection: connection, &block)
       end
 
-      # Executor is used by various actions within Action Cable (e.g., pub/sub operations) to run code asynchronously.
-      def executor
-        @executor || @mutex.synchronize { @executor ||= ThreadedExecutor.new(max_size: config.executor_pool_size, name: "streamer") }
+      def post(task = nil, &block)
+        executor.post(task, &block)
+      end
+
+      def timer(interval, &block)
+        executor.timer(interval, &block)
+      end
+
+      def schedule(&block)
+        Thread.new do
+          Thread.current.abort_on_exception = true
+          block.call
+        end
       end
 
       # Adapter used for all streams/broadcasting.
       def pubsub
-        @pubsub || (executor && @mutex.synchronize { @pubsub ||= config.pubsub_adapter.new(self) })
+        @pubsub || @mutex.synchronize { @pubsub ||= config.pubsub_adapter.new(self) }
       end
 
       # All of the identifiers applied to the connection class associated with this
@@ -165,6 +159,32 @@ module ActionCable
           false
         end
       end
+
+      private
+        # The worker pool is where we run connection callbacks and channel actions. We
+        # do as little as possible on the server's main thread. The worker pool is an
+        # executor service that's backed by a pool of threads working from a task queue.
+        # The thread pool size maxes out at 4 worker threads by default. Tune the size
+        # yourself with `config.action_cable.worker_pool_size`.
+        #
+        # Using Active Record, Redis, etc within your channel actions means you'll get a
+        # separate connection from each thread in the worker pool. Plan your deployment
+        # accordingly: 5 servers each running 5 Puma workers each running an 8-thread
+        # worker pool means at least 200 database connections.
+        #
+        # Also, ensure that your database connection pool size is as least as large as
+        # your worker pool size. Otherwise, workers may oversubscribe the database
+        # connection pool and block while they wait for other workers to release their
+        # connections. Use a smaller worker pool or a larger database connection pool
+        # instead.
+        def worker_pool
+          @worker_pool || @mutex.synchronize { @worker_pool ||= ActionCable::Server::Worker.new(max_size: config.worker_pool_size) }
+        end
+
+        # Executor is used by various actions within Action Cable (e.g., pub/sub operations) to run code asynchronously.
+        def executor
+          @executor || @mutex.synchronize { @executor ||= ThreadedExecutor.new(max_size: config.executor_pool_size, name: "streamer") }
+        end
     end
 
     ActiveSupport.run_load_hooks(:action_cable, Base.config)
