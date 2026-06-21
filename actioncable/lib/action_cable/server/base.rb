@@ -8,6 +8,10 @@ module ActionCable
   module Server
     # A wrapper over ConcurrentRuby::ThreadPoolExecutor and Concurrent::TimerTask
     class ThreadedExecutor # :nodoc:
+      def self.call(server)
+        new(max_size: server.config.executor_pool_size, name: "streamer")
+      end
+
       def initialize(max_size: 10, name: "server")
         @executor = Concurrent::ThreadPoolExecutor.new(
           name: "ActionCable-#{name}",
@@ -129,7 +133,7 @@ module ActionCable
 
       # Executor is used by various actions within Action Cable (e.g., pub/sub operations) to run code asynchronously.
       def executor
-        @executor || @mutex.synchronize { @executor ||= ThreadedExecutor.new(max_size: config.executor_pool_size, name: "streamer") }
+        @executor || @mutex.synchronize { @executor ||= config.executor.call(self) }
       end
 
       # Adapter used for all streams/broadcasting.

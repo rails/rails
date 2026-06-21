@@ -6,12 +6,27 @@ require "active_support/core_ext/hash/indifferent_access"
 
 class BaseTest < ActionCable::TestCase
   def setup
-    @server = ActionCable::Server::Base.new
+    @server = ActionCable::Server::Base.new(config: ActionCable::Server::Configuration.new)
     @server.config.cable = { adapter: "async" }.with_indifferent_access
   end
 
   class FakeConnection
     def close
+    end
+  end
+
+  class CustomExecutor
+    attr_reader :server
+
+    def self.call(server)
+      new(server)
+    end
+
+    def initialize(server)
+      @server = server
+    end
+
+    def shutdown
     end
   end
 
@@ -63,6 +78,23 @@ class BaseTest < ActionCable::TestCase
 
   test "#restart shuts down worker pool" do
     assert_called(@server.worker_pool, :halt) do
+      @server.restart
+    end
+  end
+
+  test "#executor uses the configured executor factory" do
+    @server.config.executor = CustomExecutor
+
+    assert_instance_of CustomExecutor, @server.executor
+    assert_same @server, @server.executor.server
+  end
+
+  test "#executor uses ThreadedExecutor by default" do
+    assert_instance_of ActionCable::Server::ThreadedExecutor, @server.executor
+  end
+
+  test "#restart shuts down executor" do
+    assert_called(@server.executor, :shutdown) do
       @server.restart
     end
   end

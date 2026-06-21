@@ -1,3 +1,12 @@
+*   Add `config.action_cable.executor` for configuring the Action Cable executor.
+
+    The configured object is called with the server instance and must return an
+    executor responding to `#post`, `#timer`, and `#shutdown`. This allows
+    applications and adapters to provide executor implementations that match
+    their concurrency model.
+
+    *Samuel Williams*
+
 *   Respect calls to `#reject` in `before_subscribe` callbacks.
 
     It doesn't call `#subscribed` if a `before_subscribe` callback calls `#reject`.
