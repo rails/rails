@@ -13,7 +13,7 @@ After reading this guide, you will know:
 * How to use variants to transform images.
 * How to generate an image representation of a non-image file (e.g. PDF).
 * How to send file uploads directly from browsers to a storage service.
-* How to setup cloud storage services to work with Active Storage.
+* How to set up cloud storage services to work with Active Storage.
 
 --------------------------------------------------------------------------------
 
@@ -118,7 +118,7 @@ config.active_storage.service = :local
 ```
 
 The `config/storage.yml` file is also where cloud services can be configured.
-For example, assuming there is a serviced called `amazon` in the
+For example, assuming there is a service called `amazon` in the
 `config/storage.yml` file, in order to use that service in production:
 
 ```yml
@@ -348,7 +348,7 @@ https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-signed_id
 ### Attaching Files From Disk
 
 Active Storage allows you to attach files that are not uploaded via a form. In
-order to attach a file that you generated on disk or downloaded from an URL, you
+order to attach a file that you generated on disk or downloaded from a URL, you
 can use the `io` and `filename` options with the `attach` method. You may also
 use this method to attach fixture files during testing.
 
@@ -893,7 +893,7 @@ end
 NOTE: Since [Direct uploads](#direct-uploads) bypass the server, files aren't
 locally available for analysis. In this case, `:immediately` falls back to
 `:later`, analyzing via background job after upload completes. So model
-validations using metadata isn't possible. You can validate on the client side
+validations using metadata aren't possible. You can validate on the client side
 using JavaScript instead.
 
 [`metadata`][]:
