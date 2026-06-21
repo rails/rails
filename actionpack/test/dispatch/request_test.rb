@@ -63,6 +63,16 @@ class RequestUrlFor < BaseRequestTest
     assert_equal "http://www.example.com?params=1", url_for(params: 1)
   end
 
+  test "url_for does not mutate the passed params hash" do
+    params = { a: 1, b: nil }
+    assert_equal "http://www.example.com?a=1", url_for(params: params)
+    assert_equal({ a: 1, b: nil }, params)
+  end
+
+  test "url_for accepts a frozen params hash" do
+    assert_equal "/x?a=1", url_for(only_path: true, path: "/x", params: { a: 1, b: nil }.freeze)
+  end
+
   test "url_for keeps query params and anchor with a trailing slash and a blank path" do
     assert_equal "http://www.example.com/?search=books", url_for(trailing_slash: true, params: { search: "books" })
     assert_equal "http://www.example.com/#signup", url_for(trailing_slash: true, anchor: "signup")
