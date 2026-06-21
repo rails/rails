@@ -390,7 +390,7 @@ The unique request id can be used to trace a request end-to-end and would typica
 
 [`ActiveRecord::Migration::CheckPending`][] checks pending migrations and raises `ActiveRecord::PendingMigrationError` if any migrations are pending if [`config.action_dispatch.x_sendfile_header`][] is set to `:page_load`.
 
-[`config.action_dispatch.x_sendfile_header`]: configuring.html#config-action-record-migration-error
+[`config.action_dispatch.x_sendfile_header`]: configuring.html#config-action-dispatch-x-sendfile-header
 
 [`ActiveRecord::Migration::CheckPending`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration/CheckPending.html
 
@@ -414,7 +414,7 @@ The unique request id can be used to trace a request end-to-end and would typica
 
 #### `Rack::ETag`
 
-[`Rack::ETag`][] adds an `ETag` header on all String bodies. ETags are used to validate the cache to facilitate "Conditional `GET`" requests as described above. See the [Caching with Rails](caching_with_rails.html#conditional-get-support) for further information.
+[`Rack::ETag`][] adds an `ETag` header on all String bodies. ETags are used to validate the cache to facilitate "Conditional `GET`" requests as described above. See the [Caching with Rails](caching_with_rails.html#conditional-gets) for further information.
 
 [`Rack::ETag`]: https://rack.github.io/rack/3.2/Rack/ETag.html
 
