@@ -26,6 +26,16 @@ class ActionableErrorTest < ActiveSupport::TestCase
     assert_equal ["Flip 1", "Flip 2"], ActiveSupport::ActionableError.actions(DispatchableError.new).keys
   end
 
+  test "subclass actions are not leaked to the parent or sibling subclasses" do
+    base = Class.new(StandardError) { include ActiveSupport::ActionableError }
+    sub_a = Class.new(base) { action("A") { } }
+    sub_b = Class.new(base) { action("B") { } }
+
+    assert_equal [], ActiveSupport::ActionableError.actions(base).keys
+    assert_equal ["A"], ActiveSupport::ActionableError.actions(sub_a).keys
+    assert_equal ["B"], ActiveSupport::ActionableError.actions(sub_b).keys
+  end
+
   test "returns no actions for non-actionable errors" do
     assert_predicate ActiveSupport::ActionableError.actions(Exception), :empty?
     assert_predicate ActiveSupport::ActionableError.actions(Exception.new), :empty?
