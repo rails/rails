@@ -193,7 +193,7 @@ module ActiveRecord
   self.lazily_load_schema_cache = false
 
   ##
-  # :singlton-method: protected_environments
+  # :singleton-method: protected_environments
   # The array of names of environments where destructive actions should be
   # prohibited. By default, the value is <tt>["production"]</tt>.
   singleton_class.attr_reader :protected_environments
