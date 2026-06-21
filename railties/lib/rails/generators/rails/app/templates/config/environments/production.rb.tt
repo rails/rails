@@ -9,7 +9,7 @@ Rails.application.configure do
   # Eager load code on boot for better performance and memory savings.
   config.eager_load = true
 
-  # In Rake tasks, the previous assigment is ignored, config.eager_load is set
+  # In Rake tasks, the previous assignment is ignored, config.eager_load is set
   # from config.rake_eager_load.
   config.rake_eager_load = false
 

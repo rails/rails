@@ -15,7 +15,7 @@ Rails.application.configure do
   # loading is working properly before deploying your code.
   config.eager_load = ENV["CI"].present?
 
-  # In Rake tasks, the previous assigment is ignored, config.eager_load is set
+  # In Rake tasks, the previous assignment is ignored, config.eager_load is set
   # from config.rake_eager_load.
   config.rake_eager_load = ENV["CI"].present?
 
