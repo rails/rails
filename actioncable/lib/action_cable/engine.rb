@@ -11,6 +11,7 @@ module ActionCable
     config.action_cable = ActiveSupport::OrderedOptions.new
     config.action_cable.mount_path = ActionCable::INTERNAL[:default_mount_path]
     config.action_cable.precompile_assets = true
+    config.action_cable.server = ActionCable::Server::Base
 
     guard_load_hooks(
       :action_cable_channel, :action_cable_connection,

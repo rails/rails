@@ -8,10 +8,11 @@ module ActionCable
   # # Action Cable Configuration
   #
   # An instance of this configuration object is available via
-  # ActionCable.server.config, which allows you to tweak Action Cable
-  # configuration in a Rails config initializer.
+  # ActionCable.config and ActionCable.server.config, which allows you to tweak
+  # Action Cable configuration in a Rails config initializer.
   class Configuration
     attr_accessor :logger, :log_tags
+    attr_accessor :server
     attr_accessor :connection_class, :worker_pool_size, :executor_pool_size
     attr_accessor :disable_request_forgery_protection, :allowed_request_origins, :allow_same_origin_as_host, :filter_parameters
     attr_accessor :cable, :url, :mount_path
@@ -22,6 +23,7 @@ module ActionCable
     def initialize
       @log_tags = []
 
+      @server = -> { ActionCable::Server::Base.new(config: self) }
       @connection_class = -> { ActionCable::Connection::Base }
       @worker_pool_size = 4
       @executor_pool_size = 10

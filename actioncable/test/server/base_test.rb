@@ -88,4 +88,46 @@ class BaseTest < ActionCable::TestCase
     assert_same ActionCable::Configuration, ActionCable::Server::Configuration
     assert_instance_of ActionCable::Configuration, ActionCable::Server::Base.config
   end
+
+  test "ActionCable.server uses configured server factory class" do
+    server_class = Class.new do
+      attr_reader :config
+
+      def initialize
+        @config = ActionCable::Server::Base.config
+      end
+    end
+
+    with_server_factory(server_class) do
+      assert_instance_of server_class, ActionCable.server
+      assert_same ActionCable::Server::Base.config, ActionCable.server.config
+    end
+  end
+
+  test "ActionCable.server uses configured server factory" do
+    server = Object.new
+
+    with_server_factory(-> { server }) do
+      assert_same server, ActionCable.server
+    end
+  end
+
+  private
+    def with_server_factory(factory)
+      previous_factory = ActionCable.config.server
+      previous_server = ActionCable.instance_variable_get(:@server) if ActionCable.instance_variable_defined?(:@server)
+
+      ActionCable.remove_instance_variable(:@server) if ActionCable.instance_variable_defined?(:@server)
+      ActionCable.config.server = factory
+
+      yield
+    ensure
+      ActionCable.config.server = previous_factory
+
+      if defined?(previous_server)
+        ActionCable.instance_variable_set(:@server, previous_server)
+      elsif ActionCable.instance_variable_defined?(:@server)
+        ActionCable.remove_instance_variable(:@server)
+      end
+    end
 end

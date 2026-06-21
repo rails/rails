@@ -1,3 +1,12 @@
+*   Allow configuring the Action Cable server implementation.
+
+    `config.action_cable.server` can now be set to a server class or factory.
+    The configured server remains the `ActionCable.server` singleton and Rack
+    endpoint, allowing alternative server implementations to provide the Action
+    Cable runtime boundary without configuring internals of the default server.
+
+    *Samuel Williams*
+
 *   Move `ActionCable::Server::Configuration` to `ActionCable::Configuration`.
 
     The old constant remains available as an alias.
