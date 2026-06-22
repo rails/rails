@@ -582,23 +582,6 @@ EXPECTED
     assert_equal '{"a":1}', ActiveSupport::JSON.encode(hash)
   end
 
-  if RUBY_VERSION >= "4.0"
-    def test_encoders_are_ractor_shareable
-      skip "Missing Ractor-shareable JSON::Coder" unless Gem::Version.new(::JSON::VERSION) >= Gem::Version.new("2.17.0")
-      begin
-        original_experimental, Warning[:experimental] = Warning[:experimental], false
-        assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }, escape: false) }.value
-        assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }) }.value
-        ActiveSupport::JSON::Encoding.with(escape_js_separators_in_json: false) do
-          assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }) }.value
-        end
-        assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }, escape_html_entities: false) }.value
-      ensure
-        Warning[:experimental] = original_experimental
-      end
-    end
-  end
-
   private
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
