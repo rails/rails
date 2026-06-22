@@ -228,10 +228,11 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 
   def test_primary_key_inherited
     k = Class.new(ActiveRecord::Base)
-    subclass = Class.new(k)
     k.primary_key = "foo"
-    assert_equal "foo", k.primary_key
-    assert_equal "foo", subclass.primary_key
+    subclass = Class.new(k)
+
+    assert_equal "foo", k._primary_key_definition&.name
+    assert_equal "foo", subclass._primary_key_definition&.name
   end
 
   def test_auto_detect_primary_key_from_schema

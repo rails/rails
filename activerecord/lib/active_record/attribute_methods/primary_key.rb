@@ -6,6 +6,10 @@ module ActiveRecord
     module PrimaryKey
       extend ActiveSupport::Concern
 
+      included do
+        class_attribute :_primary_key_definition, instance_accessor: false
+      end
+
       # Returns this record's primary key value wrapped in an array if one is
       # available.
       def to_key
@@ -131,7 +135,6 @@ module ActiveRecord
             def inherited(base)
               super
               base.class_eval do
-                class_attribute :_primary_key_definition, instance_accessor: false
                 @attributes_builder = nil
               end
             end
