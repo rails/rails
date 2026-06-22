@@ -61,22 +61,22 @@ module ActiveSupport
       U2029 = -"\u2029".b
 
       ESCAPED_CHARS = {
-        U2028 => -'\u2028'.b,
-        U2029 => -'\u2029'.b,
-        ">".b => -'\u003e'.b,
-        "<".b => -'\u003c'.b,
-        "&".b => -'\u0026'.b,
+        U2028 => '\u2028'.b,
+        U2029 => '\u2029'.b,
+        ">".b => '\u003e'.b,
+        "<".b => '\u003c'.b,
+        "&".b => '\u0026'.b,
       }.freeze
 
-      HTML_ENTITIES_REGEX = Regexp.union(*(ESCAPED_CHARS.keys - [U2028, U2029])).freeze
-      FULL_ESCAPE_REGEX = Regexp.union(*ESCAPED_CHARS.keys).freeze
-      JS_SEPARATORS_REGEX = Regexp.union(U2028, U2029).freeze
+      HTML_ENTITIES_REGEX = Regexp.union(*(ESCAPED_CHARS.keys - [U2028, U2029]))
+      FULL_ESCAPE_REGEX = Regexp.union(*ESCAPED_CHARS.keys)
+      JS_SEPARATORS_REGEX = Regexp.union(U2028, U2029)
 
       class JSONGemEncoder # :nodoc:
         attr_reader :options
 
         def initialize(options = nil)
-          @options = options.dup.freeze || {}.freeze
+          @options = options || {}
         end
 
         # Encode the given object into a JSON string
@@ -149,7 +149,7 @@ module ActiveSupport
       if defined?(::JSON::Coder) && Gem::Version.new(::JSON::VERSION) >= Gem::Version.new("2.15.2")
         class JSONGemCoderEncoder # :nodoc:
           JSON_NATIVE_TYPES = [Hash, Array, Float, String, Symbol, Integer, NilClass, TrueClass, FalseClass, ::JSON::Fragment].freeze
-          CODER = ::JSON::Coder.new(&ActiveSupport::Ractors.shareable_proc { |value, is_key|
+          CODER = ::JSON::Coder.new do |value, is_key|
             # Serialize non-String/Symbol keys via #to_s based on the key's own type,
             # mirroring the legacy `jsonify` encoder. (#as_json is intentionally not
             # consulted here: Time#as_json returns an ISO8601 String, yet the key must
@@ -177,7 +177,8 @@ module ActiveSupport
               count -= 1
             end
             json_value
-          }).freeze
+          end
+
 
           def initialize(options = nil)
             if options
@@ -239,8 +240,8 @@ module ActiveSupport
 
         def json_encoder=(encoder)
           @json_encoder = encoder
-          @encoder_without_options = encoder.new.freeze
-          @encoder_without_escape = encoder.new(escape: false).freeze
+          @encoder_without_options = encoder.new
+          @encoder_without_escape = encoder.new(escape: false)
         end
 
         def encode_without_options(value) # :nodoc:
