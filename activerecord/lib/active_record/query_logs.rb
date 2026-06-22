@@ -204,7 +204,7 @@ module ActiveRecord
         LogSubscriber.backtrace_cleaner.first_clean_frame
       end
 
-      ActiveSupport::ExecutionContext.after_change { ActiveRecord::QueryLogs.clear_cache }
+      ActiveSupport::ExecutionContext.after_change(&ActiveSupport::Ractors.shareable_proc { ActiveRecord::QueryLogs.clear_cache })
 
       private
         def formatter_for(format)
