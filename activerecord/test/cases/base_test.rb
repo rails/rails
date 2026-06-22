@@ -200,6 +200,12 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_invalid_offset
+    assert_raises(ArgumentError) do
+      Topic.offset("asdfadf")
+    end
+  end
+
   def test_limit_should_sanitize_sql_injection_for_limit_without_commas
     assert_raises(ArgumentError) do
       Topic.limit("1 select * from schema")
