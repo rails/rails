@@ -33,7 +33,7 @@ require "models/tree"
 require "models/node"
 require "models/club"
 require "models/cpk"
-require "models/person" # not used by this suite as of this writing, it is a workaround for https://github.com/rails/rails/issues/55133
+require "models/person"
 require "models/car"
 require "models/sharded/blog"
 require "models/sharded/blog_post"
@@ -2109,5 +2109,30 @@ class DeprecatedBelongsToAssociationsTest < ActiveRecord::TestCase
       @bulb.destroy
     end
     assert_predicate @car, :destroyed?
+  end
+end
+
+class BelongsToPolymorphicInversePrimaryKeyTest < ActiveRecord::TestCase
+  def test_polymorphic_with_different_primary_keys_per_type
+    author = Author.create!(name: "Author", author_code: "org_#{SecureRandom.hex(8)}")
+    person = Person.create!(first_name: "Person", external_id: "ext_#{SecureRandom.hex(8)}")
+
+    author_comment = PolymorphicComment.new(body: "Author comment", post_id: 1)
+    author_comment.person = author
+
+    person_comment = PolymorphicComment.new(body: "Person comment", post_id: 1)
+    person_comment.person = person
+
+    assert_equal author.author_code, author_comment.person_id
+    assert_equal person.external_id, person_comment.person_id
+
+    assert_equal "Author", author_comment.person_type
+    assert_equal "Person", person_comment.person_type
+
+    author_comment.save!
+    person_comment.save!
+
+    assert_equal author, author_comment.reload.person
+    assert_equal person, person_comment.reload.person
   end
 end

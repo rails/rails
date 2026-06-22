@@ -1,3 +1,37 @@
+*   Support polymorphic associations with custom primary keys through `:inverse_of`.
+
+    When using polymorphic associations with `:inverse_of`, ActiveRecord now respects
+    custom `:primary_key` options defined on the inverse association. This allows
+    different associated models to use different primary key columns.
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      has_many :comments, as: :commentable, primary_key: :uuid
+    end
+
+    class Article < ActiveRecord::Base
+      has_many :comments, as: :commentable, primary_key: :slug
+    end
+
+    class Comment < ActiveRecord::Base
+      belongs_to :commentable, polymorphic: true, inverse_of: :comments
+    end
+
+    post = Post.create!(uuid: "post-uuid-123")
+    comment = Comment.new(content: "Great post!")
+    comment.commentable = post  # This now correctly uses :uuid as the foreign key
+    comment.save!
+    comment.commentable_id # => "post-uuid-123" (not the post.id)
+
+    article = Article.create!(slug: "article-slug-456")
+    comment = Comment.new(content: "Nice article!")
+    comment.commentable = article  # This now correctly uses :slug as the foreign key
+    comment.save!
+    comment.commentable_id # => "article-slug-456" (not the article.id)
+    ```
+
+    *Ryuta Kamizono*
+
 *   Make `ActiveRecord::Base.primary_key` inheritable.
 
     Previously setting `primary_key` on a model wouldn't impact child

@@ -90,6 +90,7 @@ ActiveRecord::Schema.define do
     t.string :name, null: false
     t.references :author_address
     t.references :author_address_extra
+    t.string :author_code
     t.string :organization_id
     t.string :owned_essay_id
     t.integer :published_author_id
@@ -401,6 +402,8 @@ ActiveRecord::Schema.define do
     t.integer :children_count, default: 0
     t.integer :parent_id
     t.references :author, polymorphic: true
+    t.string :person_id
+    t.string :person_type
     # The type of the attribute is a string to make sure preload work when types don't match.
     # See #14855.
     t.string :resource_id
@@ -965,6 +968,7 @@ ActiveRecord::Schema.define do
     t.integer    :friends_too_count, default: 0
     t.references :best_friend
     t.references :best_friend_of
+    t.string     :external_id
     t.integer    :insures, null: false, default: 0
     t.timestamp :born_at
     t.integer :cars_count, default: 0

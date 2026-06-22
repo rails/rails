@@ -482,7 +482,7 @@ module ActiveRecord
         if autosave && record.marked_for_destruction?
           record.destroy
         elsif autosave != false
-          primary_key = Array(compute_primary_key(reflection, self)).map(&:to_s)
+          primary_key = Array(reflection.active_record_primary_key).map(&:to_s)
           primary_key_value = primary_key.map { |key| _read_attribute(key) }
           return unless (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, primary_key_value)
 
@@ -557,7 +557,7 @@ module ActiveRecord
             end
 
             if association.updated?
-              primary_key = Array(compute_primary_key(reflection, record)).map(&:to_s)
+              primary_key = Array(reflection.association_primary_key(record.class)).map(&:to_s)
               foreign_key = Array(reflection.foreign_key)
 
               primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
@@ -570,18 +570,6 @@ module ActiveRecord
 
             saved if autosave
           end
-        end
-      end
-
-      def compute_primary_key(reflection, record)
-        if primary_key_options = reflection.options[:primary_key]
-          primary_key_options
-        elsif reflection.options[:query_constraints] && (query_constraints = record.class.query_constraints_list)
-          query_constraints
-        elsif record.class.has_query_constraints? && !reflection.options[:foreign_key]
-          record.class.query_constraints_list
-        else
-          record.class.primary_key_definition.inferred_id || record.class.primary_key
         end
       end
 
