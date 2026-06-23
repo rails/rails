@@ -120,6 +120,22 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated(/:bomb:/, @deprecator) { deprecated_object.to_s }
   end
 
+  test "DeprecatedObjectProxy can set the target afterwards" do
+    list = []
+    deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(list, ":bomb:", @deprecator)
+
+    list = [1]
+    assert_deprecated(/:bomb:/, @deprecator) do
+      assert_not_includes(deprecated_object, 1)
+    end
+
+    deprecated_object.target = list
+
+    assert_deprecated(/:bomb:/, @deprecator) do
+      assert_includes(deprecated_object, 1)
+    end
+  end
+
   test "DeprecatedObjectProxy requires a deprecator" do
     assert_raises(ArgumentError) do
       ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ":bomb:")
