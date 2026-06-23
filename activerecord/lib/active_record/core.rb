@@ -11,6 +11,8 @@ module ActiveRecord
     include ActiveModel::Access
 
     included do
+      @arel_table = Arel::Table.new(klass: self)
+
       ##
       # :singleton-method:
       #
@@ -400,7 +402,7 @@ module ActiveRecord
 
       # Returns an instance of +Arel::Table+ loaded with the current table name.
       def arel_table # :nodoc:
-        @arel_table ||= Arel::Table.new(table_name, klass: self)
+        @arel_table
       end
 
       def predicate_builder # :nodoc:
@@ -431,7 +433,7 @@ module ActiveRecord
           end
 
           subclass.class_eval do
-            @arel_table = nil
+            @arel_table = Arel::Table.new(klass: self)
             @predicate_builder = nil
             @inspection_filter = nil
             @filter_attributes ||= nil
