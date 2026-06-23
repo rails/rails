@@ -29,7 +29,7 @@ module Arel
         end
 
         def ast_with_binds(bvs)
-          table = Table.new(:users)
+          table = Table.new(name: :users)
           manager = Arel::SelectManager.new table
           manager.where(table[:age].eq(Nodes::BindParam.new(bvs.shift)))
           manager.where(table[:name].eq(Nodes::BindParam.new(bvs.shift)))

@@ -23,7 +23,7 @@ module Arel
 
       test "should escape LIMIT" do
         sc = Arel::Nodes::UpdateStatement.new
-        sc.relation = Table.new(:users)
+        sc.relation = Table.new(name: :users)
         sc.limit = Nodes::Limit.new(Nodes.build_quoted("omg"))
         assert_equal "UPDATE \"users\" LIMIT 'omg'", compile(sc)
       end
@@ -45,7 +45,7 @@ module Arel
       end
 
       test "concat concats columns" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         query = table[:name].concat(table[:name])
         assert_like %{
           CONCAT("users"."name", "users"."name")
@@ -53,7 +53,7 @@ module Arel
       end
 
       test "concat concats a string" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         query = table[:name].concat(Nodes.build_quoted("abc"))
         assert_like %{
           CONCAT("users"."name", 'abc')
@@ -61,42 +61,42 @@ module Arel
       end
 
       test "Nodes::IsNotDistinctFrom should construct a valid generic SQL statement" do
-        node = Table.new(:users)[:name].is_not_distinct_from "Aaron Patterson"
+        node = Table.new(name: :users)[:name].is_not_distinct_from "Aaron Patterson"
         assert_like %{
           "users"."name" <=> 'Aaron Patterson'
         }, compile(node)
       end
 
       test "Nodes::IsNotDistinctFrom should handle column names on both sides" do
-        node = Table.new(:users)[:first_name].is_not_distinct_from Table.new(:users)[:last_name]
+        node = Table.new(name: :users)[:first_name].is_not_distinct_from Table.new(name: :users)[:last_name]
         assert_like %{
           "users"."first_name" <=> "users"."last_name"
         }, compile(node)
       end
 
       test "Nodes::IsNotDistinctFrom should handle nil" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         value = Nodes.build_quoted(nil, table[:active])
         sql = compile Nodes::IsNotDistinctFrom.new(table[:name], value)
         assert_like %{ "users"."name" <=> NULL }, sql
       end
 
       test "Nodes::IsDistinctFrom should handle column names on both sides" do
-        node = Table.new(:users)[:first_name].is_distinct_from Table.new(:users)[:last_name]
+        node = Table.new(name: :users)[:first_name].is_distinct_from Table.new(name: :users)[:last_name]
         assert_like %{
           NOT "users"."first_name" <=> "users"."last_name"
         }, compile(node)
       end
 
       test "Nodes::IsDistinctFrom should handle nil" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         value = Nodes.build_quoted(nil, table[:active])
         sql = compile Nodes::IsDistinctFrom.new(table[:name], value)
         assert_like %{ NOT "users"."name" <=> NULL }, sql
       end
 
       test "Nodes::Regexp should know how to visit" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         node = table[:name].matches_regexp("foo.*")
         assert_kind_of Nodes::Regexp, node
         assert_like %{
@@ -105,7 +105,7 @@ module Arel
       end
 
       test "Nodes::Regexp can handle subqueries" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         attr = table[:id]
         subquery = table.project(:id).where(table[:name].matches_regexp("foo.*"))
         node = attr.in subquery
@@ -115,7 +115,7 @@ module Arel
       end
 
       test "Nodes::NotRegexp should know how to visit" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         node = table[:name].does_not_match_regexp("foo.*")
         assert_kind_of Nodes::NotRegexp, node
         assert_like %{
@@ -124,7 +124,7 @@ module Arel
       end
 
       test "Nodes::NotRegexp can handle subqueries" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         attr = table[:id]
         subquery = table.project(:id).where(table[:name].does_not_match_regexp("foo.*"))
         node = attr.in subquery
@@ -134,35 +134,35 @@ module Arel
       end
 
       test "Nodes::Ordering should handle nulls first" do
-        node = Table.new(:users)[:first_name].asc.nulls_first
+        node = Table.new(name: :users)[:first_name].asc.nulls_first
         assert_like %{
           "users"."first_name" IS NOT NULL, "users"."first_name" ASC
         }, compile(node)
       end
 
       test "Nodes::Ordering should handle nulls last" do
-        node = Table.new(:users)[:first_name].asc.nulls_last
+        node = Table.new(name: :users)[:first_name].asc.nulls_last
         assert_like %{
           "users"."first_name" IS NULL, "users"."first_name" ASC
         }, compile(node)
       end
 
       test "Nodes::Ordering should handle nulls first reversed" do
-        node = Table.new(:users)[:first_name].asc.nulls_first.reverse
+        node = Table.new(name: :users)[:first_name].asc.nulls_first.reverse
         assert_like %{
           "users"."first_name" IS NULL, "users"."first_name" DESC
         }, compile(node)
       end
 
       test "Nodes::Ordering should handle nulls last reversed" do
-        node = Table.new(:users)[:first_name].asc.nulls_last.reverse
+        node = Table.new(name: :users)[:first_name].asc.nulls_last.reverse
         assert_like %{
           "users"."first_name" IS NOT NULL, "users"."first_name" DESC
         }, compile(node)
       end
 
       test "Nodes::Cte ignores MATERIALIZED modifiers" do
-        cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star), materialized: true)
+        cte = Nodes::Cte.new("foo", Table.new(name: :bar).project(Arel.star), materialized: true)
 
         assert_like %{
           "foo" AS (SELECT * FROM "bar")
@@ -170,7 +170,7 @@ module Arel
       end
 
       test "Nodes::Cte ignores NOT MATERIALIZED modifiers" do
-        cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star), materialized: false)
+        cte = Nodes::Cte.new("foo", Table.new(name: :bar).project(Arel.star), materialized: false)
 
         assert_like %{
           "foo" AS (SELECT * FROM "bar")

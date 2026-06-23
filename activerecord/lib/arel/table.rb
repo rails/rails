@@ -11,7 +11,7 @@ module Arel # :nodoc: all
     attr_writer :name
     attr_reader :table_alias, :klass
 
-    def initialize(name = nil, as: nil, klass: nil, type_caster: klass&.type_caster)
+    def initialize(name: nil, as: nil, klass: nil, type_caster: klass&.type_caster)
       raise ArgumentError, "A name or klass is required." unless klass || name
       name = name.name if name.is_a?(Symbol)
 
