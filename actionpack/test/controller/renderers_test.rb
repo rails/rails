@@ -117,4 +117,14 @@ class RenderersTest < ActionController::TestCase
     assert_equal Mime[:svg], @response.media_type
     assert_equal "<svg><circle cx=\"50\" cy=\"50\" r=\"40\"/></svg>", @response.body
   end
+
+  test "accessing the RENDERERS constant is deprecated" do
+    ActionController::Renderers.add(:foo) { }
+
+    assert_deprecated(/ActionController::Renderers::RENDERERS is deprecated/, ActionController.deprecator) do
+      assert_includes(ActionController::Renderers::RENDERERS, :foo)
+    end
+  ensure
+    ActionController::Renderers.remove(:foo)
+  end
 end

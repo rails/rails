@@ -2,6 +2,8 @@
 
 # :markup: markdown
 
+require "active_support/deprecation"
+
 module ActionController
   # See Renderers.add
   def self.add_renderer(key, &block)
@@ -23,9 +25,22 @@ module ActionController
   module Renderers
     extend ActiveSupport::Concern
 
-    # A Set containing renderer names that correspond to available renderer procs.
-    # Default values are `:json`, `:js`, `:xml`.
-    RENDERERS = Set.new
+    class << self
+      # Returns a Set of renderers name. By default, Action Controller adds the
+      # `json`, `js`, `xml`, `markdown` and `svg` renderers.
+      #
+      # You can use `ActionController::Renderers.all` to see what renderers exists for an application.
+      attr_reader :all # :doc:
+    end
+
+    @all = Set.new.freeze
+    RENDERERS = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(
+      @all,
+      "ActionController::Renderers::RENDERERS is deprecated. Use ActionController.add_renderer, or ActionController.remove_renderer " \
+        "to add or remove renderers. If you need to check which renderers exists for an application, you can instead use " \
+        "ActionController::Renderers.all",
+      ActionController.deprecator,
+    )
 
     module DeprecatedEscapeJsonResponses # :nodoc:
       def escape_json_responses=(value)
@@ -87,7 +102,7 @@ module ActionController
     #     end
     def self.add(key, &block)
       define_method(_render_with_renderer_method_name(key), &block)
-      RENDERERS << key.to_sym
+      @all << key.to_sym
     end
 
     # This method is the opposite of add method.
@@ -96,7 +111,7 @@ module ActionController
     #
     #     ActionController::Renderers.remove(:csv)
     def self.remove(key)
-      RENDERERS.delete(key.to_sym)
+      @all.delete(key.to_sym)
       method_name = _render_with_renderer_method_name(key)
       remove_possible_method(method_name)
     end
@@ -114,7 +129,7 @@ module ActionController
       #
       # Both ActionController::Base and ActionController::API include
       # ActionController::Renderers::All, making all renderers available in the
-      # controller. See Renderers::RENDERERS and Renderers.add.
+      # controller. See Renderers.add.
       #
       # Since ActionController::Metal controllers cannot render, the controller must
       # include AbstractController::Rendering, ActionController::Rendering, and
