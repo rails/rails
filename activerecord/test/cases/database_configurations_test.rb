@@ -24,6 +24,53 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
     assert_equal ["arunit"], configs.map(&:env_name)
   end
 
+  def test_warns_when_url_and_conflicting_key_are_given_in_the_same_config
+    warning = capture(:stderr) do
+      ActiveRecord::DatabaseConfigurations.new(
+        "default_env" => { "primary" => { "url" => "postgres://localhost/from_url", "database" => "from_yaml" } }
+      ).configs_for(env_name: "default_env")
+    end
+
+    assert_match(/\bdatabase\b/, warning)
+    assert_match(/url/, warning)
+  end
+
+  def test_does_not_warn_when_only_a_url_is_given
+    warning = capture(:stderr) do
+      ActiveRecord::DatabaseConfigurations.new(
+        "default_env" => { "primary" => { "url" => "postgres://localhost/from_url" } }
+      ).configs_for(env_name: "default_env")
+    end
+
+    assert_predicate warning, :blank?, "expected no warning, got:\n#{warning}"
+  end
+
+  def test_does_not_warn_when_the_explicit_key_matches_the_url
+    warning = capture(:stderr) do
+      ActiveRecord::DatabaseConfigurations.new(
+        "default_env" => { "primary" => { "url" => "postgres://localhost/same_db", "database" => "same_db" } }
+      ).configs_for(env_name: "default_env")
+    end
+
+    assert_predicate warning, :blank?, "expected no warning, got:\n#{warning}"
+  end
+
+  def test_does_not_warn_when_the_url_comes_from_the_environment
+    previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+    previous_url, ENV["DATABASE_URL"] = ENV["DATABASE_URL"], "postgres://localhost/from_env"
+
+    warning = capture(:stderr) do
+      ActiveRecord::DatabaseConfigurations.new(
+        "default_env" => { "primary" => { "adapter" => "sqlite3", "database" => "from_yaml" } }
+      ).configs_for(env_name: "default_env")
+    end
+
+    assert_predicate warning, :blank?, "expected no warning for a DATABASE_URL override, got:\n#{warning}"
+  ensure
+    ENV["RAILS_ENV"] = previous_env
+    ENV["DATABASE_URL"] = previous_url
+  end
+
   def test_configs_for_getter_with_name
     previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit2"
 

@@ -1,3 +1,12 @@
+*   Warn when a database configuration provides both a `url` and conflicting
+    keys such as `database:` or `host:` in the same entry (for example a
+    `database:` alongside a `url:` inherited via a YAML anchor). The value from
+    the URL still takes precedence; the warning just surfaces the otherwise
+    silent conflict. URLs provided through the `DATABASE_URL` environment
+    variable are unaffected.
+
+    *Chris Moore*
+
 *   Support polymorphic associations with custom primary keys through `:inverse_of`.
 
     When using polymorphic associations with `:inverse_of`, ActiveRecord now respects
