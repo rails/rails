@@ -1,3 +1,25 @@
+*   Deprecated the ActionController::Renderers::RENDERERS constant.
+
+    This constant was for internal usage but had a documentation and wasn't set
+    as private or :nodoc:.
+    Applications that needs to add or remove renderers should be using the public API instead:
+
+    ```ruby
+    ActionController.add_renderer(:rtf) do
+    end
+
+    ActionController.remove_renderer(:rtf)
+    ```
+
+    Gems or applications that used the constant to see the list of renderers, can now use a frozen
+    reader:
+
+    ```ruby
+    ActionController::Renderers.all.include?(:csv)
+    ```
+
+    *Edouard Chin*
+
 *   Deprecate `Mime::SET`, `Mime::LOOKUP`, `Mime::EXTENSION_LOOKUP`.
 
     Use `Mime.symbols`, `Mime::Type.lookup` and `Mime::Type.lookup_by_extension` respectively instead.
