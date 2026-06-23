@@ -3,8 +3,11 @@
 require "abstract_unit"
 require "controller/fake_models"
 require "active_support/logger"
+require "active_support/testing/ractors_assertions"
 
 class RenderersTest < ActionController::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   class XmlRenderable
     def to_xml(options)
       options[:root] ||= "i-am-xml"
@@ -126,5 +129,15 @@ class RenderersTest < ActionController::TestCase
     end
   ensure
     ActionController::Renderers.remove(:foo)
+  end
+
+  test "set of renderers if frozen" do
+    assert_ractor_shareable(ActionController::Renderers.all)
+
+    ActionController.add_renderer(:rtf) { }
+    assert_ractor_shareable(ActionController::Renderers.all)
+
+    ActionController.remove_renderer(:rtf)
+    assert_ractor_shareable(ActionController::Renderers.all)
   end
 end
