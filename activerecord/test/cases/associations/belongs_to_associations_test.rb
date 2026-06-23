@@ -33,7 +33,7 @@ require "models/tree"
 require "models/node"
 require "models/club"
 require "models/cpk"
-require "models/person" # not used by this suite as of this writing, it is a workaround for https://github.com/rails/rails/issues/55133
+require "models/person"
 require "models/car"
 require "models/sharded/blog"
 require "models/sharded/blog_post"
@@ -1820,6 +1820,32 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  test "skips parent presence check for composite foreign key if parent has not changed" do
+    order = Cpk::Order.create!(id: [1, 2])
+    book = Cpk::BookWithRequiredOrder.create!(id: [3, 4], order: order, title: "Book")
+    book.reload
+
+    assert_no_queries do
+      assert book.valid?
+    end
+  end
+
+  test "validates composite foreign key belongs_to when foreign key column is nil" do
+    book = Cpk::BookWithRequiredOrder.new(id: [1, 1], shop_id: nil, order_id: nil, title: "Book")
+    assert_not book.valid?
+    assert_includes book.errors.full_messages, "Order must exist"
+  end
+
+  test "validates composite foreign key belongs_to when foreign key column changes" do
+    order = Cpk::Order.create!(id: [1, 2])
+    book = Cpk::BookWithRequiredOrder.create!(id: [3, 4], order: order, title: "Book")
+    book.reload
+
+    book.order_id = 999999
+    assert_not book.valid?
+    assert_includes book.errors.full_messages, "Order must exist"
+  end
+
   test "runs parent presence check if parent has not changed and belongs_to_required_validates_foreign_key is set" do
     original_value = ActiveRecord.belongs_to_required_validates_foreign_key
     ActiveRecord.belongs_to_required_validates_foreign_key = true
@@ -1889,7 +1915,7 @@ class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
 end
 
 class AsyncBelongsToAssociationsTest < ActiveRecord::TestCase
-  include WaitForAsyncTestHelper
+  include WaitForTestHelper
 
   self.use_transactional_tests = false
 
@@ -1903,13 +1929,9 @@ class AsyncBelongsToAssociationsTest < ActiveRecord::TestCase
       client.association(:firm).async_load_target
       wait_for_async_query
 
-      events = []
-      callback = -> (event) do
-        events << event unless event.payload[:name] == "SCHEMA"
-      end
-      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+      events = capture_notifications("sql.active_record") do
         client.firm
-      end
+      end.reject { |e| e.payload[:name] == "SCHEMA" }
 
       assert_no_queries do
         assert_equal first_firm, client.firm
@@ -2087,5 +2109,30 @@ class DeprecatedBelongsToAssociationsTest < ActiveRecord::TestCase
       @bulb.destroy
     end
     assert_predicate @car, :destroyed?
+  end
+end
+
+class BelongsToPolymorphicInversePrimaryKeyTest < ActiveRecord::TestCase
+  def test_polymorphic_with_different_primary_keys_per_type
+    author = Author.create!(name: "Author", author_code: "org_#{SecureRandom.hex(8)}")
+    person = Person.create!(first_name: "Person", external_id: "ext_#{SecureRandom.hex(8)}")
+
+    author_comment = PolymorphicComment.new(body: "Author comment", post_id: 1)
+    author_comment.person = author
+
+    person_comment = PolymorphicComment.new(body: "Person comment", post_id: 1)
+    person_comment.person = person
+
+    assert_equal author.author_code, author_comment.person_id
+    assert_equal person.external_id, person_comment.person_id
+
+    assert_equal "Author", author_comment.person_type
+    assert_equal "Person", person_comment.person_type
+
+    author_comment.save!
+    person_comment.save!
+
+    assert_equal author, author_comment.reload.person
+    assert_equal person, person_comment.reload.person
   end
 end

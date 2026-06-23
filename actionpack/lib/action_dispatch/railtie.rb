@@ -6,6 +6,7 @@ require "action_dispatch"
 require "action_dispatch/log_subscriber"
 require "action_dispatch/structured_event_subscriber"
 require "active_support/messages/rotation_configuration"
+require "rails/railtie"
 
 module ActionDispatch
   class Railtie < Rails::Railtie # :nodoc:
@@ -15,8 +16,11 @@ module ActionDispatch
     config.action_dispatch.show_exceptions = :all
     config.action_dispatch.tld_length = 1
     config.action_dispatch.ignore_accept_header = false
+    config.action_dispatch.strict_accept_header = false
     config.action_dispatch.rescue_templates = {}
     config.action_dispatch.rescue_responses = {}
+    config.action_dispatch.wrapper_exceptions = []
+    config.action_dispatch.silent_exceptions = []
     config.action_dispatch.default_charset = nil
     config.action_dispatch.rack_cache = false
     config.action_dispatch.http_auth_salt = "http authentication"
@@ -49,6 +53,11 @@ module ActionDispatch
 
     config.eager_load_namespaces << ActionDispatch
 
+    guard_load_hooks(
+      :action_dispatch_response, :action_dispatch_system_test_case,
+      :action_dispatch_integration_test,
+    )
+
     initializer "action_dispatch.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_dispatch] = ActionDispatch.deprecator
     end
@@ -72,6 +81,7 @@ module ActionDispatch
 
       ActiveSupport.on_load(:action_dispatch_request) do
         self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
+        self.strict_accept_header = app.config.action_dispatch.strict_accept_header
         ActionDispatch::Request::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
       end
 
@@ -80,8 +90,10 @@ module ActionDispatch
         self.default_headers = app.config.action_dispatch.default_headers
       end
 
-      ActionDispatch::ExceptionWrapper.rescue_responses.merge!(config.action_dispatch.rescue_responses)
-      ActionDispatch::ExceptionWrapper.rescue_templates.merge!(config.action_dispatch.rescue_templates)
+      ActionDispatch::ExceptionWrapper.rescue_responses = ActionDispatch::ExceptionWrapper.rescue_responses.merge(config.action_dispatch.rescue_responses).freeze
+      ActionDispatch::ExceptionWrapper.rescue_templates = ActionDispatch::ExceptionWrapper.rescue_templates.merge(config.action_dispatch.rescue_templates).freeze
+      ActionDispatch::ExceptionWrapper.wrapper_exceptions = (ActionDispatch::ExceptionWrapper.wrapper_exceptions | config.action_dispatch.wrapper_exceptions).freeze
+      ActionDispatch::ExceptionWrapper.silent_exceptions = (ActionDispatch::ExceptionWrapper.silent_exceptions | config.action_dispatch.silent_exceptions).freeze
 
       config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie

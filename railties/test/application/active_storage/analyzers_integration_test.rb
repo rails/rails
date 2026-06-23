@@ -10,6 +10,15 @@ module ApplicationTests
 
     self.file_fixture_path = "#{RAILS_FRAMEWORK_ROOT}/activestorage/test/fixtures/files"
 
+    def app(...)
+      super
+
+      # `app` runs `active_job.set_configs` initializer, which sets `ActiveJob::Base.queue_adapter = :async`,
+      # after `ActiveJob::TestHelper#before_setup`.
+      # So we need to reset it to `:test` for Active Job test helpers to work.
+      ActiveJob::Base._queue_adapter = nil
+    end
+
     def setup
       build_app
 
@@ -28,9 +37,12 @@ module ApplicationTests
 
       user = User.new(name: "Test User", avatar: file_fixture("racecar.jpg"))
 
-      assert_enqueued_with(job: ActiveStorage::AnalyzeJob) do
+      # Analysis happens synchronously from the local file during attachment
+      assert_no_enqueued_jobs only: ActiveStorage::AnalyzeJob do
         user.save!
       end
+
+      assert_predicate user.avatar, :analyzed?
     end
 
     def test_analyzers_empty
@@ -43,16 +55,28 @@ module ApplicationTests
       assert_no_enqueued_jobs do
         user.save!
       end
+
+      # Still marked as analyzed even with no analyzers (just no metadata extracted)
+      assert_predicate user.avatar, :analyzed?
     end
 
-    def test_analyzers_not_empty
-      add_to_config "config.active_storage.analyzers = [ActiveStorage::Analyzer::ImageAnalyzer]"
-
+    def test_analyze_job_enqueued_for_direct_upload
       app("development")
 
-      user = User.new(name: "Test User", avatar: file_fixture("racecar.jpg"))
+      # Simulate a direct upload by creating a blob first, then attaching it
+      blob = ActiveStorage::Blob.create_before_direct_upload!(
+        filename: "racecar.jpg",
+        byte_size: file_fixture("racecar.jpg").size,
+        checksum: OpenSSL::Digest::MD5.file(file_fixture("racecar.jpg")).base64digest,
+        content_type: "image/jpeg"
+      )
+      blob.upload(file_fixture("racecar.jpg").open)
 
+      user = User.new(name: "Test User")
+
+      # For direct uploads (existing blobs), AnalyzeJob is still enqueued
       assert_enqueued_with(job: ActiveStorage::AnalyzeJob) do
+        user.avatar.attach(blob)
         user.save!
       end
     end

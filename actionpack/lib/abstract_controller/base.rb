@@ -4,6 +4,7 @@
 
 require "abstract_controller/error"
 require "active_support/descendants_tracker"
+require "active_support/inspect_backport"
 require "active_support/core_ext/module/anonymous"
 require "active_support/core_ext/module/attr_internal"
 
@@ -95,9 +96,6 @@ module AbstractController
           # All public instance methods of this class, including ancestors except for
           # public instance methods of Base and its ancestors.
           methods = public_instance_methods(true) - internal_methods
-          # Be sure to include shadowed public instance methods of this class.
-          methods.concat(public_instance_methods(false))
-          methods.reject! { |m| m.start_with?("_") }
           methods.map!(&:name)
           methods.to_set
         end
@@ -199,11 +197,13 @@ module AbstractController
       @_config ||= self.class.config.inheritable_copy
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-    end
+    ActiveSupport::InspectBackport.apply(self)
 
     private
+      def instance_variables_to_inspect
+        [].freeze
+      end
+
       # Returns true if the name can be considered an action because it has a method
       # defined in the controller.
       #

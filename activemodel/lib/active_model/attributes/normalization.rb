@@ -139,11 +139,16 @@ module ActiveModel
       private
         def normalize_changed_in_place_attributes
           self.class.normalized_attributes.each do |name|
-            normalize_attribute(name) if attribute_changed_in_place?(name)
+            attribute = @attributes[name.to_s]
+            normalize_attribute(name) if normalized_attribute_changed_in_place?(attribute)
           end
         end
 
-        class NormalizedValueType < DelegateClass(ActiveModel::Type::Value) # :nodoc:
+        def normalized_attribute_changed_in_place?(attribute)
+          attribute.changed_in_place? && attribute.value != attribute.type_cast(attribute.value_before_type_cast)
+        end
+
+        class NormalizedValueType < ActiveSupport::Delegation::DelegateClass(ActiveModel::Type::Value) # :nodoc:
           include ActiveModel::Type::SerializeCastValue
 
           attr_reader :cast_type, :normalizer, :normalize_nil
@@ -183,6 +188,11 @@ module ActiveModel
           define_method(:inspect, Kernel.instance_method(:inspect))
 
           private
+            # Prevent Ruby 4.0 "delegator does not forward private method" warning.
+            # Kernel#inspect calls instance_variables_to_inspect which, without this,
+            # triggers Delegator#respond_to_missing? for a private method.
+            define_method(:instance_variables_to_inspect, Kernel.instance_method(:instance_variables))
+
             def normalize(value)
               normalizer.call(value) unless value.nil? && !normalize_nil?
             end

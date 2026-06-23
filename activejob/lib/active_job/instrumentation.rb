@@ -32,7 +32,7 @@ module ActiveJob
 
       ActiveSupport::Notifications.instrument("#{operation}.active_job", payload) do |payload|
         value = block.call(payload) if block
-        payload[:aborted] = @_halted_callback_hook_called if defined?(@_halted_callback_hook_called)
+        payload[:aborted] = true if @_halted_callback_hook_called
         @_halted_callback_hook_called = nil
         value
       end

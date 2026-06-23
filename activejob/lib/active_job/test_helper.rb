@@ -12,42 +12,72 @@ module ActiveJob
 
     include ActiveSupport::Testing::Assertions
 
-    module TestQueueAdapter
-      extend ActiveSupport::Concern
+    module TestQueueAdapter # :nodoc:
+      @excluded_jobs = Set.new
+      @cache = {}
+      @adapters = {}
 
-      included do
-        class_attribute :_test_adapter, instance_accessor: false, instance_predicate: false
+      class << self
+        attr_accessor :test_adapter
+        attr_reader :excluded_jobs
+
+        def excluded?(job)
+          @cache.fetch(job) do
+            @cache[job] = compute_excluded(job)
+          end
+        end
+
+        def exclude(job)
+          excluded_jobs << job
+          @cache.clear
+        end
+
+        def reset
+          excluded_jobs.clear
+          @cache.clear
+          @adapters.clear
+          @test_adapter = nil
+          @default_test_adapter = nil
+        end
+
+        def adapter_for(job)
+          return if excluded?(job)
+
+          if test_adapter
+            test_adapter
+          elsif @adapters[job]
+            @adapters[job]
+          elsif job._queue_adapter.nil?
+            @default_test_adapter ||= ActiveJob::QueueAdapters::TestAdapter.new
+            @adapters[job] ||= @default_test_adapter
+          end
+        end
+
+        private
+          def compute_excluded(job)
+            while job <= ActiveJob::Base
+              return true if excluded_jobs.include?(job)
+              job = job.superclass
+            end
+            false
+          end
       end
 
-      module ClassMethods
-        def queue_adapter
-          self._test_adapter.nil? ? super : self._test_adapter
-        end
+      def queue_adapter
+        TestQueueAdapter.adapter_for(self) || super
+      end
 
-        def disable_test_adapter
-          self._test_adapter = nil
-        end
-
-        def enable_test_adapter(test_adapter)
-          self._test_adapter = test_adapter
-        end
+      def disable_test_adapter
+        TestQueueAdapter.exclude(self)
       end
     end
 
     ActiveSupport.on_load(:active_job) do
-      ActiveJob::Base.include(TestQueueAdapter)
+      ActiveJob::Base.extend(TestQueueAdapter)
     end
 
     def before_setup # :nodoc:
-      queue_adapter_specific_to_this_test_class = queue_adapter_for_test
-      queue_adapter_changed_jobs.each do |klass|
-        if queue_adapter_specific_to_this_test_class
-          klass.enable_test_adapter(queue_adapter_specific_to_this_test_class)
-        elsif klass._queue_adapter.nil?
-          klass.enable_test_adapter(ActiveJob::QueueAdapters::TestAdapter.new)
-        end
-      end
-
+      TestQueueAdapter.test_adapter = queue_adapter_for_test
       clear_enqueued_jobs
       clear_performed_jobs
       super
@@ -56,7 +86,7 @@ module ActiveJob
     def after_teardown # :nodoc:
       super
 
-      queue_adapter_changed_jobs.each { |klass| klass.disable_test_adapter }
+      TestQueueAdapter.reset
     end
 
     # Returns a queue adapter instance to use with all Active Job test helpers.
@@ -109,7 +139,7 @@ module ActiveJob
     #   end
     #
     # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
-    # a hash containing the job's class and it's argument are passed as argument.
+    # a hash containing the job's class and its argument are passed as argument.
     #
     # Asserts the number of times a job is enqueued to a specific queue by passing +:queue+ option.
     #
@@ -170,7 +200,7 @@ module ActiveJob
     #   end
     #
     # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
-    # a hash containing the job's class and it's argument are passed as argument.
+    # a hash containing the job's class and its argument are passed as argument.
     #
     # Asserts that no jobs are enqueued to a specific queue by passing +:queue+ option
     #
@@ -754,13 +784,6 @@ module ActiveJob
         job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
         job.send(:deserialize_arguments_if_needed) unless skip_deserialize_arguments
         job
-      end
-
-      def queue_adapter_changed_jobs
-        (ActiveJob::Base.descendants << ActiveJob::Base).select do |klass|
-          # only override explicitly set adapters, a quirk of `class_attribute`
-          klass.singleton_class.public_instance_methods(false).include?(:_queue_adapter)
-        end
       end
 
       def validate_option(only: nil, except: nil)

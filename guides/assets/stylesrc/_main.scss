@@ -372,6 +372,13 @@ body.guide {
     word-wrap: break-word; /* Internet Explorer 5.5+ */
   }
 
+  // Ensures that 'code' inside 'pre' preserves formatting and does not wrap, makes it horizontally scrollable instead
+  pre {
+    code {
+      white-space: pre;
+    }
+  }
+
   // Back to Top element
 
   a.back-to-top {

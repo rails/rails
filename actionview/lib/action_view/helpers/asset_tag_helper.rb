@@ -229,7 +229,7 @@ module ActionView
             "crossorigin" => crossorigin,
             "href" => href
           }.merge!(options)
-          if tag_options["nonce"] == true || (!tag_options.key?("nonce") && auto_include_nonce_for_styles)
+          if tag_options["nonce"] == true || (!tag_options.key?("nonce") && auto_include_nonce_for_styles && respond_to?(:content_security_policy_nonce))
             tag_options["nonce"] = content_security_policy_nonce
           elsif tag_options["nonce"] == false
             tag_options.delete("nonce")

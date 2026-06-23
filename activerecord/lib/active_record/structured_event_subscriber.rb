@@ -4,7 +4,7 @@ require "active_support/structured_event_subscriber"
 
 module ActiveRecord
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
-    IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
+    IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"].freeze
 
     def strict_loading_violation(event)
       owner = event.payload[:owner]
@@ -12,7 +12,7 @@ module ActiveRecord
 
       emit_debug_event("active_record.strict_loading_violation",
         owner: owner.name,
-        class: reflection.klass.name,
+        class: reflection.polymorphic? ? nil : reflection.klass.name,
         name: reflection.name,
       )
     end

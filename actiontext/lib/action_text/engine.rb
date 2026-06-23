@@ -16,10 +16,19 @@ module ActionText
     config.eager_load_namespaces << ActionText
 
     config.action_text = ActiveSupport::OrderedOptions.new
+    config.action_text.editors = ActiveSupport::InheritableOptions.new(
+      trix: {}
+    )
+    config.action_text.editor = :trix
     config.action_text.attachment_tag_name = "action-text-attachment"
     config.autoload_once_paths = %W(
       #{root}/app/helpers
       #{root}/app/models
+    )
+
+    guard_load_hooks(
+      :action_text_record, :action_text_rich_text, :action_text_content,
+      :action_text_encrypted_rich_text,
     )
 
     initializer "action_text.deprecator", before: :load_environment_config do |app|
@@ -51,7 +60,26 @@ module ActionText
           "[#{caption || filename}]"
         end
 
+        def attachable_markdown_representation(caption = nil, attachment_links: false)
+          title = (caption || filename).to_s
+
+          if attachment_links
+            renderer = ActionText::Content.renderer
+            raise ArgumentError, "attachment_links requires a rendering context" unless renderer
+
+            url = renderer.url_for(self)
+            MarkdownConversion.markdown_link(title, url, image: image?)
+          else
+            "\\[#{MarkdownConversion.escape_markdown_text(title)}\\]"
+          end
+        end
+
         def to_trix_content_attachment_partial_path
+          to_editor_content_attachment_partial_path
+        end
+        deprecate :to_trix_content_attachment_partial_path, deprecator: ActionText.deprecator
+
+        def to_editor_content_attachment_partial_path
           nil
         end
       end
@@ -61,6 +89,16 @@ module ActionText
       %i[action_controller_base action_mailer].each do |base|
         ActiveSupport.on_load(base) do
           helper ActionText::Engine.helpers
+        end
+      end
+    end
+
+    initializer "action_text.editors" do |app|
+      ActiveSupport.on_load :action_text_rich_text do
+        self.editors = Editor::Registry.new(app.config.action_text.editors)
+
+        if (editor_name = app.config.action_text.editor)
+          self.editor = editors.fetch(editor_name)
         end
       end
     end
@@ -88,7 +126,9 @@ module ActionText
 
     config.after_initialize do |app|
       if klass = app.config.action_text.sanitizer_vendor
-        ActionText::ContentHelper.sanitizer = klass.safe_list_sanitizer.new
+        ActiveSupport.on_load(:action_view) do
+          ActionText::ContentHelper.sanitizer = klass.safe_list_sanitizer.new
+        end
       end
     end
   end

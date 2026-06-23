@@ -1098,6 +1098,12 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
       render plain: "ok"
     end
 
+    def foos_html
+      render inline: <<~ERB
+        <code><%= params.permit(:foo) %></code>
+      ERB
+    end
+
     def foos_json
       render json: params.permit(:foo)
     end
@@ -1124,6 +1130,17 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
 
       assert_response :success
       assert_equal({ "foo" => "fighters" }, response.parsed_body)
+    end
+  end
+
+  def test_encoding_as_html
+    post_to_foos as: :html do
+      assert_response :success
+      assert_equal "application/x-www-form-urlencoded", request.media_type
+      assert_equal "text/html", request.accepts.first.to_s
+      assert_equal :html, request.format.ref
+      assert_equal({ "foo" => "fighters" }, request.request_parameters)
+      assert_equal({ "foo" => "fighters" }.to_s, response.parsed_body.at("code").text)
     end
   end
 
@@ -1227,7 +1244,7 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_get_request_with_json_uses_method_override_and_sends_a_post_request
+  def test_get_with_json_and_params_sends_as_query_string
     with_routing do |routes|
       routes.draw do
         ActionDispatch.deprecator.silence do
@@ -1237,8 +1254,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
 
       get "/foos_json", params: { foo: "heyo" }, as: :json
 
-      assert_equal "POST", request.method
-      assert_equal "GET", request.headers["X-Http-Method-Override"]
+      assert_equal "GET", request.method
+      assert_nil request.headers["X-Http-Method-Override"]
       assert_equal({ "foo" => "heyo" }, response.parsed_body)
     end
   end
@@ -1254,6 +1271,67 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
       get "/foos_json", as: :json
 
       assert_equal "http://www.example.com/foos_json", request.url
+    end
+  end
+
+  def test_get_with_explicit_query_kwarg
+    with_routing do |routes|
+      routes.draw do
+        ActionDispatch.deprecator.silence do
+          get ":action" => FooController
+        end
+      end
+
+      get "/foos_json", query: { foo: "heyo" }, as: :json
+
+      assert_equal "GET", request.method
+      assert_includes request.url, "foo=heyo"
+      assert_equal({ "foo" => "heyo" }, response.parsed_body)
+    end
+  end
+
+  def test_post_with_explicit_query_kwarg_appends_to_url
+    with_routing do |routes|
+      routes.draw do
+        ActionDispatch.deprecator.silence do
+          post ":action" => FooController
+        end
+      end
+
+      post "/foos_json", query: { foo: "heyo" }, as: :json
+
+      assert_includes request.url, "foo=heyo"
+      assert_equal({ "foo" => "heyo" }, response.parsed_body)
+    end
+  end
+
+  def test_post_with_explicit_body_kwarg
+    with_routing do |routes|
+      routes.draw do
+        ActionDispatch.deprecator.silence do
+          post ":action" => FooController
+        end
+      end
+
+      post "/foos_json", body: { foo: "fighters" }, as: :json
+
+      assert_equal "application/json", request.media_type
+      assert_equal({ "foo" => "fighters" }, response.parsed_body)
+    end
+  end
+
+  def test_post_with_query_and_body_kwargs
+    with_routing do |routes|
+      routes.draw do
+        ActionDispatch.deprecator.silence do
+          post ":action" => FooController
+        end
+      end
+
+      post "/foos_json", query: { foo: "heyo" }, body: { foo: "fighters" }, as: :json
+
+      assert_includes request.url, "foo=heyo"
+      assert_equal "application/json", request.media_type
     end
   end
 

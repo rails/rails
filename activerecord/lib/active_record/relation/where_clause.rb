@@ -93,7 +93,7 @@ module ActiveRecord
       end
 
       def self.empty
-        @empty ||= new([]).freeze
+        EMPTY
       end
 
       def contradiction?
@@ -182,7 +182,7 @@ module ActiveRecord
           non_attrs = columns.extract! { |node| node.is_a?(Arel::Predications) }
 
           predicates.reject do |node|
-            if !non_attrs.empty? && node.equality? && node.left.is_a?(Arel::Predications)
+            if !non_attrs.empty? && equality_node?(node) && node.left.is_a?(Arel::Predications)
               non_attrs.include?(node.left)
             end || Arel.fetch_attribute(node) do |attr|
               attrs.include?(attr) || columns.include?(attr.name.to_s)
@@ -200,7 +200,9 @@ module ActiveRecord
           end
         end
 
-        ARRAY_WITH_EMPTY_STRING = [""]
+        EMPTY = new([]).freeze
+        ARRAY_WITH_EMPTY_STRING = [""].freeze
+
         def non_empty_predicates
           predicates - ARRAY_WITH_EMPTY_STRING
         end

@@ -39,7 +39,9 @@ ActionViewTestSuiteUtils.require_helpers("#{__dir__}/fixtures/alternate_helpers"
 Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
-ActionView.deprecator.debug = true
+ActionView.deprecator.behavior = :raise
+ActionController.deprecator.behavior = :raise
+ActiveModel.deprecator.behavior = :raise
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false

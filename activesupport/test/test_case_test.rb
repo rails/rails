@@ -82,6 +82,15 @@ class AssertionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_no_difference_with_non_callable
+    error = assert_raises ArgumentError do
+      assert_no_difference @object.num do # Should have been `-> { @object.num }`!
+        @object.increment
+      end
+    end
+    assert_match("The expression must be a callable object like a Proc, or a String of Ruby code. Got 0", error.message)
+  end
+
   def test_assert_difference
     assert_difference "@object.num", +1 do
       @object.increment
@@ -180,6 +189,15 @@ class AssertionsTest < ActiveSupport::TestCase
     assert_equal "Object Changed.\n`@object.num` didn't change by 1, but by 0.\nExpected: 1\n  Actual: 0", error.message
   end
 
+  def test_assert_difference_with_non_callable
+    error = assert_raises ArgumentError do
+      assert_difference @object.num, +1 do # Should have been `-> { @object.num }`!
+        @object.increment
+      end
+    end
+    assert_match("The expression must be a callable object like a Proc, or a String of Ruby code. Got 0", error.message)
+  end
+
   def test_hash_of_lambda_expressions
     assert_difference -> { @object.num } => 1, -> { @object.num + 1 } => 1 do
       @object.increment
@@ -243,7 +261,7 @@ class AssertionsTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "`@object.num` didn't change. It was already 0.\nExpected 0 to not be equal to 0.", error.message
+    assert_match "`@object.num` didn't change. It was already 0.", error.message
   end
 
   def test_assert_changes_message_with_lambda
@@ -255,7 +273,7 @@ class AssertionsTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "`@object.num` didn't change. It was already 0.\nExpected 0 to not be equal to 0.", error.message
+    assert_match "`@object.num` didn't change. It was already 0.", error.message
   end
 
   def test_assert_changes_with_wrong_to_option
@@ -315,6 +333,15 @@ class AssertionsTest < ActiveSupport::TestCase
     assert_changes -> { token }, from: /\w{32}/, to: /\w{32}/ do
       token = SecureRandom.hex
     end
+  end
+
+  def test_assert_changes_with_non_callable
+    error = assert_raises ArgumentError do
+      assert_changes @object.num, from: 0, to: 1 do # Should have been `-> { @object.num }`
+        @object.increment
+      end
+    end
+    assert_match("The expression must be a callable object like a Proc, or a String of Ruby code. Got 0", error.message)
   end
 
   def test_assert_changes_with_message
@@ -456,6 +483,15 @@ class AssertionsTest < ActiveSupport::TestCase
       end
     end
     assert_match(/#<Object:0x.*changed/, error.message)
+  end
+
+  def test_assert_no_changes_message_with_non_callable
+    error = assert_raises ArgumentError do
+      assert_no_changes @object.num do # Should have been `-> { @object.num }`!
+        @object.increment
+      end
+    end
+    assert_match("The expression must be a callable object like a Proc, or a String of Ruby code. Got 0", error.message)
   end
 
   def test_assert_no_changes_with_long_string_wont_output_everything

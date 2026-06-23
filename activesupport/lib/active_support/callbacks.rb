@@ -231,7 +231,7 @@ module ActiveSupport
       class Callback # :nodoc:
         def self.build(chain, filter, kind, options)
           if filter.is_a?(String)
-            raise ArgumentError, <<-MSG.squish
+            raise ArgumentError, <<~MSG.squish
               Passing string to define a callback is not supported. See the `.set_callback`
               documentation to see supported values.
             MSG
@@ -314,7 +314,7 @@ module ActiveSupport
 
             conditionals = Array(conditionals)
             if conditionals.any?(String)
-              raise ArgumentError, <<-MSG.squish
+              raise ArgumentError, <<~MSG.squish
                 Passing string to be evaluated in :if and :unless conditional
                 options is not supported. Pass a symbol for an instance method,
                 or a lambda, proc or block, instead.
@@ -906,7 +906,7 @@ module ActiveSupport
           names.each do |name|
             name = name.to_sym
 
-            module_eval <<-RUBY, __FILE__, __LINE__ + 1
+            module_eval <<~RUBY, __FILE__, __LINE__ + 1
               def _run_#{name}_callbacks
                 yield if block_given?
               end
@@ -944,7 +944,7 @@ module ActiveSupport
             # HACK: We're making assumption on how `class_attribute` is implemented
             # to save constantly duping the callback hash. If this desync with class_attribute
             # we'll lose the optimization, but won't cause an actual behavior bug.
-            unless singleton_class.private_method_defined?(:__class_attr__callbacks, false)
+            unless singleton_class.private_method_defined?(:__class_attr__callbacks_owner, false)
               self.__callbacks = __callbacks.dup
             end
             name = name.to_sym

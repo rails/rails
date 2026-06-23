@@ -628,6 +628,25 @@ class FormHelperTest < ActionView::TestCase
     assert_equal({ class: "pix", direct_upload: true }, original_options)
   end
 
+  def test_file_field_with_accept_attribute
+    expected = '<input accept="image/*,video/*" type="file" name="import[file]" />'
+    assert_dom_equal expected, file_field("import", "file", { accept: ["image/*", "video/*"], id: nil })
+  end
+
+  def test_file_field_with_direct_upload_includes_checksum_algorithm
+    @controller = WithActiveStorageRoutesControllers.new
+
+    expected = '<input data-direct-upload-url="http://testtwo.host/rails/active_storage/direct_uploads" data-checksum-algorithm="sha256" type="file" name="import[file]" id="import_file" />'
+    assert_dom_equal expected, file_field("import", "file", direct_upload: true, data_checksum_algorithm: "sha256")
+  end
+
+  def test_file_field_with_direct_upload_defaults_checksum_algorithm_to_md5
+    @controller = WithActiveStorageRoutesControllers.new
+
+    expected = '<input data-direct-upload-url="http://testtwo.host/rails/active_storage/direct_uploads" type="file" name="import[file]" id="import_file" />'
+    assert_dom_equal expected, file_field("import", "file", direct_upload: true)
+  end
+
   def test_hidden_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="hidden" value="Hello World" autocomplete="off" />',
@@ -671,6 +690,24 @@ class FormHelperTest < ActionView::TestCase
       '<input id="post_title" name="post[title]" type="hidden" value="Something Else" />',
       hidden_field("post", "title", value: "Something Else", autocomplete: nil)
     )
+  end
+
+  def test_hidden_field_omits_autocomplete_when_remove_hidden_field_autocomplete_is_true
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      assert_dom_equal(
+        '<input id="post_title" name="post[title]" type="hidden" value="Hello World" />',
+        hidden_field("post", "title")
+      )
+    end
+  end
+
+  def test_hidden_field_respects_explicit_autocomplete_when_remove_hidden_field_autocomplete_is_true
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      assert_dom_equal(
+        '<input id="session_username" name="session[username]" type="hidden" value="me@example.com" autocomplete="username" />',
+        hidden_field("session", "username", value: "me@example.com", autocomplete: "username")
+      )
+    end
   end
 
   def test_text_field_with_custom_type
@@ -4074,6 +4111,17 @@ class FormHelperTest < ActionView::TestCase
 
   class LabelledFormBuilderSubclass < LabelledFormBuilder; end
 
+  def test_to_partial_path_for_subclass_without_builder_suffix
+    path = nil
+
+    form_for(@post, builder: LabelledFormBuilderSubclass) do |f|
+      path = f.to_partial_path
+      ""
+    end
+
+    assert_equal "labelled_form_builder_subclass", path
+  end
+
   def test_form_for_with_labelled_builder_with_nested_fields_for_with_custom_builder
     klass = nil
 
@@ -4179,6 +4227,12 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, data: { behavior: "stuff" }, remote: true) { }
     assert_match %r|data-behavior="stuff"|, @rendered
     assert_match %r|data-remote="true"|, @rendered
+  end
+
+  def test_form_for_nested_html_attributes
+    form_for(@post, html: { hx: { post: "/path", data: { open: false } } }) { }
+
+    assert_dom "form[hx-post=?][hx-data=?]", "/path", { open: false }.to_json
   end
 
   def test_fields_for_returns_block_result

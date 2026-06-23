@@ -246,6 +246,11 @@ module ActionController
         render plain: ActiveSupport::IsolatedExecutionState[:raw_isolated_state].inspect
       end
 
+      def connected_to_stack_not_inherited
+        stack = ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack]
+        render plain: stack.inspect
+      end
+
       def with_stale
         render plain: "stale" if stale?(etag: "123", template: false)
       end
@@ -570,6 +575,54 @@ module ActionController
       assert_stream_closed
     end
 
+    def test_isolated_state_with_isolation_level_fiber
+      previous_level = ActiveSupport::IsolatedExecutionState.isolation_level
+      ActiveSupport::IsolatedExecutionState.isolation_level = :fiber
+
+      @controller.tc = self
+      ActiveSupport::IsolatedExecutionState[:raw_isolated_state] = "buffy"
+
+      get :raw_isolated_state
+      assert_equal "buffy".inspect, response.body
+      assert_stream_closed
+
+      ActiveSupport::IsolatedExecutionState.clear
+
+      get :isolated_state
+      assert_equal nil.inspect, response.body
+      assert_stream_closed
+    ensure
+      ActiveSupport::IsolatedExecutionState.isolation_level = previous_level
+    end
+
+    def test_connected_to_stack_not_inherited
+      original = @controller.class.live_streaming_excluded_keys
+      @controller.class.live_streaming_excluded_keys = [:active_record_connected_to_stack]
+
+      stack = [{ role: :reading, shard: :default, prevent_writes: true, klasses: [] }]
+      ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = stack
+
+      get :connected_to_stack_not_inherited
+
+      assert_equal "nil", response.body
+      assert_stream_closed
+    ensure
+      @controller.class.live_streaming_excluded_keys = original
+      ActiveSupport::IsolatedExecutionState.delete(:active_record_connected_to_stack)
+    end
+
+    def test_live_streaming_doesnt_exclude_by_default
+      stack = [{ role: :reading, shard: :default, prevent_writes: true, klasses: [] }]
+      ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = stack
+
+      get :connected_to_stack_not_inherited
+
+      assert_match(/role.*reading/, response.body)
+      assert_stream_closed
+    ensure
+      ActiveSupport::IsolatedExecutionState.delete(:active_record_connected_to_stack)
+    end
+
     def test_live_stream_default_header
       get :default_header
       assert response.headers["Content-Type"]
@@ -698,6 +751,28 @@ module ActionController
     def test_nil_callback
       buf = ActionController::Live::Buffer.new nil
       assert buf.call_on_error
+    end
+
+    def test_write_returns_bytesize
+      response = ActionController::Live::Response.new
+      response.request = ActionDispatch::Request.empty
+      buf = ActionController::Live::Buffer.new response
+      result = buf.write "foo"
+      assert_equal 3, result
+    end
+
+    def test_write_dups_string_for_io_copy_stream_safety
+      response = ActionController::Live::Response.new
+      response.request = ActionDispatch::Request.empty
+      buf = response.stream
+      sio = StringIO.new("bar")
+      IO.copy_stream(sio, buf)
+      buf.write "baz"
+      buf.close
+
+      body = +""
+      response.each { |chunk| body << chunk }
+      assert_equal "barbaz", body
     end
   end
 end

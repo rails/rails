@@ -44,7 +44,7 @@ class Date
       ::Date.current.tomorrow
     end
 
-    # Returns Time.zone.today when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns Date.today.
+    # Returns <tt>Time.zone.today</tt> when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns Date.today.
     def current
       ::Time.zone ? ::Time.zone.today : ::Date.today
     end

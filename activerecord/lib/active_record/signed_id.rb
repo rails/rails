@@ -70,7 +70,7 @@ module ActiveRecord
 
         options = { on_rotation: on_rotation }.compact
         if id = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose), **options)
-          find_by primary_key => id
+          find_by(primary_key => [id])
         end
       end
 

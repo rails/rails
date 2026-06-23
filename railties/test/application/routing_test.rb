@@ -22,6 +22,17 @@ module ApplicationTests
       assert_equal 200, last_response.status
     end
 
+    test "rails/welcome is not duplicated when routes reload in development" do
+      app("development")
+
+      3.times { Rails.application.reload_routes! }
+
+      welcome_routes = Rails.application.routes.routes.select do |route|
+        route.defaults[:controller] == "rails/welcome" && route.defaults[:action] == "index"
+      end
+      assert_equal 1, welcome_routes.size
+    end
+
     test "rails/info in development" do
       app("development")
       get "/rails/info"
@@ -30,14 +41,18 @@ module ApplicationTests
 
     test "rails/info/routes in development" do
       app("development")
-      get "/rails/info/routes"
-      assert_equal 200, last_response.status
+      quietly do
+        get "/rails/info/routes"
+        assert_equal 200, last_response.status
+      end
     end
 
     test "rails/info/properties in development" do
       app("development")
-      get "/rails/info/properties"
-      assert_equal 200, last_response.status
+      quietly do
+        get "/rails/info/properties"
+        assert_equal 200, last_response.status
+      end
     end
 
     test "/rails/info routes are accessible with globbing route present" do
@@ -108,26 +123,34 @@ module ApplicationTests
 
     test "rails/welcome in production" do
       app("production")
-      get("/", {}, "HTTPS" => "on")
-      assert_equal 404, last_response.status
+      quietly do
+        get("/", {}, "HTTPS" => "on")
+        assert_equal 404, last_response.status
+      end
     end
 
     test "rails/info in production" do
       app("production")
-      get("/rails/info", {}, "HTTPS" => "on")
-      assert_equal 404, last_response.status
+      quietly do
+        get("/rails/info", {}, "HTTPS" => "on")
+        assert_equal 404, last_response.status
+      end
     end
 
     test "rails/info/routes in production" do
       app("production")
-      get("/rails/info/routes", {}, "HTTPS" => "on")
-      assert_equal 404, last_response.status
+      quietly do
+        get("/rails/info/routes", {}, "HTTPS" => "on")
+        assert_equal 404, last_response.status
+      end
     end
 
     test "rails/info/properties in production" do
       app("production")
-      get("/rails/info/properties", {}, "HTTPS" => "on")
-      assert_equal 404, last_response.status
+      quietly do
+        get("/rails/info/properties", {}, "HTTPS" => "on")
+        assert_equal 404, last_response.status
+      end
     end
 
     test "rails/health in production" do
@@ -814,6 +837,16 @@ module ApplicationTests
 
       get "/"
       assert_equal 200, last_response.status
+    end
+
+    test "routes reloader uses configured file_watcher" do
+      add_to_config <<-RUBY
+        config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+      RUBY
+
+      app "development"
+
+      assert_instance_of ActiveSupport::EventedFileUpdateChecker, Rails.application.routes_reloader.send(:updater)
     end
   end
 end

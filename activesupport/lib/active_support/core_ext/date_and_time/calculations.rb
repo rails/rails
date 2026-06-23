@@ -13,8 +13,8 @@ module DateAndTime
       thursday: 4,
       friday: 5,
       saturday: 6
-    }
-    WEEKEND_DAYS = [ 6, 0 ]
+    }.freeze
+    WEEKEND_DAYS = [ 6, 0 ].freeze
 
     # Returns a new date/time representing yesterday.
     def yesterday
@@ -61,6 +61,23 @@ module DateAndTime
     # Returns true if the date/time does not fall on a Saturday or Sunday.
     def on_weekday?
       !WEEKEND_DAYS.include?(wday)
+    end
+
+    # Returns true if the date/time falls within the current week.
+    # Week is assumed to start on +start_day+, default is
+    # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
+    def this_week?(start_day = Date.beginning_of_week)
+      ::Date.current.all_week(start_day).include?(to_date)
+    end
+
+    # Returns true if the date/time falls within the current month.
+    def this_month?
+      ::Date.current.all_month.include?(to_date)
+    end
+
+    # Returns true if the date/time falls within the current year.
+    def this_year?
+      ::Date.current.all_year.include?(to_date)
     end
 
     # Returns true if the date/time falls before <tt>date_or_time</tt>.

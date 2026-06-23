@@ -51,6 +51,109 @@ Use the same inline formatting as regular text:
 ##### The `:content_type` Option
 ```
 
+Code Examples
+-------------
+
+Wrap code examples with code fence syntax using backticks:
+
+````markdown
+```ruby
+puts "Hello World!"
+```
+````
+
+Always specify the language used in the example. Supported languages labels
+include: `ruby`, `html`, `irb`, `html+erb`, `bash` and `js`.
+
+````markdown
+```js
+alert("Hello World!")
+```
+````
+
+### Filenames for Examples
+
+If an example references a specific file add the filename in the comments:
+
+````markdown
+```ruby
+# app/model/product.rb
+
+class Product < ApplicationRecord
+end
+```
+````
+
+NOTE: Filename comments are ignored by the copy button.
+
+For ERB templates use ERB comments:
+
+````markdown
+```html+erb
+<%# app/views/products/show.html.erb %>
+<h1><%= @product.name %></h1>
+
+<%= link_to "Back", products_path %>
+```
+````
+
+### Examples with Command Prompts
+
+For bash examples use `$` as the prompt character:
+
+````markdown
+```bash
+$ cd my_app
+$ bin/rails server
+```
+````
+
+NOTE: Prompts are ignored by the copy button.
+
+For Rails console examples use `application(environment)>` as the prompt:
+
+````markdown
+```irb
+store(dev)> Product.first
+=> #<Product:0x00000001221f6260 id: 1, name: "T-Shirt", created_at: "2024-11-09 16:35:01.117836000 +0000", updated_at: "2024-11-09 16:35:01.117836000 +0000">
+```
+````
+
+### Code Highlighting
+
+For large examples small changes can be difficult to notice.
+Highlight the lines by passing the line numbers:
+
+````markdown
+```ruby#4,7-9
+# app/model/product.rb
+
+class Product < ApplicationRecord
+  validates :name, presence: true
+  validates :price, presence: true
+
+  def back_in_stock?
+    inventory_count_previously_was.zero? && inventory_count.positive?
+  end
+end
+```
+````
+
+This would highlight lines 4, and 7 through 9:
+
+```ruby#4,7-9
+# app/model/product.rb
+
+class Product < ApplicationRecord
+  validates :name, presence: true
+  validates :price, presence: true
+
+  def back_in_stock?
+    inventory_count_previously_was.zero? && inventory_count.positive?
+  end
+end
+```
+
 Notes, Tips and Warnings
 ------------------------
 
@@ -109,11 +212,11 @@ Use descriptive links and avoid "here" and "more" links:
 
 ```markdown
 # BAD
-See the Rails Internationalization (I18n) API documentation for [more
+See the Internationalization (I18n) guide for [more
 details](i18n.html).
 
 # GOOD
-See the [Rails Internationalization (I18n) API documentation](i18n.html) for
+See the [Internationalization (I18n)](i18n.html) guide for
 more details.
 ```
 

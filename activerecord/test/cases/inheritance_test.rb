@@ -195,7 +195,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_a_bad_type_column
-    Company.lease_connection.insert "INSERT INTO companies (id, #{QUOTED_TYPE}, name) VALUES(100, 'bad_class!', 'Not happening')"
+    Company.lease_connection.insert "INSERT INTO companies (id, #{ARTest::QUOTED_TYPE}, name) VALUES(100, 'bad_class!', 'Not happening')"
 
     assert_raise(ActiveRecord::SubclassNotFound) { Company.find(100) }
   end
@@ -564,6 +564,18 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.lease_connection.change_column_default :companies, :type, original_type
     Company.reset_column_information
+  end
+
+  def test_inheritance_new_with_subclass_after_adding_type_column_and_resetting_schema_cache
+    ActiveRecord::Base.lease_connection.rename_column :companies, :type, :old_type
+    Company.reset_column_information
+    _firm = Firm.new # populate the cache
+
+    ActiveRecord::Base.lease_connection.rename_column :companies, :old_type, :type
+    Company.reset_column_information
+
+    firm = Firm.new
+    assert_equal "Firm", firm.type
   end
 end
 

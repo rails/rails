@@ -41,22 +41,18 @@ module ActiveRecord
         after = Concurrent::CyclicBarrier.new(2)
 
         thread = Thread.new do
-          with_warning_suppression do
-            Sample.transaction isolation: :serializable do
-              before.wait
-              Sample.create value: Sample.sum(:value)
-              after.wait
-            end
+          Sample.transaction isolation: :serializable do
+            before.wait
+            Sample.create value: Sample.sum(:value)
+            after.wait
           end
         end
 
         begin
-          with_warning_suppression do
-            Sample.transaction isolation: :serializable do
-              before.wait
-              Sample.create value: Sample.sum(:value)
-              after.wait
-            end
+          Sample.transaction isolation: :serializable do
+            before.wait
+            Sample.create value: Sample.sum(:value)
+            after.wait
           end
         ensure
           thread.join
@@ -65,36 +61,34 @@ module ActiveRecord
     end
 
     test "raises Deadlocked when a deadlock is encountered" do
-      with_warning_suppression do
-        connections = Concurrent::Set.new
-        assert_raises(ActiveRecord::Deadlocked) do
-          barrier = Concurrent::CyclicBarrier.new(2)
+      connections = Concurrent::Set.new
+      assert_raises(ActiveRecord::Deadlocked) do
+        barrier = Concurrent::CyclicBarrier.new(2)
 
-          s1 = Sample.create value: 1
-          s2 = Sample.create value: 2
+        s1 = Sample.create value: 1
+        s2 = Sample.create value: 2
 
-          thread = Thread.new do
-            connections.add Sample.lease_connection
-            Sample.transaction do
-              s1.lock!
-              barrier.wait
-              s2.update value: 1
-            end
-          end
-
-          begin
-            connections.add Sample.lease_connection
-            Sample.transaction do
-              s2.lock!
-              barrier.wait
-              s1.update value: 2
-            end
-          ensure
-            thread.join
+        thread = Thread.new do
+          connections.add Sample.lease_connection
+          Sample.transaction do
+            s1.lock!
+            barrier.wait
+            s2.update value: 1
           end
         end
-        assert connections.all?(&:active?)
+
+        begin
+          connections.add Sample.lease_connection
+          Sample.transaction do
+            s2.lock!
+            barrier.wait
+            s1.update value: 2
+          end
+        ensure
+          thread.join
+        end
       end
+      assert connections.all?(&:active?)
     end
 
     test "raises LockWaitTimeout when lock wait timeout exceeded" do
@@ -164,7 +158,7 @@ module ActiveRecord
             latch.count_down
             sleep(0.5)
             conn = Sample.lease_connection
-            pid = conn.query_value("SELECT pid FROM pg_stat_activity WHERE query LIKE '% FOR UPDATE'")
+            pid = conn.select_value("SELECT pid FROM pg_stat_activity WHERE query LIKE '% FOR UPDATE'")
             conn.execute("SELECT pg_cancel_backend(#{pid})")
           end
         end
@@ -201,15 +195,5 @@ module ActiveRecord
       assert_instance_of Interrupt, thread.value
       assert_operator duration, :<, 5
     end
-
-    private
-      def with_warning_suppression
-        log_level = ActiveRecord::Base.lease_connection.client_min_messages
-        ActiveRecord::Base.lease_connection.client_min_messages = "error"
-        yield
-      ensure
-        ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
-        ActiveRecord::Base.lease_connection.client_min_messages = log_level
-      end
   end
 end

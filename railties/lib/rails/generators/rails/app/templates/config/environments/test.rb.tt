@@ -15,6 +15,10 @@ Rails.application.configure do
   # loading is working properly before deploying your code.
   config.eager_load = ENV["CI"].present?
 
+  # In Rake tasks, the previous assignment is ignored, config.eager_load is set
+  # from config.rake_eager_load.
+  config.rake_eager_load = ENV["CI"].present?
+
   # Configure public file server for tests with cache-control for performance.
   config.public_file_server.headers = { "cache-control" => "public, max-age=3600" }
 

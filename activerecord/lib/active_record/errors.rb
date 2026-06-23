@@ -131,6 +131,12 @@ module ActiveRecord
   class ReadOnlyError < ActiveRecordError
   end
 
+  # Raised when shard swapping is attempted on a connection that prohibits it.
+  # See {ActiveRecord::ConnectionHandling#prohibit_shard_swapping}[rdoc-ref:ConnectionHandling#prohibit_shard_swapping].
+  class ShardSwapProhibitedError < ArgumentError
+    # This subclasses ArgumentError for backwards compatibility.
+  end
+
   # Raised when Active Record cannot find a record by given id or set of ids.
   class RecordNotFound < ActiveRecordError
     attr_reader :model, :primary_key, :id
@@ -300,7 +306,7 @@ module ActiveRecord
   class ExclusionViolation < StatementInvalid
   end
 
-  # Raised when a record cannot be inserted or updated because a value too long for a column type.
+  # Raised when a record cannot be inserted or updated because a value is too long for a column type.
   class ValueTooLong < StatementInvalid
   end
 

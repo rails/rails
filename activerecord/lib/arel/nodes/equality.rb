@@ -11,5 +11,17 @@ module Arel # :nodoc: all
         Arel::Nodes::NotEqual.new(left, right)
       end
     end
+
+    class CaseSensitiveEquality < Arel::Nodes::Binary
+      include FetchAttribute
+
+      def equality?; true; end
+    end
+
+    class CaseInsensitiveEquality < Arel::Nodes::Binary
+      include FetchAttribute
+
+      def equality?; true; end
+    end
   end
 end

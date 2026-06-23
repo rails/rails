@@ -16,9 +16,9 @@ desc "Run all unit tests"
 task test: ["test:template", "test:integration:action_pack", "test:integration:active_record"]
 
 namespace :test do
-  task :isolated do
-    Dir.glob("test/{actionpack,activerecord,template}/**/*_test.rb").all? do |file|
-      sh(Gem.ruby, "-w", "-Ilib:test", file)
+  task :railties do
+    ["action_view/railtie"].all? do |railtie|
+      sh(Gem.ruby, "-r", railtie, "-e", "'OK'")
     end || raise("Failures")
   end
 
@@ -26,8 +26,10 @@ namespace :test do
     t.libs << "test"
     t.test_files = FileList["test/template/**/*_test.rb"]
     t.warning = true
-    t.verbose = true
-    t.options = "--profile" if ENV["CI"]
+    if ENV["CI"]
+      t.verbose = true
+      t.options = "--profile --defer-output"
+    end
     t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
   end
 
@@ -37,8 +39,10 @@ namespace :test do
       t.libs << "test"
       t.test_files = FileList["test/activerecord/*_test.rb"]
       t.warning = true
-      t.verbose = true
-      t.options = "--profile" if ENV["CI"]
+      if ENV["CI"]
+        t.verbose = true
+        t.options = "--profile --defer-output"
+      end
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
@@ -47,8 +51,10 @@ namespace :test do
       t.libs << "test"
       t.test_files = FileList["test/actionpack/**/*_test.rb"]
       t.warning = true
-      t.verbose = true
-      t.options = "--profile" if ENV["CI"]
+      if ENV["CI"]
+        t.verbose = true
+        t.options = "--profile --defer-output"
+      end
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
   end

@@ -44,6 +44,6 @@ class ActiveRecord::Encryption::EnvelopeEncryptionKeyProviderTest < ActiveRecord
 
   private
     def assert_multiple_primary_keys
-      assert Rails.application.credentials.dig(:active_record_encryption, :primary_key).length > 1
+      assert Rails.app.credentials.dig(:active_record_encryption, :primary_key).length > 1
     end
 end

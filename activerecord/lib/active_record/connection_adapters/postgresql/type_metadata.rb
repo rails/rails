@@ -4,7 +4,7 @@ module ActiveRecord
   # :stopdoc:
   module ConnectionAdapters
     module PostgreSQL
-      class TypeMetadata < DelegateClass(SqlTypeMetadata)
+      class TypeMetadata < ActiveSupport::Delegation::DelegateClass(SqlTypeMetadata)
         undef to_yaml if method_defined?(:to_yaml)
 
         include Deduplicable
@@ -26,10 +26,12 @@ module ActiveRecord
         alias eql? ==
 
         def hash
-          TypeMetadata.hash ^
-            __getobj__.hash ^
-            oid.hash ^
-            fmod.hash
+          [
+            TypeMetadata,
+            __getobj__,
+            @oid,
+            @fmod,
+          ].hash
         end
 
         private

@@ -55,6 +55,7 @@ module Rails
       else
         puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
       end
+      puts "Type 'help' for help."
 
       console.start
     end
@@ -66,6 +67,11 @@ module Rails
 
       class_option :sandbox, aliases: "-s", type: :boolean, default: nil,
         desc: "Rollback database modifications on exit."
+
+      class_option :skip_executor, type: :boolean, aliases: "-w", desc: "Don't wrap with Rails Executor", default: false
+
+      class_option :query_cache, type: :boolean, aliases: "-q", default: false,
+        desc: "Enable the Active Record query cache for the session (ignored if --skip-executor or -w is used)"
 
       def initialize(args = [], local_options = {}, config = {})
         console_options = []
@@ -84,8 +90,28 @@ module Rails
       desc "console", "Start the Rails console"
       def perform
         boot_application!
-        Rails::Console.start(Rails.application, options)
+
+        wrap_with_executor = !options[:skip_executor]
+        conditional_executor(wrap_with_executor, source: "application.console.railties") do
+          disable_query_cache_in_console! if wrap_with_executor && !options[:query_cache]
+          Rails::Console.start(Rails.application, options)
+        end
       end
+
+      private
+        def disable_query_cache_in_console!
+          return unless defined?(ActiveRecord::Base)
+
+          ActiveRecord::Base.connection_handler.each_connection_pool.select(&:query_cache_enabled).each(&:disable_query_cache!)
+        end
+
+        def conditional_executor(enabled, **args, &block)
+          if enabled
+            Rails.application.executor.wrap(**args, &block)
+          else
+            yield
+          end
+        end
     end
   end
 end

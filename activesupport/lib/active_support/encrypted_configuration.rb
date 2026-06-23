@@ -58,6 +58,60 @@ module ActiveSupport
       @options = nil
     end
 
+    # Find singular or nested keys.
+    # Raises +KeyError+ if not found or nil.
+    #
+    # Given configuration:
+    #   db_port: null
+    #   database:
+    #     host: "db.example.com"
+    #
+    # Examples:
+    #   require(:database, :host) # => "db.example.com"
+    #   require(:missing)         # => KeyError
+    #   require(:db_port)         # => KeyError (nil values are treated as missing)
+    def require(*key)
+      value = dig(*key)
+
+      if !value.nil?
+        value
+      else
+        raise KeyError, "Missing key: #{key.inspect}"
+      end
+    end
+
+    # Find singular or nested keys.
+    # Returns +nil+ if the key isn't found.
+    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or nil value.
+    #
+    # Given configuration:
+    #   db_port: null
+    #   database:
+    #     host: "db.example.com"
+    #
+    # Examples:
+    #   option(:database, :host)               # => "db.example.com"
+    #   option(:missing)                       # => nil
+    #   option(:missing, default: "localhost")        # => "localhost"
+    #   option(:missing, default: -> { "localhost" }) # => "localhost"
+    #   option(:db_port, default: 5432)               # => 5432 (nil values use default)
+    def option(*key, default: nil)
+      value = dig(*key)
+
+      if !value.nil?
+        value
+      elsif default.respond_to?(:call)
+        default.call
+      else
+        default
+      end
+    end
+
+    # Reload the cached values in case any of them changed or new ones were added during runtime.
+    def reload
+      @config = @options = nil
+    end
+
     # Reads the file and returns the decrypted content. See EncryptedFile#read.
     def read
       super
@@ -86,8 +140,20 @@ module ActiveSupport
       @config ||= deep_symbolize_keys(deserialize(read))
     end
 
+    # Returns an array of symbolized keys from the decrypted configuration.
+    #
+    #   my_config = ActiveSupport::EncryptedConfiguration.new(...)
+    #   my_config.read # => "some_secret: 123\nsome_namespace:\n  another_secret: 456"
+    #
+    #   my_config.keys
+    #   # => [:some_secret, :some_namespace]
+    #
+    def keys
+      config.keys
+    end
+
     def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} keys=#{keys.inspect}>"
     end
 
     private
@@ -114,10 +180,7 @@ module ActiveSupport
       end
 
       def deserialize(content)
-        config = YAML.respond_to?(:unsafe_load) ?
-          YAML.unsafe_load(content, filename: content_path) :
-          YAML.load(content, filename: content_path)
-
+        config = YAML.unsafe_load(content, filename: content_path)
         config.presence || {}
       rescue Psych::SyntaxError
         raise InvalidContentError.new(content_path)

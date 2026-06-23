@@ -1,2 +1,290 @@
+*   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
+
+    Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
+    because `content_type`, `filename`, `disposition`, and `custom_metadata` were
+    dropped. Forward the blob's `service_metadata` to each mirror's upload.
+
+    Fixes #57270.
+
+    *Maksim Romanov* + *Andrii Furmanets*
+
+*   Offload ActiveStorage::Blob#metadata sync to background
+
+    Problem:
+
+    A data race can occur when both a http server and a background worker (
+    `ActiveStorage::AnalyzeJob`) attempt to update a blob's metadata
+    simultaneously. This leads to a 409 conflict on GCS.
+
+    Solution:
+
+    Offload the metadata upload to a background job so the 409 no longer breaks
+    the request with a 500. Applications can add `retry_on` to
+    `ActiveStorage::SyncMetadataJob` to retry the conflict for their service.
+
+    `ActiveStorage::Service#update_metadata` now instruments the work and
+    delegates it to a new `update_metadata_for` method. Custom services that
+    overrode `update_metadata` should override `update_metadata_for` instead, so
+    the work runs inside the instrumentation.
+
+    *Shouichi Kamiya*
+
+*   Update Active Storage for ImageProcessing 2.0.
+
+    ImageProcessing 2.0 now requires adding `ruby-vips` or `mini_magick` gems explicitly to the Gemfile.
+
+    *Janko Marohnić*
+
+*   Prevent `ActiveStorage.touch_attachment_records = false` from crashing the attachment of a Blob.
+
+    When `ActiveStorage.touch_attachment_records` was set to `false`, attaching a existing Blob to a Record
+    would raise an error. This is now fixed.
+
+    *Edouard Chin*
+
+*   Parallelize `exist?` checks and uploads in `MirrorService#mirror` using
+    the existing internal thread pool. With N mirrors, wall time drops from
+    O(N) to O(1) network round-trips for both phases.
+
+    *Denis Savchuk*
+
+*   Fix `MirrorService#mirror` raising `ActiveStorage::IntegrityError` when
+    mirroring without a checksum (e.g., `track_variants: false`).
+
+    *Denis Savchuk*
+
+*   Don't bump `lock_version` on attachment records' parents during blob analysis.
+
+    `ActiveStorage::AnalyzeJob` writes only to `Blob#metadata`. The cascade
+    that touches attached records (and their parents) exists for cache-key
+    invalidation; when those records use optimistic locking, the previous
+    behavior bumped `lock_version`, causing concurrent form edits to raise
+    spurious `ActiveRecord::StaleObjectError`s. The `updated_at` cascade is
+    preserved; the `lock_version` bump on this code path is now suppressed.
+
+    Fixes #55764.
+
+    *Greg Pavlik*
+
+*   Accept Tempfile as ActiveStorage attachable.
+
+    ```ruby
+    tempfile = Tempfile.open(["users", ".csv"])
+    write_csv_to(tempfile)
+    export.csv.attach(tempfile)
+    ```
+
+    *Shouichi Kamiya*
+
+*   Require image processing backend upfront when Active Storage is being loaded.
+
+    This removes extra overhead when processing first variant after deploy and improves copy-on-write for preforking web servers.
+
+    *Janko Marohnić*
+
+*   ActiveStorage ProxyController now set relevant `Last-Modified`
+
+    It is now set to `Blob#created_at` instead of being hardcoded to January 1st 2011.
+
+    *Jean Boussier*
+
+*   Preserve attachment changes when converting record to another class using STI.
+
+    *fatkodima*
+
+*   Add a helper to get the combined byte size of blobs attached via `has_many_attached`.
+
+    ```ruby
+    document.images.byte_size # => 2048
+    ```
+
+    *Sandip Mane*, *fatkodima*
+
+*   Implement `attach!` as a bang counterpart to `attach`.
+
+    This method raises an exception if the attachment was not saved, similar
+    to how `save!` raises an exception if an Active Record object is found to
+    be invalid prior to be persisted.
+
+    *Quentin de Metz*
+
+*   Correct unexpected behavior resulting from dependent: :purge when using
+    has_one_attached or has_many_attached. Fixes #36423.
+
+    *Mark Oveson*
+
+*   Allow configuring Active Storage base controller parent class
+
+    This enables users to change the parent class for
+    `ActiveStorage::BaseController`, including the option to inherit from
+    `ActionController::API` for api-only apps.
+
+    *Andrew White*, *Santiago Bartesaghi*, *zzak*
+
+*   Fix image analyzer reporting wrong dimensions for EXIF orientations involving a mirror.
+
+    `rotated_image?` was swapping width/height for orientations 2 and 4 (flip-only, no 90°
+    rotation), which do not change portrait/landscape orientation. It was also missing orientations
+    5 and 7 (flip + 90° rotation), which do require a swap. Only orientations 5, 6, 7, and 8
+    involve a 90° or 270° rotation and should trigger a dimension swap.
+
+    *Bogdan Gusiev*
+
+*   Define `as_json` on `ActiveStorage::Attached::One` and `ActiveStorage::Attached::Many`.
+
+    The proxies hold a back-reference to the owning record in `@record`. Without an explicit
+    `as_json`, the default `Object#as_json` fall back serialized `instance_values`, which made
+    `record.to_json` recurse infinitely whenever the attached name collided with a model
+    attribute (e.g. an `ignored_columns` column brought back by `select('*')`).
+
+    `Attached::One#as_json` now returns the attachment record's JSON when attached and `nil`
+    otherwise. `Attached::Many#as_json` returns the attachment records' JSON as an array.
+
+    *Renxiang Cai*
+
+*   Configurable maximum streaming chunk size
+
+    Makes sure that byte ranges for blobs don't exceed 100mb by default.
+    Content ranges that are too big can result in denial of service.
+
+    *Gannon McGibbon*
+
+*   Prevent path traversal in `DiskService`.
+
+    `DiskService#path_for` now raises an `InvalidKeyError` when passed keys with dot segments (".",
+    ".."), or if the resolved path is outside the storage root directory.
+
+    `#path_for` also now consistently raises `InvalidKeyError` if the key is invalid in any way, for
+    example containing null bytes or having an incompatible encoding. Previously, the exception
+    raised may have been `ArgumentError` or `Encoding::CompatibilityError`.
+
+    `DiskController` now explicitly rescues `InvalidKeyError` with appropriate HTTP status codes.
+
+    *Mike Dalessio*
+
+*   Prevent glob injection in `DiskService#delete_prefixed`.
+
+    Escape glob metacharacters in the resolved path before passing to `Dir.glob`.
+
+    Note that this change breaks any existing code that is relying on `delete_prefixed` to expand
+    glob metacharacters. This change presumes that is unintended behavior (as other storage services
+    do not respect these metacharacters).
+
+    *Mike Dalessio*
+
+
+*   Restore ADC when signing URLs with IAM for GCS
+
+    ADC was previously used for automatic authorization when signing URLs with IAM.
+    Now it is again, but the auth client is memoized so that new credentials are only
+    requested when the current ones expire. Other auth methods can now be used
+    instead by setting the authorization on `ActiveStorage::Service::GCSService#iam_client`.
+
+    ```ruby
+    ActiveStorage::Blob.service.iam_client.authorization = Google::Auth::ImpersonatedServiceAccountCredentials.new(options)
+    ```
+
+    This is safer than setting `Google::Apis::RequestOptions.default.authorization`
+    because it only applies to Active Storage and does not affect other Google API
+    clients.
+
+    *Justin Malčić*
+
+*   Move responsibility for checksums storage service
+
+    The storage service should implement calculating and
+    validating checksums.
+
+    *Matt Pasquini*
+
+*   Analyze attachments before validation
+
+    Attachment metadata (width, height, duration, etc.) is now available for
+    model validations:
+
+    ```ruby
+    class User < ApplicationRecord
+      has_one_attached :avatar
+
+      validate :validate_avatar_dimensions, if: -> { avatar.attached? }
+
+      def validate_avatar_dimensions
+        if avatar.metadata[:width] < 200 || avatar.metadata[:height] < 200
+          errors.add(:avatar, "must be at least 200x200")
+        end
+      end
+    end
+    ```
+
+    Configure when analysis is performed:
+
+    * `analyze: :immediately` (default in 8.2) - Analyze before validation
+    * `analyze: :later` - Analyze after upload from local IO or via background job
+    * `analyze: :lazily` - Skip automatic analysis; analyze on-demand
+
+    ```ruby
+    has_one_attached :document, analyze: :later
+    has_many_attached :files, analyze: :lazily
+
+    # Or set the global default:
+    config.active_storage.analyze = :later
+    ```
+
+    Direct uploads bypass the server so the file isn't locally available
+    for analysis. In this case, `:immediately` falls back to `:later`,
+    analyzing via background job after upload completes. Metadata isn't
+    available for validation; validate on the client side instead.
+
+    *Jeremy Daer*
+
+*   Use local files for immediate variant processing and analysis
+
+    `process: :immediately` variants and blob analysis use local files
+    directly instead of re-downloading after upload.
+
+    Applies when attaching uploadable io, not when attaching an existing Blob.
+
+    *Jeremy Daer*
+
+*   Introduce `ActiveStorage::Attachment` upload callbacks
+
+    `after_upload` fires after an attachment's blob is uploaded, enabling
+    analysis and processing to run deterministically rather than assuming
+    after-commit callback execution ordering.
+
+    ```ruby
+    ActiveStorage::Attachment.after_upload do
+      # Your custom logic here
+    end
+    ```
+
+    *Jeremy Daer*
+
+*   Introduce immediate variants that are generated immediately on attachment
+
+    The new `process` option determines when variants are created:
+
+    - `:lazily` (default) - Variants are created dynamically when requested
+    - `:later` (replaces `preprocessed: true`) - Variants are created after attachment, in a background job
+    - `:immediately` (new) - Variants are created along with the attachment
+
+    ```ruby
+    has_one_attached :avatar do |attachable|
+      attachable.variant :thumb, resize_to_limit: [100, 100], process: :immediately
+    end
+    ```
+
+    The `preprocessed: true` option is deprecated in favor of `process: :later`.
+
+    *Tom Rossi*
+
+*   Make `Variant#processed?` and `VariantWithRecord#processed?` public so apps can check variant generation status.
+
+    *Tom Rossi*
+
+*   `ActiveStorage::Blob#open` can now be used without passing a block, like `Tempfile.open`. When using this form the
+    returned temporary file must be unlinked manually.
+
+    *Bart de Water*
 
 Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activestorage/CHANGELOG.md) for previous changes.

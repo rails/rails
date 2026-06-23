@@ -19,7 +19,9 @@ class String
   #   str.squish!                         # => "foo bar boo"
   #   str                                 # => "foo bar boo"
   def squish!
-    gsub!(/[[:space:]]+/, " ")
+    # Search for two or more `[[:space:]]` OR a single
+    # [[:space:]] that isn't `" "`.
+    gsub!(/([[:space:]]{2,}|[[[:space:]]&&[^ ]])/, " ")
     strip!
     self
   end
@@ -72,6 +74,8 @@ class String
 
     omission = options[:omission] || "..."
     length_with_room_for_omission = truncate_to - omission.length
+    return omission.dup if length_with_room_for_omission <= 0
+
     stop = \
       if options[:separator]
         rindex(options[:separator], length_with_room_for_omission) || length_with_room_for_omission

@@ -58,6 +58,19 @@ class MemoryStoreTest < StoreTest
     end
   end
 
+  def test_cleanup_with_non_dup_coder_serializer
+    @cache = lookup_store(serializer: :marshal_7_1)
+    @cache.write("expired", "x" * 100, expires_in: 0.01)
+    @cache.write("fresh", "y" * 100)
+
+    Time.stub(:now, Time.now + 1.minute) do
+      @cache.cleanup
+
+      assert_nil @cache.read("expired")
+      assert_equal "y" * 100, @cache.read("fresh")
+    end
+  end
+
   def test_nil_coder_bypasses_mutation_safeguard
     @cache = lookup_store(coder: nil)
     value = {}
@@ -213,5 +226,26 @@ class MemoryStorePruningTest < StoreTest
     read_item = @cache.read(key)
     assert_not_equal item.object_id, read_item.object_id
     assert_not_equal read_item.object_id, @cache.read(key).object_id
+  end
+
+  def test_local_store_strategy
+    @cache.with_local_cache do
+      @cache.write("name", "value")
+      assert_equal "value", @cache.read("name")
+      @cache.delete("name")
+      assert_nil @cache.read("name")
+      @cache.write("name", "value")
+    end
+    assert_equal "value", @cache.read("name")
+  end
+
+  def test_local_store_repeated_reads
+    @cache.with_local_cache do
+      @cache.read("foo")
+      assert_nil @cache.read("foo")
+
+      @cache.read_multi("foo", "bar")
+      assert_equal({}, @cache.read_multi("foo", "bar"))
+    end
   end
 end

@@ -226,6 +226,15 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal k.lease_connection.quote_column_name("foo"), k.quoted_primary_key
   end
 
+  def test_primary_key_inherited
+    k = Class.new(ActiveRecord::Base)
+    k.primary_key = "foo"
+    subclass = Class.new(k)
+
+    assert_equal "foo", k._primary_key_definition&.name
+    assert_equal "foo", subclass._primary_key_definition&.name
+  end
+
   def test_auto_detect_primary_key_from_schema
     MixedCaseMonkey.reset_primary_key
     assert_equal "monkeyID", MixedCaseMonkey.primary_key
@@ -423,6 +432,13 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     Cpk::Book.delete_all
   end
 
+  def test_reading_composite_primary_key_after_partial_select_returns_nil
+    book = Cpk::Book.select(:title).first
+
+    assert_nil book.author_id
+    assert_equal [nil, nil], book.id
+  end
+
   def test_assigning_a_non_array_value_to_model_with_composite_primary_key_raises
     book = Cpk::Book.new
 
@@ -517,7 +533,6 @@ class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_primary_key_integer_with_default_nil
-    skip if current_adapter?(:SQLite3Adapter)
     @connection.create_table(:int_defaults, id: :integer, default: nil, force: true)
     schema = dump_table_schema "int_defaults"
     assert_match %r{create_table "int_defaults", id: :integer, default: nil}, schema

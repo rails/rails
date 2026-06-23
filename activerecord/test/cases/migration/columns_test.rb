@@ -195,7 +195,7 @@ module ActiveRecord
 
         old_columns = connection.columns(TestModel.table_name)
         assert old_columns.find { |c|
-          default = c.fetch_cast_type(connection).deserialize(c.default)
+          default = c.cast_type.deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == true
         }
 
@@ -203,11 +203,11 @@ module ActiveRecord
         new_columns = connection.columns(TestModel.table_name)
 
         assert_not new_columns.find { |c|
-          default = c.fetch_cast_type(connection).deserialize(c.default)
+          default = c.cast_type.deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == true
         }
         assert new_columns.find { |c|
-          default = c.fetch_cast_type(connection).deserialize(c.default)
+          default = c.cast_type.deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == false
         }
         change_column :test_models, :approved, :boolean, default: true
@@ -240,6 +240,15 @@ module ActiveRecord
         change_column "test_models", "administrator", :boolean, default: false
         TestModel.reset_column_information
         assert_not_predicate TestModel.new, :administrator?
+      end
+
+      def test_change_column_preserves_old_attributes
+        add_column "test_models", "user_id", :integer, default: 0, null: false
+        change_column "test_models", "user_id", :bigint
+
+        new_column = connection.columns("test_models").find { |c| c.name == "user_id" }
+        assert_equal 0, new_column.default
+        assert_equal false, new_column.null
       end
 
       def test_change_column_with_custom_index_name

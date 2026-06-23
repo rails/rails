@@ -5,7 +5,7 @@ require "active_support/core_ext/enumerable"
 module ActiveSupport
   module Testing
     module Assertions
-      UNTRACKED = Object.new # :nodoc:
+      UNTRACKED = Object.new.freeze # :nodoc:
 
       # Asserts that an expression is not truthy. Passes if +object+ is +nil+ or
       # +false+. "Truthy" means "considered true in a conditional" like <tt>if
@@ -113,9 +113,7 @@ module ActiveSupport
             Array(expression).index_with(difference)
           end
 
-        exps = expressions.keys.map { |e|
-          e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
-        }
+        exps = expressions.keys.map { |e| _expression_to_callable(e, block.binding) }
         before = exps.map(&:call)
 
         retval = _assert_nothing_raised_or_warn("assert_difference", &block)
@@ -124,7 +122,8 @@ module ActiveSupport
           actual = exp.call
           rich_message = -> do
             code_string = code.respond_to?(:call) ? _callable_to_source_string(code) : code
-            error = "`#{code_string}` didn't change by #{diff}, but by #{actual - before_value}"
+            error = "`#{code_string}` didn't change by #{diff}, but by #{actual - before_value}."
+            error = "#{error}\n#{diff before_value + diff, actual}" if Minitest::VERSION > "6"
             error = "#{message}.\n#{error}" if message
             error
           end
@@ -209,7 +208,7 @@ module ActiveSupport
       #     post :create, params: { status: { incident: true } }
       #   end
       def assert_changes(expression, message = nil, from: UNTRACKED, to: UNTRACKED, &block)
-        exp = expression.respond_to?(:call) ? expression : -> { eval(expression.to_s, block.binding) }
+        exp = _expression_to_callable(expression, block.binding)
 
         before = exp.call
         retval = _assert_nothing_raised_or_warn("assert_changes", &block)
@@ -228,7 +227,7 @@ module ActiveSupport
         rich_message = -> do
           code_string = expression.respond_to?(:call) ? _callable_to_source_string(expression) : expression
           error = "`#{code_string}` didn't change"
-          error = "#{error}. It was already #{to.inspect}" if before == to
+          error = "#{error}. It was already #{to.inspect}." if before == to
           error = "#{message}.\n#{error}" if message
           error
         end
@@ -278,7 +277,7 @@ module ActiveSupport
       #     post :create, params: { status: { ok: false } }
       #   end
       def assert_no_changes(expression, message = nil, from: UNTRACKED, &block)
-        exp = expression.respond_to?(:call) ? expression : -> { eval(expression.to_s, block.binding) }
+        exp = _expression_to_callable(expression, block.binding)
 
         before = exp.call
         retval = _assert_nothing_raised_or_warn("assert_no_changes", &block)
@@ -296,8 +295,9 @@ module ActiveSupport
 
         rich_message = -> do
           code_string = expression.respond_to?(:call) ? _callable_to_source_string(expression) : expression
-          error = "`#{code_string}` changed"
+          error = "`#{code_string}` changed."
           error = "#{message}.\n#{error}" if message
+          error = "#{error}\n#{diff before, after}" if Minitest::VERSION > "6"
           error
         end
 
@@ -346,6 +346,9 @@ module ActiveSupport
             lines[0] = lines[0].byteslice(location[1]...)
             source = lines.join.strip
 
+            # Strip stabby lambda from Ruby 4.1+
+            source = source.sub(/^->\s*/, "")
+
             # We ignore procs defined with do/end as they are likely multi-line anyway.
             if source.start_with?("{")
               source.delete_suffix!("}")
@@ -361,6 +364,17 @@ module ActiveSupport
           end
 
           callable
+        end
+
+        def _expression_to_callable(callable_or_ruby_source, binding)
+          return callable_or_ruby_source if callable_or_ruby_source.respond_to?(:call)
+
+          case callable_or_ruby_source
+          when String, Symbol
+            -> { eval(callable_or_ruby_source.to_s, binding) }
+          else
+            raise ArgumentError, "The expression must be a callable object like a Proc, or a String of Ruby code. Got #{callable_or_ruby_source.inspect}"
+          end
         end
     end
   end

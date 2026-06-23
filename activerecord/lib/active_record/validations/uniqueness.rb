@@ -24,9 +24,11 @@ module ActiveRecord
         return if record.persisted? && !validation_needed?(finder_class, record, attribute)
 
         relation = build_relation(finder_class, attribute, value)
+        primary_key = finder_class.primary_key
+
         if record.persisted?
-          if finder_class.primary_key
-            relation = relation.where.not(finder_class.primary_key => [record.id_in_database])
+          if primary_key
+            relation = relation.where.not(primary_key => [record.id_in_database])
           else
             raise UnknownPrimaryKey.new(finder_class, "Cannot validate uniqueness for persisted record without primary key.")
           end
@@ -43,9 +45,11 @@ module ActiveRecord
           end
         end
 
-        if relation.exists?
+        existing = primary_key.present? ? relation.pick(primary_key) : relation.exists?
+        if existing.present?
           error_options = options.except(:case_sensitive, :scope, :conditions)
           error_options[:value] = value
+          error_options[:existing_id] = existing if primary_key.present?
 
           record.errors.add(attribute, :taken, **error_options)
         end
@@ -111,20 +115,15 @@ module ActiveRecord
 
       def build_relation(klass, attribute, value)
         relation = klass.unscoped
-        # TODO: Add case-sensitive / case-insensitive operators to Arel
-        # to no longer need to checkout a connection here.
-        comparison = klass.with_connection do |connection|
-          relation.bind_attribute(attribute, value) do |attr, bind|
-            return relation.none! if bind.unboundable?
+        comparison = relation.bind_attribute(attribute, value) do |attr, bind|
+          return relation.none! if bind.unboundable?
 
-            if !options.key?(:case_sensitive) || bind.nil?
-              connection.default_uniqueness_comparison(attr, bind)
-            elsif options[:case_sensitive]
-              connection.case_sensitive_comparison(attr, bind)
-            else
-              # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
-              connection.case_insensitive_comparison(attr, bind)
-            end
+          if !options.key?(:case_sensitive) || bind.nil?
+            attr.eq(bind)
+          elsif options[:case_sensitive]
+            attr.case_sensitive_eq(bind)
+          else
+            attr.case_insensitive_eq(bind)
           end
         end
 

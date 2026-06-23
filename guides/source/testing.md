@@ -40,7 +40,7 @@ then you will see:
 
 ```bash
 $ ls -F test
-controllers/                     helpers/                         mailers/                         fixtures/                        integration/                     models/                          test_helper.rb
+controllers/  fixtures/  helpers/  integration/  mailers/  models/  test_helper.rb
 ```
 
 ### Test Directories
@@ -57,25 +57,28 @@ outcomes.
 The `integration` directory is reserved for [tests that cover
 interactions between controllers](#integration-testing).
 
-The `system` test directory holds [system tests](#system-testing), which are
+[Fixtures](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html)
+are a way of mocking up data to use in your tests, so that you don't have to use
+'real' data. They are stored in the `fixtures` directory, and you can read more
+about them in the [Fixtures](#fixtures) section below.
+
+The `test_helper.rb` file holds the default configuration for your tests.
+
+When you first [generate system tests](#generating-system-tests), a `system`
+directory and an `application_system_test_case.rb` file will be created.
+
+The `system` directory holds [system tests](#system-testing), which are
 used for full browser testing of your application. System tests allow you to
 test your application the way your users experience it and help you test your
 JavaScript as well. System tests inherit from
 [Capybara](https://github.com/teamcapybara/capybara) and perform in-browser
 tests for your application.
 
-[Fixtures](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html)
-are a way of mocking up data to use in your tests, so that you don't have to use
-'real' data. They are stored in the `fixtures` directory, and you can read more
-about them in the [Fixtures](#fixtures) section below.
+The `application_system_test_case.rb` file holds the default configuration for your
+system tests.
 
 A `jobs` directory will also be created for your job tests when you first
-[generate a job](active_job_basics.html#create-the-job).
-
-The `test_helper.rb` file holds the default configuration for your tests.
-
-The `application_system_test_case.rb` holds the default configuration for your
-system tests.
+[generate a job](active_job_basics.html#defining-a-job).
 
 ### The Test Environment
 
@@ -525,7 +528,7 @@ You can also run a test at a specific line by providing the line number.
 $ bin/rails test test/models/article_test.rb:6 # run specific test and line
 ```
 
-You can also run a range of tests by providing the line range.
+You can also run a range of tests by providing the line range:
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6-20 # runs tests from line 6 to 20
@@ -554,7 +557,7 @@ Examples:
 
         bin/rails test test/models/user_test.rb:27
 
-    You can run multiple tests with in a line range by appending the line range to a filename:
+    You can run multiple tests within a line range by appending the line range to a filename:
 
         bin/rails test test/models/user_test.rb:10-20
 
@@ -947,7 +950,7 @@ The `get` method kicks off the web request and populates the results into the
   (e.g. query string parameters or article variables).
 * `headers`: for setting the headers that will be passed with the request.
 * `env`: for customizing the request environment as needed.
-* `xhr`: whether the request is AJAX request or not. Can be set to true for
+* `xhr`: whether the request is an AJAX request or not. Can be set to true for
   marking the request as AJAX.
 * `as`: for encoding the request with different content type.
 
@@ -1451,23 +1454,24 @@ generate system tests in two ways:
 
 1. **When scaffolding**, explicitly enable system tests:
 
-   ```bash
-   $ bin/rails generate scaffold Article title:string body:text --system-tests=true
-   ```
+    ```bash
+    $ bin/rails generate scaffold Article title:string body:text --system-tests=true
+    ```
 
 2. **Generate system tests independently** for critical features:
 
-   ```bash
-   $ bin/rails generate system_test articles
-   ```
+    ```bash
+    $ bin/rails generate system_test articles
+    ```
 
 Rails system tests are stored in the `test/system` directory in your
 application. To generate a system test skeleton, run the following command:
 
 ```bash
 $ bin/rails generate system_test users
-      invoke test_unit
-      create test/system/users_test.rb
+      invoke  test_unit
+      create    test/application_system_test_case.rb
+      create    test/system/users_test.rb
 ```
 
 Here's what a freshly generated system test looks like:
@@ -1493,7 +1497,7 @@ the default settings.
 Rails makes changing the default settings for system tests very simple. All the
 setup is abstracted away so you can focus on writing your tests.
 
-When you generate a new application or scaffold, an
+When you generate system tests, an
 `application_system_test_case.rb` file is created in the test directory. This is
 where all the configuration for your system tests should live.
 
@@ -1607,6 +1611,7 @@ command you should see:
 
 ```
       invoke  test_unit
+      create    test/application_system_test_case.rb
       create    test/system/articles_test.rb
 ```
 
@@ -2208,6 +2213,36 @@ You have been invited.
 Cheers!
 ```
 
+When testing multi-part emails with both HTML *and* text parts, use the
+[`assert_part`](https://api.rubyonrails.org/classes/ActionMailer/TestCase/Behavior.html#method-i-assert_part)
+assertion. When testing emails with HTML parts, use the assertions provided by [Rails::Dom::Testing](https://github.com/rails/rails-dom-testing).
+
+```ruby
+require "test_helper"
+
+class UserMailerTest < ActionMailer::TestCase
+  test "invite" do
+    # Create the email and store it for further assertions
+    email = UserMailer.create_invite("me@example.com",
+                                     "friend@example.com", Time.now)
+
+    # Test the body of the sent email's text part
+    assert_part :text, email do |text|
+      assert_includes text, "Hi friend@example.com"
+      assert_includes text, "You have been invited."
+      assert_includes text, "Cheers!"
+    end
+
+    # Test the body of the sent email's HTML part
+    assert_part :html, email do |html|
+      assert_dom html, "h1", text: "Hi friend@example.com"
+      assert_dom html, "p", text: "You have been invited."
+      assert_dom html, "p", text: "Cheers!"
+    end
+  end
+end
+```
+
 #### Configuring the Delivery Method for Test
 
 The line `ActionMailer::Base.delivery_method = :test` in
@@ -2454,6 +2489,194 @@ end
 This method is not recommended in general, as it circumvents some parts of the
 framework, such as argument serialization.
 
+Testing Active Storage
+----------------------
+
+There is a [`file_fixture_upload`][] helper method to test uploading a file in an integration or controller test, for example:
+
+```ruby#5
+class SignupController < ActionDispatch::IntegrationTest
+  test "user can sign up" do
+    post signup_path, params: {
+      email: "me@example.com",
+      profile_photo: file_fixture_upload("my-photo.png", "image/png")
+    }
+
+    user = User.order(:created_at).last
+    assert user.profile_photo.attached?
+  end
+end
+```
+
+[`file_fixture_upload`]: https://api.rubyonrails.org/classes/ActionDispatch/TestProcess/FixtureFile.html#method-i-file_fixture_upload
+
+### Discarding Files Created During Tests
+
+In general, database transactions are rolled back to clean up test data. While
+entries in the Active Storage related tables are removed, files attached during
+tests are not automatically deleted. Here is how to manually clean up orphaned
+files from integration tests and system tests.
+
+#### Integration Tests
+
+To clean up files uploaded during Integration Tests, you use a `teardown` callback.
+
+```ruby
+class ActionDispatch::IntegrationTest
+  def after_teardown
+    super
+    FileUtils.rm_rf(ActiveStorage::Blob.service.root)
+  end
+end
+```
+
+If you're using [parallel tests][] and the Disk service, you can configure
+each process to use its own folder for Active Storage. This way, the `teardown`
+callback will only delete files from the relevant process' tests.
+
+```ruby
+class ActionDispatch::IntegrationTest
+  parallelize_setup do |i|
+    ActiveStorage::Blob.service.root = "#{ActiveStorage::Blob.service.root}-#{i}"
+  end
+end
+```
+
+If your tests verify the deletion of a model with attachments and you're
+using Active Job, you will need to set your test environment to use the inline
+queue adapter so the purge job is executed immediately rather than at an unknown time
+in the future.
+
+```ruby
+config.active_job.queue_adapter = :inline
+```
+
+[parallel tests]: testing.html#parallel-testing
+
+#### System Tests
+
+In order to clear these files, you use a `after_teardown` callback. Doing it
+there ensures that all connections created during the test are complete and you
+won't receive an error from Active Storage saying it can't find a file.
+
+```ruby
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  # ...
+  def after_teardown
+    super
+    FileUtils.rm_rf(ActiveStorage::Blob.service.root)
+  end
+  # ...
+end
+```
+
+### Adding Attachments to Fixtures
+
+You can add attachments to your existing [fixtures][]. First, you'll want to create a separate storage service:
+
+```yml
+# config/storage.yml
+
+test_fixtures:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage_fixtures") %>
+```
+
+This tells Active Storage where to "upload" fixture files to, so it should be a
+temporary directory. By making it a different directory to your regular `test`
+service, you can separate fixture files from files uploaded during a test.
+
+Next, create fixture files for the Active Storage classes:
+
+```yml
+# test/fixtures/active_storage/attachments.yml
+user_one_profile_photo:
+  name: user_one
+  record: user_one (User)
+  blob: user_one_profile_photo_blob
+```
+
+```yml
+# test/fixtures/active_storage/blobs.yml
+user_one_profile_photo_blob: <%= ActiveStorage::FixtureSet.blob filename: "user_one.png", service_name: "test_fixtures" %>
+```
+
+Then put a file in your fixtures directory (the default path is
+`test/fixtures/files`) with the corresponding filename. See the
+[`ActiveStorage::FixtureSet`][] docs for more information.
+
+Once everything is set up, you'll be able to access attachments in your tests:
+
+```ruby
+class UserTest < ActiveSupport::TestCase
+  def test_profile_photo
+    profile_photo = users(:user_one).profile_photo
+
+    assert profile_photo.attached?
+    assert_not_nil profile_photo.download
+    assert_equal 1000, profile_photo.byte_size
+  end
+end
+```
+
+#### Cleaning up Fixtures
+
+While files uploaded in tests are cleaned up [at the end of each
+test](#discarding-files-created-during-tests), you only need to clean up fixture
+files once: when all your tests complete.
+
+If you're using parallel tests, call `parallelize_teardown`:
+
+```ruby
+class ActiveSupport::TestCase
+  # ...
+  parallelize_teardown do |i|
+    FileUtils.rm_rf(ActiveStorage::Blob.services.fetch(:test_fixtures).root)
+  end
+  # ...
+end
+```
+
+If you're not running parallel tests, use `Minitest.after_run` or the equivalent
+for your test framework (e.g. `after(:suite)` for RSpec):
+
+```ruby
+# test_helper.rb
+Minitest.after_run do
+  FileUtils.rm_rf(ActiveStorage::Blob.services.fetch(:test_fixtures).root)
+end
+```
+
+[fixtures]: testing.html#fixtures
+[`ActiveStorage::FixtureSet`]: https://api.rubyonrails.org/classes/ActiveStorage/FixtureSet.html
+
+### Configuring services
+
+You can use the `config/storage/test.yml` file to configure services to be used
+in test environment. This is useful when the `service` option is used:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :avatar, service: :s3
+end
+```
+
+Without configuring a test `s3` service in `config/storage/test.yml`, the `s3` service configured in `config/storage.yml` is used - even when running tests.
+
+The default configuration would be used and files would be uploaded to the service provider configured in `config/storage.yml`.
+
+In this case, you can add `config/storage/test.yml` and use Disk service for a service named `s3` to prevent sending requests to S3.
+
+```yaml
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+
+s3:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+```
+
 Testing Action Cable
 --------------------
 
@@ -2652,6 +2875,25 @@ workers a test run should use:
 $ PARALLEL_WORKERS=15 bin/rails test
 ```
 
+#### Reproducing Flaky Parallel Tests
+
+Whether using processes or threads, tests are distributed to workers in
+round-robin order, so given the same `--seed` value and worker count, each
+worker runs the same sequence of tests. This makes flaky tests caused by
+parallel test interdependence easier to reproduce: re-run with the same seed
+and worker count to get the same distribution.
+
+This deterministic assignment can make test runtime uneven when one worker
+happens to get most of the slow tests. Enable `work_stealing` to allow idle
+workers to steal tests from busy workers, improving load balance at the cost
+of less reproducible test distribution:
+
+```ruby
+class ActiveSupport::TestCase
+  parallelize(workers: :number_of_processors, work_stealing: true)
+end
+```
+
 When parallelizing tests, Active Record automatically handles creating a
 database and loading the schema into the database for each process. The
 databases will be suffixed with the number corresponding to the worker. For
@@ -2750,6 +2992,9 @@ class ActiveSupport::TestCase
   parallelize threshold: 100
 end
 ```
+
+NOTE: Setting the `PARALLEL_WORKERS` environment variable will bypass the
+threshold check, enabling parallelization regardless of test count.
 
 Testing Eager Loading
 ---------------------

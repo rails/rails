@@ -517,6 +517,37 @@ module ActiveRecord
       @connection.disable_query_cache!
     end
 
+    def test_empty_all_tables
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.empty_all_tables
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+    end
+
+    def test_empty_all_tables_with_query_cache
+      @connection.enable_query_cache!
+
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.empty_all_tables
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+      @connection.disable_query_cache!
+    end
+
     # test resetting sequences in odd tables in PostgreSQL
     if ActiveRecord::Base.lease_connection.respond_to?(:reset_pk_sequence!)
       require "models/movie"
@@ -540,14 +571,16 @@ module ActiveRecord
     private
       def reset_fixtures(*fixture_names)
         ActiveRecord::FixtureSet.reset_cache
-
-        fixture_names.each do |fixture_name|
-          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, fixture_name)
-        end
+        # Pass all fixtures at once: on PostgreSQL 18.4+, switching back to `ENFORCED` checks
+        # existing rows against the constraint, so loading child fixtures before parents
+        # would raise a FK violation.
+        ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, fixture_names)
       end
   end
 
   class AdapterConnectionTest < ActiveRecord::TestCase
+    include ConnectionHelper
+
     unless in_memory_db?
       self.use_transactional_tests = false
 
@@ -636,6 +669,17 @@ module ActiveRecord
         assert_not_predicate @connection, :active?
       end
 
+      test "active? on a 'clean' recently-used but now-failed connection detects but doesn't fix the problem" do
+        remote_disconnect @connection
+        @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Clean did not verify / fix the connection
+        assert_not_predicate @connection, :active?
+
+        # And nor did the above active? check
+        assert_not_predicate @connection, :active?
+      end
+
       test "verify! restores after remote disconnection" do
         remote_disconnect @connection
         @connection.verify!
@@ -672,15 +716,23 @@ module ActiveRecord
 
         @connection.clean! # this simulates a fresh checkout from the pool
 
-        # Clean did not verify / fix the connection
-        assert_not_predicate @connection, :active?
-
         # Because the query cannot be retried, and we (mistakenly) believe the
         # connection is still good, the query will fail. This is what we want,
         # because the alternative would be excessive reverification.
         assert_raises(ActiveRecord::AdapterError) do
           Post.delete_all
         end
+      end
+
+      test "querying a connection marked for reconnect replaces it first" do
+        previous_connection_id = connection_id_from_server(@connection)
+        @connection.instance_variable_set(:@needs_reconnect, true)
+        @connection.clean! # this simulates a fresh checkout from the pool
+
+        assert_predicate @connection, :needs_reconnect?
+        assert_predicate Post, :exists?
+        assert_not_equal previous_connection_id, connection_id_from_server(@connection)
+        assert_not_predicate @connection, :needs_reconnect?
       end
 
       test "quoting a string on a 'clean' failed connection will not prevent reconnecting" do
@@ -933,6 +985,28 @@ module ActiveRecord
         assert_empty slow
       ensure
         connection&.disconnect!
+      end
+    end
+
+    unless in_memory_db?
+      test "suppresses notifications when sql_notifications=false" do
+        run_without_connection do |orig_connection|
+          ActiveRecord::Base.establish_connection(orig_connection.merge(sql_notifications: false))
+
+          notifications = capture_notifications("sql.active_record") do
+            Post.first
+          end
+
+          assert_empty notifications
+        end
+      end
+
+      test "sql_notifications are enabled by default" do
+        notifications = capture_notifications("sql.active_record") do
+          Post.first
+        end
+
+        assert_not_empty notifications
       end
     end
   end

@@ -87,7 +87,7 @@ module ActiveRecord
         :primary_key,
         :if_exists,
         :if_not_exists
-      ]
+      ].freeze
 
       def primary_key?
         options[:primary_key]
@@ -108,10 +108,6 @@ module ActiveRecord
       def aliased_types(name, fallback)
         "timestamp" == name ? :datetime : fallback
       end
-
-      def fetch_cast_type(connection)
-        cast_type
-      end
     end
 
     AddColumnDefinition = Struct.new(:column) # :nodoc:
@@ -120,7 +116,7 @@ module ActiveRecord
 
     ChangeColumnDefaultDefinition = Struct.new(:column, :default) # :nodoc:
 
-    CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists) # :nodoc:
+    CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists, :lock) # :nodoc:
 
     PrimaryKeyDefinition = Struct.new(:name) # :nodoc:
 
@@ -157,6 +153,10 @@ module ActiveRecord
         options.fetch(:validate, true)
       end
       alias validated? validate?
+
+      def enforced?
+        options.fetch(:enforced, true)
+      end
 
       def export_name_on_schema_dump?
         !ActiveRecord::SchemaDumper.fk_ignore_pattern.match?(name) if name
@@ -560,7 +560,14 @@ module ActiveRecord
         end
 
         options[:primary_key] ||= type == :primary_key
-        options[:null] = false if options[:primary_key]
+
+        if options[:primary_key]
+          if options[:null]
+            raise ArgumentError, "primary keys cannot be NULL"
+          end
+          options[:null] = false
+        end
+
         create_column_definition(name, type, options)
       end
 

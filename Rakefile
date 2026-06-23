@@ -8,17 +8,15 @@ require "railties/lib/rails/api/task"
 require "tools/preview_docs"
 
 desc "Run all tests by default"
-task default: %w(test test:isolated)
+task default: :test
 
-%w(test test:isolated).each do |task_name|
-  desc "Run #{task_name} task for all projects"
-  task task_name do
-    errors = []
-    Releaser::FRAMEWORKS.each do |project|
-      system(%(cd #{project} && #{$0} #{task_name} --trace)) || errors << project
-    end
-    fail("Errors in #{errors.join(', ')}") unless errors.empty?
+desc "Run test task for all projects"
+task "test" do
+  errors = []
+  Releaser::FRAMEWORKS.each do |project|
+    system(%(cd #{project} && #{$0} test --trace)) || errors << project
   end
+  fail("Errors in #{errors.join(', ')}") unless errors.empty?
 end
 
 Releaser::FRAMEWORKS.each do |framework|
@@ -28,22 +26,11 @@ Releaser::FRAMEWORKS.each do |framework|
       ok = system(%(cd #{framework} && #{$0} test --trace))
       fail("Errors in #{framework}") unless ok
     end
-
-    desc "Run isolated tests for #{framework}"
-    task :isolated do
-      # Active Storage doesn't define a test:isolated task; explicitly fail
-      if framework == "activestorage"
-        abort "activestorage:isolated is not supported"
-      else
-        ok = system(%(cd #{framework} && #{$0} test:isolated --trace))
-        fail("Errors in #{framework}") unless ok
-      end
-    end
   end
 end
 
 namespace :activejob do
-  activejob_adapters = %w(async inline queue_classic resque sidekiq sneakers backburner test)
+  activejob_adapters = %w(async inline queue_classic resque sneakers backburner test)
   activejob_adapters.delete("queue_classic") if defined?(JRUBY_VERSION)
 
   desc "Run Active Job integration tests for all adapters"
@@ -57,12 +44,6 @@ namespace :activejob do
       desc "Run tests for activejob #{adapter} adapter"
       task :test do
         ok = system(%(cd activejob && #{$0} test:#{adapter} --trace))
-        fail("Errors in activejob:#{adapter}") unless ok
-      end
-
-      desc "Run isolated tests for activejob #{adapter} adapter"
-      task :isolated do
-        ok = system(%(cd activejob && #{$0} test:isolated:#{adapter} --trace))
         fail("Errors in activejob:#{adapter}") unless ok
       end
 
@@ -82,12 +63,6 @@ namespace :activerecord do
       task :test do
         ok = system(%(cd activerecord && #{$0} test:#{adapter} --trace))
         fail("Errors in activerecord:#{adapter}") unless ok
-      end
-
-      desc "Run Active Record #{adapter} adapter isolated tests"
-      task :isolated do
-        ok = system(%(cd activerecord && #{$0} test:isolated:#{adapter} --trace))
-        fail("Errors in activerecord:#{adapter} isolated") unless ok
       end
 
       desc "Run Active Record #{adapter} adapter integration tests"
@@ -167,23 +142,19 @@ namespace :activerecord do
 end
 
 desc "Smoke-test all projects"
-task :smoke, [:frameworks, :isolated] do |task, args|
+task :smoke, [:frameworks] do |task, args|
   frameworks = args[:frameworks] ? args[:frameworks].split(" ") : Releaser::FRAMEWORKS
   # The arguments are positional, and users may want to specify only the isolated flag.. so we allow 'all' as a default for the first argument:
   if frameworks.include?("all")
     frameworks = Releaser::FRAMEWORKS
   end
 
-  isolated = args[:isolated].nil? || args[:isolated] == "true"
-  test_task = isolated ? "test:isolated" : "test"
-
   (frameworks - ["activerecord"]).each do |project|
-    system %(cd #{project} && #{$0} #{test_task} --trace)
+    system %(cd #{project} && #{$0} test --trace)
   end
 
   if frameworks.include? "activerecord"
-    test_task = isolated ? "sqlite3:isolated_test" : "sqlite3:test"
-    system %(cd activerecord && #{$0} #{test_task} --trace)
+    system %(cd activerecord && #{$0} sqlite3:test --trace)
   end
 end
 
@@ -199,7 +170,8 @@ task :preview_docs do
   FileUtils.mkdir_p("preview")
   PreviewDocs.new.render("preview")
 
-  require "guides/rails_guides"
+  system(%(cd guides && #{$0} guides:generate --trace))
+
   Rake::Task[:rdoc].invoke
 
   FileUtils.mv("doc/rdoc", "preview/api")

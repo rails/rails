@@ -19,7 +19,7 @@ module ActionDispatch
         # different one with `Capybara.save_path`
         #
         # You can use the `html` argument or set the
-        # `RAILS_SYSTEM_TESTING_SCREENSHOT_HTML` environment variable to save the HTML
+        # `RAILS_SYSTEM_TESTING_SCREENSHOT_HTML` environment variable to `1` to save the HTML
         # from the page that is being screenshotted so you can investigate the elements
         # on the page at the time of the screenshot
         #

@@ -36,6 +36,9 @@ module ActionText
     #     message = Message.create!(content: "<div onclick='action()'>safe<script>unsafe</script></div>")
     #     message.content.to_s # => "<div>safeunsafe</div>"
 
+    cattr_accessor :editors, instance_accessor: false, default: {}.freeze
+    cattr_accessor :editor, instance_accessor: false
+
     serialize :body, coder: ActionText::Content
     delegate :to_s, :nil?, to: :body
 
@@ -65,12 +68,30 @@ module ActionText
     #     message.content.to_plain_text # => "Funny times!"
     #
     # NOTE: that the returned string is not HTML safe and should not be rendered in
-    # browsers.
+    # browsers without additional sanitization.
     #
     #     message = Message.create!(content: "&lt;script&gt;alert()&lt;/script&gt;")
     #     message.content.to_plain_text # => "<script>alert()</script>"
     def to_plain_text
       body&.to_plain_text.to_s
+    end
+
+    # Returns a Markdown version of the markup contained by the `body` attribute.
+    #
+    #     message = Message.create!(content: "<h1>Funny times!</h1>")
+    #     message.content.to_markdown # => "# Funny times!"
+    #
+    #     message = Message.create!(content: "<p>Hello <strong>world</strong></p>")
+    #     message.content.to_markdown # => "Hello **world**"
+    #
+    # When +attachment_links+ is true, ActiveStorage blob attachments generate Markdown links with
+    # URLs. This requires a rendering context (e.g., controller or mailer action) and will raise if
+    # URL generation fails.
+    #
+    # NOTE: that the returned string is not HTML safe and should not be rendered in
+    # browsers without additional sanitization.
+    def to_markdown(attachment_links: false)
+      body&.to_markdown(attachment_links: attachment_links).to_s
     end
 
     # Returns the `body` attribute in a format that makes it editable in the Trix
@@ -86,7 +107,24 @@ module ActionText
     #     #   </figure>
     #     # </div>
     def to_trix_html
-      body&.to_trix_html
+      to_editor_html
+    end
+    deprecate to_trix_html: :to_editor_html, deprecator: ActionText.deprecator
+
+    # Returns the `body` attribute in a format that makes it editable in the
+    # editor. Previews of attachments are rendered inline.
+    #
+    #     content = "<h1>Funny Times!</h1><figure data-action-text-attachment='{\"sgid\":\"..."\}'></figure>"
+    #     message = Message.create!(content: content)
+    #     message.content.to_editor_html # =>
+    #     # <div class="trix-content">
+    #     #   <h1>Funny times!</h1>
+    #     #   <figure data-action-text-attachment='{\"sgid\":\"..."\}'>
+    #     #      <img src="http://example.org/rails/active_storage/.../funny.jpg">
+    #     #   </figure>
+    #     # </div>
+    def to_editor_html
+      body&.to_editor_html
     end
 
     delegate :blank?, :empty?, :present?, to: :to_plain_text

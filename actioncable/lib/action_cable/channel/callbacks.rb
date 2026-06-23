@@ -39,12 +39,19 @@ module ActionCable
       extend  ActiveSupport::Concern
       include ActiveSupport::Callbacks
 
+      INTERNAL_METHODS = [:_run_subscribe_callbacks, :_run_unsubscribe_callbacks].freeze # :nodoc:
+
       included do
         define_callbacks :subscribe
         define_callbacks :unsubscribe
       end
 
       module ClassMethods
+        # This callback will be triggered before the Base#subscribed method is called.
+        #
+        # However, if the subscription is rejected with the Base#reject method in any
+        # such callback, the Base#subscribed method will not be called.
+        #
         def before_subscribe(*methods, &block)
           set_callback(:subscribe, :before, *methods, &block)
         end
@@ -70,6 +77,11 @@ module ActionCable
           set_callback(:unsubscribe, :after, *methods, &block)
         end
         alias_method :on_unsubscribe, :after_unsubscribe
+
+        private
+          def internal_methods
+            INTERNAL_METHODS
+          end
       end
     end
   end

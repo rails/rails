@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/object/with"
 
 module ActionDispatch
   module Routing
@@ -20,13 +21,13 @@ module ActionDispatch
       end
 
       test "not being empty when route is added" do
-        assert_predicate self, :empty?
+        assert_empty @set
 
         draw do
           get "foo", to: SimpleApp.new("foo#index")
         end
 
-        assert_not empty?
+        assert_not_empty @set
       end
 
       test "URL helpers are added when route is added" do
@@ -185,6 +186,44 @@ module ActionDispatch
         route = @set.from_requirements(controller: "baz", action: "index")
 
         assert_nil route
+      end
+
+      if RUBY_VERSION >= "4.0"
+        test "#resolve raises an error when a proc is not shareable and unshareable_proc_action is :raise" do
+          assert_raise(Ractor::IsolationError) do
+            ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+              draw do
+                to_resolve = [:basket, anchor: "items"]
+
+                resolve("Cart") { to_resolve }
+              end
+            end
+          end
+        end
+
+        test "#resolve trigger a deprecation when a proc is not shareable and unshareable_proc_action is :warn" do
+          assert_deprecated(/Rails attempted to make a Proc .* Ractor shareable/, ActiveSupport.deprecator) do
+            ActiveSupport::Ractors.with(unshareable_proc_action: :warn) do
+              draw do
+                to_resolve = [:basket, anchor: "items"]
+
+                resolve("Cart") { to_resolve }
+              end
+            end
+          end
+        end
+
+        test "#resolve does not attempt to make a proc shareable when unshareable_proc_action is nil" do
+          assert_nothing_raised do
+            ActiveSupport::Ractors.with(unshareable_proc_action: nil) do
+              draw do
+                to_resolve = [:basket, anchor: "items"]
+
+                resolve("Cart") { to_resolve }
+              end
+            end
+          end
+        end
       end
 
       private

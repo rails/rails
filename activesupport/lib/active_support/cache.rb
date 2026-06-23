@@ -2,6 +2,7 @@
 
 require "zlib"
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/numeric/bytes"
@@ -20,6 +21,7 @@ module ActiveSupport
     autoload :MemCacheStore,    "active_support/cache/mem_cache_store"
     autoload :NullStore,        "active_support/cache/null_store"
     autoload :RedisCacheStore,  "active_support/cache/redis_cache_store"
+    autoload :DeprecatedRedisCacheStore,  "active_support/cache/deprecated_redis_cache_store"
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
@@ -37,11 +39,11 @@ module ActiveSupport
       :skip_nil,
       :raw,
       :max_key_size,
-    ]
+    ].freeze
 
     # Mapping of canonical option names to aliases that a store will recognize.
     OPTION_ALIASES = {
-      expires_in: [:expire_in, :expired_in]
+      expires_in: [:expire_in, :expired_in].freeze
     }.freeze
 
     DEFAULT_COMPRESS_LIMIT = 1.kilobyte
@@ -194,8 +196,8 @@ module ActiveSupport
       # Keys are truncated with the Active Support digest if they exceed the limit.
       MAX_KEY_SIZE = 250
 
-      cattr_accessor :logger, instance_writer: true
-      cattr_accessor :raise_on_invalid_cache_expiration_time, default: false
+      class_attribute :logger, instance_predicate: false
+      class_attribute :raise_on_invalid_cache_expiration_time, instance_predicate: false, default: false
 
       attr_reader :silence, :options
       alias :silence? :silence
@@ -700,7 +702,7 @@ module ActiveSupport
         return 0 if names.empty?
 
         options = merged_options(options)
-        names.map! { |key| normalize_key(key, options) }
+        names = names.map { |key| normalize_key(key, options) }
 
         instrument_multi(:delete_multi, names, options) do
           delete_multi_entries(names, **options)
@@ -936,7 +938,7 @@ module ActiveSupport
 
         def handle_invalid_expires_in(message)
           error = ArgumentError.new(message)
-          if ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+          if raise_on_invalid_cache_expiration_time
             raise error
           else
             ActiveSupport.error_reporter&.report(error, handled: true, severity: :warning)
@@ -982,7 +984,7 @@ module ActiveSupport
         end
 
         def expand_and_namespace_key(key, options = nil)
-          str_key = expanded_key(key)
+          str_key = key.class == ::String ? key : expanded_key(key)
           raise(ArgumentError, "key cannot be blank") if !str_key || str_key.empty?
 
           namespace_key str_key, options

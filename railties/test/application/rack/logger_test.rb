@@ -17,6 +17,27 @@ module ApplicationTests
           config.logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
         RUBY
 
+        app_file "app/controllers/test_controller.rb", <<-RUBY
+          class TestController < ApplicationController
+            class SpecialException < Exception
+            end
+
+            rescue_from SpecialException do
+              head 406
+            end
+
+            def with_rescued_exception
+              raise SpecialException, "Oops"
+            end
+          end
+        RUBY
+
+        app_file "config/routes.rb", <<-RUBY
+          Rails.application.routes.draw do
+            get "/test/with_rescued_exception", to: "test#with_rescued_exception"
+          end
+        RUBY
+
         require "#{app_path}/config/environment"
         super
       end
@@ -58,6 +79,12 @@ module ApplicationTests
         get "/", {}, { "REMOTE_ADDR" => "127.0.0.1", "HTTP_X_FORWARDED_FOR" => "1.2.3.4" }
         wait
         assert_match 'Started GET "/" for 1.2.3.4', logs
+      end
+
+      test "logger logs rescued exceptions" do
+        get "/test/with_rescued_exception"
+        wait
+        assert_match(/rescue_from handled TestController::SpecialException \(Oops\) - (?!#{app_path}\/)app\/controllers\/test_controller.rb.*with_rescued_exception/, logs)
       end
     end
   end

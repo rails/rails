@@ -8,7 +8,7 @@ module RailtiesTest
 
     def setup
       build_app
-      FileUtils.rm_rf("#{app_path}/config/environments")
+      reset_environment_configs
       require "rails/all"
     end
 
@@ -17,7 +17,7 @@ module RailtiesTest
     end
 
     def app
-      @app ||= Rails.application
+      @app ||= Rails.app
     end
 
     test "cannot instantiate a Railtie object" do
@@ -246,6 +246,12 @@ module RailtiesTest
       assert_match(/undefined method [`']abc' for.*RailtiesTest::RailtieTest::Foo/, error.original_message)
     end
 
+    test "inspect does not show internals" do
+      class self.class::TestRailtie < Rails::Railtie; end
+
+      assert_match(/\A#<.*TestRailtie:0x[0-9a-f]+>\z/, self.class::TestRailtie.instance.inspect)
+    end
+
     test "rake environment can be called in the ralitie" do
       $ran_block = false
 
@@ -255,7 +261,7 @@ module RailtiesTest
         end
       end
 
-      ::APP_RAKEFILE = "#{app_path}/Rakefile"
+      ::APP_RAKEFILE = "#{app_path}/Rakefile".freeze
       require "#{app_path}/config/environment"
 
       assert_not $ran_block

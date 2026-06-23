@@ -9,6 +9,7 @@ After reading this guide, you will know:
 
 * How to use Rails' error reporter to capture and report errors.
 * How to create custom subscribers for your error-reporting service.
+* How to add shared error context with middleware.
 
 --------------------------------------------------------------------------------
 
@@ -45,6 +46,11 @@ requests,
 [jobs](active_job_basics.html), and [rails runner](command_line.html#bin-rails-runner) invocations) in the error reporter,
 so any unhandled errors raised in your app will automatically be reported to
 your error-reporting service via their subscribers.
+
+Rails automatically injects 2 keys into context of a report:
+
+* `:controller` - which value is an instance of controller for request based reports
+* `:job` - which value is an instance of job for Active Job based reports
 
 NOTE: For HTTP requests, errors present in `ActionDispatch::ExceptionWrapper.rescue_responses`
 are not reported as they do not result in server errors (500) and generally aren't bugs that need to be addressed.
@@ -247,6 +253,37 @@ Rails.error.handle(context: { b: 2 }) { raise }
 Rails.error.handle(context: { b: 3 }) { raise }
 # The reported context will be: {:a=>1, :b=>3}
 ```
+
+### Setting Context with Error Context Middleware
+
+The error reporter has its own middleware stack for modifying the error context before sending it to subscribers.
+Use this to make changes to the error context that can be seen by all error subscribers, instead of replicating
+common functionality inside subscribers.
+
+For example, suppose you run several error subscribers (one for your APM, one for a logging service) and you
+want every reported error to carry the current request ID and tenant. Without middleware, you would have to add
+that lookup to each subscriber. With a context middleware, you enrich the context once and every subscriber
+receives it. This is also how a gem can add common context to error messages without requiring the host app to
+modify its error subscribers. The concerns of "set error context" and "send data to error tracker" should be
+separated between middleware and subscribers.
+
+Context middleware receives the same parameters as `Rails.error.report`. The middleware stack returns the hash
+after running all middleware - each middleware can mutate the context hash and should return the new context hash.
+
+```ruby
+class MyErrorContextMiddleware
+  def call(error, context:, handled:, severity:, source:)
+    context.merge({ foo: :bar })
+  end
+end
+
+Rails.error.add_middleware(MyErrorContextMiddleware.new) # Append the middleware to the error context stack
+
+Rails.error.report(error, context: { bar: :baz }) # Report an error with some context
+# The reported context will include { bar: :baz, foo: :bar }
+```
+
+Context middleware runs after global context set by `Rails.error.set_context` is applied to the context hash.
 
 ### Filtering by Error Classes
 

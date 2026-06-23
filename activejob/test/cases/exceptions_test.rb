@@ -119,6 +119,21 @@ class ExceptionsTest < ActiveSupport::TestCase
       end
     end
 
+    test "float wait job" do
+      travel_to Time.now
+      random_amount = 1
+      delay_for_jitter = random_amount * 2 * ActiveJob::Base.retry_jitter
+
+      Kernel.stub(:rand, random_amount) do
+        RetryJob.perform_later "FloatWaitError", 2, :log_scheduled_at
+        assert_equal [
+          "Raised FloatWaitError for the 1st time",
+          "Next execution scheduled at #{(Time.now + 2.seconds + delay_for_jitter).to_f}",
+          "Successfully completed job"
+        ], JobBuffer.values
+      end
+    end
+
     test "polynomially retrying job includes jitter" do
       travel_to Time.now
 
@@ -266,6 +281,34 @@ class ExceptionsTest < ActiveSupport::TestCase
       ], JobBuffer.values
     end
 
+    test "custom wait proc with an optional argument" do
+      travel_to Time.now
+
+      RetryJob.perform_later "OptionalArgWaitError", 3, :log_scheduled_at
+
+      assert_equal [
+        "Raised OptionalArgWaitError for the 1st time",
+        "Next execution scheduled at #{(Time.now + 2.seconds).to_f}",
+        "Raised OptionalArgWaitError for the 2nd time",
+        "Next execution scheduled at #{(Time.now + 4.seconds).to_f}",
+        "Successfully completed job"
+      ], JobBuffer.values
+    end
+
+    test "custom wait proc can use the error" do
+      travel_to Time.now
+
+      RetryJob.perform_later "RetryWaitIncludedInError", 3, :log_scheduled_at
+
+      assert_equal [
+        "Raised RetryWaitIncludedInError for the 1st time",
+        "Next execution scheduled at #{(Time.now + 11.seconds).to_f}",
+        "Raised RetryWaitIncludedInError for the 2nd time",
+        "Next execution scheduled at #{(Time.now + 12.seconds).to_f}",
+        "Successfully completed job"
+      ], JobBuffer.values
+    end
+
     test "use individual execution timers when calculating retry delay" do
       travel_to Time.now
 
@@ -398,6 +441,27 @@ class ExceptionsTest < ActiveSupport::TestCase
         "Ran after_discard for job. Message: AfterDiscardRetryJob::CustomDiscardableError"
       ]
       assert_equal expected_array, JobBuffer.values.last(2)
+    end
+  end
+
+  test "retry_on raises ArgumentError for an unsupported wait type" do
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveJob::Base) do
+        retry_on StandardError, wait: "soon"
+      end
+    end
+    assert_match(/Unsupported argument type for :wait/, error.message)
+  end
+
+  test "retry_on accepts all supported wait types" do
+    assert_nothing_raised do
+      Class.new(ActiveJob::Base) do
+        retry_on StandardError, wait: 5
+        retry_on StandardError, wait: 2.5
+        retry_on StandardError, wait: 5.minutes
+        retry_on StandardError, wait: :polynomially_longer
+        retry_on StandardError, wait: ->(executions) { executions * 2 }
+      end
     end
   end
 end

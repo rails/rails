@@ -16,11 +16,25 @@
 # Blobs are intended to be immutable in as-so-far as their reference to a specific file goes. You're allowed to
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
+#
+# When using a custom +key+, the value is treated as trusted. Using untrusted user input
+# as the key may result in unexpected behavior.
 class ActiveStorage::Blob < ActiveStorage::Record
   MINIMUM_TOKEN_LENGTH = 28
 
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
+
+  # FIXME: these property should never have been stored in the metadata.
+  # The blob table should be migrated to have dedicated columns for theses.
+  PROTECTED_METADATA = %w(analyzed identified composed).freeze
+  private_constant :PROTECTED_METADATA
   store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
+
+  # Temporary reference to a local io during the upload flow. When set,
+  # +open+ will use this instead of downloading from the service. This
+  # enables analysis and other operations to run on the local file before
+  # uploading, avoiding a download round-trip.
+  attr_accessor :local_io
 
   class_attribute :services, default: {}
   class_attribute :service, instance_accessor: false
@@ -43,7 +57,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   after_update :touch_attachments
 
-  after_update_commit :update_service_metadata, if: -> { content_type_previously_changed? || metadata_previously_changed? }
+  after_update_commit :sync_metadata_later, if: -> { content_type_previously_changed? || metadata_previously_changed? }
 
   before_destroy(prepend: true) do
     raise ActiveRecord::InvalidForeignKey if attachments.exists?
@@ -92,6 +106,9 @@ class ActiveStorage::Blob < ActiveStorage::Record
     # be saved before the upload begins to prevent the upload clobbering another due to key collisions.
     # When providing a content type, pass <tt>identify: false</tt> to bypass
     # automatic content type inference.
+    #
+    # The optional +key+ parameter is treated as trusted. Using untrusted user input
+    # as the key may result in unexpected behavior.
     def create_and_upload!(key: nil, io:, filename:, content_type: nil, metadata: nil, service_name: nil, identify: true, record: nil)
       create_after_unfurling!(key: key, io: io, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, identify: identify).tap do |blob|
         blob.upload_without_unfurling(io)
@@ -104,6 +121,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     # Once the form using the direct upload is submitted, the blob can be associated with the right record using
     # the signed ID.
     def create_before_direct_upload!(key: nil, filename:, byte_size:, checksum:, content_type: nil, metadata: nil, service_name: nil, record: nil)
+      metadata = filter_metadata(metadata)
       create! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, metadata: metadata, service_name: service_name
     end
 
@@ -130,7 +148,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     end
 
     def scope_for_strict_loading # :nodoc:
-      if strict_loading_by_default? && ActiveStorage.track_variants
+      if self.strict_loading_by_default? && ActiveStorage.track_variants
         includes(
           variant_records: { image_attachment: :blob },
           preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
@@ -151,12 +169,38 @@ class ActiveStorage::Blob < ActiveStorage::Record
         combined_blob.save!
       end
     end
+
+    private
+      def filter_metadata(metadata)
+        if metadata.is_a?(Hash)
+          metadata.without(*PROTECTED_METADATA)
+        else
+          metadata
+        end
+      end
   end
 
   include Analyzable
   include Identifiable
   include Representable
   include Servable
+
+  ##
+  # :method: content_type
+  #
+  # Returns the content type of the associated file:
+  #
+  #   ActiveStorage::Blob.first.content_type
+  #   => "image/png"
+
+  ##
+  # :method: metadata
+  #
+  # Returns a Hash of metadata extracted from the associated file.
+  # ActiveStorage also stores whether the file has been identified and analyzed:
+  #
+  #   ActiveStorage::Blob.first.metadata
+  #   => {"identified" => true, "width" => 763, "height" => 588, "analyzed" => true}
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
   def signed_id(purpose: :blob_id, expires_in: nil, expires_at: nil)
@@ -179,32 +223,40 @@ class ActiveStorage::Blob < ActiveStorage::Record
     ActiveStorage::Filename.new(self[:filename])
   end
 
+  # Returns a Hash of the custom metadata to be stored on the cloud storage provider.
   def custom_metadata
     self[:metadata][:custom] || {}
   end
 
+  # Sets custom metadata to be stored on the cloud storage provider.
+  # Keys should not contain the cloud storage provider prefix as these get added automatically.
+  #
+  #   blob = ActiveStorage::Blob.new
+  #   blob.custom_metadata = { optimized: true }
+  #   blob.service_headers_for_direct_upload["x-amz-meta-optimized"]
+  #   => true
   def custom_metadata=(metadata)
     self[:metadata] = self[:metadata].merge(custom: metadata)
   end
 
   # Returns true if the content_type of this blob is in the image range, like image/png.
   def image?
-    content_type.start_with?("image")
+    content_type&.start_with?("image")
   end
 
   # Returns true if the content_type of this blob is in the audio range, like audio/mpeg.
   def audio?
-    content_type.start_with?("audio")
+    content_type&.start_with?("audio")
   end
 
   # Returns true if the content_type of this blob is in the video range, like video/mp4.
   def video?
-    content_type.start_with?("video")
+    content_type&.start_with?("video")
   end
 
   # Returns true if the content_type of this blob is in the text range, like text/plain.
   def text?
-    content_type.start_with?("text")
+    content_type&.start_with?("text")
   end
 
   # Returns the URL of the blob on the service. This returns a permanent URL for public files, and returns a
@@ -246,7 +298,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   def unfurl(io, identify: true) # :nodoc:
-    self.checksum     = compute_checksum_in_chunks(io)
+    self.checksum     = service&.compute_checksum(io)
     self.content_type = extract_content_type(io) if content_type.nil? || identify
     self.byte_size    = io.size
     self.identified   = true
@@ -261,6 +313,16 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.compose(keys, key, **service_metadata)
   end
 
+  def service_metadata # :nodoc:
+    if forcibly_serve_as_binary?
+      { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
+    elsif !allowed_inline?
+      { content_type: content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
+    else
+      { content_type: content_type, custom_metadata: custom_metadata }
+    end
+  end
+
   # Downloads the file associated with this blob. If no block is given, the entire file is read into memory and returned.
   # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
   def download(&block)
@@ -272,7 +334,8 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.download_chunk key, range
   end
 
-  # Downloads the blob to a tempfile on disk. Yields the tempfile.
+  # Downloads the blob to a temporary file on disk. If a block is given, the file is automatically closed and unlinked
+  # after the block executed. Otherwise the file is returned and you are responsible for closing and unlinking.
   #
   # The tempfile's name is prefixed with +ActiveStorage-+ and the blob's ID. Its extension matches that of the blob.
   #
@@ -282,18 +345,20 @@ class ActiveStorage::Blob < ActiveStorage::Record
   #     # ...
   #   end
   #
-  # The tempfile is automatically closed and unlinked after the given block is executed.
-  #
   # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
   def open(tmpdir: nil, &block)
-    service.open(
-      key,
-      checksum: checksum,
-      verify: !composed,
-      name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ],
-      tmpdir: tmpdir,
-      &block
-    )
+    if local_io
+      open_local_io(tmpdir: tmpdir, &block)
+    else
+      service.open(
+        key,
+        checksum: checksum,
+        verify: !composed,
+        name: [ "ActiveStorage-#{id}-", filename.extension_with_delimiter ],
+        tmpdir: tmpdir,
+        &block
+      )
+    end
   end
 
   def mirror_later # :nodoc:
@@ -323,23 +388,33 @@ class ActiveStorage::Blob < ActiveStorage::Record
     ActiveStorage::PurgeJob.perform_later(self)
   end
 
+  def sync_metadata # :nodoc:
+    service.update_metadata key, **service_metadata if service_metadata.any?
+  end
+
   # Returns an instance of service, which can be configured globally or per attachment
   def service
-    services.fetch(service_name)
+    services.fetch(service_name) if service_name
   end
 
   private
-    def compute_checksum_in_chunks(io)
-      raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
-
-      OpenSSL::Digest::MD5.new.tap do |checksum|
-        read_buffer = "".b
-        while io.read(5.megabytes, read_buffer)
-          checksum << read_buffer
+    # Opens a local io for reading, yielding a file-like object. If the io
+    # is already a File with a path, yield it directly. Otherwise, copy to
+    # a tempfile first since analyzers need file paths.
+    def open_local_io(tmpdir:)
+      if local_io.respond_to?(:path) && local_io.path && File.exist?(local_io.path)
+        local_io.rewind if local_io.respond_to?(:rewind)
+        yield local_io
+      else
+        Tempfile.open([ "ActiveStorage-#{id}-", filename.extension_with_delimiter ], tmpdir) do |file|
+          file.binmode
+          local_io.rewind if local_io.respond_to?(:rewind)
+          IO.copy_stream(local_io, file)
+          local_io.rewind if local_io.respond_to?(:rewind)
+          file.rewind
+          yield file
         end
-
-        io.rewind
-      end.base64digest
+      end
     end
 
     def extract_content_type(io)
@@ -350,30 +425,25 @@ class ActiveStorage::Blob < ActiveStorage::Record
       ActiveStorage.web_image_content_types.include?(content_type)
     end
 
-    def service_metadata
-      if forcibly_serve_as_binary?
-        { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
-      elsif !allowed_inline?
-        { content_type: content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
-      else
-        { content_type: content_type, custom_metadata: custom_metadata }
-      end
-    end
-
     def touch_attachments
-      attachments.then do |relation|
-        if ActiveStorage.touch_attachment_records
-          relation.includes(:record)
-        else
-          relation
+      # The cascade exists to invalidate cache keys; it must not bump
+      # +lock_version+ on parents, since blob analysis does not modify any
+      # field of theirs and would otherwise race with concurrent edits.
+      ActiveRecord::Locking::Optimistic.preserve_lock_version_on_touch do
+        attachments.then do |relation|
+          if ActiveStorage.touch_attachment_records
+            relation.includes(:record)
+          else
+            relation
+          end
+        end.each do |attachment|
+          attachment.touch unless attachment.new_record?
         end
-      end.each do |attachment|
-        attachment.touch
       end
     end
 
-    def update_service_metadata
-      service.update_metadata key, **service_metadata if service_metadata.any?
+    def sync_metadata_later
+      ActiveStorage::SyncMetadataJob.perform_later(self)
     end
 end
 

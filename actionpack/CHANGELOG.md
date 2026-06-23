@@ -1,2 +1,490 @@
+*   Add `config.action_dispatch.strict_accept_header` to stop forcing an
+    HTML response when the `Accept` header contains the `*/*` wildcard.
+
+    Rails used to treat any `Accept` header containing `*/*` as a browser and default
+    to HTML. When enabled, a request with `Accept: application/json, */*` returns JSON.
+
+    Defaults to `false`; new applications enable it via `load_defaults 8.2`.
+
+    *Willian Tenfen Wazilewski*, *Hartley McGuire*
+
+*   Rate limiting calls `cache_key` on `by:` if the object responds to it.
+
+    ```ruby
+    class CommentsController < ApplicationController
+      # Cache key in the store would be `rate-limit:comments:user/1`
+      rate_limit to: 2, within: 2.seconds, by: -> { current_user }
+    end
+    ```
+
+    *Daniel Sabourin*
+
+*   Add a configuration for `ActionDispatch::ExceptionWrapper.silent_exceptions` at `config.action_dispatch.silent_exceptions`.
+
+    Exceptions on this list do not fall back to framework-level backtraces when there is no application backtrace.
+
+    *Andrew Novoselac*
+
+*   Add a configuration for `ActionDispatch::ExceptionWrapper.wrapper_exceptions` at `config.action_dispatch.wrapper_exceptions`.
+
+    Exceptions on this list are unwrapped by the middleware and their cause is reported on instead.
+
+    *Andrew Novoselac*
+
+*   Release the executor state eagerly on rack hijack in
+    `ActionDispatch::Executor`.
+
+    The executor completed its state via the response body's `close`
+    callback (or `rack.response_finished` where available). For WebSocket
+    upgrades and full rack hijack the body becomes a long-lived streaming
+    connection, so `close` never fires until the socket closes. Under
+    Puma this was masked because Action Cable's hijack detaches to a
+    worker pool; under fiber-scheduled servers (e.g. Falcon) the request
+    fiber stays inline and the reloader share is held until the client
+    disconnects, blocking every subsequent reload.
+
+    The executor now detects hijacked responses -- HTTP 101 upgrades and
+    `rack.hijack_io` -- and completes the state immediately rather than
+    waiting on body close.
+
+    *Joel Junström*
+
+*   Add `ActionController::Parameters#deep_transform_values` and `deep_transform_values!`.
+
+    Mirrors the existing `deep_transform_keys` / `deep_transform_keys!` pair,
+    and matches `Hash#deep_transform_values` from Active Support. The block is
+    yielded only for leaf values; nested hashes, arrays, and `Parameters`
+    instances are traversed automatically. The returned instance carries the
+    same `permitted?` status as the receiver.
+
+    Previously, transforming every nested value required dropping out of the
+    strong-parameters guardrails:
+
+    ```ruby
+    params.to_unsafe_h.deep_transform_values { |v| v.is_a?(String) ? v.strip : v }
+    ```
+
+    With this addition, the same transformation keeps the result inside
+    `ActionController::Parameters`, so it still has to be filtered through
+    `permit` / `expect` before mass assignment:
+
+    ```ruby
+    params = ActionController::Parameters.new(
+      user: { email: "  ALICE@EXAMPLE.COM  ", profile: { bio: "  Hello world  " } }
+    )
+    params.deep_transform_values { |v| v.is_a?(String) ? v.strip.downcase : v }
+    # => #<ActionController::Parameters {"user"=>#<ActionController::Parameters {"email"=>"alice@example.com", "profile"=>#<ActionController::Parameters {"bio"=>"hello world"} permitted: false>} permitted: false>} permitted: false>
+    ```
+
+    *Edil Talantbek uulu*
+
+*   `http_cache_forever` now accept an optional `last_modified:` keyword parameter.
+
+    It still defaults to January 1st 2011, but you now can subtitute it for a relevant
+    time if there is one.
+
+    *Jean Boussier*
+
+*   Accept render options and block in `render` calls made with `:renderable`
+
+    ```ruby
+    class Greeting
+      def render_in(view_context, **)
+        if block_given?
+          view_context.render(html: yield)
+        else
+          view_context.render(inline: <<~ERB.strip, **)
+            Hello, <%= local_assigns[:name] || "World" %>
+          ERB
+        end
+      end
+    end
+
+    ApplicationController.render(Greeting.new)                                        # => "Hello, World"
+    ApplicationController.render(Greeting.new) { "Hello, Block" }                     # => "Hello, Block"
+    ApplicationController.render(renderable: Greeting.new)                            # => "Hello, World"
+    ApplicationController.render(renderable: Greeting.new, locals: { name: "Local" }) # => "Hello, Local"
+
+    *Sean Doyle*
+
+*   Support multiple arguments in `ActionController::Parameters#merge` and `#merge!`
+
+    Both methods now accept multiple hashes, matching Ruby's `Hash#merge` behavior.
+
+    ```ruby
+    params1 = ActionController::Parameters.new(a: 1)
+    params2 = ActionController::Parameters.new(b: 2)
+    params1.merge(params2, { c: 3 })
+    # => #<ActionController::Parameters {"a"=>1, "b"=>2, "c"=>3} permitted: false>
+    ```
+
+    *Bernie Chiu*
+
+*   Add `ActionController::Parameters#fetch_values` for fetching multiple parameter values
+
+    ```ruby
+    params = ActionController::Parameters.new(name: "Francesco", age: 22)
+    name, age = params.fetch_values(:name, :age)
+    # => ["Francesco", 22]
+
+    # With default values via block
+    name, email = params.fetch_values(:name, :email) { |key| "default_#{key}" }
+    # => ["Francesco", "default_email"]
+    ```
+
+    *Said Kaldybaev*
+
+*   Serve static CSS and HTML files with `charset=utf-8` in the Content-Type header.
+
+    Static CSS and HTML files served by `ActionDispatch::Static` now include
+    `; charset=utf-8` in their Content-Type response header, fixing browser
+    encoding issues with CSS files containing non-ASCII characters.
+
+    *Mike Dalessio*
+
+*   Add `query:` and `body:` kwargs to integration test request helpers.
+
+    `params:` was ambiguous for GET requests with `as: :json` — unclear
+    whether params should go in the query string or request body. This
+    caused failures in API-only apps which exclude `Rack::MethodOverride`.
+
+    Use `query:` to explicitly send params in the URL query string (any
+    HTTP method), and `body:` to send an encoded request body. They can
+    be combined.
+
+    `params:` retains existing behavior: GET → query string,
+    other methods → request body.
+
+        get  "/search", query: { q: "rails" }, as: :json
+        post "/search", query: { page: 1 }, body: { filters: {} }, as: :json
+
+    Fixes #57131.
+
+    *Denis Savchuk*
+
+*   Add `ActionDispatch::Request#safe_method?` and `#unsafe_method?`.
+
+    `safe_method?` returns true for HTTP methods that are defined as safe per
+    [RFC 9110 §9.2.1](https://httpwg.org/specs/rfc9110.html#safe.methods):
+    GET, HEAD, OPTIONS, and TRACE. `unsafe_method?` is the inverse.
+
+    ```ruby
+    request.safe_method?   # => true for GET, HEAD, OPTIONS, TRACE
+    request.unsafe_method? # => true for POST, PUT, PATCH, DELETE
+    ```
+
+    *Joseph Hale*
+
+*   Add `content_type` option to HTTP authentication methods.
+
+    `request_http_basic_authentication`, `request_http_digest_authentication`,
+    and `request_http_token_authentication` now accept a `content_type`
+    parameter to control the Content-Type of the 401 response. The default
+    behavior is unchanged.
+
+    ```ruby
+    http_basic_authenticate_with(
+      name: "admin", password: "secret",
+      message: '{"error":"Access denied"}',
+      content_type: "application/json"
+    )
+    ```
+
+    *Iliana Hadzhiatanasova*
+
+*   Add `RAILS_HOST_APP_PATH` environment variable to support editor links in devcontainer/Docker environments.
+
+    When Rails runs inside a container, file paths in error pages are container-internal paths
+    that don't exist on the host machine. Setting `RAILS_HOST_APP_PATH` to the host's application
+    path enables proper translation of container paths to host paths for editor links.
+
+    Example in `.devcontainer/devcontainer.json`:
+
+    ```json
+    {
+      "containerEnv": {
+        "EDITOR": "code",
+        "RAILS_HOST_APP_PATH": "${localWorkspaceFolder}"
+      }
+    }
+    ```
+
+    This allows the "open in editor" feature to work correctly when developing in containers.
+
+    *Victor Cobos*
+
+*   Make `event_backtrace` attribute in `rescue_from_handled.action_controller` notifications the full backtrace, when `config.action_controller.rescue_from_event_backtrace` is `:array`.
+
+    This also affects `action_controller.rescue_from_handled` events.
+
+    *zzak*
+
+*   Avoid loading `ActionController::Live` early in initializer, and introduce
+    `action_controller_live` load hook.
+
+    *Adrianna Chang*
+
+*   Make CSRF header-only protection compatible with local installs using HTTP
+
+    In local installations that don't use HTTPS and where the app is
+    accessed within a local network, requests won't be performed from a
+    secure context. In this case, the browser won't send the
+    `Sec-Fetch-Site` header. This means non-GET requests will be rejected
+    because CSRF protection will fail when using the header-only approach.
+
+    With this change, we allow these requests with missing `Sec-Fetch-Site`
+    headers if:
+
+    - They happen over HTTP
+    - The app is not configured to force SSL
+
+    The `Origin` check always happens in any case.
+
+    *Rosa Gutierrez*
+
+*   Deprecate calling `protect_from_forgery` without specifying a strategy.
+
+    When `protect_from_forgery` is called without the `:with` option, it currently defaults to
+    `:null_session`. This is inconsistent with `config.action_controller.default_protect_from_forgery`,
+    which uses `:exception`.
+
+    A new configuration option `config.action_controller.default_protect_from_forgery_with` has been
+    added to allow applications to configure the default strategy. It currently defaults to `:null_session`
+    for backwards compatibility, but will change to `:exception` in a future version of Rails.
+
+    Applications can opt into the new behavior now by setting:
+
+    ```ruby
+    config.action_controller.default_protect_from_forgery_with = :exception
+    ```
+
+    To silence the deprecation warning without changing behavior, explicitly pass the strategy:
+
+    ```ruby
+    protect_from_forgery with: :null_session
+    ```
+
+    *Said Kaldybaev*
+
+*   Add `ActionDispatch::Request#bearer_token` to extract the bearer token from the Authorization header.
+    Bearer tokens are commonly used for API and MCP requests.
+
+    *DHH*
+
+*   Add block support to `ActionController::Parameters#merge`
+
+    `ActionController::Parameters#merge` now accepts a block to resolve conflicts,
+    consistent with `Hash#merge` and `Parameters#merge!`.
+
+    ```ruby
+    params1 = ActionController::Parameters.new(a: 1, b: 2)
+    params2 = ActionController::Parameters.new(b: 3, c: 4)
+    params1.merge(params2) { |key, old_val, new_val| old_val + new_val }
+    # => #<ActionController::Parameters {"a"=>1, "b"=>5, "c"=>4} permitted: false>
+    ```
+
+    *Said Kaldybaev*
+
+*   Yield key to `ActionController::Parameters#fetch` block
+
+    ```ruby
+    key = params.fetch(:missing) { |missing_key| missing_key }
+    key # => :missing
+
+    key = params.fetch("missing") { |missing_key| missing_key }
+    key # => "missing"
+    ```
+
+    *Sean Doyle*
+
+*   Add `config.action_controller.live_streaming_excluded_keys` to control execution state sharing in ActionController::Live.
+
+    When using ActionController::Live, actions are executed in a separate thread that shares
+    state from the parent thread. This new configuration allows applications to opt-out specific
+    state keys that should not be shared.
+
+    This is useful when streaming inside a `connected_to` block, where you may want
+    the streaming thread to use its own database connection context.
+
+    ```ruby
+    # config/application.rb
+    config.action_controller.live_streaming_excluded_keys = [:active_record_connected_to_stack]
+    ```
+
+    By default, all keys are shared.
+
+    *Eileen M. Uchitelle*
+
+*   Add controller action source location to routes inspector.
+
+    The routes inspector now shows where controller actions are defined.
+    In `rails routes --expanded`, a new "Action Location" field displays
+    the file and line number of each action method.
+
+    On the routing error page, when `RAILS_EDITOR` or `EDITOR` is set,
+    a clickable ✏️ icon appears next to each Controller#Action that opens
+    the action directly in the editor.
+
+    *Guillermo Iguaran*
+
+*   Active Support notifications for CSRF warnings.
+
+    Switches from direct logging to event-driven logging, allowing others to
+    subscribe to and act on CSRF events:
+
+    - `csrf_token_fallback.action_controller`
+    - `csrf_request_blocked.action_controller`
+    - `csrf_javascript_blocked.action_controller`
+
+    *Jeremy Daer*
+
+*   Modern header-based CSRF protection.
+
+    Modern browsers send the `Sec-Fetch-Site` header to indicate the relationship
+    between request initiator and target origins. Rails now uses this header to
+    verify same-origin requests without requiring authenticity tokens.
+
+    Two verification strategies are available via `protect_from_forgery using:`:
+
+    * `:header_only` - Uses `Sec-Fetch-Site` header only. Rejects requests
+      without a valid header. Default for new Rails 8.2 applications.
+
+    * `:header_or_legacy_token` - Uses `Sec-Fetch-Site` header when present,
+      falls back to authenticity token verification for older browsers.
+
+    Configure trusted origins for legitimate cross-site requests (OAuth callbacks,
+    third-party embeds) with `trusted_origins:`:
+
+    ```ruby
+    protect_from_forgery trusted_origins: %w[ https://accounts.google.com ]
+    ```
+
+    `InvalidAuthenticityToken` is deprecated in favor of `InvalidCrossOriginRequest`.
+
+    *Rosa Gutierrez*
+
+*   Fix `action_dispatch_request` early load hook call when building
+    Rails app middleware.
+
+    *Gannon McGibbon*
+
+*   Emit a structured event when `action_on_open_redirect` is set to `:notify`
+    in addition to the existing Active Support Notification.
+
+    *Adrianna Chang*, *Hartley McGuire*
+
+*   Support `text/markdown` format in `DebugExceptions` middleware.
+
+    When `text/markdown` is requested via the Accept header, error responses
+    are returned with `Content-Type: text/markdown` instead of HTML.
+    The existing text templates are reused for markdown output, allowing
+    CLI tools and other clients to receive byte-efficient error information.
+
+    *Guillermo Iguaran*
+
+*   Support dynamic `to:` and `within:` options in `rate_limit`.
+
+    The `to:` and `within:` options now accept callables (lambdas or procs) and
+    method names (as symbols), in addition to static values. This allows for
+    dynamic rate limiting based on user attributes or other runtime conditions.
+
+    ```ruby
+    class APIController < ApplicationController
+      rate_limit to: :max_requests, within: :time_window, by: -> { current_user.id }
+
+      private
+        def max_requests
+          current_user.premium? ? 1000 : 100
+        end
+
+        def time_window
+          current_user.premium? ? 1.hour : 1.minute
+        end
+    end
+    ```
+
+    *Murilo Duarte*
+
+*   Define `ActionController::Parameters#deconstruct_keys` to support pattern matching
+
+    ```ruby
+    if params in { search:, page: }
+      Article.search(search).limit(page)
+    else
+      …
+    end
+
+    case (value = params[:string_or_hash_with_nested_key])
+    in String
+      # do something with a String `value`…
+    in { nested_key: }
+      # do something with `nested_key` or `value`
+    else
+      # …
+    end
+    ```
+
+    *Sean Doyle*
+
+*   Submit test requests using `as: :html` with `Content-Type: x-www-form-urlencoded`
+
+    *Sean Doyle*
+
+*   Add `svg:` renderer:
+
+    ```ruby
+    class Page
+      def to_svg
+        body
+      end
+    end
+
+    class PagesController < ActionController::Base
+      def show
+        @page = Page.find(params[:id])
+
+        respond_to do |format|
+          format.html
+          format.svg { render svg: @page }
+        end
+      end
+    end
+    ```
+
+    *Thiago Youssef*
+
+*   Add the latest standardized features to `permissions_policy`
+
+    Add the following features that have been standardized since the list was last updated:
+
+    * `attribution-reporting`
+    * `battery`
+    * `bluetooth`
+    * `ch-ua`
+    * `ch-ua-arch`
+    * `ch-ua-bitness`
+    * `ch-ua-full-version`
+    * `ch-ua-full-version-list`
+    * `ch-ua-high-entropy-values`
+    * `ch-ua-mobile`
+    * `ch-ua-model`
+    * `ch-ua-platform`
+    * `ch-ua-platform-version`
+    * `ch-ua-wow64`
+    * `compute-pressure`
+    * `cross-origin-isolated`
+    * `direct-sockets`
+    * `execution-while-not-rendered`
+    * `execution-while-out-of-viewport`
+    * `identity-credentials-get`
+    * `mediasession`
+    * `navigation-override`
+    * `otp-credentials`
+    * `publickey-credentials-get`
+    * `storage-access`
+    * `window-management`
+    * `xr-spatial-tracking`
+
+    *Ruben Arakelyan*
 
 Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/actionpack/CHANGELOG.md) for previous changes.

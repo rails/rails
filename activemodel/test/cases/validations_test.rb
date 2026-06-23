@@ -101,6 +101,22 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 2, r.errors.count
   end
 
+  def test_errors_on_custom_attribute
+    r = Reply.new
+
+    r.errors.add(:foo_bar, "is invalid")
+
+    assert_equal ["Foo bar is invalid"], r.errors.full_messages
+  end
+
+  def test_errors_on_custom_attribute_with_symbol_message
+    r = Reply.new
+
+    r.errors.add(:foo_bar, :invalid)
+
+    assert_equal ["Foo bar is invalid"], r.errors.full_messages
+  end
+
   def test_errors_empty_after_errors_on_check
     t = Topic.new
     assert_empty t.errors[:id]
@@ -352,6 +368,18 @@ class ValidationsTest < ActiveModel::TestCase
     assert_raise(ActiveModel::ValidationError) do
       Topic.new.validate!
     end
+  end
+
+  def test_validate_with_bang_exposes_model_and_message
+    Topic.validates :title, presence: true
+
+    topic = Topic.new
+    error = assert_raise(ActiveModel::ValidationError) do
+      topic.validate!
+    end
+
+    assert_same topic, error.model
+    assert_equal "Validation failed: Title can't be blank", error.message
   end
 
   def test_validate_with_bang_and_context

@@ -29,11 +29,13 @@ module AbstractController
     # ActiveSupport::Callbacks.
     include ActiveSupport::Callbacks
 
+    DEFAULT_INTERNAL_METHODS = [:_run_process_action_callbacks].freeze # :nodoc:
+
     included do
       define_callbacks :process_action,
                        terminator: ->(controller, result_lambda) { result_lambda.call; controller.performed? },
                        skip_after_callbacks_if_terminated: true
-      mattr_accessor :raise_on_missing_callback_actions, default: false
+      class_attribute :raise_on_missing_callback_actions, instance_predicate: false, default: false
     end
 
     class ActionFilter # :nodoc:
@@ -250,6 +252,10 @@ module AbstractController
 
         # *_action is the same as append_*_action
         alias_method :"append_#{callback}_action", :"#{callback}_action"
+      end
+
+      def internal_methods # :nodoc:
+        super.concat(DEFAULT_INTERNAL_METHODS)
       end
     end
 

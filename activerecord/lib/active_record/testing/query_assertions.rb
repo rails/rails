@@ -29,9 +29,9 @@ module ActiveRecord
           result = _assert_nothing_raised_or_warn("assert_queries_count", &block)
           queries = include_schema ? counter.log_all : counter.log
           if count
-            assert_equal count, queries.size, "#{queries.size} instead of #{count} queries were executed. Queries: #{queries.join("\n\n")}"
+            assert_equal count, queries.size, "#{queries.size} instead of #{count} queries were executed#{queries.empty? ? '' : ". Queries:\n\n#{queries.join("\n\n")}"}"
           else
-            assert_operator queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
+            assert_operator queries.size, :>=, 1, "1 or more queries expected, but none were executed"
           end
           result
         end
@@ -72,9 +72,9 @@ module ActiveRecord
           matched_queries = queries.select { |query| match === query }
 
           if count
-            assert_equal count, matched_queries.size, "#{matched_queries.size} instead of #{count} queries were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
+            assert_equal count, matched_queries.size, "#{matched_queries.size} instead of #{count} matching queries were executed#{queries.empty? ? '' : ". Queries:\n\n#{queries.join("\n\n")}"}"
           else
-            assert_operator matched_queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
+            assert_operator matched_queries.size, :>=, 1, "1 or more matching queries expected, but none were executed#{queries.empty? ? '' : ". Queries:\n\n#{queries.join("\n\n")}"}"
           end
 
           result

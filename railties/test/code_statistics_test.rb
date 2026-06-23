@@ -29,6 +29,14 @@ class CodeStatisticsTest < ActiveSupport::TestCase
     Rails::CodeStatistics.test_types.delete("Model specs")
   end
 
+  test "register test extensions" do
+    Rails::CodeStatistics.register_extension("slim")
+    assert Rails::CodeStatistics.pattern.to_s.include?("slim")
+  ensure
+    Rails::CodeStatistics.extensions = Rails::CodeStatistics::EXTENSIONS
+    Rails::CodeStatistics.pattern = Rails::CodeStatistics::PATTERN
+  end
+
   test "ignores directories that happen to have source files extensions" do
     assert_nothing_raised do
       @code_statistics = Rails::CodeStatistics.new(["tmp dir", @tmp_path])

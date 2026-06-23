@@ -3,6 +3,8 @@
 require "abstract_unit"
 
 class RateLimitedController < ActionController::Base
+  ModelWithKey = Struct.new(:cache_key)
+
   self.cache_store = ActiveSupport::Cache::MemoryStore.new
   rate_limit to: 2, within: 2.seconds, only: :limited
   rate_limit to: 5, within: 1.minute, name: "long-term", only: :limited
@@ -21,6 +23,21 @@ class RateLimitedController < ActionController::Base
     head :ok
   end
 
+  rate_limit to: :dynamic_to, within: :dynamic_within, only: :limited_with_dynamic_to_within
+  def limited_with_dynamic_to_within
+    head :ok
+  end
+
+  rate_limit to: -> { params[:max_requests]&.to_i || 2 }, within: -> { params[:time_window]&.to_i&.seconds || 2.seconds }, only: :limited_with_callable_to_within
+  def limited_with_callable_to_within
+    head :ok
+  end
+
+  rate_limit to: 2, within: 2.seconds, by: -> { ModelWithKey.new(params[:rate_limit_key]) }, only: :limited_with_key
+  def limited_with_key
+    head :ok
+  end
+
   private
     def by_method
       params[:rate_limit_key]
@@ -28,6 +45,14 @@ class RateLimitedController < ActionController::Base
 
     def head_forbidden
       head :forbidden
+    end
+
+    def dynamic_to
+      params[:max_requests]&.to_i || 2
+    end
+
+    def dynamic_within
+      params[:time_window]&.to_i&.seconds || 2.seconds
     end
 end
 
@@ -162,6 +187,63 @@ class RateLimitingTest < ActionController::TestCase
     get :limited_with_methods
     get :limited_with_methods
     assert_response :forbidden
+  end
+
+  test "dynamic to and within with methods" do
+    get :limited_with_dynamic_to_within
+    get :limited_with_dynamic_to_within
+    assert_response :ok
+
+    assert_raises ActionController::TooManyRequests do
+      get :limited_with_dynamic_to_within
+    end
+  end
+
+  test "dynamic to and within with methods using custom values" do
+    get :limited_with_dynamic_to_within, params: { max_requests: 5, time_window: 10 }
+    get :limited_with_dynamic_to_within, params: { max_requests: 5, time_window: 10 }
+    get :limited_with_dynamic_to_within, params: { max_requests: 5, time_window: 10 }
+    get :limited_with_dynamic_to_within, params: { max_requests: 5, time_window: 10 }
+    get :limited_with_dynamic_to_within, params: { max_requests: 5, time_window: 10 }
+    assert_response :ok
+
+    assert_raises ActionController::TooManyRequests do
+      get :limited_with_dynamic_to_within, params: { max_requests: 5, time_window: 10 }
+    end
+  end
+
+  test "dynamic to and within with callables" do
+    get :limited_with_callable_to_within
+    get :limited_with_callable_to_within
+    assert_response :ok
+
+    assert_raises ActionController::TooManyRequests do
+      get :limited_with_callable_to_within
+    end
+  end
+
+  test "dynamic to and within with callables using custom values" do
+    get :limited_with_callable_to_within, params: { max_requests: 3, time_window: 5 }
+    get :limited_with_callable_to_within, params: { max_requests: 3, time_window: 5 }
+    get :limited_with_callable_to_within, params: { max_requests: 3, time_window: 5 }
+    assert_response :ok
+
+    assert_raises ActionController::TooManyRequests do
+      get :limited_with_callable_to_within, params: { max_requests: 3, time_window: 5 }
+    end
+  end
+
+  test "limit by object with cache_key" do
+    get :limited_with_key, params: { rate_limit_key: "user/1" }
+    get :limited_with_key, params: { rate_limit_key: "user/1" }
+    assert_response :ok
+
+    assert_raises ActionController::TooManyRequests do
+      get :limited_with_key, params: { rate_limit_key: "user/1" }
+    end
+
+    get :limited_with_key, params: { rate_limit_key: "user/2" }
+    assert_response :ok
   end
 
   test "cross-controller rate limit" do

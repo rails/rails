@@ -45,17 +45,17 @@ class Module
       # The following generated method concatenates `object_id` because we want
       # subclasses to maintain independent values.
       if default.nil?
-        class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+        class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
           def self.#{sym}
             @__thread_mattr_#{sym} ||= "attr_#{sym}_\#{object_id}"
             ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}]
           end
-        EOS
+        RUBY
       else
         default = default.dup.freeze unless default.frozen?
         singleton_class.define_method("#{sym}_default_value") { default }
 
-        class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+        class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
           def self.#{sym}
             @__thread_mattr_#{sym} ||= "attr_#{sym}_\#{object_id}"
             value = ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}]
@@ -66,15 +66,15 @@ class Module
               value
             end
           end
-        EOS
+        RUBY
       end
 
       if instance_reader && instance_accessor
-        class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+        class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
           def #{sym}
             self.class.#{sym}
           end
-        EOS
+        RUBY
       end
     end
   end
@@ -104,19 +104,19 @@ class Module
 
       # The following generated method concatenates `object_id` because we want
       # subclasses to maintain independent values.
-      class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+      class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
         def self.#{sym}=(obj)
           @__thread_mattr_#{sym} ||= "attr_#{sym}_\#{object_id}"
           ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}] = obj
         end
-      EOS
+      RUBY
 
       if instance_writer && instance_accessor
-        class_eval(<<-EOS, __FILE__, __LINE__ + 1)
+        class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
           def #{sym}=(obj)
             self.class.#{sym} = obj
           end
-        EOS
+        RUBY
       end
     end
   end

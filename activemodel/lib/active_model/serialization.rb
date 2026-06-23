@@ -164,7 +164,9 @@ module ActiveModel
     #       @data[key]
     #     end
     #   end
-    alias :read_attribute_for_serialization :send
+    def read_attribute_for_serialization(key)
+      send(key)
+    end
 
     private
       def attribute_names_for_serialization

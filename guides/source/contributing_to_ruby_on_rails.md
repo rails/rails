@@ -370,11 +370,9 @@ You can also run component test suites from the repository root using rake tasks
 
 ```bash
 $ bundle exec rake actionpack:test
-$ bundle exec rake actionpack:isolated
 
 # Active Record adapters (from the repo root)
 $ bundle exec rake activerecord:sqlite3:test
-$ bundle exec rake activerecord:sqlite3:isolated
 $ bundle exec rake activerecord:mysql2:test
 $ bundle exec rake activerecord:trilogy:test
 $ bundle exec rake activerecord:postgresql:test
@@ -383,17 +381,12 @@ $ bundle exec rake activerecord:postgresql:test
 $ bundle exec rake activerecord:integration
 
 # Active Job adapters
-$ bundle exec rake activejob:sidekiq:test
-$ bundle exec rake activejob:sidekiq:isolated
-$ bundle exec rake activejob:sidekiq:integration
+$ bundle exec rake activejob:async:test
+$ bundle exec rake activejob:async:integration
 
 # All Active Job integration tests
 $ bundle exec rake activejob:integration
 ```
-
-Notes:
-
-- Not all frameworks define an isolated test task. For example, `activestorage:isolated` is not supported and will exit with an error.
 
 #### For a Specific Directory
 
@@ -414,6 +407,12 @@ $ cd actionview
 $ bin/test test/template/form_helper_test.rb
 ```
 
+Or from the repository root:
+
+```bash
+$ bin/test actionview/test/template/form_helper_test.rb
+```
+
 #### Running a Single Test
 
 You can run a single test by name using the `-n` option:
@@ -423,6 +422,12 @@ $ cd actionmailer
 $ bin/test test/mail_layout_test.rb -n test_explicit_class_layout
 ```
 
+Or from the repository root:
+
+```bash
+$ bin/test actionmailer/test/mail_layout_test.rb -n test_explicit_class_layout
+```
+
 #### For a Specific Line
 
 Figuring out the name is not always easy, but if you know the line number your test starts at, this option is for you:
@@ -430,6 +435,12 @@ Figuring out the name is not always easy, but if you know the line number your t
 ```bash
 $ cd railties
 $ bin/test test/application/asset_debugging_test.rb:69
+```
+
+Or from the repository root:
+
+```bash
+$ bin/test railties/test/application/asset_debugging_test.rb:69
 ```
 
 #### For a Specific Line Range
@@ -552,15 +563,13 @@ $ bundle exec rake test
 
 will now run the three of them in turn.
 
-You can run adapter-specific isolated tests, or all Active Job integration tests for Active Record, with:
+You can run all Active Job integration tests for Active Record, with:
 
 ```bash
 # From inside activerecord
-$ bundle exec rake test:isolated:sqlite3
 $ bundle exec rake test:integration:active_job
 
 # Or repository root
-$ bundle exec rake activerecord:sqlite3:isolated
 $ bundle exec rake activerecord:integration   # runs Active Job integration across all adapters
 ```
 
@@ -600,7 +609,7 @@ The Ruby on Rails [guides](https://guides.rubyonrails.org/) provide a high-level
 
 If your PR adds a new feature or changes how an existing feature behaves, check the relevant documentation and update it or add to it as necessary.
 
-For example, if you modify Active Storage's image analyzer to add a new metadata field, you should update the [Analyzing Files](active_storage_overview.html#analyzing-files) section of the Active Storage guide to reflect that.
+For example, if you modify Active Storage's image analyzer to add a new metadata field, you should update the [Analyzing Files](active_storage_overview.html#analyzing-files-for-metadata) section of the Active Storage guide to reflect that.
 
 ### Updating the CHANGELOG
 

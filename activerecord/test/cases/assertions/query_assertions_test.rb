@@ -47,12 +47,12 @@ module ActiveRecord
         error = assert_raises(Minitest::Assertion) {
           assert_queries_match(/ASC LIMIT/i, count: 2) { Post.first }
         }
-        assert_match(/1 instead of 2 queries/, error.message)
+        assert_match(/1 instead of 2 matching queries/, error.message)
 
         error = assert_raises(Minitest::Assertion) {
           assert_queries_match(/ASC LIMIT/i, count: 0) { Post.first }
         }
-        assert_match(/1 instead of 0 queries/, error.message)
+        assert_match(/1 instead of 0 matching queries/, error.message)
       end
 
       def test_assert_queries_match_with_matcher
@@ -61,11 +61,11 @@ module ActiveRecord
             Post.where(id: 1).first
           end
         }
-        assert_match(/0 instead of 1 queries/, error.message)
+        assert_match(/0 instead of 1 matching queries/, error.message)
       end
 
       def test_assert_queries_match_when_there_are_no_queries
-        assert_raises(Minitest::Assertion, match: "1 or more queries expected, but none were executed") do
+        assert_raises(Minitest::Assertion, match: "1 or more matching queries expected, but none were executed") do
           assert_queries_match(/something/) { Post.none }
         end
       end
@@ -113,7 +113,7 @@ module ActiveRecord
 
         def test_assert_queries_match_include_schema
           Post.columns # load columns
-          assert_raises(Minitest::Assertion, match: "1 or more queries expected") do
+          assert_raises(Minitest::Assertion, match: "1 or more matching queries expected") do
             assert_queries_match(/SELECT/i, include_schema: true) { Post.columns }
           end
 

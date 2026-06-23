@@ -23,9 +23,16 @@ module ActiveSupport
         @store = @stack.pop
         self
       end
+
+      def flush
+        @stack = Array.new(@stack.size) { {} }
+        @store = {}
+        @current_attributes_instances = {}
+        self
+      end
     end
 
-    @after_change_callbacks = []
+    @after_change_callbacks = [].freeze
 
     # Execution context nesting should only legitimately happen during test
     # because the test case itself is wrapped in an executor, and it might call
@@ -35,10 +42,10 @@ module ActiveSupport
     @nestable = false
 
     class << self
-      attr_accessor :nestable
+      attr_accessor :nestable, :after_change_callbacks
 
       def after_change(&block)
-        @after_change_callbacks << block
+        @after_change_callbacks = [*@after_change_callbacks, block].freeze
       end
 
       # Updates the execution context. If a block is given, it resets the provided keys to their
@@ -95,6 +102,10 @@ module ActiveSupport
 
       def clear
         IsolatedExecutionState[:active_support_execution_context] = nil
+      end
+
+      def flush
+        record.flush
       end
 
       def current_attributes_instances

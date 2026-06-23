@@ -13,6 +13,7 @@ module ActionCable
 
       def initialize(*)
         super
+        @mutex = Mutex.new
         @listener = nil
       end
 
@@ -37,7 +38,7 @@ module ActionCable
       def with_subscriptions_connection(&block) # :nodoc:
         # Action Cable is taking ownership over this database connection, and will
         # perform the necessary cleanup tasks.
-        # We purposedly avoid #checkout to not end up with a pinned connection
+        # We purposely avoid #checkout to not end up with a pinned connection
         ar_conn = ActiveRecord::Base.connection_pool.new_connection
         pg_conn = ar_conn.raw_connection
 
@@ -58,11 +59,17 @@ module ActionCable
 
       private
         def channel_identifier(channel)
-          channel.size > 63 ? OpenSSL::Digest::SHA1.hexdigest(channel) : channel
+          # PostgreSQL identifiers are limited to NAMEDATALEN-1 (63) *bytes*, not
+          # characters, and are silently truncated past that. Truncation makes the
+          # name we LISTEN/subscribe under differ from the one wait_for_notify hands
+          # back, so notifications would miss their subscribers. Hash on byte length
+          # so multibyte channel names that exceed the limit stay within it.
+          # See https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
+          channel.bytesize > 63 ? OpenSSL::Digest::SHA1.hexdigest(channel) : channel
         end
 
         def listener
-          @listener || @server.mutex.synchronize { @listener ||= Listener.new(self, @server.event_loop) }
+          @listener || @mutex.synchronize { @listener ||= Listener.new(self, executor) }
         end
 
         def verify!(pg_conn)
@@ -71,12 +78,11 @@ module ActionCable
           end
         end
 
-        class Listener < SubscriberMap
-          def initialize(adapter, event_loop)
-            super()
+        class Listener < SubscriberMap::Async
+          def initialize(adapter, executor)
+            super(executor)
 
             @adapter = adapter
-            @event_loop = event_loop
             @queue = Queue.new
 
             @thread = Thread.new do
@@ -95,7 +101,7 @@ module ActionCable
                     case action
                     when :listen
                       pg_conn.exec("LISTEN #{pg_conn.escape_identifier channel}")
-                      @event_loop.post(&callback) if callback
+                      @executor.post(&callback) if callback
                     when :unlisten
                       pg_conn.exec("UNLISTEN #{pg_conn.escape_identifier channel}")
                     when :shutdown
@@ -122,10 +128,6 @@ module ActionCable
 
           def remove_channel(channel)
             @queue.push([:unlisten, channel])
-          end
-
-          def invoke_callback(*)
-            @event_loop.post { super }
           end
         end
     end

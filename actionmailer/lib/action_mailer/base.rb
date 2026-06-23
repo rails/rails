@@ -475,7 +475,6 @@ module ActionMailer
   # * <tt>deliver_later_queue_name</tt> - The queue name used by <tt>deliver_later</tt> with the default
   #   <tt>delivery_job</tt>. Mailers can set this to use a custom queue name.
   class Base < AbstractController::Base
-    include Callbacks
     include DeliveryMethods
     include QueuedDelivery
     include Rescuable
@@ -493,6 +492,8 @@ module ActionMailer
     include AbstractController::AssetPaths
     include AbstractController::Callbacks
     include AbstractController::Caching
+
+    include Callbacks
 
     include ActionView::Layouts
 
@@ -605,6 +606,16 @@ module ActionMailer
           builder.address = address
           builder.display_name = name.presence
         end.to_s
+      end
+
+      def mail(...)
+        MessageDelivery.new(self, :mail, ...)
+      end
+
+      def action_methods
+        methods = super
+        methods.add("mail") if self == ActionMailer::Base
+        methods
       end
 
     private

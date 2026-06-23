@@ -27,7 +27,7 @@ module ActiveRecord
         def explain(arel, binds = [], options = [])
           sql     = build_explain_clause(options) + " " + to_sql(arel, binds)
           start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          result  = internal_exec_query(sql, "EXPLAIN", binds)
+          result  = select_all(sql, "EXPLAIN", binds)
           elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
 
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
@@ -35,6 +35,10 @@ module ActiveRecord
 
         def build_explain_clause(options = [])
           return "EXPLAIN" if options.empty?
+
+          options = options.flat_map do |option|
+            option.is_a?(Hash) ? option.to_a.map { |nested| nested.join("=") } : option
+          end
 
           explain_clause = "EXPLAIN #{options.join(" ").upcase}"
 

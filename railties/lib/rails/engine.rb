@@ -542,8 +542,20 @@ module Rails
     # Defines the routes for this engine. If a block is given to
     # routes, it is appended to the engine.
     def routes(&block)
-      @routes ||= config.route_set_class.new_with_config(config)
-      @routes.append(&block) if block_given?
+      if block_given?
+        if @route_blocks
+          @route_blocks << block
+        else
+          @routes ||= config.route_set_class.new_with_config(config)
+          @routes.append(&block)
+        end
+      elsif @routes.nil?
+        @routes = config.route_set_class.new_with_config(config)
+        if @route_blocks
+          blocks, @route_blocks = @route_blocks, nil
+          blocks.each { |b| routes(&b) }
+        end
+      end
       @routes
     end
 
@@ -562,8 +574,14 @@ module Rails
     end
 
     initializer :load_environment_config, before: :load_environment_hook, group: :all do
-      paths["config/environments"].existent.each do |environment|
-        require environment
+      env_files = paths["config/environments"].existent
+
+      if env_files.empty? && any_environment_files?
+        missing_environment_file
+      else
+        env_files.each do |environment|
+          require environment
+        end
       end
     end
 
@@ -589,6 +607,7 @@ module Rails
 
     initializer :make_routes_lazy, before: :bootstrap_hook do |app|
       config.route_set_class = LazyRouteSet if Rails.env.local?
+      routes
     end
 
     initializer :add_routing_paths do |app|
@@ -687,6 +706,12 @@ module Rails
       end
 
     private
+      def missing_environment_file; end
+
+      def any_environment_files?
+        false
+      end
+
       def load_config_initializer(initializer) # :doc:
         ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
           load(initializer)

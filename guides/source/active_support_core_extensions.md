@@ -1018,31 +1018,7 @@ NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 [Module#cattr_reader]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_reader
 [Module#cattr_writer]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_writer
 
-### Subclasses and Descendants
-
-#### `subclasses`
-
-The [`subclasses`][Class#subclasses] method returns the subclasses of the receiver:
-
-```ruby
-class C; end
-C.subclasses # => []
-
-class B < C; end
-C.subclasses # => [B]
-
-class A < B; end
-C.subclasses # => [B]
-
-class D < C; end
-C.subclasses # => [B, D]
-```
-
-The order in which these classes are returned is unspecified.
-
-NOTE: Defined in `active_support/core_ext/class/subclasses.rb`.
-
-[Class#subclasses]: https://api.rubyonrails.org/classes/Class.html#method-i-subclasses
+### Descendants
 
 #### `descendants`
 
@@ -2932,7 +2908,7 @@ def to_checkbox_tag(options = {}, checked_value = "1", unchecked_value = "0")
 end
 ```
 
-The second line can safely access the "type" key, and let the user to pass either `:type` or "type".
+The second line can safely access the "type" key, and let the user pass either `:type` or "type".
 
 There's also the bang variant [`stringify_keys!`][Hash#stringify_keys!] that stringifies keys in place.
 
@@ -2979,7 +2955,7 @@ def rich_textarea_tag(name, value = nil, options = {})
 end
 ```
 
-The third line can safely access the `:input` key, and let the user to pass either `:input` or "input".
+The third line can safely access the `:input` key, and let the user pass either `:input` or "input".
 
 There's also the bang variant [`symbolize_keys!`][Hash#symbolize_keys!] that symbolizes keys in place.
 
@@ -3230,8 +3206,8 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ##### `monday`, `sunday`
 
-The methods [`monday`][DateAndTime::Calculations#monday] and [`sunday`][DateAndTime::Calculations#sunday] return the dates for the previous Monday and
-next Sunday, respectively.
+The methods [`monday`][DateAndTime::Calculations#monday] and [`sunday`][DateAndTime::Calculations#sunday] return the dates for the previous Monday (or the same day if it is Monday) and
+next Sunday (or the same day if it is Sunday), respectively.
 
 ```ruby
 d = Date.new(2010, 5, 8)     # => Sat, 08 May 2010
@@ -3403,7 +3379,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ##### `weeks_ago`, `weeks_since`
 
-The method [`weeks_ago`][DateAndTime::Calculations#weeks_ago] and [`weeks_since`][DateAndTime::Calculations#week_since] work analogously for weeks:
+The methods [`weeks_ago`][DateAndTime::Calculations#weeks_ago] and [`weeks_since`][DateAndTime::Calculations#week_since] work analogously for weeks:
 
 ```ruby
 Date.new(2010, 5, 24).weeks_ago(1)   # => Mon, 17 May 2010

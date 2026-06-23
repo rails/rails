@@ -7,7 +7,7 @@ module ActionView
   class Template
     extend ActiveSupport::Autoload
 
-    STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*)\)/
+    STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*?)\)(?=\s*-?%>|\s*$)/m
 
     # === Encodings in ActionView::Template
     #
@@ -164,12 +164,11 @@ module ActionView
 
     eager_autoload do
       autoload :Error
+      autoload :HTML
+      autoload :Handlers
+      autoload :Inline
       autoload :RawFile
       autoload :Renderable
-      autoload :Handlers
-      autoload :HTML
-      autoload :Inline
-      autoload :Types
       autoload :Sources
       autoload :Text
       autoload :Types
@@ -189,12 +188,22 @@ module ActionView
           const_set(:Types, implementation)
         end
       end
+
+      def validate_formats(formats)
+        return if Types.valid_symbols?(formats)
+        invalid = formats - Types.symbols
+        raise ArgumentError, "Invalid formats: #{invalid.map(&:inspect).join(", ")}"
+      end
+
+      def normalized_formats(formats)
+        formats & Types.symbols unless Types.valid_symbols?(formats)
+      end
     end
 
     attr_reader :identifier, :handler
     attr_reader :variable, :format, :variant, :virtual_path
 
-    NONE = Object.new
+    NONE = Object.new.freeze
 
     def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
       @source            = source.dup
@@ -366,9 +375,15 @@ module ActionView
     def strict_locals!
       if @strict_locals == NONE
         self.source.sub!(STRICT_LOCALS_REGEX, "")
-        @strict_locals = $1
+        @strict_locals = $1&.rstrip
 
         return if @strict_locals.nil? # Magic comment not found
+
+        # Tag with the assumed encoding before encode! runs, same as
+        # encode! does for the source itself (see above).
+        if @strict_locals.encoding == Encoding::BINARY
+          @strict_locals.force_encoding(Encoding.default_external)
+        end
 
         @strict_locals = "**nil" if @strict_locals.blank?
       end

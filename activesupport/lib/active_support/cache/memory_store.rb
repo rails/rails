@@ -26,6 +26,8 @@ module ActiveSupport
     #
     # +MemoryStore+ is thread-safe.
     class MemoryStore < Store
+      prepend Strategy::LocalCache
+
       module DupCoder # :nodoc:
         extend self
 
@@ -103,7 +105,7 @@ module ActiveSupport
         _instrument(:cleanup, size: @data.size) do
           keys = synchronize { @data.keys }
           keys.each do |key|
-            entry = @data[key]
+            entry = deserialize_entry(@data[key])
             delete_entry(key, **options) if entry && entry.expired?
           end
         end

@@ -310,6 +310,31 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal_round_trip @first_range, :ts_range, nil...time
   end
 
+  def test_unbounded_tsrange_sql_values
+    time = Time.public_send(::ActiveRecord.default_timezone, 2010, 1, 1, 14, 30, 0)
+
+    @first_range.update(ts_range: time...nil)
+    @second_range.update(ts_range: time..nil)
+    @third_range.update(ts_range: nil...time)
+    @fourth_range.update(ts_range: nil..time)
+
+    result = @connection.execute(<<~SQL)
+      SELECT lower(ts_range) AS lower, upper(ts_range) AS upper
+      FROM postgresql_ranges
+      WHERE id IN (101, 102, 103, 104)
+      ORDER BY id
+    SQL
+
+    expected = [
+      { "lower" => time, "upper" => "infinity" },
+      { "lower" => time, "upper" => "infinity" },
+      { "lower" => "-infinity", "upper" => time },
+      { "lower" => "-infinity", "upper" => time }
+    ]
+
+    assert_equal expected, result.to_a
+  end
+
   def test_timezone_awareness_tsrange
     tz = "Pacific Time (US & Canada)"
 
@@ -541,6 +566,76 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_equal('ca"t'...'do\\g', escaped_range.string_range)
   end
 
+  def test_ranges_correctly_parse_quoted_bounds_with_commas
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (107, '["a,b","c,d")')
+    SQL
+
+    range = PostgresqlRange.find(107)
+    assert_equal("a,b"..."c,d", range.string_range)
+  end
+
+  def test_ranges_parse_quoted_bounds_with_commas_quotes_and_backslashes
+    # Lower bound is `a,"b` (comma + embedded quote), upper is `c\,d`
+    # (backslash + comma); PostgreSQL emits these as ["a,""b","c\\,d").
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (108, '["a,""b","c\\\\,d")')
+    SQL
+
+    assert_equal('a,"b'...'c\\,d', PostgresqlRange.find(108).string_range)
+  end
+
+  def test_ranges_parse_partially_quoted_bounds_with_commas
+    # Only the lower bound is quoted (it contains a comma); the upper bound
+    # is emitted bare, so the separating comma is the first unquoted one.
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (109, '["x,y",z)')
+    SQL
+
+    assert_equal("x,y"..."z", PostgresqlRange.find(109).string_range)
+  end
+
+  def test_ranges_parse_open_bounds_with_commas
+    # Upper bound omitted (endless); lower bound quoted with a comma.
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (110, '["a,b",)')
+    SQL
+    assert_equal("a,b"...nil, PostgresqlRange.find(110).string_range)
+
+    # Lower bound omitted (beginless); upper bound quoted with a comma.
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (111, '[,"c,d")')
+    SQL
+    assert_equal(nil..."c,d", PostgresqlRange.find(111).string_range)
+  end
+
+  def test_ranges_parse_bounds_containing_newlines
+    # Bounds with a newline are double-quoted by PostgreSQL and the newline is
+    # kept verbatim; the upper bound's newline exercises the regexp's /m flag.
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (112, stringrange('a' || chr(10) || 'b', 'c' || chr(10) || 'd', '[)'))
+    SQL
+
+    assert_equal("a\nb"..."c\nd", PostgresqlRange.find(112).string_range)
+  end
+
+  def test_ranges_parse_empty_string_bounds
+    # An empty-string bound is double-quoted ("") and must stay an empty
+    # string -- distinct from an omitted bound, which is infinity (nil).
+    @connection.execute(<<~SQL)
+      INSERT INTO postgresql_ranges (id, string_range)
+      VALUES (113, '["","z")')
+    SQL
+
+    assert_equal(""..."z", PostgresqlRange.find(113).string_range)
+  end
+
   def test_infinity_values
     PostgresqlRange.create!(int4_range: 1..Float::INFINITY,
                             int8_range: -Float::INFINITY..0,
@@ -579,6 +674,90 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     assert_nil record.int4_range
     assert_nil record.int8_range
     assert_nil record.float_range
+  end
+
+  def test_type_cast_for_schema_with_integer_subtype
+    type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(
+      ActiveModel::Type::Integer.new, :int4range
+    )
+    assert_equal "1...10",  type.type_cast_for_schema(1...10)
+    assert_equal "1..10",   type.type_cast_for_schema(1..10)
+  end
+
+  def test_type_cast_for_schema_with_date_subtype
+    type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(
+      ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Date.new, :daterange
+    )
+    assert_equal %("2024-01-01"..."2025-01-01"),
+                 type.type_cast_for_schema(::Date.new(2024, 1, 1)...::Date.new(2025, 1, 1))
+  end
+
+  def test_type_cast_for_schema_with_timestamp_subtype
+    type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(
+      ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Timestamp.new, :tsrange
+    )
+    assert_equal %("2024-01-01 00:00:00"..."2025-01-01 00:00:00"),
+                 type.type_cast_for_schema(Time.utc(2024, 1, 1)...Time.utc(2025, 1, 1))
+  end
+
+  def test_type_cast_for_schema_with_infinity
+    type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(
+      ActiveModel::Type::Float.new, :numrange
+    )
+    assert_equal "-::Float::INFINITY..::Float::INFINITY",
+                 type.type_cast_for_schema(-::Float::INFINITY..::Float::INFINITY)
+  end
+
+  def test_type_cast_for_schema_with_nil_bounds
+    type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(
+      ActiveModel::Type::Integer.new, :int4range
+    )
+    # beginless / endless ranges round-trip as nil literals (valid Ruby).
+    assert_equal "nil..10", type.type_cast_for_schema(::Range.new(nil, 10))
+    assert_equal "1..nil", type.type_cast_for_schema(::Range.new(1, nil))
+  end
+
+  def test_type_cast_for_schema_with_infinity_date_range
+    type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(
+      ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Date.new, :daterange
+    )
+    assert_equal %(-::Float::INFINITY..."2025-01-01"),
+                 type.type_cast_for_schema(::Range.new(-::Float::INFINITY, ::Date.new(2025, 1, 1), true))
+    assert_equal %("2024-01-01"...::Float::INFINITY),
+                 type.type_cast_for_schema(::Range.new(::Date.new(2024, 1, 1), ::Float::INFINITY, true))
+  end
+
+  def test_type_cast_for_schema_with_nil_date_range
+    type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(
+      ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Date.new, :daterange
+    )
+    assert_equal %(nil..."2025-01-01"),
+                 type.type_cast_for_schema(::Range.new(nil, ::Date.new(2025, 1, 1), true))
+    assert_equal %("2024-01-01"...nil),
+                 type.type_cast_for_schema(::Range.new(::Date.new(2024, 1, 1), nil, true))
+  end
+
+  def test_type_cast_for_schema_returns_valid_ruby
+    # Regression: previously a daterange / tsrange / tstzrange default was
+    # dumped via Range#inspect, producing literals like
+    # `"Mon, 01 Jan 2024..Wed, 01 Jan 2025"` that cannot be loaded as
+    # Ruby in schema.rb. Now every supported subtype must round-trip.
+    [
+      [::ActiveModel::Type::Integer.new, :int4range,   1...10],
+      [::ActiveModel::Type::Float.new,   :numrange,    1.5..2.5],
+      [ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Date.new, :daterange, ::Date.new(2024, 1, 1)...::Date.new(2025, 1, 1)],
+      [ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Timestamp.new, :tsrange, Time.utc(2024, 1, 1)...Time.utc(2025, 1, 1)],
+      [ActiveRecord::ConnectionAdapters::PostgreSQL::OID::TimestampWithTimeZone.new, :tstzrange, Time.utc(2024, 1, 1)...Time.utc(2025, 1, 1)],
+    ].each do |subtype, sql_type, range|
+      type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range.new(subtype, sql_type)
+      dump = type.type_cast_for_schema(range)
+      compiled = begin
+        RubyVM::InstructionSequence.compile(dump)
+      rescue SyntaxError => e
+        flunk "schema literal #{dump.inspect} for #{sql_type} is not valid Ruby: #{e.message}"
+      end
+      assert_kind_of RubyVM::InstructionSequence, compiled
+    end
   end
 
   private

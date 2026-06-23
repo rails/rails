@@ -9,7 +9,7 @@ module ApplicationTests
 
       def setup
         build_app
-        FileUtils.rm_rf("#{app_path}/config/environments")
+        reset_environment_configs
       end
 
       def teardown

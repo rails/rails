@@ -25,6 +25,8 @@ module ActiveSupport
             rescue => @setup_exception; end
 
             work_from_queue
+          rescue Interrupt
+            @queue.interrupt
           ensure
             set_process_title("(stopping)")
 
@@ -34,7 +36,7 @@ module ActiveSupport
         end
 
         def work_from_queue
-          while job = @queue.pop
+          while job = @queue.pop(@number)
             perform_job(job)
           end
         end
@@ -47,7 +49,11 @@ module ActiveSupport
           set_process_title("#{klass}##{method}")
 
           result = klass.with_info_handler reporter do
-            Minitest.run_one_method(klass, method)
+            if Minitest.respond_to?(:run_one_method) then
+              Minitest.run_one_method(klass, method)
+            else
+              klass.new(method).run
+            end
           end
 
           safe_record(reporter, result)
@@ -69,9 +75,6 @@ module ActiveSupport
               Minitest::UnexpectedError.new(error)
             end
             @queue.record(reporter, result)
-          rescue Interrupt
-            @queue.interrupt
-            raise
           end
 
           set_process_title("(idle)")

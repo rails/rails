@@ -54,7 +54,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
             :owners, :pets, :author_favorites, :jobs, :references, :subscribers, :subscriptions, :books,
             :developers, :projects, :developers_projects, :members, :memberships, :clubs, :sponsors,
             :pirates, :mateys, :sharded_blogs, :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags,
-            :sharded_tags
+            :sharded_tags, :cpk_authors, :cpk_orders, :cpk_books, :cpk_order_agreements
 
   def test_eager_with_has_one_through_join_model_with_conditions_on_the_through
     member = Member.all.merge!(includes: :favorite_club).find(members(:some_other_guy).id)
@@ -91,7 +91,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_loading_conditions_with_or
     posts = authors(:david).posts.references(:comments).merge(
       includes: :comments,
-      where: "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE} = 'SpecialComment'"
+      where: "comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE} = 'SpecialComment'"
     ).to_a
     assert_nil posts.detect { |p| p.author_id != authors(:david).id },
       "expected to find only david's posts"
@@ -340,6 +340,15 @@ class EagerAssociationTest < ActiveRecord::TestCase
     # find the post, then find the author which is null so no query for the author or address
     assert_no_queries do
       assert_nil post.author_with_address
+    end
+  end
+
+  def test_finding_with_includes_on_null_composite_belongs_to_association_includes_only_once
+    book = cpk_books(:cpk_great_author_first_book)
+    book.update_columns(shop_id: nil, order_id: nil)
+    book = assert_queries_count(1) { Cpk::Book.all.merge!(includes: :order).find(book.id) }
+    assert_no_queries do
+      assert_nil book.order
     end
   end
 
@@ -770,7 +779,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts =
       authors(:david).posts
         .includes(:comments)
-        .where("comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'")
+        .where("comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE}= 'SpecialComment'")
         .references(:comments)
         .limit(2)
         .to_a
@@ -778,7 +787,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     count =
       Post.includes(:comments, :author)
-        .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')")
+        .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE}= 'SpecialComment')")
         .references(:authors, :comments)
         .limit(2)
         .count
@@ -788,7 +797,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_has_many_and_limit_and_scoped_conditions_on_the_eagers
     posts = nil
     Post.includes(:comments)
-      .where("comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'")
+      .where("comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE}= 'SpecialComment'")
       .references(:comments)
       .scoping do
       posts = authors(:david).posts.limit(2).to_a
@@ -796,7 +805,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
 
     Post.includes(:comments, :author)
-      .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')")
+      .where("authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{ARTest::QUOTED_TYPE}= 'SpecialComment')")
       .references(:authors, :comments)
       .scoping do
       count = Post.limit(2).count
@@ -1730,9 +1739,30 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   test "preloading has_many with cpk" do
-    order = Cpk::Order.create!(shop_id: 2)
-    order_agreement = Cpk::OrderAgreement.create!(order: order)
-    assert_equal [order_agreement], Cpk::Order.eager_load(:order_agreements).find_by(id: order.id).order_agreements
+    order_1 = Cpk::Order.create!(shop_id: 200)
+    order_2 = Cpk::Order.create!(shop_id: 300)
+    agreement_1 = order_1.order_agreements.create!(signature: "A")
+    agreement_2 = order_1.order_agreements.create!(signature: "Z")
+    agreement_3 = order_2.order_agreements.create!(signature: "A")
+    agreement_4 = order_2.order_agreements.create!(signature: "Z")
+
+    relation = Cpk::Order.where(shop_id: [200, 300]).eager_load(:order_agreements)
+    results = relation.to_a.sort_by(&:shop_id)
+
+    assert_equal [order_1, order_2], results
+    assert_equal [agreement_1, agreement_2], results.first.order_agreements.sort_by(&:signature)
+    assert_equal [agreement_3, agreement_4], results.last.order_agreements.sort_by(&:signature)
+  end
+
+  test "preloading has_many with cpk and explicit select" do
+    order = Cpk::Order.create!(shop_id: 200)
+    agreement = order.order_agreements.create!(signature: "A")
+
+    relation = Cpk::Order.where(id: order.id).eager_load(:order_agreements).select("cpk_orders.status")
+    loaded_order = relation.to_a.first
+
+    assert_equal order, loaded_order
+    assert_equal [agreement], loaded_order.order_agreements
   end
 
   test "preloading has_one with cpk" do

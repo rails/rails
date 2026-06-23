@@ -33,6 +33,7 @@ module ActiveRecord
       record(
         payload[:name],
         (finish - start) * 1_000.0,
+        cached: payload[:cached],
         async: payload[:async],
         lock_wait: payload[:lock_wait],
       )
@@ -46,9 +47,10 @@ module ActiveRecord
         stats.cached_queries_count += 1 if cached
       end
 
-      if async
+      if async && lock_wait
         stats.async_sql_runtime += (runtime - lock_wait)
       end
+
       stats.sql_runtime += runtime
     end
 

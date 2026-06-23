@@ -131,8 +131,10 @@ module ActiveJob
   # === Checkpoints
   #
   # A checkpoint is where a job can be interrupted. At a checkpoint the job will call
-  # +queue_adapter.stopping?+. If it returns true, the job will raise an
-  # ActiveJob::Continuation::Interrupt exception.
+  # +queue_adapter.stopping?+ with the job. If it returns true, the job will raise
+  # an ActiveJob::Continuation::Interrupt exception with +:stopping+ as the
+  # reason. If it returns another truthy value, the job will use that value as
+  # the interruption reason.
   #
   # There is an automatic checkpoint before the start of each step except for the first for
   # each job execution. Within a step one is created when calling +set!+, +advance!+ or +checkpoint!+.
@@ -165,6 +167,13 @@ module ActiveJob
   #   step :quick_step2
   #   step :quick_step3
   #
+  # === Persisting State Across Steps with \Attributes
+  #
+  # Steps store serialized progress but they do not persist any other state. For multi-step jobs where you need to use
+  # the results of one step in a later step, you can use +ActiveJob::Attributes+ to persist this state. This module is
+  # already included in +ActiveJob::Continuable+, so you can declare attributes on your job and they will be
+  # automatically serialized when the job is interrupted, and restored when the job resumes.
+  #
   # === Errors
   #
   # If a job raises an error and is not retried via Active Job, it will be passed back to the underlying
@@ -183,6 +192,14 @@ module ActiveJob
   #   See {ActiveJob::Exceptions#retry_job}[rdoc-ref:ActiveJob::Exceptions#retry_job] for available options.
   # * <tt>:resume_errors_after_advancing</tt> - Whether to resume errors after advancing the continuation.
   #   Defaults to +true+.
+  #
+  # Example:
+  #
+  #   class ProcessImportJob < ApplicationJob
+  #     self.max_resumptions = 3
+  #     self.resume_options = { wait: 1.seconds, queue: :resumed }
+  #     self.resume_errors_after_advancing = false
+  #   end
   class Continuation
     extend ActiveSupport::Autoload
 
@@ -206,7 +223,7 @@ module ActiveJob
     class UnadvanceableCursorError < Error; end
 
     # Raised when a job has reached its limit of the number of resumes.
-    # The limit is defined by the +max_resumes+ class attribute.
+    # The limit is defined by the +max_resumptions+ class attribute.
     class ResumeLimitError < Error; end
 
     include Validation

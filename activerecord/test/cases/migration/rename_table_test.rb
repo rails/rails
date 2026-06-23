@@ -24,6 +24,7 @@ module ActiveRecord
       def test_rename_table_should_work_with_reserved_words
         renamed = false
 
+        connection.drop_table :old_references, if_exists: true
         connection.rename_table :references, :old_references
         connection.rename_table :test_models, :references
 

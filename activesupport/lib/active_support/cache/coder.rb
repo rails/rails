@@ -39,22 +39,32 @@ module ActiveSupport
         version = dump_version(entry.version) if entry.version
         version_length = version&.bytesize || -1
 
-        packed = SIGNATURE.b
-        packed << [type, expires_at, version_length].pack(PACKED_TEMPLATE)
-        packed << version if version
-        packed << payload
+        header = [type, expires_at, version_length].pack(PACKED_TEMPLATE)
+
+        "#{SIGNATURE}#{header}#{version}#{payload}".freeze
       end
 
       def load(dumped)
-        return @serializer.load(dumped) if !signature?(dumped)
+        unless signature?(dumped)
+          return begin
+            @serializer.load(dumped)
+          rescue => error
+            ActiveSupport.error_reporter.report(error, source: "active_support.cache")
+          end
+        end
 
-        type = dumped.unpack1(PACKED_TYPE_TEMPLATE)
-        expires_at = dumped.unpack1(PACKED_EXPIRES_AT_TEMPLATE)
-        version_length = dumped.unpack1(PACKED_VERSION_LENGTH_TEMPLATE)
+        begin
+          type = dumped.unpack1(PACKED_TYPE_TEMPLATE)
+          expires_at = dumped.unpack1(PACKED_EXPIRES_AT_TEMPLATE)
+          version_length = dumped.unpack1(PACKED_VERSION_LENGTH_TEMPLATE)
 
-        expires_at = nil if expires_at < 0
-        version = load_version(dumped.byteslice(PACKED_VERSION_INDEX, version_length)) if version_length >= 0
-        payload = dumped.byteslice((PACKED_VERSION_INDEX + [version_length, 0].max)..)
+          expires_at = nil if expires_at < 0
+          version = load_version(dumped.byteslice(PACKED_VERSION_INDEX, version_length)) if version_length >= 0
+          payload = dumped.byteslice((PACKED_VERSION_INDEX + [version_length, 0].max)..)
+        rescue ArgumentError, TypeError => error
+          ActiveSupport.error_reporter.report(error, source: "active_support.cache")
+          return
+        end
 
         compressor = @compressor if type & COMPRESSED_FLAG > 0
         serializer = STRING_DESERIALIZERS[type & ~COMPRESSED_FLAG] || @serializer
@@ -64,6 +74,7 @@ module ActiveSupport
 
       private
         SIGNATURE = "\x00\x11".b.freeze
+        EMPTY_BINARY_STRING = "".b.freeze
 
         OBJECT_DUMP_TYPE = 0x01
 
@@ -71,14 +82,14 @@ module ActiveSupport
           0x02 => Encoding::UTF_8,
           0x03 => Encoding::BINARY,
           0x04 => Encoding::US_ASCII,
-        }
+        }.freeze
 
         COMPRESSED_FLAG = 0x80
 
         PACKED_TEMPLATE = "CEl<"
-        PACKED_TYPE_TEMPLATE = "@#{SIGNATURE.bytesize}C"
-        PACKED_EXPIRES_AT_TEMPLATE = "@#{[0].pack(PACKED_TYPE_TEMPLATE).bytesize}E"
-        PACKED_VERSION_LENGTH_TEMPLATE = "@#{[0].pack(PACKED_EXPIRES_AT_TEMPLATE).bytesize}l<"
+        PACKED_TYPE_TEMPLATE = "@#{SIGNATURE.bytesize}C".freeze
+        PACKED_EXPIRES_AT_TEMPLATE = "@#{[0].pack(PACKED_TYPE_TEMPLATE).bytesize}E".freeze
+        PACKED_VERSION_LENGTH_TEMPLATE = "@#{[0].pack(PACKED_EXPIRES_AT_TEMPLATE).bytesize}l<".freeze
         PACKED_VERSION_INDEX = [0].pack(PACKED_VERSION_LENGTH_TEMPLATE).bytesize
 
         MARSHAL_SIGNATURE = "\x04\x08".b.freeze
@@ -105,7 +116,12 @@ module ActiveSupport
 
           def value
             if !@resolved
-              @value = @serializer.load(@compressor ? @compressor.inflate(@value) : @value)
+              @value = begin
+                @serializer.load(@compressor ? @compressor.inflate(@value) : @value)
+              rescue => error
+                ActiveSupport.error_reporter.report(error, source: "active_support.cache")
+                raise DeserializationError, error.message
+              end
               @resolved = true
             end
             @value

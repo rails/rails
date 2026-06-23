@@ -19,7 +19,7 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord.query_transformers += [ActiveRecord::QueryLogs]
     ActiveRecord::QueryLogs.prepend_comment = false
     ActiveRecord::QueryLogs.cache_query_log_tags = false
-    ActiveRecord::QueryLogs.cached_comment = nil
+    ActiveRecord::QueryLogs.clear_cache
     ActiveRecord::QueryLogs.taggings = {
       application: -> { "active_record" }
     }
@@ -129,6 +129,14 @@ class QueryLogsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_passes_sql_to_context
+    ActiveRecord::QueryLogs.tags = [ sql_length: ->(context) { context[:sql].length } ]
+
+    assert_queries_match("SELECT 1 /*sql_length:8*/") do
+      ActiveRecord::Base.lease_connection.execute "SELECT 1"
+    end
+  end
+
   def test_resets_cache_on_context_update
     ActiveRecord::QueryLogs.cache_query_log_tags = true
     ActiveSupport::ExecutionContext[:temporary] = "value"
@@ -189,6 +197,81 @@ class QueryLogsTest < ActiveRecord::TestCase
 
     assert_queries_match(%r{/\*application='active_record'\*/}) do
       Dashboard.first
+    end
+  end
+
+  def test_per_pool_format_overrides_global_format
+    ActiveRecord::QueryLogs.tags_formatter = :legacy
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config(query_log_tags: { format: "sqlcommenter" }) do |connection|
+      assert_equal "select 1 /*application='active_record'*/",
+        ActiveRecord::QueryLogs.call("select 1", connection)
+    end
+  end
+
+  def test_per_pool_format_falls_back_to_global_when_not_set
+    ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config do |connection|
+      assert_equal "select 1 /*application='active_record'*/",
+        ActiveRecord::QueryLogs.call("select 1", connection)
+    end
+  end
+
+  def test_per_pool_can_be_disabled
+    ActiveRecord::QueryLogs.tags_formatter = :legacy
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config(query_log_tags: false) do |connection|
+      assert_equal "select 1", ActiveRecord::QueryLogs.call("select 1", connection)
+    end
+  end
+
+  def test_cache_is_kept_per_formatter
+    ActiveRecord::QueryLogs.cache_query_log_tags = true
+    ActiveRecord::QueryLogs.tags_formatter = :legacy
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config do |legacy_connection|
+      with_db_config(query_log_tags: { format: "sqlcommenter" }) do |sqlcommenter_connection|
+        # Different formats must not serve each other's cached comment.
+        assert_equal "select 1 /*application:active_record*/",
+          ActiveRecord::QueryLogs.call("select 1", legacy_connection)
+        assert_equal "select 1 /*application='active_record'*/",
+          ActiveRecord::QueryLogs.call("select 1", sqlcommenter_connection)
+      end
+    end
+  end
+
+  def test_per_pool_prepend_comment_overrides_global
+    ActiveRecord::QueryLogs.prepend_comment = false
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config(query_log_tags: { prepend_comment: true }) do |connection|
+      assert_equal "/*application:active_record*/ select 1",
+        ActiveRecord::QueryLogs.call("select 1", connection)
+    end
+  end
+
+  def test_per_pool_prepend_comment_falls_back_to_global_when_not_set
+    ActiveRecord::QueryLogs.prepend_comment = true
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config do |connection|
+      assert_equal "/*application:active_record*/ select 1",
+        ActiveRecord::QueryLogs.call("select 1", connection)
+    end
+  end
+
+  def test_per_pool_prepend_comment_can_disable_global
+    ActiveRecord::QueryLogs.prepend_comment = true
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config(query_log_tags: { prepend_comment: false }) do |connection|
+      assert_equal "select 1 /*application:active_record*/",
+        ActiveRecord::QueryLogs.call("select 1", connection)
     end
   end
 
@@ -280,4 +363,16 @@ class QueryLogsTest < ActiveRecord::TestCase
       Dashboard.first
     end
   end
+
+  private
+    def with_db_config(overrides = {}, &block)
+      base_config = ActiveRecord::Base.connection_pool.db_config
+      configuration_hash = base_config.configuration_hash.merge(overrides)
+      db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(base_config.env_name, base_config.name, configuration_hash)
+
+      pool = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default).pool
+      pool.with_connection(&block)
+    ensure
+      pool&.disconnect!
+    end
 end

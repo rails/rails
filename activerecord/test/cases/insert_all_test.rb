@@ -10,6 +10,7 @@ require "models/ship"
 require "models/speedometer"
 require "models/subscription"
 require "models/subscriber"
+require "models/topic"
 
 class ReadonlyNameBook < Book
   attr_readonly :name
@@ -17,6 +18,12 @@ end
 
 class InsertAllTest < ActiveRecord::TestCase
   fixtures :books
+
+  def run(*)
+    with_debug_event_reporting do
+      super
+    end
+  end
 
   def setup
     Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
@@ -103,6 +110,34 @@ class InsertAllTest < ActiveRecord::TestCase
 
     result = Book.insert_all! [{ name: "Rework", author_id: 1 }]
     assert_equal %w[ id ], result.columns
+  end
+
+  def test_insert_all_bang_accepts_unique_by
+    skip unless supports_insert_conflict_target?
+
+    assert_difference "Book.count", +1 do
+      Book.insert_all! [{ name: "UniqueBy", author_id: 1, isbn: "unique-by-insert-all-bang" }], unique_by: :isbn
+    end
+  end
+
+  def test_insert_bang_accepts_unique_by
+    skip unless supports_insert_conflict_target?
+
+    assert_difference "Book.count", +1 do
+      Book.insert!({ name: "UniqueBy", author_id: 1, isbn: "unique-by-insert-bang" }, unique_by: :isbn)
+    end
+  end
+
+  def test_insert_all_bang_with_unique_by_raises_on_duplicate
+    skip unless supports_insert_conflict_target?
+
+    # `books.isbn` unique index is partial: it only applies when `published_on` is NOT NULL.
+    published_on = Time.now.utc
+    Book.create!(name: "Existing", author_id: 1, isbn: "unique-by-insert-all-bang-duplicate", published_on: published_on)
+
+    assert_raises ActiveRecord::RecordNotUnique do
+      Book.insert_all! [{ name: "Duplicate", author_id: 1, isbn: "unique-by-insert-all-bang-duplicate", published_on: published_on }], unique_by: :isbn
+    end
   end
 
   def test_insert_all_returns_nothing_if_returning_is_empty
@@ -281,9 +316,26 @@ class InsertAllTest < ActiveRecord::TestCase
 
       Cart.upsert_all [{ id: 3, shop_id: 2, title: "My other cart" }], unique_by: [:shop_id, :id]
     end
+  end
+
+  def test_insert_all_bang_does_not_require_unique_index
+    skip unless supports_insert_conflict_target?
+
+    assert_difference "Cart.count", +1 do
+      Cart.insert_all! [{ id: 2, shop_id: 1, title: "My cart" }]
+    end
+  end
+
+  def test_insert_all_and_upsert_all_raises_when_no_unique_index_found_for_composite_primary_key
+    skip unless supports_insert_conflict_target?
 
     error = assert_raises ArgumentError do
-      Cart.insert_all! [{ id: 2, shop_id: 1, title: "My cart" }]
+      Cart.insert_all [{ id: 2, shop_id: 1, title: "My cart" }]
+    end
+    assert_match "No unique index found for id", error.message
+
+    error = assert_raises ArgumentError do
+      Cart.upsert_all [{ id: 2, shop_id: 1, title: "My cart" }]
     end
     assert_match "No unique index found for id", error.message
   end
@@ -306,6 +358,21 @@ class InsertAllTest < ActiveRecord::TestCase
     capture_log_output do |output|
       Book.insert({ name: "Rework", author_id: 1 })
       assert_match "Book Insert", output.string
+    end
+  end
+
+  def test_insert_logs_message_including_model_name_from_anonymous_class
+    skip unless supports_insert_conflict_target?
+
+    anonymous_book_klass = Class.new(Book) do
+      def self.name
+        "AnonymousBook"
+      end
+    end
+
+    capture_log_output do |output|
+      anonymous_book_klass.insert({ name: "Rework", author_id: 1 })
+      assert_match "AnonymousBook Insert", output.string
     end
   end
 
@@ -482,6 +549,27 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_raises ArgumentError do
       Book.upsert_all [{ id: 101, name: "Perelandra", author_id: 7, isbn: "1974522598" }], on_duplicate: "NAME=values(name)", update_only: :name
     end
+  end
+
+  def test_insert_all_raises_with_key_diff_when_attributes_mismatch
+    error = assert_raises ArgumentError do
+      Book.insert_all [
+        { name: "Rework", author_id: 1 },
+        { name: "Remote", author_id: 1, isbn: "1974522598" }
+      ]
+    end
+    assert_match(/All objects being inserted must have the same keys/, error.message)
+    assert_match(/extra: \["isbn"\]/, error.message)
+  end
+
+  def test_insert_all_raises_with_missing_key_when_attributes_mismatch
+    error = assert_raises ArgumentError do
+      Book.insert_all [
+        { name: "Rework", author_id: 1, isbn: "1974522598" },
+        { name: "Remote", author_id: 1 }
+      ]
+    end
+    assert_match(/missing: \["isbn"\]/, error.message)
   end
 
   def test_upsert_all_only_updates_the_column_provided_via_update_only
@@ -809,6 +897,18 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_upsert_with_repeated_timstamp_columns
+    records = [Book.first.attributes]
+
+    assert_no_changes(proc { Book.count }) do
+      Book.upsert_all(
+        records,
+        update_only: [:updated_at],
+        record_timestamps: true,
+      )
+    end
+  end
+
   def test_upsert_all_resets_relation
     skip unless supports_insert_on_duplicate_update?
 
@@ -879,6 +979,20 @@ class InsertAllTest < ActiveRecord::TestCase
       on_duplicate: Arel.sql("status = 2")
     )
     assert_equal "published", book.reload.status
+  end
+
+  def test_upsert_all_does_nothing_with_on_duplicate_skip
+    skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target?
+
+    book = books(:rfr)
+    assert_equal "proposed", book.status
+
+    Book.upsert_all(
+      [{ name: book.name, author_id: book.author_id, status: "published" }],
+      unique_by: [:name, :author_id],
+      on_duplicate: :skip
+    )
+    assert_equal "proposed", book.reload.status
   end
 
   def test_upsert_all_with_unique_by_fails_cleanly_for_adapters_not_supporting_insert_conflict_target
@@ -1018,16 +1132,89 @@ class InsertAllTest < ActiveRecord::TestCase
       author.books.upsert({ title: "New Book" })
     end
   end
+  class ReverseCoder
+    def self.dump(value)
+      return nil if value.nil?
+
+      "encoded:#{value.is_a?(String) ? value : value.inspect}"
+    end
+
+    def self.load(value)
+      return nil if value.nil?
+      value.delete_prefix("encoded:")
+    end
+  end
+
+  def test_insert_all_with_string_value_on_custom_coder_serialized_column_matches_create
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      serialize :content, coder: ReverseCoder
+    end
+
+    string_val = "hello world"
+
+    klass.insert_all!([{ title: "insert_str", content: string_val }])
+    klass.create!(title: "create_str", content: string_val)
+
+    via_insert = klass.find_by(title: "insert_str").content
+    via_create = klass.find_by(title: "create_str").content
+
+    assert_equal via_create, via_insert
+  end
+
+  def test_insert_all_with_string_does_not_double_encode_through_non_idempotent_coder
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      serialize :content, coder: ReverseCoder
+    end
+
+    klass.insert_all!([{ title: "double_enc", content: "plain text" }])
+    row = klass.find_by(title: "double_enc")
+
+    assert_equal "plain text", row.content
+  end
+
+  def test_insert_all_with_hash_value_on_custom_coder_serialized_column_still_takes_fast_path
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      serialize :content, coder: ReverseCoder
+    end
+
+    hash_val = { "key" => "value" }
+
+    klass.insert_all!([{ title: "insert_hash", content: hash_val }])
+    klass.create!(title: "create_hash", content: hash_val)
+
+    via_insert = klass.find_by(title: "insert_hash").content
+    via_create = klass.find_by(title: "create_hash").content
+
+    assert_equal via_create, via_insert
+  end
+
+  def test_insert_all_with_string_on_json_serialized_column_matches_create
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      serialize :content, coder: JSON
+    end
+
+    string_val = "a plain string"
+
+    klass.insert_all!([{ title: "json_str_insert", content: string_val }])
+    klass.create!(title: "json_str_create", content: string_val)
+
+    assert_equal klass.find_by(title: "json_str_create").content,
+                 klass.find_by(title: "json_str_insert").content
+  end
 
   private
     def capture_log_output
       output = StringIO.new
-      old_logger, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ActiveSupport::Logger.new(output)
+      old_logger, ActiveRecord::LogSubscriber.logger = ActiveRecord::LogSubscriber.logger, ActiveSupport::Logger.new(output)
 
       begin
         yield output
       ensure
-        ActiveRecord::Base.logger = old_logger
+        ActiveRecord::LogSubscriber.logger = old_logger
       end
     end
 

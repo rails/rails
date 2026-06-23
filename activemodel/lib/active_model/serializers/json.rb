@@ -146,7 +146,13 @@ module ActiveModel
       def from_json(json, include_root = include_root_in_json)
         hash = ActiveSupport::JSON.decode(json)
         hash = hash.values.first if include_root
-        self.attributes = hash
+
+        if respond_to?(:assign_attributes)
+          assign_attributes(hash)
+        else
+          self.attributes = hash
+        end
+
         self
       end
     end

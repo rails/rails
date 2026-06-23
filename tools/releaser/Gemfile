@@ -2,3 +2,5 @@
 
 source "https://rubygems.org"
 gemspec
+
+gem "sigstore-cli"

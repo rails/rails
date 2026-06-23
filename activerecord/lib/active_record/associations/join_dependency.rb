@@ -103,7 +103,7 @@ module ActiveRecord
       end
 
       def instantiate(result_set, strict_loading_value, &block)
-        primary_key = aliases.column_alias(join_root, join_root.primary_key)
+        primary_key = Array(join_root.primary_key).map { |column| aliases.column_alias(join_root, column) }
 
         seen = Hash.new { |i, parent|
           i[parent] = Hash.new { |j, child_class|
@@ -141,7 +141,7 @@ module ActiveRecord
 
         message_bus.instrument("instantiation.active_record", payload) do
           result_set.each { |row_hash|
-            parent_key = primary_key ? row_hash[primary_key] : row_hash
+            parent_key = primary_key.empty? ? row_hash : row_hash.values_at(*primary_key)
             parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases, column_types, &block)
             construct(parent, join_root, row_hash, seen, model_cache, strict_loading_value)
           }
@@ -168,8 +168,7 @@ module ActiveRecord
         def aliases
           @aliases ||= Aliases.new join_root.each_with_index.map { |join_part, i|
             column_names = if join_part == join_root && !join_root_alias
-              primary_key = join_root.primary_key
-              primary_key ? [primary_key] : []
+              Array(join_root.primary_key)
             else
               join_part.column_names
             end

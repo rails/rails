@@ -37,6 +37,7 @@ module ActiveJob
   autoload :Base
   autoload :QueueAdapters
   autoload :Arguments
+  autoload :Attributes
   autoload :DeserializationError, "active_job/arguments"
   autoload :SerializationError, "active_job/arguments"
   autoload :UnknownJobClassError, "active_job/core"
@@ -59,4 +60,32 @@ module ActiveJob
   # their relevant enqueue log lines. Defaults to false.
   singleton_class.attr_accessor :verbose_enqueue_logs
   self.verbose_enqueue_logs = false
+
+  # Push many jobs onto the queue at once without running enqueue callbacks.
+  # Queue adapters may communicate the enqueue status of each job by setting
+  # successfully_enqueued and/or enqueue_error on the passed-in job instances.
+  def self.perform_all_later(*jobs)
+    jobs.flatten!
+    jobs.group_by(&:queue_adapter).each do |queue_adapter, adapter_jobs|
+      instrument_enqueue_all(queue_adapter, adapter_jobs) do
+        if queue_adapter.respond_to?(:enqueue_all)
+          queue_adapter.enqueue_all(adapter_jobs)
+        else
+          adapter_jobs.each do |job|
+            job.successfully_enqueued = false
+            if job.scheduled_at
+              queue_adapter.enqueue_at(job, job.scheduled_at.to_f)
+            else
+              queue_adapter.enqueue(job)
+            end
+            job.successfully_enqueued = true
+          rescue EnqueueError => e
+            job.enqueue_error = e
+          end
+          adapter_jobs.count(&:successfully_enqueued?)
+        end
+      end
+    end
+    nil
+  end
 end

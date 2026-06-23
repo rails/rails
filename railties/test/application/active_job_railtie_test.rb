@@ -20,5 +20,23 @@ module ApplicationTests
 
       assert_equal "false", rails("runner", "p FooJob.enqueue_after_transaction_commit").strip
     end
+
+    test "custom serializers are loaded for Arguments#serialize" do
+      app_file "config/initializers/custom_serializers.rb", <<~RUBY
+        class Money; end
+
+        class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
+          def klass = Money
+          def serialize(money) = {}
+          def deserialize(hash) = Money.new
+        end
+
+        Rails.configuration.active_job.custom_serializers << MoneySerializer
+      RUBY
+
+      app "development"
+
+      assert_equal([{}], ActiveJob::Arguments.serialize([Money.new]))
+    end
   end
 end

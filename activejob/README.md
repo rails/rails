@@ -85,8 +85,7 @@ by default has been mixed into Active Record classes.
 
 ## Supported queuing systems
 
-Active Job has built-in adapters for multiple queuing backends (Sidekiq,
-Resque, Delayed Job and others). To get an up-to-date list of the adapters
+Active Job has built-in adapters for multiple queuing backends (Resque, Delayed Job and others). To get an up-to-date list of the adapters
 see the API Documentation for [ActiveJob::QueueAdapters](https://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
 **Please note:** We are not accepting pull requests for new adapters, and we are

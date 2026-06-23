@@ -10,6 +10,7 @@ class Author < ActiveRecord::Base
   has_many :posts_with_comments_sorted_by_comment_id, -> { includes(:comments).order("comments.id") }, class_name: "Post"
   has_many :posts_sorted_by_id, -> { order(:id) }, class_name: "Post"
   has_many :posts_sorted_by_id_limited, -> { order("posts.id").limit(1) }, class_name: "Post"
+  has_many :posts_with_default_order, class_name: "Post", default_order: "posts.id DESC"
   has_many :posts_with_categories, -> { includes(:categories) }, class_name: "Post"
   has_many :posts_with_comments_and_categories, -> { includes(:comments, :categories).order("posts.id") }, class_name: "Post"
   has_many :posts_with_special_categorizations, class_name: "PostWithSpecialCategorization"
@@ -97,6 +98,9 @@ class Author < ActiveRecord::Base
   has_many :special_post_comments, through: :special_posts, source: :comments
   has_many :special_posts_with_default_scope, class_name: "SpecialPostWithDefaultScope"
 
+  has_many :posts_with_where_default_scope, class_name: "PostWithWhereDefaultScope"
+  has_many :comments_on_posts_with_where_default_scope, through: :posts_with_where_default_scope, source: :comments
+
   has_many :sti_posts, class_name: "StiPost"
   has_many :sti_post_comments, through: :sti_posts, source: :comments
 
@@ -178,6 +182,8 @@ class Author < ActiveRecord::Base
   has_many :subscribers, -> { order("subscribers.nick") }, through: :subscriptions
   has_many :distinct_subscribers, -> { select("DISTINCT subscribers.*").order("subscribers.nick") }, through: :subscriptions, source: :subscriber
 
+  has_many :polymorphic_comments, as: :person, primary_key: :author_code
+
   has_one :essay, primary_key: :name, as: :writer
   has_one :essay_category, through: :essay, source: :category
   has_one :essay_owner, through: :essay, source: :owner
@@ -197,6 +203,8 @@ class Author < ActiveRecord::Base
 
   belongs_to :author_address,       dependent: :destroy
   belongs_to :author_address_extra, dependent: :delete, class_name: "AuthorAddress"
+
+  belongs_to :published_author, class_name: "PublishedAuthor", foreign_key: :published_author_id, optional: true
 
   has_many :category_post_comments, through: :categories, source: :post_comments
 
@@ -317,4 +325,9 @@ class AuthorFavoriteWithScope < ActiveRecord::Base
 
   belongs_to :author
   belongs_to :favorite_author, class_name: "Author"
+end
+
+class PublishedAuthor < ActiveRecord::Base
+  self.table_name = "authors"
+  has_many :books, class_name: "PublishedBook", foreign_key: :author_id
 end

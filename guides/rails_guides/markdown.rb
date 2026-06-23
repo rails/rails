@@ -4,7 +4,6 @@ require "redcarpet"
 require "nokogiri"
 require "rails_guides/markdown/renderer"
 require "rails_guides/markdown/epub_renderer"
-require "rails-html-sanitizer"
 
 module RailsGuides
   class Markdown

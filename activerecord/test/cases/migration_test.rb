@@ -4,6 +4,7 @@ require "cases/helper"
 require "cases/migration/helper"
 require "bigdecimal/util"
 require "concurrent/atomic/count_down_latch"
+require "active_support/core_ext/object/with"
 
 require "models/person"
 require "models/topic"
@@ -189,7 +190,12 @@ class MigrationTest < ActiveRecord::TestCase
     connection = Person.lease_connection
     name_limit = connection.table_name_length
     long_name = "a" * (name_limit + 1)
-    short_name = "a" * name_limit
+    short_name =
+      if current_adapter?(:PostgreSQLAdapter)
+        "public." + "a" * name_limit
+      else
+        "a" * name_limit
+      end
 
     error = assert_raises(ArgumentError) do
       connection.create_table(long_name)
@@ -454,6 +460,7 @@ class MigrationTest < ActiveRecord::TestCase
       def connection
         Class.new {
           def create_table; "hi mom!"; end
+          def migration_strategy; nil; end
         }.new
       end
     }.new
@@ -466,6 +473,7 @@ class MigrationTest < ActiveRecord::TestCase
       def connection
         Class.new {
           def create_table; end
+          def migration_strategy; nil; end
         }.new
       end
     }
@@ -1139,6 +1147,46 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_migration_say_basic
+    output, = capture_io do
+      ActiveRecord::Migration.with(verbose: true) do
+        ActiveRecord::Migration.say("Foo")
+      end
+    end
+
+    assert_equal "-- Foo\n", output
+  end
+
+  def test_migration_say_for_subitem
+    output, = capture_io do
+      ActiveRecord::Migration.with(verbose: true) do
+        ActiveRecord::Migration.say("Foo", true)
+      end
+    end
+
+    assert_equal "   -> Foo\n", output
+  end
+
+  def test_migration_say_with_time_with_integer_returning_in_block
+    output, = capture_io do
+      ActiveRecord::Migration.with(verbose: true) do
+        ActiveRecord::Migration.say_with_time("Bar") { 123 }
+      end
+    end
+
+    assert_match(/\A-- Bar\n   -> \d+\.\d{4}s\n   -> 123 rows\n\z/, output)
+  end
+
+  def test_migration_say_with_time_with_non_integer_returning_in_block
+    output, = capture_io do
+      ActiveRecord::Migration.with(verbose: true) do
+        ActiveRecord::Migration.say_with_time("Bar") { "ignored" }
+      end
+    end
+
+    assert_match(/\A-- Bar\n   -> \d+\.\d{4}s\n\z/, output)
+  end
+
   private
     # This is needed to isolate class_attribute assignments like `table_name_prefix`
     # for each test case.
@@ -1449,8 +1497,8 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
 
       classname = ActiveRecord::Base.lease_connection.class.name[/[^:]*$/]
       expected_query_count = {
-        "Mysql2Adapter"     => 7, # four queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
-        "TrilogyAdapter"    => 7, # four queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
+        "Mysql2Adapter"     => 6, # three queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
+        "TrilogyAdapter"    => 6, # three queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
         "PostgreSQLAdapter" => 5, # two queries for columns, one for bulk change, one for UPDATE, one for NOT NULL
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
@@ -1601,6 +1649,32 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
 
       assert_no_column Person, :column1
       assert_no_column Person, :column2
+    end
+
+    def test_bulk_revert_with_table_name_prefix
+      ActiveRecord::Base.table_name_prefix = "prefix_"
+      @connection.create_table(:prefix_testings, force: true)
+
+      migration = Class.new(ActiveRecord::Migration::Current) {
+        def write(text = ""); end
+
+        def change
+          change_table :testings, bulk: true do |t|
+            t.column :foo, :string
+            t.column :bar, :string
+            t.index :foo
+          end
+        end
+      }.new
+
+      migration.migrate(:up)
+      assert @connection.column_exists?(:prefix_testings, :foo)
+
+      migration.migrate(:down)
+      assert_not @connection.column_exists?(:prefix_testings, :foo)
+    ensure
+      @connection.drop_table :prefix_testings, if_exists: true
+      ActiveRecord::Base.table_name_prefix = ""
     end
   end
 end
@@ -1946,5 +2020,82 @@ class CopyMigrationsTest < ActiveRecord::TestCase
         paths.each { |path| File.delete(path) if File.exist?(path) }
         Dir.rmdir(migrations_dir) if Dir.exist?(migrations_dir)
       end
+  end
+
+  class MigrationStrategyTest < ActiveRecord::TestCase
+    class TestStrategy < ActiveRecord::Migration::DefaultStrategy
+      attr_reader :called
+
+      def initialize(migration)
+        super
+        @called = false
+      end
+
+      def create_table(*)
+        super
+        @called = true
+      end
+    end
+
+    class AlternateStrategy < TestStrategy; end
+
+    class TestMigration < ActiveRecord::Migration::Current
+      def change
+        create_table :test_strategy_table do |t|
+          t.string :name
+        end
+      end
+    end
+
+    def setup
+      @original_global_strategy = ActiveRecord.migration_strategy
+      @connection = ActiveRecord::Base.lease_connection
+      @original_connection_strategy = @connection.migration_strategy
+      @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
+    end
+
+    def teardown
+      ActiveRecord.migration_strategy = @original_global_strategy
+      ActiveRecord::Migration.verbose = @verbose_was
+      @connection.class.migration_strategy = @original_connection_strategy
+      @connection.drop_table(:test_strategy_table) rescue nil
+    end
+
+    test "migration uses global migration strategy when set" do
+      ActiveRecord.migration_strategy = TestStrategy
+      migration = TestMigration.new("TestMigration", 1)
+      strategy = migration.execution_strategy
+
+      assert_instance_of TestStrategy, strategy
+
+      migration.migrate(:up)
+
+      assert strategy.called
+    end
+
+    test "migration uses adapter-specific strategy when set" do
+      @connection.class.migration_strategy = TestStrategy
+      migration = TestMigration.new("TestMigration", 1)
+      strategy = migration.execution_strategy
+
+      assert_instance_of TestStrategy, strategy
+
+      migration.migrate(:up)
+
+      assert strategy.called
+    end
+
+    test "migration uses adapter-specific strategy over global strategy" do
+      ActiveRecord.migration_strategy = TestStrategy
+      @connection.class.migration_strategy = AlternateStrategy
+      migration = TestMigration.new("TestMigration", 1)
+      strategy = migration.execution_strategy
+
+      assert_instance_of AlternateStrategy, strategy
+
+      migration.migrate(:up)
+
+      assert strategy.called
+    end
   end
 end

@@ -55,18 +55,25 @@ module ActiveRecord
         #
         # Example:
         #   drop_database 'matt_development'
-        def drop_database(name) # :nodoc:
-          execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
+        #
+        # Note, for PostgreSQL versions >= 13 the SQL statement will include <tt>WITH (FORCE)</tt> to
+        # disconnect clients before dropping the database. This allows you to drop/reset the
+        # database without stopping the \Rails server etc. See:
+        # https://www.postgresql.org/docs/current/sql-dropdatabase.html
+        def drop_database(name)
+          statement = "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
+          statement += " WITH (FORCE)" if supports_force_drop_database?
+          execute statement
         end
 
         def drop_table(*table_names, **options) # :nodoc:
           table_names.each { |table_name| schema_cache.clear_data_source_cache!(table_name.to_s) }
-          execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{table_names.map { |table_name| quote_table_name(table_name) }.join(', ')}#{' CASCADE' if options[:force] == :cascade}"
+          execute drop_table_sql(*table_names, **options)
         end
 
         # Returns true if schema exists.
         def schema_exists?(name)
-          query_value("SELECT COUNT(*) FROM pg_namespace WHERE nspname = #{quote(name)}", "SCHEMA").to_i > 0
+          query_value("SELECT COUNT(*) FROM pg_namespace WHERE nspname = #{quote(name)}").to_i > 0
         end
 
         # Verifies existence of an index with a given name.
@@ -74,7 +81,7 @@ module ActiveRecord
           table = quoted_scope(table_name)
           index = quoted_scope(index_name)
 
-          query_value(<<~SQL, "SCHEMA").to_i > 0
+          query_value(<<~SQL).to_i > 0
             SELECT COUNT(*)
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
@@ -91,7 +98,7 @@ module ActiveRecord
         def indexes(table_name) # :nodoc:
           scope = quoted_scope(table_name)
 
-          result = query(<<~SQL, "SCHEMA")
+          result = query_rows(<<~SQL)
             SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid),
                             pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid,
                             ARRAY(
@@ -133,8 +140,9 @@ module ActiveRecord
 
               # add info on sort order (only desc order is explicitly specified, asc is the default)
               # and non-default opclasses
-              expressions.scan(/(?<column>\w+)"?\s?(?<opclass>\w+_ops(_\w+)?)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
-                opclasses[column] = opclass.to_sym if opclass
+              expressions.scan(/(?<column>\w+)"?\s?(?<opclass>(?:\w+\.)?\w+_ops(_\w+)?)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
+                opclasses[column] = opclass.split(".").last.to_sym if opclass
+
                 if nulls
                   orders[column] = [desc, nulls].compact.join(" ")
                 else
@@ -184,7 +192,7 @@ module ActiveRecord
         def table_comment(table_name) # :nodoc:
           scope = quoted_scope(table_name, type: "BASE TABLE")
           if scope[:name]
-            query_value(<<~SQL, "SCHEMA")
+            query_value(<<~SQL)
               SELECT pg_catalog.obj_description(c.oid, 'pg_class')
               FROM pg_catalog.pg_class c
                 LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -199,7 +207,7 @@ module ActiveRecord
         def table_partition_definition(table_name) # :nodoc:
           scope = quoted_scope(table_name, type: "BASE TABLE")
 
-          query_value(<<~SQL, "SCHEMA")
+          query_value(<<~SQL)
             SELECT pg_catalog.pg_get_partkeydef(c.oid)
             FROM pg_catalog.pg_class c
               LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -213,7 +221,7 @@ module ActiveRecord
         def inherited_table_names(table_name) # :nodoc:
           scope = quoted_scope(table_name, type: "BASE TABLE")
 
-          query_values(<<~SQL, "SCHEMA")
+          query_values(<<~SQL)
             SELECT parent.relname
             FROM pg_catalog.pg_inherits i
               JOIN pg_catalog.pg_class child ON i.inhrelid = child.oid
@@ -227,40 +235,40 @@ module ActiveRecord
 
         # Returns the current database name.
         def current_database
-          query_value("SELECT current_database()", "SCHEMA")
+          query_value("SELECT current_database()")
         end
 
         # Returns the current schema name.
         def current_schema
-          query_value("SELECT current_schema", "SCHEMA")
+          query_value("SELECT current_schema")
         end
 
         # Returns an array of the names of all schemas presently in the effective search path,
         # in their priority order.
         def current_schemas # :nodoc:
-          schemas = query_value("SELECT current_schemas(false)", "SCHEMA")
+          schemas = query_value("SELECT current_schemas(false)")
           decoder = PG::TextDecoder::Array.new
           decoder.decode(schemas)
         end
 
         # Returns the current database encoding format.
         def encoding
-          query_value("SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = current_database()", "SCHEMA")
+          query_value("SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = current_database()")
         end
 
         # Returns the current database collation.
         def collation
-          query_value("SELECT datcollate FROM pg_database WHERE datname = current_database()", "SCHEMA")
+          query_value("SELECT datcollate FROM pg_database WHERE datname = current_database()")
         end
 
         # Returns the current database ctype.
         def ctype
-          query_value("SELECT datctype FROM pg_database WHERE datname = current_database()", "SCHEMA")
+          query_value("SELECT datctype FROM pg_database WHERE datname = current_database()")
         end
 
         # Returns an array of schema names.
         def schema_names
-          query_values(<<~SQL, "SCHEMA")
+          query_values(<<~SQL)
             SELECT nspname
               FROM pg_namespace
              WHERE nspname !~ '^pg_.*'
@@ -300,24 +308,31 @@ module ActiveRecord
         def schema_search_path=(schema_csv)
           return if schema_csv == @schema_search_path
           if schema_csv
-            internal_execute("SET search_path TO #{schema_csv}")
+            # Check parameter_status to skip redundant SET when the server
+            # already has the desired search_path (e.g. on initial connection).
+            current = with_raw_connection(materialize_transactions: false) { |conn| conn.parameter_status("search_path") }
+            unless current == schema_csv
+              query_command("SET search_path TO #{schema_csv}", "SCHEMA")
+            end
             @schema_search_path = schema_csv
           end
         end
 
         # Returns the active schema search path.
         def schema_search_path
-          @schema_search_path ||= query_value("SHOW search_path", "SCHEMA")
+          @schema_search_path ||=
+            with_raw_connection { |conn| conn.parameter_status("search_path") } ||
+            query_value("SHOW search_path")
         end
 
         # Returns the current client message level.
         def client_min_messages
-          query_value("SHOW client_min_messages", "SCHEMA")
+          query_value("SHOW client_min_messages")
         end
 
         # Set the client message level.
         def client_min_messages=(level)
-          internal_execute("SET client_min_messages TO '#{level}'", "SCHEMA")
+          query_command("SET client_min_messages TO '#{level}'", "SCHEMA")
         end
 
         # Returns the sequence name for a table's primary key or some other specified key.
@@ -332,7 +347,7 @@ module ActiveRecord
         end
 
         def serial_sequence(table, column)
-          query_value("SELECT pg_get_serial_sequence(#{quote(table)}, #{quote(column)})", "SCHEMA")
+          query_value("SELECT pg_get_serial_sequence(#{quote(table)}, #{quote(column)})")
         end
 
         # Sets the sequence of a table's primary key to the specified value.
@@ -343,46 +358,182 @@ module ActiveRecord
             if sequence
               quoted_sequence = quote_table_name(sequence)
 
-              internal_execute("SELECT setval(#{quote(quoted_sequence)}, #{value})", "SCHEMA")
+              query_command("SELECT setval(#{quote(quoted_sequence)}, #{value})")
             else
               @logger.warn "#{table} has primary key #{pk} with no default sequence." if @logger
             end
           end
         end
 
-        # Resets the sequence of a table's primary key to the maximum value.
-        def reset_pk_sequence!(table, pk = nil, sequence = nil) # :nodoc:
-          unless pk && sequence
-            default_pk, default_sequence = pk_and_sequence_for(table)
+        class SequenceReset # :nodoc:
+          Data = Struct.new(:column, :sequence, :max_value, :min_value)
 
-            pk ||= default_pk
-            sequence ||= default_sequence
+          def initialize(adapter, tables)
+            @adapter = adapter
+            @tables = tables.to_h { |table, data| [Utils.extract_schema_qualified_name(table.to_s).to_s, Data.new(*data)] }
           end
 
-          if @logger && pk && !sequence
-            @logger.warn "#{table} has primary key #{pk} with no default sequence."
+          def reset
+            backfill
+
+            reset_sqls = @tables.values.filter_map do |data|
+              next unless data.sequence && (data.max_value || data.min_value)
+              reset_sequence_sql(data.sequence, data.max_value, data.min_value)
+            end
+
+            @adapter.execute_batch(reset_sqls, "SCHEMA")
           end
 
-          if pk && sequence
-            quoted_sequence = quote_table_name(sequence)
-            max_pk = query_value("SELECT MAX(#{quote_column_name pk}) FROM #{quote_table_name(table)}", "SCHEMA")
-            if max_pk.nil?
-              if database_version >= 10_00_00
-                minvalue = query_value("SELECT seqmin FROM pg_sequence WHERE seqrelid = #{quote(quoted_sequence)}::regclass", "SCHEMA")
-              else
-                minvalue = query_value("SELECT min_value FROM #{quoted_sequence}", "SCHEMA")
+          private
+            def backfill
+              backfill_sequences_with_primary_keys
+              backfill_sequences_with_uuids
+              backfill_max_values
+              backfill_min_values
+            end
+
+            def backfill_sequences_with_primary_keys
+              tables_without_sequences = @tables.select do |table, data|
+                !data.column || !data.sequence
+              end.keys
+
+              return if tables_without_sequences.none?
+
+              sql = primary_key_column_and_sequence_sql(tables_without_sequences)
+              primary_key_column_and_sequences = @adapter.exec_query(sql, "SCHEMA")
+
+              primary_key_column_and_sequences.rows.each do |table, column, namespace, sequence|
+                table = Utils.extract_schema_qualified_name(table).to_s
+                @tables[table].column = column
+                @tables[table].sequence = PostgreSQL::Name.new(namespace, sequence) if sequence
               end
             end
 
-            internal_execute("SELECT setval(#{quote(quoted_sequence)}, #{max_pk || minvalue}, #{max_pk ? true : false})", "SCHEMA")
-          end
+            def backfill_sequences_with_uuids
+              tables_without_sequences = @tables.select do |table, data|
+                !data.column || !data.sequence
+              end.keys
+
+              return if tables_without_sequences.none?
+
+              sql = uuid_column_and_sequence_sql(tables_without_sequences)
+              uuid_column_and_sequences = @adapter.exec_query(sql, "SCHEMA")
+
+              uuid_column_and_sequences.rows.each do |table, column, namespace, sequence|
+                table = Utils.extract_schema_qualified_name(table).to_s
+                @tables[table].column = column
+                @tables[table].sequence = PostgreSQL::Name.new(namespace, sequence) if sequence
+              end
+            end
+
+            def backfill_max_values
+              tables_without_max_or_min_values = @tables.select { |table, data| !data.max_value || !data.min_value }.keys
+
+              return unless tables_without_max_or_min_values.any?
+
+              tables_max_value_sqls = tables_without_max_or_min_values.map do |table|
+                sequence = @tables[table].sequence
+                column = @tables[table].column
+                sequence ? select_max_column_value_sql(table, column) : nil
+              end
+              max_values = tables_max_value_sqls.map { |sql| @adapter.query_value(sql, "SCHEMA") if sql }
+
+              tables_without_max_or_min_values.zip(max_values).each do |table, max_value|
+                @tables[table].max_value = max_value
+              end
+            end
+
+            def backfill_min_values
+              tables_without_max_or_min_values = @tables.select { |table, data| !data.max_value || !data.min_value }.keys
+
+              return unless tables_without_max_or_min_values.any?
+
+              tables_min_value_sqls = tables_without_max_or_min_values.map do |table|
+                sequence = @tables[table].sequence
+                sequence ? select_min_column_value_sql(sequence) : nil
+              end
+              min_values = tables_min_value_sqls.map { |sql| @adapter.query_value(sql, "SCHEMA") if sql }
+
+              tables_without_max_or_min_values.zip(min_values).each do |table, (min_value)|
+                @tables[table].min_value = min_value
+              end
+            end
+
+            def primary_key_column_and_sequence_sql(tables)
+              tables = tables.map { |table| "#{@adapter.quote(@adapter.quote_table_name(table))}::regclass" }
+              <<~SQL
+              SELECT dep.refobjid::regclass::text, attr.attname, nsp.nspname, seq.relname
+              FROM pg_class      seq,
+                  pg_attribute  attr,
+                  pg_depend     dep,
+                  pg_constraint cons,
+                  pg_namespace  nsp
+              WHERE seq.oid           = dep.objid
+                AND seq.relkind       = 'S'
+                AND attr.attrelid     = dep.refobjid
+                AND attr.attnum       = dep.refobjsubid
+                AND attr.attrelid     = cons.conrelid
+                AND attr.attnum       = cons.conkey[1]
+                AND seq.relnamespace  = nsp.oid
+                AND cons.contype      = 'p'
+                AND dep.classid       = 'pg_class'::regclass
+                AND dep.refobjid      IN (#{tables.join(", ")})
+              SQL
+            end
+
+            def uuid_column_and_sequence_sql(tables)
+              tables = tables.map { |table| "#{@adapter.quote(@adapter.quote_table_name(table))}::regclass" }
+              <<~SQL
+              SELECT t.oid::regclass::text, attr.attname, nsp.nspname,
+                CASE
+                  WHEN pg_get_expr(def.adbin, def.adrelid) !~* 'nextval' THEN NULL
+                  WHEN split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2) ~ '.' THEN
+                    substr(split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2),
+                           strpos(split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2), '.')+1)
+                  ELSE split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2)
+                END
+              FROM pg_class       t
+              JOIN pg_attribute   attr ON (t.oid = attrelid)
+              JOIN pg_attrdef     def  ON (adrelid = attrelid AND adnum = attnum)
+              JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
+              JOIN pg_namespace   nsp  ON (t.relnamespace = nsp.oid)
+              WHERE t.oid IN (#{tables.join(", ")})
+                AND cons.contype = 'p'
+                AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval|uuid_generate|gen_random_uuid'
+              SQL
+            end
+
+            def select_max_column_value_sql(table, column)
+              "SELECT MAX(#{@adapter.quote_column_name(column)}) FROM #{@adapter.quote_table_name(table)}"
+            end
+
+            def select_min_column_value_sql(sequence)
+              quoted_sequence = @adapter.quote_table_name(sequence)
+              "SELECT seqmin FROM pg_sequence WHERE seqrelid = #{@adapter.quote(quoted_sequence)}::regclass"
+            end
+
+            def reset_sequence_sql(sequence, max_value, min_value)
+              quoted_sequence = @adapter.quote_table_name(sequence)
+              "SELECT setval(#{@adapter.quote(quoted_sequence)}, #{max_value || min_value}, #{max_value ? true : false})"
+            end
+        end
+
+        # Resets the sequence of a table's primary key to the maximum value.
+        def reset_pk_sequence!(table, pk = nil, sequence = nil) # :nodoc:
+          SequenceReset.new(self, table => [pk, sequence]).reset
+        end
+
+        # Batch resets column sequences. Passed in the shape of [[table, column, sequence, max_column_value, min_column_value]].
+        # Reduces query round trips for sequence resets when there are a large amount of tables.
+        def reset_column_sequences!(tables) # :nodoc:
+          SequenceReset.new(self, tables).reset
         end
 
         # Returns a table's primary key and belonging sequence.
         def pk_and_sequence_for(table) # :nodoc:
           # First try looking for a sequence with a dependency on the
           # given table's primary key.
-          result = query(<<~SQL, "SCHEMA")[0]
+          result = query_rows(<<~SQL)[0]
             SELECT attr.attname, nsp.nspname, seq.relname
             FROM pg_class      seq,
                  pg_attribute  attr,
@@ -402,7 +553,7 @@ module ActiveRecord
           SQL
 
           if result.nil? || result.empty?
-            result = query(<<~SQL, "SCHEMA")[0]
+            result = query_rows(<<~SQL)[0]
               SELECT attr.attname, nsp.nspname,
                 CASE
                   WHEN pg_get_expr(def.adbin, def.adrelid) !~* 'nextval' THEN NULL
@@ -433,7 +584,7 @@ module ActiveRecord
         end
 
         def primary_keys(table_name) # :nodoc:
-          query_values(<<~SQL, "SCHEMA")
+          query_values(<<~SQL)
             SELECT a.attname
             FROM pg_index i
             JOIN pg_attribute a
@@ -528,15 +679,13 @@ module ActiveRecord
         # Adds comment for given table column or drops it if +comment+ is a +nil+
         def change_column_comment(table_name, column_name, comment_or_changes) # :nodoc:
           clear_cache!
-          comment = extract_new_comment_value(comment_or_changes)
-          execute "COMMENT ON COLUMN #{quote_table_name(table_name)}.#{quote_column_name(column_name)} IS #{quote(comment)}"
+          execute change_column_comment_sql(table_name, column_name, comment_or_changes)
         end
 
         # Adds comment for given table or drops it if +comment+ is a +nil+
         def change_table_comment(table_name, comment_or_changes) # :nodoc:
           clear_cache!
-          comment = extract_new_comment_value(comment_or_changes)
-          execute "COMMENT ON TABLE #{quote_table_name(table_name)} IS #{quote(comment)}"
+          execute change_table_comment_sql(table_name, comment_or_changes)
         end
 
         # Renames a column in a table.
@@ -551,7 +700,7 @@ module ActiveRecord
           result = execute schema_creation.accept(create_index)
 
           index = create_index.index
-          execute "COMMENT ON INDEX #{quote_column_name(index.name)} IS #{quote(index.comment)}" if index.comment
+          execute change_index_comment_sql(index, table_name) if index.comment
           result
         end
 
@@ -598,13 +747,18 @@ module ActiveRecord
         def add_foreign_key(from_table, to_table, **options)
           assert_valid_deferrable(options[:deferrable])
 
+          if options.key?(:enforced) && !supports_enforced_foreign_keys?
+            raise ArgumentError, "NOT ENFORCED foreign key constraints require PostgreSQL 18.4+ (got #{database_version})"
+          end
+
           super
         end
 
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
-          fk_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
-            SELECT t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid,
+          conenforced_column = supports_enforced_foreign_keys? ? ", c.conenforced AS enforced" : ""
+          fk_info = query_all(<<~SQL)
+            SELECT t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid#{conenforced_column},
               (
                 SELECT array_agg(a.attname ORDER BY idx)
                 FROM (
@@ -634,7 +788,7 @@ module ActiveRecord
           SQL
 
           fk_info.map do |row|
-            to_table = Utils.unquote_identifier(row["to_table"])
+            to_table = Utils.extract_schema_qualified_name(row["to_table"]).to_s
 
             column = decode_string_array(row["conkey_names"])
             primary_key = decode_string_array(row["confkey_names"])
@@ -650,23 +804,24 @@ module ActiveRecord
             options[:deferrable] = extract_constraint_deferrable(row["deferrable"], row["deferred"])
 
             options[:validate] = row["valid"]
+            options[:enforced] = row["enforced"] if supports_enforced_foreign_keys?
 
             ForeignKeyDefinition.new(table_name, to_table, options)
           end
         end
 
         def foreign_tables
-          query_values(data_source_sql(type: "FOREIGN TABLE"), "SCHEMA")
+          query_values(data_source_sql(type: "FOREIGN TABLE"))
         end
 
         def foreign_table_exists?(table_name)
-          query_values(data_source_sql(table_name, type: "FOREIGN TABLE"), "SCHEMA").any? if table_name.present?
+          query_values(data_source_sql(table_name, type: "FOREIGN TABLE")).any? if table_name.present?
         end
 
         def check_constraints(table_name) # :nodoc:
           scope = quoted_scope(table_name)
 
-          check_info = internal_exec_query(<<-SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
+          check_info = query_all(<<-SQL)
             SELECT conname, pg_get_constraintdef(c.oid, true) AS constraintdef, c.convalidated AS valid
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
@@ -692,7 +847,7 @@ module ActiveRecord
         def exclusion_constraints(table_name)
           scope = quoted_scope(table_name)
 
-          exclusion_info = internal_exec_query(<<-SQL, "SCHEMA")
+          exclusion_info = query_all(<<-SQL)
             SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef, c.condeferrable, c.condeferred
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
@@ -726,7 +881,7 @@ module ActiveRecord
         def unique_constraints(table_name)
           scope = quoted_scope(table_name)
 
-          unique_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
+          unique_info = query_all(<<~SQL)
             SELECT c.conname, c.conrelid, c.condeferrable, c.condeferred, pg_get_constraintdef(c.oid) AS constraintdef,
             (
               SELECT array_agg(a.attname ORDER BY idx)
@@ -808,6 +963,17 @@ module ActiveRecord
           remove_constraint(table_name, excl_name_to_delete)
         end
 
+        # Checks to see if an exclusion constraint exists on a table for a given exclusion constraint definition.
+        #
+        #   exclusion_constraint_exists?(:invoices, name: "invoices_date_overlap")
+        #
+        def exclusion_constraint_exists?(table_name, **options)
+          if !options.key?(:name) && !options.key?(:expression)
+            raise ArgumentError, "At least one of :name or :expression must be supplied"
+          end
+          exclusion_constraint_for(table_name, **options).present?
+        end
+
         # Adds a new unique constraint to the table.
         #
         #   add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_position", nulls_not_distinct: true
@@ -861,6 +1027,17 @@ module ActiveRecord
           unique_name_to_delete = unique_constraint_for!(table_name, column: column_name, **options).name
 
           remove_constraint(table_name, unique_name_to_delete)
+        end
+
+        # Checks to see if a unique constraint exists on a table for a given unique constraint definition.
+        #
+        #   unique_constraint_exists?(:sections, name: "unique_position")
+        #
+        def unique_constraint_exists?(table_name, **options)
+          if !options.key?(:name) && !options.key?(:expression)
+            raise ArgumentError, "At least one of :name or :expression must be supplied"
+          end
+          unique_constraint_for(table_name, **options).present?
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.
@@ -953,6 +1130,47 @@ module ActiveRecord
           fk_name_to_validate = foreign_key_for!(from_table, to_table: to_table, **options).name
 
           validate_constraint from_table, fk_name_to_validate
+        end
+
+        # Changes an existing foreign key constraint on a table.
+        #
+        # The +enforced+ option toggles whether PostgreSQL checks referential integrity
+        # during DML. Requires PostgreSQL 18.4+.
+        #
+        # Like +validate_foreign_key+, this is a runtime helper rather than a migration
+        # command: it is not registered as reversible, so use it from application code
+        # or explicit +up+/+down+ methods. Accepted options are +:enforced+ plus
+        # identifying keys (+:column+, +:name+, +:to_table+).
+        #
+        # Changes the foreign key on +accounts.branch_id+ to NOT ENFORCED.
+        #
+        #   change_foreign_key :accounts, :branches, enforced: false
+        #
+        # Changes the foreign key on +accounts.branch_id+ back to ENFORCED.
+        #
+        #   change_foreign_key :accounts, :branches, enforced: true
+        #
+        # Changes the foreign key on +accounts.owner_id+.
+        #
+        #   change_foreign_key :accounts, column: :owner_id, enforced: false
+        #
+        # Changes the foreign key named +special_fk_name+ on the +accounts+ table.
+        #
+        #   change_foreign_key :accounts, name: :special_fk_name, enforced: false
+        #
+        def change_foreign_key(from_table, to_table = nil, **options)
+          unless supports_enforced_foreign_keys?
+            raise ArgumentError, "change_foreign_key requires PostgreSQL 18.4+ (got #{database_version})"
+          end
+
+          unless options.key?(:enforced)
+            raise ArgumentError, "change_foreign_key requires at least one option (e.g. enforced:)"
+          end
+
+          enforced = options[:enforced]
+          fk_name = foreign_key_for!(from_table, to_table: to_table, **options.except(:enforced)).name
+
+          execute "ALTER TABLE #{quote_table_name(from_table)} ALTER CONSTRAINT #{quote_column_name(fk_name)} #{enforced ? 'ENFORCED' : 'NOT ENFORCED'}"
         end
 
         # Validates the given check constraint.
@@ -1113,6 +1331,11 @@ module ActiveRecord
             super
           end
 
+          def validate_table_length!(table_name)
+            _schema, table_name = extract_schema_qualified_name(table_name)
+            super
+          end
+
           def exclusion_constraint_name(table_name, **options)
             options.fetch(:name) do
               expression = options.fetch(:expression)
@@ -1125,7 +1348,7 @@ module ActiveRecord
 
           def exclusion_constraint_for(table_name, **options)
             excl_name = exclusion_constraint_name(table_name, **options)
-            exclusion_constraints(table_name).detect { |excl| excl.name == excl_name }
+            exclusion_constraints(table_name).detect { |excl| excl.defined_for?(name: excl_name, **options) }
           end
 
           def exclusion_constraint_for!(table_name, expression: nil, **options)
@@ -1189,6 +1412,31 @@ module ActiveRecord
 
           def decode_string_array(value)
             PG::TextDecoder::Array.new.decode(value)
+          end
+
+          def change_table_comment_sql(table_name, comment_or_changes)
+            comment = extract_new_comment_value(comment_or_changes)
+            "COMMENT ON TABLE #{quote_table_name(table_name)} IS #{quote(comment)}"
+          end
+
+          def change_column_comment_sql(table_name, column_name, comment_or_changes)
+            comment = extract_new_comment_value(comment_or_changes)
+            "COMMENT ON COLUMN #{quote_table_name(table_name)}.#{quote_column_name(column_name)} IS #{quote(comment)}"
+          end
+
+          def drop_table_sql(*table_names, if_exists: nil, force: nil, **)
+            exists = " IF EXISTS" if if_exists
+            quoted_table_names = table_names.map { |table_name| quote_table_name(table_name) }.join(", ")
+            cascade = " CASCADE" if force == :cascade
+
+            "DROP TABLE#{exists} #{quoted_table_names}#{cascade}"
+          end
+
+          def change_index_comment_sql(index, table_name)
+            name = Utils.extract_schema_qualified_name(table_name.to_s)
+            index_name = name.schema ? PostgreSQL::Name.new(name.schema, index.name).to_s : index.name
+
+            "COMMENT ON INDEX #{quote_table_name(index_name)} IS #{quote(index.comment)}"
           end
       end
     end

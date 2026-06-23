@@ -26,7 +26,7 @@ module ActionDispatch
       "ActionController::TooManyRequests"                  => :too_many_requests,
       "Rack::QueryParser::ParameterTypeError"              => :bad_request,
       "Rack::QueryParser::InvalidParameterError"           => :bad_request
-    )
+    ).freeze
 
     cattr_accessor :rescue_templates, default: Hash.new("diagnostics").merge!(
       "ActionView::MissingTemplate"            => "missing_template",
@@ -35,16 +35,16 @@ module ActionDispatch
       "ActiveRecord::StatementInvalid"         => "invalid_statement",
       "ActionView::Template::Error"            => "template_error",
       "ActionController::MissingExactTemplate" => "missing_exact_template",
-    )
+    ).freeze
 
     cattr_accessor :wrapper_exceptions, default: [
       "ActionView::Template::Error"
-    ]
+    ].freeze
 
     cattr_accessor :silent_exceptions, default: [
       "ActionController::RoutingError",
       "ActionDispatch::Http::MimeNegotiation::InvalidType"
-    ]
+    ].freeze
 
     attr_reader :backtrace_cleaner, :wrapped_causes, :exception_class_name, :exception
 
@@ -236,7 +236,7 @@ module ActionDispatch
     end
 
     private
-      class SourceMapLocation < DelegateClass(Thread::Backtrace::Location) # :nodoc:
+      class SourceMapLocation < ActiveSupport::Delegation::DelegateClass(Thread::Backtrace::Location) # :nodoc:
         def initialize(location, template)
           super(location)
           @template = template

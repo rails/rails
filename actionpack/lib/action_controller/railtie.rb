@@ -21,6 +21,8 @@ module ActionController
     config.eager_load_namespaces << AbstractController
     config.eager_load_namespaces << ActionController
 
+    guard_load_hooks(:action_controller, :action_controller_base, :action_controller_api, :action_controller_test_case)
+
     initializer "action_controller.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_controller] = ActionController.deprecator
     end
@@ -31,6 +33,12 @@ module ActionController
 
     initializer "action_controller.set_helpers_path" do |app|
       ActionController::Helpers.helpers_path = app.helpers_paths
+    end
+
+    initializer "action_controller.live_streaming_excluded_keys" do |app|
+      ActiveSupport.on_load(:action_controller_live) do
+        ActionController::Live.live_streaming_excluded_keys = app.config.action_controller.live_streaming_excluded_keys
+      end
     end
 
     initializer "action_controller.parameters_config" do |app|
@@ -83,6 +91,8 @@ module ActionController
           :action_on_unpermitted_parameters,
           :always_permitted_parameters,
           :wrap_parameters_by_default,
+          :live_streaming_excluded_keys,
+          :rescue_from_event_backtrace
         )
 
         filtered_options.each do |k, v|
@@ -133,15 +143,7 @@ module ActionController
           ActiveRecord::QueryLogs.taggings = ActiveRecord::QueryLogs.taggings.merge(
             controller:            ->(context) { context[:controller]&.controller_name },
             action:                ->(context) { context[:controller]&.action_name },
-            namespaced_controller: ->(context) {
-              if context[:controller]
-                controller_class = context[:controller].class
-                # based on ActionController::Metal#controller_name, but does not demodulize
-                unless controller_class.anonymous?
-                  controller_class.name.delete_suffix("Controller").underscore
-                end
-              end
-            }
+            namespaced_controller: ->(context) { context[:controller]&.controller_path }
           )
         end
       end
@@ -156,6 +158,12 @@ module ActionController
     initializer "action_controller.backtrace_cleaner" do
       ActiveSupport.on_load(:action_controller) do
         ActionController::LogSubscriber.backtrace_cleaner = Rails.backtrace_cleaner
+      end
+    end
+
+    initializer "action_controller.structured_event_subscriber" do |app|
+      ActiveSupport.on_load(:action_controller) do
+        ActionController::StructuredEventSubscriber._rescue_from_event_backtrace = app.config.action_controller.rescue_from_event_backtrace
       end
     end
   end

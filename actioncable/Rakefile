@@ -14,21 +14,23 @@ Rake::TestTask.new do |t|
   t.libs << "test"
   t.test_files = FileList["#{__dir__}/test/**/*_test.rb"]
   t.warning = true
-  t.verbose = true
-  t.options = "--profile" if ENV["CI"]
+  if ENV["CI"]
+    t.verbose = true
+    t.options = "--profile --defer-output"
+  end
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
 end
 
 namespace :test do
-  task :isolated do
-    Dir.glob("test/**/*_test.rb").all? do |file|
-      sh(Gem.ruby, "-w", "-Ilib:test", file)
-    end || raise("Failures")
-  end
-
   task :integration do
     system(Hash[*Base64.decode64(ENV.fetch("ENCODED", "")).split(/[ =]/)], "yarn", "test")
     exit($?.exitstatus) unless $?.success?
+  end
+
+  task :railties do
+    ["action_cable/engine"].all? do |railtie|
+      sh(Gem.ruby, "-r", railtie, "-e", "'OK'")
+    end || raise("Failures")
   end
 end
 

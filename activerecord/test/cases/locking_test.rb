@@ -28,6 +28,11 @@ class ReadonlyNameShip < Ship
   attr_readonly :name
 end
 
+class PersonWithAliasedLockVersion < ActiveRecord::Base
+  self.table_name = :people
+  alias_attribute :aliased_lock_version, :lock_version
+end
+
 class OptimisticLockingTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references, :string_key_objects, :peoples_treasures
 
@@ -39,6 +44,19 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p1.save!
 
     assert_equal 1, p1.lock_version
+  end
+
+  def test_update_all_with_lock_column_set_through_an_alias
+    person = PersonWithAliasedLockVersion.create!(first_name: "aliased")
+    assert_equal 0, person.lock_version
+
+    # Setting the locking column through an alias must not also auto-increment
+    # it: two assignments to the same column would silently drop the value on
+    # SQLite/MySQL and raise on PostgreSQL.
+    affected = PersonWithAliasedLockVersion.where(id: person.id).update_all(aliased_lock_version: 10)
+
+    assert_equal 1, affected
+    assert_equal 10, person.reload.lock_version
   end
 
   def test_non_integer_lock_existing
@@ -197,6 +215,41 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     end
 
     assert_not_predicate stale_person, :saved_changes?
+  end
+
+  def test_preserve_lock_version_on_touch_skips_lock_version_bump
+    p1 = Person.find(1)
+    original_lock_version = p1.lock_version
+
+    travel 1.second do
+      ActiveRecord::Locking::Optimistic.preserve_lock_version_on_touch do
+        p1.touch
+      end
+    end
+
+    assert_equal original_lock_version, p1.lock_version
+    assert_equal original_lock_version, Person.find(1).lock_version
+    assert_equal ["updated_at"], p1.saved_changes.keys
+  end
+
+  def test_preserve_lock_version_on_touch_does_not_raise_on_stale_object
+    person = Person.create!(first_name: "Mehmet Emin")
+    stale_person = Person.find(person.id)
+    person.update!(gender: "M")
+
+    assert_nothing_raised do
+      ActiveRecord::Locking::Optimistic.preserve_lock_version_on_touch do
+        stale_person.touch
+      end
+    end
+  end
+
+  def test_preserve_lock_version_on_touch_only_affects_block_scope
+    p1 = Person.find(1)
+    ActiveRecord::Locking::Optimistic.preserve_lock_version_on_touch { p1.touch }
+    p1.touch
+
+    assert_equal 1, p1.lock_version
   end
 
   def test_update_with_dirty_primary_key
@@ -580,7 +633,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   def test_yaml_dumping_with_lock_column
     t1 = LockWithoutDefault.new
     payload = YAML.dump(t1)
-    t2 = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+    t2 = YAML.unsafe_load(payload)
 
     assert_equal t1.attributes, t2.attributes
   end
@@ -814,6 +867,13 @@ class PessimisticLockingTest < ActiveRecord::TestCase
           end
         end
       end
+
+      def test_with_lock_yields_transaction
+        person = Person.find 1
+        person.with_lock do |transaction|
+          assert_equal Person.current_transaction, transaction
+        end
+      end
     end
 
     def test_no_locks_no_wait
@@ -972,5 +1032,93 @@ class PessimisticLockingWhilePreventingWritesTest < ActiveRecord::TestCase
         Person.lock(CUSTOM_LOCK).find_by id: 1
       end
     end
+  end
+end
+
+class OptimisticLockingRollbackTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  def setup
+    @person = Person.create!(first_name: "Michael")
+  end
+
+  def teardown
+    @person.delete
+  end
+
+  def test_lock_version_restored_after_full_transaction_rollback
+    p = Person.find(@person.id)
+    assert_equal 0, p.lock_version
+
+    Person.transaction do
+      p.update!(first_name: "rollback-target")
+      assert_equal 1, p.lock_version
+      raise ActiveRecord::Rollback
+    end
+
+    # The transaction rolled back lock_version to 0 in the database. The in-memory
+    # record should match, not be left in a stale-but-dirty state that would
+    # trigger StaleObjectError on the next save without an explicit reload.
+    assert_equal 0, Person.find(@person.id).lock_version
+    assert_equal 0, p.lock_version
+    assert_not p.will_save_change_to_attribute?(:lock_version)
+    assert_nothing_raised do
+      p.update!(first_name: "after-rollback")
+    end
+    assert_equal 1, p.lock_version
+    assert_equal "after-rollback", Person.find(@person.id).first_name
+  end
+
+  def test_lock_version_restored_after_savepoint_rollback
+    p = Person.find(@person.id)
+    assert_equal 0, p.lock_version
+
+    Person.transaction do
+      Person.transaction(requires_new: true) do
+        p.update!(first_name: "savepoint-target")
+        assert_equal 1, p.lock_version
+        raise ActiveRecord::Rollback
+      end
+
+      # The savepoint rolled back lock_version to 0 in the database. The in-memory
+      # record should match so the next save inside the surrounding transaction
+      # doesn't raise `StaleObjectError` against a row the savepoint just reverted.
+      assert_equal 0, Person.find(@person.id).lock_version
+      assert_equal 0, p.lock_version
+      assert_not p.will_save_change_to_attribute?(:lock_version)
+      assert_nothing_raised do
+        p.update!(first_name: "after-savepoint-rollback")
+      end
+      assert_equal 1, p.lock_version
+    end
+
+    assert_equal 1, Person.find(@person.id).lock_version
+    assert_equal "after-savepoint-rollback", Person.find(@person.id).first_name
+  end
+
+  def test_lock_version_restored_after_savepoint_rollback_when_outer_commits
+    p = Person.find(@person.id)
+    assert_equal 0, p.lock_version
+
+    Person.transaction do
+      Person.transaction(requires_new: true) do
+        p.update!(first_name: "savepoint-target")
+        assert_equal 1, p.lock_version
+        raise ActiveRecord::Rollback
+      end
+    end
+
+    # After the savepoint rolled back and the outer transaction committed without
+    # touching the record again, the database row is back to lock_version 0.
+    # The in-memory record should match so the next save outside the transaction
+    # doesn't raise `StaleObjectError`.
+    assert_equal 0, Person.find(@person.id).lock_version
+    assert_equal 0, p.lock_version
+    assert_not p.will_save_change_to_attribute?(:lock_version)
+    assert_nothing_raised do
+      p.update!(first_name: "after-tx")
+    end
+    assert_equal 1, p.lock_version
+    assert_equal "after-tx", Person.find(@person.id).first_name
   end
 end

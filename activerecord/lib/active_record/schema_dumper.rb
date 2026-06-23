@@ -192,7 +192,7 @@ module ActiveRecord
           tbl.puts ", force: :cascade do |t|"
 
           # then dump all non-primary key columns
-          columns.sort_by(&:name).each do |column|
+          columns.each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
 
@@ -232,8 +232,8 @@ module ActiveRecord
       def indexes(table, stream)
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
-            table_name = remove_prefix_and_suffix(index.table).inspect
-            "  add_index #{([relation_name(table_name)] + index_parts(index)).join(', ')}"
+            table_name = remove_prefix_and_suffix(index.table)
+            "  add_index #{([relation_name(table_name).inspect] + index_parts(index)).join(', ')}"
           end
 
           stream.puts add_index_statements.sort.join("\n")
@@ -335,6 +335,7 @@ module ActiveRecord
             parts << "on_delete: #{foreign_key.on_delete.inspect}" if foreign_key.on_delete
             parts << "deferrable: #{foreign_key.deferrable.inspect}" if foreign_key.deferrable
             parts << "validate: #{foreign_key.validate?.inspect}" unless foreign_key.validate?
+            parts << "enforced: #{foreign_key.enforced?.inspect}" unless foreign_key.enforced?
 
             "  add_foreign_key #{parts.join(', ')}"
           end

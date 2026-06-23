@@ -50,7 +50,7 @@ module ActiveJob
           end
         end
       when Symbol
-        { OBJECT_SERIALIZER_KEY => "ActiveJob::Serializers::SymbolSerializer", "value" => argument.name }
+        { Serializers::OBJECT_SERIALIZER_KEY => "ActiveJob::Serializers::SymbolSerializer", "value" => argument.name }
       when GlobalID::Identification
         convert_to_global_id_hash(argument)
       when Array
@@ -94,15 +94,13 @@ module ActiveJob
       RUBY2_KEYWORDS_KEY = "_aj_ruby2_keywords"
       # :nodoc:
       WITH_INDIFFERENT_ACCESS_KEY = "_aj_hash_with_indifferent_access"
-      # :nodoc:
-      OBJECT_SERIALIZER_KEY = "_aj_serialized"
 
       # :nodoc:
       RESERVED_KEYS = [
         GLOBALID_KEY, GLOBALID_KEY.to_sym,
         SYMBOL_KEYS_KEY, SYMBOL_KEYS_KEY.to_sym,
         RUBY2_KEYWORDS_KEY, RUBY2_KEYWORDS_KEY.to_sym,
-        OBJECT_SERIALIZER_KEY, OBJECT_SERIALIZER_KEY.to_sym,
+        Serializers::OBJECT_SERIALIZER_KEY, Serializers::OBJECT_SERIALIZER_KEY.to_sym,
         WITH_INDIFFERENT_ACCESS_KEY, WITH_INDIFFERENT_ACCESS_KEY.to_sym,
       ].to_set
       private_constant :RESERVED_KEYS, :GLOBALID_KEY,
@@ -136,7 +134,7 @@ module ActiveJob
       end
 
       def custom_serialized?(hash)
-        hash.key?(OBJECT_SERIALIZER_KEY)
+        hash.key?(Serializers::OBJECT_SERIALIZER_KEY)
       end
 
       def serialize_hash(argument)
@@ -197,4 +195,6 @@ module ActiveJob
           "without an id. (Maybe you forgot to call save?)"
       end
   end
+
+  ActiveSupport.run_load_hooks(:active_job_arguments, Arguments)
 end

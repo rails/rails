@@ -11,7 +11,7 @@
 # default, images will be processed with {libvips}[http://libvips.github.io/libvips/] using the
 # {ruby-vips}[https://github.com/libvips/ruby-vips] gem, but you can also switch to the
 # {ImageMagick}[http://imagemagick.org] processor operated by the {MiniMagick}[https://github.com/minimagick/minimagick]
-# gem).
+# gem). You'll need to add either <tt>gem "ruby-vips"</tt> or <tt>gem "mini_magick"</tt> to your Gemfile.
 #
 #   Rails.application.config.active_storage.variant_processor
 #   # => :vips
@@ -103,11 +103,23 @@ class ActiveStorage::Variant
     service.delete(key)
   end
 
-  private
-    def processed?
-      service.exist?(key)
-    end
+  # Returns true if the variant has already been processed and uploaded to the service.
+  def processed?
+    service.exist?(key)
+  end
 
+  # Process the variant from a local io, avoiding a download from the service.
+  # This is an optimization for when the original file is still available locally
+  # (e.g., during the initial upload flow).
+  def process_from_io(io) # :nodoc:
+    return if processed?
+
+    variation.transform(io) do |output|
+      service.upload(key, output, content_type: content_type)
+    end
+  end
+
+  private
     def process
       blob.open do |input|
         variation.transform(input) do |output|

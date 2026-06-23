@@ -1030,9 +1030,9 @@ module ActiveRecord
       # associated records themselves, you can always do something along the lines of
       # <tt>person.tasks.each(&:destroy)</tt>.
       #
-      # == Deprecated Associations
+      # == Deprecated \Associations
       #
-      # Associations can be marked as deprecated by passing <tt>deprecated: true</tt>:
+      # \Associations can be marked as deprecated by passing <tt>deprecated: true</tt>:
       #
       #     has_many :posts, deprecated: true
       #

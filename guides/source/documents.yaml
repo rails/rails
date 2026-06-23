@@ -168,10 +168,6 @@
   name: Digging Deeper
   documents:
     -
-      name: Rails Internationalization (I18n) API
-      url: i18n.html
-      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
-    -
       name: Testing Rails Applications
       url: testing.html
       description: This guide explores how to write tests in Rails. It also covers test configuration and compares approaches to testing an application.
@@ -203,6 +199,10 @@
         This guide explains how to use import maps or jsbundling-rails to include
         JavaScript in Rails applications, and covers the basics of working with Turbo in Rails.
     -
+      name: Internationalization (I18n)
+      url: i18n.html
+      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
+    -
       name: The Rails Initialization Process
       work_in_progress: true
       url: initialization.html
@@ -232,7 +232,7 @@
       url: tuning_performance_for_deployment.html
       description: This guide covers performance and concurrency configuration for deploying your production Ruby on Rails application.
     -
-      name: "Caching with Rails: An Overview"
+      name: "Caching with Rails"
       url: caching_with_rails.html
       description: This guide is an introduction to speeding up your Rails application with caching.
     -
@@ -258,7 +258,6 @@
       description: This guide covers using multiple databases in your application.
     -
       name: Active Record Encryption
-      work_in_progress: true
       url: active_record_encryption.html
       description: This guide covers encrypting your database information using Active Record.
     -
@@ -282,20 +281,17 @@
       url: generators.html
       description: This guide covers the process of adding a brand new generator to your extension or providing an alternative to an element of a built-in Rails generator (such as providing alternative test stubs for the scaffold generator).
     -
-      name: Getting Started with Engines
+      name: Rails Engines Overview
       url: engines.html
       description: >
-        Engines can be considered miniature applications that provide
+        Engines are packaged like miniature applications that provide
         additional functionality to their host applications. In this guide you
         will learn how to create your own engine and integrate it with a host
         application.
-      work_in_progress: true
-
     -
       name: Threading and Code Execution in Rails
       url: threading_and_code_execution.html
       description: This guide describes the considerations needed and tools available when working directly with concurrency in a Rails application.
-      work_in_progress: true
 -
   name: Contributing
   documents:
@@ -336,7 +332,7 @@
       description: Release notes for Rails 8.2.
       work_in_progress: true
     -
-      name: Version 8.1 - ?
+      name: Version 8.1 - October 2025
       url: 8_1_release_notes.html
       description: Release notes for Rails 8.1.
     -

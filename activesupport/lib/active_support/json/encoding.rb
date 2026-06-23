@@ -66,7 +66,7 @@ module ActiveSupport
         ">".b => '\u003e'.b,
         "<".b => '\u003c'.b,
         "&".b => '\u0026'.b,
-      }
+      }.freeze
 
       HTML_ENTITIES_REGEX = Regexp.union(*(ESCAPED_CHARS.keys - [U2028, U2029]))
       FULL_ESCAPE_REGEX = Regexp.union(*ESCAPED_CHARS.keys)
@@ -146,13 +146,25 @@ module ActiveSupport
       end
 
       # ruby/json 2.14.x yields non-String keys but doesn't let us know it's a key
-      if defined?(::JSON::Coder) && Gem::Version.new(::JSON::VERSION) >= Gem::Version.new("2.15")
+      if defined?(::JSON::Coder) && Gem::Version.new(::JSON::VERSION) >= Gem::Version.new("2.15.2")
         class JSONGemCoderEncoder # :nodoc:
           JSON_NATIVE_TYPES = [Hash, Array, Float, String, Symbol, Integer, NilClass, TrueClass, FalseClass, ::JSON::Fragment].freeze
           CODER = ::JSON::Coder.new do |value, is_key|
+            # Serialize non-String/Symbol keys via #to_s based on the key's own type,
+            # mirroring the legacy `jsonify` encoder. (#as_json is intentionally not
+            # consulted here: Time#as_json returns an ISO8601 String, yet the key must
+            # still be emitted via #to_s for backward compatibility.)
+            if is_key
+              # Keep compatibility by calling to_s on non-String keys
+              if Symbol === value
+                next value # Symbol#to_s needlessly allocate a string.
+              else
+                next value.to_s
+              end
+            end
+
             json_value = value.as_json
-            # Keep compatibility by calling to_s on non-String keys
-            next json_value.to_s if is_key
+
             # Handle objects returning self from as_json
             if json_value.equal?(value)
               next ::JSON::Fragment.new(::JSON.generate(json_value))

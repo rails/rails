@@ -9,6 +9,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   include ConsoleHelpers
 
   def setup
+    @spawned_console_pids = []
     skip "PTY unavailable" unless available_pty?
 
     build_app
@@ -22,6 +23,12 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def teardown
+    @spawned_console_pids.each do |pid|
+      Process.kill("KILL", pid)
+      Process.wait(pid)
+    rescue Errno::ESRCH, Errno::ECHILD, Errno::EPERM
+      # ESRCH: process already exited, ECHILD: already reaped, EPERM: not our process to kill
+    end
     teardown_app
   end
 
@@ -32,7 +39,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     assert_output prompt, @primary
   end
 
-  def spawn_console(options, wait_for_prompt: true, env: {})
+  def spawn_console(options = nil, wait_for_prompt: true, env: {})
     # Test should not depend on user's irbrc file
     home_tmp_dir = Dir.mktmpdir
 
@@ -41,6 +48,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
       "#{app_path}/bin/rails console #{options}",
       in: @replica, out: @replica, err: @replica
     )
+    @spawned_console_pids << pid
 
     if wait_for_prompt
       assert_output "> ", @primary, 30
@@ -179,6 +187,30 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "new_session.class.name", "ActionDispatch::Integration::Session"
   end
 
+  def test_console_with_conditional_executor_enabled_by_default
+    spawn_console
+
+    write_prompt "Rails.application.executor.active?", "true"
+  end
+
+  def test_console_with_conditional_executor_can_be_disabled
+    spawn_console "--skip-executor"
+
+    write_prompt "Rails.application.executor.active?", "false"
+  end
+
+  def test_console_query_cache_disabled_by_default
+    spawn_console
+
+    write_prompt "ActiveRecord::Base.connection_pool.query_cache_enabled", "=> false"
+  end
+
+  def test_console_query_cache_option
+    spawn_console "--query-cache"
+
+    write_prompt "ActiveRecord::Base.connection_pool.query_cache_enabled", "=> true"
+  end
+
   def test_app_helper_method
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
@@ -240,6 +272,23 @@ class FullStackConsoleTest < ActiveSupport::TestCase
 
     write_prompt "reload!", "Reloading...\r\n"
     write_prompt "User.new.respond_to?(:age)", "=> true"
+  end
+
+  def test_reload_command_resets_executor
+    spawn_console("-e development")
+
+    write_prompt "key = Rails.application.executor.active_key; nil"
+    write_prompt "old_executor_id = ActiveSupport::IsolatedExecutionState[key].object_id; nil"
+    write_prompt "reload!", "Reloading...\r\n"
+    write_prompt "ActiveSupport::IsolatedExecutionState[key].object_id != old_executor_id", "=> true"
+  end
+
+  def test_reload_command_does_not_start_executor_when_it_is_not_active
+    spawn_console("-e development --skip-executor")
+
+    write_prompt "Rails.application.executor.active?", "=> false"
+    write_prompt "reload!", "Reloading...\r\n"
+    write_prompt "Rails.application.executor.active?", "=> false"
   end
 
   def test_console_respects_user_defined_irb_name

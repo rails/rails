@@ -49,4 +49,10 @@ class ActionText::AttachableTest < ActiveSupport::TestCase
     assert_equal(attachable.as_json.except("attachable_sgid"), attachable.as_json(except: :attachable_sgid))
     assert_equal(attachable.as_json.except("attachable_sgid"), attachable.as_json(except: [:attachable_sgid]))
   end
+
+  test "read_attribute_for_serialization returns the attribute" do
+    attachable = ActiveStorage::Blob.create_after_unfurling!(io: StringIO.new("test"), filename: "test.txt", key: 123)
+
+    assert_equal(attachable.key, attachable.read_attribute_for_serialization(:key))
+  end
 end

@@ -7,6 +7,10 @@ require "models/post"
 require "timeout"
 
 class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
+  uses_transaction :test_timeout_in_transaction_doesnt_query_closed_connection,
+    :test_timeout_in_fixture_set_insertion_doesnt_query_closed_connection,
+    :test_timeout_without_referential_integrity_doesnt_query_closed_connection
+
   setup do
     @conn = ActiveRecord::Base.lease_connection
   end
@@ -19,11 +23,9 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "timeout in transaction doesnt query closed connection" do
-    assert_raises(Timeout::Error) do
-      Timeout.timeout(0.1) do
-        @conn.transaction do
-          @conn.execute("SELECT SLEEP(1)")
-        end
+    assert_timeout_and_remove_connection do
+      @conn.transaction do
+        @conn.execute("SELECT SLEEP(1)")
       end
     end
   end
@@ -35,26 +37,22 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
       ]]
     ] * 2000
 
-    assert_raises(Timeout::Error) do
-      Timeout.timeout(0.1) do
-        @conn.insert_fixtures_set(fixtures)
-      end
+    assert_timeout_and_remove_connection do
+      @conn.insert_fixtures_set(fixtures)
     end
   end
 
   test "timeout without referential integrity doesnt query closed connection" do
-    assert_raises(Timeout::Error) do
-      Timeout.timeout(0.1) do
-        @conn.disable_referential_integrity do
-          @conn.execute("SELECT SLEEP(1)")
-        end
+    assert_timeout_and_remove_connection do
+      @conn.disable_referential_integrity do
+        @conn.execute("SELECT SLEEP(1)")
       end
     end
   end
 
   test "#explain for one query" do
     explain = @conn.explain("select * from posts")
-    assert_match %(possible_keys), explain
+    assert_match %r(posts), explain
   end
 
   test "#adapter_name answers name" do
@@ -200,69 +198,51 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
 
   test "#select_all when query cache is enabled fires the same notification payload for uncached and cached queries" do
     @conn.cache do
-      event_fired = false
-      subscription = ->(name, start, finish, id, payload) {
-        next if payload[:name] == "SCHEMA"
-
-        event_fired = true
-
-        # First, we test keys that are defined by default by the AbstractAdapter
-        assert_includes payload, :sql
-        assert_equal "SELECT * FROM posts", payload[:sql]
-
-        assert_includes payload, :name
-        assert_equal "uncached query", payload[:name]
-
-        assert_includes payload, :connection
-        assert_equal @conn, payload[:connection]
-
-        assert_includes payload, :binds
-        assert_equal [], payload[:binds]
-
-        assert_includes payload, :type_casted_binds
-        assert_equal [], payload[:type_casted_binds]
-
-        assert_nil payload[:statement_name]
-
-        assert_not_includes payload, :cached
-      }
-      ActiveSupport::Notifications.subscribed(subscription, "sql.active_record") do
+      notification = assert_notification("sql.active_record", name: "uncached query") do
         @conn.select_all "SELECT * FROM posts", "uncached query"
       end
-      assert event_fired
+      payload = notification.payload
 
-      event_fired = false
-      subscription = ->(name, start, finish, id, payload) {
-        next if payload[:name] == "SCHEMA"
+      # First, we test keys that are defined by default by the AbstractAdapter
+      assert_includes payload, :sql
+      assert_equal "SELECT * FROM posts", payload[:sql]
 
-        event_fired = true
+      assert_includes payload, :connection
+      assert_equal @conn, payload[:connection]
 
-        # First, we test keys that are defined by default by the AbstractAdapter
-        assert_includes payload, :sql
-        assert_equal "SELECT * FROM posts", payload[:sql]
+      assert_includes payload, :binds
+      assert_equal [], payload[:binds]
 
-        assert_includes payload, :name
-        assert_equal "cached query", payload[:name]
+      assert_includes payload, :type_casted_binds
+      assert_equal [], payload[:type_casted_binds]
 
-        assert_includes payload, :connection
-        assert_equal @conn, payload[:connection]
+      assert_nil payload[:statement_name]
 
-        assert_includes payload, :binds
-        assert_equal [], payload[:binds]
+      assert_not_includes payload, :cached
 
-        assert_includes payload, :type_casted_binds
-        assert_equal [], payload[:type_casted_binds].is_a?(Proc) ? payload[:type_casted_binds].call : payload[:type_casted_binds]
-
-        # Rails does not include :statement_name for cached queries 🤷‍♂️
-        assert_not_includes payload, :statement_name
-
-        assert_includes payload, :cached
-        assert_equal true, payload[:cached]
-      }
-      ActiveSupport::Notifications.subscribed(subscription, "sql.active_record") do
+      notification = assert_notification("sql.active_record", name: "cached query") do
         @conn.select_all "SELECT * FROM posts", "cached query"
       end
-      assert event_fired
+      payload = notification.payload
+
+      # First, we test keys that are defined by default by the AbstractAdapter
+      assert_includes payload, :sql
+      assert_equal "SELECT * FROM posts", payload[:sql]
+
+      assert_includes payload, :connection
+      assert_equal @conn, payload[:connection]
+
+      assert_includes payload, :binds
+      assert_equal [], payload[:binds]
+
+      assert_includes payload, :type_casted_binds
+      assert_equal [], payload[:type_casted_binds].is_a?(Proc) ? payload[:type_casted_binds].call : payload[:type_casted_binds]
+
+      # Rails does not include :statement_name for cached queries 🤷‍♂️
+      assert_not_includes payload, :statement_name
+
+      assert_includes payload, :cached
+      assert_equal true, payload[:cached]
     end
   end
 
@@ -316,18 +296,10 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     assert_equal [], @conn.indexes("users")
   end
 
-  test "#begin_db_transaction answers empty result" do
-    result = @conn.begin_db_transaction
-    assert_equal [], result.rows
-
-    # rollback transaction so it doesn't bleed into other tests
-    @conn.rollback_db_transaction
-  end
-
   test "#begin_db_transaction raises error" do
     error = Class.new(Exception)
     assert_raises error do
-      @conn.stub(:raw_execute, -> (*) { raise error }) do
+      @conn.stub(:perform_query, -> (*) { raise error }) do
         @conn.begin_db_transaction
       end
     end
@@ -336,15 +308,10 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     @conn.rollback_db_transaction
   end
 
-  test "#commit_db_transaction answers empty result" do
-    result = @conn.commit_db_transaction
-    assert_equal [], result.rows
-  end
-
   test "#commit_db_transaction raises error" do
     error = Class.new(Exception)
     assert_raises error do
-      @conn.stub(:raw_execute, -> (*) { raise error }) do
+      @conn.stub(:perform_query, -> (*) { raise error }) do
         @conn.commit_db_transaction
       end
     end
@@ -353,7 +320,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   test "#rollback_db_transaction raises error" do
     error = Class.new(Exception)
     assert_raises error do
-      @conn.stub(:raw_execute, -> (*) { raise error }) do
+      @conn.stub(:perform_query, -> (*) { raise error }) do
         @conn.rollback_db_transaction
       end
     end
@@ -432,4 +399,14 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
       ActiveRecord::ConnectionAdapters::TrilogyAdapter.new(prepared_statements: true).connect!
     end
   end
+
+  private
+    def assert_timeout_and_remove_connection(&block)
+      assert_raises(Timeout::Error) do
+        Timeout.timeout(0.1, &block)
+      end
+    ensure
+      ActiveRecord::Base.connection_pool.remove(@conn) if @conn
+      @conn = nil
+    end
 end

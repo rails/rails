@@ -182,6 +182,25 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal(myobj, topic.content)
   end
 
+  def test_serialized_json_column_direct_attribute_assignment
+    Topic.serialize :content, coder: JSON, type: Hash
+
+    topic = Topic.new(content: { foo: "bar" })
+    topic.save!
+    topic.reload
+
+    assert_equal({ "foo" => "bar" }, topic.content)
+
+    topic.content = { baz: "qux" }
+
+    assert_equal({ "baz" => "qux" }, topic.content)
+
+    topic.save
+    topic.reload
+
+    assert_equal({ "baz" => "qux" }, topic.content)
+  end
+
   def test_serialized_string_attribute
     myobj = "Yes"
     topic = Topic.create("content" => myobj).reload

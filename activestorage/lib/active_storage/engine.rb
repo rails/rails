@@ -77,6 +77,8 @@ module ActiveStorage
 
     config.eager_load_namespaces << ActiveStorage
 
+    guard_load_hooks(:active_storage_record, :active_storage_attachment, :active_storage_blob, :active_storage_variant_record)
+
     initializer "active_storage.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_storage] = ActiveStorage.deprecator
     end
@@ -112,8 +114,18 @@ module ActiveStorage
           when /image_processing/
             ActiveStorage.logger.warn <<~WARNING.squish
               Generating image variants require the image_processing gem.
-              Please add `gem "image_processing", "~> 1.2"` to your Gemfile
+              Please add `gem "image_processing", "~> 2.0"` to your Gemfile
               or set `config.active_storage.variant_processor = :disabled`.
+            WARNING
+          when /ruby-vips/
+            ActiveStorage.logger.warn <<~WARNING.squish
+              Generating image variants with libvips requires the ruby-vips gem.
+              Please add `gem "ruby-vips", "~> 2.3"` to your Gemfile.
+            WARNING
+          when /mini_magick/
+            ActiveStorage.logger.warn <<~WARNING.squish
+              Generating image variants with ImageMagick requires the mini_magick gem.
+              Please add `gem "mini_magick", "~> 5.0"` to your Gemfile.
             WARNING
           else
             raise
@@ -124,6 +136,13 @@ module ActiveStorage
         ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
         ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
         ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
+
+        ActiveStorage.base_controller_parent = app.config.active_storage.base_controller_parent ||
+          if app.config.api_only
+            "::ActionController::API"
+          else
+            "::ActionController::Base"
+          end
 
         ActiveStorage.supported_image_processing_methods += app.config.active_storage.supported_image_processing_methods || []
         ActiveStorage.unsupported_image_processing_arguments = app.config.active_storage.unsupported_image_processing_arguments || %w(
@@ -149,6 +168,8 @@ module ActiveStorage
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
         ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
+        ActiveStorage.analyze = app.config.active_storage.analyze || :later
+        ActiveStorage.streaming_chunk_max_size = app.config.active_storage.streaming_chunk_max_size || 100.megabytes
       end
     end
 

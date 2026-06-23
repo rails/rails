@@ -51,7 +51,7 @@ module ActionDispatch
     KEY = "action_dispatch.request.flash_hash"
 
     module RequestMethods
-      # Access the contents of the flash. Returns a ActionDispatch::Flash::FlashHash.
+      # Access the contents of the flash. Returns an ActionDispatch::Flash::FlashHash.
       #
       # See ActionDispatch::Flash for example usage.
       def flash
@@ -312,7 +312,7 @@ module ActionDispatch
     def self.new(app) app; end
   end
 
-  class Request
+  ActiveSupport.on_load(:action_dispatch_request) do
     prepend Flash::RequestMethods
   end
 end

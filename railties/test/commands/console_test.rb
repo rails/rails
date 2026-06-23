@@ -46,6 +46,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
 
     assert_predicate app.console, :started?
     assert_match(/Loading \w+ environment \(Rails/, output)
+    assert_match(/Type 'help' for help/, output)
   end
 
   def test_start_with_sandbox
@@ -54,6 +55,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_predicate app.console, :started?
     assert app.sandbox
     assert_match(/Loading \w+ environment in sandbox \(Rails/, output)
+    assert_match(/Type 'help' for help/, output)
   end
 
   def test_console_with_environment
