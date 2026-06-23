@@ -67,8 +67,8 @@ module ActionController
       extend ActiveSupport::Concern
       include Renderers
 
-      included do
-        self._renderers = RENDERERS
+      def _all_renderers # :nodoc:
+        _renderers + Renderers.all
       end
     end
 
@@ -102,7 +102,9 @@ module ActionController
     #     end
     def self.add(key, &block)
       define_method(_render_with_renderer_method_name(key), &block)
-      @all << key.to_sym
+      (@all += [key.to_sym]).freeze
+
+      RENDERERS.target = @all
     end
 
     # This method is the opposite of add method.
@@ -111,9 +113,11 @@ module ActionController
     #
     #     ActionController::Renderers.remove(:csv)
     def self.remove(key)
-      @all.delete(key.to_sym)
+      (@all -= [key.to_sym]).freeze
       method_name = _render_with_renderer_method_name(key)
       remove_possible_method(method_name)
+
+      RENDERERS.target = @all
     end
 
     def self._render_with_renderer_method_name(key) # :nodoc:
@@ -171,7 +175,7 @@ module ActionController
     end
 
     def _render_to_body_with_renderer(options) # :nodoc:
-      _renderers.each do |name|
+      _all_renderers.each do |name|
         if options.key?(name)
           _process_options(options)
           method_name = Renderers._render_with_renderer_method_name(name)
@@ -179,6 +183,10 @@ module ActionController
         end
       end
       nil
+    end
+
+    def _all_renderers # :nodoc:
+      _renderers
     end
 
     add :json do |json, options|
