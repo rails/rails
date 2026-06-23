@@ -1464,7 +1464,7 @@ edit_person GET    /people/:id/edit(.:format) people#edit
 
 ### Routes in Rails Console
 
-You can access route helpers using `Rails.application.routes.url_helpers` within the [Rails Console](command_line.html#bin-rails-console). They are also available via the [app](command_line.html#the-app-and-helper-objects) object. For example:
+You can access route helpers using `Rails.application.routes.url_helpers` within the [Rails Console](command_line.html#bin-rails-console). They are also available via the [app](command_line.html#the-app-object) object. For example:
 
 ```irb
 irb> Rails.application.routes.url_helpers.users_path
