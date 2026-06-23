@@ -132,7 +132,12 @@ module ActionView
         details, details_key = detail_args_for(options)
         @view_paths.find(name, prefixes, partial, details, details_key, keys)
       end
-      alias :find_template :find
+
+      def find!(name, prefixes = [], partial = false, keys = [], options = {})
+        name, prefixes = normalize_name(name, prefixes)
+        details, details_key = detail_args_for(options)
+        @view_paths.find!(name, prefixes, partial, details, details_key, keys)
+      end
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
         name, prefixes = normalize_name(name, prefixes)
@@ -153,6 +158,10 @@ module ActionView
         @view_paths.exists?(name, prefixes, partial, details, details_key, [])
       end
       alias :any_templates? :any?
+
+      def any_formats?(name, prefixes = [], partial = false, keys = [], options = {})
+        exists?(name, prefixes, partial, keys, **options, formats: default_formats)
+      end
 
       def append_view_paths(paths)
         @view_paths = build_view_paths(@view_paths.to_a + paths)
