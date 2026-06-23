@@ -219,7 +219,13 @@ module ActiveSupport
     #     end
     #   end
     def set(attributes, &block)
+      # #with restores values through the writers, and a writer always stores
+      # its key, even for nil. Keys with no stored value before the block are
+      # removed again so they don't remain in #attributes.
+      new_keys = attributes.keys.reject { |name| @attributes.key?(name) }
       with(**attributes, &block)
+    ensure
+      new_keys&.each { |name| @attributes.delete(name) }
     end
 
     # Reset all attributes. Should be called before and after actions, when used as a per-request singleton.

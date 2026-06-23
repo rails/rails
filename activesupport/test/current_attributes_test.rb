@@ -248,6 +248,17 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     assert_equal({ counter_integer: 0, counter_callable: 0 }, Current.attributes)
   end
 
+  test "set does not leak unassigned keys into #attributes after the block" do
+    assert_not_includes Current.attributes.keys, :world
+
+    Current.set(world: "Earth") do
+      assert_equal "Earth", Current.world
+    end
+
+    assert_not_includes Current.attributes.keys, :world
+    assert_equal({ counter_integer: 0, counter_callable: 0 }, Current.attributes)
+  end
+
   test "#attributes returns different objects each time" do
     assert_not_same Current.attributes, Current.attributes
   end

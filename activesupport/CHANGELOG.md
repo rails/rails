@@ -1,3 +1,13 @@
+*   Fix `ActiveSupport::CurrentAttributes#set` leaking unassigned keys into
+    `#attributes` after the block.
+
+    For an attribute without a default, `#set` would restore its value through
+    the writer on block exit, reintroducing the key as `nil` and leaking it for
+    the rest of the execution loop. Keys absent before the block are now dropped
+    afterwards.
+
+    *Anton Zaharia*
+
 *   `assert_difference`, `assert_no_difference`, `assert_changes`, and
     `assert_no_changes` now raise `ArgumentError` when given an expression that
     is not a callable (like a Proc), String, or Symbol.
