@@ -14,6 +14,8 @@ module RailsStrictWarnings # :nodoc:
     # Expected non-verbose warning emitted by Rails.
     /Ignoring .*\.yml because it has expired/,
     /Failed to validate the schema cache because/,
+    /Rails' Ractor support is experimental/,
+    /Ractor API is experimental and may change in future versions of Ruby/,
   )
 
   SUPPRESSED_WARNINGS = Regexp.union(
