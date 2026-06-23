@@ -127,6 +127,10 @@ module ActiveSupport
       super || @parent.key?(key)
     end
 
+    def keys
+      @parent.keys | super
+    end
+
     def overridden?(key)
       !!(@parent && @parent.key?(key) && own_key?(key.to_sym))
     end
