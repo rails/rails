@@ -300,7 +300,7 @@ module ActiveRecord
     #     }
     #   }
     module ClassMethods
-      REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |key, value| key == "_destroy" || value.blank? } }
+      REJECT_ALL_BLANK_PROC = ActiveSupport::Ractors.shareable_proc { |attributes| attributes.all? { |key, value| key == "_destroy" || value.blank? } }
 
       # Defines an attributes writer for the specified association(s).
       #
