@@ -122,20 +122,22 @@ module ActiveSupport
         ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
           names.each do |name|
             owner.define_cached_method(name, namespace: :current_attributes) do |batch|
-              batch <<
-                "def #{name}" <<
-                "@attributes[:#{name}]" <<
-                "end"
+              batch << <<~RUBY
+                def #{name}
+                  @attributes[:#{name}]
+                end
+              RUBY
             end
             owner.define_cached_method("#{name}=", namespace: :current_attributes) do |batch|
-              batch <<
-                "def #{name}=(value)" <<
-                "if value.nil?" <<
-                "@attributes.delete(:#{name})" <<
-                "else" <<
-                "@attributes[:#{name}] = value" <<
-                "end" <<
-                "end"
+              batch << <<~RUBY
+                def #{name}=(value)
+                  if value.nil?
+                    @attributes.delete(:#{name})
+                  else
+                    @attributes[:#{name}] = value
+                  end
+                end
+              RUBY
             end
           end
         end
