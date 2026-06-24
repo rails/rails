@@ -438,6 +438,19 @@ expressions.
 
 Forces all requests to be served over HTTPS, and sets "https://" as the default protocol when generating URLs. Enforcement of HTTPS is handled by the `ActionDispatch::SSL` middleware, which can be configured via `config.ssl_options`.
 
+#### `config.freeze_configuration`
+
+When set to `true`, Rails freezes framework configuration after the application
+has finished initializing. Each framework freezes the relevant configuration
+values (and makes them `Ractor`-shareable where possible) once the application
+is initialized.
+
+This is useful to guarantee that configuration is not mutated at runtime after
+boot, which is required for `Ractor` support and prevents accidental
+modification of configuration once the application is running.
+
+The default value is `false`.
+
 #### `config.helpers_paths`
 
 Defines an array of additional paths to load view helpers.

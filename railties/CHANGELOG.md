@@ -1,3 +1,15 @@
+*   Add `config.freeze_configuration` to freeze framework configuration after the
+    application has finished initializing.
+
+    When enabled, each framework freezes the relevant configuration values (and
+    makes them `Ractor`-shareable where possible) once the application is
+    initialized. This is useful for `Ractor` support and to prevent configuration
+    from being mutated at runtime after boot.
+
+    Defaults to `false`.
+
+    *Gannon McGibbon*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"
