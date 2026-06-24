@@ -130,7 +130,7 @@ module ActiveSupport
             owner.define_cached_method("#{name}=", namespace: :current_attributes) do |batch|
               batch <<
                 "def #{name}=(value)" <<
-                "@attributes[:#{name}] = value" <<
+                "value.nil? ? @attributes.delete(:#{name}) : (@attributes[:#{name}] = value)" <<
                 "end"
             end
           end
@@ -219,13 +219,7 @@ module ActiveSupport
     #     end
     #   end
     def set(attributes, &block)
-      # #with restores values through the writers, and a writer always stores
-      # its key, even for nil. Keys with no stored value before the block are
-      # removed again so they don't remain in #attributes.
-      new_keys = attributes.keys.reject { |name| @attributes.key?(name) }
       with(**attributes, &block)
-    ensure
-      new_keys&.each { |name| @attributes.delete(name) }
     end
 
     # Reset all attributes. Should be called before and after actions, when used as a per-request singleton.
@@ -238,9 +232,10 @@ module ActiveSupport
     private
       def resolve_defaults
         defaults.each_with_object({}) do |(key, value), result|
-          if value != NOT_SET
-            result[key] = Proc === value ? value.call : value.dup
-          end
+          next if value == NOT_SET
+          value = Proc === value ? value.call : value.dup
+          # A nil value is treated as unset, so it's omitted like a missing key.
+          result[key] = value unless value.nil?
         end
       end
 

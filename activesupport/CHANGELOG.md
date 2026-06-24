@@ -1,10 +1,8 @@
-*   Fix `ActiveSupport::CurrentAttributes#set` leaking unassigned keys into
-    `#attributes` after the block.
+*   Setting an `ActiveSupport::CurrentAttributes` attribute to `nil` removes its
+    key from `#attributes` instead of storing `nil`.
 
-    For an attribute without a default, `#set` would restore its value through
-    the writer on block exit, reintroducing the key as `nil` and leaking it for
-    the rest of the execution loop. Keys absent before the block are now dropped
-    afterwards.
+    An unset attribute already reads as `nil`, so a `nil` value and an absent key
+    are equivalent and `#attributes` stays free of empty keys.
 
     *Anton Zaharia*
 

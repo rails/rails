@@ -248,6 +248,24 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     assert_equal({ counter_integer: 0, counter_callable: 0 }, Current.attributes)
   end
 
+  class CurrentWithNilDefaults < ActiveSupport::CurrentAttributes
+    attribute :literal, default: nil
+    attribute :callable, default: -> { nil }
+  end
+
+  test "a nil default is treated as unset and omitted from #attributes" do
+    assert_empty CurrentWithNilDefaults.attributes
+  end
+
+  test "setting an attribute to nil removes it from #attributes" do
+    Current.world = "world"
+    assert_includes Current.attributes.keys, :world
+
+    Current.world = nil
+    assert_not_includes Current.attributes.keys, :world
+    assert_nil Current.world
+  end
+
   test "set does not leak unassigned keys into #attributes after the block" do
     assert_not_includes Current.attributes.keys, :world
 
