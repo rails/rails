@@ -239,8 +239,8 @@ module ActiveSupport
       def resolve_defaults
         defaults.each_with_object({}) do |(key, value), result|
           next if value == NOT_SET
+
           value = Proc === value ? value.call : value.dup
-          # A nil value is treated as unset, so it's omitted like a missing key.
           result[key] = value unless value.nil?
         end
       end
