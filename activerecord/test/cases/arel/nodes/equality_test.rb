@@ -16,14 +16,14 @@ module Arel
         }
         engine.lease_connection.quote_count = 0
 
-        attr = Table.new(:users)[:id]
+        attr = Table.new(name: :users)[:id]
         test = attr.eq(10)
         test.to_sql engine
         assert_equal 3, engine.lease_connection.quote_count
       end
 
       test "or makes an OR node" do
-        attr = Table.new(:users)[:id]
+        attr = Table.new(name: :users)[:id]
         left  = attr.eq(10)
         right = attr.eq(11)
         node  = left.or right
@@ -32,7 +32,7 @@ module Arel
       end
 
       test "and makes and AND node" do
-        attr = Table.new(:users)[:id]
+        attr = Table.new(name: :users)[:id]
         left  = attr.eq(10)
         right = attr.eq(11)
         node  = left.and right

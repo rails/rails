@@ -2023,7 +2023,7 @@ module ActiveRecord
       end
 
       def build_with_join_node(name, kind = Arel::Nodes::InnerJoin)
-        with_table = Arel::Table.new(name)
+        with_table = Arel::Table.new(name: name)
 
         table.join(with_table, kind).on(
           with_table[model.model_name.to_s.foreign_key].eq(table[model.primary_key])
