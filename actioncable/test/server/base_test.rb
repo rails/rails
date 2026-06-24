@@ -89,45 +89,37 @@ class BaseTest < ActionCable::TestCase
     assert_instance_of ActionCable::Configuration, ActionCable::Server::Base.config
   end
 
-  test "ActionCable.server uses configured server factory class" do
+  test "ActionCable.server uses configured server class" do
     server_class = Class.new do
       attr_reader :config
 
-      def initialize
-        @config = ActionCable::Server::Base.config
+      def initialize(config:)
+        @config = config
       end
     end
 
-    with_server_factory(server_class) do
+    with_server_class(server_class) do
       assert_instance_of server_class, ActionCable.server
-      assert_same ActionCable::Server::Base.config, ActionCable.server.config
-    end
-  end
-
-  test "ActionCable.server uses configured server factory" do
-    server = Object.new
-
-    with_server_factory(-> { server }) do
-      assert_same server, ActionCable.server
+      assert_same ActionCable.config, ActionCable.server.config
     end
   end
 
   private
-    def with_server_factory(factory)
-      previous_factory = ActionCable.config.server
+    def with_server_class(server_class)
+      previous_server_class = ActionCable.config.server_class
       previous_server = ActionCable.instance_variable_get(:@server) if ActionCable.instance_variable_defined?(:@server)
 
-      ActionCable.remove_instance_variable(:@server) if ActionCable.instance_variable_defined?(:@server)
-      ActionCable.config.server = factory
+      ActionCable.instance_variable_set(:@server, nil)
+      ActionCable.config.server_class = server_class
 
       yield
     ensure
-      ActionCable.config.server = previous_factory
+      ActionCable.config.server_class = previous_server_class
 
       if defined?(previous_server)
         ActionCable.instance_variable_set(:@server, previous_server)
-      elsif ActionCable.instance_variable_defined?(:@server)
-        ActionCable.remove_instance_variable(:@server)
+      else
+        ActionCable.instance_variable_set(:@server, nil)
       end
     end
 end

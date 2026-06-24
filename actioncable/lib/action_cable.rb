@@ -78,22 +78,10 @@ module ActionCable
 
   # Singleton instance of the server
   module_function def server
-    @server ||= build_server
-  end
-
-  module_function def server=(server)
-    @server = server
+    @server ||= config.server_class.new(config: config)
   end
 
   module_function def config
     @config ||= ActionCable::Configuration.new
-  end
-
-  module_function def build_server
-    if config.server.respond_to?(:new)
-      config.server.new
-    else
-      config.server.call
-    end
   end
 end
