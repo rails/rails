@@ -765,7 +765,7 @@ module Arel # :nodoc: all
           collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
         end
 
-        BIND_BLOCK = proc { "?" }
+        BIND_BLOCK = ActiveSupport::Ractors.shareable_proc { "?" }
         private_constant :BIND_BLOCK
 
         def bind_block; BIND_BLOCK; end
