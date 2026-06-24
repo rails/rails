@@ -2157,6 +2157,18 @@ module ApplicationTests
       assert_ractor_shareable ActiveRecord.yaml_column_permitted_classes
     end
 
+    test "active_support configuration is made Ractor-shareable when unshareable_proc_action is set" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/freeze_configuration.rb", <<-RUBY
+        ActiveSupport::Ractors.unshareable_proc_action = :raise
+      RUBY
+
+      app "production"
+
+      assert_ractor_shareable ActiveSupport.filter_parameters
+    end
+
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
       make_basic_app do |application|
         application.config.annotations.register_extensions("coffee") do |tag|
