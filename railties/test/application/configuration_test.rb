@@ -3,6 +3,7 @@
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
+require "active_support/testing/ractors_assertions"
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -39,6 +40,7 @@ class ::MyOldKeyProvider; end
 
 module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
     include EnvHelpers
@@ -2116,6 +2118,28 @@ module ApplicationTests
 
       app "production"
       assert_equal([Symbol, Time], ActiveRecord.yaml_column_permitted_classes)
+    end
+
+    test "config.freeze_configuration defaults to false" do
+      app "production"
+      assert_not Rails.application.config.freeze_configuration
+    end
+
+    test "config.freeze_configuration freezes active_record configurations" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/freeze_configuration.rb", <<-RUBY
+        Rails.application.config.freeze_configuration = true
+      RUBY
+
+      app "production"
+
+      assert_ractor_shareable ActiveRecord.protected_environments
+      assert_ractor_shareable ActiveRecord.schema_cache_ignored_tables
+      assert_ractor_shareable ActiveRecord.database_cli
+      assert_ractor_shareable ActiveRecord.db_warnings_ignore
+      assert_ractor_shareable ActiveRecord.query_transformers
+      assert_ractor_shareable ActiveRecord.yaml_column_permitted_classes
     end
 
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do

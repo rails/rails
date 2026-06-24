@@ -1,3 +1,11 @@
+*   Freeze Active Record configuration when `config.freeze_configuration` is enabled.
+
+    After the application has finished initializing, the relevant Active Record
+    configuration values are made `Ractor`-shareable so they can no longer be
+    mutated at runtime.
+
+    *Gannon McGibbon*
+
 *   Support polymorphic associations with custom primary keys through `:inverse_of`.
 
     When using polymorphic associations with `:inverse_of`, ActiveRecord now respects
