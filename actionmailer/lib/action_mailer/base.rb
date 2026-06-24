@@ -497,7 +497,7 @@ module ActionMailer
 
     include ActionView::Layouts
 
-    PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [:@_action_has_layout]
+    PROTECTED_IVARS = (AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [:@_action_has_layout]).freeze
 
     helper ActionMailer::MailHelper
 
