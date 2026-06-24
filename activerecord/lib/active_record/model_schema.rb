@@ -274,12 +274,12 @@ module ActiveRecord
         if defined?(@table_name)
           return if value == @table_name
           reset_column_information if connected?
+          @predicate_builder = nil
         end
 
         @table_name        = value
         @arel_table        = Arel::Table.new(klass: self)
         @sequence_name     = nil unless @explicit_sequence_name
-        @predicate_builder = nil
       end
 
       # Returns a quoted version of the table name.
