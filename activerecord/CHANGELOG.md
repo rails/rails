@@ -1,3 +1,10 @@
+*   Respect a pre-set custom validation context in `valid?` and `save`.
+
+    Calling `record.validation_context = :import` before `valid?` or `save` now
+    uses that context unless an explicit context is passed.
+
+    *Tejas Shetty*
+
 *   Support polymorphic associations with custom primary keys through `:inverse_of`.
 
     When using polymorphic associations with `:inverse_of`, ActiveRecord now respects

@@ -374,13 +374,19 @@ module ActiveModel
     #   person = Person.new
     #   person.valid?       # => true
     #   person.valid?(:new) # => false
+    #
+    # The context can also be set before calling #valid?. Passing a context to
+    # #valid? overrides a pre-set context for that call.
+    #
+    #   person.validation_context = :new
+    #   person.valid? # => false
     def valid?(context = nil)
       current_context = validation_context
-      context_for_validation.context = context
+      self.validation_context = context || current_context
       errors.clear
       run_validations!
     ensure
-      context_for_validation.context = current_context
+      self.validation_context = current_context
     end
 
     alias_method :validate, :valid?
@@ -459,7 +465,20 @@ module ActiveModel
       context_for_validation.context
     end
 
-    # Sets the context for running validations.
+    # Sets the context for running validations when no context is passed to
+    # #valid?, #invalid?, or #validate!.
+    #
+    #   person.validation_context = :signup
+    #   person.valid? # Runs validations in the :signup context.
+    #
+    # Passing a context to #valid? overrides this value for that call.
+    #
+    # Since both the reader and writer are public, #validation_context can also
+    # be scoped with Object#with.
+    #
+    #   person.with(validation_context: :signup) do
+    #     person.valid?
+    #   end
     def validation_context=(context)
       context_for_validation.context = context
     end
