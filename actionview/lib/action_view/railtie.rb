@@ -118,6 +118,17 @@ module ActionView
       PartialRenderer.collection_cache = app.config.action_controller.cache_store
     end
 
+    initializer "action_view.freeze_configuration" do
+      config.after_initialize do
+        ActiveSupport.on_load(:action_view) do
+          if ActionView::Base.field_error_proc.is_a?(Proc)
+            ActionView::Base.field_error_proc = ActiveSupport::Ractors.try_shareable_proc(ActionView::Base.field_error_proc)
+          end
+          ActiveSupport::Ractors.try_make_shareable(ActionView::Base.default_formats)
+        end
+      end
+    end
+
     config.after_initialize do |app|
       enable_caching = if app.config.action_view.cache_template_loading.nil?
         !app.config.reloading_enabled?

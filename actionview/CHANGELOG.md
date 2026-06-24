@@ -1,3 +1,11 @@
+*   Make Action View configuration `Ractor`-shareable when `ActiveSupport::Ractors.unshareable_proc_action` is set.
+
+    After the application has finished initializing, the relevant Action View
+    configuration values are made `Ractor`-shareable so they can no longer be
+    mutated at runtime.
+
+    *Gannon McGibbon*
+
 *   Calling `safe_join` in a view no longer fallbacks to the `$,` global variable.
 
     Previously, calling `safe_join` would use `$,` by default to separate elements.
