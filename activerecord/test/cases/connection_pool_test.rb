@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/error_reporter/test_helper"
 require "concurrent/atomic/count_down_latch"
 
 module ActiveRecord
@@ -427,6 +428,7 @@ module ActiveRecord
       def test_checkout_fairness
         skip_fiber_testing
 
+        @pool.checkout_timeout = 5
         @pool.instance_variable_set(:@size, 10)
         expected = (1..@pool.size).to_a.freeze
         # check out all connections so our threads start out waiting
@@ -474,6 +476,8 @@ module ActiveRecord
       def test_checkout_fairness_by_group
         skip_fiber_testing
 
+        group_wait_timeout = 5
+        @pool.checkout_timeout = group_wait_timeout + 1
         @pool.instance_variable_set(:@size, 10)
         # take all the connections
         conns = (1..10).map { @pool.checkout }
@@ -511,9 +515,11 @@ module ActiveRecord
 
         checkin.call(group1.size)         # should wake up all group1
 
+        deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + group_wait_timeout
         loop do
-          sleep 0.1
           break if mutex.synchronize { (successes.size + errors.size) == group1.size }
+          raise "group1 threads did not finish" if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+          sleep 0.1
         end
 
         winners = mutex.synchronize { successes.dup }
@@ -551,6 +557,60 @@ module ActiveRecord
         assert_raises(ConnectionNotEstablished) do
           pool.with_connection
         end
+      end
+
+      def test_disconnect_closes_in_use_connections_when_checkin_fails
+        connection = @pool.lease_connection
+        connection.connect!
+
+        checkin_error = StandardError.new("error during checkin")
+        proc_to_raise = -> { raise checkin_error }
+        subscriber = ActiveSupport::ErrorReporter::TestHelper::ErrorSubscriber.new
+        ActiveSupport.error_reporter.subscribe(subscriber)
+        ActiveRecord::ConnectionAdapters::AbstractAdapter.set_callback(:checkin, :before, proc_to_raise)
+
+        assert_nothing_raised do
+          @pool.disconnect!
+        end
+
+        assert_not_predicate connection, :connected?
+        assert_empty @pool.connections
+        assert_equal [[checkin_error, true, :warning, "active_record.connection_pool", {}]], subscriber.events
+      ensure
+        ActiveRecord::ConnectionAdapters::AbstractAdapter.skip_callback(:checkin, :before, proc_to_raise) if proc_to_raise
+        ActiveSupport.error_reporter.unsubscribe(subscriber) if subscriber
+        connection&.disconnect! rescue nil
+      end
+
+      def test_disconnect_continues_when_connection_disconnect_fails
+        first_connection = @pool.checkout
+        second_connection = @pool.checkout
+        disconnect_error = StandardError.new("error during disconnect")
+        disconnected = []
+        subscriber = ActiveSupport::ErrorReporter::TestHelper::ErrorSubscriber.new
+        ActiveSupport.error_reporter.subscribe(subscriber)
+
+        first_connection.define_singleton_method(:disconnect!) do
+          disconnected << self
+          raise disconnect_error
+        end
+        second_connection.define_singleton_method(:disconnect!) do
+          disconnected << self
+        end
+
+        assert_nothing_raised do
+          @pool.disconnect!
+        end
+
+        assert_equal [first_connection, second_connection], disconnected
+        assert_empty @pool.connections
+        assert_equal [[disconnect_error, true, :warning, "active_record.connection_pool", {}]], subscriber.events
+      ensure
+        ActiveSupport.error_reporter.unsubscribe(subscriber) if subscriber
+        first_connection&.singleton_class&.remove_method(:disconnect!) rescue nil
+        second_connection&.singleton_class&.remove_method(:disconnect!) rescue nil
+        first_connection&.disconnect! rescue nil
+        second_connection&.disconnect! rescue nil
       end
 
       def test_pool_sets_connection_visitor
