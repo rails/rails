@@ -11,6 +11,7 @@
     Fixes #55401.
 
     *Augusto Xavier*
+
 *   Support polymorphic associations with custom primary keys through `:inverse_of`.
 
     When using polymorphic associations with `:inverse_of`, ActiveRecord now respects
