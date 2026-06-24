@@ -2169,6 +2169,21 @@ module ApplicationTests
       assert_ractor_shareable ActiveSupport.filter_parameters
     end
 
+    test "action_pack configuration is made Ractor-shareable when unshareable_proc_action is set" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/freeze_configuration.rb", <<-RUBY
+        ActiveSupport::Ractors.unshareable_proc_action = :raise
+      RUBY
+
+      app "production"
+
+      assert_ractor_shareable ActionController::Parameters.always_permitted_parameters
+      assert_ractor_shareable ActionController::Live.live_streaming_excluded_keys
+      assert_ractor_shareable ActionDispatch::Response.default_headers
+      assert_ractor_shareable ActionDispatch::Request.parameter_parsers
+    end
+
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
       make_basic_app do |application|
         application.config.annotations.register_extensions("coffee") do |tag|
