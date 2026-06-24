@@ -183,7 +183,7 @@ module Rails
             def devcontainer_json
               return unless File.exist?(devcontainer_json_path)
 
-              @devcontainer_json ||= JSON.parse(File.read(devcontainer_json_path), allow_comments: true)
+              @devcontainer_json ||= JSON.parse(File.read(devcontainer_json_path))
             end
 
             def devcontainer_json_path

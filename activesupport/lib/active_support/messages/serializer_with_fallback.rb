@@ -88,7 +88,7 @@ module ActiveSupport
           end
 
           def _load(dumped)
-            ActiveSupport::JSON.decode(dumped, allow_comments: true)
+            ActiveSupport::JSON.decode(dumped)
           end
 
           JSON_START_WITH = /\A(?:[{\["]|-?\d|true|false|null)/
