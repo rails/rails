@@ -6,9 +6,9 @@ module ActiveSupport
       include ColorizeLogging
 
       LEVEL_CHECKS = {
-        debug: -> (logger) { logger.debug? },
-        info: -> (logger) { logger.info? },
-        error: -> (logger) { logger.error? },
+        debug: ActiveSupport::Ractors.shareable_lambda(&-> (logger) { logger.debug? }),
+        info: ActiveSupport::Ractors.shareable_lambda(&-> (logger) { logger.info? }),
+        error: ActiveSupport::Ractors.shareable_lambda(&-> (logger) { logger.error? }),
       }.freeze
 
       class << self
