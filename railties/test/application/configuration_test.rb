@@ -2182,6 +2182,26 @@ module ApplicationTests
       assert_ractor_shareable ActionView::Base.default_formats
     end
 
+    test "config.freeze_configuration freezes active_storage configurations" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/freeze_configuration.rb", <<-RUBY
+        Rails.application.config.freeze_configuration = true
+      RUBY
+
+      app "production"
+
+      assert_ractor_shareable ActiveStorage.queues
+      assert_ractor_shareable ActiveStorage.previewers
+      assert_ractor_shareable ActiveStorage.analyzers
+      assert_ractor_shareable ActiveStorage.paths
+      assert_ractor_shareable ActiveStorage.variable_content_types
+      assert_ractor_shareable ActiveStorage.web_image_content_types
+      assert_ractor_shareable ActiveStorage.content_types_to_serve_as_binary
+      assert_ractor_shareable ActiveStorage.content_types_allowed_inline
+      assert_ractor_shareable ActiveStorage.supported_image_processing_methods
+    end
+
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
       make_basic_app do |application|
         application.config.annotations.register_extensions("coffee") do |tag|
