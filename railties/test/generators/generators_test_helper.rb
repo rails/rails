@@ -127,7 +127,7 @@ module GeneratorsTestHelper
 
   def assert_devcontainer_json_file
     assert_file ".devcontainer/devcontainer.json" do |content|
-      yield JSON.load(content)
+      yield JSON.load(content, allow_comments: true)
     end
   end
 
