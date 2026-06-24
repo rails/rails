@@ -182,14 +182,7 @@ module ActiveSupport
     initializer "active_support.freeze_configuration" do |app|
       config.after_initialize do
         if app.config.freeze_configuration
-          ActiveSupport.filter_parameters.map! do |filter|
-            if filter.is_a?(Proc)
-              ActiveSupport::Ractors.shareable_proc(&filter)
-            else
-              ActiveSupport::Ractors.make_shareable(filter)
-            end
-          end
-          ActiveSupport::Ractors.make_shareable(ActiveSupport.filter_parameters)
+          ActiveSupport::Ractors.make_procs_shareable(ActiveSupport.filter_parameters)
         end
       end
     end

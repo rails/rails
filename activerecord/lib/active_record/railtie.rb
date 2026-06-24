@@ -462,14 +462,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           ActiveSupport::Ractors.make_shareable(ActiveRecord.schema_cache_ignored_tables)
           ActiveSupport::Ractors.make_shareable(ActiveRecord.database_cli)
           ActiveSupport::Ractors.make_shareable(ActiveRecord.db_warnings_ignore)
-          ActiveRecord.query_transformers.map! do |transformer|
-            if transformer.is_a?(Proc)
-              ActiveSupport::Ractors.shareable_proc(&transformer)
-            else
-              ActiveSupport::Ractors.make_shareable(transformer)
-            end
-          end
-          ActiveSupport::Ractors.make_shareable(ActiveRecord.query_transformers)
+          ActiveSupport::Ractors.make_procs_shareable(ActiveRecord.query_transformers)
           ActiveSupport::Ractors.make_shareable(ActiveRecord.yaml_column_permitted_classes)
         end
       end
