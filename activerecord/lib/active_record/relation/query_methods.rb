@@ -736,7 +736,9 @@ module ActiveRecord
       else
         arel_column = order_column(column.to_s)
 
-        values = cast_values_for_in_order_of(values, arel_column.type_caster)
+        unless arel_column.is_a?(Arel::Nodes::SqlLiteral)
+          values = cast_values_for_in_order_of(values, arel_column.type_caster)
+        end
         return spawn.none! if values.empty?
       end
 
@@ -1292,6 +1294,7 @@ module ActiveRecord
     end
 
     def offset!(value) # :nodoc:
+      value = Integer(value) unless value.nil?
       self.offset_value = value
       self
     end
@@ -1656,8 +1659,8 @@ module ActiveRecord
     alias :without :excluding
 
     def excluding!(records) # :nodoc:
-      predicates = [ predicate_builder[primary_key, records].invert ]
-      self.where_clause += Relation::WhereClause.new(predicates)
+      ids = records.map { |record| record.is_a?(model) ? record.id : record }
+      self.where_clause += build_where_clause(primary_key => ids).invert
       self
     end
 
@@ -2020,7 +2023,7 @@ module ActiveRecord
       end
 
       def build_with_join_node(name, kind = Arel::Nodes::InnerJoin)
-        with_table = Arel::Table.new(name)
+        with_table = Arel::Table.new(name: name)
 
         table.join(with_table, kind).on(
           with_table[model.model_name.to_s.foreign_key].eq(table[model.primary_key])

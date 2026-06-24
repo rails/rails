@@ -721,7 +721,7 @@ module ActiveRecord
             end
           end
 
-          table = Arel::Table.new(table_name)
+          table = Arel::Table.new(name: table_name)
           manager = Arel::InsertManager.new(table)
 
           if values_list.size == 1

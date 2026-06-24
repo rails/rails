@@ -2073,6 +2073,27 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert great_author.books.include?(book)
   end
 
+  def test_collection_for_new_record_owner_with_composite_primary_key_present
+    book = Cpk::Book.create!(id: [1, 10], title: "Some book")
+    chapter = book.chapters.create!(id: [1, 100], title: "Some chapter")
+
+    new_book = Cpk::Book.new(id: [1, 10])
+    assert_predicate new_book, :new_record?
+
+    assert_equal [chapter], new_book.chapters.to_a
+  end
+
+  def test_collection_for_new_record_owner_with_composite_primary_key_missing
+    book = Cpk::Book.create!(id: [1, 10], title: "Some book")
+    book.chapters.create!(id: [1, 100], title: "Some chapter")
+
+    new_book = Cpk::Book.new(author_id: 1)
+    assert_predicate new_book, :new_record?
+    assert_not new_book.attribute_present?(:id)
+
+    assert_empty new_book.chapters
+  end
+
   def test_included_in_collection_for_new_records
     client = Client.create(name: "Persisted")
     assert_nil client.client_of

@@ -151,7 +151,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     def lookup_store(options = {})
-      ActiveSupport::Cache.lookup_store(:redis_cache_store, { url: REDIS_URL, timeout: 0.1, namespace: @namespace, pool: false }.merge(options))
+      ActiveSupport::Cache.lookup_store(:redis_cache_store, { url: REDIS_URL, timeout: 0.1, namespace: @namespace, pool: false, error_handler: ->(method:, returning:, exception:) { raise exception } }.merge(options))
     end
 
     teardown do
@@ -325,10 +325,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     def capture_redis_commands(&block)
       capture_notifications("redis_query.active_support_test", &block).flat_map { |e| e.payload.fetch(:commands) }
-    end
-
-    def lookup_store(options = {})
-      super(options.merge(error_handler: ->(method:, returning:, exception:) { raise exception }))
     end
   end
 

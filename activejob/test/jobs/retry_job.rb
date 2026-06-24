@@ -9,9 +9,11 @@ class ZeroJitterError < StandardError; end
 class FirstRetryableErrorOfTwo < StandardError; end
 class SecondRetryableErrorOfTwo < StandardError; end
 class LongWaitError < StandardError; end
+class FloatWaitError < StandardError; end
 class ShortWaitTenAttemptsError < StandardError; end
 class PolynomialWaitTenAttemptsError < StandardError; end
 class CustomWaitTenAttemptsError < StandardError; end
+class OptionalArgWaitError < StandardError; end
 class RetryWaitIncludedInError < StandardError
   def retry_after
     10
@@ -32,9 +34,11 @@ class RetryJob < ActiveJob::Base
   retry_on ZeroJitterError, jitter: 0.0
   retry_on FirstRetryableErrorOfTwo, SecondRetryableErrorOfTwo, attempts: 4
   retry_on LongWaitError, wait: 1.hour, attempts: 10
+  retry_on FloatWaitError, wait: 2.5, attempts: 10
   retry_on ShortWaitTenAttemptsError, wait: 1.second, attempts: 10
   retry_on PolynomialWaitTenAttemptsError, wait: :polynomially_longer, attempts: 10
   retry_on CustomWaitTenAttemptsError, wait: ->(executions) { executions * 2 }, attempts: 10
+  retry_on OptionalArgWaitError, wait: ->(executions = 0) { executions * 2 }, attempts: 10
   retry_on RetryWaitIncludedInError, wait: ->(executions, error) { error.retry_after + executions }
   retry_on(CustomCatchError) { |job, error| JobBuffer.add("Dealt with a job that failed to retry in a custom way after #{job.arguments.second} attempts. Message: #{error.message}") }
   retry_on(ActiveJob::DeserializationError) { |job, error| JobBuffer.add("Raised #{error.class} for the #{job.executions} time") }

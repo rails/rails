@@ -124,6 +124,13 @@ module FakeRecord
 
   class Base
     attr_accessor :connection_pool
+    singleton_class.attr_accessor :table_name
+
+    class << self
+      def type_caster
+        nil
+      end
+    end
 
     def initialize
       @connection_pool = ConnectionPool.new

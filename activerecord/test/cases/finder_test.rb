@@ -154,6 +154,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "id", exception.primary_key
   end
 
+  def test_find_with_no_id_passed_on_composite_primary_key_model
+    assert_raises(ActiveRecord::RecordNotFound) { Cpk::Book.find }
+    assert_raises(ActiveRecord::RecordNotFound) { Cpk::Book.find(nil) }
+  end
+
   def test_find_with_ids_with_id_out_of_range
     exception = assert_raises(ActiveRecord::RecordNotFound) do
       Topic.find("9999999999999999999999999999999")
@@ -2071,6 +2076,13 @@ class FinderTest < ActiveRecord::TestCase
     book = cpk_books(:cpk_great_author_first_book)
 
     assert_equal [book], Cpk::Book.find([book.id])
+  end
+
+  test "find with an empty array on a composite primary key" do
+    empty_array = []
+    result = Cpk::Book.find(empty_array)
+    assert_equal [], result
+    assert_not_same empty_array, result
   end
 
   test "find with a multiple sets of composite primary key" do

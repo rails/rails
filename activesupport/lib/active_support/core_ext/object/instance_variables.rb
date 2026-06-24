@@ -25,7 +25,7 @@ class Object
   #     end
   #   end
   #
-  #   C.new(0, 1).instance_variable_names # => ["@y", "@x"]
+  #   C.new(0, 1).instance_variable_names # => ["@x", "@y"]
   def instance_variable_names
     instance_variables.map(&:name)
   end

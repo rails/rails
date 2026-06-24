@@ -394,13 +394,7 @@ module ActiveRecord
       if loaded? || offset_value || limit_value || having_clause.any?
         records.include?(record)
       else
-        id = if record.class.composite_primary_key?
-          record.class.primary_key.zip(record.id).to_h
-        else
-          record.id
-        end
-
-        exists?(id)
+        exists?(record.class.primary_key_definition.where_hash(record.id))
       end
     end
 
@@ -492,15 +486,12 @@ module ActiveRecord
       def find_with_ids(*ids)
         raise UnknownPrimaryKey.new(model) if primary_key.nil?
 
-        expects_array = if model.composite_primary_key?
-          ids.first.first.is_a?(Array)
-        else
-          ids.first.is_a?(Array)
-        end
+        first_item = ids.first
+        return [] if first_item.is_a?(Array) && first_item.empty?
 
-        return [] if expects_array && ids.first.empty?
+        expects_array = model.primary_key_definition.expects_multiple_ids?(first_item)
 
-        ids = ids.first if expects_array
+        ids = first_item if expects_array
 
         ids = ids.compact.uniq
 
@@ -526,11 +517,7 @@ module ActiveRecord
           MSG
         end
 
-        relation = if model.composite_primary_key?
-          where(primary_key.zip(id).to_h)
-        else
-          where(primary_key => id)
-        end
+        relation = where(model.primary_key_definition.where_hash(id))
 
         record = relation.take
 
@@ -586,11 +573,7 @@ module ActiveRecord
       end
 
       def cast_primary_key(id)
-        if model.composite_primary_key?
-          primary_key.zip(id).map! { |attr, value| model.type_for_attribute(attr).cast(value) }
-        else
-          model.type_for_attribute(primary_key).cast(id)
-        end
+        model.primary_key_definition.cast(id, model)
       end
 
       def find_take

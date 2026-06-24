@@ -60,8 +60,8 @@ class Array
       nil.to_query(prefix)
     else
       filter_map { |value|
-        q = value.to_query(prefix)
-        q unless q.empty?
+        next if (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
+        value.to_query(prefix)
       }.join "&"
     end
   end
@@ -83,9 +83,8 @@ class Hash
   # are sorted lexicographically in ascending order.
   def to_query(namespace = nil)
     query = filter_map do |key, value|
-      unless (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
-        value.to_query(namespace ? "#{namespace}[#{key}]" : key)
-      end
+      next if (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
+      value.to_query(namespace ? "#{namespace}[#{key}]" : key)
     end
 
     query.sort! unless namespace.to_s.include?("[]")

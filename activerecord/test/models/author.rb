@@ -182,6 +182,8 @@ class Author < ActiveRecord::Base
   has_many :subscribers, -> { order("subscribers.nick") }, through: :subscriptions
   has_many :distinct_subscribers, -> { select("DISTINCT subscribers.*").order("subscribers.nick") }, through: :subscriptions, source: :subscriber
 
+  has_many :polymorphic_comments, as: :person, primary_key: :author_code
+
   has_one :essay, primary_key: :name, as: :writer
   has_one :essay_category, through: :essay, source: :category
   has_one :essay_owner, through: :essay, source: :owner

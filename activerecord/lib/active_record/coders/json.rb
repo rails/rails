@@ -3,7 +3,7 @@
 require "active_support/json"
 
 module ActiveRecord
-  module Coders # :nodoc:
+  module Coders
     class JSON # :nodoc:
       DEFAULT_OPTIONS = { escape: false }.freeze
 

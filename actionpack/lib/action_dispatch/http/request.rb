@@ -135,12 +135,10 @@ module ActionDispatch
 
     HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789
 
-    HTTP_METHOD_LOOKUP = {} # rubocop:disable Style/MutableConstant
-
     # Populate the HTTP method lookup cache.
-    HTTP_METHODS.each { |method|
-      HTTP_METHOD_LOOKUP[method] = method.downcase.tap { |m| m.tr!("-", "_") }.to_sym
-    }
+    HTTP_METHOD_LOOKUP = HTTP_METHODS.each.with_object({}) { |method, hash|
+      hash[method] = method.downcase.tap { |m| m.tr!("-", "_") }.to_sym
+    }.freeze
 
     alias raw_request_method request_method # :nodoc:
 

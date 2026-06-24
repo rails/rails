@@ -56,7 +56,8 @@ class StrictLoadingTest < ActiveRecord::TestCase
   def test_strict_loading_n_plus_one_only_mode_with_has_many
     developer = Developer.first
     firm = Firm.create!(name: "NASA")
-    developer.projects << Project.create!(name: "Apollo", firm: firm)
+    project = Project.create!(name: "Apollo", firm: firm)
+    developer.projects << project
 
     developer.reload
 
@@ -71,7 +72,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
     # strict_loading is enabled for has_many associations
     assert developer.projects.all?(&:strict_loading?)
     assert_raises ActiveRecord::StrictLoadingViolationError do
-      developer.projects.last.firm
+      developer.projects.detect { |record| record.id == project.id }.firm
     end
 
     assert_nothing_raised do
@@ -80,7 +81,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
     assert developer.projects_extended_by_name.all?(&:strict_loading?)
     assert_raises ActiveRecord::StrictLoadingViolationError do
-      developer.projects_extended_by_name.last.firm
+      developer.projects_extended_by_name.detect { |record| record.id == project.id }.firm
     end
   end
 

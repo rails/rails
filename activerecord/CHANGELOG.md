@@ -11,6 +11,75 @@
     Fixes #55401.
 
     *Augusto Xavier*
+*   Support polymorphic associations with custom primary keys through `:inverse_of`.
+
+    When using polymorphic associations with `:inverse_of`, ActiveRecord now respects
+    custom `:primary_key` options defined on the inverse association. This allows
+    different associated models to use different primary key columns.
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      has_many :comments, as: :commentable, primary_key: :uuid
+    end
+
+    class Article < ActiveRecord::Base
+      has_many :comments, as: :commentable, primary_key: :slug
+    end
+
+    class Comment < ActiveRecord::Base
+      belongs_to :commentable, polymorphic: true, inverse_of: :comments
+    end
+
+    post = Post.create!(uuid: "post-uuid-123")
+    comment = Comment.new(content: "Great post!")
+    comment.commentable = post  # This now correctly uses :uuid as the foreign key
+    comment.save!
+    comment.commentable_id # => "post-uuid-123" (not the post.id)
+
+    article = Article.create!(slug: "article-slug-456")
+    comment = Comment.new(content: "Nice article!")
+    comment.commentable = article  # This now correctly uses :slug as the foreign key
+    comment.save!
+    comment.commentable_id # => "article-slug-456" (not the article.id)
+    ```
+
+    *Ryuta Kamizono*
+
+*   Make `ActiveRecord::Base.primary_key` inheritable.
+
+    Previously setting `primary_key` on a model wouldn't impact child
+    classes. Now the property is inherited by subclasses as well.
+
+    ``` ruby
+    class AbstractShardedModel < ApplicationRecord
+        self.abstract_class = true
+        self.primary_key = ["tenant_id", "id"]
+    end
+
+    class Invoice < AbstractShardedModel
+    end
+
+    Invoice.primary_key # => ["tenant_id", "id"]
+    ```
+
+    *Iliana Hadzhiatanasova*
+
+*   Fix `has_many` and `has_one` associations on a new record returning an empty
+    result when the owner has a composite primary key, even when every primary
+    key column is populated.
+
+    *Jean-Samuel Aubry-Guzzi*
+
+*   Fix `increment!` / `decrement!` on models with query constraints to include
+    every query constraint column in the counter update.
+
+    *Jean-Samuel Aubry-Guzzi*
+
+*   Fix bug with reloading models with all-queries default scopes. The previous
+    implementation allowed non-all-queries on the current scope to leak into
+    the scope used for reloading.
+
+    *Andrew Novoselac* and *Matthew Draper*
 
 *   `insert!` now accepts the `:unique_by` option, consistent with `insert`.
 
@@ -70,11 +139,15 @@
 
     *Rosa Gutierrez*
 
-*   Allow the query log tags format to be configured per connection pool.
+*   Allow query log tags to be configured per connection pool.
 
-    A `query_log_tags_format` key in a `database.yml` entry overrides the global
-    `config.active_record.query_log_tags_format` for connections in that pool, so
-    different databases can emit `:legacy` or `:sqlcommenter` formatted comments.
+    Several query log tag settings can be overridden per pool with a `query_log_tags`
+    key in a `database.yml` entry. Its `format` and `prepend_comment` options override
+    the global `config.active_record.query_log_tags_format` and
+    `config.active_record.query_log_tags_prepend_comment`, so different databases can
+    emit `:legacy` or `:sqlcommenter` comments and prepend or append them. Setting
+    `query_log_tags` to `false` instead opts a pool out of tagging entirely, even when
+    tags are enabled globally.
 
     ```yaml
     production:
@@ -82,7 +155,13 @@
         database: primary
       analytics:
         database: analytics
-        query_log_tags_format: sqlcommenter
+        query_log_tags:
+          format: sqlcommenter
+          prepend_comment: false
+      replica:
+        database: replica
+        replica: true
+        query_log_tags: false
     ```
 
     *Hartley McGuire*

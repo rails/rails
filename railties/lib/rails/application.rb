@@ -554,7 +554,7 @@ module Rails
     #
     # Examples:
     #
-    #   Rails.app.envs.require(:db_password) # ENV,fetch("DB_PASSWORD")
+    #   Rails.app.envs.require(:db_password) # ENV.fetch("DB_PASSWORD")
     #   Rails.app.envs.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
     #   Rails.app.envs.option(:cache_host) # ENV["CACHE_HOST"]
     #   Rails.app.envs.option(:cache_host, default: "cache-host-1") # ENV.fetch("CACHE_HOST", "cache-host-1")
@@ -586,7 +586,8 @@ module Rails
     #
     # In development mode, this configuration backend is automatically part of `Rails.app.creds`.
     def dotenvs(path = Rails.root.join(".env"))
-      @dotenvs ||= ActiveSupport::DotEnvConfiguration.new(path)
+      @dotenvs ||= {}
+      @dotenvs[path] ||= ActiveSupport::DotEnvConfiguration.new(path)
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for the

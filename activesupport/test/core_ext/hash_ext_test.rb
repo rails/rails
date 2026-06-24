@@ -880,6 +880,18 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal expected_bacon_hash, Hash.from_xml(bacon_xml)["bacon"]
   end
 
+  def test_date_type_from_xml_with_surrounding_whitespace
+    xml = <<-EOT
+    <event>
+      <starts-on type="date">
+        2020-01-01
+      </starts-on>
+    </event>
+    EOT
+
+    assert_equal({ "starts_on" => Date.new(2020, 1, 1) }, Hash.from_xml(xml)["event"])
+  end
+
   def test_type_trickles_through_when_unknown
     product_xml = <<-EOT
     <product>

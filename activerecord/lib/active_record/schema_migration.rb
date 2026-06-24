@@ -13,7 +13,7 @@ module ActiveRecord
 
     def initialize(pool)
       @pool = pool
-      @arel_table = Arel::Table.new(table_name)
+      @arel_table = Arel::Table.new(name: table_name)
     end
 
     def create_version(version)

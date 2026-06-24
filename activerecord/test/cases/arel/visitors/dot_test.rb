@@ -144,7 +144,7 @@ module Arel
       end
 
       def test_Arel_Nodes_RegExp
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         node = Arel::Nodes::Regexp.new(table[:name], Nodes.build_quoted("foo%"))
 
         dot = @visitor.accept(node, Arel::Collectors::PlainString.new).value
@@ -156,7 +156,7 @@ module Arel
       end
 
       def test_Arel_Nodes_NotRegExp
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         node = Arel::Nodes::NotRegexp.new(table[:name], Nodes.build_quoted("foo%"))
 
         dot = @visitor.accept(node, Arel::Collectors::PlainString.new).value

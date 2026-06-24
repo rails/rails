@@ -4,8 +4,12 @@ require_relative "helper"
 
 module Arel
   class TableTest < Arel::Test
+    class User < FakeRecord::Base
+      self.table_name = "users"
+    end
+
     setup do
-      @relation = Table.new(:users)
+      @relation = Table.new(name: :users)
     end
 
     test "should create join nodes" do
@@ -98,23 +102,23 @@ module Arel
     end
 
     test "new should accept a hash" do
-      rel = Table.new :users, as: "foo"
+      rel = Table.new name: :users, as: "foo"
       assert_equal "foo", rel.table_alias
     end
 
     test "new ignores as if it equals name" do
-      rel = Table.new :users, as: "users"
+      rel = Table.new name: :users, as: "users"
       assert_nil rel.table_alias
     end
 
     test "new should accept literal SQL" do
-      rel = Table.new Arel.sql("generate_series(4, 2)")
+      rel = Table.new name: Arel.sql("generate_series(4, 2)")
       assert_equal Arel.sql("generate_series(4, 2)"), rel.name
     end
 
     test "new should accept Arel nodes" do
       node = Arel::Nodes::NamedFunction.new("generate_series", [4, 2])
-      rel = Table.new node
+      rel = Table.new name: node
       assert_equal node, rel.name
     end
 
@@ -160,17 +164,28 @@ module Arel
     end
 
     test "equality is equal with equal ivars" do
-      relation1 = Table.new(:users, as: "zomg")
-      relation2 = Table.new(:users, as: "zomg")
+      relation1 = Table.new(name: :users, as: "zomg")
+      relation2 = Table.new(name: :users, as: "zomg")
       array = [relation1, relation2]
       assert_equal 1, array.uniq.size
     end
 
     test "equality is not equal with different ivars" do
-      relation1 = Table.new(:users, as: "zomg")
-      relation2 = Table.new(:users, as: "zomg2")
+      relation1 = Table.new(name: :users, as: "zomg")
+      relation2 = Table.new(name: :users, as: "zomg2")
       array = [relation1, relation2]
       assert_equal 2, array.uniq.size
+    end
+
+    test "works with only klass" do
+      table = Table.new(klass: User)
+      assert_equal "users", table.name
+    end
+
+    test "raises without klass or name" do
+      assert_raises(ArgumentError) do
+        Table.new
+      end
     end
   end
 end

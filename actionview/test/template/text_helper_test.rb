@@ -401,6 +401,11 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "", word_wrap("", line_width: 3)
   end
 
+  test "word_wrap with nil" do
+    assert_equal "", word_wrap(nil)
+    assert_equal "", word_wrap(nil, line_width: 3)
+  end
+
   def test_pluralization
     assert_equal("1 count", pluralize(1, "count"))
     assert_equal("2 counts", pluralize(2, "count"))
