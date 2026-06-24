@@ -1,3 +1,11 @@
+*   Report PostgreSQL default timestamp and time precision as 6.
+
+    Bare PostgreSQL `timestamp` and `time` columns now use their effective
+    microsecond precision in Active Record type metadata, matching the
+    database's persisted precision.
+
+    *Adrianna Chang*
+
 *   Fix inverse association matching for `has_many` and `has_one` associations
     with association-specific composite primary keys.
 
