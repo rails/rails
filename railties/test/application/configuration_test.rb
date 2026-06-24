@@ -2154,6 +2154,21 @@ module ApplicationTests
       assert_ractor_shareable ActiveSupport.filter_parameters
     end
 
+    test "config.freeze_configuration freezes action_pack configurations" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/freeze_configuration.rb", <<-RUBY
+        Rails.application.config.freeze_configuration = true
+      RUBY
+
+      app "production"
+
+      assert_ractor_shareable ActionController::Parameters.always_permitted_parameters
+      assert_ractor_shareable ActionController::Live.live_streaming_excluded_keys
+      assert_ractor_shareable ActionDispatch::Response.default_headers
+      assert_ractor_shareable ActionDispatch::Request.parameter_parsers
+    end
+
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do
       make_basic_app do |application|
         application.config.annotations.register_extensions("coffee") do |tag|
