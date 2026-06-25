@@ -7,9 +7,8 @@ require "rack"
 module ActionCable
   # # Action Cable Configuration
   #
-  # An instance of this configuration object is available via
-  # ActionCable.config and ActionCable.server.config, which allows you to tweak
-  # Action Cable configuration in a Rails config initializer.
+  # An instance of this configuration object is available via ActionCable.config,
+  # which allows you to tweak Action Cable configuration in a Rails config initializer.
   class Configuration
     attr_accessor :logger, :log_tags
     attr_accessor :server_class
