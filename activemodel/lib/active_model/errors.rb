@@ -71,7 +71,7 @@ module ActiveModel
     #   person.errors.add(:name, :too_short, count: 2)
     #   person.errors.each do |error|
     #     # Will yield <#ActiveModel::Error attribute=name, type=too_short,
-    #                                       options={:count=>3}>
+    #                                       options={:count=>2}>
     #   end
 
     ##
