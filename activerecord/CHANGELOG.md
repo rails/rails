@@ -1,3 +1,7 @@
+*   Fix `alias_attribute` overriding methods defined in included modules.
+
+    *Gaston Ramos*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective
