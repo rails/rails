@@ -34,14 +34,24 @@ module ActiveRecord
   #
   # In Active Record, all validations are performed on save by default.
   # Validations accept the <tt>:on</tt> argument to define the context where
-  # the validations are active. Active Record will pass either the context of
-  # <tt>:create</tt> or <tt>:update</tt> depending on whether the model is a
-  # {new_record?}[rdoc-ref:Persistence#new_record?].
+  # the validations are active. Active Record uses custom contexts passed to
+  # #valid? or #save, or set with #validation_context=. Otherwise, Active Record
+  # will pass either the context of <tt>:create</tt> or <tt>:update</tt> depending
+  # on whether the model is a {new_record?}[rdoc-ref:Persistence#new_record?].
   module Validations
     extend ActiveSupport::Concern
 
     # The validation process on save can be skipped by passing <tt>validate: false</tt>.
     # The validation context can be changed by passing <tt>context: context</tt>.
+    # If no context is passed, a custom context set with #validation_context= is used.
+    # An explicit <tt>context:</tt> option overrides any pre-set context.
+    # A pre-set validation context remains set after save. Use Object#with to
+    # set and restore the context around a single save.
+    #
+    #   record.with(validation_context: :import) do
+    #     record.save
+    #   end
+    #
     # The regular {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] method is replaced
     # with this when the validations module is mixed in, which it is by default.
     def save(**options)
@@ -50,6 +60,7 @@ module ActiveRecord
 
     # Attempts to save the record just like {ActiveRecord::Base#save}[rdoc-ref:Base#save] but
     # will raise an ActiveRecord::RecordInvalid exception instead of returning +false+ if the record is not valid.
+    # The validation options accepted by #save also apply here.
     def save!(**options)
       perform_validations(options) ? super : raise_validation_error
     end
@@ -59,15 +70,24 @@ module ActiveRecord
     #
     # Aliased as #validate.
     #
-    # If the argument is +false+ (default is +nil+), the context is set to <tt>:create</tt> if
-    # {new_record?}[rdoc-ref:Persistence#new_record?] is +true+, and to <tt>:update</tt> if it is not.
-    # If the argument is an array of contexts, <tt>post.valid?([:create, :update])</tt>, the validations are
-    # run within multiple contexts.
+    # If the argument is +false+ (default is +nil+), a custom context set with
+    # #validation_context= is used. Otherwise, the context is set to <tt>:create</tt>
+    # if {new_record?}[rdoc-ref:Persistence#new_record?] is +true+, and to
+    # <tt>:update</tt> if it is not.
+    #
+    # Passing a context as an argument overrides any pre-set validation context.
+    # If the argument is an array of contexts, <tt>post.valid?([:create, :update])</tt>,
+    # the validations are run within multiple contexts.
     #
     # \Validations with no <tt>:on</tt> option will run no matter the context. \Validations with
     # some <tt>:on</tt> option will only run in the specified context.
     def valid?(context = nil)
-      context ||= default_validation_context
+      context ||= if custom_validation_context?
+        validation_context
+      else
+        default_validation_context
+      end
+
       output = super(context)
       errors.empty? && output
     end
