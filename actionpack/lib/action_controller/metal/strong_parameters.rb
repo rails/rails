@@ -1072,7 +1072,7 @@ module ActionController
     end
 
     ##
-    # :call-seq: merge!(*other_hashes)
+    # :call-seq: merge!(*other_hashes, &block)
     #
     # Returns the current `ActionController::Parameters` instance with `other_hashes`
     # merged into current hash.
