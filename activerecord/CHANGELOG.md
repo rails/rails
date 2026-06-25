@@ -1,3 +1,17 @@
+*   Fix `distinct.count` raising `ActiveRecord::StatementInvalid` for models with
+    a composite primary key.
+
+    ```ruby
+    Cpk::Book.distinct.count
+    # Before: ActiveRecord::StatementInvalid, generated
+    #   SELECT COUNT(DISTINCT ["author_id", "id"]) FROM "cpk_books"
+    # After: counts distinct rows via a subquery
+    ```
+
+    Fixes #55401.
+
+    *Augusto Xavier*
+
 *   Support polymorphic associations with custom primary keys through `:inverse_of`.
 
     When using polymorphic associations with `:inverse_of`, ActiveRecord now respects
