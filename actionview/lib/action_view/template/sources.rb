@@ -2,7 +2,7 @@
 
 module ActionView
   class Template
-    module Sources
+    module Sources # :nodoc:
       extend ActiveSupport::Autoload
 
       eager_autoload do

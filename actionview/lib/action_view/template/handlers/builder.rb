@@ -2,7 +2,7 @@
 
 module ActionView
   module Template::Handlers
-    class Builder
+    class Builder # :nodoc:
       class_attribute :default_format, default: :xml
 
       def call(template, source)
