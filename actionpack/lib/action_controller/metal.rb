@@ -2,6 +2,8 @@
 
 # :markup: markdown
 
+require "active_support/ractors"
+require "active_support/core_ext/module/delegation"
 require "action_dispatch/middleware/stack"
 
 module ActionController
@@ -15,6 +17,25 @@ module ActionController
   #     end
   #
   class MiddlewareStack < ActionDispatch::MiddlewareStack # :nodoc:
+    class Proxy # :nodoc:
+      delegate_missing_to :@stack
+
+      def initialize(controller)
+        @controller = controller
+        @stack = @controller.middleware_stack
+      end
+
+      %w(unshift insert swap delete move move_after use).each do |method|
+        class_eval(<<~CODE, __FILE__, __LINE__ + 1)
+          def #{method}(...)
+            @controller.middleware_stack = @controller.middleware_stack.dup
+            @controller.middleware_stack.public_send(__method__, ...)
+            ActiveSupport::Ractors.try_make_shareable(@controller.middleware_stack)
+          end
+        CODE
+      end
+    end
+
     class Middleware < ActionDispatch::MiddlewareStack::Middleware # :nodoc:
       def initialize(klass, args, actions, strategy, block)
         @actions = actions
@@ -143,7 +164,7 @@ module ActionController
       private
         def inherited(subclass)
           super
-          subclass.middleware_stack = middleware_stack.dup
+          subclass.middleware_stack = ActiveSupport::Ractors.try_make_shareable(middleware_stack.dup)
           subclass.class_eval do
             @controller_name = nil
           end
@@ -289,7 +310,7 @@ module ActionController
       # Pushes the given Rack middleware and its arguments to the bottom of the
       # middleware stack.
       def use(...)
-        middleware_stack.use(...)
+        middleware.use(...)
       end
     end
 
@@ -306,7 +327,7 @@ module ActionController
     # (https://guides.rubyonrails.org/rails_on_rack.html#action-dispatcher-middleware-stack)
     # in the guides.
     def self.middleware
-      middleware_stack
+      ActionController::MiddlewareStack::Proxy.new(self)
     end
 
     # Returns a Rack endpoint for the given action name.
