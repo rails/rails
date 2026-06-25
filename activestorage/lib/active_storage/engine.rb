@@ -252,5 +252,22 @@ module ActiveStorage
         ActiveStorage::FixtureSet.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
       end
     end
+
+    initializer "active_storage.freeze_configuration" do |app|
+      config.after_initialize do
+        if app.config.freeze_configuration
+          ActiveSupport::Ractors.make_shareable(ActiveStorage.queues)
+          ActiveSupport::Ractors.make_shareable(ActiveStorage.previewers)
+          ActiveSupport::Ractors.make_shareable(ActiveStorage.analyzers)
+          ActiveSupport::Ractors.make_shareable(ActiveStorage.paths)
+          ActiveSupport::Ractors.make_shareable(ActiveStorage.variable_content_types)
+          ActiveSupport::Ractors.make_shareable(ActiveStorage.web_image_content_types)
+          ActiveSupport::Ractors.make_shareable(ActiveStorage.content_types_to_serve_as_binary)
+          ActiveSupport::Ractors.make_shareable(ActiveStorage.content_types_allowed_inline)
+          ActiveSupport::Ractors.make_shareable(ActiveStorage.supported_image_processing_methods)
+          ActiveSupport::Ractors.make_shareable(ActiveStorage.unsupported_image_processing_arguments)
+        end
+      end
+    end
   end
 end

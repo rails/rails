@@ -1,3 +1,11 @@
+*   Freeze Active Storage configuration when `config.freeze_configuration` is enabled.
+
+    After the application has finished initializing, the relevant Active Storage
+    configuration values are made `Ractor`-shareable so they can no longer be
+    mutated at runtime.
+
+    *Gannon McGibbon*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`

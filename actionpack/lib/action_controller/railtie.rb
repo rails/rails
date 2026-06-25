@@ -166,5 +166,17 @@ module ActionController
         ActionController::StructuredEventSubscriber._rescue_from_event_backtrace = app.config.action_controller.rescue_from_event_backtrace
       end
     end
+
+    initializer "action_controller.freeze_configuration" do |app|
+      config.after_initialize do
+        if app.config.freeze_configuration
+          ActiveSupport::Ractors.make_shareable(ActionController::Parameters.always_permitted_parameters)
+
+          ActiveSupport.on_load(:action_controller_live) do
+            ActiveSupport::Ractors.make_shareable(ActionController::Live.live_streaming_excluded_keys)
+          end
+        end
+      end
+    end
   end
 end

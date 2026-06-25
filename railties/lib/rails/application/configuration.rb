@@ -25,7 +25,8 @@ module Rails
                     :content_security_policy_nonce_auto,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
-                    :dom_testing_default_html_version, :yjit, :action_on_early_load_hook
+                    :dom_testing_default_html_version, :yjit, :action_on_early_load_hook,
+                    :freeze_configuration
 
       attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
@@ -87,6 +88,7 @@ module Rails
         @dom_testing_default_html_version        = :html4
         @yjit                                    = false
         @action_on_early_load_hook               = :log
+        @freeze_configuration                    = false
       end
 
       # Loads default configuration values for a target version. This includes

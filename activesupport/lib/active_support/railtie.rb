@@ -178,5 +178,13 @@ module ActiveSupport
           app.config.active_support.use_message_serializer_for_metadata
       end
     end
+
+    initializer "active_support.freeze_configuration" do |app|
+      config.after_initialize do
+        if app.config.freeze_configuration
+          ActiveSupport::Ractors.make_procs_shareable(ActiveSupport.filter_parameters)
+        end
+      end
+    end
   end
 end

@@ -1,3 +1,11 @@
+*   Freeze Active Support configuration when `config.freeze_configuration` is enabled.
+
+    After the application has finished initializing, the relevant Active Support
+    configuration values are made `Ractor`-shareable so they can no longer be
+    mutated at runtime.
+
+    *Gannon McGibbon*
+
 *   `assert_difference`, `assert_no_difference`, `assert_changes`, and
     `assert_no_changes` now raise `ArgumentError` when given an expression that
     is not a callable (like a Proc), String, or Symbol.

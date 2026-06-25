@@ -3,6 +3,7 @@
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
+require "active_support/testing/ractors_assertions"
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -39,6 +40,7 @@ class ::MyOldKeyProvider; end
 
 module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
     include EnvHelpers
@@ -2116,6 +2118,88 @@ module ApplicationTests
 
       app "production"
       assert_equal([Symbol, Time], ActiveRecord.yaml_column_permitted_classes)
+    end
+
+    test "config.freeze_configuration defaults to false" do
+      app "production"
+      assert_not Rails.application.config.freeze_configuration
+    end
+
+    test "config.freeze_configuration freezes active_record configurations" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/freeze_configuration.rb", <<-RUBY
+        Rails.application.config.freeze_configuration = true
+      RUBY
+
+      app "production"
+
+      assert_ractor_shareable ActiveRecord.protected_environments
+      assert_ractor_shareable ActiveRecord.schema_cache_ignored_tables
+      assert_ractor_shareable ActiveRecord.database_cli
+      assert_ractor_shareable ActiveRecord.db_warnings_ignore
+      assert_ractor_shareable ActiveRecord.query_transformers
+      assert_ractor_shareable ActiveRecord.yaml_column_permitted_classes
+    end
+
+    test "config.freeze_configuration freezes active_support configurations" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/freeze_configuration.rb", <<-RUBY
+        Rails.application.config.freeze_configuration = true
+      RUBY
+
+      app "production"
+
+      assert_ractor_shareable ActiveSupport.filter_parameters
+    end
+
+    test "config.freeze_configuration freezes action_pack configurations" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/freeze_configuration.rb", <<-RUBY
+        Rails.application.config.freeze_configuration = true
+      RUBY
+
+      app "production"
+
+      assert_ractor_shareable ActionController::Parameters.always_permitted_parameters
+      assert_ractor_shareable ActionController::Live.live_streaming_excluded_keys
+      assert_ractor_shareable ActionDispatch::Response.default_headers
+      assert_ractor_shareable ActionDispatch::Request.parameter_parsers
+    end
+
+    test "config.freeze_configuration freezes action_view configurations" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/freeze_configuration.rb", <<-RUBY
+        Rails.application.config.freeze_configuration = true
+      RUBY
+
+      app "production"
+
+      assert_ractor_shareable ActionView::Base.field_error_proc
+      assert_ractor_shareable ActionView::Base.default_formats
+    end
+
+    test "config.freeze_configuration freezes active_storage configurations" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/freeze_configuration.rb", <<-RUBY
+        Rails.application.config.freeze_configuration = true
+      RUBY
+
+      app "production"
+
+      assert_ractor_shareable ActiveStorage.queues
+      assert_ractor_shareable ActiveStorage.previewers
+      assert_ractor_shareable ActiveStorage.analyzers
+      assert_ractor_shareable ActiveStorage.paths
+      assert_ractor_shareable ActiveStorage.variable_content_types
+      assert_ractor_shareable ActiveStorage.web_image_content_types
+      assert_ractor_shareable ActiveStorage.content_types_to_serve_as_binary
+      assert_ractor_shareable ActiveStorage.content_types_allowed_inline
+      assert_ractor_shareable ActiveStorage.supported_image_processing_methods
     end
 
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do

@@ -103,5 +103,17 @@ module ActionDispatch
       ActionDispatch::Http::Cache::Request.strict_freshness = app.config.action_dispatch.strict_freshness
       ActionDispatch.test_app = app
     end
+
+    initializer "action_dispatch.freeze_configuration" do |app|
+      config.after_initialize do
+        if app.config.freeze_configuration
+          ActiveSupport.on_load(:action_dispatch_response) do
+            ActiveSupport::Ractors.make_shareable(ActionDispatch::Response.default_headers)
+          end
+
+          ActiveSupport::Ractors.make_procs_shareable(ActionDispatch::Request.parameter_parsers)
+        end
+      end
+    end
   end
 end
