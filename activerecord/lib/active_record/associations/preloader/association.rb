@@ -77,7 +77,7 @@ module ActiveRecord
             def populate_keys_to_load_and_already_loaded_records
               loaders.each do |loader|
                 loader.owners_by_key.each do |key, owners|
-                  if loaded_owner = owners.find { |owner| loader.loaded?(owner) }
+                  if loaded_owner = owners.find { |owner| loader.loadable?(owner) }
                     already_loaded_records_by_key[key] = loader.target_for(loaded_owner)
                   else
                     keys_to_load << key
@@ -101,14 +101,15 @@ module ActiveRecord
 
         attr_reader :klass
 
-        def initialize(klass, owners, reflection, preload_scope, reflection_scope, associate_by_default)
+        def initialize(klass, owners, reflection, preload_scope, reflection_scope, associate_by_default, reuse_loaded_association = true)
           @klass         = klass
           @owners        = owners.uniq(&:__id__)
           @reflection    = reflection
           @preload_scope = preload_scope
           @reflection_scope = reflection_scope
-          @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
-          @model         = owners.first && owners.first.class
+          @associate = associate_by_default || !preload_scope || preload_scope.empty_scope?
+          @reuse_loaded_association = reuse_loaded_association
+          @model = owners.first && owners.first.class
           @run = false
         end
 
@@ -171,6 +172,10 @@ module ActiveRecord
             key = derive_key(owner, owner_key_name)
             (result[key] ||= []) << owner if key.is_a?(Array) ? key.all? : key
           end
+        end
+
+        def loadable?(owner)
+          @reuse_loaded_association && loaded?(owner)
         end
 
         def loaded?(owner)

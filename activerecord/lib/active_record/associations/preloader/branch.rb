@@ -5,10 +5,10 @@ module ActiveRecord
     class Preloader
       class Branch # :nodoc:
         attr_reader :association, :children, :parent
-        attr_reader :scope, :associate_by_default
+        attr_reader :scope, :associate_by_default, :reuse_loaded_association
         attr_writer :preloaded_records
 
-        def initialize(association:, children:, parent:, associate_by_default:, scope:)
+        def initialize(association:, children:, parent:, associate_by_default:, scope:, reuse_loaded_association: true)
           @association = if association
             begin
               @association = association.to_sym
@@ -19,6 +19,7 @@ module ActiveRecord
           @parent = parent
           @scope = scope
           @associate_by_default = associate_by_default
+          @reuse_loaded_association = reuse_loaded_association
 
           @children = build_children(children)
           @loaders = nil
@@ -101,7 +102,7 @@ module ActiveRecord
 
             [klass, reflection_scope]
           end.map do |(rhs_klass, reflection_scope), rs|
-            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default)
+            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default, reuse_loaded_association)
           end
         end
 
@@ -132,7 +133,8 @@ module ActiveRecord
                   association: parent,
                   children: child,
                   associate_by_default: associate_by_default,
-                  scope: scope
+                  scope: scope,
+                  reuse_loaded_association: reuse_loaded_association
                 )
               }
             }
