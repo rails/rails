@@ -1,3 +1,8 @@
+*   Fix inverse association matching for `has_many` and `has_one` associations
+    with association-specific composite primary keys.
+
+    *Hugo Vacher*
+
 *   Fix `ActiveRecord::Base.with` to call `Object#with` when given a block.
 
     The class-level `with` delegates to the relation's CTE query method, which
