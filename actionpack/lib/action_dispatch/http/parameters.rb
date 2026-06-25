@@ -10,10 +10,10 @@ module ActionDispatch
       PARAMETERS_KEY = "action_dispatch.request.path_parameters"
 
       DEFAULT_PARSERS = {
-        Mime[:json].symbol => ActiveSupport::Ractors.shareable_lambda(&-> (raw_post) {
+        Mime[:json].symbol => ActiveSupport::Ractors.shareable_lambda do |raw_post|
           data = ActiveSupport::JSON.decode(raw_post)
           data.is_a?(Hash) ? data : { _json: data }
-        })
+        end
       }.freeze
 
       # Raised when raw data from the request cannot be parsed by the parser defined

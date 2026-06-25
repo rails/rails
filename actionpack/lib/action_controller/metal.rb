@@ -37,9 +37,9 @@ module ActionController
     end
 
     private
-      INCLUDE = ActiveSupport::Ractors.shareable_lambda(&->(list, action) { list.include? action })
-      EXCLUDE = ActiveSupport::Ractors.shareable_lambda(&->(list, action) { !list.include? action })
-      NULL    = ActiveSupport::Ractors.shareable_lambda(&->(list, action) { true })
+      INCLUDE = ActiveSupport::Ractors.shareable_lambda { |list, action| list.include? action }
+      EXCLUDE = ActiveSupport::Ractors.shareable_lambda { |list, action| !list.include? action }
+      NULL    = ActiveSupport::Ractors.shareable_lambda { |list, action| true }
 
       def build_middleware(klass, args, block)
         options = args.extract_options!
