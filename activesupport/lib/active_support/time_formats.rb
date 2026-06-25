@@ -11,16 +11,16 @@ module ActiveSupport
       time: "%H:%M",
       short: "%d %b %H:%M",
       long: "%B %d, %Y %H:%M",
-      long_ordinal: lambda { |time|
+      long_ordinal: ActiveSupport::Ractors.shareable_lambda { |time|
         day_format = ActiveSupport::Inflector.ordinalize(time.day)
         time.strftime("%B #{day_format}, %Y %H:%M")
       },
-      rfc822: lambda { |time|
+      rfc822: ActiveSupport::Ractors.shareable_lambda { |time|
         offset_format = time.formatted_offset(false)
         time.strftime("%a, %d %b %Y %H:%M:%S #{offset_format}")
       },
-      rfc2822: lambda { |time| time.rfc2822 },
-      iso8601: lambda { |time| time.iso8601 }
+      rfc2822: ActiveSupport::Ractors.shareable_lambda { |time| time.rfc2822 },
+      iso8601: ActiveSupport::Ractors.shareable_lambda { |time| time.iso8601 }
     }.freeze
 
     singleton_class.attr_reader :list # :nodoc:
