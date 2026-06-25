@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+require "active_support/testing/ractors_assertions"
 require "isolation/abstract_unit"
 require "env_helpers"
 
 module ApplicationTests
   class FrameworksTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
     include EnvHelpers
 
     def setup
@@ -158,6 +160,32 @@ module ApplicationTests
 
       get "omg/show"
       assert_equal '{"omg":"omg"}', last_response.body
+    end
+
+    test "action_controller freeze the middleware stack" do
+      app_file "app/controllers/application_controller.rb", <<-RUBY
+        class ApplicationController < ActionController::API
+        end
+      RUBY
+
+      app_file "app/controllers/omg_controller.rb", <<-RUBY
+        class OmgController < ApplicationController
+          class MyMiddleware
+            def initialize(app); end
+          end
+
+          use MyMiddleware
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+      RUBY
+
+      app("development")
+
+      assert_ractor_shareable(ApplicationController.middleware)
+      assert_ractor_shareable(OmgController.middleware)
     end
 
     # AD

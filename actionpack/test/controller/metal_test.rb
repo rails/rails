@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 class MetalControllerInstanceTests < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   class SimpleController < ActionController::Metal
     def hello
       self.response_body = "hello"
