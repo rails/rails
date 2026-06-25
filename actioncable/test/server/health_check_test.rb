@@ -7,7 +7,7 @@ class HealthCheckTest < ActionCable::TestCase
   def setup
     @config = ActionCable::Server::Configuration.new
     @config.logger = Logger.new(nil)
-    @server = ActionCable::Server::Base.new config: @config
+    @server = ActionCable::Server::Base.new(config: @config)
     @server.config.cable = { adapter: "async" }.with_indifferent_access
 
     @app = Rack::Lint.new(@server)
