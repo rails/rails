@@ -248,7 +248,7 @@ module ActiveRecord
           end
 
           def associate_records_to_owner(owner, records)
-            return if loaded?(owner)
+            return if loadable?(owner)
 
             association = owner.association(reflection.name)
 
