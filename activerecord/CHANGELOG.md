@@ -1,3 +1,8 @@
+*   Fix inverse association matching for `has_many` and `has_one` associations
+    with association-specific composite primary keys.
+
+    *Hugo Vacher*
+
 *   Support polymorphic associations with custom primary keys through `:inverse_of`.
 
     When using polymorphic associations with `:inverse_of`, ActiveRecord now respects

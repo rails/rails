@@ -416,18 +416,22 @@ module ActiveRecord
         end
 
         def record_foreign_key_matches_owner?(record)
-          foreign_key_values(record) == primary_key_values(owner)
+          foreign_key_values(record) == active_record_primary_key_values(owner)
         end
 
         def owner_foreign_key_matches_record?(record)
-          foreign_key_values(owner) == primary_key_values(record)
+          foreign_key_values(owner) == association_primary_key_values(record)
         end
 
         def foreign_key_values(record)
           Array(reflection.foreign_key).map { |key| record.read_attribute(key) }
         end
 
-        def primary_key_values(record)
+        def active_record_primary_key_values(record)
+          Array(reflection.active_record_primary_key).map { |key| record.read_attribute(key) }
+        end
+
+        def association_primary_key_values(record)
           Array(reflection.association_primary_key(record.class)).map { |key| record.read_attribute(key) }
         end
     end
