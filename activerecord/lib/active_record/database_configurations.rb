@@ -277,12 +277,46 @@ module ActiveRecord
         config_without_url = config.dup
         config_without_url.delete :url
 
+        warn_about_keys_ignored_by_url(env_name, name, url, config_without_url) if url
+
         DatabaseConfigurations.db_config_handlers.reverse_each do |handler|
           config = handler.call(env_name, name, url, config_without_url)
           return config if config
         end
 
         nil
+      end
+
+      # When a configuration provides both a +url+ and keys that the URL also
+      # sets (for example a +database:+ alongside a +url:+ inherited via a YAML
+      # anchor), the value parsed from the URL takes precedence and the explicit
+      # key is silently discarded. Warn so the conflict is visible; the
+      # precedence itself is unchanged. URLs supplied through +DATABASE_URL+ and
+      # friends are merged separately and are unaffected.
+      def warn_about_keys_ignored_by_url(env_name, name, url, config)
+        return if config.empty? || url.start_with?("jdbc:", "http:", "https:")
+
+        url_hash =
+          begin
+            ConnectionUrlResolver.new(url).to_hash
+          rescue StandardError
+            return
+          end
+
+        ignored = url_hash.filter_map do |key, value|
+          next unless config.key?(key)
+          next if config[key].to_s == value.to_s
+          key
+        end
+
+        return if ignored.empty?
+
+        warn(
+          "Database configuration for #{name.inspect} (#{env_name}) provides both a " \
+          "`url` and the conflicting key(s): #{ignored.map(&:to_s).sort.join(", ")}. " \
+          "The value(s) from the URL take precedence, so the explicitly configured " \
+          "value(s) are ignored."
+        )
       end
 
       def merge_db_environment_variables(current_env, configs)
