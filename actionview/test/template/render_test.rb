@@ -410,24 +410,32 @@ module RenderTestCases
     assert_equal "NilClass", @view.render(partial: "test/klass", object: nil)
   end
 
-  def test_render_renderable_object_without_block_without_options_deprecated
+  def test_render_renderable_object_without_block_requires_options
     renderable = Object.new
     def renderable.render_in(view_context)
     end
 
-    assert_deprecated "without options", ActionView.deprecator do
-      @view.render renderable
-    end
+    error = assert_raises(ArgumentError) { @view.render renderable }
+    assert_equal "Object#render_in must accept keyword arguments", error.message
   end
 
-  def test_render_renderable_object_with_block_without_options_deprecated
+  def test_render_renderable_object_with_block_requires_options
     renderable = Object.new
     def renderable.render_in(view_context, &block)
     end
 
-    assert_deprecated "without options", ActionView.deprecator do
-      @view.render renderable
+    error = assert_raises(ArgumentError) { @view.render(renderable) {} }
+    assert_equal "Object#render_in must accept keyword arguments", error.message
+  end
+
+  def test_render_renderable_object_preserves_argument_error_from_render_in
+    renderable = Object.new
+    def renderable.render_in(view_context, **options)
+      raise ArgumentError, "from render_in"
     end
+
+    error = assert_raises(ArgumentError) { @view.render renderable }
+    assert_equal "from render_in", error.message
   end
 
   def test_render_renderable_object_with_method_reader
@@ -455,6 +463,16 @@ module RenderTestCases
 
     assert_equal "<h1>Goodbye, Block!</h1>", @view.render(TestRenderable.new) { @view.tag.h1 "Goodbye, Block!" }
     assert_equal "<h1>Goodbye, Block!</h1>", @view.render(renderable: TestRenderable.new) { @view.tag.h1 "Goodbye, Block!" }
+  end
+
+  def test_render_renderable_render_in_does_not_emit_active_support_notifications
+    assert_no_notifications "render_template.action_view" do
+      assert_equal "Hello, World!", @view.render(TestRenderable.new)
+    end
+
+    assert_no_notifications "render_template.action_view" do
+      assert_equal "Hello, World!", @view.render(renderable: TestRenderable.new)
+    end
   end
 
   def test_render_renderable_render_in_excludes_renderable_key

@@ -1,3 +1,7 @@
+*   Only attach `ActionView::StructuredEventSubscriber` to `action_view` notifications when `Rails.event.debug_mode?` is true, avoiding unnecessary instrumentation overhead in non-debug apps.
+
+    *Joel Hawksley*
+
 *   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
     the current template when it starts with a period, mirroring the existing
     behavior for the key argument.
@@ -110,7 +114,9 @@
 
     *Kenta Ishizaki*
 
-*   Pass render options and block to calls to `#render_in`
+*   Pass render options and block to calls to `#render_in`.
+
+    `#render_in` must now accept a `locals:` keyword argument.
 
     ```ruby
     class Greeting
@@ -131,7 +137,7 @@
     render(Greeting.new) { "Hello, Block" }                     # => "Hello, Block"
     ```
 
-    *Sean Doyle*
+    *Sean Doyle, Joel Hawksley*
 
 *   Add `f.datalist` to `FormBuilder`
 

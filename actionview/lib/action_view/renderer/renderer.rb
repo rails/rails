@@ -20,8 +20,8 @@ module ActionView
     end
 
     # Main render entry point shared by Action View and Action Controller.
-    def render(context, options, &block)
-      render_to_object(context, options, &block).body
+    def render(context, options)
+      render_to_object(context, options).body
     end
 
     def render_to_object(context, options, &block) # :nodoc:

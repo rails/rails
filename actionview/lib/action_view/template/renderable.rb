@@ -14,19 +14,12 @@ module ActionView
       end
 
       def render(context, locals)
-        render_in_method = Kernel.instance_method(:method).bind_call(@renderable, :render_in)
+        @renderable.render_in(context, locals: locals, &@block)
+      rescue ArgumentError => error
+        render_in = Kernel.instance_method(:method).bind_call(@renderable, :render_in)
+        raise unless render_in.arity == 1
 
-        if render_in_method.arity == 1
-          ActionView.deprecator.warn <<~WARN
-            Action View support for #render_in without options is deprecated.
-
-            Change #render_in to accept keyword arguments.
-          WARN
-
-          @renderable.render_in(context, &@block)
-        else
-          @renderable.render_in(context, locals: locals, &@block)
-        end
+        raise ArgumentError, "#{identifier}#render_in must accept keyword arguments", error.backtrace
       rescue NameError
         if !@renderable.respond_to?(:render_in)
           raise ArgumentError, "'#{@renderable.inspect}' is not a renderable object. It must implement #render_in."
