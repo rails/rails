@@ -632,6 +632,12 @@ module ActiveRecord
           @recorder.inverse_of :drop_virtual_table, [:searchables]
         end
       end
+
+      def test_invert_drop_virtual_table_without_values
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :drop_virtual_table, [:searchables, :fts5]
+        end
+      end
     end
   end
 end
