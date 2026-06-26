@@ -402,7 +402,7 @@ module ActiveRecord
         end
 
         def invert_drop_virtual_table(args)
-          _enum, values = args.dup.tap(&:extract_options!)
+          _table_name, _module_name, values = args.dup.tap(&:extract_options!)
           raise ActiveRecord::IrreversibleMigration, "drop_virtual_table is only reversible if given options." unless values
           super
         end
