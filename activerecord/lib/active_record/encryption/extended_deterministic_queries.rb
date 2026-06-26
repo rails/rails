@@ -28,6 +28,7 @@ module ActiveRecord
         ActiveRecord::Relation.prepend(RelationQueries)
         ActiveRecord::Base.include(CoreQueries)
         ActiveRecord::Encryption::EncryptedAttributeType.prepend(ExtendedEncryptableType)
+        ActiveModel::Attributes::Normalization.const_get(:NormalizedValueType).prepend(ExtendedNormalizableType)
       end
 
       # When modifying this file run performance tests in
@@ -87,8 +88,9 @@ module ActiveRecord
             end
 
             def additional_values_for(value, type)
+              casted_value = type.cast(value)
               type.previous_types.collect do |additional_type|
-                AdditionalValue.new(value, additional_type)
+                AdditionalValue.new(casted_value, additional_type)
               end
             end
         end
@@ -147,6 +149,28 @@ module ActiveRecord
 
       module ExtendedEncryptableType
         def serialize(data)
+          if data.is_a?(AdditionalValue)
+            data.value
+          else
+            super
+          end
+        end
+      end
+
+      # A separate module for NormalizedValueType to avoid changing
+      # serialize_cast_value_compatible? for EncryptedAttributeType.
+      # Both serialize and serialize_cast_value must be overridden here
+      # to keep serialize_cast_value_compatible? returning true.
+      module ExtendedNormalizableType
+        def serialize(data)
+          if data.is_a?(AdditionalValue)
+            data.value
+          else
+            super
+          end
+        end
+
+        def serialize_cast_value(data)
           if data.is_a?(AdditionalValue)
             data.value
           else
