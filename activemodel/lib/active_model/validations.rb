@@ -293,8 +293,8 @@ module ActiveModel
       #    attr_accessor :name
       #  end
       #
-      #  User.attribute_method?(:name) # => true
-      #  User.attribute_method?(:age)  # => false
+      #  Person.attribute_method?(:name) # => true
+      #  Person.attribute_method?(:age)  # => false
       def attribute_method?(attribute)
         method_defined?(attribute)
       end
