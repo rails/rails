@@ -215,15 +215,18 @@ Create `app/views/products/reviews/new.html.erb` with the following:
 <h1>Add a review</h1>
 
 <%= form_with model: [@product, @review] do |form| %>
-  <div>
-    <%= form.label :rating %>
+<fieldset>
+    <legend>Rating</legend>
     <div class="rating">
-      <% 5.downto(1).each do |i| %>
-        <%= form.radio_button :rating, i, required: true %>
-        <%= form.label :rating, "★", value: i %>
+      <% 1.upto(5).each do |i| %>
+        <%= form.radio_button :rating, i, required: true, class: "sr-only" %>
+        <%= form.label :rating, value: i do %>
+          <span aria-hidden="true">★</span>
+          <span class="sr-only"><%= pluralize(i, "star") %></span>
+        <% end %>
       <% end %>
     </div>
-  </div>
+  </fieldset>
 
   <div>
     <%= form.label :body, style: "display: block;" %>
@@ -259,42 +262,62 @@ can use a few CSS tricks to make this work like you'd expect.
 Add the following to `app/assets/stylesheets/application.css` at the bottom:
 
 ```css
+/* Remove default styling for fieldset */
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+/* Remove default styling for legend */
+legend {
+  padding: 0;
+}
+
+/* Hide text visually but not from screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .rating {
   display: flex;
-  flex-direction: row-reverse; /* Flips the 5-1 DOM order to 1-5 visually */
-  justify-content: flex-end;   /* Aligns the 1-star to the left */
 }
 
-/* Hide the radio buttons */
-.rating input {
-  display: none;
-}
-
-/* Lighten the unselected stars */
-.gray,
+/* Lighten all stars by default */
 .rating label {
   color: lightgray;
 }
 
-/* Target all stars after the checked/hovered one in the DOM (which appear before it visually) */
-.gold,
-.rating input:checked ~ label,
+/* Gold: the selected/focused/hovered star and all previous ones */
+.rating input:is(:checked, :focus) + label,
+.rating label:has(~ input:is(:checked, :focus)),
 .rating label:hover,
-.rating label:hover ~ label {
+.rating label:has(~ input + label:hover) {
   color: gold;
+}
+
+/* Visible focus indicator */
+.rating input:focus-visible + label {
+  outline: .2em solid;
+  outline-offset: 2px;
 }
 ```
 
 There are a few things going on here:
 
-1. The ratings are rendered in reverse order so users see 1-5 stars in order
-2. The radio buttons are hidden
-3. When a radio is checked or hovered, the labels after it are colored gold
-
-CSS allows us to select subsequent siblings using the tilde `~`. By using this
-with reverse ordering, we can highlight all the correct stars when the user
-selects a rating. If they choose 3 stars, the selector colors the stars 3, 2,
-and 1 with gold.
+1. The ratings display as stars, but screen reader users hear clear indications like `Rating, 1 star, radio button, 1 of 5`
+2. The radio buttons are hidden but keyboard accessible
+3. When a radio is checked, focused or hovered, the star labels before it are colored gold
+ 
+CSS allows us to select previous siblings using `:has(~ input:checked)` and `:has(~ input + label:hover)`. This selector targets labels for all the lower stars when the user selects a rating. If they choose 3 stars, the selector colors the stars 1, 2, and 3 with gold.
 
 ### Creating reviews
 
@@ -520,7 +543,9 @@ displayed.
   <% if review.images.attached? %>
     <div class="review__images">
       <% review.images.each do |image| %>
-        <%= link_to image_tag(image.variant(resize_to_limit: [150, 150])), image, target: :_blank %>
+        <%= link_to image, target: :_blank, title: "View full-size image (opens in new tab)", aria: { label: "View full-size image (opens in new tab)" } do %>
+          <%= image_tag image.variant(resize_to_limit: [150, 150]), alt: "" %>
+        <% end %>
       <% end %>
     </div>
   <% end %>
@@ -632,7 +657,7 @@ class ProductsController < ApplicationController
 end
 ```
 
-Passing `params[:rating]` let's users filter reviews with a query param. There
+Passing `params[:rating]` lets users filter reviews with a query param. There
 are several things that can happen:
 
 - If the URL contains `?rating=3`, this will only return reviews with a rating
@@ -727,7 +752,7 @@ class Store::ReviewsController < Store::BaseController
 end
 ```
 
-To allow the index to filter by ratings, products, and users, let's a
+To allow the index to filter by ratings, products, and users, let's add a
 `filter_by` method like we did for the `Wishlist` model.
 
 Add the following to `app/models/review.rb`:
@@ -846,7 +871,9 @@ Create `app/views/store/reviews/_review.html.erb` with the following:
   <% if review.images.attached? %>
     <div class="review__images">
       <% review.images.each do |image| %>
-        <%= link_to image_tag(image.variant(resize_to_limit: [150, 150])), image, target: :_blank %>
+        <%= link_to image, target: :_blank, title: "View full-size image (opens in new tab)", aria: { label: "View full-size image (opens in new tab)" } do %>
+          <%= image_tag image.variant(resize_to_limit: [150, 150]), alt: "" %>
+        <% end %>
       <% end %>
     </div>
   <% end %>
@@ -899,14 +926,18 @@ Last, but not least, let's create the edit view in `app/views/store/reviews/edit
 <h1>Edit Review</h1>
 
 <%= form_with model: [:store, @review] do |form| %>
-  <div>
-    <%= form.label :rating %>
+  <fieldset>
+    <legend>Rating</legend>
     <div class="rating">
-      <% 5.downto(1).each do |i| %>
-        <%= form.radio_button :rating, i, required: true %>
-        <%= form.label :rating, "★", value: i %>
+      <% 1.upto(5).each do |i| %>
+        <%= form.radio_button :rating, i, required: true, class: "sr-only" %>
+        <%= form.label :rating, value: i do %>
+          <span aria-hidden="true">★</span>
+          <span class="sr-only"><%= pluralize(i, "star") %></span>
+        <% end %>
       <% end %>
     </div>
+  </fieldset>
   </div>
 
   <div>
