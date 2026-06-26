@@ -603,6 +603,21 @@ EXPECTED
     end
 end
 
+if RUBY_VERSION >= "4.0"
+  class JSONRactorShareabilityTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+
+    def test_encoders_are_ractor_shareable
+      assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }, escape: false) }.value
+      assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }) }.value
+      ActiveSupport::JSON::Encoding.with(escape_js_separators_in_json: false) do
+        assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }) }.value
+      end
+      assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }, escape_html_entities: false) }.value
+    end
+  end
+end
+
 if defined?(::JSON::Coder)
   class OldJSONEncodingTest < TestJSONEncoding
     setup do
