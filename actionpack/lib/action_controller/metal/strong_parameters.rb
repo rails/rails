@@ -415,7 +415,8 @@ module ActionController
     alias_method :each, :each_pair
 
     # Convert all hashes in values into parameters, then yield each value in the
-    # same way as `Hash#each_value`.
+    # same way as `Hash#each_value`. If no block is given, an enumerator is
+    # returned instead.
     def each_value(&block)
       return to_enum(:each_value) unless block_given?
       @parameters.each_pair do |key, value|
