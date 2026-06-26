@@ -145,7 +145,9 @@ module ActionView
               when :local_variable_read_node
                 node.slice
               when :call_node
-                node.name.to_s
+                name = node.name.to_s
+                return if name == "new"
+                name
               else
                 return
               end

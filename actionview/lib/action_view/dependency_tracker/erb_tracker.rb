@@ -110,7 +110,7 @@ module ActionView
         end
 
         def add_dynamic_dependency(dependencies, dependency)
-          if dependency
+          if dependency && dependency != "new"
             dependencies << "#{dependency.pluralize}/#{dependency.singularize}"
           end
         end
