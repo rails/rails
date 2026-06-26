@@ -670,6 +670,7 @@ module ActionController
               @request.delete_header "HTTP_ACCEPT"
             end
             @request.query_string = ""
+            @request.delete_header "CONTENT_TYPE"
 
             @response.sent!
           end

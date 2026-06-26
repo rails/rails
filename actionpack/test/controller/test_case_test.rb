@@ -635,9 +635,12 @@ class TestCaseTest < ActionController::TestCase
   end
 
   def test_using_as_json_sets_request_content_type_to_json
-    post :render_body, params: { bool_value: true, str_value: "string", num_value: 2 }, as: :json
+    post :test_headers, params: { bool_value: true, str_value: "string", num_value: 2 }, as: :json
 
-    assert_equal "application/json", @request.headers["CONTENT_TYPE"]
+    env = ::JSON.parse(@response.body)
+    assert_equal "application/json", env["CONTENT_TYPE"]
+
+    post :render_body, params: { bool_value: true, str_value: "string", num_value: 2 }, as: :json
     assert_equal true, @request.request_parameters["bool_value"]
     assert_equal "string", @request.request_parameters["str_value"]
     assert_equal 2, @request.request_parameters["num_value"]
@@ -662,18 +665,24 @@ class TestCaseTest < ActionController::TestCase
 
   def test_mutating_content_type_headers_for_plain_text_files_sets_the_header
     @request.headers["Content-Type"] = "text/plain"
-    post :render_body, params: { name: "foo.txt" }
+    post :test_headers, params: { name: "foo.txt" }
 
-    assert_equal "text/plain", @request.headers["Content-type"]
+    env = ::JSON.parse(@response.body)
+    assert_equal "text/plain", env["CONTENT_TYPE"]
+
+    post :render_body, params: { name: "foo.txt" }
     assert_equal "foo.txt", @request.request_parameters[:name]
     assert_equal "render_body", @request.path_parameters[:action]
   end
 
   def test_mutating_content_type_headers_for_html_files_sets_the_header
     @request.headers["Content-Type"] = "text/html"
-    post :render_body, params: { name: "foo.html" }
+    post :test_headers, params: { name: "foo.html" }
 
-    assert_equal "text/html", @request.headers["Content-type"]
+    env = ::JSON.parse(@response.body)
+    assert_equal "text/html", env["CONTENT_TYPE"]
+
+    post :render_body, params: { name: "foo.html" }
     assert_equal "foo.html", @request.request_parameters[:name]
     assert_equal "render_body", @request.path_parameters[:action]
   end
@@ -744,6 +753,16 @@ class TestCaseTest < ActionController::TestCase
     get :test_params, xhr: true
     assert_nil @request.env["HTTP_X_REQUESTED_WITH"]
     assert_nil @request.env["HTTP_ACCEPT"]
+  end
+
+  def test_content_type_reset_between_requests
+    post :test_headers, params: { foo: "bar" }
+    env = ::JSON.parse(@response.body)
+    assert_equal "application/x-www-form-urlencoded", env["CONTENT_TYPE"]
+
+    get :test_headers
+    env = ::JSON.parse(@response.body)
+    assert_nil env["CONTENT_TYPE"]
   end
 
   def test_xhr_with_params
