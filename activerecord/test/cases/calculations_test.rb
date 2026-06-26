@@ -433,6 +433,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal(1, Cpk::Book.where(author_id: book.author_id, id: book.id).count)
   end
 
+  def test_distinct_count_for_a_composite_primary_key_model
+    assert_equal Cpk::Book.count, Cpk::Book.distinct.count
+  end
+
   def test_group_by_count_for_a_composite_primary_key_model
     book = cpk_books(:cpk_great_author_first_book)
     expected = { book.author_id => Cpk::Book.where(author_id: book.author_id).count }

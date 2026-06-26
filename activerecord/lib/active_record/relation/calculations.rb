@@ -673,7 +673,8 @@ module ActiveRecord
         # SQLite and older MySQL does not support `COUNT DISTINCT` with `*` or
         # multiple columns, so we need to use subquery for this.
         operation == "count" &&
-          (((column_name == :all || select_values.many?) && distinct) || has_limit_or_offset?)
+          (((column_name == :all || select_values.many? || column_name.is_a?(Array)) &&
+            distinct) || has_limit_or_offset?)
       end
 
       def build_count_subquery(relation, column_name, distinct)
@@ -681,6 +682,9 @@ module ActiveRecord
           column_alias = Arel.star
           relation.select_values = [ Arel.sql(FinderMethods::ONE_AS_ONE) ] unless distinct
           relation.unscope!(:order)
+        elsif column_name.is_a?(Array)
+          column_alias = Arel.star
+          relation.select_values = relation.arel_columns(column_name)
         else
           column_alias = Arel.sql("count_column")
           relation.select_values = [ relation.aggregate_column(column_name).as(column_alias) ]
