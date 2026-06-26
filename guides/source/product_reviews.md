@@ -860,9 +860,9 @@ Create `app/views/store/reviews/_review.html.erb` with the following:
 ```erb
 <%= tag.div id: dom_id(review), class: "review" do %>
   <div><%= link_to review.user.full_name, store_user_path(review.user) %> reviewed <%= link_to review.product.name, store_product_path(review.product) %></div>
-  <div>
+  <div role="img" aria-label="<%= review.rating %> out of 5 stars">
     <% 5.times do |i| %>
-      <%= tag.span "★", class: (i < review.rating.round ? "gold" : "gray") %>
+      <%= tag.span "★", class: (i < review.rating ? "gold" : "gray"), aria: { hidden: true } %>
     <% end %>
   </div>
 
