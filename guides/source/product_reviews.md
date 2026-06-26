@@ -532,9 +532,9 @@ displayed.
 ```erb
 <%= tag.div id: dom_id(review), class: "review" do %>
   <div><%= tag.strong review.user.full_name %></div>
-  <div>
+  <div role="img" aria-label="<%= review.rating %> out of 5 stars">
     <% 5.times do |i| %>
-      <%= tag.span "★", class: (i < review.rating ? "gold" : "gray") %>
+      <%= tag.span "★", class: (i < review.rating ? "gold" : "gray"), aria: { hidden: true } %>
     <% end %>
   </div>
 
