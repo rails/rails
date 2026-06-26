@@ -33,7 +33,7 @@ module Rails
     # want this behavior, so you can give <tt>:with</tt> as option.
     #
     #   root.add "config/routes", with: "config/routes.rb"
-    #   root["config/routes"].inspect # => ["config/routes.rb"]
+    #   root["config/routes"].to_ary.inspect # => ["config/routes.rb"]
     #
     # The #add method accepts the following options as arguments:
     # +eager_load+, +autoload+, +autoload_once+, and +glob+.
