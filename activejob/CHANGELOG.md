@@ -1,3 +1,9 @@
+*   Support second-level precision for `assert_enqueued_with`
+
+    Fixes #52478.
+
+    *Steve Polito*
+
 *   Allow queue adapters to inspect a job when deciding whether to interrupt at
     a checkpoint, and to optionally return a specific interruption reason.
 
