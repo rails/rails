@@ -3347,6 +3347,9 @@ todo next
 ### Stepping Through Time
  
 ### Beginnings and Ends
+
+### Duration
+combine the three duration sections
  
 ### Time Zones and UTC
 
