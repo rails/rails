@@ -87,6 +87,10 @@ class Date
   end
   alias :at_end_of_day :end_of_day
 
+  def end_of_day_threshold
+    beginning_of_day.advance(days: 1)
+  end
+
   def plus_with_duration(other) # :nodoc:
     if ActiveSupport::Duration === other
       other.since(self)
