@@ -1311,6 +1311,7 @@ Here are a few ideas to build on to this:
 - Add a carousel for product images
 - Improve the design with CSS
 - Add payments to buy products
+- Limit the number of reviews displayed on the product page
 
 Happy building!
 
