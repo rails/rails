@@ -117,6 +117,23 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_predicate t3, :valid?
   end
 
+  def test_validate_uniqueness_uses_only_all_query_default_scopes
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.inheritance_column = :_type_disabled
+
+      default_scope :approved, -> { where(approved: true) }
+      default_scope :parent, -> { where(parent_id: 1) }, all_queries: true
+
+      validates_uniqueness_of :title
+    end
+
+    Topic.create!(title: "Scoped uniqueness", parent_id: 1, approved: false)
+    topic = topic_class.new(title: "Scoped uniqueness", parent_id: 1, approved: false)
+
+    assert_not_predicate topic, :valid?
+  end
+
   def test_validate_uniqueness_with_alias_attribute
     Topic.alias_attribute :new_title, :title
     Topic.validates_uniqueness_of(:new_title)

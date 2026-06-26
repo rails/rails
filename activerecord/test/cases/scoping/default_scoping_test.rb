@@ -730,6 +730,169 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match %r/#{Regexp.escape(quote_table_name("lions.is_vegetarian"))}/i, Lion.all.to_sql
     assert_match %r/#{Regexp.escape(quote_table_name("lions.gender"))}/i, Lion.female.to_sql
   end
+
+  def test_named_default_scope
+    wheres = DeveloperWithNamedDefaultScopes.all.where_values_hash
+    assert_includes wheres, "salary"
+    assert_includes wheres, "mentor_id"
+    assert_includes wheres, "firm_id"
+  end
+
+  def test_unscoped_does_not_remove_named_default_scope
+    wheres = DeveloperWithNamedDefaultScopes.unscoped.where_values_hash
+    assert_not_includes wheres, "salary"
+    assert_includes wheres, "mentor_id"
+    assert_includes wheres, "firm_id"
+  end
+
+  def test_unscoped_named_default_scope_only_clears_that_scope
+    wheres = DeveloperWithNamedDefaultScopes.unscoped(:mentor).where_values_hash
+    assert_not_includes wheres, "mentor_id"
+    assert_includes wheres, "salary"
+    assert_includes wheres, "firm_id"
+  end
+
+  def test_unscoped_chained_removes_multiple_named_default_scopes
+    wheres = DeveloperWithNamedDefaultScopes.unscoped(:mentor).unscoped(:firm).unscoped(:firm).where_values_hash
+    assert_not_includes wheres, "mentor_id"
+    assert_not_includes wheres, "firm_id"
+    assert_includes wheres, "salary"
+  end
+
+  def test_unscoped_chained_with_names_and_unnamed_scopes
+    wheres = DeveloperWithNamedDefaultScopes.unscoped(:mentor).unscoped(:firm).unscoped.where_values_hash
+    assert_not_includes wheres, "mentor_id"
+    assert_not_includes wheres, "firm_id"
+    assert_not_includes wheres, "salary"
+  end
+
+  def test_unscoped_removes_multiple_named_default_scopes_in_one_call
+    wheres = DeveloperWithNamedDefaultScopes.unscoped(:mentor, :firm).where_values_hash
+    assert_not_includes wheres, "mentor_id"
+    assert_not_includes wheres, "firm_id"
+    assert_includes wheres, "salary"
+  end
+
+  def test_unscoped_block_preserves_named_default_scopes
+    wheres = DeveloperWithNamedDefaultScopes.unscoped { DeveloperWithNamedDefaultScopes.all }.where_values_hash
+    assert_not_includes wheres, "salary"
+    assert_includes wheres, "mentor_id"
+    assert_includes wheres, "firm_id"
+  end
+
+  def test_unscoped_block_with_names_removes_specified_named_default_scopes
+    wheres = DeveloperWithNamedDefaultScopes.unscoped(:mentor) { DeveloperWithNamedDefaultScopes.unscoped(:firm) }.where_values_hash
+
+    assert_not_includes wheres, "mentor_id"
+    assert_not_includes wheres, "firm_id"
+    assert_includes wheres, "salary"
+  end
+
+  def test_unscoped_block_with_names_removed_respected_by_associations_scope
+    wheres = DeveloperWithNamedDefaultScopes.unscoped(:firm) { MentorWithNamedScopeDeveloper.new.developers.where_values_hash }
+
+    assert_not_includes wheres, "firm_id"
+    assert_includes wheres, "mentor_id"
+    assert_includes wheres, "salary"
+  end
+
+  def test_unscoped_block_does_not_remove_names_from_associations_scope
+    wheres = DeveloperWithNamedDefaultScopes.unscoped { MentorWithNamedScopeDeveloper.new.developers.where_values_hash }
+
+    assert_includes wheres, "firm_id"
+    assert_includes wheres, "mentor_id"
+    assert_not_includes wheres, "salary"
+  end
+
+  def test_preloading_associations_respects_named_default_scopes
+    mentor = MentorWithNamedScopeDeveloper.create!(id: 1, name: "David")
+    developer = DeveloperWithNamedDefaultScopes.create!(name: "David", mentor_id: mentor.id, firm_id: 1)
+    DeveloperWithNamedDefaultScopes.create!(name: "Jamis", mentor_id: mentor.id, firm_id: 2)
+
+    preloaded_mentor = DeveloperWithNamedDefaultScopes.unscoped do
+      MentorWithNamedScopeDeveloper.where(id: mentor.id).preload(:developers).first
+    end
+
+    assert_equal [developer], preloaded_mentor.developers
+  end
+
+  def test_preloading_associations_respects_unscoping_named_defaults
+    mentor = MentorWithNamedScopeDeveloper.create!(id: 1, name: "David")
+    developer = DeveloperWithNamedDefaultScopes.create!(name: "David", mentor_id: mentor.id, firm_id: 1)
+    other_firm_developer = DeveloperWithNamedDefaultScopes.create!(name: "Jamis", mentor_id: mentor.id, firm_id: 2)
+
+    preloaded_mentor = DeveloperWithNamedDefaultScopes.unscoped(:firm) do
+      MentorWithNamedScopeDeveloper.where(id: mentor.id).preload(:developers).first
+    end
+
+    assert_equal [developer, other_firm_developer].sort, preloaded_mentor.developers.sort
+  end
+
+  def test_unscoped_unknown_named_default_scope_raises
+    error = assert_raises(ArgumentError) do
+      DeveloperWithNamedDefaultScopes.unscoped(:missing)
+    end
+
+    assert_match(/:missing/, error.message)
+  end
+
+  def test_unscoped_named_default_scope_raises_with_default_scope_override
+    error = assert_raises(ArgumentError) do
+      ClassMethodDeveloperCalledDavid.unscoped(:david)
+    end
+
+    assert_match(/default_scope method/, error.message)
+  end
+
+  def test_unscoped_with_non_symbol_name_raises
+    error = assert_raises(ArgumentError) do
+      DeveloperWithNamedDefaultScopes.unscoped(1)
+    end
+
+    assert_match(/must be symbols or strings/, error.message)
+  end
+
+  def test_named_default_scopes_not_included_on_reload
+    dev = DeveloperWithNamedDefaultScopes.create!(name: "David", mentor_id: 1, firm_id: 2)
+    reload_sql = capture_sql { dev.reload }.first
+
+    assert_no_match(/mentor_id/, reload_sql)
+    assert_no_match(/firm_id/, reload_sql)
+  end
+
+  def test_all_queries_named_defaults_included_on_reload
+    dev = DeveloperWithNamedAllQueriesDefaultScope.create!(name: "David", mentor_id: 1, firm_id: 2)
+    reload_sql = capture_sql { dev.reload }.first
+
+    assert_match(/mentor_id/, reload_sql)
+  end
+
+  def test_named_default_scopes_included_on_unscoped_reload
+    dev = DeveloperWithNamedDefaultScopes.create!(name: "David", mentor_id: 1, firm_id: 1)
+    reload_sql = capture_sql { dev.reload(unscoped: true) }.first
+
+    assert_match(/mentor_id/, reload_sql)
+    assert_match(/firm_id/, reload_sql)
+    assert_no_match(/salary/, reload_sql)
+  end
+
+  def test_unscope_named_default_scopes_from_reload
+    dev = DeveloperWithNamedDefaultScopes.create!(name: "David", mentor_id: 1, firm_id: 1)
+    reload_sql = capture_sql { dev.reload(unscoped: [:firm]) }.first
+
+    assert_match(/mentor_id/, reload_sql)
+    assert_match(/salary/, reload_sql)
+    assert_no_match(/firm_id/, reload_sql)
+  end
+
+  def test_unscope_named_defaults_and_unnamed_default_scopes_from_reload
+    dev = DeveloperWithNamedDefaultScopes.create!(name: "David", mentor_id: 1, firm_id: 1)
+    reload_sql = capture_sql { dev.reload(unscoped: [:firm, :mentor, true]) }.first
+
+    assert_no_match(/mentor_id/, reload_sql)
+    assert_no_match(/firm_id/, reload_sql)
+    assert_no_match(/salary/, reload_sql)
+  end
 end
 
 class DefaultScopingWithThreadTest < ActiveRecord::TestCase
