@@ -3155,9 +3155,9 @@ are defined once in a common module (`DateAndTime::Calculations`) and mixed into
 each class.
  
 TIP: Most Rails developers face the question of which class to use when. The
-answer comes down one practical distinction: `Time` understands time zones and
-daylight saving time, while `DateTime` does not. In most modern applications,
-you are better off using `Time` (or more specifically
+answer comes down to one practical distinction: `Time` understands time zones
+and daylight saving time, while `DateTime` does not. In most modern
+applications, you are better off using `Time` (or more specifically
 `ActiveSupport::TimeWithZone`, the time-zone-aware wrapper that `Time.zone.now`
 and `Time.current` return). Treat `DateTime` as a legacy class kept around for
 compatibility. Use `Date` whenever you only care about a calendar day and have
@@ -3169,9 +3169,9 @@ matters.
  
 ### Creating Dates and Times
 
-Active Support adds `Date.current`, `Time.current`, and `DateTime.current` to create Date and Time objects. There are the built in Ruby constructors such as `Date.new`, `Time.new`, and `DateTime.new`. The advantage of the Active support method is that they are time zone aware. 
+Active Support adds `Date.current`, `Time.current`, and `DateTime.current` to create Date and Time objects, in addition to the built in Ruby constructors such as `Date.new`, `Time.new`, and `DateTime.new`. The advantage of the Active support method is that they are time zone aware. 
 
-NOTE: Date and Time objects and also be created from Strings, see the [Date and Time Conversions For Strings](#date-and-time-conversions-for-strings).
+NOTE: Date and Time objects can also be created from Strings, see the [Date and Time Conversions For Strings](#date-and-time-conversions-for-strings).
 
 #### `Date.current`
 
@@ -3343,10 +3343,148 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 todo next
 
 ### Calculations
- 
+
+
+
 ### Stepping Through Time
- 
+
+#### `prev_day`, `next_day`
+
+The methods [`prev_day`][Time#prev_day] and [`next_day`][Time#next_day] return the time in the last or next day:
+
+```ruby
+t = Time.new(2026, 5, 5)  # => 2026-05-05 00:00:00 +0000
+t.prev_day                # => 2026-05-04 00:00:00 +0000
+t.next_day                # => 2026-05-06 00:00:00 +0000
+```
+
+NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
+
+[Time#next_day]: https://api.rubyonrails.org/classes/Time.html#method-i-next_day
+[Time#prev_day]: https://api.rubyonrails.org/classes/Time.html#method-i-prev_day
+
+#### `prev_month`, `next_month`
+
+The methods [`prev_month`][Time#prev_month] and [`next_month`][Time#next_month] return the time with the same day in the last or next month:
+
+```ruby
+t = Time.new(2026, 5, 5)  # => 2026-05-05 00:00:00 +0000
+t.prev_month              # => 2026-04-05 00:00:00 +0000
+t.next_month              # => 2026-06-05 00:00:00 +0000
+```
+
+If such a day does not exist, the last day of the corresponding month is returned:
+
+```ruby
+Time.new(2026, 5, 31).prev_month # => 2026-04-30 00:00:00 +0000
+Time.new(2026, 3, 31).prev_month # => 2026-02-28 00:00:00 +0000
+Time.new(2026, 5, 31).next_month # => 2026-06-30 00:00:00 +0000
+Time.new(2026, 1, 31).next_month # => 2026-02-28 00:00:00 +0000
+```
+
+NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
+
+[Time#next_month]: https://api.rubyonrails.org/classes/Time.html#method-i-next_month
+[Time#prev_month]: https://api.rubyonrails.org/classes/Time.html#method-i-prev_month
+
+#### `prev_year`, `next_year`
+
+The methods [`prev_year`][Time#prev_year] and [`next_year`][Time#next_year] return a time with the same day/month in the last or next year:
+
+```ruby
+t = Time.new(2026, 5, 5)  # => 2026-05-05 00:00:00 +0000
+t.prev_year               # => 2025-05-05 00:00:00 +0000
+t.next_year               # => 2027-05-05 00:00:00 +0000
+```
+
+If date is the 29th of February of a leap year, you obtain the 28th:
+
+```ruby
+t = Time.new(2024, 2, 29)  # => 2024-02-29 00:00:00 +0000
+t.prev_year                # => 2023-02-28 00:00:00 +0000
+t.next_year                # => 2025-02-28 00:00:00 +0000
+```
+
+NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
+
+[Time#next_year]: https://api.rubyonrails.org/classes/Time.html#method-i-next_year
+[Time#prev_year]: https://api.rubyonrails.org/classes/Time.html#method-i-prev_year
+
+#### `prev_quarter`, `next_quarter`
+
+The methods [`prev_quarter`][DateAndTime::Calculations#prev_quarter] and [`next_quarter`][DateAndTime::Calculations#next_quarter] return the date with the same day in the previous or next quarter:
+
+```ruby
+t = Time.local(2026, 5, 5)  # => 2026-05-05 00:00:00 +0000
+t.prev_quarter              # => 2026-02-05 00:00:00 +0000
+t.next_quarter              # => 2026-08-05 00:00:00 +0000
+```
+
+If such a day does not exist, the last day of the corresponding month is returned:
+
+```ruby
+Time.local(2026, 7, 31).prev_quarter  # => 2026-04-30 00:00:00 +0000
+Time.local(2026, 5, 31).prev_quarter  # => 2026-02-28 00:00:00 +0000
+Time.local(2026, 10, 31).prev_quarter # => 2026-07-31 00:00:00 +0000
+Time.local(2026, 11, 30).next_quarter # => 2027-03-01 00:00:00 +0000
+```
+
+`prev_quarter` is aliased to [`last_quarter`][DateAndTime::Calculations#last_quarter].
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
+[DateAndTime::Calculations#last_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-last_quarter
+[DateAndTime::Calculations#next_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-next_quarter
+[DateAndTime::Calculations#prev_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-prev_quarter
+
+#### `prev_week`, `next_week`
+
+The method [`next_week`][DateAndTime::Calculations#next_week] accepts a day name as a symbol and returns the date of that day in the following week. The default day is `:monday`, unless `config.beginning_of_week` has been set to something else:
+
+```ruby
+d = Date.new(2026, 5, 5)  # => Tue, 05 May 2026
+d.next_week               # => Mon, 11 May 2026
+d.next_week(:saturday)    # => Sat, 16 May 2026
+```
+
+The method [`prev_week`][DateAndTime::Calculations#prev_week] works the same way but returns the date in the previous week. It is also aliased as `last_week`:
+
+```ruby
+d.prev_week               # => Mon, 27 Apr 2026
+d.prev_week(:saturday)    # => Sat, 02 May 2026
+d.prev_week(:friday)      # => Fri, 01 May 2026
+```
+
+Both methods respect the `config.beginning_of_week` setting if configured.
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
+[Date.beginning_of_week]: https://api.rubyonrails.org/classes/Date.html#method-c-beginning_of_week
+[DateAndTime::Calculations#last_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-last_week
+[DateAndTime::Calculations#next_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-next_week
+[DateAndTime::Calculations#prev_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-prev_week
+
+#### `monday`, `sunday`
+
+The methods [`monday`][DateAndTime::Calculations#monday] and
+[`sunday`][DateAndTime::Calculations#sunday] return the dates for the previous
+Monday (or the same day if it is Monday) and next Sunday (or the same day if it
+is Sunday), respectively.
+
+```ruby
+d = Date.new(2026, 05, 05)    # => Tue, 05 May 2026
+d.monday                      # => Mon, 04 May 2026
+d.sunday                      # => Sun, 10 May 2026
+```
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
+[DateAndTime::Calculations#monday]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-monday
+[DateAndTime::Calculations#sunday]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-sunday
+
 ### Beginnings and Ends
+
+
 
 ### Duration
 combine the three duration sections
@@ -3394,48 +3532,10 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ### `monday`, `sunday`
 
-The methods [`monday`][DateAndTime::Calculations#monday] and
-[`sunday`][DateAndTime::Calculations#sunday] return the dates for the previous
-Monday (or the same day if it is Monday) and next Sunday (or the same day if it
-is Sunday), respectively.
 
-```ruby
-d = Date.new(2026, 05, 05)    # => Tue, 05 May 2026
-d.monday                      # => Mon, 04 May 2026
-d.sunday                      # => Sun, 10 May 2026
-```
-
-NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
-
-[DateAndTime::Calculations#monday]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-monday
-[DateAndTime::Calculations#sunday]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-sunday
 
 ### `prev_week`, `next_week`
 
-The method [`next_week`][DateAndTime::Calculations#next_week] accepts a day name as a symbol and returns the date of that day in the following week. The default day is `:monday`, unless `config.beginning_of_week` has been set to something else:
-
-```ruby
-d = Date.new(2026, 5, 5)  # => Tue, 05 May 2026
-d.next_week               # => Mon, 11 May 2026
-d.next_week(:saturday)    # => Sat, 16 May 2026
-```
-
-The method [`prev_week`][DateAndTime::Calculations#prev_week] works the same way but returns the date in the previous week. It is also aliased as `last_week`:
-
-```ruby
-d.prev_week               # => Mon, 27 Apr 2026
-d.prev_week(:saturday)    # => Sat, 02 May 2026
-d.prev_week(:friday)      # => Fri, 01 May 2026
-```
-
-Both methods respect the `config.beginning_of_week` setting if configured.
-
-NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
-
-[Date.beginning_of_week]: https://api.rubyonrails.org/classes/Date.html#method-c-beginning_of_week
-[DateAndTime::Calculations#last_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-last_week
-[DateAndTime::Calculations#next_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-next_week
-[DateAndTime::Calculations#prev_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-prev_week
 
 ### `beginning_of_month`, `end_of_month`
 
@@ -3875,92 +3975,12 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ### `prev_day`, `next_day`
 
-The methods [`prev_day`][Time#prev_day] and [`next_day`][Time#next_day] return the time in the last or next day:
-
-```ruby
-t = Time.new(2026, 5, 5)  # => 2026-05-05 00:00:00 +0000
-t.prev_day                # => 2026-05-04 00:00:00 +0000
-t.next_day                # => 2026-05-06 00:00:00 +0000
-```
-
-NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
-
-[Time#next_day]: https://api.rubyonrails.org/classes/Time.html#method-i-next_day
-[Time#prev_day]: https://api.rubyonrails.org/classes/Time.html#method-i-prev_day
-
 ### `prev_month`, `next_month`
-
-The methods [`prev_month`][Time#prev_month] and [`next_month`][Time#next_month] return the time with the same day in the last or next month:
-
-```ruby
-t = Time.new(2026, 5, 5)  # => 2026-05-05 00:00:00 +0000
-t.prev_month              # => 2026-04-05 00:00:00 +0000
-t.next_month              # => 2026-06-05 00:00:00 +0000
-```
-
-If such a day does not exist, the last day of the corresponding month is returned:
-
-```ruby
-Time.new(2026, 5, 31).prev_month # => 2026-04-30 00:00:00 +0000
-Time.new(2026, 3, 31).prev_month # => 2026-02-28 00:00:00 +0000
-Time.new(2026, 5, 31).next_month # => 2026-06-30 00:00:00 +0000
-Time.new(2026, 1, 31).next_month # => 2026-02-28 00:00:00 +0000
-```
-
-NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
-
-[Time#next_month]: https://api.rubyonrails.org/classes/Time.html#method-i-next_month
-[Time#prev_month]: https://api.rubyonrails.org/classes/Time.html#method-i-prev_month
 
 ### `prev_year`, `next_year`
 
-The methods [`prev_year`][Time#prev_year] and [`next_year`][Time#next_year] return a time with the same day/month in the last or next year:
-
-```ruby
-t = Time.new(2026, 5, 5)  # => 2026-05-05 00:00:00 +0000
-t.prev_year               # => 2025-05-05 00:00:00 +0000
-t.next_year               # => 2027-05-05 00:00:00 +0000
-```
-
-If date is the 29th of February of a leap year, you obtain the 28th:
-
-```ruby
-t = Time.new(2024, 2, 29)  # => 2024-02-29 00:00:00 +0000
-t.prev_year                # => 2023-02-28 00:00:00 +0000
-t.next_year                # => 2025-02-28 00:00:00 +0000
-```
-
-NOTE: Defined in `active_support/core_ext/time/calculations.rb`.
-
-[Time#next_year]: https://api.rubyonrails.org/classes/Time.html#method-i-next_year
-[Time#prev_year]: https://api.rubyonrails.org/classes/Time.html#method-i-prev_year
-
 ### `prev_quarter`, `next_quarter`
 
-The methods [`prev_quarter`][DateAndTime::Calculations#prev_quarter] and [`next_quarter`][DateAndTime::Calculations#next_quarter] return the date with the same day in the previous or next quarter:
-
-```ruby
-t = Time.local(2026, 5, 5)  # => 2026-05-05 00:00:00 +0000
-t.prev_quarter              # => 2026-02-05 00:00:00 +0000
-t.next_quarter              # => 2026-08-05 00:00:00 +0000
-```
-
-If such a day does not exist, the last day of the corresponding month is returned:
-
-```ruby
-Time.local(2026, 7, 31).prev_quarter  # => 2026-04-30 00:00:00 +0000
-Time.local(2026, 5, 31).prev_quarter  # => 2026-02-28 00:00:00 +0000
-Time.local(2026, 10, 31).prev_quarter # => 2026-07-31 00:00:00 +0000
-Time.local(2026, 11, 30).next_quarter # => 2027-03-01 00:00:00 +0000
-```
-
-`prev_quarter` is aliased to [`last_quarter`][DateAndTime::Calculations#last_quarter].
-
-NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
-
-[DateAndTime::Calculations#last_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-last_quarter
-[DateAndTime::Calculations#next_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-next_quarter
-[DateAndTime::Calculations#prev_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-prev_quarter
 
 ### Durations
 
