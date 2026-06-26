@@ -55,6 +55,16 @@ module ActiveModel
         end
       end
 
+      def apply_pending_attribute_modifications(attribute_set) # :nodoc:
+        if superclass.respond_to?(:apply_pending_attribute_modifications, true)
+          superclass.send(:apply_pending_attribute_modifications, attribute_set)
+        end
+
+        pending_attribute_modifications.each do |modification|
+          modification.apply_to(attribute_set)
+        end
+      end
+
       private
         PendingType = Struct.new(:name, :type) do # :nodoc:
           def apply_to(attribute_set)
@@ -81,16 +91,6 @@ module ActiveModel
 
         def pending_attribute_modifications
           @pending_attribute_modifications ||= []
-        end
-
-        def apply_pending_attribute_modifications(attribute_set)
-          if superclass.respond_to?(:apply_pending_attribute_modifications, true)
-            superclass.send(:apply_pending_attribute_modifications, attribute_set)
-          end
-
-          pending_attribute_modifications.each do |modification|
-            modification.apply_to(attribute_set)
-          end
         end
 
         def reset_default_attributes
