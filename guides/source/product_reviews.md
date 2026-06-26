@@ -38,10 +38,10 @@ $ bin/rails generate model Review product:belongs_to user:belongs_to rating:inte
 
 This model has several attributes and associations:
 
-- `product:belongs_to` which associates the `Review` with the `Product`
-- `user:belongs_to` which associates the `Review` with the `User` who created it
-- `rating` which is an integer that stores the 1-5 star rating
-- `body` which stores the text description of the review
+- `product:belongs_to` associates the `Review` with the `Product`
+- `user:belongs_to` associates the `Review` with the `User` who created it
+- `rating` is an integer that stores the 1-5 star rating
+- `body` stores the text description of the review
 - `images` stores images using ActiveStorage
 
 ### Caches
