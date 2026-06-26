@@ -215,7 +215,7 @@ Create `app/views/products/reviews/new.html.erb` with the following:
 <h1>Add a review</h1>
 
 <%= form_with model: [@product, @review] do |form| %>
-<fieldset>
+  <fieldset>
     <legend>Rating</legend>
     <div class="rating">
       <% 1.upto(5).each do |i| %>
@@ -316,7 +316,7 @@ There are a few things going on here:
 1. The ratings display as stars, but screen reader users hear clear indications like `Rating, 1 star, radio button, 1 of 5`
 2. The radio buttons are hidden but keyboard accessible
 3. When a radio is checked, focused or hovered, the star labels before it are colored gold
- 
+
 CSS allows us to select previous siblings using `:has(~ input:checked)` and `:has(~ input + label:hover)`. This selector targets labels for all the lower stars when the user selects a rating. If they choose 3 stars, the selector colors the stars 1, 2, and 3 with gold.
 
 ### Creating reviews
@@ -438,17 +438,17 @@ alongside the reviews.
       <div>
         <% 5.downto(1).each do |i| %>
           <%= link_to product_path(product, rating: i), class: "review__summary", aria: { label: "#{pluralize(i, "star")} — #{product.rating_percentage(i)}% of reviews" } do %>
-          <div aria-hidden="true">
-            <div class="review__stars"><%= i %></div>
-            <div class="gold">★</div>
-            <div class="review__bars">
-              <div class="review__bar--background"></div>
-              <div class="review__bar" style="width: <%= product.rating_percentage(i) %>%;"></div>
+            <div aria-hidden="true">
+              <div class="review__stars"><%= i %></div>
+              <div class="gold">★</div>
+              <div class="review__bars">
+                <div class="review__bar--background"></div>
+                <div class="review__bar" style="width: <%= product.rating_percentage(i) %>%;"></div>
+              </div>
+              <div class="review__percentage"><%= product.rating_percentage(i) %>%</div>
             </div>
-            <div class="review__percentage"><%= product.rating_percentage(i) %>%</div>
-          </div>
+          <% end %>
         <% end %>
-      <% end %>
       </div>
     <% else %>
       <p>None yet!</p>
@@ -940,7 +940,6 @@ Last, but not least, let's create the edit view in `app/views/store/reviews/edit
       <% end %>
     </div>
   </fieldset>
-  </div>
 
   <div>
     <%= form.label :body, style: "display: block;" %>
