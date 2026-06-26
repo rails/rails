@@ -3344,7 +3344,110 @@ todo next
 
 ### Calculations
 
+#### `years_ago`, `years_since`
 
+The method [`years_ago`][DateAndTime::Calculations#years_ago] receives a number of years and returns the same date those many years ago:
+
+```ruby
+date = Date.new(2026, 5, 5)
+date.years_ago(10) # => Sun, 05 May 2016
+```
+
+The method [`years_since`][DateAndTime::Calculations#years_since] moves forward in time:
+
+```ruby
+date = Date.new(2026, 5, 5)
+date.years_since(10) # => Fri, 05 May 2036
+```
+
+If such a day does not exist, the last day of the corresponding month is returned:
+
+```ruby
+Date.new(2024, 2, 29).years_ago(1)   # => Wed, 28 Feb 2023
+Date.new(2024, 2, 29).years_since(2) # => Sat, 28 Feb 2026
+```
+
+The method [`last_year`][DateAndTime::Calculations#last_year] is short-hand for `years_ago`.
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
+[DateAndTime::Calculations#last_year]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-last_year
+[DateAndTime::Calculations#years_ago]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-years_ago
+[DateAndTime::Calculations#years_since]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-years_since
+
+#### `months_ago`, `months_since`
+
+The methods [`months_ago`][DateAndTime::Calculations#months_ago] and [`months_since`][DateAndTime::Calculations#months_since] work analogously for months:
+
+```ruby
+Date.new(2026, 5, 5).months_ago(2)   # => Sun, 05 Mar 2026
+Date.new(2026, 5, 5).months_since(2) # => Sat, 05 Jul 2026
+```
+
+If such a day does not exist, the last day of the corresponding month is returned:
+
+```ruby
+Date.new(2026, 3, 31).months_ago(1)   # => Sat, 28 Feb 2026
+Date.new(2026, 1, 31).months_since(1) # => Sat, 28 Feb 2026
+```
+
+The method [`last_month`][DateAndTime::Calculations#last_month] is short-hand for `months_ago`.
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
+[DateAndTime::Calculations#last_month]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-last_month
+[DateAndTime::Calculations#months_ago]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-months_ago
+[DateAndTime::Calculations#months_since]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-months_since
+
+#### `weeks_ago`, `weeks_since`
+
+The method [`weeks_ago`][DateAndTime::Calculations#weeks_ago] and [`weeks_since`][DateAndTime::Calculations#week_since] work analogously for weeks:
+
+```ruby
+Date.new(2026, 5, 5).weeks_ago(1)   # => Tue, 28 Apr 2026
+Date.new(2026, 5, 5).weeks_since(2) # => Tue, 19 May 2026
+```
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
+[DateAndTime::Calculations#weeks_ago]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-weeks_ago
+[DateAndTime::Calculations#weeks_since]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-weeks_since
+
+#### `advance`
+
+The most generic way to jump to other days is [`advance`][Date#advance]. This method receives a hash with keys `:years`, `:months`, `:weeks`, `:days`, and returns a date advanced as much as the present keys indicate:
+
+```ruby
+date = Date.new(2026, 5, 5)
+date.advance(years: 1, weeks: 2)  # => Wed, 19 May 2027
+date.advance(months: 2, days: -2) # => Mon, 03 Jul 2026
+```
+
+Note in the previous example that increments can be negative.
+
+NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
+
+[Date#advance]: https://api.rubyonrails.org/classes/Date.html#method-i-advance
+
+#### `change`
+
+The [`change`][Date#change] method returns a new date based on the receiver, with the specified year, month, or day swapped out:
+
+```ruby
+Date.new(2026, 5, 5).change(year: 2027, month: 3)
+# => Fri, 05 Mar 2027
+```
+
+If the resulting date does not exist, `ArgumentError` is raised:
+
+```ruby
+Date.new(2026, 5, 31).change(month: 2)
+# => ArgumentError: invalid date
+```
+
+NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
+
+[Date#change]: https://api.rubyonrails.org/classes/Date.html#method-i-change
 
 ### Stepping Through Time
 
@@ -3484,23 +3587,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ### Beginnings and Ends
 
-
-
-### Duration
-combine the three duration sections
- 
-### Time Zones and UTC
-
-
-Extensions to `Date`
---------------------
-
-INFO: The following calculation methods have edge cases in October 1582, since days 5..14 just do not exist. This guide does not document their behavior around those days for brevity, but it is enough to say that they do what you would expect. That is, `Date.new(1582, 10, 4).tomorrow` returns `Date.new(1582, 10, 15)` and so on. Please check `test/core_ext/date_ext_test.rb` in the Active Support test suite for expected behavior.
-
-### `Date.current`
-
-
-### `beginning_of_week`, `end_of_week`
+#### `beginning_of_week`, `end_of_week`
 
 The methods [`beginning_of_week`][DateAndTime::Calculations#beginning_of_week]
 and [`end_of_week`][DateAndTime::Calculations#end_of_week] return the dates for
@@ -3530,14 +3617,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#beginning_of_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-beginning_of_week
 [DateAndTime::Calculations#end_of_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-end_of_week
 
-### `monday`, `sunday`
-
-
-
-### `prev_week`, `next_week`
-
-
-### `beginning_of_month`, `end_of_month`
+#### `beginning_of_month`, `end_of_month`
 
 The methods [`beginning_of_month`][DateAndTime::Calculations#beginning_of_month]
 and [`end_of_month`][DateAndTime::Calculations#end_of_month] return the dates
@@ -3558,7 +3638,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#beginning_of_month]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-beginning_of_month
 [DateAndTime::Calculations#end_of_month]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-end_of_month
 
-### `quarter`, `beginning_of_quarter`, `end_of_quarter`
+#### `quarter`, `beginning_of_quarter`, `end_of_quarter`
 
 The method [`quarter`][DateAndTime::Calculations#quarter] returns the quarter of the receiver's calendar year:
 
@@ -3591,7 +3671,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#beginning_of_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-beginning_of_quarter
 [DateAndTime::Calculations#end_of_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-end_of_quarter
 
-### `beginning_of_year`, `end_of_year`
+#### `beginning_of_year`, `end_of_year`
 
 The methods [`beginning_of_year`][DateAndTime::Calculations#beginning_of_year] and [`end_of_year`][DateAndTime::Calculations#end_of_year] return the dates for the beginning and end of the year:
 
@@ -3612,112 +3692,96 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#beginning_of_year]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-beginning_of_year
 [DateAndTime::Calculations#end_of_year]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-end_of_year
 
+#### `beginning_of_day`, `end_of_day`
+
+NOTE: hour and minute apply to `Time` and `DateTime` only
+
+#### `beginning_of_hour`, `end_of_day`
+
+#### `beginning_of_minute`, `end_of_minute`
+
+#### `all_day`, `all_week`, `all_month`, `all_quarter`, and `all_year`
+
+The method [`all_day`][DateAndTime::Calculations#all_day] returns a time range representing the whole day of the current time, from `00:00:00` to `23:59:59`:
+
+```ruby
+now = Time.current
+# => Tue, 05 May 2026 12:00:00 UTC +00:00
+now.all_day
+# => Tue, 05 May 2026 00:00:00 UTC +00:00..Tue, 05 May 2026 23:59:59 UTC +00:00
+```
+
+NOTE: The return type a `Range` of `ActiveSupport::TimeWithZone` objects.
+
+Similarly, [`all_week`][DateAndTime::Calculations#all_week], [`all_month`][DateAndTime::Calculations#all_month], [`all_quarter`][DateAndTime::Calculations#all_quarter], and [`all_year`][DateAndTime::Calculations#all_year] return ranges spanning their respective calendar periods, each from `00:00:00` on the first day to `23:59:59` on the last:
+
+```ruby
+now = Time.current
+# => Tue, 05 May 2026 12:00:00 UTC +00:00
+now.all_week
+# => Mon, 04 May 2026 00:00:00 UTC +00:00..Sun, 10 May 2026 23:59:59 UTC +00:00
+now.all_week(:sunday)
+# => Sun, 03 May 2026 00:00:00 UTC +00:00..Sat, 09 May 2026 23:59:59 UTC +00:00
+now.all_month
+# => Fri, 01 May 2026 00:00:00 UTC +00:00..Sun, 31 May 2026 23:59:59 UTC +00:00
+now.all_quarter
+# => Wed, 01 Apr 2026 00:00:00 UTC +00:00..Tue, 30 Jun 2026 23:59:59 UTC +00:00
+now.all_year
+# => Thu, 01 Jan 2026 00:00:00 UTC +00:00..Thu, 31 Dec 2026 23:59:59 UTC +00:00
+```
+
+NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
+
+[DateAndTime::Calculations#all_day]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-all_day
+[DateAndTime::Calculations#all_month]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-all_month
+[DateAndTime::Calculations#all_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-all_quarter
+[DateAndTime::Calculations#all_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-all_week
+[DateAndTime::Calculations#all_year]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-all_year
+[Time.current]: https://api.rubyonrails.org/classes/Time.html#method-c-current
+
+### Duration
+combine the three duration sections
+ 
+### Time Zones and UTC
+
+
+Extensions to `Date`
+--------------------
+
+INFO: The calculation methods have edge cases in October 1582, since days 5..14 just do not exist. The date classes behave correctly around this date, for example, `Date.new(1582, 10, 4).tomorrow` returns `Date.new(1582, 10, 15)` and so on.
+
+### `Date.current`
+
+
+### `beginning_of_week`, `end_of_week`
+
+### `monday`, `sunday`
+
+
+
+### `prev_week`, `next_week`
+
+
+### `beginning_of_month`, `end_of_month`
+
+### `quarter`, `beginning_of_quarter`, `end_of_quarter`
+
+
+### `beginning_of_year`, `end_of_year`
+
+
+
 // #### Other Date Computations
 
 ### `years_ago`, `years_since`
 
-The method [`years_ago`][DateAndTime::Calculations#years_ago] receives a number of years and returns the same date those many years ago:
-
-```ruby
-date = Date.new(2026, 5, 5)
-date.years_ago(10) # => Sun, 05 May 2016
-```
-
-The method [`years_since`][DateAndTime::Calculations#years_since] moves forward in time:
-
-```ruby
-date = Date.new(2026, 5, 5)
-date.years_since(10) # => Fri, 05 May 2036
-```
-
-If such a day does not exist, the last day of the corresponding month is returned:
-
-```ruby
-Date.new(2024, 2, 29).years_ago(1)   # => Wed, 28 Feb 2023
-Date.new(2024, 2, 29).years_since(2) # => Sat, 28 Feb 2026
-```
-
-The method [`last_year`][DateAndTime::Calculations#last_year] is short-hand for `years_ago`.
-
-NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
-
-[DateAndTime::Calculations#last_year]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-last_year
-[DateAndTime::Calculations#years_ago]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-years_ago
-[DateAndTime::Calculations#years_since]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-years_since
-
 ### `months_ago`, `months_since`
-
-The methods [`months_ago`][DateAndTime::Calculations#months_ago] and [`months_since`][DateAndTime::Calculations#months_since] work analogously for months:
-
-```ruby
-Date.new(2026, 5, 5).months_ago(2)   # => Sun, 05 Mar 2026
-Date.new(2026, 5, 5).months_since(2) # => Sat, 05 Jul 2026
-```
-
-If such a day does not exist, the last day of the corresponding month is returned:
-
-```ruby
-Date.new(2026, 3, 31).months_ago(1)   # => Sat, 28 Feb 2026
-Date.new(2026, 1, 31).months_since(1) # => Sat, 28 Feb 2026
-```
-
-The method [`last_month`][DateAndTime::Calculations#last_month] is short-hand for `months_ago`.
-
-NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
-
-[DateAndTime::Calculations#last_month]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-last_month
-[DateAndTime::Calculations#months_ago]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-months_ago
-[DateAndTime::Calculations#months_since]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-months_since
 
 ### `weeks_ago`, `weeks_since`
 
-The method [`weeks_ago`][DateAndTime::Calculations#weeks_ago] and [`weeks_since`][DateAndTime::Calculations#week_since] work analogously for weeks:
-
-```ruby
-Date.new(2026, 5, 5).weeks_ago(1)   # => Tue, 28 Apr 2026
-Date.new(2026, 5, 5).weeks_since(2) # => Tue, 19 May 2026
-```
-
-NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
-
-[DateAndTime::Calculations#weeks_ago]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-weeks_ago
-[DateAndTime::Calculations#weeks_since]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-weeks_since
-
 ### `advance`
 
-The most generic way to jump to other days is [`advance`][Date#advance]. This method receives a hash with keys `:years`, `:months`, `:weeks`, `:days`, and returns a date advanced as much as the present keys indicate:
-
-```ruby
-date = Date.new(2026, 5, 5)
-date.advance(years: 1, weeks: 2)  # => Wed, 19 May 2027
-date.advance(months: 2, days: -2) # => Mon, 03 Jul 2026
-```
-
-Note in the previous example that increments can be negative.
-
-NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
-
-[Date#advance]: https://api.rubyonrails.org/classes/Date.html#method-i-advance
-
 ### `change`
-
-The [`change`][Date#change] method returns a new date based on the receiver, with the specified year, month, or day swapped out:
-
-```ruby
-Date.new(2026, 5, 5).change(year: 2027, month: 3)
-# => Fri, 05 Mar 2027
-```
-
-If the resulting date does not exist, `ArgumentError` is raised:
-
-```ruby
-Date.new(2026, 5, 31).change(month: 2)
-# => ArgumentError: invalid date
-```
-
-NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
-
-[Date#change]: https://api.rubyonrails.org/classes/Date.html#method-i-change
 
 ### Durations
 
@@ -3935,43 +3999,6 @@ WARNING: If `since` or `ago` produces a time outside the range that `Time` can r
 
 
 ### `all_day`, `all_week`, `all_month`, `all_quarter`, and `all_year`
-
-The method [`all_day`][DateAndTime::Calculations#all_day] returns a time range representing the whole day of the current time, from `00:00:00` to `23:59:59`:
-
-```ruby
-now = Time.current
-# => Tue, 05 May 2026 12:00:00 UTC +00:00
-now.all_day
-# => Tue, 05 May 2026 00:00:00 UTC +00:00..Tue, 05 May 2026 23:59:59 UTC +00:00
-```
-
-NOTE: The return type a `Range` of `ActiveSupport::TimeWithZone` objects.
-
-Similarly, [`all_week`][DateAndTime::Calculations#all_week], [`all_month`][DateAndTime::Calculations#all_month], [`all_quarter`][DateAndTime::Calculations#all_quarter], and [`all_year`][DateAndTime::Calculations#all_year] return ranges spanning their respective calendar periods, each from `00:00:00` on the first day to `23:59:59` on the last:
-
-```ruby
-now = Time.current
-# => Tue, 05 May 2026 12:00:00 UTC +00:00
-now.all_week
-# => Mon, 04 May 2026 00:00:00 UTC +00:00..Sun, 10 May 2026 23:59:59 UTC +00:00
-now.all_week(:sunday)
-# => Sun, 03 May 2026 00:00:00 UTC +00:00..Sat, 09 May 2026 23:59:59 UTC +00:00
-now.all_month
-# => Fri, 01 May 2026 00:00:00 UTC +00:00..Sun, 31 May 2026 23:59:59 UTC +00:00
-now.all_quarter
-# => Wed, 01 Apr 2026 00:00:00 UTC +00:00..Tue, 30 Jun 2026 23:59:59 UTC +00:00
-now.all_year
-# => Thu, 01 Jan 2026 00:00:00 UTC +00:00..Thu, 31 Dec 2026 23:59:59 UTC +00:00
-```
-
-NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
-
-[DateAndTime::Calculations#all_day]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-all_day
-[DateAndTime::Calculations#all_month]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-all_month
-[DateAndTime::Calculations#all_quarter]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-all_quarter
-[DateAndTime::Calculations#all_week]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-all_week
-[DateAndTime::Calculations#all_year]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-all_year
-[Time.current]: https://api.rubyonrails.org/classes/Time.html#method-c-current
 
 ### `prev_day`, `next_day`
 
