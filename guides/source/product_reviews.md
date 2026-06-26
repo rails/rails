@@ -426,9 +426,9 @@ alongside the reviews.
     <h3>Reviews</h3>
 
     <% if product.reviews_count > 0 %>
-      <div>
+      <div role="img" aria-label="<%= product.rating.round %> out of 5 stars">
         <% 5.times do |i| %>
-          <%= tag.span "★", class: (i < product.rating.round ? "gold" : "gray") %>
+          <%= tag.span "★", class: (i < product.rating.round ? "gold" : "gray"), aria: { hidden: true } %>
         <% end %>
         <%= product.rating %> out of 5
       </div>
