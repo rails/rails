@@ -3739,10 +3739,52 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#all_year]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-all_year
 [Time.current]: https://api.rubyonrails.org/classes/Time.html#method-c-current
 
-### Duration
-combine the three duration sections
- 
 ### Time Zones and UTC
+
+### Duration
+
+The [`ActiveSupport::Duration`][ActiveSupport::Duration] objects are the values returned by `1.day`, `2.weeks`, `3.months`, and such. Those durations can be added to or subtracted from `Date`, `DateTime`, and `Time` objects:
+
+```ruby
+Date.current + 1.year     # => a Date one year from today
+Time.current - 1.week     # => a Time one week ago
+DateTime.current + 3.days # => a DateTime three days from now
+```
+
+Under the hood, this arithmetic translates into calls to `since` or
+`advance`,which means they correctly handle calendar edge cases. For example,
+the Gregorian calendar reform skipped 10 days in October 1582, the `Duration`
+arithmetic respects this:
+
+```ruby
+Date.new(1582, 10, 4) + 1.day
+# => Fri, 15 Oct 1582
+```
+
+The key difference between the three classes is daylight saving time (DST)
+awareness. `Time` understands DST, so duration arithmetic on a `Time` correctly
+accounts for clocks moving forward or backward. `Date` and `DateTime` have no
+concept of DST, so the same arithmetic on those classes simply shifts by a fixed
+calendar amount without adjusting for any time change:
+
+```ruby
+# Clocks spring forward at 2am in New York on March 8, 2026
+t = Time.local(2026, 3, 8, 1, 59, 59)
+t + 1.second
+# => Sun Mar 08 03:00:00 -0400 2026   (correctly skips the DST gap)
+
+dt = DateTime.new(2026, 3, 8, 1, 59, 59)
+dt + 1.second
+# => 2026-03-08T02:00:00+00:00        (no DST adjustment — just adds a second)
+```
+
+This is the one reason to prefer `Time` (or `ActiveSupport::TimeWithZone`) over `DateTime` whenever you're doing time-of-day arithmetic that might span a DST transition.
+
+NOTE: Defined in `active_support/core_ext/date/calculations.rb`, `active_support/core_ext/date_time/calculations.rb`, and `active_support/core_ext/time/calculations.rb`.
+
+[ActiveSupport::Duration]: https://api.rubyonrails.org/classes/ActiveSupport/Duration.html
+ 
+
 
 
 Extensions to `Date`
@@ -3784,25 +3826,6 @@ INFO: The calculation methods have edge cases in October 1582, since days 5..14 
 ### `change`
 
 ### Durations
-
-The [`Duration`][ActiveSupport::Duration] objects can be added to and subtracted from dates:
-
-```ruby
-d = Date.new(2026, 5, 5)   # => Tue, 05 May 2026
-d + 1.year                 # => Wed, 05 May 2027
-d - 3.months               # => Thu, 05 Feb 2026
-```
-
-Under the hood these operations call `since` or `advance`, which means they correctly handle calendar edge cases. For example, the Gregorian calendar reform skipped 10 days in October 1582, the `Duration` arithmetic respects this:
-
-```ruby
-Date.new(1582, 10, 4) + 1.day
-# => Fri, 15 Oct 1582
-```
-
-NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
-
-[ActiveSupport::Duration]: https://api.rubyonrails.org/classes/ActiveSupport/Duration.html
 
 ### Methods that Return Time or DateTime
 
@@ -3945,21 +3968,6 @@ NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
 
 ### Durations
 
-[`Duration`][ActiveSupport::Duration] objects can be added to and subtracted from datetimes:
-
-```ruby
-now = DateTime.current    # => Tue, 05 May 2026 12:00:00 +0000
-now + 1.year              # => Wed, 05 May 2027 12:00:00 +0000
-now - 1.week              # => Tue, 28 Apr 2026 12:00:00 +0000
-```
-
-They translate to calls to `since` or `advance`. For example here we get the correct jump in the calendar reform:
-
-```ruby
-DateTime.new(1582, 10, 4, 23) + 1.hour
-# => Fri, 15 Oct 1582 00:00:00 +0000
-```
-
 Extensions to `Time`
 --------------------
 
@@ -4010,24 +4018,6 @@ WARNING: If `since` or `ago` produces a time outside the range that `Time` can r
 
 
 ### Durations
-
-The [`Duration`][ActiveSupport::Duration] objects can be added to and subtracted from time objects:
-
-```ruby
-now = Time.current
-# => Tue, 05 May 2026 12:00:00 UTC +00:00
-now + 1.year
-# => Wed, 05 May 2027 12:00:00 UTC +00:00
-now - 1.week
-# => Tue, 28 Apr 2026 12:00:00 UTC +00:00
-```
-
-They translate to calls to `since` or `advance`. For example here we get the correct jump in the calendar reform:
-
-```ruby
-Time.utc(1582, 10, 3) + 5.days
-# => Mon Oct 18 00:00:00 UTC 1582
-```
 
 Exception Class Extensions
 --------------------------
