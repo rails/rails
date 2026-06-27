@@ -342,6 +342,7 @@ module ActiveSupport
           assert_equal "1.0 KB",   number_helper.number_to_human_size(kilobytes(1.0123), precision: 2, strip_insignificant_zeros: false)
           assert_equal "1.012 KB",   number_helper.number_to_human_size(kilobytes(1.0123), precision: 3, significant: false)
           assert_equal "1 KB",   number_helper.number_to_human_size(kilobytes(1.0123), precision: 0, significant: true) # ignores significant it precision is 0
+          assert_equal "120.5625 KB", number_helper.number_to_human_size(123456, precision: nil)
         end
       end
 
@@ -377,6 +378,7 @@ module ActiveSupport
           assert_equal "1 Million", number_helper.number_to_human(1234567, precision: 0, significant: true, separator: ",") # significant forced to false
           assert_equal "1 Million", number_helper.number_to_human(999999)
           assert_equal "1 Billion", number_helper.number_to_human(999999999)
+          assert_equal "123.456 Thousand", number_helper.number_to_human(123456, precision: nil)
         end
       end
 
