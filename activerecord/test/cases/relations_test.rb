@@ -466,6 +466,11 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal ["id desc"], topics.order_values
   end
 
+  def test_regroup_deduplication
+    topics = Topic.regroup(:author_id, :author_id)
+    assert_equal [:author_id], topics.group_values
+  end
+
   def test_finding_with_reorder_by_aliased_attributes
     topics = Topic.order("author_name").reorder(:heading)
     assert_equal 5, topics.to_a.size
