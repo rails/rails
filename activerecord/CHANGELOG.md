@@ -633,6 +633,44 @@
 
     *Eileen M. Uchitelle*, *Matthew Draper*
 
+*   Set `auto_vacuum=incremental` on new SQLite databases and introduce
+    `db:maintenance:vacuum` rake task.
+
+    SQLite does not return disk space to the operating system when rows are
+    deleted. With `auto_vacuum` set to `incremental`, freed pages are tracked
+    and can be reclaimed by running `PRAGMA incremental_vacuum`. This is
+    especially important for high-churn databases like Solid Cache, Solid
+    Queue, and Solid Cable.
+
+    New SQLite databases are now created with `auto_vacuum=incremental`
+    automatically. This is set during `db:create` before any other
+    connection pragmas are applied, because `auto_vacuum` must be
+    configured before `journal_mode=wal` initializes the database file.
+    Existing databases are not affected.
+
+    The new `db:maintenance:vacuum` rake task runs `PRAGMA
+    incremental_vacuum(1000)` and `PRAGMA wal_checkpoint(TRUNCATE)` on all
+    SQLite databases for the current environment. For databases that still
+    have `auto_vacuum=none`, it logs a warning and skips the incremental
+    vacuum (a one-time `VACUUM` is needed to switch modes).
+
+    ```bash
+    # Run maintenance manually or schedule it via Solid Queue
+    bin/rails db:maintenance:vacuum
+    ```
+
+    To override the default for new databases:
+
+    ```yaml
+    # config/database.yml
+    production:
+      adapter: sqlite3
+      pragmas:
+        auto_vacuum: none  # opt out of incremental auto_vacuum
+    ```
+
+    *Henrique Cardoso de Faria*
+
 *   MySQL error 1046 (`ER_NO_DB_ERROR: No database selected`) is now retryable as a `ConnectionFailed` exception
 
     *Clay Harmon*
