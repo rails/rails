@@ -845,6 +845,18 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     end
   end
 
+  def test_with_has_many_inversing_does_not_add_duplicate_records_when_same_model_is_eager_loaded_twice
+    with_has_many_inversing(Interest) do
+      interest = interests(:trainspotting)
+      loaded_interest = Interest.includes(human: :interests).find(interest.id)
+
+      loaded_interests = loaded_interest.human.interests
+      loaded_ids = loaded_interests.map(&:id)
+
+      assert_equal loaded_ids.uniq, loaded_ids
+    end
+  end
+
   def test_recursive_model_has_many_inversing
     with_has_many_inversing do
       main = Branch.create!
