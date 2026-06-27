@@ -27,6 +27,7 @@ require "models/reader"
 require "models/category"
 require "models/categorization"
 require "models/edge"
+require "models/clothing_item"
 require "models/wheel"
 require "models/subscriber"
 require "models/cpk"
@@ -397,6 +398,19 @@ class RelationTest < ActiveRecord::TestCase
     edge_2 = ordered_edge.create!(source_id: 2, sink_id: 3)
     assert_equal edge_1.source_id, ordered_edge.all.first.source_id
     assert_equal edge_2.source_id, ordered_edge.all.reverse_order.first.source_id
+  end
+
+  def test_reverse_order_uses_query_constraints
+    ClothingItem.delete_all
+    # Insert so that the id order is the reverse of the query_constraints order,
+    # to catch a reverse_order that falls back to ordering by the primary key.
+    zzz = ClothingItem.create!(clothing_type: "zzz", color: "red")
+    aaa = ClothingItem.create!(clothing_type: "aaa", color: "blue")
+
+    assert_equal aaa.id, ClothingItem.all.first.id
+    assert_equal zzz.id, ClothingItem.all.last.id
+    assert_equal zzz.id, ClothingItem.all.reverse_order.first.id
+    assert_equal aaa.id, ClothingItem.all.reverse_order.last.id
   end
 
   def test_order_with_hash_and_symbol_generates_the_same_sql

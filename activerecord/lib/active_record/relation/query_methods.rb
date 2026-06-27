@@ -2087,8 +2087,8 @@ module ActiveRecord
 
       def reverse_sql_order(order_query)
         if order_query.empty?
-          if !_reverse_order_columns.empty?
-            return _reverse_order_columns.map { |column| table[column].desc }
+          if !_order_columns.empty?
+            return _order_columns.map { |column| table[column].desc }
           end
 
           raise IrreversibleOrderError, <<~MSG.squish
@@ -2118,13 +2118,6 @@ module ActiveRecord
             o
           end
         end
-      end
-
-      def _reverse_order_columns
-        roc = []
-        roc << model.implicit_order_column if model.implicit_order_column
-        roc << model.primary_key if model.primary_key
-        roc.flatten.uniq.compact
       end
 
       def does_not_support_reverse?(order)
