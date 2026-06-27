@@ -515,7 +515,8 @@ module ActiveRecord
     #   # SELECT * FROM posts
     #
     # See `#with` for more information.
-    def with_recursive(*args)
+    def with_recursive(*args, &block)
+      raise ArgumentError, "ActiveRecord::Relation#with_recursive does not accept a block" if block
       check_if_method_has_arguments!(__callee__, args)
       spawn.with_recursive!(*args)
     end

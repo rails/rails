@@ -143,6 +143,12 @@ module ActiveRecord
         end
       end
 
+      def test_relation_with_recursive_raises_when_using_block
+        assert_raises(ArgumentError, match: "does not accept a block") do
+          Post.all.with_recursive(attributes_for_inspect: :id) { }
+        end
+      end
+
       def test_class_with_calls_object_with_when_given_a_block
         original = Post.attributes_for_inspect
 
