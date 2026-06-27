@@ -63,13 +63,13 @@ module ActiveSupport
       #     include ActiveSupport::Configurable
       #   end
       #
-      #   User.allowed_access # => nil
+      #   User.config.allowed_access # => nil
       #
       #   User.configure do |config|
       #     config.allowed_access = true
       #   end
       #
-      #   User.allowed_access # => true
+      #   User.config.allowed_access # => true
       def configure
         yield config
       end
