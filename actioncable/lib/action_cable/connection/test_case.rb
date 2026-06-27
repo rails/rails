@@ -128,7 +128,7 @@ module ActionCable
     # ## Connection is automatically inferred
     #
     # ActionCable::Connection::TestCase will automatically infer the connection
-    # under test from the test class name. If the channel cannot be inferred from
+    # under test from the test class name. If the connection cannot be inferred from
     # the test class name, you can explicitly set it with `tests`.
     #
     #     class ConnectionTest < ActionCable::Connection::TestCase

@@ -307,7 +307,7 @@ module Rails
   #     helper MyEngine::SharedEngineHelper
   #   end
   #
-  # If you want to include all of the engine's helpers, you can use the #helper method on an engine's
+  # If you want to include all of the engine's helpers, you can use the #helpers method on an engine's
   # instance:
   #
   #   class ApplicationController < ActionController::Base

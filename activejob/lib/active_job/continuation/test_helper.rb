@@ -48,10 +48,10 @@ module ActiveJob
       #    cattr_accessor :items, default: []
       #
       #    def perform
-      #      step :step_one { items << 1 }
-      #      step :step_two { items << 2 }
-      #      step :step_three { items << 3 }
-      #      step :step_four { items << 4 }
+      #      step(:step_one) { items << 1 }
+      #      step(:step_two) { items << 2 }
+      #      step(:step_three) { items << 3 }
+      #      step(:step_four) { items << 4 }
       #    end
       #  end
       #

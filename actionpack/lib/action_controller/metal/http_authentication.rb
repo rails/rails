@@ -514,7 +514,7 @@ module ActionController
       end
 
       # This method takes an authorization body and splits up the key-value pairs by
-      # the standardized `:`, `;`, or `\t` delimiters defined in
+      # the standardized `,`, `;`, or `\t` delimiters defined in
       # `AUTHN_PAIR_DELIMITERS`.
       def raw_params(auth)
         _raw_params = auth.sub(TOKEN_REGEX, "").split(AUTHN_PAIR_DELIMITERS).map(&:strip)

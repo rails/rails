@@ -72,7 +72,7 @@ module ActiveModel
       #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:except_on</tt> - Specifies the contexts where this validation is not active.
       #   Runs in all validation contexts by default +nil+. You can pass a symbol
-      #   or an array of symbols. (e.g. <tt>except: :create</tt> or
+      #   or an array of symbols. (e.g. <tt>except_on: :create</tt> or
       #   <tt>except_on: :custom_validation_context</tt> or
       #   <tt>except_on: [:create, :custom_validation_context]</tt>)
       # * <tt>:allow_nil</tt> - Skip validation if attribute is +nil+.
@@ -144,7 +144,7 @@ module ActiveModel
       #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:except_on</tt> - Specifies the contexts where this validation is not active.
       #   Runs in all validation contexts by default +nil+. You can pass a symbol
-      #   or an array of symbols. (e.g. <tt>except: :create</tt> or
+      #   or an array of symbols. (e.g. <tt>except_on: :create</tt> or
       #   <tt>except_on: :custom_validation_context</tt> or
       #   <tt>except_on: [:create, :custom_validation_context]</tt>)
       # * <tt>:if</tt> - Specifies a method or proc to call to determine

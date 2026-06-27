@@ -185,8 +185,8 @@ module ActiveSupport
   #
   #   subscriber = ActiveSupport::Notifications.subscribe(/render/) { }
   #   ActiveSupport::Notifications.unsubscribe('render_template.action_view')
-  #   subscriber.matches?('render_template.action_view') # => false
-  #   subscriber.matches?('render_partial.action_view') # => true
+  #   subscriber.subscribed_to?('render_template.action_view') # => false
+  #   subscriber.subscribed_to?('render_partial.action_view') # => true
   #
   # == Default Queue
   #
