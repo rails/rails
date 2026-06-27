@@ -1115,6 +1115,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_queries_count(0) do
       assert_equal company_ids, Company.where(id: empty_scope_ids).ids
     end
+    assert_async_equal company_ids, Company.where(id: empty_scope_ids).async_ids
   end
 
   def test_ids_with_join

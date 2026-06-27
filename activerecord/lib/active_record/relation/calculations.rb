@@ -396,7 +396,7 @@ module ActiveRecord
       relation.select_values = columns
 
       result = if relation.where_clause.contradiction?
-        ActiveRecord::Result.empty
+        ActiveRecord::Result.empty(async: @async)
       else
         skip_query_cache_if_necessary do
           model.with_connection do |c|
