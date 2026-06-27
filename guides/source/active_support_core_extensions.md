@@ -3211,7 +3211,7 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 [DateAndTime::Calculations#on_weekend?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-on_weekend-3F
 [DateAndTime::Calculations#past?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-past-3F
 
-#### `Time.current` and `ActiveSupport::TimeWithZone`
+#### `Time.current`
 
 The Ruby method `Time.now` returns the current time based on the **system time zone**, which is the time zone of the server your Rails app runs on.
 
@@ -3340,8 +3340,6 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 [Date#ago]: https://api.rubyonrails.org/classes/Date.html#method-i-ago
 [Date#since]: https://api.rubyonrails.org/classes/Date.html#method-i-since
 
-todo next
-
 ### Calculations
 
 #### `years_ago`, `years_since`
@@ -3413,41 +3411,116 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#weeks_ago]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-weeks_ago
 [DateAndTime::Calculations#weeks_since]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-weeks_since
 
-#### `advance`
+#### `seconds_since_midnight` and `seconds_until_end_of_day`
 
-The most generic way to jump to other days is [`advance`][Date#advance]. This method receives a hash with keys `:years`, `:months`, `:weeks`, `:days`, and returns a date advanced as much as the present keys indicate:
+The [`seconds_since_midnight`][Time#seconds_since_midnight] method returns the number of seconds elapsed since midnight on `Time` and `DateTime`. It is not defined on `Date`, since a date has no time-of-day component to measure.
 
 ```ruby
-date = Date.new(2026, 5, 5)
-date.advance(years: 1, weeks: 2)  # => Wed, 19 May 2027
-date.advance(months: 2, days: -2) # => Mon, 03 Jul 2026
+now = DateTime.current     # => Tue, 05 May 2026 12:00:00 +0000
+now.seconds_since_midnight # => 43200
+
+now = Time.current         # => Tue, 05 May 2026 12:00:00 UTC +00:00
+now.seconds_since_midnight # => 43200.0
 ```
 
-Note in the previous example that increments can be negative.
+The [`seconds_until_end_of_day`][Time#seconds_until_end_of_day] method is the complement, it returns the number of seconds remaining until 23:59:59:
 
-NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
+```ruby
+now = Time.current             # => Tue, 05 May 2026 12:00:00 UTC +00:00
+now.seconds_until_end_of_day   # => 43199
+```
+
+NOTE: Defined in `active_support/core_ext/date_time/calculations.rb` and `active_support/core_ext/time/calculations.rb`.
+
+[DateTime#seconds_since_midnight]: https://api.rubyonrails.org/classes/DateTime.html#method-i-seconds_since_midnight
+[Time#seconds_since_midnight]: https://api.rubyonrails.org/classes/Time.html#method-i-seconds_since_midnight
+[Time#seconds_until_end_of_day]: https://api.rubyonrails.org/classes/Time.html#method-i-seconds_until_end_of_day
+
+#### `advance`
+
+The most generic way to jump to another date or time is [`advance`][Date#advance] (also defined as [`DateTime#advance`][DateTime#advance] and [`Time#advance`][Time#advance]). It receives a hash of units to move by and returns a new value shifted accordingly.
+
+On `Date`, `advance` accepts `:years`, `:months`, `:weeks`, and `:days`:
+
+```ruby
+d = Date.new(2026, 5, 5)
+d.advance(years: 1, weeks: 2)  # => Wed, 19 May 2027
+d.advance(months: 2, days: -2) # => Mon, 06 Jul 2026
+```
+
+On `DateTime` and `Time`, `advance` accepts `:hours`, `:minutes`, and `:seconds` as well:
+
+```ruby
+d = DateTime.current  # => Tue, 05 May 2026 12:00:00 +0000
+d.advance(years: 1, months: 1, days: 1, hours: 1, minutes: 1, seconds: 1)
+# => Fri, 06 Jun 2027 13:01:01 +0000
+
+t = Time.current      # => Tue, 05 May 2026 12:00:00 UTC +00:00
+t.advance(years: 1, months: 1, days: 1, hours: 1, minutes: 1, seconds: 1)
+# => Fri, 06 Jun 2027 13:01:01 UTC +00:00
+```
+
+In both cases, the date level keys are processed *before* the time level keys. This ordering matters as advancing in a different order can produce different results in edge cases:
+
+```ruby
+d = DateTime.new(2026, 2, 28, 23, 59, 59)
+d.advance(months: 1, seconds: 1)
+# => Sun, 29 Mar 2026 00:00:00 +0000
+
+d.advance(seconds: 1).advance(months: 1)
+# => Wed, 01 Apr 2026 00:00:00 +0000
+```
+
+WARNING: `DateTime` is not DST-aware, so advancing across a daylight saving boundary can result in an incorrect point in time with no warning or error. `Time`, by contrast, handles this correctly:
+
+```ruby
+# Clocks spring forward at 2am in New York on March 8, 2026
+t = Time.local(2026, 3, 8, 1, 59, 59)
+t.advance(seconds: 1)
+# => Sun Mar 08 03:00:00 -0400 2026   (correctly skips the DST gap)
+```
+
+NOTE: Defined in `active_support/core_ext/date/calculations.rb`, `active_support/core_ext/date_time/calculations.rb`, and `active_support/core_ext/time/calculations.rb`.
 
 [Date#advance]: https://api.rubyonrails.org/classes/Date.html#method-i-advance
+[DateTime#advance]: https://api.rubyonrails.org/classes/DateTime.html#method-i-advance
+[Time#advance]: https://api.rubyonrails.org/classes/Time.html#method-i-advance
 
 #### `change`
 
-The [`change`][Date#change] method returns a new date based on the receiver, with the specified year, month, or day swapped out:
+The [`change`][Date#change] method (also defined as [`DateTime#change`][DateTime#change] and [`Time#change`][Time#change]) returns a new date or time based on the receiver, with only the specified parameters swapped out, keeping everything else the same.
+
+On `Date`, `change` accepts `:year`, `:month`, and `:day`:
 
 ```ruby
 Date.new(2026, 5, 5).change(year: 2027, month: 3)
 # => Fri, 05 Mar 2027
 ```
 
-If the resulting date does not exist, `ArgumentError` is raised:
+On `DateTime` and `Time`, `change` also accepts `:hour`, `:min`, `:sec`, and `:offset`. `Time` additionally accepts `:usec`:
 
 ```ruby
-Date.new(2026, 5, 31).change(month: 2)
-# => ArgumentError: invalid date
+now = DateTime.current  # => Tue, 05 May 2026 12:00:00 +0000
+now.change(year: 2027)
+# => Wed, 05 May 2027 12:00:00 +0000
+ 
+now = Time.current      # => Tue, 05 May 2026 12:00:00 UTC +00:00
+now.change(usec: 500)
+# => Tue, 05 May 2026 12:00:00.000500 UTC +00:00
 ```
 
-NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
+If hours are zeroed, minutes and seconds are zeroed too unless explicitly provided. Similarly, if minutes are zeroed, seconds are zeroed too unless explicitly provided:
+
+```ruby
+now.change(hour: 0)  # => Tue, 05 May 2026 00:00:00 UTC +00:00
+now.change(min: 0)   # => Tue, 05 May 2026 12:00:00 UTC +00:00
+```
+
+NOTE: Defined in `active_support/core_ext/date/calculations.rb`, `active_support/core_ext/date_time/calculations.rb`, and `active_support/core_ext/time/calculations.rb`.
 
 [Date#change]: https://api.rubyonrails.org/classes/Date.html#method-i-change
+[DateTime#change]: https://api.rubyonrails.org/classes/DateTime.html#method-i-change
+[Time#change]: https://api.rubyonrails.org/classes/Time.html#method-i-change
 
 ### Stepping Through Time
 
@@ -3638,7 +3711,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 [DateAndTime::Calculations#beginning_of_month]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-beginning_of_month
 [DateAndTime::Calculations#end_of_month]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-end_of_month
 
-#### `quarter`, `beginning_of_quarter`, `end_of_quarter`
+#### `beginning_of_quarter`, `end_of_quarter`, `quarter`
 
 The method [`quarter`][DateAndTime::Calculations#quarter] returns the quarter of the receiver's calendar year:
 
@@ -3741,6 +3814,96 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ### Time Zones and UTC
 
+#### `Time.zone`
+
+Rails applications can configure a single application-level time zone via `config.time_zone`. Active Support exposes the configured zone through the [`Time.zone`][Time.zone] method, which returns an `ActiveSupport::TimeZone` instance:
+
+```ruby
+Time.zone
+# => #<ActiveSupport::TimeZone:... @name="Eastern Time (US & Canada)">
+```
+
+This is what's used by `Time.current` and the related methods, without a configured `Time.zone`, Rails would fall back to the system's local time zone.
+
+#### `ActiveSupport::TimeWithZone`
+
+The methods below related to `Time.zone` return `ActiveSupport::TimeWithZone`
+objects (rather than plain `Time`), anchored to the configured zone. A
+`TimeWithZone` behaves like `Time` for nearly all practical purposes
+(arithmetic, comparisons, formatting) but carries its time zone with it, so
+calculations like `+ 1.day` or `.beginning_of_month` stay correctly anchored to
+that zone, including across daylight saving transitions.
+
+```ruby
+Time.zone.now
+# => Tue, 05 May 2026 08:00:00 EDT -04:00
+
+Time.zone.local(2026, 5, 5, 14, 30, 0)
+# => Tue, 05 May 2026 14:30:00 EDT -04:00
+
+Time.zone.parse("2026-05-05 14:30:00")
+# => Tue, 05 May 2026 14:30:00 EDT -04:00
+
+Time.zone.at(1778337000)
+# => Tue, 05 May 2026 08:30:00 EDT -04:00
+```
+
+NOTE: `ActiveSupport::TimeZone` and `ActiveSupport::TimeWithZone` represent different things. A `TimeZone` is the zone itself, a named configuration like "Eastern Time (US & Canada)," with no specific time attached. A `TimeWithZone` is an actual timestamp, that you get back from methods like `Time.zone.now` or `in_time_zone`. The `TimeWithZone` produces the timestamp and carries the zone with it.
+
+#### `in_time_zone`
+
+While `Time.zone` always refers to the application's single configured zone, the [`in_time_zone`][DateTime#in_time_zone] method lets you convert any `Time`, `DateTime`, or `Date` into an `ActiveSupport::TimeWithZone` for *any* zone you choose:
+
+```ruby
+Time.zone = "Hawaii"
+DateTime.new(2026, 1, 1).in_time_zone
+# => Wed, 31 Dec 2025 14:00:00 HST -10:00
+
+DateTime.new(2026, 1, 1).in_time_zone("Alaska")
+# => Wed, 31 Dec 2025 15:00:00 AKST -09:00
+```
+
+This is useful when you need to display a time in a zone other than the application default. For example, showing an event time in the time zone the user selected.
+
+#### `dst?`
+
+The [`dst?`][Time#dst?] method returns `true` if the receiver falls within daylight saving time for its zone:
+
+```ruby
+Time.zone = "Eastern Time (US & Canada)"
+
+Time.zone.local(2026, 1, 1).dst? # => false  — January is standard time
+Time.zone.local(2026, 7, 1).dst? # => true   — July is daylight saving time
+```
+
+#### `utc` and `utc?`
+
+The method [`utc`][DateTime#utc] returns the same moment in time as the receiver, converted to UTC:
+
+```ruby
+now = DateTime.current # => Tue, 05 May 2026 08:00:00 -0400
+now.utc                # => Tue, 05 May 2026 12:00:00 +0000
+```
+
+This method is also aliased as [`getutc`][DateTime#getutc].
+
+[`utc?`][DateTime#utc?] returns `true` if the receiver is already expressed in UTC:
+
+```ruby
+now = DateTime.current # => Tue, 05 May 2026 08:00:00 -0400
+now.utc?               # => false
+now.utc.utc?           # => true
+```
+
+NOTE: Defined in `active_support/core_ext/date_time/calculations.rb` and `active_support/core_ext/time/calculations.rb`.
+
+[Time.zone]: https://api.rubyonrails.org/classes/Time.html#method-c-zone
+[DateTime#in_time_zone]: https://api.rubyonrails.org/classes/DateTime.html#method-i-in_time_zone
+[Time#dst?]: https://api.rubyonrails.org/classes/Time.html#method-i-dst-3F
+[DateTime#getutc]: https://api.rubyonrails.org/classes/DateTime.html#method-i-getutc
+[DateTime#utc]: https://api.rubyonrails.org/classes/DateTime.html#method-i-utc
+[DateTime#utc?]: https://api.rubyonrails.org/classes/DateTime.html#method-i-utc-3F
+
 ### Duration
 
 The [`ActiveSupport::Duration`][ActiveSupport::Duration] objects are the values returned by `1.day`, `2.weeks`, `3.months`, and such. Those durations can be added to or subtracted from `Date`, `DateTime`, and `Time` objects:
@@ -3794,24 +3957,17 @@ INFO: The calculation methods have edge cases in October 1582, since days 5..14 
 
 ### `Date.current`
 
-
 ### `beginning_of_week`, `end_of_week`
 
 ### `monday`, `sunday`
 
-
-
 ### `prev_week`, `next_week`
-
 
 ### `beginning_of_month`, `end_of_month`
 
 ### `quarter`, `beginning_of_quarter`, `end_of_quarter`
 
-
 ### `beginning_of_year`, `end_of_year`
-
-
 
 // #### Other Date Computations
 
@@ -3863,108 +4019,13 @@ WARNING: `DateTime` is not aware of [Daylight Saving Time (DST)](https://en.wiki
 
 ### `DateTime.current`
 
-
 ### `seconds_since_midnight`
-
-The method [`seconds_since_midnight`][DateTime#seconds_since_midnight] returns the number of seconds since midnight:
-
-```ruby
-now = DateTime.current     # => Tue, 05 May 2026 12:00:00 +0000
-now.seconds_since_midnight # => 43200
-```
-
-NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
-
-[DateTime#seconds_since_midnight]: https://api.rubyonrails.org/classes/DateTime.html#method-i-seconds_since_midnight
 
 ### `utc` and `utc?`
 
-The  method [`utc`][DateTime#utc] returns the same moment in time as the receiver, converted to UTC:
-
-```ruby
-now = DateTime.current # => Tue, 05 May 2026 08:00:00 -0400
-now.utc                # => Tue, 05 May 2026 12:00:00 +0000
-```
-
-This method is also aliased as [`getutc`][DateTime#getutc].
-
-[`utc?`][DateTime#utc?] returns `true` if the receiver is already expressed in UTC:
-
-```ruby
-now = DateTime.current # => Tue, 05 May 2026 08:00:00 -0400
-now.utc?               # => false
-now.utc.utc?           # => true
-```
-
-NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
-
-[DateTime#getutc]: https://api.rubyonrails.org/classes/DateTime.html#method-i-getutc
-[DateTime#utc]: https://api.rubyonrails.org/classes/DateTime.html#method-i-utc
-[DateTime#utc?]: https://api.rubyonrails.org/classes/DateTime.html#method-i-utc-3F
-
 ### `advance`
 
-The [`advance`][DateTime#advance] method works similarly to `Date#advance` but is augmented with time-level keys: `:hours`, `:minutes`, and `:seconds`, in addition to `:years`, `:months`, `:weeks`, and `:days`.
-
-```ruby
-d = DateTime.current  # => Tue, 05 May 2026 12:00:00 +0000
-d.advance(years: 1, months: 1, days: 1, hours: 1, minutes: 1, seconds: 1)
-# => Fri, 06 Jun 2027 13:01:01 +0000
-```
-
-The method first advances the date using the date keys, then adjusts the time using the time keys. This order matters, advancing in a different order can produce different results in edge cases:
-
-```ruby
-d = DateTime.new(2026, 2, 28, 23, 59, 59)
-# => Sat, 28 Feb 2026 23:59:59 +0000
-d.advance(months: 1, seconds: 1)
-# => Sun, 29 Mar 2026 00:00:00 +0000
-
-d.advance(seconds: 1).advance(months: 1)
-# => Wed, 01 Apr 2026 00:00:00 +0000
-```
-
-WARNING: `DateTime` is not DST-aware, so advancing across a daylight saving boundary can result in an incorrect point in time with no warning or error.
-
-NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
-
-[DateTime#advance]: https://api.rubyonrails.org/classes/DateTime.html#method-i-advance
-[DateTime#since]: https://api.rubyonrails.org/classes/DateTime.html#method-i-since
-
 ### `change`
-
-The [`change`][DateTime#change] mehod works similarly to `Date#change` but is augmented with time-level options: `:hour`, `:min`, `:sec`, and `:offset`, in addition to `:year`, `:month`, `:day`, and `:start`.
-
-```ruby
-now = DateTime.current  # => Tue, 05 May 2026 12:00:00 +0000
-now.change(year: 2027, offset: Rational(-6, 24))
-# => Wed, 05 May 2027 12:00:00 -0600
-```
-
-NOTE: `Rational(-6, 24)` expresses a UTC offset as a fraction of a day, UTC-6, which is how `DateTime` represents time zone offsets internally.
-
-If hours are zeroed, minutes and seconds are zeroed too unless explicitly provided:
-
-```ruby
-now.change(hour: 0)  # => Tue, 05 May 2026 00:00:00 +0000
-```
-
-Similarly, if minutes are zeroed, seconds are zeroed too unless explicitly provided:
-
-```ruby
-now.change(min: 0)   # => Tue, 05 May 2026 12:00:00 +0000
-```
-
-If the resulting date does not exist, `ArgumentError` is raised:
-
-```ruby
-DateTime.current.change(month: 2, day: 30)
-# => ArgumentError: invalid date
-```
-
-NOTE: Defined in `active_support/core_ext/date_time/calculations.rb`.
-
-[DateTime#change]: https://api.rubyonrails.org/classes/DateTime.html#method-i-change
 
 ### Durations
 
@@ -4004,8 +4065,6 @@ WARNING: If `since` or `ago` produces a time outside the range that `Time` can r
 
 ### `Time.current`
 
-
-
 ### `all_day`, `all_week`, `all_month`, `all_quarter`, and `all_year`
 
 ### `prev_day`, `next_day`
@@ -4015,7 +4074,6 @@ WARNING: If `since` or `ago` produces a time outside the range that `Time` can r
 ### `prev_year`, `next_year`
 
 ### `prev_quarter`, `next_quarter`
-
 
 ### Durations
 
