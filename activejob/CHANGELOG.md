@@ -1,3 +1,11 @@
+*   Allow `retry_on` to accept a Float for `:wait`.
+
+    Similar to `ActiveJob.set(wait: 1.5)`, allow a Float to be passed.
+    Also, passing an unsupported `:wait` type will now raise when loading the
+    job class.
+
+    *Kenta Ishizaki, Petrik de Heus*
+
 *   Allow queue adapters to inspect a job when deciding whether to interrupt at
     a checkpoint, and to optionally return a specific interruption reason.
 
