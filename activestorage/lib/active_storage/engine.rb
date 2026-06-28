@@ -181,8 +181,10 @@ module ActiveStorage
       end
     end
 
-    initializer "active_storage.verifier" do
-      config.after_initialize do |app|
+    initializer "active_storage.verifier" do |app|
+      app.message_verifiers.prepend { |salt| { url_safe: true } if salt == "ActiveStorage" }
+
+      config.after_initialize do
         ActiveStorage.verifier = app.message_verifier("ActiveStorage")
       end
     end
