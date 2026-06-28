@@ -434,6 +434,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal blog_post, comment.blog_post
   end
 
+  def test_where_with_nil_composite_belongs_to_only_constrains_owned_columns
+    blog = Sharded::Blog.create!
+    blog_post = Sharded::BlogPost.create!(blog: blog)
+    with_post = Sharded::Comment.create!(blog: blog, blog_post: blog_post)
+    without_post = Sharded::Comment.create!(blog: blog)
+
+    relation = Sharded::Comment.where(blog_id: blog.id).where(blog_post: nil)
+
+    assert_includes relation, without_post
+    assert_not_includes relation, with_post
+  end
+
   def test_building_the_belonging_object_with_implicit_sti_base_class
     account = Account.new
     company = account.build_firm

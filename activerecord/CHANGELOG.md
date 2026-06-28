@@ -1,3 +1,15 @@
+*   Don't constrain shared query-constraint columns when querying a composite `belongs_to` with `nil`.
+
+    When a composite foreign key shares a column with the owner's own query constraints (e.g. a
+    multi-tenant/shard key), `where(association: nil)` constrained every foreign-key column to
+    `NULL`, including the shared one. Combined with any existing scope on that column (such as the
+    tenant) this produced an impossible `shard_id = ? AND shard_id IS NULL` condition. It now only
+    constrains the columns that uniquely identify the target.
+
+    Fixes #57904.
+
+    *Oliver Morgan*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective
