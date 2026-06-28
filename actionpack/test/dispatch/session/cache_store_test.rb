@@ -203,6 +203,19 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_delete_session_returns_nil_when_dropped
+    cache = ActiveSupport::Cache::MemoryStore.new
+    store = ActionDispatch::Session::CacheStore.new(->(env) { [200, {}, []] }, cache: cache)
+    sid = Rack::Session::SessionId.new("0" * 32)
+
+    # With options[:drop], delete_session must return nil so the session is
+    # dropped rather than reassigned a fresh id (Rack's delete_session contract).
+    assert_nil store.delete_session({}, sid, drop: true)
+
+    # Without :drop, a fresh session id is returned.
+    assert_not_nil store.delete_session({}, sid, {})
+  end
+
   private
     def app
       @app ||= self.class.build_app do |middleware|
