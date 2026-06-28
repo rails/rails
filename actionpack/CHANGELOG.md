@@ -7,6 +7,20 @@
 
     *Étienne Barrié*
 
+*   Introduce `ActionDispatch::ServerSystemTestCase`, a base class for system
+    tests that boots the Rails application as a real server without depending on
+    Capybara.
+
+    It exposes the running application's base URL through `app_host` and
+    generates URL helpers (`root_url`, `users_path`, ...) against it, so browser
+    automation tools other than Capybara (Playwright, Ferrum, plain `Net::HTTP`,
+    ...) can drive a real Rails server. It also supports a separate bind host
+    and browser-facing app host, and reraises server-side application errors
+    during teardown. `ActionDispatch::SystemTestCase` remains the
+    Capybara-based default.
+
+    *YusukeIwaki*
+
 *   Add `config.action_dispatch.strict_accept_header` to stop forcing an
     HTML response when the `Accept` header contains the `*/*` wildcard.
 
