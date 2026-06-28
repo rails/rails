@@ -507,7 +507,10 @@ module ActionController
 
       # Takes `raw_params` and turns it into an array of parameters.
       def params_array_from(raw_params)
-        raw_params.map { |param| param.split %r/=(.+)?/ }
+        raw_params.filter_map do |param|
+          pieces = param.split %r/=(.+)?/
+          pieces unless pieces.empty?
+        end
       end
 
       # This removes the `"` characters wrapping the value.
