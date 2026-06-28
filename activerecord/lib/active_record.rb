@@ -641,6 +641,10 @@ ActiveSupport.on_load(:active_record) do
   Arel::Table.engine = self
 end
 
+ActiveSupport.on_load(:active_job_arguments) do
+  record_not_found_exceptions << ActiveRecord::RecordNotFound
+end
+
 ActiveSupport.on_load(:i18n) do
   I18n.load_path << File.expand_path("active_record/locale/en.yml", __dir__)
 end

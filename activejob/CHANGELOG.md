@@ -1,3 +1,26 @@
+*   Add `ActiveJob::DeserializationError::RecordNotFound`, raised when argument
+    deserialization fails because a referenced record could not be found, and not
+    for any other reason.
+
+    Its parent class, `ActiveJob::DeserializationError` is raised when any error
+    happens during argument deserialization, including transient DB errors, and
+    discarding a job based only on this exception might lead to losing relevant,
+    perfectly fine jobs.
+
+    Instead, `ActiveJob::DeserializationError::RecordNotFound` is raised when the
+    underlying error is one of the exceptions in
+    `ActiveJob::Arguments.record_not_found_exceptions`, where Active Record
+    registers `ActiveRecord::RecordNotFound`.
+
+    In this way, existing handlers for the parent class continue to
+    work as before, but jobs can now discard on missing records specifically:
+
+    ```ruby
+    discard_on ActiveJob::DeserializationError::RecordNotFound
+    ```
+
+    *Rosa Gutiérrez*
+
 *   Allow queue adapters to inspect a job when deciding whether to interrupt at
     a checkpoint, and to optionally return a specific interruption reason.
 

@@ -266,7 +266,37 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_match "Unable to serialize Person without an id.", err.message
   end
 
+  test "wraps exceptions raised during deserialization in a DeserializationError" do
+    serialized = ActiveJob::Arguments.serialize [Person.new(404)]
+
+    error = assert_raises ActiveJob::DeserializationError do
+      ActiveJob::Arguments.deserialize serialized
+    end
+    assert_instance_of ActiveJob::DeserializationError, error
+    assert_instance_of Person::RecordNotFound, error.cause
+  end
+
+  test "wraps record not found exceptions raised during deserialization in a DeserializationError::RecordNotFound" do
+    serialized = ActiveJob::Arguments.serialize [Person.new(404)]
+
+    with_record_not_found_exceptions(Person::RecordNotFound) do
+      error = assert_raises ActiveJob::DeserializationError::RecordNotFound do
+        ActiveJob::Arguments.deserialize serialized
+      end
+      assert_kind_of ActiveJob::DeserializationError, error
+      assert_instance_of Person::RecordNotFound, error.cause
+    end
+  end
+
   private
+    def with_record_not_found_exceptions(*exceptions)
+      original = ActiveJob::Arguments.record_not_found_exceptions
+      ActiveJob::Arguments.record_not_found_exceptions = original + exceptions
+      yield
+    ensure
+      ActiveJob::Arguments.record_not_found_exceptions = original
+    end
+
     def assert_arguments_unchanged(*args)
       assert_arguments_roundtrip args
     end

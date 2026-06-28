@@ -2,6 +2,7 @@
 
 require "bigdecimal"
 require "active_support/core_ext/hash"
+require "active_support/core_ext/module/attribute_accessors"
 
 module ActiveJob
   # Raised when an exception is raised during job arguments deserialization.
@@ -11,6 +12,23 @@ module ActiveJob
     def initialize # :nodoc:
       super("Error while trying to deserialize arguments: #{$!.message}")
       set_backtrace $!.backtrace
+    end
+
+    # Raised when arguments couldn't be deserialized because a record they
+    # reference could not be found, most likely because it was deleted after
+    # the job was enqueued.
+    #
+    # Jobs whose arguments may legitimately reference deleted records can
+    # discard this error:
+    #
+    #   class SearchIndexingJob < ApplicationJob
+    #     discard_on ActiveJob::DeserializationError::RecordNotFound
+    #   end
+    #
+    # Unlike its parent class, it isn't raised for other errors that may
+    # occur while deserializing arguments, such as transient database
+    # connectivity failures, where the referenced record may still exist,
+    class RecordNotFound < DeserializationError
     end
   end
 
@@ -27,6 +45,18 @@ module ActiveJob
 
   module Arguments
     extend self
+
+    # Exception classes raised when a record referenced by the arguments
+    # can't be found. When one of them is raised during argument
+    # deserialization, it's wrapped in DeserializationError::RecordNotFound
+    # instead of plain DeserializationError, so that jobs can handle missing
+    # records specifically without also swallowing other errors, such as
+    # transient database connectivity failures.
+    #
+    # Active Record registers <tt>ActiveRecord::RecordNotFound</tt> here.
+    # Other ORMs can register their equivalent exception classes.
+    mattr_accessor :record_not_found_exceptions, default: []
+
     # Serializes a set of arguments. Intrinsic types that can safely be
     # serialized without mutation are returned as-is. Arrays/Hashes are
     # serialized element by element. All other types are serialized using
@@ -81,6 +111,8 @@ module ActiveJob
     # GlobalID.
     def deserialize(arguments)
       arguments.map { |argument| deserialize_argument(argument) }
+    rescue *record_not_found_exceptions
+      raise DeserializationError::RecordNotFound
     rescue
       raise DeserializationError
     end
