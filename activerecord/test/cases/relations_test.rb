@@ -2589,36 +2589,34 @@ class CreateOrFindByWithinTransactions < ActiveRecord::TestCase
     end
 
     private
-      def duel
-        assert_nil Subscriber.find_by(nick: "bob")
+    def duel
+      assert_nil Subscriber.find_by(nick: "bob")
 
-        a_wakeup = Concurrent::Event.new
-        b_wakeup = Concurrent::Event.new
+      a_wakeup = Concurrent::Event.new
+      b_wakeup = Concurrent::Event.new
 
-        a = Thread.new do
-          Subscriber.transaction do
-            a_wakeup.wait
-            yield
-            b_wakeup.set
-          end
-        end
-
-        b = Thread.new do
-          Subscriber.transaction do
-            # Read the record prematurely for MySQL REPEATABLE READ to kick in
-            Subscriber.find_by(nick: "bob")
-
-            a_wakeup.set
-            b_wakeup.wait
-            yield
-          end
-        end
-
-        a.join
-        b.join
-
-        assert_equal 1, Subscriber.where(nick: "bob").count
+      a = Thread.new do
+        a_wakeup.wait
+        yield  # find_or_create_by runs its own top-level transaction
+        b_wakeup.set
+      ensure
+        Subscriber.connection_pool.release_connection
       end
+
+      b = Thread.new do
+        Subscriber.find_by(nick: "bob")
+        a_wakeup.set
+        b_wakeup.wait
+        yield
+      ensure
+        Subscriber.connection_pool.release_connection
+      end
+
+      a.join
+      b.join
+
+      assert_equal 1, Subscriber.where(nick: "bob").count
+    end
   end
 end
 

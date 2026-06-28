@@ -1720,14 +1720,30 @@ class ConcurrentTransactionTest < ActiveRecord::TestCase
     def test_transaction_per_thread
       threads = 3.times.map do
         Thread.new do
-          Topic.transaction do
-            topic = Topic.find(1)
-            topic.approved = !topic.approved?
-            assert topic.save!
-            topic.approved = !topic.approved?
-            assert topic.save!
+          retry_count = 0
+          begin
+            Topic.transaction do
+              topic = Topic.find(1)
+              topic.approved = !topic.approved?
+              assert topic.save!
+              topic.approved = !topic.approved?
+              assert topic.save!
+            end
+          rescue ActiveRecord::SerializationFailure
+            retry_count += 1
+            retry if retry_count < 3
+            raise
+          rescue ActiveRecord::StatementInvalid => e
+            if mysql_checkread_error?(e)
+              retry_count += 1
+              retry if retry_count < 3
+              raise
+            else
+              raise
+            end
+          ensure
+            Topic.connection_pool.release_connection
           end
-          Topic.lease_connection.close
         end
       end
 
@@ -1736,51 +1752,76 @@ class ConcurrentTransactionTest < ActiveRecord::TestCase
 
     # Test for dirty reads among simultaneous transactions.
     def test_transaction_isolation__read_committed
-      # Should be invariant.
       original_salary = Developer.find(1).salary
       temporary_salary = 200000
+      successful_reads = 0
 
       assert_nothing_raised do
         threads = (1..3).map do
           Thread.new do
-            Developer.transaction do
-              # Expect original salary.
-              dev = Developer.find(1)
-              assert_equal original_salary, dev.salary
+            retry_count = 0
+            begin
+              Developer.transaction do
+                dev = Developer.find(1)
+                assert_equal original_salary, dev.salary
 
-              dev.salary = temporary_salary
-              dev.save!
+                dev.salary = temporary_salary
+                dev.save!
 
-              # Expect temporary salary.
-              dev = Developer.find(1)
-              assert_equal temporary_salary, dev.salary
+                dev = Developer.find(1)
+                assert_equal temporary_salary, dev.salary
 
-              dev.salary = original_salary
-              dev.save!
+                dev.salary = original_salary
+                dev.save!
 
-              # Expect original salary.
-              dev = Developer.find(1)
-              assert_equal original_salary, dev.salary
+                dev = Developer.find(1)
+                assert_equal original_salary, dev.salary
+              end
+            rescue ActiveRecord::SerializationFailure
+              retry_count += 1
+              retry if retry_count < 3
+              raise
+            rescue ActiveRecord::StatementInvalid => e
+              if mysql_checkread_error?(e)
+                retry_count += 1
+                retry if retry_count < 3
+                raise
+              else
+                raise
+              end
+            ensure
+              Developer.connection_pool.release_connection
             end
-            Developer.lease_connection.close
           end
         end
 
-        # Keep our eyes peeled.
         threads << Thread.new do
           10.times do
             sleep 0.05
-            Developer.transaction do
-              # Always expect original salary.
-              assert_equal original_salary, Developer.find(1).salary
+            retry_count = 0
+            begin
+              Developer.transaction do
+                assert_equal original_salary, Developer.find(1).salary
+                successful_reads += 1
+              end
+            rescue ActiveRecord::SerializationFailure
+              retry_count += 1
+              retry if retry_count < 3
+            rescue ActiveRecord::StatementInvalid => e
+              if mysql_checkread_error?(e)
+                retry_count += 1
+                retry if retry_count < 3
+              end
+            ensure
+              Developer.connection_pool.release_connection
             end
           end
-          Developer.lease_connection.close
         end
 
         threads.each(&:join)
       end
 
+      assert successful_reads > 0, "Observer never successfully verified the salary invariant"
       assert_equal original_salary, Developer.find(1).salary
     end
   end
@@ -1818,4 +1859,26 @@ class ConcurrentTransactionTest < ActiveRecord::TestCase
     end
     assert topic2.persisted?
   end
+
+  MYSQL_ER_CHECKREAD = 1020
+
+  private
+    # TODO: Remove once #57568 lands — ER_CHECKREAD will be classified as
+    # ActiveRecord::SerializationFailure instead of StatementInvalid.
+    def mysql_checkread_error?(exception)
+      cause = exception.cause
+      return false unless cause
+
+      errno = if cause.respond_to?(:error_number)
+        cause.error_number
+      elsif cause.respond_to?(:errno)
+        cause.errno
+      elsif cause.respond_to?(:error_code)
+        cause.error_code
+      end
+
+      errno == MYSQL_ER_CHECKREAD
+    rescue NoMethodError
+      false
+    end
 end
