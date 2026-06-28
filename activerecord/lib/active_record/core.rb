@@ -560,6 +560,10 @@ module ActiveRecord
     # and locking column.
 
     ##
+
+    # Original functionality was to retain readonly state.
+    mattr_accessor :dup_retains_readonly_state, default: true
+
     def initialize_dup(other) # :nodoc:
       @attributes = init_attributes(other)
 
@@ -568,6 +572,7 @@ module ActiveRecord
       @new_record               = true
       @previously_new_record    = false
       @destroyed                = false
+      @readonly                 = false unless dup_retains_readonly_state
       @_start_transaction_state = nil
 
       super
