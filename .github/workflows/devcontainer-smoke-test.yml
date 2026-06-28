@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout (GitHub)
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
@@ -25,7 +25,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@9eb537ca036ebaed86729dcb9309076e4c5c3b74 # v1
         with:
           ruby-version: 3.4
           bundler-cache: true
