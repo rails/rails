@@ -1,3 +1,7 @@
+*   Fix `Session::CacheStore` to not generate a new session after dropping the current one.
+
+    *Kenta Ishizaki*
+
 *   Parse all three HTTP-date formats in the `If-Modified-Since` request header.
 
     `If-Modified-Since` carries an HTTP-date, which RFC 9110 allows in any of
