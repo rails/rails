@@ -1,3 +1,7 @@
+*   Fix `week_field` to not emit invalid  week strings at ISO year boundaries.
+
+    *Kenta Ishizaki*
+
 *   Fix `ActionView::TestCase#render` to reset `rendered`.
     The behavior was changed when memoization was added in #51093. Now it once again conforms to the documentation.
 
