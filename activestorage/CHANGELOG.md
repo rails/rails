@@ -1,3 +1,15 @@
+*   Fix direct uploads hanging when the blob creation request returns a 2xx
+    response without a parseable JSON body.
+
+    On flaky connections the response body can fail to parse even though the
+    request loaded with a 2xx status, leaving `xhr.response` null. `BlobRecord`
+    then threw inside its own load handler and the `DirectUpload` callback was
+    never invoked, so callers could not surface an error or retry. Such
+    responses now fail through the error callback like any other failed
+    request.
+
+    *Daniel Steele*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
