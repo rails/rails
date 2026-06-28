@@ -3163,9 +3163,15 @@ and `Time.current` return). Treat `DateTime` as a legacy class kept around for
 compatibility. Use `Date` whenever you only care about a calendar day and have
 no need for a time component at all.
  
-This section covers the calculation methods Active Support adds across all three
+This section covers the convience methods Active Support adds across all three
 classes, and points out where the classes diverge and the choice of class
 matters.
+
+INFO: The calculation methods have edge cases in October 1582, since days 5..14
+do not exist due to [caldendar
+reform](https://en.wikipedia.org/wiki/Gregorian_calendar). The date classes
+behave correctly around this date, for example, `Date.new(1582, 10, 4).tomorrow`
+returns "Fri, 15 Oct 1582" and so on.
  
 ### Creating Dates and Times
 
@@ -3410,6 +3416,8 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 [DateAndTime::Calculations#weeks_ago]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-weeks_ago
 [DateAndTime::Calculations#weeks_since]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-weeks_since
+
+WARNING: If the `since` or `ago` methods produces a time outside the range that `Time` can represent, a `DateTime` object is returned instead. This is unlikely to affect most applications running on 64-bit systems, but if your code depends on the returned object being a `Time` (for example by calling Time-specific methods), you may see unexpected behavior when working with dates far in the past or future.
 
 #### `seconds_since_midnight` and `seconds_until_end_of_day`
 
@@ -3767,11 +3775,55 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 #### `beginning_of_day`, `end_of_day`
 
-NOTE: hour and minute apply to `Time` and `DateTime` only
+The [`beginning_of_day`][Date#beginning_of_day] and `end_of_day` methods return a value representing the start (`00:00:00`) and end (`23:59:59`) of the day. On `Date`, this actually converts the receiver into a time-zone-aware `Time`/`DateTime`, since a bare date has no time component to set:
 
-#### `beginning_of_hour`, `end_of_day`
+```ruby
+date = Date.new(2026, 5, 5)
+date.beginning_of_day # => Tue, 05 May 2026 00:00:00 UTC +00:00
+date.end_of_day        # => Tue, 05 May 2026 23:59:59 UTC +00:00
+
+time = Time.new(2026, 5, 5, 14, 30)
+time.beginning_of_day # => Tue, 05 May 2026 00:00:00 UTC +00:00
+time.end_of_day        # => Tue, 05 May 2026 23:59:59 UTC +00:00
+```
+
+`beginning_of_day` is aliased as `at_beginning_of_day`, `midnight`, and `at_midnight`.
+
+NOTE: Available on `Date`, `DateTime`, and `Time`.
+
+[Date#beginning_of_day]: https://api.rubyonrails.org/classes/Date.html#method-i-beginning_of_day
+
+#### `beginning_of_hour`, `end_of_hour`
+
+The [`beginning_of_hour`][Time#beginning_of_hour] and `end_of_hour` methods return a value representing the start (`hh:00:00`) and end (`hh:59:59`) of the current hour:
+
+```ruby
+time = Time.new(2026, 5, 5, 14, 37, 25)
+time.beginning_of_hour # => Tue, 05 May 2026 14:00:00 UTC +00:00
+time.end_of_hour        # => Tue, 05 May 2026 14:59:59 UTC +00:00
+```
+
+`beginning_of_hour` is aliased as `at_beginning_of_hour`.
+
+NOTE: Available on `Time` and `DateTime` only. `Date` has no hour component, so these methods do not apply to it.
+
+[Time#beginning_of_hour]: https://api.rubyonrails.org/classes/Time.html#method-i-beginning_of_hour
 
 #### `beginning_of_minute`, `end_of_minute`
+
+The [`beginning_of_minute`][Time#beginning_of_minute] and `end_of_minute` methods return a value representing the start (`hh:mm:00`) and end (`hh:mm:59`) of the current minute:
+
+```ruby
+time = Time.new(2026, 5, 5, 14, 37, 25)
+time.beginning_of_minute # => Tue, 05 May 2026 14:37:00 UTC +00:00
+time.end_of_minute        # => Tue, 05 May 2026 14:37:59 UTC +00:00
+```
+
+`beginning_of_minute` is aliased as `at_beginning_of_minute`.
+
+NOTE: Available on `Time` and `DateTime` only.
+
+[Time#beginning_of_minute]: https://api.rubyonrails.org/classes/Time.html#method-i-beginning_of_minute
 
 #### `all_day`, `all_week`, `all_month`, `all_quarter`, and `all_year`
 
@@ -3953,7 +4005,11 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`, `active_support
 Extensions to `Date`
 --------------------
 
-INFO: The calculation methods have edge cases in October 1582, since days 5..14 just do not exist. The date classes behave correctly around this date, for example, `Date.new(1582, 10, 4).tomorrow` returns `Date.new(1582, 10, 15)` and so on.
+INFO: The calculation methods have edge cases in October 1582, since days 5..14
+do not exist due to [caldendar
+reform](https://en.wikipedia.org/wiki/Gregorian_calendar). The date classes
+behave correctly around this date, for example, `Date.new(1582, 10, 4).tomorrow`
+returns "Fri, 15 Oct 1582" and so on.
 
 ### `Date.current`
 
