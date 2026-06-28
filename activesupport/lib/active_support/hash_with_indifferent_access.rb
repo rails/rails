@@ -338,6 +338,7 @@ module ActiveSupport
       return to_enum(:select) unless block_given?
       dup.tap { |hash| hash.select!(*args, &block) }
     end
+    alias_method :filter, :select
 
     def reject(*args, &block)
       return to_enum(:reject) unless block_given?
