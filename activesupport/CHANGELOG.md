@@ -1,3 +1,8 @@
+*   Fix `TimeZone#rfc3339` silently accepting an out-of-range time zone
+    offset such as `+99:99` instead of raising `ArgumentError`.
+
+    *Kenta Ishizaki*
+
 *   Add `#this_quarter?` to Date/Time.
 
     It returns true if the date/time falls within the current quarter.
