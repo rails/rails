@@ -576,7 +576,7 @@ module ActiveRecord
       end
 
       def association_foreign_key
-        @association_foreign_key ||= -(options[:association_foreign_key]&.to_s || class_name.foreign_key)
+        @association_foreign_key ||= ActiveRecord::Key.for(options[:association_foreign_key] || class_name.foreign_key).name
       end
 
       def association_primary_key(klass = nil)
