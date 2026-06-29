@@ -136,7 +136,7 @@ class GroupsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def group_params
-      params.expect(group: [ :name ])
+      params.expect(group: [:name])
     end
 end
 ```
@@ -162,6 +162,8 @@ $ curl -s localhost:3000/groups | jq
   }
 ]
 ```
+
+NOTE: The above example, and more examples further down use the `jq` command line utility to format JSON output. If it isn't installed on your system, consult the [download page](https://jqlang.org/download/) to for instructions.
 
 ### Building JSON using JBuilder
 
