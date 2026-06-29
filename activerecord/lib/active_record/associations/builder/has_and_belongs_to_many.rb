@@ -51,26 +51,32 @@ module ActiveRecord::Associations::Builder # :nodoc:
       join_model.table_name_resolver = -> { table_name }
       join_model.left_model          = lhs_model
 
-      join_model.add_left_association :left_side, anonymous_class: lhs_model
+      join_model.add_left_association :left_side, anonymous_class: lhs_model, foreign_key: left_foreign_key, inverse_of: middle_name
       join_model.add_right_association association_name, belongs_to_options(options)
       join_model
     end
 
     def middle_reflection(join_model)
-      middle_name = [lhs_model.name.downcase.pluralize,
-                     association_name.to_s].sort.join("_").gsub("::", "_").to_sym
-      middle_options = middle_options join_model
-
       HasMany.create_reflection(lhs_model,
                                 middle_name,
                                 nil,
-                                middle_options)
+                                middle_options(join_model))
     end
 
     private
+      def middle_name
+        [lhs_model.name.downcase.pluralize,
+         association_name.to_s].sort.join("_").gsub("::", "_").to_sym
+      end
+
+      def left_foreign_key
+        options[:foreign_key] || options[:query_constraints] || lhs_model.model_name.to_s.foreign_key
+      end
+
       def middle_options(join_model)
         middle_options = {}
         middle_options[:class_name] = "#{lhs_model.name}::#{join_model.name}"
+        middle_options[:inverse_of] = :left_side
         if options.key? :foreign_key
           middle_options[:foreign_key] = options[:foreign_key]
         end
