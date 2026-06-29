@@ -428,6 +428,15 @@ module ActiveRecord
           association.reset_scope
 
           if records = associated_records_to_validate_or_save(association, new_record_before_save, autosave)
+            if reflection.through_reflection? && new_record_before_save && !reflection.nested?
+              records = records.select do |record|
+                next true if record.new_record? || record.has_changes_to_save?
+                next true if autosave && record.changed_for_autosave?
+
+                !association.persisted_through_record_for?(record)
+              end
+            end
+
             if autosave
               records_to_destroy = records.select(&:marked_for_destruction?)
               records_to_destroy.each { |record| association.destroy(record) }
