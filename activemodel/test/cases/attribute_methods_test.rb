@@ -440,4 +440,16 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_ractor_shareable model.aliases_by_attribute_name
     assert_ractor_shareable model.attribute_aliases
   end
+
+  test "attribute method affixes are ractor safe" do
+    model = Class.new do
+      include ActiveModel::AttributeMethods
+
+      attribute_method_affix prefix: "before_", suffix: "after_"
+      attribute_method_prefix "before_", parameters: "foo"
+      attribute_method_suffix(+"after_", parameters: +"bar")
+    end
+
+    assert_ractor_shareable model.attribute_method_patterns
+  end
 end
