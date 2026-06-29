@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/ractors"
+
 require "arel/errors"
 
 require "arel/crud"
