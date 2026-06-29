@@ -87,6 +87,33 @@ module ActionDispatch
         ], output
       end
 
+      def test_displaying_routes_for_engine_mounted_twice_is_not_repeated
+        engine = Class.new(Rails::Engine) do
+          def self.inspect
+            "Blog::Engine"
+          end
+        end
+        engine.routes.draw do
+          get "/cart", to: "cart#show"
+        end
+
+        output = draw do
+          mount engine => "/blog", as: "blog"
+          mount engine => "/feed", as: "feed"
+        end
+
+        assert_equal [
+          "Routes for application:",
+          "Prefix Verb URI Pattern Controller#Action",
+          "  blog      /blog       Blog::Engine",
+          "  feed      /feed       Blog::Engine",
+          "",
+          "Routes for Blog::Engine:",
+          "Prefix Verb URI Pattern     Controller#Action",
+          "  cart GET  /cart(.:format) cart#show"
+        ], output
+      end
+
       def test_cart_inspect
         output = draw do
           get "/cart", to: "cart#show"
@@ -688,8 +715,8 @@ module ActionDispatch
       private
         def draw(formatter: ActionDispatch::Routing::ConsoleFormatter::Sheet.new, **options, &block)
           @set.draw(&block)
-          inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)
-          inspector.format(formatter, options).split("\n")
+          inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes, options)
+          inspector.format(formatter).split("\n")
         end
     end
   end

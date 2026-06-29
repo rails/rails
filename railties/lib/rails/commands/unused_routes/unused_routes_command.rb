@@ -8,6 +8,7 @@ module Rails
       hide_command!
       class_option :controller, aliases: "-c", desc: "Filter by a specific controller, e.g. PostsController or Admin::PostsController."
       class_option :grep, aliases: "-g", desc: "Grep routes by a specific pattern."
+      class_option :brief, type: :boolean, desc: "Skip sections with no matching routes."
 
       class RouteInfo
         def initialize(route)
@@ -35,7 +36,7 @@ module Rails
           end
 
           def action_missing?
-            @controller_class && @controller_class.instance_methods.exclude?(@action_name.to_sym)
+            @controller_class && @controller_class.action_methods.exclude?(@action_name.to_s)
           end
       end
 
@@ -43,26 +44,15 @@ module Rails
         boot_application!
         require "action_dispatch/routing/inspector"
 
-        say(inspector.format(formatter, routes_filter))
+        inspector = ActionDispatch::Routing::RoutesInspector.new(Rails.application.routes.routes, routes_filter)
+        inspector.filter_routes! { |route| RouteInfo.new(route).unused? }
 
-        exit(1) if routes.any?
+        say(inspector.format(formatter, brief: options[:brief]))
+
+        exit(1) unless inspector.no_routes?
       end
 
       private
-        def inspector
-          ActionDispatch::Routing::RoutesInspector.new(routes)
-        end
-
-        def routes
-          @routes ||= begin
-            routes = Rails.application.routes.routes.select do |route|
-              RouteInfo.new(route).unused?
-            end
-
-            ActionDispatch::Journey::Routes.new(routes)
-          end
-        end
-
         def formatter
           ActionDispatch::Routing::ConsoleFormatter::Unused.new
         end

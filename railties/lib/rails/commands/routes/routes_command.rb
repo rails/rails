@@ -9,6 +9,7 @@ module Rails
       class_option :grep, aliases: "-g", desc: "Grep routes by a specific pattern."
       class_option :expanded, type: :boolean, aliases: "-E", desc: "Print routes expanded vertically with parts explained."
       class_option :unused, type: :boolean, aliases: "-u", desc: "Print unused routes."
+      class_option :brief, type: :boolean, desc: "Skip sections with no matching routes."
 
       no_commands do
         def invoke_command(*)
@@ -25,12 +26,12 @@ module Rails
         boot_application!
         require "action_dispatch/routing/inspector"
 
-        say inspector.format(formatter, routes_filter)
+        say inspector.format(formatter, brief: options[:brief])
       end
 
       private
         def inspector
-          ActionDispatch::Routing::RoutesInspector.new(Rails.application.routes.routes)
+          ActionDispatch::Routing::RoutesInspector.new(Rails.application.routes.routes, routes_filter)
         end
 
         def formatter
