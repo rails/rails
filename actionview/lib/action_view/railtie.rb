@@ -108,6 +108,10 @@ module ActionView
       ActionView.render_tracker = app.config.action_view.render_tracker
     end
 
+    config.after_initialize do
+      ActionView::DependencyTracker.freeze_registry
+    end
+
     initializer "action_view.setup_action_pack" do |app|
       ActiveSupport.on_load(:action_controller) do
         ActionView::RoutingUrlFor.include(ActionDispatch::Routing::UrlFor)
