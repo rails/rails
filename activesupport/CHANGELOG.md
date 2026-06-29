@@ -1,3 +1,8 @@
+*   Include call options in `Cache#exist?` instrumentation payload,
+    consistent with `read`, `write`, and `delete`.
+
+    *Kenta Ishizaki*
+
 *   Declare `assert_not_pattern` as an alias for `refute_pattern`
 
     *Sean Doyle*
