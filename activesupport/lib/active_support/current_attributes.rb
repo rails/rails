@@ -122,16 +122,22 @@ module ActiveSupport
         ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
           names.each do |name|
             owner.define_cached_method(name, namespace: :current_attributes) do |batch|
-              batch <<
-                "def #{name}" <<
-                "@attributes[:#{name}]" <<
-                "end"
+              batch << <<~RUBY
+                def #{name}
+                  @attributes[:#{name}]
+                end
+              RUBY
             end
             owner.define_cached_method("#{name}=", namespace: :current_attributes) do |batch|
-              batch <<
-                "def #{name}=(value)" <<
-                "@attributes[:#{name}] = value" <<
-                "end"
+              batch << <<~RUBY
+                def #{name}=(value)
+                  if value.nil?
+                    @attributes.delete(:#{name})
+                  else
+                    @attributes[:#{name}] = value
+                  end
+                end
+              RUBY
             end
           end
         end
@@ -232,9 +238,10 @@ module ActiveSupport
     private
       def resolve_defaults
         defaults.each_with_object({}) do |(key, value), result|
-          if value != NOT_SET
-            result[key] = Proc === value ? value.call : value.dup
-          end
+          next if value == NOT_SET
+
+          value = Proc === value ? value.call : value.dup
+          result[key] = value unless value.nil?
         end
       end
 

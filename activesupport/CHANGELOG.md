@@ -1,3 +1,11 @@
+*   Setting an `ActiveSupport::CurrentAttributes` attribute to `nil` removes its
+    key from `#attributes` instead of storing `nil`.
+
+    An unset attribute already reads as `nil`, so a `nil` value and an absent key
+    are equivalent and `#attributes` stays free of empty keys.
+
+    *Anton Zaharia*
+
 *   Declare `assert_not_pattern` as an alias for `refute_pattern`
 
     *Sean Doyle*
