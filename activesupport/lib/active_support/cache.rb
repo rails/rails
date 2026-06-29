@@ -716,7 +716,7 @@ module ActiveSupport
         options = merged_options(options)
         key = normalize_key(name, options)
 
-        instrument(:exist?, key) do |payload|
+        instrument(:exist?, key, options) do |payload|
           entry = read_entry(key, **options, event: payload)
           (entry && !entry.expired? && !entry.mismatched?(normalize_version(name, options))) || false
         end
