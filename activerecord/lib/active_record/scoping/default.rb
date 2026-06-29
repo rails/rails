@@ -6,8 +6,9 @@ module ActiveRecord
       attr_reader :scope, :all_queries
 
       def initialize(scope, all_queries = nil)
-        @scope = scope
+        @scope = ActiveSupport::Ractors.try_shareable_proc(scope)
         @all_queries = all_queries
+        freeze
       end
     end
 
@@ -16,7 +17,7 @@ module ActiveRecord
 
       included do
         # Stores the default scope for the class.
-        class_attribute :default_scopes, instance_writer: false, instance_predicate: false, default: []
+        class_attribute :default_scopes, instance_writer: false, instance_predicate: false, default: [].freeze
       end
 
       module ClassMethods
@@ -138,7 +139,7 @@ module ActiveRecord
 
             default_scope = DefaultScope.new(scope, all_queries)
 
-            self.default_scopes += [default_scope]
+            self.default_scopes = [*default_scopes, default_scope].freeze
           end
 
           def build_default_scope(relation = relation(), all_queries: nil)
