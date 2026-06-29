@@ -111,6 +111,7 @@ module ActionView
     super
     ActionView::Helpers.eager_load!
     ActionView::Template.eager_load!
+    ActionView::DependencyTracker.eager_load!
   end
 end
 

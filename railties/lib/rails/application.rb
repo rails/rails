@@ -677,6 +677,7 @@ module Rails
       Ractor.make_shareable(Rails.event)
       Ractor.make_shareable(Rails.error)
       Ractor.make_shareable(Rails.backtrace_cleaner)
+      ActionView::DependencyTracker.share_registry if defined?(ActionView)
     end
 
   protected

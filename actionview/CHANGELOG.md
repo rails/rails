@@ -1,3 +1,13 @@
+*   Deprecate registering dependency trackers after application initialization.
+
+    Calling `ActionView::DependencyTracker.register_tracker` after application initialization will
+    raise a FrozenError in the next version of Rails.
+
+    Instead, register trackers during application initialization, wrapped in a call to
+    `ActiveSupport.on_load(:action_view)` to wait until Action View is available.
+
+    *Étienne Barrié*
+
 *   Extract `current_page?`, `button_to`, and `link_to` methods to
     `ActionView::Helpers::NavigationHelper`
 
