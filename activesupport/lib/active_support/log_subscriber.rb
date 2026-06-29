@@ -64,7 +64,7 @@ module ActiveSupport
   class LogSubscriber < Subscriber
     include ColorizeLogging
 
-    class_attribute :log_levels, instance_accessor: false, default: {} # :nodoc:
+    class_attribute :log_levels, instance_accessor: false, default: {}.freeze # :nodoc:
 
     LEVEL_CHECKS = {
       debug: ActiveSupport::Ractors.shareable_lambda { |logger| !logger.debug? },
@@ -112,7 +112,7 @@ module ActiveSupport
         end
 
         def subscribe_log_level(method, level)
-          self.log_levels = log_levels.merge(method => LEVEL_CHECKS.fetch(level))
+          self.log_levels = log_levels.merge(method => LEVEL_CHECKS.fetch(level)).freeze
           set_event_levels
         end
     end
