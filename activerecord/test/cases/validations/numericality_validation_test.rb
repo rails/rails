@@ -172,4 +172,15 @@ class NumericalityValidationTest < ActiveRecord::TestCase
 
     assert_predicate subject, :valid?
   end
+
+  def test_string_casted_to_zero_and_normalized_to_nil_is_not_accepted
+    model = Class.new(NumericData) do
+      normalizes :bank_balance, with: ->(value) { value == 0 ? nil : value }
+      validates :bank_balance, numericality: { allow_nil: true, greater_than_or_equal_to: 0 }
+    end
+
+    subject = model.new(bank_balance: "abc")
+
+    assert_not_predicate subject, :valid?
+  end
 end
