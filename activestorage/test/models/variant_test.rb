@@ -284,6 +284,38 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
+  test "variant with same format as blob skips processing" do
+    blob = create_file_blob(filename: "racecar.jpg")
+
+    events = collect_transform_events do
+      variant = blob.variant(format: :jpeg).processed
+      assert_equal "image/jpeg", variant.content_type
+      assert_equal "racecar.jpeg", variant.filename.to_s
+    end
+
+    assert_empty events, "Expected no image transformation for identity format conversion, got: #{events.inspect}"
+  end
+
+  test "variant with different format from blob still processes" do
+    blob = create_file_blob(filename: "racecar.jpg")
+
+    events = collect_transform_events do
+      blob.variant(format: :png).processed
+    end
+
+    assert_not_empty events, "Expected image transformation for format conversion"
+  end
+
+  test "variant with same format and other transformations still processes" do
+    blob = create_file_blob(filename: "racecar.jpg")
+
+    events = collect_transform_events do
+      blob.variant(format: :jpeg, resize_to_limit: [100, 100]).processed
+    end
+
+    assert_not_empty events, "Expected image transformation when resize is requested"
+  end
+
   test "destroy deletes file from service" do
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(resize_to_limit: [100, 100]).processed
@@ -294,6 +326,13 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   private
+    def collect_transform_events(&block)
+      events = []
+      callback = ->(name, start, finish, id, payload) { events << { name: name, payload: payload } }
+      ActiveSupport::Notifications.subscribed(callback, "transform.active_storage", &block)
+      events
+    end
+
     def process_variants_with(processor)
       previous_transformer = ActiveStorage.variant_transformer
       ActiveStorage.variant_transformer =

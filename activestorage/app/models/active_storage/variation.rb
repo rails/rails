@@ -51,11 +51,21 @@ class ActiveStorage::Variation
     self.class.new transformations.reverse_merge(defaults)
   end
 
-  # Accepts a File object, performs the +transformations+ against it, and
-  # saves the transformed image into a temporary file.
-  def transform(file, &block)
-    ActiveSupport::Notifications.instrument("transform.active_storage") do
-      transformer.transform(file, format: format, &block)
+  # Accepts a File object and yields a transformed version of it. If the
+  # requested variation is an identity transformation for the supplied
+  # +content_type+, the original +file+ is yielded unchanged. Otherwise, the
+  # transformations are applied and the result is yielded as a temporary file.
+  #
+  # Callers should not assume that the yielded file is always a new temporary
+  # file, and should only clean it up if they own it.
+  def transform(file, content_type: nil, &block)
+    if content_type && identity_for?(content_type)
+      file.rewind if file.respond_to?(:rewind)
+      yield file
+    else
+      ActiveSupport::Notifications.instrument("transform.active_storage") do
+        transformer.transform(file, format: format, &block)
+      end
     end
   end
 
@@ -81,6 +91,11 @@ class ActiveStorage::Variation
   end
 
   private
+    def identity_for?(content_type)
+      transformations.except(:format).empty? &&
+        self.content_type == content_type
+    end
+
     def transformer
       ActiveStorage.variant_transformer.new(transformations.except(:format))
     end
