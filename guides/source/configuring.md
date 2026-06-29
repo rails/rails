@@ -4320,6 +4320,14 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActiveStorage::VariantRecord`       | `active_storage_variant_record`      |
 | `ActiveStorage::Blob`                | `active_storage_blob`                |
 | `ActiveStorage::Record`              | `active_storage_record`              |
+| `ActiveStorage::BaseJob`             | `active_storage_base_job`            |
+| `ActiveStorage::AnalyzeJob`          | `active_storage_analyze_job`         |
+| `ActiveStorage::CreateVariantsJob`   | `active_storage_create_variants_job` |
+| `ActiveStorage::MirrorJob`           | `active_storage_mirror_job`          |
+| `ActiveStorage::PreviewImageJob`     | `active_storage_preview_image_job`   |
+| `ActiveStorage::PurgeJob`            | `active_storage_purge_job`           |
+| `ActiveStorage::SyncMetadataJob`     | `active_storage_sync_metadata_job`   |
+| `ActiveStorage::TransformJob`        | `active_storage_transform_job`       |
 | `ActiveSupport::TestCase`            | `active_support_test_case`           |
 | `i18n`                               | `i18n`                               |
 
