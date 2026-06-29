@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "concurrent/map"
 require "action_view/path_set"
 require "action_view/render_parser"
 
@@ -31,7 +30,7 @@ module ActionView
     autoload :RubyTracker
     autoload :WildcardResolver
 
-    @trackers = Concurrent::Map.new
+    @trackers = {}
 
     def self.find_dependencies(name, template, view_paths = nil) # :nodoc:
       tracker = @trackers[template.handler]
@@ -49,17 +48,31 @@ module ActionView
     # +call(name, template)+ is also accepted for backwards compatibility.
     def self.register_tracker(extension, tracker)
       handler = Template.handler_for_extension(extension)
-      if tracker.respond_to?(:supports_view_paths?)
-        @trackers[handler] = tracker
+      callable = if tracker.respond_to?(:supports_view_paths?)
+        tracker
       else
-        @trackers[handler] = lambda { |name, template, _|
+        ActiveSupport::Ractors.try_shareable_proc { |name, template, _|
           tracker.call(name, template)
         }
+      end
+
+      if @trackers.frozen?
+        @trackers = ActiveSupport::Ractors.make_shareable(@trackers.merge(handler => callable))
+      else
+        @trackers[handler] = callable
       end
     end
 
     def self.remove_tracker(handler) # :nodoc:
-      @trackers.delete(handler)
+      if @trackers.frozen?
+        @trackers = @trackers.except(handler).freeze
+      else
+        @trackers.delete(handler)
+      end
+    end
+
+    def self.freeze_registry # :nodoc:
+      ActiveSupport::Ractors.make_shareable(@trackers)
     end
 
     case ActionView.render_tracker
