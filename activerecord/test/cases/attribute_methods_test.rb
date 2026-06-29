@@ -41,8 +41,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   teardown do
-    ActiveRecord::Base.send(:attribute_method_patterns).clear
-    ActiveRecord::Base.send(:attribute_method_patterns).concat(@old_matchers)
+    ActiveRecord::Base.attribute_method_patterns = @old_matchers
   end
 
   test "#id_value alias is defined if id column exist" do
