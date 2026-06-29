@@ -130,6 +130,22 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects,
            :parrots, :pirates, :parrots_pirates, :treasures, :price_estimates, :tags, :taggings, :computers
 
+  def test_habtm_join_model_left_side_is_keyed_to_the_owner
+    join_model = Developer.const_get(:HABTM_Projects)
+
+    assert_equal "developer_id", join_model.left_reflection.foreign_key
+
+    join_record = join_model.find_by(developer_id: developers(:david).id)
+    assert_equal developers(:david), join_record.left_side
+  end
+
+  def test_habtm_join_model_left_side_is_set_in_memory_when_built_through_the_owner
+    developer = Developer.new
+    join_record = developer.association(:projects).send(:build_through_record, Project.new)
+
+    assert_same developer, join_record.left_side
+  end
+
   def setup_data_for_habtm_case
     ActiveRecord::Base.lease_connection.execute("delete from countries_treaties")
 

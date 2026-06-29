@@ -717,6 +717,12 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal ["blog_id", "tag_id"], reflection.association_foreign_key
   end
 
+  def test_habtm_join_model_left_side_uses_composite_owner_foreign_key
+    join_model = Sharded::BlogPost.const_get(:HABTM_TagsWithCompositeFk)
+
+    assert_equal ["blog_id", "blog_post_id"], join_model.left_reflection.foreign_key
+  end
+
   def test_using_query_constraints_warns_about_changing_behavior
     has_many_expected_message = <<~MSG.squish
       Setting `query_constraints:` option on `Firm.has_many :clients` is not allowed.
