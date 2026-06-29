@@ -1,3 +1,8 @@
+*   Fix `TimeZone#rfc3339` silently accepting an out-of-range time zone
+    offset such as `+99:99` instead of raising `ArgumentError`.
+
+    *Kenta Ishizaki*
+
 *   Added `ActiveSupport::ProxyLogger`.
 
     The proxy logger, is a logger that forwards all received logs to another

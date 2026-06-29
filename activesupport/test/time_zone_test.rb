@@ -554,6 +554,16 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "invalid date", exception.message
   end
 
+  def test_rfc3339_with_out_of_range_offset
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.rfc3339("1999-12-31T19:00:00+99:99")
+    end
+
+    assert_equal "invalid date", exception.message
+  end
+
   def test_rfc3339_with_old_date
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     twz = zone.rfc3339("1883-12-31T19:00:00-05:00")
