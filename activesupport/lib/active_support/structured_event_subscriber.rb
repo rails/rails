@@ -31,7 +31,7 @@ module ActiveSupport
   class StructuredEventSubscriber < Subscriber
     class_attribute :debug_methods, instance_accessor: false, default: [] # :nodoc:
 
-    DEBUG_CHECK = proc { !ActiveSupport.event_reporter.debug_mode? }
+    DEBUG_CHECK = ActiveSupport::Ractors.shareable_proc { !ActiveSupport.event_reporter.debug_mode? }
 
     class << self
       def attach_to(...) # :nodoc:

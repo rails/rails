@@ -454,6 +454,11 @@ module ActiveRecord
         assert_equal [:remove_foreign_key, [:dogs, :people, column: "owner_id"], nil], enable
       end
 
+      def test_invert_add_foreign_key_if_not_exists
+        enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, if_not_exists: true]
+        assert_equal [:remove_foreign_key, [:dogs, :people, if_exists: true], nil], enable
+      end
+
       def test_invert_remove_foreign_key_with_column
         enable = @recorder.inverse_of :remove_foreign_key, [:dogs, :people, column: "owner_id"]
         assert_equal [:add_foreign_key, [:dogs, :people, column: "owner_id"]], enable
@@ -630,6 +635,12 @@ module ActiveRecord
       def test_invert_drop_virtual_table_without_options
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.inverse_of :drop_virtual_table, [:searchables]
+        end
+      end
+
+      def test_invert_drop_virtual_table_without_values
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :drop_virtual_table, [:searchables, :fts5]
         end
       end
     end

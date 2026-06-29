@@ -810,6 +810,14 @@ module ActiveRecord
           end
         end
 
+        def register_class_with_precision(mapping, key, klass, **kwargs) # :nodoc:
+          mapping.register_type(key) do |_, fmod, _sql_type|
+            precision = fmod == -1 ? 6 : fmod
+
+            klass.new(precision: precision, **kwargs).freeze
+          end
+        end
+
         # Registers a callback to extend the type map during initialization.
         # Useful for third-party gems that need to register custom SQL types.
         #
@@ -868,6 +876,7 @@ module ActiveRecord
           self.class.initialize_type_map(m)
 
           self.class.register_class_with_precision m, "time", Type::Time, timezone: @default_timezone
+          self.class.register_class_with_precision m, "timetz", Type::Time, timezone: @default_timezone
           self.class.register_class_with_precision m, "timestamp", OID::Timestamp, timezone: @default_timezone
           self.class.register_class_with_precision m, "timestamptz", OID::TimestampWithTimeZone
 

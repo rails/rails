@@ -134,7 +134,7 @@ module ActiveSupport
     #   my_config.read # => "some_secret: 123\nsome_namespace:\n  another_secret: 456"
     #
     #   my_config.config
-    #   # => { some_secret: 123, some_namespace: { another_secret: 789 } }
+    #   # => { some_secret: 123, some_namespace: { another_secret: 456 } }
     #
     def config
       @config ||= deep_symbolize_keys(deserialize(read))

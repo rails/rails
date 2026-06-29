@@ -29,8 +29,8 @@ module ActionDispatch
       class Constraints < Routing::Endpoint # :nodoc:
         attr_reader :app, :constraints
 
-        SERVE = ActiveSupport::Ractors.shareable_lambda(&->(app, req) { app.serve req })
-        CALL  = ActiveSupport::Ractors.shareable_lambda(&->(app, req) { app.call req.env })
+        SERVE = ActiveSupport::Ractors.shareable_lambda { |app, req| app.serve req }
+        CALL  = ActiveSupport::Ractors.shareable_lambda { |app, req| app.call req.env }
 
         def initialize(app, constraints, strategy)
           # Unwrap Constraints objects. I don't actually think it's possible to pass a

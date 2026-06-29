@@ -199,6 +199,16 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal expected, Account.group(:firm_id).sum(:credit_limit)
   end
 
+  def test_should_group_by_distinct_summed_field
+    Account.delete_all
+    Account.create!(firm_id: 1, credit_limit: 50)
+    Account.create!(firm_id: 1, credit_limit: 50)
+    Account.create!(firm_id: 1, credit_limit: 60)
+
+    assert_equal 110, Account.where(firm_id: 1).distinct.sum(:credit_limit)
+    assert_equal({ 1 => 110 }, Account.where(firm_id: 1).group(:firm_id).distinct.sum(:credit_limit))
+  end
+
   def test_group_by_multiple_same_field
     accounts = Account.group(:firm_id)
 
@@ -1118,6 +1128,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_queries_count(0) do
       assert_equal company_ids, Company.where(id: empty_scope_ids).ids
     end
+    assert_async_equal company_ids, Company.where(id: empty_scope_ids).async_ids
   end
 
   def test_ids_with_join

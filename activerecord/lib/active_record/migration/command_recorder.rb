@@ -302,7 +302,10 @@ module ActiveRecord
         end
 
         def invert_add_foreign_key(args)
-          args.last.delete(:validate) if args.last.is_a?(Hash)
+          if (options = args.last).is_a?(Hash)
+            options.delete(:validate)
+            options[:if_exists] = options.delete(:if_not_exists) if options.key?(:if_not_exists)
+          end
           super
         end
 
@@ -404,7 +407,7 @@ module ActiveRecord
         end
 
         def invert_drop_virtual_table(args)
-          _enum, values = args.dup.tap(&:extract_options!)
+          _table_name, _module_name, values = args.dup.tap(&:extract_options!)
           raise ActiveRecord::IrreversibleMigration, "drop_virtual_table is only reversible if given options." unless values
           super
         end

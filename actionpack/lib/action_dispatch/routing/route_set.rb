@@ -346,8 +346,8 @@ module ActionDispatch
       end
 
       # strategy for building URLs to send to the client
-      PATH    = ActiveSupport::Ractors.shareable_lambda(&->(options) { ActionDispatch::Http::URL.path_for(options) })
-      UNKNOWN = ActiveSupport::Ractors.shareable_lambda(&->(options) { ActionDispatch::Http::URL.url_for(options) })
+      PATH    = ActiveSupport::Ractors.shareable_lambda { |options| ActionDispatch::Http::URL.path_for(options) }
+      UNKNOWN = ActiveSupport::Ractors.shareable_lambda { |options| ActionDispatch::Http::URL.url_for(options) }
 
       attr_accessor :formatter, :set, :named_routes, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names

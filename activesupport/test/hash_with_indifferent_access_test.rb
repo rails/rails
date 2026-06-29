@@ -456,6 +456,13 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
+  def test_indifferent_filter
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).filter { |k, v| v == 1 }
+
+    assert_equal({ "a" => 1 }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
   def test_indifferent_select_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
     indifferent_strings.select! { |k, v| v == 1 }

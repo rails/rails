@@ -396,7 +396,7 @@ module ActiveRecord
       relation.select_values = columns
 
       result = if relation.where_clause.contradiction?
-        ActiveRecord::Result.empty
+        ActiveRecord::Result.empty(async: @async)
       else
         skip_query_cache_if_necessary do
           model.with_connection do |c|
@@ -549,6 +549,7 @@ module ActiveRecord
           column = relation.aggregate_column(column_name)
           column_alias = column_alias_tracker.alias_for("#{operation} #{column_name.to_s.downcase}")
           select_value = operation_over_aggregate_column(column, operation, distinct)
+          select_value.distinct = true if operation == "sum" && distinct
           select_value = select_value.as(model.adapter_class.quote_column_name(column_alias))
 
           select_values = [select_value]

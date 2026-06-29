@@ -10,10 +10,10 @@ module ActionMailbox
     extend  ActiveSupport::Concern
     include ActiveSupport::Callbacks
 
-    TERMINATOR = ->(mailbox, chain) do
+    TERMINATOR = ActiveSupport::Ractors.shareable_lambda(&->(mailbox, chain) do
       chain.call
       mailbox.finished_processing?
-    end
+    end)
 
     included do
       define_callbacks :process, terminator: TERMINATOR, skip_after_callbacks_if_terminated: true

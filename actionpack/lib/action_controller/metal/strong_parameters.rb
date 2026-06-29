@@ -146,7 +146,7 @@ module ActionController
   #
   #     params = ActionController::Parameters.new(a: "123", b: "456")
   #     params.permit(:c)
-  #     # => ActionController::UnpermittedParameters: found unpermitted keys: a, b
+  #     # => ActionController::UnpermittedParameters: found unpermitted parameters: :a, :b
   #
   # Please note that these options *are not thread-safe*. In a multi-threaded
   # environment they should only be set once at boot-time and never mutated at
@@ -1072,7 +1072,7 @@ module ActionController
     end
 
     ##
-    # :call-seq: merge!(*other_hashes)
+    # :call-seq: merge!(*other_hashes, &block)
     #
     # Returns the current `ActionController::Parameters` instance with `other_hashes`
     # merged into current hash.

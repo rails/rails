@@ -274,6 +274,10 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
             @connection.remove_check_constraint :trades, name: "quantity_check", if_exists: true
           end
 
+          assert_nothing_raised do
+            @connection.remove_check_constraint :trades, "quantity > 0", if_exists: true
+          end
+
           error = assert_raises ArgumentError do
             @connection.remove_check_constraint :trades, name: "quantity_check"
           end

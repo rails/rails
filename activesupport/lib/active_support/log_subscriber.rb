@@ -67,9 +67,9 @@ module ActiveSupport
     class_attribute :log_levels, instance_accessor: false, default: {} # :nodoc:
 
     LEVEL_CHECKS = {
-      debug: ActiveSupport::Ractors.shareable_lambda(&-> (logger) { !logger.debug? }),
-      info: ActiveSupport::Ractors.shareable_lambda(&-> (logger) { !logger.info? }),
-      error: ActiveSupport::Ractors.shareable_lambda(&-> (logger) { !logger.error? }),
+      debug: ActiveSupport::Ractors.shareable_lambda { |logger| !logger.debug? },
+      info: ActiveSupport::Ractors.shareable_lambda  { |logger| !logger.info? },
+      error: ActiveSupport::Ractors.shareable_lambda { |logger| !logger.error? },
     }.freeze
 
     class << self

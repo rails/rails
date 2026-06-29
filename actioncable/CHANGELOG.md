@@ -1,3 +1,9 @@
+*   Move `ActionCable::Server::Configuration` to `ActionCable::Configuration`.
+
+    The old constant remains available as an alias.
+
+    *Samuel Williams*
+
 *   Respect calls to `#reject` in `before_subscribe` callbacks.
 
     It doesn't call `#subscribed` if a `before_subscribe` callback calls `#reject`.

@@ -30,7 +30,7 @@ module ActionView # :nodoc:
       #   safe_join([tag.p("foo"), tag.p("bar")], tag.br)
       #   # => "<p>foo</p><br><p>bar</p>"
       #
-      def safe_join(array, sep = $,)
+      def safe_join(array, sep = nil)
         sep = ERB::Util.unwrapped_html_escape(sep)
 
         array.flatten.map! { |i| ERB::Util.unwrapped_html_escape(i) }.join(sep).html_safe

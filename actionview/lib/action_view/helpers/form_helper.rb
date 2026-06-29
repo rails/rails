@@ -1528,7 +1528,7 @@ module ActionView
       #
       #   @user.born_on = Date.new(1984, 1, 27)
       #   month_field("user", "born_on")
-      #   # => <input id="user_born_on" name="user[born_on]" type="date" value="1984-01" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="month" value="1984-01" />
       #
       def month_field(object_name, method, options = {})
         Tags::MonthField.new(object_name, method, self, options).render
@@ -1545,7 +1545,7 @@ module ActionView
       #
       #   @user.born_on = Date.new(1984, 5, 12)
       #   week_field("user", "born_on")
-      #   # => <input id="user_born_on" name="user[born_on]" type="date" value="1984-W19" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="week" value="1984-W19" />
       #
       def week_field(object_name, method, options = {})
         Tags::WeekField.new(object_name, method, self, options).render

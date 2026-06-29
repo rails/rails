@@ -46,7 +46,7 @@ class DateTimePrecisionTest < ActiveRecord::TestCase
       assert_equal 123456000, foo.updated_at.nsec
     end
 
-    unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+    unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
       def test_no_datetime_precision_isnt_truncated_on_assignment
         @connection.create_table(:foos, force: true)
         @connection.add_column :foos, :created_at, :datetime, precision: nil
@@ -236,13 +236,24 @@ class DateTimePrecisionTest < ActiveRecord::TestCase
       assert_match %r{t\.datetime\s+"updated_at",\s+null: false$}, output
     end
 
-    def test_schema_dump_with_without_precision_has_precision_as_nil
-      @connection.create_table(:foos, force: true) do |t|
-        t.timestamps precision: nil
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_schema_dump_with_postgresql_default_precision_is_not_dumped
+        @connection.create_table(:foos, force: true) do |t|
+          t.timestamps precision: nil
+        end
+        output = dump_table_schema("foos")
+        assert_match %r{t\.datetime\s+"created_at",\s+null: false$}, output
+        assert_match %r{t\.datetime\s+"updated_at",\s+null: false$}, output
       end
-      output = dump_table_schema("foos")
-      assert_match %r{t\.datetime\s+"created_at",\s+precision: nil,\s+null: false$}, output
-      assert_match %r{t\.datetime\s+"updated_at",\s+precision: nil,\s+null: false$}, output
+    else
+      def test_schema_dump_with_without_precision_has_precision_as_nil
+        @connection.create_table(:foos, force: true) do |t|
+          t.timestamps precision: nil
+        end
+        output = dump_table_schema("foos")
+        assert_match %r{t\.datetime\s+"created_at",\s+precision: nil,\s+null: false$}, output
+        assert_match %r{t\.datetime\s+"updated_at",\s+precision: nil,\s+null: false$}, output
+      end
     end
 
     if current_adapter?(:PostgreSQLAdapter)
