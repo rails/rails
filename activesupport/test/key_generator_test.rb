@@ -2,6 +2,7 @@
 
 require_relative "abstract_unit"
 require "active_support/testing/ractors_assertions"
+require "active_support/testing/isolation"
 
 begin
   require "openssl"
@@ -67,8 +68,6 @@ else
   end
 
   class CachingKeyGeneratorTest < ActiveSupport::TestCase
-    include ActiveSupport::Testing::RactorsAssertions
-
     def setup
       @secret    = SecureRandom.hex(64)
       @generator = ActiveSupport::KeyGenerator.new(@secret, iterations: 2)
@@ -103,6 +102,14 @@ else
 
       assert_not_equal derived_key, different_length_key
     end
+  end
+
+  class RactorKeyGeneratorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    # This test has to be isolated due to a bug with Ractors on 4.0.5. We can move it back with the other
+    # tests once 4.0.6 is released.
 
     test "CachingKeyGenerator can work across ractors" do
       # OpenSSL::Digest are not Ractor-safe, but the fix is already merged upstream. This test can be updated
