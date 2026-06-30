@@ -18,11 +18,11 @@ module ActiveSupport
       #
       # :raise - The error is raised
       # :warn  - A deprecation warning is triggered and the original unshareable proc is returned.
-      def try_shareable_proc(proc = nil, &block)
+      def try_shareable_proc(proc = nil, **, &block)
         proc ||= block
         return proc unless unshareable_proc_action
 
-        shareable_proc(&proc)
+        shareable_proc(**, &proc)
       rescue Ractor::IsolationError
         case unshareable_proc_action
         when :raise
