@@ -1407,7 +1407,7 @@ NOTE: Defined in `active_support/core_ext/string/indent.rb`.
 [String#indent!]: https://api.rubyonrails.org/classes/String.html#method-i-indent-21
 [String#indent]: https://api.rubyonrails.org/classes/String.html#method-i-indent
 
-### Access
+### Accessing
 
 #### `at(position)`
 
@@ -2292,58 +2292,6 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 Extensions to `Array`
 ---------------------
 
-### Accessing
-
-Active Support augments the Array API with several convenience accessors.
-
-The [`to`][Array#to] method returns a subarray from the beginning up to and including the element at the given index:
-
-```ruby
-%w[a b c d].to(2)  # => ["a", "b", "c"]
-[].to(7)           # => []
-```
-
-The [`from`][Array#from] method returns the tail of the array starting at the given index. Returns an empty array if the index is out of bounds:
-
-```ruby
-%w[a b c d].from(2)  # => ["c", "d"]
-%w[a b c d].from(10) # => []
-```
-
-The [`including`][Array#including] method returns a new array with the given elements appended:
-
-```ruby
-[1, 2, 3].including(4, 5)            # => [1, 2, 3, 4, 5]
-```
-
-The [`excluding`][Array#excluding] method returns a copy of the array with the specified elements removed:
-
-```ruby
-["Alice", "Bob", "Carol"].excluding("Carol") # => ["Alice", "Bob"]
-```
-
-Active Support also provides positional accessors [`second`][Array#second], [`third`][Array#third], [`fourth`][Array#fourth], [`fifth`][Array#fifth], [`second_to_last`][Array#second_to_last], and [`third_to_last`][Array#third_to_last] (`first` and `last` are built into Ruby). [`forty_two`][Array#forty_two] is also available:
-
-```ruby
-%w[a b c d e].second # => "b"
-%w[a b c d e].third  # => "c"
-%w[a b c d e].fifth  # => "e"
-```
-
-NOTE: Defined in `active_support/core_ext/array/access.rb`.
-
-[Array#to]: https://api.rubyonrails.org/classes/Array.html#method-i-to
-[Array#from]: https://api.rubyonrails.org/classes/Array.html#method-i-from
-[Array#including]: https://api.rubyonrails.org/classes/Array.html#method-i-including
-[Array#excluding]: https://api.rubyonrails.org/classes/Array.html#method-i-excluding
-[Array#second]: https://api.rubyonrails.org/classes/Array.html#method-i-second
-[Array#third]: https://api.rubyonrails.org/classes/Array.html#method-i-third
-[Array#fourth]: https://api.rubyonrails.org/classes/Array.html#method-i-fourth
-[Array#fifth]: https://api.rubyonrails.org/classes/Array.html#method-i-fifth
-[Array#second_to_last]: https://api.rubyonrails.org/classes/Array.html#method-i-second_to_last
-[Array#third_to_last]: https://api.rubyonrails.org/classes/Array.html#method-i-third_to_last
-[Array#forty_two]: https://api.rubyonrails.org/classes/Array.html#method-i-forty_two
-
 ### `extract!`
 
 The [`extract!`][Array#extract!] method removes and returns the elements for which the block returns true, modifying the original array in place:
@@ -2394,7 +2342,7 @@ NOTE: Defined in `active_support/core_ext/array/extract_options.rb`.
 
 [Array#extract_options!]: https://api.rubyonrails.org/classes/Array.html#method-i-extract_options-21
 
-### Conversions
+
 
 #### `to_sentence`
 
@@ -2603,6 +2551,206 @@ NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
 [Array#deep_dup]: https://api.rubyonrails.org/classes/Array.html#method-i-deep_dup
 
+### Accessing
+
+Active Support augments the Array API with several convenience accessors.
+
+The [`to`][Array#to] method returns a subarray from the beginning up to and including the element at the given index:
+
+```ruby
+%w[a b c d].to(2)  # => ["a", "b", "c"]
+[].to(7)           # => []
+```
+
+The [`from`][Array#from] method returns the tail of the array starting at the given index. Returns an empty array if the index is out of bounds:
+
+```ruby
+%w[a b c d].from(2)  # => ["c", "d"]
+%w[a b c d].from(10) # => []
+```
+
+The [`including`][Array#including] method returns a new array with the given elements appended:
+
+```ruby
+[1, 2, 3].including(4, 5)            # => [1, 2, 3, 4, 5]
+```
+
+The [`excluding`][Array#excluding] method returns a copy of the array with the specified elements removed:
+
+```ruby
+["Alice", "Bob", "Carol"].excluding("Carol") # => ["Alice", "Bob"]
+```
+
+Active Support also provides positional accessors [`second`][Array#second], [`third`][Array#third], [`fourth`][Array#fourth], [`fifth`][Array#fifth], [`second_to_last`][Array#second_to_last], and [`third_to_last`][Array#third_to_last] (`first` and `last` are built into Ruby). [`forty_two`][Array#forty_two] is also available:
+
+```ruby
+%w[a b c d e].second # => "b"
+%w[a b c d e].third  # => "c"
+%w[a b c d e].fifth  # => "e"
+```
+
+NOTE: Defined in `active_support/core_ext/array/access.rb`.
+
+[Array#to]: https://api.rubyonrails.org/classes/Array.html#method-i-to
+[Array#from]: https://api.rubyonrails.org/classes/Array.html#method-i-from
+[Array#including]: https://api.rubyonrails.org/classes/Array.html#method-i-including
+[Array#excluding]: https://api.rubyonrails.org/classes/Array.html#method-i-excluding
+[Array#second]: https://api.rubyonrails.org/classes/Array.html#method-i-second
+[Array#third]: https://api.rubyonrails.org/classes/Array.html#method-i-third
+[Array#fourth]: https://api.rubyonrails.org/classes/Array.html#method-i-fourth
+[Array#fifth]: https://api.rubyonrails.org/classes/Array.html#method-i-fifth
+[Array#second_to_last]: https://api.rubyonrails.org/classes/Array.html#method-i-second_to_last
+[Array#third_to_last]: https://api.rubyonrails.org/classes/Array.html#method-i-third_to_last
+[Array#forty_two]: https://api.rubyonrails.org/classes/Array.html#method-i-forty_two
+
+### Conversions
+
+#### `to_sentence`
+
+The method [`to_sentence`][Array#to_sentence] turns an array into a string containing a sentence that enumerates its items:
+
+```ruby
+%w().to_sentence                # => ""
+%w(Earth).to_sentence           # => "Earth"
+%w(Earth Wind).to_sentence      # => "Earth and Wind"
+%w(Earth Wind Fire).to_sentence # => "Earth, Wind, and Fire"
+```
+
+This method accepts three options:
+
+* `:two_words_connector`: What is used for arrays of length 2. Default is " and
+  ".
+* `:words_connector`: What is used to join the elements of arrays with 3 or more
+  elements, except for the last two. Default is ", ".
+* `:last_word_connector`: What is used to join the last items of an array with 3
+  or more elements. Default is ", and ".
+
+The defaults for these options can be localized, their keys are:
+
+| Option                 | I18n key                            |
+| ---------------------- | ----------------------------------- |
+| `:two_words_connector` | `support.array.two_words_connector` |
+| `:words_connector`     | `support.array.words_connector`     |
+| `:last_word_connector` | `support.array.last_word_connector` |
+
+NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
+
+[Array#to_sentence]: https://api.rubyonrails.org/classes/Array.html#method-i-to_sentence
+
+#### `to_fs`
+
+The method [`to_fs`][Array#to_fs] acts like `to_s` by default.
+
+If the array contains items that respond to `id`, however, the symbol `:db` may
+be passed as argument. That's typically used with collections of Active Record
+objects. Returned strings are:
+
+```ruby
+[].to_fs(:db)            # => "null"
+[user].to_fs(:db)        # => "8456"
+invoice.lines.to_fs(:db) # => "23,567,556,12"
+```
+
+Integers in the example above come from the respective calls to `id`.
+
+NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
+
+[Array#to_fs]: https://api.rubyonrails.org/classes/Array.html#method-i-to_fs
+
+#### `to_xml`
+
+The [`to_xml`][Array#to_xml] method serializes an array into an XML string by calling `to_xml` on each element and wrapping the results in a root node. All elements must respond to `to_xml`.
+
+The root element name is automatically inferred from the class of the first element, pluralized and dasherized:
+
+```ruby
+Contributor.limit(2).order(:rank).to_xml
+# =>
+# <?xml version="1.0" encoding="UTF-8"?>
+# <contributors type="array">
+#   <contributor>
+#     <id type="integer">1</id>
+#     <name>Frodo Baggins</name>
+#     <rank type="integer">1</rank>
+#     <url-id>frodo-baggins</url-id>
+#   </contributor>
+#   <contributor>
+#     <id type="integer">2</id>
+#     <name>Gandalf the Grey</name>
+#     <rank type="integer">2</rank>
+#     <url-id>gandalf-the-grey</url-id>
+#   </contributor>
+# </contributors>
+```
+
+If the collection contains mixed types, the root element falls back to `"objects"`:
+
+```ruby
+[Contributor.first, Commit.first].to_xml
+# =>
+# <?xml version="1.0" encoding="UTF-8"?>
+# <objects type="array">
+#   <object>
+#     <id type="integer">1</id>
+#     <name>Frodo Baggins</name>
+#     <rank type="integer">1</rank>
+#   </object>
+#   <object>
+#     <author>Samwise Gamgee</author>
+#     <authored-timestamp type="datetime">2026-05-05T12:00:00Z</authored-timestamp>
+#     <branch>origin/main</branch>
+#     <id type="integer">2</id>
+#     <message>Fix bug in authentication flow</message>
+#     <sha1>723a47bfb3708f968821bc969a9a3fc873a3ed58</sha1>
+#   </object>
+# </objects>
+```
+
+If the receiver is an array of hashes, the root element is also `"objects"` by default:
+
+```ruby
+[{ a: 1, b: 2 }, { c: 3 }].to_xml
+# =>
+# <?xml version="1.0" encoding="UTF-8"?>
+# <objects type="array">
+#   <object>
+#     <a type="integer">1</a>
+#     <b type="integer">2</b>
+#   </object>
+#   <object>
+#     <c type="integer">3</c>
+#   </object>
+# </objects>
+```
+
+WARNING: If the collection is empty, the root element defaults to `"nil-classes"` rather than the expected plural class name. Use the `:root` option to ensure a consistent root element when the collection may be empty.
+
+The name of child nodes is the singularized form of the root node by default. Use the `:children` option to override this. The default XML builder is a fresh instance of `Builder::XmlMarkup`, you can provide your own via the `:builder` option. Other options like `:dasherize` and `:skip_types` are forwarded to the builder:
+
+```ruby
+Contributor.limit(2).order(:rank).to_xml(skip_types: true)
+# =>
+# <?xml version="1.0" encoding="UTF-8"?>
+# <contributors>
+#   <contributor>
+#     <id>1</id>
+#     <name>Frodo Baggins</name>
+#     <rank>1</rank>
+#     <url-id>frodo-baggins</url-id>
+#   </contributor>
+#   <contributor>
+#     <id>2</id>
+#     <name>Gandalf the Grey</name>
+#     <rank>2</rank>
+#     <url-id>gandalf-the-grey</url-id>
+#   </contributor>
+# </contributors>
+```
+
+NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
+
+[Array#to_xml]: https://api.rubyonrails.org/classes/Array.html#method-i-to_xml
+
 ### Grouping
 
 #### `in_groups_of(number, fill_with = nil)`
@@ -2710,6 +2858,86 @@ NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
 
 Extensions to `Hash`
 --------------------
+
+### `extract!`
+
+The [`extract!`][Hash#extract!] method removes and returns the key/value pairs matching the given keys. It's the inverse of `slice!`, where `slice!` keeps the given keys and returns the rest.
+
+```ruby
+hash = { a: 1, b: 2 }
+rest = hash.extract!(:a) # => { a: 1 }
+hash                     # => { b: 2 }
+```
+
+The `extract!` method preserves the subclass of the receiver, so calling it on an `ActiveSupport::HashWithIndifferentAccess` returns the same type:
+
+```ruby
+hash = { a: 1, b: 2 }.with_indifferent_access
+hash.extract!(:a).class
+# => ActiveSupport::HashWithIndifferentAccess
+```
+
+NOTE: Defined in `active_support/core_ext/hash/slice.rb`.
+
+[Hash#extract!]: https://api.rubyonrails.org/classes/Hash.html#method-i-extract-21
+
+### `slice` and `slice!`
+
+The [`slice`][Hash#slice] method returns a new hash containing only the given keys, leaving the original hash unchanged:
+
+```ruby
+hash = { a: 1, b: 2, c: 3 }
+hash.slice(:a, :c) # => { a: 1, c: 3 }
+hash               # => { a: 1, b: 2, c: 3 }  — unchanged
+```
+
+The [`slice!`][Hash#slice!] method does the opposite in terms of mutation. It modifies the caller to keep only the specified keys and returns a hash of the rest of the removed key/value pairs:
+
+```ruby
+hash = { a: 1, b: 2, c: 3 }
+rest = hash.slice!(:a) # => { b: 2, c: 3 }
+hash                   # => { a: 1 }
+```
+
+NOTE: Defined in `active_support/core_ext/hash/slice.rb`.
+
+[Hash#slice]: https://api.rubyonrails.org/classes/Hash.html#method-i-slice
+[Hash#slice!]: https://api.rubyonrails.org/classes/Hash.html#method-i-slice-21
+
+### `with_indifferent_access`
+
+The [`with_indifferent_access`][Hash#with_indifferent_access] method converts a hash into an [`ActiveSupport::HashWithIndifferentAccess`][ActiveSupport::HashWithIndifferentAccess], which allows keys to be accessed as either strings or symbols interchangeably:
+
+```ruby
+{ a: 1 }.with_indifferent_access["a"] # => 1
+{ a: 1 }.with_indifferent_access[:a]  # => 1
+```
+
+NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
+
+[ActiveSupport::HashWithIndifferentAccess]: https://api.rubyonrails.org/classes/ActiveSupport/HashWithIndifferentAccess.html
+[Hash#with_indifferent_access]: https://api.rubyonrails.org/classes/Hash.html#method-i-with_indifferent_access
+
+### `deep_dup`
+
+The [`Hash#deep_dup`][Hash#deep_dup] method duplicates a hash along with all the keys and values inside it, recursively. Unlike Ruby's built-in `dup`, which produces a shallow copy where nested objects are still shared, `deep_dup` ensures that modifying a nested value in the copy does not affect the original:
+
+```ruby
+hash = { a: 1, b: { c: 2, d: [3, 4] } }
+dup = hash.deep_dup
+
+dup[:b][:e] = 5
+dup[:b][:d] << 5
+
+hash[:b][:e] # => nil       — original is unaffected
+hash[:b][:d] # => [3, 4]    — original array is unaffected
+dup[:b][:e]  # => 5
+dup[:b][:d]  # => [3, 4, 5]
+```
+
+NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
+
+[Hash#deep_dup]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_dup
 
 ### Conversions
 
@@ -2835,40 +3063,6 @@ NOTE: Defined in `active_support/core_ext/hash/deep_merge.rb`.
 [Hash#deep_merge!]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_merge-21
 [Hash#deep_merge]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_merge
 
-### `deep_dup`
-
-The [`Hash#deep_dup`][Hash#deep_dup] method duplicates a hash along with all the keys and values inside it, recursively. Unlike Ruby's built-in `dup`, which produces a shallow copy where nested objects are still shared, `deep_dup` ensures that modifying a nested value in the copy does not affect the original:
-
-```ruby
-hash = { a: 1, b: { c: 2, d: [3, 4] } }
-dup = hash.deep_dup
-
-dup[:b][:e] = 5
-dup[:b][:d] << 5
-
-hash[:b][:e] # => nil       — original is unaffected
-hash[:b][:d] # => [3, 4]    — original array is unaffected
-dup[:b][:e]  # => 5
-dup[:b][:d]  # => [3, 4, 5]
-```
-
-NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
-
-[Hash#deep_dup]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_dup
-
-### `with_indifferent_access`
-
-The [`with_indifferent_access`][Hash#with_indifferent_access] method converts a hash into an [`ActiveSupport::HashWithIndifferentAccess`][ActiveSupport::HashWithIndifferentAccess], which allows keys to be accessed as either strings or symbols interchangeably:
-
-```ruby
-{ a: 1 }.with_indifferent_access["a"] # => 1
-{ a: 1 }.with_indifferent_access[:a]  # => 1
-```
-
-NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
-
-[ActiveSupport::HashWithIndifferentAccess]: https://api.rubyonrails.org/classes/ActiveSupport/HashWithIndifferentAccess.html
-[Hash#with_indifferent_access]: https://api.rubyonrails.org/classes/Hash.html#method-i-with_indifferent_access
 
 ### Working with Keys
 
@@ -3037,51 +3231,6 @@ NOTE: Defined in `active_support/core_ext/hash/deep_transform_values.rb`.
 
 [Hash#deep_transform_values!]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_transform_values-21
 [Hash#deep_transform_values]: https://api.rubyonrails.org/classes/Hash.html#method-i-deep_transform_values
-
-### `slice` and `slice!`
-
-The [`slice`][Hash#slice] method returns a new hash containing only the given keys, leaving the original hash unchanged:
-
-```ruby
-hash = { a: 1, b: 2, c: 3 }
-hash.slice(:a, :c) # => { a: 1, c: 3 }
-hash               # => { a: 1, b: 2, c: 3 }  — unchanged
-```
-
-The [`slice!`][Hash#slice!] method does the opposite in terms of mutation. It modifies the caller to keep only the specified keys and returns a hash of the rest of the removed key/value pairs:
-
-```ruby
-hash = { a: 1, b: 2, c: 3 }
-rest = hash.slice!(:a) # => { b: 2, c: 3 }
-hash                   # => { a: 1 }
-```
-
-NOTE: Defined in `active_support/core_ext/hash/slice.rb`.
-
-[Hash#slice]: https://api.rubyonrails.org/classes/Hash.html#method-i-slice
-[Hash#slice!]: https://api.rubyonrails.org/classes/Hash.html#method-i-slice-21
-
-### `extract!`
-
-The [`extract!`][Hash#extract!] method removes and returns the key/value pairs matching the given keys. It's the inverse of `slice!`, where `slice!` keeps the given keys and returns the rest.
-
-```ruby
-hash = { a: 1, b: 2 }
-rest = hash.extract!(:a) # => { a: 1 }
-hash                     # => { b: 2 }
-```
-
-The `extract!` method preserves the subclass of the receiver, so calling it on an `ActiveSupport::HashWithIndifferentAccess` returns the same type:
-
-```ruby
-hash = { a: 1, b: 2 }.with_indifferent_access
-hash.extract!(:a).class
-# => ActiveSupport::HashWithIndifferentAccess
-```
-
-NOTE: Defined in `active_support/core_ext/hash/slice.rb`.
-
-[Hash#extract!]: https://api.rubyonrails.org/classes/Hash.html#method-i-extract-21
 
 Extensions to `Range`
 ---------------------
