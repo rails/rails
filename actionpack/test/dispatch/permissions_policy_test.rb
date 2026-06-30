@@ -99,6 +99,33 @@ class PermissionsPolicyMiddlewareTest < ActionDispatch::IntegrationTest
     assert_equal "gyroscope 'none'", response.headers[ActionDispatch::Constants::FEATURE_POLICY]
   end
 
+  test "dynamic sources resolve when no controller is present" do
+    dynamic_policy = ActionDispatch::PermissionsPolicy.new do |p|
+      p.gyroscope -> { "'self'" }
+    end
+
+    config_middleware = Class.new do
+      define_method(:initialize) { |app| @app = app }
+      define_method(:call) do |env|
+        env["action_dispatch.permissions_policy"] = dynamic_policy
+        env["action_dispatch.show_exceptions"] = :none
+        @app.call(env)
+      end
+    end
+
+    @app = config_middleware.new(
+      Rack::Lint.new(
+        ActionDispatch::PermissionsPolicy::Middleware.new(
+          Rack::Lint.new(->(env) { [200, { Rack::CONTENT_TYPE => "text/html" }, []] }),
+        ),
+      ),
+    )
+
+    get "/index"
+
+    assert_equal "gyroscope 'self'", response.headers[ActionDispatch::Constants::FEATURE_POLICY]
+  end
+
   private
     def build_app(app)
       PolicyConfigMiddleware.new(

@@ -42,7 +42,7 @@ module ActionDispatch # :nodoc:
         request = ActionDispatch::Request.new(env)
 
         if policy = request.permissions_policy
-          headers[ActionDispatch::Constants::FEATURE_POLICY] = policy.build(request.controller_instance)
+          headers[ActionDispatch::Constants::FEATURE_POLICY] = policy.build(request.controller_instance || request)
         end
 
         if policy_empty?(policy)
