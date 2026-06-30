@@ -37,6 +37,9 @@ if RUBY_VERSION >= "4.0"
         end
 
         assert_ractor_shareable Rails.application
+        assert_ractor_shareable Rails.event
+        assert_ractor_shareable Rails.error
+        assert_ractor_shareable Rails.backtrace_cleaner
       end
     end
   end
