@@ -43,7 +43,7 @@ module ActionPack
       class Attestation
         attr_reader :authenticator_data, :format, :attestation_statement
 
-        delegate :credential_id, :public_key, :public_key_bytes, :sign_count, :aaguid, :backed_up?, to: :authenticator_data
+        delegate :credential_id, :public_key, :public_key_bytes, :sign_count, :aaguid, :backup_eligible?, :backed_up?, to: :authenticator_data
 
         # Wraps raw attestation data into an Attestation instance. Accepts an
         # existing Attestation object (returned as-is), a Base64URL-encoded string,

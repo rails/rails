@@ -11,6 +11,7 @@ class CreateActionPackPasskeysPasskeys < ActiveRecord::Migration[8.2]
       t.text :transports
       t.string :relying_party_id
       t.string :aaguid, limit: 36
+      t.boolean :backup_eligible
       t.boolean :backed_up
 
       t.timestamps

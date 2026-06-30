@@ -54,6 +54,10 @@ module ActionPack
     # [+relying_party_id+]
     #   The relying party ID the credential is scoped to. This is set during registration.
     #
+    # [+backup_eligible+]
+    #   Whether the credential is eligible for backup (a multi-device, syncable
+    #   passkey). Set during registration and immutable thereafter.
+    #
     # [+backed_up+]
     #   Whether the credential is backed up to cloud storage (synced passkey).
     #
@@ -67,7 +71,7 @@ module ActionPack
       autoload :Options
       autoload :RequestOptions
 
-      attr_reader :id, :public_key, :sign_count, :aaguid, :relying_party_id, :backed_up, :transports
+      attr_reader :id, :public_key, :sign_count, :aaguid, :relying_party_id, :backup_eligible, :backed_up, :transports
 
       class << self
         # Returns a RequestOptions object for the authentication ceremony.
@@ -107,6 +111,7 @@ module ActionPack
             sign_count: response.attestation.sign_count,
             aaguid: response.attestation.aaguid,
             relying_party_id: response.relying_party.id,
+            backup_eligible: response.attestation.backup_eligible?,
             backed_up: response.attestation.backed_up?,
             transports: Array(params[:transports])
           )
@@ -124,13 +129,14 @@ module ActionPack
           end
       end
 
-      def initialize(id:, public_key:, sign_count:, aaguid: nil, relying_party_id: nil, backed_up: nil, transports: []) # :nodoc:
+      def initialize(id:, public_key:, sign_count:, aaguid: nil, relying_party_id: nil, backup_eligible: nil, backed_up: nil, transports: []) # :nodoc:
         @id = id
         @public_key = public_key
         @public_key = OpenSSL::PKey.read(public_key) unless public_key.is_a?(OpenSSL::PKey::PKey)
         @sign_count = sign_count
         @aaguid = aaguid
         @relying_party_id = relying_party_id
+        @backup_eligible = backup_eligible
         @backed_up = backed_up
         @transports = transports
       end
@@ -162,6 +168,7 @@ module ActionPack
           sign_count: sign_count,
           aaguid: aaguid,
           relying_party_id: relying_party_id,
+          backup_eligible: backup_eligible,
           backed_up: backed_up,
           transports: transports
         }

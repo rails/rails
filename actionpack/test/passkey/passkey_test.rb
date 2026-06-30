@@ -65,6 +65,7 @@ class ActionPack::Passkeys::PasskeyTest < ActiveSupport::TestCase
         t.text :transports
         t.string :relying_party_id
         t.string :aaguid
+        t.boolean :backup_eligible
         t.boolean :backed_up
 
         t.timestamps
@@ -115,7 +116,7 @@ class ActionPack::Passkeys::PasskeyTest < ActiveSupport::TestCase
     assert @passkey.backed_up?
   end
 
-  test "register persists relying_party_id" do
+  test "register persists relying_party_id and backup_eligible" do
     ActionPack::WebAuthn::Current.host = "example.com"
     ActionPack::WebAuthn::Current.origin = "https://example.com"
 
@@ -132,6 +133,7 @@ class ActionPack::Passkeys::PasskeyTest < ActiveSupport::TestCase
     )
 
     assert_equal "example.com", passkey.relying_party_id
+    assert_equal false, passkey.backup_eligible
   end
 
   test "to_public_key_credential" do
