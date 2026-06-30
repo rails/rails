@@ -1,3 +1,14 @@
+*   Don't run system tests in the generated GitHub Actions CI workflow by default.
+
+    A newly generated app has no system tests, so the `system-test` job in
+    `.github/workflows/ci.yml` failed on the very first push. `config/ci.rb`
+    already commented these out; the GitHub Actions workflow now matches it. In
+    place of the job, the workflow includes a comment explaining how to enable
+    system tests. Both CI templates now treat system tests the same way across
+    the default, `--skip-system-test`, and `--api` cases.
+
+    *Dominic Baratta*
+
 *   Show a Rails-flavored startup banner (a small logo, Rails/Ruby
     version, a rotating tip about console helpers like `app`/`reload!`, and
     `Rails.root`) when starting `bin/rails console`.
