@@ -1341,24 +1341,6 @@ NOTE: Defined in `active_support/core_ext/string/inquiry.rb`.
 
 [String#inquiry]: https://api.rubyonrails.org/classes/String.html#method-i-inquiry
 
-### `starts_with?` and `ends_with?`
-
-Active Support defines aliases of Ruby's `String#start_with?` and `String#end_with?` which read more like natural language such as:
-
-```ruby
-"hello".starts_with?("h") # => true
-"hello".ends_with?("o")   # => true
-```
-
-These methods work with `Symbol` class also:
-
-```ruby
-:hello.starts_with?("h") # => true
-:hello.ends_with?("o")   # => true
-```
-
-NOTE: Defined in `active_support/core_ext/string/starts_ends_with.rb`.
-
 ### `strip_heredoc`
 
 A heredoc is Ruby's syntax for defining a multiline string in code. The string content is written inline, indented to match the surrounding code:
@@ -3309,21 +3291,32 @@ Active Support extends both methods to also accept another range as the argument
 (1...9).include?(3..9)   # => false
 ```
 
-NOTE: Defined in `active_support/core_ext/range/compare_range.rb`.
-
-### `overlap?`
-
-The method [`Range#overlap?`][Range#overlap?] checks whether two given ranges have overlapping values:
+Ruby's built-in `Range#cover?` (since Ruby 2.6) accepts range agruments and provides equivalent functionality without Active Support:
 
 ```ruby
-(1..10).overlap?(7..11)  # => true
-(1..10).overlap?(0..7)   # => true
-(1..10).overlap?(11..27) # => false
+(1..10).cover?(3..7)   # => true
+(1..10).cover?(0..7)   # => false
+(1..10).cover?(3..11)  # => false
+(1...9).cover?(3..9)   # => false
 ```
+
+NOTE: Defined in `active_support/core_ext/range/compare_range.rb`.
+
+### `overlaps?`
+
+The method [`Range#overlaps?`][Range#overlaps?] checks whether two given ranges have overlapping values:
+
+```ruby
+(1..10).overlaps?(7..11)  # => true
+(1..10).overlaps?(0..7)   # => true
+(1..10).overlaps?(11..27) # => false
+```
+
+NOTE: Ruby 3.3 added `Range#overlap?` (without the "s") to Ruby core, inspired by Active Support's `overlaps?`. One behavioral difference is that Ruby's `overlap?` explicitly returns `false` when either range is empty, while `overlaps?` may behave differently in those edge cases. For new code, prefer Ruby's built-in `overlap?`.
 
 NOTE: Defined in `active_support/core_ext/range/overlap.rb`.
 
-[Range#overlap?]: https://api.rubyonrails.org/classes/Range.html#method-i-overlaps-3F
+[Range#overlaps?]: https://api.rubyonrails.org/classes/Range.html#method-i-overlaps-3F
 
 
 Working with `Date`, `Time`, and `DateTime`
@@ -4399,6 +4392,70 @@ BigDecimal(5.00, 6).to_s      # => "5.0"
 BigDecimal(5.00, 6).to_s("e") # => "0.5E1" ("e" for scientific notation)
 ```
 
+### `Digest::UUID`
+
+Active Support adds the `Digest::UUID` module for generating UUIDs (Universally Unique Identifiers) in several standard formats defined by RFC 4122. Ruby's standard library only provides `SecureRandom.uuid` for generating a random v4 UUID. Everything else in this section, including deterministic UUIDs, namespace constants, and the nil UUID, is added by Active Support.
+
+#### `uuid_v4`
+
+[`Digest::UUID.uuid_v4`][Digest::UUID.uuid_v4] generates a random UUID. It is a convenience wrapper around Ruby's built-in `SecureRandom.uuid`:
+
+```ruby
+Digest::UUID.uuid_v4 # => "b16f4bc7-2960-4e47-9d3f-a19c6f7174bd"
+Digest::UUID.uuid_v4 # => "e08f6f8e-9a1c-4b3d-8e2a-7f5d9c1b4e6a"
+```
+
+#### `uuid_v3` and `uuid_v5`
+
+The methods [`uuid_v3`][Digest::UUID.uuid_v3] and [`uuid_v5`][Digest::UUID.uuid_v5] generate *deterministic* UUIDs. They always return the same UUID for a given namespace and name combination. This makes them useful for generating stable identifiers from known inputs, like a URL or a domain name.
+
+`uuid_v3` uses MD5 hashing, `uuid_v5` uses SHA1 and is generally preferred since SHA1 is more collision-resistant:
+
+```ruby
+Digest::UUID.uuid_v5(Digest::UUID::DNS_NAMESPACE, "www.example.com")
+# => "37a76e34-f88c-57d7-a277-d464c7a2ff19"
+
+Digest::UUID.uuid_v5(Digest::UUID::DNS_NAMESPACE, "www.example.com")
+# => "37a76e34-f88c-57d7-a277-d464c7a2ff19"  — same every time
+
+Digest::UUID.uuid_v3(Digest::UUID::DNS_NAMESPACE, "www.example.com")
+# => "9073926b-929f-31c2-abc9-fad77ae3e8eb"
+```
+
+Active Support provides four built-in namespace constants:
+
+```ruby
+Digest::UUID::DNS_NAMESPACE  # for domain names
+Digest::UUID::URL_NAMESPACE  # for URLs
+Digest::UUID::OID_NAMESPACE  # for ISO object identifiers
+Digest::UUID::X500_NAMESPACE # for X.500 distinguished names
+```
+
+#### `uuid_from_hash`
+
+The [`uuid_from_hash`][Digest::UUID.uuid_from_hash] method is the underlying method that `uuid_v3` and `uuid_v5` call. It accepts a hash class explicitly, you can pass `OpenSSL::Digest::MD5` for a v3 UUID or `OpenSSL::Digest::SHA1` for a v5 UUID:
+
+```ruby
+Digest::UUID.uuid_from_hash(OpenSSL::Digest::SHA1, Digest::UUID::URL_NAMESPACE, "https://example.com")
+# => a deterministic UUID based on the SHA1 hash of the namespace + name
+```
+
+#### `nil_uuid`
+
+Thee [`nil_uuid`][Digest::UUID.nil_uuid] returns the special nil UUID — all 128 bits set to zero:
+
+```ruby
+Digest::UUID.nil_uuid # => "00000000-0000-0000-0000-000000000000"
+```
+
+NOTE: Defined in `active_support/core_ext/digest/uuid.rb`.
+
+[Digest::UUID.uuid_v4]: https://api.rubyonrails.org/classes/Digest/UUID.html#method-c-uuid_v4
+[Digest::UUID.uuid_v3]: https://api.rubyonrails.org/classes/Digest/UUID.html#method-c-uuid_v3
+[Digest::UUID.uuid_v5]: https://api.rubyonrails.org/classes/Digest/UUID.html#method-c-uuid_v5
+[Digest::UUID.uuid_from_hash]: https://api.rubyonrails.org/classes/Digest/UUID.html#method-c-uuid_from_hash
+[Digest::UUID.nil_uuid]: https://api.rubyonrails.org/classes/Digest/UUID.html#method-c-nil_uuid
+
 ### File (``atomic_write`)
 
 Ruby's standard `File.write` method can leave a file in a partially written state if another process reads it mid-write. The [`File.atomic_write`][File.atomic_write] method is an Active Support addition that solves this. It writes to a temporary file first and then renames it to the target path in a single atomic operation, so any reader always sees either the old complete file or the new complete file, never a half written one.
@@ -4473,4 +4530,37 @@ end
 NOTE: Defined in `active_support/core_ext/regexp.rb`.
 
 [Regexp#multiline?]: https://api.rubyonrails.org/classes/Regexp.html#method-i-multiline-3F
+
+### SecureRandom (`base_*`)
+
+Active Support adds two methods to Ruby's `SecureRandom` module for generating random strings in specific character sets. Ruby's built-in `SecureRandom.hex` and `SecureRandom.alphanumeric` are general-purpose. The Active support additions give you more control over the exact alphabet used, which matters for things like tokens, slugs, and identifiers.
+
+#### `base58`
+
+The [`base58`][SecureRandom.base58] method generates a random string using the Base58 alphabet: digits `0-9`, uppercase `A-Z`, and lowercase `a-z`, with the visually ambiguous characters `0`, `O`, `I`, and `l` removed to reduce transcription errors:
+
+```ruby
+SecureRandom.base58     # => "4kUgL2pdQMSCQtjE"  (16 characters, default)
+SecureRandom.base58(24) # => "AGt8sPzCFkjz8x7ExbD4etv9"
+```
+
+The removal of ambiguous characters makes Base58 well-suited for human-readable tokens that users may need to read aloud or type manually.
+
+WARNING: MySQL and some other databases use case-insensitive collations by default, which means `base58` tokens that differ only in case may be treated as identical. If you store `base58` tokens in a database with case-insensitive collation, ensure the column uses a case-sensitive collation, or consider `base36` instead.
+
+#### `base36`
+
+Thee [`base36`][SecureRandom.base36] method generates a random string using only digits `0-9` and lowercase letters `a-z`:
+
+```ruby
+SecureRandom.base36     # => "hgmtp5k3fm8dqxv7"  (16 characters, default)
+SecureRandom.base36(24) # => "3jqv9zp2mxfk7t8nyd4wsr6c"
+```
+
+Because the alphabet is entirely lowercase, `base36` tokens are safe to store in case-insensitive database columns without risk of collisions.
+
+NOTE: Defined in `active_support/core_ext/securerandom.rb`.
+
+[SecureRandom.base58]: https://api.rubyonrails.org/classes/SecureRandom.html#method-c-base58
+[SecureRandom.base36]: https://api.rubyonrails.org/classes/SecureRandom.html#method-c-base36
 
