@@ -61,12 +61,5 @@ module ActionView
     def self.remove_tracker(handler) # :nodoc:
       @trackers.delete(handler)
     end
-
-    case ActionView.render_tracker
-    when :ruby
-      register_tracker :erb, RubyTracker
-    else
-      register_tracker :erb, ERBTracker
-    end
   end
 end

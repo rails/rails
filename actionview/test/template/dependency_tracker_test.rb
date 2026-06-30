@@ -51,17 +51,17 @@ class DependencyTrackerTest < ActionView::TestCase
   def test_changing_render_tracker_re_registers_erb_tracker
     erb_handler = ActionView::Template.handler_for_extension("erb")
     trackers = ActionView::DependencyTracker.instance_variable_get(:@trackers)
-    original = ActionView.render_tracker
+    original = ActionView::Base.render_tracker
 
-    ActionView.render_tracker = :ruby
+    ActionView::Base.render_tracker = :ruby
     assert_equal ActionView::DependencyTracker::RubyTracker, trackers[erb_handler],
       "Expected RubyTracker after setting render_tracker to :ruby"
 
-    ActionView.render_tracker = :regex
+    ActionView::Base.render_tracker = :regex
     assert_equal ActionView::DependencyTracker::ERBTracker, trackers[erb_handler],
       "Expected ERBTracker after setting render_tracker to :regex"
   ensure
-    ActionView.render_tracker = original
+    ActionView::Base.render_tracker = original
   end
 
   def test_returns_empty_array_if_no_tracker_is_found
