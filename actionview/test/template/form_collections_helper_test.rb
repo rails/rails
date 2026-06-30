@@ -259,6 +259,16 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_no_select "label[for=user_active_]"
   end
 
+  test "collection radio input id matches label for when value sanitizes to empty" do
+    with_collection_radio_buttons :user, :active, [["Yes", "y"], ["Bang", "!"]], :last, :first
+
+    assert_select "input[type=radio]#user_active_y"
+    assert_select "label[for=user_active_y]", "Yes"
+    assert_select "input[type=radio]#user_active"
+    assert_select "label[for=user_active]", "Bang"
+    assert_no_select "input#user_active_"
+  end
+
   # COLLECTION CHECK BOXES
   test "collection check boxes accepts a collection and generate a series of checkboxes for value method" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
