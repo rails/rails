@@ -166,7 +166,7 @@ class CacheCoderTest < ActiveSupport::TestCase
 
     STRING = "x" * 100
     COMPRESSIBLE_VALUES = [
-      { string: STRING },
+      { string: STRING }.freeze,
       STRING,
       STRING.encode(Encoding::BINARY),
       STRING.encode(Encoding::US_ASCII),

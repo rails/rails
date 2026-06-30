@@ -109,7 +109,7 @@ module ApplicationTests
               config.database = "storage/development.sqlite3"
             end
           RUBY
-        },
+        }.freeze,
         "multiline ERB" => {
           yaml: <<~YAML,
             development:
@@ -123,7 +123,7 @@ module ApplicationTests
               config.database = "storage/development.sqlite3"
             end
           RUBY
-        },
+        }.freeze,
         "ERB accessing nested configurations" => {
           yaml: <<~YAML,
             development:
@@ -136,7 +136,7 @@ module ApplicationTests
               config.other = Struct.new(:value).new(123)
             end
           RUBY
-        },
+        }.freeze,
         "conditional statements in ERB" => {
           yaml: <<~YAML,
             development:
@@ -152,7 +152,7 @@ module ApplicationTests
               config.database = "storage/development.sqlite3"
             end
           RUBY
-        },
+        }.freeze,
         "multiple ERB statements on the same line" => {
           yaml: <<~YAML,
             development:
@@ -164,7 +164,7 @@ module ApplicationTests
               config.database = "storage/development.sqlite3"
             end
           RUBY
-        },
+        }.freeze,
         "single-line ERB" => {
           yaml: <<~YAML,
             development:
@@ -176,7 +176,7 @@ module ApplicationTests
               config.database = "storage/development.sqlite3"
             end
           RUBY
-        },
+        }.freeze,
         "key's value as an ERB statement" => {
           yaml: <<~YAML,
             development:
@@ -189,7 +189,7 @@ module ApplicationTests
               config.database = "storage/development.sqlite3"
             end
           RUBY
-        },
+        }.freeze,
       }.freeze
 
       test "db:create and db:drop don't raise errors when loading YAML with various ERB formats" do

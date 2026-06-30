@@ -30,17 +30,17 @@ module Rails
       rails: {
         actions: "-a",
         orm: "-o",
-        javascripts: ["-j", "--js"],
+        javascripts: ["-j", "--js"].freeze,
         resource_controller: "-c",
         scaffold_controller: "-c",
         stylesheets: "-y",
         template_engine: "-e",
         test_framework: "-t"
-      },
+      }.freeze,
 
       test_unit: {
         fixture_replacement: "-r",
-      }
+      }.freeze
     }.freeze
 
     DEFAULT_OPTIONS = {
@@ -57,7 +57,7 @@ module Rails
         system_tests: nil,
         test_framework: nil,
         template_engine: :erb
-      }
+      }.freeze
     }.freeze
 
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path

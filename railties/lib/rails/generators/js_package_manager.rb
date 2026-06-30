@@ -11,25 +11,25 @@ module Rails
           install: "bun install --frozen-lockfile",
           lockfile: "bun.lockb",
           audit: nil
-        },
+        }.freeze,
         pnpm: {
           add: "pnpm add %s",
           install: "pnpm install --frozen-lockfile",
           lockfile: "pnpm-lock.yaml",
           audit: "pnpm audit"
-        },
+        }.freeze,
         npm: {
           add: "npm install %s",
           install: "npm ci",
           lockfile: "package-lock.json",
           audit: "npm audit"
-        },
+        }.freeze,
         yarn: {
           add: "yarn add %s",
           install: "yarn install --immutable",
           lockfile: "yarn.lock",
           audit: "yarn audit"
-        }
+        }.freeze
       }.freeze
 
       def self.detect(root)
