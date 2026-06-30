@@ -597,6 +597,7 @@ module ActiveRecord
 
     # Same as #regroup but operates on relation in-place instead of copying.
     def regroup!(*args) # :nodoc:
+      args.uniq!
       self.group_values = args
       self
     end
@@ -736,16 +737,10 @@ module ActiveRecord
       else
         arel_column = order_column(column.to_s)
 
-        caster = arel_column.type_caster
-        values = values.map do |value|
-          if value.is_a?(Array)
-            value.map do |current_value|
-              caster.serialize(current_value) if caster.serializable?(current_value)
-            end
-          else
-            caster.serialize(value) if caster.serializable?(value)
-          end
+        unless arel_column.is_a?(Arel::Nodes::SqlLiteral)
+          values = cast_values_for_in_order_of(values, arel_column.type_caster)
         end
+        return spawn.none! if values.empty?
       end
 
       scope = spawn.order!(build_case_for_value_position(arel_column, values, filter: filter))
@@ -811,6 +806,7 @@ module ActiveRecord
     # Same as #default_order but operates on relation in-place instead of copying.
     def default_order!(*args) # :nodoc:
       preprocess_order_args(args)
+      args.uniq!
       self.default_order_values = args
       self
     end
@@ -1300,6 +1296,7 @@ module ActiveRecord
     end
 
     def offset!(value) # :nodoc:
+      value = Integer(value) unless value.nil?
       self.offset_value = value
       self
     end
@@ -1574,7 +1571,13 @@ module ActiveRecord
 
     def reverse_order! # :nodoc:
       orders = order_values.compact_blank
-      self.order_values = reverse_sql_order(orders)
+      default_orders = default_order_values.compact_blank
+
+      if orders.empty? && default_orders.any?
+        self.default_order_values = reverse_sql_order(default_orders)
+      else
+        self.order_values = reverse_sql_order(orders)
+      end
       self
     end
 
@@ -1658,8 +1661,8 @@ module ActiveRecord
     alias :without :excluding
 
     def excluding!(records) # :nodoc:
-      predicates = [ predicate_builder[primary_key, records].invert ]
-      self.where_clause += Relation::WhereClause.new(predicates)
+      ids = records.map { |record| record.is_a?(model) ? record.id : record }
+      self.where_clause += build_where_clause(primary_key => ids).invert
       self
     end
 
@@ -2022,7 +2025,7 @@ module ActiveRecord
       end
 
       def build_with_join_node(name, kind = Arel::Nodes::InnerJoin)
-        with_table = Arel::Table.new(name)
+        with_table = Arel::Table.new(name: name)
 
         table.join(with_table, kind).on(
           with_table[model.model_name.to_s.foreign_key].eq(table[model.primary_key])
@@ -2086,8 +2089,8 @@ module ActiveRecord
 
       def reverse_sql_order(order_query)
         if order_query.empty?
-          if !_reverse_order_columns.empty?
-            return _reverse_order_columns.map { |column| table[column].desc }
+          if !_order_columns.empty?
+            return _order_columns.map { |column| table[column].desc }
           end
 
           raise IrreversibleOrderError, <<~MSG.squish
@@ -2117,13 +2120,6 @@ module ActiveRecord
             o
           end
         end
-      end
-
-      def _reverse_order_columns
-        roc = []
-        roc << model.implicit_order_column if model.implicit_order_column
-        roc << model.primary_key if model.primary_key
-        roc.flatten.uniq.compact
       end
 
       def does_not_support_reverse?(order)
@@ -2327,6 +2323,28 @@ module ActiveRecord
             field
           end
         end
+      end
+
+      def cast_values_for_in_order_of(values, type_caster)
+        bad_value = Symbol # use some object that can not be a valid value
+
+        values = values.map do |value|
+          if value.is_a?(Array)
+            cast_values_for_in_order_of(value, type_caster).without(bad_value)
+          else
+            serialized = type_caster.serialize(value) if type_caster.serializable?(value)
+
+            if value.nil?
+              nil
+            elsif !serialized.nil?
+              serialized
+            else
+              bad_value
+            end
+          end
+        end
+
+        values.reject { |v| v == bad_value || (v.is_a?(Array) && v.empty?) }
       end
 
       def arel_column_aliases_from_hash(fields)

@@ -29,7 +29,7 @@ require "models/cpk"
 class CalculationsTest < ActiveRecord::TestCase
   include AsyncHelper
 
-  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments, :cpk_books
+  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments, :cpk_books, :cpk_orders
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -197,6 +197,16 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_should_group_by_summed_field
     expected = { nil => 50, 1 => 50, 2 => 60, 6 => 105, 9 => 53 }
     assert_equal expected, Account.group(:firm_id).sum(:credit_limit)
+  end
+
+  def test_should_group_by_distinct_summed_field
+    Account.delete_all
+    Account.create!(firm_id: 1, credit_limit: 50)
+    Account.create!(firm_id: 1, credit_limit: 50)
+    Account.create!(firm_id: 1, credit_limit: 60)
+
+    assert_equal 110, Account.where(firm_id: 1).distinct.sum(:credit_limit)
+    assert_equal({ 1 => 110 }, Account.where(firm_id: 1).group(:firm_id).distinct.sum(:credit_limit))
   end
 
   def test_group_by_multiple_same_field
@@ -441,6 +451,16 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_count_for_a_composite_primary_key_model_with_includes_and_references
     assert_equal Cpk::Book.count, Cpk::Book.includes(:chapters).references(:chapters).count
+  end
+
+  def test_group_by_a_belongs_to_association_with_a_composite_primary_key_model
+    order = cpk_orders(:cpk_book_order_1)
+    books = Cpk::Book.where(shop_id: order.shop_id, order_id: order.id)
+    assert_predicate books, :any?
+
+    result = books.group(:order).count
+
+    assert_equal({ order => books.count }, result)
   end
 
   def test_should_group_by_summed_field_having_condition
@@ -1108,6 +1128,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_queries_count(0) do
       assert_equal company_ids, Company.where(id: empty_scope_ids).ids
     end
+    assert_async_equal company_ids, Company.where(id: empty_scope_ids).async_ids
   end
 
   def test_ids_with_join

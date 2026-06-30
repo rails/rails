@@ -78,7 +78,7 @@ The `application_system_test_case.rb` file holds the default configuration for y
 system tests.
 
 A `jobs` directory will also be created for your job tests when you first
-[generate a job](active_job_basics.html#create-the-job).
+[generate a job](active_job_basics.html#defining-a-job).
 
 ### The Test Environment
 
@@ -528,7 +528,7 @@ You can also run a test at a specific line by providing the line number.
 $ bin/rails test test/models/article_test.rb:6 # run specific test and line
 ```
 
-You can also run a range of tests by providing the line range.
+You can also run a range of tests by providing the line range:
 
 ```bash
 $ bin/rails test test/models/article_test.rb:6-20 # runs tests from line 6 to 20
@@ -557,7 +557,7 @@ Examples:
 
         bin/rails test test/models/user_test.rb:27
 
-    You can run multiple tests with in a line range by appending the line range to a filename:
+    You can run multiple tests within a line range by appending the line range to a filename:
 
         bin/rails test test/models/user_test.rb:10-20
 
@@ -950,7 +950,7 @@ The `get` method kicks off the web request and populates the results into the
   (e.g. query string parameters or article variables).
 * `headers`: for setting the headers that will be passed with the request.
 * `env`: for customizing the request environment as needed.
-* `xhr`: whether the request is AJAX request or not. Can be set to true for
+* `xhr`: whether the request is an AJAX request or not. Can be set to true for
   marking the request as AJAX.
 * `as`: for encoding the request with different content type.
 
@@ -2544,7 +2544,7 @@ end
 
 If your tests verify the deletion of a model with attachments and you're
 using Active Job, you will need to set your test environment to use the inline
-queue adapter so the purge job is executed immediately rather at an unknown time
+queue adapter so the purge job is executed immediately rather than at an unknown time
 in the future.
 
 ```ruby

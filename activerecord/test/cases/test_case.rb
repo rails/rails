@@ -39,13 +39,13 @@ module ActiveRecord
       check_connection_leaks
     end
 
-    def check_connection_leaks
+    def check_connection_leaks(connection_pools = nil)
       return if in_memory_db?
 
       # Make sure tests didn't leave a connection owned by some background thread
       # which could lead to some slow wait in a subsequent thread.
       leaked_conn = []
-      ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
+      (connection_pools || ActiveRecord::Base.connection_handler.each_connection_pool).each do |pool|
         # Ensure all in flights tasks are completed.
         # Otherwise they may still hold a connection.
         if pool.async_executor
@@ -62,6 +62,8 @@ module ActiveRecord
 
         # Avoid racing the pool reaper while it is performing maintenance.
         pool.reaper_lock do
+          wait_for_pool_maintenance(pool)
+
           pool.reap
           pool.connections.each do |conn|
             if conn.in_use?
@@ -84,6 +86,21 @@ module ActiveRecord
           puts
         end
         raise "Found #{leaked_conn.size} leaked connection after #{self.class.name}##{name}"
+      end
+    end
+
+    def wait_for_pool_maintenance(pool)
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 5
+
+      while Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+        pool.synchronize do
+          executor = pool.async_executor
+
+          return if pool.instance_variable_get(:@maintaining).zero? &&
+            executor&.completed_task_count == executor&.scheduled_task_count
+        end
+
+        sleep 0.05
       end
     end
 
@@ -215,7 +232,7 @@ module ActiveRecord
       adapter.remove_instance_variable(:@native_database_types) if adapter.instance_variable_defined?(:@native_database_types)
     end
 
-    def with_env_tz(new_tz = "US/Eastern")
+    def with_env_tz(new_tz = "America/New_York")
       old_tz, ENV["TZ"] = ENV["TZ"], new_tz
       yield
     ensure
@@ -292,14 +309,22 @@ module ActiveRecord
 
     def clean_up_connection_handler
       handler = ActiveRecord::Base.connection_handler
-      handler.instance_variable_get(:@connection_name_to_pool_manager).each do |owner, pool_manager|
+      pool_managers = handler.instance_variable_get(:@connection_name_to_pool_manager)
+      removed_pool_configs = []
+
+      pool_managers.each do |owner, pool_manager|
         pool_manager.role_names.each do |role_name|
           next if role_name == ActiveRecord::Base.default_role &&
                   # TODO: Remove this helper when `remove_connection` for different shards is fixed.
                   # See https://github.com/rails/rails/pull/49382.
                   ["ActiveRecord::Base", "ARUnit2Model", "Contact", "ContactSti"].include?(owner)
-          pool_manager.remove_role(role_name)
+          removed_pool_configs.concat(pool_manager.remove_role(role_name)&.values || [])
         end
+      end
+
+      remaining_pool_configs = pool_managers.values.flat_map(&:pool_configs)
+      removed_pool_configs.compact.uniq.each do |pool_config|
+        pool_config.disconnect! unless remaining_pool_configs.include?(pool_config)
       end
     end
 

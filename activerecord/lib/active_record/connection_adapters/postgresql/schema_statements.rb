@@ -370,7 +370,7 @@ module ActiveRecord
 
           def initialize(adapter, tables)
             @adapter = adapter
-            @tables = tables.to_h { |table, data| [table.to_s, Data.new(*data)] }
+            @tables = tables.to_h { |table, data| [Utils.extract_schema_qualified_name(table.to_s).to_s, Data.new(*data)] }
           end
 
           def reset
@@ -403,7 +403,7 @@ module ActiveRecord
               primary_key_column_and_sequences = @adapter.exec_query(sql, "SCHEMA")
 
               primary_key_column_and_sequences.rows.each do |table, column, namespace, sequence|
-                table = table.delete_prefix('"').delete_suffix('"')
+                table = Utils.extract_schema_qualified_name(table).to_s
                 @tables[table].column = column
                 @tables[table].sequence = PostgreSQL::Name.new(namespace, sequence) if sequence
               end
@@ -420,7 +420,7 @@ module ActiveRecord
               uuid_column_and_sequences = @adapter.exec_query(sql, "SCHEMA")
 
               uuid_column_and_sequences.rows.each do |table, column, namespace, sequence|
-                table = table.delete_prefix('"').delete_suffix('"')
+                table = Utils.extract_schema_qualified_name(table).to_s
                 @tables[table].column = column
                 @tables[table].sequence = PostgreSQL::Name.new(namespace, sequence) if sequence
               end
@@ -788,7 +788,7 @@ module ActiveRecord
           SQL
 
           fk_info.map do |row|
-            to_table = Utils.unquote_identifier(row["to_table"])
+            to_table = Utils.extract_schema_qualified_name(row["to_table"]).to_s
 
             column = decode_string_array(row["conkey_names"])
             primary_key = decode_string_array(row["confkey_names"])
@@ -1034,8 +1034,8 @@ module ActiveRecord
         #   unique_constraint_exists?(:sections, name: "unique_position")
         #
         def unique_constraint_exists?(table_name, **options)
-          if !options.key?(:name) && !options.key?(:expression)
-            raise ArgumentError, "At least one of :name or :expression must be supplied"
+          if !options.key?(:name) && !options.key?(:column)
+            raise ArgumentError, "At least one of :name or :column must be supplied"
           end
           unique_constraint_for(table_name, **options).present?
         end

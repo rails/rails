@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/object/with"
 require "active_support/log_subscriber/test_helper"
 
 class RespondToController < ActionController::Base
@@ -606,6 +607,15 @@ class RespondToControllerTest < ActionController::TestCase
     @request.accept = "application/json, application/xml, */*"
     get :json_xml_or_html
     assert_equal "HTML", @response.body
+
+    ActionDispatch::Request.with(strict_accept_header: true) do
+      get :json_xml_or_html
+      assert_equal "JSON", @response.body
+
+      @request.accept = "application/xml, */*"
+      get :json_xml_or_html
+      assert_equal "XML", @response.body
+    end
   end
 
   def test_handle_any_with_template

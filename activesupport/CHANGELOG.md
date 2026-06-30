@@ -1,18 +1,90 @@
-*   Add shims for `Ractor` shareability methods so framework code can call them
-    unconditionally regardless of the Ruby version.
+*   Add `-g`/`--group` flag to `ContinuousIntegration` for filtering CI runs by
+    group name. Supports comma-separated lists, repeated flags, and
+    slash-separated paths for nested groups.
 
-    When `Ractor` is not defined, or the underlying method is not available, the
-    shim is a no-op that simply returns its argument (or the given block).
-    Otherwise the call is forwarded to the matching `Ractor` class method.
+    ```sh
+    $ bin/ci -g frontend
+    $ bin/ci -g backend/unit
+    $ bin/ci -g frontend,checks
+    $ bin/ci --group frontend --group checks
 
-    ```ruby
-    ractor_make_shareable(obj)        # => Ractor.make_shareable(obj)        or obj
-    ractor_shareable?(obj)            # => Ractor.shareable?(obj)            or obj
-    ractor_shareable_proc   { ... }   # => Ractor.shareable_proc   { ... }   or the block
-    ractor_shareable_lambda { ... }   # => Ractor.shareable_lambda { ... }   or the block
     ```
 
-    *Andrew Novoselac*
+    *Harsh Deep*
+
+*   Add `#this_quarter?` to Date/Time.
+
+    It returns true if the date/time falls within the current quarter.
+
+    ```ruby
+    Date.current #=> Tue, 15 Feb 2000
+    Date.new(2000, 3, 31).this_quarter?  # => true
+    Date.new(2000, 4, 1).this_quarter?   # => false
+    ```
+
+    *Kenta Ishizaki*
+
+*   Added `ActiveSupport::ProxyLogger`.
+
+    The proxy logger, is a logger that forwards all received logs to another
+    logger, but has its own independent severity level.
+
+    This is useful when you want some library you have no control over to use
+    the same logger as the rest of your application, but to have a different severity
+    level because it is logging too much:
+
+    ```ruby
+    SomeLibrary.logger = ActiveSupport::ProxyLogger.new(Rails.logger, :error)
+    ```
+
+    Almost all of the standard Logger interface is supported.
+
+    *Jean Boussier*
+
+*   Include call options in `Cache#exist?` instrumentation payload,
+    consistent with `read`, `write`, and `delete`.
+
+    *Kenta Ishizaki*
+
+*   Declare `assert_not_pattern` as an alias for `refute_pattern`
+
+    *Sean Doyle*
+
+*   `assert_difference`, `assert_no_difference`, `assert_changes`, and
+    `assert_no_changes` now raise `ArgumentError` when given an expression that
+    is not a callable (like a Proc), String, or Symbol.
+
+    This helps catch issues where you accidentally pass a single static value
+    (like `assert_no_changes(a.size)`). The same value would seen before
+    and after the block, so no change would ever be found, silently passing
+    the assertion even if there *was* an unexpected change.
+
+    To be reevaluated correctly, the expression should wrapped in a lambda like
+    `assert_no_changes(-> { a.size })`, or quoted in a String that can be `eval`-ed.
+
+    *Alexander Momchilov*
+
+*   Add `ActiveSupport::Notifications::NullInstrumenter`, a stateless no-op
+    instrumenter that executes blocks without publishing any notifications.
+
+    Available via `ActiveSupport::Notifications.null_instrumenter`, this is
+    useful for suppressing instrumentation on specific components, such as
+    database connections that don't need SQL notification overhead.
+
+    *Rosa Gutierrez*
+
+*   `ActiveSupport::Cache::RedisCacheStore` entirely reimplemented.
+
+    Now depends on the much lighter `redis-client >= 0.28.0` instead of `redis >= 4.0.1`.
+
+    The change shouldn't be noticeable unless the cache is configured with the `:redis` argument.
+    In such case it will keep working for now, but will issue a deprecation warning.
+
+    Prefer configuring Redis Cache Store with an `:url` argument instead, but if you need advanced options
+    not supported by Redis Cache Store constructor, you can alternatively pass a custom `RedisClient::Config` instance
+    via the `:client` argument.
+
+    *Jean Boussier*
 
 *   Fix `NumberHelper` raising `FloatDomainError` for `Infinity` / `NaN` with
     `significant: true`.

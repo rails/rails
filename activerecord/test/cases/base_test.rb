@@ -32,6 +32,7 @@ require "models/cpk"
 require "concurrent/atomic/count_down_latch"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/kernel/reporting"
+require "active_support/testing/ractors_assertions"
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
@@ -81,6 +82,7 @@ previous_value, ActiveRecord.raise_on_assign_to_attr_readonly = ActiveRecord.rai
 
 class NonRaisingPost < Post
   attr_readonly :title
+  alias_attribute :headline, :title
 end
 
 ActiveRecord.raise_on_assign_to_attr_readonly = previous_value
@@ -102,6 +104,8 @@ class LintTest < ActiveRecord::TestCase
 end
 
 class BasicsTest < ActiveRecord::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts,
     :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories,
     :posts, :cpk_books
@@ -193,6 +197,12 @@ class BasicsTest < ActiveRecord::TestCase
   def test_invalid_limit
     assert_raises(ArgumentError) do
       Topic.limit("asdfadf")
+    end
+  end
+
+  def test_invalid_offset
+    assert_raises(ArgumentError) do
+      Topic.offset("asdfadf")
     end
   end
 
@@ -839,6 +849,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "changed via []=", post.body
   end
 
+  def test_update_attribute_raises_for_a_readonly_aliased_attribute_when_configured_to_not_raise
+    post = NonRaisingPost.create!(title: "cannot change this", body: "changeable")
+
+    assert_raises(ActiveRecord::ActiveRecordError) { post.update_attribute(:headline, "changed") }
+    assert_raises(ActiveRecord::ActiveRecordError) { post.update_attribute!(:headline, "changed") }
+
+    post.reload
+    assert_equal "cannot change this", post.title
+  end
+
   def test_readonly_attributes_on_belongs_to_association
     assert_equal [ "author_id" ], ReadonlyAuthorPost.readonly_attributes
 
@@ -864,6 +884,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::ReadonlyAttributeError) do
       post_without_reload2.update(author: author2)
     end
+  end
+
+  def test_readonly_attributes_are_ractor_safe
+    assert_ractor_shareable ReadonlyAuthorPost._attr_readonly
   end
 
   def test_unicode_column_name

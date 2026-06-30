@@ -765,7 +765,7 @@ module Arel # :nodoc: all
           collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
         end
 
-        BIND_BLOCK = proc { "?" }
+        BIND_BLOCK = ActiveSupport::Ractors.shareable_proc { "?" }
         private_constant :BIND_BLOCK
 
         def bind_block; BIND_BLOCK; end
@@ -939,7 +939,7 @@ module Arel # :nodoc: all
         # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
         # an UPDATE statement, so in the MySQL visitor we redefine this to do that.
         def prepare_update_statement(o)
-          if o.key && (has_limit_or_offset_or_orders?(o) || has_join_sources?(o))
+          if o.key && (has_limit_or_offset_or_orders?(o) || has_join_sources?(o) || has_group_by_and_having?(o))
             stmt = o.clone
             stmt.limit = nil
             stmt.offset = nil

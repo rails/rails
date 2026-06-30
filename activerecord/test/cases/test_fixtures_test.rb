@@ -71,6 +71,32 @@ class TestFixturesTest < ActiveRecord::TestCase
       FileUtils.rm_r(tmp_dir)
     end
 
+    def test_teardown_shared_connection_pool_disconnects_pool_configs_for_removed_roles
+      handler = ActiveRecord::Base.connection_handler
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      pool_manager = handler.instance_variable_get(:@connection_name_to_pool_manager)["ActiveRecord::Base"]
+      writing_pool_config = pool_manager.get_pool_config(:writing, :default)
+      reading_pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :reading, :default)
+      pool_manager.set_pool_config(:reading, :default, reading_pool_config)
+
+      reading_pool = reading_pool_config.pool
+      connection = reading_pool.checkout
+      connection.execute("SELECT 1")
+      reading_pool.checkin(connection)
+
+      setup_shared_connection_pool
+      assert_same writing_pool_config, pool_manager.get_pool_config(:reading, :default)
+
+      clean_up_connection_handler
+      teardown_shared_connection_pool
+
+      assert_predicate writing_pool_config.pool, :automatic_reconnect
+      assert_not_predicate reading_pool, :connected?
+    ensure
+      teardown_shared_connection_pool if defined?(@saved_pool_configs) && @saved_pool_configs.any?
+      clean_up_connection_handler
+    end
+
     def test_transactional_tests_per_db_explicitly_disabled
       tmp_dir = Dir.mktmpdir
       File.write(File.join(tmp_dir, "zines.yml"), <<~YML)

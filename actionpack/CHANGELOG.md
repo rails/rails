@@ -1,3 +1,33 @@
+*   Deprecate `Mime::SET`, `Mime::LOOKUP`, `Mime::EXTENSION_LOOKUP`.
+
+    Use `Mime.symbols`, `Mime::Type.lookup` and `Mime::Type.lookup_by_extension` respectively instead.
+
+    `Mime.extensions` is also added to enumerate every registered extension
+    (including synonyms), replacing `Mime::EXTENSION_LOOKUP.map(&:first)`.
+
+    *Étienne Barrié*
+
+*   Add `config.action_dispatch.strict_accept_header` to stop forcing an
+    HTML response when the `Accept` header contains the `*/*` wildcard.
+
+    Rails used to treat any `Accept` header containing `*/*` as a browser and default
+    to HTML. When enabled, a request with `Accept: application/json, */*` returns JSON.
+
+    Defaults to `false`; new applications enable it via `load_defaults 8.2`.
+
+    *Willian Tenfen Wazilewski*, *Hartley McGuire*
+
+*   Rate limiting calls `cache_key` on `by:` if the object responds to it.
+
+    ```ruby
+    class CommentsController < ApplicationController
+      # Cache key in the store would be `rate-limit:comments:user/1`
+      rate_limit to: 2, within: 2.seconds, by: -> { current_user }
+    end
+    ```
+
+    *Daniel Sabourin*
+
 *   Add a configuration for `ActionDispatch::ExceptionWrapper.silent_exceptions` at `config.action_dispatch.silent_exceptions`.
 
     Exceptions on this list do not fall back to framework-level backtraces when there is no application backtrace.
@@ -59,7 +89,7 @@
 
 *   `http_cache_forever` now accept an optional `last_modified:` keyword parameter.
 
-    It still defaults to January 1st 2011, but you now can subtitute it for a relevant
+    It still defaults to January 1st 2011, but you now can substitute it for a relevant
     time if there is one.
 
     *Jean Boussier*

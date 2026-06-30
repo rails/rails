@@ -102,10 +102,10 @@ module ActiveSupport
       # Preemptively iterates through all stored keys and removes the ones which have expired.
       def cleanup(options = nil)
         options = merged_options(options)
-        _instrument(:cleanup, size: @data.size) do
+        instrument(:cleanup, nil, size: @data.size) do
           keys = synchronize { @data.keys }
           keys.each do |key|
-            entry = @data[key]
+            entry = deserialize_entry(@data[key])
             delete_entry(key, **options) if entry && entry.expired?
           end
         end

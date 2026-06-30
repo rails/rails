@@ -18,12 +18,12 @@ module ActiveRecord
 
       def initialize
         super()
-        @mutex = Mutex.new
+        @monitor = Monitor.new
         @server_version = nil
       end
 
       def server_version(connection) # :nodoc:
-        @server_version || @mutex.synchronize { @server_version ||= connection.get_database_version }
+        @server_version || @monitor.synchronize { @server_version ||= connection.get_database_version }
       end
 
       def schema_reflection
@@ -129,14 +129,14 @@ module ActiveRecord
     class ConnectionPool
       # Prior to 3.3.5, WeakKeyMap had a use after free bug
       # https://bugs.ruby-lang.org/issues/20688
-      if ObjectSpace.const_defined?(:WeakKeyMap) && Gem::Version.new(RUBY_VERSION) >= "3.3.5"
+      if ObjectSpace.const_defined?(:WeakKeyMap) && Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.3.5")
         WeakThreadKeyMap = ObjectSpace::WeakKeyMap
       else
         class WeakThreadKeyMap # :nodoc:
           # FIXME: On 3.3 we could use ObjectSpace::WeakKeyMap
           # but it currently causes GC crashes: https://github.com/byroot/rails/pull/3
           def initialize
-            @map = {}
+            @map = Concurrent::Map.new
           end
 
           def clear
@@ -148,7 +148,9 @@ module ActiveRecord
           end
 
           def []=(key, value)
-            @map.select! { |c, _| c&.alive? }
+            @map.each_pair do |thread, _|
+              @map.delete(thread) unless thread&.alive?
+            end
             @map[key] = value
           end
         end
@@ -521,9 +523,15 @@ module ActiveRecord
               @connections.each do |conn|
                 if conn.in_use?
                   conn.steal!
-                  checkin conn
+
+                  ActiveSupport.error_reporter.handle(source: "active_record.connection_pool") do
+                    checkin conn
+                  end
                 end
-                conn.disconnect!
+
+                ActiveSupport.error_reporter.handle(source: "active_record.connection_pool") do
+                  conn.disconnect!
+                end
               end
               @connections = @pinned_connection ? [@pinned_connection] : []
               @leases.clear

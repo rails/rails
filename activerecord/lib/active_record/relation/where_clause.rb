@@ -93,7 +93,7 @@ module ActiveRecord
       end
 
       def self.empty
-        @empty ||= new([]).freeze
+        EMPTY
       end
 
       def contradiction?
@@ -200,7 +200,9 @@ module ActiveRecord
           end
         end
 
+        EMPTY = new([]).freeze
         ARRAY_WITH_EMPTY_STRING = [""].freeze
+
         def non_empty_predicates
           predicates - ARRAY_WITH_EMPTY_STRING
         end

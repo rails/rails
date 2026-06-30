@@ -13,7 +13,7 @@ module ActionView
 
         private
           def validate_color_string(string)
-            regex = /#[0-9a-fA-F]{6}/
+            regex = /\A#[0-9a-fA-F]{6}\z/
             if regex.match?(string)
               string.downcase
             else

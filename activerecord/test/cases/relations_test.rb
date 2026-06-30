@@ -27,6 +27,7 @@ require "models/reader"
 require "models/category"
 require "models/categorization"
 require "models/edge"
+require "models/clothing_item"
 require "models/wheel"
 require "models/subscriber"
 require "models/cpk"
@@ -399,6 +400,19 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal edge_2.source_id, ordered_edge.all.reverse_order.first.source_id
   end
 
+  def test_reverse_order_uses_query_constraints
+    ClothingItem.delete_all
+    # Insert so that the id order is the reverse of the query_constraints order,
+    # to catch a reverse_order that falls back to ordering by the primary key.
+    zzz = ClothingItem.create!(clothing_type: "zzz", color: "red")
+    aaa = ClothingItem.create!(clothing_type: "aaa", color: "blue")
+
+    assert_equal aaa.id, ClothingItem.all.first.id
+    assert_equal zzz.id, ClothingItem.all.last.id
+    assert_equal zzz.id, ClothingItem.all.reverse_order.first.id
+    assert_equal aaa.id, ClothingItem.all.reverse_order.last.id
+  end
+
   def test_order_with_hash_and_symbol_generates_the_same_sql
     assert_equal Topic.order(:id).to_sql, Topic.order(id: :asc).to_sql
   end
@@ -464,6 +478,16 @@ class RelationTest < ActiveRecord::TestCase
   def test_reorder_deduplication
     topics = Topic.reorder("id desc", "id desc")
     assert_equal ["id desc"], topics.order_values
+  end
+
+  def test_regroup_deduplication
+    topics = Topic.regroup(:author_id, :author_id)
+    assert_equal [:author_id], topics.group_values
+  end
+
+  def test_default_order_deduplication
+    topics = Topic.default_order("id desc", "id desc")
+    assert_equal ["id desc"], topics.default_order_values
   end
 
   def test_finding_with_reorder_by_aliased_attributes
@@ -2025,17 +2049,22 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_default_order
-    comments = posts(:welcome).comments
-    assert_equal [1, 2], comments.pluck(:id)
-    assert_equal 1, comments.first.id
-
-    comments = comments.default_order(:body)
+    comments = posts(:welcome).comments.default_order(:body)
     assert_equal [2, 1], comments.pluck(:id)
     assert_equal 2, comments.first.id
 
     comments = comments.order(:id)
     assert_equal [1, 2], comments.pluck(:id)
     assert_equal 1, comments.first.id
+  end
+
+  def test_reverse_order_reverses_default_order
+    # reverse_order should reverse the default order, just like a regular
+    # order, rather than discarding it in favor of the primary key.
+    assert_equal Post.order("title ASC").reverse_order.ids, Post.default_order("title ASC").reverse_order.ids
+
+    relation = Post.default_order("title ASC").reverse_order
+    assert_match(/ORDER BY title DESC/, relation.to_sql)
   end
 
   def test_reorder_with_first

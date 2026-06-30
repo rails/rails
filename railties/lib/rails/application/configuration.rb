@@ -376,6 +376,7 @@ module Rails
           end
 
           if respond_to?(:action_dispatch)
+            action_dispatch.strict_accept_header = true
             action_dispatch.default_headers = {
               "X-Frame-Options" => "SAMEORIGIN",
               "X-Content-Type-Options" => "nosniff",
@@ -492,7 +493,7 @@ module Rails
               if config.is_a?(Hash) && config.values.all?(Hash)
                 if shared.is_a?(Hash) && shared.values.all?(Hash)
                   config.map do |name, sub_config|
-                    sub_config.reverse_merge!(shared[name])
+                    sub_config.reverse_merge!(shared[name]) if shared[name]
                   end
                 else
                   config.map do |name, sub_config|

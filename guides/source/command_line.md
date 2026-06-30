@@ -186,7 +186,7 @@ PostgreSQL option, it looks like this:
 # Install the pg driver:
 #   gem install pg
 # On macOS with Homebrew:
-#   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
+#   gem install pg -- --with-pg-config=/opt/homebrew/bin/pg_config
 # On Windows:
 #   gem install pg
 #       Choose the win32 build.
@@ -200,7 +200,7 @@ default: &default
   encoding: unicode
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 3 } %>
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
 
 development:

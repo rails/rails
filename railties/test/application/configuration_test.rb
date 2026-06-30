@@ -2043,6 +2043,26 @@ module ApplicationTests
       assert_includes(Rails.logger.broadcasts, logger)
     end
 
+    if RUBY_VERSION >= "4.0"
+      test "config.logger can be a tagged shareable logger" do
+        add_to_config <<~RUBY
+          config.logger = ActiveSupport::TaggedLogging.ractor_logger(Rails.root.join("log/ractor.log"))
+        RUBY
+
+        app "development"
+
+        ractor_logger = Rails.logger.broadcasts.first
+        assert_instance_of ActiveSupport::Ractors::Logger, ractor_logger
+        assert_kind_of ::Logger, ractor_logger
+        assert_equal Rails.logger, Rails.application.config.action_controller.logger
+
+        Rails.logger.tagged("request-id") { Rails.logger.info("hello") }
+        Rails.logger.flush
+
+        assert_includes File.read(app_path("log/ractor.log")), "[request-id] hello"
+      end
+    end
+
     test "respond_to? accepts include_private" do
       make_basic_app
 
@@ -2526,6 +2546,26 @@ module ApplicationTests
       ar_config = Rails.configuration.database_configuration
       assert_equal "db/one", ar_config["development"]["one"]["migrations_path"]
       assert_equal "db/two", ar_config["development"]["two"]["migrations_path"]
+    end
+
+    test "loads 3-tier database.yml when a connection is absent from the shared subsections" do
+      app_file "config/database.yml", <<-YAML
+        shared:
+          one:
+            migrations_path: "db/one"
+
+        development:
+          one:
+            adapter: sqlite3
+          two:
+            adapter: sqlite3
+      YAML
+
+      app "development"
+
+      ar_config = Rails.configuration.database_configuration
+      assert_equal "db/one",  ar_config["development"]["one"]["migrations_path"]
+      assert_equal "sqlite3", ar_config["development"]["two"]["adapter"]
     end
 
     test "config.action_mailer.show_previews defaults to true in development" do

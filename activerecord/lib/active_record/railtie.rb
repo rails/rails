@@ -351,12 +351,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
       ActiveRecord.message_verifiers = app.message_verifiers
 
       use_legacy_signed_id_verifier = app.config.active_record.use_legacy_signed_id_verifier
-      legacy_options = { digest: "SHA256", serializer: JSON, url_safe: true }
+      legacy_options = { digest: "SHA256", serializer: JSON, url_safe: true }.freeze
 
       if use_legacy_signed_id_verifier == :generate_and_verify
-        app.message_verifiers.prepend { |salt| legacy_options if salt == "active_record/signed_id" }
+        app.message_verifiers.prepend(&ActiveSupport::Ractors.shareable_proc { |salt| legacy_options if salt == "active_record/signed_id" })
       elsif use_legacy_signed_id_verifier == :verify
-        app.message_verifiers.rotate { |salt| legacy_options if salt == "active_record/signed_id" }
+        app.message_verifiers.rotate(&ActiveSupport::Ractors.shareable_proc { |salt| legacy_options if salt == "active_record/signed_id" })
       elsif use_legacy_signed_id_verifier
         raise ArgumentError, "Unrecognized value for config.active_record.use_legacy_signed_id_verifier: #{use_legacy_signed_id_verifier.inspect}"
       end

@@ -295,6 +295,12 @@ module ActiveRecord
         end
       end
 
+      def test_invert_remove_column_with_options_but_no_type
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :remove_column, [:table, :column, { null: false }]
+        end
+      end
+
       def test_invert_rename_column
         rename = @recorder.inverse_of :rename_column, [:table, :old, :new]
         assert_equal [:rename_column, [:table, :new, :old]], rename
@@ -318,6 +324,11 @@ module ActiveRecord
       def test_invert_add_index_with_algorithm_option
         remove = @recorder.inverse_of :add_index, [:table, :one, algorithm: :concurrently]
         assert_equal [:remove_index, [:table, :one, algorithm: :concurrently], nil], remove
+      end
+
+      def test_invert_add_index_if_not_exists
+        remove = @recorder.inverse_of :add_index, [:table, :one, if_not_exists: true]
+        assert_equal [:remove_index, [:table, :one, if_exists: true], nil], remove
       end
 
       if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
@@ -365,6 +376,11 @@ module ActiveRecord
       def test_invert_remove_index_with_no_special_options
         add = @recorder.inverse_of :remove_index, [:table, { column: [:one, :two] }]
         assert_equal [:add_index, [:table, [:one, :two]]], add
+      end
+
+      def test_invert_remove_index_if_exists
+        add = @recorder.inverse_of :remove_index, [:table, { column: [:one, :two], if_exists: true }]
+        assert_equal [:add_index, [:table, [:one, :two], if_not_exists: true]], add
       end
 
       def test_invert_remove_index_with_no_column
@@ -448,9 +464,19 @@ module ActiveRecord
         assert_equal [:remove_foreign_key, [:dogs, :people, column: "owner_id"], nil], enable
       end
 
+      def test_invert_add_foreign_key_if_not_exists
+        enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, if_not_exists: true]
+        assert_equal [:remove_foreign_key, [:dogs, :people, if_exists: true], nil], enable
+      end
+
       def test_invert_remove_foreign_key_with_column
         enable = @recorder.inverse_of :remove_foreign_key, [:dogs, :people, column: "owner_id"]
         assert_equal [:add_foreign_key, [:dogs, :people, column: "owner_id"]], enable
+      end
+
+      def test_invert_remove_foreign_key_if_exists
+        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, :people, if_exists: true]
+        assert_equal [:add_foreign_key, [:dogs, :people, if_not_exists: true]], enable
       end
 
       def test_invert_add_foreign_key_with_column_and_name
@@ -624,6 +650,12 @@ module ActiveRecord
       def test_invert_drop_virtual_table_without_options
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.inverse_of :drop_virtual_table, [:searchables]
+        end
+      end
+
+      def test_invert_drop_virtual_table_without_values
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :drop_virtual_table, [:searchables, :fts5]
         end
       end
     end

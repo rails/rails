@@ -361,7 +361,7 @@ In that case, declare the dependency explicitly with a special comment:
 ```
 
 In some cases, such as a [single table
-inheritance](association_basics.html#single-table-inheritance) setup, a helper
+inheritance](association_basics.html#single-table-inheritance-sti) setup, a helper
 may render different partials from the same directory. Instead of listing each
 template individually, you can use a wildcard to match the whole directory:
 

@@ -555,6 +555,19 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal 1, @connection.select_value("SELECT nextval('#{sequence_name}')")
   end
 
+  def test_reset_column_sequences_with_quoted_schema
+    @connection.execute('CREATE SCHEMA "Test_CamelSchema"')
+    @connection.execute('CREATE TABLE "Test_CamelSchema".widgets (id serial primary key)')
+    @connection.execute('INSERT INTO "Test_CamelSchema".widgets (id) VALUES (100)')
+
+    @connection.reset_column_sequences!([['"Test_CamelSchema".widgets']])
+
+    next_id = @connection.select_value(%Q{SELECT nextval(pg_get_serial_sequence('"Test_CamelSchema".widgets', 'id'))})
+    assert_operator next_id.to_i, :>, 100
+  ensure
+    @connection.execute('DROP SCHEMA IF EXISTS "Test_CamelSchema" CASCADE')
+  end
+
   def test_set_pk_sequence
     table_name = "#{SCHEMA_NAME}.#{PK_TABLE_NAME}"
     _, sequence_name = @connection.pk_and_sequence_for table_name

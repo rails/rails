@@ -7,8 +7,6 @@ module ActionView
   class Template
     extend ActiveSupport::Autoload
 
-    STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*?)\)(?=\s*-?%>|\s*$)/m
-
     # === Encodings in ActionView::Template
     #
     # ActionView::Template is one of a few sources of potential
@@ -164,23 +162,36 @@ module ActionView
 
     eager_autoload do
       autoload :Error
+      autoload :HTML
+      autoload :Handlers
+      autoload :Inline
       autoload :RawFile
       autoload :Renderable
-      autoload :Handlers
-      autoload :HTML
-      autoload :Inline
-      autoload :Types
       autoload :Sources
       autoload :Text
       autoload :Types
     end
 
+    ##
+    # :singleton-method: register_template_handler
+    #
+    # Register an object that knows how to handle template files with the given
+    # extensions. This can be used to implement new template types. The handler
+    # must respond to +:call+, which will be passed the template and should
+    # return the rendered template as a String.
+    #
+    #   ActionView::Template.register_template_handler :foo, FooHandler
+
     extend Template::Handlers
 
-    singleton_class.attr_accessor :frozen_string_literal
+    singleton_class.attr_accessor :frozen_string_literal # :nodoc:
     @frozen_string_literal = false
 
-    class << self # :nodoc:
+    # :stopdoc:
+
+    STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*?)\)(?=\s*-?%>|\s*$)/m
+
+    class << self
       def mime_types_implementation=(implementation)
         # This method isn't thread-safe, but it's not supposed
         # to be called after initialization
@@ -188,6 +199,16 @@ module ActionView
           remove_const(:Types)
           const_set(:Types, implementation)
         end
+      end
+
+      def validate_formats(formats)
+        return if Types.valid_symbols?(formats)
+        invalid = formats - Types.symbols
+        raise ArgumentError, "Invalid formats: #{invalid.map(&:inspect).join(", ")}"
+      end
+
+      def normalized_formats(formats)
+        formats & Types.symbols unless Types.valid_symbols?(formats)
       end
     end
 

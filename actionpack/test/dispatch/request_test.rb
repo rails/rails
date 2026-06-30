@@ -62,6 +62,22 @@ class RequestUrlFor < BaseRequestTest
     assert_equal "http://www.example.com?params=",  url_for(params: "")
     assert_equal "http://www.example.com?params=1", url_for(params: 1)
   end
+
+  test "url_for does not mutate the passed params hash" do
+    params = { a: 1, b: nil }
+    assert_equal "http://www.example.com?a=1", url_for(params: params)
+    assert_equal({ a: 1, b: nil }, params)
+  end
+
+  test "url_for accepts a frozen params hash" do
+    assert_equal "/x?a=1", url_for(only_path: true, path: "/x", params: { a: 1, b: nil }.freeze)
+  end
+
+  test "url_for keeps query params and anchor with a trailing slash and a blank path" do
+    assert_equal "http://www.example.com/?search=books", url_for(trailing_slash: true, params: { search: "books" })
+    assert_equal "http://www.example.com/#signup", url_for(trailing_slash: true, anchor: "signup")
+    assert_equal "/?a=1", url_for(only_path: true, trailing_slash: true, path: "", params: { a: 1 })
+  end
 end
 
 class RequestIP < BaseRequestTest
@@ -1178,7 +1194,7 @@ class RequestParameters < BaseRequestTest
   test "path parameters don't re-encode frozen strings" do
     request = stub_request
 
-    ActionDispatch::Request::Utils::CustomParamEncoder.stub(:action_encoding_template, Hash.new { Encoding::BINARY }) do
+    ActionDispatch::Http::Utils::CustomParamEncoder.stub(:action_encoding_template, Hash.new { Encoding::BINARY }) do
       request.path_parameters = { foo: "frozen", bar: +"mutable", controller: "test_controller" }
       assert_equal Encoding::BINARY, request.params[:bar].encoding
       assert_equal Encoding::UTF_8, request.params[:foo].encoding
@@ -1218,7 +1234,7 @@ class RequestParameters < BaseRequestTest
   test "query parameters specified as ASCII_8BIT encoded do not raise InvalidParameterError" do
     request = stub_request("QUERY_STRING" => "foo=%81E")
 
-    ActionDispatch::Request::Utils::CustomParamEncoder.stub(:action_encoding_template, { "foo" => Encoding::ASCII_8BIT }) do
+    ActionDispatch::Http::Utils::CustomParamEncoder.stub(:action_encoding_template, { "foo" => Encoding::ASCII_8BIT }) do
       assert_nothing_raised do
         request.parameters
       end
@@ -1234,7 +1250,7 @@ class RequestParameters < BaseRequestTest
       :input => data
     )
 
-    ActionDispatch::Request::Utils::CustomParamEncoder.stub(:action_encoding_template, { "foo" => Encoding::ASCII_8BIT }) do
+    ActionDispatch::Http::Utils::CustomParamEncoder.stub(:action_encoding_template, { "foo" => Encoding::ASCII_8BIT }) do
       assert_nothing_raised do
         request.parameters
       end
@@ -1516,8 +1532,8 @@ class RequestSession < BaseRequestTest
   test "#session" do
     @request.session
 
-    assert_not_predicate(ActionDispatch::Request::Session.find(@request), :enabled?)
-    assert_instance_of(ActionDispatch::Request::Session::Options, ActionDispatch::Request::Session::Options.find(@request))
+    assert_not_predicate(ActionDispatch::Http::Session.find(@request), :enabled?)
+    assert_instance_of(ActionDispatch::Http::Session::Options, ActionDispatch::Http::Session::Options.find(@request))
   end
 end
 
@@ -1550,6 +1566,38 @@ class RequestBearerToken < BaseRequestTest
   test "bearer_token returns token via X-HTTP_AUTHORIZATION header" do
     request = stub_request("X-HTTP_AUTHORIZATION" => "Bearer my-secret-token")
     assert_equal "my-secret-token", request.bearer_token
+  end
+
+  test "bearer_token recognizes case-insensitive scheme" do
+    request = stub_request("HTTP_AUTHORIZATION" => "bearer my-secret-token")
+    assert_equal "my-secret-token", request.bearer_token
+  end
+end
+
+class RequestIfModifiedSince < BaseRequestTest
+  # RFC 9110 §5.6.7 requires recipients to accept all three legal HTTP-date
+  # formats (IMF-fixdate, RFC 850, and asctime) in `If-Modified-Since`.
+  test "if_modified_since parses all three HTTP-date formats" do
+    expected = Time.utc(1994, 11, 6, 8, 49, 37)
+
+    {
+      "IMF-fixdate" => "Sun, 06 Nov 1994 08:49:37 GMT",
+      "RFC 850"     => "Sunday, 06-Nov-94 08:49:37 GMT",
+      "asctime"     => "Sun Nov  6 08:49:37 1994",
+    }.each do |format, header|
+      request = stub_request("HTTP_IF_MODIFIED_SINCE" => header)
+      assert_equal expected, request.if_modified_since, "expected #{format} If-Modified-Since to be parsed"
+      assert request.not_modified?(expected), "expected #{format} If-Modified-Since to satisfy not_modified?"
+    end
+  end
+
+  test "if_modified_since is nil for an unparseable header" do
+    request = stub_request("HTTP_IF_MODIFIED_SINCE" => "this is not a date")
+    assert_nil request.if_modified_since
+  end
+
+  test "if_modified_since is nil when the header is absent" do
+    assert_nil stub_request.if_modified_since
   end
 end
 

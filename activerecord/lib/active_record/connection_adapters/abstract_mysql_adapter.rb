@@ -537,7 +537,7 @@ module ActiveRecord
         raise NotImplementedError unless supports_disabling_indexes?
 
         query = <<~SQL
-          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{index_name} #{mariadb? ? "NOT IGNORED" : "VISIBLE"}
+          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{quote_column_name(index_name)} #{mariadb? ? "NOT IGNORED" : "VISIBLE"}
         SQL
         execute(query)
       end
@@ -546,7 +546,7 @@ module ActiveRecord
         raise NotImplementedError unless supports_disabling_indexes?
 
         query = <<~SQL
-          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{index_name} #{mariadb? ? "IGNORED" : "INVISIBLE"}
+          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{quote_column_name(index_name)} #{mariadb? ? "IGNORED" : "INVISIBLE"}
         SQL
         execute(query)
       end

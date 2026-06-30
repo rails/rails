@@ -1147,6 +1147,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, color_field("car", "color"))
   end
 
+  def test_color_field_with_string_containing_hex_color_substring
+    expected = %{<input id="car_color" name="car[color]" type="color" value="#000000" />}
+    @car.color = "Not a color #123456 at all"
+    assert_dom_equal(expected, color_field("car", "color"))
+  end
+
   def test_color_field_with_value_attr
     expected = %{<input id="car_color" name="car[color]" type="color" value="#00FF00" />}
     assert_dom_equal(expected, color_field("car", "color", value: "#00FF00"))
@@ -1462,6 +1468,12 @@ class FormHelperTest < ActionView::TestCase
   def test_week_field_week_number_base
     expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2015-W01" />}
     @post.written_on = DateTime.new(2015, 1, 1, 1, 2, 3)
+    assert_dom_equal(expected, week_field("post", "written_on"))
+  end
+
+  def test_week_field_with_iso_week_year_boundary
+    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2015-W53" />}
+    @post.written_on = DateTime.new(2016, 1, 1, 1, 2, 3)
     assert_dom_equal(expected, week_field("post", "written_on"))
   end
 
@@ -4110,6 +4122,17 @@ class FormHelperTest < ActionView::TestCase
   end
 
   class LabelledFormBuilderSubclass < LabelledFormBuilder; end
+
+  def test_to_partial_path_for_subclass_without_builder_suffix
+    path = nil
+
+    form_for(@post, builder: LabelledFormBuilderSubclass) do |f|
+      path = f.to_partial_path
+      ""
+    end
+
+    assert_equal "labelled_form_builder_subclass", path
+  end
 
   def test_form_for_with_labelled_builder_with_nested_fields_for_with_custom_builder
     klass = nil

@@ -311,9 +311,9 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
             @CI.run("CI", nil) do
               group "Checks", parallel: 2 do
                 step "Fail", "false"
-                step "Should not run 1", "true"
-                step "Should not run 2", "true"
-                step "Should not run 3", "true"
+                step "Should not run 1", "sleep", "0.1"
+                step "Should not run 2", "sleep", "0.1"
+                step "Should not run 3", "sleep", "0.1"
               end
             end
           end
@@ -326,7 +326,83 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     end
   end
 
+  %w[-g --group].each do |flag|
+    test "#{flag} runs only the matching group and skips ungrouped steps" do
+      output = run_ci_with_groups(flag, "frontend")
+
+      assert_match(/Biome passed/, output)
+      assert_no_match(/Setup/, output)
+      assert_no_match(/Models/, output)
+    end
+
+    test "#{flag} with nested groups uses slash-separated path" do
+      output = run_ci_with_groups(flag, "backend/unit")
+
+      assert_match(/Models passed/, output)
+      assert_no_match(/API/, output)
+      assert_no_match(/Biome/, output)
+    end
+
+    test "#{flag} with parent group name runs all nested children" do
+      output = run_ci_with_groups(flag, "backend")
+
+      assert_match(/Models passed/, output)
+      assert_match(/API passed/, output)
+      assert_no_match(/Biome/, output)
+    end
+
+    test "#{flag} works with parallel groups" do
+      output = run_ci_with_groups(flag, "checks")
+
+      assert_match(/Lint passed/, output)
+      assert_match(/Style passed/, output)
+      assert_no_match(/Biome/, output)
+      assert_no_match(/Models/, output)
+    end
+
+    { "multiple flags" => [flag, "frontend", flag, "checks"],
+      "comma-separated" => [flag, "frontend,checks"] }.each do |desc, argv|
+      test "#{flag} selects multiple groups via #{desc}" do
+        output = run_ci_with_groups(*argv)
+
+        assert_match(/Biome passed/, output)
+        assert_match(/Lint passed/, output)
+        assert_no_match(/Models/, output)
+        assert_no_match(/Setup/, output)
+      end
+    end
+  end
+
   private
+    def run_ci_with_groups(*argv)
+      with_argv(argv) do
+        capture_io do
+          @CI.run("CI", nil) do
+            step "Setup", "true"
+
+            group "frontend" do
+              step "Typescript check", "true"
+              step "Biome", "true"
+            end
+
+            group "checks", parallel: 2 do
+              step "Lint", "true"
+              step "Style", "true"
+            end
+
+            group "backend" do
+              group "unit" do
+                step "Models", "true"
+              end
+              group "integration" do
+                step "API", "true"
+              end
+            end
+          end
+        end
+      end.to_s
+    end
+
     def with_argv(argv)
       original_argv = ARGV.dup
       ARGV.replace(argv)

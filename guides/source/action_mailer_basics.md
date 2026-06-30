@@ -748,7 +748,7 @@ If the name is blank (`nil` or empty string), it returns the email address.
 
 If you don't pass a subject to the mail method, Action Mailer will try to find
 it in your translations. See the [Internationalization
-Guide](i18n.html#translations-for-action-mailer-e-mail-subjects) for more.
+Guide](i18n.html#action-mailer-e-mail-subjects) for more.
 
 ### Sending Emails without Template Rendering
 
@@ -793,7 +793,7 @@ end
 Action Mailer Callbacks
 -----------------------
 
-Action Mailer allows for you to specify `*_action` callbacks to configure the message, and `*_deliver` callbacks to control the delivery.
+Action Mailer allows you to specify `*_action` callbacks to configure the message, and `*_deliver` callbacks to control the delivery.
 
 Here is a list with all the available Action Mailer callbacks, listed **in the order in which they will get called** when sending an email:
 

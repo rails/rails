@@ -57,6 +57,7 @@ module ActiveSupport
   autoload :StructuredEventSubscriber
   autoload :IsolatedExecutionState
   autoload :Notifications
+  autoload :ProxyLogger
   autoload :Reloader
   autoload :SecureCompareRotator
   autoload :TimeFormats
@@ -91,6 +92,7 @@ module ActiveSupport
     autoload :TaggedLogging
     autoload :XmlMini
     autoload :ArrayInquirer
+    autoload :Ractors
   end
 
   autoload :Rescuable

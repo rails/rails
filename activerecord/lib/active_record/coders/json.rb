@@ -3,13 +3,13 @@
 require "active_support/json"
 
 module ActiveRecord
-  module Coders # :nodoc:
+  module Coders
     class JSON # :nodoc:
       DEFAULT_OPTIONS = { escape: false }.freeze
 
       def initialize(options = nil)
         @options = options ? DEFAULT_OPTIONS.merge(options) : DEFAULT_OPTIONS
-        @encoder = ActiveSupport::JSON::Encoding.json_encoder.new(options)
+        @encoder = ActiveSupport::JSON::Encoding.json_encoder.new(@options)
       end
 
       def dump(obj)

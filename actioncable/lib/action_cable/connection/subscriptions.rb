@@ -44,6 +44,12 @@ module ActionCable
         end
       end
 
+      class MissingIdentifier < Error
+        def initialize
+          super "Identifier is required"
+        end
+      end
+
       def initialize(connection)
         @connection = connection
         @subscriptions = {}
@@ -78,8 +84,11 @@ module ActionCable
       end
 
       def remove(data)
+        raise MissingIdentifier unless data["identifier"].present?
+
         logger.info "Unsubscribing from channel: #{data['identifier']}"
-        remove_subscription find(data)
+        subscription = find(data)
+        remove_subscription(subscription) if subscription
       end
 
       def remove_subscription(subscription)
@@ -88,7 +97,9 @@ module ActionCable
       end
 
       def perform_action(data)
-        find(data).perform_action ActiveSupport::JSON.decode(data["data"])
+        subscription = find(data)
+        raise UnknownSubscription.new(data["identifier"]) unless subscription
+        subscription.perform_action ActiveSupport::JSON.decode(data["data"])
       end
 
       def identifiers
@@ -104,16 +115,12 @@ module ActionCable
         delegate :logger, to: :connection
 
         def find(data)
-          if subscription = subscriptions[data["identifier"]]
-            subscription
-          else
-            raise UnknownSubscription, data["identifier"]
-          end
+          subscriptions[data["identifier"]]
         end
 
         def subscription_from_identifier(id_key)
           id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
-          subscription_klass = id_options[:channel].safe_constantize
+          subscription_klass = id_options[:channel]&.safe_constantize
 
           if subscription_klass && ActionCable::Channel::Base > subscription_klass
             subscription_klass.new(connection, id_key, id_options)

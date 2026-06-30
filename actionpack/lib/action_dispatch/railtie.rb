@@ -16,6 +16,7 @@ module ActionDispatch
     config.action_dispatch.show_exceptions = :all
     config.action_dispatch.tld_length = 1
     config.action_dispatch.ignore_accept_header = false
+    config.action_dispatch.strict_accept_header = false
     config.action_dispatch.rescue_templates = {}
     config.action_dispatch.rescue_responses = {}
     config.action_dispatch.wrapper_exceptions = []
@@ -80,7 +81,8 @@ module ActionDispatch
 
       ActiveSupport.on_load(:action_dispatch_request) do
         self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
-        ActionDispatch::Request::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
+        self.strict_accept_header = app.config.action_dispatch.strict_accept_header
+        Http::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
       end
 
       ActiveSupport.on_load(:action_dispatch_response) do

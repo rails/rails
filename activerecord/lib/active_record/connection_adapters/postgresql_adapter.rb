@@ -71,7 +71,7 @@ module ActiveRecord
         end
 
         def dbconsole(config, options = {})
-          pg_config = config.configuration_hash
+          pg_config = config.configuration_hash.deep_dup
 
           ENV["PGUSER"]         = pg_config[:username] if pg_config[:username]
           ENV["PGHOST"]         = pg_config[:host] if pg_config[:host]
@@ -81,6 +81,11 @@ module ActiveRecord
           ENV["PGSSLCERT"]      = pg_config[:sslcert].to_s if pg_config[:sslcert]
           ENV["PGSSLKEY"]       = pg_config[:sslkey].to_s if pg_config[:sslkey]
           ENV["PGSSLROOTCERT"]  = pg_config[:sslrootcert].to_s if pg_config[:sslrootcert]
+
+          if pg_config[:schema_search_path]
+            pg_config[:variables] ||= {}
+            pg_config[:variables][:search_path] ||= pg_config[:schema_search_path]
+          end
           if pg_config[:variables]
             ENV["PGOPTIONS"] = pg_config[:variables].filter_map do |name, value|
               "-c #{name}=#{value.to_s.gsub(/[ \\]/, '\\\\\0')}" unless value == ":default" || value == :default
@@ -328,6 +333,25 @@ module ActiveRecord
         { concurrently: "CONCURRENTLY" }
       end
 
+      class ErrorResultSnapshot # :nodoc:
+        def initialize(result)
+          @fields = PG.constants.
+            grep(/\APG_DIAG_/).
+            map { PG.const_get(_1) }.
+            index_with { result.error_field(_1) }
+
+          @error_message = result.error_message
+        end
+
+        def error_field(field)
+          @fields[field]
+        end
+        alias :result_error_field :error_field
+
+        attr_reader :error_message
+        alias :result_error_message :error_message
+      end
+
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         def initialize(connection, max)
           super(max)
@@ -377,6 +401,7 @@ module ActiveRecord
         @type_map_queried = false
         @raw_connection = nil
         @notice_receiver_sql_warnings = []
+        @notice_receiver_fatal_error = nil
 
         @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
       end
@@ -435,6 +460,7 @@ module ActiveRecord
           super
           @raw_connection&.close rescue nil
           @raw_connection = nil
+          @notice_receiver_fatal_error = nil
         end
       end
 
@@ -784,6 +810,14 @@ module ActiveRecord
           end
         end
 
+        def register_class_with_precision(mapping, key, klass, **kwargs) # :nodoc:
+          mapping.register_type(key) do |_, fmod, _sql_type|
+            precision = fmod == -1 ? 6 : fmod
+
+            klass.new(precision: precision, **kwargs).freeze
+          end
+        end
+
         # Registers a callback to extend the type map during initialization.
         # Useful for third-party gems that need to register custom SQL types.
         #
@@ -807,10 +841,42 @@ module ActiveRecord
       private
         attr_reader :type_map
 
+        def connection_terminating_severity?(result)
+          severity = result&.error_field(PG::PG_DIAG_SEVERITY_NONLOCALIZED)
+          severity == "FATAL" || severity == "PANIC"
+        end
+
+        def capture_fatal_notice(result)
+          return false unless connection_terminating_severity?(result)
+
+          begin
+            result.check
+          rescue PG::Error => error
+            # result will be cleared when the notice handler returns, so
+            # we need to replace it on the exception with a snapshot.
+            snapshot = ErrorResultSnapshot.new(result)
+            error.define_singleton_method(:result) { snapshot }
+
+            @notice_receiver_fatal_error = error
+          end
+
+          @last_activity = nil
+          @verified = false
+          @needs_reconnect = true
+
+          true
+        end
+
+        def consume_notice_receiver_fatal_error
+          consumed, @notice_receiver_fatal_error = @notice_receiver_fatal_error, nil
+          consumed
+        end
+
         def initialize_type_map(m = type_map)
           self.class.initialize_type_map(m)
 
           self.class.register_class_with_precision m, "time", Type::Time, timezone: @default_timezone
+          self.class.register_class_with_precision m, "timetz", Type::Time, timezone: @default_timezone
           self.class.register_class_with_precision m, "timestamp", OID::Timestamp, timezone: @default_timezone
           self.class.register_class_with_precision m, "timestamptz", OID::TimestampWithTimeZone
 
@@ -876,7 +942,8 @@ module ActiveRecord
           when nil
             if exception.message.match?(/connection is closed/i) || exception.message.match?(/no connection to the server/i)
               ConnectionNotEstablished.new(exception, connection_pool: @pool)
-            elsif exception.is_a?(PG::ConnectionBad)
+            elsif exception.is_a?(PG::ConnectionBad) ||
+                  (exception.is_a?(PG::Error) && exception.connection&.status == PG::CONNECTION_BAD)
               # libpq message style always ends with a newline; the pg gem's internal
               # errors do not. We separate these cases because a pg-internal
               # ConnectionBad means it failed before it managed to send the query,
@@ -915,7 +982,11 @@ module ActiveRecord
           when QUERY_CANCELED
             QueryCanceled.new(message, sql: sql, binds: binds, connection_pool: @pool)
           else
-            super
+            if connection_terminating_severity?(exception.result)
+              ConnectionFailed.new(exception, connection_pool: @pool)
+            else
+              super
+            end
           end
         end
 
@@ -1020,12 +1091,12 @@ module ActiveRecord
           unless @statements.key? sql_key
             nextkey = @statements.next_key
             begin
-              conn.prepare nextkey, sql
+              conn.send_prepare(nextkey, sql)
+              result = get_result(conn)
+              result&.check
             rescue => e
               raise translate_exception_class(e, sql, binds)
             end
-            # Clear the queue
-            conn.get_last_result
             @statements[sql_key] = nextkey
           end
           @statements[sql_key]
@@ -1068,8 +1139,11 @@ module ActiveRecord
             @raw_connection.set_client_encoding(@config[:encoding])
           end
 
-          unless ActiveRecord.db_warnings_action.nil?
-            @raw_connection.set_notice_receiver do |result|
+          @notice_receiver_fatal_error = nil
+          @raw_connection.set_notice_receiver do |result|
+            next if capture_fatal_notice(result)
+
+            if ActiveRecord.db_warnings_action
               message = result.error_field(PG::Result::PG_DIAG_MESSAGE_PRIMARY)
               code = result.error_field(PG::Result::PG_DIAG_SQLSTATE)
               level = result.error_field(PG::Result::PG_DIAG_SEVERITY)

@@ -140,7 +140,7 @@ module Arel # :nodoc: all
           visit o.right, collector
         end
 
-        BIND_BLOCK = proc { |i| "$#{i}" }
+        BIND_BLOCK = ActiveSupport::Ractors.shareable_proc { |i| "$#{i}" }
         private_constant :BIND_BLOCK
 
         def bind_block; BIND_BLOCK; end

@@ -26,7 +26,8 @@ module ActionCable
 
       def remove_subscriber(channel, subscriber)
         @sync.synchronize do
-          @subscribers[channel].delete(subscriber)
+          return if !@subscribers.key?(channel)
+          return unless @subscribers[channel].delete(subscriber)
 
           if @subscribers[channel].empty?
             @subscribers.delete channel

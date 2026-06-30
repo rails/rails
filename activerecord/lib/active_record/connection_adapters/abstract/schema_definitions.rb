@@ -849,6 +849,7 @@ module ActiveRecord
       #
       # See {connection.remove_timestamps}[rdoc-ref:SchemaStatements#remove_timestamps]
       def remove_timestamps(**options)
+        raise_on_if_exist_options(options)
         @base.remove_timestamps(name, **options)
       end
 

@@ -146,7 +146,7 @@ module ActionController
   #
   #     params = ActionController::Parameters.new(a: "123", b: "456")
   #     params.permit(:c)
-  #     # => ActionController::UnpermittedParameters: found unpermitted keys: a, b
+  #     # => ActionController::UnpermittedParameters: found unpermitted parameters: :a, :b
   #
   # Please note that these options *are not thread-safe*. In a multi-threaded
   # environment they should only be set once at boot-time and never mutated at
@@ -318,7 +318,8 @@ module ActionController
     end
 
     def deconstruct_keys(keys)
-      slice(*keys).each.with_object({}) { |(key, value), hash| hash.merge!(key.to_sym => value) }
+      params = keys ? slice(*keys) : self
+      params.each.with_object({}) { |(key, value), hash| hash.merge!(key.to_sym => value) }
     end
 
     # Returns a safe ActiveSupport::HashWithIndifferentAccess representation of the
@@ -1001,6 +1002,7 @@ module ActionController
     # Returns a new `ActionController::Parameters` instance with only items that the
     # block evaluates to true.
     def select(&block)
+      return to_enum(:select) unless block_given?
       new_instance_with_inherited_permitted_status(@parameters.select(&block))
     end
 
@@ -1014,6 +1016,7 @@ module ActionController
     # Returns a new `ActionController::Parameters` instance with items that the
     # block evaluates to true removed.
     def reject(&block)
+      return to_enum(:reject) unless block_given?
       new_instance_with_inherited_permitted_status(@parameters.reject(&block))
     end
 
@@ -1070,7 +1073,7 @@ module ActionController
     end
 
     ##
-    # :call-seq: merge!(*other_hashes)
+    # :call-seq: merge!(*other_hashes, &block)
     #
     # Returns the current `ActionController::Parameters` instance with `other_hashes`
     # merged into current hash.

@@ -130,7 +130,7 @@ module ActiveRecord
       # it is preferred to use {update_all}[rdoc-ref:Relation#update_all]
       # for updating all records in a single query.
       def update(id = :all, attributes)
-        if id.is_a?(Array)
+        if update_multiple_ids?(id)
           if id.any?(ActiveRecord::Base)
             raise ArgumentError,
               "You are passing an array of ActiveRecord::Base instances to `update`. " \
@@ -156,7 +156,7 @@ module ActiveRecord
       # Updates the object (or multiple objects) just like #update but calls #update! instead
       # of +update+, so an exception is raised if the record is invalid and saving will fail.
       def update!(id = :all, attributes)
-        if id.is_a?(Array)
+        if update_multiple_ids?(id)
           if id.any?(ActiveRecord::Base)
             raise ArgumentError,
               "You are passing an array of ActiveRecord::Base instances to `update!`. " \
@@ -300,6 +300,18 @@ module ActiveRecord
           subclass.class_eval do
             @_query_constraints_list = nil
             @has_query_constraints = false
+          end
+        end
+
+        # +update+/+update!+ accept either a single id or an array of ids. For a
+        # composite primary key a single id is itself an array, so an array of
+        # ids is an array of arrays, mirroring how +Relation#destroy+ tells the
+        # two apart.
+        def update_multiple_ids?(id)
+          if composite_primary_key?
+            id.is_a?(Array) && id.first.is_a?(Array)
+          else
+            id.is_a?(Array)
           end
         end
 
@@ -546,6 +558,7 @@ module ActiveRecord
     # Also see #update_column.
     def update_attribute(name, value)
       name = name.to_s
+      name = self.class.attribute_aliases[name] || name
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
 
@@ -568,6 +581,7 @@ module ActiveRecord
     # ActiveRecord::Callbacks for further details.
     def update_attribute!(name, value)
       name = name.to_s
+      name = self.class.attribute_aliases[name] || name
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
 
@@ -691,7 +705,9 @@ module ActiveRecord
 
       increment(attribute, by)
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
-      self.class.update_counters(id, attribute => change, touch: touch)
+      counters = { attribute => change, touch: touch }
+
+      self.class.unscoped.where!(_query_constraints_hash).update_counters(counters)
       public_send(:"clear_#{attribute}_change")
       self
     end
@@ -872,7 +888,17 @@ module ActiveRecord
 
       def _find_record(options)
         all_queries = options ? options[:all_queries] : nil
-        base = self.class.all(all_queries: all_queries).preload(strict_loaded_associations)
+        base = if all_queries
+          self.class.default_scoped(all_queries: true)
+        else
+          self.class.all
+        end
+
+        if all_queries && (current_scope = self.class.global_current_scope)
+          base = base.merge!(current_scope)
+        end
+
+        base = base.preload(strict_loaded_associations)
 
         if options && options[:lock]
           base.lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)

@@ -1084,7 +1084,7 @@ module ActiveRecord
         # this is a naive implementation; some DBs may support this more efficiently (PostgreSQL, for instance)
         old_index_def = indexes(table_name).detect { |i| i.name == old_name }
         return unless old_index_def
-        add_index(table_name, old_index_def.columns, name: new_name, unique: old_index_def.unique)
+        add_index(table_name, old_index_def.columns, name: new_name, unique: old_index_def.unique, where: old_index_def.where)
         remove_index(table_name, name: old_name)
       end
 
@@ -1445,7 +1445,7 @@ module ActiveRecord
       def remove_check_constraint(table_name, expression = nil, if_exists: false, **options)
         return unless supports_check_constraints?
 
-        return if if_exists && !check_constraint_exists?(table_name, **options)
+        return if if_exists && !check_constraint_exists?(table_name, expression: expression, **options)
 
         chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
 
