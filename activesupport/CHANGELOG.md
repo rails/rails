@@ -1,3 +1,20 @@
+*   Added `ActiveSupport::ProxyLogger`.
+
+    The proxy logger, is a logger that forwards all received logs to another
+    logger, but has its own independent severity level.
+
+    This is useful when you want some library you have no control over to use
+    the same logger as the rest of your application, but to have a different severity
+    level because it is logging too much:
+
+    ```ruby
+    SomeLibrary.logger = ActiveSupport::ProxyLogger.new(Rails.logger, :error)
+    ```
+
+    Almost all of the standard Logger interface is supported.
+
+    *Jean Boussier*
+
 *   Include call options in `Cache#exist?` instrumentation payload,
     consistent with `read`, `write`, and `delete`.
 
