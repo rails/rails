@@ -212,9 +212,9 @@ module ActiveSupport
         notifier.publish_event(event)
       end
 
-      def instrument(name, payload = {})
+      def instrument(name, payload = {}, &block)
         if notifier.listening?(name)
-          instrumenter.instrument(name, payload) { yield payload if block_given? }
+          instrumenter.instrument(name, payload, &block)
         else
           yield payload if block_given?
         end
