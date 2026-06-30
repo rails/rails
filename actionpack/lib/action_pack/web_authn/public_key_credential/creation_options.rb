@@ -95,17 +95,14 @@ module ActionPack
             EDDSA,
             RS256
           ],
-          authenticatorSelection: authenticator_selection_json
+          authenticatorSelection: authenticator_selection_json,
+          attestation: attestation.to_s
         }
 
         json[:timeout] = timeout.in_milliseconds.to_i if timeout
 
         if exclude_credentials.any?
           json[:excludeCredentials] = exclude_credentials.map { |credential| exclude_credential_json(credential) }
-        end
-
-        if attestation != :none
-          json[:attestation] = attestation.to_s
         end
 
         json.as_json(options)

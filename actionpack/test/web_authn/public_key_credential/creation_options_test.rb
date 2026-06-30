@@ -105,8 +105,8 @@ class ActionPack::WebAuthn::PublicKeyCredential::CreationOptionsTest < ActiveSup
     ], options.as_json["excludeCredentials"]
   end
 
-  test "as_json excludes attestation when none" do
-    assert_nil @options.as_json["attestation"]
+  test "as_json includes attestation none by default" do
+    assert_equal "none", @options.as_json["attestation"]
   end
 
   test "as_json includes attestation when not none" do
