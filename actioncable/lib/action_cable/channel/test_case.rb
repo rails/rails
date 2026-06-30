@@ -286,6 +286,7 @@ module ActionCable
         #
         def assert_has_stream(stream)
           check_subscribed!
+          stream = String(stream)
           assert subscription.stream_names.include?(stream), "Stream #{stream} has not been started"
         end
 
@@ -309,6 +310,7 @@ module ActionCable
         #
         def assert_has_no_stream(stream)
           check_subscribed!
+          stream = String(stream)
           assert subscription.stream_names.exclude?(stream), "Stream #{stream} has been started"
         end
 
@@ -329,7 +331,7 @@ module ActionCable
           end
 
           def broadcasting_for(stream_or_object)
-            return stream_or_object if stream_or_object.is_a?(String)
+            return stream_or_object if stream_or_object.is_a?(String) || stream_or_object.is_a?(Symbol)
 
             self.class.channel_class.broadcasting_for(stream_or_object)
           end
