@@ -9,9 +9,11 @@ class My::PasskeysController < ApplicationController
   end
 
   def create
-    passkey = Current.user.passkeys.register(passkey_registration_params)
-
-    redirect_to edit_my_passkey_path(passkey, created: true)
+    if passkey = Current.user.passkeys.register(passkey_registration_params)
+      redirect_to edit_my_passkey_path(passkey, created: true)
+    else
+      redirect_to my_passkeys_path, alert: "That passkey couldn't be registered. Try again."
+    end
   end
 
   def edit

@@ -136,6 +136,21 @@ class ActionPack::Passkeys::PasskeyTest < ActiveSupport::TestCase
     assert_equal false, passkey.backup_eligible
   end
 
+  test "register returns nil with invalid attestation" do
+    ActionPack::WebAuthn::Current.host = "example.com"
+    ActionPack::WebAuthn::Current.origin = "https://example.com"
+
+    invalid = {
+      client_data_json: { challenge: "invalid", origin: "https://example.com", type: "webauthn.create" }.to_json,
+      attestation_object: Base64.urlsafe_encode64(ATTESTATION_NONE_VERIFIED, padding: false),
+      transports: [ "internal" ]
+    }
+
+    assert_no_difference -> { ActionPack::Passkeys::Passkey.count } do
+      assert_nil @user.passkeys.register(invalid, id: SecureRandom.uuid)
+    end
+  end
+
   test "to_public_key_credential" do
     credential = @passkey.to_public_key_credential
 

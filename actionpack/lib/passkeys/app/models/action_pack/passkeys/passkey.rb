@@ -57,11 +57,13 @@ module ActionPack
         # +clientDataJSON+ response and verified server-side. Any additional +attributes+ (e.g. +holder+)
         # are passed through to +create!+.
         #
-        # Raises ActionPack::WebAuthn::InvalidResponseError if the attestation is invalid.
+        # Returns the persisted Passkey record, or +nil+ if the attestation is invalid.
         def register(passkey, **attributes)
           credential = ActionPack::WebAuthn::PublicKeyCredential.register(passkey)
 
           create!(**credential.to_h, **attributes)
+        rescue ActionPack::WebAuthn::InvalidResponseError
+          nil
         end
 
         # Returns a RequestOptions object suitable for passing to the browser's
