@@ -110,4 +110,18 @@ class ActionPack::WebAuthn::PublicKeyCredential::RequestOptionsTest < ActiveSupp
 
     assert_nil options.as_json["timeout"]
   end
+
+  test "as_json omits extensions by default" do
+    assert_nil @options.as_json["extensions"]
+  end
+
+  test "as_json includes extensions when present" do
+    options = ActionPack::WebAuthn::PublicKeyCredential::RequestOptions.new(
+      credentials: @credentials,
+      relying_party: @relying_party,
+      extensions: { "appid" => "https://example.com" }
+    )
+
+    assert_equal({ "appid" => "https://example.com" }, options.as_json["extensions"])
+  end
 end

@@ -32,6 +32,10 @@ module ActionPack
     #   (e.g. `10.minutes`) can also be used.
     #   Defaults vary by ceremony type (configured in the Railtie).
     #
+    # [+extensions+]
+    #   A Hash of WebAuthn client extension inputs passed through to the
+    #   authenticator. Omitted when blank.
+    #
     class PublicKeyCredential::Options
       include ActiveModel::API
       include ActiveModel::Attributes
@@ -42,6 +46,7 @@ module ActionPack
       attribute :user_verification, default: :preferred
       attribute :relying_party, default: -> { ActionPack::WebAuthn.relying_party }
       attribute :timeout
+      attribute :extensions
       attribute :challenge_purpose
 
       validates :user_verification, inclusion: { in: USER_VERIFICATION_OPTIONS }
@@ -82,6 +87,15 @@ module ActionPack
           ),
           padding: false
         )
+      end
+
+      # Returns a Hash representation of the options that's suitable for JSON
+      # serialization and which can be passed to the WebAuthn JavaScript API.
+      def as_json(*)
+        json = {}
+        json[:timeout] = timeout.in_milliseconds.to_i if timeout
+        json[:extensions] = extensions if extensions.present?
+        json
       end
     end
   end

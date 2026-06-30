@@ -182,6 +182,16 @@ class ActionPack::WebAuthn::PublicKeyCredential::CreationOptionsTest < ActiveSup
     assert_nil build_options(timeout: nil).as_json["timeout"]
   end
 
+  test "as_json omits extensions by default" do
+    assert_nil @options.as_json["extensions"]
+  end
+
+  test "as_json includes extensions when present" do
+    json = build_options(extensions: { "credProps" => true }).as_json
+
+    assert_equal({ "credProps" => true }, json["extensions"])
+  end
+
   private
     def build_options(**overrides)
       ActionPack::WebAuthn::PublicKeyCredential::CreationOptions.new(

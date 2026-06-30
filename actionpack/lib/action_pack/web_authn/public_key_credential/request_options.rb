@@ -47,9 +47,7 @@ module ActionPack
           userVerification: user_verification.to_s
         }
 
-        json[:timeout] = timeout.in_milliseconds.to_i if timeout
-
-        json.as_json(options)
+        super.merge(json).as_json(options)
       end
 
       private

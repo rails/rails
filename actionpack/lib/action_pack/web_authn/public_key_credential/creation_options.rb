@@ -99,13 +99,11 @@ module ActionPack
           attestation: attestation.to_s
         }
 
-        json[:timeout] = timeout.in_milliseconds.to_i if timeout
-
         if exclude_credentials.any?
           json[:excludeCredentials] = exclude_credentials.map { |credential| exclude_credential_json(credential) }
         end
 
-        json.as_json(options)
+        super.merge(json).as_json(options)
       end
 
       private
