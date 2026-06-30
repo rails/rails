@@ -5,11 +5,7 @@ module ActiveSupport
     class LogSubscriber
       include ColorizeLogging
 
-      LEVEL_CHECKS = {
-        debug: ActiveSupport::Ractors.shareable_lambda(&-> (logger) { logger.debug? }),
-        info: ActiveSupport::Ractors.shareable_lambda(&-> (logger) { logger.info? }),
-        error: ActiveSupport::Ractors.shareable_lambda(&-> (logger) { logger.error? }),
-      }.freeze
+      LOG_LEVELS = [:debug, :info, :error].freeze
 
       class << self
         def event_log_level(method_name, level)
@@ -45,7 +41,8 @@ module ActiveSupport
         return unless logger
         name = event[:name]
         event_method = name[name.index(".") + 1, name.length]
-        public_send(event_method, event) if LEVEL_CHECKS[log_levels[event_method]]&.call(logger)
+
+        public_send(event_method, event) if log_level_satisfied?(event_method)
       end
 
       def logger
@@ -55,6 +52,13 @@ module ActiveSupport
       private
         def namespace
           self.class.namespace
+        end
+
+        def log_level_satisfied?(event_method)
+          event_log_level = log_levels[event_method]
+          return false unless LOG_LEVELS.include?(event_log_level)
+
+          logger.public_send("#{event_log_level}?")
         end
     end
   end
