@@ -1613,7 +1613,7 @@ module ActiveRecord
     end
 
     # Deduplicate multiple values.
-    def uniq!(name)
+    def uniq!(name) # :nodoc:
       if values = @values[name]
         values.uniq! if values.is_a?(Array) && !values.empty?
       end
