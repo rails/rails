@@ -855,7 +855,7 @@ module ActionDispatch
         # [match](rdoc-ref:Base#match)
         #
         #     options 'carrots', to: 'food#carrots'
-        def options(*path_or_actions, as: DEFAULT, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: false, format: false, path: nil, internal: nil, **mapping, &block)
+        def options(*path_or_actions, as: DEFAULT, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
           if path_or_actions.grep(Hash).any? && (deprecated_options = path_or_actions.extract_options!)
             as = assign_deprecated_option(deprecated_options, :as, :options) if deprecated_options.key?(:as)
             to ||= assign_deprecated_option(deprecated_options, :to, :options)
