@@ -25,7 +25,8 @@ module ActionPack
     #   The relying party identifier, typically the application's domain name
     #   (e.g., "example.com"). This must match the origin's effective domain
     #   or be a registrable domain suffix of it. Credentials are scoped to this
-    #   identifier. Defaults to +ActionPack::WebAuthn::Current.host+.
+    #   identifier. Defaults to +ActionPack::WebAuthn.relying_party_id+ when set,
+    #   otherwise to +ActionPack::WebAuthn::Current.host+.
     #
     # [+name+]
     #   A human-readable name for the application, displayed by authenticators
@@ -43,7 +44,7 @@ module ActionPack
       # [+:name+]
       #   Optional. The application display name.
       def initialize(id: nil, name: nil)
-        @id = id || ActionPack::WebAuthn::Current.host
+        @id = id || ActionPack::WebAuthn.relying_party_id || ActionPack::WebAuthn::Current.host
         @name = name || ActionPack::WebAuthn.application_name
       end
 

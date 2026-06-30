@@ -169,6 +169,25 @@ has_passkeys do |config|
 end
 ```
 
+#### Passkeys Across Multiple Domains
+
+A passkey is scoped to a single relying party ID, so it only works on
+the domain it was registered on. Once the Passkey is registered, the
+relaying party ID can't be changed. To allow a passkey to work across several
+domains — for example after a domain change — use [Related Origin Requests](https://passkeys.dev/docs/advanced/related-origins/).
+
+Pin your current domain as the common relying party ID so every Passkey ceremony
+uses it, regardless of which domain the request came in on, and provide a list of related origins
+that may use those passkeys:
+
+```ruby
+# config/application.rb
+config.action_pack.passkey.relying_party_id = "example.com"
+config.action_pack.passkey.related_origins = [ "https://example.com", "https://example.co.uk" ]
+```
+
+Rails will serve that list of origins at `/.well-known/webauthn` for browsers to discover.
+
 ### Magic Link-Based Authentication
 
 By default, the authentication generator uses magic links for email-based

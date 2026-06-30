@@ -37,6 +37,7 @@ module ActionPack
 
     mattr_accessor :challenge_verifier
     mattr_accessor :application_name
+    mattr_accessor :relying_party_id
 
     class InvalidResponseError < StandardError; end
     class InvalidCborError < StandardError; end

@@ -16,9 +16,11 @@ module ActionPack
     config.action_pack = ActiveSupport::OrderedOptions.new unless config.respond_to?(:action_pack)
     config.action_pack.passkey = ActiveSupport::OrderedOptions.new
     config.action_pack.passkey.parent_class_name = "ApplicationRecord"
+    config.action_pack.passkey.relying_party_id = nil
     config.action_pack.passkey.routes_prefix = "/rails/action_pack/passkey"
     config.action_pack.passkey.draw_routes = true
     config.action_pack.passkey.challenge_url = nil
+    config.action_pack.passkey.related_origins = []
     config.action_pack.passkey.default_registration_options = {}
     config.action_pack.passkey.default_authentication_options = {}
     config.action_pack.passkey.registration_challenge_expiration = 10.minutes
@@ -35,12 +37,14 @@ module ActionPack
       ActionPack::Passkeys.registration_challenge_expiration = passkey_config.registration_challenge_expiration
       ActionPack::Passkeys.authentication_challenge_expiration = passkey_config.authentication_challenge_expiration
       ActionPack::Passkeys.challenge_url = passkey_config.challenge_url
+      ActionPack::Passkeys.related_origins = passkey_config.related_origins
     end
 
     initializer "action_pack.passkey.verifier" do
       config.after_initialize do |app|
         ActionPack::WebAuthn.challenge_verifier = app.message_verifier("action_pack.webauthn.challenge")
         ActionPack::WebAuthn.application_name = app.name
+        ActionPack::WebAuthn.relying_party_id = config.action_pack.passkey.relying_party_id
       end
     end
 
@@ -51,6 +55,10 @@ module ActionPack
         if passkey_config.draw_routes
           scope passkey_config.routes_prefix, as: :passkey do
             post "/challenge" => "action_pack/passkeys/challenges#create", as: :challenge
+          end
+
+          if passkey_config.related_origins.any?
+            get "/.well-known/webauthn" => "action_pack/well_known/webauthn#show"
           end
         end
       end

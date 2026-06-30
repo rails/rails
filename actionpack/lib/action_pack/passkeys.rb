@@ -12,6 +12,7 @@ module ActionPack
     mattr_accessor :registration_challenge_expiration, default: 10.minutes
     mattr_accessor :authentication_challenge_expiration, default: 5.minutes
     mattr_accessor :challenge_url
+    mattr_accessor :related_origins, default: []
 
     autoload :Engine
     autoload :FormHelper
