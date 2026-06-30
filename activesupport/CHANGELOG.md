@@ -1,3 +1,17 @@
+*   Add `-g`/`--group` flag to `ContinuousIntegration` for filtering CI runs by
+    group name. Supports comma-separated lists, repeated flags, and
+    slash-separated paths for nested groups.
+
+    ```sh
+    $ bin/ci -g frontend
+    $ bin/ci -g backend/unit
+    $ bin/ci -g frontend,checks
+    $ bin/ci --group frontend --group checks
+
+    ```
+
+    *Harsh Deep*
+
 *   Add shims for `Ractor` shareability methods so framework code can call them
     unconditionally regardless of the Ruby version.
 
