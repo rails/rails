@@ -38,6 +38,11 @@ module ActionPack
     #   The relying party (application) configuration. Defaults to
     #   +ActionPack::WebAuthn.relying_party+.
     #
+    # [+authenticator_attachment+]
+    #   Restricts the kind of authenticator the user may register. Either
+    #   +"platform"+ (built-in, e.g. Touch ID) or +"cross-platform"+ (roaming,
+    #   e.g. a security key). Omitted by default, which allows both.
+    #
     # == Supported Algorithms
     #
     # By default, supports ES256 (ECDSA with P-256 and SHA-256), EdDSA
@@ -49,24 +54,28 @@ module ActionPack
       RS256 = { type: "public-key", alg: -257 }.freeze
       RESIDENT_KEY_OPTIONS = %i[ preferred required discouraged ].freeze
       ATTESTATION_PREFERENCES = %i[ none indirect direct enterprise ].freeze
+      AUTHENTICATOR_ATTACHMENTS = %w[ platform cross-platform ].freeze
 
       attribute :id
       attribute :name
       attribute :display_name
       attribute :resident_key, default: :required
+      attribute :authenticator_attachment
       attribute :exclude_credentials, default: -> { [] }
       attribute :attestation, default: :none
-      attribute :challenge_expiration, default: 10.minutes
+      attribute :timeout, default: 10.minutes
       attribute :challenge_purpose, default: "registration"
 
       validates :id, :name, :display_name, presence: true
       validates :resident_key, inclusion: { in: RESIDENT_KEY_OPTIONS }
       validates :attestation, inclusion: { in: ATTESTATION_PREFERENCES }
+      validates :authenticator_attachment, inclusion: { in: AUTHENTICATOR_ATTACHMENTS }, allow_nil: true
 
       def initialize(attributes = {}) # :nodoc:
         super
         self.resident_key = resident_key.to_sym
         self.attestation = attestation.to_sym
+        self.authenticator_attachment = authenticator_attachment&.to_s
         validate!
       end
 
@@ -86,12 +95,10 @@ module ActionPack
             EDDSA,
             RS256
           ],
-          authenticatorSelection: {
-            residentKey: resident_key.to_s,
-            requireResidentKey: resident_key == :required,
-            userVerification: user_verification.to_s
-          }
+          authenticatorSelection: authenticator_selection_json
         }
+
+        json[:timeout] = timeout.in_milliseconds.to_i if timeout
 
         if exclude_credentials.any?
           json[:excludeCredentials] = exclude_credentials.map { |credential| exclude_credential_json(credential) }
@@ -105,6 +112,17 @@ module ActionPack
       end
 
       private
+        def authenticator_selection_json
+          json = {
+            residentKey: resident_key.to_s,
+            requireResidentKey: resident_key == :required,
+            userVerification: user_verification.to_s
+          }
+
+          json[:authenticatorAttachment] = authenticator_attachment if authenticator_attachment
+          json
+        end
+
         def exclude_credential_json(credential)
           hash = { type: "public-key", id: credential.id }
           hash[:transports] = credential.transports if credential.transports.any?

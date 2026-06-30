@@ -14,8 +14,7 @@ module ActionPack
     # == Challenge Generation
     #
     # Each options object generates a signed, expiring challenge via
-    # +ActionPack::WebAuthn.challenge_verifier+. The challenge is Base64URL-encoded
-    # and includes an embedded timestamp so the server can reject stale challenges.
+    # +ActionPack::WebAuthn.challenge_verifier+.
     #
     # == Attributes
     #
@@ -26,9 +25,12 @@ module ActionPack
     # [+relying_party+]
     #   The RelyingParty configuration. Defaults to +ActionPack::WebAuthn.relying_party+.
     #
-    # [+challenge_expiration+]
-    #   How long the challenge remains valid. Defaults vary by ceremony type
-    #   (configured in the Railtie).
+    # [+timeout+]
+    #   How long the ceremony may take. Sent to the browser as the WebAuthn +timeout+,
+    #   and used server-side as the challenge's expiry so it can't outlive the prompt.
+    #   Integer values are treated as seconds, +ActiveSupport::Duration+ values
+    #   (e.g. `10.minutes`) can also be used.
+    #   Defaults vary by ceremony type (configured in the Railtie).
     #
     class PublicKeyCredential::Options
       include ActiveModel::API
@@ -39,7 +41,7 @@ module ActionPack
 
       attribute :user_verification, default: :preferred
       attribute :relying_party, default: -> { ActionPack::WebAuthn.relying_party }
-      attribute :challenge_expiration
+      attribute :timeout
       attribute :challenge_purpose
 
       validates :user_verification, inclusion: { in: USER_VERIFICATION_OPTIONS }
@@ -66,16 +68,16 @@ module ActionPack
       # an embedded timestamp. The challenge is generated once and memoized for the
       # lifetime of this object.
       #
-      # The timestamp allows the server to reject stale challenges. The expiration
+      # The timestamp allows the server to reject stale challenges. The validity
       # window is configurable per-ceremony via
-      # +config.action_pack.passkey.registration_challenge_expiration+ and
-      # +config.action_pack.passkey.authentication_challenge_expiration+, or per-instance
-      # via the +challenge_expiration+ attribute.
+      # +config.action_pack.passkey.registration_timeout+ and
+      # +config.action_pack.passkey.authentication_timeout+, or per-instance via
+      # the +timeout+ attribute.
       def challenge
         @challenge ||= Base64.urlsafe_encode64(
           ActionPack::WebAuthn.challenge_verifier.generate(
             Base64.strict_encode64(SecureRandom.random_bytes(CHALLENGE_LENGTH)),
-            expires_in: challenge_expiration,
+            expires_in: timeout,
             purpose: challenge_purpose
           ),
           padding: false

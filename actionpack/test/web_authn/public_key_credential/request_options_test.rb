@@ -86,4 +86,28 @@ class ActionPack::WebAuthn::PublicKeyCredential::RequestOptionsTest < ActiveSupp
       { "type" => "public-key", "id" => "cred-1" }
     ], options.as_json["allowCredentials"]
   end
+
+  test "as_json renders timeout in milliseconds" do
+    assert_equal 300_000, @options.as_json["timeout"]
+  end
+
+  test "as_json renders a custom timeout in milliseconds" do
+    options = ActionPack::WebAuthn::PublicKeyCredential::RequestOptions.new(
+      credentials: @credentials,
+      relying_party: @relying_party,
+      timeout: 2.minutes
+    )
+
+    assert_equal 120_000, options.as_json["timeout"]
+  end
+
+  test "as_json omits timeout when nil" do
+    options = ActionPack::WebAuthn::PublicKeyCredential::RequestOptions.new(
+      credentials: @credentials,
+      relying_party: @relying_party,
+      timeout: nil
+    )
+
+    assert_nil options.as_json["timeout"]
+  end
 end

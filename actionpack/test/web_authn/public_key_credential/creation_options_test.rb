@@ -146,4 +146,50 @@ class ActionPack::WebAuthn::PublicKeyCredential::CreationOptionsTest < ActiveSup
       { "type" => "public-key", "id" => "cred-1" }
     ], options.as_json["excludeCredentials"]
   end
+
+  test "as_json omits authenticatorAttachment by default" do
+    assert_nil @options.as_json["authenticatorSelection"]["authenticatorAttachment"]
+  end
+
+  test "as_json includes authenticatorAttachment when set" do
+    options = build_options(authenticator_attachment: "platform")
+
+    assert_equal "platform", options.as_json["authenticatorSelection"]["authenticatorAttachment"]
+  end
+
+  test "raises with invalid authenticatorAttachment" do
+    assert_raises(ActionPack::WebAuthn::InvalidOptionsError) do
+      build_options(authenticator_attachment: "invalid")
+    end
+  end
+
+  test "as_json renders timeout in milliseconds" do
+    assert_equal 600_000, @options.as_json["timeout"]
+  end
+
+  test "as_json renders a custom timeout in milliseconds" do
+    assert_equal 120_000, build_options(timeout: 2.minutes).as_json["timeout"]
+  end
+
+  test "as_json renders a sub-second timeout as integer milliseconds" do
+    json = build_options(timeout: 0.5).as_json
+
+    assert_equal 500, json["timeout"]
+    assert_kind_of Integer, json["timeout"]
+  end
+
+  test "as_json omits timeout when nil" do
+    assert_nil build_options(timeout: nil).as_json["timeout"]
+  end
+
+  private
+    def build_options(**overrides)
+      ActionPack::WebAuthn::PublicKeyCredential::CreationOptions.new(
+        id: "user-123",
+        name: "user@example.com",
+        display_name: "Test User",
+        relying_party: @relying_party,
+        **overrides
+      )
+    end
 end

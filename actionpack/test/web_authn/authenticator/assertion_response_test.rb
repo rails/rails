@@ -92,7 +92,7 @@ class ActionPack::WebAuthn::Authenticator::AssertionResponseTest < ActiveSupport
 
   test "validate! raises when challenge has expired" do
     expired_challenge = ActionPack::WebAuthn::PublicKeyCredential::Options.new(
-      challenge_expiration: 0.seconds,
+      timeout: 0.seconds,
       challenge_purpose: "authentication"
     ).challenge
 

@@ -3775,13 +3775,17 @@ ceremony. Defaults to `{}`.
 A hash of default options merged into every passkey authentication
 ceremony. Defaults to `{}`.
 
-#### `config.action_pack.passkey.registration_challenge_expiration`
+#### `config.action_pack.passkey.registration_timeout`
 
-How long a registration challenge remains valid. Defaults to `10.minutes`.
+How long a registration ceremony may take. Sent to the browser as the WebAuthn
+`timeout` and used server-side as the challenge's validity window. Defaults to
+`10.minutes`.
 
-#### `config.action_pack.passkey.authentication_challenge_expiration`
+#### `config.action_pack.passkey.authentication_timeout`
 
-How long an authentication challenge remains valid. Defaults to `5.minutes`.
+How long an authentication ceremony may take. Sent to the browser as the WebAuthn
+`timeout` and used server-side as the challenge's validity window. Defaults to
+`5.minutes`.
 
 #### `config.action_pack.passkey.cbor_max_depth`
 

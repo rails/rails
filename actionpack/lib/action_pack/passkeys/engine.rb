@@ -23,8 +23,8 @@ module ActionPack
     config.action_pack.passkey.related_origins = []
     config.action_pack.passkey.default_registration_options = {}
     config.action_pack.passkey.default_authentication_options = {}
-    config.action_pack.passkey.registration_challenge_expiration = 10.minutes
-    config.action_pack.passkey.authentication_challenge_expiration = 5.minutes
+    config.action_pack.passkey.registration_timeout = 10.minutes
+    config.action_pack.passkey.authentication_timeout = 5.minutes
     config.action_pack.passkey.cbor_max_depth = 16
     config.action_pack.passkey.cbor_max_size = 10.megabytes
 
@@ -34,8 +34,8 @@ module ActionPack
       ActionPack::Passkeys.parent_class_name = passkey_config.parent_class_name
       ActionPack::Passkeys.default_registration_options = passkey_config.default_registration_options
       ActionPack::Passkeys.default_authentication_options = passkey_config.default_authentication_options
-      ActionPack::Passkeys.registration_challenge_expiration = passkey_config.registration_challenge_expiration
-      ActionPack::Passkeys.authentication_challenge_expiration = passkey_config.authentication_challenge_expiration
+      ActionPack::Passkeys.registration_timeout = passkey_config.registration_timeout
+      ActionPack::Passkeys.authentication_timeout = passkey_config.authentication_timeout
       ActionPack::Passkeys.challenge_url = passkey_config.challenge_url
       ActionPack::Passkeys.related_origins = passkey_config.related_origins
     end

@@ -33,7 +33,7 @@ module ActionPack
     private
       def create_passkey_challenge
         ActionPack::WebAuthn::PublicKeyCredential::Options.new(
-          challenge_expiration: challenge_expiration,
+          timeout: timeout,
           challenge_purpose: challenge_purpose
         ).challenge
       end
@@ -46,11 +46,11 @@ module ActionPack
         end
       end
 
-      def challenge_expiration
+      def timeout
         if challenge_purpose == "registration"
-          ActionPack::Passkeys.registration_challenge_expiration
+          ActionPack::Passkeys.registration_timeout
         else
-          ActionPack::Passkeys.authentication_challenge_expiration
+          ActionPack::Passkeys.authentication_timeout
         end
       end
   end

@@ -29,7 +29,7 @@ module ActionPack
     #   +ActionPack::WebAuthn.relying_party+.
     class PublicKeyCredential::RequestOptions < PublicKeyCredential::Options
       attribute :credentials, default: -> { [] }
-      attribute :challenge_expiration, default: 5.minutes
+      attribute :timeout, default: 5.minutes
       attribute :challenge_purpose, default: "authentication"
 
       def initialize(attributes = {}) # :nodoc:
@@ -46,6 +46,8 @@ module ActionPack
           allowCredentials: credentials.map { |credential| allow_credential_json(credential) },
           userVerification: user_verification.to_s
         }
+
+        json[:timeout] = timeout.in_milliseconds.to_i if timeout
 
         json.as_json(options)
       end
