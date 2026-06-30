@@ -39,6 +39,15 @@ class ActionPack::Passkeys::PasskeyTest < ActiveSupport::TestCase
     "1d00000005"
   ].pack("H*").freeze
 
+  # {"fmt": "none", "attStmt": {}, "authData": rp_id_hash=SHA-256("example.com"),
+  #  flags: 0x45 (UP+UV+AT), aaguid 00010203-..., credential_id 0x00..0x1f, ES256 key}
+  ATTESTATION_NONE_VERIFIED = [ "a363666d74646e6f6e656761747453746d74a068617574684461" \
+    "746158a4a379a6f6eeafb9a55e378c118034e2751e682fab9f2d30ab13d2125586ce1947" \
+    "4500000000000102030405060708090a0b0c0d0e0f0020000102030405060708090a0b0c" \
+    "0d0e0f101112131415161718191a1b1c1d1e1fa50102032620012158202ba472104c686f" \
+    "39d4b623cc9324953e7053b47cae818e8cf774203a4f51af7122582069cb8ac519bdd929" \
+    "e2bdbe79e9f9b8d14c2d89a7cbd324647a1ccd68b8de3ca0" ].pack("H*").freeze
+
   setup do
     ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
     ActiveRecord::Schema.define do
@@ -54,6 +63,7 @@ class ActionPack::Passkeys::PasskeyTest < ActiveSupport::TestCase
         t.integer :sign_count, null: false, default: 0
         t.string :name
         t.text :transports
+        t.string :relying_party_id
         t.string :aaguid
         t.boolean :backed_up
 
@@ -103,6 +113,25 @@ class ActionPack::Passkeys::PasskeyTest < ActiveSupport::TestCase
 
     assert_equal 5, @passkey.reload.sign_count
     assert @passkey.backed_up?
+  end
+
+  test "register persists relying_party_id" do
+    ActionPack::WebAuthn::Current.host = "example.com"
+    ActionPack::WebAuthn::Current.origin = "https://example.com"
+
+    challenge = ActionPack::Passkeys::Passkey.registration_options(holder: @user).challenge
+    client_data_json = { challenge: challenge, origin: "https://example.com", type: "webauthn.create" }.to_json
+
+    passkey = @user.passkeys.register(
+      {
+        client_data_json: client_data_json,
+        attestation_object: Base64.urlsafe_encode64(ATTESTATION_NONE_VERIFIED, padding: false),
+        transports: [ "internal" ]
+      },
+      id: SecureRandom.uuid
+    )
+
+    assert_equal "example.com", passkey.relying_party_id
   end
 
   test "to_public_key_credential" do

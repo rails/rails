@@ -9,6 +9,7 @@ class CreateActionPackPasskeysPasskeys < ActiveRecord::Migration[8.2]
       t.integer :sign_count, null: false, default: 0
       t.string :name
       t.text :transports
+      t.string :relying_party_id
       t.string :aaguid, limit: 36
       t.boolean :backed_up
 

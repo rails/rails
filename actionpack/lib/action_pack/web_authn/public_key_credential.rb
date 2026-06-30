@@ -51,6 +51,9 @@ module ActionPack
     # [+aaguid+]
     #   The authenticator attestation GUID (set during registration).
     #
+    # [+relying_party_id+]
+    #   The relying party ID the credential is scoped to. This is set during registration.
+    #
     # [+backed_up+]
     #   Whether the credential is backed up to cloud storage (synced passkey).
     #
@@ -64,7 +67,7 @@ module ActionPack
       autoload :Options
       autoload :RequestOptions
 
-      attr_reader :id, :public_key, :sign_count, :aaguid, :backed_up, :transports
+      attr_reader :id, :public_key, :sign_count, :aaguid, :relying_party_id, :backed_up, :transports
 
       class << self
         # Returns a RequestOptions object for the authentication ceremony.
@@ -103,6 +106,7 @@ module ActionPack
             public_key: response.attestation.public_key,
             sign_count: response.attestation.sign_count,
             aaguid: response.attestation.aaguid,
+            relying_party_id: response.relying_party.id,
             backed_up: response.attestation.backed_up?,
             transports: Array(params[:transports])
           )
@@ -120,12 +124,13 @@ module ActionPack
           end
       end
 
-      def initialize(id:, public_key:, sign_count:, aaguid: nil, backed_up: nil, transports: []) # :nodoc:
+      def initialize(id:, public_key:, sign_count:, aaguid: nil, relying_party_id: nil, backed_up: nil, transports: []) # :nodoc:
         @id = id
         @public_key = public_key
         @public_key = OpenSSL::PKey.read(public_key) unless public_key.is_a?(OpenSSL::PKey::PKey)
         @sign_count = sign_count
         @aaguid = aaguid
+        @relying_party_id = relying_party_id
         @backed_up = backed_up
         @transports = transports
       end
@@ -156,6 +161,7 @@ module ActionPack
           public_key: public_key.to_der,
           sign_count: sign_count,
           aaguid: aaguid,
+          relying_party_id: relying_party_id,
           backed_up: backed_up,
           transports: transports
         }
