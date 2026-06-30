@@ -28,9 +28,6 @@ module ActionDispatch
     include ActionDispatch::ContentSecurityPolicy::Request
     include Rack::Request::Env
 
-    autoload :Session, "action_dispatch/request/session"
-    autoload :Utils,   "action_dispatch/request/utils"
-
     LOCALHOST   = Regexp.union [/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
 
     ENV_METHODS = %w[ AUTH_TYPE GATEWAY_INTERFACE
@@ -388,17 +385,17 @@ module ActionDispatch
     end
 
     def session=(session) # :nodoc:
-      Session.set self, session
+      Http::Session.set self, session
     end
 
     def session_options=(options)
-      Session::Options.set self, options
+      Http::Session::Options.set self, options
     end
 
     # Override Rack's GET method to support indifferent access.
     def GET
       fetch_header("action_dispatch.request.query_parameters") do |k|
-        encoding_template = Request::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
+        encoding_template = Http::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
         rack_query_params = ActionDispatch::ParamBuilder.from_query_string(rack_request.query_string, encoding_template: encoding_template)
 
         set_header k, rack_query_params
@@ -411,7 +408,7 @@ module ActionDispatch
     # Override Rack's POST method to support indifferent access.
     def POST
       fetch_header("action_dispatch.request.request_parameters") do
-        encoding_template = Request::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
+        encoding_template = Http::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
 
         param_list = nil
         pr = parse_formatted_parameters(params_parsers) do
@@ -523,7 +520,7 @@ module ActionDispatch
       end
 
       def default_session
-        Session.disabled(self)
+        Http::Session.disabled(self)
       end
 
       def read_body_stream
