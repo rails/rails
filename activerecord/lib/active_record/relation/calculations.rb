@@ -301,7 +301,7 @@ module ActiveRecord
         end
       end
 
-      if loaded? && all_attributes?(column_names)
+      if loaded? && all_attributes?(column_names) && !distinct_value
         result = records.pluck(*column_names)
         if @async
           return Promise::Complete.new(result)
