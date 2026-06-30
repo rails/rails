@@ -1,3 +1,13 @@
+*   Mark a connection unverified when a non-`StandardError` interrupts a query.
+
+    A query interrupted by a non-`StandardError`, such as a fiber scheduler's
+    cancel or a `Timeout`, leaves the connection desynced. Active Record
+    previously returned it to the pool still marked verified, so the next
+    checkout reused it and failed on a dead socket. The connection is now
+    marked unverified, so it re-verifies and reconnects before its next use.
+
+    *Eliseu Daroit*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective
