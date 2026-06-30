@@ -1087,6 +1087,10 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
     assert_nil @view.render(partial: "test/cached_customer", collection: [], cached: true)
   end
 
+  test "collection caching with empty collection and a derived partial" do
+    assert_nil @view.render(partial: [], cached: true)
+  end
+
   test "collection caching with repeated collection" do
     sets = [
         [1, 2, 3, 4, 5],

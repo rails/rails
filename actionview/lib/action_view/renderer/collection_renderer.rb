@@ -134,7 +134,7 @@ module ActionView
         # Homogeneous
         render_collection_with_partial(collection, paths.first, context, block)
       else
-        if @options[:cached]
+        if @options[:cached] && paths.any?
           raise NotImplementedError, "render caching requires a template. Please specify a partial when rendering"
         end
 
