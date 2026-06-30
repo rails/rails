@@ -52,6 +52,15 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<h2> through <h6> tags are separated by two new lines" do
+    (2..6).each do |level|
+      assert_converted_to(
+        "Hello world!\n\nHow are you?",
+        "<h#{level}>Hello world!</h#{level}><div>How are you?</div>"
+      )
+    end
+  end
+
   test "<li> tags are separated by one new line" do
     assert_converted_to(
       "• one\n• two\n• three",
