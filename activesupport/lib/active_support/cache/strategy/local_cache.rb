@@ -109,14 +109,14 @@ module ActiveSupport
 
         def increment(name, amount = 1, **options) # :nodoc:
           return super unless local_cache
-          value = bypass_local_cache { super }
+          value = super
           write_cache_value(name, value, raw: true, **options)
           value
         end
 
         def decrement(name, amount = 1, **options) # :nodoc:
           return super unless local_cache
-          value = bypass_local_cache { super }
+          value = super
           write_cache_value(name, value, raw: true, **options)
           value
         end
@@ -231,10 +231,6 @@ module ActiveSupport
 
           def local_cache_key
             @local_cache_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, "_").to_sym
-          end
-
-          def bypass_local_cache(&block)
-            use_temporary_local_cache(nil, &block)
           end
 
           def use_temporary_local_cache(temporary_cache)

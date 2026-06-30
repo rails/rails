@@ -1066,28 +1066,37 @@ module ActiveSupport
         end
 
         def instrument(operation, key, options = nil, &block)
-          _instrument(operation, key: key, options: options, &block)
+          unless silence?
+            logger&.debug do
+              debug_key = ": #{key}" if key
+              debug_options = " (#{options.inspect})" unless options.blank?
+              "Cache #{operation}#{debug_key}#{debug_options}"
+            end
+          end
+
+          payload = {
+            store: self.class.name,
+            key: key
+          }
+          payload.merge!(options) if options.is_a?(Hash)
+          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) do
+            block&.call(payload)
+          end
         end
 
         def instrument_multi(operation, keys, options = nil, &block)
-          _instrument(operation, multi: true, key: keys, options: options, &block)
-        end
-
-        def _instrument(operation, multi: false, options: nil, **payload, &block)
-          if logger && logger.debug? && !silence?
-            debug_key =
-              if multi
-                ": #{payload[:key].size} key(s) specified"
-              elsif payload[:key]
-                ": #{payload[:key]}"
-              end
-
-            debug_options = " (#{options.inspect})" unless options.blank?
-
-            logger.debug "Cache #{operation}#{debug_key}#{debug_options}"
+          unless silence?
+            logger&.debug do
+              debug_key = ": #{keys.size} key(s) specified"
+              debug_options = " (#{options.inspect})" unless options.blank?
+              "Cache #{operation}#{debug_key}#{debug_options}"
+            end
           end
 
-          payload[:store] = self.class.name
+          payload = {
+            store: self.class.name,
+            key: keys
+          }
           payload.merge!(options) if options.is_a?(Hash)
           ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) do
             block&.call(payload)
