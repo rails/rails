@@ -806,6 +806,7 @@ module ActiveRecord
     # Same as #default_order but operates on relation in-place instead of copying.
     def default_order!(*args) # :nodoc:
       preprocess_order_args(args)
+      args.uniq!
       self.default_order_values = args
       self
     end
