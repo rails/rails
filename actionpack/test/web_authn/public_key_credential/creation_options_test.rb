@@ -105,31 +105,14 @@ class ActionPack::WebAuthn::PublicKeyCredential::CreationOptionsTest < ActiveSup
     ], options.as_json["excludeCredentials"]
   end
 
-  test "as_json includes attestation none by default" do
+  test "as_json renders attestation, defaulting to none" do
     assert_equal "none", @options.as_json["attestation"]
-  end
-
-  test "as_json includes attestation when not none" do
-    options = ActionPack::WebAuthn::PublicKeyCredential::CreationOptions.new(
-      id: "user-123",
-      name: "user@example.com",
-      display_name: "Test User",
-      attestation: :direct,
-      relying_party: @relying_party
-    )
-
-    assert_equal "direct", options.as_json["attestation"]
+    assert_equal "direct", build_options(attestation: :direct).as_json["attestation"]
   end
 
   test "raises with invalid attestation preference" do
     assert_raises(ActionPack::WebAuthn::InvalidOptionsError) do
-      ActionPack::WebAuthn::PublicKeyCredential::CreationOptions.new(
-        id: "user-123",
-        name: "user@example.com",
-        display_name: "Test User",
-        attestation: :invalid,
-        relying_party: @relying_party
-      )
+      build_options(attestation: :invalid)
     end
   end
 
@@ -147,14 +130,9 @@ class ActionPack::WebAuthn::PublicKeyCredential::CreationOptionsTest < ActiveSup
     ], options.as_json["excludeCredentials"]
   end
 
-  test "as_json omits authenticatorAttachment by default" do
+  test "as_json renders authenticatorAttachment when set" do
     assert_nil @options.as_json["authenticatorSelection"]["authenticatorAttachment"]
-  end
-
-  test "as_json includes authenticatorAttachment when set" do
-    options = build_options(authenticator_attachment: "platform")
-
-    assert_equal "platform", options.as_json["authenticatorSelection"]["authenticatorAttachment"]
+    assert_equal "platform", build_options(authenticator_attachment: "platform").as_json["authenticatorSelection"]["authenticatorAttachment"]
   end
 
   test "raises with invalid authenticatorAttachment" do
@@ -163,45 +141,28 @@ class ActionPack::WebAuthn::PublicKeyCredential::CreationOptionsTest < ActiveSup
     end
   end
 
-  test "as_json renders timeout in milliseconds" do
+  test "as_json renders timeout as integer milliseconds, omitting when nil" do
     assert_equal 600_000, @options.as_json["timeout"]
-  end
-
-  test "as_json renders a custom timeout in milliseconds" do
     assert_equal 120_000, build_options(timeout: 2.minutes).as_json["timeout"]
-  end
 
-  test "as_json renders a sub-second timeout as integer milliseconds" do
-    json = build_options(timeout: 0.5).as_json
+    timeout = build_options(timeout: 0.5).as_json["timeout"]
+    assert_equal 500, timeout
+    assert_kind_of Integer, timeout
 
-    assert_equal 500, json["timeout"]
-    assert_kind_of Integer, json["timeout"]
-  end
-
-  test "as_json omits timeout when nil" do
     assert_nil build_options(timeout: nil).as_json["timeout"]
   end
 
-  test "as_json omits extensions by default" do
+  test "as_json renders extensions when present" do
     assert_nil @options.as_json["extensions"]
+    assert_equal({ "credProps" => true }, build_options(extensions: { "credProps" => true }).as_json["extensions"])
   end
 
-  test "as_json includes extensions when present" do
-    json = build_options(extensions: { "credProps" => true }).as_json
+  test "as_json renders hints and attestationFormats when present" do
+    default_json = @options.as_json
+    assert_nil default_json["hints"]
+    assert_nil default_json["attestationFormats"]
 
-    assert_equal({ "credProps" => true }, json["extensions"])
-  end
-
-  test "as_json omits hints and attestationFormats by default" do
-    json = @options.as_json
-
-    assert_nil json["hints"]
-    assert_nil json["attestationFormats"]
-  end
-
-  test "as_json includes hints and attestationFormats when present" do
     json = build_options(hints: [ "security-key" ], attestation_formats: [ "packed" ]).as_json
-
     assert_equal [ "security-key" ], json["hints"]
     assert_equal [ "packed" ], json["attestationFormats"]
   end

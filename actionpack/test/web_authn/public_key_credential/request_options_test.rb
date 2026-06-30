@@ -87,55 +87,27 @@ class ActionPack::WebAuthn::PublicKeyCredential::RequestOptionsTest < ActiveSupp
     ], options.as_json["allowCredentials"]
   end
 
-  test "as_json renders timeout in milliseconds" do
+  test "as_json renders timeout as integer milliseconds, omitting when nil" do
     assert_equal 300_000, @options.as_json["timeout"]
+
+    custom = ActionPack::WebAuthn::PublicKeyCredential::RequestOptions.new(relying_party: @relying_party, timeout: 2.minutes)
+    assert_equal 120_000, custom.as_json["timeout"]
+
+    without = ActionPack::WebAuthn::PublicKeyCredential::RequestOptions.new(relying_party: @relying_party, timeout: nil)
+    assert_nil without.as_json["timeout"]
   end
 
-  test "as_json renders a custom timeout in milliseconds" do
-    options = ActionPack::WebAuthn::PublicKeyCredential::RequestOptions.new(
-      credentials: @credentials,
-      relying_party: @relying_party,
-      timeout: 2.minutes
-    )
-
-    assert_equal 120_000, options.as_json["timeout"]
-  end
-
-  test "as_json omits timeout when nil" do
-    options = ActionPack::WebAuthn::PublicKeyCredential::RequestOptions.new(
-      credentials: @credentials,
-      relying_party: @relying_party,
-      timeout: nil
-    )
-
-    assert_nil options.as_json["timeout"]
-  end
-
-  test "as_json omits extensions by default" do
+  test "as_json renders extensions when present" do
     assert_nil @options.as_json["extensions"]
-  end
 
-  test "as_json includes extensions when present" do
-    options = ActionPack::WebAuthn::PublicKeyCredential::RequestOptions.new(
-      credentials: @credentials,
-      relying_party: @relying_party,
-      extensions: { "appid" => "https://example.com" }
-    )
-
+    options = ActionPack::WebAuthn::PublicKeyCredential::RequestOptions.new(relying_party: @relying_party, extensions: { "appid" => "https://example.com" })
     assert_equal({ "appid" => "https://example.com" }, options.as_json["extensions"])
   end
 
-  test "as_json omits hints by default" do
+  test "as_json renders hints when present" do
     assert_nil @options.as_json["hints"]
-  end
 
-  test "as_json includes hints when present" do
-    options = ActionPack::WebAuthn::PublicKeyCredential::RequestOptions.new(
-      credentials: @credentials,
-      relying_party: @relying_party,
-      hints: [ "client-device" ]
-    )
-
+    options = ActionPack::WebAuthn::PublicKeyCredential::RequestOptions.new(relying_party: @relying_party, hints: [ "client-device" ])
     assert_equal [ "client-device" ], options.as_json["hints"]
   end
 end
