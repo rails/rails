@@ -3149,10 +3149,11 @@ Working with `Date`, `Time`, and `DateTime`
 ------------------------------------------
  
 Ruby provides three classes for representing dates and times: `Date`,
-`DateTime`, and `Time`. Active Support extends all three with a shared set of
-calculation methods. Some methods, such as `prev_day` and `beginning_of_week`,
-are defined once in a common module (`DateAndTime::Calculations`) and mixed into
-each class.
+`DateTime`, and `Time`. The `Date` class represents calendar days and has no time component. The `DateTime` class is a subclass of `Date` and adds hours/minutes/seconds to dates. The `Time` class is independent of `Date` and `DateTime` and handles timezones as well as daylight saving time.
+
+Active Support extends all three classes with a set of
+convenience methods. Many methods, such as `prev_day` and `beginning_of_week`,
+are defined once in a common module `DateAndTime::Calculations`.
  
 TIP: Most Rails developers face the question of which class to use when. The
 answer comes down to one practical distinction: `Time` understands time zones
@@ -3163,11 +3164,11 @@ and `Time.current` return). Treat `DateTime` as a legacy class kept around for
 compatibility. Use `Date` whenever you only care about a calendar day and have
 no need for a time component at all.
  
-This section covers the convience methods Active Support adds across all three
+This section covers the convenience methods Active Support adds across all three
 classes, and points out where the classes diverge and the choice of class
 matters.
 
-INFO: The calculation methods have edge cases in October 1582, since days 5..14
+NOTE: The calculation methods have edge cases in October 1582, since days 5..14
 do not exist due to [caldendar
 reform](https://en.wikipedia.org/wiki/Gregorian_calendar). The date classes
 behave correctly around this date, for example, `Date.new(1582, 10, 4).tomorrow`
@@ -3175,7 +3176,7 @@ returns "Fri, 15 Oct 1582" and so on.
  
 ### Creating Dates and Times
 
-Active Support adds `Date.current`, `Time.current`, and `DateTime.current` to create Date and Time objects, in addition to the built in Ruby constructors such as `Date.new`, `Time.new`, and `DateTime.new`. The advantage of the Active support method is that they are time zone aware. 
+Active Support adds `Date.current`, `Time.current`, and `DateTime.current` to create Date and Time objects, in addition to the built in Ruby constructors such as `Date.new`, `Time.new`, and `DateTime.new`. The advantage of the Active support methods is that they are time zone aware. 
 
 NOTE: Date and Time objects can also be created from Strings, see the [Date and Time Conversions For Strings](#date-and-time-conversions-for-strings).
 
@@ -3900,7 +3901,7 @@ Time.zone.at(1778337000)
 # => Tue, 05 May 2026 08:30:00 EDT -04:00
 ```
 
-NOTE: `ActiveSupport::TimeZone` and `ActiveSupport::TimeWithZone` represent different things. A `TimeZone` is the zone itself, a named configuration like "Eastern Time (US & Canada)," with no specific time attached. A `TimeWithZone` is an actual timestamp, that you get back from methods like `Time.zone.now` or `in_time_zone`. The `TimeWithZone` produces the timestamp and carries the zone with it.
+NOTE: `ActiveSupport::TimeZone` and `ActiveSupport::TimeWithZone` represent different things. A `TimeZone` is the zone itself, a named configuration like "Eastern Time (US & Canada)," with no specific time attached. A `TimeWithZone` is an actual timestamp, that you get back from methods like `Time.zone.now` or `in_time_zone`. The `TimeWithZone` represents a timestamp and carries the zone with it as well.
 
 #### `in_time_zone`
 
@@ -4005,7 +4006,7 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`, `active_support
 Extensions to `Date`
 --------------------
 
-INFO: The calculation methods have edge cases in October 1582, since days 5..14
+NOTE: The calculation methods have edge cases in October 1582, since days 5..14
 do not exist due to [caldendar
 reform](https://en.wikipedia.org/wiki/Gregorian_calendar). The date classes
 behave correctly around this date, for example, `Date.new(1582, 10, 4).tomorrow`
