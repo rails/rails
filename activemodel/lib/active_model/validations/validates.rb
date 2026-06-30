@@ -114,10 +114,11 @@ module ActiveModel
       #
       #   validates :password, presence: { if: :password_required?, message: 'is forgotten.' }, confirmation: true
       #
-      # When +:if+, +:unless+, or +:on+ appear at both the +validates+ level and
-      # inside a specific validator's options, they are combined rather than the
-      # inner option replacing the outer one. All +:if+ conditions must pass,
-      # any +:unless+ condition will skip validation, and +:on+ contexts are merged:
+      # When +:if+, +:unless+, +:on+, or +:except_on+ appear at both the +validates+
+      # level and inside a specific validator's options, they are combined rather than
+      # the inner option replacing the outer one. All +:if+ conditions must pass, any
+      # +:unless+ condition will skip validation, and +:on+ and +:except_on+ contexts
+      # are merged:
       #
       #   validates :password, presence: { if: :local_check? }, if: :global_check?
       #   # Equivalent to: validates_presence_of :password, if: [:global_check?, :local_check?]
@@ -181,7 +182,7 @@ module ActiveModel
 
       def _merge_validates_options(defaults, validator_options)
         defaults.merge(validator_options) do |key, default_val, validator_val|
-          if key == :if || key == :unless || key == :on
+          if key == :if || key == :unless || key == :on || key == :except_on
             Array(default_val) + Array(validator_val)
           else
             validator_val
