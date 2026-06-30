@@ -5,7 +5,26 @@ require "action_view/path_set"
 require "action_view/render_parser"
 
 module ActionView
-  class DependencyTracker # :nodoc:
+  # = Action View Dependency Tracker
+  #
+  # When the digestor builds a template's dependency tree (to compute the cache
+  # keys used by +cache+ blocks and +stale?+ checks), it asks the dependency
+  # tracker which other templates a given template renders.
+  #
+  # Dependencies are tracked per template handler, because every template
+  # language spells +render+ differently. Action View ships ERBTracker for ERB;
+  # handlers for other template languages register their own with
+  # ::register_tracker, typically from an +ActiveSupport.on_load(:action_view)+
+  # block so it runs once Action View is available:
+  #
+  #   ActiveSupport.on_load(:action_view) do
+  #     ActionView::Template.register_template_handler :mtl, MyTemplateLanguage::Handler
+  #     ActionView::DependencyTracker.register_tracker :mtl, MyTemplateLanguage::DependencyTracker
+  #   end
+  #
+  # Languages whose +render+ calls look like Ruby's can register ERBTracker
+  # instead of writing their own tracker.
+  class DependencyTracker
     extend ActiveSupport::Autoload
 
     autoload :ERBTracker
@@ -14,13 +33,20 @@ module ActionView
 
     @trackers = Concurrent::Map.new
 
-    def self.find_dependencies(name, template, view_paths = nil)
+    def self.find_dependencies(name, template, view_paths = nil) # :nodoc:
       tracker = @trackers[template.handler]
       return [] unless tracker
 
       tracker.call(name, template, view_paths)
     end
 
+    # Registers the +tracker+ used to find the dependencies of templates
+    # rendered by the handler registered for +extension+.
+    #
+    # +tracker+ is any object that responds to
+    # +call(name, template, view_paths)+ and returns the array of template
+    # names +template+ depends on. An object responding only to
+    # +call(name, template)+ is also accepted for backwards compatibility.
     def self.register_tracker(extension, tracker)
       handler = Template.handler_for_extension(extension)
       if tracker.respond_to?(:supports_view_paths?)
@@ -32,7 +58,7 @@ module ActionView
       end
     end
 
-    def self.remove_tracker(handler)
+    def self.remove_tracker(handler) # :nodoc:
       @trackers.delete(handler)
     end
 
