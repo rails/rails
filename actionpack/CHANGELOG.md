@@ -1,3 +1,10 @@
+*   Set the browser binary when preloading the Selenium driver for system tests.
+
+    Selenium 4.45 stopped setting it as a side effect of getting the driver path,
+    causing tests to fail with "cannot find Chrome binary".
+
+    *Titus Fortner*
+
 *   Fix `Session::CacheStore` to not generate a new session after dropping the current one.
 
     *Kenta Ishizaki*
