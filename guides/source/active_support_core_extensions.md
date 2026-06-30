@@ -70,7 +70,7 @@ How to Load Core Extensions
 
 ### Within a Rails Application
 
-Active Support core extensions are loaded by default in any Rails application. They are immediately available across your models, controllers, helpers, and elsewhere in your app. No additional configuration is required.
+Active Support core extensions are loaded by default in any Rails application. They are immediately available across your models, controllers, helpers, and elsewhere in your applications. No additional configuration is required.
 
 ```ruby
 "hello world".titleize # => "Hello World"
@@ -131,9 +131,9 @@ Extensions to All Objects
 ### `blank?`
 
 The [`blank?`][Object#blank?] method returns `true` if the value is `nil`,
-`false`, or empty. It enhances Ruby's built-in `empty` method and works for
-`nil` by returning `true` (while calling `.empty?` on `nil` would raise a
-`NoMethodError`).
+`false`, or empty. It enhances Ruby's built-in `empty` method and works across
+types. For example, it works for `nil` by returning `true` (while calling
+`.empty?` on `nil` would raise a `NoMethodError`).
 
 Specifically, the following values are considered to be blank in a Rails
 application:
@@ -142,6 +142,19 @@ application:
 * strings composed only of whitespace,
 * empty arrays and hashes, and
 * any other object that responds `true` to the `empty?` method.
+
+Active Support's `blank?` unifies all of these cases into a single predicate that works across types, so the same check applies whether you're looking at a string, an array, a hash, or nil:
+
+```ruby
+nil.blank?              # => true
+false.blank?            # => true
+"".blank?                # => true
+"   ".blank?             # => true
+[].blank?                # => true
+{}.blank?                # => true
+[1, 2].blank?            # => false
+"hello".blank?           # => false
+```
 
 Here is an example of the `blank?` method being used within Rails source code
 for checking whether a token is blank:
@@ -160,23 +173,24 @@ NOTE: `blank?` uses a Unicode-aware definition of whitespace when checking strin
 
 WARNING: Numbers such as `0` or `0.0` are **not** considered blank.
 
+```ruby
+0.blank?    # => false
+0.0.blank?  # => false
+```
+
 NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
 [Object#blank?]: https://api.rubyonrails.org/classes/Object.html#method-i-blank-3F
 
 ### `present?`
 
-The method [`present?`][Object#present?] is the inverse of `blank?` and its return value is equivalent to `!blank?`. Here's an example of `present?` from Rails source code:
+The method [`present?`][Object#present?] is the inverse of `blank?` and its return value is equivalent to `!blank?`:
 
 ```ruby
-# From [`flash.rb`](https://github.com/rails/rails/blob/83423052fc899315fad91c20b5197a186fc8f0fd/actionpack/lib/action_dispatch/middleware/flash.rb#L74)
-def commit_flash
-  # ...
-  if flash_hash && (flash_hash.present? || session.key?("flash"))
-    session["flash"] = flash_hash.to_session_value
-    self.flash = flash_hash.dup
-  end
-end
+[1, 2].present?  # => true
+"hello".present? # => true
+nil.present?     # => false
+"   ".present?    # => false
 ```
 
 NOTE: Defined in `active_support/core_ext/object/blank.rb`.
@@ -188,6 +202,10 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 The [`presence`][Object#presence] method returns its receiver (the object it was called on) if `present?` returns `true`, and returns `nil` otherwise. It is useful for idioms like this:
 
 ```ruby
+config[:host] = ""            # Assuming config[:host] is blank
+config[:host].present?        # => false
+config[:host].presence        # => nil
+
 host = config[:host].presence || "localhost"
 ```
 
@@ -284,7 +302,7 @@ NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
 ### `try` and `try!`
 
-When you want to call a method on an object and if the object could be `nil`, typically you would need to add a conditional check for `nil` first to avoid errors. The [`try`][Object#try] method provides a way to do this without an explicit `nil` check. It returns `nil` if sent to `nil`. For example:
+When you call a method on an object and if the object could be `nil`, typically you would need to add a conditional check for `nil` first to avoid errors. The [`try`][Object#try] method provides a way to do this without an explicit `nil` check. It returns `nil` if sent to `nil`. For example:
 
 ```ruby
 # without try
@@ -307,6 +325,20 @@ Note that `try` will hide no-method errors, returning `nil` instead. You can use
 ```ruby
 @number.try(:nexte)  # => nil
 @number.try!(:nexte) # NoMethodError: undefined method `nexte' for 1:Integer
+```
+
+NOTE: Ruby has a safe navigation operator `&.` that solves the same nil checking problem. Like `try` and `try!`, `&.` returns `nil` without calling the method if the receiver is `nil`. But if the receiver is not `nil` and the method actually doesn't exist, `&.` raises `NoMethodError` just like a normal method call, it behaves like `try!` in that case. The other difference is that `try`/`try!` also accept a block and method name can be passed as a symbol. 
+
+```ruby
+@number = nil
+@number&.next     # => nil
+@number.try(:next)  # => nil
+@number.try!(:next) # => nil
+
+@number = 1
+@number&.nexte     # => NoMethodError (method doesn't exist)
+@number.try(:nexte)  # => nil
+@number.try!(:nexte) # => NoMethodError (try! surfaces the error)
 ```
 
 NOTE: Defined in `active_support/core_ext/object/try.rb`.
