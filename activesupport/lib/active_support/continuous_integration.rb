@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "optparse"
+
 module ActiveSupport
   # Provides a DSL for declaring a continuous integration workflow that can be run either locally or in the cloud.
   # Each step is timed, reports success/error, and is aggregated into a collective report that reports total runtime,
@@ -39,7 +41,10 @@ module ActiveSupport
     #
     # Sets the CI environment variable to "true" to allow for conditional behavior in the app, like enabling eager loading and disabling logging.
     #
-    # A 'fail fast' option can be passed as a CLI argument (-f or --fail-fast). This exits with a non-zero status directly after a step fails.
+    # Options can be passed as CLI arguments:
+    #   -f, --fail-fast   Exit with a non-zero status directly after a step fails.
+    #   -g, --group NAME  Only run the specified group(s). Can be passed multiple times.
+    #                     Supports slash-separated paths for nested groups (e.g. -g backend/unit).
     #
     # Example:
     #
@@ -69,6 +74,7 @@ module ActiveSupport
 
     def initialize
       @results = []
+      @group_path = []
     end
 
     # Declare a step with a title and a command. The command can either be given as a single string or as multiple
@@ -79,6 +85,8 @@ module ActiveSupport
     #   step "Setup", "bin/setup"
     #   step "Single test", "bin/rails", "test", "--name", "test_that_is_one"
     def step(title, *command)
+      return if options[:groups].any? && @group_path.empty?
+
       previous_trap = Signal.trap("INT") { abort colorize("\n❌ #{title} interrupted", :error) }
       report_step(title, command) do
         started = Time.now.to_f
@@ -110,12 +118,20 @@ module ActiveSupport
     #     step "System tests", "bin/rails test:system"
     #   end
     def group(name, parallel: 1, &block)
+      @group_path.push(name)
+
+      if group_filtered?
+        return
+      end
+
       if parallel <= 1
         instance_eval(&block)
       else
         Group.new(self, name, parallel: parallel, &block).run
       end
       abort if failing_fast?
+    ensure
+      @group_path.pop
     end
 
     # Returns true if all steps were successful.
@@ -169,7 +185,7 @@ module ActiveSupport
 
     # :nodoc:
     def fail_fast?
-      ARGV.include?("-f") || ARGV.include?("--fail-fast")
+      options[:fail_fast]
     end
 
     # :nodoc:
@@ -178,6 +194,26 @@ module ActiveSupport
     end
 
     private
+      def options
+        @options ||= begin
+          opts = { fail_fast: false, groups: [] }
+
+          OptionParser.new do |parser|
+            parser.on("-f", "--fail-fast") { opts[:fail_fast] = true }
+            parser.on("-g", "--group GROUP", Array) { |groups| opts[:groups].concat(groups) }
+          end.parse!(ARGV.dup)
+
+          opts
+        end
+      end
+
+      def group_filtered?
+        return false if options[:groups].empty?
+
+        current_path = @group_path.join("/")
+        !options[:groups].any? { |filter| current_path.start_with?(filter) || filter.start_with?(current_path) }
+      end
+
       def failures
         results.reject(&:first)
       end
