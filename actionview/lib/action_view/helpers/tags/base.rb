@@ -88,7 +88,8 @@ module ActionView
               add_default_name_and_field(options, field)
 
               if specified_field.blank? && options[field].present?
-                options[field] += "_#{sanitized_value(tag_value)}"
+                sanitized = sanitized_value(tag_value)
+                options[field] += "_#{sanitized}" unless sanitized.empty?
               end
             end
           end
