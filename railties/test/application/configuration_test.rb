@@ -2528,6 +2528,26 @@ module ApplicationTests
       assert_equal "db/two", ar_config["development"]["two"]["migrations_path"]
     end
 
+    test "loads 3-tier database.yml when a connection is absent from the shared subsections" do
+      app_file "config/database.yml", <<-YAML
+        shared:
+          one:
+            migrations_path: "db/one"
+
+        development:
+          one:
+            adapter: sqlite3
+          two:
+            adapter: sqlite3
+      YAML
+
+      app "development"
+
+      ar_config = Rails.configuration.database_configuration
+      assert_equal "db/one",  ar_config["development"]["one"]["migrations_path"]
+      assert_equal "sqlite3", ar_config["development"]["two"]["adapter"]
+    end
+
     test "config.action_mailer.show_previews defaults to true in development" do
       app "development"
 
