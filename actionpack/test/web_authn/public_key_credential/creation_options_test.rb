@@ -192,6 +192,20 @@ class ActionPack::WebAuthn::PublicKeyCredential::CreationOptionsTest < ActiveSup
     assert_equal({ "credProps" => true }, json["extensions"])
   end
 
+  test "as_json omits hints and attestationFormats by default" do
+    json = @options.as_json
+
+    assert_nil json["hints"]
+    assert_nil json["attestationFormats"]
+  end
+
+  test "as_json includes hints and attestationFormats when present" do
+    json = build_options(hints: [ "security-key" ], attestation_formats: [ "packed" ]).as_json
+
+    assert_equal [ "security-key" ], json["hints"]
+    assert_equal [ "packed" ], json["attestationFormats"]
+  end
+
   private
     def build_options(**overrides)
       ActionPack::WebAuthn::PublicKeyCredential::CreationOptions.new(

@@ -124,4 +124,18 @@ class ActionPack::WebAuthn::PublicKeyCredential::RequestOptionsTest < ActiveSupp
 
     assert_equal({ "appid" => "https://example.com" }, options.as_json["extensions"])
   end
+
+  test "as_json omits hints by default" do
+    assert_nil @options.as_json["hints"]
+  end
+
+  test "as_json includes hints when present" do
+    options = ActionPack::WebAuthn::PublicKeyCredential::RequestOptions.new(
+      credentials: @credentials,
+      relying_party: @relying_party,
+      hints: [ "client-device" ]
+    )
+
+    assert_equal [ "client-device" ], options.as_json["hints"]
+  end
 end

@@ -36,6 +36,10 @@ module ActionPack
     #   A Hash of WebAuthn client extension inputs passed through to the
     #   authenticator. Omitted when blank.
     #
+    # [+hints+]
+    #   An ordered list of hints guiding the browser's authenticator UI, e.g.
+    #   "security-key", "client-device", or "hybrid". Omitted when empty.
+    #
     class PublicKeyCredential::Options
       include ActiveModel::API
       include ActiveModel::Attributes
@@ -47,6 +51,7 @@ module ActionPack
       attribute :relying_party, default: -> { ActionPack::WebAuthn.relying_party }
       attribute :timeout
       attribute :extensions
+      attribute :hints, default: -> { [] }
       attribute :challenge_purpose
 
       validates :user_verification, inclusion: { in: USER_VERIFICATION_OPTIONS }
@@ -95,6 +100,7 @@ module ActionPack
         json = {}
         json[:timeout] = timeout.in_milliseconds.to_i if timeout
         json[:extensions] = extensions if extensions.present?
+        json[:hints] = hints if hints.any?
         json
       end
     end

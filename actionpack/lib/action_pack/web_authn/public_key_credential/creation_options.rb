@@ -43,6 +43,10 @@ module ActionPack
     #   +"platform"+ (built-in, e.g. Touch ID) or +"cross-platform"+ (roaming,
     #   e.g. a security key). Omitted by default, which allows both.
     #
+    # [+attestation_formats+]
+    #   An ordered list of preferred attestation statement formats. Omitted when
+    #   empty.
+    #
     # == Supported Algorithms
     #
     # By default, supports ES256 (ECDSA with P-256 and SHA-256), EdDSA
@@ -63,6 +67,7 @@ module ActionPack
       attribute :authenticator_attachment
       attribute :exclude_credentials, default: -> { [] }
       attribute :attestation, default: :none
+      attribute :attestation_formats, default: -> { [] }
       attribute :timeout, default: 10.minutes
       attribute :challenge_purpose, default: "registration"
 
@@ -102,6 +107,8 @@ module ActionPack
         if exclude_credentials.any?
           json[:excludeCredentials] = exclude_credentials.map { |credential| exclude_credential_json(credential) }
         end
+
+        json[:attestationFormats] = attestation_formats if attestation_formats.any?
 
         super.merge(json).as_json(options)
       end
