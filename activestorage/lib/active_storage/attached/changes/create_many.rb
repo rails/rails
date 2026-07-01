@@ -6,7 +6,7 @@ module ActiveStorage
     attr_accessor :record
 
     def initialize(name, record, attachables, pending_uploads: [])
-      @name, @record, @attachables = name, record, Array(attachables)
+      @name, @record, @attachables = name, record, Array.wrap(attachables)
       blobs.each(&:identify_without_saving)
       @pending_uploads = Array(pending_uploads) + subchanges_without_blobs
       attachments

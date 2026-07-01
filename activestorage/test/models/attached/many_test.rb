@@ -244,6 +244,12 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
   end
 
+  test "updating an existing record to attach a single blob from a Hash" do
+    @user.highlights = { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg" }
+    assert_equal 1, @user.highlights.size
+    assert_equal "town.jpg", @user.highlights.first.filename.to_s
+  end
+
   test "unsuccessfully updating an existing record to attach new blobs from uploaded files" do
     assert_not @user.update(name: "", highlights: [ fixture_file_upload("racecar.jpg"), fixture_file_upload("video.mp4") ])
     assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
