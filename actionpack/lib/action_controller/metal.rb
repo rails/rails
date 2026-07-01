@@ -2,6 +2,7 @@
 
 # :markup: markdown
 
+require "active_support/ractors"
 require "active_support/core_ext/array/extract_options"
 require "action_dispatch/middleware/stack"
 
@@ -213,6 +214,12 @@ module ActionController
       @_response_body = nil
       @_routes = nil
       @_params = nil
+      super
+    end
+
+    def self.eager_load! # :nodoc:
+      ActiveSupport::Ractors.make_shareable(middleware)
+
       super
     end
 
