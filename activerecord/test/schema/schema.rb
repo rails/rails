@@ -376,6 +376,15 @@ ActiveRecord::Schema.define do
     t.integer :tag_id
   end
 
+  create_table :shipments, force: true do |t|
+    t.integer :region_id
+  end
+
+  create_table :adjustments, force: true do |t|
+    t.integer :region_id
+    t.references :adjustable, polymorphic: true
+  end
+
   create_table :clubs, force: true do |t|
     t.string :name
     t.integer :category_id

@@ -936,17 +936,23 @@ module ActiveRecord
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
         if options[:primary_key]
-          @association_primary_key ||= ActiveRecord::Key.for(options[:primary_key]).name
-        elsif polymorphic? && options[:inverse_of] && klass
-          inverse = klass.reflect_on_association(options[:inverse_of])
-          if inverse && inverse.options[:primary_key]
-            ActiveRecord::Key.for(inverse.options[:primary_key]).name
-          else
-            derive_primary_key(klass) { |model| model.composite_query_constraints_list }
-          end
-        else
-          derive_primary_key(klass || self.klass) { |model| model.composite_query_constraints_list }
+          return @association_primary_key ||= ActiveRecord::Key.for(options[:primary_key]).name
         end
+
+        if polymorphic? && options[:inverse_of] && klass
+          inverse = klass.reflect_on_association(options[:inverse_of])
+          if inverse && inverse.options[:primary_key] && !inverse.options[:query_constraints]
+            return ActiveRecord::Key.for(inverse.options[:primary_key]).name
+          end
+        end
+
+        klass ||= self.klass
+
+        if klass.has_query_constraints? && options[:foreign_key] && !options[:query_constraints]
+          return klass.primary_key_definition.inferred_id || primary_key(klass).freeze
+        end
+
+        derive_primary_key(klass) { |model| model.composite_query_constraints_list }
       end
 
       def join_primary_key(klass = nil)

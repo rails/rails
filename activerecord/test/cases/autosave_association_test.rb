@@ -44,6 +44,11 @@ require "models/drink_designer"
 require "models/cpk"
 require "models/human"
 require "models/face"
+require "models/image"
+require "models/sharded/blog"
+require "models/sharded/blog_post"
+require "models/shipment"
+require "models/adjustment"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_works_even_when_other_callbacks_update_the_parent_model
@@ -2522,5 +2527,33 @@ class AutosavePolymorphicInversePrimaryKeyTest < ActiveRecord::TestCase
 
     assert_equal author, author_comment.reload.person
     assert_equal person, person_comment.reload.person
+  end
+end
+
+class AutosavePolymorphicShardedPrimaryKeyTest < ActiveRecord::TestCase
+  def test_autosave_polymorphic_belongs_to_with_explicit_foreign_key_to_sharded_target
+    blog = Sharded::Blog.create!
+    post = Sharded::BlogPost.new(title: "Post", blog: blog)
+    image = Image.new(imageable: post)
+
+    image.save!
+
+    assert_predicate post, :persisted?
+    assert_equal post.id, image.imageable_identifier
+    assert_equal "Sharded::BlogPost", image.imageable_class
+    assert_equal post, image.reload.imageable
+  end
+
+  def test_autosave_polymorphic_belongs_to_with_composite_query_constraints_inverse
+    shipment = Shipment.new(region_id: 7)
+    adjustment = Adjustment.new(region_id: 7)
+    adjustment.adjustable = shipment
+
+    adjustment.save!
+
+    assert_predicate shipment, :persisted?
+    assert_equal shipment.id, adjustment.adjustable_id
+    assert_equal "Shipment", adjustment.adjustable_type
+    assert_equal shipment, adjustment.reload.adjustable
   end
 end
