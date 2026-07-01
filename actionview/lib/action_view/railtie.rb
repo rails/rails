@@ -82,7 +82,6 @@ module ActionView
     config.after_initialize do |app|
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k, v|
-          next if k == :render_tracker
           send "#{k}=", v
         end
       end
@@ -102,10 +101,6 @@ module ActionView
           ActionView::Resolver.caching = !app.config.reloading_enabled?
         end
       end
-    end
-
-    initializer "action_view.set_render_tracker" do |app|
-      ActionView.render_tracker = app.config.action_view.render_tracker
     end
 
     initializer "action_view.setup_action_pack" do |app|

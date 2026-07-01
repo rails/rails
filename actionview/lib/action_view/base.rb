@@ -186,6 +186,21 @@ module ActionView # :nodoc:
     # Configured via `config.action_view.remove_hidden_field_autocomplete`
     cattr_accessor :remove_hidden_field_autocomplete, default: false
 
+    singleton_class.attr_reader :render_tracker # :nodoc:
+
+    def self.render_tracker=(value) # :nodoc:
+      @render_tracker = value
+      case value
+      when :ruby
+        DependencyTracker.register_tracker :erb, DependencyTracker::RubyTracker
+      else
+        DependencyTracker.register_tracker :erb, DependencyTracker::ERBTracker
+      end
+      value
+    end
+
+    self.render_tracker = :regex
+
     class << self
       delegate :erb_trim_mode=, to: "ActionView::Template::Handlers::ERB"
 
