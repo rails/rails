@@ -1744,6 +1744,100 @@ system testing tests your application as if a real user were using it. With
 system tests, you can test anything that a user would do in your application
 such as commenting, deleting articles, publishing draft articles, etc.
 
+### System Tests with a Capybara-independent Server
+
+System tests are driven by Capybara by default.
+[`ActionDispatch::ServerSystemTestCase`](https://api.rubyonrails.org/classes/ActionDispatch/ServerSystemTestCase.html)
+boots your Rails application as a real server for system testing without
+depending on Capybara. It takes care of only the part that belongs to Rails:
+booting your application as a real server, waiting until it is actually serving
+requests, exposing the URL it is reachable on, and shutting it down at the end
+of the run. Everything above that -- driving a browser, filling in forms, making
+assertions -- is left to a tool of your choice.
+
+This is useful when you drive the browser with a tool that does not go through
+Capybara, such as [Ferrum](https://github.com/rubycdp/ferrum) or
+[Playwright](https://github.com/YusukeIwaki/playwright-ruby-client).
+
+To use it, inherit from `ActionDispatch::ServerSystemTestCase` in your
+`application_system_test_case.rb` and wire up your browser automation tool there,
+so that individual tests stay focused on the interaction being tested. The server
+binds to an available port on `0.0.0.0` by default, so you usually don't need to
+configure it. For example, with [Ferrum](https://github.com/rubycdp/ferrum),
+which speaks the Chrome DevTools Protocol directly:
+
+```ruby
+require "test_helper"
+require "ferrum"
+
+class ApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
+  setup    { @browser = Ferrum::Browser.new }
+  teardown { @browser&.quit }
+end
+```
+
+Individual tests then only drive the page. URL helpers (`articles_url`,
+`new_article_url`, ...) are generated against the running server, so the host
+they produce points at the live application:
+
+```ruby
+require "application_system_test_case"
+
+class ArticlesTest < ApplicationSystemTestCase
+  test "creating an article" do
+    @browser.goto new_article_url # => http://127.0.0.1:<port>/articles/new
+
+    @browser.at_css("input[name='article[title]']").focus.type("Hello Rails")
+    @browser.at_css("textarea[name='article[body]']").focus.type("Body")
+    @browser.at_css("input[type=submit]").click
+
+    assert_includes @browser.body, "Hello Rails"
+  end
+end
+```
+
+Any tool works the same way; only the `ApplicationSystemTestCase` wiring changes.
+With [Playwright](https://github.com/YusukeIwaki/playwright-ruby-client), for
+example, launch the browser once for the whole run and create a fresh context
+per test:
+
+```ruby
+require "test_helper"
+require "playwright"
+
+class ApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
+  # Launch Playwright and the browser once for the whole run; a fresh browser
+  # context per test is enough to isolate one test from the next, and is far
+  # cheaper than relaunching the browser each time.
+  def self.browser
+    @browser ||= begin
+      execution = Playwright.create(playwright_cli_executable_path: "npx playwright")
+      at_exit { execution.stop }
+      execution.playwright.chromium.launch
+    end
+  end
+
+  setup do
+    @context = ApplicationSystemTestCase.browser.new_context
+    @page = @context.new_page
+  end
+
+  teardown { @context&.close }
+end
+```
+
+with tests driving `@page` (`@page.goto new_article_url`, ...).
+
+When the browser needs to reach the application at a different URL than the bind
+address (for example when the test runs in a separate Docker container), set
+`app_host` with `served_by`:
+
+```ruby
+class ApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
+  served_by app_host: "http://rails-app:4000", port: 4000
+end
+```
+
 Test Helpers
 ------------
 
