@@ -2094,7 +2094,7 @@ We'll need to add the inventory count to the product form in
 
   <div>
     <%= form.label :inventory_count, style: "display: block" %>
-    <%= form.number_field :inventory_count %>
+    <%= form.number_field :inventory_count, min: 0 %>
   </div>
 
   <div>
