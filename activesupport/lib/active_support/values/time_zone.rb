@@ -476,7 +476,7 @@ module ActiveSupport
     def rfc3339(str)
       parts = Date._rfc3339(str)
 
-      raise ArgumentError, "invalid date" if parts.empty?
+      raise ArgumentError, "invalid date" if parts.empty? || parts[:offset].nil?
 
       time = Time.new(
         parts.fetch(:year),
