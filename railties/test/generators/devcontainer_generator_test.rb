@@ -157,7 +157,7 @@ module Rails
         assert_no_file "config/database.yml"
         assert_compose_file do |compose|
           expected_mysql_config = {
-            "image" => "mysql/mysql-server:8.0",
+            "image" => "mysql:9.7",
             "restart" => "unless-stopped",
             "environment" => {
               "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
@@ -219,7 +219,7 @@ module Rails
         assert_no_file "config/database.yml"
         assert_compose_file do |compose|
           expected_mysql_config = {
-            "image" => "mysql/mysql-server:8.0",
+            "image" => "mysql:9.7",
             "restart" => "unless-stopped",
             "environment" => {
               "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
