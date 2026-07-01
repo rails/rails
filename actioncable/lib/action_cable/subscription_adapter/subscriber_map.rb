@@ -59,21 +59,21 @@ module ActionCable
       end
 
       class Async < self
-        def initialize(executor)
-          @executor = executor
+        def initialize(server)
+          @server = server
           super()
         end
 
         def add_subscriber(*)
-          @executor.post { super }
+          @server.post { super }
         end
 
         def remove_subscriber(*)
-          @executor.post { super }
+          @server.post { super }
         end
 
         def invoke_callback(*)
-          @executor.post { super }
+          @server.post { super }
         end
       end
     end

@@ -130,7 +130,7 @@ module ActionCable
       end
     end
 
-    # TestServer provides test pub/sub and executor implementations
+    # TestServer provides test pub/sub and scheduling implementations
     class TestServer
       attr_reader :streams, :config, :timers
 
@@ -141,9 +141,8 @@ module ActionCable
       end
 
       alias_method :pubsub, :itself
-      alias_method :executor, :itself
 
-      #== Executor interface ==
+      #== Server scheduling interface ==
 
       # Inline async calls
       def post(&work) = work.call
@@ -151,6 +150,8 @@ module ActionCable
       def timer(every, &block)
         TestTimer.new(every, &block).tap { |t| @timers << t }
       end
+
+      def schedule(&block) = block.call
 
       def advance_time(seconds)
         @timers.each { |timer| timer.advance(seconds) }

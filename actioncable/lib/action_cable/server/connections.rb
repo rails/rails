@@ -36,8 +36,8 @@ module ActionCable
       # second heartbeat runs on all connections. If the beat fails, we automatically
       # disconnect.
       def setup_heartbeat_timer
-        @heartbeat_timer ||= executor.timer(BEAT_INTERVAL) do
-          executor.post { each_connection(&:beat) }
+        @heartbeat_timer ||= timer(BEAT_INTERVAL) do
+          post { each_connection(&:beat) }
         end
       end
 
