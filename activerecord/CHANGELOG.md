@@ -1,3 +1,14 @@
+*   Preserve the owner's query-constraint columns when clearing a composite `belongs_to`.
+
+    Setting a composite `belongs_to` to `nil` nulled every foreign-key column, including any
+    column shared with the owner's own query constraints (e.g. a tenant/shard key that also
+    backs other associations and the record's own identity). Such columns are now left untouched
+    when clearing the association; only the columns that uniquely identify the target are nulled.
+
+    Fixes #49671.
+
+    *Oliver Morgan*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective
