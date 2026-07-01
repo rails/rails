@@ -1646,13 +1646,6 @@ $ bin/kamal deploy
 Your e-commerce store now has Wishlists and an improved admin area with
 filtering of Wishlists and Subscribers.
 
-Here are a few ideas to build on to this:
-
-- Add product reviews
-- Write more tests
-- Finish translating the app into another language
-- Add a carousel for product images
-- Improve the design with CSS
-- Add payments to buy products
+Next, follow the [Product Reviews tutorial](product_reviews.html) to continue learning.
 
 [Return to all tutorials](https://rubyonrails.org/docs/tutorials)
