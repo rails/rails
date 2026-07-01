@@ -3414,27 +3414,31 @@ Working with `Date`, `Time`, and `DateTime`
 ------------------------------------------
 
 Ruby provides three classes for representing dates and times: `Date`,
-`DateTime`, and `Time`. The `Date` class represents calendar days and has no time component. The `DateTime` class is a subclass of `Date` and adds hours/minutes/seconds to dates. The `Time` class is independent of `Date` and `DateTime` and handles timezones as well as daylight saving time.
+`DateTime`, and `Time`. The `Date` class represents calendar days and has no
+time component. The `DateTime` class is a subclass of `Date` and adds
+hours/minutes/seconds to dates. The `Time` class is independent of `Date` and
+`DateTime` (extends `Object`) and handles timezones as well as daylight saving
+time.
 
-Active Support extends all three classes with a set of
-convenience methods. Many methods, such as `prev_day` and `beginning_of_week`,
-are defined once in a common module `DateAndTime::Calculations`.
+Active Support extends all three classes with a set of convenience methods. Many
+methods, such as `prev_day` and `beginning_of_week`, are defined once in a
+common module
+[`DateAndTime::Calculations`](https://api.rubyonrails.org/classes/DateAndTime/Calculations.html).
 
 TIP: Most Rails developers face the question of which class to use when. The
 answer comes down to one practical distinction: `Time` understands time zones
 and daylight saving time, while `DateTime` does not. In most modern
 applications, you are better off using `Time` (or more specifically
-`ActiveSupport::TimeWithZone`, the time-zone-aware wrapper that `Time.zone.now`
-and `Time.current` return). Treat `DateTime` as a legacy class kept around for
-compatibility. Use `Date` whenever you only care about a calendar day and have
-no need for a time component at all.
+`ActiveSupport::TimeWithZone`, which is what `Time.current` returns). Treat
+`DateTime` as a legacy class kept around for compatibility. Use `Date` whenever
+you only care about a calendar day and have no need for a time component at all.
 
 This section covers the convenience methods Active Support adds across all three
 classes, and points out where the classes diverge and the choice of class
 matters.
 
 NOTE: The calculation methods have edge cases in October 1582, since days 5..14
-do not exist due to [caldendar
+do not exist due to the [caldendar
 reform](https://en.wikipedia.org/wiki/Gregorian_calendar). The date classes
 behave correctly around this date, for example, `Date.new(1582, 10, 4).tomorrow`
 returns "Fri, 15 Oct 1582" and so on.
@@ -4265,137 +4269,6 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`, `active_support
 
 [ActiveSupport::Duration]: https://api.rubyonrails.org/classes/ActiveSupport/Duration.html
 
-Extensions to `Date`
---------------------
-
-NOTE: The calculation methods have edge cases in October 1582, since days 5..14
-do not exist due to [caldendar
-reform](https://en.wikipedia.org/wiki/Gregorian_calendar). The date classes
-behave correctly around this date, for example, `Date.new(1582, 10, 4).tomorrow`
-returns "Fri, 15 Oct 1582" and so on.
-
-### `Date.current`
-
-### `beginning_of_week`, `end_of_week`
-
-### `monday`, `sunday`
-
-### `prev_week`, `next_week`
-
-### `beginning_of_month`, `end_of_month`
-
-### `quarter`, `beginning_of_quarter`, `end_of_quarter`
-
-### `beginning_of_year`, `end_of_year`
-
-// #### Other Date Computations
-
-### `years_ago`, `years_since`
-
-### `months_ago`, `months_since`
-
-### `weeks_ago`, `weeks_since`
-
-### `advance`
-
-### `change`
-
-### Durations
-
-### Methods that Return Time or DateTime
-
-
-Extensions to `DateTime`
-------------------------
-
-The class `DateTime` is a subclass of `Date`, so it inherits all the date calculation methods from Active Support. These methods behave identically but always return `DateTime` instances rather than `Date` instances.
-
-Moreover, the following methods are reimplemented directly in `DateTime` and do not require loading the `Date` extensions:
-
-- [`beginning_of_day`][DateTime#beginning_of_day] / [`midnight`][DateTime#midnight] / [`at_midnight`][DateTime#at_midnight] / [`at_beginning_of_day`][DateTime#at_beginning_of_day]
-- [`end_of_day`][DateTime#end_of_day]
-- [`ago`][DateTime#ago]
-- [`since`][DateTime#since] / [`in`][DateTime#in]
-[`advance`][DateTime#advance] and [`change`][DateTime#change] are also available with additional options covered below.
-
-The following methods are only in `DateTime` as they are not meaningful at a date level:
-
-- [`beginning_of_hour`][DateTime#beginning_of_hour] / [`at_beginning_of_hour`][DateTime#at_beginning_of_hour]
-- [`end_of_hour`][DateTime#end_of_hour]
-
-WARNING: `DateTime` is not aware of [Daylight Saving Time (DST)](https://en.wikipedia.org/wiki/Daylight_saving_time) rules and so some of these methods have edge cases when a DST change is going on. For example [`seconds_since_midnight`][DateTime#seconds_since_midnight] might not return the real amount in such a day.
-
-[DateTime#ago]: https://api.rubyonrails.org/classes/DateTime.html#method-i-ago
-[DateTime#at_beginning_of_day]: https://api.rubyonrails.org/classes/DateTime.html#method-i-at_beginning_of_day
-[DateTime#at_beginning_of_hour]: https://api.rubyonrails.org/classes/DateTime.html#method-i-at_beginning_of_hour
-[DateTime#at_midnight]: https://api.rubyonrails.org/classes/DateTime.html#method-i-at_midnight
-[DateTime#beginning_of_day]: https://api.rubyonrails.org/classes/DateTime.html#method-i-beginning_of_day
-[DateTime#beginning_of_hour]: https://api.rubyonrails.org/classes/DateTime.html#method-i-beginning_of_hour
-[DateTime#end_of_day]: https://api.rubyonrails.org/classes/DateTime.html#method-i-end_of_day
-[DateTime#end_of_hour]: https://api.rubyonrails.org/classes/DateTime.html#method-i-end_of_hour
-[DateTime#in]: https://api.rubyonrails.org/classes/DateTime.html#method-i-in
-[DateTime#midnight]: https://api.rubyonrails.org/classes/DateTime.html#method-i-midnight
-
-### `DateTime.current`
-
-### `seconds_since_midnight`
-
-### `utc` and `utc?`
-
-### `advance`
-
-### `change`
-
-### Durations
-
-Extensions to `Time`
---------------------
-
-The `Time` class supports all the same calculation methods as `DateTime` — `change`, `advance`, `since`, `ago`, and the duration arithmetic. The key difference is that unlike `DateTime`, `Time` is aware of Daylight Saving Time, making it the better choice for application code that deals with local times.
-
-Because `Time` understands DST, advancing across a daylight saving boundary produces the correct result automatically:
-
-```ruby
-Time.zone_default
-# => #<ActiveSupport::TimeZone:0x... @name="Madrid", ...>
-
-# In Madrid, clocks spring forward at 2am on March 29, 2026
-t = Time.local(2026, 3, 29, 1, 59, 59)
-# => Sun Mar 29 01:59:59 +0100 2026
-t.advance(seconds: 1)
-# => Sun Mar 29 03:00:00 +0200 2026
-```
-
-This is where `Time` has a clear advantage over `DateTime` — the same operation on a `DateTime` object would produce `02:00:00` without any awareness that the clock skipped that hour entirely.
-
-The `change` method accepts an additional `:usec` option for microsecond precision:
-
-```ruby
-now = Time.current  # => Tue, 05 May 2026 12:00:00 UTC +00:00
-now.change(usec: 500)
-# => Tue, 05 May 2026 12:00:00.000500 UTC +00:00
-```
-
-WARNING: If `since` or `ago` produces a time outside the range that `Time` can represent, a `DateTime` object is returned instead. This is unlikely to affect most applications running on 64-bit systems, but if your code depends on the returned object being a `Time` (for example by calling Time-specific methods), you may see unexpected behavior when working with dates far in the past or future.
-
-[Time#ago]: https://api.rubyonrails.org/classes/Time.html#method-i-ago
-[Time#change]: https://api.rubyonrails.org/classes/Time.html#method-i-change
-[Time#since]: https://api.rubyonrails.org/classes/Time.html#method-i-since
-
-### `Time.current`
-
-### `all_day`, `all_week`, `all_month`, `all_quarter`, and `all_year`
-
-### `prev_day`, `next_day`
-
-### `prev_month`, `next_month`
-
-### `prev_year`, `next_year`
-
-### `prev_quarter`, `next_quarter`
-
-### Durations
-
 Exception Class Extensions
 --------------------------
 
@@ -4543,6 +4416,38 @@ NOTE: Defined in `active_support/core_ext/digest/uuid.rb`.
 [Digest::UUID.uuid_v5]: https://api.rubyonrails.org/classes/Digest/UUID.html#method-c-uuid_v5
 [Digest::UUID.uuid_from_hash]: https://api.rubyonrails.org/classes/Digest/UUID.html#method-c-uuid_from_hash
 [Digest::UUID.nil_uuid]: https://api.rubyonrails.org/classes/Digest/UUID.html#method-c-nil_uuid
+
+### ERB::Util (`html_escape`)
+ 
+The method [`html_escape`][ERB::Util#html_escape] escapes HTML tag characters, such as `<`, `>`, `&`, and `"`, in a string. Active Support's version behaves the same as Ruby's but returns an HTML-safe string, so Rails' template engine knows not to escape it again when rendering:
+
+```ruby
+ERB::Util.html_escape("is a > 0 & a < 10?")
+# => "is a &gt; 0 &amp; a &lt; 10?"
+
+ERB::Util.html_escape("<script>alert('xss')</script>")
+# => "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;"
+```
+
+`html_escape` is aliased as `h`, which is the form most commonly seen in ERB templates:
+
+```erb
+<%= h @user.name %>
+```
+
+There is also [`html_escape_once`][ERB::Util#html_escape_once], it escapes HTML entities without double-escaping content that is already escaped:
+
+```ruby
+ERB::Util.html_escape_once("1 < 2 &amp; 3")
+# => "1 &lt; 2 &amp; 3"  — the existing &amp; is preserved, not double-escaped
+```
+
+This is useful when content may have already been partially escaped and you want to ensure it is safe without corrupting it.
+
+NOTE: Defined in `active_support/core_ext/erb/util.rb`.
+
+[ERB::Util#html_escape]: https://api.rubyonrails.org/classes/ERB/Util.html#method-i-html_escape
+[ERB::Util#html_escape_once]: https://api.rubyonrails.org/classes/ERB/Util.html#method-i-html_escape_once
 
 ### File (``atomic_write`)
 
