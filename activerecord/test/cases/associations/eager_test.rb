@@ -1218,6 +1218,18 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal 2, post_with_readers.lazy_readers_skimmers_or_not.to_a.size
   end
 
+  def test_preload_multiple_scoped_has_many_through_associations_on_same_join_table
+    author = Author.create!(name: "Preload Test")
+    Categorization.create!(author: author, post: posts(:thinking), category: categories(:general))
+    Categorization.create!(author: author, post: posts(:welcome), category: categories(:technology))
+    Categorization.create!(author: author, post: posts(:welcome), category: categories(:cooking))
+
+    author_with_preloads = Author.preload(:categories, :categories_like_general).find(author.id)
+
+    assert_equal 3, author_with_preloads.categories.size
+    assert_equal [categories(:general)], author_with_preloads.categories_like_general
+  end
+
   def test_eager_loading_with_conditions_on_string_joined_table_preloads
     posts = assert_queries_count(2) do
       Post.all.merge!(select: "distinct posts.*", includes: :author, joins: "INNER JOIN comments on comments.post_id = posts.id", where: "comments.body like 'Thank you%'", order: "posts.id").to_a
