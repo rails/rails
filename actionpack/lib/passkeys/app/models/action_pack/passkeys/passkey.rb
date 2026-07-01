@@ -57,13 +57,20 @@ module ActionPack
         # +clientDataJSON+ response and verified server-side. Any additional +attributes+ (e.g. +holder+)
         # are passed through to +create!+.
         #
-        # Returns the persisted Passkey record, or +nil+ if the attestation is invalid.
+        # Returns the persisted Passkey record, or +nil+ if the attestation is invalid. Use #register!
+        # to raise ActionPack::WebAuthn::InvalidResponseError instead.
         def register(passkey, **attributes)
+          register!(passkey, **attributes)
+        rescue ActionPack::WebAuthn::InvalidResponseError
+          nil
+        end
+
+        # Same as #register, but raises ActionPack::WebAuthn::InvalidResponseError instead of
+        # returning +nil+ if the attestation is invalid.
+        def register!(passkey, **attributes)
           credential = ActionPack::WebAuthn::PublicKeyCredential.register(passkey)
 
           create!(**credential.to_h, **attributes)
-        rescue ActionPack::WebAuthn::InvalidResponseError
-          nil
         end
 
         # Returns a RequestOptions object suitable for passing to the browser's
@@ -81,22 +88,35 @@ module ActionPack
 
         # Looks up a passkey by credential ID and verifies the assertion response from the browser.
         # Returns the authenticated Passkey record, or +nil+ if the credential is not found or
-        # verification fails.
+        # verification fails. Use #authenticate! to raise instead.
         def authenticate(passkey)
           find_by(credential_id: passkey[:id])&.authenticate(passkey)
+        end
+
+        # Same as #authenticate, but raises ActiveRecord::RecordNotFound if the credential is not
+        # found, or ActionPack::WebAuthn::InvalidResponseError if verification fails.
+        def authenticate!(passkey)
+          find_by!(credential_id: passkey[:id]).authenticate!(passkey)
         end
       end
 
       # Verifies the assertion response against this passkey's stored credential and updates the
       # +sign_count+ and +backed_up+ attributes. Returns +self+ on success, or +nil+ if the
-      # response is invalid.
+      # response is invalid. Use #authenticate! to raise ActionPack::WebAuthn::InvalidResponseError
+      # instead.
       def authenticate(passkey)
+        authenticate!(passkey)
+      rescue ActionPack::WebAuthn::InvalidResponseError
+        nil
+      end
+
+      # Same as #authenticate, but raises ActionPack::WebAuthn::InvalidResponseError instead of
+      # returning +nil+ if the response is invalid.
+      def authenticate!(passkey)
         credential = to_public_key_credential
         credential.authenticate(passkey)
         update!(sign_count: credential.sign_count, backed_up: credential.backed_up)
         self
-      rescue ActionPack::WebAuthn::InvalidResponseError
-        nil
       end
 
       # Returns an ActionPack::WebAuthn::PublicKeyCredential initialized from this record's stored

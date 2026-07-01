@@ -106,6 +106,26 @@ class ActionPack::Passkeys::PasskeyTest < ActiveSupport::TestCase
     assert_nil @passkey.authenticate(assertion)
   end
 
+  test "authenticate! raises with invalid signature" do
+    challenge = ActionPack::Passkeys::Passkey.authentication_options(credentials: [ @passkey ]).challenge
+    assertion = build_assertion(challenge: challenge, authenticator_data: AUTHENTICATOR_DATA)
+    assertion[:signature] = Base64.urlsafe_encode64("invalid", padding: false)
+
+    assert_raises(ActionPack::WebAuthn::InvalidResponseError) do
+      @passkey.authenticate!(assertion)
+    end
+  end
+
+  test "class authenticate! raises RecordNotFound for an unknown credential" do
+    challenge = ActionPack::Passkeys::Passkey.authentication_options(credentials: [ @passkey ]).challenge
+    assertion = build_assertion(challenge: challenge, authenticator_data: AUTHENTICATOR_DATA)
+    assertion[:id] = Base64.urlsafe_encode64("\x02" * 32, padding: false)
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      ActionPack::Passkeys::Passkey.authenticate!(assertion)
+    end
+  end
+
   test "authenticate updates sign count and backed_up" do
     challenge = ActionPack::Passkeys::Passkey.authentication_options(credentials: [ @passkey ]).challenge
     assertion = build_assertion(challenge: challenge, authenticator_data: BACKED_UP_AUTHENTICATOR_DATA)
@@ -148,6 +168,23 @@ class ActionPack::Passkeys::PasskeyTest < ActiveSupport::TestCase
 
     assert_no_difference -> { ActionPack::Passkeys::Passkey.count } do
       assert_nil @user.passkeys.register(invalid, id: SecureRandom.uuid)
+    end
+  end
+
+  test "register! raises with invalid attestation" do
+    ActionPack::WebAuthn::Current.host = "example.com"
+    ActionPack::WebAuthn::Current.origin = "https://example.com"
+
+    invalid = {
+      client_data_json: { challenge: "invalid", origin: "https://example.com", type: "webauthn.create" }.to_json,
+      attestation_object: Base64.urlsafe_encode64(ATTESTATION_NONE_VERIFIED, padding: false),
+      transports: [ "internal" ]
+    }
+
+    assert_no_difference -> { ActionPack::Passkeys::Passkey.count } do
+      assert_raises(ActionPack::WebAuthn::InvalidResponseError) do
+        @user.passkeys.register!(invalid, id: SecureRandom.uuid)
+      end
     end
   end
 
