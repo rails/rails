@@ -21,6 +21,11 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
         end
       end
     RUBY
+    FileUtils.mkdir_p("#{destination_root}/config/environments")
+    File.write("#{destination_root}/config/environments/development.rb", <<~RUBY)
+      Rails.application.configure do
+      end
+    RUBY
 
     copy_gemfile
 
@@ -90,9 +95,14 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       assert_match(/resource :session/, content)
       assert_match(/resource :magic_link/, content)
       assert_match(/resource :passkey/, content)
+      assert_match(%r{mount Mailbin::Engine => :mailbin if Rails\.env\.development\?}, content)
     end
 
-    assert_includes @bundle_commands, ["add letter_opener --group development", {}, { quiet: true }]
+    assert_file "config/environments/development.rb" do |content|
+      assert_match(/config\.action_mailer\.delivery_method = :mailbin/, content)
+    end
+
+    assert_includes @bundle_commands, ["add mailbin --group development", {}, { quiet: true }]
 
     assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq --force"
     assert_includes @rails_commands, "generate migration CreateSessions user:references ip_address:string user_agent:string --force"

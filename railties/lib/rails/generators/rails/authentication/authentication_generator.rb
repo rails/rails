@@ -110,8 +110,19 @@ module Rails
           else
             bundle_command("add bcrypt", {}, quiet: true)
           end
-        else
-          bundle_command("add letter_opener --group development", {}, quiet: true) if defined?(ActionMailer::Railtie)
+        end
+      end
+
+      def preview_emails_in_development
+        if !options.password_based? && defined?(ActionMailer::Railtie)
+          bundle_command("add mailbin --group development", {}, quiet: true)
+
+          environment <<~RUBY, env: "development"
+            config.action_mailer.delivery_method = :mailbin
+            config.action_mailer.perform_deliveries = true
+          RUBY
+
+          route "mount Mailbin::Engine => :mailbin if Rails.env.development?"
         end
       end
 

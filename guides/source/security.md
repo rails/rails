@@ -79,7 +79,7 @@ $ bin/rails generate authentication
               end
       append  app/javascript/application.js
       append  config/importmap.rb
-         run  bundle add letter_opener --group development
+         run  bundle add mailbin --group development
     generate  migration
        rails  generate migration CreateUsers email_address:string!:uniq --force
       invoke  active_record
