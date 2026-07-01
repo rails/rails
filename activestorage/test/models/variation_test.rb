@@ -61,14 +61,28 @@ class ActiveStorage::VariationTest < ActiveSupport::TestCase
     variation = ActiveStorage::Variation.new(resize_to_limit: [100, 100])
       .default_to(format: :png)
 
-    assert_equal({ resize_to_limit: [100, 100], format: :png }, variation.transformations)
+    assert_equal({ resize_to_limit: [100, 100], format: "png" }, variation.transformations)
   end
 
   test "default_to does not override existing transformations" do
     variation = ActiveStorage::Variation.new(format: :jpg, resize_to_limit: [100, 100])
       .default_to(format: :png)
 
-    assert_equal({ format: :jpg, resize_to_limit: [100, 100] }, variation.transformations)
+    assert_equal({ format: "jpg", resize_to_limit: [100, 100] }, variation.transformations)
+  end
+
+  test "format is normalized to a UTF-8 string" do
+    variation = ActiveStorage::Variation.new(format: :webp, resize_to_limit: [100, 100])
+
+    assert_equal "webp", variation.transformations[:format]
+    assert_equal Encoding::UTF_8, variation.transformations[:format].encoding
+  end
+
+  test "variations have the same digest whether the format is a Symbol or a String" do
+    symbol_variation = ActiveStorage::Variation.new(format: :webp, resize_to_limit: [100, 100])
+    string_variation = ActiveStorage::Variation.new(format: "webp", resize_to_limit: [100, 100])
+
+    assert_equal symbol_variation.digest, string_variation.digest
   end
 
   test "format defaults to png" do
@@ -80,7 +94,7 @@ class ActiveStorage::VariationTest < ActiveSupport::TestCase
   test "format accepts valid extensions" do
     variation = ActiveStorage::Variation.new(resize_to_limit: [100, 100], format: :jpg)
 
-    assert_equal :jpg, variation.format
+    assert_equal "jpg", variation.format
   end
 
   test "format accepts uppercase string extensions" do
