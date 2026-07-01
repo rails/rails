@@ -104,6 +104,14 @@ class ActiveSupport::TestCase
       ActiveStorage.track_variants = variant_tracking_was
     end
 
+    def with_variant_tracking(&block)
+      variant_tracking_was = ActiveStorage.track_variants
+      ActiveStorage.track_variants = true
+      yield
+    ensure
+      ActiveStorage.track_variants = variant_tracking_was
+    end
+
     def with_raise_on_open_redirects(service)
       old_raise_on_open_redirects = ActionController::Base.raise_on_open_redirects
       old_service = ActiveStorage::Blob.service
