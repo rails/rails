@@ -76,10 +76,10 @@ We used `decimal` as the type for `rating` with a couple options to control
 how the numbers are stored.
 
 - `precision` is the total number of digits
-- `scale` is the number of digitals after the decimal
+- `scale` is the number of digits after the decimal
 
-This means we can store up to `9.9`. Two digits total with one after the decimal
-place.
+This means we can store up to `9.9`. Two digits in total, with one digit after the
+decimal sign.
 
 In the terminal, run the migrations to update the database.
 
@@ -95,7 +95,7 @@ $ bin/rails db:migrate
 == 20260421200530 CreateReviews: migrated (0.0045s) ===========================
 ```
 
-Next, let's validate that every review has a body and rating in `app/models/review.rb`:
+Next, let's update the model and validate that every review has a body and rating in `app/models/review.rb`:
 
 ```ruby#2,6-7
 class Review < ApplicationRecord
@@ -252,9 +252,9 @@ following:
 - `accept: "image/*"` is a browser hint that filters the file selector to only
 images
 - `capture: "environment"` is used by mobile browsers to enable the camera using
-the rear camera
+the outward-facing camera
 
-### Styling the star rating input
+### Styling the Star Rating Input
 
 The stars should be gray by default and turn gold when you select a rating. We
 can use a few CSS tricks to make this work like you'd expect.
@@ -291,12 +291,12 @@ legend {
   display: flex;
 }
 
-/* Lighten all stars by default */
+/* Mute all stars by default */
 .rating label {
   color: lightgray;
 }
 
-/* Gold: the selected/focused/hovered star and all previous ones */
+/* Highlight the selected/focused/hovered star and all previous ones */
 .rating input:is(:checked, :focus) + label,
 .rating label:has(~ input:is(:checked, :focus)),
 .rating label:hover,
@@ -304,7 +304,7 @@ legend {
   color: gold;
 }
 
-/* Visible focus indicator */
+/* Outline visible focused inputs */
 .rating input:focus-visible + label {
   outline: .2em solid;
   outline-offset: 2px;
@@ -691,7 +691,7 @@ way to clear it.
 ```
 
 Test out filtering by clicking on a rating on the left to filter reviews. Use
-the "Clear filter" link to go back.
+the "Clear filter" link to show all reviews.
 
 ## Managing reviews
 
@@ -972,7 +972,7 @@ the correct name to add the `images` param as an array. We also disable the `id`
 generated for this fields since it would generate duplicates and we don't need
 them.
 
-With that added, store admins can now view, edit and delete reviews as needed.
+With that added, store admins can now view, edit, and delete reviews as needed.
 
 ## Testing reviews
 
