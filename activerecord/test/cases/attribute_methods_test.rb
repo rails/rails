@@ -1414,6 +1414,42 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal("hey", obj.subject)
   end
 
+  test "#alias_attribute override methods defined in included modules" do
+    subject_override = Module.new do
+      def subject
+        "Abstract Subject"
+      end
+    end
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      include subject_override
+      alias_attribute :subject, :title
+    end
+
+    obj = klass.new
+    obj.title = "hey"
+    assert_equal("hey", obj.subject)
+  end
+
+  test "#alias_attribute override methods from modules included after the alias declaration" do
+    subject_override = Module.new do
+      def subject
+        "Abstract Subject"
+      end
+    end
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      alias_attribute :subject, :title
+      include subject_override
+    end
+
+    obj = klass.new
+    obj.title = "hey"
+    assert_equal("hey", obj.subject)
+  end
+
   test "aliases to the same attribute name do not conflict with each other" do
     first_model_object = ToBeLoadedFirst.new(author_name: "author 1")
     assert_equal("author 1", first_model_object.subject)
