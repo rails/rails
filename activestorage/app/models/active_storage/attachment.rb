@@ -90,7 +90,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   def purge
     transaction do
       delete
-      record.touch if record&.persisted?
+      touch_record
     end
     blob&.purge
   end
@@ -99,7 +99,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   def purge_later
     transaction do
       delete
-      record.touch if record&.persisted?
+      touch_record
     end
     blob&.purge_later
   end
@@ -182,7 +182,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     end
 
     def analyze_option
-      record.attachment_reflections[name]&.options&.fetch(:analyze, nil)
+      reflection&.options&.fetch(:analyze, nil)
     end
 
     def mirror_blob_later
@@ -231,11 +231,11 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     end
 
     def dependent
-      record.attachment_reflections[name]&.options&.fetch(:dependent, nil)
+      reflection&.options&.fetch(:dependent, nil)
     end
 
     def named_variants
-      record.attachment_reflections[name]&.named_variants || {}
+      reflection&.named_variants || {}
     end
 
     def transformations_by_name(transformations)
@@ -243,12 +243,24 @@ class ActiveStorage::Attachment < ActiveStorage::Record
       when Symbol
         variant_name = transformations
         named_variants.fetch(variant_name) do
-          record_model_name = record.to_model.model_name.name
+          record_model_name = record.respond_to?(:to_model) ? record.to_model.model_name.name : record_type
           raise ArgumentError, "Cannot find variant :#{variant_name} for #{record_model_name}##{name}"
         end.transformations
       else
         transformations
       end
+    end
+
+    def reflection
+      if record.respond_to?(:attachment_reflections) && (reflection = record.attachment_reflections[name])
+        reflection
+      else
+        record_type.constantize.attachment_reflections[name]
+      end
+    end
+
+    def touch_record
+      record&.tap { |record| record.touch if record.respond_to?(:touch) && record.persisted? }
     end
 end
 
