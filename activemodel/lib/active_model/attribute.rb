@@ -248,7 +248,7 @@ module ActiveModel
       end
 
       class Uninitialized < Attribute # :nodoc:
-        UNINITIALIZED_ORIGINAL_VALUE = Object.new
+        UNINITIALIZED_ORIGINAL_VALUE = Object.new.freeze
 
         def initialize(name, type)
           super(name, nil, type)

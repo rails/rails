@@ -6,8 +6,8 @@ require "active_support/core_ext/string/starts_ends_with"
 module Rails
   module Generators
     class GeneratedAttribute # :nodoc:
-      INDEX_OPTIONS = %w(index uniq)
-      UNIQ_INDEX_OPTIONS = %w(uniq)
+      INDEX_OPTIONS = %w(index uniq).freeze
+      UNIQ_INDEX_OPTIONS = %w(uniq).freeze
       DEFAULT_TYPES = %w(
         attachment
         attachments
@@ -26,7 +26,7 @@ module Rails
         time
         timestamp
         token
-      )
+      ).freeze
 
       attr_accessor :name, :type
       attr_reader   :attr_options

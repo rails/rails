@@ -15,6 +15,8 @@ module Rails
       end
 
       def create_authentication_files
+        @user_model_exists = File.exist?(File.expand_path("app/models/user.rb", destination_root))
+
         template "app/models/session.rb"
         template "app/models/user.rb"
         template "app/models/current.rb"
@@ -52,7 +54,9 @@ module Rails
       end
 
       def add_migrations
-        generate "migration", "CreateUsers", "email_address:string!:uniq password_digest:string!", "--force"
+        unless @user_model_exists
+          generate "migration", "CreateUsers", "email_address:string!:uniq password_digest:string!", "--force"
+        end
         generate "migration", "CreateSessions", "user:references ip_address:string user_agent:string", "--force"
       end
 

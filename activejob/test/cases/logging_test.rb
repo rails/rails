@@ -8,6 +8,7 @@ require "jobs/hello_job"
 require "jobs/logging_job"
 require "jobs/overridden_logging_job"
 require "jobs/nested_job"
+require "jobs/configuration_job"
 require "jobs/rescue_job"
 require "jobs/retry_job"
 require "jobs/disable_log_job"
@@ -84,6 +85,13 @@ class LoggingTest < ActiveSupport::TestCase
     end
 
     assert_match(/Enqueued HelloJob \(Job ID: .*?\) to .*?:.*Cristian/, @logger.messages)
+  end
+
+  def test_enqueue_job_with_no_arguments_omits_the_arguments_suffix
+    ConfigurationJob.perform_later
+
+    assert_match(/Enqueued ConfigurationJob/, @logger.messages)
+    assert_no_match(/with arguments:/, @logger.messages)
   end
 
   def test_enqueue_job_log_error_when_callback_chain_is_halted

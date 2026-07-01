@@ -18,6 +18,12 @@ module ActiveRecord
         assert_equal [[1]], result.rows
       end
 
+      def test_database_version_with_null_pool
+        assert_nothing_raised do
+          @connection.database_version
+        end
+      end
+
       def test_async_fallback
         result = @connection.select_all("SELECT 1", async: true)
         assert_instance_of FutureResult::Complete, result

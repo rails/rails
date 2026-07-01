@@ -699,6 +699,15 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_strptime_with_timestamp_seconds_and_fractional_seconds
+    with_env_tz "US/Eastern" do
+      zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+      time = zone.strptime("1470272280.123456789", "%s.%N")
+      assert_equal 123456789, time.nsec
+      assert_equal Time.strptime("1470272280.123456789", "%s.%N"), time
+    end
+  end
+
   def test_strptime_with_ambiguous_time
     zone = ActiveSupport::TimeZone["Moscow"]
     assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.strptime("2014-10-26 01:00:00", "%Y-%m-%d %H:%M:%S")

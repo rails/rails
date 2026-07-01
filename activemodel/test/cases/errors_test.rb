@@ -817,6 +817,16 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal :blank, imported.type
   end
 
+  test "import does not mutate the override options passed in" do
+    person = Person.new
+    original_error = ActiveModel::Error.new(Person.new, :name, :invalid)
+
+    options = { attribute: "age", type: "blank" }
+    person.errors.import(original_error, options)
+
+    assert_equal({ attribute: "age", type: "blank" }, options)
+  end
+
   test "merge errors" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name, :invalid)

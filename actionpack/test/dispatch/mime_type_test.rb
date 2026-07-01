@@ -192,6 +192,13 @@ class MimeTypeTest < ActiveSupport::TestCase
     end
   end
 
+  test "html? is true for the html symbol and for any type whose string contains \"html\"" do
+    assert_predicate Mime[:html], :html?
+    assert_predicate Mime::Type.new("application/xhtml+xml"), :html?
+    assert_not_predicate Mime[:json], :html?
+    assert_not_predicate Mime[:xml], :html?
+  end
+
   test "references gives preference to symbols before strings" do
     assert_equal :html, Mime[:html].ref
     another = Mime::Type.lookup("foo/bar")
@@ -212,6 +219,16 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert Mime[:js].match?("text/javascript")
     assert Mime[:js].match?("application/javascript")
     assert_not Mime[:js].match?("text/html")
+  end
+
+  test "=~ and match? return false for nil" do
+    assert_not (Mime[:js] =~ nil)
+    assert_not Mime[:js].match?(nil)
+  end
+
+  test "=== matches when the type is included in an array" do
+    assert Mime[:html] === [Mime[:html], Mime[:xml]]
+    assert_not Mime[:html] === [Mime[:xml], Mime[:json]]
   end
 
   test "can be initialized with wildcards" do

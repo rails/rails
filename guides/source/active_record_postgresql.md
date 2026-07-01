@@ -18,7 +18,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-In order to use the PostgreSQL adapter you need to have at least version 9.5
+In order to use the PostgreSQL adapter you need to have at least version 10.0
 installed. Older versions are not supported.
 
 To get started with PostgreSQL have a look at the
@@ -362,9 +362,8 @@ SELECT n.nspname AS enum_schema,
 
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-uuid.html)
 * [pgcrypto generator function](https://www.postgresql.org/docs/current/static/pgcrypto.html)
-* [uuid-ossp generator functions](https://www.postgresql.org/docs/current/static/uuid-ossp.html)
 
-NOTE: If you're using PostgreSQL earlier than version 13.0 you may need to enable special extensions to use UUIDs. Enable the `pgcrypto` extension (PostgreSQL >= 9.4) or `uuid-ossp` extension (for even earlier releases).
+NOTE: If you're using PostgreSQL earlier than version 13.0 you may need to enable the `pgcrypto` extension to use UUIDs.
 
 ```ruby
 # db/migrate/20131220144913_create_revisions.rb
@@ -547,8 +546,7 @@ With that configuration in place, generate and apply new migrations, then verify
 UUID Primary Keys
 -----------------
 
-NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
-extension to generate random UUIDs.
+NOTE: You need to enable the `pgcrypto` extension to generate random UUIDs.
 
 ```ruby
 # db/migrate/20131220144913_create_devices.rb

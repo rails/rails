@@ -2,7 +2,7 @@
 
 module ActiveRecord
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
-    IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
+    IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"].freeze
 
     self.namespace = "active_record"
 

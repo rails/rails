@@ -60,7 +60,7 @@ module ActiveRecord
       attr_writer :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
       attr_accessor :database_configuration
 
-      LOCAL_HOSTS = ["127.0.0.1", "localhost"]
+      LOCAL_HOSTS = ["127.0.0.1", "localhost"].freeze
 
       def check_protected_environments!(environment = env)
         return if ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]

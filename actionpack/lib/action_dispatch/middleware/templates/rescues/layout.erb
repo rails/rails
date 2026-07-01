@@ -332,7 +332,7 @@
       return toggle('env_dump');
     }
     var copyAsText = function() {
-      const text = document.getElementById("exception-message-for-copy").textContent;
+      const text = document.getElementById("exception-message-for-copy").value;
 
       navigator.clipboard.writeText(text).then(() => {
         const beforeText = this.innerText;
@@ -345,7 +345,7 @@
 <body>
 
   <%= yield %>
-  <script type="text/plain" id="exception-message-for-copy"><%= @exception_message_for_copy %></script>
+  <textarea hidden id="exception-message-for-copy"><%= @exception_message_for_copy %></textarea>
 
 </body>
 </html>

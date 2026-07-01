@@ -12,7 +12,7 @@ module ActiveRecord
       #   # => "name='foo''bar' and group_id=4"
       #
       #   sanitize_sql_for_conditions(["name=:name and group_id=:group_id", name: "foo'bar", group_id: 4])
-      #   # => "name='foo''bar' and group_id='4'"
+      #   # => "name='foo''bar' and group_id=4"
       #
       #   sanitize_sql_for_conditions(["name='%s' and group_id='%s'", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id='4'"

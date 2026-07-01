@@ -174,6 +174,32 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     assert_equal({ one: "first value", two: "second value", three: "third value" }, object.to_h)
   end
 
+  def test_nested_inheritable_options_to_h
+    options = ActiveSupport::InheritableOptions.new(one: "first value")
+    options[:two] = "second value"
+
+    nested = options.inheritable_copy
+
+    assert_equal({ one: "first value", two: "second value" }, nested.to_h)
+  end
+
+  def test_inheritable_options_equality
+    object = ActiveSupport::InheritableOptions.new(one: "first value")
+
+    assert object == ActiveSupport::InheritableOptions.new(one: "first value")
+    assert object == { one: "first value" }
+    assert_not object == { one: "other value" }
+  end
+
+  def test_inheritable_options_equality_with_non_hash_returns_false
+    object = ActiveSupport::InheritableOptions.new(one: "first value")
+    empty  = ActiveSupport::InheritableOptions.new
+
+    assert_not object == "first value"
+    assert_not object == nil
+    assert_not empty == nil
+  end
+
   def test_ordered_options_dup
     object = ActiveSupport::OrderedOptions.new
     object.one = "first value"

@@ -113,7 +113,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_arguments_roundtrip([a: 1, "b" => 2])
   end
 
-  test "serialize a ActionController::Parameters" do
+  test "serialize an ActionController::Parameters" do
     ActiveJob::Serializers.add_serializers ActiveJob::Serializers::ActionControllerParametersSerializer
 
     parameters = Parameters.new(a: 1)

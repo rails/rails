@@ -17,7 +17,7 @@ module ActionDispatch
     end
 
     cattr_accessor :default
-    self.default = make_default(100)
+    self.default = make_default(100).freeze
 
     class << self
       delegate :from_query_string, :from_pairs, :from_hash, to: :default
@@ -61,14 +61,14 @@ module ActionDispatch
 
     def from_hash(hash, encoding_template: nil)
       # Force encodings from encoding template
-      hash = Request::Utils::CustomParamEncoder.encode_for_template(hash, encoding_template)
+      hash = Http::Utils::CustomParamEncoder.encode_for_template(hash, encoding_template)
 
       # Assert valid encoding
-      Request::Utils.check_param_encoding(hash)
+      Http::Utils.check_param_encoding(hash)
 
       # Convert hashes to HWIA (or UploadedFile), and deep-munge nils
       # out of arrays
-      hash = Request::Utils.normalize_encode_params(hash)
+      hash = Http::Utils.normalize_encode_params(hash)
 
       hash
     end
@@ -128,7 +128,7 @@ module ActionDispatch
 
         if after == ""
           if k == "[]" && depth != 0
-            return (v || !ActionDispatch::Request::Utils.perform_deep_munge) ? [v] : []
+            return (v || !Http::Utils.perform_deep_munge) ? [v] : []
           else
             params[k] = v
           end
@@ -137,7 +137,7 @@ module ActionDispatch
         elsif after == "[]"
           params[k] ||= []
           raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
-          params[k] << v if v || !ActionDispatch::Request::Utils.perform_deep_munge
+          params[k] << v if v || !Http::Utils.perform_deep_munge
         elsif after.start_with?("[]")
           # Recognize x[][y] (hash inside array) parameters
           unless after[2] == "[" && after.end_with?("]") && (child_key = after[3, after.length - 4]) && !child_key.empty? && !child_key.index("[") && !child_key.index("]")

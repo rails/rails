@@ -88,6 +88,15 @@ class ParameterFilterTest < ActiveSupport::TestCase
     assert_equal "bar", parameter_filter.filter_param("foo", "bar")
   end
 
+  test "filter with empty filters returns a dup of the params" do
+    parameter_filter = ActiveSupport::ParameterFilter.new
+    original = { "foo" => "bar" }
+    filtered = parameter_filter.filter(original)
+
+    assert_equal original, filtered
+    assert_not_same original, filtered
+  end
+
   test "parameter filter should maintain hash with indifferent access" do
     test_hashes = [
       [{ "foo" => "bar" }.with_indifferent_access, ["blah"]],
@@ -126,6 +135,35 @@ class ParameterFilterTest < ActiveSupport::TestCase
     parameter_filter = ActiveSupport::ParameterFilter.new([/^token$/, /\Astate\z/, /password/])
     result = parameter_filter.filter("token" => "t0k3n", "state" => "abc", "password" => "pass", "user_password" => "pass", "not_secret" => "visible")
     assert_equal({ "token" => "[FILTERED]", "state" => "[FILTERED]", "password" => "[FILTERED]", "user_password" => "[FILTERED]", "not_secret" => "visible" }, result)
+  end
+
+  test "^...$ anchored regexp filters still match keys containing newlines" do
+    parameter_filter = ActiveSupport::ParameterFilter.new([/^token$/])
+
+    assert_equal "[FILTERED]", parameter_filter.filter_param("token\nfoo", "secret")
+    assert_equal "[FILTERED]", parameter_filter.filter_param("foo\ntoken", "secret")
+    assert_equal "[FILTERED]", parameter_filter.filter_param("foo\ntoken\nbar", "secret")
+    assert_equal "visible", parameter_filter.filter_param("not_token\nfoo", "visible")
+  end
+
+  test "\\A...\\z anchored regexp filters do not match keys containing newlines" do
+    parameter_filter = ActiveSupport::ParameterFilter.new([/\Atoken\z/])
+
+    assert_equal "[FILTERED]", parameter_filter.filter_param("token", "secret")
+    assert_equal "visible", parameter_filter.filter_param("token\nfoo", "visible")
+    assert_equal "visible", parameter_filter.filter_param("foo\ntoken", "visible")
+  end
+
+  test "mixed-anchor regexp filters preserve their asymmetric semantics" do
+    first_line_filter = ActiveSupport::ParameterFilter.new([/\Atoken$/])
+    assert_equal "[FILTERED]", first_line_filter.filter_param("token", "secret")
+    assert_equal "[FILTERED]", first_line_filter.filter_param("token\nfoo", "secret")
+    assert_equal "visible", first_line_filter.filter_param("foo\ntoken", "visible")
+
+    last_line_filter = ActiveSupport::ParameterFilter.new([/^token\z/])
+    assert_equal "[FILTERED]", last_line_filter.filter_param("token", "secret")
+    assert_equal "visible", last_line_filter.filter_param("token\nfoo", "visible")
+    assert_equal "[FILTERED]", last_line_filter.filter_param("foo\ntoken", "secret")
   end
 
   test "precompile_filters" do

@@ -58,15 +58,47 @@ module ActionMailer
   autoload :QueuedDelivery
   autoload :FormBuilder
 
-  def self.eager_load!
-    super
-
-    require "mail"
-    Mail.eager_autoload!
-
-    Base.descendants.each do |mailer|
-      mailer.eager_load! unless mailer.abstract?
+  class << self
+    # Enqueue many emails at once to be delivered through Active Job.
+    # When the individual job runs, it will send the email using +deliver_now+.
+    def deliver_all_later(*deliveries, **options)
+      _deliver_all_later("deliver_now", *deliveries, **options)
     end
+
+    # Enqueue many emails at once to be delivered through Active Job.
+    # When the individual job runs, it will send the email using +deliver_now!+.
+    # That means that the message will be sent bypassing checking +perform_deliveries+
+    # and +raise_delivery_errors+, so use with caution.
+    def deliver_all_later!(*deliveries, **options)
+      _deliver_all_later("deliver_now!", *deliveries, **options)
+    end
+
+    def eager_load!
+      super
+
+      require "mail"
+      Mail.eager_autoload!
+
+      Base.descendants.each do |mailer|
+        mailer.eager_load! unless mailer.abstract?
+      end
+    end
+
+    private
+      def _deliver_all_later(delivery_method, *deliveries, **options)
+        deliveries = deliveries.first if deliveries.first.is_a?(Array)
+
+        jobs = deliveries.map do |delivery|
+          mailer_class = delivery.mailer_class
+          delivery_job = mailer_class.delivery_job
+
+          delivery_job
+            .new(mailer_class.name, delivery.action.to_s, delivery_method, params: delivery.params, args: delivery.args)
+            .set(options)
+        end
+
+        ActiveJob.perform_all_later(jobs)
+      end
   end
 end
 

@@ -77,14 +77,14 @@ module ActiveRecord
       #
       #    Post.left_joins(:author).where.associated(:author)
       #    # SELECT "posts".* FROM "posts"
-      #    # LEFT OUTER JOIN "authors" "authors"."id" = "posts"."author_id"
+      #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # WHERE "authors"."id" IS NOT NULL
       #
       #    Post.left_joins(:comments).where.associated(:author)
       #    # SELECT "posts".* FROM "posts"
       #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
-      #   #  WHERE "author"."id" IS NOT NULL
+      #    # WHERE "authors"."id" IS NOT NULL
       def associated(*associations)
         associations.each do |association|
           reflection = scope_association_reflection(association)
@@ -583,10 +583,10 @@ module ActiveRecord
     # Allows you to change a previously set group statement.
     #
     #   Post.group(:title, :body)
-    #   # SELECT `posts`.`*` FROM `posts` GROUP BY `posts`.`title`, `posts`.`body`
+    #   # SELECT `posts`.* FROM `posts` GROUP BY `posts`.`title`, `posts`.`body`
     #
     #   Post.group(:title, :body).regroup(:title)
-    #   # SELECT `posts`.`*` FROM `posts` GROUP BY `posts`.`title`
+    #   # SELECT `posts`.* FROM `posts` GROUP BY `posts`.`title`
     #
     # This is short-hand for <tt>unscope(:group).group(fields)</tt>.
     # Note that we're unscoping the entire group statement.
@@ -597,6 +597,7 @@ module ActiveRecord
 
     # Same as #regroup but operates on relation in-place instead of copying.
     def regroup!(*args) # :nodoc:
+      args.uniq!
       self.group_values = args
       self
     end
@@ -679,6 +680,16 @@ module ActiveRecord
     #   #     WHEN "users"."id" = 3 THEN 3
     #   #   END ASC
     #
+    # To group values together, an array can be passed as a value.
+    #
+    #   User.in_order_of(:id, [[1, 5], 3])
+    #   # SELECT "users".* FROM "users"
+    #   #   WHERE "users"."id" IN (1, 5, 3)
+    #   #   ORDER BY CASE
+    #   #     WHEN "users"."id" IN (1, 5) THEN 1
+    #   #     WHEN "users"."id" = 3 THEN 2
+    #   #   END ASC
+    #
     # +column+ can point to an enum column; the actual query generated may be different depending
     # on the database adapter and the column definition.
     #
@@ -721,12 +732,22 @@ module ActiveRecord
       references = column_references([column])
       self.references_values |= references unless references.empty?
 
-      values = values.map { |value| model.type_caster.type_cast_for_database(column, value) }
-      arel_column = column.is_a?(Arel::Nodes::SqlLiteral) ? column : order_column(column.to_s)
+      if column.is_a?(Arel::Nodes::SqlLiteral)
+        arel_column = column
+      else
+        arel_column = order_column(column.to_s)
+
+        unless arel_column.is_a?(Arel::Nodes::SqlLiteral)
+          values = cast_values_for_in_order_of(values, arel_column.type_caster)
+        end
+        return spawn.none! if values.empty?
+      end
 
       scope = spawn.order!(build_case_for_value_position(arel_column, values, filter: filter))
 
       if filter
+        values = values.flatten(1)
+
         where_clause =
           if values.include?(nil)
             arel_column.in(values.compact).or(arel_column.eq(nil))
@@ -765,10 +786,35 @@ module ActiveRecord
       self
     end
 
+    # Defines a default order used when no other order is specified.
+    #
+    #   User.default_order('email DESC') # generated SQL has 'ORDER BY email DESC'
+    #
+    # Subsequent calls to order on the same relation will replace default
+    # order. For example:
+    #
+    #   User.default_order('email DESC').order('id ASC').order('name ASC')
+    #
+    # generates a query with 'ORDER BY id ASC, name ASC'.
+    def default_order(*args)
+      check_if_method_has_arguments!(__callee__, args) do
+        sanitize_order_arguments(args)
+      end
+      spawn.default_order!(*args)
+    end
+
+    # Same as #default_order but operates on relation in-place instead of copying.
+    def default_order!(*args) # :nodoc:
+      preprocess_order_args(args)
+      args.uniq!
+      self.default_order_values = args
+      self
+    end
+
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
                                      :includes, :eager_load, :preload, :from, :readonly,
-                                     :having, :optimizer_hints, :with])
+                                     :having, :optimizer_hints, :with]).freeze
 
     # Removes an unwanted relation that is already defined on a chain of relations.
     # This is useful when passing around chains of relations and would like to
@@ -835,6 +881,26 @@ module ActiveRecord
       end
 
       self
+    end
+
+    def table_name_qualified_unscope_values
+      self.unscope_values.map do |scope|
+        case scope
+        when Hash
+          scope.transform_values do |target_value|
+            case target_value
+            when Array
+              target_value.map { |value| qualify_attribute_with_table_name(value) }
+            when Symbol, String
+              qualify_attribute_with_table_name(target_value)
+            else
+              target_value
+            end
+          end
+        else
+          scope
+        end
+      end
     end
 
     # Performs JOINs on +args+. The given symbol(s) should match the name of
@@ -1048,13 +1114,13 @@ module ActiveRecord
     # Allows you to change a previously set where condition for a given attribute, instead of appending to that condition.
     #
     #   Post.where(trashed: true).where(trashed: false)
-    #   # WHERE `trashed` = 1 AND `trashed` = 0
+    #   # WHERE `trashed` = true AND `trashed` = false
     #
     #   Post.where(trashed: true).rewhere(trashed: false)
-    #   # WHERE `trashed` = 0
+    #   # WHERE `trashed` = false
     #
     #   Post.where(active: true).where(trashed: true).rewhere(trashed: false)
-    #   # WHERE `active` = 1 AND `trashed` = 0
+    #   # WHERE `active` = true AND `trashed` = false
     #
     # This is short-hand for <tt>unscope(where: conditions.keys).where(conditions)</tt>.
     # Note that unlike reorder, we're only unscoping the named conditions -- not the entire where statement.
@@ -1076,16 +1142,16 @@ module ActiveRecord
     #   end
     #
     #   User.where(accepted: true)
-    #   # WHERE `accepted` = 1
+    #   # WHERE `accepted` = true
     #
     #   User.where(accepted: true).invert_where
-    #   # WHERE `accepted` != 1
+    #   # WHERE `accepted` != true
     #
     #   User.active
-    #   # WHERE `accepted` = 1 AND `locked` = 0
+    #   # WHERE `accepted` = true AND `locked` = false
     #
     #   User.active.invert_where
-    #   # WHERE NOT (`accepted` = 1 AND `locked` = 0)
+    #   # WHERE NOT (`accepted` = true AND `locked` = false)
     #
     # Be careful because this inverts all conditions before +invert_where+ call.
     #
@@ -1096,7 +1162,7 @@ module ActiveRecord
     #
     #   # It also inverts `where(role: 'admin')` unexpectedly.
     #   User.where(role: 'admin').inactive
-    #   # WHERE NOT (`role` = 'admin' AND `accepted` = 1 AND `locked` = 0)
+    #   # WHERE NOT (`role` = 'admin' AND `accepted` = true AND `locked` = false)
     #
     def invert_where
       spawn.invert_where!
@@ -1230,6 +1296,7 @@ module ActiveRecord
     end
 
     def offset!(value) # :nodoc:
+      value = Integer(value) unless value.nil?
       self.offset_value = value
       self
     end
@@ -1463,6 +1530,8 @@ module ActiveRecord
     end
 
     def extending!(*modules, &block) # :nodoc:
+      return self if modules.empty? && !block
+
       modules << Module.new(&block) if block
       modules.flatten!
 
@@ -1502,7 +1571,13 @@ module ActiveRecord
 
     def reverse_order! # :nodoc:
       orders = order_values.compact_blank
-      self.order_values = reverse_sql_order(orders)
+      default_orders = default_order_values.compact_blank
+
+      if orders.empty? && default_orders.any?
+        self.default_order_values = reverse_sql_order(default_orders)
+      else
+        self.order_values = reverse_sql_order(orders)
+      end
       self
     end
 
@@ -1586,8 +1661,8 @@ module ActiveRecord
     alias :without :excluding
 
     def excluding!(records) # :nodoc:
-      predicates = [ predicate_builder[primary_key, records].invert ]
-      self.where_clause += Relation::WhereClause.new(predicates)
+      ids = records.map { |record| record.is_a?(model) ? record.id : record }
+      self.where_clause += build_where_clause(primary_key => ids).invert
       self
     end
 
@@ -1777,14 +1852,16 @@ module ActiveRecord
 
       def build_from
         opts = from_clause.value
-        name = from_clause.name
+        name = from_clause.name&.to_s || "subquery"
         case opts
         when Relation
           if opts.eager_loading?
             opts = opts.send(:apply_join_dependency)
           end
-          name ||= "subquery"
-          opts.arel.as(name.to_s)
+          opts.arel.as(name)
+        when Arel::Nodes::Union, Arel::Nodes::UnionAll,
+             Arel::Nodes::Intersect, Arel::Nodes::Except
+          opts.as(name)
         else
           opts
         end
@@ -1898,7 +1975,7 @@ module ActiveRecord
       def build_select(arel)
         if select_values.any?
           arel.project(*arel_columns(select_values))
-        elsif model.ignored_columns.any? || model.enumerate_columns_in_select_statements
+        elsif model.ignored_columns.any? || model.enumerate_columns_in_select_statements || model.only_columns.any?
           arel.project(*model.column_names.map { |field| table[field] })
         else
           arel.project(table[Arel.star])
@@ -1948,7 +2025,7 @@ module ActiveRecord
       end
 
       def build_with_join_node(name, kind = Arel::Nodes::InnerJoin)
-        with_table = Arel::Table.new(name)
+        with_table = Arel::Table.new(name: name)
 
         table.join(with_table, kind).on(
           with_table[model.model_name.to_s.foreign_key].eq(table[model.primary_key])
@@ -2012,8 +2089,8 @@ module ActiveRecord
 
       def reverse_sql_order(order_query)
         if order_query.empty?
-          if !_reverse_order_columns.empty?
-            return _reverse_order_columns.map { |column| table[column].desc }
+          if !_order_columns.empty?
+            return _order_columns.map { |column| table[column].desc }
           end
 
           raise IrreversibleOrderError, <<~MSG.squish
@@ -2045,13 +2122,6 @@ module ActiveRecord
         end
       end
 
-      def _reverse_order_columns
-        roc = []
-        roc << model.implicit_order_column if model.implicit_order_column
-        roc << model.primary_key if model.primary_key
-        roc.flatten.uniq.compact
-      end
-
       def does_not_support_reverse?(order)
         # Account for String subclasses like Arel::Nodes::SqlLiteral that
         # override methods like #count.
@@ -2065,11 +2135,12 @@ module ActiveRecord
 
       def build_order(arel)
         orders = order_values.compact_blank
+        orders = default_order_values.compact_blank if orders.empty?
         arel.order(*orders) unless orders.empty?
       end
 
-      VALID_DIRECTIONS = [:asc, :desc, :ASC, :DESC,
-                          "asc", "desc", "ASC", "DESC"].to_set # :nodoc:
+      VALID_DIRECTIONS = Set.new([:asc, :desc, :ASC, :DESC,
+                          "asc", "desc", "ASC", "DESC"]).freeze # :nodoc:
 
       def validate_order_args(args)
         args.each do |arg|
@@ -2174,7 +2245,15 @@ module ActiveRecord
       def build_case_for_value_position(column, values, filter: true)
         node = Arel::Nodes::Case.new
         values.each.with_index(1) do |value, order|
-          node.when(column.eq(value)).then(order)
+          if value.is_a?(Array)
+            if value.include?(nil)
+              node.when(column.in(value.compact).or(column.eq(nil))).then(order)
+            else
+              node.when(column.in(value)).then(order)
+            end
+          else
+            node.when(column.eq(value)).then(order)
+          end
         end
 
         node = node.else(values.length + 1) unless filter
@@ -2203,6 +2282,10 @@ module ActiveRecord
             end
           end
         end
+      end
+
+      def qualify_attribute_with_table_name(attr)
+        attr.to_s.include?(".") ? attr : predicate_builder.resolve_arel_attribute(table_name, attr)
       end
 
       # Checks to make sure that the arguments are not blank. Note that if some
@@ -2240,6 +2323,28 @@ module ActiveRecord
             field
           end
         end
+      end
+
+      def cast_values_for_in_order_of(values, type_caster)
+        bad_value = Symbol # use some object that can not be a valid value
+
+        values = values.map do |value|
+          if value.is_a?(Array)
+            cast_values_for_in_order_of(value, type_caster).without(bad_value)
+          else
+            serialized = type_caster.serialize(value) if type_caster.serializable?(value)
+
+            if value.nil?
+              nil
+            elsif !serialized.nil?
+              serialized
+            else
+              bad_value
+            end
+          end
+        end
+
+        values.reject { |v| v == bad_value || (v.is_a?(Array) && v.empty?) }
       end
 
       def arel_column_aliases_from_hash(fields)

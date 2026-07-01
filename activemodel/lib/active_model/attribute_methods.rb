@@ -68,6 +68,7 @@ module ActiveModel
     CALL_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?]?\z/
 
     included do
+      @attribute_method_patterns_cache = Concurrent::Map.new(initial_capacity: 4)
       class_attribute :attribute_aliases, instance_writer: false, default: {}
       class_attribute :attribute_method_patterns, instance_writer: false, default: [ ClassMethods::AttributeMethodPattern.new ]
     end
@@ -204,7 +205,7 @@ module ActiveModel
         old_name = old_name.to_s
         new_name = new_name.to_s
         self.attribute_aliases = attribute_aliases.merge(new_name => old_name)
-        aliases_by_attribute_name[old_name] << new_name
+        aliases_by_attribute_name[old_name] |= [new_name]
         eagerly_generate_alias_attribute_methods(new_name, old_name)
       end
 
@@ -219,7 +220,7 @@ module ActiveModel
           attribute_method_patterns.each do |pattern|
             alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
           end
-          attribute_method_patterns_cache.clear
+          @attribute_method_patterns_cache.clear
         end
       end
 
@@ -313,7 +314,7 @@ module ActiveModel
           attribute_method_patterns.each do |pattern|
             define_attribute_method_pattern(pattern, attr_name, owner: owner, as: as)
           end
-          attribute_method_patterns_cache.clear
+          @attribute_method_patterns_cache.clear
         end
       end
 
@@ -376,7 +377,7 @@ module ActiveModel
         @generated_attribute_methods&.module_eval do
           undef_method(*instance_methods)
         end
-        attribute_method_patterns_cache.clear
+        @attribute_method_patterns_cache.clear
       end
 
       def aliases_by_attribute_name # :nodoc:
@@ -387,7 +388,7 @@ module ActiveModel
         def inherited(base) # :nodoc:
           super
           base.class_eval do
-            @attribute_method_patterns_cache = nil
+            @attribute_method_patterns_cache = Concurrent::Map.new(initial_capacity: 4)
             @aliases_by_attribute_name = nil
             @generated_attribute_methods = nil
           end
@@ -405,21 +406,8 @@ module ActiveModel
           @generated_attribute_methods&.method_defined?(method_name)
         end
 
-        # The methods +method_missing+ and +respond_to?+ of this module are
-        # invoked often in a typical rails, both of which invoke the method
-        # +matched_attribute_method+. The latter method iterates through an
-        # array doing regular expression matches, which results in a lot of
-        # object creations. Most of the time it returns a +nil+ match. As the
-        # match result is always the same given a +method_name+, this cache is
-        # used to alleviate the GC, which ultimately also speeds up the app
-        # significantly (in our case our test suite finishes 10% faster with
-        # this cache).
-        def attribute_method_patterns_cache
-          @attribute_method_patterns_cache ||= Concurrent::Map.new(initial_capacity: 4)
-        end
-
         def attribute_method_patterns_matching(method_name)
-          attribute_method_patterns_cache.compute_if_absent(method_name) do
+          @attribute_method_patterns_cache.compute_if_absent(method_name) do
             attribute_method_patterns.filter_map { |pattern| pattern.match(method_name) }
           end
         end

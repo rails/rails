@@ -66,7 +66,7 @@ module ActionDispatch
                            :LITERAL,
                            :SYMBOL
                          ]],
-        ]
+        ].freeze
 
         CASES.each do |pattern, expected_tokens|
           test "Scanning `#{pattern}`" do

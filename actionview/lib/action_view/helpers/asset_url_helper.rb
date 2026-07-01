@@ -236,7 +236,7 @@ module ActionView
       ASSET_EXTENSIONS = {
         javascript: ".js",
         stylesheet: ".css"
-      }
+      }.freeze
 
       # Compute extname to append to asset path. Returns +nil+ if
       # nothing should be added.
@@ -258,7 +258,7 @@ module ActionView
         javascript: "/javascripts",
         stylesheet: "/stylesheets",
         video:      "/videos"
-      }
+      }.freeze
 
       # Computes asset path to public directory. Plugins and
       # extensions can override this method to point to custom assets

@@ -79,7 +79,7 @@ module ActionDispatch
       end
       alias :include? :key?
 
-      DEFAULT = Object.new # :nodoc:
+      DEFAULT = Object.new.freeze # :nodoc:
 
       # Returns the value for the given key mapped to @env.
       #
@@ -102,7 +102,7 @@ module ActionDispatch
       # Returns a new Http::Headers instance containing the contents of
       # `headers_or_env` and the original instance.
       def merge(headers_or_env)
-        headers = @req.dup.headers
+        headers = Headers.new(@req.dup)
         headers.merge!(headers_or_env)
         headers
       end

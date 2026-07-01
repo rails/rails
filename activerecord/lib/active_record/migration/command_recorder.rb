@@ -62,7 +62,7 @@ module ActiveRecord
         :create_schema, :drop_schema,
         :create_virtual_table, :drop_virtual_table,
         :enable_index, :disable_index
-      ]
+      ].freeze
       include JoinTable
 
       attr_accessor :commands, :delegate, :reverting
@@ -239,7 +239,9 @@ module ActiveRecord
         end
 
         def invert_remove_column(args)
-          raise ActiveRecord::IrreversibleMigration, "remove_column is only reversible if given a type." if args.size <= 2
+          if args.size <= 2 || args[2].is_a?(Hash)
+            raise ActiveRecord::IrreversibleMigration, "remove_column is only reversible if given a type."
+          end
           super
         end
 
@@ -300,7 +302,10 @@ module ActiveRecord
         end
 
         def invert_add_foreign_key(args)
-          args.last.delete(:validate) if args.last.is_a?(Hash)
+          if (options = args.last).is_a?(Hash)
+            options.delete(:validate)
+            options[:if_exists] = options.delete(:if_not_exists) if options.key?(:if_not_exists)
+          end
           super
         end
 
@@ -363,14 +368,14 @@ module ActiveRecord
         def invert_add_unique_constraint(args)
           options = args.dup.extract_options!
 
-          raise ActiveRecord::IrreversibleMigration, "add_unique_constraint is not reversible if given an using_index." if options[:using_index]
+          raise ActiveRecord::IrreversibleMigration, "add_unique_constraint is not reversible if given a using_index." if options[:using_index]
           super
         end
 
         def invert_remove_unique_constraint(args)
           _table, columns = args.dup.tap(&:extract_options!)
 
-          raise ActiveRecord::IrreversibleMigration, "remove_unique_constraint is only reversible if given an column_name." if columns.blank?
+          raise ActiveRecord::IrreversibleMigration, "remove_unique_constraint is only reversible if given a column_name." if columns.blank?
           super
         end
 
@@ -402,7 +407,7 @@ module ActiveRecord
         end
 
         def invert_drop_virtual_table(args)
-          _enum, values = args.dup.tap(&:extract_options!)
+          _table_name, _module_name, values = args.dup.tap(&:extract_options!)
           raise ActiveRecord::IrreversibleMigration, "drop_virtual_table is only reversible if given options." unless values
           super
         end

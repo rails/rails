@@ -4,6 +4,8 @@ require "cases/helper"
 require "models/post"
 
 module AsynchronousQueriesSharedTests
+  include ActiveRecord::TestCase::WaitForTestHelper
+
   def test_async_select_failure
     if in_memory_db?
       assert_raises ActiveRecord::StatementInvalid do
@@ -43,41 +45,30 @@ module AsynchronousQueriesSharedTests
   end
 
   def test_async_query_foreground_fallback
-    status = {}
-
-    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      if event.payload[:sql] == "SELECT * FROM does_not_exists"
-        status[:executed] = true
-        status[:async] = event.payload[:async]
-      end
-    end
-
-    @connection.pool.stub(:schedule_query, proc { }) do
-      if in_memory_db?
-        assert_raises ActiveRecord::StatementInvalid do
-          @connection.select_all "SELECT * FROM does_not_exists", async: true
-        end
-      else
-        future_result = @connection.select_all "SELECT * FROM does_not_exists", async: true
-        assert_kind_of ActiveRecord::FutureResult, future_result
-        assert_raises ActiveRecord::StatementInvalid do
-          future_result.result
+    events = capture_notifications("sql.active_record") do
+      @connection.pool.stub(:schedule_query, proc { }) do
+        if in_memory_db?
+          assert_raises ActiveRecord::StatementInvalid do
+            @connection.select_all "SELECT * FROM does_not_exists", async: true
+          end
+        else
+          future_result = @connection.select_all "SELECT * FROM does_not_exists", async: true
+          assert_kind_of ActiveRecord::FutureResult, future_result
+          assert_raises ActiveRecord::StatementInvalid do
+            future_result.result
+          end
         end
       end
     end
 
-    assert_equal true, status[:executed]
-    assert_equal false, status[:async]
-  ensure
-    ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    event = events.find { _1.payload[:sql] == "SELECT * FROM does_not_exists" }
+    assert_not_nil event
+    assert_equal false, event.payload[:async]
   end
 
   private
     def wait_for_future_result(result)
-      500.times do
-        break unless result.pending?
-        sleep 0.02
-      end
+      wait_for(message: "future result still pending", timeout: 10, interval: 0.02) { !result.pending? }
     end
 end
 
@@ -91,28 +82,22 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
   end
 
   def test_async_select_all
-    status = {}
+    events = capture_notifications("sql.active_record") do
+      future_result = @connection.select_all "SELECT * FROM posts", async: true
 
-    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      if event.payload[:sql] == "SELECT * FROM posts"
-        status[:executed] = true
-        status[:async] = event.payload[:async]
+      if in_memory_db?
+        assert_kind_of ActiveRecord::FutureResult::Complete, future_result
+      else
+        assert_kind_of ActiveRecord::FutureResult, future_result
+        wait_for_future_result(future_result)
       end
+
+      assert_kind_of ActiveRecord::Result, future_result.result
     end
 
-    future_result = @connection.select_all "SELECT * FROM posts", async: true
-
-    if in_memory_db?
-      assert_kind_of ActiveRecord::FutureResult::Complete, future_result
-    else
-      assert_kind_of ActiveRecord::FutureResult, future_result
-      wait_for_future_result(future_result)
-    end
-
-    assert_kind_of ActiveRecord::Result, future_result.result
-    assert_equal @connection.supports_concurrent_connections?, status[:async]
-  ensure
-    ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    event = events.find { _1.payload[:sql] == "SELECT * FROM posts" }
+    assert_not_nil event
+    assert_equal @connection.supports_concurrent_connections?, event.payload[:async]
   end
 end
 

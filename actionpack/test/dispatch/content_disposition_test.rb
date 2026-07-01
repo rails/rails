@@ -41,5 +41,15 @@ module ActionDispatch
 
       assert_equal "inline", disposition.to_s
     end
+
+    test ".format builds the header string" do
+      expected = Http::ContentDisposition.new(disposition: :inline, filename: "racecar.jpg").to_s
+
+      assert_equal expected, Http::ContentDisposition.format(disposition: :inline, filename: "racecar.jpg")
+    end
+
+    test ".format without filename" do
+      assert_equal "inline", Http::ContentDisposition.format(disposition: :inline, filename: nil)
+    end
   end
 end

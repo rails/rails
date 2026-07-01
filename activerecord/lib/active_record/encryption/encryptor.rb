@@ -92,8 +92,8 @@ module ActiveRecord
       end
 
       private
-        DECRYPT_ERRORS = [OpenSSL::Cipher::CipherError, Errors::EncryptedContentIntegrity, Errors::Decryption]
-        ENCODING_ERRORS = [EncodingError, Errors::Encoding]
+        DECRYPT_ERRORS = [OpenSSL::Cipher::CipherError, Errors::EncryptedContentIntegrity, Errors::Decryption].freeze
+        ENCODING_ERRORS = [EncodingError, Errors::Encoding].freeze
 
         # This threshold cannot be changed.
         #

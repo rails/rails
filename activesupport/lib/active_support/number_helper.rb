@@ -269,7 +269,7 @@ module ActiveSupport
     #
     #   number_to_rounded(12345.6789)                # => "12345.679"
     #   number_to_rounded(12345.6789, precision: 2)  # => "12345.68"
-    #   number_to_rounded(12345.6789, precision: 0)  # => "12345"
+    #   number_to_rounded(12345.6789, precision: 0)  # => "12346"
     #   number_to_rounded(12345, precision: 5)       # => "12345.00000"
     #
     # ==== Options

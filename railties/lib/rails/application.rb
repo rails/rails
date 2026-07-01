@@ -66,6 +66,7 @@ module Rails
     autoload :DefaultMiddlewareStack, "rails/application/default_middleware_stack"
     autoload :Finisher,               "rails/application/finisher"
     autoload :Railties,               "rails/engine/railties"
+    autoload :ReloadersCollection,    "rails/application/reloaders_collection"
     autoload :RoutesReloader,         "rails/application/routes_reloader"
 
     class << self
@@ -105,12 +106,12 @@ module Rails
     delegate :default_url_options, :default_url_options=, to: :routes
 
     INITIAL_VARIABLES = [:config, :railties, :routes_reloader, :reloaders,
-                         :routes, :helpers, :app_env_config] # :nodoc:
+                         :routes, :helpers, :app_env_config].freeze # :nodoc:
 
     def initialize(initial_variable_values = {}, &block)
       super()
       @initialized       = false
-      @reloaders         = []
+      @reloaders         = ReloadersCollection.new
       @routes_reloader   = nil
       @app_env_config    = nil
       @ordered_railties  = nil
@@ -553,7 +554,7 @@ module Rails
     #
     # Examples:
     #
-    #   Rails.app.envs.require(:db_password) # ENV,fetch("DB_PASSWORD")
+    #   Rails.app.envs.require(:db_password) # ENV.fetch("DB_PASSWORD")
     #   Rails.app.envs.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
     #   Rails.app.envs.option(:cache_host) # ENV["CACHE_HOST"]
     #   Rails.app.envs.option(:cache_host, default: "cache-host-1") # ENV.fetch("CACHE_HOST", "cache-host-1")
@@ -585,7 +586,8 @@ module Rails
     #
     # In development mode, this configuration backend is automatically part of `Rails.app.creds`.
     def dotenvs(path = Rails.root.join(".env"))
-      @dotenvs ||= ActiveSupport::DotEnvConfiguration.new(path)
+      @dotenvs ||= {}
+      @dotenvs[path] ||= ActiveSupport::DotEnvConfiguration.new(path)
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for the

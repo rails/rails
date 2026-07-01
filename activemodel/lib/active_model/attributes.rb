@@ -107,7 +107,7 @@ module ActiveModel
         end
     end
 
-    def initialize(*) # :nodoc:
+    def initialize(...) # :nodoc:
       @attributes = self.class._default_attributes.deep_dup
       super
     end

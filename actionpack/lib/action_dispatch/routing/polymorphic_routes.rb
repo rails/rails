@@ -183,7 +183,7 @@ module ActionDispatch
         end
 
         class HelperMethodBuilder # :nodoc:
-          CACHE = { path: {}, url: {} }
+          CACHE = { path: {}, url: {} }.freeze
 
           def self.get(action, type)
             type = type.to_sym

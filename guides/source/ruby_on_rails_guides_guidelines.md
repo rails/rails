@@ -212,11 +212,11 @@ Use descriptive links and avoid "here" and "more" links:
 
 ```markdown
 # BAD
-See the Rails Internationalization (I18n) API documentation for [more
+See the Internationalization (I18n) guide for [more
 details](i18n.html).
 
 # GOOD
-See the [Rails Internationalization (I18n) API documentation](i18n.html) for
+See the [Internationalization (I18n)](i18n.html) guide for
 more details.
 ```
 

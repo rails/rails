@@ -22,10 +22,10 @@ module Rails
     # allows you to easily add extra paths:
     #
     #   path.is_a?(Enumerable) # => true
-    #   path.to_ary.inspect    # => ["app/controllers"]
+    #   path.to_ary    # => ["app/controllers"]
     #
     #   path << "lib/controllers"
-    #   path.to_ary.inspect    # => ["app/controllers", "lib/controllers"]
+    #   path.to_ary    # => ["app/controllers", "lib/controllers"]
     #
     # Notice that when you add a path using #add, the
     # Path[rdoc-ref:Rails::Paths::Path] object created already contains the path
@@ -33,7 +33,7 @@ module Rails
     # want this behavior, so you can give <tt>:with</tt> as option.
     #
     #   root.add "config/routes", with: "config/routes.rb"
-    #   root["config/routes"].inspect # => ["config/routes.rb"]
+    #   root["config/routes"].to_ary # => ["config/routes.rb"]
     #
     # The #add method accepts the following options as arguments:
     # +eager_load+, +autoload+, +autoload_once+, and +glob+.

@@ -6,7 +6,7 @@ module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
       class Pattern # :nodoc:
-        REGEXP_CACHE = {}
+        REGEXP_CACHE = {} # rubocop:disable Style/MutableConstant
 
         class << self
           def dedup_regexp(regexp)

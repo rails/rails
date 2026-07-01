@@ -172,6 +172,12 @@ Style/FrozenStringLiteralComment:
     - 'actiontext/db/migrate/**/*.rb'
     - '**/*.md'
 
+Style/MutableConstant:
+  Enabled: true
+  EnforcedStyle: literals
+  Exclude:
+    - '**/*.md'
+
 Style/MapToHash:
   Enabled: true
 

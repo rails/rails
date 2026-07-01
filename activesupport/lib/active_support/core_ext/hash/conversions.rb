@@ -146,7 +146,7 @@ module ActiveSupport
       end
     end
 
-    DISALLOWED_TYPES = %w(symbol yaml)
+    DISALLOWED_TYPES = %w(symbol yaml).freeze
 
     def initialize(xml, disallowed_types = nil)
       @xml = normalize_keys(XmlMini.parse(xml))

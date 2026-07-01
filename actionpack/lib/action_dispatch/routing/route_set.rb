@@ -346,8 +346,8 @@ module ActionDispatch
       end
 
       # strategy for building URLs to send to the client
-      PATH    = ->(options) { ActionDispatch::Http::URL.path_for(options) }
-      UNKNOWN = ->(options) { ActionDispatch::Http::URL.url_for(options) }
+      PATH    = ActiveSupport::Ractors.shareable_lambda { |options| ActionDispatch::Http::URL.path_for(options) }
+      UNKNOWN = ActiveSupport::Ractors.shareable_lambda { |options| ActionDispatch::Http::URL.url_for(options) }
 
       attr_accessor :formatter, :set, :named_routes, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
@@ -685,7 +685,7 @@ module ActionDispatch
         def initialize(name, defaults, &block)
           @name = name
           @defaults = defaults
-          @block = block
+          @block = ActiveSupport::Ractors.try_shareable_proc(block)
         end
 
         def call(t, args, only_path = false)
@@ -837,7 +837,7 @@ module ActionDispatch
 
       RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
                           :trailing_slash, :anchor, :params, :only_path, :script_name,
-                          :original_script_name]
+                          :original_script_name].freeze
 
       def optimize_routes_generation?
         default_url_options.empty?

@@ -3,7 +3,7 @@
 module ActionView
   class Template
     module Sources
-      class File
+      class File # :nodoc:
         def initialize(filename)
           @filename = filename
         end

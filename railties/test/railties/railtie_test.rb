@@ -261,7 +261,7 @@ module RailtiesTest
         end
       end
 
-      ::APP_RAKEFILE = "#{app_path}/Rakefile"
+      ::APP_RAKEFILE = "#{app_path}/Rakefile".freeze
       require "#{app_path}/config/environment"
 
       assert_not $ran_block

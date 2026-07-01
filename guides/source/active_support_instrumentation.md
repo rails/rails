@@ -534,6 +534,56 @@ The `:cache_hits` key is only included if the collection is rendered with `cache
 | `:job`       | Job object                             |
 | `:error`     | The error that caused the discard      |
 
+Jobs using [Continuation][] also emit the following events.
+
+#### `interrupt.active_job`
+
+| Key                | Value                                    |
+| ------------------ | ---------------------------------------- |
+| `:adapter`         | QueueAdapter object processing the job   |
+| `:job`             | Job object                               |
+| `:reason`          | Reason the job was interrupted           |
+| `:description`     | Description of the continuation state    |
+| `:completed_steps` | Array of completed step names            |
+| `:current_step`    | Current continuation step object, if any |
+
+#### `resume.active_job`
+
+| Key                | Value                                    |
+| ------------------ | ---------------------------------------- |
+| `:adapter`         | QueueAdapter object processing the job   |
+| `:job`             | Job object                               |
+| `:description`     | Description of the continuation state    |
+| `:completed_steps` | Array of completed step names            |
+| `:current_step`    | Current continuation step object, if any |
+
+#### `step.active_job`
+
+| Key            | Value                                  |
+| -------------- | -------------------------------------- |
+| `:adapter`     | QueueAdapter object processing the job |
+| `:job`         | Job object                             |
+| `:step`        | Continuation step object               |
+| `:interrupted` | Whether the step was interrupted       |
+
+#### `step_skipped.active_job`
+
+| Key        | Value                                  |
+| ---------- | -------------------------------------- |
+| `:adapter` | QueueAdapter object processing the job |
+| `:job`     | Job object                             |
+| `:step`    | Name of the skipped step               |
+
+#### `step_started.active_job`
+
+| Key        | Value                                  |
+| ---------- | -------------------------------------- |
+| `:adapter` | QueueAdapter object processing the job |
+| `:job`     | Job object                             |
+| `:step`    | Continuation step object               |
+
+[`Continuation`]: https://api.rubyonrails.org/classes/ActiveJob/Continuation.html
+
 ### Active Record
 
 #### `sql.active_record`
@@ -756,14 +806,17 @@ is the same as `Rails.backtrace_cleaner`.
 
 #### `service_update_metadata.active_storage`
 
-This event is only emitted when using the Google Cloud Storage service.
+| Key                | Value                            |
+| ------------------ | -------------------------------- |
+| `:key`             | Secure token                     |
+| `:service`         | Name of the service              |
+| `:content_type`    | HTTP `Content-Type` field        |
+| `:disposition`     | HTTP `Content-Disposition` field |
+| `:filename`        | Name of the file                 |
+| `:custom_metadata` | Custom metadata of the file      |
 
-| Key             | Value                            |
-| --------------- | -------------------------------- |
-| `:key`          | Secure token                     |
-| `:service`      | Name of the service              |
-| `:content_type` | HTTP `Content-Type` field        |
-| `:disposition`  | HTTP `Content-Disposition` field |
+NOTE: Only the Google Cloud Storage service stores the metadata; for other
+services updating the metadata is a no-op, though the event is still emitted.
 
 ### Active Support: Caching
 

@@ -75,7 +75,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/tmp/pids/.keep
   test/dummy/tmp/storage/.keep
   test/test_helper.rb
-)
+).freeze
 
 class PluginGeneratorTest < Rails::Generators::TestCase
   include PluginHelpers

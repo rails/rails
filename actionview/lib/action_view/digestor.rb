@@ -70,7 +70,7 @@ module ActionView
       private
         def find_template(finder, name, prefixes, partial, keys)
           finder.disable_cache do
-            finder.find_all(name, prefixes, partial, keys).first
+            finder.find(name, prefixes, partial, keys)
           end
         end
     end

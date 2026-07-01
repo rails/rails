@@ -9,7 +9,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
     before_action :authenticate_with_request, only: :display
 
     USERS = { "lifo" => "world", "pretty" => "please",
-              "dhh" => OpenSSL::Digest::MD5.hexdigest(["dhh", "SuperSecret", "secret"].join(":")) }
+              "dhh" => OpenSSL::Digest::MD5.hexdigest(["dhh", "SuperSecret", "secret"].join(":")) }.freeze
 
     def index
       render plain: "Hello Secret"
@@ -36,7 +36,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
       end
   end
 
-  AUTH_HEADERS = ["HTTP_AUTHORIZATION", "X-HTTP_AUTHORIZATION", "X_HTTP_AUTHORIZATION", "REDIRECT_X_HTTP_AUTHORIZATION"]
+  AUTH_HEADERS = ["HTTP_AUTHORIZATION", "X-HTTP_AUTHORIZATION", "X_HTTP_AUTHORIZATION", "REDIRECT_X_HTTP_AUTHORIZATION"].freeze
 
   tests DummyDigestController
 

@@ -15,6 +15,11 @@ module ActiveRecord
       include DdlHelper
       include ConnectionHelper
 
+      # Force known GUC defaults at connect time so query-count
+      # assertions are deterministic regardless of server configuration.
+      # TimeZone must be non-UTC so the :utc/:local distinction is visible.
+      KNOWN_SERVER_DEFAULTS = "-c TimeZone=America/New_York -c IntervalStyle=postgres -c standard_conforming_strings=on -c client_min_messages=notice"
+
       def setup
         @connection = ActiveRecord::Base.lease_connection
         @original_db_warnings_action = :ignore
@@ -99,42 +104,44 @@ module ActiveRecord
 
       def test_reconnect_after_bad_connection_on_check_version_with_0_return
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash.merge(connection_retries: 0))
-        connection.connect!
+        with_postgresql_adapter(db_config.configuration_hash.merge(connection_retries: 0)) do |connection|
+          connection.connect!
 
-        # mimic a connection that hasn't checked and cached the server version yet i.e. without a raw_connection
-        connection.pool.instance_variable_set(:@server_version, nil)
-        connection.raw_connection.stub(:server_version, 0) do
-          error = assert_raises ActiveRecord::ConnectionNotEstablished do
+          # mimic a connection that hasn't checked and cached the server version yet i.e. without a raw_connection
+          connection.pool.instance_variable_set(:@server_version, nil)
+          connection.raw_connection.stub(:server_version, 0) do
+            error = assert_raises ActiveRecord::ConnectionNotEstablished do
+              connection.reconnect!
+            end
+            assert_equal "Could not determine PostgreSQL version", error.message
+          end
+
+          # can reconnect after a bad connection
+          assert_nothing_raised do
             connection.reconnect!
           end
-          assert_equal "Could not determine PostgreSQL version", error.message
-        end
-
-        # can reconnect after a bad connection
-        assert_nothing_raised do
-          connection.reconnect!
         end
       end
 
       def test_reconnect_after_bad_connection_on_check_version_with_native_exception
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash.merge(connection_retries: 0))
-        connection.connect!
+        with_postgresql_adapter(db_config.configuration_hash.merge(connection_retries: 0)) do |connection|
+          connection.connect!
 
-        # mimic a connection that hasn't checked and cached the server version yet i.e. without a raw_connection
-        connection.pool.instance_variable_set(:@server_version, nil)
-        # https://github.com/ged/ruby-pg/commit/a565e153d4d05955342ad24d4845378eee956935
-        connection.raw_connection.stub(:server_version, -> { raise PG::ConnectionBad, "PQserverVersion() can't get server version" }) do
-          error = assert_raises ActiveRecord::ConnectionNotEstablished do
+          # mimic a connection that hasn't checked and cached the server version yet i.e. without a raw_connection
+          connection.pool.instance_variable_set(:@server_version, nil)
+          # https://github.com/ged/ruby-pg/commit/a565e153d4d05955342ad24d4845378eee956935
+          connection.raw_connection.stub(:server_version, -> { raise PG::ConnectionBad, "PQserverVersion() can't get server version" }) do
+            error = assert_raises ActiveRecord::ConnectionNotEstablished do
+              connection.reconnect!
+            end
+            assert_equal "PQserverVersion() can't get server version", error.message
+          end
+
+          # can reconnect after a bad connection
+          assert_nothing_raised do
             connection.reconnect!
           end
-          assert_equal "PQserverVersion() can't get server version", error.message
-        end
-
-        # can reconnect after a bad connection
-        assert_nothing_raised do
-          connection.reconnect!
         end
       end
 
@@ -284,6 +291,74 @@ module ActiveRecord
         connection&.disconnect!
       end
 
+      def test_configure_connection_variables_with_nil_value
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(
+            variables: { client_min_messages: nil }
+          )
+        )
+        connection.connect!
+
+        # nil is a no-op: Rails' default "warning" should still be applied
+        assert_equal "warning", connection.query_value("SHOW client_min_messages")
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_configure_connection_variables_with_false_value
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(
+            variables: { enable_seqscan: false }
+          )
+        )
+        connection.connect!
+
+        assert_equal "off", connection.query_value("SHOW enable_seqscan")
+      ensure
+        connection&.disconnect!
+      end
+
+      def test_configure_connection_preserves_user_supplied_variable_casing
+        run_without_connection do |config|
+          connection = PostgreSQLAdapter.new(
+            config.merge(variables: { "my_app.SomeOption" => "hello" })
+          )
+          queries = capture_sql(include_schema: true) do
+            connection.select_value("SELECT 1")
+          end.map(&:squish)
+
+          assert_includes queries, "SET SESSION my_app.SomeOption TO 'hello'"
+        end
+      end
+
+      def test_configure_connection_skips_redundant_set_via_downcase_fallback
+        run_without_connection do |config|
+          queries = with_timezone_config(default: :local) do
+            connection = PostgreSQLAdapter.new(
+              config.merge(
+                options: KNOWN_SERVER_DEFAULTS,
+                variables: { "sTaNdArD_cOnFoRmInG_StRiNgS" => "on" },
+              )
+            )
+            capture_sql(include_schema: true) do
+              connection.select_value("SELECT 1")
+            end
+          end.map(&:squish)
+
+          expected_queries = [
+            "SET SESSION IntervalStyle TO 'iso_8601'",
+            "SET SESSION client_min_messages TO 'warning'",
+            ("SHOW search_path" if @connection.database_version < 18_00_00),
+            "SELECT 1",
+          ].compact
+
+          assert_equal expected_queries.size, queries.size
+          assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
+        end
+      end
+
       def test_schema_search_path_is_reapplied_after_reconnect
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
 
@@ -321,38 +396,34 @@ module ActiveRecord
       end
 
       def test_queries_executed_on_fresh_connection_through_first_select
-        reset_connection
+        run_without_connection do |config|
+          ActiveRecord::Base.establish_connection(config.merge(options: KNOWN_SERVER_DEFAULTS))
 
-        queries = PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
-          with_timezone_config(default: :utc) do
+          queries = with_timezone_config(default: :utc) do
             capture_sql(include_schema: true) do
               ActiveRecord::Base.lease_connection.select_value("SELECT 1+2")
             end
-          end
-        end.map(&:squish)
+          end.map(&:squish)
 
-        expected_queries = [
-          "SET SESSION IntervalStyle TO 'iso_8601'",
-          "SET SESSION client_min_messages TO 'warning'",
-          "SET SESSION timezone TO 'UTC'",
-          ("SHOW search_path" if @connection.database_version < 18_00_00),
-          "SELECT 1+2",
-        ].compact
+          expected_queries = [
+            "SET SESSION IntervalStyle TO 'iso_8601'",
+            "SET SESSION client_min_messages TO 'warning'",
+            "SET SESSION TimeZone TO 'UTC'",
+            ("SHOW search_path" if @connection.database_version < 18_00_00),
+            "SELECT 1+2",
+          ].compact
 
-        assert_equal expected_queries.size, queries.size
-        assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
-      ensure
-        reset_connection
+          assert_equal expected_queries.size, queries.size
+          assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
+        end
       end
 
       def test_queries_executed_on_fresh_connection_with_all_settings_skipped
-        reset_connection
-
-        queries = PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
-          with_timezone_config(default: :utc) do
-            db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        run_without_connection do |config|
+          queries = with_timezone_config(default: :local) do
             connection = PostgreSQLAdapter.new(
-              db_config.configuration_hash.merge(
+              config.merge(
+                options: KNOWN_SERVER_DEFAULTS,
                 intervalstyle: false,
                 min_messages: false,
               )
@@ -360,19 +431,16 @@ module ActiveRecord
             capture_sql(include_schema: true) do
               connection.select_value("SELECT 1+2")
             end
-          end
-        end.map(&:squish)
+          end.map(&:squish)
 
-        expected_queries = [
-          "SET SESSION timezone TO 'UTC'",
-          ("SHOW search_path" if @connection.database_version < 18_00_00),
-          "SELECT 1+2",
-        ].compact
+          expected_queries = [
+            ("SHOW search_path" if @connection.database_version < 18_00_00),
+            "SELECT 1+2",
+          ].compact
 
-        assert_equal expected_queries.size, queries.size
-        assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
-      ensure
-        reset_connection
+          assert_equal expected_queries.size, queries.size
+          assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
+        end
       end
 
       def test_queries_executed_on_fresh_connection_with_first_custom_type_lookup
@@ -381,32 +449,32 @@ module ActiveRecord
           t.column :value, :postgresql_startup_lookup_enum
         end
         @connection.execute "INSERT INTO postgresql_startup_lookup_enums (value) VALUES ('good')"
-        reset_connection
 
-        queries = PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
-          with_timezone_config(default: :utc) do
+        run_without_connection do |config|
+          ActiveRecord::Base.establish_connection(config.merge(options: KNOWN_SERVER_DEFAULTS))
+
+          queries = with_timezone_config(default: :utc) do
             capture_sql(include_schema: true) do
               result = ActiveRecord::Base.lease_connection.select_all("SELECT value FROM postgresql_startup_lookup_enums LIMIT 1")
               result.column_types["value"]
             end
-          end
-        end.map(&:squish)
+          end.map(&:squish)
 
-        expected_queries = [
-          "SET SESSION IntervalStyle TO 'iso_8601'",
-          "SET SESSION client_min_messages TO 'warning'",
-          "SET SESSION timezone TO 'UTC'",
-          ("SHOW search_path" if @connection.database_version < 18_00_00),
-          "SELECT value FROM postgresql_startup_lookup_enums LIMIT 1",
-          oid_lookup_query_regex(initial_bulk_load: true),
-        ].compact
+          expected_queries = [
+            "SET SESSION IntervalStyle TO 'iso_8601'",
+            "SET SESSION client_min_messages TO 'warning'",
+            "SET SESSION TimeZone TO 'UTC'",
+            ("SHOW search_path" if @connection.database_version < 18_00_00),
+            "SELECT value FROM postgresql_startup_lookup_enums LIMIT 1",
+            oid_lookup_query_regex(initial_bulk_load: true),
+          ].compact
 
-        assert_equal expected_queries.size, queries.size
-        assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
+          assert_equal expected_queries.size, queries.size
+          assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
+        end
       ensure
         @connection.drop_table "postgresql_startup_lookup_enums", if_exists: true
         @connection.drop_enum "postgresql_startup_lookup_enum", if_exists: true
-        reset_connection
       end
 
       def test_queries_executed_on_fresh_connection_with_two_multi_oid_type_lookups
@@ -415,11 +483,12 @@ module ActiveRecord
 
         first_sql = "SELECT 'one'::postgresql_startup_lookup_one_a AS value_a, 'one'::postgresql_startup_lookup_one_b AS value_b"
         second_sql = "SELECT 'one'::postgresql_startup_lookup_two_a AS value_a, 'one'::postgresql_startup_lookup_two_b AS value_b"
-        reset_connection
 
-        first_queries = nil
-        second_queries = nil
-        PostgreSQLAdapter.with(decode_dates: false, decode_money: false, decode_bytea: false) do
+        run_without_connection do |config|
+          ActiveRecord::Base.establish_connection(config.merge(options: KNOWN_SERVER_DEFAULTS))
+
+          first_queries = nil
+          second_queries = nil
           with_timezone_config(default: :utc) do
             first_queries = capture_sql(include_schema: true) do
               connection = ActiveRecord::Base.lease_connection
@@ -434,32 +503,31 @@ module ActiveRecord
               connection.select_all(second_sql)
             end.map(&:squish)
           end
+
+          expected_first_queries = [
+            "SET SESSION IntervalStyle TO 'iso_8601'",
+            "SET SESSION client_min_messages TO 'warning'",
+            "SET SESSION TimeZone TO 'UTC'",
+            ("SHOW search_path" if @connection.database_version < 18_00_00),
+            first_sql,
+            oid_lookup_query_regex(initial_bulk_load: true),
+          ].compact
+
+          expected_second_queries = [
+            second_sql,
+            oid_lookup_query_regex(initial_bulk_load: false),
+          ]
+
+          assert_equal expected_first_queries.size, first_queries.size
+          assert expected_first_queries.zip(first_queries).all? { |expected, actual| expected === actual }
+          assert_equal expected_second_queries.size, second_queries.size
+          assert expected_second_queries.zip(second_queries).all? { |expected, actual| expected === actual }
         end
-
-        expected_first_queries = [
-          "SET SESSION IntervalStyle TO 'iso_8601'",
-          "SET SESSION client_min_messages TO 'warning'",
-          "SET SESSION timezone TO 'UTC'",
-          ("SHOW search_path" if @connection.database_version < 18_00_00),
-          first_sql,
-          oid_lookup_query_regex(initial_bulk_load: true),
-        ].compact
-
-        expected_second_queries = [
-          second_sql,
-          oid_lookup_query_regex(initial_bulk_load: false),
-        ]
-
-        assert_equal expected_first_queries.size, first_queries.size
-        assert expected_first_queries.zip(first_queries).all? { |expected, actual| expected === actual }
-        assert_equal expected_second_queries.size, second_queries.size
-        assert expected_second_queries.zip(second_queries).all? { |expected, actual| expected === actual }
       ensure
         @connection.drop_enum "postgresql_startup_lookup_one_a", if_exists: true
         @connection.drop_enum "postgresql_startup_lookup_one_b", if_exists: true
         @connection.drop_enum "postgresql_startup_lookup_two_a", if_exists: true
         @connection.drop_enum "postgresql_startup_lookup_two_b", if_exists: true
-        reset_connection
       end
 
       def test_schema_search_path_uses_parameter_status_on_pg18
@@ -516,53 +584,57 @@ module ActiveRecord
       end
 
       def test_exec_insert_with_returning_disabled
-        connection = connection_without_insert_returning
-        result = assert_deprecated(ActiveRecord.deprecator) do
-          connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id", "postgresql_partitioned_table_parent_id_seq")
+        connection_without_insert_returning do |connection|
+          result = assert_deprecated(ActiveRecord.deprecator) do
+            connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id", "postgresql_partitioned_table_parent_id_seq")
+          end
+          expect = connection.select_value("select max(id) from postgresql_partitioned_table_parent")
+          assert_equal expect.to_i, result.rows.first.first
         end
-        expect = connection.select_value("select max(id) from postgresql_partitioned_table_parent")
-        assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_exec_insert_with_returning_disabled_and_no_sequence_name_given
-        connection = connection_without_insert_returning
-        result = assert_deprecated(ActiveRecord.deprecator) do
-          connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id")
+        connection_without_insert_returning do |connection|
+          result = assert_deprecated(ActiveRecord.deprecator) do
+            connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id")
+          end
+          expect = connection.select_value("select max(id) from postgresql_partitioned_table_parent")
+          assert_equal expect.to_i, result.rows.first.first
         end
-        expect = connection.select_value("select max(id) from postgresql_partitioned_table_parent")
-        assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_exec_insert_default_values_with_returning_disabled_and_no_sequence_name_given
-        connection = connection_without_insert_returning
-        result = assert_deprecated(ActiveRecord.deprecator) do
-          connection.exec_insert("insert into postgresql_partitioned_table_parent DEFAULT VALUES", nil, [], "id")
+        connection_without_insert_returning do |connection|
+          result = assert_deprecated(ActiveRecord.deprecator) do
+            connection.exec_insert("insert into postgresql_partitioned_table_parent DEFAULT VALUES", nil, [], "id")
+          end
+          expect = connection.select_value("select max(id) from postgresql_partitioned_table_parent")
+          assert_equal expect.to_i, result.rows.first.first
         end
-        expect = connection.select_value("select max(id) from postgresql_partitioned_table_parent")
-        assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_exec_insert_default_values_quoted_schema_with_returning_disabled_and_no_sequence_name_given
-        connection = connection_without_insert_returning
-        result = assert_deprecated(ActiveRecord.deprecator) do
-          connection.exec_insert('insert into "public"."postgresql_partitioned_table_parent" DEFAULT VALUES', nil, [], "id")
+        connection_without_insert_returning do |connection|
+          result = assert_deprecated(ActiveRecord.deprecator) do
+            connection.exec_insert('insert into "public"."postgresql_partitioned_table_parent" DEFAULT VALUES', nil, [], "id")
+          end
+          expect = connection.select_value("select max(id) from postgresql_partitioned_table_parent")
+          assert_equal expect.to_i, result.rows.first.first
         end
-        expect = connection.select_value("select max(id) from postgresql_partitioned_table_parent")
-        assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_insert_uses_schema_cache_with_insert_returning_disabled
-        connection = connection_without_insert_returning
+        connection_without_insert_returning do |connection|
+          # First call might need to populate the schema cache
+          connection.insert("INSERT INTO postgresql_partitioned_table_parent (number) VALUES (0)")
 
-        # First call might need to populate the schema cache
-        connection.insert("INSERT INTO postgresql_partitioned_table_parent (number) VALUES (0)")
-
-        # We expect:
-        # 1. INSERT
-        # 2. SELECT pg_get_serial_sequence (ideally this would cached, but it's currently not)
-        # 3. SELECT currval
-        assert_queries_count(3, include_schema: true) do
-          connection.insert("INSERT INTO postgresql_partitioned_table_parent (number) VALUES (1)")
+          # We expect:
+          # 1. INSERT
+          # 2. SELECT pg_get_serial_sequence (ideally this would cached, but it's currently not)
+          # 3. SELECT currval
+          assert_queries_count(3, include_schema: true) do
+            connection.insert("INSERT INTO postgresql_partitioned_table_parent (number) VALUES (1)")
+          end
         end
       end
 
@@ -839,6 +911,17 @@ module ActiveRecord
         end
       end
 
+      def test_index_with_comment_on_table_with_schema
+        @connection.create_schema("second_schema")
+        @connection.create_table("second_schema.posts")
+        @connection.add_index("second_schema.posts", :id, comment: "test comment")
+
+        index = @connection.indexes("second_schema.posts").first
+        assert_equal "test comment", index.comment
+      ensure
+        @connection.drop_schema("second_schema")
+      end
+
       def test_columns_for_distinct_zero_orders
         assert_equal "posts.id",
           @connection.columns_for_distinct("posts.id", [])
@@ -905,11 +988,14 @@ module ActiveRecord
         assert_raises ActiveRecord::ConnectionNotEstablished do
           @connection.execute("SELECT 1")
         end
+      ensure
+        @connection&.disconnect!
       end
 
       def test_translate_no_connection_exception_to_not_established
-        pid = @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
-        @connection.pool.checkout.execute("SELECT pg_terminate_backend(#{pid})")
+        raw_connection = @connection.raw_connection
+        pid = connection_id_from_server(@connection)
+        kill_connection_from_server(pid)
         # If you run `@connection.execute` after the backend process has been terminated,
         # you will get the "server closed the connection unexpectedly" rather than "no connection to the server".
         # Because what we want to test here is an error that occurs during `send_query`,
@@ -917,11 +1003,107 @@ module ActiveRecord
         # The `send_query` changes the internal `PG::Connection#status` to `CONNECTION_BAD`,
         # so any subsequent queries will get the "no connection to the server" error.
         # https://github.com/postgres/postgres/blob/REL_17_0/src/interfaces/libpq/fe-exec.c#L1686-L1691
-        @connection.instance_variable_get(:@raw_connection).send_query("SELECT 1")
+        raw_connection.send_query("SELECT 1")
 
         assert_raise ActiveRecord::ConnectionNotEstablished do
           @connection.execute("SELECT 1")
         end
+      end
+
+      def test_terminate_backend_preserves_typed_exception
+        pid = connection_id_from_server(@connection)
+
+        # Put in a dirty transaction so auto-reconnect can't mask the error
+        @connection.execute("BEGIN")
+        @connection.execute("CREATE TEMP TABLE _typed_exception_probe()")
+
+        kill_connection_from_server(pid)
+        sleep 0.1
+
+        error = assert_raises(ActiveRecord::ConnectionFailed) { @connection.execute("SELECT 1") }
+        assert_kind_of PG::AdminShutdown, error.cause
+        assert_equal "57P01", error.cause.result.error_field(PG::PG_DIAG_SQLSTATE)
+      ensure
+        @connection&.disconnect!
+      end
+
+      def test_idle_in_transaction_timeout_preserves_typed_exception
+        @connection.execute("BEGIN")
+        @connection.execute("SET idle_in_transaction_session_timeout = '10ms'")
+        sleep 0.1
+
+        error = assert_raises(ActiveRecord::ConnectionFailed) { @connection.execute("SELECT 1") }
+        assert_kind_of PG::IdleInTransactionSessionTimeout, error.cause
+        assert_equal "25P03", error.cause.result.error_field(PG::PG_DIAG_SQLSTATE)
+      ensure
+        @connection&.disconnect!
+      end
+
+      def test_fatal_via_notice_channel_recovers_before_the_next_query
+        pid = connection_id_from_server(@connection)
+        kill_connection_from_server(pid)
+
+        # Force the FATAL through the notice channel rather than as a result:
+        # read it while idle (a bare get_result). Reach @raw_connection directly
+        # -- the #raw_connection accessor would mark the connection dirty and
+        # defeat recovery; in real use the notice is captured during AR's own
+        # get_result.
+        raw = @connection.instance_variable_get(:@raw_connection)
+        raw.socket_io.wait_readable(1)
+        raw.consume_input
+        assert_nil raw.get_result
+
+        # Having already learned the connection is dead, the next query doesn't
+        # pay for it: pre-query verification reconnects, exactly as it does for
+        # any connection we knew in advance had gone bad.
+        assert_equal 1, @connection.select_value("SELECT 1")
+        assert_not_equal pid, connection_id_from_server(@connection)
+      ensure
+        @connection&.disconnect!
+      end
+
+      def test_fatal_via_notice_channel_preserves_typed_cause_when_unrecoverable
+        pid = connection_id_from_server(@connection)
+        kill_connection_from_server(pid)
+
+        # Same notice-channel delivery as above, but reach the raw connection via
+        # the #raw_connection accessor, which marks it dirty -> non-recoverable.
+        # With no clean reconnect available, the next query surfaces the failure
+        # -- and it must carry the captured FATAL as its cause, not the generic
+        # socket error that merely tripped over the already-dead connection.
+        raw = @connection.raw_connection
+        raw.socket_io.wait_readable(1)
+        raw.consume_input
+        assert_nil raw.get_result
+
+        error = assert_raises(ActiveRecord::ConnectionFailed) { @connection.select_value("SELECT 1") }
+        assert_kind_of PG::AdminShutdown, error.cause
+        assert_equal "57P01", error.cause.result.error_field(PG::PG_DIAG_SQLSTATE)
+      ensure
+        @connection&.disconnect!
+      end
+
+      def test_flush_on_dead_connection_translates_to_connection_failed
+        pid = connection_id_from_server(@connection)
+        raw_connection = @connection.raw_connection
+
+        # Queue a slow query, then kill the backend while it's running
+        raw_connection.send_query("SELECT pg_sleep(1)")
+        kill_connection_from_server(pid)
+        sleep 0.1
+
+        # Drain results: first the FATAL, then the socket death
+        loop do
+          raw_connection.get_result || break
+        rescue PG::Error
+          break
+        end
+
+        error = assert_raises(PG::Error) { raw_connection.flush }
+        assert_not_kind_of PG::ConnectionBad, error
+
+        translated = @connection.send(:translate_exception_class, error, nil, nil)
+        assert_kind_of ActiveRecord::ConnectionFailed, translated
       end
 
       def test_reload_type_map_for_newly_defined_types
@@ -941,11 +1123,11 @@ module ActiveRecord
         assert_not @connection.send(:type_map).key?(enum_oid)
       ensure
         @connection.drop_enum "feeling", if_exists: true
-        reset_connection
+        reset_pool
       end
 
       def test_only_reload_type_map_once_for_every_unrecognized_type
-        reset_connection
+        reset_pool
         connection = ActiveRecord::Base.lease_connection
         connection.select_all "SELECT 1" # eagerly initialize the connection
 
@@ -968,7 +1150,7 @@ module ActiveRecord
         assert_equal expected_queries.size, queries.size
         assert expected_queries.zip(queries).all? { |expected, actual| expected === actual }
       ensure
-        reset_connection
+        reset_pool
       end
 
       def test_bulk_loads_domains_after_first_unknown_oid_lookup
@@ -980,7 +1162,7 @@ module ActiveRecord
         @connection.create_table("postgresql_domain_type_map_bulk_loads_two", force: true) do |t|
           t.column :value, :postgresql_domain_two
         end
-        reset_connection
+        reset_pool
 
         connection = ActiveRecord::Base.lease_connection
         connection.select_all "SELECT 1" # eagerly initialize the connection
@@ -1011,7 +1193,7 @@ module ActiveRecord
         @connection.drop_table "postgresql_domain_type_map_bulk_loads_two", if_exists: true
         @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_one"
         @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_two"
-        reset_connection
+        reset_pool
       end
 
       def test_bulk_oid_lookup_query_excludes_system_catalog_types_for_known_servers
@@ -1039,7 +1221,7 @@ module ActiveRecord
         @connection.execute "CREATE DOMAIN postgresql_domain_base AS integer"
         @connection.execute "CREATE DOMAIN postgresql_domain_nested AS postgresql_domain_base[]"
         nested_array_oid = @connection.query_value("SELECT 'postgresql_domain_nested[]'::regtype::oid").to_i
-        reset_connection
+        reset_pool
 
         connection = ActiveRecord::Base.lease_connection
         lookup_sql = "SELECT '{}'::postgresql_domain_nested[] AS value"
@@ -1065,20 +1247,24 @@ module ActiveRecord
         pg_type_scan_nodes = plan_nodes(plan).select { |node| node["Relation Name"] == "pg_type" }
         # Keep anti-OR behavior from #40876 visible: OID lookups should stay index-driven,
         # and only the typtype='d' branch may seq-scan.
-        scan_summary = pg_type_scan_nodes.map { |node| [node["Index Name"], node["Filter"]] }.sort_by { |(index_name, filter)| [index_name.to_s, filter.to_s] }
+        scan_summary = pg_type_scan_nodes.map do |node|
+          index_name = plan_nodes(node).pluck("Index Name").compact.first
+          [index_name, node["Filter"]]
+        end.sort_by { |(index_name, filter)| [index_name.to_s, filter.to_s] }
+
         assert_equal 2, scan_summary.length
         assert_includes scan_summary, ["pg_type_oid_index", nil]
 
-        seq_scan_filter = scan_summary.find { |index_name, _| index_name.nil? }.last
+        seq_scan_filter = scan_summary.find { |index_name, filter| index_name.nil? && filter }.last
         assert_includes seq_scan_filter, "typtype = ANY ('{r,e,d}'::\"char\"[])"
       ensure
         @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_nested"
         @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_base"
-        reset_connection
+        reset_pool
       end
 
       def test_load_additional_types_cascades_dependency_lookups_after_initial_bulk_load
-        reset_connection
+        reset_pool
         connection = ActiveRecord::Base.lease_connection
         silence_warnings { connection.select_all "select 'pg_catalog.pg_class'::regclass" }
 
@@ -1095,11 +1281,11 @@ module ActiveRecord
       ensure
         connection&.execute "DROP DOMAIN IF EXISTS postgresql_domain_nested_after_bulk"
         connection&.execute "DROP DOMAIN IF EXISTS postgresql_domain_base_after_bulk"
-        reset_connection
+        reset_pool
       end
 
       def test_only_warn_on_first_encounter_of_unrecognized_oid
-        reset_connection
+        reset_pool
         connection = ActiveRecord::Base.lease_connection
 
         warning = capture(:stderr) {
@@ -1109,7 +1295,7 @@ module ActiveRecord
         }
         assert_match(/\Aunknown OID \d+: failed to recognize type of 'regclass'\. It will be treated as String\.\n\z/, warning)
       ensure
-        reset_connection
+        reset_pool
       end
 
       def test_unparsed_defaults_are_at_least_set_when_saving
@@ -1168,13 +1354,9 @@ module ActiveRecord
 
       def test_ignores_warnings_when_behavior_ignore
         with_db_warnings_action(:ignore) do
-          # libpq prints a warning to stderr from C, so we need to stub
-          # the whole file descriptors, not just Ruby's $stdout/$stderr.
-          _out, err = capture_subprocess_io do
-            result = @connection.execute("do $$ BEGIN RAISE WARNING 'foo'; END; $$")
-            assert_equal [], result.to_a
-          end
-          assert_match(/WARNING:  foo/, err)
+          result = @connection.execute("do $$ BEGIN RAISE WARNING 'foo'; END; $$")
+
+          assert_equal [], result.to_a
         end
       end
 
@@ -1229,6 +1411,60 @@ module ActiveRecord
         end
       end
 
+      def test_clears_warnings_after_handling_non_execute_query
+        warning_sql = "do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$"
+        warnings = []
+        warning_action = ->(warning) { warnings << [warning.message, warning.sql] }
+
+        with_db_warnings_action(warning_action) do
+          @connection.exec_query(warning_sql)
+          @connection.exec_query("SELECT 1")
+        end
+
+        assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
+      end
+
+      def test_clears_warnings_after_non_execute_warning_action_raises
+        with_db_warnings_action(:raise) do
+          assert_raises(ActiveRecord::SQLWarning) do
+            @connection.exec_query("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$")
+          end
+
+          assert_nothing_raised do
+            @connection.exec_query("SELECT 1")
+          end
+        end
+      end
+
+      def test_handles_warnings_after_non_execute_query_raises
+        warning_sql = "do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; RAISE EXCEPTION 'PostgreSQL SQL error'; END; $$"
+        warnings = []
+        warning_action = ->(warning) { warnings << [warning.message, warning.sql] }
+
+        with_db_warnings_action(warning_action) do
+          assert_raises(ActiveRecord::StatementInvalid) do
+            @connection.exec_query(warning_sql)
+          end
+
+          @connection.exec_query("SELECT 1")
+        end
+
+        assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
+      end
+
+      def test_warning_action_does_not_hide_non_execute_query_error
+        with_db_warnings_action(:raise) do
+          error = assert_raises(ActiveRecord::StatementInvalid) do
+            @connection.exec_query("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; RAISE EXCEPTION 'PostgreSQL SQL error'; END; $$")
+          end
+          assert_match(/PostgreSQL SQL error/, error.message)
+
+          assert_nothing_raised do
+            @connection.exec_query("SELECT 1")
+          end
+        end
+      end
+
       def test_allowlist_of_warnings_to_ignore
         with_db_warnings_action(:raise, [/PostgreSQL SQL warning/]) do
           result = @connection.execute("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$")
@@ -1256,62 +1492,62 @@ module ActiveRecord
 
       def test_date_decoding_enabled
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
-
-        with_postgresql_apdater_decode_dates do
-          date = connection.select_value("select '2024-01-01'::date")
-          assert_equal Date.new(2024, 01, 01), date
-          assert_equal Date, date.class
+        with_postgresql_adapter(db_config.configuration_hash) do |connection|
+          with_postgresql_apdater_decode_dates do
+            date = connection.select_value("select '2024-01-01'::date")
+            assert_equal Date.new(2024, 01, 01), date
+            assert_equal Date, date.class
+          end
         end
       end
 
       def test_date_decoding_disabled
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
-
-        date = connection.select_value("select '2024-01-01'::date")
-        assert_equal "2024-01-01", date
-        assert_equal String, date.class
+        with_postgresql_adapter(db_config.configuration_hash) do |connection|
+          date = connection.select_value("select '2024-01-01'::date")
+          assert_equal "2024-01-01", date
+          assert_equal String, date.class
+        end
       end
 
       def test_money_decoding_enabled
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
-
-        PostgreSQLAdapter.with(decode_money: true) do
-          money = connection.select_value("select '12.34'::money")
-          assert_equal BigDecimal("12.34"), money
-          assert_equal BigDecimal, money.class
+        with_postgresql_adapter(db_config.configuration_hash) do |connection|
+          PostgreSQLAdapter.with(decode_money: true) do
+            money = connection.select_value("select '12.34'::money")
+            assert_equal BigDecimal("12.34"), money
+            assert_equal BigDecimal, money.class
+          end
         end
       end
 
       def test_money_decoding_disabled
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
-
-        money = connection.select_value("select '12.34'::money")
-        assert_equal "$12.34", money
-        assert_equal String, money.class
+        with_postgresql_adapter(db_config.configuration_hash) do |connection|
+          money = connection.select_value("select '12.34'::money")
+          assert_equal "$12.34", money
+          assert_equal String, money.class
+        end
       end
 
       def test_bytea_decoding_enabled
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
-
-        PostgreSQLAdapter.with(decode_bytea: true) do
-          bytea = connection.select_value("select '\\x48656c6c6f'::bytea")
-          assert_equal "Hello", bytea
-          assert_equal Encoding::BINARY, bytea.encoding
+        with_postgresql_adapter(db_config.configuration_hash) do |connection|
+          PostgreSQLAdapter.with(decode_bytea: true) do
+            bytea = connection.select_value("select '\\x48656c6c6f'::bytea")
+            assert_equal "Hello", bytea
+            assert_equal Encoding::BINARY, bytea.encoding
+          end
         end
       end
 
       def test_bytea_decoding_disabled
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
-
-        bytea = connection.select_value("select '\\x48656c6c6f'::bytea")
-        assert_equal "\\x48656c6c6f", bytea
-        assert_equal Encoding::UTF_8, bytea.encoding
+        with_postgresql_adapter(db_config.configuration_hash) do |connection|
+          bytea = connection.select_value("select '\\x48656c6c6f'::bytea")
+          assert_equal "\\x48656c6c6f", bytea
+          assert_equal Encoding::UTF_8, bytea.encoding
+        end
       end
 
       def test_bytea_unescape_after_decode_prevents_corruption
@@ -1319,18 +1555,18 @@ module ActiveRecord
 
         PostgreSQLAdapter.with(decode_bytea: true) do
           # Need fresh connection after changing decode_bytea setting
-          connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+          with_postgresql_adapter(db_config.configuration_hash) do |connection|
+            bytea = connection.select_value("select '\\x48656c6c6f'::bytea")
+            assert_equal "Hello", bytea
+            assert_equal Encoding::BINARY, bytea.encoding
 
-          bytea = connection.select_value("select '\\x48656c6c6f'::bytea")
-          assert_equal "Hello", bytea
-          assert_equal Encoding::BINARY, bytea.encoding
-
-          # Attempting to unescape already-decoded data should prevent corruption
-          assert_deprecated(ActiveRecord.deprecator) do
-            unescaped = PG::Connection.unescape_bytea(bytea)
-            # Should return the already-decoded value, not corrupt it
-            assert_equal "Hello", unescaped
-            assert_equal Encoding::BINARY, unescaped.encoding
+            # Attempting to unescape already-decoded data should prevent corruption
+            assert_deprecated(ActiveRecord.deprecator) do
+              unescaped = PG::Connection.unescape_bytea(bytea)
+              # Should return the already-decoded value, not corrupt it
+              assert_equal "Hello", unescaped
+              assert_equal Encoding::BINARY, unescaped.encoding
+            end
           end
         end
       end
@@ -1347,15 +1583,15 @@ module ActiveRecord
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
 
         PostgreSQLAdapter.with(decode_bytea: true) do
-          connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+          with_postgresql_adapter(db_config.configuration_hash) do |connection|
+            bytea = connection.select_value("select '\\x48656c6c6f'::bytea")
+            assert bytea.instance_variable_defined?(:@ar_pg_bytea_decoded)
 
-          bytea = connection.select_value("select '\\x48656c6c6f'::bytea")
-          assert bytea.instance_variable_defined?(:@ar_pg_bytea_decoded)
+            type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Bytea.new
+            processed = type.deserialize(bytea)
 
-          type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Bytea.new
-          processed = type.deserialize(bytea)
-
-          assert_not processed.instance_variable_defined?(:@ar_pg_bytea_decoded)
+            assert_not processed.instance_variable_defined?(:@ar_pg_bytea_decoded)
+          end
         end
       end
 
@@ -1457,9 +1693,19 @@ module ActiveRecord
           super(@connection, "ex", definition, &block)
         end
 
-        def connection_without_insert_returning
+        # Yields a freshly built PostgreSQLAdapter and disconnects it when the
+        # block exits. Used so tests don't leak the underlying PG socket
+        # waiting for the pg gem's finalizer to fire at GC time.
+        def with_postgresql_adapter(config_hash)
+          connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(config_hash)
+          yield connection
+        ensure
+          connection&.disconnect!
+        end
+
+        def connection_without_insert_returning(&block)
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-          ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash.merge(insert_returning: false))
+          with_postgresql_adapter(db_config.configuration_hash.merge(insert_returning: false), &block)
         end
 
         def oid_lookup_query?(query)

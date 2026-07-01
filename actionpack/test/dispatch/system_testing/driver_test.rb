@@ -168,29 +168,33 @@ class DriverTest < ActiveSupport::TestCase
     end
   end
 
-  test "preloads browser's driver_path with DriverFinder if a path isn't already specified" do
+  test "preloads browser's driver_path and binary with DriverFinder if a path isn't already specified" do
     original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
     ::Selenium::WebDriver::Chrome::Service.driver_path = nil
 
-    # Our stub must return paths to a real executables, otherwise an internal Selenium assertion will fail.
-    # Note: SeleniumManager is private api
-    found_executable = RbConfig.ruby
-    ::Selenium::WebDriver::SeleniumManager.stub(:binary_paths, { "driver_path" => found_executable, "browser_path" => found_executable }) do
-      ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+    # Note: SeleniumManager and Platform are private api
+    driver = ::Selenium::WebDriver::Platform.stub(:assert_executable, nil) do
+      ::Selenium::WebDriver::SeleniumManager.stub(:binary_paths, { "driver_path" => "chromedriver", "browser_path" => "chrome" }) do
+        ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+      end
     end
 
-    assert_equal found_executable, ::Selenium::WebDriver::Chrome::Service.driver_path
+    assert_equal "chromedriver", ::Selenium::WebDriver::Chrome::Service.driver_path
+    assert_equal "chrome", driver.instance_variable_get(:@browser).options.binary
   ensure
     ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
   end
 
   test "does not overwrite existing driver_path during preload" do
     original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
-    # The driver_path must point to a real executable, otherwise an internal Selenium assertion will fail.
-    ::Selenium::WebDriver::Chrome::Service.driver_path = RbConfig.ruby
 
-    assert_no_changes -> { ::Selenium::WebDriver::Chrome::Service.driver_path } do
-      ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+    # Note: Platform is private api
+    ::Selenium::WebDriver::Platform.stub(:assert_executable, nil) do
+      ::Selenium::WebDriver::Chrome::Service.driver_path = "/path/to/chromedriver"
+
+      assert_no_changes -> { ::Selenium::WebDriver::Chrome::Service.driver_path } do
+        ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+      end
     end
   ensure
     ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path

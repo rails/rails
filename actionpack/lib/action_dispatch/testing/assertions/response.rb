@@ -11,7 +11,7 @@ module ActionDispatch
         missing:  :not_found?,
         redirect: :redirection?,
         error:    :server_error?,
-      }
+      }.freeze
 
       # Asserts that the response is one of the following types:
       #

@@ -103,10 +103,9 @@ module ActiveRecord
     end
 
     module ClassMethods
-      def inherited(subclass) # :nodoc
+      def inherited(subclass) # :nodoc:
         super
         subclass.instance_variable_set(:@local_stored_attributes, nil)
-        subclass.instance_variable_set(:@_store_accessors_module, nil)
       end
 
       def store(store_attribute, options = {})
@@ -137,7 +136,15 @@ module ActiveRecord
             ""
           end
 
-        _store_accessors_module.module_eval do
+        mod = if const_defined?(:GeneratedStoreMethods, false)
+          const_get(:GeneratedStoreMethods, false)
+        else
+          mod = const_set(:GeneratedStoreMethods, Module.new)
+          include mod
+          mod
+        end
+
+        mod.module_eval do
           keys.each do |key|
             accessor_key = "#{accessor_prefix}#{key}#{accessor_suffix}"
 
@@ -160,7 +167,8 @@ module ActiveRecord
               return unless attribute_changed?(store_attribute)
               prev_store, new_store = changes[store_attribute]
               accessor = store_accessor_for(store_attribute)
-              [accessor.get(prev_store, key), accessor.get(new_store, key)]
+              prev_value, new_value = accessor.get(prev_store, key), accessor.get(new_store, key)
+              [prev_value, new_value] unless prev_value == new_value
             end
 
             define_method("#{accessor_key}_was") do
@@ -181,7 +189,8 @@ module ActiveRecord
               return unless saved_change_to_attribute?(store_attribute)
               prev_store, new_store = saved_changes[store_attribute]
               accessor = store_accessor_for(store_attribute)
-              [accessor.get(prev_store, key), accessor.get(new_store, key)]
+              prev_value, new_value = accessor.get(prev_store, key), accessor.get(new_store, key)
+              [prev_value, new_value] unless prev_value == new_value
             end
 
             define_method("#{accessor_key}_before_last_save") do
@@ -198,14 +207,6 @@ module ActiveRecord
         self.local_stored_attributes ||= {}
         self.local_stored_attributes[store_attribute] ||= []
         self.local_stored_attributes[store_attribute] |= keys
-      end
-
-      def _store_accessors_module # :nodoc:
-        @_store_accessors_module ||= begin
-          mod = Module.new
-          include mod
-          mod
-        end
       end
 
       def stored_attributes
@@ -244,8 +245,7 @@ module ActiveRecord
         end
 
         def self.read(object, attribute, key)
-          store_object = prepare(object, attribute)
-          store_object[key]
+          get(object.public_send(attribute), key)
         end
 
         def self.write(object, attribute, key, value)
@@ -280,6 +280,12 @@ module ActiveRecord
       end
 
       class IndifferentHashAccessor < ActiveRecord::Store::HashAccessor # :nodoc:
+        def self.get(store_object, key)
+          if store_object
+            IndifferentCoder.as_indifferent_hash(store_object)[key]
+          end
+        end
+
         def self.prepare(object, attribute)
           store_object = object.public_send(attribute)
 

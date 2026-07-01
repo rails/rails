@@ -265,7 +265,7 @@ module ActionController
       Rescue,
       Instrumentation,
       ParamsWrapper
-    ]
+    ].freeze
 
     # Note: Documenting these severely degrades the performance of rdoc
     # :stopdoc:
@@ -316,11 +316,11 @@ module ActionController
     setup_renderer!
 
     # Define some internal variables that should not be propagated to the view.
-    PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + %i(
+    PROTECTED_IVARS = (AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + %i(
       @_params @_response @_request @_config @_url_options @_action_has_layout @_view_context_class
       @_view_renderer @_lookup_context @_routes @_view_runtime @_db_runtime @_helper_proxy
       @_marked_for_same_origin_verification @_verify_authenticity_token_ran @_rendered_format
-    )
+    )).freeze
 
     def _protected_ivars
       PROTECTED_IVARS

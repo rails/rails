@@ -101,11 +101,11 @@ module ActiveSupport
     end
 
     def to_h
-      @parent.merge(self)
+      @parent.to_h.merge(self)
     end
 
     def ==(other)
-      to_h == other.to_h
+      other.is_a?(Hash) && to_h == other.to_h
     end
 
     def inspect

@@ -3,7 +3,7 @@
 module Rails
   module Generators
     class Database
-      DATABASES = %w( mysql trilogy postgresql sqlite3 mariadb-mysql mariadb-trilogy )
+      DATABASES = %w( mysql trilogy postgresql sqlite3 mariadb-mysql mariadb-trilogy ).freeze
 
       module MySQL
         def name

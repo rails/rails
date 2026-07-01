@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/hash/reverse_merge"
+require "active_support/core_ext/string/filters"
 require "active_support/core_ext/symbol/starts_ends_with"
 
 module ActiveModel
@@ -57,7 +58,7 @@ module ActiveModel
       def has_delegated_json(attr, **schema)
         has_json attr, **schema
 
-        schema.keys.each do |schema_key|
+        schema.each_key do |schema_key|
           define_method(schema_key)       { public_send(attr).public_send(schema_key) }
           define_method("#{schema_key}?") { public_send(attr).public_send("#{schema_key}?") }
           define_method("#{schema_key}=") { |value| send(attr).public_send("#{schema_key}=", value) }

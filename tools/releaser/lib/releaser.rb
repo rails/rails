@@ -19,7 +19,7 @@ class Releaser < Rake::TaskLib
     actionmailbox
     actiontext
     railties
-  )
+  ).freeze
 
   attr_reader :root, :version, :tag, :major, :minor, :tiny, :pre
 
@@ -299,7 +299,7 @@ class Releaser < Rake::TaskLib
       tasks/release.rb
       releaser.rb
       yarn.lock
-    )
+    ).freeze
     def tree_dirty?
       !`git status -s | grep -v '#{FILES_TO_IGNORE.join("\\|")}'`.strip.empty?
     end

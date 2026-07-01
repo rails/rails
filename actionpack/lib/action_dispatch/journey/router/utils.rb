@@ -43,11 +43,11 @@ module ActionDispatch
           US_ASCII = Encoding::US_ASCII
           UTF_8    = Encoding::UTF_8
           EMPTY    = (+"").force_encoding(US_ASCII).freeze
-          DEC2HEX  = (0..255).map { |i| (ENCODE % i).force_encoding(US_ASCII) }
+          DEC2HEX  = (0..255).map { |i| (ENCODE % i).force_encoding(US_ASCII).freeze }.freeze
 
           ALPHA = "a-zA-Z"
           DIGIT = "0-9"
-          UNRESERVED = "#{ALPHA}#{DIGIT}\\-\\._~"
+          UNRESERVED = "#{ALPHA}#{DIGIT}\\-\\._~".freeze
           SUB_DELIMS = "!\\$&'\\(\\)\\*\\+,;="
 
           ESCAPED  = /%[a-zA-Z0-9]{2}/
@@ -80,7 +80,7 @@ module ActionDispatch
             end
         end
 
-        ENCODER = UriEncoder.new
+        ENCODER = UriEncoder.new.freeze
 
         def self.escape_path(path)
           ENCODER.escape_path(path.to_s)

@@ -46,6 +46,20 @@ module ActiveRecord
         assert connection.index_name_exists?(table_name, "new_idx")
       end
 
+      def test_rename_index_preserves_where_clause
+        skip unless connection.supports_partial_index?
+
+        # keep the names short to make Oracle and similar behave
+        connection.add_index(table_name, [:foo], name: "old_idx", where: "administrator")
+        old_where = connection.indexes(table_name).find { |i| i.name == "old_idx" }.where
+
+        connection.rename_index(table_name, "old_idx", "new_idx")
+
+        new_index = connection.indexes(table_name).find { |i| i.name == "new_idx" }
+        assert_not_nil new_index
+        assert_equal old_where, new_index.where
+      end
+
       def test_rename_index_too_long
         too_long_index_name = good_index_name + "x"
         # keep the names short to make Oracle and similar behave
@@ -319,6 +333,41 @@ module ActiveRecord
 
         connection.add_index("testings", "last_name", nulls_not_distinct: false)
         assert_not connection.index_exists?("testings", "last_name", nulls_not_distinct: true)
+      end
+
+      def test_add_index_with_expression
+        skip("current adapter does not support expression indexes") unless supports_expression_index?
+        name = "testings_index_with_expression"
+
+        connection.add_index("testings", "(lower(last_name))", name:)
+        assert connection.index_exists?("testings", name:)
+        connection.remove_index("testings", name:)
+        assert_not connection.index_exists?("testings", name:)
+      end
+
+      def test_add_index_with_expression_using_array_syntax
+        skip("current adapter does not support expression indexes") unless supports_expression_index?
+        name = "testings_index_with_expression_using_array_syntax"
+
+        connection.add_index("testings", ["(lower(last_name))"], name:)
+        assert connection.index_exists?("testings", name:)
+        connection.remove_index("testings", name:)
+        assert_not connection.index_exists?("testings", name:)
+
+        connection.add_index("testings", ["(lower(last_name))", "first_name"], name:)
+        assert connection.index_exists?("testings", name:)
+        connection.remove_index("testings", name:)
+        assert_not connection.index_exists?("testings", name:)
+
+        connection.add_index("testings", [:first_name, "(lower(last_name))"], name:)
+        assert connection.index_exists?("testings", name:)
+        connection.remove_index("testings", name:)
+        assert_not connection.index_exists?("testings", name:)
+
+        connection.add_index("testings", ["(lower(last_name))", "(upper(first_name))"], name:)
+        assert connection.index_exists?("testings", name:)
+        connection.remove_index("testings", name:)
+        assert_not connection.index_exists?("testings", name:)
       end
 
       if ActiveRecord::Base.lease_connection.supports_disabling_indexes?

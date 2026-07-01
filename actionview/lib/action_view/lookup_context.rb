@@ -15,12 +15,15 @@ module ActionView
   class LookupContext # :nodoc:
     attr_accessor :prefixes
 
-    singleton_class.attr_accessor :registered_details
-    self.registered_details = []
+    singleton_class.attr_accessor :default_procs
+    self.default_procs = {}.freeze
+
+    def self.registered_details
+      self.default_procs.keys
+    end
 
     def self.register_detail(name, &block)
-      registered_details << name
-      Accessors::DEFAULT_PROCS[name] = block
+      self.default_procs = self.default_procs.merge(name => block).freeze
 
       Accessors.define_method(:"default_#{name}", &block)
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
@@ -37,7 +40,6 @@ module ActionView
 
     # Holds accessors for the registered details.
     module Accessors # :nodoc:
-      DEFAULT_PROCS = {}
     end
 
     register_detail(:locale) do
@@ -56,7 +58,6 @@ module ActionView
 
       @details_keys = Concurrent::Map.new
       @digest_cache = Concurrent::Map.new
-      @view_context_mutex = Mutex.new
 
       def self.digest_cache(details)
         @digest_cache[details_cache_key(details)] ||= Concurrent::Map.new
@@ -65,9 +66,9 @@ module ActionView
       def self.details_cache_key(details)
         @details_keys.fetch(details) do
           if formats = details[:formats]
-            unless Template::Types.valid_symbols?(formats)
+            if normalized = Template.normalized_formats(formats)
               details = details.dup
-              details[:formats] &= Template::Types.symbols
+              details[:formats] = normalized
             end
           end
           @details_keys[details] ||= TemplateDetails::Requested.new(**details)
@@ -78,7 +79,7 @@ module ActionView
         ActionView::PathRegistry.all_resolvers.each do |resolver|
           resolver.clear_cache
         end
-        @view_context_class = nil
+        ActionView::LookupContext.reset_view_context_class
         @details_keys.clear
         @digest_cache.clear
       end
@@ -86,13 +87,21 @@ module ActionView
       def self.digest_caches
         @digest_cache.values
       end
+    end
 
-      def self.view_context_class
-        @view_context_mutex.synchronize do
-          @view_context_class ||= ActionView::Base.with_empty_template_cache
-        end
+    def self.reset_view_context_class
+      @view_context_mutex.synchronize { @view_context_class = nil }
+    end
+
+    def self.view_context_class
+      return @view_context_class if @view_context_class
+      base = ActionView::Base # prevent recursive locking
+      @view_context_mutex.synchronize do
+        @view_context_class = base.with_empty_template_cache
       end
     end
+    @view_context_mutex = Mutex.new
+    ActiveSupport.on_load(:action_view) { ActionView::LookupContext.view_context_class }
 
     # Add caching behavior on top of Details.
     module DetailsCache
@@ -130,7 +139,12 @@ module ActionView
         details, details_key = detail_args_for(options)
         @view_paths.find(name, prefixes, partial, details, details_key, keys)
       end
-      alias :find_template :find
+
+      def find!(name, prefixes = [], partial = false, keys = [], options = {})
+        name, prefixes = normalize_name(name, prefixes)
+        details, details_key = detail_args_for(options)
+        @view_paths.find!(name, prefixes, partial, details, details_key, keys)
+      end
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
         name, prefixes = normalize_name(name, prefixes)
@@ -151,6 +165,10 @@ module ActionView
         @view_paths.exists?(name, prefixes, partial, details, details_key, [])
       end
       alias :any_templates? :any?
+
+      def any_formats?(name, prefixes = [], partial = false, keys = [], options = {})
+        exists?(name, prefixes, partial, keys, **options, formats: default_formats)
+      end
 
       def append_view_paths(paths)
         @view_paths = build_view_paths(@view_paths.to_a + paths)
@@ -193,7 +211,7 @@ module ActionView
             if k == :variants
               details[k] = :any
             else
-              details[k] = Accessors::DEFAULT_PROCS[k].call
+              details[k] = LookupContext.default_procs[k].call
             end
           end
 
@@ -252,7 +270,7 @@ module ActionView
 
     def initialize_details(target, details)
       LookupContext.registered_details.each do |k|
-        target[k] = details[k] || Accessors::DEFAULT_PROCS[k].call
+        target[k] = details[k] || LookupContext.default_procs[k].call
       end
       target
     end
@@ -266,10 +284,7 @@ module ActionView
         values.concat(default_formats) if values.delete "*/*"
         values.uniq!
 
-        unless Template::Types.valid_symbols?(values)
-          invalid_values = values - Template::Types.symbols
-          raise ArgumentError, "Invalid formats: #{invalid_values.map(&:inspect).join(", ")}"
-        end
+        Template.validate_formats(values)
 
         if (values.length == 1) && (values[0] == :js)
           values << :html

@@ -983,6 +983,13 @@ module NestedAttributesLimitTests
                                                       "car" => { name: "The Happening" } } }
     end
   end
+
+  def test_limit_does_not_count_the_attributes_of_a_single_record_hash
+    parrot = @pirate.parrots.create!(name: "Polly")
+
+    @pirate.attributes = { parrots_attributes: { "id" => parrot.id, "name" => "New Name", "color" => "green", "breed" => 1 } }
+    assert_equal "New Name", parrot.name
+  end
 end
 
 class TestNestedAttributesLimitNumeric < ActiveRecord::TestCase

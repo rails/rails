@@ -79,7 +79,7 @@ module ActiveSupport
         options[:max_key_size] ||= MAX_KEY_SIZE
         super(options)
 
-        unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
+        unless [String, NilClass].include?(addresses.first.class)
           raise ArgumentError, "First argument must be an empty array, address, or array of addresses."
         end
 

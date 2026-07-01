@@ -96,18 +96,6 @@ module ActiveSupport
     end
 
   private
-    # If the regexp is an anchored exact match like /^token$/ or /\Atoken\z/,
-    # returns the literal string.
-    def extract_exact_key(regexp) # :nodoc:
-      return if regexp.casefold?
-      source = regexp.source
-      return unless source.start_with?("^", "\\A") && source.end_with?("$", "\\z")
-
-      literal = source.delete_prefix("^").delete_prefix("\\A")
-                      .delete_suffix("$").delete_suffix("\\z")
-      literal if literal.match?(/\A[a-zA-Z0-9_]+\z/)
-    end
-
     def compile_filters!(filters)
       @no_filters = filters.empty?
       return if @no_filters
@@ -115,7 +103,8 @@ module ActiveSupport
       @regexps, strings = [], []
       @deep_regexps, deep_strings = nil, nil
       @blocks = nil
-      @exact_keys = nil
+      @exact_string_keys = nil
+      @exact_line_keys = nil
 
       filters.each do |item|
         case item
@@ -124,8 +113,10 @@ module ActiveSupport
         when Regexp
           if item.to_s.include?("\\.")
             (@deep_regexps ||= []) << item
-          elsif (literal = extract_exact_key(item))
-            (@exact_keys ||= {})[literal] = true
+          elsif (literal = extract_exact_string_key(item))
+            (@exact_string_keys ||= {})[literal] = true
+          elsif (literal = extract_exact_line_key(item))
+            (@exact_line_keys ||= {})[literal] = true
           else
             @regexps << item
           end
@@ -141,6 +132,31 @@ module ActiveSupport
 
       @regexps << Regexp.new(strings.join("|"), true) unless strings.empty?
       (@deep_regexps ||= []) << Regexp.new(deep_strings.join("|"), true) if deep_strings
+    end
+
+    # If the regexp is a string-anchored exact match like /\Atoken\z/,
+    # returns the literal string. A match is semantically equivalent to an
+    # exact string comparison against the full key.
+    def extract_exact_string_key(regexp)
+      extract_exact_key(regexp, "\\A", "\\z")
+    end
+
+    # If the regexp is a line-anchored exact match like /^token$/, returns
+    # the literal string. A match is equivalent to an exact comparison
+    # against any individual line of the key. Mixed anchors such as
+    # /\Atoken$/ have asymmetric semantics and are not accepted - they fall
+    # through to full regexp matching.
+    def extract_exact_line_key(regexp)
+      extract_exact_key(regexp, "^", "$")
+    end
+
+    def extract_exact_key(regexp, prefix, suffix)
+      return if regexp.casefold?
+      source = regexp.source
+      return unless source.start_with?(prefix) && source.end_with?(suffix)
+
+      literal = source.delete_prefix(prefix).delete_suffix(suffix)
+      literal if literal.match?(/\A[a-zA-Z0-9_]+\z/)
     end
 
     def call(params, full_parent_key = nil, original_params = params)
@@ -160,7 +176,12 @@ module ActiveSupport
         full_key = full_parent_key ? "#{full_parent_key}.#{key_s}" : key_s
       end
 
-      if @exact_keys && @exact_keys[key_s]
+      if @exact_string_keys && @exact_string_keys[key_s]
+        value = @mask
+      elsif @exact_line_keys && @exact_line_keys[key_s]
+        value = @mask
+      elsif @exact_line_keys && key_s.include?("\n") &&
+            key_s.split("\n").any? { |line| @exact_line_keys[line] }
         value = @mask
       elsif @regexps.any? { |r| r.match?(key_s) }
         value = @mask

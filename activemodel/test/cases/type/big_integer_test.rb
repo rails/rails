@@ -31,6 +31,13 @@ module ActiveModel
         assert_equal 9999999999999999999999999999999, type.serialize(9999999999999999999999999999999)
       end
 
+      def test_serialize_string
+        type = Type::BigInteger.new
+        assert_equal 0, type.serialize("0")
+        assert_equal 123, type.serialize("123abc")
+        assert_nil type.serialize("not a number")
+      end
+
       def test_integer_like_classes_that_are_greater_than_4_bytes_still_serialize
         type = Type::BigInteger.new
         large_number = 9999999999999999999999999999999

@@ -206,6 +206,18 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_equal({ "bar" => "foo" }, klass.attribute_aliases)
   end
 
+  test "#alias_attribute is idempotent when called multiple times with the same arguments" do
+    klass = Class.new(ModelWithAttributes) do
+      define_attribute_methods :foo
+      alias_attribute :bar, :foo
+      alias_attribute :bar, :foo
+      alias_attribute :bar, :foo
+    end
+
+    assert_equal({ "bar" => "foo" }, klass.attribute_aliases)
+    assert_equal ["bar"], klass.send(:aliases_by_attribute_name)["foo"]
+  end
+
   test "#define_attribute_methods generates attribute methods with spaces in their names" do
     ModelWithAttributesWithSpaces.define_attribute_methods(:'foo bar')
 

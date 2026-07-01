@@ -15,7 +15,7 @@ module ActiveRecord
   #       t.string :name, null: false
   #     end
   #
-  #     add_index :authors, :name, :unique
+  #     add_index :authors, :name, unique: true
   #
   #     create_table :posts do |t|
   #       t.integer :author_id, null: false

@@ -20,7 +20,7 @@ module ActionView
       # provided here will only work in the context of a request
       # (link_to_unless_current, for instance), which must be provided
       # as a method called #request on the context.
-      BUTTON_TAG_METHOD_VERBS = %w{patch put delete}
+      BUTTON_TAG_METHOD_VERBS = %w{patch put delete}.freeze
       extend ActiveSupport::Concern
 
       include TagHelper

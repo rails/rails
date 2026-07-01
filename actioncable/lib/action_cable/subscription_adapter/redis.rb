@@ -2,8 +2,8 @@
 
 # :markup: markdown
 
-gem "redis", ">= 4", "< 6"
-require "redis"
+gem "redis-client"
+require "redis-client"
 
 require "active_support/core_ext/hash/except"
 
@@ -16,17 +16,26 @@ module ActionCable
       # different Redis library than the redis gem. This is needed, for example, when
       # using Makara proxies for distributed Redis.
       cattr_accessor :redis_connector, default: ->(config) do
-        ::Redis.new(config.except(:adapter, :channel_prefix))
+        config = config.except(:adapter, :channel_prefix)
+        config[:id] = "ActionCable-PID-#{$$}" unless config.key?(:id)
+
+        redis_config = if config.key?(:sentinels)
+          ::RedisClient.sentinel(**config)
+        else
+          ::RedisClient.config(**config)
+        end
+        redis_config.new_pool
       end
 
       def initialize(*)
         super
         @listener = nil
+        @mutex = Mutex.new
         @redis_connection_for_broadcasts = nil
       end
 
       def broadcast(channel, payload)
-        redis_connection_for_broadcasts.publish(channel, payload)
+        redis_connection_for_broadcasts.call("publish", channel, payload)
       end
 
       def subscribe(channel, callback, success_callback = nil)
@@ -47,11 +56,11 @@ module ActionCable
 
       private
         def listener
-          @listener || @server.mutex.synchronize { @listener ||= Listener.new(self, config_options, @server.event_loop) }
+          @listener || @mutex.synchronize { @listener ||= Listener.new(self, config_options, executor) }
         end
 
         def redis_connection_for_broadcasts
-          @redis_connection_for_broadcasts || @server.mutex.synchronize do
+          @redis_connection_for_broadcasts || @mutex.synchronize do
             @redis_connection_for_broadcasts ||= redis_connection
           end
         end
@@ -61,15 +70,23 @@ module ActionCable
         end
 
         def config_options
-          @config_options ||= @server.config.cable.deep_symbolize_keys.merge(id: identifier)
+          @config_options ||= config.cable.deep_symbolize_keys.merge(id: identifier)
         end
 
-        class Listener < SubscriberMap
-          def initialize(adapter, config_options, event_loop)
-            super()
+        class Listener < SubscriberMap::Async
+          delegate :logger, to: :@adapter
+
+          # A permanent internal subscription keeps the Redis subscription count
+          # above zero while any user channel comes and goes, so removing the
+          # last user channel doesn't end the listen loop. Only an explicit
+          # shutdown (which unsubscribes from everything) drives the count to
+          # zero and stops the listener.
+          INTERNAL_CHANNEL = "_action_cable_internal"
+
+          def initialize(adapter, config_options, executor)
+            super(executor)
 
             @adapter = adapter
-            @event_loop = event_loop
 
             @subscribe_callbacks = Hash.new { |h, k| h[k] = [] }
             @subscription_lock = Mutex.new
@@ -87,39 +104,34 @@ module ActionCable
           end
 
           def listen(conn)
-            conn.without_reconnect do
-              original_client = extract_subscribed_client(conn)
+            pubsub_client = conn.pubsub
 
-              conn.subscribe("_action_cable_internal") do |on|
-                on.subscribe do |chan, count|
+            @reconnect_attempt = 0
+            @subscribed_client = pubsub_client
+
+            pubsub_client.call("subscribe", INTERNAL_CHANNEL)
+
+            until @when_connected.empty?
+              @when_connected.shift.call
+            end
+
+            loop do
+              type, chan, message = pubsub_client.next_event(60)
+              case type
+              when "subscribe", "psubscribe"
+                if callbacks = @subscribe_callbacks[chan]
+                  next_callback = callbacks.shift
+                  @executor.post(&next_callback) if next_callback
+                  @subscribe_callbacks.delete(chan) if callbacks.empty?
+                end
+              when "message", "pmessage"
+                broadcast(chan, message)
+              when "unsubscribe", "punsubscribe"
+                if message == 0
                   @subscription_lock.synchronize do
-                    if count == 1
-                      @reconnect_attempt = 0
-                      @subscribed_client = original_client
-
-                      until @when_connected.empty?
-                        @when_connected.shift.call
-                      end
-                    end
-
-                    if callbacks = @subscribe_callbacks[chan]
-                      next_callback = callbacks.shift
-                      @event_loop.post(&next_callback) if next_callback
-                      @subscribe_callbacks.delete(chan) if callbacks.empty?
-                    end
+                    @subscribed_client = nil
                   end
-                end
-
-                on.message do |chan, message|
-                  broadcast(chan, message)
-                end
-
-                on.unsubscribe do |chan, count|
-                  if count == 0
-                    @subscription_lock.synchronize do
-                      @subscribed_client = nil
-                    end
-                  end
+                  break
                 end
               end
             end
@@ -130,7 +142,7 @@ module ActionCable
               return if @thread.nil?
 
               when_connected do
-                @subscribed_client.unsubscribe
+                @subscribed_client.call("unsubscribe")
                 @subscribed_client = nil
               end
             end
@@ -142,33 +154,43 @@ module ActionCable
             @subscription_lock.synchronize do
               ensure_listener_running
               @subscribe_callbacks[channel] << on_success
-              when_connected { @subscribed_client.subscribe(channel) }
+              when_connected { @subscribed_client.call("subscribe", channel) }
             end
           end
 
           def remove_channel(channel)
             @subscription_lock.synchronize do
-              when_connected { @subscribed_client.unsubscribe(channel) }
+              when_connected { @subscribed_client.call("unsubscribe", channel) }
             end
-          end
-
-          def invoke_callback(*)
-            @event_loop.post { super }
           end
 
           private
             def ensure_listener_running
+              # The internal sentinel subscription keeps the listener alive in
+              # normal operation, but the thread can still die for other reasons
+              # (e.g. exhausting the Redis reconnect attempts). Since this method
+              # memoizes with `||=`, a dead thread would never be replaced and
+              # every later subscribe would queue forever. Drop a dead thread so
+              # the next subscribe spawns a fresh listener.
+              if @thread && !@thread.alive?
+                @thread = nil
+                @reconnect_attempt = 0
+              end
+
               @thread ||= Thread.new do
                 Thread.current.abort_on_exception = true
 
                 begin
                   conn = @adapter.redis_connection_for_subscriptions
                   listen conn
-                rescue *CONNECTION_ERRORS
+                rescue RedisClient::ConnectionError => e
                   reset
                   if retry_connecting?
+                    logger&.warn "Redis connection failed: #{e.message}. Trying to reconnect..."
                     when_connected { resubscribe }
                     retry
+                  else
+                    logger&.error "Failed to reconnect to Redis after #{@reconnect_attempt} attempts."
                   end
                 end
               end
@@ -198,61 +220,13 @@ module ActionCable
               channels = @sync.synchronize do
                 @subscribers.keys
               end
-              @subscribed_client.subscribe(*channels) unless channels.empty?
+              @subscribed_client.call("subscribe", *channels) unless channels.empty?
             end
 
             def reset
               @subscription_lock.synchronize do
                 @subscribed_client = nil
-                @subscribe_callbacks.clear
                 @when_connected.clear
-              end
-            end
-
-            if ::Redis::VERSION < "5"
-              CONNECTION_ERRORS = [::Redis::BaseConnectionError].freeze
-
-              class SubscribedClient
-                def initialize(raw_client)
-                  @raw_client = raw_client
-                end
-
-                def subscribe(*channel)
-                  send_command("subscribe", *channel)
-                end
-
-                def unsubscribe(*channel)
-                  send_command("unsubscribe", *channel)
-                end
-
-                private
-                  def send_command(*command)
-                    @raw_client.write(command)
-
-                    very_raw_connection =
-                      @raw_client.connection.instance_variable_defined?(:@connection) &&
-                      @raw_client.connection.instance_variable_get(:@connection)
-
-                    if very_raw_connection && very_raw_connection.respond_to?(:flush)
-                      very_raw_connection.flush
-                    end
-                    nil
-                  end
-              end
-
-              def extract_subscribed_client(conn)
-                SubscribedClient.new(conn._client)
-              end
-            else
-              CONNECTION_ERRORS = [
-                ::Redis::BaseConnectionError,
-
-                # Some older versions of redis-rb sometime leak underlying exceptions
-                RedisClient::ConnectionError,
-              ].freeze
-
-              def extract_subscribed_client(conn)
-                conn
               end
             end
         end

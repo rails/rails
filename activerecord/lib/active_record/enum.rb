@@ -82,7 +82,7 @@ module ActiveRecord
   #
   # In rare circumstances you might need to access the mapping directly.
   # The mappings are exposed through a class method with the pluralized attribute
-  # name, which return the mapping in a ActiveSupport::HashWithIndifferentAccess :
+  # name, which return the mapping in an ActiveSupport::HashWithIndifferentAccess :
   #
   #   Conversation.statuses[:active]    # => 0
   #   Conversation.statuses["archived"] # => 1
@@ -203,7 +203,7 @@ module ActiveRecord
         return unless @_raise_on_invalid_values
 
         unless value.blank? || mapping.has_key?(value) || mapping.has_value?(value)
-          raise ArgumentError, "'#{value}' is not a valid #{name}"
+          raise ArgumentError, "'#{value}' is not a valid #{name}. Valid values are: #{mapping.keys.map(&:inspect).join(", ")}"
         end
       end
 

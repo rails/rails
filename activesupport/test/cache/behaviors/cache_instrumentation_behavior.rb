@@ -105,9 +105,22 @@ module CacheInstrumentationBehavior
     assert_equal @cache.class.name, events[0].payload[:store]
   end
 
+  def test_exist_instrumentation
+    key = SecureRandom.uuid
+
+    options = { namespace: "foo" }
+
+    events = capture_notifications("cache_exist?.active_support") { @cache.exist?(key, options) }
+
+    assert_equal %w[ cache_exist?.active_support ], events.map(&:name)
+    assert_equal normalized_key(key, options), events[0].payload[:key]
+    assert_equal @cache.class.name, events[0].payload[:store]
+    assert_equal "foo", events[0].payload[:namespace]
+  end
+
   def test_increment_instrumentation
     key_1 = SecureRandom.uuid
-    @cache.write(key_1, 0)
+    @cache.write(key_1, 0, raw: true)
 
     events = capture_notifications("cache_increment.active_support") { @cache.increment(key_1) }
 
@@ -119,7 +132,7 @@ module CacheInstrumentationBehavior
 
   def test_decrement_instrumentation
     key_1 = SecureRandom.uuid
-    @cache.write(key_1, 0)
+    @cache.write(key_1, 0, raw: true)
 
     events = capture_notifications("cache_decrement.active_support") { @cache.decrement(key_1) }
 

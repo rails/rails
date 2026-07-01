@@ -916,16 +916,16 @@ module ApplicationTests
 
       test "db:prepare setup the database even if schema does not exist" do
         Dir.chdir(app_path) do
-          use_postgresql(multi_db: true) # bug doesn't exist with sqlite3
-          output = rails("db:drop")
-          assert_match(/Dropped database/, output)
+          # bug doesn't exist with sqlite3
+          use_postgresql(multi_db: true) do
+            output = rails("db:drop")
+            assert_match(/Dropped database/, output)
 
-          rails "generate", "model", "recipe", "title:string"
-          output = rails("db:prepare")
-          assert_match(/CreateRecipes: migrated/, output)
+            rails "generate", "model", "recipe", "title:string"
+            output = rails("db:prepare")
+            assert_match(/CreateRecipes: migrated/, output)
+          end
         end
-      ensure
-        rails "db:drop" rescue nil
       end
 
       test "schema_cache is loaded on all connection db in multi-db app if it exists for the connection" do
@@ -1073,41 +1073,40 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         Dir.chdir(app_path) do
           # Bug not visible on SQLite3. Can be simplified when https://github.com/rails/rails/issues/36383 resolved
-          use_postgresql(multi_db: true)
-          generate_models_for_animals
+          use_postgresql(multi_db: true) do
+            generate_models_for_animals
 
-          rails "db:create:animals", "db:migrate:animals", "db:create:primary", "db:migrate:primary", "db:schema:dump"
-          rails "db:drop:primary"
-          Dog.create!
-          output = rails("db:prepare")
+            rails "db:create:animals", "db:migrate:animals", "db:create:primary", "db:migrate:primary", "db:schema:dump"
+            rails "db:drop:primary"
+            Dog.create!
+            output = rails("db:prepare")
 
-          assert_match(/Created database/, output)
-          assert_equal 1, Dog.count
-        ensure
-          Dog.lease_connection.disconnect!
-          rails "db:drop" rescue nil
+            assert_match(/Created database/, output)
+            assert_equal 1, Dog.count
+          ensure
+            Dog.lease_connection.disconnect!
+          end
         end
       end
 
       test "db:prepare runs seeds once" do
         require "#{app_path}/config/environment"
         Dir.chdir(app_path) do
-          use_postgresql(multi_db: true)
+          use_postgresql(multi_db: true) do
+            rails "db:drop"
+            generate_models_for_animals
+            rails "generate", "model", "recipe", "title:string"
 
-          rails "db:drop"
-          generate_models_for_animals
-          rails "generate", "model", "recipe", "title:string"
+            app_file "db/seeds.rb", <<-RUBY
+              Dog.create!
+            RUBY
 
-          app_file "db/seeds.rb", <<-RUBY
-            Dog.create!
-          RUBY
+            rails("db:prepare")
 
-          rails("db:prepare")
-
-          assert_equal 1, Dog.count
-        ensure
-          Dog.lease_connection.disconnect!
-          rails "db:drop" rescue nil
+            assert_equal 1, Dog.count
+          ensure
+            Dog.lease_connection.disconnect!
+          end
         end
       end
 

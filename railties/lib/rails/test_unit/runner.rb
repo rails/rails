@@ -23,7 +23,7 @@ module Rails
     end
 
     class Runner
-      TEST_FOLDERS = [:models, :helpers, :channels, :controllers, :mailers, :integration, :jobs, :mailboxes]
+      TEST_FOLDERS = [:models, :helpers, :channels, :controllers, :mailers, :integration, :jobs, :mailboxes].freeze
       PATH_ARGUMENT_PATTERN = %r"^(?!/.+/$)[.\w]*[/\\]"
       mattr_reader :filters, default: []
       mattr_reader :load_test_files, default: false

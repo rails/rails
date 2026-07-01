@@ -6,6 +6,10 @@ module ActiveRecord
     module PrimaryKey
       extend ActiveSupport::Concern
 
+      included do
+        class_attribute :_primary_key_definition, instance_accessor: false
+      end
+
       # Returns this record's primary key value wrapped in an array if one is
       # available.
       def to_key
@@ -63,8 +67,7 @@ module ActiveRecord
         end
 
         module ClassMethods
-          ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast id_was id_in_database id_for_database).to_set
-          PRIMARY_KEY_NOT_SET = BasicObject.new
+          ID_ATTRIBUTE_METHODS = %w(id id= id? id_before_type_cast id_was id_in_database id_for_database).to_set.freeze
 
           def instance_method_already_implemented?(method_name)
             super || primary_key && ID_ATTRIBUTE_METHODS.include?(method_name)
@@ -78,13 +81,16 @@ module ActiveRecord
           # Overwriting will negate any effect of the +primary_key_prefix_type+
           # setting, though.
           def primary_key
-            reset_primary_key if PRIMARY_KEY_NOT_SET.equal?(@primary_key)
-            @primary_key
+            primary_key_definition.name
           end
 
           def composite_primary_key? # :nodoc:
-            reset_primary_key if PRIMARY_KEY_NOT_SET.equal?(@primary_key)
-            @composite_primary_key
+            primary_key_definition&.composite?
+          end
+
+          def primary_key_definition # :nodoc:
+            reset_primary_key unless _primary_key_definition
+            _primary_key_definition
           end
 
           # Returns a quoted version of the primary key name.
@@ -117,36 +123,15 @@ module ActiveRecord
           #   class Project < ActiveRecord::Base
           #     self.primary_key = 'sysid'
           #   end
-          #
-          # You can also define the #primary_key method yourself:
-          #
-          #   class Project < ActiveRecord::Base
-          #     def self.primary_key
-          #       'foo_' + super
-          #     end
-          #   end
-          #
-          #   Project.primary_key # => "foo_id"
           def primary_key=(value)
-            @primary_key = if value.is_a?(Array)
-              include CompositePrimaryKey
-              @primary_key = value.map { |v| -v.to_s }.freeze
-            elsif value
-              -value.to_s
-            end
+            self._primary_key_definition = ActiveRecord::Key.for(value)
 
-            @composite_primary_key = value.is_a?(Array)
-            @attributes_builder = nil
+            include CompositePrimaryKey if primary_key_definition.composite?
           end
 
           private
             def inherited(base)
               super
-              base.class_eval do
-                @primary_key = PRIMARY_KEY_NOT_SET
-                @composite_primary_key = false
-                @attributes_builder = nil
-              end
             end
         end
     end

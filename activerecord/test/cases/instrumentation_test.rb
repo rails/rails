@@ -207,41 +207,24 @@ module ActiveRecord
 
   module TransactionInSqlActiveRecordPayloadTests
     def test_payload_without_an_open_transaction
-      asserted = false
-
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-        if event.payload.fetch(:name) == "Book Count"
-          assert_nil event.payload.fetch(:transaction)
-          asserted = true
-        end
-      end
-
-      Book.count
-
-      assert asserted
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber)
-    end
-
-    def test_payload_with_an_open_transaction
-      asserted = false
-      expected_transaction = nil
-
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-        if event.payload.fetch(:name) == "Book Count"
-          assert_same expected_transaction, event.payload.fetch(:transaction)
-          asserted = true
-        end
-      end
-
-      Book.transaction do |transaction|
-        expected_transaction = transaction
+      notification = assert_notification("sql.active_record", name: "Book Count") do
         Book.count
       end
 
-      assert asserted
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber)
+      assert_nil notification.payload.fetch(:transaction)
+    end
+
+    def test_payload_with_an_open_transaction
+      expected_transaction = nil
+
+      notification = assert_notification("sql.active_record", name: "Book Count") do
+        Book.transaction do |transaction|
+          expected_transaction = transaction
+          Book.count
+        end
+      end
+
+      assert_same expected_transaction, notification.payload.fetch(:transaction)
     end
   end
 

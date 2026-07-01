@@ -27,6 +27,7 @@ module ActiveRecord
 
         scope.extending! reflection.extensions
         scope = add_constraints(scope, owner, chain)
+        scope.default_order!(reflection.options[:default_order]) if reflection.options[:default_order].present?
         scope.limit!(1) unless reflection.collection?
         scope
       end
@@ -106,7 +107,7 @@ module ActiveRecord
             @aliased_table = aliased_table
           end
 
-          def all_includes; nil; end
+          def all_includes(&); nil; end
         end
 
         def get_chain(reflection, association, tracker)
@@ -149,9 +150,10 @@ module ActiveRecord
                 scope.includes_values |= item.includes_values
               end
 
-              scope.unscope!(*item.unscope_values)
+              scope.unscope!(*item.table_name_qualified_unscope_values)
               scope.where_clause += item.where_clause
               scope.order_values = item.order_values | scope.order_values
+              scope.default_order_values = item.default_order_values | scope.default_order_values
             end
           end
 

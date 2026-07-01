@@ -114,6 +114,35 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
     assert_match(/readonly|Write query/i, output)
   end
 
+  test "prevents writes via AR expression" do
+    rails "runner", 'Post.create!(title: "Test")'
+
+    output = query_error("Post.delete_all")
+    assert_match(/readonly|Write query/i, output)
+
+    count = rails("runner", "puts Post.count").strip
+    assert_equal "1", count
+  end
+
+  test "prevents writes via AR expression on a single record" do
+    rails "runner", 'Post.create!(title: "Test")'
+
+    output = query_error("Post.first.update!(title: \"changed\")")
+    assert_match(/readonly|Write query/i, output)
+
+    title = rails("runner", "puts Post.first.title").strip
+    assert_equal "Test", title
+  end
+
+  test "prevents writes via AR expression on explain" do
+    rails "runner", 'Post.create!(title: "Test")'
+
+    query_error("explain", "Post.delete_all")
+
+    count = rails("runner", "puts Post.count").strip
+    assert_equal "1", count
+  end
+
   test "json format handles nil values" do
     data = query_json("--sql", "SELECT NULL AS val")
 
@@ -171,6 +200,29 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
 
     assert_includes data["columns"], "column_0"
     assert_includes data["rows"].flatten, "Test"
+  end
+
+  test "executes AR expression returning a single record" do
+    rails "runner", 'Post.create!(title: "Test")'
+    data = query_json("Post.first")
+
+    assert_includes data["columns"], "id"
+    assert_includes data["columns"], "title"
+    assert_equal 1, data["rows"].length
+    assert_equal "Test", data["rows"][0][data["columns"].index("title")]
+  end
+
+  test "executes AR expression returning an array of records" do
+    rails "runner", '2.times { |i| Post.create!(title: "Post #{i}") }'
+    data = query_json("Post.first(2)")
+
+    assert_includes data["columns"], "id"
+    assert_includes data["columns"], "title"
+    assert_equal 2, data["rows"].length
+
+    title_index = data["columns"].index("title")
+    titles = data["rows"].map { |r| r[title_index] }
+    assert_equal [ "Post 0", "Post 1" ], titles
   end
 
   test "explain with sql flag" do

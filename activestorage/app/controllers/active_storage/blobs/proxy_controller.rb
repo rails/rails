@@ -4,7 +4,7 @@
 # The blob is streamed from storage directly to the response. This avoids having
 # a redirect and makes files easier to cache.
 #
-# The +signed_id+s make URLs hard to guess but permanent by design, allowing the URLs to be cached.
+# The <tt>signed_id</tt>s make URLs hard to guess but permanent by design, allowing the URLs to be cached.
 # The response sets the HTTP cache to public and allows browsers and proxies to cache it indefinitely.
 #
 # The URLs created for this controller are set to never expire by default.
@@ -29,7 +29,7 @@ class ActiveStorage::Blobs::ProxyController < ActiveStorage::BaseController
     if request.headers["Range"].present?
       send_blob_byte_range_data @blob, request.headers["Range"]
     else
-      http_cache_forever public: true do
+      http_cache_forever public: true, last_modified: @blob.created_at do
         response.headers["Accept-Ranges"] = "bytes"
         response.headers["Content-Length"] = @blob.byte_size.to_s
 

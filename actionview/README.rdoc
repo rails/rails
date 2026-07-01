@@ -27,7 +27,7 @@ Action View is released under the MIT license:
 
 == Support
 
-API documentation is at
+API documentation is at:
 
 * https://api.rubyonrails.org
 
