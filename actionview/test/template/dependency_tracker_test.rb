@@ -2,9 +2,20 @@
 
 require "abstract_unit"
 require "action_view/dependency_tracker"
+require "active_support/testing/ractors_assertions"
 
 class NeckbeardTracker
   def self.call(name, template)
+    ["foo/#{name}"]
+  end
+end
+
+class BowtieTracker
+  def supports_view_paths?
+    true
+  end
+
+  def call(name, template, view_paths = nil)
     ["foo/#{name}"]
   end
 end
@@ -336,5 +347,66 @@ class RubyTrackerTest < Minitest::Test
     tracker = make_tracker("messages/show", template)
 
     assert_equal [], tracker.dependencies
+  end
+end
+
+class DependencyTrackerRactorTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::RactorsAssertions
+
+  def trackers
+    ActionView::DependencyTracker.instance_variable_get(:@trackers)
+  end
+
+  def test_default_registry_is_shareable_once_frozen
+    ActionView::DependencyTracker.freeze_registry
+    assert_ractor_shareable trackers
+  end
+
+  def test_class_handlers_stay_unfrozen_and_registry_is_shareable
+    # Mirrors how coffee-rails registers: a class handler keyed to a tracker.
+    handler = Class.new do
+      def self.call(template, source = nil)
+        source
+      end
+    end
+    ActionView::Template.register_template_handler(:fake_lang, handler)
+    ActionView::DependencyTracker.register_tracker(:fake_lang, ActionView::DependencyTracker::ERBTracker)
+
+    ActionView::DependencyTracker.freeze_registry
+
+    assert_not handler.frozen?, "class handlers must stay unfrozen so they keep their class-level state"
+    assert_ractor_shareable trackers
+  ensure
+    ActionView::Template.unregister_template_handler(:fake_lang)
+  end
+
+  def test_instance_level_tracker_stays_mutable_until_freeze_registry
+    handler = Class.new do
+      def self.call(template, source = nil)
+        source
+      end
+    end
+    ActionView::Template.register_template_handler(:bowtie, handler)
+    tracker = BowtieTracker.new
+    ActionView::DependencyTracker.register_tracker(:bowtie, tracker)
+
+    assert_not tracker.frozen?, "a tracker stays mutable until freeze_registry"
+
+    ActionView::DependencyTracker.freeze_registry
+    assert_ractor_shareable trackers
+  ensure
+    ActionView::Template.unregister_template_handler(:bowtie)
+  end
+
+  if RUBY_VERSION >= "4.0"
+    def test_find_dependencies_is_callable_from_a_non_main_ractor
+      ActionView::DependencyTracker.freeze_registry
+      unregistered_handler = Object.new.freeze
+      template = Struct.new(:source, :handler).new("nope", unregistered_handler).freeze
+
+      result = Ractor.new(template) { |t| ActionView::DependencyTracker.find_dependencies("x", t) }.value
+      assert_equal [], result
+    end
   end
 end
