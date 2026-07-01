@@ -74,6 +74,17 @@ module ActionDispatch
         assert_equal "/foo.:format", fakeset.asts.first.to_s
       end
 
+      def test_options_defaults_to_a_format_segment_like_other_verbs
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.get     "/foo", to: "posts#index", as: :foo
+        mapper.options "/bar", to: "posts#index", as: :bar
+
+        assert_equal "/foo(.:format)", fakeset.asts[0].to_s
+        assert_equal "/bar(.:format)", fakeset.asts[1].to_s
+        assert_equal "OPTIONS", fakeset.routes.to_a[1].verb
+      end
+
       def test_random_keys
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset
