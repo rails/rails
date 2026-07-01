@@ -38,8 +38,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
       }
 
       klass = reflection.class_name.safe_constantize
-      klass._counter_cache_columns |= [cache_column] if klass && klass.respond_to?(:_counter_cache_columns)
-      model.counter_cached_association_names |= [reflection.name]
+      klass._counter_cache_columns = (klass._counter_cache_columns | [cache_column]).freeze if klass && klass.respond_to?(:_counter_cache_columns)
+      model.counter_cached_association_names = (model.counter_cached_association_names | [reflection.name]).freeze
     end
 
     def self.touch_record(o, changes, foreign_key, name, touch) # :nodoc:
