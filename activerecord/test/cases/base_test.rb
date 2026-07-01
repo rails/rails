@@ -167,6 +167,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "nick", pk.name, "nick should be primary key"
   end
 
+  def test_write_attribute_with_id_on_composite_primary_key_model
+    # write_attribute("id") must hit the literal "id" column, symmetric with
+    # read_attribute, not remap to the composite primary key Array.
+    book = Cpk::Book.new
+    book.write_attribute("id", 5)
+    assert_equal 5, book.read_attribute("id")
+  end
+
   def test_primary_key_with_no_id
     assert_nil Edge.primary_key
   end
