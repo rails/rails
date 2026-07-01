@@ -588,6 +588,10 @@ module ActiveRecord
         if loaded?
           records.take(limit)
         else
+          if limit_value
+            limit = [limit_value, limit].min
+          end
+
           limit(limit).to_a
         end
       end

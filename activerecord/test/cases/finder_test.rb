@@ -1082,6 +1082,15 @@ class FinderTest < ActiveRecord::TestCase
     assert_queries_match(/LIMIT|ROWNUM <=|FETCH FIRST/) { Topic.last(5).entries }
   end
 
+  def test_take_and_first_and_last_with_integer_should_respect_an_existing_limit
+    count = Topic.count
+    assert_operator count, :>, 2
+
+    assert_equal 2, Topic.limit(2).take(count).size
+    assert_equal 2, Topic.limit(2).first(count).size
+    assert_equal 2, Topic.limit(2).last(count).size
+  end
+
   def test_last_with_integer_and_order_should_keep_the_order
     assert_equal Topic.order("title").to_a.last(2), Topic.order("title").last(2)
   end
