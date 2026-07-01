@@ -13,11 +13,22 @@ module ActiveRecord
         id_list = ids
         id_list = id_list.pluck(primary_key) if key.composite? && id_list.is_a?(Relation)
 
-        key.where_clauses(id_list)
+        clauses = key.where_clauses(id_list)
+        return clauses unless key.composite?
+
+        clauses.map { |clause| prune_shared_null_columns(clause) }
       end
 
       private
         attr_reader :reflection, :value
+
+        def prune_shared_null_columns(clause)
+          return clause unless clause.values.all?(&:nil?)
+
+          owner_keys = Array(reflection.active_record.query_constraints_list).map(&:to_s)
+          pruned = clause.reject { |column, _| owner_keys.include?(column) }
+          pruned.empty? ? clause : pruned
+        end
 
         def ids
           case value
