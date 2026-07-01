@@ -990,6 +990,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [50, 53, 55, 60], Account.order(:credit_limit).distinct.pluck(:credit_limit)
   end
 
+  def test_pluck_and_distinct_when_loaded
+    relation = Account.order(:credit_limit).distinct
+    relation.load
+    assert_equal [50, 53, 55, 60], relation.pluck(:credit_limit)
+  end
+
   def test_pluck_in_relation
     company = Company.first
     contract = company.contracts.create!
