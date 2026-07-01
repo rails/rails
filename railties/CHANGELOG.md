@@ -1,3 +1,14 @@
+*   Don't run system tests in the generated GitHub Actions CI workflow by default.
+
+    A newly generated app has no system tests, so the `system-test` job in
+    `.github/workflows/ci.yml` failed on the very first push. `config/ci.rb`
+    already commented these out; the GitHub Actions workflow now matches it. In
+    place of the job, the workflow includes a comment explaining how to enable
+    system tests. Both CI templates now treat system tests the same way across
+    the default, `--skip-system-test`, and `--api` cases.
+
+    *Dominic Baratta*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"

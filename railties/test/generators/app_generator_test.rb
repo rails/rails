@@ -744,7 +744,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file ".github/workflows/ci.yml" do |content|
       assert_match(/db:test:prepare test/, content)
-      assert_match(/db:test:prepare test:system/, content)
+      # System tests are not run in CI by default, so there is no active
+      # system-test job.
+      assert_no_match(/^\s+system-test:/, content)
+      assert_no_match(/^\s+run: bin\/rails db:test:prepare test:system/, content)
     end
   end
 
@@ -755,7 +758,63 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file ".github/workflows/ci.yml" do |content|
       assert_no_match(/db:test:prepare/, content)
       assert_match(/bin\/rails test/, content)
-      assert_match(/bin\/rails test:system/, content)
+      assert_no_match(/^\s+run: bin\/rails test:system/, content)
+    end
+  end
+
+  def test_ci_does_not_run_system_tests_by_default
+    run_generator
+
+    assert_file "config/ci.rb" do |content|
+      assert_no_match(/^\s+step "Tests: System"/, content)
+      assert_match(/#\s+step "Tests: System", "bin\/rails test:system"/, content)
+    end
+
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_no_match(/^\s+system-test:/, content)
+      assert_no_match(/^\s+run: bin\/rails .*test:system/, content)
+    end
+  end
+
+  def test_ci_does_not_run_system_tests_when_no_skip_system_test_is_given
+    # A freshly generated app has no system test files, so an active CI job
+    # would fail. --no-skip-system-test should behave like the default here.
+    run_generator [destination_root, "--no-skip-system-test"]
+
+    assert_file "config/ci.rb" do |content|
+      assert_no_match(/^\s+step "Tests: System"/, content)
+      assert_match(/#\s+step "Tests: System", "bin\/rails test:system"/, content)
+    end
+
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_no_match(/^\s+system-test:/, content)
+      assert_no_match(/^\s+run: bin\/rails .*test:system/, content)
+    end
+  end
+
+  def test_ci_omits_system_tests_when_skip_system_test_is_given
+    run_generator [destination_root, "--skip-system-test"]
+
+    assert_file "config/ci.rb" do |content|
+      assert_no_match(/Tests: System/, content)
+      assert_no_match(/test:system/, content)
+    end
+
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_no_match(/test:system/, content)
+    end
+  end
+
+  def test_ci_omits_system_tests_for_api_app
+    run_generator [destination_root, "--api"]
+
+    assert_file "config/ci.rb" do |content|
+      assert_no_match(/Tests: System/, content)
+      assert_no_match(/test:system/, content)
+    end
+
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_no_match(/test:system/, content)
     end
   end
 
