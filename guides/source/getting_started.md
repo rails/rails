@@ -2490,7 +2490,7 @@ Notifications module.
 ```ruby#3
 # app/models/product.rb
 class Product < ApplicationRecord
-  include Notifications
+  include Product::Notifications
 
   has_one_attached :featured_image
   has_rich_text :description
