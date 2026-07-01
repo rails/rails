@@ -2,6 +2,7 @@
 
 require "active_support/notifications/instrumenter"
 require "active_support/notifications/fanout"
+require "active_support/notifications/ractor_compatibility"
 
 module ActiveSupport
   # = \Notifications
@@ -195,7 +196,19 @@ module ActiveSupport
   #
   module Notifications
     class << self
-      attr_accessor :notifier
+      attr_writer :notifier
+
+      def notifier
+        main_ractor = Ractor.main == Ractor.current
+        return @notifier if main_ractor
+
+        Ractor[:__notifier] ||= begin
+          fanout = Fanout.new
+          RactorCompatibility.set_subscriptions(fanout)
+
+          fanout
+        end
+      end
 
       # Returns a singleton no-op instrumenter that executes blocks without
       # publishing any notifications. Useful for suppressing instrumentation
