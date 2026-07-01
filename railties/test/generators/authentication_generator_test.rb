@@ -26,6 +26,14 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       Rails.application.configure do
       end
     RUBY
+    File.write("#{destination_root}/config/application.rb", <<~RUBY)
+      require "rails"
+
+      module TestApp
+        class Application < Rails::Application
+        end
+      end
+    RUBY
 
     copy_gemfile
 
@@ -287,6 +295,29 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/session_test_helper/, test_helper_content)
       assert_no_match(/SessionTestHelper/, test_helper_content)
     end
+  end
+
+  def test_passkeys_engine_is_not_required_again_when_already_loaded
+    generator([destination_root])
+    run_generator_instance
+
+    assert_file "config/application.rb" do |content|
+      assert_no_match(/action_pack\/passkeys\/engine/, content)
+    end
+  end
+
+  def test_passkeys_engine_is_required_when_not_already_loaded
+    old_value = ActionPack::Passkeys.const_get(:Engine)
+    ActionPack::Passkeys.send(:remove_const, :Engine)
+
+    generator([destination_root])
+    run_generator_instance
+
+    assert_file "config/application.rb" do |content|
+      assert_match(/require "rails"\nrequire "action_pack\/passkeys\/engine"/, content)
+    end
+  ensure
+    ActionPack::Passkeys.const_set(:Engine, old_value)
   end
 
   def test_connection_class_skipped_without_action_cable

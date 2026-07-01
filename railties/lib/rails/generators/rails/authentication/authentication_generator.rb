@@ -19,6 +19,12 @@ module Rails
         invoke template_engine unless options.api?
       end
 
+      def ensure_passkeys_engine_required
+        unless defined?(ActionPack::Passkeys::Engine)
+          insert_into_file "config/application.rb", %(require "action_pack/passkeys/engine"\n), after: %(require "rails"\n)
+        end
+      end
+
       def create_authentication_files
         @user_model_exists = File.exist?(File.expand_path("app/models/user.rb", destination_root))
 
