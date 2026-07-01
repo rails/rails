@@ -96,11 +96,12 @@ module ActionPack
         # PublicKeyCredential with the registered credential data.
         #
         # Raises +InvalidResponseError+ if the attestation is invalid.
-        def register(params, origin: ActionPack::WebAuthn::Current.origin)
+        def register(params, **options)
           response = ActionPack::WebAuthn::Authenticator::AttestationResponse.new(
             client_data_json: params[:client_data_json],
             attestation_object: params[:attestation_object],
-            origin: origin
+            origin: options.fetch(:origin, ActionPack::WebAuthn::Current.origin),
+            user_verification: options.fetch(:user_verification, :preferred)
           )
 
           response.validate!
@@ -145,13 +146,14 @@ module ActionPack
       # Updates +sign_count+ and +backed_up+ on success.
       #
       # Raises +InvalidResponseError+ if the assertion is invalid.
-      def authenticate(params, origin: ActionPack::WebAuthn::Current.origin)
+      def authenticate(params, **options)
         response = ActionPack::WebAuthn::Authenticator::AssertionResponse.new(
           client_data_json: params[:client_data_json],
           authenticator_data: params[:authenticator_data],
           signature: params[:signature],
           credential: self,
-          origin: origin
+          origin: options.fetch(:origin, ActionPack::WebAuthn::Current.origin),
+          user_verification: options.fetch(:user_verification, :preferred)
         )
 
         response.validate!

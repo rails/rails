@@ -67,10 +67,22 @@ module ActionPack
 
         # Same as #register, but raises ActionPack::WebAuthn::InvalidResponseError instead of
         # returning +nil+ if the attestation is invalid.
-        def register!(passkey, **attributes)
-          credential = ActionPack::WebAuthn::PublicKeyCredential.register(passkey)
+        #
+        # The user_verification requirement enforced during verification is the same one that
+        # would be used to build this holder's #registration_options (global defaults overridden
+        # by the holder's own +passkey_registration_options+).
+        def register!(passkey_params, **attributes)
+          passkey = new(**attributes)
+          registration_options = self.registration_options(holder: passkey.holder)
 
-          create!(**credential.to_h, **attributes)
+          credential = ActionPack::WebAuthn::PublicKeyCredential.register(
+            passkey_params,
+            user_verification: registration_options.user_verification
+          )
+
+          passkey.assign_attributes(**credential.to_h, **attributes)
+          passkey.save!
+          passkey
         end
 
         # Returns a RequestOptions object suitable for passing to the browser's
@@ -112,10 +124,17 @@ module ActionPack
 
       # Same as #authenticate, but raises ActionPack::WebAuthn::InvalidResponseError instead of
       # returning +nil+ if the response is invalid.
+      #
+      # The user_verification requirement enforced during verification is the same one that
+      # would be used to build this holder's #authentication_options (global defaults overridden
+      # by the holder's own +passkey_authentication_options+).
       def authenticate!(passkey)
         credential = to_public_key_credential
-        credential.authenticate(passkey)
+        authentication_options = self.class.authentication_options(holder: holder)
+
+        credential.authenticate(passkey, user_verification: authentication_options.user_verification)
         update!(sign_count: credential.sign_count, backed_up: credential.backed_up)
+
         self
       end
 
