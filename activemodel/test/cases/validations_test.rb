@@ -502,6 +502,19 @@ class ValidationsTest < ActiveModel::TestCase
     assert topic.validate(:custom_context)
   end
 
+  def test_validate_with_except_on_combined_across_levels
+    Topic.validates :title, presence: { except_on: :one }, except_on: :two
+
+    # Excluded in both the shared and the validator-level context
+    assert Topic.new.validate(:one)
+    assert Topic.new.validate(:two)
+
+    # Still runs in any other context
+    topic = Topic.new
+    topic.validate(:three)
+    assert_equal ["can't be blank"], topic.errors[:title]
+  end
+
   def test_validations_some_with_except
     Topic.validates :title, presence: { except_on: :custom_context }, length: { maximum: 10 }
 
