@@ -1,3 +1,8 @@
+*   Respect `config.action_dispatch.cookies_same_site_protection` for session
+    cookies written by Rails session stores.
+
+    *Bart de Water*
+
 *   Add `config.action_dispatch.strict_accept_header` to stop forcing an
     HTML response when the `Accept` header contains the `*/*` wildcard.
 
