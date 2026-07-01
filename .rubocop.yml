@@ -175,6 +175,7 @@ Style/FrozenStringLiteralComment:
 Style/MutableConstant:
   Enabled: true
   EnforcedStyle: literals
+  Recursive: true
   Exclude:
     - '**/*.md'
 

@@ -16,8 +16,8 @@ class BlankTest < ActiveSupport::TestCase
     end
   end
 
-  BLANK = [ EmptyTrue.new, nil, false, "", "   ", "  \n\t  \r ", "　", "\u00a0", [], {} ].freeze
-  NOT   = [ EmptyFalse.new, Object.new, true, 0, 1, "a", [nil], { nil => 0 }, Time.now ].freeze
+  BLANK = [ EmptyTrue.new, nil, false, "", "   ", "  \n\t  \r ", "　", "\u00a0", [].freeze, {}.freeze ].freeze
+  NOT   = [ EmptyFalse.new, Object.new, true, 0, 1, "a", [nil].freeze, { nil => 0 }.freeze, Time.now ].freeze
 
   def test_blank
     BLANK.each { |v| assert_equal true, v.blank?,  "#{v.inspect} should be blank" }

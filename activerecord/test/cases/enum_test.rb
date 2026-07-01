@@ -1110,7 +1110,7 @@ class EnumTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = logger
 
     Class.new(ActiveRecord::Base) do
-      def self.name
+      def self.name # rubocop:disable Lint/DuplicateMethods
         "Book"
       end
       enum :status, [:not_sent]
@@ -1128,7 +1128,7 @@ class EnumTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = logger
 
     Class.new(ActiveRecord::Base) do
-      def self.name
+      def self.name # rubocop:disable Lint/DuplicateMethods
         "Book"
       end
       silence_warnings do
