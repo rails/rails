@@ -62,6 +62,12 @@ class RequestUrlFor < BaseRequestTest
     assert_equal "http://www.example.com?params=",  url_for(params: "")
     assert_equal "http://www.example.com?params=1", url_for(params: 1)
   end
+
+  test "url_for keeps query params and anchor with a trailing slash and a blank path" do
+    assert_equal "http://www.example.com/?search=books", url_for(trailing_slash: true, params: { search: "books" })
+    assert_equal "http://www.example.com/#signup", url_for(trailing_slash: true, anchor: "signup")
+    assert_equal "/?a=1", url_for(only_path: true, trailing_slash: true, path: "", params: { a: 1 })
+  end
 end
 
 class RequestIP < BaseRequestTest
