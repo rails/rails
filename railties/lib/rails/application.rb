@@ -215,9 +215,9 @@ module Rails
     #
     def message_verifiers
       @message_verifiers ||=
-        ActiveSupport::MessageVerifiers.new do |salt, secret_key_base: self.secret_key_base|
-          key_generator(secret_key_base).generate_key(salt)
-        end.rotate_defaults
+        ActiveSupport::MessageVerifiers.new(&ActiveSupport::Ractors.shareable_proc do |salt, secret_key_base: Rails.application.secret_key_base|
+          Rails.application.key_generator(secret_key_base).generate_key(salt)
+        end).rotate_defaults
     end
 
     # Returns a message verifier object.
@@ -668,6 +668,21 @@ module Rails
       Rails.autoloaders.each(&:eager_load)
     end
 
+    def ractorize! # :nodoc:
+      warn "WARNING: Rails' Ractor support is experimental. Don't try this at home!", category: :experimental, uplevel: 1
+
+      env_config
+      routes
+
+      @autoloaders, @reloaders, @routes_reloader = nil, nil, nil
+
+      Ractor.make_shareable(self)
+
+      Ractor.make_shareable(Rails.event)
+      Ractor.make_shareable(Rails.error)
+      Ractor.make_shareable(Rails.backtrace_cleaner)
+    end
+
   protected
     alias :build_middleware_stack :app
 
@@ -772,7 +787,7 @@ module Rails
       end
 
       def coerce_same_site_protection(protection)
-        protection.respond_to?(:call) ? protection : proc { protection }
+        protection.respond_to?(:call) ? protection : ActiveSupport::Ractors.shareable_proc { protection }
       end
 
       def filter_parameters

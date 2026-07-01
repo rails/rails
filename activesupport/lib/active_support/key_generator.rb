@@ -62,9 +62,21 @@ module ActiveSupport
       @cache_keys = Concurrent::Map.new
     end
 
+    def freeze
+      @key = "_caching_key_generator_#{object_id}".to_sym
+      Ractor[@key] = @cache_keys
+      @cache_keys = nil
+      super
+    end
+
     # Returns a derived key suitable for use.
     def generate_key(*args)
-      @cache_keys[args.join("|")] ||= @key_generator.generate_key(*args)
+      cache_keys[args.join("|")] ||= @key_generator.generate_key(*args)
     end
+
+    private
+      def cache_keys
+        @cache_keys || Ractor[@key] ||= Concurrent::Map.new
+      end
   end
 end

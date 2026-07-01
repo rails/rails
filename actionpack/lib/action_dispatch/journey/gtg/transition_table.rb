@@ -22,6 +22,18 @@ module ActionDispatch
           @memos           = Hash.new { |h, k| h[k] = [] }
         end
 
+        def freeze
+          return self if self.frozen?
+
+          @memos.default_proc = nil
+          @stdparam_states.freeze
+          @regexp_states.freeze
+          @string_states.freeze
+          @accepting.freeze
+          @memos.freeze
+          super
+        end
+
         def add_accepting(state)
           @accepting[state] = true
         end
