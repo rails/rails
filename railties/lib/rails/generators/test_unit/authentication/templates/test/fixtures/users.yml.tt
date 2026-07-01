@@ -1,3 +1,4 @@
+<%- if options.password_based? -%>
 <%% password_digest = BCrypt::Password.create("password") %>
 
 one:
@@ -7,3 +8,10 @@ one:
 two:
   email_address: two@example.com
   password_digest: <%%= password_digest %>
+<%- else -%>
+one:
+  email_address: one@example.com
+
+two:
+  email_address: two@example.com
+<%- end -%>

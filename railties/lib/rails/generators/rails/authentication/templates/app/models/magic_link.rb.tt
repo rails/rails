@@ -1,0 +1,30 @@
+class MagicLink < ApplicationRecord
+  EXPIRATION_TIME = 15.minutes
+
+  belongs_to :user
+
+  scope :active, -> { where(expires_at: Time.current...) }
+
+  before_validation :generate_code, on: :create
+  before_validation :set_expiration, on: :create
+
+  validates :code, uniqueness: true, presence: true
+
+  def self.consume(code)
+    active.find_by(code: ActiveSupport::Base32::Crockford.normalize(code))&.consume
+  end
+
+  def consume
+    destroy
+    self
+  end
+
+  private
+    def generate_code
+      self.code ||= ActiveSupport::Base32::Crockford.generate(6)
+    end
+
+    def set_expiration
+      self.expires_at ||= EXPIRATION_TIME.from_now
+    end
+end

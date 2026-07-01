@@ -1,0 +1,49 @@
+{
+  "name": "@rails/actionpack-passkeys",
+  "version": "8.2.0-alpha",
+  "description": "Passkey and WebAuthn support for Ruby on Rails.",
+  "module": "app/assets/javascripts/actionpack-passkeys.esm.js",
+  "main": "app/assets/javascripts/actionpack-passkeys.js",
+  "files": [
+    "app/assets/javascripts/*.js",
+    "src/*.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rails/rails.git"
+  },
+  "keywords": [
+    "passkeys",
+    "webauthn",
+    "actionpack",
+    "rails"
+  ],
+  "author": "David Heinemeier Hansson <david@loudthinking.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rails/rails/issues"
+  },
+  "homepage": "https://rubyonrails.org/",
+  "devDependencies": {
+    "@eslint/js": "^9.24.0",
+    "@rollup/plugin-node-resolve": "^11.0.1",
+    "eslint": "^9.24.0",
+    "eslint-plugin-import": "^2.31.0",
+    "globals": "^14.0.0",
+    "karma": "^6.4.2",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-qunit": "^2.1.0",
+    "karma-sauce-launcher": "^1.2.0",
+    "qunit": "^2.8.0",
+    "rollup": "^2.35.1",
+    "rollup-plugin-terser": "^7.0.2"
+  },
+  "scripts": {
+    "prebuild": "yarn lint",
+    "build": "rollup --config rollup.config.js",
+    "lint": "eslint lib/passkeys/app/javascript",
+    "prepublishOnly": "rm -rf src && cp -R lib/passkeys/app/javascript/action_pack src",
+    "pretest": "rollup --config rollup.config.test.js",
+    "test": "karma start"
+  }
+}

@@ -1,0 +1,15 @@
+class Sessions::PasskeysController < ApplicationController
+  include ActionPack::Passkeys::Request
+
+  allow_unauthenticated_access
+  rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_session_path, alert: "Try again later." }
+
+  def create
+    if credential = ActionPack::Passkeys::Passkey.authenticate(passkey_authentication_params)
+      start_new_session_for credential.holder
+      redirect_to after_authentication_url
+    else
+      redirect_to new_session_path, alert: "That passkey didn't work. Try again."
+    end
+  end
+end
