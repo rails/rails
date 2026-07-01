@@ -48,9 +48,13 @@ module ActionPack
 
       def timeout
         if challenge_purpose == "registration"
-          ActionPack::Passkeys.registration_timeout
+          ActionPack::Passkeys.default_registration_options.to_h.fetch(
+            :timeout, ActionPack::WebAuthn::PublicKeyCredential::CreationOptions::DEFAULT_TIMEOUT
+          )
         else
-          ActionPack::Passkeys.authentication_timeout
+          ActionPack::Passkeys.default_authentication_options.to_h.fetch(
+            :timeout, ActionPack::WebAuthn::PublicKeyCredential::RequestOptions::DEFAULT_TIMEOUT
+          )
         end
       end
   end

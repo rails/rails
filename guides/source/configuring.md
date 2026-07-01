@@ -3767,25 +3767,15 @@ Defaults to `nil`.
 
 #### `config.action_pack.passkey.default_registration_options`
 
-A hash of default options merged into every passkey registration
-ceremony. Defaults to `{}`.
+A hash of default options merged into every passkey registration ceremony,
+e.g. `user_verification` or `timeout` (sent to the browser as the WebAuthn
+`timeout` and used server-side as the challenge's validity window). Defaults
+to `{}`.
 
 #### `config.action_pack.passkey.default_authentication_options`
 
-A hash of default options merged into every passkey authentication
-ceremony. Defaults to `{}`.
-
-#### `config.action_pack.passkey.registration_timeout`
-
-How long a registration ceremony may take. Sent to the browser as the WebAuthn
-`timeout` and used server-side as the challenge's validity window. Defaults to
-`10.minutes`.
-
-#### `config.action_pack.passkey.authentication_timeout`
-
-How long an authentication ceremony may take. Sent to the browser as the WebAuthn
-`timeout` and used server-side as the challenge's validity window. Defaults to
-`5.minutes`.
+A hash of default options merged into every passkey authentication ceremony,
+e.g. `user_verification` or `timeout`. Defaults to `{}`.
 
 #### `config.action_pack.passkey.cbor_max_depth`
 

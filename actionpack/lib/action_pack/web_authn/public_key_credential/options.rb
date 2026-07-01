@@ -30,7 +30,8 @@ module ActionPack
     #   and used server-side as the challenge's expiry so it can't outlive the prompt.
     #   Integer values are treated as seconds, +ActiveSupport::Duration+ values
     #   (e.g. `10.minutes`) can also be used.
-    #   Defaults vary by ceremony type (configured in the Railtie).
+    #   Defaults to +CreationOptions::DEFAULT_TIMEOUT+ or +RequestOptions::DEFAULT_TIMEOUT+,
+    #   depending on ceremony type.
     #
     # [+extensions+]
     #   A Hash of WebAuthn client extension inputs passed through to the
@@ -80,8 +81,8 @@ module ActionPack
       #
       # The timestamp allows the server to reject stale challenges. The validity
       # window is configurable per-ceremony via
-      # +config.action_pack.passkey.registration_timeout+ and
-      # +config.action_pack.passkey.authentication_timeout+, or per-instance via
+      # +config.action_pack.passkey.default_registration_options+ and
+      # +config.action_pack.passkey.default_authentication_options+, or per-instance via
       # the +timeout+ attribute.
       def challenge
         @challenge ||= Base64.urlsafe_encode64(

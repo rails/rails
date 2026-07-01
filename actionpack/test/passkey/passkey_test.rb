@@ -120,6 +120,28 @@ class ActionPack::Passkeys::PasskeyTest < ActiveSupport::TestCase
     ActionPack::Passkeys.default_authentication_options = {}
   end
 
+  test "registration_options defaults timeout to CreationOptions::DEFAULT_TIMEOUT" do
+    assert_equal ActionPack::WebAuthn::PublicKeyCredential::CreationOptions::DEFAULT_TIMEOUT,
+      ActionPack::Passkeys::Passkey.registration_options(holder: @user).timeout
+  end
+
+  test "registration_options honors a global timeout override" do
+    ActionPack::Passkeys.default_registration_options = { timeout: 2.minutes }
+
+    assert_equal 2.minutes, ActionPack::Passkeys::Passkey.registration_options(holder: @user).timeout
+  end
+
+  test "authentication_options defaults timeout to RequestOptions::DEFAULT_TIMEOUT" do
+    assert_equal ActionPack::WebAuthn::PublicKeyCredential::RequestOptions::DEFAULT_TIMEOUT,
+      ActionPack::Passkeys::Passkey.authentication_options.timeout
+  end
+
+  test "authentication_options honors a global timeout override" do
+    ActionPack::Passkeys.default_authentication_options = { timeout: 2.minutes }
+
+    assert_equal 2.minutes, ActionPack::Passkeys::Passkey.authentication_options.timeout
+  end
+
   test "authenticate with valid assertion" do
     challenge = ActionPack::Passkeys::Passkey.authentication_options(credentials: [ @passkey ]).challenge
     assertion = build_assertion(challenge: challenge, authenticator_data: AUTHENTICATOR_DATA)

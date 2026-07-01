@@ -59,6 +59,7 @@ module ActionPack
       RESIDENT_KEY_OPTIONS = %i[ preferred required discouraged ].freeze
       ATTESTATION_PREFERENCES = %i[ none indirect direct enterprise ].freeze
       AUTHENTICATOR_ATTACHMENTS = %w[ platform cross-platform ].freeze
+      DEFAULT_TIMEOUT = 10.minutes
 
       attribute :id
       attribute :name
@@ -68,7 +69,7 @@ module ActionPack
       attribute :exclude_credentials, default: -> { [] }
       attribute :attestation, default: :none
       attribute :attestation_formats, default: -> { [] }
-      attribute :timeout, default: 10.minutes
+      attribute :timeout, default: DEFAULT_TIMEOUT
       attribute :challenge_purpose, default: "registration"
 
       validates :id, :name, :display_name, presence: true

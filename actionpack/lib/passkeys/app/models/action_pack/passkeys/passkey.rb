@@ -44,7 +44,6 @@ module ActionPack
         # additional +options+ overrides.
         def registration_options(holder:, **options)
           ActionPack::WebAuthn::PublicKeyCredential.creation_options(
-            timeout: ActionPack::Passkeys.registration_timeout,
             **ActionPack::Passkeys.default_registration_options.to_h,
             **holder.passkey_registration_options.to_h,
             **options
@@ -91,7 +90,6 @@ module ActionPack
         # options, and any additional +options+ overrides.
         def authentication_options(holder: nil, **options)
           ActionPack::WebAuthn::PublicKeyCredential.request_options(
-            timeout: ActionPack::Passkeys.authentication_timeout,
             **ActionPack::Passkeys.default_authentication_options.to_h,
             **holder&.passkey_authentication_options.to_h,
             **options

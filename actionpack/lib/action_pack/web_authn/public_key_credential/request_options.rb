@@ -28,8 +28,10 @@ module ActionPack
     #   The relying party (application) configuration. Defaults to
     #   +ActionPack::WebAuthn.relying_party+.
     class PublicKeyCredential::RequestOptions < PublicKeyCredential::Options
+      DEFAULT_TIMEOUT = 5.minutes
+
       attribute :credentials, default: -> { [] }
-      attribute :timeout, default: 5.minutes
+      attribute :timeout, default: DEFAULT_TIMEOUT
       attribute :challenge_purpose, default: "authentication"
 
       def initialize(attributes = {}) # :nodoc:
