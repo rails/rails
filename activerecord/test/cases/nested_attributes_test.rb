@@ -247,6 +247,16 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_equal 1, book.reload.chapters.count
     assert_equal "New title", book.chapters.first.title
   end
+
+  def test_updating_one_to_one_association_with_cpk_provided_as_strings
+    order = Cpk::OrderWithNestedBook.create!(shop_id: 2)
+    book = order.create_book!(id: [1, 3], title: "Title")
+
+    order.update!(book_attributes: { id: ["1", "3"], title: "New title" })
+
+    assert_equal book.id, order.book.id
+    assert_equal "New title", order.book.reload.title
+  end
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
