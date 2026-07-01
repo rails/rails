@@ -327,7 +327,7 @@ Note that `try` will hide no-method errors, returning `nil` instead. You can use
 @number.try!(:nexte) # NoMethodError: undefined method `nexte' for 1:Integer
 ```
 
-NOTE: Ruby has a safe navigation operator `&.` that solves the same nil checking problem. Like `try` and `try!`, `&.` returns `nil` without calling the method if the receiver is `nil`. But if the receiver is not `nil` and the method actually doesn't exist, `&.` raises `NoMethodError` just like a normal method call, it behaves like `try!` in that case. The other difference is that `try`/`try!` also accept a block and method name can be passed as a symbol. 
+NOTE: Ruby has a safe navigation operator `&.` that solves the same nil checking problem. Like `try` and `try!`, `&.` returns `nil` without calling the method if the receiver is `nil`. But if the receiver is not `nil` and the method actually doesn't exist, `&.` raises `NoMethodError` just like a normal method call, it behaves like `try!` in that case. The other difference is that `try`/`try!` also accept a block and method name can be passed as a symbol.
 
 ```ruby
 @number = nil
@@ -2303,6 +2303,97 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
 [Enumerable#pick]: https://api.rubyonrails.org/classes/Enumerable.html#method-i-pick
 
+### `in_order_of`
+
+The [`in_order_of`][Enumerable#in_order_of] method returns a new array reordered to match a given series, based on a specific key of the objects in the collection:
+
+```ruby
+Person = Struct.new(:id, :name)
+
+people = [
+  Person.new(5, "Carol"),
+  Person.new(3, "Bob"),
+  Person.new(1, "Alice")
+]
+
+people.in_order_of(:id, [1, 5, 3])
+# => [Person(id: 1, name: "Alice"), Person(id: 5, name: "Carol"), Person(id: 3, name: "Bob")]
+```
+
+By default, elements not named in the series are excluded from the result. Pass `filter: false` to include them at the end instead:
+
+```ruby
+people.in_order_of(:id, [ 1, 5 ], filter: false)
+# => [ Person.find(1), Person.find(5), Person.find(3) ]  — Person.find(3) appended at end
+```
+
+Keys in the series that have no matching element in the collection are silently ignored.
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
+[Enumerable#in_order_of]: https://api.rubyonrails.org/classes/Enumerable.html#method-i-in_order_of
+
+### `minimum` and `maximum`
+
+The [`minimum`][Enumerable#minimum] and [`maximum`][Enumerable#maximum] methods extract a specific attribute from each element and return the minimum or maximum value. They are a convenient shorthand for `map` + `min`/`max`:
+
+```ruby
+Person = Struct.new(:name, :age)
+
+people = [
+  Person.new("Alice", 27),
+  Person.new("Bob",   35),
+  Person.new("Carol", 31)
+]
+
+people.minimum(:age) # => 27
+people.maximum(:age) # => 35
+```
+
+This is particularly useful with Active Record collections when you want to find the min or max of an attribute without loading all records into memory for manual comparison.
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
+[Enumerable#minimum]: https://api.rubyonrails.org/classes/Enumerable.html#method-i-minimum
+[Enumerable#maximum]: https://api.rubyonrails.org/classes/Enumerable.html#method-i-maximum
+
+### `sole`
+
+The [`sole`][Enumerable#sole] method returns the only element in the collection. If the collection has no items, or more than one item, it raises `Enumerable::SoleItemExpectedError`:
+
+```ruby
+["x"].sole               # => "x"
+[].sole                  # => Enumerable::SoleItemExpectedError: no item found
+["x", "y"].sole          # => Enumerable::SoleItemExpectedError: multiple items found
+{ a: 1, b: 2 }.sole      # => Enumerable::SoleItemExpectedError: multiple items found
+```
+
+This is useful when you expect a query or collection to return exactly one result and want an explicit error if that assumption is violated, rather than silently getting `nil` or the first of many.
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
+[Enumerable#sole]: https://api.rubyonrails.org/classes/Enumerable.html#method-i-sole
+
+### `compact_blank`
+
+The [`compact_blank`][Enumerable#compact_blank] method returns a new collection with all blank items removed. It uses `Object#blank?` to determine what counts as blank. Unlike Ruby's built-in `compact`, which only removes `nil`, `compact_blank` also removes empty strings, whitespace-only strings, empty arrays, empty hashes, and `false`:
+
+```ruby
+[1, "", nil, 2, " ", [], {}, false, true].compact_blank
+# => [1, 2, true]
+```
+
+When called on a `Hash`, it removes entries with blank values:
+
+```ruby
+{ a: "", b: 1, c: nil, d: [], e: false, f: true }.compact_blank
+# => { b: 1, f: true }
+```
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
+[Enumerable#compact_blank]: https://api.rubyonrails.org/classes/Enumerable.html#method-i-compact_blank### `in_order_of`
+
 Extensions to `Array`
 ---------------------
 
@@ -3321,14 +3412,14 @@ NOTE: Defined in `active_support/core_ext/range/overlap.rb`.
 
 Working with `Date`, `Time`, and `DateTime`
 ------------------------------------------
- 
+
 Ruby provides three classes for representing dates and times: `Date`,
 `DateTime`, and `Time`. The `Date` class represents calendar days and has no time component. The `DateTime` class is a subclass of `Date` and adds hours/minutes/seconds to dates. The `Time` class is independent of `Date` and `DateTime` and handles timezones as well as daylight saving time.
 
 Active Support extends all three classes with a set of
 convenience methods. Many methods, such as `prev_day` and `beginning_of_week`,
 are defined once in a common module `DateAndTime::Calculations`.
- 
+
 TIP: Most Rails developers face the question of which class to use when. The
 answer comes down to one practical distinction: `Time` understands time zones
 and daylight saving time, while `DateTime` does not. In most modern
@@ -3337,7 +3428,7 @@ applications, you are better off using `Time` (or more specifically
 and `Time.current` return). Treat `DateTime` as a legacy class kept around for
 compatibility. Use `Date` whenever you only care about a calendar day and have
 no need for a time component at all.
- 
+
 This section covers the convenience methods Active Support adds across all three
 classes, and points out where the classes diverge and the choice of class
 matters.
@@ -3347,10 +3438,10 @@ do not exist due to [caldendar
 reform](https://en.wikipedia.org/wiki/Gregorian_calendar). The date classes
 behave correctly around this date, for example, `Date.new(1582, 10, 4).tomorrow`
 returns "Fri, 15 Oct 1582" and so on.
- 
+
 ### Creating Dates and Times
 
-Active Support adds `Date.current`, `Time.current`, and `DateTime.current` to create Date and Time objects, in addition to the built in Ruby constructors such as `Date.new`, `Time.new`, and `DateTime.new`. The advantage of the Active support methods is that they are time zone aware. 
+Active Support adds `Date.current`, `Time.current`, and `DateTime.current` to create Date and Time objects, in addition to the built in Ruby constructors such as `Date.new`, `Time.new`, and `DateTime.new`. The advantage of the Active support methods is that they are time zone aware.
 
 NOTE: Date and Time objects can also be created from Strings, see the [Date and Time Conversions For Strings](#date-and-time-conversions-for-strings).
 
@@ -3686,7 +3777,7 @@ On `DateTime` and `Time`, `change` also accepts `:hour`, `:min`, `:sec`, and `:o
 now = DateTime.current  # => Tue, 05 May 2026 12:00:00 +0000
 now.change(year: 2027)
 # => Wed, 05 May 2027 12:00:00 +0000
- 
+
 now = Time.current      # => Tue, 05 May 2026 12:00:00 UTC +00:00
 now.change(usec: 500)
 # => Tue, 05 May 2026 12:00:00.000500 UTC +00:00
@@ -4173,9 +4264,6 @@ This is the one reason to prefer `Time` (or `ActiveSupport::TimeWithZone`) over 
 NOTE: Defined in `active_support/core_ext/date/calculations.rb`, `active_support/core_ext/date_time/calculations.rb`, and `active_support/core_ext/time/calculations.rb`.
 
 [ActiveSupport::Duration]: https://api.rubyonrails.org/classes/ActiveSupport/Duration.html
- 
-
-
 
 Extensions to `Date`
 --------------------
