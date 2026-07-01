@@ -1,3 +1,13 @@
+*   Proxy controllers take the `urls_expire_in` setting into account for
+    Cache-Control headers
+
+    Proxy controllers for files and their representations now limit cache
+    max-age to the value set in `urls_expire_in`. Like before this change, the
+    cache validity is still "forever" when `urls_expire_in` is not set (which,
+    by default, it isn't).
+
+    *Alexander Gitter*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
