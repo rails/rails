@@ -53,9 +53,6 @@ module ActionPack
     # (Ed25519), and RS256 (RSASSA-PKCS1-v1_5 with SHA-256), which cover
     # the vast majority of authenticators.
     class PublicKeyCredential::CreationOptions < PublicKeyCredential::Options
-      ES256 = { type: "public-key", alg: -7 }.freeze
-      EDDSA = { type: "public-key", alg: -8 }.freeze
-      RS256 = { type: "public-key", alg: -257 }.freeze
       RESIDENT_KEY_OPTIONS = %i[ preferred required discouraged ].freeze
       ATTESTATION_PREFERENCES = %i[ none indirect direct enterprise ].freeze
       AUTHENTICATOR_ATTACHMENTS = %w[ platform cross-platform ].freeze
@@ -97,9 +94,9 @@ module ActionPack
             displayName: display_name
           },
           pubKeyCredParams: [
-            ES256,
-            EDDSA,
-            RS256
+            { type: "public-key", alg: CoseKey::ES256 },
+            { type: "public-key", alg: CoseKey::EDDSA },
+            { type: "public-key", alg: CoseKey::RS256 }
           ],
           authenticatorSelection: authenticator_selection_json,
           attestation: attestation.to_s
