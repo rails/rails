@@ -851,9 +851,17 @@ module ActiveRecord
       @compatibility_behavior ||= connection.compatibility_behavior_for(self.class).new(self)
     end
 
-    def execute_operation(method, ...) # :nodoc:
-      execution_strategy.send(method, ...)
+    def execute_operation(method, *arguments, &block) # :nodoc:
+      # Logging sits at the execution point so compatibility adjustments
+      # show in the verbose output; table names display as written in the
+      # migration, not as the proper_table_name the operation receives.
+      display_arguments = arguments.dup
+      @written_table_names&.each { |index, name| display_arguments[index] = name }
+      say_with_time("#{method}(#{format_arguments(display_arguments)})") do
+        execution_strategy.send(method, *arguments, &block)
+      end
     end
+    ruby2_keywords(:execute_operation)
 
     self.verbose = true
     # instantiate the delegate object after initialize is defined
@@ -1090,21 +1098,23 @@ module ActiveRecord
     end
 
     def method_missing(method, *arguments, &block)
-      say_with_time "#{method}(#{format_arguments(arguments)})" do
-        unless connection.respond_to? :revert
-          unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
-            arguments[0] = proper_table_name(arguments.first, table_name_options)
-            if method == :rename_table ||
-              (method == :remove_foreign_key && !arguments.second.is_a?(Hash))
-              arguments[1] = proper_table_name(arguments.second, table_name_options)
-            end
+      unless connection.respond_to? :revert
+        unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
+          @written_table_names = { 0 => arguments.first }
+          arguments[0] = proper_table_name(arguments.first, table_name_options)
+          if method == :rename_table ||
+            (method == :remove_foreign_key && !arguments.second.is_a?(Hash))
+            @written_table_names[1] = arguments.second
+            arguments[1] = proper_table_name(arguments.second, table_name_options)
           end
         end
-        return super unless execution_strategy.respond_to?(method)
-        # A behavior method's `super` lands in the behavior base, which
-        # forwards to execute_operation.
-        compatibility_behavior.public_send(method, *arguments, &block)
       end
+      return super unless execution_strategy.respond_to?(method)
+      # A behavior method's `super` lands in the behavior base, which
+      # forwards to execute_operation.
+      compatibility_behavior.public_send(method, *arguments, &block)
+    ensure
+      @written_table_names = nil
     end
     ruby2_keywords(:method_missing)
 
