@@ -231,7 +231,7 @@ Common Rails functionality is being configured and defined here. Specifically, t
 
 We also go into what [railties](#railties) and [engines](#engines) are and how they facilitate initializing and configuring framework components, in those respective sections.
 
-At this point, we're done with loading the `config/application.rb` file (that we started from [ServerCommand#perform](#requiring-application-rb-in-servercommand-perform) above). Our Rails application is defined and configured but *not initialized* yet. The initialization happens from `config/environment.rb`. Let's see how we get to that key file next.
+At this point, we're done with loading the `config/application.rb` file (that we started from [ServerCommand#perform](#requiring-configapplicationrb-in-servercommandperform) above). Our Rails application is defined and configured but *not initialized* yet. The initialization happens from `config/environment.rb`. Let's see how we get to that key file next.
 
 Loading `config/environment.rb` from `config.ru`
 -----------------------------------------------
