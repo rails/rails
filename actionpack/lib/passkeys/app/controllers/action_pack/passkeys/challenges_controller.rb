@@ -23,11 +23,13 @@ module ActionPack
 
     skip_forgery_protection
 
-    # Generates a fresh challenge and returns it as JSON. Accepts an optional
-    # +purpose+ parameter ("registration" or "authentication") to select the
-    # appropriate challenge expiration. Defaults to "authentication".
+    # Generates a fresh challenge and returns it as JSON, alongside the
+    # timeout (in milliseconds) the client should pass to the WebAuthn
+    # ceremony. Accepts an optional +purpose+ parameter ("registration" or
+    # "authentication") to select the appropriate challenge expiration and
+    # timeout. Defaults to "authentication".
     def create
-      render json: { challenge: create_passkey_challenge }
+      render json: { challenge: create_passkey_challenge, timeout: timeout&.in_milliseconds&.to_i }
     end
 
     private
