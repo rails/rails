@@ -1,3 +1,13 @@
+*   Mark a connection unverified when a non-`StandardError` interrupts a query.
+
+    A query interrupted by a non-`StandardError`, such as a fiber scheduler's
+    cancel or a `Timeout`, leaves the connection desynced. Active Record
+    previously returned it to the pool still marked verified, so the next
+    checkout reused it and failed on a dead socket. The connection is now
+    marked unverified, so it re-verifies and reconnects before its next use.
+
+    *Eliseu Daroit*
+
 *   Fix `has_many` and `has_one` associations on a new record returning an empty
     result when the owner has a composite primary key, even when every primary
     key column is populated.
