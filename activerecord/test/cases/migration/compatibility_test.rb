@@ -103,6 +103,37 @@ module ActiveRecord
         assert_same ActiveRecord::Migration::CompatibilityBehavior, namespace.for(ActiveRecord::Migration[7.1])
       end
 
+      def test_verbose_output_shows_executed_arguments
+        behavior_class = Class.new(ActiveRecord::Migration::CompatibilityBehavior) do
+          def add_column(table_name, column_name, type, **options)
+            options[:null] = false
+            super
+          end
+        end
+        namespace = Module.new do
+          const_set(:V7_0, behavior_class)
+          extend ActiveRecord::Migration::CompatibilityBehavior::Resolver
+        end
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def migrate(x)
+            add_column :testings, :extra, :string
+          end
+        }.new
+
+        output = capture(:stdout) do
+          ActiveRecord::Migration.verbose = true
+          connection.stub(:compatibility_behavior_for, ->(klass) { namespace.for(klass) }) do
+            ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+          end
+        ensure
+          ActiveRecord::Migration.verbose = false
+        end
+
+        assert_match(/add_column\(:testings, :extra, :string, \{:?null(: |=>)false\}\)/, output)
+        assert connection.column_exists?(:testings, :extra, null: false)
+      end
+
       def test_migration_doesnt_remove_named_index
         connection.add_index :testings, :foo, name: "custom_index_name"
 
