@@ -61,7 +61,7 @@ The sections below cover specific lines in the main files involved when running 
 
 * `bin/rails` script
 * `require_relative "boot"` in `bin/rails` script
-* Requiring `application.rb` in `ServerCommand#perform`
+* Requiring `config/application.rb` in `Rails::Command::ServerCommand#perform`
 * `require "rails/all"` in `config/application.rb`
 * `Rails.application.initialize!` back in `config/environment.rb`
 
@@ -231,12 +231,12 @@ Common Rails functionality is being configured and defined here. Specifically, t
 
 We also go into what [railties](#railties) and [engines](#engines) are and how they facilitate initializing and configuring framework components, in those respective sections.
 
-At this point, we're done with loading the `config/application.rb` file (that we started from [ServerCommand#perform](#requiring-configapplicationrb-in-servercommandperform) above). Our Rails application is defined and configured but *not initialized* yet. The initialization happens from `config/environment.rb`. Let's see how we get to that key file next.
+At this point, we're done with loading the `config/application.rb` file (that we started from `Rails::Command::ServerCommand#perform` above). Our Rails application is defined and configured but *not initialized* yet. The initialization happens from `config/environment.rb`. Let's see how we get to that key file next.
 
 Loading `config/environment.rb` from `config.ru`
 -----------------------------------------------
 
-After `ServerCommand#perform` in `server_command.rb` file, we come to the [`start`](https://github.com/rails/rails/blob/36bd50c82b46046c9f352e06fa552221586028d8/railties/lib/rails/commands/server/server_command.rb#L32) method in that class. That method calls the `Rackup::Server#start` method (via `super()`), which is what loads the `config.ru` file.
+After `Rails::Command::ServerCommand#perform` in `server_command.rb` file, we come to the [`start`](https://github.com/rails/rails/blob/36bd50c82b46046c9f352e06fa552221586028d8/railties/lib/rails/commands/server/server_command.rb#L32) method in that class. That method calls the `Rackup::Server#start` method (via `super()`), which is what loads the `config.ru` file.
 
 And voila, the `require` line for `config/environment.rb` is the first line in `config.ru`:
 
@@ -476,7 +476,7 @@ Starting the Server
 
 Once the application is booted, the `bin/rails server` command is also responsible for starting the web server.
 
-This process starts when the `ServerCommand#perform` method (which [loaded `application.rb`](#requiring-application-rb-in-servercommand-perform)) calls `server.start()`.
+This process starts when the `Rails::Command::ServerCommand#perform` method (which loaded `application.rb`) calls `server.start()`.
 
 This is a call to `Rails::Server#start`, which calls `Rackup::Server#start` (via `super()` as `Rails::Server` extends `Rackup::Server`).
 
