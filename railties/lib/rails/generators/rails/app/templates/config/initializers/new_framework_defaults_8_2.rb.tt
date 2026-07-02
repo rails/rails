@@ -58,7 +58,7 @@
 #   "X-Content-Type-Options" => "nosniff",
 #   "X-Permitted-Cross-Domain-Policies" => "none",
 #   "Referrer-Policy" => "strict-origin-when-cross-origin"
-# }
+# }.freeze
 
 ###
 # Controls whether the PostgresqlAdapter should decode bytea and money columns automatically with manual queries.

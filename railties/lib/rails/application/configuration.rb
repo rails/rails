@@ -382,7 +382,7 @@ module Rails
               "X-Content-Type-Options" => "nosniff",
               "X-Permitted-Cross-Domain-Policies" => "none",
               "Referrer-Policy" => "strict-origin-when-cross-origin"
-            }
+            }.freeze
           end
 
           if respond_to?(:active_record)
