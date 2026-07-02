@@ -1,6 +1,13 @@
 class User < ApplicationRecord
+  has_passkeys name: :email_address, display_name: :email_address
+<%- if options.password_based? -%>
   has_secure_password
+<%- else -%>
+
+  has_many :magic_links, dependent: :destroy
+<%- end -%>
   has_many :sessions, dependent: :destroy
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
+  validates :email_address, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
 end

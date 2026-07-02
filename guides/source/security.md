@@ -42,65 +42,82 @@ which provides a solid starting point for securing your application by only
 allowing access to verified users.
 
 The authentication generator adds all of the relevant models, controllers,
-views, routes, and migrations needed for basic authentication and password reset
-functionality.
+views, routes, and migrations needed for authentication. By default, it
+generates magic link and passkey authentication. You can pass
+`--password-based` to generate password-based authentication instead.
 
-To use this feature in your application, you can run `bin/rails generate
-authentication`. Here are all of the files the generator modifies and new files
-it adds:
+To use this feature in your application, run:
 
 ```bash
 $ bin/rails generate authentication
       invoke  erb
-      create    app/views/passwords/new.html.erb
-      create    app/views/passwords/edit.html.erb
       create    app/views/sessions/new.html.erb
+      create    app/views/sessions/magic_links/show.html.erb
+      create    app/views/my/passkeys/index.html.erb
+      create    app/views/my/passkeys/edit.html.erb
+      create    app/views/my/passkeys/_passkey.html.erb
       create  app/models/session.rb
       create  app/models/user.rb
       create  app/models/current.rb
       create  app/controllers/sessions_controller.rb
       create  app/controllers/concerns/authentication.rb
-      create  app/controllers/passwords_controller.rb
-      create  app/mailers/passwords_mailer.rb
-      create  app/views/passwords_mailer/reset.html.erb
-      create  app/views/passwords_mailer/reset.text.erb
-      create  test/mailers/previews/passwords_mailer_preview.rb
-        gsub  app/controllers/application_controller.rb
-       route  resources :passwords, param: :token
-       route  resource :session
-        gsub  Gemfile
-      bundle  install --quiet
-    generate  migration CreateUsers email_address:string!:uniq password_digest:string! --force
-       rails  generate migration CreateUsers email_address:string!:uniq password_digest:string! --force
+      create  app/controllers/sessions/passkeys_controller.rb
+      create  app/controllers/my/passkeys_controller.rb
+      create  app/models/magic_link.rb
+      create  app/controllers/sessions/magic_links_controller.rb
+      create  app/channels/application_cable/connection.rb
+      create  app/mailers/magic_link_mailer.rb
+      create  app/views/magic_link_mailer/sign_in.html.erb
+      create  app/views/magic_link_mailer/sign_in.text.erb
+      insert  app/controllers/application_controller.rb
+       route  namespace :my do
+                resources :passkeys, except: %i[ show new ]
+              end
+       route  resource :session, only: [:new, :create, :destroy] do
+                resource :magic_link, only: [:show, :create], module: :sessions
+                resource :passkey, only: :create, module: :sessions
+              end
+      append  app/javascript/application.js
+      append  config/importmap.rb
+         run  bundle add mailbin --group development
+    generate  migration
+       rails  generate migration CreateUsers email_address:string!:uniq --force
       invoke  active_record
-      create    db/migrate/20241010215312_create_users.rb
-    generate  migration CreateSessions user:references ip_address:string user_agent:string --force
+      create    db/migrate/20260330094258_create_users.rb
+    generate  migration
+       rails  generate migration CreateMagicLinks user:references code:string!:uniq expires_at:datetime! --force
+      invoke  active_record
+      create    db/migrate/20260330094259_create_magic_links.rb
+    generate  migration
        rails  generate migration CreateSessions user:references ip_address:string user_agent:string --force
       invoke  active_record
-      create    db/migrate/20241010215314_create_sessions.rb
+      create    db/migrate/20260330094300_create_sessions.rb
+       rails  railties:install:migrations FROM=action_pack_passkey
+Copied migration 20260330094301_create_action_pack_passkeys.action_pack_passkey.rb from action_pack_passkey
+      invoke  test_unit
+      create    test/fixtures/users.yml
+      create    test/models/user_test.rb
+      create    test/controllers/sessions_controller_test.rb
+      create    test/controllers/sessions/passkeys_controller_test.rb
+      create    test/controllers/sessions/magic_links_controller_test.rb
+      create    test/mailers/previews/magic_link_mailer_preview.rb
+      create    test/test_helpers/session_test_helper.rb
+      create    test/test_helpers/webauthn_test_helper.rb
+      insert    test/test_helper.rb
 ```
 
-As shown above, the authentication generator modifies the `Gemfile` to add the
-[bcrypt](https://github.com/bcrypt-ruby/bcrypt-ruby/) gem. The generator uses
-the `bcrypt` gem to create a hash of the password, which is then stored in the
-database (instead of the plain-text password). As this process is not
-reversible, there's no way to go from the hash back to the password. The hashing
-algorithm is deterministic though, so the stored password is able to be compared
-with the hash of the user-inputted password during authentication.
-
-The generator adds two migration files for creating `user` and `session` tables.
-Next step is to run the migrations:
+As shown above, the generator adds migration files for creating
+`user`, `session`, `magic_link`, and `action_pack_passkey` tables.
+Run the migrations:
 
 ```bash
 $ bin/rails db:migrate
 ```
 
 Then, if you visit `/session/new` in your browser (you will see this route has
-been added in `routes.rb`), you'll see a form that accepts an email and a
-password with "sign in" button. This form routes to the `SessionsController`
-which was added by the generator. If you provide an email/password for a user
-that exists in the database, you will be able to successfully authenticate with
-those credentials and log in to the application.
+been added in `routes.rb`), you'll see a sign-in form. Users can authenticate
+by entering their email address to receive a magic link, or by using a passkey
+registered on their device.
 
 NOTE: After running the Authentication generator, you do need to implement your
 own *sign up flow* and add the necessary views, routes, and controller actions.
@@ -108,63 +125,105 @@ There is no code generated that creates new `user` records and allows users to
 "sign up" in the first place. This is something you'll need to wire up based on
 the requirements of your application.
 
-Here is a list of modified files:
+### Passkeys
 
-```bash
-On branch main
-Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
-  (use "git restore <file>..." to discard changes in working directory)
-  modified:   Gemfile
-  modified:   Gemfile.lock
-  modified:   app/controllers/application_controller.rb
-  modified:   config/routes.rb
+Passkeys are a modern, phishing-resistant authentication method
+built on the WebAuthn standard. Instead of passwords, passkeys use
+public key cryptography — this means there is no shared secret that
+can be stolen or phished.
 
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-  app/controllers/concerns/authentication.rb
-  app/controllers/passwords_controller.rb
-  app/controllers/sessions_controller.rb
-  app/mailers/passwords_mailer.rb
-  app/models/current.rb
-  app/models/session.rb
-  app/models/user.rb
-  app/views/passwords/
-  app/views/passwords_mailer/
-  app/views/sessions/
-  db/migrate/
-  db/schema.rb
-  test/mailers/previews/
+The authentication generator adds passkey support automatically. Users can
+register passkeys from the `/my/passkeys` page and sign in with them from the
+sign-in page.
+
+Rails provides the `has_passkeys` method to add passkey support to
+the user model. This method adds the necessary associations and
+methods to manage passkeys for users.
+
+#### `has_passkeys`
+
+The `has_passkeys` method is added to the `User` model by the authentication
+generator. It sets up a polymorphic `has_many :passkeys` association and defines
+the methods needed for the WebAuthn registration and authentication ceremonies:
+
+```ruby
+class User < ApplicationRecord
+  has_passkeys name: :email_address, display_name: :name
+  has_many :sessions, dependent: :destroy
+
+  normalizes :email_address, with: -> e { e.strip.downcase }
+end
 ```
 
-### Reset Password
+The `name` and `display_name` options tell the authenticator what to display
+when the user registers or selects a passkey. `name` is typically an email
+address or username, and `display_name` is typically the user's full name.
+Both accept a symbol for an attribute or method on the record or a proc.
 
-The authentication generator also adds reset password functionality. You can see
-a "forgot password?" link on the "sign in" page. Clicking that link navigates to
-the `/passwords/new` path and routes to the passwords controller. The `new`
-method of the `PasswordsController` class runs through the flow for sending a
-password reset email.
+For more advanced configuration, `has_passkeys` accepts a block:
+
+```ruby
+has_passkeys do |config|
+  config.registration_options { { name: email_address, display_name: name.split(" ").first } }
+  config.authentication_options { { user_verification: "required" } }
+end
+```
+
+#### Passkeys Across Multiple Domains
+
+A passkey is scoped to a single relying party ID, so it only works on
+the domain it was registered on. Once the Passkey is registered, the
+relaying party ID can't be changed. To allow a passkey to work across several
+domains — for example after a domain change — use [Related Origin Requests](https://passkeys.dev/docs/advanced/related-origins/).
+
+Pin your current domain as the common relying party ID so every Passkey ceremony
+uses it, regardless of which domain the request came in on, and provide a list of related origins
+that may use those passkeys:
+
+```ruby
+# config/application.rb
+config.action_pack.passkey.relying_party_id = "example.com"
+config.action_pack.passkey.related_origins = [ "https://example.com", "https://example.co.uk" ]
+```
+
+Rails will serve that list of origins at `/.well-known/webauthn` for browsers to discover.
+
+### Magic Link-Based Authentication
+
+By default, the authentication generator uses magic links for email-based
+sign-in. When a user enters their email address, a one-time sign-in link is
+sent to their inbox. Clicking the link authenticates the user without a
+password.
+
+Magic links use a short-lived, single-use code stored in the database. The
+`MagicLink` model and `Sessions::MagicLinksController` are generated
+automatically.
+
+### Password-Based Authentication
+
+If you prefer traditional password-based authentication, pass the
+`--password-based` flag:
+
+```bash
+$ bin/rails generate authentication --password-based
+```
+
+This modifies the `Gemfile` to add the
+[bcrypt](https://github.com/bcrypt-ruby/bcrypt-ruby/) gem. The generator uses
+`bcrypt` to create a hash of the password, which is then stored in the database
+(instead of the plain-text password). As this process is not reversible, there's
+no way to go from the hash back to the password. The hashing algorithm is
+deterministic though, so the stored password can be compared with the hash of
+the user-inputted password during authentication.
+
+#### Reset Password
+
+The password-based generator also adds reset password functionality. You can
+see a "forgot password?" link on the sign-in page. Clicking that link navigates
+to the `/passwords/new` path and routes to the passwords controller.
 
 The link is valid for 15 minutes by default, but this can be configured with
 `has_secure_password`.
-
-The mailers for *reset password* are also set up by the generator at
-`app/mailers/password_mailer.rb` and render the following email to send to the
-user:
-
-```html+erb
-# app/views/passwords_mailer/reset.html.erb
-<p>
-  You can reset your password within the next 15 minutes on
-  <%= link_to "this password reset page", edit_password_url(@user.password_reset_token) %>.
-</p>
-```
-
-### Implementation Details
-
-This section covers some of the implementation details around the authentication
-flow added by the authentication generator: The `has_secure_password` method,
-the `authenticate_by` method, and the `Authentication` concern.
 
 #### `has_secure_password`
 
@@ -213,7 +272,7 @@ end
 
 If the credentials are valid, a new `Session` is created for that user.
 
-#### Session Management
+### Session Management
 
 The core functionality around session management is implemented in the
 `Authentication` controller concern, which is included by the
@@ -240,8 +299,7 @@ Rails source code. You are encouraged to explore the implementation details and
 not treat authentication as a black box.
 
 With the authentication generator configured as above, your application is ready
-for a more secure user authentication and password recovery process in just a
-few steps.
+for secure user authentication in just a few steps.
 
 Sessions
 --------

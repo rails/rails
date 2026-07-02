@@ -1,3 +1,12 @@
+*   Add passkey support to the authentication generator and default to magic links.
+
+    Changes the default authentication generator to create passkey-based authentication with magic links
+    instead of password-based authentication.
+    This provides a more secure and user-friendly authentication method out of the box.
+    The old authentication generator is still available as `rails generate authentication --password-based`.
+
+    *Stanko Krtalic Rusendic*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"

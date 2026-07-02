@@ -1,0 +1,3 @@
+<p><%%= link_to @magic_link.code, session_magic_link_url(code: @magic_link.code) %></p>
+
+<p>Click the code above to sign in. It will expire in <%%= distance_of_time_in_words(MagicLink::EXPIRATION_TIME) %>.</p>

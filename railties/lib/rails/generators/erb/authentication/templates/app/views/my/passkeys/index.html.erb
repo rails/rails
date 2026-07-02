@@ -1,0 +1,13 @@
+<h1>Passkeys</h1>
+
+<p>Passkeys let you sign in securely without a password or email code.</p>
+
+<%% if @passkeys.any? %>
+  <ul>
+    <%%= render partial: "my/passkeys/passkey", collection: @passkeys %>
+  </ul>
+<%% end %>
+
+<%%= passkey_registration_button "Register a passkey", my_passkeys_path, options: @registration_options %>
+
+<p><small>Your browser will prompt you to create a passkey using your device's biometrics, PIN, or security key.</small></p>

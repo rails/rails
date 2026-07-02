@@ -4,6 +4,9 @@ module Authentication
   included do
     before_action :require_authentication
     helper_method :authenticated?
+<%- unless options.password_based? -%>
+    helper_method :email_address_pending_authentication
+<%- end -%>
   end
 
   class_methods do
@@ -49,4 +52,40 @@ module Authentication
       Current.session.destroy
       cookies.delete(:session_id)
     end
+<%- unless options.password_based? -%>
+
+    def redirect_to_session_magic_link(magic_link)
+      set_pending_authentication_token(magic_link)
+      redirect_to session_magic_link_path
+    end
+
+    def redirect_to_fake_session_magic_link(email_address)
+      redirect_to_session_magic_link MagicLink.new(
+        user: User.new(email_address: email_address),
+        code: ActiveSupport::Base32::Crockford.generate(6),
+        expires_at: MagicLink::EXPIRATION_TIME.from_now
+      )
+    end
+
+    def email_address_pending_authentication
+      pending_authentication_verifier.verified(cookies[:pending_authentication_token])
+    end
+
+    def set_pending_authentication_token(magic_link)
+      cookies[:pending_authentication_token] = {
+        value: pending_authentication_verifier.generate(magic_link.user.email_address, expires_at: magic_link.expires_at),
+        httponly: true,
+        same_site: :lax,
+        expires: magic_link.expires_at
+      }
+    end
+
+    def clear_pending_authentication_token
+      cookies.delete(:pending_authentication_token)
+    end
+
+    def pending_authentication_verifier
+      Rails.application.message_verifier(:pending_authentication)
+    end
+<%- end -%>
 end

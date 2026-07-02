@@ -64,6 +64,7 @@ module ActiveSupport
 
   eager_autoload do
     autoload :BacktraceCleaner
+    autoload :Base32
     autoload :Benchmark
     autoload :Benchmarkable
     autoload :Cache

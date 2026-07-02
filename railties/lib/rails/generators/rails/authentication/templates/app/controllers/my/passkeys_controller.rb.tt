@@ -1,0 +1,36 @@
+class My::PasskeysController < ApplicationController
+  include ActionPack::Passkeys::Request
+
+  before_action :set_passkey, only: %i[ edit update destroy ]
+
+  def index
+    @passkeys = Current.user.passkeys.order(name: :asc, created_at: :desc)
+    @registration_options = passkey_registration_options(holder: Current.user)
+  end
+
+  def create
+    if passkey = Current.user.passkeys.register(passkey_registration_params)
+      redirect_to edit_my_passkey_path(passkey, created: true)
+    else
+      redirect_to my_passkeys_path, alert: "That passkey couldn't be registered. Try again."
+    end
+  end
+
+  def edit
+  end
+
+  def update
+    @passkey.update!(params.expect(passkey: [ :name ]))
+    redirect_to my_passkeys_path
+  end
+
+  def destroy
+    @passkey.destroy!
+    redirect_to my_passkeys_path
+  end
+
+  private
+    def set_passkey
+      @passkey = Current.user.passkeys.find(params[:id])
+    end
+end
