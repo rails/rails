@@ -40,6 +40,33 @@ module ActiveSupport
         end
       end
 
+      # Attempt to make an object shareable. If successful, a shareable object is returned.
+      # If a Ractor::IsolationError is raised, the outcome will depend on how
+      # the user's application configuration:
+      #
+      # :raise - The error is raised
+      # :warn  - A deprecation warning is triggered and the original unshareable object is returned.
+      def try_make_shareable(obj)
+        return obj unless unshareable_proc_action
+
+        make_shareable(obj)
+      rescue Ractor::IsolationError
+        case unshareable_proc_action
+        when :raise
+          raise
+        when :warn
+          ActiveSupport.deprecator.warn(<<~MSG)
+            Rails attempted to make an object from your application Ractor shareable but a Ractor
+            Isolation error was raised. The object being returned is not Ractor safe and a runtime
+            error may occur anytime during the request lifecycle.
+
+            #{obj.inspect}
+          MSG
+
+          obj
+        end
+      end
+
       if defined?(Ractor) && RUBY_VERSION >= "4.0"
         # Makes +obj+ Ractor-shareable by delegating to +Ractor.make_shareable+.
         #
