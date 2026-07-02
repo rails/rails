@@ -1,3 +1,12 @@
+*   Deprecate `Mime::SET`, `Mime::LOOKUP`, `Mime::EXTENSION_LOOKUP`.
+
+    Use `Mime.symbols`, `Mime::Type.lookup` and `Mime::Type.lookup_by_extension` respectively instead.
+
+    `Mime.extensions` is also added to enumerate every registered extension
+    (including synonyms), replacing `Mime::EXTENSION_LOOKUP.map(&:first)`.
+
+    *Étienne Barrié*
+
 *   Add `config.action_dispatch.strict_accept_header` to stop forcing an
     HTML response when the `Accept` header contains the `*/*` wildcard.
 
