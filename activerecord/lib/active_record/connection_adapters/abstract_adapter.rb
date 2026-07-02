@@ -1049,6 +1049,13 @@ module ActiveRecord
               end
 
               raise translated_exception
+            rescue Exception
+              # A non-StandardError (a Timeout, or a fiber scheduler's cancel) abandoned
+              # the query partway through, so we mark the connection unverified, just as
+              # a failed query would, forcing a reconnect before it's used again.
+              @last_activity = nil
+              @verified = false
+              raise
             ensure
               dirty_current_transaction if materialize_transactions
             end
