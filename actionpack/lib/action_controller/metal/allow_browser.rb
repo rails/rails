@@ -55,14 +55,14 @@ module ActionController # :nodoc:
       #       allow_browser versions: { opera: 104, chrome: 119 }, only: :show
       #     end
       def allow_browser(versions:, block: -> { render file: Rails.root.join("public/406-unsupported-browser.html"), layout: false, status: :not_acceptable }, **options)
+        require "useragent"
+
         before_action -> { allow_browser(versions: versions, block: block) }, **options
       end
     end
 
     private
       def allow_browser(versions:, block:)
-        require "useragent"
-
         if BrowserBlocker.new(request, versions: versions).blocked?
           ActiveSupport::Notifications.instrument("browser_block.action_controller", request: request, versions: versions) do
             block.is_a?(Symbol) ? send(block) : instance_exec(&block)
