@@ -1,3 +1,14 @@
+*   Fix `ActiveRecord::Coders::JSON#dump` to skip HTML escaping by default.
+
+    `Coders::JSON` builds its effective options from `DEFAULT_OPTIONS`
+    (`{ escape: false }`), but the JSON encoder was constructed from the raw
+    `options` argument, so a coder created without explicit options (the common
+    case for `serialize coder: JSON` and `store coder: JSON` on a text column)
+    still HTML-escaped the serialized JSON. The encoder now honors the merged
+    options, matching native `json`/`jsonb` column encoding.
+
+    *Anas Khan*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective
