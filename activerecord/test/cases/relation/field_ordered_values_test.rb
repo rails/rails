@@ -8,6 +8,24 @@ require "models/book"
 class FieldOrderedValuesTest < ActiveRecord::TestCase
   fixtures :posts
 
+  FormatValue = Struct.new(:value)
+
+  MyType = Class.new(ActiveModel::Type::Value) do
+    def cast(value)
+      FormatValue[value]
+    end
+
+    def serialize(value)
+      return nil if value.nil?
+
+      value.is_a?(FormatValue) ? value.value : value.to_s
+    end
+  end
+
+  ActiveModel::Type.register(MyType.name.to_sym, MyType)
+
+  TYPE = MyType.new
+
   def test_in_order_of
     order = [3, 4, 1]
     posts = Post.in_order_of(:id, order)
@@ -198,6 +216,35 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
         .in_order_of(:book_format, order)
 
       assert_equal(order, books.map(&:book_format))
+    end
+
+    def test_in_order_of_with_column_from_cte_serializes_custom_attribute_values
+      model = Class.new(Book) do
+        def self.name = "BookWithSerializedFormat"
+
+        attribute :format, TYPE
+      end
+
+      model.destroy_all
+      model.create!(format: "paperback")
+      model.create!(format: "ebook")
+      model.create!(format: "hardcover")
+
+      cte = model.select(:id, :format)
+
+      order = [
+        FormatValue["hardcover"],
+        FormatValue["paperback"],
+        FormatValue["ebook"]
+      ]
+
+      books = model
+        .with(cte_books: cte)
+        .from("cte_books")
+        .select(:id, :format)
+        .in_order_of(:format, order)
+
+      assert_equal(order, books.map(&:format))
     end
   end
 end

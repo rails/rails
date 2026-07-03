@@ -737,7 +737,9 @@ module ActiveRecord
       else
         arel_column = order_column(column.to_s)
 
-        unless arel_column.is_a?(Arel::Nodes::SqlLiteral)
+        if arel_column.is_a?(Arel::Nodes::SqlLiteral)
+          values = values.map { |value| model.type_caster.type_cast_for_database(column, value) }
+        else
           values = cast_values_for_in_order_of(values, arel_column.type_caster)
         end
         return spawn.none! if values.empty?
