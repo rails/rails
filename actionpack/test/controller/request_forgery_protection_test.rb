@@ -429,6 +429,10 @@ module RequestForgeryProtectionTests
     assert_not_blocked { head :index }
   end
 
+  def test_should_allow_query
+    assert_not_blocked { process :index, method: "QUERY" }
+  end
+
   def test_should_allow_post_without_token_on_unsafe_action
     assert_not_blocked { post :unsafe }
   end

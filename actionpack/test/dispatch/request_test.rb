@@ -897,6 +897,22 @@ class RequestMethod < BaseRequestTest
       request.method(:POST)
     end
   end
+
+  test "QUERY method is recognized" do
+    request = stub_request("REQUEST_METHOD" => "QUERY")
+
+    assert_equal "QUERY", request.request_method
+    assert_equal :query, request.request_method_symbol
+    assert_predicate request, :query?
+    assert_not_predicate request, :get?
+    assert_not_predicate request, :post?
+  end
+
+  test "query? returns false when the request is not a QUERY" do
+    request = stub_request("REQUEST_METHOD" => "GET")
+
+    assert_not_predicate request, :query?
+  end
 end
 
 class RequestSafety < BaseRequestTest

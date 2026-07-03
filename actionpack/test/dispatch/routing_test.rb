@@ -354,6 +354,30 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "openid#login", @response.body
   end
 
+  def test_query
+    draw do
+      query "search", to: "search#index"
+    end
+
+    query "/search"
+    assert_equal "search#index", @response.body
+  end
+
+  def test_query_via_match
+    draw do
+      match "search", via: :query, to: "search#index"
+    end
+
+    query "/search"
+    assert_equal "search#index", @response.body
+
+    get "/search"
+    assert_equal 404, @response.status
+
+    post "/search"
+    assert_equal 404, @response.status
+  end
+
   def test_websocket
     draw do
       connect "chat/live", to: "chat#live"
