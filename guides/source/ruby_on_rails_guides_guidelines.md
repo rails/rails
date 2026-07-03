@@ -119,6 +119,21 @@ store(dev)> Product.first
 ```
 ````
 
+### Shortening Examples
+
+If an example has a lot of lines that are irrelevant in the context, use an
+ellipsis. Comment out the ellipsis if the example is executable code:
+
+````markdown
+```ruby
+class User < ApplicationRecord
+  validates :name, presence: true
+  # ...
+end
+```
+````
+
+
 ### Code Highlighting
 
 For large examples small changes can be difficult to notice.
