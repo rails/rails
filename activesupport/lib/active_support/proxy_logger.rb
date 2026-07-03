@@ -24,12 +24,15 @@ module ActiveSupport
     include ::Logger::Severity
 
     def initialize(logger, level = ::Logger::DEBUG)
+      super()
       @logger = logger
       @level = ::Logger::Severity.coerce(level)
     end
 
     # Logging severity threshold (e.g. <tt>Logger::INFO</tt>).
-    attr_reader :level
+    def level
+      local_level || @level
+    end
 
     # Sets the log level; returns +severity+.
     #
