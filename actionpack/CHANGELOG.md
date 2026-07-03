@@ -1,3 +1,9 @@
+*   Deprecate `Mime::Type.register_callback`.
+
+    It was never intended as a public API and has no replacement.
+
+    *Étienne Barrié*
+
 *   Allow HTTP token authentication to require specific authentication schemes.
 
     Pass `scheme:` to `authenticate_or_request_with_http_token` (and the other

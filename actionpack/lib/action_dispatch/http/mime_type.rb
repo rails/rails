@@ -188,6 +188,11 @@ module Mime
         @on_change_callbacks << block
       end
 
+      def register_callback(&block)
+        on_change { |mime, registered| block.call(mime) if registered }
+      end
+      ActionDispatch.deprecator.deprecate_methods(self, :register_callback)
+
       def lookup(string)
         lookup = Mime.lookup_by_string
         return lookup[string] if lookup.key?(string)

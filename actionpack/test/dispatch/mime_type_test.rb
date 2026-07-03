@@ -180,6 +180,21 @@ class MimeTypeTest < ActiveSupport::TestCase
     Mime::Type.unregister(:foo)
   end
 
+  test "register_callback is deprecated and only fires on register" do
+    registered_mimes = []
+    assert_deprecated("register_callback is deprecated", ActionDispatch.deprecator) do
+      Mime::Type.register_callback { |mime| registered_mimes << mime }
+    end
+
+    mime = Mime::Type.register("text/foo", :foo)
+    assert_equal [mime], registered_mimes
+
+    Mime::Type.unregister(:foo)
+    assert_equal [mime], registered_mimes
+  ensure
+    Mime::Type.unregister(:foo)
+  end
+
   test "custom type with extension aliases" do
     Mime::Type.register "text/foobar", :foobar, [], [:foo, "bar"]
     %w[foobar foo bar].each do |extension|
