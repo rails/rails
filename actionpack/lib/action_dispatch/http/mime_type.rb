@@ -108,7 +108,7 @@ module Mime
   class Type
     attr_reader :symbol
 
-    @register_callbacks = []
+    @on_change_callbacks = []
 
     # A simple helper class used in parsing the accept header.
     class AcceptItem # :nodoc:
@@ -184,8 +184,8 @@ module Mime
       PARAMETER_SEPARATOR_REGEXP = /;\s*q="?/
       ACCEPT_HEADER_REGEXP = /[^,\s"](?:[^,"]|"[^"]*")*/
 
-      def register_callback(&block)
-        @register_callbacks << block
+      def on_change(&block) # :nodoc:
+        @on_change_callbacks << block
       end
 
       def lookup(string)
@@ -215,8 +215,8 @@ module Mime
         ([string] + mime_type_synonyms).each { |str| Mime.lookup_by_string[str] = new_mime } unless skip_lookup
         ([symbol] + extension_synonyms).each { |ext| Mime.lookup_by_extension[ext.to_s] = new_mime }
 
-        @register_callbacks.each do |callback|
-          callback.call(new_mime)
+        @on_change_callbacks.each do |callback|
+          callback.call(new_mime, true)
         end
         new_mime
       end
@@ -272,6 +272,10 @@ module Mime
           Mime.registry.delete_if { |v| v.eql?(mime) }
           Mime.lookup_by_string.delete_if { |_, v| v.eql?(mime) }
           Mime.lookup_by_extension.delete_if { |_, v| v.eql?(mime) }
+
+          @on_change_callbacks.each do |callback|
+            callback.call(mime, false)
+          end
         end
       end
     end

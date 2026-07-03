@@ -165,14 +165,17 @@ class MimeTypeTest < ActiveSupport::TestCase
     Mime::Type.unregister(:example_api)
   end
 
-  test "register callbacks" do
-    registered_mimes = []
-    Mime::Type.register_callback do |mime|
-      registered_mimes << mime
+  test "on_change callbacks fire on register and unregister" do
+    changes = []
+    Mime::Type.on_change do |mime, registered|
+      changes << [mime, registered]
     end
 
     mime = Mime::Type.register("text/foo", :foo)
-    assert_equal [mime], registered_mimes
+    assert_equal [[mime, true]], changes
+
+    Mime::Type.unregister(:foo)
+    assert_equal [[mime, true], [mime, false]], changes
   ensure
     Mime::Type.unregister(:foo)
   end
