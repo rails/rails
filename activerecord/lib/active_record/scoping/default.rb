@@ -115,6 +115,44 @@ module ActiveRecord
           end
         end
 
+        def build_unscoped_default_scope(unscoping, all_queries: nil) # :nodoc:
+          names = []
+          unscoped_defaults = false
+
+          case unscoping
+          when Array
+            unscoping.each do |value|
+              case value
+              when true
+                unscoped_defaults = true
+              when Symbol, String
+                names << value
+              else
+                raise ArgumentError, "Default scope unscoping values must be symbols, strings, or true."
+              end
+            end
+
+            if names.empty? && !unscoped_defaults
+              raise ArgumentError, "Default scope unscoping must include a default scope name or true."
+            end
+          when Symbol, String
+            names << unscoping
+          else
+            unscoped_defaults = true
+          end
+
+          if default_scope_override?
+            raise ArgumentError, "Named default scopes cannot be unscoped when default_scope is defined as a default_scope method." if names.any?
+            raw_relation
+          else
+            excluded_default_scopes = []
+            excluded_default_scopes |= named_default_scopes(names) if names.any?
+            excluded_default_scopes |= default_scopes.reject(&:named?) if unscoped_defaults
+
+            build_default_scope(raw_relation, all_queries: all_queries, excluded: excluded_default_scopes)
+          end
+        end
+
         private
           # Use this macro in your model to set a default scope for all operations on
           # the model.
