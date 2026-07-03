@@ -102,6 +102,14 @@ module ActionView
       super
     end
 
+    def eager_load_templates(view = nil)
+      template_glob("**/*").each do |file|
+        unbound = build_unbound_template(file)
+        (@unbound_templates[unbound.virtual_path] ||= []) << unbound
+        unbound.bind_locals([]).send(:compile!, view) if view
+      end
+    end
+
     def to_s
       @path.to_s
     end
