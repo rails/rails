@@ -1211,7 +1211,7 @@ limits, and upload options - that can be included:
 
 ```yaml
 amazon:
-  ...
+  # ...
   http_open_timeout: 0
   http_read_timeout: 0
   retry_limit: 0
@@ -1315,7 +1315,7 @@ for more information.
 ```yaml
 google:
   service: GCS
-  ...
+  # ...
   iam: true
 ```
 
@@ -1328,7 +1328,7 @@ present (e.g. local tests) and you may wish to use a non-default GSA.
 ```yaml
 google:
   service: GCS
-  ...
+  # ...
   iam: true
   gsa_email: "foobar@baz.iam.gserviceaccount.com"
 ```

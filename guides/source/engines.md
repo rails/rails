@@ -723,12 +723,12 @@ Next, create a form so that comments can be added to an article. Render the
 underneath the `render @article.comments` line.
 
 ```erb
-...
+  <%# ... %>
   <%= render @article.comments %>
 
   <!-- Render the comments form -->
   <%= render "blorgh/comments/form" %>
-...
+  <%# ... %>
 ```
 
 Next, create the `blorgh/comments/form` partial that we just referenced. To do
