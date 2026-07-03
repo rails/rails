@@ -38,6 +38,9 @@ require "models/car"
 require "models/sharded/blog"
 require "models/sharded/blog_post"
 require "models/sharded/comment"
+require "models/image"
+require "models/shipment"
+require "models/adjustment"
 require "models/dats"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
@@ -2134,5 +2137,23 @@ class BelongsToPolymorphicInversePrimaryKeyTest < ActiveRecord::TestCase
 
     assert_equal author, author_comment.reload.person
     assert_equal person, person_comment.reload.person
+  end
+end
+
+class BelongsToPolymorphicShardedPrimaryKeyTest < ActiveRecord::TestCase
+  def test_explicit_foreign_key_to_sharded_target_resolves_single_primary_key
+    reflection = Image.reflect_on_association(:imageable)
+
+    assert_predicate Sharded::BlogPost, :has_query_constraints?
+    assert_equal "id", reflection.association_primary_key(Sharded::BlogPost)
+  end
+
+  def test_inverse_with_composite_query_constraints_resolves_single_primary_key
+    reflection = Adjustment.reflect_on_association(:adjustable)
+    inverse = Shipment.reflect_on_association(:adjustments)
+
+    assert_equal [:region_id, :adjustable_id], inverse.options[:query_constraints]
+    assert_equal [:region_id, :id], inverse.options[:primary_key]
+    assert_equal "id", reflection.association_primary_key(Shipment)
   end
 end
