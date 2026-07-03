@@ -1,8 +1,17 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 class MimeTypeTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
+  test "Mime::Type instances are shareable" do
+    assert_ractor_shareable Mime[:html]
+    assert_ractor_shareable Mime::ALL
+    assert_ractor_shareable Mime::Type.new("application/x-custom")
+  end
+
   test "parse single" do
     Mime.lookup_by_string.each_key do |mime_type|
       unless mime_type == "image/*"
@@ -328,13 +337,76 @@ class MimeTypeTest < ActiveSupport::TestCase
     end
   end
 
-  test "holds a reference to mime symbols" do
-    old_symbols = Mime.symbols
-    Mime::Type.register_alias "application/xhtml+xml", :foobar
-    new_symbols = Mime.symbols
+  test "Mime.symbols returns a live reference that tracks register and unregister" do
+    symbols = Mime.symbols
 
-    assert_same(old_symbols, new_symbols)
+    Mime::Type.register_alias "application/xhtml+xml", :foobar
+    assert_includes symbols, :foobar
+
+    Mime::Type.unregister(:foobar)
+    assert_not_includes symbols, :foobar
   ensure
     Mime::Type.unregister(:foobar)
+  end
+end
+
+class MimeTypeRegistryFreezeTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::RactorsAssertions
+
+  test "after eager_load! the registries are shareable" do
+    Mime.eager_load!
+
+    assert_ractor_shareable Mime.registry
+    assert_ractor_shareable Mime.lookup_by_string
+    assert_ractor_shareable Mime.lookup_by_extension
+  end
+
+  test "registering after eager_load! is deprecated, falls back to copy-on-write, and stays shareable" do
+    Mime.eager_load!
+
+    assert_deprecated("after the application has been initialized", ActionDispatch.deprecator) do
+      Mime::Type.register("text/x-ractor", :ractor)
+    end
+
+    assert_equal Mime[:ractor], Mime::Type.lookup("text/x-ractor")
+    assert_includes Mime.symbols, :ractor
+
+    assert_ractor_shareable Mime.registry
+    assert_ractor_shareable Mime.lookup_by_string
+    assert_ractor_shareable Mime.lookup_by_extension
+  end
+
+  test "after eager_load! a reference captured before the freeze no longer tracks unregister" do
+    Mime::Type.register_alias "application/xhtml+xml", :foobar
+    captured = Mime.symbols
+    Mime.eager_load!
+
+    assert_includes captured, :foobar
+
+    assert_deprecated("after the application has been initialized", ActionDispatch.deprecator) do
+      Mime::Type.unregister(:foobar)
+    end
+
+    assert_not_includes Mime.symbols, :foobar
+    assert_includes captured, :foobar
+  end
+
+  test "deprecated Mime::SET, Mime::LOOKUP and Mime::EXTENSION_LOOKUP proxies reflect registration after eager_load!" do
+    Mime.eager_load!
+
+    assert_deprecated("after the application has been initialized", ActionDispatch.deprecator) do
+      Mime::Type.register("text/x-ractor", :ractor)
+    end
+
+    assert_deprecated("Mime::SET is deprecated", ActionDispatch.deprecator) do
+      assert_includes Mime::SET.symbols, :ractor
+    end
+    assert_deprecated("Mime::LOOKUP is deprecated", ActionDispatch.deprecator) do
+      assert_equal Mime[:ractor], Mime::LOOKUP["text/x-ractor"]
+    end
+    assert_deprecated("Mime::EXTENSION_LOOKUP is deprecated", ActionDispatch.deprecator) do
+      assert_equal Mime[:ractor], Mime::EXTENSION_LOOKUP["ractor"]
+    end
   end
 end
