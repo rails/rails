@@ -145,7 +145,7 @@ Now we're ready to start collecting product reviews!
 On the product's show page, we can ask customers to write a review and display
 all the current reviews. Let's start by letting users create reviews.
 
-### Public product reviews routes
+### Public Product Reviews Routes
 
 Let's create the routes for product reviews first. Since this is public-facing,
 we only need the `new` and `create` actions.
@@ -159,7 +159,7 @@ In `config/routes.rb`, add the following inside the `resources :products` block:
     resources :subscribers, only: [ :create ]
 ```
 
-### Product reviews partial
+### Product Reviews Partial
 
 Next, let's create a partial for the reviews to be rendered on the product show
 page.
@@ -205,7 +205,7 @@ end
 
 This controller uses the nested route to look up the `Product` on each request.
 
-### New review form
+### New Review Form
 
 Next, let's add the view for collecting reviews.
 
@@ -319,7 +319,7 @@ There are a few things going on here:
 
 CSS allows us to select previous siblings using `:has(~ input:checked)` and `:has(~ input + label:hover)`. This selector targets labels for all the lower stars when the user selects a rating. If they choose 3 stars, the selector colors the stars 1, 2, and 3 with gold.
 
-### Creating reviews
+### Creating Reviews
 
 Next, we need to save reviews in the database when the form is submitted.
 
@@ -365,7 +365,7 @@ We need to a way to view these product reviews next. Let's use a two-column
 layout that shows an overview of ratings on the left and the reviews on the
 right.
 
-### Rendering reviews
+### Rendering Reviews
 
 First, let's query the reviews in `app/controllers/products_controller.rb`:
 
@@ -395,7 +395,7 @@ the partial so it knows which reviews to render.
 <%= render "reviews", product: @product, reviews: @reviews %>
 ```
 
-### Calcuating rating percentages
+### Calculating Rating Percentages
 
 Let's add a method to calculate the percentage of reviews at a specific rating.
 Given a rating of `4`, this will return the percentage of reviews with a 4 star rating.
@@ -415,7 +415,7 @@ end
 We can use this to display each rating and their percentage of reviews with that
 rating.
 
-### Product reviews layout
+### Product Reviews Layout
 
 Let's update `app/views/products/_reviews.html.erb` to display that information
 alongside the reviews.
@@ -526,7 +526,7 @@ section.reviews {
 }
 ```
 
-### Reviews partial
+### Reviews Partial
 
 Let's add `app/views/reviews/_review.html.erb` so the individual reviews can be
 displayed.
@@ -557,7 +557,7 @@ displayed.
 Under the review's author name, the loop counts from 1 to 5 and adds stars that
 are marked gray or gold if the number is within the rating for this review.
 
-### Updating the average rating cache
+### Updating the Average Rating Cache
 
 You may have noticed the product's rating is always `0.0 out of 5`.
 
@@ -785,7 +785,7 @@ class Review < ApplicationRecord
 end
 ```
 
-### Sidebar link
+### Sidebar Link
 
 To access reviews in the navigation, let's add a link to the sidebar in the
 layout.
@@ -836,7 +836,7 @@ Let's also add a link to the product's show page in `app/views/store/products/sh
 
 This will make it easy to jump to a product's reviews in the admin area.
 
-### Index view &amp; partial
+### Index View &amp; Partial
 
 Let's create the index view next in `app/views/store/reviews/index.html.erb`:
 
@@ -886,7 +886,7 @@ Create `app/views/store/reviews/_review.html.erb` with the following:
 <% end %>
 ```
 
-### Show view
+### Show View
 
 Let's create the show view next in `app/views/store/reviews/show.html.erb`:
 
@@ -920,7 +920,7 @@ Let's create the show view next in `app/views/store/reviews/show.html.erb`:
 </div>
 ```
 
-### Edit view
+### Edit View
 
 Last, but not least, let's create the edit view in `app/views/store/reviews/edit.html.erb`
 
@@ -979,7 +979,7 @@ With that added, store admins can now view, edit, and delete reviews as needed.
 Before we finish, we should write some tests to ensure that the functionality
 we just built works.
 
-### Updating review fixtures
+### Updating Review Fixtures
 
 Rails generated two `Review` test fixtures for us in
 `test/fixtures/reviews.yml`, however we need to update them to point to the
@@ -1018,7 +1018,7 @@ shoes:
   reviews_count: 0
 ```
 
-### Creating reviews tests
+### Creating Reviews Tests
 
 Let's start simple by writing a test to create a review in `test/models/review_test.rb`
 
@@ -1053,7 +1053,7 @@ Finished in 0.317256s, 3.1520 runs/s, 3.1520 assertions/s.
 1 runs, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-### Testing invalid ratings
+### Testing Invalid Ratings
 
 Ratings need to be between 1 and 5 stars. Let's add a test for that in
 `test/models/review_test.rb` too.
@@ -1089,7 +1089,7 @@ Finished in 0.323206s, 6.1880 runs/s, 9.2820 assertions/s.
 2 runs, 3 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-### Testing product average ratings
+### Testing Product Average Ratings
 
 Since reviews trigger updates on the associated product, we need to write a test
 for that too.
@@ -1129,7 +1129,7 @@ Finished in 0.347102s, 8.6430 runs/s, 14.4050 assertions/s.
 3 runs, 5 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-### `rated` scope test
+### `rated` Scope Test
 
 Another thing we can test is the `rated` scope.
 
@@ -1163,7 +1163,7 @@ Finished in 0.351257s, 11.3877 runs/s, 25.6223 assertions/s.
 4 runs, 9 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-### Review creation test
+### Review Creation Test
 
 Next, let's add an integration test for a customer creating a review. We'll
 start by generating an integration test file.
@@ -1213,7 +1213,7 @@ Finished in 0.642394s, 1.5567 runs/s, 6.2267 assertions/s.
 
 It passes!
 
-### Filtering reviews tests
+### Filtering Reviews Tests
 
 We also want to test filtering reviews on the frontend. Let's add a new test to
 the same integration test file.
@@ -1267,7 +1267,7 @@ Finished in 0.720307s, 2.7766 runs/s, 11.1064 assertions/s.
 2 runs, 8 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-### Review management tests
+### Review Management Tests
 
 Let's finish up by adding a couple tests to ensure that only admins can access
 the review management section in the admin area.
