@@ -802,7 +802,7 @@ module ActiveRecord
     #     end
     #   end
     #
-    # The <tt>:unscoped</tt> option allows you to reload the record without default scopes:
+    # The <tt>:unscoped</tt> option allows you to reload the record without default scopes that apply to all queries:
     #   reload(unscoped: true) # reload without unnamed default scopes
     #   reload(unscoped: [:foo, :bar]) # reload without the default scopes named :foo and :bar
     #   reload(unscoped: [:foo, :bar, true]) # reload without the default scopes named :foo and :bar and unnamed default scopes
@@ -810,7 +810,7 @@ module ActiveRecord
       self.class.connection_pool.clear_query_cache
 
       fresh_object = if options && options[:unscoped]
-        unscoped_relation_for_reload(options[:unscoped]).scoping { _find_record(options) }
+        self.class.build_unscoped_default_scope(options[:unscoped], all_queries: true).scoping { _find_record(options) }
       elsif apply_scoping?(options)
         _find_record((options || {}).merge(all_queries: true))
       else
@@ -890,45 +890,6 @@ module ActiveRecord
         @association_cache.find_all do |_, assoc|
           assoc.owner.strict_loading? && !assoc.owner.strict_loading_n_plus_one_only?
         end.map(&:first)
-      end
-
-      def unscoped_relation_for_reload(unscoped)
-        names = []
-        unscoped_defaults = false
-
-        case unscoped
-        when Array
-          unscoped.each do |value|
-            case value
-            when true
-              unscoped_defaults = true
-            when Symbol, String
-              names << value
-            else
-              raise ArgumentError, "Reload unscoping values must be symbols, strings, or true."
-            end
-          end
-
-          if names.empty? && !unscoped_defaults
-            raise ArgumentError, "Reload unscoping must include a default scope name or true."
-          end
-        when Symbol, String
-          names << unscoped
-        else
-          unscoped_defaults = true
-        end
-
-        relation = if names.any?
-          self.class.unscoped(*names)
-        else
-          self.class.unscoped
-        end
-
-        if unscoped_defaults && names.any?
-          relation = relation.unscoped
-        end
-
-        relation
       end
 
       def _find_record(options)
