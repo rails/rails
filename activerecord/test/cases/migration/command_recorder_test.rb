@@ -464,6 +464,11 @@ module ActiveRecord
         assert_equal [:add_foreign_key, [:dogs, :people, column: "owner_id"]], enable
       end
 
+      def test_invert_remove_foreign_key_if_exists
+        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, :people, if_exists: true]
+        assert_equal [:add_foreign_key, [:dogs, :people, if_not_exists: true]], enable
+      end
+
       def test_invert_add_foreign_key_with_column_and_name
         enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people, column: "owner_id", name: "fk"]
         assert_equal [:remove_foreign_key, [:dogs, :people, column: "owner_id", name: "fk"], nil], enable
