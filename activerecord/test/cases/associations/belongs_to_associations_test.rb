@@ -1789,6 +1789,24 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_predicate comment, :author_previously_changed?
   end
 
+  test "tracking change for composite foreign key from one persisted record to another" do
+    old_order = Cpk::Order.create!(id: [1, 2])
+    new_order = Cpk::Order.create!(id: [1, 3])
+    book = Cpk::Book.create!(id: [3, 4], order: old_order)
+    book.reload
+
+    assert_not book.order_changed?
+    assert_not book.order_previously_changed?
+
+    book.order = new_order
+    assert book.order_changed?
+    assert_not book.order_previously_changed?
+
+    book.save!
+    assert_not book.order_changed?
+    assert book.order_previously_changed?
+  end
+
   class ShipRequired < ActiveRecord::Base
     self.table_name = "ships"
     belongs_to :developer, required: true
