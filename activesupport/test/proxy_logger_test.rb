@@ -34,6 +34,25 @@ module ActiveSupport
       assert_equal %w(REAL-1 PROXY-1), @io.string.split("\n")
     end
 
+    def test_silence
+      @logger.silence do
+        @logger.info("SILENCED")
+        @logger.error("PASSES")
+      end
+      @logger.info("AFTER")
+
+      assert_equal %w(PASSES AFTER), @io.string.split("\n")
+    end
+
+    def test_silence_only_affects_the_receiver
+      other = ProxyLogger.new(@real_logger)
+      @logger.silence do
+        other.info("OTHER")
+      end
+
+      assert_equal %w(OTHER), @io.string.split("\n")
+    end
+
     def test_close_and_reopen
       @logger.debug("BEFORE")
       @logger.close
