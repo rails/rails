@@ -4,7 +4,7 @@
     Ruby has deprecated the usage of setting `$,` for more than 10 years and its usage
     in `safe_join` was never documented.
 
-    If your application relied on this behaviour, make sure to explictly pass the separator
+    If your application relied on this behaviour, make sure to explicitly pass the separator
     to `safe_join` as the default is now `nil` (no separation).
 
     *Edouard Chin*

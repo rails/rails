@@ -89,7 +89,7 @@
 
 *   `http_cache_forever` now accept an optional `last_modified:` keyword parameter.
 
-    It still defaults to January 1st 2011, but you now can subtitute it for a relevant
+    It still defaults to January 1st 2011, but you now can substitute it for a relevant
     time if there is one.
 
     *Jean Boussier*
