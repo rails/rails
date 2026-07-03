@@ -7,6 +7,15 @@
 
     *Ryosuke Okazuka*
 
+*   Raise `ActiveRecord::ActiveRecordError` when `update_all` / `delete_all` is
+    called on a relation carrying a bare `group` (with no `having`, join, limit,
+    offset, or order). Such a `group` was silently dropped from the generated
+    statement, so it updated or deleted every row in the table. `group` + `having`
+    and the join/limit/offset/order cases still route through the primary-key
+    subquery and are unaffected.
+
+    *Anas Khan*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective

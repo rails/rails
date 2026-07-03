@@ -617,6 +617,10 @@ module ActiveRecord
         MESSAGE
       end
 
+      if group_without_having?
+        raise ActiveRecordError.new("update_all doesn't support a `group` without a `having` clause")
+      end
+
       if updates.is_a?(Hash)
         if model.locking_enabled? &&
             updates.keys.none? { |key| (model.attribute_alias(key) || key.to_s) == model.locking_column }
@@ -1053,6 +1057,10 @@ module ActiveRecord
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
       end
 
+      if group_without_having?
+        raise ActiveRecordError.new("delete_all doesn't support a `group` without a `having` clause")
+      end
+
       model.with_connection do |c|
         arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
@@ -1360,6 +1368,16 @@ module ActiveRecord
       end
 
     private
+      # A bare `group` (with no `having`, join, limit, offset, or order to force a
+      # primary-key subquery) is silently dropped from the generated `UPDATE` /
+      # `DELETE`, so the statement would touch every row in the table. There is no
+      # meaningful statement to generate in that case, so it is treated as invalid.
+      def group_without_having?
+        group_values.any? && having_clause.empty? &&
+          joins_values.empty? && left_outer_joins_values.empty? &&
+          !limit_value && !offset_value && order_values.empty?
+      end
+
       def already_in_scope?(registry)
         @delegate_to_model && registry.current_scope(model, true)
       end

@@ -83,6 +83,20 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal "updated", posts[2].reload.title
   end
 
+  def test_update_all_with_group_by_without_having_raises
+    # A bare `group` (no `having`, join, limit, offset, or order to force a
+    # primary-key subquery) is silently dropped from the generated statement,
+    # which would update every row. It must raise instead of causing data loss.
+    titles = Post.order(:id).pluck(:id, :title)
+
+    error = assert_raises(ActiveRecord::ActiveRecordError) do
+      Post.group(:id).update_all(title: "updated")
+    end
+    assert_match(/group/, error.message)
+
+    assert_equal titles, Post.order(:id).pluck(:id, :title)
+  end
+
   def test_update_all_with_joins_and_limit
     pets = Pet.joins(:toys).where(toys: { name: "Bone" }).limit(2)
 

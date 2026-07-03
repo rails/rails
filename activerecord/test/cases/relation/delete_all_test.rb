@@ -96,6 +96,18 @@ class DeleteAllTest < ActiveRecord::TestCase
     assert_not Post.exists?(posts[2].id)
   end
 
+  def test_delete_all_with_group_by_without_having_raises
+    # A bare `group` (no `having`, join, limit, offset, or order to force a
+    # primary-key subquery) is silently dropped from the generated statement,
+    # which would delete every row. It must raise instead of causing data loss.
+    assert_no_difference("Post.count") do
+      error = assert_raises(ActiveRecord::ActiveRecordError) do
+        Post.group(:id).delete_all
+      end
+      assert_match(/group/, error.message)
+    end
+  end
+
   def test_delete_all_with_unpermitted_relation_raises_error
     assert_raises(ActiveRecord::ActiveRecordError) { Author.distinct.delete_all }
     assert_raises(ActiveRecord::ActiveRecordError) { Author.with(limited: Author.limit(2)).delete_all }
