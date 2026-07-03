@@ -7,6 +7,21 @@
 
     *Ryosuke Okazuka*
 
+*   Restore `lock_version` to the savepoint value after a nested savepoint rollback.
+
+    When a record with optimistic locking was saved in a transaction and then saved
+    again inside a `transaction(requires_new: true)` block that rolled back, the
+    in-memory `lock_version` was reset all the way to its pristine transaction-start
+    value instead of the value the savepoint reverted to. Saving the record again then
+    raised `ActiveRecord::StaleObjectError` because the `WHERE` clause used a
+    `lock_version` lower than the one still persisted in the database.
+
+    The locking column is now restored to the value it held when the savepoint was
+    created, which also fixes rollbacks of deeply nested and sibling savepoints. This
+    completes the fix started in #57363 and #57400.
+
+    *Anas Khan*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective
