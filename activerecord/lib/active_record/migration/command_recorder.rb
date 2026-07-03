@@ -314,6 +314,7 @@ module ActiveRecord
           from_table, to_table = args
 
           to_table ||= options.delete(:to_table)
+          options[:if_not_exists] = options.delete(:if_exists) if options.key?(:if_exists)
 
           raise ActiveRecord::IrreversibleMigration, "remove_foreign_key is only reversible if given a second table" if to_table.nil?
 
