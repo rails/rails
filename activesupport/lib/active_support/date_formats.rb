@@ -8,13 +8,13 @@ module ActiveSupport
       db: "%Y-%m-%d",
       inspect: "%Y-%m-%d",
       number: "%Y%m%d",
-      long_ordinal: lambda { |date|
+      long_ordinal: ActiveSupport::Ractors.shareable_lambda { |date|
         day_format = ActiveSupport::Inflector.ordinalize(date.day)
         date.strftime("%B #{day_format}, %Y") # => "April 25th, 2007"
       },
       rfc822: "%d %b %Y",
       rfc2822: "%d %b %Y",
-      iso8601: lambda { |date| date.iso8601 }
+      iso8601: ActiveSupport::Ractors.shareable_lambda { |date| date.iso8601 }
     }.freeze
 
     singleton_class.attr_reader :list # :nodoc:
