@@ -1567,6 +1567,11 @@ class RequestBearerToken < BaseRequestTest
     request = stub_request("X-HTTP_AUTHORIZATION" => "Bearer my-secret-token")
     assert_equal "my-secret-token", request.bearer_token
   end
+
+  test "bearer_token recognizes case-insensitive scheme" do
+    request = stub_request("HTTP_AUTHORIZATION" => "bearer my-secret-token")
+    assert_equal "my-secret-token", request.bearer_token
+  end
 end
 
 class RequestIfModifiedSince < BaseRequestTest
