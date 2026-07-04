@@ -198,6 +198,42 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_operator Mime[:html], :==, :html
   end
 
+  test "#== is true when compared to an equal type" do
+    assert_equal true, Mime[:json] == Mime[:json]
+  end
+
+  test "#== is true when compared to its registered string" do
+    assert_equal true, Mime[:json] == "application/json"
+  end
+
+  test "#== is true when compared to its registered symbol" do
+    assert_equal true, Mime[:json] == :json
+  end
+
+  test "#== is true when compared to a synonym string" do
+    assert_equal true, Mime[:html] == "application/xhtml+xml"
+  end
+
+  test "#== is true when compared to a synonym symbol" do
+    assert_equal true, Mime[:html] == :"application/xhtml+xml"
+  end
+
+  test "#== is false when compared to a different type" do
+    assert_equal false, Mime[:html] == Mime[:json]
+  end
+
+  test "#== is false when compared to a non-matching string" do
+    assert_equal false, Mime[:html] == "application/json"
+  end
+
+  test "#== is false when compared to a non-matching symbol" do
+    assert_equal false, Mime[:html] == :json
+  end
+
+  test "#== is false when compared to nil" do
+    assert_equal false, Mime[:html] == nil
+  end
+
   test "type convenience methods" do
     types = Mime.symbols.uniq - [:iphone]
 
