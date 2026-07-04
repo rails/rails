@@ -2834,6 +2834,38 @@ Sets the host for the assets. Useful when CDNs are used for hosting assets rathe
 
 Accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Action Mailer. Set to `nil` to disable logging.
 
+#### `config.action_mailer.delivery_method`
+
+Defines the delivery method. The following options are available:
+
+* `:smtp` - Sends email using SMTP. Configure it with
+  [`config.action_mailer.smtp_settings`][]. This is the default.
+* `:sendmail` - Sends email using sendmail. Configure it with
+  [`config.action_mailer.sendmail_settings`][].
+* `:file` - Saves emails to files. Configure it with
+  [`config.action_mailer.file_settings`][].
+* `:test` - Saves emails to the `ActionMailer::Base.deliveries` array.
+
+You can also use a custom delivery method by either:
+
+* Setting `config.action_mailer.delivery_method` to a custom delivery method
+  object. The object must accept settings during initialization and respond to
+  `deliver!(mail)`. See the Mail gem's [`Mail::SMTP` delivery method][] for an
+  example implementation.
+* Registering a custom delivery method with
+  [`ActionMailer::Base.add_delivery_method`][] and setting
+  `config.action_mailer.delivery_method` to its registered name.
+
+See the [configuration section in the Action Mailer guide][] for configuration
+examples.
+
+[`config.action_mailer.smtp_settings`]: #config-action-mailer-smtp-settings
+[`config.action_mailer.sendmail_settings`]: #config-action-mailer-sendmail-settings
+[`config.action_mailer.file_settings`]: #config-action-mailer-file-settings
+[`ActionMailer::Base.add_delivery_method`]: https://api.rubyonrails.org/classes/ActionMailer/DeliveryMethods/ClassMethods.html#method-i-add_delivery_method
+[`Mail::SMTP` delivery method]: https://github.com/mikel/mail/blob/master/lib/mail/network/delivery_methods/smtp.rb
+[configuration section in the Action Mailer guide]: action_mailer_basics.html#action-mailer-configuration
+
 #### `config.action_mailer.smtp_settings`
 
 Allows detailed configuration for the `:smtp` delivery method. It accepts a hash of options, which can include any of these options:
@@ -2884,10 +2916,6 @@ Configures the `:file` delivery method. It accepts a hash of options, which can 
 #### `config.action_mailer.raise_delivery_errors`
 
 Specifies whether to raise an error if email delivery cannot be completed. It defaults to `true`.
-
-#### `config.action_mailer.delivery_method`
-
-Defines the delivery method and defaults to `:smtp`. See the [configuration section in the Action Mailer guide](action_mailer_basics.html#action-mailer-configuration) for more info.
 
 #### `config.action_mailer.perform_deliveries`
 
