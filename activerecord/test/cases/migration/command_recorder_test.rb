@@ -373,6 +373,11 @@ module ActiveRecord
         assert_equal [:add_index, [:table, [:one, :two]]], add
       end
 
+      def test_invert_remove_index_if_exists
+        add = @recorder.inverse_of :remove_index, [:table, { column: [:one, :two], if_exists: true }]
+        assert_equal [:add_index, [:table, [:one, :two], if_not_exists: true]], add
+      end
+
       def test_invert_remove_index_with_no_column
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.inverse_of :remove_index, [:table, name: "new_index"]
