@@ -1,3 +1,15 @@
+*   Add `#this_quarter?` to Date/Time.
+
+    It returns true if the date/time falls within the current quarter.
+
+    ```ruby
+    Date.current #=> Tue, 15 Feb 2000
+    Date.new(2000, 3, 31).this_quarter?  # => true
+    Date.new(2000, 4, 1).this_quarter?   # => false
+    ```
+
+    *Kenta Ishizaki*
+
 *   Added `ActiveSupport::ProxyLogger`.
 
     The proxy logger, is a logger that forwards all received logs to another

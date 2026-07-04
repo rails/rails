@@ -75,6 +75,11 @@ module DateAndTime
       ::Date.current.all_month.include?(to_date)
     end
 
+    # Returns true if the date/time falls within the current quarter.
+    def this_quarter?
+      ::Date.current.all_quarter.cover?(to_date)
+    end
+
     # Returns true if the date/time falls within the current year.
     def this_year?
       ::Date.current.all_year.include?(to_date)
