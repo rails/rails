@@ -1,3 +1,8 @@
+*   `ActionView::Helpers#mail_to` now lets you pass an array of multiple address for the recipients, cc, bcc,
+    and reply-to fields.
+
+    *Alexander Momchilov*
+
 *   Calling `safe_join` in a view no longer fallbacks to the `$,` global variable.
 
     Previously, calling `safe_join` would use `$,` by default to separate elements.
