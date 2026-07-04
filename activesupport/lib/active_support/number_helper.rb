@@ -181,7 +181,7 @@ module ActiveSupport
     #
     # [+:precision+]
     #   The level of precision, or +nil+ to preserve +number+'s precision.
-    #   Defaults to 2.
+    #   Defaults to 3.
     #
     #     number_to_percentage(12.3456789, precision: 4) # => "12.3457%"
     #     number_to_percentage(99.999, precision: 0)     # => "100%"
