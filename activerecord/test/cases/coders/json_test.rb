@@ -19,6 +19,11 @@ module ActiveRecord
         coder = JSON.new(symbolize_names: true)
         assert_equal({ foo: "bar" }, coder.load('{"foo":"bar"}'))
       end
+
+      def test_dump_does_not_html_escape
+        coder = JSON.new
+        assert_equal '{"k":"<>&"}', coder.dump({ "k" => "<>&" })
+      end
     end
   end
 end

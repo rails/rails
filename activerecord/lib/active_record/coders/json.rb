@@ -9,7 +9,7 @@ module ActiveRecord
 
       def initialize(options = nil)
         @options = options ? DEFAULT_OPTIONS.merge(options) : DEFAULT_OPTIONS
-        @encoder = ActiveSupport::JSON::Encoding.json_encoder.new(options)
+        @encoder = ActiveSupport::JSON::Encoding.json_encoder.new(@options)
       end
 
       def dump(obj)
