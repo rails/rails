@@ -32,6 +32,16 @@ module ActionPack
   #
   #   ActionPack::WebAuthn.register_attestation_verifier("packed", MyPackedVerifier.new)
   #
+  # == Extending Key Formats
+  #
+  # By default the ES256, EdDSA, and RS256 COSE key formats are supported.
+  # Register additional formats with:
+  #
+  #   ActionPack::WebAuthn.register_key_format(MyKeyFormat)
+  #
+  # The format must respond to +algorithm+, +to_public_key_credential_param+,
+  # and +build(cose_key)+.
+  #
   module WebAuthn
     extend ActiveSupport::Autoload
 
@@ -85,6 +95,22 @@ module ActionPack
       # The +verifier+ must respond to +verify!(attestation, client_data_json:)+.
       def register_attestation_verifier(format, verifier)
         attestation_verifiers[format.to_s] = verifier
+      end
+
+      # Returns the registry of COSE key formats, keyed by COSE algorithm
+      # identifier. ES256, EdDSA, and RS256 are registered by default.
+      def key_formats
+        @key_formats ||= {
+          CoseKey::ES256.algorithm => CoseKey::ES256,
+          CoseKey::EdDSA.algorithm => CoseKey::EdDSA,
+          CoseKey::RS256.algorithm => CoseKey::RS256
+        }
+      end
+
+      # Registers a custom COSE key format. The +format+ must respond to
+      # +algorithm+, +to_public_key_credential_param+, and +build(cose_key)+.
+      def register_key_format(format)
+        key_formats[format.algorithm] = format
       end
     end
   end

@@ -3,6 +3,24 @@
 require_relative "../web_authn_test_helper"
 
 class ActionPack::WebAuthn::CoseKeyTest < ActiveSupport::TestCase
+  module FakeKeyFormat
+    ALGORITHM = -65535
+
+    class << self
+      def algorithm
+        ALGORITHM
+      end
+
+      def to_public_key_credential_param
+        { type: "public-key", alg: algorithm }
+      end
+
+      def build(cose_key)
+        :fake_openssl_key
+      end
+    end
+  end
+
   # EC2/ES256 P-256 public key (32-byte x and y coordinates)
   EC2_X = [ "2ba472104c686f39d4b623cc9324953e7053b47cae818e8cf774203a4f51af71" ].pack("H*")
   EC2_Y = [ "69cb8ac519bdd929e2bdbe79e9f9b8d14c2d89a7cbd324647a1ccd68b8de3ca0" ].pack("H*")
@@ -135,7 +153,7 @@ class ActionPack::WebAuthn::CoseKeyTest < ActiveSupport::TestCase
     assert_equal 65537, openssl_key.e.to_i
   end
 
-  test "raises error for unsupported key type/algorithm combination" do
+  test "raises error for mismatched key type" do
     key = ActionPack::WebAuthn::CoseKey.new(
       key_type: 99,
       algorithm: -7,
@@ -146,7 +164,36 @@ class ActionPack::WebAuthn::CoseKeyTest < ActiveSupport::TestCase
       key.to_openssl_key
     end
 
-    assert_match(/99\/-7/, error.message)
+    assert_match(/key type/i, error.message)
+    assert_match(/99/, error.message)
+  end
+
+  test "raises error for unregistered algorithm" do
+    key = ActionPack::WebAuthn::CoseKey.new(
+      key_type: 2,
+      algorithm: -65536,
+      parameters: {}
+    )
+
+    error = assert_raises(ActionPack::WebAuthn::UnsupportedKeyTypeError) do
+      key.to_openssl_key
+    end
+
+    assert_match(/Unsupported COSE algorithm: -65536/, error.message)
+  end
+
+  test "registering a custom key format makes to_openssl_key dispatch to it" do
+    ActionPack::WebAuthn.register_key_format(FakeKeyFormat)
+
+    key = ActionPack::WebAuthn::CoseKey.new(
+      key_type: 42,
+      algorithm: FakeKeyFormat.algorithm,
+      parameters: {}
+    )
+
+    assert_equal :fake_openssl_key, key.to_openssl_key
+  ensure
+    ActionPack::WebAuthn.key_formats.delete(FakeKeyFormat.algorithm)
   end
 
   test "raises error for unsupported OKP curve" do

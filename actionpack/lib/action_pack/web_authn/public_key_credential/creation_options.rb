@@ -93,11 +93,7 @@ module ActionPack
             name: name,
             displayName: display_name
           },
-          pubKeyCredParams: [
-            { type: "public-key", alg: CoseKey::ES256 },
-            { type: "public-key", alg: CoseKey::EDDSA },
-            { type: "public-key", alg: CoseKey::RS256 }
-          ],
+          pubKeyCredParams: ActionPack::WebAuthn.key_formats.values.map(&:to_public_key_credential_param),
           authenticatorSelection: authenticator_selection_json,
           attestation: attestation.to_s
         }
