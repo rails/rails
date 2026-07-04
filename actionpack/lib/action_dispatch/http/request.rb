@@ -467,7 +467,7 @@ module ActionDispatch
 
     # Returns the bearer token embedded in the authorization header or nil if missing.
     def bearer_token
-      authorization.to_s[/\ABearer (.+)\z/, 1]
+      authorization.to_s[/\ABearer (.+)\z/i, 1]
     end
 
     # True if the request method is safe per RFC 9110 §9.2.1
