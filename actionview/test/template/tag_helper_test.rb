@@ -21,6 +21,37 @@ class TagHelperTest < ActionView::TestCase
     assert_equal "<span class=\"bookmark\"></span>", tag.span(class: "bookmark")
   end
 
+  def test_tag_builder_renders_multiple_attributes_in_order
+    assert_equal %(<input type="text" name="q" id="search">),
+      tag.input(type: "text", name: "q", id: "search")
+  end
+
+  def test_tag_builder_escapes_double_quotes_within_an_attribute_value
+    assert_equal %(<input value="say &quot;hi&quot;">), tag.input(value: 'say "hi"')
+  end
+
+  def test_tag_builder_renders_a_boolean_attribute_as_its_own_key
+    assert_equal %(<input required="required">), tag.input(required: true)
+  end
+
+  def test_tag_builder_renders_a_data_hash_as_dasherized_prefixed_attributes
+    assert_equal %(<div data-controller="modal" data-action="reveal"></div>),
+      tag.div(data: { controller: "modal", action: "reveal" })
+  end
+
+  def test_tag_builder_renders_an_aria_hash_as_prefixed_attributes
+    assert_equal %(<div aria-label="Close" aria-hidden="true"></div>),
+      tag.div(aria: { label: "Close", hidden: true })
+  end
+
+  def test_tag_builder_joins_an_array_class_with_spaces
+    assert_equal %(<div class="a b c"></div>), tag.div(class: ["a", "b", "c"])
+  end
+
+  def test_tag_builder_stringifies_a_symbol_attribute_value
+    assert_equal %(<input type="text">), tag.input(type: :text)
+  end
+
   def test_tag_builder_void_tag
     assert_equal "<br>", tag.br
     assert_equal "<br class=\"some_class\">", tag.br(class: "some_class")
