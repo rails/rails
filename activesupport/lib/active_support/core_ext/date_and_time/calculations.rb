@@ -67,12 +67,12 @@ module DateAndTime
     # Week is assumed to start on +start_day+, default is
     # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
     def this_week?(start_day = Date.beginning_of_week)
-      ::Date.current.all_week(start_day).include?(to_date)
+      ::Date.current.all_week(start_day).cover?(to_date)
     end
 
     # Returns true if the date/time falls within the current month.
     def this_month?
-      ::Date.current.all_month.include?(to_date)
+      ::Date.current.all_month.cover?(to_date)
     end
 
     # Returns true if the date/time falls within the current quarter.
@@ -82,7 +82,7 @@ module DateAndTime
 
     # Returns true if the date/time falls within the current year.
     def this_year?
-      ::Date.current.all_year.include?(to_date)
+      ::Date.current.all_year.cover?(to_date)
     end
 
     # Returns true if the date/time falls before <tt>date_or_time</tt>.
