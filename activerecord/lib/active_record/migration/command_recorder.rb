@@ -275,7 +275,7 @@ module ActiveRecord
             raise ActiveRecord::IrreversibleMigration, "remove_index is only reversible if given a :column option."
           end
 
-          options.delete(:if_exists)
+          options[:if_not_exists] = options.delete(:if_exists) if options.key?(:if_exists)
 
           args = [table, columns]
           args << options unless options.empty?
@@ -299,6 +299,13 @@ module ActiveRecord
         def invert_change_column_null(args)
           args[2] = !args[2]
           [:change_column_null, args]
+        end
+
+        def invert_add_index(args)
+          if (options = args.last).is_a?(Hash)
+            options[:if_exists] = options.delete(:if_not_exists) if options.key?(:if_not_exists)
+          end
+          super
         end
 
         def invert_add_foreign_key(args)
