@@ -1147,6 +1147,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, color_field("car", "color"))
   end
 
+  def test_color_field_with_string_containing_hex_color_substring
+    expected = %{<input id="car_color" name="car[color]" type="color" value="#000000" />}
+    @car.color = "Not a color #123456 at all"
+    assert_dom_equal(expected, color_field("car", "color"))
+  end
+
   def test_color_field_with_value_attr
     expected = %{<input id="car_color" name="car[color]" type="color" value="#00FF00" />}
     assert_dom_equal(expected, color_field("car", "color", value: "#00FF00"))
