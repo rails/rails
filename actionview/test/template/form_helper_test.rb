@@ -1494,6 +1494,16 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, number_field("order", "quantity", size: 30, in: 1...10))
   end
 
+  def test_number_field_with_endless_range
+    expected = %{<input name="order[quantity]" id="order_quantity" type="number" min="18" />}
+    assert_dom_equal(expected, number_field("order", "quantity", in: 18..))
+  end
+
+  def test_number_field_with_beginless_range
+    expected = %{<input name="order[quantity]" max="10" id="order_quantity" type="number" />}
+    assert_dom_equal(expected, number_field("order", "quantity", in: ..10))
+  end
+
   def test_range_input
     expected = %{<input name="hifi[volume]" step="0.1" max="11" id="hifi_volume" type="range" min="0" />}
     assert_dom_equal(expected, range_field("hifi", "volume", in: 0..11, step: 0.1))
