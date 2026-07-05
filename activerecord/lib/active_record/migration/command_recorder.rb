@@ -299,6 +299,13 @@ module ActiveRecord
           [:change_column_null, args]
         end
 
+        def invert_add_column(args)
+          if (options = args.last).is_a?(Hash)
+            options[:if_exists] = options.delete(:if_not_exists) if options.key?(:if_not_exists)
+          end
+          super
+        end
+
         def invert_add_foreign_key(args)
           args.last.delete(:validate) if args.last.is_a?(Hash)
           super
