@@ -149,7 +149,7 @@ module ActiveSupport
       #   cache.increment("baz") # => 6
       #
       def increment(name, amount = 1, **options)
-        instrument(:increment, name, amount: amount) do
+        instrument(:increment, normalize_key(name, options), amount: amount) do
           modify_value(name, amount, **options)
         end
       end
@@ -166,7 +166,7 @@ module ActiveSupport
       #   cache.decrement("baz") # => 4
       #
       def decrement(name, amount = 1, **options)
-        instrument(:decrement, name, amount: amount) do
+        instrument(:decrement, normalize_key(name, options), amount: amount) do
           modify_value(name, -amount, **options)
         end
       end
