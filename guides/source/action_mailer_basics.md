@@ -216,7 +216,7 @@ successfully saved.
 NOTE: We use [`deliver_later`][] to enqueue the email to be sent later. This
 way, the controller action will continue without waiting for the email sending
 code to run. The `deliver_later` method is backed by [Active
-Job](active_job_basics.html#action-mailer).
+Job](active_job_basics.html#example-sending-email).
 
 ```ruby
 class UsersController < ApplicationController
