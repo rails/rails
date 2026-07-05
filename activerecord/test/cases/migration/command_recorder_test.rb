@@ -223,6 +223,11 @@ module ActiveRecord
         assert_equal [:remove_column, [:table, :column, :type, {}], nil], remove
       end
 
+      def test_invert_add_column_if_not_exists
+        remove = @recorder.inverse_of :add_column, [:table, :column, :type, if_not_exists: true]
+        assert_equal [:remove_column, [:table, :column, :type, if_exists: true], nil], remove
+      end
+
       def test_invert_change_column
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.inverse_of :change_column, [:table, :column, :type, {}]
