@@ -138,6 +138,15 @@ class StoreTest < ActiveRecord::TestCase
     assert_not @john.color_changed?
   end
 
+  test "reading _was for an unchanged accessor returns the current value" do
+    assert_not @john.color_changed?
+    assert_equal "black", @john.color_was
+    assert_equal @john.color, @john.color_was
+
+    @john.color = "red"
+    assert_equal "black", @john.color_was
+  end
+
   test "changing one accessor does not report a change for a sibling accessor" do
     @john.homepage = "http://www.example.com"
     @john.save!

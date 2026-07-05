@@ -172,7 +172,7 @@ module ActiveRecord
             end
 
             define_method("#{accessor_key}_was") do
-              return unless attribute_changed?(store_attribute)
+              return read_store_attribute(store_attribute, key) unless attribute_changed?(store_attribute)
               prev_store, _new_store = changes[store_attribute]
               accessor = store_accessor_for(store_attribute)
               accessor.get(prev_store, key)
