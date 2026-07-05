@@ -301,6 +301,13 @@ module ActiveRecord
           [:change_column_null, args]
         end
 
+        def invert_add_column(args)
+          if (options = args.last).is_a?(Hash)
+            options[:if_exists] = options.delete(:if_not_exists) if options.key?(:if_not_exists)
+          end
+          super
+        end
+
         def invert_add_index(args)
           if (options = args.last).is_a?(Hash)
             options[:if_exists] = options.delete(:if_not_exists) if options.key?(:if_not_exists)
