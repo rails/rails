@@ -1649,6 +1649,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_weekday_select_under_fields_for_with_value_and_explicit_selected
+    @digest = Digest.new
+    @digest.send_day = "Monday"
+
+    output_buffer = fields_for :digest, @digest do |f|
+      concat f.weekday_select(:send_day, selected: "Friday")
+    end
+
+    assert_dom_equal(
+      "<select name=\"digest[send_day]\" id=\"digest_send_day\"><option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option selected=\"selected\" value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>\n<option value=\"Sunday\">Sunday</option></select>",
+      output_buffer
+    )
+  end
+
   def test_datalist_with_plain_array
     @post = Post.new
 
