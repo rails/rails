@@ -376,6 +376,21 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
+  def test_assert_enqueued_email_with_when_queue_name_prefix_is_configured
+    previous_prefix = ActiveJob::Base.queue_name_prefix
+    ActiveJob::Base.queue_name_prefix = "prefix"
+
+    assert_nothing_raised do
+      assert_enqueued_email_with TestHelperMailer, :test do
+        silence_stream($stdout) do
+          TestHelperMailer.test.deliver_later
+        end
+      end
+    end
+  ensure
+    ActiveJob::Base.queue_name_prefix = previous_prefix
+  end
+
   def test_assert_enqueued_email_with_when_mailer_has_custom_deliver_later_queue
     assert_nothing_raised do
       assert_enqueued_email_with CustomQueueMailer, :test do
