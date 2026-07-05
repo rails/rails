@@ -1806,19 +1806,18 @@ require "test_helper"
 require "playwright"
 
 class ApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
-  # Launch Playwright and the browser once for the whole run; a fresh browser
-  # context per test is enough to isolate one test from the next, and is far
-  # cheaper than relaunching the browser each time.
+  # Launch Playwright and the browser once for the whole run; a fresh
+  # browser context per test is enough to isolate one test from the next.
   def self.browser
     @browser ||= begin
-      execution = Playwright.create(playwright_cli_executable_path: "npx playwright")
+      execution = Playwright.create(playwright_cli_executable_path: "./node_modules/.bin/playwright")
       at_exit { execution.stop }
-      execution.playwright.chromium.launch
+      execution.playwright.chromium.launch(headless: true)
     end
   end
 
   setup do
-    @context = ApplicationSystemTestCase.browser.new_context
+    @context = ApplicationSystemTestCase.browser.new_context(baseURL: base_url)
     @page = @context.new_page
   end
 
@@ -1826,7 +1825,10 @@ class ApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
 end
 ```
 
-with tests driving `@page` (`@page.goto new_article_url`, ...).
+with tests driving `@page`. Because the context is created with
+`baseURL: base_url`, relative paths resolve against the running server
+(`@page.goto new_article_path`, ...), and absolute URL helpers point at it too
+(`@page.goto new_article_url`, ...).
 
 When the browser needs to reach the application at a different URL than the bind
 address (for example when the test runs in a separate Docker container), set

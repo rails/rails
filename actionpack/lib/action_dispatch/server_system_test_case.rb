@@ -36,18 +36,17 @@ module ActionDispatch
   #
   #     class ApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
   #       # Launch Playwright and the browser once for the whole run; a fresh
-  #       # browser context per test is enough to isolate one test from the next,
-  #       # and is far cheaper than relaunching the browser each time.
+  #       # browser context per test is enough to isolate one test from the next.
   #       def self.browser
   #         @browser ||= begin
-  #           execution = Playwright.create(playwright_cli_executable_path: "npx playwright")
+  #           execution = Playwright.create(playwright_cli_executable_path: "./node_modules/.bin/playwright")
   #           at_exit { execution.stop }
-  #           execution.playwright.chromium.launch
+  #           execution.playwright.chromium.launch(headless: true)
   #         end
   #       end
   #
   #       setup do
-  #         @context = ApplicationSystemTestCase.browser.new_context
+  #         @context = ApplicationSystemTestCase.browser.new_context(baseURL: base_url)
   #         @page = @context.new_page
   #       end
   #
