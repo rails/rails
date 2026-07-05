@@ -373,6 +373,14 @@ module ActiveRecord
     #   Person.ids # SELECT people.id FROM people
     #   Person.joins(:company).ids # SELECT people.id FROM people INNER JOIN companies ON companies.id = people.company_id
     def ids
+      if @none
+        if @async
+          return Promise::Complete.new([])
+        else
+          return []
+        end
+      end
+
       primary_key_array = Array(primary_key)
 
       if loaded?
