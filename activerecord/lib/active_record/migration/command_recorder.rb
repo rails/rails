@@ -242,6 +242,9 @@ module ActiveRecord
           if args.size <= 2 || args[2].is_a?(Hash)
             raise ActiveRecord::IrreversibleMigration, "remove_column is only reversible if given a type."
           end
+          if (options = args.last).is_a?(Hash)
+            options[:if_not_exists] = options.delete(:if_exists) if options.key?(:if_exists)
+          end
           super
         end
 
@@ -281,6 +284,20 @@ module ActiveRecord
           args << options unless options.empty?
 
           [:add_index, args]
+        end
+
+        def invert_add_reference(args)
+          if (options = args.last).is_a?(Hash)
+            options[:if_exists] = options.delete(:if_not_exists) if options.key?(:if_not_exists)
+          end
+          super
+        end
+
+        def invert_remove_reference(args)
+          if (options = args.last).is_a?(Hash)
+            options[:if_not_exists] = options.delete(:if_exists) if options.key?(:if_exists)
+          end
+          super
         end
 
         alias :invert_add_belongs_to :invert_add_reference
