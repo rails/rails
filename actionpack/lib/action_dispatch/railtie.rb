@@ -52,6 +52,7 @@ module ActionDispatch
     config.action_dispatch.cookies_rotations = ActiveSupport::Messages::RotationConfiguration.new
 
     config.eager_load_namespaces << ActionDispatch
+    config.eager_load_namespaces << Mime
 
     guard_load_hooks(
       :action_dispatch_response, :action_dispatch_system_test_case,

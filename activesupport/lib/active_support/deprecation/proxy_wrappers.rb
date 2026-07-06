@@ -43,6 +43,10 @@ module ActiveSupport
         @deprecator = deprecator
       end
 
+      def target=(object)
+        @object = object
+      end
+
       private
         def target
           @object

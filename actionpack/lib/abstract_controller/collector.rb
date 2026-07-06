@@ -19,7 +19,8 @@ module AbstractController
       generate_method_for_mime(mime)
     end
 
-    Mime::Type.register_callback do |mime|
+    Mime::Type.on_change do |mime, registered|
+      next unless registered
       generate_method_for_mime(mime) unless instance_methods.include?(mime.to_sym)
     end
 

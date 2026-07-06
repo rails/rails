@@ -105,7 +105,19 @@ end
 autoload :Mime, "action_dispatch/http/mime_type"
 
 ActiveSupport.on_load(:action_view) do
-  ActionView::Base.default_formats ||= Mime.symbols
   ActionView::Template.mime_types_implementation = Mime
   ActionView::LookupContext::DetailsKey.clear
+
+  unless ActionView::Base.default_formats
+    ActionView::Base.default_formats = symbols = Mime.symbols
+    # Deprecated code path: A Mime::Type was registered after boot,
+    # replace default_formats if it still points at the old array.
+    Mime::Type.on_change do
+      current = Mime.symbols
+      unless symbols.equal?(current)
+        ActionView::Base.default_formats = current if ActionView::Base.default_formats.equal?(symbols)
+        symbols = current
+      end
+    end
+  end
 end

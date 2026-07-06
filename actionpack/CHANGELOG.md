@@ -1,3 +1,9 @@
+*   Deprecate `Mime::Type.register_callback`.
+
+    It was never intended as a public API and has no replacement.
+
+    *Étienne Barrié*
+
 *   Deprecate `Mime::SET`, `Mime::LOOKUP`, `Mime::EXTENSION_LOOKUP`.
 
     Use `Mime.symbols`, `Mime::Type.lookup` and `Mime::Type.lookup_by_extension` respectively instead.
