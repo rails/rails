@@ -152,7 +152,7 @@ module ActionMailer
       end
 
       args = Array(args) unless args.is_a?(Proc)
-      queue ||= mailer.delivery_job.queue_name_from_part(mailer.deliver_later_queue_name)
+      queue ||= mailer.delivery_job.new(mailer.name).queue_name
 
       expected = ->(job_args) do
         job_kwargs = job_args.extract_options!

@@ -38,6 +38,14 @@ class CustomDeliveryMailer < TestHelperMailer
   self.delivery_job = CustomDeliveryJob
 end
 
+class CustomQueueDeliveryJob < ActionMailer::MailDeliveryJob
+  queue_as :delivery_job_queue
+end
+
+class CustomQueueDeliveryMailer < TestHelperMailer
+  self.delivery_job = CustomQueueDeliveryJob
+end
+
 class CustomQueueMailer < TestHelperMailer
   self.deliver_later_queue_name = :custom_queue
 end
@@ -412,6 +420,16 @@ class TestHelperMailerTest < ActionMailer::TestCase
       assert_enqueued_email_with CustomDeliveryMailer, :test do
         silence_stream($stdout) do
           CustomDeliveryMailer.test.deliver_later
+        end
+      end
+    end
+  end
+
+  def test_assert_enqueued_email_with_when_delivery_job_defines_its_own_queue
+    assert_nothing_raised do
+      assert_enqueued_email_with CustomQueueDeliveryMailer, :test do
+        silence_stream($stdout) do
+          CustomQueueDeliveryMailer.test.deliver_later
         end
       end
     end
