@@ -246,6 +246,8 @@ place for your shared partials.
 
 NOTE: Rails doesn't automatically create `app/views/application/`. You'll need to create this folder yourself.
 
+NOTE: Refer to the (Layouts and Rendering guide)[layouts_and_rendering.html#template_lookup_hierarchy] for further information on the lookup hierarchy of partials and template.
+
 Partial file names start with leading underscore character by
 convention. The file name distinguishes partials from regular views. However, no
 underscore is used when referring to partials for rendering within a view. This
@@ -523,7 +525,7 @@ main partial by using the `:spacer_template` option:
 Rails will render the `_product_ruler.html.erb` partial (with no data passed to
 it) between each pair of `_product.html.erb` partials.
 
-### Metadata Variables
+### Iteration Variables
 
 Rails injects two additional variables into each partial when rendering
 a collection: `<object>_counter` and `<object>_iteration`.
@@ -631,7 +633,7 @@ Action View partials are compiled into regular Ruby methods under the hood.
 Because it is impossible in Ruby to dynamically create local variables, every single combination of `locals` passed to a partial requires compiling another version:
 
 ```html+erb
-<!-- app/views/articles/show.html.erb -->
+<%# app/views/articles/show.html.erb %>
 
 <%= render partial: "article", layout: "box", locals: { article: @article } %>
 <%= render partial: "article", layout: "box", locals: { article: @article, theme: "dark" } %>
@@ -664,7 +666,7 @@ values, and more with a `locals:` signature, using the same syntax as Ruby metho
 Here are some examples of the `locals:` signature:
 
 ```html+erb
-<!-- app/views/messages/_message.html.erb -->
+<%# app/views/messages/_message.html.erb %>
 
 <%# locals: (message:) -%>
 <%= message %>
@@ -682,7 +684,7 @@ If a default value is set then it can be used if `message` is not passed in
 `locals:`:
 
 ```erb
-<!-- app/views/messages/_message.html.erb -->
+<%# app/views/messages/_message.html.erb %>
 
 <%# locals: (message: "Hello, world!") -%>
 <%= message %>
@@ -707,7 +709,7 @@ You can allow optional local variable arguments with the double splat `**`
 operator:
 
 ```erb
-<!-- app/views/messages/_message.html.erb -->
+<%# app/views/messages/_message.html.erb %>
 
 <%# locals: (message: "Hello, world!", **attributes) -%>
 <%= tag.p(message, **attributes) %>
@@ -716,7 +718,7 @@ operator:
 Or you can disable `locals` entirely by setting the `locals:` to empty `()`:
 
 ```erb
-<!-- app/views/messages/_message.html.erb -->
+<%# app/views/messages/_message.html.erb %>
 
 <%# locals: () %>
 ```
@@ -787,7 +789,7 @@ Here is an example of a basic layout in `application.html.erb` file:
   <ul>
     <li><%= link_to "Home", root_path %></li>
     <li><%= link_to "Products", products_path %></li>
-    <!-- Additional navigation links here -->
+    <%# Additional navigation links here %>
   </ul>
 </nav>
 
@@ -841,9 +843,9 @@ You can also create a layout with multiple yielding regions:
 
 The main body of the view will always render into the unnamed `yield`. To render content into a named `yield`, call `content_for` with the same argument as the named `yield`.
 
-#### Slotting content with `content_for`
+#### Slotting Content with `content_for`
 
-The [`content_for`][] method allows you to insert content into a named `yield` block in your layout. For example, consider following layout and view:
+The [`content_for`][] method allows you to insert content into a named `yield` block in your layout. For example, consider the following layout and view:
 
 ```html+erb
 <html>
