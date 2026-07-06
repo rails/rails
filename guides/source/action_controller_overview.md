@@ -39,31 +39,39 @@ Creating a Controller
 ---------------------
 
 A controller is a Ruby class which inherits from `ApplicationController` and has
-methods just like any other class. Once an incoming request is matched to a
-controller by the router, Rails creates an instance of that controller class and
-calls the method with the same name as the action.
+methods just like any other class. Once the [router matches](routing.html) an
+incoming request a controller and action, Rails creates an instance of
+that controller class and calls the method with the same name as the action.
 
 ```ruby
+# app/controllers/clients_controller.rb
+
 class ClientsController < ApplicationController
-  def new
+  def index
   end
 end
 ```
 
-Given the above `ClientsController`, if a user goes to `/clients/new` in your
-application to add a new client, Rails will create an instance of
-`ClientsController` and call its `new` method. If the `new` method is empty, Rails
-will automatically render `app/views/clients/new.html.erb` by default.
+```ruby
+# config/routes.rb
 
-NOTE: The `new` method is an instance method here, called on an instance of `ClientsController`. This should not be confused with the `new` class method (i.e., `ClientsController.new`).
+Rails.application.routes.draw do
+  resources :clients
+end
+```
+
+Given the above controller and route, when a user navigates to `/clients`, Rails
+will create an instance of `ClientsController` and call its `index` method.
+If the `index` method is empty, Rails will automatically render
+`app/views/clients/index.html.erb`.
 
 You can explicity define the template to render using the `render` method:
 
 ```ruby
 class ClientsController < ApplicationController
-  def new
-    # Renders `app/views/clients/form.html.erb`
-    render "form"
+  def index
+    # Renders `app/views/clients/client_list.html.erb`
+    render "client_list"
   end
 end
 ```
@@ -72,10 +80,10 @@ To enable rendering of additional formats, not just HTML, use a `respond_to` blo
 
 ```ruby
 class ClientsController < ApplicationController
-  def new
+  def index
     respond_to do |format|
-      format.html   # renders `app/views/clients/new.html.erb`
-      format.xml    # renders `app/views/clients/new.xml.erb`
+      format.html   # renders `app/views/clients/index.html.erb`
+      format.xml    # renders `app/views/clients/index.xml.erb`
     end
   end
 end
@@ -83,13 +91,13 @@ end
 
 See the [Layouts and Rendering](layouts_and_rendering.html) guide for futher details.
 
-In the `new` method, the controller would typically create an instance of the
-`Client` model, and make it available as an instance variable called `@client`
+In the `index` method, the controller would typically create an array of the
+`Client` model instances, and make it available as an instance variable called `@clients`
 in the view:
 
 ```ruby
-def new
-  @client = Client.new
+def index
+  @clients = Client.all
 end
 ```
 
