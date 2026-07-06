@@ -225,7 +225,7 @@ module ActiveRecord
 
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
-        name = name.to_s
+        name = name.to_s.freeze
 
         # def self.statuses() statuses end
         detect_enum_conflict!(name, name.pluralize, true)
