@@ -312,7 +312,8 @@ module ActiveSupport
     # An optional filter proc can be provided to only receive a subset of events:
     #
     #   Rails.event.subscribe(subscriber) { |event| event[:name].start_with?("user.") }
-    #   Rails.event.subscribe(subscriber) { |event| event[:payload].is_a?(UserEvent) }
+    #
+    # Only the +:name+ key is available to filters, not the entire payload.
     #
     def subscribe(subscriber, &filter)
       unless subscriber.respond_to?(:emit)
