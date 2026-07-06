@@ -294,6 +294,11 @@ module ActiveRecord
         assert_equal [:add_column, [:table, :column, :type, {}], nil], add
       end
 
+      def test_invert_remove_column_if_exists
+        add = @recorder.inverse_of :remove_column, [:table, :column, :string, if_exists: true]
+        assert_equal [:add_column, [:table, :column, :string, if_not_exists: true], nil], add
+      end
+
       def test_invert_remove_column_without_type
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.inverse_of :remove_column, [:table, :column]
@@ -432,6 +437,16 @@ module ActiveRecord
       def test_invert_remove_belongs_to_alias
         add = @recorder.inverse_of :remove_belongs_to, [:table, :user]
         assert_equal [:add_reference, [:table, :user], nil], add
+      end
+
+      def test_invert_add_reference_if_not_exists
+        remove = @recorder.inverse_of :add_reference, [:table, :taggable, { polymorphic: true, if_not_exists: true }]
+        assert_equal [:remove_reference, [:table, :taggable, { polymorphic: true, if_exists: true }], nil], remove
+      end
+
+      def test_invert_remove_reference_if_exists
+        add = @recorder.inverse_of :remove_reference, [:table, :taggable, { polymorphic: true, if_exists: true }]
+        assert_equal [:add_reference, [:table, :taggable, { polymorphic: true, if_not_exists: true }], nil], add
       end
 
       def test_invert_enable_extension
