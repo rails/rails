@@ -245,7 +245,7 @@ render html: helpers.tag.strong("Not Found"), layout: "admin"
 
 NOTE: There's rarely a good reason to do this in practice. Use a template file to render HTML responses.
 
-WARNING: When using `html:` option, HTML entities will be escaped if the string is not composed with `html_safe`-aware APIs.
+WARNING: When using the `html:` option, HTML entities will be escaped if the string is not composed with `html_safe`-aware APIs.
 
 #### Plain Text
 
