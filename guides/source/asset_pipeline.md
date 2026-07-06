@@ -9,8 +9,8 @@ After reading this guide, you will know:
 
 * What the Rails asset pipeline does.
 * What Propshaft is and how it serves CSS, JavaScript, and other assets.
-* What Subresource Integrity is and how Propshaft leverages it.
 * How Propshaft integrates with other libraries which transpile and bundle JavaScript and CSS.
+* The techniques to deliver assets in development and production.
 * How to use a CDN to deliver production assets.
 
 --------------------------------------------------------------------------------
@@ -29,11 +29,13 @@ The asset pipeline takes a source file, adds a _fingerprint_ (also called a _dig
 
 <br><br>
 
-Here's an example of how the asset pipeline links a stylesheet in an HTML document:
+Here's an example of how the asset pipeline computes the path to a stylesheet:
 
 ```erb
 <%= stylesheet_link_tag "application", media: "all" %>
 ```
+
+This will render the following HTML tag:
 
 ```html
 <link rel="stylesheet" href="assets/application-55f8f81.css" media="all" />
@@ -45,6 +47,9 @@ The core component of the Rails asset pipeline is [**Propshaft**](https://github
 
 NOTE: The advent of HTTP/2 has reduced the need for bundling JavaScript and CSS into a single file. Multiple files can be served in parallel over a single connection, meaning these files can be served as-is with minimal performance overhead.
 
+Propshaft
+---------
+
 [Propshaft](https://github.com/rails/propshaft) is included in all new Rails applications.
 It can be excluded using `--skip-asset-pipeline` flag:
 
@@ -53,9 +58,6 @@ $ rails new app_name --skip-asset-pipeline
 ```
 
 NOTE: Before Rails 8, the asset pipeline was powered by [Sprockets](https://github.com/rails/sprockets). You can read about the [Sprockets Asset Pipeline](https://guides.rubyonrails.org/v7.2/asset_pipeline.html) in previous versions of the Rails Guides. A migration guide [is available here](https://github.com/rails/propshaft/blob/main/UPGRADING.md).
-
-Propshaft
----------
 
 Propshaft expects your assets to be in a browser-ready format — like
 plain CSS, JavaScript, or preprocessed images (like JPEGs or PNGs). Its job is
@@ -191,9 +193,12 @@ This mechanism only works for single, isolated JavaScript files. Rails uses a [J
 
 Load images using the `image_path` helper:
 
-```erb
+```html+erb
 <%# Load an image file located at `app/assets/images/profile_pic.jpg` %>
 <%= image_tag image_path("profile_pic.jpg") %>
+
+<%# Output: %>
+<img src="/assets/profile_pic-1cf07598.jpg" />
 ```
 
 All other types of files can be referenced with `asset_path`:
@@ -203,12 +208,25 @@ All other types of files can be referenced with `asset_path`:
 <%= link_to asset_path("report.pdf") do %>
   Download report
 <% end %>
+
+<%# Output: %>
+<a href="/assets/report-b3a2d7ac.pdf">
+  Download report
+</a>
 ```
+
+Define assets in sub-folders using:
+
 ```erb
 <%# Link to PDF file located at `app/assets/files/statements/april.pdf` %>
 <%= link_to asset_path("statements/april.pdf") do %>
   Download statement
 <% end %>
+
+<%# Output: %>
+<a href="/assets/statements/april-b3a2d7ac.pdf">
+  Download statement
+</a>
 ```
 
 #### Assets within CSS and JavaScript
@@ -435,7 +453,7 @@ $ bin/rails javascript:install:[bun|esbuild|rollup|webpack]
 
 This will configure a `package.json` file and set up a `build` script within it. Your can now use your chosen builder to manage your JavaScript.
 
-NOTE: Use `bin/dev` to run your server in development. This will invoke the `build` script with the `--watch` flag so your JavaScript updates automatically when you edit your files.
+TIP: Use `bin/dev` to run your server in development. This will invoke the `build` script with the `--watch` flag so your JavaScript updates automatically when you edit your files.
 
 In production, the gem hooks into Rails' `assets:precompile` task to build your JavaScript. This way, no extra deployment steps are required to deliver JavaScript using `jsbundling-rails`.
 
@@ -563,7 +581,7 @@ When precompiling assets for production as part of a build step that does not ne
 $ RAILS_ENV=production SECRET_KEY_BASE_DUMMY=1 rails assets:precompile
 ```
 
-WARNING: When precompiled assets are present in the development environmnemt, the application
+WARNING: When precompiled assets are present in the development enviroment, the application
 will serve those directly. As such, any changes you make to your source assets won't
 be reflected until the precompiled assets are updated. Run `bin/rails assets:clobber`
 to delete your precompiled assets which will force Rails to recompile the assets
@@ -625,9 +643,9 @@ your Rails application.
 When a browser requests an asset from the CDN and the file isn't cached, it will request the file
 from your server and cache it.
 
-For example, if your Rails application is running at `example.com`
-and your CDN is configured at `mycdnsubdomain.fictional-cdn.com`, then when a
-request is made to `mycdnsubdomain.fictional-cdn.com/assets/smile.png`, the CDN
+For example, if your Rails application is running at `yourrailsapp.com`
+and your CDN is configured at `my-cdn-subdomain.fictional-cdn.com`, then when a
+request is made to `my-cdn-subdomain.fictional-cdn.com/assets/smile.png`, the CDN
 will query your server once at `yourrailsapp.com/assets/smile.png` and cache the
 request.
 
@@ -647,7 +665,7 @@ Configure the "origin" of the CDN to point back at your Rails application's URL.
 Check your provider for documentation on configuring the origin server.
 
 The CDN you provisioned should give you a custom subdomain for your application
-such as `mycdnsubdomain.fictional-cdn.com` (you can also use a CNAME DNS record to point at the CDN from a subdomain of your main application. For example: `assets.yourrailsapp.com` can point at `mycdnsubdomain.fictional-cdn.com` using a CNAME DNS record).
+such as `my-cdn-subdomain.fictional-cdn.com` (you can also use a CNAME DNS record to point at the CDN from a subdomain of your main application. For example: `assets.yourrailsapp.com` can point at `my-cdn-subdomain.fictional-cdn.com` using a CNAME DNS record).
 
 Once you have configured your CDN server, you need to tell browsers to use your
 CDN to grab assets instead of your Rails server directly. Configure Rails to
@@ -656,7 +674,7 @@ set your CDN as the asset host instead of using a relative path.
 ```ruby
 # config/environments/production.rb
 
-config.asset_host = "mycdnsubdomain.fictional-cdn.com"
+config.asset_host = "my-cdn-subdomain.fictional-cdn.com"
 ```
 
 NOTE: You only need to provide the "host", this is the subdomain and root
@@ -678,7 +696,7 @@ as:
 ```
 
 will be rendered as full CDN URLs like
-`http://mycdnsubdomain.fictional-cdn.com/assets/smile-f34hb34.png`.
+`http://my-cdn-subdomain.fictional-cdn.com/assets/smile-f34hb34.png`.
 
 If the CDN has a copy of `smile-f34hb34.png`, it will serve it to the browser, and the
 origin server won't even know it was requested. If the CDN does not have a copy,
@@ -690,7 +708,7 @@ option for your asset helper, which overwrites the value set in
 [`config.action_controller.asset_host`][].
 
 ```erb
-<%= asset_path 'image.png', host: 'mycdnsubdomain.fictional-cdn.com' %>
+<%= asset_path 'image.png', host: 'my-cdn-subdomain.fictional-cdn.com' %>
 ```
 
 [`config.action_controller.asset_host`]:
@@ -704,7 +722,7 @@ CDN is used, a browser will use this information to cache contents. Generally we
 our Rails server to tell our CDN (and browser) that the asset is "public". Also we want to
 set `max-age` which is how long the cache will store the object before invalidating the cache.
 The `max-age` value is set to seconds with a maximum possible value of `31536000`, which is one year
-because the figerprinted filename ensure stale assets are never served.
+because the fingerprinted filename ensures stale assets are never served.
 
 Set this header in your Rails application:
 
