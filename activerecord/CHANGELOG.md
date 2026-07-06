@@ -1,3 +1,22 @@
+*   Drop a redundant `DISTINCT` when it cannot remove any rows.
+
+    When a relation is marked `distinct`, selects from a single table (no joins,
+    eager loading, `from` subquery, or `GROUP BY`), and projects the whole row,
+    the primary key is present in every row, so the result is already distinct.
+    In that case the `DISTINCT` is omitted from the generated SQL, avoiding an
+    unnecessary sort. The result set is unchanged.
+
+    ```ruby
+    Post.distinct.to_sql
+    # before => SELECT DISTINCT "posts".* FROM "posts"
+    # after  => SELECT "posts".* FROM "posts"
+    ```
+
+    `COUNT(DISTINCT ...)` (e.g. `Post.distinct.count`) and any query with joins,
+    grouping, or an explicit column projection are unaffected.
+
+    *Siva Kilaru*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective
