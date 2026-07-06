@@ -1,3 +1,7 @@
+*   Fix `ActiveSupport::Cache::Store#delete_multi` so that it no longer mutates the provided `names` array.
+
+    *Michael Oberegger*
+
 *   Add `prepend: true` option to `ActiveSupport::Notifications.subscribe`.
 
       When `prepend: true` is passed, the subscriber is added to the front of

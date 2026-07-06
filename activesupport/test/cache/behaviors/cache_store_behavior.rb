@@ -453,6 +453,14 @@ module CacheStoreBehavior
     assert_equal(0, @cache.delete_multi([]))
   end
 
+  def test_delete_multi_does_not_mutate_names
+    key = SecureRandom.alphanumeric
+    @cache.write(key, "bar")
+    names = [key].freeze
+    @cache.delete_multi(names)
+    assert_equal [key], names
+  end
+
   def test_original_store_objects_should_not_be_immutable
     bar = +"bar"
     key = SecureRandom.alphanumeric
