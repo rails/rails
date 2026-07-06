@@ -204,7 +204,7 @@ module ActiveModel
           algorithm
         end
 
-        include InstanceMethodsOnActivation.new(attribute, reset_token: reset_token, algorithm: algorithm)
+        include InstanceMethodsOnActivation.new(attribute, reset_token: reset_token && respond_to?(:generates_token_for), algorithm: algorithm)
 
         if validations
           include ActiveModel::Validations

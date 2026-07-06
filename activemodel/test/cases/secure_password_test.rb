@@ -382,6 +382,12 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal 1.hour, @slow_pilot.password_reset_token_expires_in
   end
 
+  test "password reset token is not defined on a vanilla Active Model" do
+    assert_not_respond_to @visitor, :password_reset_token
+    assert_not_respond_to @visitor, :password_reset_token_expires_in
+    assert_not_respond_to Visitor, :find_by_password_reset_token
+  end
+
   test "password algorithm defaults to bcrypt" do
     assert_equal :bcrypt, @user.password_algorithm
   end
