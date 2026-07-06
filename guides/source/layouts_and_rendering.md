@@ -33,8 +33,8 @@ There are four ways to create an HTTP response in a Rails controller:
 [`head`]: https://api.rubyonrails.org/classes/ActionController/Head.html#method-i-head
 [`respond_to`]: https://api.rubyonrails.org/classes/ActionController/MimeResponds.html#method-i-respond_to
 
-`render`ing Responses
----------------------
+Rendering Responses
+-------------------
 
 The [`render`][controller.render] method is the primary workhorse to create HTTP responses in Rails. It's used to create a fully-formed response with a body which usually contains an HTML document.
 
@@ -46,13 +46,18 @@ Consider the below controller class and the route pointing to it. We also have a
 # app/controllers/books_controller.rb
 
 class BooksController < ApplicationController
+  def index
+    render "index"
+  end
 end
 ```
 
 ```ruby
 # config/routes.rb
 
-resources :books
+Rails.application.routes.draw do
+  resources :books
+end
 ```
 
 ```html+erb
@@ -61,14 +66,15 @@ resources :books
 <h1>Books are coming soon!</h1>
 ```
 
-Navigating to `/books` will render the heading "Books are coming soon!". This works due to Rails conventions. We don't even need to define an `index` method in the controller — it is implicit.
+Rails will automatically look for the specified view in the corresponding view folder for the controller. Navigating to `/books` will render the heading "Books are coming soon!".
 
-Next, we define the `index` action and load all `Book` records from our database to render in the view.
+Next, we enhance the action by loading all `Book` records from our database to render in the view.
 
 ```ruby
 class BooksController < ApplicationController
   def index
     @books = Book.all
+    render "index"
   end
 end
 ```
@@ -105,11 +111,28 @@ The view to display all the books might look like:
 <%= link_to "New book", new_book_path %>
 ```
 
-We'll now see this table at `/books`. We don't need to explicitly call `render` in the action. The `index` action implicitly renders the `app/views/books/index.html.erb` template.
+We'll now see this table at `/books`.
+
+#### Conventional Rendering
+
+Rails will conventionally render the view with the same name as the action — `render` doesn't need to be called manually.
+
+```ruby
+# app/controllers/books_controller.rb
+
+class BooksController < ApplicationController
+  # Automatically renders `app/views/books/index.html.erb`
+  def index
+    @books = Book.all
+  end
+end
+```
+
+You only need to explicitly call `render` in the action to customize responses as described in the next section.
 
 ### Rendering Templates
 
-When you want to render a different template within a controller action, or set the HTTP response code, you'll need to explicitly call `render`.
+`render` accepts options to to render a different template within a controller action, or set the HTTP response code.
 
 ```ruby#6
 def update
@@ -136,7 +159,7 @@ render action: :edit, status: :unprocessable_content
 
 NOTE: We render with the HTTP status [`303 Unprocessable Content`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/303) in the above example because it's the idiomatically correct HTTP response code for a form submission error. It's also required by the [Turbo](https://turbo.hotwired.dev) JavaScript library which Rails includes by default.
 
-To render a template which belongs to a different controller, you can use its relative path from the `app/views/` directory. For example, to render `app/views/products/show.html.erb` from the `BooksController`, you'd invoke:
+To render a template which belongs to a different controller, you can use its relative path from the `app/views/` directory. For example, render `app/views/products/show.html.erb` from the `BooksController` using:
 
 ```ruby
 render "products/show"
@@ -148,7 +171,9 @@ Optionally, you can include the `template:` keyword argument:
 render template: "products/show"
 ```
 
-Note that rendering a template using this technique does not call the other controller action. Consider the below example:
+NOTE: `render :edit`, `render action: :edit`, and `render template: :edit` are all functionally equivalent. Rails normalizes all 3 method signatures under the hood meaning they follow the same code path.
+
+Rendering a template for a different controller action does not call the method corresponding to that controller action. Consider the below example:
 
 ```ruby
 def edit
@@ -160,7 +185,7 @@ def update
 end
 ```
 
-`render "edit"` **will not** call the `edit` action. It will render the `edit.html.erb` template from the context of the `update` action, meaning `@book` will not be set when the `update` action is rendered.
+`render "edit"` **will not** call the `edit` method. It will render the `edit.html.erb` template from the context of the `update` action, meaning `@book` will not be set when the `update` action is rendered.
 
 ### Template Lookup Hierarcy
 
@@ -209,10 +234,12 @@ render html: helpers.tag.strong("Not Found")
 The response will be rendered without a layout by default. Use the `layout:` option to render within a layout template:
 
 ```ruby
-# Renders within the default layout for the controller, usually: `app/views/layouts/application.html.erb`.
+# Renders within the default layout for the controller,
+# usually: `app/views/layouts/application.html.erb`.
 render html: helpers.tag.strong("Not Found"), layout: true
 
-# Explitly define rendering within the `app/views/layouts/admin.html.erb` layout template.
+# Explitly define rendering within the `app/views/layouts/admin.html.erb`
+# layout template.
 render html: helpers.tag.strong("Not Found"), layout: "admin"
 ```
 
@@ -283,7 +310,7 @@ render file: "#{Rails.root}/public/404.html", layout: false
 
 NOTE: The layout that a static file is inserted into can written using a templating language like ERB. However, the file supplied to the `file:` option must be static. It will not be processed through a templating engine.
 
-WARNING: Using the `:file` option in combination with users input can lead to security problems since an attacker could use this action to access security sensitive files in your file system.
+WARNING: Using the `:file` option in combination with users input can lead to security problems since an attacker could use this action to access security sensitive files on your file system.
 
 TIP: [`send_file`](action_controller_advanced_topics.html#sending-files) is often a faster and better option if a layout isn't required.
 
@@ -871,7 +898,7 @@ The `head` method accepts a number or symbol representing an HTTP status code.
 head :bad_request
 ```
 
-This would produce the following headers:
+This would produce the following HTTP response:
 
 ```http
 HTTP/1.1 400 Bad Request
@@ -941,7 +968,7 @@ end
 
 ### Setting Layouts Dynamically
 
-Invoke the `layout` method with a symbol denoting a method name to select a layout dynamically at runtime.
+Call the `layout` method with a symbol denoting a method name to select a layout dynamically at runtime.
 
 ```ruby
 class ProductsController < ApplicationController
