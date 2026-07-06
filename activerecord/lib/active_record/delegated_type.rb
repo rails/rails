@@ -251,8 +251,8 @@ module ActiveRecord
           public_send("#{role}_class").model_name.singular.inquiry
         end
 
-        define_method "build_#{role}" do |*params|
-          public_send("#{role}=", public_send("#{role}_class").new(*params))
+        define_method "build_#{role}" do |*params, &block|
+          public_send("#{role}=", public_send("#{role}_class").new(*params, &block))
         end
 
         types.each do |type|

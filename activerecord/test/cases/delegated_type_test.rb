@@ -114,4 +114,12 @@ class DelegatedTypeTest < ActiveRecord::TestCase
     assert_respond_to Entry.new, :build_entryable
     assert_equal Message, Entry.new(entryable_type: "Message").build_entryable.class
   end
+
+  test "builder method yields the built record to a block" do
+    message = Entry.new(entryable_type: "Message").build_entryable do |m|
+      m.subject = "Hello from block"
+    end
+
+    assert_equal "Hello from block", message.subject
+  end
 end
