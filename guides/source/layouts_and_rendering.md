@@ -316,14 +316,19 @@ TIP: [`send_file`](action_controller_advanced_topics.html#sending-files) is ofte
 
 #### Rendering Objects
 
-Rails can render objects responding to `render_in`. The object must also define a `format` method that returns a valid [Mime key](https://api.rubyonrails.org/classes/Mime.html#method-c-5B-5D).
+Rails can render objects responding to `render_in`. The `render_in` method signature must accept the `view_context` (usually an instance of `ActionView::Base`), and arbitrary keyword arguments which can be defined to set local variables.
+
+The object must also define a `format` method that returns a valid [Mime key](https://api.rubyonrails.org/classes/Mime.html#method-c-5B-5D).
+
+NOTE: See the [Custom MIME types](#custom-mime-types) section below for further details on Mime keys.
 
 ```ruby
 class Greeting
   include ActionView::Helpers::TagHelper
 
-  def render_in(view_context)
-    view_context.render html: tag.h1("Hello, world")
+  def render_in(view_context, **options)
+    name = options[:locals][:name] || "world"
+    view_context.render html: tag.h1("Hello, #{name}")
   end
 
   def format
@@ -336,12 +341,45 @@ Render the above object in a controller action using:
 
 ```ruby
 render Greeting.new
+# => <h1>Hello, world</h1>
+```
+
+Pass a local variable to the object as:
+
+```ruby
+render Greeting.new, name: "Rails"
+# => <h1>Hello, Rails</h1>
 ```
 
 This calls `render_in` on the provided object with the current [view context][]. You can specify the `renderable:` option to be more explicit:
 
 ```ruby
-render renderable: Greeting.new
+render renderable: Greeting.new, name: "Rails"
+# => <h1>Hello, Rails</h1>
+```
+
+Render an ERB template from within your renderable object as:
+
+```ruby
+class Greeting
+  def render_in(view_context, **)
+    view_context.render(inline: <<~ERB.strip, **)
+      <h1>Hello, <%= local_assigns[:name] || "world" %></h1>
+    ERB
+  end
+
+  def format
+    :html
+  end
+end
+```
+
+```ruby
+render Greeting.new
+# => <h1>Hello, world</h1>
+
+render Greeting.new, name: "Rails"
+# => <h1>Hello, Rails</h1>
 ```
 
 [view context]: https://api.rubyonrails.org/classes/ActionView/Base.html
