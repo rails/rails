@@ -440,6 +440,22 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal "<input type=\"hidden\" id=\"date_mois\" name=\"date[mois]\" value=\"8\" autocomplete=\"off\" />\n", select_month(8, use_hidden: true, field_name: "mois")
   end
 
+  def test_select_month_with_hidden_omits_autocomplete_when_remove_hidden_field_autocomplete
+    original = ActionView::Base.remove_hidden_field_autocomplete
+    ActionView::Base.remove_hidden_field_autocomplete = true
+    assert_dom_equal "<input type=\"hidden\" id=\"date_month\" name=\"date[month]\" value=\"8\" />\n", select_month(8, use_hidden: true)
+  ensure
+    ActionView::Base.remove_hidden_field_autocomplete = original
+  end
+
+  def test_select_month_with_hidden_includes_autocomplete_off_in_legacy_mode
+    original = ActionView::Base.remove_hidden_field_autocomplete
+    ActionView::Base.remove_hidden_field_autocomplete = false
+    assert_dom_equal "<input type=\"hidden\" id=\"date_month\" name=\"date[month]\" value=\"8\" autocomplete=\"off\" />\n", select_month(8, use_hidden: true)
+  ensure
+    ActionView::Base.remove_hidden_field_autocomplete = original
+  end
+
   def test_select_month_with_html_options
     expected = +%(<select id="date_month" name="date[month]" class="selector" accesskey="M">\n)
     expected << %(<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6">June</option>\n<option value="7">July</option>\n<option value="8" selected="selected">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n)

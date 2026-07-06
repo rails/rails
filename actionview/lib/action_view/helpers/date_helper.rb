@@ -1192,10 +1192,10 @@ module ActionView
             type: "hidden",
             id: input_id_from_type(type),
             name: input_name_from_type(type),
-            value: value,
-            autocomplete: "off"
+            value: value
           }.merge!(@html_options.slice(:disabled))
           select_options[:disabled] = "disabled" if @options[:disabled]
+          select_options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
 
           tag(:input, select_options) + "\n".html_safe
         end
