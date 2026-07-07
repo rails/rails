@@ -143,7 +143,7 @@ module ActiveSupport
           end
         end
 
-        clients.map! do |c|
+        clients = clients.map do |c|
           if c.respond_to?(:new_pool)
             c.new_pool(**(pool_options || {}))
           else
