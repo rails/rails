@@ -77,6 +77,16 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_async_equal 53.0, Account.async_average(Account.arel_table[:credit_limit])
   end
 
+  def test_should_average_distinct_field
+    Account.delete_all
+    Account.create!(firm_id: 1, credit_limit: 50)
+    Account.create!(firm_id: 1, credit_limit: 50)
+    Account.create!(firm_id: 1, credit_limit: 60)
+
+    assert_equal 55, Account.where(firm_id: 1).distinct.average(:credit_limit)
+    assert_equal({ 1 => 55 }, Account.where(firm_id: 1).group(:firm_id).distinct.average(:credit_limit))
+  end
+
   def test_should_resolve_aliased_attributes
     assert_equal 318, Account.sum(:available_credit)
   end
