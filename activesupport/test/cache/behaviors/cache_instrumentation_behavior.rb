@@ -143,6 +143,18 @@ module CacheInstrumentationBehavior
     assert_equal @cache.class.name, events[0].payload[:store]
   end
 
+  def test_fetch_hit_instrumentation
+    key = SecureRandom.uuid
+    options = { namespace: "foo" }
+    @cache.write(key, SecureRandom.alphanumeric, **options)
+
+    events = capture_notifications("cache_fetch_hit.active_support") { @cache.fetch(key, options) { } }
+
+    assert_equal %w[ cache_fetch_hit.active_support ], events.map(&:name)
+    assert_equal normalized_key(key, options), events[0].payload[:key]
+    assert_equal @cache.class.name, events[0].payload[:store]
+  end
+
   private
     def normalized_key(key, options = nil)
       @cache.send(:normalize_key, key, options)
