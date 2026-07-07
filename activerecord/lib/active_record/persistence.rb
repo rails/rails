@@ -309,7 +309,7 @@ module ActiveRecord
         # two apart.
         def update_multiple_ids?(id)
           if composite_primary_key?
-            id.is_a?(Array) && id.first.is_a?(Array)
+            id.is_a?(Array) && (id.empty? || id.first.is_a?(Array))
           else
             id.is_a?(Array)
           end

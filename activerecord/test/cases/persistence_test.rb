@@ -478,6 +478,16 @@ class PersistenceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_destroy_with_empty_array_of_composite_primary_keys
+    assert_no_difference("Cpk::Book.count") do
+      assert_equal [], Cpk::Book.destroy([])
+    end
+  end
+
+  def test_update_with_empty_array_of_composite_primary_keys
+    assert_equal [], Cpk::Book.update([], [])
+  end
+
   def test_destroy_with_invalid_ids_for_a_model_that_expects_composite_keys
     books = [
       cpk_books(:cpk_great_author_first_book),
