@@ -1269,8 +1269,15 @@ module ActiveRecord
           active_record_error = translate_exception(
             native_error, message: message, sql: sql, binds: binds
           )
+          return active_record_error if active_record_error.equal?(native_error)
+
           active_record_error.set_backtrace(native_error.backtrace)
-          active_record_error
+
+          begin
+            raise active_record_error, cause: native_error
+          rescue => error
+            error
+          end
         end
 
         def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, allow_retry: false, &block)
