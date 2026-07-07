@@ -64,23 +64,25 @@ module ActiveSupport
     end
 
     def test_all_delegators
+      @logger.log(::Logger::DEBUG, "LOG")
       @logger.debug("DEBUG")
       @logger.info("INFO")
       @logger.warn("WARN")
       @logger.error("ERROR")
       @logger.fatal("FATAL")
       @logger.unknown("UNKNOWN")
-      assert_equal %w(DEBUG INFO WARN ERROR FATAL UNKNOWN), @io.string.split("\n")
+      assert_equal %w(LOG DEBUG INFO WARN ERROR FATAL UNKNOWN), @io.string.split("\n")
     end
 
     def test_all_block_delegators
+      @logger.log(::Logger::DEBUG) { "LOG" }
       @logger.debug { "DEBUG" }
       @logger.info { "INFO" }
       @logger.warn { "WARN" }
       @logger.error { "ERROR" }
       @logger.fatal { "FATAL" }
       @logger.unknown { "UNKNOWN" }
-      assert_equal %w(DEBUG INFO WARN ERROR FATAL UNKNOWN), @io.string.split("\n")
+      assert_equal %w(LOG DEBUG INFO WARN ERROR FATAL UNKNOWN), @io.string.split("\n")
     end
   end
 end
