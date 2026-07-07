@@ -465,6 +465,28 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           assert_equal 1, @connection.foreign_keys("astronauts").size
         end
 
+        def test_remove_foreign_key_if_exists_with_non_matching_name
+          skip if current_adapter?(:SQLite3Adapter)
+
+          @connection.add_foreign_key :astronauts, :rockets
+          assert_equal 1, @connection.foreign_keys("astronauts").size
+
+          assert_nothing_raised do
+            @connection.remove_foreign_key :astronauts, name: "nonexistent_fk", if_exists: true
+          end
+          assert_equal 1, @connection.foreign_keys("astronauts").size
+        end
+
+        def test_remove_foreign_key_if_exists_with_non_matching_to_table
+          @connection.add_foreign_key :astronauts, :rockets
+          assert_equal 1, @connection.foreign_keys("astronauts").size
+
+          assert_nothing_raised do
+            @connection.remove_foreign_key :astronauts, to_table: :moons, if_exists: true
+          end
+          assert_equal 1, @connection.foreign_keys("astronauts").size
+        end
+
         def test_remove_foreign_non_existing_foreign_key_raises
           e = assert_raises ArgumentError do
             @connection.remove_foreign_key :astronauts, :rockets
