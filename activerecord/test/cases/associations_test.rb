@@ -957,10 +957,13 @@ class PreloaderTest < ActiveRecord::TestCase
       body: "this post is also about David"
     )
 
+    loaders = nil
     assert_queries_count(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :posts_mentioning_author)
-      preloader.call
+      loaders = preloader.call
     end
+
+    assert_equal 2, loaders.size
 
     assert_predicate david.posts_mentioning_author, :loaded?
     assert_predicate david2.posts_mentioning_author, :loaded?
