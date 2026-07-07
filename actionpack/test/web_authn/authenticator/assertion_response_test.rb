@@ -129,6 +129,36 @@ class ActionPack::WebAuthn::Authenticator::AssertionResponseTest < ActiveSupport
     assert_equal "Origin does not match", error.message
   end
 
+  test "validate! accepts a native app origin listed in allowed_origins" do
+    native_origin = "android:apk-key-hash:pNiP5iKyQ8JwgGOaKA1zGPUPJIS-0H1xKCQcfIoGLck"
+    client_data_json = {
+      challenge: @challenge,
+      origin: native_origin,
+      type: "webauthn.get"
+    }.to_json
+
+    response = ActionPack::WebAuthn::Authenticator::AssertionResponse.new(
+      client_data_json: client_data_json,
+      authenticator_data: USER_PRESENT_AND_VERIFIED_AUTH_DATA,
+      signature: webauthn_sign(USER_PRESENT_AND_VERIFIED_AUTH_DATA, client_data_json),
+      credential: @credential,
+      origin: @origin
+    )
+
+    error = assert_raises(ActionPack::WebAuthn::InvalidResponseError) do
+      response.validate!
+    end
+    assert_equal "Origin does not match", error.message
+
+    ActionPack::WebAuthn.allowed_origins = [ native_origin ]
+
+    assert_nothing_raised do
+      response.validate!
+    end
+  ensure
+    ActionPack::WebAuthn.allowed_origins = []
+  end
+
   test "validate! succeeds with user_verification preferred when not verified" do
     response = ActionPack::WebAuthn::Authenticator::AssertionResponse.new(
       client_data_json: @client_data_json,

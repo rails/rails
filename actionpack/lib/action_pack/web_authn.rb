@@ -42,12 +42,23 @@ module ActionPack
   # The format must respond to +algorithm+, +to_public_key_credential_param+,
   # and +build(cose_key)+.
   #
+  # == Native App Origins
+  #
+  # Responses are verified against the request's origin. Native apps assert
+  # with a platform origin instead — Android's Credential Manager reports the
+  # app's signing certificate as the origin. Allow those origins with:
+  #
+  #   ActionPack::WebAuthn.allowed_origins = [
+  #     "android:apk-key-hash:pNiP5iKyQ8JwgGOaKA1zGPUPJIS-0H1xKCQcfIoGLck"
+  #   ]
+  #
   module WebAuthn
     extend ActiveSupport::Autoload
 
     mattr_accessor :challenge_verifier
     mattr_accessor :application_name
     mattr_accessor :relying_party_id
+    mattr_accessor :allowed_origins, default: []
 
     class InvalidResponseError < StandardError; end
     class InvalidCborError < StandardError; end

@@ -18,7 +18,8 @@ module ActionPack
       # specification:
       #
       # * Challenge verification - ensures the response contains a valid, signed challenge
-      # * Origin verification - ensures the response comes from the expected origin
+      # * Origin verification - ensures the response comes from the expected origin,
+      #   or one of the configured ActionPack::WebAuthn.allowed_origins
       # * User verification - optionally requires biometric or PIN verification
       #
       # == Example
@@ -106,8 +107,14 @@ module ActionPack
               errors.add(:base, "Origin missing")
             elsif client_data["origin"].blank?
               errors.add(:base, "Origin missing in client data")
-            elsif !ActiveSupport::SecurityUtils.secure_compare(origin.to_s, client_data["origin"].to_s)
+            elsif !origin_allowed?
               errors.add(:base, "Origin does not match")
+            end
+          end
+
+          def origin_allowed?
+            [ origin.to_s, *ActionPack::WebAuthn.allowed_origins ].any? do |allowed|
+              ActiveSupport::SecurityUtils.secure_compare(allowed, client_data["origin"].to_s)
             end
           end
 
