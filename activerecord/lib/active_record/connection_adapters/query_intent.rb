@@ -3,6 +3,10 @@
 module ActiveRecord
   module ConnectionAdapters
     class QueryIntent # :nodoc:
+      # Raised when attempting to deliver to or reset a finalized intent.
+      class FinalizedError < ActiveRecordError # :nodoc:
+      end
+
       # Buffers instrumentation events during background execution for later publishing
       class EventBuffer
         def initialize(intent, instrumenter)
@@ -59,9 +63,11 @@ module ActiveRecord
 
       attr_reader :arel, :name, :prepare, :allow_retry, :allow_async,
                   :materialize_transactions, :batch, :pool, :session, :lock_wait,
-                  :event_buffer
+                  :event_buffer, :error, :finalized
+      alias_method :finalized?, :finalized
       attr_writer :raw_sql, :session
-      attr_accessor :adapter, :binds, :ran_async, :notification_payload, :log_handle
+      attr_accessor :adapter, :binds, :ran_async, :notification_payload, :log_handle,
+                    :retry_budget
 
       def initialize(adapter:, arel: nil, raw_sql: nil, processed_sql: nil, name: "SQL", binds: [], prepare: false, allow_async: false,
                      allow_retry: false, materialize_transactions: true, batch: false)
@@ -96,6 +102,9 @@ module ActiveRecord
         @lock_wait = nil
         @event_buffer = nil
         @log_handle = nil
+        @finalized = false
+
+        @retry_budget = nil
       end
 
       # Returns a hash representation of the QueryIntent for debugging/introspection
@@ -141,6 +150,7 @@ module ActiveRecord
                 @adapter = connection
                 @ran_async = true
                 run_query!
+                pump_retries
               end
             rescue => error
               @error = error
@@ -218,10 +228,41 @@ module ActiveRecord
         nil
       end
 
-      # Internal setter for raw result
-      def raw_result=(value)
-        @raw_result = value
-        @raw_result_available = true
+      def deliver_result(value)
+        raise FinalizedError, "delivering result to a finalized intent" if @finalized
+
+        adapter.lock.synchronize do
+          @raw_result = value
+          @error = nil
+
+          mark_transaction_dirty
+
+          @raw_result_available = true
+        end
+
+        finish_log
+      end
+
+      def deliver_failure(exception)
+        raise FinalizedError, "delivering failure to a finalized intent" if @finalized
+
+        adapter.lock.synchronize do
+          @error = exception
+
+          adapter.downgrade_connection_after_error(exception)
+          retryable = adapter.retryable_failure?(exception, @retry_budget)
+          mark_transaction_dirty unless retryable
+
+          @raw_result_available = !retryable
+        end
+      end
+
+      def reset_for_retry
+        raise FinalizedError, "resetting a finalized intent" if @finalized
+
+        @raw_result = nil
+        @raw_result_available = false
+        @error = nil
       end
 
       # Check if result has been populated yet (without blocking)
@@ -243,9 +284,16 @@ module ActiveRecord
         end
 
         @event_buffer&.flush
+        pump_retries
+        @event_buffer&.flush
 
-        # Raise any error captured during deferred execution
-        raise @error if @error
+        if @error
+          finish_log(exception: @error)
+          @event_buffer&.flush
+          raise @error
+        end
+
+        @event_buffer&.flush
       end
 
       def cast_result
@@ -264,7 +312,40 @@ module ActiveRecord
         @affected_rows ||= adapter.send(:affected_rows, @raw_result)
       end
 
+      def finish_log(exception: nil) # :nodoc:
+        return if @finalized
+
+        settle_failure if exception
+        @finalized = true
+        adapter.finish_intent_log(self, exception: exception)
+      end
+
       private
+        # Retry a delivered failure while the adapter remains available. Scoped
+        # connection owners call this before releasing their connection; otherwise
+        # result observation takes responsibility for pumping retries.
+        def pump_retries
+          while !@finalized && @error && adapter.attempt_retry(@error, @retry_budget)
+            reset_for_retry
+            run_query!
+          end
+
+          settle_failure
+        end
+
+        def settle_failure
+          return unless @error && !@raw_result_available
+
+          adapter.lock.synchronize do
+            mark_transaction_dirty
+            @raw_result_available = true
+          end
+        end
+
+        def mark_transaction_dirty
+          adapter.send(:dirty_current_transaction) if @materialize_transactions
+        end
+
         def async_schedule!(session)
           if adapter.current_transaction.joinable?
             raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
@@ -334,6 +415,7 @@ module ActiveRecord
                 @adapter = connection
                 @ran_async = false  # Foreground fallback, not actually async
                 run_query!
+                pump_retries
               end
             else
               # Result was computed by background thread while we waited for mutex
