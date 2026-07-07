@@ -29,6 +29,14 @@
 
     *Étienne Barrié*
 
+*   Make Action Pack configuration `Ractor`-shareable when `ActiveSupport::Ractors.unshareable_proc_action` is set.
+
+    After the application has finished initializing, the relevant Action Pack
+    configuration values are made `Ractor`-shareable so they can no longer be
+    mutated at runtime.
+
+    *Gannon McGibbon*
+
 *   Add `config.action_dispatch.strict_accept_header` to stop forcing an
     HTML response when the `Accept` header contains the `*/*` wildcard.
 

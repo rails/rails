@@ -36,6 +36,14 @@
 
     *Sean Doyle*
 
+*   Make Active Support configuration `Ractor`-shareable when `ActiveSupport::Ractors.unshareable_proc_action` is set.
+
+    After the application has finished initializing, the relevant Active Support
+    configuration values are made `Ractor`-shareable so they can no longer be
+    mutated at runtime.
+
+    *Gannon McGibbon*
+
 *   `assert_difference`, `assert_no_difference`, `assert_changes`, and
     `assert_no_changes` now raise `ArgumentError` when given an expression that
     is not a callable (like a Proc), String, or Symbol.

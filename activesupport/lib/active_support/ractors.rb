@@ -67,6 +67,40 @@ module ActiveSupport
         end
       end
 
+      # Attempts to make +collection+ Ractor-shareable, first converting any
+      # +Proc+ elements (for an +Array+) or values (for a +Hash+) into shareable
+      # procs.
+      #
+      # Like the other +try_+ helpers, this hinges on +unshareable_proc_action+
+      # and is a no-op when it is not set. It is used to freeze configuration
+      # collections that may hold application-defined procs, which
+      # +make_shareable+ cannot deeply freeze on its own.
+      def make_procs_shareable(collection)
+        return collection unless unshareable_proc_action
+        return collection if shareable?(collection)
+
+        case collection
+        when Array
+          collection.map! { |element| make_element_shareable(element) }
+        when Hash
+          collection.transform_values! { |value| make_element_shareable(value) }
+        end
+
+        try_make_shareable(collection)
+      end
+
+      # Attempts to make a single +element+ Ractor-shareable. +Proc+ elements are
+      # converted into shareable procs, everything else is delegated to
+      # +try_make_shareable+.
+      def make_element_shareable(element)
+        if element.is_a?(Proc)
+          try_shareable_proc(element)
+        else
+          try_make_shareable(element)
+        end
+      end
+      private :make_element_shareable
+
       if defined?(Ractor) && RUBY_VERSION >= "4.0"
         # Makes +obj+ Ractor-shareable by delegating to +Ractor.make_shareable+.
         #

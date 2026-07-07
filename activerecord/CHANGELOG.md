@@ -11,6 +11,14 @@
 
     *Hugo Vacher*
 
+*   Make Active Record configuration `Ractor`-shareable when `ActiveSupport::Ractors.unshareable_proc_action` is set.
+
+    After the application has finished initializing, the relevant Active Record
+    configuration values are made `Ractor`-shareable so they can no longer be
+    mutated at runtime.
+
+    *Gannon McGibbon*
+
 *   Support polymorphic associations with custom primary keys through `:inverse_of`.
 
     When using polymorphic associations with `:inverse_of`, ActiveRecord now respects

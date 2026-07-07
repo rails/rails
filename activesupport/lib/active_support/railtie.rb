@@ -184,5 +184,11 @@ module ActiveSupport
         ActiveSupport::Inflector::Inflections.all_instances.each(&:freeze)
       end
     end
+
+    initializer "active_support.freeze_configuration" do
+      config.after_initialize do
+        ActiveSupport::Ractors.make_procs_shareable(ActiveSupport.filter_parameters)
+      end
+    end
   end
 end

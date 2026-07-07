@@ -454,5 +454,16 @@ To keep using the current cache store, you can turn off cache versioning entirel
         end
       end
     end
+
+    initializer "active_record.freeze_configuration" do
+      config.after_initialize do
+        ActiveSupport::Ractors.try_make_shareable(ActiveRecord.protected_environments)
+        ActiveSupport::Ractors.try_make_shareable(ActiveRecord.schema_cache_ignored_tables)
+        ActiveSupport::Ractors.try_make_shareable(ActiveRecord.database_cli)
+        ActiveSupport::Ractors.try_make_shareable(ActiveRecord.db_warnings_ignore)
+        ActiveSupport::Ractors.make_procs_shareable(ActiveRecord.query_transformers)
+        ActiveSupport::Ractors.try_make_shareable(ActiveRecord.yaml_column_permitted_classes)
+      end
+    end
   end
 end

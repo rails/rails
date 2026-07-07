@@ -75,6 +75,15 @@ module ActionMailer
       app.config.paths["test/mailers/previews"].concat(options.preview_paths)
     end
 
+    initializer "action_mailer.freeze_configuration" do
+      config.after_initialize do
+        ActiveSupport.on_load(:action_mailer) do
+          ActiveSupport::Ractors.try_make_shareable(ActionMailer::Base.preview_paths)
+          ActiveSupport::Ractors.try_make_shareable(ActionMailer::Base.smtp_settings)
+        end
+      end
+    end
+
     config.after_initialize do |app|
       options = app.config.action_mailer
 
