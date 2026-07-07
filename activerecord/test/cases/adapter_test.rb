@@ -945,6 +945,20 @@ module ActiveRecord
         assert_operator Post.count, :>, 0
       end
 
+      test "connection failures consume the reconnect allowance" do
+        budget = ActiveRecord::ConnectionAdapters::RetryBudget.new(
+          retries: 2, deadline: nil, reconnectable: true
+        )
+        failure = ActiveRecord::ConnectionFailed.new("connection failed")
+
+        assert @connection.attempt_retry(failure, budget)
+        assert_not_predicate budget, :reconnectable?
+        assert_equal 1, budget.attempts_used
+
+        assert_not @connection.attempt_retry(failure, budget)
+        assert_equal 1, budget.attempts_used
+      end
+
       test "can reconnect and retry queries under limit when retry deadline is set" do
         attempts = 0
         @connection.stub(:retry_deadline, 0.1) do
