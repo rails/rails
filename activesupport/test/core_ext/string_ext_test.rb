@@ -56,6 +56,14 @@ class StringInflectionsTest < ActiveSupport::TestCase
     EOS
   end
 
+  def test_strip_heredoc_keeps_the_line_break_of_a_whitespace_only_line_shorter_than_the_margin
+    assert_equal "foo\n  \nbar\n", "    foo\n  \n    bar\n".strip_heredoc
+  end
+
+  def test_strip_heredoc_keeps_the_line_break_of_a_blank_crlf_line
+    assert_equal "foo\r\n\r\nbar\r\n", "    foo\r\n\r\n    bar\r\n".strip_heredoc
+  end
+
   def test_pluralize
     SingularToPlural.each do |singular, plural|
       assert_equal(plural, singular.pluralize)

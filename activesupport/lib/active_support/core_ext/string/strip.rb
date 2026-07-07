@@ -46,7 +46,7 @@ class String
     end
 
     lines.each do |line|
-      line[0, min_indent_len] = "" unless line == "\n"
+      line.sub!(/\A[ \t]{#{min_indent_len}}/, "")
     end
 
     result = lines.join
