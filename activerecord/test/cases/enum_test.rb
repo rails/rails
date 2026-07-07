@@ -96,6 +96,12 @@ class EnumTest < ActiveRecord::TestCase
     assert Book.not_published.include?(rfr)
   end
 
+  test "scope accepts boolean argument to negate" do
+    assert_equal @book, Book.published(true).first
+    assert Book.published(false).exclude?(@book)
+    assert_equal Book.not_published.to_sql, Book.published(false).to_sql
+  end
+
   test "find via where with values" do
     published, written = Book.statuses[:published], Book.statuses[:written]
 
