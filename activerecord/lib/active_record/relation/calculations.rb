@@ -493,7 +493,7 @@ module ActiveRecord
 
           column = relation.aggregate_column(column_name)
           select_value = operation_over_aggregate_column(column, operation, distinct)
-          select_value.distinct = true if operation == "sum" && distinct
+          select_value.distinct = true if distinct && (operation == "sum" || operation == "average")
 
           relation.select_values = [select_value]
 
@@ -549,7 +549,7 @@ module ActiveRecord
           column = relation.aggregate_column(column_name)
           column_alias = column_alias_tracker.alias_for("#{operation} #{column_name.to_s.downcase}")
           select_value = operation_over_aggregate_column(column, operation, distinct)
-          select_value.distinct = true if operation == "sum" && distinct
+          select_value.distinct = true if distinct && (operation == "sum" || operation == "average")
           select_value = select_value.as(model.adapter_class.quote_column_name(column_alias))
 
           select_values = [select_value]
