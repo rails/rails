@@ -124,6 +124,7 @@ module ActiveSupport
         true
       end
     end
+    alias_method :log, :add
 
     # Forward the given +msg+ to the underlying logger with no formatting
     # returns the number of characters written,
