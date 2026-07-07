@@ -478,7 +478,7 @@ module ActiveSupport
           end
 
           if entry
-            get_entry_value(entry, name, options)
+            get_entry_value(entry, key, options)
           else
             save_block_result_to_cache(name, key, options, &block)
           end
@@ -1119,8 +1119,8 @@ module ActiveSupport
           entry
         end
 
-        def get_entry_value(entry, name, options)
-          instrument(:fetch_hit, name, options)
+        def get_entry_value(entry, key, options)
+          instrument(:fetch_hit, key, options)
           entry.value
         end
 
