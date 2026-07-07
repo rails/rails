@@ -738,8 +738,7 @@ module ActiveRecord
       # connection with the database. Implementors should define private #reconnect
       # instead.
       def reconnect!(restore_transactions: false)
-        retries_available = connection_retries
-        deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
+        budget = build_retry_budget(allow_retry: true, reconnectable: false)
 
         @lock.synchronize do
           attempt_configure_connection do
@@ -760,15 +759,10 @@ module ActiveRecord
             end
           rescue => original_exception
             translated_exception = translate_exception_class(original_exception, nil, nil)
-            retry_deadline_exceeded = deadline && deadline < Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
-            if !retry_deadline_exceeded && retries_available > 0
-              retries_available -= 1
-
-              if retryable_connection_error?(translated_exception)
-                backoff(connection_retries - retries_available)
-                retry
-              end
+            if retryable_connection_error?(translated_exception) && budget.consume
+              backoff(budget.attempts_used)
+              retry
             end
 
             raise translated_exception
@@ -1051,6 +1045,27 @@ module ActiveRecord
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
       EXTENDED_TYPE_MAPS = Concurrent::Map.new
 
+      def retryable_failure?(exception, budget) # :nodoc:
+        budget&.available? &&
+          (retryable_query_error?(exception) ||
+            (budget.reconnectable? && retryable_connection_error?(exception)))
+      end
+
+      # Consume from +budget+ if +exception+ warrants another attempt. Query retries
+      # back off here; connection retries consume the reconnect allowance and rely
+      # on the caller to ensure connection readiness before executing again.
+      def attempt_retry(exception, budget) # :nodoc:
+        return false unless retryable_failure?(exception, budget) && budget.consume
+
+        if retryable_query_error?(exception)
+          backoff(budget.attempts_used)
+        else
+          budget.reconnect_consumed!
+        end
+
+        true
+      end
+
       private
         def reconnect_can_restore_state?
           transaction_manager.restorable? && !@raw_connection_dirty
@@ -1091,62 +1106,23 @@ module ActiveRecord
         #
         def with_raw_connection(allow_retry: false, materialize_transactions: true)
           @lock.synchronize do
-            connect! if !connected? && reconnect_can_restore_state?
+            reconnectable = ensure_connection_ready(allow_retry:, materialize_transactions:)
 
-            self.materialize_transactions if materialize_transactions
-
-            retries_available = allow_retry ? connection_retries : 0
-            deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
-            reconnectable = reconnect_can_restore_state?
-
-            if @verified && !@needs_reconnect
-              # Cool, we're confident the connection's ready to use. (Note this might have
-              # become true during the above #materialize_transactions.)
-            elsif !@needs_reconnect && (last_activity = seconds_since_last_activity) && last_activity < verify_timeout
-              # We haven't actually verified the connection since we acquired it, but it
-              # has been used very recently. We're going to assume it's still okay.
-            elsif reconnectable
-              if @needs_reconnect
-                # This connection has been flagged for replacement; don't trust
-                # it even when the upcoming query would be retryable.
-                verify!
-              elsif allow_retry
-                # Not sure about the connection yet, but if anything goes wrong we can
-                # just reconnect and re-run our query
-              else
-                # We can reconnect if needed, but we don't trust the upcoming query to be
-                # safely re-runnable: let's verify the connection to be sure
-                verify!
-              end
-            else
-              # We don't know whether the connection is okay, but it also doesn't matter:
-              # we wouldn't be able to reconnect anyway. We're just going to run our query
-              # and hope for the best.
-            end
+            budget = build_retry_budget(allow_retry:, reconnectable:)
 
             begin
               yield @raw_connection
             rescue => original_exception
               translated_exception = translate_exception_class(original_exception, nil, nil)
               invalidate_transaction(translated_exception)
-              retry_deadline_exceeded = deadline && deadline < Process.clock_gettime(Process::CLOCK_MONOTONIC)
-
-              if !retry_deadline_exceeded && retries_available > 0
-                retries_available -= 1
-
-                if retryable_query_error?(translated_exception)
-                  backoff(connection_retries - retries_available)
-                  retry
-                elsif reconnectable && retryable_connection_error?(translated_exception)
-                  reconnect!(restore_transactions: true)
-                  # Only allowed to reconnect once, because reconnect! has its own retry
-                  # loop
-                  reconnectable = false
-                  retry
-                end
-              end
-
               downgrade_connection_after_error(translated_exception)
+
+              if attempt_retry(translated_exception, budget)
+                if retryable_connection_error?(translated_exception)
+                  ensure_connection_ready(allow_retry:, materialize_transactions: false)
+                end
+                retry
+              end
 
               raise translated_exception
             rescue Exception
@@ -1200,6 +1176,44 @@ module ActiveRecord
             if retryable_connection_error?(exception)
               @needs_reconnect = true
             end
+          end
+        end
+
+        def build_retry_budget(allow_retry:, reconnectable:)
+          RetryBudget.new(
+            retries: allow_retry ? connection_retries : 0,
+            deadline: retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline,
+            reconnectable: reconnectable
+          )
+        end
+
+        # Ensure the connection is ready to execute a query.
+        # Returns whether reconnect-and-restore is available for retry decisions.
+        def ensure_connection_ready(allow_retry:, materialize_transactions:)
+          connect! if !connected? && reconnect_can_restore_state?
+          self.materialize_transactions if materialize_transactions
+
+          reconnectable = reconnect_can_restore_state?
+          verify! unless skip_verification?(allow_retry:, reconnectable:)
+          reconnectable
+        end
+
+        # Decide whether the connection can be used without verification.
+        def skip_verification?(allow_retry:, reconnectable:)
+          if @verified && connected? && !@needs_reconnect
+            true
+          elsif !@needs_reconnect && (last_activity = seconds_since_last_activity) && last_activity < verify_timeout
+            true
+          elsif reconnectable
+            if @needs_reconnect
+              false
+            elsif allow_retry
+              true
+            else
+              false
+            end
+          else
+            true
           end
         end
 
