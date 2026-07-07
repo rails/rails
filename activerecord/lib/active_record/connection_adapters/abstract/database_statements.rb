@@ -613,11 +613,9 @@ module ActiveRecord
       end
 
       # Lowest-level abstract execution of a query, called only from the intent itself.
-      # Final wrapper around the subclass-specific +perform_query+. Populates the calling
-      # intent's raw_result.
+      # Final wrapper around the subclass-specific +perform_query+. Delivers the outcome
+      # back to the calling intent.
       def execute_intent(intent) # :nodoc:
-        should_dirty = false
-
         if intent.materialize_transactions
           # These can raise locally (e.g., ReadOnlyError). Validate before BEGIN.
           intent.processed_sql
@@ -627,32 +625,55 @@ module ActiveRecord
 
         start_intent_log(intent)
         begin
-          with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: false) do |conn|
-            should_dirty = intent.materialize_transactions
-            begin
-              result = perform_query(conn, intent)
-              intent.raw_result = result
+          @lock.synchronize do
+            reconnectable = ensure_connection_ready(
+              allow_retry: intent.allow_retry,
+              materialize_transactions: false
+            )
 
-              query_completed = true
-            ensure
-              begin
-                handle_warnings(result, intent.processed_sql)
-              rescue
-                raise if query_completed
+            intent.retry_budget ||= build_retry_budget(
+              allow_retry: intent.allow_retry, reconnectable: reconnectable
+            )
 
-                # The query failed, so we need to swallow this exception
-                # from handle_warnings to avoid masking the original.
-              end
-            end
+            perform_sync_attempt(intent)
           end
-          finish_intent_log(intent)
-        rescue => error
-          error.set_query(intent.processed_sql, intent.binds) if error.is_a?(StatementInvalid)
-          finish_intent_log(intent, exception: error)
+        rescue Exception => error
+          intent.finish_log(exception: error) unless intent.raw_result_available?
           raise
         end
-      ensure
-        dirty_current_transaction if should_dirty
+      end
+
+      def perform_sync_attempt(intent) # :nodoc:
+        begin
+          result = perform_query(@raw_connection, intent)
+          query_completed = true
+        rescue ::RangeError
+          raise
+        rescue => error
+          translated = translate_exception_class(error, intent.processed_sql, intent.binds)
+          invalidate_transaction(translated)
+          intent.deliver_failure(translated)
+          return
+        rescue Exception
+          # A non-StandardError (a Timeout, or a fiber scheduler's cancel) abandoned
+          # the query partway through, so we mark the connection unverified, just as
+          # a failed query would, forcing a reconnect before it's used again.
+          @last_activity = nil
+          @verified = false
+          dirty_current_transaction if intent.materialize_transactions
+          raise
+        ensure
+          begin
+            handle_warnings(result, intent.processed_sql)
+          rescue
+            raise if query_completed
+
+            # The query failed, so we need to swallow this exception
+            # from handle_warnings to avoid masking the original.
+          end
+        end
+
+        intent.deliver_result(result)
       end
 
       def start_intent_log(intent) # :nodoc:

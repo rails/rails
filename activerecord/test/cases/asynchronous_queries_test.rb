@@ -99,6 +99,128 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
     assert_not_nil event
     assert_equal @connection.supports_concurrent_connections?, event.payload[:async]
   end
+
+  def test_async_query_retries_query_failure
+    skip unless @connection.async_enabled?
+
+    failure = ActiveRecord::LockWaitTimeout.new("lock wait timeout")
+    matching = ->(intent) { intent.name == "Async Retry" }
+
+    with_async_query_failures([failure], matching: matching) do |attempts|
+      future_result = @connection.select_all(
+        "SELECT 1 AS value", "Async Retry", async: true, allow_retry: true
+      )
+      wait_for_future_result(future_result)
+
+      assert_equal 2, attempts.value
+      assert_equal [[1]], future_result.result.rows
+    end
+  end
+
+  def test_async_query_reports_failure_after_retries_are_exhausted
+    skip unless @connection.async_enabled?
+    skip unless @connection.connection_retries > 0
+
+    failure = ActiveRecord::LockWaitTimeout.new("lock wait timeout")
+    matching = ->(intent) { intent.name == "Async Retry Exhausted" }
+
+    with_async_query_failures([failure], matching: matching, repeat_last: true) do |attempts|
+      future_result = @connection.select_all(
+        "SELECT 1 AS value", "Async Retry Exhausted", async: true, allow_retry: true
+      )
+      wait_for_async_query(@connection)
+
+      assert_operator attempts.value, :>, 1
+      error = assert_raises(ActiveRecord::LockWaitTimeout) { future_result.result }
+      assert_equal "lock wait timeout", error.message
+    end
+  end
+
+  def test_async_query_retries_connection_failure
+    skip unless @connection.async_enabled?
+
+    failure = ActiveRecord::ConnectionFailed.new("connection failed")
+    matching = ->(intent) { intent.name == "Async Connection Retry" }
+
+    with_async_query_failures([failure], matching: matching) do |attempts|
+      future_result = @connection.select_all(
+        "SELECT 1 AS value", "Async Connection Retry", async: true, allow_retry: true
+      )
+      wait_for_future_result(future_result)
+
+      assert_equal 2, attempts.value
+      assert_equal [[1]], future_result.result.rows
+    end
+  end
+
+  def test_async_query_foreground_fallback_retries_query_failure
+    skip unless @connection.async_enabled?
+
+    failure = ActiveRecord::LockWaitTimeout.new("lock wait timeout")
+    matching = ->(intent) { intent.name == "Async Fallback Retry" }
+
+    with_async_query_failures([failure], matching: matching) do |attempts|
+      @connection.pool.stub(:schedule_query, proc { }) do
+        future_result = @connection.select_all(
+          "SELECT 1 AS value", "Async Fallback Retry", async: true, allow_retry: true
+        )
+
+        assert_equal [[1]], future_result.result.rows
+      end
+
+      assert_equal 2, attempts.value
+    end
+  end
+
+  def test_load_async_retries_query_failure
+    skip unless @connection.async_enabled?
+
+    failure = ActiveRecord::LockWaitTimeout.new("lock wait timeout")
+    matching = ->(intent) { intent.name == "Post Load" }
+
+    with_async_query_failures([failure], matching: matching) do |attempts|
+      deferred_posts = Post.where(id: -1).load_async
+      wait_for_async_query(@connection)
+
+      assert_equal 2, attempts.value
+      assert_empty deferred_posts.to_a
+    end
+  end
+
+  private
+    def with_async_query_failures(failures, matching:, repeat_last: false)
+      adapter_class = @connection.class
+      original_perform_query = adapter_class.instance_method(:perform_query)
+      visibility = if adapter_class.private_instance_methods(false).include?(:perform_query)
+        :private
+      elsif adapter_class.protected_instance_methods(false).include?(:perform_query)
+        :protected
+      elsif adapter_class.instance_methods(false).include?(:perform_query)
+        :public
+      end
+      attempts = Concurrent::AtomicFixnum.new
+
+      adapter_class.send(:define_method, :perform_query) do |raw_connection, intent|
+        if matching.call(intent)
+          attempt = attempts.increment
+          failure = failures[attempt - 1]
+          failure ||= failures.last if repeat_last
+          raise failure if failure
+        end
+
+        original_perform_query.bind_call(self, raw_connection, intent)
+      end
+      adapter_class.send(:private, :perform_query)
+
+      yield attempts
+    ensure
+      if visibility
+        adapter_class.send(:define_method, :perform_query, original_perform_query)
+        adapter_class.send(visibility, :perform_query)
+      else
+        adapter_class.send(:remove_method, :perform_query)
+      end
+    end
 end
 
 class AsynchronousQueriesWithTransactionalTest < ActiveRecord::TestCase

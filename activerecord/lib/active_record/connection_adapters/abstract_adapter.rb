@@ -1066,6 +1066,20 @@ module ActiveRecord
         true
       end
 
+      def downgrade_connection_after_error(exception) # :nodoc:
+        unless retryable_query_error?(exception)
+          # Barring a known-retryable error inside the query (regardless of
+          # whether we were in a _position_ to retry it), we should infer that
+          # there's likely a real problem with the connection.
+          @last_activity = nil
+          @verified = false
+
+          if retryable_connection_error?(exception)
+            @needs_reconnect = true
+          end
+        end
+      end
+
       private
         def reconnect_can_restore_state?
           transaction_manager.restorable? && !@raw_connection_dirty
@@ -1163,20 +1177,6 @@ module ActiveRecord
           return false if current_transaction.invalidated?
 
           exception.is_a?(Deadlocked) || exception.is_a?(LockWaitTimeout)
-        end
-
-        def downgrade_connection_after_error(exception)
-          unless retryable_query_error?(exception)
-            # Barring a known-retryable error inside the query (regardless of
-            # whether we were in a _position_ to retry it), we should infer that
-            # there's likely a real problem with the connection.
-            @last_activity = nil
-            @verified = false
-
-            if retryable_connection_error?(exception)
-              @needs_reconnect = true
-            end
-          end
         end
 
         def build_retry_budget(allow_retry:, reconnectable:)

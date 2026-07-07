@@ -6,6 +6,9 @@ module ActiveRecord
     # against the database: a bounded number of attempts, an optional wall
     # clock deadline, and whether a reconnect (permitted at most once, because
     # reconnect! has its own internal retry loop) is still available.
+    #
+    # Raw connection access and QueryIntent delivery share this bookkeeping,
+    # so one query draws on a single allowance wherever its retries occur.
     class RetryBudget # :nodoc:
       attr_reader :retries_remaining
 
