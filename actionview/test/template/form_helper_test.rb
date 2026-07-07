@@ -1158,6 +1158,11 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, color_field("car", "color", value: "#00FF00"))
   end
 
+  def test_color_field_with_explicit_nil_value
+    expected = %{<input id="car_color" name="car[color]" type="color" />}
+    assert_dom_equal(expected, color_field("car", "color", value: nil))
+  end
+
   def test_search_field
     expected = %{<input id="contact_notes_query" name="contact[notes_query]" type="search" />}
     assert_dom_equal(expected, search_field("contact", "notes_query"))

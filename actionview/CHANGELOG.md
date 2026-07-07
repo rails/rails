@@ -1,3 +1,11 @@
+*   Honor an explicit `value:` option in `color_field`, including `nil`.
+
+    Previously, passing `value: nil` was ignored and the field still pre-filled
+    from the model's stored color. Now an explicitly provided `value:` is
+    honored, and the stored color is only used when no `value:` option is given.
+
+    *Kenta Ishizaki*
+
 *   Calling `safe_join` in a view no longer fallbacks to the `$,` global variable.
 
     Previously, calling `safe_join` would use `$,` by default to separate elements.
