@@ -865,6 +865,18 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_no_queries_for_empty_relation_on_grouped_count
+    assert_no_queries do
+      assert_equal({}, Post.where(id: []).group(:author_id).count)
+    end
+  end
+
+  def test_no_queries_for_empty_relation_on_grouped_sum
+    assert_no_queries do
+      assert_equal({}, Post.where(id: []).group(:author_id).sum(:tags_count))
+    end
+  end
+
   def test_maximum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
 
