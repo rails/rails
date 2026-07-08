@@ -427,6 +427,22 @@ module ActiveRecord
           end
         end
       end
+
+      def test_check_constraint_with_if_not_exists_raises_error
+        assert_raises(ArgumentError) do
+          with_change_table do |t|
+            t.check_constraint "price > 0", name: "price_check", if_not_exists: true
+          end
+        end
+      end
+
+      def test_remove_check_constraint_with_if_exists_raises_error
+        assert_raises(ArgumentError) do
+          with_change_table do |t|
+            t.remove_check_constraint name: "price_check", if_exists: true
+          end
+        end
+      end
     end
   end
 end
