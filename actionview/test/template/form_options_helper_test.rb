@@ -756,6 +756,14 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_multiple_and_form_to_add_hidden_input_with_form
+    output_buffer = select(:post, :category, "", {}, { multiple: true, form: "my_form" })
+    assert_dom_equal(
+      "<input type=\"hidden\" name=\"post[category][]\" value=\"\" autocomplete=\"off\" form=\"my_form\"/><select multiple=\"multiple\" id=\"post_category\" name=\"post[category][]\" form=\"my_form\"></select>",
+      output_buffer
+    )
+  end
+
   def test_select_with_multiple_and_include_hidden
     output_buffer = select(:post, :category, "", { include_hidden: true }, { multiple: true })
     assert_dom_equal(
