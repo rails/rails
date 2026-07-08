@@ -194,6 +194,10 @@ ActiveRecord::Schema.define do
     t.string :color
   end
 
+  create_table :buyers, force: true do |t|
+    t.string :name
+  end
+
   create_table "CamelCase", force: true do |t|
     t.string :name
   end
@@ -917,6 +921,15 @@ ActiveRecord::Schema.define do
 
   create_table :paint_textures, force: true do |t|
     t.integer :non_poly_two_id
+  end
+
+  create_table :parcels, force: true do |t|
+    t.integer :buyer_id
+  end
+
+  create_table :parcel_items, force: true do |t|
+    t.integer :parcel_id, null: false
+    t.integer :buyer_id
   end
 
   disable_referential_integrity do

@@ -291,6 +291,13 @@ module ActiveRecord
       @autosaving_belongs_to_for[association]
     end
 
+    # Returns whether or not this record's own top-level save is currently
+    # paused inside one of its before_save autosave callbacks (waiting on a
+    # sibling association to finish saving).
+    def autosave_in_progress? # :nodoc:
+      @_already_called&.value?(true)
+    end
+
     private
       def init_internals
         super
@@ -446,6 +453,17 @@ module ActiveRecord
 
               if autosave != false && (new_record_before_save || record.new_record?)
                 association.set_inverse_instance(record)
+
+                if record.new_record? && record.autosave_in_progress?
+                  # record's own top-level save is paused inside one of its
+                  # before_save autosave callbacks (waiting on a sibling
+                  # association to finish saving). Link the foreign key now,
+                  # but don't insert yet: record's outer save may still have
+                  # other pending associations to resolve before it's ready
+                  # to be persisted, and inserting it here would be premature.
+                  association.set_owner_attributes(record) if association.respond_to?(:set_owner_attributes)
+                  next
+                end
 
                 if autosave
                   saved = association.insert_record(record, false)

@@ -1663,7 +1663,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     fall.sections << sections
     fall.save!
     fall.reload
-    assert_equal sections, fall.sections.sort_by(&:id)
+    # Sort by short_name, not id: which of the two circularly-autosaved
+    # records gets inserted (and thus assigned the lower id) first is an
+    # implementation detail, not something this test cares about.
+    assert_equal sections, fall.sections.sort_by(&:short_name)
   end
 
   def test_post_has_many_tags_through_association_with_composite_query_constraints
