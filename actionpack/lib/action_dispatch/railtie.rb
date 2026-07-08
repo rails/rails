@@ -82,7 +82,7 @@ module ActionDispatch
       ActiveSupport.on_load(:action_dispatch_request) do
         self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header
         self.strict_accept_header = app.config.action_dispatch.strict_accept_header
-        ActionDispatch::Request::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
+        Http::Utils.perform_deep_munge = app.config.action_dispatch.perform_deep_munge
       end
 
       ActiveSupport.on_load(:action_dispatch_response) do

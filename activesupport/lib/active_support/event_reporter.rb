@@ -128,7 +128,7 @@ module ActiveSupport
   #   payload: Hash, Object (The payload of the event, or the event object itself)
   #   tags: Hash (The tags of the event)
   #   context: Hash (The context of the event)
-  #   timestamp: Float (The timestamp of the event, in nanoseconds)
+  #   timestamp: Integer (The timestamp of the event, in nanoseconds)
   #   source_location: Hash (The source location of the event, containing the filepath, lineno, and label)
   #
   # Subscribers are responsible for encoding events to their desired format before emitting them to their
@@ -306,13 +306,14 @@ module ActiveSupport
     #   payload: Hash, Object (The payload of the event, or the event object itself)
     #   tags: Hash (The tags of the event)
     #   context: Hash (The context of the event)
-    #   timestamp: Float (The timestamp of the event, in nanoseconds)
+    #   timestamp: Integer (The timestamp of the event, in nanoseconds)
     #   source_location: Hash (The source location of the event, containing the filepath, lineno, and label)
     #
     # An optional filter proc can be provided to only receive a subset of events:
     #
     #   Rails.event.subscribe(subscriber) { |event| event[:name].start_with?("user.") }
-    #   Rails.event.subscribe(subscriber) { |event| event[:payload].is_a?(UserEvent) }
+    #
+    # Only the +:name+ key is available to filters, not the entire payload.
     #
     def subscribe(subscriber, &filter)
       unless subscriber.respond_to?(:emit)

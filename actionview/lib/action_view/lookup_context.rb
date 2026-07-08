@@ -58,7 +58,6 @@ module ActionView
 
       @details_keys = Concurrent::Map.new
       @digest_cache = Concurrent::Map.new
-      @view_context_mutex = Mutex.new
 
       def self.digest_cache(details)
         @digest_cache[details_cache_key(details)] ||= Concurrent::Map.new
@@ -80,7 +79,7 @@ module ActionView
         ActionView::PathRegistry.all_resolvers.each do |resolver|
           resolver.clear_cache
         end
-        @view_context_class = nil
+        ActionView::LookupContext.reset_view_context_class
         @details_keys.clear
         @digest_cache.clear
       end
@@ -88,13 +87,21 @@ module ActionView
       def self.digest_caches
         @digest_cache.values
       end
+    end
 
-      def self.view_context_class
-        @view_context_mutex.synchronize do
-          @view_context_class ||= ActionView::Base.with_empty_template_cache
-        end
+    def self.reset_view_context_class
+      @view_context_mutex.synchronize { @view_context_class = nil }
+    end
+
+    def self.view_context_class
+      return @view_context_class if @view_context_class
+      base = ActionView::Base # prevent recursive locking
+      @view_context_mutex.synchronize do
+        @view_context_class = base.with_empty_template_cache
       end
     end
+    @view_context_mutex = Mutex.new
+    ActiveSupport.on_load(:action_view) { ActionView::LookupContext.view_context_class }
 
     # Add caching behavior on top of Details.
     module DetailsCache

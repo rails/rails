@@ -78,7 +78,7 @@ Various features of Active Storage depend on third-party software. Rails does
 not install these by default so you will need to do so separately:
 
 * [libvips](https://github.com/libvips/libvips) or
-  [ImageMagick](https://imagemagick.org/index.php) - for image analysis and
+  [ImageMagick](https://imagemagick.org/) - for image analysis and
   transformations.
 * [ffmpeg](http://ffmpeg.org/) - for video previews and ffprobe for video/audio
   analysis.

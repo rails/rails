@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
+require "active_support/dependencies/autoload"
+
 module ActiveSupport
   # Shims for +Ractor+ shareability methods so framework code can call them
   # unconditionally regardless of the Ruby version.
   module Ractors # :nodoc:
+    extend ActiveSupport::Autoload
+    autoload :Logger
+
     class << self
       attr_accessor :unshareable_proc_action
 
@@ -32,6 +37,33 @@ module ActiveSupport
           MSG
 
           proc
+        end
+      end
+
+      # Attempt to make an object shareable. If successful, a shareable object is returned.
+      # If a Ractor::IsolationError is raised, the outcome will depend on how
+      # the user's application configuration:
+      #
+      # :raise - The error is raised
+      # :warn  - A deprecation warning is triggered and the original unshareable object is returned.
+      def try_make_shareable(obj)
+        return obj unless unshareable_proc_action
+
+        make_shareable(obj)
+      rescue Ractor::IsolationError
+        case unshareable_proc_action
+        when :raise
+          raise
+        when :warn
+          ActiveSupport.deprecator.warn(<<~MSG)
+            Rails attempted to make an object from your application Ractor shareable but a Ractor
+            Isolation error was raised. The object being returned is not Ractor safe and a runtime
+            error may occur anytime during the request lifecycle.
+
+            #{obj.inspect}
+          MSG
+
+          obj
         end
       end
 

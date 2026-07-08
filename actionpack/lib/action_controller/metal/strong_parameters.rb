@@ -318,7 +318,8 @@ module ActionController
     end
 
     def deconstruct_keys(keys)
-      slice(*keys).each.with_object({}) { |(key, value), hash| hash.merge!(key.to_sym => value) }
+      params = keys ? slice(*keys) : self
+      params.each.with_object({}) { |(key, value), hash| hash.merge!(key.to_sym => value) }
     end
 
     # Returns a safe ActiveSupport::HashWithIndifferentAccess representation of the

@@ -419,6 +419,14 @@ module ActiveRecord
           end
         end
       end
+
+      def test_remove_timestamps_with_if_exists_raises_error
+        assert_raises(ArgumentError) do
+          with_change_table do |t|
+            t.remove_timestamps if_exists: true
+          end
+        end
+      end
     end
   end
 end

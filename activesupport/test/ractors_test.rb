@@ -98,5 +98,58 @@ class KernelRactorShareabilityTest < ActiveSupport::TestCase
     ensure
       ActiveSupport::Ractors.unshareable_proc_action = old
     end
+
+    def test_try_make_shareable_when_action_is_nil
+      old = ActiveSupport::Ractors.unshareable_proc_action
+      ActiveSupport::Ractors.unshareable_proc_action = nil
+
+      obj = +"hello"
+      attempted = ActiveSupport::Ractors.try_make_shareable(obj)
+
+      assert_same(obj, attempted)
+      assert_not ActiveSupport::Ractors.shareable?(obj)
+    ensure
+      ActiveSupport::Ractors.unshareable_proc_action = old
+    end
+
+    def test_try_make_shareable_makes_the_object_shareable
+      old = ActiveSupport::Ractors.unshareable_proc_action
+      ActiveSupport::Ractors.unshareable_proc_action = :raise
+
+      obj = +"hello"
+      attempted = ActiveSupport::Ractors.try_make_shareable(obj)
+
+      assert_same(obj, attempted)
+      assert ActiveSupport::Ractors.shareable?(attempted)
+    ensure
+      ActiveSupport::Ractors.unshareable_proc_action = old
+    end
+
+    def test_try_make_shareable_raises
+      old = ActiveSupport::Ractors.unshareable_proc_action
+      ActiveSupport::Ractors.unshareable_proc_action = :raise
+
+      obj = proc { }
+
+      assert_raises(Ractor::IsolationError) do
+        ActiveSupport::Ractors.try_make_shareable(obj)
+      end
+    ensure
+      ActiveSupport::Ractors.unshareable_proc_action = old
+    end
+
+    def test_try_make_shareable_warns
+      old = ActiveSupport::Ractors.unshareable_proc_action
+      ActiveSupport::Ractors.unshareable_proc_action = :warn
+
+      obj = proc { }
+
+      assert_deprecated(/Rails attempted to make an object .* Ractor shareable/, ActiveSupport.deprecator) do
+        attempted = ActiveSupport::Ractors.try_make_shareable(obj)
+        assert_same(obj, attempted)
+      end
+    ensure
+      ActiveSupport::Ractors.unshareable_proc_action = old
+    end
   end
 end

@@ -1435,6 +1435,20 @@ class FormOptionsHelperTest < ActionView::TestCase
                   html
   end
 
+  def test_time_zone_select_with_selected_option
+    @firm = Firm.new("D")
+
+    html = time_zone_select("firm", "time_zone", nil, selected: "B")
+    assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
+                  "<option value=\"A\">A</option>\n" \
+                  "<option value=\"B\" selected=\"selected\">B</option>\n" \
+                  "<option value=\"C\">C</option>\n" \
+                  "<option value=\"D\">D</option>\n" \
+                  "<option value=\"E\">E</option>" \
+                  "</select>",
+                  html
+  end
+
   def test_options_for_select_with_element_attributes
     assert_dom_equal(
       "<option value=\"&lt;Denmark&gt;\" class=\"bold\">&lt;Denmark&gt;</option>\n<option value=\"USA\" onclick=\"alert(&#39;Hello World&#39;);\">USA</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Germany\">Germany</option>",
@@ -1645,6 +1659,20 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       "<select name=\"digest[send_day]\" id=\"digest_send_day\"><option selected=\"selected\" value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>\n<option value=\"Sunday\">Sunday</option></select>",
+      output_buffer
+    )
+  end
+
+  def test_weekday_select_under_fields_for_with_value_and_explicit_selected
+    @digest = Digest.new
+    @digest.send_day = "Monday"
+
+    output_buffer = fields_for :digest, @digest do |f|
+      concat f.weekday_select(:send_day, selected: "Friday")
+    end
+
+    assert_dom_equal(
+      "<select name=\"digest[send_day]\" id=\"digest_send_day\"><option value=\"Monday\">Monday</option>\n<option value=\"Tuesday\">Tuesday</option>\n<option value=\"Wednesday\">Wednesday</option>\n<option value=\"Thursday\">Thursday</option>\n<option selected=\"selected\" value=\"Friday\">Friday</option>\n<option value=\"Saturday\">Saturday</option>\n<option value=\"Sunday\">Sunday</option></select>",
       output_buffer
     )
   end

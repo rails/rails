@@ -86,6 +86,13 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_kind_of ::RedisClient::Pooled, @cache.redis
     end
 
+    test "array of :client Configs is not mutated" do
+      clients = REDIS_URLS.map { |url| RedisClient.config(url: url) }.freeze
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(client: clients)
+      assert_kind_of ::RedisClient::HashRing, @cache.redis
+      assert clients.all?(::RedisClient::Config)
+    end
+
     test "deprecated :redis argument" do
       @cache = assert_deprecated(/Passing a Redis or ConnectionPool instance/, ActiveSupport.deprecator) do
         ActiveSupport::Cache::RedisCacheStore.new(redis: -> { Redis.new(url: REDIS_URL) })
@@ -578,7 +585,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @cache.with_local_cache do
         @cache.write("foo", "bar")
         # Overwrite in remote behind local cache's back
-        @cache.send(:bypass_local_cache) { @cache.write("foo", "baz") }
+        @cache.send(:use_temporary_local_cache, nil) { @cache.write("foo", "baz") }
         # Without delete, local cache returns stale value
         assert_equal "bar", @cache.read("foo")
         # With delete, it should bypass local cache and hit remote

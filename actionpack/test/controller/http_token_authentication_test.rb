@@ -105,6 +105,15 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "successful authentication request with case-insensitive scheme" do
+    ["bearer lifo", "BEARER lifo", "token lifo", "TOKEN lifo"].each do |header|
+      @request.env["HTTP_AUTHORIZATION"] = header
+      get :index
+
+      assert_response :success, "expected #{header.inspect} to authenticate"
+    end
+  end
+
   test "authentication request with tab in header" do
     @request.env["HTTP_AUTHORIZATION"] = "Token\ttoken=\"lifo\""
     get :index

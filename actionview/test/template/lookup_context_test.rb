@@ -31,7 +31,7 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "normalizes details on initialization" do
-    assert_equal Mime::SET.to_a, @lookup_context.formats
+    assert_equal Mime.symbols, @lookup_context.formats
     assert_equal :en, @lookup_context.locale
   end
 
@@ -52,12 +52,12 @@ class LookupContextTest < ActiveSupport::TestCase
 
   test "handles */* formats" do
     @lookup_context.formats = ["*/*"]
-    assert_equal Mime::SET.to_a, @lookup_context.formats
+    assert_equal Mime.symbols, @lookup_context.formats
   end
 
   test "handles explicitly defined */* formats fallback to :js" do
     @lookup_context.formats = [:js, Mime::ALL]
-    assert_equal [:js, *Mime::SET.symbols].uniq, @lookup_context.formats
+    assert_equal [:js, *Mime.symbols].uniq, @lookup_context.formats
   end
 
   test "adds :html fallback to :js formats" do
@@ -196,6 +196,22 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal [], @lookup_context.prefixes
     @lookup_context.prefixes = ["foo"]
     assert_equal ["foo"], @lookup_context.prefixes
+  end
+end
+
+if RUBY_VERSION >= "4.0"
+  class LookupContextRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+
+    test "view_context_class is Ractor-shareable" do
+      @original_experimental_warning = Warning[:experimental]
+      Warning[:experimental] = false
+      ActionView::LookupContext.view_context_class # needs to be eager-loaded to be ractor-shareable
+      assert_same ActionView::LookupContext.view_context_class,
+        Ractor.new { ActionView::LookupContext.view_context_class }.value
+    ensure
+      Warning[:experimental] = @original_experimental_warning
+    end
   end
 end
 

@@ -102,7 +102,7 @@ module ActiveSupport
       # Preemptively iterates through all stored keys and removes the ones which have expired.
       def cleanup(options = nil)
         options = merged_options(options)
-        _instrument(:cleanup, size: @data.size) do
+        instrument(:cleanup, nil, size: @data.size) do
           keys = synchronize { @data.keys }
           keys.each do |key|
             entry = deserialize_entry(@data[key])
@@ -149,7 +149,7 @@ module ActiveSupport
       #   cache.increment("baz") # => 6
       #
       def increment(name, amount = 1, **options)
-        instrument(:increment, name, amount: amount) do
+        instrument(:increment, normalize_key(name, options), amount: amount) do
           modify_value(name, amount, **options)
         end
       end
@@ -166,7 +166,7 @@ module ActiveSupport
       #   cache.decrement("baz") # => 4
       #
       def decrement(name, amount = 1, **options)
-        instrument(:decrement, name, amount: amount) do
+        instrument(:decrement, normalize_key(name, options), amount: amount) do
           modify_value(name, -amount, **options)
         end
       end

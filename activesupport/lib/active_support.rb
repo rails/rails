@@ -57,6 +57,7 @@ module ActiveSupport
   autoload :StructuredEventSubscriber
   autoload :IsolatedExecutionState
   autoload :Notifications
+  autoload :ProxyLogger
   autoload :Reloader
   autoload :SecureCompareRotator
   autoload :TimeFormats

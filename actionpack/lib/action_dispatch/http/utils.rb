@@ -3,9 +3,12 @@
 # :markup: markdown
 
 require "active_support/core_ext/hash/indifferent_access"
+require "active_support/core_ext/module/attribute_accessors"
+require "action_dispatch/http/upload"
+require "rack/utils"
 
 module ActionDispatch
-  class Request
+  module Http
     class Utils # :nodoc:
       mattr_accessor :perform_deep_munge, default: true
 
@@ -86,7 +89,7 @@ module ActionDispatch
         def self.encode_for_template(params, encoding_template)
           return params unless encoding_template
           params.except(:controller, :action).each do |key, value|
-            ActionDispatch::Request::Utils.each_param_value(value) do |param|
+            Utils.each_param_value(value) do |param|
               # If `param` is frozen, it comes from the router defaults
               next if param.frozen?
 

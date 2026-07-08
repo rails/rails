@@ -63,9 +63,9 @@ module ActiveRecord
         end
 
         def remove_foreign_key(from_table, to_table = nil, **options)
-          return if options.delete(:if_exists) && !foreign_key_exists?(from_table, to_table, **options.slice(:column))
-
           to_table ||= options[:to_table]
+          return if options.delete(:if_exists) && !foreign_key_exists?(from_table, to_table, **options.slice(:column, :name))
+
           options = options.except(:name, :to_table, :validate)
           fkey = foreign_key_for!(from_table, to_table: to_table, **options)
 

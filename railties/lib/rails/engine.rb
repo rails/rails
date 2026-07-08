@@ -448,6 +448,14 @@ module Rails
       super
     end
 
+    def freeze
+      return self if frozen?
+
+      app
+      @app_build_lock = nil
+      super
+    end
+
     # Load console and invoke the registered hooks.
     # Check Rails::Railtie.console for more info.
     def load_console(app = self)

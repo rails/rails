@@ -850,7 +850,7 @@ config.action_cable.log_tags = [
 ```
 
 For a full list of all configuration options, see the
-`ActionCable::Server::Configuration` class.
+`ActionCable::Configuration` class.
 
 ## Running Standalone Cable Servers
 
