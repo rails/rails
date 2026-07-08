@@ -337,6 +337,24 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, merged
   end
 
+  def test_reverse_merge_bang_does_not_override_default
+    hash = Hash.new(0)
+    hash.update(a: 1, b: 2)
+
+    hash.reverse_merge!(a: 10, c: 3)
+
+    assert_equal 0, hash[:z]
+  end
+
+  def test_reverse_merge_bang_does_not_override_default_proc
+    hash = Hash.new { |h, k| h[k] = [] }
+    hash.update(a: 1, b: 2)
+
+    hash.reverse_merge!(a: 10, c: 3)
+
+    assert_equal [], hash[:z]
+  end
+
   def test_slice_inplace
     original = { a: "x", b: "y", c: 10 }
     expected_return = { c: 10 }

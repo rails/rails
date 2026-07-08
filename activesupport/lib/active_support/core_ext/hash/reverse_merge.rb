@@ -18,7 +18,10 @@ class Hash
 
   # Destructive +reverse_merge+.
   def reverse_merge!(other_hash)
-    replace(reverse_merge(other_hash))
+    merged = reverse_merge(other_hash)
+    merged.default      = default
+    merged.default_proc = default_proc if default_proc
+    replace(merged)
   end
   alias_method :reverse_update, :reverse_merge!
   alias_method :with_defaults!, :reverse_merge!
