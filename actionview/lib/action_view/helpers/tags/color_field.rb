@@ -4,14 +4,11 @@ module ActionView
   module Helpers
     module Tags # :nodoc:
       class ColorField < TextField # :nodoc:
-        def render
-          options = @options.stringify_keys
-          options["value"] = options.fetch("value") { validate_color_string(value) }
-          @options = options
-          super
-        end
-
         private
+          def fallback_value
+            validate_color_string(value)
+          end
+
           def validate_color_string(string)
             regex = /\A#[0-9a-fA-F]{6}\z/
             if regex.match?(string)
