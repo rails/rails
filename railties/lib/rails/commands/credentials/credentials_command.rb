@@ -63,7 +63,7 @@ module Rails
 
         if (yaml = credentials.read)
           begin
-            value = YAML.load(yaml)
+            value = YAML.unsafe_load(yaml)
             value = path.split(".").inject(value) do |doc, key|
               doc.fetch(key)
             end
