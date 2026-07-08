@@ -63,6 +63,11 @@ module ActiveSupport
           end
         end
 
+        def initialize(...)
+          super
+          @local_cache_key = "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, "_").to_sym
+        end
+
         # Use a local cache for the duration of block.
         def with_local_cache(&block)
           use_temporary_local_cache(LocalStore.new, &block)
@@ -156,6 +161,8 @@ module ActiveSupport
         end
 
         private
+          attr_reader :local_cache_key
+
           def read_serialized_entry(key, raw: false, **options)
             if cache = local_cache
               if options[:delete]
@@ -227,10 +234,6 @@ module ActiveSupport
             else
               cache.delete_entry(name)
             end
-          end
-
-          def local_cache_key
-            @local_cache_key ||= "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, "_").to_sym
           end
 
           def use_temporary_local_cache(temporary_cache)

@@ -28,19 +28,32 @@ if RUBY_VERSION >= "4.0"
       test "ractorize! makes the app shareable in production mode" do
         app "production"
 
-        begin
-          @original_experimental_warning = Warning[:experimental]
-          Warning[:experimental] = false
-          Rails.application.ractorize!
-        ensure
-          Warning[:experimental] = @original_experimental_warning
-        end
+        ractorize!
 
         assert_ractor_shareable Rails.application
         assert_ractor_shareable Rails.event
         assert_ractor_shareable Rails.error
         assert_ractor_shareable Rails.backtrace_cleaner
       end
+
+      test "error reporting works after the application is ractorized" do
+        app "production"
+
+        ractorize!
+
+        assert_nothing_raised do
+          Rails.error.report(StandardError.new("test"))
+        end
+      end
+
+      private
+        def ractorize!
+          @original_experimental_warning = Warning[:experimental]
+          Warning[:experimental] = false
+          Rails.application.ractorize!
+        ensure
+          Warning[:experimental] = @original_experimental_warning
+        end
     end
   end
 end
