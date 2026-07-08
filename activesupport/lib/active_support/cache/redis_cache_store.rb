@@ -17,6 +17,7 @@ require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/numeric/time"
 require "active_support/digest"
 require "active_support/inspect_backport"
+require "active_support/core_ext/string/filters"
 
 module ActiveSupport
   module Cache

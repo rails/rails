@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "action_view/view_paths"
+require "active_support/core_ext/module/attr_internal"
 
 module ActionView
   # This is a class to fix I18n global state. Whenever you provide I18n.locale during a request,
