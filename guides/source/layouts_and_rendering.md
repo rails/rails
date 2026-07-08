@@ -9,7 +9,7 @@ After reading this guide, you will know:
 
 * How to use the various rendering methods built into Rails.
 * How to render views in multiple formats and variants.
-* How to send HTTP redirect responses.
+* How to register custom MIME types and render responses using them.
 * How to set the layout in Rails controllers.
 
 --------------------------------------------------------------------------------
@@ -24,14 +24,16 @@ The controller is responsible for orchestrating how an HTTP request is handled i
 There are four ways to create an HTTP response in a Rails controller:
 
 * [`render`][controller.render] to create a full response with a body, usually with a `2xx` status code.
-* [`redirect_to`][] to redirect the user to another path using an HTTP redirect status code.
 * [`respond_to`][] to enable rendering of multiple formats based on the HTTP request's `Accept` header.
+* [`redirect_to`][] to redirect the user to another path using an HTTP redirect status code.
 * [`head`][] to create a response consisting solely of HTTP headers without a body.
 
 [controller.render]: https://api.rubyonrails.org/classes/ActionController/Rendering.html#method-i-render
 [`redirect_to`]: https://api.rubyonrails.org/classes/ActionController/Redirecting.html#method-i-redirect_to
 [`head`]: https://api.rubyonrails.org/classes/ActionController/Head.html#method-i-head
 [`respond_to`]: https://api.rubyonrails.org/classes/ActionController/MimeResponds.html#method-i-respond_to
+
+In this guide, we will focus on the `render` and `respond_to` methods. Consult the [Action Controller guide](action_controller_overview.html) for details on `redirect_to` and `head`.
 
 Rendering Responses
 -------------------
@@ -730,7 +732,7 @@ end
 
 HTML requests will render `carousel.html.erb`, whereas JSON and XML requests will render `index.json.jbuilder` and `index.xml.erb` respectively.
 
-You can even [redirect requests](#redirecting-requests) based on the format:
+You can even [redirect requests](action_controller_overview.html#redirecting-requests) based on the format:
 
 ```ruby
 class BooksController < ApplicationController
@@ -888,86 +890,6 @@ end
 Even though we're using `render plain:`, the `content-type` HTTP header in the response will be set to `text/vnd.my-mime-type` since it's a format-specific handler.
 
 NOTE: This is exactly how [Rails' integration](https://github.com/hotwired/turbo-rails) with [Turbo](https://turbo.hotwired.dev) creates Turbo Stream responses. It registers the `text/vnd.turbo-stream.html` MIME type which allows us to create `.turbo_stream.html` templates and use `format.turbo_stream` in `respond_to` blocks.
-
-Redirecting Requests
---------------------
-
-Instead of `render`ing a response, you might want to redirect the user to a different path. An [HTTP redirection status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status#redirection_messages) can be used for this. Rails' [`redirect_to`][] method uses `302 Found` by default.
-
-```ruby
-redirect_to photos_url
-```
-
-This will send a `302` HTTP response to the browser with `photos_url` in the `Location` header. The browser will then make a new `GET` request to the `photos_url`.
-
-NOTE: When redirecting using `302 Found`, the client may not always make a `GET` request to the `Location`. JavaScript's `fetch` method will make a `GET` request after redirection from a `GET` or `POST` request. But, if the initial request is another method, for example `PUT`, it will use the same method when requesting the redirected location. This is not a problem in Rails because all [form submissions use `POST`](https://guides.rubyonrails.org/form_helpers.html#forms-with-patch-put-or-delete-methods), even when using [Turbo](http://turbo.hotwired.dev). <br><br> When making requests in custom JavaScript, redirect using [`303 See Other`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/303) to ensure a `GET` request to the redirected location, or [`307 Temporary Redirect`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/307) to preserve the original HTTP verb.
-
-Alternatively, you can use [`redirect_back`][] to return the user to the page they just came from.
-The location is pulled from the `HTTP_REFERER` header which is not guaranteed
-to be set by the browser, so you must provide a `fallback_location`.
-
-```ruby
-redirect_back(fallback_location: root_path)
-# or
-redirect_back_or_to root_path
-```
-
-WARNING: Similar to `render`, `redirect_to` and `redirect_back` do not automatically `return` from the current scope, instead they simply set the HTTP response. Statements occurring after them will still be executed.
-
-[`redirect_to`]: https://api.rubyonrails.org/classes/ActionController/Redirecting.html#method-i-redirect_to
-[`redirect_back`]: https://api.rubyonrails.org/classes/ActionController/Redirecting.html#method-i-redirect_back
-
-Use the `status:` option to use a different HTTP response code. Just like `render`, you can use both numeric and symbolic values.
-
-```ruby
-redirect_to photos_path, status: :see_other
-```
-
-NOTE: It's worth being aware that `redirect_to` doesn't move execution to a different method within the same request. It sends an HTTP response and then the browser makes a new request to the redirected location which won't have any context from the previous request.
-
-Header-Only Responses
----------------------
-
-The [`head`][] method can be used to send responses with only headers to the browser. This is usually in response to an [HTTP `HEAD`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/HEAD) request.
-
-The `head` method accepts a number or symbol representing an HTTP status code.
-
-```ruby
-head :bad_request
-```
-
-This would produce the following HTTP response:
-
-```http
-HTTP/1.1 400 Bad Request
-Connection: close
-Date: Sun, 24 Jan 2010 12:15:53 GMT
-Transfer-Encoding: chunked
-Content-Type: text/html; charset=utf-8
-X-Runtime: 0.013483
-Set-Cookie: _blog_session=...snip...; path=/; HttpOnly
-Cache-Control: no-cache
-```
-
-You can add additional HTTP headers if you wish.
-
-```ruby
-head :created, location: photo_path(@photo)
-```
-
-Which would produce:
-
-```http
-HTTP/1.1 201 Created
-Connection: close
-Date: Sun, 24 Jan 2010 12:16:44 GMT
-Transfer-Encoding: chunked
-Location: /photos/1
-Content-Type: text/html; charset=utf-8
-X-Runtime: 0.083496
-Set-Cookie: _blog_session=...snip...; path=/; HttpOnly
-Cache-Control: no-cache
-```
 
 Setting Layouts In Controllers
 -------------------------------
