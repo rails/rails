@@ -3,10 +3,14 @@
 module ActionView
   class Template
     module Sources # :nodoc:
-      extend ActiveSupport::Autoload
+      class File # :nodoc:
+        def initialize(filename)
+          @filename = filename
+        end
 
-      eager_autoload do
-        autoload :File
+        def to_s
+          ::File.binread @filename
+        end
       end
     end
   end
