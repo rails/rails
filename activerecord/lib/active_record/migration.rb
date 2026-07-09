@@ -609,7 +609,14 @@ module ActiveRecord
         end
       end
 
+      # Ancestors are walked oldest-version-first, so the newest version's
+      # module ends up first in method lookup — the same order the per-class
+      # overrides produced.
       def compatible_table_definition(t)
+        (self.class.ancestors & Compatibility.version_classes).each do |version_class|
+          next unless version_class.const_defined?(:TableDefinition, false)
+          t.singleton_class.prepend(version_class.const_get(:TableDefinition, false))
+        end
         t
       end
     end
