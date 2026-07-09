@@ -244,6 +244,17 @@ module ActiveSupport
           rescue_error_with(false) { @data.with { |c| c.delete(key) } }
         end
 
+        if Dalli::Client.method_defined?(:delete_multi)
+          def delete_multi_entries(entries, **options)
+            return 0 if entries.empty?
+
+            rescue_error_with(0) do
+              result = @data.with { |c| c.delete_multi(entries) }
+              result.blank? ? 0 : entries.size
+            end
+          end
+        end
+
         def serialize_entry(entry, raw: false, **options)
           if raw
             entry.value.to_s
