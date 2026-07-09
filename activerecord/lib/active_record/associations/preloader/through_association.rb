@@ -68,7 +68,13 @@ module ActiveRecord
           end
 
           def source_preloaders
-            @source_preloaders ||= ActiveRecord::Associations::Preloader.new(records: middle_records, associations: source_reflection.name, scope: scope, associate_by_default: false).loaders
+            @source_preloaders ||= ActiveRecord::Associations::Preloader.new(
+              records: middle_records,
+              associations: source_reflection.name,
+              scope: scope,
+              associate_by_default: false,
+              reuse_loaded_association: scope.empty_scope? || through_scope.eager_loading?
+            ).loaders
           end
 
           def middle_records
@@ -76,7 +82,13 @@ module ActiveRecord
           end
 
           def through_preloaders
-            @through_preloaders ||= ActiveRecord::Associations::Preloader.new(records: owners, associations: through_reflection.name, scope: through_scope, associate_by_default: false).loaders
+            @through_preloaders ||= ActiveRecord::Associations::Preloader.new(
+              records: owners,
+              associations: through_reflection.name,
+              scope: through_scope,
+              associate_by_default: false,
+              reuse_loaded_association: through_scope.empty_scope?
+            ).loaders
           end
 
           def through_reflection
