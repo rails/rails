@@ -62,8 +62,17 @@ module ActiveRecord
           if Array(association_primary_key) == reflection.klass.composite_query_constraints_list && !options[:source_type]
             join_attributes = { source_reflection.name => records }
           else
-            assoc_pk_values = records.map { |record| record._read_attribute(association_primary_key) }
-            join_attributes = { source_reflection.foreign_key => assoc_pk_values }
+            association_key = ActiveRecord::Key.for(association_primary_key)
+            assoc_pk_values = records.map { |record| association_key.value_of(record) }
+
+            if association_key.composite? && records.one?
+              # Keep single-record composite predicates keyed by individual columns so
+              # delete_through_records can match loaded through records by attribute name.
+              foreign_key = ActiveRecord::Key.for(source_reflection.foreign_key)
+              join_attributes = foreign_key.where_hash(assoc_pk_values.first).transform_values { |value| [value] }
+            else
+              join_attributes = { source_reflection.foreign_key => assoc_pk_values }
+            end
           end
 
           if options[:source_type]

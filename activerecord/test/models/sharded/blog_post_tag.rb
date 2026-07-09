@@ -7,5 +7,9 @@ module Sharded
 
     belongs_to :blog_post
     belongs_to :tag
+    belongs_to :unconstrained_tag,
+      class_name: "Sharded::UnconstrainedTag",
+      primary_key: [:blog_id, :id],
+      foreign_key: [:blog_id, :tag_id]
   end
 end

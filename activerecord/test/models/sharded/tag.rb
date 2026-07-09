@@ -8,4 +8,8 @@ module Sharded
     has_many :blog_post_tags
     has_many :blog_posts, through: :blog_post_tags
   end
+
+  class UnconstrainedTag < ActiveRecord::Base
+    self.table_name = :sharded_tags
+  end
 end
