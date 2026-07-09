@@ -312,6 +312,8 @@ module ActiveSupport
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
+
+      ActiveSupport::Ractors.make_shareable(self)
     end
     # :startdoc:
 
