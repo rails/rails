@@ -215,6 +215,23 @@ module ActiveSupport
           end
         end
 
+        if Dalli::Client.method_defined?(:set_multi)
+          def write_multi_entries(entries, **options)
+            return if entries.empty?
+
+            entries = entries.transform_values { |entry| serialize_entry(entry, **options) }
+            expires_in = options[:expires_in].to_i
+            if options[:race_condition_ttl] && expires_in > 0 && !options[:raw]
+              # Set the memcache expire a few minutes in the future to support race condition ttls on read
+              expires_in += 5.minutes
+            end
+
+            rescue_error_with(nil) do
+              @data.with { |c| c.set_multi(entries, expires_in, options) }
+            end
+          end
+        end
+
         # Reads multiple entries from the cache implementation.
         def read_multi_entries(names, **options)
           keys_to_names = names.index_by { |name| normalize_key(name, options) }
