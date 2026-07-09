@@ -672,6 +672,7 @@ module Rails
       warn "Ractor support in Rails is experimental and subject to change.", category: :experimental, uplevel: 1
 
       env_config
+      revision
       routes
 
       @autoloaders, @reloaders, @routes_reloader = nil, nil, nil
