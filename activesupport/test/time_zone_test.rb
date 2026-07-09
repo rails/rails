@@ -2,10 +2,12 @@
 
 require_relative "abstract_unit"
 require "active_support/time"
+require "active_support/testing/ractors_assertions"
 require_relative "time_zone_test_helpers"
 require "yaml"
 
 class TimeZoneTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
   include TimeZoneTestHelpers
 
   def test_utc_to_local
@@ -430,7 +432,7 @@ class TimeZoneTest < ActiveSupport::TestCase
   end
 
   def test_parse_with_incomplete_date
-    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"].dup
     zone.stub(:now, zone.local(1999, 12, 31)) do
       twz = zone.parse("19:00:00")
       assert_equal Time.utc(1999, 12, 31, 19), twz.time
@@ -463,7 +465,7 @@ class TimeZoneTest < ActiveSupport::TestCase
   end
 
   def test_parse_with_missing_time_components
-    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"].dup
     zone.stub(:now, zone.local(1999, 12, 31, 12, 59, 59)) do
       twz = zone.parse("2012-12-01")
       assert_equal Time.utc(2012, 12, 1), twz.time
@@ -849,6 +851,10 @@ class TimeZoneTest < ActiveSupport::TestCase
 
   def test_new
     assert_equal ActiveSupport::TimeZone["Central Time (US & Canada)"], ActiveSupport::TimeZone.new("Central Time (US & Canada)")
+  end
+
+  def test_is_ractor_shareable
+    assert_ractor_shareable(ActiveSupport::TimeZone["Central Time (US & Canada)"])
   end
 
   def test_us_zones
