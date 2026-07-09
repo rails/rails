@@ -47,19 +47,30 @@ end
 
 This keeps `id` as the primary key at the database level while instructing Active Record to always include `company_id` in queries, updates, and deletes.
 
-For example, for `Developer.find(1)`, this is what the query looks like *with* the above `query_constraints`:
+For example, given a developer record with `company_id: 5`:
 
-```sql
-SELECT * FROM developers WHERE company_id = 5 AND id = 1
+```irb
+irb> developer = Developer.find_by(company_id: 5, name: "Alice")
+=> #<Developer id: 1, company_id: 5, name: "Alice">
 ```
 
-This is what that query would have been *without* `query_constraints`:
+With `query_constraints`, any subsequent query or update on that record will automatically include `company_id` as well:
 
-```sql
-SELECT * FROM developers WHERE id = 1
+```irb
+irb> developer.update!(name: "Bob")
 ```
 
-Query Constraints is a lighter-weight option when you don't need a true composite primary key but want Rails to treat a combination of columns as the effective identity.
+```sql
+UPDATE developers SET name = 'Bob' WHERE company_id = 5 AND id = 1
+```
+
+Without `query_constraints`, that same update would only scope on `id`:
+
+```sql
+UPDATE developers SET name = 'Bob' WHERE id = 1
+```
+
+Query Constraints is a lighter weight option when you don't need a true composite primary key but want Rails to treat a combination of columns as the effective identity.
 
 
 Declaring Composite Primary Keys and Creating Migrations
@@ -109,12 +120,12 @@ end
 
 This tells Active Record that records are uniquely identified by the combination of both columns, not a single `id`.
 
-In most cases, you don't need to declare a composite primary key with
-`self.primary_key` in your model at all. If you define the composite primary key
-in your migration and use the default `schema.rb` format, Rails will read the
-primary key from the schema automatically at boot time and your model will work.
-
-On the other hand, if your application uses `structure.sql` instead of `schema.rb` or if you're connecting to a legacy or external database that was not created by your migrations, you can use `self.primary_key` to explicitly declare a composite primary key.
+In most cases, you don't need to declare this at all. Rails detects the primary
+key automatically from the database at runtime. So as long as your migration has
+been run, your model will have the composite key. You only need
+`self.primary_key` if you are connecting to a legacy or external database where
+Rails fails to detect the composite primary key correctly, or if you need to
+override what the database reports for some other reason.
 
 Querying Models
 ---------------
