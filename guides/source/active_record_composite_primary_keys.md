@@ -271,10 +271,9 @@ SELECT * FROM authors WHERE first_name = 'Jane' AND last_name = 'Doe'
 Forms and Controller Parameters
 -------------------------------
 
-Forms may also be built for composite primary key models.
-See the [Form Helpers][] guide for more information on the form builder syntax.
-
-[Form Helpers]: form_helpers.html
+Forms may also be built for composite primary key models. See the [Form
+Helpers](form_helpers.html) guide for more information on the form builder
+syntax.
 
 Given a `@book` model object with a composite key `[:author_id, :id]`:
 
@@ -308,9 +307,9 @@ the parameters and update the record.
 
 ### Extracting Composite Primary Key from `params`
 
-Composite key parameters contain multiple values in one parameter.
-For this reason, we need to be able to extract each value and pass them to
-Active Record. We can leverage the [`extract_value`](https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-extract_value) method for this use-case.
+Composite key parameters contain multiple values in one parameter so we need to
+extract each value and pass them to Active Record. We can use the
+[`extract_value`](https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-extract_value) method for this.
 
 Given the following controller:
 
