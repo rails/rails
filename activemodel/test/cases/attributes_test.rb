@@ -183,5 +183,41 @@ module ActiveModel
 
       assert_equal with_alias.type_for_attribute(:integer_field), with_alias.type_for_attribute(:x)
     end
+
+    test ".has_attribute?" do
+      assert ModelForAttributesTest.has_attribute?("integer_field")
+      assert ModelForAttributesTest.has_attribute?(:integer_field)
+      assert_not ModelForAttributesTest.has_attribute?("nonexistent")
+      assert_not ModelForAttributesTest.has_attribute?(:nonexistent)
+    end
+
+    test ".has_attribute? supports attribute aliases" do
+      with_alias = Class.new(ModelForAttributesTest) do
+        alias_attribute :new_integer_field, :integer_field
+      end
+
+      assert with_alias.has_attribute?("new_integer_field")
+      assert with_alias.has_attribute?(:new_integer_field)
+    end
+
+    test "#has_attribute?" do
+      data = ModelForAttributesTest.new
+
+      assert data.has_attribute?("integer_field")
+      assert data.has_attribute?(:integer_field)
+      assert_not data.has_attribute?("nonexistent")
+      assert_not data.has_attribute?(:nonexistent)
+    end
+
+    test "#has_attribute? supports attribute aliases" do
+      with_alias = Class.new(ModelForAttributesTest) do
+        alias_attribute :new_integer_field, :integer_field
+      end
+
+      data = with_alias.new
+
+      assert data.has_attribute?("new_integer_field")
+      assert data.has_attribute?(:new_integer_field)
+    end
   end
 end

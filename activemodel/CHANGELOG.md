@@ -1,3 +1,23 @@
+*   Add `has_attribute?` to `ActiveModel::Attributes`.
+
+    Mirrors the class and instance methods of the same name in Active Record,
+    returning whether the given attribute (resolving aliases) is defined.
+
+    ```ruby
+    class Person
+      include ActiveModel::Attributes
+
+      attribute :name, :string
+      alias_attribute :full_name, :name
+    end
+
+    Person.has_attribute?(:name)         # => true
+    Person.has_attribute?(:full_name)    # => true
+    Person.new.has_attribute?(:nothing)  # => false
+    ```
+
+    *Kenta Ishizaki*
+
 *   Fix `normalizes` re-applying normalizations on every validation of an
     unpersisted record, and speed up validation of normalized attributes.
 
