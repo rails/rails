@@ -98,8 +98,19 @@ module ActiveSupport
         private
           def wait_for_active_workers
             while active_workers?
+              reap_dead_workers
               sleep 0.1
             end
+          end
+
+          def reap_dead_workers
+            dead_pids = @worker_pids.values.select do |pid|
+              Process.waitpid(pid, Process::WNOHANG)
+            rescue Errno::ECHILD
+              true
+            end
+
+            remove_dead_workers(dead_pids)
           end
       end
     end

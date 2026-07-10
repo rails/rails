@@ -72,7 +72,7 @@ module ActiveModel
       #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:except_on</tt> - Specifies the contexts where this validation is not active.
       #   Runs in all validation contexts by default +nil+. You can pass a symbol
-      #   or an array of symbols. (e.g. <tt>except: :create</tt> or
+      #   or an array of symbols. (e.g. <tt>except_on: :create</tt> or
       #   <tt>except_on: :custom_validation_context</tt> or
       #   <tt>except_on: [:create, :custom_validation_context]</tt>)
       # * <tt>:allow_nil</tt> - Specify a method, proc, or boolean, to skip
@@ -85,11 +85,16 @@ module ActiveModel
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
+      #   Multiple methods or procs can be passed as an array to check multiple
+      #   conditions, all of which must pass for validation to occur
+      #   (e.g. <tt>if: [:allow_validation, Proc.new { |user| user.signup_step > 2 }]</tt>)
       # * <tt>:unless</tt> - Specifies a method, proc, or string to call to
       #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc, or string should return or evaluate to a +true+ or +false+
-      #   value.
+      #   value. Multiple methods or procs can be passed as an array to check
+      #   multiple conditions, all of which must pass for validation not to occur
+      #   (e.g. <tt>unless: [:skip_validation, Proc.new { |user| user.signup_step <= 2 }]</tt>)
       def validates_each(*attr_names, &block)
         validates_with BlockValidator, _merge_attributes(attr_names), &block
       end
@@ -148,18 +153,23 @@ module ActiveModel
       #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:except_on</tt> - Specifies the contexts where this validation is not active.
       #   Runs in all validation contexts by default +nil+. You can pass a symbol
-      #   or an array of symbols. (e.g. <tt>except: :create</tt> or
+      #   or an array of symbols. (e.g. <tt>except_on: :create</tt> or
       #   <tt>except_on: :custom_validation_context</tt> or
       #   <tt>except_on: [:create, :custom_validation_context]</tt>)
       # * <tt>:if</tt> - Specifies a method or proc to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method or
       #   proc should return or evaluate to a +true+ or +false+ value.
+      #   Multiple methods or procs can be passed as an array to check multiple
+      #   conditions, all of which must pass for validation to occur
+      #   (e.g. <tt>if: [:allow_validation, Proc.new { |user| user.signup_step > 2 }]</tt>)
       # * <tt>:unless</tt> - Specifies a method or proc to call to
       #   determine if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method or proc should return or evaluate to a +true+ or +false+
-      #   value.
+      #   value. Multiple methods or procs can be passed as an array to check
+      #   multiple conditions, all of which must pass for validation not to occur
+      #   (e.g. <tt>unless: [:skip_validation, Proc.new { |user| user.signup_step <= 2 }]</tt>)
       #
       # NOTE: Calling +validate+ multiple times on the same method will overwrite previous definitions.
       #
@@ -283,8 +293,8 @@ module ActiveModel
       #    attr_accessor :name
       #  end
       #
-      #  User.attribute_method?(:name) # => true
-      #  User.attribute_method?(:age)  # => false
+      #  Person.attribute_method?(:name) # => true
+      #  Person.attribute_method?(:age)  # => false
       def attribute_method?(attribute)
         method_defined?(attribute)
       end

@@ -57,6 +57,7 @@ module ActiveRecord
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
+  autoload :Key
   autoload :LogSubscriber
   autoload :Marshalling
   autoload :Migration
@@ -123,7 +124,7 @@ module ActiveRecord
     end
   end
 
-  module Coders
+  module Coders # :nodoc:
     autoload :ColumnSerializer, "active_record/coders/column_serializer"
     autoload :JSON, "active_record/coders/json"
     autoload :YAMLColumn, "active_record/coders/yaml_column"
@@ -190,6 +191,19 @@ module ActiveRecord
   # when a connection is established rather than on boot.
   singleton_class.attr_accessor :lazily_load_schema_cache
   self.lazily_load_schema_cache = false
+
+  ##
+  # :singleton-method: protected_environments
+  # The array of names of environments where destructive actions should be
+  # prohibited. By default, the value is <tt>["production"]</tt>.
+  singleton_class.attr_reader :protected_environments
+
+  # Sets an array of names of environments where destructive actions should be
+  # prohibited.
+  def self.protected_environments=(environments)
+    @protected_environments = environments.map(&:to_s)
+  end
+  self.protected_environments = ["production"]
 
   ##
   # :singleton-method: schema_cache_ignored_tables
@@ -358,7 +372,7 @@ module ActiveRecord
   self.run_after_transaction_callbacks_in_order_defined = false
 
   singleton_class.attr_accessor :raise_on_missing_required_finder_order_columns
-  self.run_after_transaction_callbacks_in_order_defined = false
+  self.raise_on_missing_required_finder_order_columns = false
 
   singleton_class.attr_accessor :application_record_class
   self.application_record_class = nil

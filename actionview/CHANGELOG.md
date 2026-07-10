@@ -1,3 +1,130 @@
+*   Support endless and beginless ranges in `number_field_tag` and
+    `range_field_tag`.
+
+    Previously, passing an endless (`18..`) or beginless (`..10`) range as the
+    `:in`/`:within` option raised `RangeError`. Now an endless range renders
+    `min` without `max`, and a beginless range renders `max` without `min`,
+    matching `number_field` and `range_field`.
+
+    *Kenta Ishizaki*
+
+*   Honor an explicit `value:` option in `color_field`, including `nil`.
+
+    Previously, passing `value: nil` was ignored and the field still pre-filled
+    from the model's stored color. Now an explicitly provided `value:` is
+    honored, and the stored color is only used when no `value:` option is given.
+
+    *Kenta Ishizaki*
+
+*   Calling `safe_join` in a view no longer fallbacks to the `$,` global variable.
+
+    Previously, calling `safe_join` would use `$,` by default to separate elements.
+    Ruby has deprecated the usage of setting `$,` for more than 10 years and its usage
+    in `safe_join` was never documented.
+
+    If your application relied on this behaviour, make sure to explicitly pass the separator
+    to `safe_join` as the default is now `nil` (no separation).
+
+    *Edouard Chin*
+
+*   Fix `ActionView::TestCase#render` to reset `rendered`.
+    The behavior was changed when memoization was added in #51093. Now it once again conforms to the documentation.
+
+    *Jeroen Versteeg*
+
+*   Fix `FormBuilder#to_partial_path` returning `nil` for subclasses whose
+    name does not end in `Builder`.
+
+    *Kenta Ishizaki*
+
+*   Fix `collection_radio_buttons` and `collection_check_boxes` generating
+    a label `for` attribute that does not match the input `id` when a
+    collection value is `nil`.
+
+    *Kenta Ishizaki*
+
+*   Pass render options and block to calls to `#render_in`
+
+    ```ruby
+    class Greeting
+      def render_in(view_context, **)
+        if block_given?
+          view_context.render(html: yield)
+        else
+          view_context.render(inline: <<~ERB.strip, **)
+            Hello <%= local_assigns[:name] || "World" %>
+          ERB
+        end
+      end
+    end
+
+    render(Greeting.new)                                        # => "Hello, World"
+    render(Greeting.new, name: "Local")                         # => "Hello, Local"
+    render(renderable: Greeting.new, locals: { name: "Local" }) # => "Hello, Local"
+    render(Greeting.new) { "Hello, Block" }                     # => "Hello, Block"
+    ```
+
+    *Sean Doyle*
+
+*   Add `f.datalist` to `FormBuilder`
+
+    Example:
+
+        <%= form_with model: @post do |f| %>
+           <%# Wire the input to the datalist using the same derived id: %>
+           <%= f.text_field :country, list: f.field_id(:country, :datalist) %>
+           <%= f.datalist  :country, ["Argentina", "Brazil", "Chile"] %>
+        <% end %>
+
+          Produces:
+          <input list="post_country_datalist" type="text"
+                 name="post[country]" id="post_country" />
+          <datalist id="post_country_datalist">
+            <option value="Argentina">Argentina</option>
+            <option value="Brazil">Brazil</option>
+            <option value="Chile">Chile</option>
+          </datalist>
+
+      *Tahsin Hasan*
+
+*   Add `datalist_tag` to create `datalist` form elements.
+
+    Example:
+
+        datalist_tag('countries_datalist', ['Argentina', ['Brazil', { class: 'brazilian_option' }],
+                     ['Chile', 'CL', { disabled: true }]], { class: 'sa-countries-sample' })
+        => <datalist id="countries_datalist" class="sa-countries-sample">
+             <option value="Argentina">Argentina</option>
+             <option value="Brazil" class="brazilian_option">Brazil</option>
+             <option value="CL" disabled="disabled">Chile</option>
+           </datalist>
+
+    *Willian Gustavo Veiga*
+
+*   Render `Hash` and keyword options as dasherized HTML attributes
+
+    ```ruby
+    tag.button "POST to /clicked", hx: { post: "/clicked", swap: :outerHTML, data: { json: true } }
+
+    # => <button hx-post="/clicked" hx-swap="outerHTML" hx-data="{&quot;json&quot;:true}">POST to /clicked</button>
+    ```
+
+    *Sean Doyle*
+
+*   `ViewReloader#deactivate` removes the `file_system_resolver_hooks` callback
+    so forked processes that clear reloaders no longer trigger filesystem scans
+    on every `prepend_view_path`.
+
+    *Dave Ariens*
+
+*   Defer the View watcher build until view paths are actually registered.
+
+    *Hugo Vacher*
+
+*   Skip blank attribute names in tag helpers to avoid generating invalid HTML.
+
+    *Mike Dalessio*
+
 *   Fix tag parameter content being overwritten instead of combined with tag block content.
     Before `tag.div("Hello ") { "World" }` would just return `<div>World</div>`, now it returns `<div>Hello World</div>`.
 

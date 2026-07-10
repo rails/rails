@@ -69,16 +69,23 @@ module ActiveRecord
           other.is_a?(Column) &&
             super &&
             identity? == other.identity? &&
-            serial? == other.serial?
+            serial? == other.serial? &&
+            generated == other.generated
         end
         alias :eql? :==
 
         def hash
-          Column.hash ^
-            super.hash ^
-            identity?.hash ^
-            serial?.hash
+          [
+            Column,
+            super,
+            @identity,
+            @serial,
+            @generated,
+          ].hash
         end
+
+        protected
+          attr_reader :generated
       end
     end
     PostgreSQLColumn = PostgreSQL::Column # :nodoc:

@@ -56,6 +56,14 @@ class TransmissionsTest < ActionCable::TestCase
     end
   end
 
+  def test_assert_broadcasts_with_symbol_stream
+    assert_nothing_raised do
+      assert_broadcasts(:test, 1) do
+        ActionCable.server.broadcast :test, "message"
+      end
+    end
+  end
+
   def test_assert_broadcasts_message_too_few_sent
     ActionCable.server.broadcast "test", "hello"
     error = assert_raises Minitest::Assertion do

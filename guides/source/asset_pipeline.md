@@ -415,13 +415,34 @@ Follow these steps for setting up Propshaft in your Rails application:
     This layout includes the `main.css` stylesheet and `main.js` JavaScript file
     in your application.
 
-4. Start the Rails server:
+4. Add a Home Controller
+
+    To ensure you see your custom content instead of the default Rails page,
+    create a Home controller with an index action.
+
+    Generate the Home controller:
+
+    ```bash
+    $ rails generate controller Home index
+    ```
+
+5. Set Root Route
+
+    Update the `config/routes.rb` file to set the root route to the newly created Home controller:
+
+    ```ruby
+    Rails.application.routes.draw do
+      root "home#index"
+    end
+    ```
+
+6. Start the Rails server:
 
     ```bash
     $ bin/rails server
     ```
 
-5. Preview your application:
+7. Preview your application:
 
     Open your web browser and navigate to `http://localhost:3000`. You should
     see your Rails application with the included assets.

@@ -26,6 +26,26 @@ class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
     end
   end
 
+  test "analyzing a mirrored JPEG image" do
+    analyze_with_vips do
+      blob = create_file_blob(filename: "racecar_mirrored.jpg", content_type: "image/jpeg")
+      metadata = extract_metadata_from(blob)
+
+      assert_equal 4104, metadata[:width]
+      assert_equal 2736, metadata[:height]
+    end
+  end
+
+  test "analyzing a mirrored and rotated JPEG image" do
+    analyze_with_vips do
+      blob = create_file_blob(filename: "racecar_mirrored_rotated.jpg", content_type: "image/jpeg")
+      metadata = extract_metadata_from(blob)
+
+      assert_equal 2736, metadata[:width]
+      assert_equal 4104, metadata[:height]
+    end
+  end
+
   test "analyzing an SVG image without an XML declaration" do
     analyze_with_vips do
       blob = create_file_blob(filename: "icon.svg", content_type: "image/svg+xml")

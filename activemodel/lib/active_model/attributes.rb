@@ -28,6 +28,10 @@ module ActiveModel
   #   person.name # => "Volmer"
   #   person.active # => true
   module Attributes
+    extend ActiveSupport::Autoload
+
+    autoload :Normalization
+
     extend ActiveSupport::Concern
     include ActiveModel::AttributeRegistration
     include ActiveModel::AttributeMethods
@@ -103,7 +107,7 @@ module ActiveModel
         end
     end
 
-    def initialize(*) # :nodoc:
+    def initialize(...) # :nodoc:
       @attributes = self.class._default_attributes.deep_dup
       super
     end

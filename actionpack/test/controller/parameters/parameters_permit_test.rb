@@ -321,6 +321,16 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal 2, merged[:b]
   end
 
+  test "merge with multiple arguments" do
+    params = ActionController::Parameters.new(a: 1).permit!
+    params2 = ActionController::Parameters.new(b: 2).permit!
+    merged = params.merge(params2, { c: 3 })
+
+    assert_equal 1, merged[:a]
+    assert_equal 2, merged[:b]
+    assert_equal 3, merged[:c]
+  end
+
   test "not permitted is sticky beyond merge!" do
     assert_not_predicate @params.merge!(a: "b"), :permitted?
   end

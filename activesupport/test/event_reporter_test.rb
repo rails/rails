@@ -265,6 +265,41 @@ module ActiveSupport
       end
     end
 
+    test "#notify with filter_payload: false skips payload filtering" do
+      filter = ActiveSupport::ParameterFilter.new([:name], mask: "[FILTERED]")
+      @reporter.stub(:payload_filter, filter) do
+        assert_called_with(@subscriber, :emit, [
+          event_matcher(name: "test_event", payload: { name: "Person Load", sql: "SELECT 1" })
+        ]) do
+          @reporter.notify(:test_event, filter_payload: false, name: "Person Load", sql: "SELECT 1")
+        end
+      end
+    end
+
+    test "#notify with filter_payload: false and hash payload skips filtering" do
+      filter = ActiveSupport::ParameterFilter.new([:name], mask: "[FILTERED]")
+      @reporter.stub(:payload_filter, filter) do
+        assert_called_with(@subscriber, :emit, [
+          event_matcher(name: "test_event", payload: { name: "Person Load" })
+        ]) do
+          @reporter.notify(:test_event, { name: "Person Load" }, filter_payload: false)
+        end
+      end
+    end
+
+    test "#debug with filter_payload: false skips payload filtering" do
+      filter = ActiveSupport::ParameterFilter.new([:name], mask: "[FILTERED]")
+      @reporter.stub(:payload_filter, filter) do
+        @reporter.with_debug do
+          assert_called_with(@subscriber, :emit, [
+            event_matcher(name: "test_event", payload: { name: "Person Load" })
+          ]) do
+            @reporter.debug(:test_event, filter_payload: false, name: "Person Load")
+          end
+        end
+      end
+    end
+
     test "default filter_parameters is used by default" do
       old_filter_parameters = ActiveSupport.filter_parameters
       ActiveSupport.filter_parameters = [:secret]

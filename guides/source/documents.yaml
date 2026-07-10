@@ -168,10 +168,6 @@
   name: Digging Deeper
   documents:
     -
-      name: Rails Internationalization (I18n) API
-      url: i18n.html
-      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
-    -
       name: Testing Rails Applications
       url: testing.html
       description: This guide explores how to write tests in Rails. It also covers test configuration and compares approaches to testing an application.
@@ -203,6 +199,10 @@
         This guide explains how to use import maps or jsbundling-rails to include
         JavaScript in Rails applications, and covers the basics of working with Turbo in Rails.
     -
+      name: Internationalization (I18n)
+      url: i18n.html
+      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
+    -
       name: The Rails Initialization Process
       work_in_progress: true
       url: initialization.html
@@ -232,7 +232,7 @@
       url: tuning_performance_for_deployment.html
       description: This guide covers performance and concurrency configuration for deploying your production Ruby on Rails application.
     -
-      name: "Caching with Rails: An Overview"
+      name: "Caching with Rails"
       url: caching_with_rails.html
       description: This guide is an introduction to speeding up your Rails application with caching.
     -

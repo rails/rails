@@ -1,3 +1,87 @@
+*   Add `ActiveJob::DeserializationError::RecordNotFound`, raised when argument
+    deserialization fails because a referenced record could not be found, and not
+    for any other reason.
+
+    Its parent class, `ActiveJob::DeserializationError` is raised when any error
+    happens during argument deserialization, including transient database errors,
+    and discarding a job based only on this exception might lead to losing
+    relevant, perfectly fine jobs.
+
+    Instead, `ActiveJob::DeserializationError::RecordNotFound` is raised only when
+    a record referenced by the arguments through a Global ID no longer exists, so
+    jobs can discard on missing records specifically:
+
+    ```ruby
+    discard_on ActiveJob::DeserializationError::RecordNotFound
+    ```
+
+    Existing handlers for the parent class continue to work as before.
+
+    Note that a record that is missing when arguments are deserialized is no
+    longer reported as `ActiveRecord::RecordNotFound`, so jobs that relied on
+    `discard_on ActiveRecord::RecordNotFound` to discard it should discard
+    `ActiveJob::DeserializationError::RecordNotFound` instead. `ActiveRecord::RecordNotFound`
+    still applies to records that go missing while the job runs.
+
+    *Rosa Gutiérrez*
+
+*   Allow `retry_on` to accept a Float for `:wait`.
+
+    Similar to `ActiveJob.set(wait: 1.5)`, allow a Float to be passed.
+    Also, passing an unsupported `:wait` type will now raise when loading the
+    job class.
+
+    *Kenta Ishizaki, Petrik de Heus*
+
+*   Allow queue adapters to inspect a job when deciding whether to interrupt at
+    a checkpoint, and to optionally return a specific interruption reason.
+
+    Queue adapters that implement `stopping?` must accept the job as an
+    optional positional argument, i.e. `def stopping?(job = nil)`, in order to
+    work with this version and older versions of Rails. A `true` return value
+    will use 'stopping' as the interruption reason, any other truthy value will
+    be used as-is.
+
+    *Bart de Water*
+
+*   Add `ActiveJob::Attributes` for declaring typed attributes that persist across
+    job serialization and deserialization. It is included by `ActiveJob::Continuable`
+    but can also be used standalone.
+
+    It uses the Active Model Attributes API to define typed, defaulted
+    attributes on jobs. Attribute values are automatically included in the
+    serialized job data and restored on deserialization, eliminating the need
+    to manually override `serialize` and `deserialize`.
+
+    This is especially useful with `ActiveJob::Continuable`, where a job may be
+    interrupted and resumed and attributes are preserved across resumptions.
+
+    ```ruby
+    class SubmitEnrollmentJob < ApplicationJob
+      include ActiveJob::Continuable
+
+      attribute :payment_token, :string
+      attribute :billing_profile_id, :integer
+
+      def perform(enrollment)
+        step(:tokenize_payment_instrument) do
+          self.payment_token = PaymentGateway.tokenize(enrollment.user.payment_instrument)
+        end
+
+        step(:create_billing_profile) do
+          self.billing_profile_id = BillingProfileApi.create(customer_id: enrollment.user_id)
+        end
+
+        step(:submit_enrollment) do
+          submission_id = EnrollmentApi.submit(enrollment, billing_profile_id)
+          enrollment.update!(status: 'processing', submission_id: submission_id)
+        end
+      end
+    end
+    ```
+
+    *Bart de Water*
+
 *   Deprecate built-in `queue_classic` Active Job adapter.
 
     *Harun Sabljaković, Wojciech Wnętrzak*

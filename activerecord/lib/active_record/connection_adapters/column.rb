@@ -71,8 +71,17 @@ module ActiveRecord
         false
       end
 
-      def auto_populated?
+      def auto_populated_on_insert?
         auto_incremented_by_db? || default_function
+      end
+
+      def auto_populated?
+        auto_populated_on_insert?
+      end
+      deprecate auto_populated?: :auto_populated_on_insert?, deprecator: ActiveRecord.deprecator
+
+      def auto_populated_on_update?
+        virtual?
       end
 
       def ==(other)
@@ -89,16 +98,18 @@ module ActiveRecord
       alias :eql? :==
 
       def hash
-        Column.hash ^
-          name.hash ^
-          name.encoding.hash ^
-          cast_type.hash ^
-          default.hash ^
-          sql_type_metadata.hash ^
-          null.hash ^
-          default_function.hash ^
-          collation.hash ^
-          comment.hash
+        [
+          Column,
+          @name,
+          @name.encoding,
+          @cast_type,
+          @default,
+          @sql_type_metadata,
+          @null,
+          @default_function,
+          @collation,
+          @comment,
+        ].hash
       end
 
       def virtual?

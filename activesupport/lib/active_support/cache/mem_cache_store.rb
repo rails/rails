@@ -40,8 +40,6 @@ module ActiveSupport
 
       prepend Strategy::LocalCache
 
-      ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
-
       # Creates a new Dalli::Client instance with specified addresses and options.
       # If no addresses are provided, we give nil to Dalli::Client, so it uses its fallbacks:
       # - ENV["MEMCACHE_SERVERS"] (if defined)
@@ -81,7 +79,7 @@ module ActiveSupport
         options[:max_key_size] ||= MAX_KEY_SIZE
         super(options)
 
-        unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
+        unless [String, NilClass].include?(addresses.first.class)
           raise ArgumentError, "First argument must be an empty array, address, or array of addresses."
         end
 
@@ -217,6 +215,23 @@ module ActiveSupport
           end
         end
 
+        if Dalli::Client.method_defined?(:set_multi)
+          def write_multi_entries(entries, **options)
+            return if entries.empty?
+
+            entries = entries.transform_values { |entry| serialize_entry(entry, **options) }
+            expires_in = options[:expires_in].to_i
+            if options[:race_condition_ttl] && expires_in > 0 && !options[:raw]
+              # Set the memcache expire a few minutes in the future to support race condition ttls on read
+              expires_in += 5.minutes
+            end
+
+            rescue_error_with(nil) do
+              @data.with { |c| c.set_multi(entries, expires_in, options) }
+            end
+          end
+        end
+
         # Reads multiple entries from the cache implementation.
         def read_multi_entries(names, **options)
           keys_to_names = names.index_by { |name| normalize_key(name, options) }
@@ -259,10 +274,8 @@ module ActiveSupport
         # characters properly.
         def normalize_key(key, options)
           key = expand_and_namespace_key(key, options)
-          if key
-            key = key.dup.force_encoding(Encoding::ASCII_8BIT)
-            key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
-          end
+          key = key.b
+          key.gsub!(/[\x00-\x20%\x7F-\xFF]/n) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
           truncate_key(key)
         end
 

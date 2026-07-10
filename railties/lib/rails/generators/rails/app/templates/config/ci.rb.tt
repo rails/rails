@@ -2,33 +2,36 @@
 
 CI.run do
   step "Setup", "bin/setup --skip-server"
-<% unless options.skip_rubocop? %>
-  step "Style: Ruby", "bin/rubocop"
+
+  group "Checks", parallel: 2 do
+<% unless options.skip_rubocop? -%>
+    step "Style: Ruby", "bin/rubocop"
 <% end -%>
 
 <% unless options.skip_bundler_audit? -%>
-  step "Security: Gem audit", "bin/bundler-audit"
+    step "Security: Gem audit", "bin/bundler-audit"
 <% end -%>
 <% if using_node? -%>
-  step "Security: Yarn vulnerability audit", "yarn audit"
+    step "Security: Yarn vulnerability audit", "yarn audit"
 <% end -%>
 <% if using_importmap? -%>
-  step "Security: Importmap vulnerability audit", "bin/importmap audit"
+    step "Security: Importmap vulnerability audit", "bin/importmap audit"
 <% end -%>
 <% unless options.skip_brakeman? -%>
-  step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error"
-<% end -%>
-<% unless options[:skip_test] -%>
-  step "Tests: Rails", "bin/rails test"
-<% unless options.skip_active_record? -%>
-  step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant"
-<% end -%>
+    step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error"
 <% end -%>
 
 <% unless options[:skip_test] -%>
-  # Optional: Run system tests
-  # step "Tests: System", "bin/rails test:system"
+    group "Tests" do
+      step "Tests: Rails", "bin/rails test"
+<% unless options.skip_active_record? -%>
+      step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant"
 <% end -%>
+      # Optional: Run system tests
+      # step "Tests: System", "bin/rails test:system"
+    end
+<% end -%>
+  end
 
   # Optional: set a green GitHub commit status to unblock PR merge.
   # Requires the `gh` CLI and `gh extension install basecamp/gh-signoff`.

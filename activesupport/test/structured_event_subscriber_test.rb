@@ -33,6 +33,8 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
 
   teardown do
     ActiveSupport.event_reporter.debug_mode = @old_debug_mode
+    TestSubscriber.detach_from :test
+    ActiveSupport::StructuredEventSubscriber.detach_from :test
   end
 
   def test_emit_event_calls_event_reporter_notify
@@ -85,7 +87,7 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_debug_only_methods
-    ActiveSupport::StructuredEventSubscriber.attach_to :test, @subscriber
+    TestSubscriber.attach_to :test, @subscriber
 
     event_reporter_subscriber = TestEventReporterSubscriber.new
     ActiveSupport.event_reporter.subscribe(event_reporter_subscriber)
@@ -103,6 +105,24 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
     ActiveSupport.event_reporter.unsubscribe(event_reporter_subscriber)
   end
 
+  def test_debug_only_does_not_leak_across_subclasses
+    base_methods = ActiveSupport::StructuredEventSubscriber.debug_methods.dup
+
+    subscriber_a = Class.new(ActiveSupport::StructuredEventSubscriber) do
+      def foo(event); end
+      debug_only :foo
+    end
+
+    subscriber_b = Class.new(ActiveSupport::StructuredEventSubscriber) do
+      def bar(event); end
+      debug_only :bar
+    end
+
+    assert_equal [:foo], subscriber_a.debug_methods
+    assert_equal [:bar], subscriber_b.debug_methods
+    assert_equal base_methods, ActiveSupport::StructuredEventSubscriber.debug_methods
+  end
+
   def test_no_event_reporter_subscribers
     ActiveSupport::StructuredEventSubscriber.attach_to :test, @subscriber
 
@@ -114,5 +134,40 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
     end
   ensure
     ActiveSupport.event_reporter.subscribers.push(*old_subscribers)
+  end
+
+  def test_emit_event_does_not_filter_payload
+    old_filter_parameters = ActiveSupport.filter_parameters
+    ActiveSupport.filter_parameters = [:name, :url, :message, :description]
+    ActiveSupport.event_reporter.reload_payload_filter
+
+    event = assert_event_reported("test.event", payload: { name: "Person Load", url: "/test", message: "hello", description: "a thing" }) do
+      @subscriber.emit_event("test.event", name: "Person Load", url: "/test", message: "hello", description: "a thing")
+    end
+
+    assert_equal "Person Load", event[:payload][:name]
+    assert_equal "/test", event[:payload][:url]
+    assert_equal "hello", event[:payload][:message]
+    assert_equal "a thing", event[:payload][:description]
+  ensure
+    ActiveSupport.filter_parameters = old_filter_parameters
+    ActiveSupport.event_reporter.reload_payload_filter
+  end
+
+  def test_emit_debug_event_does_not_filter_payload
+    old_filter_parameters = ActiveSupport.filter_parameters
+    ActiveSupport.filter_parameters = [:name]
+    ActiveSupport.event_reporter.reload_payload_filter
+
+    with_debug_event_reporting do
+      event = assert_event_reported("test.debug", payload: { name: "Person Load" }) do
+        @subscriber.emit_debug_event("test.debug", name: "Person Load")
+      end
+
+      assert_equal "Person Load", event[:payload][:name]
+    end
+  ensure
+    ActiveSupport.filter_parameters = old_filter_parameters
+    ActiveSupport.event_reporter.reload_payload_filter
   end
 end

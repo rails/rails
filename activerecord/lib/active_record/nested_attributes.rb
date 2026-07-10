@@ -103,7 +103,7 @@ module ActiveRecord
     #
     #   class Member < ActiveRecord::Base
     #     has_many :posts
-    #     accepts_nested_attributes_for :posts
+    #     accepts_nested_attributes_for :posts, allow_destroy: true
     #   end
     #
     # You can now set or update attributes on the associated posts through
@@ -112,7 +112,8 @@ module ActiveRecord
     #
     # For each hash that does _not_ have an <tt>id</tt> key a new record will
     # be instantiated, unless the hash also contains a <tt>_destroy</tt> key
-    # that evaluates to +true+.
+    # that evaluates to +true+ and the <tt>:allow_destroy</tt> option is
+    # enabled.
     #
     #   params = { member: {
     #     name: 'joe', posts_attributes: [
@@ -299,7 +300,7 @@ module ActiveRecord
     #     }
     #   }
     module ClassMethods
-      REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |key, value| key == "_destroy" || value.blank? } }
+      REJECT_ALL_BLANK_PROC = ActiveSupport::Ractors.shareable_proc { |attributes| attributes.all? { |key, value| key == "_destroy" || value.blank? } }
 
       # Defines an attributes writer for the specified association(s).
       #
@@ -313,8 +314,9 @@ module ActiveRecord
       #   that checks whether a record should be built for a certain attribute
       #   hash. The hash is passed to the supplied Proc or the method
       #   and it should return either +true+ or +false+. When no +:reject_if+
-      #   is specified, a record will be built for all attribute hashes that
-      #   do not have a <tt>_destroy</tt> value that evaluates to true.
+      #   is specified, a record will be built for all attribute hashes, unless
+      #   the <tt>:allow_destroy</tt> option is enabled and the hash has a
+      #   <tt>_destroy</tt> value that evaluates to true.
       #   Passing <tt>:all_blank</tt> instead of a Proc will create a proc
       #   that will reject a record where all the attributes are blank excluding
       #   any value for +_destroy+.
@@ -407,7 +409,7 @@ module ActiveRecord
     private
       # Attribute hash keys that should not be assigned as normal attributes.
       # These hash keys are nested attributes implementation details.
-      UNASSIGNABLE_KEYS = %w( id _destroy )
+      UNASSIGNABLE_KEYS = %w( id _destroy ).freeze
 
       # Assigns the given attributes to the association.
       #
@@ -496,8 +498,6 @@ module ActiveRecord
           raise ArgumentError, "Hash or Array expected for `#{association_name}` attributes, got #{attributes_collection.class.name}"
         end
 
-        check_record_limit!(options[:limit], attributes_collection)
-
         if attributes_collection.is_a? Hash
           keys = attributes_collection.keys
           attributes_collection = if keys.include?("id") || keys.include?(:id)
@@ -506,6 +506,8 @@ module ActiveRecord
             attributes_collection.values
           end
         end
+
+        check_record_limit!(options[:limit], attributes_collection)
 
         association = association(association_name)
 
@@ -526,12 +528,12 @@ module ActiveRecord
             unless reject_new_record?(association_name, attributes)
               association.reader.build(attributes.except(*UNASSIGNABLE_KEYS))
             end
-          elsif existing_record = find_record_by_id(association.klass, existing_records, attributes["id"])
+          elsif existing_record = find_record_by_id(existing_records, attributes["id"])
             unless call_reject_if(association_name, attributes)
               # Make sure we are operating on the actual object which is in the association's
               # proxy_target array (either by finding it, or adding it if not found)
               # Take into account that the proxy_target may have changed due to callbacks
-              target_record = find_record_by_id(association.klass, association.target, attributes["id"])
+              target_record = find_record_by_id(association.target, attributes["id"])
               if target_record
                 existing_record = target_record
               else
@@ -623,13 +625,9 @@ module ActiveRecord
                                  model, "id", record_id)
       end
 
-      def find_record_by_id(klass, records, id)
-        if klass.composite_primary_key?
-          id = Array(id).map(&:to_s)
-          records.find { |record| Array(record.id).map(&:to_s) == id }
-        else
-          records.find { |record| record.id.to_s == id.to_s }
-        end
+      def find_record_by_id(records, id)
+        id = Array(id).map(&:to_s)
+        records.find { |record| Array(record.id).map(&:to_s) == id }
       end
   end
 end

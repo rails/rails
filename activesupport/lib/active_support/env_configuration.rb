@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# require "active_support/core_ext/module/delegation"
-
 module ActiveSupport
   # Provide a better interface for accessing configuration options stored in ENV.
   # Keys are accepted as symbols and turned into upcased strings. Nesting is provided by double underscores.
@@ -14,8 +12,8 @@ module ActiveSupport
   #   require(:db_host)                                   # => ENV.fetch("DB_HOST")
   #   require(:database, :host)                           # => ENV.fetch("DATABASE__HOST")
   #   option(:database, :host)                            # => ENV["DATABASE__HOST"]
-  #   option(:debug, default: "true")                     # => ENV.fetch("DB_HOST") { "true" }
-  #   option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST") { default.call }
+  #   option(:debug, default: "true")                     # => ENV.fetch("DEBUG", "true")
+  #   option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST") { "missing" }
   class EnvConfiguration
     def initialize
       reload
@@ -24,24 +22,31 @@ module ActiveSupport
     # Find an upcased and double-underscored-joined string-version of the +key+ in ENV.
     # Raises +KeyError+ if not found.
     #
-    # Examples:
+    # Given ENV:
+    #   DB_HOST: "env.example.com"
+    #   DATABASE__HOST: "env.example.com"
     #
-    #   require(:db_host)         # => ENV.fetch("DB_HOST")
-    #   require(:database, :host) # => ENV.fetch("DATABASE__HOST")
+    # Examples:
+    #   require(:db_host)         # => "env.example.com"
+    #   require(:database, :host) # => "env.example.com"
+    #   require(:missing)         # => KeyError
     def require(*key)
       @envs.fetch envify(*key)
     end
 
     # Find an upcased and double-underscored-joined string-version of the +key+ in ENV.
-    # Returns +nil+ if the key isn't found or the value of +default+ when passed.
-    # If +default+ is a callable, it's called first.
+    # Returns +nil+ if the key isn't found.
+    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key.
+    #
+    # Given ENV:
+    #   DB_HOST: "env.example.com"
+    #   DATABASE__HOST: "env.example.com"
     #
     # Examples:
-    #
-    #   option(:db_host)                                    # => ENV["DB_HOST"]
-    #   option(:database, :host)                            # => ENV["DATABASE__HOST"]
-    #   option(:database, :host, default: "missing")        # => ENV.fetch("DATABASE__HOST", "missing")
-    #   option(:database, :host, default: -> { "missing" }) # => ENV.fetch("DATABASE__HOST") { default.call }
+    #   option(:db_host)                              # => "env.example.com"
+    #   option(:missing)                              # => nil
+    #   option(:missing, default: "localhost")        # => "localhost"
+    #   option(:missing, default: -> { "localhost" }) # => "localhost"
     def option(*key, default: nil)
       if default.respond_to?(:call)
         @envs.fetch(envify(*key)) { default.call }
@@ -75,10 +80,6 @@ module ActiveSupport
     end
 
     private
-      def lookup(env_key)
-        @envs[env_key]
-      end
-
       def envify(*key)
         key.collect { |part| part.to_s.upcase }.join("__")
       end

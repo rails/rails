@@ -166,6 +166,16 @@ module ActiveRecord
         assert_equal 0, @cache.size
       end
 
+      def test_insert_uses_schema_cache_for_primary_key
+        # First call might need to populate the schema cache
+        @connection.insert("INSERT INTO courses (name) VALUES ('Prepopulate')")
+
+        # With cache available, insert should not make additional schema queries
+        assert_queries_count(1, include_schema: true) do
+          @connection.insert("INSERT INTO courses (name) VALUES ('INSERT only')")
+        end
+      end
+
       def test_marshal_dump_and_load_with_ignored_tables
         assert_not ActiveRecord.schema_cache_ignored_table?("professors")
 
@@ -309,15 +319,11 @@ module ActiveRecord
         values = [["z", nil], ["y", nil], ["x", nil]]
         expected = values.sort.to_h
 
-        named = Struct.new(:name)
-        named_values = [["z", [named.new("c"), named.new("b")]], ["y", [named.new("c"), named.new("b")]], ["x", [named.new("c"), named.new("b")]]]
-        named_expected = named_values.sort.to_h.transform_values { _1.sort_by(&:name) }
-
         coder = {
-          "columns" => named_values,
+          "columns" => values,
           "primary_keys" => values,
           "data_sources" => values,
-          "indexes" => named_values,
+          "indexes" => values,
           "deduplicated" => true
         }
 
@@ -325,10 +331,10 @@ module ActiveRecord
         schema_cache.init_with(coder)
         schema_cache.encode_with(coder)
 
-        assert_equal named_expected, coder["columns"]
+        assert_equal expected, coder["columns"]
         assert_equal expected, coder["primary_keys"]
         assert_equal expected, coder["data_sources"]
-        assert_equal named_expected, coder["indexes"]
+        assert_equal expected, coder["indexes"]
         assert coder.key?("version")
       end
 

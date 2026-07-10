@@ -60,7 +60,7 @@ module ActiveRecord
       attr_writer :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
       attr_accessor :database_configuration
 
-      LOCAL_HOSTS = ["127.0.0.1", "localhost"]
+      LOCAL_HOSTS = ["127.0.0.1", "localhost"].freeze
 
       def check_protected_environments!(environment = env)
         return if ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
@@ -400,19 +400,19 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def schema_up_to_date?(configuration, _ = nil, file = nil)
+      def schema_up_to_date?(configuration, _ = nil, file = nil, pool: nil)
         db_config = resolve_configuration(configuration)
 
         file ||= schema_dump_path(db_config)
 
         return true unless file && File.exist?(file)
 
-        with_temporary_pool(db_config) do |pool|
-          internal_metadata = pool.internal_metadata
-          return false unless internal_metadata.enabled?
-          return false unless internal_metadata.table_exists?
-
-          internal_metadata[:schema_sha1] == schema_sha1(file)
+        if pool
+          check_schema_sha1(pool, file)
+        else
+          with_temporary_pool(db_config) do |pool|
+            check_schema_sha1(pool, file)
+          end
         end
       end
 
@@ -421,8 +421,8 @@ module ActiveRecord
 
         check_schema_file(file) if file
 
-        with_temporary_pool(db_config, clobber: true) do
-          if schema_up_to_date?(db_config, nil, file)
+        with_temporary_pool(db_config, clobber: true) do |pool|
+          if schema_up_to_date?(db_config, nil, file, pool: pool)
             empty_all_tables(db_config)
           else
             purge(db_config)
@@ -448,7 +448,7 @@ module ActiveRecord
       end
 
       def dump_schema(db_config, format = db_config.schema_format) # :nodoc:
-        return unless db_config.schema_dump
+        return unless db_config.schema_dump(format)
 
         require "active_record/schema_dumper"
         filename = schema_dump_path(db_config, format)
@@ -562,6 +562,14 @@ module ActiveRecord
       end
 
       private
+        def check_schema_sha1(pool, file)
+          internal_metadata = pool.internal_metadata
+          return false unless internal_metadata.enabled?
+          return false unless internal_metadata.table_exists?
+
+          internal_metadata[:schema_sha1] == schema_sha1(file)
+        end
+
         def with_temporary_pool(db_config, clobber: false)
           original_db_config = migration_class.connection_db_config
           pool = migration_class.connection_handler.establish_connection(db_config, clobber: clobber)

@@ -235,16 +235,11 @@ class TransactionTest < ActiveRecord::TestCase
 
       connection = Topic.lease_connection
 
-      Topic.lease_connection.class_eval do
-        alias :real_exec_rollback_db_transaction :exec_rollback_db_transaction
-        define_method(:exec_rollback_db_transaction) do
-          raise
+      connection.stub(:exec_rollback_db_transaction, -> (*) { raise }) do
+        ActiveRecord::Base.transaction do
+          topic.update(title: "Rails is broken")
+          raise ActiveRecord::Rollback
         end
-      end
-
-      ActiveRecord::Base.transaction do
-        topic.update(title: "Rails is broken")
-        raise ActiveRecord::Rollback
       end
 
       assert_not connection.active?
@@ -255,17 +250,13 @@ class TransactionTest < ActiveRecord::TestCase
 
     def test_rollback_dirty_changes_even_with_raise_during_rollback_doesnt_commit_transaction
       topic = topics(:fifth)
+      connection = Topic.lease_connection
 
-      Topic.lease_connection.class_eval do
-        alias :real_exec_rollback_db_transaction :exec_rollback_db_transaction
-        define_method(:exec_rollback_db_transaction) do
-          raise
+      connection.stub(:exec_rollback_db_transaction, -> (*) { raise }) do
+        ActiveRecord::Base.transaction do
+          topic.update(title: "Rails is broken")
+          raise ActiveRecord::Rollback
         end
-      end
-
-      ActiveRecord::Base.transaction do
-        topic.update(title: "Rails is broken")
-        raise ActiveRecord::Rollback
       end
 
       topic.reload
@@ -281,28 +272,17 @@ class TransactionTest < ActiveRecord::TestCase
 
     def test_connection_removed_from_pool_when_commit_raises_and_rollback_raises
       connection = Topic.lease_connection
-
-      # Update commit_transaction to raise the first time it is called.
-      Topic.lease_connection.transaction_manager.class_eval do
-        alias :real_commit_transaction :commit_transaction
-        define_method(:commit_transaction) do
-          raise "commit failed"
-        end
-      end
-
-      # Update rollback_transaction to raise.
-      Topic.lease_connection.transaction_manager.class_eval do
-        alias :real_rollback_transaction :rollback_transaction
-        define_method(:rollback_transaction) do |*_args|
-          raise "rollback failed"
-        end
-      end
+      transaction_manager = connection.transaction_manager
 
       # Start a transaction and update a record. The commit and rollback will fail.
       topic = topics(:fifth)
       exception = assert_raises(RuntimeError) do
-        ActiveRecord::Base.transaction do
-          topic.update(title: "Updated title")
+        transaction_manager.stub(:commit_transaction, -> { raise "commit failed" }) do
+          transaction_manager.stub(:rollback_transaction, -> (*) { raise "rollback failed" }) do
+            ActiveRecord::Base.transaction do
+              topic.update(title: "Updated title")
+            end
+          end
         end
       end
       assert_equal "rollback failed", exception.message
@@ -318,17 +298,11 @@ class TransactionTest < ActiveRecord::TestCase
       # Disable lazy transactions so that we will begin a transaction before attempting to write.
       connection.disable_lazy_transactions!
 
-      # Update begin_db_transaction to successfully begin a transaction, then raise.
-      Topic.lease_connection.class_eval do
-        alias :real_begin_db_transaction :begin_db_transaction
-        define_method(:begin_db_transaction) do |*_args|
-          raise "begin failed"
-        end
-      end
-
       # Attempt to begin a transaction. This will raise, causing a rollback.
       exception = assert_raises(RuntimeError) do
-        ActiveRecord::Base.transaction { }
+        connection.stub(:begin_db_transaction, -> (*) { raise "begin failed" }) do
+          ActiveRecord::Base.transaction { }
+        end
       end
       assert_equal "begin failed", exception.message
       assert_not connection.active?
@@ -347,15 +321,9 @@ class TransactionTest < ActiveRecord::TestCase
         connection.disable_lazy_transactions!
 
         # Update begin_db_transaction to block.
-        connection.class_eval do
-          alias :real_begin_db_transaction :begin_db_transaction
-          define_method(:begin_db_transaction) do |*_args|
-            queue.push nil
-            sleep
-          end
+        connection.stub(:begin_db_transaction, -> (*) { queue.push nil; sleep }) do
+          ActiveRecord::Base.transaction { }
         end
-
-        ActiveRecord::Base.transaction { }
       end
       queue.pop
       thread.kill
@@ -1621,6 +1589,28 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_locally_rejected_query_does_not_materialize_or_dirty_transaction
+    ActiveRecord::Base.transaction do
+      connection = ActiveRecord::Base.lease_connection
+      ActiveRecord::Base.while_preventing_writes do
+        assert_raises(ActiveRecord::ReadOnlyError) { Topic.create!(title: "test") }
+      end
+      assert_not connection.current_transaction.materialized?
+      assert_not connection.current_transaction.dirty?
+    end
+  end
+
+  def test_failed_materialization_does_not_dirty_transaction
+    ActiveRecord::Base.transaction do
+      connection = ActiveRecord::Base.lease_connection
+      connection.stub(:begin_db_transaction, -> (*) { raise ActiveRecord::ConnectionFailed, "connection lost" }) do
+        raised = assert_raises(ActiveRecord::ConnectionFailed) { Topic.first }
+        assert_equal "connection lost", raised.message
+      end
+      assert_not connection.current_transaction.dirty?
+    end
+  end
+
   private
     def assert_array_match(expected, actual, message = nil)
       deviations = actual.dup
@@ -1793,5 +1783,39 @@ class ConcurrentTransactionTest < ActiveRecord::TestCase
 
       assert_equal original_salary, Developer.find(1).salary
     end
+  end
+
+  def test_implicit_persistence_transaction_is_called
+    calls = []
+    topic_class = Class.new(Topic) {
+      define_method(:implicit_persistence_transaction) do |connection, &block|
+        calls << :called
+        super(connection, &block)
+      end
+    }
+
+    topic_class.create!(title: "Test Topic")
+    assert_equal [:called], calls
+  end
+
+  def test_implicit_persistence_transaction_is_called_when_in_nested_transaction
+    topic_class = Class.new(Topic) {
+      define_method(:implicit_persistence_transaction) do |connection, &block|
+        # Custom implementation that skips transaction if already open
+        if connection.current_transaction.open?
+          block.call
+        else
+          super(connection, &block)
+        end
+      end
+    }
+
+    topic1 = topic_class.create!(title: "Test Topic 1")
+    assert topic1.persisted?
+
+    topic2 = topic_class.transaction do
+      topic_class.create!(title: "Test Topic 2")
+    end
+    assert topic2.persisted?
   end
 end

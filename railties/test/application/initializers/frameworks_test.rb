@@ -370,7 +370,9 @@ module ApplicationTests
 
     test "connections checked out during initialization are returned to the pool" do
       app_file "config/initializers/active_record.rb", <<-RUBY
-        ActiveRecord::Base.lease_connection
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.lease_connection
+        end
       RUBY
       app("development")
       assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?

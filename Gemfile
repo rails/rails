@@ -69,7 +69,8 @@ group :doc do
 end
 
 # Active Support
-gem "dalli", ">= 3.0.1"
+gem "dalli"
+gem "redis-client", ">= 0.28.0"
 gem "listen", "~> 3.3", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
@@ -117,7 +118,9 @@ group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.11", require: false
 
-  gem "image_processing", "~> 1.2"
+  gem "image_processing", "~> 2.0"
+  gem "ruby-vips", "~> 2.3"
+  gem "mini_magick", "~> 5.0"
 end
 
 # Action Mailbox
