@@ -246,18 +246,18 @@ module ActiveRecord
       end
 
       def migrate_all
-        db_configs = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env)
+        db_configs = ActiveRecord::Base.configurations.configs_for(env_name: env)
         db_configs.each { |db_config| initialize_database(db_config) }
 
         if db_configs.size == 1 && db_configs.first.primary?
-          ActiveRecord::Tasks::DatabaseTasks.migrate(skip_initialize: true)
+          migrate(skip_initialize: true)
         else
-          mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions
+          mapped_versions = db_configs_with_versions
 
           mapped_versions.sort.each do |version, db_configs|
             db_configs.each do |db_config|
-              ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(db_config) do
-                ActiveRecord::Tasks::DatabaseTasks.migrate(version, skip_initialize: true)
+              with_temporary_connection(db_config) do
+                migrate(version, skip_initialize: true)
               end
             end
           end
@@ -437,12 +437,12 @@ module ActiveRecord
       def dump_all
         seen_schemas = []
 
-        ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
+        ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|
           schema_path = schema_dump_path(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
 
           next if seen_schemas.include?(schema_path)
 
-          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
+          dump_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
           seen_schemas << schema_path
         end
       end
@@ -481,17 +481,17 @@ module ActiveRecord
         filename = db_config.schema_dump(format)
         return unless filename
 
-        if Pathname.new(filename).absolute? || File.dirname(filename) == ActiveRecord::Tasks::DatabaseTasks.db_dir
+        if Pathname.new(filename).absolute? || File.dirname(filename) == db_dir
           filename
         else
-          File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+          File.join(db_dir, filename)
         end
       end
 
       def cache_dump_filename(db_config, schema_cache_path: nil)
         schema_cache_path ||
           db_config.schema_cache_path ||
-          db_config.default_schema_cache_path(ActiveRecord::Tasks::DatabaseTasks.db_dir)
+          db_config.default_schema_cache_path(db_dir)
       end
 
       def load_schema_current(format = nil, file = nil, environment = env)
@@ -532,7 +532,7 @@ module ActiveRecord
         FileUtils.rm_f filename, verbose: false
       end
 
-      def with_temporary_pool_for_each(env: ActiveRecord::Tasks::DatabaseTasks.env, name: nil, clobber: false, &block) # :nodoc:
+      def with_temporary_pool_for_each(env: self.env, name: nil, clobber: false, &block) # :nodoc:
         if name
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: env, name: name)
           with_temporary_pool(db_config, clobber: clobber, &block)
