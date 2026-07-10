@@ -38,6 +38,23 @@ class PostgresqlCitextTest < ActiveRecord::PostgreSQLTestCase
     assert_not_predicate type, :binary?
   end
 
+  def test_type_for_column_resolves_extension_type_when_cast_type_is_missing
+    # Like hstore, a citext column from a cross-database schema cache resolves its
+    # stale OID to nil, and must re-resolve by the portable SQL type name.
+    column = @connection.columns("citexts").find { |c| c.name == "cival" }
+    without_cast_type = ActiveRecord::ConnectionAdapters::PostgreSQL::Column.new(
+      "cival", nil, nil, column.sql_type_metadata, column.null
+    )
+    assert_nil without_cast_type.cast_type
+
+    # Drop citext (a base type, not bulk-loaded) so the fallback fetches the OID on demand.
+    @connection.reload_type_map
+
+    type = Citext.send(:type_for_column, without_cast_type)
+    assert_instance_of ActiveRecord::ConnectionAdapters::PostgreSQL::OID::SpecializedString, type
+    assert_equal :citext, type.type
+  end
+
   def test_change_table_supports_json
     @connection.transaction do
       @connection.change_table("citexts") do |t|

@@ -655,6 +655,16 @@ module ActiveRecord
         def type_for_column(column)
           type = column.cast_type
 
+          # Extension type OIDs (hstore, citext, ...) differ per database, so a
+          # schema cache dumped elsewhere can carry an OID this database lacks; the
+          # cached cast type then comes back nil. Re-resolve from the portable SQL
+          # type name, re-adding "[]" for arrays since Column#sql_type strips it.
+          if type.nil? && column.respond_to?(:sql_type)
+            sql_type = column.sql_type
+            sql_type = "#{sql_type}[]" if column.try(:array?)
+            type = with_connection { |c| c.lookup_cast_type(sql_type) }
+          end
+
           if immutable_strings_by_default && type.respond_to?(:to_immutable_string)
             type = type.to_immutable_string
           end

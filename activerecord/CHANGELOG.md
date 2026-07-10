@@ -1,3 +1,21 @@
+*   Fix PostgreSQL extension columns (`hstore`, `citext`, ...) raising or casting
+    incorrectly when loaded from a schema cache dumped against another database.
+
+    Extension types are assigned a different OID in every database, so a schema
+    cache dumped in one database (e.g. development) records an OID that doesn't
+    exist in another (e.g. test loaded from `structure.sql`). The cached column
+    then failed to resolve its type, surfacing as `TypeError: can't cast Hash` or
+    `NoMethodError: undefined method 'type' for nil` on the first write.
+
+    The column type is now re-resolved from the portable SQL type name when the
+    cached cast type is missing, and `PostgreSQLAdapter#lookup_cast_type` loads
+    the type's OID on demand instead of falling back to a string. Array columns
+    (e.g. `hstore[]`) keep their array wrapper through the fallback.
+
+    Fixes #52944.
+
+    *Islam Gagiev*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective
