@@ -35,7 +35,7 @@ module ActiveStorage
   # If you are using Active Storage outside of a Ruby on \Rails application, you
   # can configure the service to use like this:
   #
-  #   ActiveStorage::Blob.service = ActiveStorage::Service.configure(
+  #   ActiveStorage.blob_class.service = ActiveStorage::Service.configure(
   #     :local,
   #     { local: {service: "Disk",  root: Pathname("/tmp/foo/storage") } }
   #   )

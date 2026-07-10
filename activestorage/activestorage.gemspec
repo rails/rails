@@ -35,7 +35,7 @@ Gem::Specification.new do |s|
   s.add_dependency "activesupport", version
   s.add_dependency "actionpack",    version
   s.add_dependency "activejob",     version
-  s.add_dependency "activerecord",  version
+  s.add_dependency "activemodel",   version
 
   s.add_dependency "marcel",    "~> 1.0"
 end

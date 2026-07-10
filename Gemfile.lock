@@ -57,7 +57,7 @@ PATH
     activestorage (8.2.0.alpha)
       actionpack (= 8.2.0.alpha)
       activejob (= 8.2.0.alpha)
-      activerecord (= 8.2.0.alpha)
+      activemodel (= 8.2.0.alpha)
       activesupport (= 8.2.0.alpha)
       marcel (~> 1.0)
     activesupport (8.2.0.alpha)
