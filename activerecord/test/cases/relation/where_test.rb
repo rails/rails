@@ -116,6 +116,19 @@ module ActiveRecord
       assert_empty Cpk::Book.where([:author_id, :id] => [[1, 4], [3, 2]])
     end
 
+    def test_where_with_tuple_syntax_on_joined_association
+      post_one = Post.create!(title: "Tuple One", body: "one")
+      post_two = Post.create!(title: "Tuple Two", body: "two")
+      comment_one = Comment.create!(post: post_one, body: "c1")
+      comment_two = Comment.create!(post: post_two, body: "c2")
+
+      relation = Comment.left_joins(:post).where(
+        post: { [:title, :id] => [[post_one.title, post_one.id], [post_two.title, post_two.id]] }
+      )
+
+      assert_equal [comment_one, comment_two].sort, relation.sort
+    end
+
     def test_where_with_tuple_syntax_with_incorrect_arity
       error = assert_raise ArgumentError do
         Cpk::Book.where([:one, :two, :three] => [1, 2, 3])
