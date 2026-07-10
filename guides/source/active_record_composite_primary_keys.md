@@ -176,6 +176,23 @@ The above Active Record method results in the following SQL:
 SELECT * FROM products ORDER BY products.store_id ASC, products.sku ASC LIMIT 1
 ```
 
+Likewise, `last` will use the full composite primary key with the sort direction
+for each column reversed:
+
+```irb
+irb> product = Product.last
+=> #<Product store_id: 7, sku: "ZZZ11111", description: "Green Pants">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM products ORDER BY products.store_id DESC, products.sku DESC LIMIT 1
+```
+
+Here, the sort direction is descending for both `store_id` and `sku` because
+both columns are part of the composite primary key.
+
 ### Using `where`
 
 Hash conditions for `where` can query against multiple composite key values at once by passing an array of value pairs as well:
