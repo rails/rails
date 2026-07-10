@@ -185,8 +185,8 @@ module ActiveSupport
   #
   #   subscriber = ActiveSupport::Notifications.subscribe(/render/) { }
   #   ActiveSupport::Notifications.unsubscribe('render_template.action_view')
-  #   subscriber.matches?('render_template.action_view') # => false
-  #   subscriber.matches?('render_partial.action_view') # => true
+  #   subscriber.subscribed_to?('render_template.action_view') # => false
+  #   subscriber.subscribed_to?('render_partial.action_view') # => true
   #
   # == Default Queue
   #
@@ -197,6 +197,13 @@ module ActiveSupport
     class << self
       attr_accessor :notifier
 
+      # Returns a singleton no-op instrumenter that executes blocks without
+      # publishing any notifications. Useful for suppressing instrumentation
+      # on specific connections or components.
+      def null_instrumenter
+        @null_instrumenter ||= NullInstrumenter.new
+      end
+
       def publish(name, *args)
         notifier.publish(name, *args)
       end
@@ -205,9 +212,9 @@ module ActiveSupport
         notifier.publish_event(event)
       end
 
-      def instrument(name, payload = {})
+      def instrument(name, payload = {}, &block)
         if notifier.listening?(name)
-          instrumenter.instrument(name, payload) { yield payload if block_given? }
+          instrumenter.instrument(name, payload, &block)
         else
           yield payload if block_given?
         end
@@ -241,8 +248,8 @@ module ActiveSupport
       #   ActiveSupport::Notifications.subscribe(:render) {|event| ...}
       #   #=> ArgumentError (pattern must be specified as a String, Regexp or empty)
       #
-      def subscribe(pattern = nil, callback = nil, &block)
-        notifier.subscribe(pattern, callback, monotonic: false, &block)
+      def subscribe(pattern = nil, callback = nil, prepend: false, &block)
+        notifier.subscribe(pattern, callback, monotonic: false, prepend: prepend, &block)
       end
 
       # Performs the same functionality as #subscribe, but the +start+ and
@@ -251,8 +258,8 @@ module ActiveSupport
       # Daylights Savings). Use +monotonic_subscribe+ when accuracy of time
       # duration is important. For example, computing elapsed time between
       # two events.
-      def monotonic_subscribe(pattern = nil, callback = nil, &block)
-        notifier.subscribe(pattern, callback, monotonic: true, &block)
+      def monotonic_subscribe(pattern = nil, callback = nil, prepend: false, &block)
+        notifier.subscribe(pattern, callback, monotonic: true, prepend: prepend, &block)
       end
 
       def subscribed(callback, pattern = nil, monotonic: false, &block)

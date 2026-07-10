@@ -55,7 +55,7 @@ module ActiveSupport
             # Match KEY=value pattern
             if line =~ /\A([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\z/
               key, value = $1, $2
-              envs[key] = interpolate(execute_commands(unquote(value)), envs)
+              envs[key] = interpolate(execute_commands(unquote(strip_inline_comment(value))), envs)
             end
           end
 
@@ -63,6 +63,16 @@ module ActiveSupport
         else
           {}
         end
+      end
+
+      # Strip a trailing " # comment" from an unquoted value, matching the
+      # common .env convention. Quoted values are left untouched so that a
+      # "#" inside quotes (e.g. PASS="a # b") is preserved, and a "#" that is
+      # not preceded by whitespace (e.g. URL=http://host#frag) stays part of
+      # the value.
+      def strip_inline_comment(value)
+        return value if value.start_with?('"', "'")
+        value.sub(/\s+#.*\z/, "")
       end
 
       def unquote(value)

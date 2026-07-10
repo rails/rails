@@ -18,8 +18,8 @@ module Rails
       NODE_LTS_VERSION = "22.21.1"
       BUN_VERSION = "1.0.1"
 
-      JAVASCRIPT_OPTIONS = %w( importmap bun webpack esbuild rollup )
-      CSS_OPTIONS = %w( tailwind bootstrap bulma postcss sass )
+      JAVASCRIPT_OPTIONS = %w( importmap bun webpack esbuild rollup ).freeze
+      CSS_OPTIONS = %w( tailwind bootstrap bulma postcss sass ).freeze
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -209,7 +209,7 @@ module Rails
         skip_active_record:  [:skip_active_storage, :skip_solid],
         skip_active_storage: [:skip_action_mailbox, :skip_action_text],
         skip_javascript:     [:skip_hotwire],
-      }
+      }.freeze
 
       # ==== Options
       #
@@ -630,9 +630,6 @@ module Rails
 
           packages << "python-is-python3"
         end
-
-        # ActiveStorage preview support
-        packages << "libvips" unless skip_active_storage?
 
         packages.compact.sort
       end

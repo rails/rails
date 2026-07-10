@@ -61,7 +61,7 @@ module ActiveRecord
           end
         end
 
-        # Given a attribute name, it returns the name of the source attribute when it's a preserved one.
+        # Given an attribute name, it returns the name of the source attribute when it's a preserved one.
         def source_attribute_from_preserved_attribute(attribute_name)
           attribute_name.to_s.sub(ORIGINAL_ATTRIBUTE_PREFIX, "") if attribute_name.start_with?(ORIGINAL_ATTRIBUTE_PREFIX)
         end

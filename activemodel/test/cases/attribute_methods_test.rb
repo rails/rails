@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 
 class ModelWithAttributes
   include ActiveModel::AttributeMethods
@@ -101,6 +102,8 @@ class ModelWithoutAttributesMethod
 end
 
 class AttributeMethodsTest < ActiveModel::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   test "method missing works correctly even if attributes method is not defined" do
     assert_raises(NoMethodError) { ModelWithoutAttributesMethod.new.foo }
   end
@@ -204,6 +207,18 @@ class AttributeMethodsTest < ActiveModel::TestCase
     end
 
     assert_equal({ "bar" => "foo" }, klass.attribute_aliases)
+  end
+
+  test "#alias_attribute is idempotent when called multiple times with the same arguments" do
+    klass = Class.new(ModelWithAttributes) do
+      define_attribute_methods :foo
+      alias_attribute :bar, :foo
+      alias_attribute :bar, :foo
+      alias_attribute :bar, :foo
+    end
+
+    assert_equal({ "bar" => "foo" }, klass.attribute_aliases)
+    assert_equal ["bar"], klass.send(:aliases_by_attribute_name)["foo"]
   end
 
   test "#define_attribute_methods generates attribute methods with spaces in their names" do
@@ -410,5 +425,31 @@ class AttributeMethodsTest < ActiveModel::TestCase
     instance = subclass.new("George")
     assert_equal "George", instance.name
     assert_equal "George", instance.nickname
+  end
+
+  test "alias attributes are ractor safe" do
+    model = Class.new do
+      include ActiveModel::AttributeMethods
+
+      attr_accessor :name
+      define_attribute_methods :name
+
+      alias_attribute :fullname, :name
+    end
+
+    assert_ractor_shareable model.aliases_by_attribute_name
+    assert_ractor_shareable model.attribute_aliases
+  end
+
+  test "attribute method affixes are ractor safe" do
+    model = Class.new do
+      include ActiveModel::AttributeMethods
+
+      attribute_method_affix prefix: "before_", suffix: "after_"
+      attribute_method_prefix "before_", parameters: "foo"
+      attribute_method_suffix(+"after_", parameters: +"bar")
+    end
+
+    assert_ractor_shareable model.attribute_method_patterns
   end
 end

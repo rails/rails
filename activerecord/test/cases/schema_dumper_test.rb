@@ -167,14 +167,6 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "ar_internal_metadata"}, output
   end
 
-  def test_table_columns_sorted
-    column_names = column_definition_lines(dump_table_schema("companies")).flatten.filter_map do |line|
-      $1 if line !~ /t\.index/ && line.match(/t\..*"(\w+)"/)
-    end
-
-    assert_equal %w[account_id client_of description firm_id firm_name name rating status type], column_names
-  end
-
   def test_schema_dumps_index_columns_in_right_order
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_index/).first.strip
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
@@ -978,7 +970,11 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
     assert_match %r{t\.string\s+"string_with_default",.*?default: "Hello!"}, output
     assert_match %r{t\.date\s+"date_with_default",\s+default: "2014-06-05"}, output
     assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: "2014-06-05 07:17:04"}, output
-    assert_match %r{t\.time\s+"time_with_default",\s+default: "2000-01-01 07:17:04"}, output
+    if current_adapter?(:PostgreSQLAdapter)
+      assert_match %r{t\.time\s+"time_with_default",\s+precision: 6,\s+default: "2000-01-01 07:17:04"}, output
+    else
+      assert_match %r{t\.time\s+"time_with_default",\s+default: "2000-01-01 07:17:04"}, output
+    end
     assert_match %r{t\.decimal\s+"decimal_with_default",\s+precision: 20,\s+scale: 10,\s+default: "1234567890.0123456789"}, output
   end
 

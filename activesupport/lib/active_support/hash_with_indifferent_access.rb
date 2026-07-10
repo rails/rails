@@ -75,7 +75,7 @@ module ActiveSupport
         update(constructor)
 
         hash = constructor.is_a?(Hash) ? constructor : constructor.to_hash
-        self.default = hash.default if hash.default
+        self.default = hash.default unless hash.default.nil?
         self.default_proc = hash.default_proc if hash.default_proc
       else
         super(constructor)
@@ -338,6 +338,7 @@ module ActiveSupport
       return to_enum(:select) unless block_given?
       dup.tap { |hash| hash.select!(*args, &block) }
     end
+    alias_method :filter, :select
 
     def reject(*args, &block)
       return to_enum(:reject) unless block_given?
@@ -349,7 +350,7 @@ module ActiveSupport
       dup.tap { |hash| hash.transform_values!(&block) }
     end
 
-    NOT_GIVEN = Object.new # :nodoc:
+    NOT_GIVEN = Object.new.freeze # :nodoc:
 
     def transform_keys(hash = NOT_GIVEN, &block)
       if NOT_GIVEN.equal?(hash)

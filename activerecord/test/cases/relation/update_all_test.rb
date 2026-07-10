@@ -67,6 +67,22 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_not_equal "ig", post.title
   end
 
+  def test_update_all_with_group_by_and_having_without_joins
+    posts = [
+      Post.create!(title: "low", body: "x", legacy_comments_count: 0),
+      Post.create!(title: "mid", body: "x", legacy_comments_count: 3),
+      Post.create!(title: "high", body: "x", legacy_comments_count: 9),
+    ]
+    relation = Post.where(id: posts).group("posts.id").having("MAX(legacy_comments_count) >= 3")
+
+    # Only the rows that survive the HAVING filter must be updated, not every row.
+    assert_equal 2, relation.update_all(title: "updated")
+
+    assert_equal "low", posts[0].reload.title
+    assert_equal "updated", posts[1].reload.title
+    assert_equal "updated", posts[2].reload.title
+  end
+
   def test_update_all_with_joins_and_limit
     pets = Pet.joins(:toys).where(toys: { name: "Bone" }).limit(2)
 

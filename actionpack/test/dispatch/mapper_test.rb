@@ -222,6 +222,17 @@ module ActionDispatch
         end
       end
 
+      def test_deprecated_hash_honors_format_false
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.get "/*path", { to: "pages#show", format: false }
+        end
+
+        assert_equal "/*path", fakeset.asts.first.to_s
+      end
+
       def test_deprecated_hash
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset

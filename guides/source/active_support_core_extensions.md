@@ -2908,7 +2908,7 @@ def to_checkbox_tag(options = {}, checked_value = "1", unchecked_value = "0")
 end
 ```
 
-The second line can safely access the "type" key, and let the user to pass either `:type` or "type".
+The second line can safely access the "type" key, and let the user pass either `:type` or "type".
 
 There's also the bang variant [`stringify_keys!`][Hash#stringify_keys!] that stringifies keys in place.
 
@@ -2955,7 +2955,7 @@ def rich_textarea_tag(name, value = nil, options = {})
 end
 ```
 
-The third line can safely access the `:input` key, and let the user to pass either `:input` or "input".
+The third line can safely access the `:input` key, and let the user pass either `:input` or "input".
 
 There's also the bang variant [`symbolize_keys!`][Hash#symbolize_keys!] that symbolizes keys in place.
 
@@ -3379,7 +3379,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ##### `weeks_ago`, `weeks_since`
 
-The method [`weeks_ago`][DateAndTime::Calculations#weeks_ago] and [`weeks_since`][DateAndTime::Calculations#week_since] work analogously for weeks:
+The methods [`weeks_ago`][DateAndTime::Calculations#weeks_ago] and [`weeks_since`][DateAndTime::Calculations#week_since] work analogously for weeks:
 
 ```ruby
 Date.new(2010, 5, 24).weeks_ago(1)   # => Mon, 17 May 2010

@@ -20,7 +20,7 @@ module ActiveRecord
       include Serialization
     end
 
-    RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name superclass)
+    RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name superclass).freeze
 
     class GeneratedAttributeMethods < Module # :nodoc:
       LOCK = Monitor.new
@@ -81,7 +81,7 @@ module ActiveRecord
         attribute_method_patterns.each do |pattern|
           alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
         end
-        attribute_method_patterns_cache.clear
+        @attribute_method_patterns_cache.clear
       end
 
       def alias_attribute_method_definition(code_generator, pattern, new_name, old_name) # :nodoc:

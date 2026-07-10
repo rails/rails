@@ -165,7 +165,6 @@ SELECT * FROM products WHERE ((store_id = 1 AND sku = 'ABC98765') OR (store_id =
 Models with composite primary keys will also use the full composite primary key
 when ordering:
 
-
 ```irb
 irb> product = Product.first
 => #<Product store_id: 1, sku: "ABC98765", description: "Red Hat">

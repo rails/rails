@@ -465,6 +465,28 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           assert_equal 1, @connection.foreign_keys("astronauts").size
         end
 
+        def test_remove_foreign_key_if_exists_with_non_matching_name
+          skip if current_adapter?(:SQLite3Adapter)
+
+          @connection.add_foreign_key :astronauts, :rockets
+          assert_equal 1, @connection.foreign_keys("astronauts").size
+
+          assert_nothing_raised do
+            @connection.remove_foreign_key :astronauts, name: "nonexistent_fk", if_exists: true
+          end
+          assert_equal 1, @connection.foreign_keys("astronauts").size
+        end
+
+        def test_remove_foreign_key_if_exists_with_non_matching_to_table
+          @connection.add_foreign_key :astronauts, :rockets
+          assert_equal 1, @connection.foreign_keys("astronauts").size
+
+          assert_nothing_raised do
+            @connection.remove_foreign_key :astronauts, to_table: :moons, if_exists: true
+          end
+          assert_equal 1, @connection.foreign_keys("astronauts").size
+        end
+
         def test_remove_foreign_non_existing_foreign_key_raises
           e = assert_raises ArgumentError do
             @connection.remove_foreign_key :astronauts, :rockets
@@ -656,6 +678,226 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
             output = dump_table_schema "astronauts"
 
             assert_match %r{\s+add_foreign_key "astronauts", "rockets", column: "røcket_id", deferrable: :deferred$}, output
+          end
+        end
+
+        if current_adapter?(:PostgreSQLAdapter)
+          def test_foreign_key_to_table_in_quoted_schema
+            @connection.execute('DROP SCHEMA IF EXISTS "Aerospace" CASCADE')
+            @connection.execute('CREATE SCHEMA "Aerospace"')
+            @connection.execute('CREATE TABLE "Aerospace".boosters (id serial primary key)')
+            @connection.add_column :astronauts, :booster_id, :integer
+            @connection.execute(<<~SQL)
+              ALTER TABLE astronauts
+              ADD CONSTRAINT fk_booster FOREIGN KEY (booster_id) REFERENCES "Aerospace".boosters(id)
+            SQL
+
+            fk = @connection.foreign_keys("astronauts").find { |k| k.name == "fk_booster" }
+            assert_not_nil fk
+            assert_equal "Aerospace.boosters", fk.to_table
+          ensure
+            @connection.execute('DROP SCHEMA IF EXISTS "Aerospace" CASCADE')
+          end
+        end
+
+        if ActiveRecord::Base.lease_connection.supports_enforced_foreign_keys?
+          def test_enforced_foreign_key_default
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
+
+            foreign_keys = @connection.foreign_keys("astronauts")
+            assert_equal 1, foreign_keys.size
+
+            fk = foreign_keys.first
+            assert_predicate fk, :enforced?
+          end
+
+          def test_not_enforced_foreign_key
+            assert_queries_match(/\("id"\)\s+NOT ENFORCED\W*\z/i) do
+              @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", enforced: false
+            end
+
+            foreign_keys = @connection.foreign_keys("astronauts")
+            assert_equal 1, foreign_keys.size
+
+            fk = foreign_keys.first
+            assert_not_predicate fk, :enforced?
+          end
+
+          # PostgreSQL marks NOT ENFORCED constraints as NOT VALID internally, overriding `validate: true`.
+          def test_not_enforced_foreign_key_with_validate_true
+            skip unless current_adapter?(:PostgreSQLAdapter)
+
+            assert_queries_match(/\("id"\)\s+NOT ENFORCED\W*\z/i) do
+              @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id",
+                enforced: false, validate: true
+            end
+
+            foreign_keys = @connection.foreign_keys("astronauts")
+            assert_equal 1, foreign_keys.size
+
+            fk = foreign_keys.first
+            assert_not_predicate fk, :enforced?
+            assert_not_predicate fk, :validate?
+          end
+
+          # Schema dump emits both axes; this verifies the resulting SQL is accepted by PostgreSQL.
+          def test_not_enforced_foreign_key_with_validate_false
+            skip unless current_adapter?(:PostgreSQLAdapter)
+
+            assert_queries_match(/\("id"\)\s+NOT ENFORCED\s+NOT VALID\W*\z/i) do
+              @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id",
+                enforced: false, validate: false
+            end
+
+            foreign_keys = @connection.foreign_keys("astronauts")
+            assert_equal 1, foreign_keys.size
+
+            fk = foreign_keys.first
+            assert_not_predicate fk, :enforced?
+            assert_not_predicate fk, :validate?
+          end
+
+          def test_add_reference_with_not_enforced_foreign_key
+            @connection.add_reference :astronauts, :myrocket, foreign_key: { to_table: :rockets, enforced: false }
+
+            fk = @connection.foreign_keys("astronauts").find { |k| k.column == "myrocket_id" }
+            assert_not_predicate fk, :enforced?
+          end
+
+          def test_create_table_with_not_enforced_foreign_key
+            @connection.create_table :test_planets, force: true do |t|
+              t.references :rocket
+              t.foreign_key :rockets, column: :rocket_id, enforced: false
+            end
+
+            fk = @connection.foreign_keys("test_planets").first
+            assert_not_predicate fk, :enforced?
+          ensure
+            @connection.drop_table :test_planets, if_exists: true
+          end
+
+          def test_not_enforced_deferrable_foreign_key
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id",
+              enforced: false, deferrable: :deferred
+
+            foreign_keys = @connection.foreign_keys("astronauts")
+            assert_equal 1, foreign_keys.size
+
+            fk = foreign_keys.first
+            assert_not_predicate fk, :enforced?
+            assert_equal :deferred, fk.deferrable
+          end
+
+          def test_not_enforced_allows_inserting_invalid_fk_reference
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", enforced: false
+
+            assert_nothing_raised do
+              @connection.execute("INSERT INTO astronauts(name, rocket_id) VALUES ('test', 999999)")
+            end
+          end
+
+          def test_schema_dumping_with_enforced_true
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", enforced: true
+
+            output = dump_table_schema "astronauts"
+
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets"$}, output
+          end
+
+          def test_schema_dumping_with_enforced_false
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", enforced: false
+
+            output = dump_table_schema "astronauts"
+
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets", validate: false, enforced: false$}, output
+          end
+
+          # PostgreSQL marks NOT ENFORCED constraints as NOT VALID internally, so the dump records both axes as false.
+          def test_schema_dumping_with_enforced_false_and_validate_true
+            skip unless current_adapter?(:PostgreSQLAdapter)
+
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id",
+              enforced: false, validate: true
+
+            output = dump_table_schema "astronauts"
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets", validate: false, enforced: false$}, output
+          end
+
+          def test_schema_dumping_with_enforced_false_and_deferrable_deferred
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id",
+              enforced: false, deferrable: :deferred
+
+            output = dump_table_schema "astronauts"
+
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets", deferrable: :deferred, validate: false, enforced: false$}, output
+          end
+
+          def test_change_foreign_key_enforced_to_not_enforced
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
+
+            @connection.change_foreign_key :astronauts, :rockets, enforced: false
+
+            fk = @connection.foreign_keys("astronauts").first
+            assert_not_predicate fk, :enforced?
+          end
+
+          def test_change_foreign_key_not_enforced_to_enforced
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", enforced: false
+
+            @connection.change_foreign_key :astronauts, :rockets, enforced: true
+
+            fk = @connection.foreign_keys("astronauts").first
+            assert_predicate fk, :enforced?
+          end
+
+          def test_change_foreign_key_by_name
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "special_fk_name"
+
+            @connection.change_foreign_key :astronauts, name: "special_fk_name", enforced: false
+
+            fk = @connection.foreign_keys("astronauts").first
+            assert_not_predicate fk, :enforced?
+            assert_equal "special_fk_name", fk.name
+          end
+
+          def test_change_foreign_key_by_column
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
+
+            @connection.change_foreign_key :astronauts, column: "rocket_id", enforced: false
+
+            fk = @connection.foreign_keys("astronauts").first
+            assert_not_predicate fk, :enforced?
+            assert_equal "rocket_id", fk.column
+          end
+
+          def test_change_foreign_key_raises_without_options
+            @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id"
+
+            error = assert_raises(ArgumentError) do
+              @connection.change_foreign_key :astronauts, :rockets
+            end
+            assert_match(/enforced/, error.message)
+          end
+
+        end
+
+        def test_enforced_option_raises_on_unsupported_database
+          skip unless current_adapter?(:PostgreSQLAdapter)
+          @connection.stub(:supports_enforced_foreign_keys?, false) do
+            error = assert_raises(ArgumentError) do
+              @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", enforced: false
+            end
+            assert_match(/NOT ENFORCED/, error.message)
+          end
+        end
+
+        def test_change_foreign_key_raises_on_unsupported_database
+          skip unless current_adapter?(:PostgreSQLAdapter)
+          @connection.stub(:supports_enforced_foreign_keys?, false) do
+            error = assert_raises(ArgumentError) do
+              @connection.change_foreign_key :astronauts, :rockets, enforced: false
+            end
+            assert_match(/change_foreign_key requires PostgreSQL 18\.4/, error.message)
           end
         end
 

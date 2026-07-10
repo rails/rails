@@ -29,7 +29,7 @@ require "models/cpk"
 class CalculationsTest < ActiveRecord::TestCase
   include AsyncHelper
 
-  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments, :cpk_books
+  fixtures :companies, :accounts, :authors, :author_addresses, :topics, :speedometers, :minivans, :books, :posts, :comments, :cpk_books, :cpk_orders
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -75,6 +75,16 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_should_average_arel_attribute
     assert_equal 53.0, Account.average(Account.arel_table[:credit_limit])
     assert_async_equal 53.0, Account.async_average(Account.arel_table[:credit_limit])
+  end
+
+  def test_should_average_distinct_field
+    Account.delete_all
+    Account.create!(firm_id: 1, credit_limit: 50)
+    Account.create!(firm_id: 1, credit_limit: 50)
+    Account.create!(firm_id: 1, credit_limit: 60)
+
+    assert_equal 55, Account.where(firm_id: 1).distinct.average(:credit_limit)
+    assert_equal({ 1 => 55 }, Account.where(firm_id: 1).group(:firm_id).distinct.average(:credit_limit))
   end
 
   def test_should_resolve_aliased_attributes
@@ -199,6 +209,16 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal expected, Account.group(:firm_id).sum(:credit_limit)
   end
 
+  def test_should_group_by_distinct_summed_field
+    Account.delete_all
+    Account.create!(firm_id: 1, credit_limit: 50)
+    Account.create!(firm_id: 1, credit_limit: 50)
+    Account.create!(firm_id: 1, credit_limit: 60)
+
+    assert_equal 110, Account.where(firm_id: 1).distinct.sum(:credit_limit)
+    assert_equal({ 1 => 110 }, Account.where(firm_id: 1).group(:firm_id).distinct.sum(:credit_limit))
+  end
+
   def test_group_by_multiple_same_field
     accounts = Account.group(:firm_id)
 
@@ -306,7 +326,10 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_count_should_shortcut_with_limit_zero
     accounts = Account.limit(0)
 
-    assert_no_queries { assert_equal 0, accounts.count }
+    assert_no_queries do
+      assert_equal 0, accounts.count
+      assert_async_equal 0, accounts.async_count
+    end
   end
 
   def test_limit_is_kept
@@ -438,6 +461,16 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_count_for_a_composite_primary_key_model_with_includes_and_references
     assert_equal Cpk::Book.count, Cpk::Book.includes(:chapters).references(:chapters).count
+  end
+
+  def test_group_by_a_belongs_to_association_with_a_composite_primary_key_model
+    order = cpk_orders(:cpk_book_order_1)
+    books = Cpk::Book.where(shop_id: order.shop_id, order_id: order.id)
+    assert_predicate books, :any?
+
+    result = books.group(:order).count
+
+    assert_equal({ order => books.count }, result)
   end
 
   def test_should_group_by_summed_field_having_condition
@@ -832,6 +865,18 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_no_queries_for_empty_relation_on_grouped_count
+    assert_no_queries do
+      assert_equal({}, Post.where(id: []).group(:author_id).count)
+    end
+  end
+
+  def test_no_queries_for_empty_relation_on_grouped_sum
+    assert_no_queries do
+      assert_equal({}, Post.where(id: []).group(:author_id).sum(:tags_count))
+    end
+  end
+
   def test_maximum_with_not_auto_table_name_prefix_if_column_included
     Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
 
@@ -1105,6 +1150,7 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_queries_count(0) do
       assert_equal company_ids, Company.where(id: empty_scope_ids).ids
     end
+    assert_async_equal company_ids, Company.where(id: empty_scope_ids).async_ids
   end
 
   def test_ids_with_join

@@ -33,10 +33,10 @@ module ActiveSupport
 
     DEFAULT_ENCODINGS = {
       "binary" => "base64"
-    } unless defined?(DEFAULT_ENCODINGS)
+    }.freeze unless defined?(DEFAULT_ENCODINGS)
 
     unless defined?(TYPE_NAMES)
-      TYPE_NAMES = {
+      TYPE_NAMES = { # rubocop:disable Style/MutableConstant
         "Symbol"     => "symbol",
         "Integer"    => "integer",
         "BigDecimal" => "decimal",
@@ -52,6 +52,7 @@ module ActiveSupport
       }
     end
     TYPE_NAMES["ActiveSupport::TimeWithZone"] = TYPE_NAMES["Time"]
+    TYPE_NAMES.freeze
 
     FORMATTING = {
       "symbol"   => Proc.new { |symbol| symbol.to_s },
@@ -60,14 +61,14 @@ module ActiveSupport
       "duration" => Proc.new { |duration| duration.iso8601 },
       "binary"   => Proc.new { |binary| ::Base64.encode64(binary) },
       "yaml"     => Proc.new { |yaml| yaml.to_yaml }
-    } unless defined?(FORMATTING)
+    }.freeze unless defined?(FORMATTING)
 
     unless defined?(PARSING)
-      PARSING = {
+      PARSING = { # rubocop:disable Style/MutableConstant
         "symbol"       => Proc.new { |symbol|  symbol.to_s.to_sym },
-        "date"         => Proc.new { |date|    ::Date.strptime(date, "%Y-%m-%d") },
+        "date"         => Proc.new { |date|    ::Date.strptime(date.to_s.strip, "%Y-%m-%d") },
         "datetime"     => Proc.new { |time|    Time.xmlschema(time).utc rescue ::DateTime.parse(time).utc },
-        "duration"     => Proc.new { |duration| Duration.parse(duration) },
+        "duration"     => Proc.new { |duration| Duration.parse(duration.to_s.strip) },
         "integer"      => Proc.new { |integer| integer.to_i },
         "float"        => Proc.new { |float|   float.to_f },
         "decimal"      => Proc.new do |number|

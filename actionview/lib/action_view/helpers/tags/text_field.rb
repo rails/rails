@@ -12,7 +12,7 @@ module ActionView
           options = @options.stringify_keys
           options["size"] = options["maxlength"] unless options.key?("size")
           options["type"] ||= field_type
-          options["value"] = options.fetch("value") { value_before_type_cast } unless field_type == "file"
+          options["value"] = options.fetch("value") { fallback_value } unless field_type == "file"
           add_default_name_and_field(options)
           tag("input", options)
         end
@@ -26,6 +26,10 @@ module ActionView
         private
           def field_type
             self.class.field_type
+          end
+
+          def fallback_value
+            value_before_type_cast
           end
       end
     end

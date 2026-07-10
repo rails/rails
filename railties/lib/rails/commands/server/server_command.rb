@@ -93,7 +93,7 @@ module Rails
     class ServerCommand < Base # :nodoc:
       include EnvironmentArgument
 
-      RACK_HANDLER_GEMS = %w(cgi webrick scgi thin puma unicorn falcon)
+      RACK_HANDLER_GEMS = %w(cgi webrick scgi thin puma unicorn falcon).freeze
       # Hard-coding a bunch of handlers here as we don't have a public way of
       # querying them from the Rackup::Handler registry.
       RACK_HANDLERS = RACK_HANDLER_GEMS + %w(fastcgi lsws)

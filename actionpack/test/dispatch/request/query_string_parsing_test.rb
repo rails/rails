@@ -111,8 +111,8 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
   end
 
   test "perform_deep_munge" do
-    old_perform_deep_munge = ActionDispatch::Request::Utils.perform_deep_munge
-    ActionDispatch::Request::Utils.perform_deep_munge = false
+    old_perform_deep_munge = ActionDispatch::Http::Utils.perform_deep_munge
+    ActionDispatch::Http::Utils.perform_deep_munge = false
     begin
       assert_parses({ "action" => nil }, "action")
       assert_parses({ "action" => { "foo" => nil } }, "action[foo]")
@@ -122,7 +122,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
       assert_parses({ "action" => { "foo" => [{ "bar" => nil }] } }, "action[foo][][bar]")
       assert_parses({ "action" => ["1", nil] }, "action[]=1&action[]")
     ensure
-      ActionDispatch::Request::Utils.perform_deep_munge = old_perform_deep_munge
+      ActionDispatch::Http::Utils.perform_deep_munge = old_perform_deep_munge
     end
   end
 

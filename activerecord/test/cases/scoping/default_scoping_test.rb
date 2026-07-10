@@ -9,8 +9,12 @@ require "models/computer"
 require "models/cat"
 require "models/mentor"
 require "concurrent/atomic/cyclic_barrier"
+require "active_support/testing/ractors_assertions"
+require "active_support/core_ext/object/with"
 
 class DefaultScopingTest < ActiveRecord::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   fixtures :developers, :posts, :comments
 
   def test_default_scope
@@ -246,6 +250,28 @@ class DefaultScopingTest < ActiveRecord::TestCase
     reload_sql = capture_sql { dev.reload({ unscoped: true }) }.first
 
     assert_no_match(/mentor_id/, reload_sql)
+  end
+
+  def test_default_scope_with_all_queries_does_not_apply_current_scope_on_reload
+    dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen", salary: 80000)
+
+    reload_sql = DeveloperWithDefaultMentorScopeAllQueries.where(salary: 80000).scoping do
+      capture_sql { dev.reload }.first
+    end
+
+    assert_match(/mentor_id/, reload_sql)
+    assert_no_match(/salary/, reload_sql)
+  end
+
+  def test_default_scope_with_all_queries_applies_all_queries_current_scope_on_reload
+    dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen", salary: 80000)
+
+    reload_sql = DeveloperWithDefaultMentorScopeAllQueries.where(salary: 80000).scoping(all_queries: true) do
+      capture_sql { dev.reload }.first
+    end
+
+    assert_match(/mentor_id/, reload_sql)
+    assert_match(/salary/, reload_sql)
   end
 
   def test_scope_overwrites_default
@@ -707,6 +733,26 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_with_abstract_class_scope_should_be_executed_in_correct_context
     assert_match %r/#{Regexp.escape(quote_table_name("lions.is_vegetarian"))}/i, Lion.all.to_sql
     assert_match %r/#{Regexp.escape(quote_table_name("lions.gender"))}/i, Lion.female.to_sql
+  end
+
+  def test_default_scopes_are_ractor_shareable
+    ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+      model = Class.new(ActiveRecord::Base) do
+        def self.name = "ractor_safe_posts"
+        self.table_name = "posts"
+
+        default_scope -> { ractor_safe }
+
+        def self.ractor_safe
+          where(type: "ractor_safe")
+        end
+      end
+
+      select_sql = capture_sql { model.all.to_a }.first
+
+      assert_match(/type/, select_sql)
+      assert_ractor_shareable model.default_scopes
+    end
   end
 end
 

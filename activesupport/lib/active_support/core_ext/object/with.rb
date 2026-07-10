@@ -1,25 +1,30 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 class Object
   # Set and restore public attributes around a block.
   #
-  #   client.timeout # => 5
-  #   client.with(timeout: 1) do |c|
-  #     c.timeout # => 1
-  #   end
-  #   client.timeout # => 5
+  # ```ruby
+  # client.timeout # => 5
+  # client.with(timeout: 1) do |c|
+  #   c.timeout # => 1
+  # end
+  # client.timeout # => 5
+  # ```
   #
   # The receiver is yielded to the provided block.
   #
   # This method is a shorthand for the common begin/ensure pattern:
   #
-  #   old_value = object.attribute
-  #   begin
-  #     object.attribute = new_value
-  #     # do things
-  #   ensure
-  #     object.attribute = old_value
-  #   end
+  # ```ruby
+  # old_value = object.attribute
+  # begin
+  #   object.attribute = new_value
+  #   # do things
+  # ensure
+  #   object.attribute = old_value
+  # end
+  # ```
   #
   # It can be used on any object as long as both the reader and writer methods
   # are public.

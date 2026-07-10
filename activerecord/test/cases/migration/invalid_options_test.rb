@@ -96,6 +96,26 @@ module ActiveRecord
         connection.drop_table :my_table, if_exists: true
       end
 
+      def test_add_column_with_nullable_primary_key
+        exception = assert_raises(ArgumentError) do
+          add_column "test_models", "other_id", :primary_key, null: true
+        end
+
+        assert_equal(
+          "primary keys cannot be NULL",
+          exception.message
+        )
+
+        exception = assert_raises(ArgumentError) do
+          add_column "test_models", "another_id", :integer, primary_key: true, null: true
+        end
+
+        assert_equal(
+          "primary keys cannot be NULL",
+          exception.message
+        )
+      end
+
       def test_add_index_with_invalid_options
         exception = assert_raises(ArgumentError) do
           add_index "test_models", "first_name", nema: "my_index"

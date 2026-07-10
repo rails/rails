@@ -14,7 +14,8 @@ module ActiveStorage::Streaming
     def send_blob_byte_range_data(blob, range_header, disposition: nil)
       ranges = Rack::Utils.get_byte_ranges(range_header, blob.byte_size)
 
-      return head(:range_not_satisfiable) if ranges.blank? || ranges.all?(&:blank?)
+      return head(:range_not_satisfiable) unless ranges_valid?(ranges)
+      return head(:range_not_satisfiable) if ranges.length > ActiveStorage.streaming_max_ranges
 
       if ranges.length == 1
         range = ranges.first
@@ -49,6 +50,12 @@ module ActiveStorage::Streaming
         status: :partial_content,
         type: content_type
       )
+    end
+
+    def ranges_valid?(ranges)
+      return false if ranges.blank? || ranges.all?(&:blank?)
+
+      ranges.sum { |range| range.end - range.begin } < ActiveStorage.streaming_chunk_max_size
     end
 
     # Stream the blob from storage directly to the response. The disposition can be controlled by setting +disposition+.

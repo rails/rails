@@ -3,11 +3,13 @@
 require_relative "abstract_unit"
 require "active_support/execution_context/test_helper"
 require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
 
 class ExecutionContextTest < ActiveSupport::TestCase
   # ExecutionContext is automatically reset in Rails app via executor hooks set in railtie
   # But not in Active Support's own test suite.
   include ActiveSupport::ExecutionContext::TestHelper
+  include ActiveSupport::Testing::RactorsAssertions
 
   test "#set restore the modified keys when the block exits" do
     assert_nil ActiveSupport::ExecutionContext.to_h[:foo]
@@ -64,5 +66,13 @@ class ExecutionContextTest < ActiveSupport::TestCase
     context = ActiveSupport::ExecutionContext.to_h
     context[:foo] = 43
     assert_equal 42, ActiveSupport::ExecutionContext.to_h[:foo]
+  end
+
+  test "callbacks are ractor safe" do
+    ActiveSupport::ExecutionContext.with(after_change_callbacks: [].freeze) do
+      ActiveSupport::ExecutionContext.after_change(&ActiveSupport::Ractors.shareable_proc { })
+
+      assert_ractor_shareable ActiveSupport::ExecutionContext.after_change_callbacks
+    end
   end
 end
