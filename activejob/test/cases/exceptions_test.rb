@@ -350,7 +350,7 @@ class ExceptionsTest < ActiveSupport::TestCase
     end
 
     test "successfully retry job throwing DeserializationError" do
-      RetryJob.perform_later Person.new(404), 5
+      RetryJob.perform_later Person.new(500), 5
       assert_equal ["Raised ActiveJob::DeserializationError for the 5 time"], JobBuffer.values
     end
 
