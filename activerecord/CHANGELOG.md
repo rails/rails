@@ -1,3 +1,35 @@
+*   Add named default scopes.
+
+    Default scopes can now be given a name, making them durable. They
+    will not be removed by `unscoped` unless explicitly referenced by name.
+
+    Calling `unscoped` with no arguments removes only unnamed default
+    scopes. Calling `unscoped(:name, ...)` removes only the listed named
+    scopes and leaves unnamed default scopes intact. You can chain multiple
+    calls together.
+
+    ```ruby
+    class Article < ActiveRecord::Base
+      default_scope { where(visible: true) }
+      default_scope :published, -> { where(published: true) }
+      default_scope :user, -> { where(user: User.current) }
+    end
+
+    Article.unscoped.all # Only the unnamed default scope is removed
+    # SELECT * FROM articles WHERE published = true AND user_id = 1
+
+    Article.unscoped(:published).all # Only :published is removed
+    # SELECT * FROM articles WHERE visible = true AND user_id = 1
+
+    Article.unscoped(:published, :user).all # Both named scopes removed
+    # SELECT * FROM articles WHERE visible = true
+
+    Article.unscoped(:published).unscoped.all # :published and unnamed removed
+    # SELECT * FROM articles WHERE user_id = 1
+    ```
+
+    *Andrew Novoselac*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective

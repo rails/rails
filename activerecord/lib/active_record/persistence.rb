@@ -802,13 +802,19 @@ module ActiveRecord
     #     end
     #   end
     #
+    # The <tt>:unscoped</tt> option allows you to reload the record without default scopes that apply to all queries:
+    #   reload(unscoped: true) # reload without unnamed default scopes
+    #   reload(unscoped: [:foo, :bar]) # reload without the default scopes named :foo and :bar
+    #   reload(unscoped: [:foo, :bar, true]) # reload without the default scopes named :foo and :bar and unnamed default scopes
     def reload(options = nil)
       self.class.connection_pool.clear_query_cache
 
-      fresh_object = if apply_scoping?(options)
+      fresh_object = if options && options[:unscoped]
+        self.class.build_unscoped_default_scope(options[:unscoped], all_queries: true).scoping { _find_record(options) }
+      elsif apply_scoping?(options)
         _find_record((options || {}).merge(all_queries: true))
       else
-        self.class.unscoped { _find_record(options) }
+        self.class.raw_relation.scoping { _find_record(options) }
       end
 
       @association_cache = fresh_object.instance_variable_get(:@association_cache)
@@ -889,16 +895,10 @@ module ActiveRecord
       def _find_record(options)
         all_queries = options ? options[:all_queries] : nil
         base = if all_queries
-          self.class.default_scoped(all_queries: true)
+          self.class.all_queries_scope
         else
           self.class.all
-        end
-
-        if all_queries && (current_scope = self.class.global_current_scope)
-          base = base.merge!(current_scope)
-        end
-
-        base = base.preload(strict_loaded_associations)
+        end.preload(strict_loaded_associations)
 
         if options && options[:lock]
           base.lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)

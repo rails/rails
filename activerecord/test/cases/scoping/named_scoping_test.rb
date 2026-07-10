@@ -381,7 +381,7 @@ class NamedScopingTest < ActiveRecord::TestCase
 
     conflicts = [
       :create,        # public class method on AR::Base
-      :relation,      # private class method on AR::Base
+      :raw_relation,  # private class method on AR::Base
       :new,           # redefined class method on AR::Base
       :all,           # a default scope
       :public,        # some important methods on Module and Class
