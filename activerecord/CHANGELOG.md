@@ -1,3 +1,14 @@
+*   Persist the database default for serialized columns that are `NOT NULL`.
+
+    Setting a serialized column to its coder's empty value (e.g. `{}` or `[]`)
+    previously wrote `NULL`, which raised `NotNullViolation` or discarded the
+    column's default on `NOT NULL` columns. The value is now serialized so the
+    default is respected. Nullable columns without a default are unchanged.
+
+    Fixes #46351.
+
+    *Irvan Eksa Mahendra*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective

@@ -462,6 +462,35 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal [topic, topic2], Topic.where(content: nil).sort_by(&:id)
   end
 
+  # Regression test for https://github.com/rails/rails/issues/46351
+  # A serialized column that is NOT NULL with a DB default must persist its
+  # default value instead of NULL when set to the coder's empty value.
+  if !current_adapter?(:Mysql2Adapter) && !current_adapter?(:TrilogyAdapter)
+    def test_serialized_attribute_with_not_null_default_persists_default
+      ActiveRecord::Schema.define do
+        create_table :tmp_46351, force: true do |t|
+          t.text :content, null: false, default: "{}"
+        end
+      end
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "tmp_46351"
+        serialize :content, type: Hash
+      end
+
+      # Creating with the coder's empty value must not violate NOT NULL.
+      record = klass.create!(content: {})
+      assert_equal({}, record.reload.content)
+
+      # Updating an existing value back to the default must persist the
+      # default rather than NULL (the scenario reported in #46351).
+      record = klass.create!(content: { "key" => "value" })
+      record.update!(content: {})
+      assert_equal({}, record.reload.content)
+    ensure
+      ActiveRecord::Base.lease_connection.drop_table :tmp_46351, if_exists: true
+    end
+  end
+
   def test_serialized_attribute_can_be_defined_in_abstract_classes
     klass = Class.new(ActiveRecord::Base) do
       self.abstract_class = true
