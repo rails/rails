@@ -360,6 +360,7 @@ module ActiveSupport
           to_enum(:transform_keys)
         end
       else
+        hash = hash.transform_keys { |key| convert_key(key) } if hash.is_a?(Hash)
         self.class.new(super)
       end
     end
