@@ -12,6 +12,14 @@ module AdapterHelper
     current_adapter?(:SQLite3Adapter) && ActiveRecord::Base.connection_pool.db_config.database == ":memory:"
   end
 
+  def ractor_proxy?
+    ARTest.ractor_proxy?
+  end
+
+  def without_ractor_proxy(&block)
+    ARTest.without_ractor_proxy(&block)
+  end
+
   def sqlite3_adapter_strict_strings_disabled?
     current_adapter?(:SQLite3Adapter) && !ActiveRecord::Base.connection_pool.db_config.configuration_hash[:strict]
   end
@@ -102,10 +110,24 @@ module AdapterHelper
     connection.reconnect!
   end
 
+  def main_ractor_connection(connection)
+    # Only check for a proxy when its class is genuinely loaded: nothing can
+    # be a proxy otherwise, and the is_a? autoload would raise on Ruby < 4
+    # (ractor-dispatch requires Ractor::Port).
+    if ActiveRecord::ConnectionAdapters.autoload?(:RactorConnectionProxy).nil? &&
+        ActiveRecord::ConnectionAdapters.const_defined?(:RactorConnectionProxy) &&
+        connection.is_a?(ActiveRecord::ConnectionAdapters::RactorConnectionProxy)
+      ActiveRecord::ConnectionAdapters::RactorConnectionProxy.connections.fetch(connection.connection_token)
+    else
+      connection
+    end
+  end
+
   # Detects whether the server side of the connection physically has a
   # transaction open, independently of the adapter's opinion. Skips if we don't
   # know how to detect this.
   def raw_transaction_open?(connection)
+    connection = main_ractor_connection(connection)
     if current_adapter?(:PostgreSQLAdapter)
       connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
     elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
@@ -133,6 +155,7 @@ module AdapterHelper
   # setting, and then sleeping to exceed, a very short timeout). Skips if we
   # can't do so.
   def remote_disconnect(connection)
+    connection = main_ractor_connection(connection)
     if current_adapter?(:PostgreSQLAdapter)
       # Connection was left in a bad state, need to reconnect to simulate fresh disconnect
       connection.verify! if connection.instance_variable_get(:@raw_connection).status == ::PG::CONNECTION_BAD
