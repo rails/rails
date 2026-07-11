@@ -427,7 +427,8 @@ module ActiveRecord
 
   ##
   # :singleton-method: schema_versions_formatter
-  # Specify the formatter used by schema dumper to format versions information.
+  # Specify the migration versions formatter class used by the +:sql+ schema dumper
+  # and the +:ruby+ schema loader.
   singleton_class.attr_accessor :schema_versions_formatter
   self.schema_versions_formatter = Migration::DefaultSchemaVersionsFormatter
 

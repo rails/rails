@@ -1239,8 +1239,11 @@ By assigning to the adapter class, all migrations run through connections using 
 
 #### `config.active_record.schema_versions_formatter`
 
-Controls the formatter class used by schema dumper to format versions information. Custom class can be provided
-to change the default behavior:
+Schema version formatter classes implement `initialize` and `format`.
+
+`initialize` receives a database connection as argument.
+
+`format` receives an array of versions, which may be strings or integers. It must return a single semicolon-terminated SQL statement that inserts them all into the schema migrations table.
 
 ```ruby
 class CustomSchemaVersionsFormatter
@@ -1261,6 +1264,8 @@ end
 
 config.active_record.schema_versions_formatter = CustomSchemaVersionsFormatter
 ```
+
+The returned SQL is appended to `structure.sql` by the `:sql` schema dumper, and executed by the `:ruby` schema loader to populate the schema migrations table.
 
 #### `config.active_record.lock_optimistically`
 
