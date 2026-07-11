@@ -44,6 +44,7 @@ module ActiveRecord
         private_constant :GeneratedAttributeMethods
         @attribute_methods_generated = false
         @alias_attributes_mass_generated = false
+        @alias_attribute_method_definition_owners = {}
         include @generated_attribute_methods
 
         super
@@ -65,9 +66,13 @@ module ActiveRecord
       #   # SELECT "people".* FROM "people" WHERE "people"."name" = "Bob"
       def alias_attribute(new_name, old_name)
         super
+        if alias_attribute_method_needs_own_definition_owner?(new_name)
+          @alias_attribute_method_definition_owners[new_name.to_s] = generated_alias_attribute_methods
+        end
 
         if @alias_attributes_mass_generated
-          ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
+          owner = alias_attribute_method_definition_owner(new_name)
+          ActiveSupport::CodeGenerator.batch(owner, __FILE__, __LINE__) do |code_generator|
             generate_alias_attribute_methods(code_generator, new_name, old_name)
           end
         end
@@ -129,9 +134,10 @@ module ActiveRecord
 
         return if @alias_attributes_mass_generated
 
-        ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
-          aliases_by_attribute_name.each do |old_name, new_names|
-            new_names.each do |new_name|
+        aliases_by_attribute_name.each do |old_name, new_names|
+          new_names.each do |new_name|
+            owner = alias_attribute_method_definition_owner(new_name)
+            ActiveSupport::CodeGenerator.batch(owner, __FILE__, __LINE__) do |code_generator|
               generate_alias_attribute_methods(code_generator, new_name, old_name)
             end
           end
@@ -143,6 +149,7 @@ module ActiveRecord
       def undefine_attribute_methods # :nodoc:
         GeneratedAttributeMethods::LOCK.synchronize do
           super if @attribute_methods_generated
+          undefine_generated_alias_attribute_methods if @attribute_methods_generated
           @attribute_methods_generated = false
           @alias_attributes_mass_generated = false
         end
@@ -262,6 +269,45 @@ module ActiveRecord
       end
 
       private
+        def generated_alias_attribute_methods
+          @generated_alias_attribute_methods ||= begin
+            mod = const_set(:GeneratedAliasAttributeMethods, GeneratedAttributeMethods.new)
+            private_constant :GeneratedAliasAttributeMethods
+            include mod
+
+            mod
+          end
+        end
+
+        def alias_attribute_method_definition_owner(new_name)
+          @alias_attribute_method_definition_owners.fetch(new_name.to_s) do
+            if alias_attribute_method_needs_own_definition_owner?(new_name)
+              @alias_attribute_method_definition_owners[new_name.to_s] = generated_alias_attribute_methods
+            else
+              generated_attribute_methods
+            end
+          end
+        end
+
+        def alias_attribute_method_needs_own_definition_owner?(new_name)
+          method_name = new_name.to_s
+          method_defined = method_defined?(method_name) || private_method_defined?(method_name)
+
+          return false unless method_defined
+
+          method_owner = instance_method(method_name).owner
+
+          return false if method_owner == self || method_owner.is_a?(GeneratedAttributeMethods)
+
+          ancestors.index(method_owner) < ancestors.index(generated_attribute_methods)
+        end
+
+        def undefine_generated_alias_attribute_methods
+          @generated_alias_attribute_methods&.module_eval do
+            undef_method(*instance_methods)
+          end
+        end
+
         def inherited(child_class)
           super
           child_class.initialize_generated_modules
