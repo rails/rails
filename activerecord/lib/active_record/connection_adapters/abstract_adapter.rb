@@ -100,6 +100,71 @@ module ActiveRecord
         end
       end
 
+      # The RactorConnectionHandler::AbstractProxyAdapter subclass standing in for this adapter's
+      # connections on worker Ractors.
+      def self.ractor_connection_proxy_class # :nodoc:
+        raise ActiveRecordError, "#{name} does not support Ractor connections"
+      end
+
+      # Everything a Ractor connection proxy needs to know about this
+      # connection.
+      def ractor_connection_profile # :nodoc:
+        {
+          proxy_class: self.class.ractor_connection_proxy_class,
+          adapter_class: self.class,
+          adapter_name: adapter_name,
+          prepared_statements: @prepared_statements,
+          table_definition_class: create_table_definition("__ractor_probe__").class,
+          arel_visitor_class: @visitor.class,
+          bind_params_length: bind_params_length,
+          capabilities: ractor_connection_capabilities,
+        }
+      end
+
+      def ractor_connection_capabilities # :nodoc:
+        {
+          supports_advisory_locks?: supports_advisory_locks?,
+          supports_bulk_alter?: supports_bulk_alter?,
+          supports_check_constraints?: supports_check_constraints?,
+          supports_comments?: supports_comments?,
+          supports_comments_in_create?: supports_comments_in_create?,
+          supports_common_table_expressions?: supports_common_table_expressions?,
+          supports_concurrent_connections?: supports_concurrent_connections?,
+          supports_ddl_transactions?: supports_ddl_transactions?,
+          supports_deferrable_constraints?: supports_deferrable_constraints?,
+          supports_disabling_indexes?: supports_disabling_indexes?,
+          supports_enforced_foreign_keys?: supports_enforced_foreign_keys?,
+          supports_exclusion_constraints?: supports_exclusion_constraints?,
+          supports_explain?: supports_explain?,
+          supports_expression_index?: supports_expression_index?,
+          supports_extensions?: supports_extensions?,
+          supports_foreign_keys?: supports_foreign_keys?,
+          supports_foreign_tables?: supports_foreign_tables?,
+          supports_index_include?: supports_index_include?,
+          supports_index_sort_order?: supports_index_sort_order?,
+          supports_indexes_in_create?: supports_indexes_in_create?,
+          supports_insert_conflict_target?: supports_insert_conflict_target?,
+          supports_insert_on_duplicate_skip?: supports_insert_on_duplicate_skip?,
+          supports_insert_on_duplicate_update?: supports_insert_on_duplicate_update?,
+          supports_insert_returning?: supports_insert_returning?,
+          supports_json?: supports_json?,
+          supports_lazy_transactions?: supports_lazy_transactions?,
+          supports_materialized_views?: supports_materialized_views?,
+          supports_nulls_not_distinct?: supports_nulls_not_distinct?,
+          supports_optimizer_hints?: supports_optimizer_hints?,
+          supports_partial_index?: supports_partial_index?,
+          supports_partitioned_indexes?: supports_partitioned_indexes?,
+          supports_restart_db_transaction?: supports_restart_db_transaction?,
+          supports_savepoints?: supports_savepoints?,
+          supports_transaction_isolation?: supports_transaction_isolation?,
+          supports_unique_constraints?: supports_unique_constraints?,
+          supports_update_returning?: supports_update_returning?,
+          supports_validate_constraints?: supports_validate_constraints?,
+          supports_views?: supports_views?,
+          supports_virtual_columns?: supports_virtual_columns?,
+        }
+      end
+
       DEFAULT_READ_QUERY = [:begin, :commit, :explain, :release, :rollback, :savepoint, :select, :with].freeze # :nodoc:
       private_constant :DEFAULT_READ_QUERY
 
@@ -198,6 +263,7 @@ module ActiveRecord
         @last_activity = nil
         @verified = false
         @needs_reconnect = false
+        @proxied = false
         @unfinalized_intents = []
 
         @pool_jitter = rand * max_jitter
@@ -372,6 +438,7 @@ module ActiveRecord
 
             @owner = ActiveSupport::IsolatedExecutionState.context
           end
+          @proxied = false
         else
           raise ActiveRecordError, "Cannot steal connection, it is not currently leased."
         end
@@ -388,6 +455,13 @@ module ActiveRecord
         if @raw_connection && @last_activity
           Process.clock_gettime(Process::CLOCK_MONOTONIC) - @last_activity
         end
+      end
+
+      # When true, this connection is the backend of a ractor proxy connection
+      attr_writer :proxied # :nodoc:
+
+      def proxied? # :nodoc:
+        @proxied
       end
 
       # Seconds since this connection was established. nil if not
@@ -1090,7 +1164,7 @@ module ActiveRecord
 
       private
         def reconnect_can_restore_state?
-          transaction_manager.restorable? && !@raw_connection_dirty
+          !@proxied && transaction_manager.restorable? && !@raw_connection_dirty
         end
 
         # Lock the monitor, ensure we're properly connected and

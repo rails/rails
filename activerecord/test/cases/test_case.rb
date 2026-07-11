@@ -34,6 +34,20 @@ module ActiveRecord
     self.use_instantiated_fixtures = false
     self.use_transactional_tests = true
 
+    # Schema statements only run on the main Ractor's real connection, never
+    # through a proxied one. Like the adapter-specific test cases below, tests
+    # that emit DDL are left out of a ractor proxy run.
+    def self.skip_under_ractor_proxy(*tests)
+      return unless ractor_proxy?
+
+      if tests.empty?
+        define_singleton_method(:run) { |*| }
+      else
+        excluded = tests.map(&:to_s)
+        define_singleton_method(:runnable_methods) { super() - excluded }
+      end
+    end
+
     def after_teardown
       super
       check_connection_leaks
@@ -225,7 +239,7 @@ module ActiveRecord
     end
 
     def with_temporary_connection_pool(&block)
-      pool_config = ActiveRecord::Base.connection_pool.pool_config
+      pool_config = without_ractor_proxy { ActiveRecord::Base.connection_pool }.pool_config
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
       pool_config.stub(:pool, new_pool, &block)
