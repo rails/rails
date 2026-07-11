@@ -1,3 +1,15 @@
+*   Fix tuple (multi-column) `where` conditions on a joined association's table.
+
+    Querying multiple columns of an associated table with the tuple syntax, e.g.
+    `Comment.left_joins(:post).where(post: { [:title, :id] => [["a", 1]] })`,
+    raised `TypeError: can't cast Array`. The nested condition's tuple key was
+    stringified along with the other keys, which lost the composite-key handling.
+    Array keys are now preserved so the grouped condition builds correctly.
+
+    Fixes #58013.
+
+    *Irvan Eksa Mahendra*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective

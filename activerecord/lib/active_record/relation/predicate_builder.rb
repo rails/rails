@@ -97,8 +97,14 @@ module ActiveRecord
             end
             grouping_queries(queries)
           elsif value.is_a?(Hash) && !table.has_column?(key)
+            # Preserve composite (tuple) keys such as `[:x, :y]`; only string /
+            # symbol keys should be stringified. Calling +stringify_keys+ would
+            # turn an Array key into a String and lose the tuple handling above.
+            associated_predicates = value.transform_keys do |nested_key|
+              nested_key.is_a?(Array) ? nested_key : nested_key.to_s
+            end
             table.associated_table(key, &block)
-              .predicate_builder.expand_from_hash(value.stringify_keys)
+              .predicate_builder.expand_from_hash(associated_predicates)
           elsif (associated_reflection = table.associated_with(key))
             # Find the foreign key when using queries such as:
             # Post.where(author: author)
