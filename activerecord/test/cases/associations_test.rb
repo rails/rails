@@ -359,9 +359,10 @@ class AssociationsTest < ActiveRecord::TestCase
   def test_nullify_composite_foreign_key_belongs_to_association
     comment = sharded_comments(:great_comment_blog_post_one)
     assert_not_nil(comment.blog_post)
+    blog_id = comment.blog_id
 
     comment.blog_post = nil
-    assert_nil(comment.blog_id)
+    assert_equal(blog_id, comment.blog_id)
     assert_nil(comment.blog_post_id)
 
     comment.save

@@ -135,9 +135,9 @@ module ActiveRecord
             target_key_values = record ? Array(primary_key(record.class)).map { |key| record._read_attribute(key) } : []
 
             if force || reflection_fk.map { |fk| owner._read_attribute(fk) } != target_key_values
-              owner_pk = Array(owner.class.primary_key)
+              owner_keys = Array(owner.class.query_constraints_list || owner.class.primary_key).map(&:to_s)
               reflection_fk.each_with_index do |key, index|
-                next if record.nil? && owner_pk.include?(key)
+                next if record.nil? && owner_keys.include?(key.to_s)
                 owner[key] = target_key_values[index]
               end
             end
