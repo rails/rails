@@ -1839,11 +1839,45 @@ module ActiveRecord
 
         arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
         arel.comment(*annotate_values) unless annotate_values.empty?
-        arel.distinct(distinct_value)
+        arel.distinct(distinct_value) unless distinct_value && redundant_distinct?
         arel.from(build_from) unless from_clause.empty?
         arel.lock(lock_value) if lock_value
 
         arel
+      end
+
+      # Whether the +DISTINCT+ requested on this relation cannot remove any rows,
+      # and can therefore be dropped. That is the case when the relation selects
+      # from a single table and projects the whole row: every row then carries a
+      # unique primary key, so the result is already distinct and +DISTINCT+ only
+      # adds a needless sort. Deliberately conservative -- any uncertainty keeps
+      # +DISTINCT+ (a false positive would silently drop rows).
+      def redundant_distinct?
+        joins_values.empty? &&
+          left_outer_joins_values.empty? &&
+          includes_values.empty? &&
+          references_values.empty? &&
+          !eager_loading? &&
+          from_clause.empty? &&
+          group_values.empty? &&
+          having_clause.empty? &&
+          model.primary_key &&
+          whole_row_select?
+      end
+
+      # True only when the projection is guaranteed to include the whole row (and
+      # thus the primary key): an empty select renders as +SELECT "table".*+ unless
+      # the model restricts the columns, or an explicit lone +*+ / +"table".*+.
+      def whole_row_select?
+        if select_values.empty?
+          model.only_columns.empty?
+        elsif select_values.one?
+          value = select_values.first
+          value == "*" || value == "#{table.name}.*" ||
+            (Arel::Nodes::SqlLiteral === value && value.to_s.strip == "*")
+        else
+          false
+        end
       end
 
       def build_cast_value(name, value)
