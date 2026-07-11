@@ -253,12 +253,14 @@ module ActionText
 
       def list_item_lines(list_node, child_values, prefix:)
         element_values = child_values_for_elements(list_node, child_values)
-        element_values.each_with_index.filter_map do |value, index|
+        emitted = 0
+        element_values.filter_map do |value|
           text = stringify(value)
           lines = text.split("\n").reject(&:blank?)
           next if lines.empty?
 
-          bullet = prefix.respond_to?(:call) ? prefix.call(index) : prefix
+          bullet = prefix.respond_to?(:call) ? prefix.call(emitted) : prefix
+          emitted += 1
           format_list_item(lines, bullet)
         end.join("\n")
       end

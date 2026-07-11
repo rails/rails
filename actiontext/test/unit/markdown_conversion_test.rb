@@ -417,6 +417,13 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "ordered list numbering ignores skipped empty <li> tags" do
+    assert_converted_to(
+      "1. one\n2. three",
+      "<ol><li>one</li><li></li><li>three</li></ol>"
+    )
+  end
+
   test "nested <ul> tags are indented" do
     assert_converted_to(
       "- one\n  - nested\n- two",
