@@ -147,7 +147,7 @@ module ActiveStorage
 
         {
           checksum_algorithm: default_digest_type,
-          "checksum_#{default_digest_type}": checksum
+          "checksum_#{default_digest_type}": checksum.split(":").last
         }
       end
 
