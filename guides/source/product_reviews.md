@@ -4,7 +4,7 @@ Product Reviews
 ===============
 
 This guide covers adding Reviews to the e-commerce application you created in
-the [Getting Started Guide](getting_started.html)). We will use the code from
+the [Getting Started Guide](getting_started.html). We will use the code from
 the [Wishlists Guide](wishlists.html) as a starting place.
 
 After reading this guide, you will know how to:
