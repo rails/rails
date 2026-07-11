@@ -54,6 +54,15 @@ module ActionDispatch
         end
       end
 
+      def test_route_name_with_an_embedded_newline_is_invalid
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        error = assert_raises(ArgumentError) do
+          mapper.match "/", to: "posts#index", via: :get, as: "main\ninjected"
+        end
+        assert_match(/Invalid route name/, error.message)
+      end
+
       def test_unscoped_formatted
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset

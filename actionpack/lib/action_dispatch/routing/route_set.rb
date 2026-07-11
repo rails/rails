@@ -641,7 +641,7 @@ module ActionDispatch
       end
 
       def add_route(mapping, name)
-        raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/^[_a-z]\w*$/i)
+        raise ArgumentError, "Invalid route name: '#{name}'" unless name.blank? || name.to_s.match(/\A[_a-z]\w*\z/i)
 
         if name && named_routes[name]
           raise ArgumentError, "Invalid route name, already in use: '#{name}' \n" \
