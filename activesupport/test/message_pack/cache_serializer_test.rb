@@ -36,6 +36,30 @@ class MessagePackCacheSerializerTest < ActiveSupport::TestCase
     assert_nil load(dumped)
   end
 
+  test "handles missing namespaced class gracefully" do
+    klass = Class.new(DefinesFromMsgpackExt)
+    def klass.name; "DoesNotActuallyExist::AlsoMissing"; end
+
+    dumped = dump(klass.new("foo"))
+    assert_not_nil dumped
+    assert_nil load(dumped)
+  end
+
+  module RaisesUnrelatedNameError
+    def self.const_missing(_name)
+      raise NameError, "unrelated failure while loading"
+    end
+  end
+
+  test "re-raises a NameError that is not the missing class itself" do
+    klass = Class.new(DefinesFromMsgpackExt)
+    def klass.name; "#{MessagePackCacheSerializerTest::RaisesUnrelatedNameError}::Boom"; end
+
+    dumped = dump(klass.new("foo"))
+    error = assert_raises(NameError) { load(dumped) }
+    assert_equal "unrelated failure while loading", error.message
+  end
+
   private
     def serializer
       ActiveSupport::MessagePack::CacheSerializer

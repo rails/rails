@@ -273,11 +273,32 @@ module ActiveSupport
       def load_class(name)
         Object.const_get(name)
       rescue NameError => error
-        if error.name.to_s == name
+        if missing_class_name?(name, error)
           raise MissingClassError, "Missing class: #{name}"
         else
           raise
         end
+      end
+
+      # Whether +error+ was raised because +name+ itself (or one of its namespace
+      # segments) is undefined, as opposed to an unrelated NameError raised while
+      # loading a class that does exist. +error.name+ is only the missing constant
+      # (e.g. +:Admin+ for a missing +Admin::User+), so the fully-qualified name that
+      # failed to resolve is rebuilt from the error's receiver and compared against
+      # +name+.
+      def missing_class_name?(name, error)
+        return false unless error.name
+
+        begin
+          receiver = error.receiver
+        rescue ArgumentError
+          # A NameError raised without a receiver (e.g. a bare `raise NameError`)
+          # is never our missing-constant lookup.
+          return false
+        end
+
+        failing = receiver.equal?(Object) ? error.name.to_s : "#{receiver.name}::#{error.name}"
+        name == failing || name.start_with?("#{failing}::")
       end
 
       def write_class(klass, packer)
