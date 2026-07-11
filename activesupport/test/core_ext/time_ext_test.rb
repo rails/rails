@@ -1177,6 +1177,14 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_at_with_datetime_sub_second_precision
+    dt = DateTime.civil(2000, 1, 1, 0, 0, Rational(1, 1_000_000), "+0") # .000001s
+    assert_equal 1, Time.at(dt).usec
+
+    dt = DateTime.civil(2000, 1, 1, 0, 0, Rational(123_457, 1_000_000), "+0")
+    assert_equal 123_457, Time.at(dt).usec
+  end
+
   def test_at_with_datetime_returns_local_time
     with_env_tz "US/Eastern" do
       dt = DateTime.civil(2000, 1, 1, 0, 0, 0, "+0")

@@ -47,7 +47,7 @@ class Time
         if time_or_number.is_a?(ActiveSupport::TimeWithZone)
           at_without_coercion(time_or_number.to_r).getlocal
         elsif time_or_number.is_a?(DateTime)
-          at_without_coercion(time_or_number.to_f).getlocal
+          at_without_coercion(time_or_number.to_i + time_or_number.sec_fraction).getlocal
         else
           at_without_coercion(time_or_number)
         end
