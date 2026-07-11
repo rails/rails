@@ -198,7 +198,7 @@ module Enumerable
     if filter
       group_by(&key).values_at(*series).compact.flatten(1)
     else
-      sort_by { |v| series.index(v.public_send(key)) || series.size }
+      each_with_index.sort_by { |v, i| [series.index(v.public_send(key)) || series.size, i] }.map(&:first)
     end
   end
 
