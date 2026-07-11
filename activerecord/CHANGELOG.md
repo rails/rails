@@ -1,3 +1,10 @@
+*   Fix deleting records from a `has_many :through` association when its source
+    uses a composite key that differs from the target model's query constraints.
+
+    This also fixes polymorphic through associations with composite source keys.
+
+    *Dan Robinson*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective

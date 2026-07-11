@@ -42,6 +42,8 @@ require "models/seminar"
 require "models/session"
 require "models/sharded"
 require "models/cpk"
+require "models/shipment"
+require "models/adjustment"
 require "models/zine"
 require "models/interest"
 require "models/human"
@@ -458,6 +460,48 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     tag.orders.destroy_all
     assert_empty(tag.orders)
     assert_empty(tag.orders.reload)
+  end
+
+  def test_destroy_all_with_composite_source_key_on_non_cpk_model
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    tags = blog_post.unconstrained_tags.to_a
+    blog_post_tags = blog_post.blog_post_tags.load
+
+    assert_not_empty(tags)
+    assert_equal(tags.size, blog_post_tags.size)
+
+    assert_no_difference "Sharded::UnconstrainedTag.count" do
+      assert_difference "Sharded::BlogPostTag.count", -tags.size do
+        blog_post.unconstrained_tags.destroy_all
+      end
+    end
+
+    assert_empty(blog_post.unconstrained_tags.reload)
+    assert_empty(blog_post.blog_post_tags)
+  end
+
+  def test_destroy_all_with_polymorphic_composite_source_key
+    owner = Shipment.create!(region_id: 1)
+    targets = Array.new(2) { Shipment.create!(region_id: owner.region_id) }
+    region_adjustments = targets.map do |target|
+      Adjustment.create!(
+        region_id: target.region_id,
+        adjustable_id: target.id,
+        adjustable_type: "Shipment",
+      )
+    end
+
+    assert_equal(targets, owner.adjusted_shipments.order(:id).to_a)
+    assert_equal(region_adjustments, owner.region_adjustments.load)
+
+    assert_no_difference "Shipment.count" do
+      assert_difference "Adjustment.count", -2 do
+        owner.adjusted_shipments.destroy_all
+      end
+    end
+
+    assert_empty(owner.adjusted_shipments.reload)
+    assert_empty(owner.region_adjustments)
   end
 
   def test_composite_primary_key_join_table

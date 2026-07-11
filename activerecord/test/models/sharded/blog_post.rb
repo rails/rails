@@ -13,6 +13,7 @@ module Sharded
 
     has_many :blog_post_tags
     has_many :tags, through: :blog_post_tags
+    has_many :unconstrained_tags, through: :blog_post_tags, source: :unconstrained_tag
 
     has_and_belongs_to_many :tags_with_composite_fk,
       class_name: "Sharded::Tag",
