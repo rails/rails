@@ -311,13 +311,13 @@ module ActiveRecord
             end
 
             if scopes
-              # scope :active, -> { where(status: 0) }
+              # scope :active, -> (flag = true) { flag ? where(status: 0) : where.not(status: 0) }
               klass.send(:detect_enum_conflict!, name, value_method_name, true)
-              klass.scope value_method_name, -> { where(name => value) }
+              klass.scope value_method_name, ->(flag = true) { flag ? where(name => value) : where(predicate_builder[name, value, :is_distinct_from]) }
 
-              # scope :not_active, -> { where.not(status: 0) }
+              # scope :not_active, -> (flag = true) { active(!flag) }
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
-              klass.scope "not_#{value_method_name}", -> { where(predicate_builder[name, value, :is_distinct_from]) }
+              klass.scope "not_#{value_method_name}", ->(flag = true) { public_send(value_method_name, !flag) }
             end
           end
       end

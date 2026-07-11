@@ -1,3 +1,20 @@
+*   Enum scopes now accept an optional boolean argument to toggle between positive and negative matching.
+
+    ```ruby
+    class Book < ActiveRecord::Base
+      enum :status, [ :proposed, :written, :published ]
+    end
+
+    Book.published       # WHERE status = 2
+    Book.published(true) # WHERE status = 2
+    Book.published(false) # WHERE status IS DISTINCT FROM 2 (equivalent to Book.not_published)
+
+    Book.not_published        # WHERE status IS DISTINCT FROM 2
+    Book.not_published(false) # WHERE status = 2 (equivalent to Book.published)
+    ```
+
+    *Bogdan Gusiev*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective
