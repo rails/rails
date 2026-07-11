@@ -1,3 +1,12 @@
+*   Fix MySQL `POINT` and `MULTIPOINT` columns being misreported as integer columns.
+
+    Both type names contain the substring "int", so they matched the generic
+    `%r(int)i` rule in the abstract adapter's type map and came back with
+    `type: :integer`, instead of being treated as an unknown type like the
+    other spatial types (`GEOMETRY`, `POLYGON`, `LINESTRING`, ...).
+
+    *Ryosuke Okazuka*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective

@@ -845,6 +845,10 @@ module ActiveRecord
 
             m.alias_type %r(year)i, "integer"
             m.alias_type %r(bit)i,  "binary"
+
+            # AbstractAdapter's generic type map matches POINT and MULTIPOINT against
+            # %r(int)i and misreports them as integers, so override them here.
+            m.register_type %r(^(?:point|multipoint))i, Type::Value.new
           end
 
           def register_integer_type(mapping, key, limit:)
