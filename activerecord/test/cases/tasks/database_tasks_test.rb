@@ -81,6 +81,8 @@ module ActiveRecord
   }.freeze
 
   class DatabaseTasksCheckProtectedEnvironmentsTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       self.use_transactional_tests = false
 
@@ -179,6 +181,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksCheckProtectedEnvironmentsMultiDatabaseTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       self.use_transactional_tests = false
 
@@ -257,7 +261,7 @@ module ActiveRecord
   class DatabaseTasksRegisterTask < ActiveRecord::TestCase
     setup do
       @tasks_was = ActiveRecord::Tasks::DatabaseTasks.instance_variable_get(:@tasks).dup
-      @adapters_was = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup
+      @adapters_was = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup.freeze
     end
 
     teardown do
@@ -1099,6 +1103,9 @@ module ActiveRecord
   end
 
   class DatabaseTasksMigrateTest < DatabaseTasksMigrationTestCase
+    skip_under_ractor_proxy :test_migrate_set_and_unset_empty_values_for_verbose_and_version_env_vars,
+      :test_migrate_set_and_unset_nonsense_values_for_verbose_and_version_env_vars
+
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       def test_migrate_set_and_unset_empty_values_for_verbose_and_version_env_vars
         verbose, version = ENV["VERBOSE"], ENV["VERSION"]
@@ -1201,6 +1208,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksMigrateStatusTest < DatabaseTasksMigrationTestCase
+    skip_under_ractor_proxy
+
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       def setup
         @schema_migration = ActiveRecord::Base.connection_pool.schema_migration
@@ -1338,6 +1347,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksTruncateAllTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     unless in_memory_db?
       self.use_transactional_tests = false
 

@@ -4,6 +4,8 @@ require "cases/helper"
 require "support/schema_dumping_helper"
 
 class DateTimePrecisionTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   if supports_datetime_with_precision?
     include InTimeZone
     include SchemaDumpingHelper

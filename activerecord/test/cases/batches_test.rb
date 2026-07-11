@@ -569,7 +569,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_when_loaded_iterates_using_custom_column
-    c = Post.lease_connection
+    c = main_ractor_connection(Post.lease_connection)
     c.add_index(:posts, :title, unique: true)
     ActiveRecord::Base.schema_cache.clear!
 
@@ -854,7 +854,7 @@ class EachTest < ActiveRecord::TestCase
       Post.in_batches(cursor: :id) { }
     end
 
-    c = Post.lease_connection
+    c = main_ractor_connection(Post.lease_connection)
     c.add_index(:posts, :title)
     ActiveRecord::Base.schema_cache.clear!
 
@@ -887,7 +887,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_iterating_using_custom_columns
-    c = Post.lease_connection
+    c = main_ractor_connection(Post.lease_connection)
     c.add_index(:posts, :title, unique: true)
     ActiveRecord::Base.schema_cache.clear!
 

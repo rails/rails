@@ -75,6 +75,10 @@ module ActiveRecord
       end
 
       class << self
+        def ractor_connection_proxy_class # :nodoc:
+          RactorConnectionHandler::MysqlProxyAdapter
+        end
+
         def cli_args(config) # :nodoc:
           cli_arg_map.filter_map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }
         end

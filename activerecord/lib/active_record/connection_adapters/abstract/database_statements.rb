@@ -755,6 +755,38 @@ module ActiveRecord
         intent.deliver_result(result, warnings: warnings)
       end
 
+      # Executes +intent+ below the public query pipeline — no logging, query
+      # transformers, transaction bookkeeping, or retries — and materializes
+      # the outcome.
+      def execute_raw_intent(intent) # :nodoc:
+        @lock.synchronize do
+          raw_result =
+            begin
+              ensure_connection_ready(allow_retry: intent.allow_retry, materialize_transactions: false)
+              perform_query(@raw_connection, intent)
+            rescue ::RangeError
+              # Re-raised untranslated: the calling pipeline handles RangeError
+              # with the empty-result fast path (see QueryIntent#run_query!).
+              raise
+            rescue => error
+              raise translate_exception_class(error, intent.processed_sql, intent.binds)
+            end
+
+          result = cast_result(raw_result)
+
+          warnings =
+            begin
+              collect_warnings(raw_result)
+            rescue StandardError
+              # Best effort: a warning-collection failure (e.g. `SHOW WARNINGS`
+              # on a dropped connection) must not discard a successful query.
+              nil
+            end
+
+          [result, warnings, raw_intent_last_inserted_id(raw_result, result)]
+        end
+      end
+
       def start_intent_log(intent) # :nodoc:
         return if intent.log_handle
 
@@ -973,6 +1005,14 @@ module ActiveRecord
 
         def last_inserted_id(result)
           single_value_from_rows(result.rows)
+        end
+
+        # The last inserted id computed eagerly for a raw intent: the raw
+        # driver result cannot cross the Ractor boundary, so it is read before
+        # the response is marshaled. Adapters whose +last_inserted_id+ reads
+        # the raw result (see Trilogy) override this to pass it instead.
+        def raw_intent_last_inserted_id(raw_result, result)
+          last_inserted_id(result)
         end
 
         def returning_column_values(result)

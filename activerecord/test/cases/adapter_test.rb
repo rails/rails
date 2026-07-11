@@ -9,6 +9,10 @@ require "models/event"
 
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy :test_indexes,
+      :test_remove_index_when_name_and_wrong_column_name_specified,
+      :test_remove_index_when_name_and_wrong_column_name_specified_positional_argument
+
     def setup
       @connection = ActiveRecord::Base.lease_connection
       @connection.materialize_transactions
@@ -212,6 +216,7 @@ module ActiveRecord
         assert_predicate ActiveRecord::Base.lease_connection, :prepared_statements?
 
         ActiveRecord.disable_prepared_statements = true
+        ActiveRecord::Base.remove_connection
         ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(prepared_statements: true))
         assert_not_predicate ActiveRecord::Base.lease_connection, :prepared_statements?
       ensure
@@ -419,7 +424,7 @@ module ActiveRecord
     test "inspect does not show secrets" do
       output = @connection.inspect
 
-      assert_match(/ActiveRecord::ConnectionAdapters::\w+:0x[\da-f]+ env_name="\w+" role=:writing>/, output)
+      assert_match(/ActiveRecord::ConnectionAdapters::[\w:]+:0x[\da-f]+ env_name="\w+" role=:writing>/, output)
     end
 
     private
@@ -1028,7 +1033,7 @@ module ActiveRecord
       end
 
       test "disconnect and recover on #configure_connection failure" do
-        connection = ActiveRecord::Base.connection_pool.send(:new_connection)
+        connection = without_ractor_proxy { ActiveRecord::Base.connection_pool }.send(:new_connection)
 
         failures = [ActiveRecord::ConnectionFailed.new("Oops"), ActiveRecord::ConnectionFailed.new("Oops 2")]
         connection.singleton_class.define_method(:configure_connection) do
@@ -1049,7 +1054,7 @@ module ActiveRecord
       end
 
       test "disconnect and recover on #configure_connection timeout" do
-        connection = ActiveRecord::Base.connection_pool.send(:new_connection)
+        connection = without_ractor_proxy { ActiveRecord::Base.connection_pool }.send(:new_connection)
 
         slow = [5]
         connection.singleton_class.define_method(:configure_connection) do
