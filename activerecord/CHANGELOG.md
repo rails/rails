@@ -1,3 +1,32 @@
+*   Fix a `has_many` association reentrantly (and prematurely) inserting a new
+    record from a sibling `belongs_to` autosave, before that record's own
+    pending foreign keys had been set.
+
+    Before, saving a new record with two independent `belongs_to` associations,
+    where one of them was shared with a third not-yet-saved record, could
+    raise a spurious `NOT NULL` violation (or otherwise persist the record
+    with a missing foreign key), because the record got reentrantly saved
+    from inside its own `before_save` autosave callback chain:
+
+    ```ruby
+    class Order < ActiveRecord::Base
+      has_many :order_items
+      belongs_to :buyer, class_name: "User"
+    end
+
+    class OrderItem < ActiveRecord::Base
+      belongs_to :order
+      belongs_to :owner, class_name: "User", foreign_key: :user_id
+    end
+
+    buyer = User.new
+    order = Order.new(buyer: buyer)
+    order_item = OrderItem.new(owner: buyer, order: order)
+    order_item.save! # => raised ActiveRecord::NotNullViolation on order_items.order_id
+    ```
+
+    *Dan Sharp*
+
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective

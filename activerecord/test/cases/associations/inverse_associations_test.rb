@@ -28,6 +28,9 @@ require "models/subscriber"
 require "models/book"
 require "models/branch"
 require "models/cpk"
+require "models/buyer"
+require "models/parcel"
+require "models/parcel_item"
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars, :books
@@ -919,6 +922,35 @@ class InverseBelongsToTests < ActiveRecord::TestCase
       assert_equal 1, interest.human.interests.size
       interest.save!
       assert_equal 1, interest.human.interests.size
+    end
+  end
+
+  # Regression test for #44790: assigning two independent belongs_to
+  # associations on a new record, where one of them (buyer) is shared with
+  # a third not-yet-saved record (parcel), used to reentrantly save the
+  # record from inside its own before_save autosave callback chain — before
+  # its other foreign key (parcel_id) had been set.
+  def test_with_has_many_inversing_sets_foreign_keys_when_owner_is_shared_with_sibling_association
+    with_has_many_inversing do
+      buyer = Buyer.new
+      parcel = Parcel.new(buyer: buyer)
+      parcel_item = ParcelItem.new(owner: buyer, parcel: parcel)
+
+      assert_nothing_raised { parcel_item.save! }
+      assert_equal parcel.id, parcel_item.reload.parcel_id
+      assert_equal buyer.id, parcel_item.buyer_id
+    end
+  end
+
+  def test_with_has_many_inversing_sets_foreign_keys_regardless_of_assignment_order
+    with_has_many_inversing do
+      buyer = Buyer.new
+      parcel = Parcel.new(buyer: buyer)
+      parcel_item = ParcelItem.new(parcel: parcel, owner: buyer)
+
+      assert_nothing_raised { parcel_item.save! }
+      assert_equal parcel.id, parcel_item.reload.parcel_id
+      assert_equal buyer.id, parcel_item.buyer_id
     end
   end
 end
