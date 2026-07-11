@@ -9,10 +9,11 @@ module ActiveRecord
 
       attr_reader :subtype, :coder
 
-      def initialize(subtype, coder, comparable: false)
+      def initialize(subtype, coder, comparable: false, default: nil)
         @subtype = subtype
         @coder = coder
         @comparable = comparable
+        @default = default
         super(subtype)
       end
 
@@ -26,7 +27,12 @@ module ActiveRecord
 
       def serialize(value)
         return if value.nil?
-        unless default_value?(value)
+        # When the value matches the coder's empty value we normally persist
+        # +nil+ (so a nullable column stays NULL). But if the column has a
+        # non-null database default, collapsing to NULL would either violate a
+        # NOT NULL constraint or silently discard the default, so serialize the
+        # value normally instead. See rails/rails#46351.
+        unless default_value?(value) && @default.nil?
           super coder.dump(value)
         end
       end

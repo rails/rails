@@ -210,7 +210,12 @@ module ActiveRecord
             end
 
             cast_type = cast_type.subtype if Type::Serialized === cast_type
-            Type::Serialized.new(cast_type, column_serializer, comparable: comparable)
+            # Resolve the column's database default lazily and only for classes
+            # that actually have a table. Reading +columns_hash+ for an abstract
+            # or tableless class would fail here (rails/rails#47482), so the
+            # guard keeps serialized attributes working in abstract classes.
+            default = columns_hash[attr_name.to_s]&.default if table_exists?
+            Type::Serialized.new(cast_type, column_serializer, comparable: comparable, default: default)
           end
         end
 
