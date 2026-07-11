@@ -129,4 +129,11 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     t = Topic.new(title: "title", title_confirmation: "Title")
     assert_predicate t, :valid?
   end
+
+  def test_title_confirmation_with_case_sensitive_option_false_folds_non_ascii_case
+    Topic.validates_confirmation_of(:title, case_sensitive: false)
+
+    t = Topic.new(title: "café", title_confirmation: "CAFÉ")
+    assert_predicate t, :valid?
+  end
 end
