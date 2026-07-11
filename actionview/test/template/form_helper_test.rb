@@ -1509,6 +1509,14 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, number_field("order", "quantity", in: ..10))
   end
 
+  def test_number_field_with_exclusive_float_range
+    expected = %{<input name="order[quantity]" max="100.0" id="order_quantity" type="number" min="0.0" />}
+    assert_dom_equal(expected, number_field("order", "quantity", in: 0.0...100.0))
+
+    expected = %{<input name="order[quantity]" max="10" id="order_quantity" type="number" min="0.0" />}
+    assert_dom_equal(expected, number_field("order", "quantity", in: 0.0...10))
+  end
+
   def test_range_input
     expected = %{<input name="hifi[volume]" step="0.1" max="11" id="hifi_volume" type="range" min="0" />}
     assert_dom_equal(expected, range_field("hifi", "volume", in: 0..11, step: 0.1))

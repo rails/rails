@@ -951,7 +951,16 @@ module ActionView
         options = options.stringify_keys
         options["type"] ||= "number"
         if range = options.delete("in") || options.delete("within")
-          options.update("min" => range.begin, "max" => (range.max if range.end))
+          # Range#max raises for an exclusive range that isn't a pure Integer range
+          # (e.g. a Float range), so fall back to the end value in that case. The
+          # HTML max attribute is an inclusive bound regardless.
+          max =
+            begin
+              range.max if range.end
+            rescue TypeError
+              range.end
+            end
+          options.update("min" => range.begin, "max" => max)
         end
         text_field_tag(name, value, options)
       end

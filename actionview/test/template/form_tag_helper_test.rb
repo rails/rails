@@ -1016,6 +1016,14 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, range_field_tag("volume", nil, in: ..11))
   end
 
+  def test_range_input_tag_with_exclusive_float_range
+    expected = %{<input name="volume" max="1.0" id="volume" type="range" min="0.0" />}
+    assert_dom_equal(expected, range_field_tag("volume", nil, in: 0.0...1.0))
+
+    expected = %{<input name="volume" max="10" id="volume" type="range" min="0.0" />}
+    assert_dom_equal(expected, range_field_tag("volume", nil, in: 0.0...10))
+  end
+
   def test_empty_datalist
     actual = datalist_tag("countries_datalist")
     expected = %(<datalist id="countries_datalist"></datalist>)
