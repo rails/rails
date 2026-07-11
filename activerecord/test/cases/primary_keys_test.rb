@@ -373,6 +373,8 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 end
 
 class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   self.use_transactional_tests = false
 
   class AutoIncrement < ActiveRecord::Base
@@ -410,6 +412,8 @@ class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
 end
 
 class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   include SchemaDumpingHelper
 
   class Barcode < ActiveRecord::Base
@@ -451,6 +455,8 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
 end
 
 class CompositePrimaryKeyTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   include SchemaDumpingHelper
 
   self.use_transactional_tests = false
@@ -592,6 +598,8 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 end
 
 class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   include SchemaDumpingHelper
 
   def setup
