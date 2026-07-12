@@ -1,3 +1,12 @@
+*   Join an Array `:accept` option with commas in `file_field_tag`.
+
+    Previously, passing `accept: ["image/png", "image/gif"]` rendered
+    `accept="image/png image/gif"`, while the HTML `accept` attribute is a
+    comma-separated list. It now renders `accept="image/png,image/gif"`,
+    matching the object-based `file_field`.
+
+    *Kenta Ishizaki*
+
 *   `current_page?` matches HTTP QUERY requests
     ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) with
     `method: :query`. The default `method: :get` deliberately does not match
