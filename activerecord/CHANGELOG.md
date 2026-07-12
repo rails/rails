@@ -1,3 +1,12 @@
+*   Honor foreign key names on SQLite3.
+
+    SQLite3 did not read foreign key names, so `remove_foreign_key(name:)`
+    removed an arbitrary foreign key rather than the named one, and custom
+    names were lost when a later schema change rebuilt the table or the
+    schema was dumped. Names are now honored, matching the other adapters.
+
+    *Kenta Ishizaki*
+
 *   Honor `if_not_exists:` in SQLite3 `add_check_constraint` and `add_foreign_key`.
 
     *Kenta Ishizaki*
