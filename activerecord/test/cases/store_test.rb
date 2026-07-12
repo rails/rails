@@ -147,6 +147,15 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal "black", @john.color_was
   end
 
+  test "reading _before_last_save for an accessor unchanged in the last save returns the current value" do
+    @john.partner_name = "River"
+    @john.save!
+
+    assert_not @john.saved_change_to_color?
+    assert_equal "black", @john.color_before_last_save
+    assert_equal @john.color, @john.color_before_last_save
+  end
+
   test "changing one accessor does not report a change for a sibling accessor" do
     @john.homepage = "http://www.example.com"
     @john.save!

@@ -194,7 +194,7 @@ module ActiveRecord
             end
 
             define_method("#{accessor_key}_before_last_save") do
-              return unless saved_change_to_attribute?(store_attribute)
+              return read_store_attribute(store_attribute, key) unless saved_change_to_attribute?(store_attribute)
               prev_store, _new_store = saved_changes[store_attribute]
               accessor = store_accessor_for(store_attribute)
               accessor.get(prev_store, key)
