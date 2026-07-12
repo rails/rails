@@ -1888,7 +1888,7 @@ class SettingsTest < ActionDispatch::IntegrationTest
     sign_in_as users(:one)
     get settings_profile_path
     assert_dom "h4", "Account Settings"
-    assert_not_dom "a", "Store Settings"
+    assert_not_dom "h4", "Store Settings"
   end
 
   test "admin settings nav" do
