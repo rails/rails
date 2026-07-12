@@ -1807,6 +1807,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert book.order_previously_changed?
   end
 
+  test "saved change to target is tracked for a composite foreign key" do
+    old_order = Cpk::Order.create!(id: [1, 2])
+    new_order = Cpk::Order.create!(id: [1, 3])
+    book = Cpk::Book.create!(id: [3, 4], order: old_order)
+    book.reload
+
+    book.order = new_order
+    book.save!
+
+    assert book.association(:order).saved_change_to_target?
+  end
+
   class ShipRequired < ActiveRecord::Base
     self.table_name = "ships"
     belongs_to :developer, required: true

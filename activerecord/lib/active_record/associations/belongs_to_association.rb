@@ -72,9 +72,16 @@ module ActiveRecord
           model_was = klass
         end
 
-        foreign_key_was = owner.attribute_before_last_save(reflection.foreign_key)
+        foreign_key = reflection.foreign_key
+        if foreign_key.is_a?(Array)
+          foreign_key_was = foreign_key.map { |fk| owner.attribute_before_last_save(fk) }
+          foreign_key_was_present = foreign_key_was.all?
+        else
+          foreign_key_was = owner.attribute_before_last_save(foreign_key)
+          foreign_key_was_present = foreign_key_was
+        end
 
-        if foreign_key_was && model_was < ActiveRecord::Base
+        if foreign_key_was_present && model_was && model_was < ActiveRecord::Base
           update_counters_via_scope(model_was, foreign_key_was, -1)
         end
       end
@@ -88,7 +95,7 @@ module ActiveRecord
       end
 
       def saved_change_to_target?
-        owner.saved_change_to_attribute?(reflection.foreign_key)
+        Array(reflection.foreign_key).any? { |fk| owner.saved_change_to_attribute?(fk) }
       end
 
       private
@@ -111,13 +118,21 @@ module ActiveRecord
             if target && !stale_target?
               target.increment!(reflection.counter_cache_column, by, touch: reflection.options[:touch])
             else
-              update_counters_via_scope(klass, owner._read_attribute(reflection.foreign_key), by)
+              foreign_key = reflection.foreign_key
+              if foreign_key.is_a?(Array)
+                foreign_key = foreign_key.map { |fk| owner._read_attribute(fk) }
+              else
+                foreign_key = owner._read_attribute(foreign_key)
+              end
+              update_counters_via_scope(klass, foreign_key, by)
             end
           end
         end
 
         def update_counters_via_scope(klass, foreign_key, by)
-          scope = klass.unscoped.where!(primary_key(klass) => foreign_key)
+          primary_key = primary_key(klass)
+          foreign_key = [foreign_key] if primary_key.is_a?(Array)
+          scope = klass.unscoped.where!(primary_key => foreign_key)
           scope.update_counters(reflection.counter_cache_column => by, touch: reflection.options[:touch])
         end
 

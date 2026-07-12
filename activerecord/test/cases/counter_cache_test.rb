@@ -86,6 +86,20 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "reassigning a cpk parent moves the counter cache to the new parent" do
+    old_order = Cpk::Order.create!(id: [1, 2])
+    new_order = Cpk::Order.create!(id: [1, 3])
+    book = Cpk::Book.create!(id: [3, 4], order: old_order)
+
+    assert_equal 1, old_order.reload.books_count
+    assert_equal 0, new_order.reload.books_count
+
+    book.update!(order: new_order)
+
+    assert_equal 0, old_order.reload.books_count
+    assert_equal 1, new_order.reload.books_count
+  end
+
   test "reset counters" do
     # throw the count off by 1
     Topic.increment_counter(:replies_count, @topic.id)
