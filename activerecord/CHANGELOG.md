@@ -1,3 +1,7 @@
+*   Honor `if_not_exists:` in SQLite3 `add_check_constraint` and `add_foreign_key`.
+
+    *Kenta Ishizaki*
+
 *   Fix MySQL `POINT` and `MULTIPOINT` columns being misreported as integer columns.
 
     Both type names contain the substring "int", so they matched the generic

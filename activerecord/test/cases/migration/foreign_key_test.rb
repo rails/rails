@@ -1122,6 +1122,8 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           assert_nothing_raised do
             @connection.add_foreign_key :astronauts, :rockets, if_not_exists: true
           end
+
+          assert_equal 1, @connection.foreign_keys("astronauts").size
         end
 
         def test_add_foreign_key_preserves_existing_column_types
