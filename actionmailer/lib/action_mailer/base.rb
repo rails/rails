@@ -987,8 +987,15 @@ module ActionMailer
       end
 
       def collect_responses_from_block(headers)
+        templates_path = headers[:template_path]
         templates_name = headers[:template_name] || action_name
-        collector = ActionMailer::Collector.new(lookup_context) { render(templates_name) }
+        collector = ActionMailer::Collector.new(lookup_context) do
+          if templates_path
+            render(template: templates_name, prefixes: Array(templates_path))
+          else
+            render(templates_name)
+          end
+        end
         yield(collector)
         collector.responses
       end

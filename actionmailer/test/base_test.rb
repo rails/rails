@@ -659,6 +659,11 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal("Welcome from another path", mail.body.encoded)
   end
 
+  test "you can specify the template path for a block-form mail" do
+    mail = BaseMailer.welcome_from_another_path_with_block("another.path/base_mailer").deliver_now
+    assert_equal("Welcome from another path", mail.body.encoded)
+  end
+
   test "assets tags should use ActionMailer's asset_host settings" do
     ActionMailer::Base.config.asset_host = "http://global.com"
     ActionMailer::Base.config.assets_dir = "global/"

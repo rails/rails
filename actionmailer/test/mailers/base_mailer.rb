@@ -21,6 +21,12 @@ class BaseMailer < ActionMailer::Base
     mail(template_name: "welcome", template_path: path)
   end
 
+  def welcome_from_another_path_with_block(path)
+    mail(template_name: "welcome", template_path: path) do |format|
+      format.text
+    end
+  end
+
   def welcome_without_deliveries(hash = {})
     mail({ template_name: "welcome" }.merge!(hash))
     mail.perform_deliveries = false

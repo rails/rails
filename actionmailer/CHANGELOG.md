@@ -1,3 +1,11 @@
+*   Honor `template_path:` in block-form `mail`.
+
+    Passing `template_path:` to the block form of `mail` was ignored, so the
+    implicitly rendered template was always looked up under the mailer's
+    default path. It is now honored, matching the non-block form.
+
+    *Kenta Ishizaki*
+
 *   Add support for `config.action_mailer.raise_on_missing_callback_actions`
     when using `_deliver` callbacks with `only:` and `except:` options.
 
