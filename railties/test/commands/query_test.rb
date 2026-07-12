@@ -242,6 +242,14 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
     assert_equal 3, data.dig("meta", "row_count")
   end
 
+  test "detects an explicit LIMIT that follows a leading SQL comment" do
+    rails "runner", '3.times { |i| Post.create!(title: "Post #{i}") }'
+
+    data = query_json("--sql", "-- a leading comment\nSELECT * FROM posts ORDER BY id LIMIT 2")
+
+    assert_equal 2, data["rows"].length
+  end
+
   test "explain shows query plan" do
     data = query_json("explain", "Post.where(status: 0)")
 

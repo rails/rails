@@ -150,7 +150,7 @@ module Rails
         end
 
         def execute_sql(connection:, sql:, page:, per:)
-          unless sql.gsub(/--.*$|\/\*.*?\*\//m, "").match?(/\bLIMIT\b/i)
+          unless sql.gsub(/--[^\n]*|\/\*.*?\*\//m, "").match?(/\bLIMIT\b/i)
             offset = (page - 1) * per
             sql = "#{sql.rstrip.chomp(';')} LIMIT #{per + 1}"
             sql += " OFFSET #{offset}" if offset > 0
