@@ -118,10 +118,13 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
 
         def test_add_check_constraint_with_if_not_exists_options
           @connection.add_check_constraint :trades, "quantity > 0"
+          assert_equal 1, @connection.check_constraints("trades").size
 
           assert_nothing_raised do
             @connection.add_check_constraint :trades, "quantity > 0", if_not_exists: true
           end
+
+          assert_equal 1, @connection.check_constraints("trades").size
         end
 
         if supports_non_unique_constraint_name?

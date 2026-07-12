@@ -53,7 +53,10 @@ module ActiveRecord
           end
         end
 
-        def add_foreign_key(from_table, to_table, **options)
+        def add_foreign_key(from_table, to_table, if_not_exists: false, **options)
+          options = foreign_key_options(from_table, to_table, options)
+          return if if_not_exists && foreign_key_exists?(from_table, to_table, **options.slice(:column, :primary_key))
+
           assert_valid_deferrable(options[:deferrable])
 
           alter_table(from_table) do |definition|
@@ -94,7 +97,9 @@ module ActiveRecord
           end
         end
 
-        def add_check_constraint(table_name, expression, **options)
+        def add_check_constraint(table_name, expression, if_not_exists: false, **options)
+          return if if_not_exists && check_constraint_exists?(table_name, expression: expression, **options)
+
           alter_table(table_name) do |definition|
             definition.check_constraint(expression, **options)
           end
