@@ -1501,7 +1501,7 @@ module ActiveRecord
             raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
           sql = +"INSERT INTO #{sm_table} (version) VALUES "
-          sql << inserting.reverse.map { |v| "(#{quote(v)})" }.join(",")
+          sql << inserting.map { |v| "(#{quote(v)})" }.join(",")
           execute sql
         end
       end
