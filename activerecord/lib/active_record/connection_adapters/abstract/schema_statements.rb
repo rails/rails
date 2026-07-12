@@ -1500,7 +1500,9 @@ module ActiveRecord
           if (duplicate = inserting.detect { |v| inserting.count(v) > 1 })
             raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
-          execute insert_versions_sql(inserting)
+          sql = +"INSERT INTO #{sm_table} (version) VALUES "
+          sql << inserting.reverse.map { |v| "(#{quote(v)})" }.join(",")
+          execute sql
         end
       end
 
