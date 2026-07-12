@@ -1,3 +1,10 @@
+*   Accept `Date` and `Numeric` inputs in `relative_time_in_words`.
+
+    Passing a `Date` or a `Numeric` raised `ArgumentError` instead of returning
+    a distance string, unlike `distance_of_time_in_words` which accepts them.
+
+    *Kenta Ishizaki*
+
 *   Support endless and beginless ranges in `number_field_tag` and
     `range_field_tag`.
 
