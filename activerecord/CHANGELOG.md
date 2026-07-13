@@ -1,3 +1,11 @@
+*   Honor composite foreign key names and deferrable modes on SQLite3.
+
+    `remove_foreign_key(name:)` could not find a composite foreign key by
+    name, and custom names and `deferrable:` modes of composite foreign keys
+    were lost on table rebuilds and missing from the schema dump.
+
+    *Kenta Ishizaki*
+
 *   `connected_to_all_shards` now raises `ArgumentError` when called on a model
     that is not connected to any shards, rather than silently doing nothing.
 

@@ -466,7 +466,8 @@ module ActiveRecord
       alias :add_belongs_to :add_reference
 
       FK_NAME_REGEX = /\ACONSTRAINT\s+"([^"]+)"/
-      FK_REGEX = /.*FOREIGN KEY\s+\("([^"]+)"\)\s+REFERENCES\s+"(\w+)"\s+\("(\w+)"\)/
+      FK_REGEX = /.*FOREIGN KEY\s+\(("[^"]+"(?:\s*,\s*"[^"]+")*)\)\s+REFERENCES\s+"(\w+)"\s+\(("[^"]+"(?:\s*,\s*"[^"]+")*)\)/
+      QUOTED_COLUMN_REGEX = /"([^"]+)"/
       DEFERRABLE_REGEX = /DEFERRABLE INITIALLY (\w+)/
       def foreign_keys(table_name)
         # SQLite returns 1 row for each column of composite foreign keys.
@@ -483,13 +484,17 @@ module ActiveRecord
                       _, mode = fk_string.match(DEFERRABLE_REGEX).to_a
                       _, name = fk_string.match(FK_NAME_REGEX).to_a
                       deferred = mode&.downcase&.to_sym || false
-                      [[table, from, to], { deferrable: deferred, name: name }]
+                      from_columns = from&.scan(QUOTED_COLUMN_REGEX)&.flatten
+                      to_columns = to&.scan(QUOTED_COLUMN_REGEX)&.flatten
+                      [[table, from_columns, to_columns], { deferrable: deferred, name: name }]
                     end
 
         grouped_fk = fk_info.group_by { |row| row["id"] }.values.each { |group| group.sort_by! { |row| row["seq"] } }
         grouped_fk.map do |group|
           row = group.first
-          fk_def = fk_defs[[row["table"], row["from"], row["to"]]]
+          columns = group.map { |row| row["from"] }
+          primary_keys = group.map { |row| row["to"] }
+          fk_def = fk_defs[[row["table"], columns, primary_keys]]
           options = {
             on_delete: extract_foreign_key_action(row["on_delete"]),
             on_update: extract_foreign_key_action(row["on_update"]),
@@ -501,8 +506,8 @@ module ActiveRecord
             options[:column] = row["from"]
             options[:primary_key] = row["to"]
           else
-            options[:column] = group.map { |row| row["from"] }
-            options[:primary_key] = group.map { |row| row["to"] }
+            options[:column] = columns
+            options[:primary_key] = primary_keys
           end
           ForeignKeyDefinition.new(table_name, row["table"], options)
         end
@@ -854,7 +859,22 @@ module ActiveRecord
                 # column definitions can have a comma in them, so split on commas followed
                 # by a space and a column name in quotes or followed by the keyword CONSTRAINT
                 .split(/,(?=\s(?:CONSTRAINT|"(?:#{Regexp.union(column_names).source})"))/i)
+                # quoted column names can also appear inside the parenthesized column
+                # lists of a composite FOREIGN KEY constraint, so rejoin the parts of
+                # any definition that was split in the middle of one
+                .each_with_object([]) do |part, definitions|
+                  if definitions.last && unbalanced_parentheses?(definitions.last)
+                    definitions.last << "," << part
+                  else
+                    definitions << part
+                  end
+                end
                 .map(&:strip)
+        end
+
+        def unbalanced_parentheses?(definition)
+          definition = definition.gsub(/"[^"]*"|'[^']*'/, "")
+          definition.count("(") != definition.count(")")
         end
 
         def table_info(table_name)

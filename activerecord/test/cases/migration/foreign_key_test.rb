@@ -1223,12 +1223,77 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           assert_empty @connection.foreign_keys(:astronauts)
         end
 
+        def test_add_composite_foreign_key_with_name
+          @connection.add_foreign_key :astronauts, :rockets, primary_key: [:tenant_id, :id], name: "custom_composite_fk"
+
+          foreign_keys = @connection.foreign_keys(:astronauts)
+          assert_equal 1, foreign_keys.size
+
+          fk = foreign_keys.first
+          assert_equal "custom_composite_fk", fk.name
+          assert_equal ["rocket_tenant_id", "rocket_id"], fk.column
+        end
+
+        def test_remove_composite_foreign_key_by_name
+          @connection.add_foreign_key :astronauts, :rockets, primary_key: [:tenant_id, :id], name: "custom_composite_fk"
+          assert_equal 1, @connection.foreign_keys(:astronauts).size
+
+          @connection.remove_foreign_key :astronauts, name: "custom_composite_fk"
+          assert_empty @connection.foreign_keys(:astronauts)
+        end
+
+        def test_composite_foreign_key_name_persists_when_table_is_altered
+          @connection.add_foreign_key :astronauts, :rockets, primary_key: [:tenant_id, :id], name: "custom_composite_fk"
+
+          @connection.add_column :astronauts, :nickname, :string
+          @connection.remove_column :astronauts, :nickname
+
+          fk = @connection.foreign_keys(:astronauts).first
+          assert_equal "custom_composite_fk", fk.name
+          assert_equal ["rocket_tenant_id", "rocket_id"], fk.column
+        end
+
+        if ActiveRecord::Base.lease_connection.supports_deferrable_constraints?
+          def test_composite_deferrable_foreign_key
+            @connection.add_foreign_key :astronauts, :rockets, primary_key: [:tenant_id, :id], deferrable: :deferred
+
+            fk = @connection.foreign_keys(:astronauts).first
+            assert_equal :deferred, fk.deferrable
+          end
+
+          def test_composite_deferrable_foreign_key_persists_when_table_is_altered
+            @connection.add_foreign_key :astronauts, :rockets, primary_key: [:tenant_id, :id], deferrable: :deferred
+
+            @connection.add_column :astronauts, :nickname, :string
+            @connection.remove_column :astronauts, :nickname
+
+            fk = @connection.foreign_keys(:astronauts).first
+            assert_equal :deferred, fk.deferrable
+          end
+
+          def test_schema_dumping_with_deferrable
+            @connection.add_foreign_key :astronauts, :rockets, primary_key: [:tenant_id, :id], deferrable: :deferred
+
+            output = dump_table_schema "astronauts"
+
+            assert_match %r{\s+add_foreign_key "astronauts", "rockets", column: \["rocket_tenant_id", "rocket_id"\], primary_key: \["tenant_id", "id"\], deferrable: :deferred$}, output
+          end
+        end
+
         def test_schema_dumping
           @connection.add_foreign_key :astronauts, :rockets, primary_key: [:tenant_id, :id]
 
           output = dump_table_schema "astronauts"
 
           assert_match %r{\s+add_foreign_key "astronauts", "rockets", column: \["rocket_tenant_id", "rocket_id"\], primary_key: \["tenant_id", "id"\]$}, output
+        end
+
+        def test_schema_dumping_with_name
+          @connection.add_foreign_key :astronauts, :rockets, primary_key: [:tenant_id, :id], name: "custom_composite_fk"
+
+          output = dump_table_schema "astronauts"
+
+          assert_match %r{\s+add_foreign_key "astronauts", "rockets", column: \["rocket_tenant_id", "rocket_id"\], primary_key: \["tenant_id", "id"\], name: "custom_composite_fk"$}, output
         end
       end
     end
