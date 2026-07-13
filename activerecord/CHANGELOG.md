@@ -1,3 +1,13 @@
+*   Fix `disable_joins` on `has_many :through` associations
+    with polymorphic join tables missing the type filter.
+
+    When using `disable_joins: true` on a `has_many :through` association
+    that goes through a polymorphic join table, the scope only filtered by
+    the foreign key id but not by the polymorphic type column. This caused
+    the association to return records belonging to a different parent type.
+
+    *Fabian Mersch*
+
 *   Honor foreign key names on SQLite3.
 
     SQLite3 did not read foreign key names, so `remove_foreign_key(name:)`

@@ -21,7 +21,7 @@ require "models/cpk/book"
 require "models/cpk/order"
 
 class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :authors, :comments, :pirates, :author_addresses
+  fixtures :posts, :authors, :comments, :pirates, :author_addresses, :tags
 
   def setup
     @author = authors(:mary)
@@ -208,5 +208,16 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
 
     assert_equal author.orders.to_a, author.no_joins_orders.to_a
     assert_equal [order2, order1], author.no_joins_orders.to_a
+  end
+
+  def test_disable_joins_through_polymorphic_association
+    tag = tags(:misc)
+    post = posts(:welcome)
+    comment = comments(:greetings)
+    comment.tags << tag
+
+    # Both records must have the same id for the error to occur.
+    assert_equal post.id, comment.id
+    assert_not_includes post.no_join_tags, tag
   end
 end
