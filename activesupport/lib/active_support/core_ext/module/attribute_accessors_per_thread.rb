@@ -47,8 +47,8 @@ class Module
       if default.nil?
         class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
           def self.#{sym}
-            @__thread_mattr_#{sym} ||= "attr_#{sym}_\#{object_id}"
-            ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}]
+            key = "attr_#{sym}_\#{object_id}"
+            ::ActiveSupport::IsolatedExecutionState[key]
           end
         RUBY
       else
@@ -57,11 +57,11 @@ class Module
 
         class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
           def self.#{sym}
-            @__thread_mattr_#{sym} ||= "attr_#{sym}_\#{object_id}"
-            value = ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}]
+            key = "attr_#{sym}_\#{object_id}"
+            value = ::ActiveSupport::IsolatedExecutionState[key]
 
-            if value.nil? && !::ActiveSupport::IsolatedExecutionState.key?(@__thread_mattr_#{sym})
-              ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}] = #{sym}_default_value
+            if value.nil? && !::ActiveSupport::IsolatedExecutionState.key?(key)
+              ::ActiveSupport::IsolatedExecutionState[key] = #{sym}_default_value
             else
               value
             end
@@ -106,8 +106,8 @@ class Module
       # subclasses to maintain independent values.
       class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
         def self.#{sym}=(obj)
-          @__thread_mattr_#{sym} ||= "attr_#{sym}_\#{object_id}"
-          ::ActiveSupport::IsolatedExecutionState[@__thread_mattr_#{sym}] = obj
+          key = "attr_#{sym}_\#{object_id}"
+          ::ActiveSupport::IsolatedExecutionState[key] = obj
         end
       RUBY
 
