@@ -582,13 +582,13 @@ module ActiveRecord
           when /^null$/i
             nil
           # Quoted types
-          when /^'([^|]*)'$/m
+          when /\A'((?:[^']|'')*)'\z/m
             $1.gsub("''", "'")
           # Quoted types
-          when /^"([^|]*)"$/m
+          when /\A"((?:[^"]|"")*)"\z/m
             $1.gsub('""', '"')
           # Numeric types
-          when /\A-?\d+(\.\d*)?\z/
+          when /\A-?\d+(\.\d*)?([eE][-+]?\d+)?\z/
             $&
           # Binary columns
           when /x'(.*)'/

@@ -1,3 +1,12 @@
+*   Read back SQLite3 column defaults containing `|` or written in exponent notation.
+
+    Previously, `column.default` was `nil` for string defaults containing `|`
+    (e.g. `default: "a|b"`) and for float defaults quoted in exponent notation
+    (e.g. `default: 1.0e-08`). Such defaults were omitted from the schema dump
+    and lost on any schema change that rebuilds the table.
+
+    *Kenta Ishizaki*
+
 *   `connected_to_all_shards` now raises `ArgumentError` when called on a model
     that is not connected to any shards, rather than silently doing nothing.
 

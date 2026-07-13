@@ -656,6 +656,48 @@ module ActiveRecord
         end
       end
 
+      def test_columns_with_string_default_containing_pipe
+        with_example_table "id integer PRIMARY KEY AUTOINCREMENT, name varchar DEFAULT 'a|b'" do
+          column = @conn.columns("ex").find { |x| x.name == "name" }
+          assert_equal "a|b", column.default
+          assert_nil column.default_function
+        end
+      end
+
+      def test_columns_with_string_default_containing_escaped_quote
+        with_example_table "id integer PRIMARY KEY AUTOINCREMENT, name varchar DEFAULT 'it''s'" do
+          column = @conn.columns("ex").find { |x| x.name == "name" }
+          assert_equal "it's", column.default
+          assert_nil column.default_function
+        end
+      end
+
+      def test_columns_with_float_default_in_exponent_notation
+        with_example_table "id integer PRIMARY KEY AUTOINCREMENT, small float DEFAULT 1.0e-08, big float DEFAULT 1.0e+20" do
+          columns = @conn.columns("ex")
+          assert_equal 1.0e-08, columns.find { |x| x.name == "small" }.default
+          assert_equal 1.0e+20, columns.find { |x| x.name == "big" }.default
+        end
+      end
+
+      def test_columns_with_concatenation_default_is_extracted_as_default_function
+        with_example_table "id integer PRIMARY KEY AUTOINCREMENT, name varchar DEFAULT ('foo'||'bar')" do
+          column = @conn.columns("ex").find { |x| x.name == "name" }
+          assert_nil column.default
+          assert_equal "'foo'||'bar'", column.default_function
+        end
+      end
+
+      def test_alter_table_preserves_string_default_containing_pipe
+        with_example_table "id integer PRIMARY KEY AUTOINCREMENT, name varchar DEFAULT 'a|b', number integer" do
+          @conn.remove_column :ex, :number
+
+          assert_includes @conn.query_value("SELECT sql FROM sqlite_master WHERE name = 'ex'"), "'a|b'"
+          column = @conn.columns("ex").find { |x| x.name == "name" }
+          assert_equal "a|b", column.default
+        end
+      end
+
       def test_columns_with_not_null
         with_example_table "id integer PRIMARY KEY AUTOINCREMENT, number integer not null" do
           column = @conn.columns("ex").find { |x| x.name == "number" }
