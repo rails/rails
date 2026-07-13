@@ -836,6 +836,56 @@ module ActiveRecord
         BarcodeCpk.reset_column_information
       end
 
+      def test_rename_column_preserves_custom_primary_key
+        @conn.create_table(:things, primary_key: :code, id: :string) do |t|
+          t.string :name
+        end
+
+        @conn.rename_column(:things, :code, :ref)
+
+        assert_equal "ref", @conn.primary_key(:things)
+
+        @conn.execute("INSERT INTO things (ref, name) VALUES ('abc', 'first')")
+        assert_raises(ActiveRecord::RecordNotUnique) do
+          @conn.execute("INSERT INTO things (ref, name) VALUES ('abc', 'second')")
+        end
+      end
+
+      def test_rename_column_preserves_default_primary_key
+        @conn.create_table(:things) do |t|
+          t.string :name
+        end
+
+        @conn.rename_column(:things, :id, :ident)
+
+        assert_equal "ident", @conn.primary_key(:things)
+
+        pk_column = @conn.columns(:things).find { |col| col.name == "ident" }
+        assert_predicate pk_column, :auto_increment?
+      end
+
+      def test_rename_column_preserves_composite_primary_key
+        @conn.create_table(:things, primary_key: [:region, :code]) do |t|
+          t.string :region
+          t.string :code
+          t.string :name
+        end
+
+        @conn.rename_column(:things, :code, :sku)
+
+        assert_equal ["region", "sku"], @conn.primary_keys(:things)
+      end
+
+      def test_rename_column_keeps_primary_key_when_another_column_is_renamed
+        @conn.create_table(:things, primary_key: :code, id: :string) do |t|
+          t.string :name
+        end
+
+        @conn.rename_column(:things, :name, :title)
+
+        assert_equal "code", @conn.primary_key(:things)
+      end
+
       def test_custom_primary_key_in_create_table
         connection = Barcode.lease_connection
         connection.create_table :barcodes, id: false, force: true do |t|

@@ -657,26 +657,29 @@ module ActiveRecord
         end
 
         def copy_table(from, to, options = {})
+          rename = options[:rename] || {}
           from_primary_key = primary_key(from)
+          to_primary_key = if from_primary_key.is_a?(Array)
+            from_primary_key.map { |name| rename[name] || rename[name.to_sym] || name }
+          elsif from_primary_key
+            rename[from_primary_key] || rename[from_primary_key.to_sym] || from_primary_key
+          end
           options[:id] = false
           create_table(to, **options) do |definition|
             @definition = definition
-            if from_primary_key.is_a?(Array)
-              @definition.primary_keys from_primary_key
+            if to_primary_key.is_a?(Array)
+              @definition.primary_keys to_primary_key
             end
 
             columns(from).each do |column|
-              column_name = options[:rename] ?
-                (options[:rename][column.name] ||
-                 options[:rename][column.name.to_sym] ||
-                 column.name) : column.name
+              column_name = rename[column.name] || rename[column.name.to_sym] || column.name
 
               column_options = {
                 limit: column.limit,
                 precision: column.precision,
                 scale: column.scale,
                 collation: column.collation,
-                primary_key: column_name == from_primary_key
+                primary_key: column_name == to_primary_key
               }
 
               # column.null is true unless there is an explicit NOT NULL
@@ -687,7 +690,7 @@ module ActiveRecord
               #
               # We always add a NOT NULL constraint for PKs, and `null: true` is
               # invalid for them. That is why we skip in that case.
-              column_options[:null] = column.null unless column_name == from_primary_key
+              column_options[:null] = column.null unless column_name == to_primary_key
 
               if column.virtual?
                 column_options[:as] = column.default_function

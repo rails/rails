@@ -1,3 +1,13 @@
+*   Keep the primary key when renaming its column on SQLite3.
+
+    `rename_column` on a primary key column rebuilt the table without any
+    primary key, so the renamed column silently lost its `PRIMARY KEY`
+    constraint (including on the default `id`). Renaming a column that is
+    part of a composite primary key raised `SQLite3::SQLException`. The
+    primary key now follows the rename in both cases.
+
+    *Kenta Ishizaki*
+
 *   `connected_to_all_shards` now raises `ArgumentError` when called on a model
     that is not connected to any shards, rather than silently doing nothing.
 
