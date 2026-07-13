@@ -87,7 +87,7 @@ module ActiveSupport
     end
 
     def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} keys=#{keys.inspect}>"
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
     end
   end
 end
