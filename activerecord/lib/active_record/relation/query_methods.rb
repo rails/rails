@@ -514,7 +514,7 @@ module ActiveRecord
     #   # )
     #   # SELECT * FROM posts
     #
-    # See `#with` for more information.
+    # See #with for more information.
     def with_recursive(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.with_recursive!(*args)
