@@ -207,4 +207,20 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
     assert_equal "super", @class.baz
     assert_equal "sub", @subclass.baz
   end
+
+  if RUBY_VERSION >= "4.0"
+    class TestObj
+      thread_mattr_accessor :foo
+    end
+
+    def test_getter_and_setter_is_accessible_from_a_ractor
+      value = Ractor.new do
+        TestObj.foo = :test
+
+        TestObj.foo
+      end.value
+
+      assert_equal(:test, value)
+    end
+  end
 end
