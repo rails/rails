@@ -17,6 +17,8 @@ if ActiveRecord::Base.lease_connection.supports_exclusion_constraints?
           @connection.create_table "invoices", force: true do |t|
             t.date :start_date
             t.date :end_date
+            t.boolean :active
+            t.string :name
           end
         end
 
@@ -90,6 +92,41 @@ if ActiveRecord::Base.lease_connection.supports_exclusion_constraints?
           assert_equal "excl_rails_74c9160f55", constraint.name
           assert_equal false, constraint.deferrable
           assert_equal "daterange(start_date, end_date) WITH &&", constraint.expression
+        end
+
+        def test_add_exclusion_constraint_with_boolean_column_where_predicate
+          @connection.add_exclusion_constraint :invoices, "daterange(start_date, end_date) WITH &&", using: :gist, where: "active"
+
+          constraint = @connection.exclusion_constraints("invoices").first
+          assert_equal "active", constraint.where
+        end
+
+        def test_add_exclusion_constraint_with_function_call_where_predicate
+          @connection.add_exclusion_constraint :invoices, "daterange(start_date, end_date) WITH &&", using: :gist, where: "starts_with(name, 'a')"
+
+          constraint = @connection.exclusion_constraints("invoices").first
+          assert_equal "starts_with((name)::text, 'a'::text)", constraint.where
+        end
+
+        def test_add_exclusion_constraint_with_where_predicate_containing_where_string
+          @connection.add_exclusion_constraint :invoices, "daterange(start_date, end_date) WITH &&", using: :gist, where: "name = ' WHERE '"
+
+          constraint = @connection.exclusion_constraints("invoices").first
+          assert_equal "(name)::text = ' WHERE '::text", constraint.where
+        end
+
+        def test_add_exclusion_constraint_with_top_level_boolean_where_predicate
+          @connection.add_exclusion_constraint :invoices, "daterange(start_date, end_date) WITH &&", using: :gist, where: "(start_date IS NOT NULL) OR (end_date IS NOT NULL)"
+
+          constraint = @connection.exclusion_constraints("invoices").first
+          assert_equal "(start_date IS NOT NULL) OR (end_date IS NOT NULL)", constraint.where
+        end
+
+        def test_schema_dumping_with_where_predicate
+          @connection.add_exclusion_constraint :invoices, "daterange(start_date, end_date) WITH &&", using: :gist, where: "active", name: "invoices_date_overlap_when_active"
+
+          output = dump_table_schema "invoices"
+          assert_match %r{t\.exclusion_constraint "daterange\(start_date, end_date\) WITH &&", where: "active", using: :gist, name: "invoices_date_overlap_when_active"}, output
         end
 
         def test_add_exclusion_constraint_deferrable_false

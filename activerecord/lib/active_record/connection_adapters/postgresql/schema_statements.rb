@@ -858,10 +858,14 @@ module ActiveRecord
           SQL
 
           exclusion_info.map do |row|
-            method_and_elements, predicate = row["constraintdef"].split(" WHERE ")
+            method_and_elements, predicate = row["constraintdef"].split(" WHERE ", 2)
             method_and_elements_parts = method_and_elements.match(/EXCLUDE(?: USING (?<using>\S+))? \((?<expression>.+)\)/)
-            predicate.remove!(/ DEFERRABLE(?: INITIALLY (?:IMMEDIATE|DEFERRED))?/) if predicate
-            predicate = predicate.from(2).to(-3) if predicate # strip 2 opening and closing parentheses
+            if predicate
+              predicate.remove!(/ DEFERRABLE(?: INITIALLY (?:IMMEDIATE|DEFERRED))?/)
+              # The `WHERE` clause is wrapped in parentheses, and the predicate
+              # itself may be wrapped in another pair.
+              predicate = strip_wrapping_parentheses(strip_wrapping_parentheses(predicate))
+            end
 
             deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
 
@@ -1292,6 +1296,31 @@ module ActiveRecord
 
           def extract_constraint_deferrable(deferrable, deferred)
             deferrable && (deferred ? :deferred : :immediate)
+          end
+
+          # Removes a pair of parentheses if and only if it wraps the whole
+          # expression, so that "(a)" becomes "a" but "(a) OR (b)" is unchanged.
+          def strip_wrapping_parentheses(expression)
+            return expression unless expression.start_with?("(") && expression.end_with?(")")
+
+            depth = 0
+            quote = nil
+            last_index = expression.length - 1
+
+            expression.each_char.with_index do |char, index|
+              if quote
+                quote = nil if char == quote
+              elsif char == "'" || char == '"'
+                quote = char
+              elsif char == "("
+                depth += 1
+              elsif char == ")"
+                depth -= 1
+                return expression if depth == 0 && index < last_index
+              end
+            end
+
+            depth == 0 ? expression[1..-2] : expression
           end
 
           def reference_name_for_table(table_name)

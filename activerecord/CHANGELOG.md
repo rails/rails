@@ -1,3 +1,13 @@
+*   Fix PostgreSQL exclusion constraint `where:` predicates being corrupted on read.
+
+    Introspecting an exclusion constraint whose `WHERE` predicate is a bare
+    boolean column or a function call returned a mangled predicate (e.g.
+    `where: "active"` came back as `"ctiv"`), so `schema.rb` was dumped with
+    an invalid predicate and `db:schema:load` failed. Predicates containing
+    the string `" WHERE "` were truncated. Both now round-trip intact.
+
+    *Kenta Ishizaki*
+
 *   `connected_to_all_shards` now raises `ArgumentError` when called on a model
     that is not connected to any shards, rather than silently doing nothing.
 
