@@ -592,6 +592,34 @@ NOTE: The validator requires a compare option be supplied. Each option accepts a
 value, proc, or symbol. Any class that includes
 [Comparable](https://docs.ruby-lang.org/en/master/Comparable.html) can be compared.
 
+### `column_limit`
+
+This validator checks that an attribute fits within the limit its backing
+database column declares. Depending on the adapter an over-limit value would
+otherwise raise a `RangeError`, be truncated, or be stored oversized on save.
+
+```ruby
+class Ledger < ApplicationRecord
+  validates :account_id, column_limit: true
+end
+```
+
+The bound depends on the column type: integer columns must hold a value inside
+the range their byte size and signedness allow, decimal columns a value within
+the magnitude their precision and scale allow, string columns a value within
+the character limit, and text and binary columns a value within the byte limit.
+
+The default error message states the bound the value crosses: _"is too large
+(maximum is ...)"_ or _"is too small (minimum is ...)"_ for numeric columns, a
+character message for strings, and a byte message for text and binary columns.
+
+NOTE: The check only fires when the adapter reports a limit (or precision) it
+can interpret for the column, so its coverage varies by adapter. MySQL `bit`
+columns are skipped because their limit counts bits, and array columns because
+the validator does not recurse into their elements. It is an Active Record
+validator, so it is unavailable to plain Active Model objects, and it raises if
+the attribute is not backed by a column.
+
 ### `format`
 
 This validator validates the attributes' values by testing whether they match a
