@@ -132,6 +132,8 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_dump_added_enum_value
+    skip "ALTER TYPE ... ADD VALUE in a transaction block requires PostgreSQL 12+" unless @connection.database_version >= 12_00_00
+
     @connection.add_enum_value :mood, :angry, before: :ok
     @connection.add_enum_value :mood, :nervous, after: :ok
     @connection.add_enum_value :mood, :glad
