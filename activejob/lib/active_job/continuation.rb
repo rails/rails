@@ -231,7 +231,10 @@ module ActiveJob
     def initialize(job, serialized_progress) # :nodoc:
       @job = job
       @completed = serialized_progress.fetch("completed", []).map(&:to_sym)
-      @current = new_step(*serialized_progress["current"], resumed: true) if serialized_progress.key?("current")
+      if serialized_progress.key?("current")
+        name, cursor = serialized_progress["current"]
+        @current = new_step(name, Arguments.deserialize([cursor]).first, resumed: true)
+      end
       @encountered = []
       @advanced = false
       @running_step = false
@@ -252,7 +255,7 @@ module ActiveJob
     def to_h # :nodoc:
       {
         "completed" => completed.map(&:to_s),
-        "current" => current&.to_a,
+        "current" => serialized_current,
       }.compact
     end
 
@@ -297,6 +300,13 @@ module ActiveJob
 
       def new_step(*args, **options)
         Step.new(*args, job: job, **options)
+      end
+
+      def serialized_current
+        return unless current
+
+        name, cursor = current.to_a
+        [ name, Arguments.serialize([cursor]).first ]
       end
 
       def skip_step(name)
