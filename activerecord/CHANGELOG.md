@@ -617,7 +617,7 @@
     Use `schema_search_path` instead. The `schema_order` alias will be
     removed in Rails 8.3.
 
-    *Eileen M. Uchitelle*
+    *Eileen M. Alayce*
 
 *   Deprecate the `strict` option in MySQL database configurations.
 
@@ -628,7 +628,7 @@
 
     `strict: false` can be replaced with `variables: { sql_mode: "" }`, and `strict: :default` can be replaced with `variables: { sql_mode: :default }`.
 
-    *Eileen M. Uchitelle*
+    *Eileen M. Alayce*
 
 *   Allow configuring `SET` queriers for the PostgreSQL and MySQL adapters.
 
@@ -660,7 +660,7 @@
     Also deprecates `set_standard_conforming_strings` — it is now handled
     automatically through the consolidated settings hash.
 
-    *Eileen M. Uchitelle*, *Matthew Draper*
+    *Eileen M. Alayce*, *Matthew Draper*
 
 *   MySQL error 1046 (`ER_NO_DB_ERROR: No database selected`) is now retryable as a `ConnectionFailed` exception
 
