@@ -1,6 +1,6 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
-Creating and Customizing Rails Generators & Templates
+Rails Generators & Templates
 =====================================================
 
 Rails generators and application templates are useful tools that can improve your workflow by automatically creating boilerplate code. In this guide you will learn:
@@ -500,7 +500,7 @@ could override the [scaffold controller template][] or the [scaffold view
 templates][].
 
 To see this in action, let's create a
-`lib/templates/erb/scaffold/index.html.erb.tt` file with the content shown below. The extra `.tt` extension tells Rails that the file is a generator template needs to be processed by Thor first (The `.tt` stands for "thor template").
+`lib/templates/erb/scaffold/index.html.erb.tt` file with the content shown below. The extra `.tt` extension tells Rails that the file is a generator template that needs to be processed by Thor first (The `.tt` stands for "thor template").
 
 ```erb
 <%%= @<%= plural_table_name %>.count %> <%= human_name.pluralize %>
