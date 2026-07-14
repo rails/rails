@@ -369,7 +369,7 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
   ensure
     @connection.drop_table "partitioned_table_with_foreign_key", if_exists: true, force: true
     @connection.drop_table "table_referenced_by_partioned_table", if_exists: true
-  end
+  end if ActiveRecord::Base.lease_connection.database_version >= 11_00_00
 
   def test_check_all_foreign_keys_valid_detects_violation_in_validated_foreign_key
     skip unless @connection.supports_enforced_foreign_keys?
