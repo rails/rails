@@ -610,8 +610,8 @@ class TestController < ActionController::Base
     format = params[:format]
 
     renderable = Object.new
-    renderable.singleton_class.define_method :render_in do |view_context, **, &|
-      view_context.render inline: <<~ERB.strip, locals: locals
+    renderable.singleton_class.define_method :render_in do |view_context, **, &block|
+      view_context.render inline: block&.call || <<~ERB.strip, locals: locals
         Hello, <%= name %>
       ERB
     end
@@ -621,7 +621,23 @@ class TestController < ActionController::Base
       end
     end
 
-    render renderable: renderable
+    if block_given?
+      yield(renderable, locals, format)
+    else
+      render(renderable: renderable)
+    end
+  end
+
+  def render_renderable_with_option_and_block
+    render_renderable do |renderable, locals|
+      render(renderable: renderable) { locals[:name] }
+    end
+  end
+
+  def render_renderable_with_object_and_block
+    render_renderable do |renderable, locals|
+      render(renderable) { locals[:name] }
+    end
   end
 
   before_action only: :render_with_filters do
@@ -733,6 +749,8 @@ class RenderTest < ActionController::TestCase
     get :render_call_to_partial_with_layout, to: "test#render_call_to_partial_with_layout"
     get :render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout, to: "test#render_call_to_partial_with_layout_in_main_layout_and_within_content_for_layout"
     get :render_renderable, to: "test#render_renderable"
+    get :render_renderable_with_object_and_block, to: "test#render_renderable_with_object_and_block"
+    get :render_renderable_with_option_and_block, to: "test#render_renderable_with_option_and_block"
     get :render_custom_code, to: "test#render_custom_code"
     get :render_file_from_template, to: "test#render_file_from_template"
     get :render_file_not_using_full_path, to: "test#render_file_not_using_full_path"
@@ -1521,6 +1539,20 @@ class RenderTest < ActionController::TestCase
 
   def test_render_renderable
     get :render_renderable, params: { format: :html, locals: { name: "Local" } }
+
+    assert_equal "Hello, Local", @response.body
+    assert_equal "text/html", @response.media_type
+  end
+
+  def test_render_renderable_with_object_and_block
+    get :render_renderable_with_object_and_block, params: { format: :html, locals: { name: "Hello, Local" } }
+
+    assert_equal "Hello, Local", @response.body
+    assert_equal "text/html", @response.media_type
+  end
+
+  def test_render_renderable_with_option_and_block
+    get :render_renderable_with_option_and_block, params: { format: :html, locals: { name: "Hello, Local" } }
 
     assert_equal "Hello, Local", @response.body
     assert_equal "text/html", @response.media_type
