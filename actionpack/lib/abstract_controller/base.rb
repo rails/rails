@@ -97,7 +97,7 @@ module AbstractController
           # public instance methods of Base and its ancestors.
           methods = public_instance_methods(true) - internal_methods
           methods.map!(&:name)
-          methods.to_set
+          methods.to_set.freeze
         end
       end
 
