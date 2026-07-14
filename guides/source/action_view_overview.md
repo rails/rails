@@ -498,7 +498,9 @@ the corresponding partial for each one.
 
 <%# employees/_employee.html.erb -%>
 <p>Employee: <%= employee.name %></p>
+```
 
+```
 <%# index.html.erb -%>
 <h1>Contacts</h1>
 
