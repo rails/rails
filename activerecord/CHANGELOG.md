@@ -1,3 +1,16 @@
+*   Fix the preloader reusing stale already-loaded associations in grouped queries.
+
+    When two associations backed by the same table were preloaded in one call
+    and one owner's association was loaded but stale (its foreign key was
+    written after the association loaded), the preloader reused the stale
+    target under the owner's new key, suppressed the batched query for that
+    key, and marked sibling associations as loaded with a `nil` target. Stale
+    associations are now treated as not loaded, so the preload refreshes
+    them — matching the association reader, which already reloads stale
+    targets on access.
+
+    *Hans Go*
+
 *   `connected_to_all_shards` now raises `ArgumentError` when called on a model
     that is not connected to any shards, rather than silently doing nothing.
 
