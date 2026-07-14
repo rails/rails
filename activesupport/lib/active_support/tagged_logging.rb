@@ -65,6 +65,11 @@ module ActiveSupport
       def tags_text
         tag_stack.format_message("")
       end
+
+      def freeze
+        tag_stack
+        super
+      end
     end
 
     class TagStack # :nodoc:
@@ -116,6 +121,15 @@ module ActiveSupport
     # Returns an `ActiveSupport::Logger` that has already been wrapped with tagged logging concern.
     def self.logger(*args, **kwargs)
       new ActiveSupport::Logger.new(*args, **kwargs)
+    end
+
+    # Returns a logger that can be used from Ractors. Accepts the same arguments
+    # as Logger.new. The returned logger is an ActiveSupport::Ractors::Logger
+    # (a ::Logger subclass whose device proxies writes to a background Writer)
+    # wrapped with tagged logging, so it can be made shareable and used from any
+    # Ractor.
+    def self.ractor_logger(*args, **kwargs) # :nodoc:
+      new(ActiveSupport::Ractors::Logger.new(*args, **kwargs))
     end
 
     def self.new(logger)

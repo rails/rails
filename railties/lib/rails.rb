@@ -82,8 +82,8 @@ module Rails
       @_env = ActiveSupport::EnvironmentInquirer.new(environment)
     end
 
-    # Returns the ActiveSupport::ErrorReporter of the current \Rails project,
-    # otherwise it returns +nil+ if there is no project.
+    # Returns the ActiveSupport::ErrorReporter instance used for reporting
+    # errors.
     #
     #   Rails.error.handle(IOError) do
     #     # ...
@@ -93,8 +93,8 @@ module Rails
       ActiveSupport.error_reporter
     end
 
-    # Returns the ActiveSupport::EventReporter of the current \Rails project,
-    # otherwise it returns +nil+ if there is no project.
+    # Returns the ActiveSupport::EventReporter instance used for broadcasting
+    # structured events.
     #
     #   Rails.event.notify("my_event", { message: "Hello, world!" })
     def event
@@ -130,6 +130,59 @@ module Rails
       application && Pathname.new(application.paths["public"].first)
     end
 
+    # Provides access to the application autoloaders.
+    #
+    # The autoloader that manages `autoload_paths` is reachable as
+    #
+    #   Rails.autoloaders.main
+    #
+    # This autoloader manages the constants that are reloaded when reloading is
+    # enabled.
+    #
+    # The autoloader that manages `autoload_once_paths` is reachable as
+    #
+    #   Rails.autoloaders.once
+    #
+    # This autoloader manages constants that are autoloaded, but not reloaded.
+    #
+    # You can use these objects to customize their behavior, defining custom
+    # root namespaces, collapsing directories, configuring callbacks, etc.
+    #
+    #   # config/environments/development.rb
+    #   Rails.autoloaders.main.on_load("MyGateway") do
+    #     MyGateway.endpoint = "https://my-gateway.localhost"
+    #   end
+    #
+    #   # config/environments/production.rb
+    #   Rails.autoloaders.main.on_load("MyGateway") do
+    #     MyGateway.endpoint = "https://my-gateway.example.com"
+    #   end
+    #
+    # The +each+ iterator allows you to iterate over both loaders:
+    #
+    #   Rails.autoloaders.each do |loader|
+    #     loader.log!
+    #   end
+    #
+    # which may be handy if you want to run the same code for both of them.
+    #
+    # Indeed, there is a shortcut for that common use case:
+    #
+    #   Rails.autoloaders.log!
+    #
+    # which is handy to watch the activity of the autoloaders.
+    #
+    # Finally, +zeitwerk_enabled?+ allows you to check if autoloading is powered
+    # by Zeitwerk. This predicate returns a hard-coded true since Rails 7, but
+    # it is still in place for engines that support Rails 6.
+    #
+    # The autoloaders are available really early, you can access them in the
+    # application class body, environment configuration, initializers, etc.
+    #
+    # Please check the {Autoloading and Reloading
+    # Constants}[https://guides.rubyonrails.org/autoloading_and_reloading_constants.html]
+    # guide and the documentation of {Zeitwerk}[https://github.com/fxn/zeitwerk]
+    # itself for more details and usage patterns.
     def autoloaders
       application.autoloaders
     end

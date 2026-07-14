@@ -31,9 +31,9 @@ module ActiveRecord
   # be triggered. In that case, it'll work just like normal subclasses with no special magic
   # for differentiating between them or reloading the right type with find.
   #
-  # Note, all the attributes for all the cases are kept in the same table.
-  # Read more:
-  # * https://www.martinfowler.com/eaaCatalog/singleTableInheritance.html
+  # All subclasses share the same database table. See the
+  # {Single Table Inheritance pattern}[https://www.martinfowler.com/eaaCatalog/singleTableInheritance.html]
+  # for more background.
   #
   module Inheritance
     extend ActiveSupport::Concern
@@ -244,6 +244,7 @@ module ActiveRecord
         end
 
         def reload_schema_from_cache(*) # :nodoc:
+          @finder_needs_type_condition = nil
           if @_new_optimized
             singleton_class.remove_method(:new)
             @_new_optimized = false

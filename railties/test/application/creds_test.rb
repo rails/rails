@@ -16,6 +16,7 @@ class Rails::CredsTest < ActiveSupport::TestCase
     app("production")
 
     ENV["MYSTERY"] = "hidden"
+    Rails.app.creds.reload
     assert_equal "hidden", Rails.app.creds.require(:mystery)
 
     ENV.delete("MYSTERY")
@@ -32,6 +33,7 @@ class Rails::CredsTest < ActiveSupport::TestCase
 
     ENV["MYSTERY"] = "hidden"
     Rails.app.creds = ActiveSupport::CombinedConfiguration.new(Rails.app.envs)
+    Rails.app.creds.reload
     assert_equal "hidden", Rails.app.creds.require(:mystery)
 
     ENV.delete("MYSTERY")
@@ -42,6 +44,16 @@ class Rails::CredsTest < ActiveSupport::TestCase
     end
   ensure
     ENV.delete("MYSTERY")
+  end
+
+  test "dotenvs honors an explicit path even after the default has been accessed" do
+    File.write("#{app_path}/.env", "MYSTERY=default_env")
+    File.write("#{app_path}/.env.custom", "MYSTERY=custom_env")
+
+    app("development")
+
+    assert_equal "default_env", Rails.app.dotenvs.require(:mystery)
+    assert_equal "custom_env", Rails.app.dotenvs("#{app_path}/.env.custom").require(:mystery)
   end
 
   test "dotenvs are available only in development mode" do

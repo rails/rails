@@ -28,7 +28,7 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
       class_attribute :emulate_booleans, default: true
 
-      NATIVE_DATABASE_TYPES = {
+      NATIVE_DATABASE_TYPES = { # rubocop:disable Style/MutableConstant
         primary_key: "bigint auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
         text:        { name: "text" },
@@ -179,7 +179,7 @@ module ActiveRecord
       end
 
       def return_value_after_insert?(column) # :nodoc:
-        supports_insert_returning? ? column.auto_populated? : column.auto_increment?
+        supports_insert_returning? ? column.auto_populated_on_insert? : column.auto_increment?
       end
 
       # See https://dev.mysql.com/doc/refman/8.0/en/invisible-indexes.html for more details on MySQL feature.
@@ -537,7 +537,7 @@ module ActiveRecord
         raise NotImplementedError unless supports_disabling_indexes?
 
         query = <<~SQL
-          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{index_name} #{mariadb? ? "NOT IGNORED" : "VISIBLE"}
+          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{quote_column_name(index_name)} #{mariadb? ? "NOT IGNORED" : "VISIBLE"}
         SQL
         execute(query)
       end
@@ -546,7 +546,7 @@ module ActiveRecord
         raise NotImplementedError unless supports_disabling_indexes?
 
         query = <<~SQL
-          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{index_name} #{mariadb? ? "IGNORED" : "INVISIBLE"}
+          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{quote_column_name(index_name)} #{mariadb? ? "IGNORED" : "INVISIBLE"}
         SQL
         execute(query)
       end
@@ -845,6 +845,10 @@ module ActiveRecord
 
             m.alias_type %r(year)i, "integer"
             m.alias_type %r(bit)i,  "binary"
+
+            # AbstractAdapter's generic type map matches POINT and MULTIPOINT against
+            # %r(int)i and misreports them as integers, so override them here.
+            m.register_type %r(^(?:point|multipoint))i, Type::Value.new
           end
 
           def register_integer_type(mapping, key, limit:)
@@ -1100,7 +1104,33 @@ module ActiveRecord
         end
 
         def column_definitions(table_name) # :nodoc:
-          query_all("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}")
+          fields = query_all("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}")
+
+          update_fields_for_mariadb(table_name, fields) if mariadb?
+
+          fields
+        end
+
+        def update_fields_for_mariadb(table_name, fields)
+          has_function_default_candidate = fields.any? do |field|
+            default = field["Default"]
+            default&.match?(/[a-zA-Z_]\w*\(/) && !/\ACURRENT_TIMESTAMP/i.match?(default)
+          end
+
+          if has_function_default_candidate
+            table_info = create_table_info(table_name)
+            fields.each do |field|
+              default = field["Default"]
+              next unless default&.match?(/[a-zA-Z_]\w*\(/)
+              next if /\ACURRENT_TIMESTAMP/i.match?(default)
+
+              field_name = field["Field"]
+              match = table_info&.match(/`#{field_name}` .+ DEFAULT ('|\d+|[A-z]+)/)
+              if match && match[1].match?(/\A[A-z]/)
+                field["Extra"] = "DEFAULT_GENERATED"
+              end
+            end
+          end
         end
 
         def create_table_info(table_name) # :nodoc:

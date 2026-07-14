@@ -8,10 +8,11 @@ module Arel # :nodoc: all
     @engine = nil
     class << self; attr_accessor :engine; end
 
-    attr_accessor :name
+    attr_writer :name
     attr_reader :table_alias, :klass
 
-    def initialize(name, as: nil, klass: nil, type_caster: klass&.type_caster)
+    def initialize(name: nil, as: nil, klass: nil, type_caster: klass&.type_caster)
+      raise ArgumentError, "A name or klass is required." unless klass || name
       name = name.name if name.is_a?(Symbol)
 
       @name = name
@@ -25,6 +26,10 @@ module Arel # :nodoc: all
         as = nil
       end
       @table_alias = as
+    end
+
+    def name
+      @name || @klass&.table_name
     end
 
     def alias(name = "#{self.name}_2")
@@ -89,7 +94,7 @@ module Arel # :nodoc: all
       # Perf note: aliases and table alias is excluded from the hash
       #  aliases can have a loop back to this table breaking hashes in parent
       #  relations, for the vast majority of cases @name is unique to a query
-      @name.hash
+      name.hash
     end
 
     def eql?(other)

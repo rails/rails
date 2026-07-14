@@ -170,6 +170,13 @@ module ActiveRecord
           end
         end
 
+        def test_exclusion_constraint_exists
+          with_change_table do |t|
+            expect :exclusion_constraint_exists?, nil, [:delete_me], name: "date_overlap"
+            assert_not t.exclusion_constraint_exists?(name: "date_overlap")
+          end
+        end
+
         def test_remove_exclusion_constraint_removes_exclusion_constraint
           with_change_table do |t|
             expect :remove_exclusion_constraint, nil, [:delete_me], name: "date_overlap"
@@ -181,6 +188,13 @@ module ActiveRecord
           with_change_table do |t|
             expect :add_unique_constraint, nil, [:delete_me, :foo], deferrable: :deferred, name: "unique_constraint"
             t.unique_constraint :foo, deferrable: :deferred, name: "unique_constraint"
+          end
+        end
+
+        def test_unique_constraint_exists
+          with_change_table do |t|
+            expect :unique_constraint_exists?, nil, [:delete_me], name: "unique_constraint"
+            assert_not t.unique_constraint_exists?(name: "unique_constraint")
           end
         end
 
@@ -402,6 +416,30 @@ module ActiveRecord
         assert_raises(ArgumentError) do
           with_change_table do |t|
             t.string :nickname, if_not_exists: true
+          end
+        end
+      end
+
+      def test_remove_timestamps_with_if_exists_raises_error
+        assert_raises(ArgumentError) do
+          with_change_table do |t|
+            t.remove_timestamps if_exists: true
+          end
+        end
+      end
+
+      def test_check_constraint_with_if_not_exists_raises_error
+        assert_raises(ArgumentError) do
+          with_change_table do |t|
+            t.check_constraint "price > 0", name: "price_check", if_not_exists: true
+          end
+        end
+      end
+
+      def test_remove_check_constraint_with_if_exists_raises_error
+        assert_raises(ArgumentError) do
+          with_change_table do |t|
+            t.remove_check_constraint name: "price_check", if_exists: true
           end
         end
       end

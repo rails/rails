@@ -188,7 +188,7 @@ module ActiveSupport
         end
 
         stubs.stub_object(Date, :today) { jd(now.to_date.jd) }
-        stubs.stub_object(DateTime, :now) { jd(now.to_date.jd, now.hour, now.min, now.sec, Rational(now.utc_offset, 86400)) }
+        stubs.stub_object(DateTime, :now) { jd(now.to_date.jd, now.hour, now.min, now.sec + now.subsec, Rational(now.utc_offset, 86400)) }
 
         if block_given?
           begin

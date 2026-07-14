@@ -99,3 +99,13 @@ class CommentWithAfterCreateUpdate < Comment
     update(body: "bar")
   end
 end
+
+class CommentOnPostWithWhereDefaultScope < Comment
+  default_scope { where(deleted_at: nil) }
+
+  belongs_to :post, class_name: "PostWithWhereDefaultScope", foreign_key: :post_id
+end
+
+class PolymorphicComment < Comment
+  belongs_to :person, polymorphic: true, inverse_of: :polymorphic_comments, autosave: true
+end

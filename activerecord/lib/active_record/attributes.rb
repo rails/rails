@@ -281,7 +281,7 @@ module ActiveRecord
         end
 
       private
-        NO_DEFAULT_PROVIDED = Object.new # :nodoc:
+        NO_DEFAULT_PROVIDED = Object.new.freeze # :nodoc:
         private_constant :NO_DEFAULT_PROVIDED
 
         def define_default_attribute(name, value, type, from_user:)

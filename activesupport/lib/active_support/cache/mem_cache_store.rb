@@ -79,7 +79,7 @@ module ActiveSupport
         options[:max_key_size] ||= MAX_KEY_SIZE
         super(options)
 
-        unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
+        unless [String, NilClass].include?(addresses.first.class)
           raise ArgumentError, "First argument must be an empty array, address, or array of addresses."
         end
 
@@ -212,6 +212,23 @@ module ActiveSupport
             # Don't pass compress option to Dalli since we are already dealing with compression.
             options.delete(:compress)
             @data.with { |c| !!c.send(method, key, payload, expires_in, **options) }
+          end
+        end
+
+        if Dalli::Client.method_defined?(:set_multi)
+          def write_multi_entries(entries, **options)
+            return if entries.empty?
+
+            entries = entries.transform_values { |entry| serialize_entry(entry, **options) }
+            expires_in = options[:expires_in].to_i
+            if options[:race_condition_ttl] && expires_in > 0 && !options[:raw]
+              # Set the memcache expire a few minutes in the future to support race condition ttls on read
+              expires_in += 5.minutes
+            end
+
+            rescue_error_with(nil) do
+              @data.with { |c| c.set_multi(entries, expires_in, options) }
+            end
           end
         end
 

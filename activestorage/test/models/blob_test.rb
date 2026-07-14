@@ -122,6 +122,42 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "analyze does not bump lock_version on the attachment record" do
+    user = User.create!(
+      name: "Nate",
+      avatar: {
+        content_type: "image/jpeg",
+        filename: "racecar.jpg",
+        io: file_fixture("racecar.jpg").open,
+      }
+    )
+    original_lock_version = user.reload.lock_version
+
+    assert_changes -> { user.reload.updated_at } do
+      user.avatar.blob.analyze
+    end
+
+    assert_equal original_lock_version, user.reload.lock_version
+  end
+
+  test "saving a stale-but-lock-valid record after analyze does not raise StaleObjectError" do
+    user = User.create!(
+      name: "Nate",
+      avatar: {
+        content_type: "image/jpeg",
+        filename: "racecar.jpg",
+        io: file_fixture("racecar.jpg").open,
+      }
+    )
+    stale_user = User.find(user.id)
+
+    user.avatar.blob.analyze
+
+    assert_nothing_raised do
+      stale_user.update!(name: "Nathan")
+    end
+  end
+
   test "build_after_unfurling generates a 28-character base36 key" do
     assert_match(/^[a-z0-9]{28}$/, build_blob_after_unfurling.key)
   end
@@ -359,29 +395,26 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal ["is invalid"], blob.errors[:service_name]
   end
 
-  test "updating the content_type updates service metadata" do
+  test "sync_metadata uploads metadata to service" do
+    blob = directly_upload_file_blob(filename: "racecar.jpg")
+
+    assert_notification("service_update_metadata.active_storage", key: blob.key, content_type: "image/jpeg", custom_metadata: {}) do
+      blob.sync_metadata
+    end
+  end
+
+  test "updating the content_type enqueues sync metadata job" do
     blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
 
-    assert_called_with(blob.service, :update_metadata, [blob.key], content_type: "image/jpeg", custom_metadata: {}) do
+    assert_enqueued_with(job: ActiveStorage::SyncMetadataJob, args: [blob]) do
       blob.update!(content_type: "image/jpeg")
     end
   end
 
-  test "updating the metadata updates service metadata" do
-    blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
+  test "updating the metadata enqueues sync metadata job" do
+    blob = directly_upload_file_blob(filename: "racecar.jpg")
 
-    expected_arguments = [
-      blob.key
-    ]
-
-    expected_kwargs = {
-      content_type: "application/octet-stream",
-      disposition: :attachment,
-      filename: blob.filename,
-      custom_metadata: { "test" => true }
-    }
-
-    assert_called_with(blob.service, :update_metadata, expected_arguments, **expected_kwargs) do
+    assert_enqueued_with(job: ActiveStorage::SyncMetadataJob, args: [blob]) do
       blob.update!(metadata: { custom: { "test" => true } })
     end
   end

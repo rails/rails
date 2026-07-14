@@ -136,24 +136,35 @@ module ActionView
       #
       # ==== Gotcha
       #
-      # The HTML specification says when +multiple+ parameter passed to select and all options got deselected
-      # web browsers do not send any value to server. Unfortunately this introduces a gotcha:
-      # if a +User+ model has many +roles+ and have +role_ids+ accessor, and in the form that edits roles of the user
-      # the user deselects all roles from +role_ids+ multiple select box, no +role_ids+ parameter is sent. So,
-      # any mass-assignment idiom like
+      # The HTML specification says when the +multiple+ attribute is specified on a select element and all options
+      # are deselected, web browsers do not send any value to the server. Unfortunately, this introduces a gotcha.
+      # For example, given a multiple select in a form that edits people associated with a post:
       #
-      #   @user.update(params[:user])
+      #   select :post, :person_ids, Person.all.collect { |p| [ p.name, p.id ] }, { multiple: true }
       #
-      # wouldn't update roles.
+      # would become:
+      #
+      #   <input name="post[person_ids][]" type="hidden" value="" autocomplete="off" />
+      #   <select name="post[person_ids][]" id="post_person_ids" multiple="multiple">
+      #     <option value="1">David</option>
+      #     <option value="2">Eileen</option>
+      #     <option value="3">Rafael</option>
+      #   </select>
+      #
+      # If no people are selected, no +person_ids+ parameter is sent. So, any mass-assignment idiom like
+      #
+      #   @post.update(params[:post])
+      #
+      # wouldn't update people associated with the post.
       #
       # To prevent this the helper generates an auxiliary hidden field before
-      # every multiple select. The hidden field has the same name as multiple select and blank value.
+      # every multiple select. The hidden field has the same name as the multiple select and a blank value.
       #
       # <b>Note:</b> The client either sends only the hidden field (representing
       # the deselected multiple select box), or both fields. This means that the resulting array
       # always contains a blank string.
       #
-      # In case if you don't want the helper to generate this hidden field you can specify
+      # To prevent the hidden field from being generated specify the
       # <tt>include_hidden: false</tt> option.
       def select(object, method, choices = nil, options = {}, html_options = {}, &block)
         Tags::Select.new(object, method, self, choices, options, html_options, &block).render
@@ -383,6 +394,11 @@ module ActionView
       #
       #   select_tag 'person', options_from_collection_for_select(@people, 'id', 'name')
       #
+      # The +value_method+ and +text_method+ can be a method name to call on each member of the +collection+,
+      # or a Proc that will be called for each member of the +collection+:
+      #
+      #   options_from_collection_for_select(@people, Proc.new { |person| person.id }, Proc.new { |person| person.name })
+      #
       # If +selected+ is specified as a value or array of values, the element(s) returning a match on +value_method+
       # will be selected option tag(s).
       #
@@ -415,14 +431,14 @@ module ActionView
       #
       # Parameters:
       # * +collection+ - An array of objects representing the <tt><optgroup></tt> tags.
-      # * +group_method+ - The name of a method which, when called on a member of +collection+, returns an
+      # * +group_method+ - The name of a method which, when called on a member of +collection+, or a Proc, which when called with a member of +collection+, returns an
       #   array of child objects representing the <tt><option></tt> tags.
-      # * +group_label_method+ - The name of a method which, when called on a member of +collection+, returns a
+      # * +group_label_method+ - The name of a method which, when called on a member of +collection+, or a Proc, which when called with a member of +collection+, returns a
       #   string to be used as the +label+ attribute for its <tt><optgroup></tt> tag.
       # * +option_key_method+ - The name of a method which, when called on a child object of a member of
-      #   +collection+, returns a value to be used as the +value+ attribute for its <tt><option></tt> tag.
+      #   +collection+, or a Proc, which when called with a child object of a member of +collection+, returns a value to be used as the +value+ attribute for its <tt><option></tt> tag.
       # * +option_value_method+ - The name of a method which, when called on a child object of a member of
-      #   +collection+, returns a value to be used as the contents of its <tt><option></tt> tag.
+      #   +collection+, or a Proc, which when called with a child object of a member of +collection+, returns a value to be used as the contents of its <tt><option></tt> tag.
       # * +selected_key+ - A value equal to the +value+ attribute for one of the <tt><option></tt> tags,
       #   which will have the +selected+ attribute set. Corresponds to the return value of one of the calls
       #   to +option_key_method+. If +nil+, no selection is made. Can also be a hash if disabled values are
@@ -923,6 +939,19 @@ module ActionView
       # Please refer to the documentation of the base helper for details.
       def collection_radio_buttons(method, collection, value_method, text_method, options = {}, html_options = {}, &block)
         @template.collection_radio_buttons(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_html_options.merge(html_options), &block)
+      end
+
+      # Wraps ActionView::Helpers::FormTagHelper#datalist_tag for form builders.
+      #
+      #   <%= form_with model: @post do |f| %>
+      #     <%# Wire the input to the datalist using the same derived id: %>
+      #     <%= f.text_field :country, list: f.field_id(:country, :datalist) %>
+      #     <%= f.datalist  :country, ["Argentina", "Brazil", "Chile"] %>
+      #   <% end %>
+      #
+      # Please refer to the documentation of the base helper for details.
+      def datalist(method, choices = nil, html_options = {})
+        @template.datalist_tag(field_id(method, "datalist"), choices, html_options)
       end
     end
   end

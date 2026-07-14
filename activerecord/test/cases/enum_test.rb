@@ -317,7 +317,8 @@ class EnumTest < ActiveRecord::TestCase
     e = assert_raises(ArgumentError) do
       @book.status = :unknown
     end
-    assert_equal "'unknown' is not a valid status", e.message
+    assert_match(/\A'unknown' is not a valid status\./, e.message)
+    assert_match(/"proposed"/, e.message)
   end
 
   test "validation with 'validate: true' option" do
@@ -1152,7 +1153,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_match "Undeclared attribute type for enum 'typeless_genre' in Book", error.message
   end
 
-  test "supports attributes declared with a explicit type" do
+  test "supports attributes declared with an explicit type" do
     klass = Class.new(Book) do
       attribute :my_genre, :integer
       enum :my_genre, [:adventure, :comic]

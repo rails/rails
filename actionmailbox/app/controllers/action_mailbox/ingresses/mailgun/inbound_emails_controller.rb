@@ -48,12 +48,35 @@ module ActionMailbox
 
     def create
       ActionMailbox::InboundEmail.create_and_extract_message_id! mail
+    rescue MalformedEmailError, MalformedRecipientError => error
+      logger.error error.message
+      head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     end
 
     private
+      class MalformedEmailError < StandardError
+        def initialize(message = "Malformed Mailgun raw email")
+          super
+        end
+      end
+
+      class MalformedRecipientError < StandardError
+        def initialize(message = "Malformed Mailgun recipient")
+          super
+        end
+      end
+
       def mail
         params.require("body-mime").tap do |raw_email|
-          raw_email.prepend("X-Original-To: ", params.require(:recipient), "\n") if params.key?(:recipient)
+          raise MalformedEmailError unless raw_email.is_a?(String)
+
+          raw_email.prepend("X-Original-To: ", recipient, "\n") if params.key?(:recipient)
+        end
+      end
+
+      def recipient
+        params.require(:recipient).tap do |recipient|
+          raise MalformedRecipientError unless recipient.is_a?(String)
         end
       end
 
@@ -85,7 +108,8 @@ module ActionMailbox
         attr_reader :key, :timestamp, :token, :signature
 
         def initialize(key:, timestamp:, token:, signature:)
-          @key, @timestamp, @token, @signature = key, Integer(timestamp), token, signature
+          @key, @timestamp, @token, @signature = key, timestamp.to_s, token, signature
+          @parsed_timestamp = Integer(timestamp, exception: false)
         end
 
         def authenticated?
@@ -94,12 +118,12 @@ module ActionMailbox
 
         private
           def signed?
-            ActiveSupport::SecurityUtils.secure_compare signature, expected_signature
+            signature.is_a?(String) && ActiveSupport::SecurityUtils.secure_compare(signature, expected_signature)
           end
 
           # Allow for 2 minutes of drift between Mailgun time and local server time.
           def recent?
-            Time.at(timestamp) >= 2.minutes.ago
+            @parsed_timestamp && Time.at(@parsed_timestamp) >= 2.minutes.ago
           end
 
           def expected_signature

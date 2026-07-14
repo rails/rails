@@ -3,9 +3,10 @@
 require "cases/helper"
 require "models/post"
 require "models/comment"
+require "models/cpk"
 
 class ExcludingTest < ActiveRecord::TestCase
-  fixtures :posts, :comments
+  fixtures :posts, :comments, :cpk_books
 
   setup { @post = posts(:welcome) }
 
@@ -106,6 +107,25 @@ class ExcludingTest < ActiveRecord::TestCase
 
     error = assert_raises(ArgumentError) { Post.without(@post, comments(:greetings)) }
     assert_equal "You must only pass a single or collection of Post objects to #without.", error.message
+  end
+
+  def test_result_set_does_not_include_excluded_records_for_a_composite_primary_key_model
+    excluded = cpk_books(:cpk_great_author_first_book)
+    other = cpk_books(:cpk_great_author_second_book)
+    relation = Cpk::Book.where(author_id: excluded.author_id).excluding(excluded)
+
+    assert_not_includes relation, excluded
+    assert_includes relation, other
+  end
+
+  def test_result_set_does_not_include_excluded_records_from_a_query_for_a_composite_primary_key_model
+    excluded = cpk_books(:cpk_great_author_first_book)
+    other = cpk_books(:cpk_great_author_second_book)
+    query = Cpk::Book.where(id: excluded.id)
+    relation = Cpk::Book.where(author_id: excluded.author_id).excluding(query)
+
+    assert_not_includes relation, excluded
+    assert_includes relation, other
   end
 
   private

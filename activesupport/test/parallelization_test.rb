@@ -94,6 +94,26 @@ class ParallelizationTest < ActiveSupport::TestCase
     assert_not server.active_workers?
   end
 
+  test "shutdown stops the DRb service started in initialize" do
+    skip "Process-based parallelization requires fork" unless Process.respond_to?(:fork)
+
+    parallelization = ActiveSupport::Testing::Parallelization.new(1)
+    parallelization.start
+    parallelization.shutdown
+
+    leaked = Thread.list
+      .reject { |t| t == Thread.main }
+      .select(&:alive?)
+      .select do |t|
+        bt = Array(t.backtrace).join("\n")
+        bt.include?("drb/drb.rb") && bt.match?(/accept_or_shutdown|main_loop/)
+      end
+
+    assert_empty leaked,
+      "Expected Parallelization#shutdown to call DRb.stop_service. Leaked:\n" +
+      leaked.map { |t| Array(t.backtrace).first(5).join("\n  ") }.join("\n---\n")
+  end
+
   test "seeded distribution assigns tests to workers round-robin" do
     worker_count = 2
 
@@ -116,41 +136,41 @@ class ParallelizationTest < ActiveSupport::TestCase
       end
 
       Minitest::Runnable.stub :runnables, [mock_runnable, mock_runnable, mock_runnable] do
-        parallelization = ActiveSupport::Testing::Parallelization.new(worker_count)
+        with_parallelization(worker_count) do |parallelization|
+          # Access the distributor through the server
+          server = parallelization.instance_variable_get(:@queue_server)
+          distributor = server.instance_variable_get(:@distributor)
 
-        # Access the distributor through the server
-        server = parallelization.instance_variable_get(:@queue_server)
-        distributor = server.instance_variable_get(:@distributor)
+          # Verify it's a seeded distributor
+          assert_instance_of ActiveSupport::Testing::Parallelization::RoundRobinDistributor, distributor
 
-        # Verify it's a seeded distributor
-        assert_instance_of ActiveSupport::Testing::Parallelization::RoundRobinDistributor, distributor
+          # Enqueue tests - they'll be distributed round-robin immediately
+          tests.each { |test| parallelization << test }
 
-        # Enqueue tests - they'll be distributed round-robin immediately
-        tests.each { |test| parallelization << test }
+          # Close distributor to signal no more tests will come
+          distributor.close
 
-        # Close distributor to signal no more tests will come
-        distributor.close
+          # Collect tests from each worker by calling take
+          worker_0_tests = []
+          worker_1_tests = []
 
-        # Collect tests from each worker by calling take
-        worker_0_tests = []
-        worker_1_tests = []
+          # Drain worker 0's queue - should get tests at indexes 0, 2, 4
+          while test = distributor.take(worker_id: 0)
+            worker_0_tests << test
+          end
 
-        # Drain worker 0's queue - should get tests at indexes 0, 2, 4
-        while test = distributor.take(worker_id: 0)
-          worker_0_tests << test
+          # Drain worker 1's queue - should get tests at indexes 1, 3, 5
+          while test = distributor.take(worker_id: 1)
+            worker_1_tests << test
+          end
+
+          # Verify all tests were distributed
+          assert_equal tests.size, worker_0_tests.size + worker_1_tests.size
+
+          # Verify round-robin distribution (each worker gets 3 tests)
+          assert_equal 3, worker_0_tests.size
+          assert_equal 3, worker_1_tests.size
         end
-
-        # Drain worker 1's queue - should get tests at indexes 1, 3, 5
-        while test = distributor.take(worker_id: 1)
-          worker_1_tests << test
-        end
-
-        # Verify all tests were distributed
-        assert_equal tests.size, worker_0_tests.size + worker_1_tests.size
-
-        # Verify round-robin distribution (each worker gets 3 tests)
-        assert_equal 3, worker_0_tests.size
-        assert_equal 3, worker_1_tests.size
       end
     end
   end
@@ -175,25 +195,26 @@ class ParallelizationTest < ActiveSupport::TestCase
     distributions = 2.times.map do
       Minitest.stub :seed, seed do
         Minitest::Runnable.stub :runnables, [mock_runnable, mock_runnable] do
-          parallelization = ActiveSupport::Testing::Parallelization.new(worker_count)
+          with_parallelization(worker_count) do |parallelization|
+            # Enqueue tests in same order (they arrive pre-shuffled from Minitest)
+            tests.each { |test| parallelization << test }
 
-          # Enqueue tests in same order (they arrive pre-shuffled from Minitest)
-          tests.each { |test| parallelization << test }
+            server = parallelization.instance_variable_get(:@queue_server)
+            distributor = server.instance_variable_get(:@distributor)
 
-          server = parallelization.instance_variable_get(:@queue_server)
-          distributor = server.instance_variable_get(:@distributor)
+            # Close to signal no more tests
+            distributor.close
 
-          # Close to signal no more tests
-          distributor.close
-
-          # Drain all tests from all workers
-          all_tests = []
-          worker_count.times do |worker_id|
-            while test = distributor.take(worker_id: worker_id)
-              all_tests << [worker_id, test[0..1]]
+            # Drain all tests from all workers
+            all_tests = []
+            worker_count.times do |worker_id|
+              while test = distributor.take(worker_id: worker_id)
+                all_tests << [worker_id, test[0..1]]
+              end
             end
+
+            all_tests
           end
-          all_tests
         end
       end
     end
@@ -215,34 +236,35 @@ class ParallelizationTest < ActiveSupport::TestCase
     distributions = [12345, 67890].map do |seed|
       Minitest.stub :seed, seed do
         Minitest::Runnable.stub :runnables, [mock_runnable, mock_runnable] do
-          parallelization = ActiveSupport::Testing::Parallelization.new(worker_count)
+          with_parallelization(worker_count) do |parallelization|
+            # Simulate tests arriving in different order based on seed
+            # In reality, Minitest would shuffle these differently
+            tests = [
+              ["TestClass1", "test_a", nil],
+              ["TestClass1", "test_b", nil],
+              ["TestClass2", "test_c", nil],
+              ["TestClass2", "test_d", nil]
+            ].shuffle(random: Random.new(seed))
 
-          # Simulate tests arriving in different order based on seed
-          # In reality, Minitest would shuffle these differently
-          tests = [
-            ["TestClass1", "test_a", nil],
-            ["TestClass1", "test_b", nil],
-            ["TestClass2", "test_c", nil],
-            ["TestClass2", "test_d", nil]
-          ].shuffle(random: Random.new(seed))
+            tests.each { |test| parallelization << test }
 
-          tests.each { |test| parallelization << test }
+            server = parallelization.instance_variable_get(:@queue_server)
+            distributor = server.instance_variable_get(:@distributor)
 
-          server = parallelization.instance_variable_get(:@queue_server)
-          distributor = server.instance_variable_get(:@distributor)
+            # Close to signal no more tests
+            distributor.close
 
-          # Close to signal no more tests
-          distributor.close
-
-          # Capture which tests each worker gets, preserving order
-          worker_tests = {}
-          worker_count.times do |worker_id|
-            worker_tests[worker_id] = []
-            while test = distributor.take(worker_id: worker_id)
-              worker_tests[worker_id] << test[0..1]
+            # Capture which tests each worker gets, preserving order
+            worker_tests = {}
+            worker_count.times do |worker_id|
+              worker_tests[worker_id] = []
+              while test = distributor.take(worker_id: worker_id)
+                worker_tests[worker_id] << test[0..1]
+              end
             end
+
+            worker_tests
           end
-          worker_tests
         end
       end
     end
@@ -260,12 +282,13 @@ class ParallelizationTest < ActiveSupport::TestCase
     end
 
     Minitest::Runnable.stub :runnables, [mock_runnable] do
-      parallelization = ActiveSupport::Testing::Parallelization.new(2)
-      server = parallelization.instance_variable_get(:@queue_server)
-      distributor = server.instance_variable_get(:@distributor)
+      with_parallelization(2) do |parallelization|
+        server = parallelization.instance_variable_get(:@queue_server)
+        distributor = server.instance_variable_get(:@distributor)
 
-      # Verify it's a seeded distributor
-      assert_instance_of ActiveSupport::Testing::Parallelization::RoundRobinDistributor, distributor
+        # Verify it's a seeded distributor
+        assert_instance_of ActiveSupport::Testing::Parallelization::RoundRobinDistributor, distributor
+      end
     end
   end
 
@@ -277,12 +300,13 @@ class ParallelizationTest < ActiveSupport::TestCase
     end
 
     Minitest::Runnable.stub :runnables, [mock_runnable] do
-      parallelization = ActiveSupport::Testing::Parallelization.new(2, work_stealing: true)
-      server = parallelization.instance_variable_get(:@queue_server)
-      distributor = server.instance_variable_get(:@distributor)
+      with_parallelization(2, work_stealing: true) do |parallelization|
+        server = parallelization.instance_variable_get(:@queue_server)
+        distributor = server.instance_variable_get(:@distributor)
 
-      # Verify it's a round robin work stealing distributor
-      assert_instance_of ActiveSupport::Testing::Parallelization::RoundRobinWorkStealingDistributor, distributor
+        # Verify it's a round robin work stealing distributor
+        assert_instance_of ActiveSupport::Testing::Parallelization::RoundRobinWorkStealingDistributor, distributor
+      end
     end
   end
 
@@ -308,4 +332,25 @@ class ParallelizationTest < ActiveSupport::TestCase
       end
     end
   end
+
+  test "shutdown calls run_cleanup_hooks" do
+    called = false
+    ActiveSupport::Testing::Parallelization.run_cleanup_hook { called = true }
+
+    parallelization = ActiveSupport::Testing::Parallelization.new(1)
+    parallelization.start
+    parallelization.shutdown
+
+    assert called, "run_cleanup_hooks should be called during shutdown"
+  ensure
+    ActiveSupport::Testing::Parallelization.class_variable_get(:@@run_cleanup_hooks).pop
+  end
+
+  private
+    def with_parallelization(*args, **kwargs)
+      parallelization = ActiveSupport::Testing::Parallelization.new(*args, **kwargs)
+      yield parallelization
+    ensure
+      parallelization&.shutdown
+    end
 end

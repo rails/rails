@@ -30,6 +30,35 @@ class BaseTest < ActiveSupport::TestCase
     assert_nothing_raised { BaseMailer.welcome }
   end
 
+  test "ActionMailer::Base.mail delivers with explicit headers" do
+    ActionMailer::Base.deliveries.clear
+
+    delivery = ActionMailer::Base.mail(
+      from: "from@example.com",
+      to: "to@example.com",
+      subject: "Subject",
+      body: "Body"
+    )
+
+    assert_kind_of ActionMailer::MessageDelivery, delivery
+    delivery.deliver_now
+
+    assert_equal 1, ActionMailer::Base.deliveries.size
+    assert_equal "Subject", ActionMailer::Base.deliveries.last.subject
+  end
+
+  test "ActionMailer::Base.mail returns a proper message" do
+    delivery = ActionMailer::Base.mail(
+      from: "from@example.com",
+      to: "to@example.com",
+      subject: "Subject",
+      body: "Body"
+    )
+
+    assert_kind_of ActionMailer::MessageDelivery, delivery
+    assert_equal "Subject", delivery.message.subject
+  end
+
   # Basic mail usage without block
   test "mail() should set the headers of the mail message" do
     email = BaseMailer.welcome
@@ -559,7 +588,7 @@ class BaseTest < ActiveSupport::TestCase
   test "should respond to action methods" do
     assert_respond_to BaseMailer, :welcome
     assert_respond_to BaseMailer, :implicit_multipart
-    assert_not_respond_to BaseMailer, :mail
+    assert_respond_to BaseMailer, :mail
     assert_not_respond_to BaseMailer, :headers
   end
 

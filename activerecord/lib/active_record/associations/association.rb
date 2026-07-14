@@ -232,6 +232,18 @@ module ActiveRecord
         _create_record(attributes, true, &block)
       end
 
+      def violates_strict_loading?
+        return unless find_target?
+
+        return if @skip_strict_loading
+
+        return unless owner.validation_context.nil?
+
+        return reflection.strict_loading? if reflection.options.key?(:strict_loading)
+
+        owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
+      end
+
       # Whether the association represents a single record
       # or a collection of records.
       def collection?
@@ -279,16 +291,6 @@ module ActiveRecord
           yield
         ensure
           @skip_strict_loading = skip_strict_loading_was
-        end
-
-        def violates_strict_loading?
-          return if @skip_strict_loading
-
-          return unless owner.validation_context.nil?
-
-          return reflection.strict_loading? if reflection.options.key?(:strict_loading)
-
-          owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
         end
 
         # The scope for this association.
@@ -414,18 +416,22 @@ module ActiveRecord
         end
 
         def record_foreign_key_matches_owner?(record)
-          foreign_key_values(record) == primary_key_values(owner)
+          foreign_key_values(record) == active_record_primary_key_values(owner)
         end
 
         def owner_foreign_key_matches_record?(record)
-          foreign_key_values(owner) == primary_key_values(record)
+          foreign_key_values(owner) == association_primary_key_values(record)
         end
 
         def foreign_key_values(record)
           Array(reflection.foreign_key).map { |key| record.read_attribute(key) }
         end
 
-        def primary_key_values(record)
+        def active_record_primary_key_values(record)
+          Array(reflection.active_record_primary_key).map { |key| record.read_attribute(key) }
+        end
+
+        def association_primary_key_values(record)
           Array(reflection.association_primary_key(record.class)).map { |key| record.read_attribute(key) }
         end
     end

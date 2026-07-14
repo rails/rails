@@ -90,6 +90,7 @@ ActiveRecord::Schema.define do
     t.string :name, null: false
     t.references :author_address
     t.references :author_address_extra
+    t.string :author_code
     t.string :organization_id
     t.string :owned_essay_id
     t.integer :published_author_id
@@ -300,6 +301,7 @@ ActiveRecord::Schema.define do
     t.integer :shop_id
     t.string :status
     t.integer :books_count, default: 0
+    t.timestamps
   end
 
   create_table :cpk_order_tags, primary_key: [:order_id, :tag_id], force: true do |t|
@@ -374,6 +376,15 @@ ActiveRecord::Schema.define do
     t.integer :tag_id
   end
 
+  create_table :shipments, force: true do |t|
+    t.integer :region_id
+  end
+
+  create_table :adjustments, force: true do |t|
+    t.integer :region_id
+    t.references :adjustable, polymorphic: true
+  end
+
   create_table :clubs, force: true do |t|
     t.string :name
     t.integer :category_id
@@ -400,6 +411,8 @@ ActiveRecord::Schema.define do
     t.integer :children_count, default: 0
     t.integer :parent_id
     t.references :author, polymorphic: true
+    t.string :person_id
+    t.string :person_type
     # The type of the attribute is a string to make sure preload work when types don't match.
     # See #14855.
     t.string :resource_id
@@ -964,6 +977,7 @@ ActiveRecord::Schema.define do
     t.integer    :friends_too_count, default: 0
     t.references :best_friend
     t.references :best_friend_of
+    t.string     :external_id
     t.integer    :insures, null: false, default: 0
     t.timestamp :born_at
     t.integer :cars_count, default: 0
@@ -1005,6 +1019,7 @@ ActiveRecord::Schema.define do
     t.integer :indestructible_tags_count, default: 0
     t.integer :tags_with_destroy_count, default: 0
     t.integer :tags_with_nullify_count, default: 0
+    t.datetime :deleted_at
   end
 
   create_table :postesques, force: true do |t|

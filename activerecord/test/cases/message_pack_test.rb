@@ -5,6 +5,7 @@ require "models/author"
 require "models/binary"
 require "models/comment"
 require "models/post"
+require "models/topic"
 require "active_support/message_pack"
 require "active_record/message_pack"
 
@@ -13,6 +14,7 @@ class ActiveRecordMessagePackTest < ActiveRecord::TestCase
 
   test "enshrines type IDs" do
     expected = {
+      118 => ActiveRecord::Type::Time::Value,
       119 => ActiveModel::Type::Binary::Data,
       120 => ActiveRecord::Base,
     }
@@ -64,6 +66,11 @@ class ActiveRecordMessagePackTest < ActiveRecord::TestCase
   test "roundtrips binary attribute" do
     binary = Binary.new(data: Marshal.dump("data"))
     assert_equal binary.attributes, roundtrip(binary).attributes
+  end
+
+  test "roundtrips time attribute" do
+    topic = Topic.new(bonus_time: "09:30:00")
+    assert_equal topic.attributes, roundtrip(topic).attributes
   end
 
   test "raises ActiveSupport::MessagePack::MissingClassError if record class no longer exists" do
