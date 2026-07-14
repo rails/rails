@@ -274,13 +274,16 @@ Now our generator can be invoked with a `--scope` option:
 $ bin/rails generate initializer theme --scope dashboard
 ```
 
-This will generate a file `theme.rb` within `config/initializers` and override the default value "app" for the `--scope` option. Option values are accessible in generator methods via [`options`][]:
+This will override the default value "app" for the `--scope` option with "dashboard". Option values are accessible in generator methods via [`options`][]:
 
 ```ruby
 def copy_initializer_file
   @scope = options["scope"]
+  copy_file "initializer.rb", "config/initializers/#{@scope}/#{file_name}.rb"
 end
 ```
+
+Now with the scope option set, the file `theme.rb` is generated at `config/initializers/dashboard/`.
 
 [`class_option`]: https://www.rubydoc.info/gems/thor/Thor/Base/ClassMethods#class_option-instance_method
 [`options`]: https://www.rubydoc.info/gems/thor/Thor/Base#options-instance_method
