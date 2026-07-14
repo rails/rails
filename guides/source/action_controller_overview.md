@@ -141,7 +141,7 @@ method.
 
 ### Rendering Responses
 
-Consider the below controller and route.
+Consider the below route and controller.
 
 ```ruby
 # config/routes.rb
@@ -260,7 +260,7 @@ This would produce the following HTTP response:
 ```http
 HTTP/1.1 400 Bad Request
 Connection: close
-Date: Sun, 24 Jan 2010 12:15:53 GMT
+Date: Fri, 10 July 2026 12:15:53 GMT
 Transfer-Encoding: chunked
 Content-Type: text/html; charset=utf-8
 X-Runtime: 0.013483
@@ -463,8 +463,7 @@ There are two types of parameter data:
 
 - Query string parameters which are sent as part of the URL (for example, after
   the `?` in `http://example.com/accounts?filter=free`).
-- Parameters defined in the request body in non-`GET` requests,
-  usually from an HTML form.
+- Request body parameters in non-`GET` requests, usually from an HTML form.
 
 Rails does not make a distinction between query string parameters and request body
 parameters — both are available in the `params` object in your controller. For
@@ -1040,7 +1039,7 @@ The storage mechanism for session data can be configured. By default, data is st
 All sessions have a unique ID representing the session object. Regardless of the chosen store, this ID is always stored in a cookie. The data can be stored using one of the following
 storage mechanisms:
 
-* [`ActionDispatch::Session::CookieStore`][] - Stores data in an encrypted cookie.
+* [`ActionDispatch::Session::CookieStore`][] - Stores the data in an encrypted cookie.
 * [`ActionDispatch::Session::CacheStore`][] - Stores the data in the Rails
   cache.
 * [`ActionDispatch::Session::ActiveRecordStore`][activerecord-session_store] -
@@ -1174,7 +1173,7 @@ The flash does not render anything in the UI — it is a short-term data storage
 [`ActionDispatch::Flash::FlashHash`]:
     https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html
 
-#### Displaying flash messages
+#### Displaying Flash Messages
 
 It is recommend to add code to render flash messages in your application layout, so
 messages are automatically rendered on every page without additional steps.
@@ -1206,7 +1205,7 @@ request. This is useful when there are multiple redirects.
 
 For example, assume that the `root_url` routes to the `index` action in the controller below, and all requests here are redirected to `UsersController#index`.
 
-If an action sets the flash and redirects to `MainController#index`, those flash values will be lost when during the next redirect.
+If an action sets the flash and redirects to `MainController#index`, those flash values will be lost during the next redirect.
 
 Use `flash.keep` to persist the values in the flash for one more request.
 

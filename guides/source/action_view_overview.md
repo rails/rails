@@ -246,7 +246,7 @@ place for your shared partials.
 
 NOTE: Rails doesn't automatically create `app/views/application/`. You'll need to create this folder yourself.
 
-NOTE: Refer to the (Layouts and Rendering guide)[layouts_and_rendering.html#template_lookup_hierarchy] for further information on the lookup hierarchy of partials and template.
+NOTE: Refer to the [Layouts and Rendering guide](layouts_and_rendering.html#template_lookup_hierarchy) for further information on the lookup hierarchy of partials and template.
 
 Partial file names start with leading underscore character by
 convention. The file name distinguishes partials from regular views. However, no
