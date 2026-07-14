@@ -1,3 +1,8 @@
+*   `connected_to_all_shards` now raises `ArgumentError` when called on a model
+    that is not connected to any shards, rather than silently doing nothing.
+
+    *Eileen M. Alayce*
+
 *   Honor foreign key names on SQLite3.
 
     SQLite3 did not read foreign key names, so `remove_foreign_key(name:)`

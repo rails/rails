@@ -197,6 +197,10 @@ module ActiveRecord
     # will be forwarded to each +connected_to+ call. +prevent_writes+
     # defaults to +true+ when using the +reading+ role.
     def connected_to_all_shards(role: nil, prevent_writes: role == ActiveRecord.reading_role, &blk)
+      if shard_keys.empty?
+        raise ArgumentError, "`connected_to_all_shards` cannot be called on a model that is not connected to any shards."
+      end
+
       shard_keys.map do |shard|
         connected_to(shard: shard, role: role, prevent_writes: prevent_writes, &blk)
       end
