@@ -412,8 +412,10 @@
     `FixtureSet.create_fixtures` to ensure all referenced rows are present when
     enforcement is restored.
 
-    `check_all_foreign_keys_valid!` skips `NOT ENFORCED` constraints on PostgreSQL 18.4+,
-    as `VALIDATE CONSTRAINT` cannot be applied to them.
+    `check_all_foreign_keys_valid!` revalidates foreign keys with the same
+    `NOT ENFORCED`/`ENFORCED` toggle on PostgreSQL 18.4+, likewise requiring only
+    table ownership rather than superuser privileges. Intentionally `NOT ENFORCED`
+    constraints are left unchecked.
 
     Unlike `SET CONSTRAINTS ALL DEFERRED` (the approach attempted in rails/rails#27636
     and reverted), `NOT ENFORCED` also suppresses referential actions such as
