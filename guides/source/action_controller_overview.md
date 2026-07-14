@@ -42,9 +42,9 @@ methods just like any other class. Public methods in a controller are also known
 _actions_, as they are responsible for rendering responses.
 
 ```ruby
-# app/controllers/posts_controller.rb
+# app/controllers/products_controller.rb
 
-class PostsController < ApplicationController
+class ProductsController < ApplicationController
   def index
   end
 end
@@ -56,50 +56,50 @@ As per Rails conventions, controllers should define up to 7 conventional CRUD ac
 # config/routes.rb
 
 Rails.application.routes.draw do
-  # A resourceful route to the `PostsController`
-  resources :posts
+  # A resourceful route to the `ProductsController`
+  resources :products
 end
 ```
 
 ```ruby
-# app/controllers/posts_controller.rb
+# app/controllers/products_controller.rb
 
-class PostsController < ApplicationController
-  # GET /posts
+class ProductsController < ApplicationController
+  # GET /products
   def index
-    # Display all posts
+    # Display all products
   end
 
-  # GET /posts/new
+  # GET /products/new
   def new
-    # Render a form to create a new post
+    # Render a form to create a new product
   end
 
-  # POST /posts
+  # POST /products
   def create
     # Handle the submission form rendered in `new`
-    # and create the post in the database
+    # and create the product in the database
   end
 
-  # GET /posts/:id
+  # GET /products/:id
   def show
-    # Show the post
+    # Show the product
   end
 
-  # GET /posts/:id/edit
+  # GET /products/:id/edit
   def edit
-    # Render a form to edit the post
+    # Render a form to edit the product
   end
 
-  # PATCH /posts/:id
+  # PATCH /products/:id
   def update
     # Handle the submission form rendered in `edit`
-    # and update the post in the database
+    # and update the product in the database
   end
 
-  # DELETE /posts/:id
+  # DELETE /product/:id
   def destroy
-    # Delete the post
+    # Delete the product
   end
 end
 ```
@@ -108,12 +108,12 @@ Once the [router matches](routing.html) an incoming request a controller and
 action, Rails creates an instance of that controller class and calls the
 method with the same name as the action.
 
-NOTE: The `new` method in the above controller is an instance method, called on an instance of `PostsController`. This should not be confused with the `new` class method used to instantiate objects (`PostsController.new`).
+NOTE: The `new` method in the above controller is an instance method, called on an instance of `ProductsController`. This should not be confused with the `new` class method used to instantiate objects (`ProductsController.new`).
 
 ### Naming Conventions
 
 Rails favors pluralizing the resource in the controller's name. For example,
-`PostsController` is preferred over `PostController` and
+`ProductsController` is preferred over `ProductController` and
 `SiteAdminsController` over `SiteAdminController` or `SitesAdminsController`.
 However, the plural names are not strictly required — for example, `ApplicationController`.
 
@@ -147,29 +147,29 @@ Consider the below route and controller.
 # config/routes.rb
 
 Rails.application.routes.draw do
-  # A resourceful route to the `PostsController`
-  resources :posts
+  # A resourceful route to the `ProductsController`
+  resources :products
 end
 ```
 
 ```ruby
-class PostsController < ApplicationController
+class ProductsController < ApplicationController
   def index
   end
 end
 ```
 
-When a user navigates to `/posts`, Rails will create an instance
-of `PostsController` and call its `index` method.
+When a user navigates to `/products`, Rails will create an instance
+of `ProductsController` and call its `index` method.
 If the `index` method is empty, Rails will automatically render
-`app/views/posts/index.html.erb`.
+`app/views/products/index.html.erb`.
 
 You can explicity define the template to render using the `render` method:
 
 ```ruby
-class PostsController < ApplicationController
+class ProductsController < ApplicationController
   def index
-    # Renders `app/views/posts/feed.html.erb`
+    # Renders `app/views/products/feed.html.erb`
     render "feed"
   end
 end
@@ -180,25 +180,25 @@ WARNING: Calling `render` does not `return` from the current scope. Statements a
 To enable rendering of additional formats, not just HTML, use a `respond_to` block. This will choose the correct template based on the `Accept` header in the HTTP request:
 
 ```ruby
-class PostsController < ApplicationController
+class ProductsController < ApplicationController
   def index
     respond_to do |format|
-      format.html   # renders `app/views/posts/index.html.erb`
-      format.xml    # renders `app/views/posts/index.xml.erb`
+      format.html   # renders `app/views/products/index.html.erb`
+      format.xml    # renders `app/views/products/index.xml.erb`
     end
   end
 end
 ```
 
-See the [Layouts and Rendering guide](layouts_and_rendering.html) for futher details.
+See the [Layouts and Rendering guide](layouts_and_rendering.html#rendering-responses) for futher details on rendering responses.
 
 In the `index` method, the controller would typically create an array of the
-`Post` model instances, and make it available as an instance variable called `@posts`
+`Product` model instances, and make it available as an instance variable called `@products`
 in the view:
 
 ```ruby
 def index
-  @posts = Post.all
+  @products = Product.all
 end
 ```
 
@@ -217,6 +217,18 @@ redirect_to photos_url
 ```
 
 This will send a `302` HTTP response to the browser with `photos_url` in the `Location` header. The browser will then make a new `GET` request to the `photos_url`.
+
+```
+HTTP/1.1 302 Found
+referrer-policy: strict-origin-when-cross-origin
+location: http://localhost:3000/photos
+content-type: text/html; charset=utf-8
+cache-control: no-cache
+connection: close
+content-length: 0
+```
+
+NOTE: It's worth being aware that `redirect_to` doesn't move execution to a different method within the same request. It sends an HTTP response and then the browser makes a new request to the redirected location which won't have any context from the previous request.
 
 Alternatively, you can use [`redirect_back`][] to return the user to the page they just came from.
 The location is pulled from the `HTTP_REFERER` header which is not guaranteed
@@ -241,8 +253,6 @@ redirect_to photos_path, status: :see_other
 
 NOTE: When redirecting using `302 Found`, the client may not always make a `GET` request to the `Location`. JavaScript's `fetch` method will make a `GET` request after redirection from a `GET` or `POST` request. But, if the initial request is another method, for example `PUT`, it will use the same method when requesting the redirected location. This is not a problem in Rails because all [form submissions use `POST`](https://guides.rubyonrails.org/form_helpers.html#forms-with-patch-put-or-delete-methods), even when using [Turbo](http://turbo.hotwired.dev). <br><br> When making requests in custom JavaScript, redirect using [`303 See Other`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/303) to ensure a `GET` request to the redirected location, or [`307 Temporary Redirect`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/307) to preserve the original HTTP verb.
 
-NOTE: It's worth being aware that `redirect_to` doesn't move execution to a different method within the same request. It sends an HTTP response and then the browser makes a new request to the redirected location which won't have any context from the previous request.
-
 ### Header-Only Responses
 
 The [`head`][] method can be used to send responses with only headers to the browser. This is usually in response to an [HTTP `HEAD`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/HEAD) request.
@@ -259,13 +269,11 @@ This would produce the following HTTP response:
 
 ```http
 HTTP/1.1 400 Bad Request
-Connection: close
-Date: Fri, 10 July 2026 12:15:53 GMT
-Transfer-Encoding: chunked
-Content-Type: text/html; charset=utf-8
-X-Runtime: 0.013483
-Set-Cookie: _blog_session=...snip...; path=/; HttpOnly
-Cache-Control: no-cache
+connection: close
+transfer-encoding: chunked
+content-type: text/html; charset=utf-8
+set-cookie: _blog_session=...snip...; path=/; HttpOnly
+cache-control: no-cache
 ```
 
 You can add additional HTTP headers if you wish.
@@ -278,14 +286,12 @@ Which would produce:
 
 ```http
 HTTP/1.1 201 Created
-Connection: close
-Date: Sun, 24 Jan 2010 12:16:44 GMT
-Transfer-Encoding: chunked
-Location: /photos/1
-Content-Type: text/html; charset=utf-8
-X-Runtime: 0.083496
-Set-Cookie: _blog_session=...snip...; path=/; HttpOnly
-Cache-Control: no-cache
+connection: close
+transfer-encoding: chunked
+location: /photos/1
+content-type: text/html; charset=utf-8
+set-cookie: _blog_session=...snip...; path=/; HttpOnly
+cache-control: no-cache
 ```
 
 [`head`]: https://api.rubyonrails.org/classes/ActionController/Head.html#method-i-head
@@ -470,23 +476,23 @@ parameters — both are available in the `params` object in your controller. For
 example:
 
 ```ruby
-class PostsController < ApplicationController
+class ProductsController < ApplicationController
   # This action receives query string parameters from an HTTP GET request
-  # at the URL "/post?filter=published"
+  # at the URL "/products?filter=books"
   def index
-    if params[:filter] == "published"
-      @posts = Post.published
+    if params[:filter] == "books"
+      @products = Product.books
     else
-      @posts = Post.all
+      @products = Product.all
     end
   end
 
-  # This action receives parameters from a POST request to "/posts" URL with
+  # This action receives parameters from a POST request to "/products" URL with
   # form data in the request body.
   def create
-    @posts = Post.new(params[:post])
-    if @post.save
-      redirect_to @post
+    @product = Product.new(params[:product])
+    if @product.save
+      redirect_to @product
     else
       render "new", status: :unprocessable_content
     end
@@ -494,7 +500,7 @@ class PostsController < ApplicationController
 end
 ```
 
-NOTE: [`ActionController::Parameters`][] does not inherit from Hash, but it is similar in behavior. Although, unlike a Hash, symbolic and string keys, such as `:foo` and `"foo"`, are considered to be the same.
+NOTE: [`ActionController::Parameters`][] does not inherit from Hash, but it is mostly similar in behavior. Unlike a Hash, symbolic and string keys, such as `:foo` and `"foo"`, are considered to be the same.
 
 [`params`]:
     https://api.rubyonrails.org/classes/ActionController/StrongParameters.html#method-i-params
@@ -510,7 +516,7 @@ ActionController::Parameters::PERMITTED_SCALAR_TYPES
 # => [String, Symbol, NilClass, Numeric, TrueClass, FalseClass, Date, Time, StringIO, IO, ActionDispatch::Http::UploadedFile, Rack::Test::UploadedFile]
 ```
 
-The object can contain nested hashes and array, but values within those must also contain a permitted scalar.
+The object can contain nested hashes and arrays, but values within those must also contain a permitted scalar.
 
 To send an array of values, append an empty pair of square brackets `[]` to the key name:
 
@@ -545,7 +551,7 @@ To send a hash, you include the key name inside the brackets:
 
 When this form is submitted, the value of `params[:user]` will be:
 
-```
+```ruby
 {
   "name" => "Acme",
   "phone" => "12345",
@@ -571,21 +577,21 @@ Active Record. You can use the [`extract_value`][] method to do that.
 Consider the below controller and route:
 
 ```ruby#4
-class BooksController < ApplicationController
+class ProductsController < ApplicationController
   def show
     # Extract the composite ID value from URL parameters.
     id = params.extract_value(:id)
-    @book = Book.find(id)
+    @product = Product.find(id)
   end
 end
 ```
 
 ```ruby
-get "/books/:id", to: "books#show"
+get "/products/:id", to: "products#show"
 ```
 
-When a user requests the URL `/books/4_2`, the controller will extract the
-composite key value `["4", "2"]` and pass it to `Book.find`. The [`extract_value`][]
+When a user requests the URL `/products/4_2`, the controller will extract the
+composite key value `["4", "2"]` and pass it to `Product.find`. The [`extract_value`][]
 method may be used to extract arrays out of any delimited parameters.
 
 [`extract_value`]: https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-extract_value
@@ -643,7 +649,7 @@ params object.
 NOTE: While the action and controller names are available in the params object,
 it is recommended to use the methods [`controller_name`][] and [`action_name`][] instead to access these values.
 
-Parameter wrapping is enabled by default, can be disabled using a configuration option:
+Parameter wrapping is enabled by default, but can be disabled using a configuration option:
 
 ```ruby
 # config/application.rb
@@ -664,14 +670,14 @@ for more.
 
 Parameters specified as part of a route declaration in the `routes.rb` file are
 also made available in the `params` hash. For example, we can add a route that
-captures the `:status` parameter for a posts:
+captures the `:category` parameter for a product:
 
 ```ruby
-get "/posts/:status", to: "posts#index", foo: "bar"
+get "/products/:category", to: "products#index", foo: "bar"
 ```
 
-When a user navigates to `/posts/published` URL, `params[:status]` will be set to
-"published". When this route is used, `params[:foo]` will also be set to "bar", as
+When a user navigates to `/products/electronics` URL, `params[:category]` will be set to
+"electronics". When this route is used, `params[:foo]` will also be set to "bar", as
 if it were passed in the query string.
 
 Any other parameters defined by the route declaration, such as `:id`, will also
@@ -691,16 +697,16 @@ end
 
 The specified defaults will be used as a starting point when generating URLs.
 They can be overridden by the options passed to [`url_for`][] or any path helper
-such as `posts_path`. The above example will automatically add the locale to every URL.
+such as `products_path`. The above example will automatically add the locale to every URL.
 
 ```ruby
-posts_path # => "/posts?locale=en"
+products_path # => "/products?locale=en"
 ```
 
 You can still override this default if needed:
 
 ```ruby
-posts_path(locale: :fr) # => "/posts?locale=fr"
+products_path(locale: :fr) # => "/products?locale=fr"
 ```
 
 NOTE: All Rails path helpers call `url_for` under the hood.
@@ -1000,7 +1006,7 @@ end
 To store data the session, assign a value to a key as you would in a Ruby Hash.
 
 ```ruby
-class PostsController < ApplicationController
+class ProductsController < ApplicationController
   def create
     # ...
 
@@ -1014,7 +1020,7 @@ end
 To remove something from the session, delete the key:
 
 ```ruby
-class PostsController < ApplicationController
+class ProductsController < ApplicationController
   def new
     session.delete(:initial_location)
   end
@@ -1036,8 +1042,7 @@ not accessing them will do the job.
 
 The storage mechanism for session data can be configured. By default, data is stored in an encrypted cookie, but other stores are available.
 
-All sessions have a unique ID representing the session object. Regardless of the chosen store, this ID is always stored in a cookie. The data can be stored using one of the following
-storage mechanisms:
+All sessions have a unique ID representing the session object. Regardless of the chosen store, this session ID is always stored in a cookie. The session data can be stored using one of the following storage mechanisms:
 
 * [`ActionDispatch::Session::CookieStore`][] - Stores the data in an encrypted cookie.
 * [`ActionDispatch::Session::CacheStore`][] - Stores the data in the Rails
@@ -1128,17 +1133,17 @@ controller action, before redirecting to an action that displays the message.
 The flash is accessed via the [`flash`][] method which returns an instance of [`ActionDispatch::Flash::FlashHash`][]. Similar to the session, the
 flash values are stored as key-value pairs exactly like a Ruby Hash.
 
-Consider the below example where the controller sets a flash message after a post
+Consider the below example where the controller sets a flash message after a product
 is created, which will be available to display during the next request after the
 user is redirected.
 
 ```ruby
-class PostsController < ApplicationController
+class ProductsController < ApplicationController
   def create
     # ...
 
-    flash[:notice] = "Your post was created!"
-    redirect_to posts_path, status: :see_other
+    flash[:notice] = "Your product was created!"
+    redirect_to products_path, status: :see_other
   end
 end
 ```
@@ -1146,26 +1151,26 @@ end
 You may use different keys to assign different message types:
 
 ```ruby
-flash[:notice]  = "Your post was created!"
-flash[:alert]   = "Sorry, something when wrong when creating your post."
-flash[:warning] = "Your post was created, but there were some problems."
+flash[:notice]  = "Your product was created!"
+flash[:alert]   = "Sorry, something when wrong while creating your product."
+flash[:warning] = "Your product was created, but there were some problems."
 ```
 
 Set a flash message when calling `redirect_to` by including it as a parameter:
 
 ```ruby
 # Equivalent to setting flash[:notice]
-redirect_to root_url, notice: "Your post was created!"
+redirect_to root_url, notice: "Your product was created!"
 
 # Equivalent to setting flash[:alert]
-redirect_to root_url, alert: "Sorry, something when wrong when creating your post."
+redirect_to root_url, alert: "Sorry, something when wrong when creating your product."
 ```
 
 Only `notice:` and `alert:` options may be used at the top-level. Storing messages under other keys needs the `flash:` option:
 
 ```ruby
 # Equivalent to setting flash[:warning]
-redirect_to root_url, flash: { warning: "Your post was created, but there were some problems." }
+redirect_to root_url, flash: { warning: "Your product was created, but there were some problems." }
 ```
 
 The flash does not render anything in the UI — it is a short-term data storage mechanism. Reading flash data and rendering the appropriate HTML is left up the the developer.
@@ -1230,13 +1235,13 @@ In the below example, when the `create` action fails to save a resource, the `ne
 Since there is no redirection, the response will not immediately trigger another HTTP request. Use `flash.now` to display a message using the flash in this case. This will make the message available in only the current request.
 
 ```ruby
-class PostsController < ApplicationController
+class ProductsController < ApplicationController
   def create
-    @posts = Post.new(post_params)
-    if @post.save
+    @product = Product.new(product_params)
+    if @product.save
       # ...
     else
-      flash.now[:error] = "The post could not be saved"
+      flash.now[:error] = "The product could not be saved"
       render "new", status: :unprocessable_content
     end
   end
@@ -1249,8 +1254,6 @@ end
     https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html#method-i-keep
 [`flash.now`]:
     https://api.rubyonrails.org/classes/ActionDispatch/Flash/FlashHash.html#method-i-now
-
-
 
 The Request and Response Objects
 --------------------------------
