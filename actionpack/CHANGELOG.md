@@ -1,3 +1,13 @@
+*   Allow HTTP token authentication to use the DPoP authentication scheme.
+
+    Pass `scheme: "DPoP"` to `authenticate_or_request_with_http_token` (and
+    other token authentication methods) to require DPoP credentials and
+    use DPoP in the `WWW-Authenticate` challenge. The authentication
+    scheme is yielded to the authentication block as a normalized symbol
+    in an optional third argument.
+
+    *Chad Cole*
+
 *   Deprecate `ActionDispatch::Cookies::HTTP_HEADER`.
 
     Use `Rack::SET_COOKIE` instead.

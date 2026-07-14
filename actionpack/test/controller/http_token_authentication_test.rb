@@ -7,9 +7,14 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     before_action :authenticate, only: :index
     before_action :authenticate_with_request, only: :display
     before_action :authenticate_long_credentials, only: :show
+    before_action :authenticate_dpop, only: :dpop
 
     def index
       render plain: "Hello Secret"
+    end
+
+    def dpop
+      render plain: "Hello #{@authentication_scheme}"
     end
 
     def display
@@ -38,6 +43,13 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
       def authenticate_long_credentials
         authenticate_or_request_with_http_token do |token, options|
           token == "1234567890123456789012345678901234567890" && options[:algorithm] == "test"
+        end
+      end
+
+      def authenticate_dpop
+        authenticate_or_request_with_http_token(scheme: "DPoP") do |token, _, scheme|
+          @authentication_scheme = scheme
+          token == "lifo"
         end
       end
   end
@@ -105,8 +117,38 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "successful authentication request with DPoP" do
+    @request.env["HTTP_AUTHORIZATION"] = "DPoP lifo"
+    get :index
+
+    assert_response :success
+  end
+
+  test "DPoP authentication request without credentials" do
+    get :dpop
+
+    assert_response :unauthorized
+    assert_equal 'DPoP realm="Application"', @response.headers["WWW-Authenticate"]
+  end
+
+  test "authentication can be restricted to DPoP" do
+    @request.env["HTTP_AUTHORIZATION"] = "Bearer lifo"
+    get :dpop
+
+    assert_response :unauthorized
+    assert_equal 'DPoP realm="Application"', @response.headers["WWW-Authenticate"]
+  end
+
+  test "successful authentication when restricted to DPoP" do
+    @request.env["HTTP_AUTHORIZATION"] = "DPoP lifo"
+    get :dpop
+
+    assert_response :success
+    assert_equal "Hello dpop", @response.body
+  end
+
   test "successful authentication request with case-insensitive scheme" do
-    ["bearer lifo", "BEARER lifo", "token lifo", "TOKEN lifo"].each do |header|
+    ["bearer lifo", "BEARER lifo", "token lifo", "TOKEN lifo", "dpop lifo", "DPOP lifo"].each do |header|
       @request.env["HTTP_AUTHORIZATION"] = header
       get :index
 
@@ -139,6 +181,23 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_equal "Authentication Failed\n", @response.body
     assert_equal "application/json", @response.media_type
     assert_equal 'Token realm="SuperSecret"', @response.headers["WWW-Authenticate"]
+  end
+
+  test "authenticate remains compatible with two-argument lambdas" do
+    controller = Struct.new(:request).new(sample_request("token"))
+    login = ->(token, _) { token }
+
+    assert_equal "token", ActionController::HttpAuthentication::Token.authenticate(controller, &login)
+  end
+
+  test "authenticate rejects an unsupported authentication scheme" do
+    controller = Struct.new(:request).new(sample_request("token"))
+
+    error = assert_raises(ArgumentError) do
+      ActionController::HttpAuthentication::Token.authenticate(controller, "Basic") { true }
+    end
+
+    assert_equal 'Unsupported token authentication scheme: "Basic"', error.message
   end
 
   test "token_and_options returns correct token" do
