@@ -33,6 +33,11 @@ module ActiveRecord
         def add_constraints(reflection, key, join_ids, owner, ordered)
           scope = reflection.build_scope(reflection.aliased_table).where(key => join_ids)
 
+          if reflection.type
+            polymorphic_type = transform_value(owner.class.polymorphic_name)
+            scope = apply_scope(scope, reflection.aliased_table, reflection.type, polymorphic_type)
+          end
+
           relation = reflection.klass.scope_for_association
           scope.merge!(
             relation.except(:select, :create_with, :includes, :preload, :eager_load, :joins, :left_outer_joins)

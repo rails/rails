@@ -20,6 +20,9 @@ class Comment < ActiveRecord::Base
 
   has_many :ratings
 
+  has_many :taggings, as: :taggable
+  has_many :tags, through: :taggings
+
   belongs_to :first_post, foreign_key: :post_id
   belongs_to :special_post_with_default_scope, foreign_key: :post_id
 
