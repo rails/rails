@@ -14,10 +14,11 @@ module ActionCable
     attr_accessor :logger, :log_tags
     attr_accessor :connection_class, :worker_pool_size, :executor_pool_size
     attr_accessor :disable_request_forgery_protection, :allowed_request_origins, :allow_same_origin_as_host, :filter_parameters
-    attr_accessor :cable, :url, :mount_path
+    attr_accessor :cable, :url, :mount_path, :beat_interval
     attr_accessor :precompile_assets
     attr_accessor :health_check_path, :health_check_application
     attr_writer :pubsub_adapter
+    attr_accessor :executor, :websocket_server
 
     def initialize
       @log_tags = []
@@ -25,6 +26,11 @@ module ActionCable
       @connection_class = -> { ActionCable::Connection::Base }
       @worker_pool_size = 4
       @executor_pool_size = 10
+
+      @beat_interval = 3
+
+      @executor = ->(server) { ActionCable::Server::ThreadedExecutor.new(max_size: server.config.executor_pool_size, name: "streamer") }
+      @websocket_server = ->(server) { ActionCable::Server::WebSocketServer.new(server) }
 
       @disable_request_forgery_protection = false
       @allow_same_origin_as_host = true

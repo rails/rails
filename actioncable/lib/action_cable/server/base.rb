@@ -6,29 +6,6 @@ require "monitor"
 
 module ActionCable
   module Server
-    # A wrapper over ConcurrentRuby::ThreadPoolExecutor and Concurrent::TimerTask
-    class ThreadedExecutor # :nodoc:
-      def initialize(max_size: 10, name: "server")
-        @executor = Concurrent::ThreadPoolExecutor.new(
-          name: "ActionCable-#{name}",
-          min_threads: 1,
-          max_threads: max_size,
-          max_queue: 0,
-        )
-      end
-
-      def post(task = nil, &block)
-        task ||= block
-        @executor << task
-      end
-
-      def timer(interval, &block)
-        Concurrent::TimerTask.new(execution_interval: interval, &block).tap(&:execute)
-      end
-
-      def shutdown = @executor.shutdown
-    end
-
     # # Action Cable Server Base
     #
     # A singleton ActionCable::Server instance is available via ActionCable.server.
@@ -73,7 +50,7 @@ module ActionCable
           # worker pool, which we halt below, so the entries would otherwise leak.
           connections_map.clear
 
-          @websocket_server&.restart
+          @websocket_server&.try(:restart)
 
           # Shutdown the executor
           @executor.shutdown if @executor
@@ -92,12 +69,12 @@ module ActionCable
 
       # An actual implementation of a Rack-compatible WebSocket server
       def websocket_server
-        @websocket_server || @mutex.synchronize { @websocket_server ||= ActionCable::Server::WebSocketServer.new(self) }
+        @websocket_server || @mutex.synchronize { @websocket_server ||= config.websocket_server.call(self) }
       end
 
       # Executor is used by various actions within Action Cable (e.g., pub/sub operations) to run code asynchronously.
       def executor
-        @executor || @mutex.synchronize { @executor ||= ThreadedExecutor.new(max_size: config.executor_pool_size, name: "streamer") }
+        @executor || @mutex.synchronize { @executor ||= config.executor.call(self) }
       end
 
       # Adapter used for all streams/broadcasting.

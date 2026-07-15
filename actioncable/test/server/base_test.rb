@@ -77,4 +77,31 @@ class BaseTest < ActionCable::TestCase
     assert_same ActionCable::Configuration, ActionCable::Server::Configuration
     assert_instance_of ActionCable::Configuration, ActionCable::Server::Base.config
   end
+
+  test "uses configured executor" do
+    executor = []
+
+    config = ActionCable::Configuration.new
+    config.executor = -> (server) { executor.tap { _1 << server } }
+
+    @server = ActionCable::Server::Base.new(config:)
+
+    assert_same @server.executor, executor
+    assert_same @server.executor[0], @server
+  end
+
+  test "uses configured websocket server" do
+    ws_class = Data.define(:server) do
+      def call(env) = [418, {}, ["It's tea time!"]]
+    end
+
+    config = ActionCable::Configuration.new
+    config.websocket_server = -> (server) { ws_class.new(server) }
+
+    @server = ActionCable::Server::Base.new(config:)
+
+    assert_instance_of ws_class, @server.websocket_server
+    assert_same @server.websocket_server.server, @server
+    assert_equal 418, @server.call({})[0]
+  end
 end
