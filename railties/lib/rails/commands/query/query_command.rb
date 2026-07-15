@@ -172,7 +172,11 @@ module Rails
         def tabular_result_parts_for(result, expression:, page:, per:)
           case result
           when ActiveRecord::Relation
-            relation = result.offset((page - 1) * per).limit(per + 1)
+            relation = if result.limit_value
+              result
+            else
+              result.offset((page - 1) * per).limit(per + 1)
+            end
             relation_sql = relation.to_sql
 
             with_readonly_connection_for(relation.model.connection_class_for_self) do |connection|

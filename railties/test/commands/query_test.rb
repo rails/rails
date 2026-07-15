@@ -90,6 +90,16 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
     assert_not_equal page1["rows"], page2["rows"]
   end
 
+  test "respects a limit set on the relation" do
+    rails "runner", '3.times { |i| Post.create!(title: "Post #{i}") }'
+
+    data = query_json("Post.limit(1)")
+
+    assert_equal 1, data.dig("meta", "row_count")
+    assert_not data.dig("meta", "has_more")
+    assert_match(/\bLIMIT 1\b/, data.dig("meta", "sql"))
+  end
+
   test "does not double-eval on connection failure" do
     app_file "app/models/counter.rb", <<-RUBY
       class Counter
