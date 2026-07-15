@@ -284,7 +284,8 @@ module ActiveRecord
       end
 
       def truncate_tables(*table_names) # :nodoc:
-        table_names -= [pool.schema_migration.table_name, pool.internal_metadata.table_name]
+        excluded = [pool.schema_migration.table_name, pool.internal_metadata.table_name]
+        table_names.delete_if { |name| excluded.any? { |e| name == e || name.end_with?(".#{e}") } }
 
         return if table_names.empty?
 
