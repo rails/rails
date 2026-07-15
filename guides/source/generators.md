@@ -2,7 +2,7 @@
 <https://guides.rubyonrails.org>.**
 
 Rails Generators & Templates
-=====================================================
+============================
 
 Rails generators and application templates are useful tools that can improve
 your workflow by automatically creating boilerplate code. In this guide you will
