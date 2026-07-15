@@ -104,7 +104,7 @@ module ActiveSupport
     #
     # Output:
     #
-    #   E, [2022-05-12T16:25:55.349414 #36328] ERROR -- mung: No good
+    #   E, [2022-05-12T16:25:55.349414 #36328] ERROR -- : No good
     #   E, [2022-05-12T16:26:35.841134 #36328] ERROR -- gnum: No good
     #
     # These convenience methods have implicit severity:
@@ -126,12 +126,12 @@ module ActiveSupport
     end
     alias_method :log, :add
 
-    # Forward the given +msg+ to the underlying logger with no formatting
+    # Forwards the given +msg+ to the underlying logger with no formatting and
     # returns the number of characters written,
     # or +nil+ if the underlying logger is +nil+:
     #
     #   logger = ProxyLogger.new(Logger.new($stderr))
-    #   logger << 'My message.' # => 10
+    #   logger << 'My message.' # => 11
     #
     # Output:
     #
