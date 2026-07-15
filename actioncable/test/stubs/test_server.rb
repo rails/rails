@@ -24,12 +24,12 @@ class TestServer < ActionCable::Server::Base
     @mutex = Monitor.new
   end
 
+  #=== Action Cable Server interface ===
+
+  def websocket_server = self
+
   def pubsub
     @pubsub ||= @config.subscription_adapter.new(self)
-  end
-
-  def event_loop
-    @event_loop ||= ActionCable::Server::StreamEventLoop.new
   end
 
   def executor
@@ -38,11 +38,19 @@ class TestServer < ActionCable::Server::Base
     end
   end
 
+  def new_tagged_logger = ActionCable::Server::TaggedLoggerProxy.new(logger, tags: [])
+
+  #=== WebSocket server interface ===
+
+  def event_loop
+    @event_loop ||= ActionCable::Server::StreamEventLoop.new
+  end
+
   def worker_pool
     @worker_pool ||= ActionCable::Server::Worker.new(max_size: 5).tap do |wp|
       wp.instance_variable_set(:@executor, Concurrent.global_io_executor)
     end
   end
 
-  def new_tagged_logger = ActionCable::Server::TaggedLoggerProxy.new(logger, tags: [])
+  def server = self
 end

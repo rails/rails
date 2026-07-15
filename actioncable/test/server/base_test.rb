@@ -61,8 +61,8 @@ class BaseTest < ActionCable::TestCase
     end
   end
 
-  test "#restart shuts down worker pool" do
-    assert_called(@server.worker_pool, :halt) do
+  test "#restart restarts websocker_server" do
+    assert_called(@server.websocket_server, :restart) do
       @server.restart
     end
   end
@@ -71,17 +71,6 @@ class BaseTest < ActionCable::TestCase
     assert_called(@server.pubsub, :shutdown) do
       @server.restart
     end
-  end
-
-  test "#restart shuts down the heartbeat timer" do
-    @server.send(:setup_heartbeat_timer)
-    timer = @server.instance_variable_get(:@heartbeat_timer)
-    assert_predicate timer, :running?
-
-    @server.restart
-
-    assert_not timer.running?
-    assert_nil @server.instance_variable_get(:@heartbeat_timer)
   end
 
   test "server configuration is available from ActionCable" do

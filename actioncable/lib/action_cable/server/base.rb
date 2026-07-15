@@ -32,12 +32,10 @@ module ActionCable
     # # Action Cable Server Base
     #
     # A singleton ActionCable::Server instance is available via ActionCable.server.
-    # It's used by the Rack process that starts the Action Cable server, but is also
-    # used by the user to reach the RemoteConnections object, which is used for
-    # finding and disconnecting connections across all servers.
-    #
-    # Also, this is the server instance used for broadcasting. See Broadcasting for
-    # more information.
+    # It acts as an entry point to an Action Cable application providing access to the underlying
+    # WebSocket server implementation, the RemoteConnections object, which is used for
+    # finding and disconnecting connections across all servers, and the pubsub adapter
+    # used for broadcasting. See Broadcasting for more information.
     class Base
       include ActionCable::Server::Broadcasting
       include ActionCable::Server::Connections
@@ -49,19 +47,14 @@ module ActionCable
       def self.logger; config.logger; end
       delegate :logger, to: :config
 
+      delegate :call, to: :websocket_server
+
       attr_reader :mutex
 
       def initialize(config: self.class.config)
         @config = config
         @mutex = Monitor.new
-        @remote_connections = @event_loop = @worker_pool = @executor = @pubsub = @heartbeat_timer = nil
-      end
-
-      # Called by Rack to set up the server.
-      def call(env)
-        return config.health_check_application.call(env) if env["PATH_INFO"] == config.health_check_path
-        setup_heartbeat_timer
-        Socket.new(self, env).process
+        @remote_connections = @websocket_server = @executor = @pubsub = nil
       end
 
       # Disconnect all the connections identified by `identifiers` on this server or
@@ -80,13 +73,7 @@ module ActionCable
           # worker pool, which we halt below, so the entries would otherwise leak.
           connections_map.clear
 
-          # Shutdown the heartbeat timer
-          @heartbeat_timer.shutdown if @heartbeat_timer
-          @heartbeat_timer = nil
-
-          # Shutdown the worker pool
-          @worker_pool.halt if @worker_pool
-          @worker_pool = nil
+          @websocket_server&.restart
 
           # Shutdown the executor
           @executor.shutdown if @executor
@@ -103,28 +90,9 @@ module ActionCable
         @remote_connections || @mutex.synchronize { @remote_connections ||= RemoteConnections.new(self) }
       end
 
-      def event_loop
-        @event_loop || @mutex.synchronize { @event_loop ||= StreamEventLoop.new }
-      end
-
-      # The worker pool is where we run connection callbacks and channel actions. We
-      # do as little as possible on the server's main thread. The worker pool is an
-      # executor service that's backed by a pool of threads working from a task queue.
-      # The thread pool size maxes out at 4 worker threads by default. Tune the size
-      # yourself with `config.action_cable.worker_pool_size`.
-      #
-      # Using Active Record, Redis, etc within your channel actions means you'll get a
-      # separate connection from each thread in the worker pool. Plan your deployment
-      # accordingly: 5 servers each running 5 Puma workers each running an 8-thread
-      # worker pool means at least 200 database connections.
-      #
-      # Also, ensure that your database connection pool size is as least as large as
-      # your worker pool size. Otherwise, workers may oversubscribe the database
-      # connection pool and block while they wait for other workers to release their
-      # connections. Use a smaller worker pool or a larger database connection pool
-      # instead.
-      def worker_pool
-        @worker_pool || @mutex.synchronize { @worker_pool ||= ActionCable::Server::Worker.new(max_size: config.worker_pool_size) }
+      # An actual implementation of a Rack-compatible WebSocket server
+      def websocket_server
+        @websocket_server || @mutex.synchronize { @websocket_server ||= ActionCable::Server::WebSocketServer.new(self) }
       end
 
       # Executor is used by various actions within Action Cable (e.g., pub/sub operations) to run code asynchronously.
