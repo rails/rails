@@ -1,3 +1,12 @@
+*   Cooldown dependabot version updates to 7 days. Does not impact security updates.
+
+    Reduces the likelihood of compromised dependencies being installed after successful supply chain attacks on
+    RubyGems or GitHub Actions.
+
+    Please note dependabot ignores this cooldown for security updates so known vulnerabilities are patched sooner.
+
+    *Eliot Sykes*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"
