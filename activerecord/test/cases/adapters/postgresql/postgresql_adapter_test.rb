@@ -1261,7 +1261,7 @@ module ActiveRecord
         @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_nested"
         @connection.execute "DROP DOMAIN IF EXISTS postgresql_domain_base"
         reset_pool
-      end
+      end if ActiveRecord::Base.lease_connection.database_version >= 11_00_00
 
       def test_load_additional_types_cascades_dependency_lookups_after_initial_bulk_load
         reset_pool
@@ -1282,7 +1282,7 @@ module ActiveRecord
         connection&.execute "DROP DOMAIN IF EXISTS postgresql_domain_nested_after_bulk"
         connection&.execute "DROP DOMAIN IF EXISTS postgresql_domain_base_after_bulk"
         reset_pool
-      end
+      end if ActiveRecord::Base.lease_connection.database_version >= 11_00_00
 
       def test_only_warn_on_first_encounter_of_unrecognized_oid
         reset_pool
