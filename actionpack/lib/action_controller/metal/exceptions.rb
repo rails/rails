@@ -2,6 +2,8 @@
 
 # :markup: markdown
 
+require "active_support/core_ext/array/conversions"
+
 module ActionController
   class ActionControllerError < StandardError # :nodoc:
   end
