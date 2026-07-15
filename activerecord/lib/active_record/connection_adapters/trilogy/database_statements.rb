@@ -34,6 +34,10 @@ module ActiveRecord
         end
 
         private
+          def multi_statements_enabled?
+            @config[:multi_statement]
+          end
+
           def perform_query(raw_connection, intent)
             reset_multi_statement = if intent.batch && !@config[:multi_statement]
               raw_connection.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_ON)
