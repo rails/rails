@@ -174,7 +174,8 @@ module ActiveRecord
         end
 
         def loaded?(owner)
-          owner.association(reflection.name).loaded?
+          association = owner.association(reflection.name)
+          association.loaded? && !association.stale_target?
         end
 
         def target_for(owner)

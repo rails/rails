@@ -908,6 +908,18 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_grouped_queries_does_not_reuse_stale_already_loaded_records
+    book = books(:awdr)
+    post = posts(:misc_by_bob)
+    book.author # load the association, then leave it stale with a raw foreign-key write
+    book.author_id = authors(:bob).id
+
+    ActiveRecord::Associations::Preloader.new(records: [book, post], associations: :author).call
+
+    assert_equal authors(:bob), post.author
+    assert_equal authors(:bob), book.author
+  end
+
   def test_preload_grouped_queries_of_middle_records
     comments = [
       comments(:eager_sti_on_associations_s_comment1),
