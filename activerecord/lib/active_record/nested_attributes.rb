@@ -391,10 +391,15 @@ module ActiveRecord
             def #{association_name}_attributes=(attributes)
               association = association(:#{association_name})
               deprecated_associations_api_guard(association, __method__)
+              (@_assigned_nested_attribute_names ||= []) << "#{association_name}_attributes"
               assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes)
             end
           eoruby
         end
+    end
+
+    def assigned_nested_attribute_names # :nodoc:
+      @_assigned_nested_attribute_names || []
     end
 
     # Returns ActiveRecord::AutosaveAssociation#marked_for_destruction? It's
@@ -407,6 +412,11 @@ module ActiveRecord
     end
 
     private
+      def init_internals
+        super
+        @_assigned_nested_attribute_names = nil
+      end
+
       # Attribute hash keys that should not be assigned as normal attributes.
       # These hash keys are nested attributes implementation details.
       UNASSIGNABLE_KEYS = %w( id _destroy ).freeze
