@@ -1,3 +1,8 @@
+*   Only use multi statement for `SET TRANSACTION ISOLATION LEVEL; BEGIN` if
+    MySQL connection is configured to use multi statement.
+
+    *Eliseu Daroit*, *Hartley McGuire*, *Matthew Draper*
+
 *   Mark a connection unverified when a non-`StandardError` interrupts a query.
 
     A query interrupted by a non-`StandardError`, such as a fiber scheduler's

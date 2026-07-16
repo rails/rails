@@ -10,6 +10,10 @@ module ActiveRecord
         end
 
         private
+          def multi_statements_enabled?
+            @config[:multi_statement]
+          end
+
           def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
             reset_multi_statement = if batch && !@config[:multi_statement]
               raw_connection.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_ON)
