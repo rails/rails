@@ -950,7 +950,7 @@ module ActiveRecord
     #
     # * +counter+ - A Hash containing the names of the fields to update as keys and the amount to update as values.
     # * <tt>:touch</tt> option - Touch the timestamp columns when updating.
-    # * If attributes names are passed, they are updated along with update_at/on attributes.
+    # * If attributes names are passed, they are updated along with updated_at/on attributes.
     #
     # ==== Examples
     #

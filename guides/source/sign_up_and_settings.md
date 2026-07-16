@@ -716,7 +716,7 @@ following:
 <%= button_to "Delete my account", settings_user_path, method: :delete, data: { turbo_confirm: "Are you sure? This cannot be undone." } %>
 ```
 
-And finally, we'll add a link to Account in the setting layout's sidebar.
+And finally, we'll add a link to Account in the settings layout's sidebar.
 
 ```erb#7
 <%= content_for :content do %>
