@@ -1,3 +1,13 @@
+*   Fix the `has_and_belongs_to_many` join model's owner association.
+
+    The auto-generated join model's `belongs_to` back to the owner (`left_side`) was keyed to
+    a non-existent `left_side_id` column, so reading it always returned `nil`. It now uses the
+    owner's foreign key (including the composite key when `foreign_key:` is an array), and is
+    set as the inverse of the join's `has_many`, so the owner is populated in memory when a join
+    record is built through the owner instead of triggering a reload.
+
+    *Oliver Morgan*
+
 *   `connected_to_all_shards` now raises `ArgumentError` when called on a model
     that is not connected to any shards, rather than silently doing nothing.
 
@@ -24,7 +34,6 @@
     other spatial types (`GEOMETRY`, `POLYGON`, `LINESTRING`, ...).
 
     *Ryosuke Okazuka*
-
 *   Report PostgreSQL default timestamp and time precision as 6.
 
     Bare PostgreSQL `timestamp` and `time` columns now use their effective
