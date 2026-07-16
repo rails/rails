@@ -71,6 +71,10 @@ module ActionDispatch
         missing_keys = nil
 
         match_route(name, constraints) do |route|
+          (route.parts - route.required_parts).each do |part|
+            options[part] = nil if options[part] == ""
+          end
+
           parameterized_parts = extract_parameterized_parts(route, options, path_parameters)
 
           # Skip this route unless a name has been provided or it is a standard Rails
