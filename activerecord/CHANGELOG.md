@@ -1,3 +1,8 @@
+*   Fix duplicated record creation when using nested attributes and `create_with`
+    on an association.
+
+    *Jerome Dalbert*
+
 *   Avoid deadlocks when concurrent `find_or_create_by` calls read back the same
     record within MySQL transactions.
 
