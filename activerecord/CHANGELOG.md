@@ -1,3 +1,48 @@
+*   Add query predicate hooks for Active Model types.
+
+    Types can override `transforms_query_predicates?`, `query_attribute`, and
+    `query_value` to customize how hash `where` predicates are built while
+    preserving normal casting and serialization behavior.
+
+    For example, a UUID type stored in MySQL `binary(16)` can accept UUID
+    strings while rendering predicates as `id = UUID_TO_BIN(?)`:
+
+    ```ruby
+    def transforms_query_predicates?
+      true
+    end
+
+    def query_value(attribute, value, predicate_builder:)
+      Arel::Nodes::NamedFunction.new(
+        "UUID_TO_BIN",
+        [predicate_builder.build_bind_attribute(attribute.name, value, self)]
+      )
+    end
+    ```
+
+    `query_attribute` transforms the left-hand side of the predicate, so a text
+    type can compare through a normalized expression such as
+    `lower(name) = lower(?)`:
+
+    ```ruby
+    def transforms_query_predicates?
+      true
+    end
+
+    def query_attribute(attribute)
+      Arel::Nodes::NamedFunction.new("lower", [attribute])
+    end
+
+    def query_value(attribute, value, predicate_builder:)
+      Arel::Nodes::NamedFunction.new(
+        "lower",
+        [predicate_builder.build_bind_attribute(attribute.name, value, self)]
+      )
+    end
+    ```
+
+    *Kir Shatrov*, *Jean-Samuel Aubry-Guzzi*
+
 *   `connected_to_all_shards` now raises `ArgumentError` when called on a model
     that is not connected to any shards, rather than silently doing nothing.
 
