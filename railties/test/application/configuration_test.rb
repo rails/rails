@@ -2083,6 +2083,32 @@ module ApplicationTests
       assert ActiveRecord.dump_schema_after_migration
     end
 
+    test "config.active_record.dump_schema_migrations is false by default" do
+      app "development"
+
+      assert_not ActiveRecord.dump_schema_migrations
+    end
+
+    test "config.active_record.dump_schema_migrations can be configured" do
+      add_to_config "config.active_record.dump_schema_migrations = true"
+      app "development"
+
+      assert ActiveRecord.dump_schema_migrations
+    end
+
+    test "config.active_record.dump_schema_migrations_sort_by is :itself by default" do
+      app "development"
+
+      assert_equal :itself, ActiveRecord.dump_schema_migrations_sort_by
+    end
+
+    test "config.active_record.dump_schema_migrations_sort_by can be configured" do
+      add_to_config "config.active_record.dump_schema_migrations_sort_by = :reverse"
+      app "development"
+
+      assert_equal :reverse, ActiveRecord.dump_schema_migrations_sort_by
+    end
+
     test "config.active_record.verbose_query_logs is false by default in development" do
       app "development"
 

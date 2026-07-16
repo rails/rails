@@ -73,5 +73,22 @@ module ActiveRecord
         include Definition
       end
     end
+
+    def self.load_schema_migrations(file) # :nodoc:
+      _schema, marker, data = File.read(file).rpartition("__END__\n")
+
+      raise ActiveRecordError, "No __END__ found in #{file}" if marker.empty?
+
+      versions = data.lines
+      versions.each(&:strip!)
+      versions.reject!(&:empty?)
+
+      if invalid_version = versions.find { |version| !/\A[0-9]+\z/.match?(version) }
+        raise ActiveRecordError, "Invalid migration version #{invalid_version.inspect} found after __END__"
+      end
+
+      versions -= connection_pool.schema_migration.versions
+      connection_pool.schema_migration.create_versions(versions)
+    end
   end
 end

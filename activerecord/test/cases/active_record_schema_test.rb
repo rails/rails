@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "tempfile"
 
 class ActiveRecordSchemaTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -33,6 +34,12 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     end
   ensure
     ActiveRecord::Base.primary_key_prefix_type = old_primary_key_prefix_type
+  end
+
+  def test_schema_migration_create_versions_inserts_string_versions
+    @schema_migration.create_versions(["1", "2"])
+
+    assert_equal ["1", "2"], @schema_migration.versions
   end
 
   def test_schema_without_version_is_the_current_version_schema
@@ -97,6 +104,86 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
       create_table :fruits
     end
     assert_nothing_raised { @connection.select_all "SELECT * FROM fruits" }
+  end
+
+  def test_schema_load_schema_migrations
+    file = Tempfile.new("schema.rb")
+    file.write <<~RUBY
+      ActiveRecord::Schema.define {}
+      ActiveRecord::Schema.load_schema_migrations(__FILE__)
+      __END__
+
+      1
+
+      2
+
+    RUBY
+    file.close
+
+    ActiveRecord::Schema.load_schema_migrations(file.path)
+
+    assert_equal ["1", "2"], @schema_migration.versions
+  ensure
+    file.unlink
+  end
+
+  def test_schema_load_schema_migrations_skips_versions_already_in_database
+    @schema_migration.create_version("1")
+
+    file = Tempfile.new("schema.rb")
+    file.write <<~RUBY
+      ActiveRecord::Schema.define {}
+      ActiveRecord::Schema.load_schema_migrations(__FILE__)
+      __END__
+      1
+      2
+    RUBY
+    file.close
+
+    ActiveRecord::Schema.load_schema_migrations(file.path)
+
+    assert_equal ["1", "2"], @schema_migration.versions
+  ensure
+    file.unlink
+  end
+
+  def test_schema_load_schema_migrations_rejects_non_numeric_versions
+    file = Tempfile.new("schema.rb")
+    file.write <<~RUBY
+      ActiveRecord::Schema.define {}
+      ActiveRecord::Schema.load_schema_migrations(__FILE__)
+      __END__
+      1
+      invalid
+    RUBY
+    file.close
+
+    error = assert_raises(ActiveRecord::ActiveRecordError) do
+      ActiveRecord::Schema.load_schema_migrations(file.path)
+    end
+
+    assert_equal "Invalid migration version \"invalid\" found after __END__", error.message
+    assert_empty @schema_migration.versions
+  ensure
+    file.unlink
+  end
+
+  def test_schema_load_schema_migrations_requires_END_marker
+    file = Tempfile.new("schema.rb")
+    file.write <<~RUBY
+      ActiveRecord::Schema.define {}
+      ActiveRecord::Schema.load_schema_migrations(__FILE__)
+    RUBY
+    file.close
+
+    error = assert_raises(ActiveRecord::ActiveRecordError) do
+      ActiveRecord::Schema.load_schema_migrations(file.path)
+    end
+
+    assert_equal "No __END__ found in #{file.path}", error.message
+    assert_empty @schema_migration.versions
+  ensure
+    file.unlink
   end
 
   def test_normalize_version
