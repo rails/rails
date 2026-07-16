@@ -3,7 +3,7 @@
 module ActiveRecord
   class PredicateBuilder
     class RelationHandler # :nodoc:
-      def call(attribute, value)
+      def call(attribute, value, _type)
         if value.eager_loading?
           value = value.send(:apply_join_dependency)
         end

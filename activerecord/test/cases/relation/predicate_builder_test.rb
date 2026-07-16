@@ -15,7 +15,7 @@ module ActiveRecord
       end
 
       def query_value(attribute, value, predicate_builder:)
-        normalize(predicate_builder.build_bind_attribute(attribute.name, value))
+        normalize(predicate_builder.build_bind_attribute(attribute.name, value, self))
       end
 
       private
@@ -138,7 +138,7 @@ module ActiveRecord
       end
 
       def topic_model_with_title_type(type)
-        Class.new(Topic) do
+        Class.new(ActiveRecord::Base) do
           self.table_name = "topics"
           attribute :title, type
         end
