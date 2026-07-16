@@ -1,3 +1,8 @@
+*   Fix duplicated record creation when using nested attributes with `create_with`
+    on an association.
+
+    *Jerome Dalbert*
+
 *   Deprecate the `pk`, `id_value`, and `sequence_name` positional arguments to
     `ActiveRecord::ConnectionAdapters::DatabaseStatements#insert`.
 
