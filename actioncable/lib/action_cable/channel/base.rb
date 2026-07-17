@@ -137,7 +137,7 @@ module ActionCable
               internal_methods).uniq
 
             methods.map!(&:name)
-            methods.to_set
+            methods.to_set.freeze
           end
         end
 

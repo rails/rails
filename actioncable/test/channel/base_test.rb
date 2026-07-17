@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "active_support/testing/ractors_assertions"
 require "minitest/mock"
 require "stubs/test_socket"
 require "stubs/room"
 
 class ActionCable::Channel::BaseTest < ActionCable::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   class ActionCable::Channel::Base
     def kick
       @last_action = [ :kick ]
@@ -204,6 +207,16 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
   test "actions available on Channel" do
     available_actions = %w(room last_action subscribed unsubscribed toggle_subscribed leave speak subscribed? after_subscribed_ran? get_latest receive chatters topic error_action).to_set
     assert_equal available_actions, ChatChannel.action_methods
+  end
+
+  test "action methods can be accessed from a Ractor" do
+    expected = ChatChannel.action_methods
+
+    actual = on_ractor do
+      ChatChannel.action_methods
+    end
+
+    assert_equal expected, actual
   end
 
   test "invalid action on Channel" do
