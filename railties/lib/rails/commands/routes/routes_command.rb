@@ -15,7 +15,7 @@ module Rails
       class_option :verb, desc: "Filter routes by HTTP verb."
       class_option :regex, type: :boolean, desc: "Interpret search and filter values as regular expressions."
       class_option :exact, type: :boolean, desc: "Match complete field values."
-      class_option :format, enum: %w(table expanded json tsv), desc: "Choose the output format."
+      class_option :format, aliases: "-f", enum: %w(table expanded json tsv), desc: "Choose the output format."
       class_option :expanded, type: :boolean, aliases: "-E", desc: "Print routes expanded vertically with parts explained."
       class_option :unused, type: :boolean, aliases: "-u", desc: "Print unused routes."
 

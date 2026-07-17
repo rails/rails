@@ -901,7 +901,7 @@ $ bin/rails routes --recognize /photos/7
 $ bin/rails routes --recognize /photos/7 --verb GET
 ```
 
-The default table can also be rendered as expanded blocks, JSON, or TSV:
+The default table can also be rendered as expanded blocks, JSON, or TSV with `--format` (`-f`):
 
 ```bash
 $ bin/rails routes --format table
