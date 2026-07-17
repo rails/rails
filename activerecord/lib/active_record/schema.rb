@@ -75,7 +75,9 @@ module ActiveRecord
     end
 
     def self.load_schema_migrations(file) # :nodoc:
-      _schema, marker, data = File.read(file).rpartition("__END__\n")
+      # The marker is matched the way Ruby recognizes it, so files with CRLF
+      # line endings or without a trailing newline load too.
+      _schema, marker, data = File.read(file).rpartition(/^__END__\r?$/)
 
       raise ActiveRecordError, "No __END__ found in #{file}" if marker.empty?
 

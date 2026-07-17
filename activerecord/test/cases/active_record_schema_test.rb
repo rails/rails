@@ -127,6 +127,30 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     file.unlink
   end
 
+  def test_schema_load_schema_migrations_with_crlf_line_endings
+    file = Tempfile.new("schema.rb")
+    file.write "ActiveRecord::Schema.define {}\r\nActiveRecord::Schema.load_schema_migrations(__FILE__)\r\n__END__\r\n1\r\n2\r\n"
+    file.close
+
+    ActiveRecord::Schema.load_schema_migrations(file.path)
+
+    assert_equal ["1", "2"], @schema_migration.versions
+  ensure
+    file.unlink
+  end
+
+  def test_schema_load_schema_migrations_with_the_marker_at_the_end_of_file
+    file = Tempfile.new("schema.rb")
+    file.write "ActiveRecord::Schema.define {}\nActiveRecord::Schema.load_schema_migrations(__FILE__)\n__END__"
+    file.close
+
+    ActiveRecord::Schema.load_schema_migrations(file.path)
+
+    assert_empty @schema_migration.versions
+  ensure
+    file.unlink
+  end
+
   def test_schema_load_schema_migrations_skips_versions_already_in_database
     @schema_migration.create_version("1")
 
