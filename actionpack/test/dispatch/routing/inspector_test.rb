@@ -33,6 +33,21 @@ end
 module ActionDispatch
   module Routing
     class RoutesInspectorTest < ActiveSupport::TestCase
+      class RouteCollector < ConsoleFormatter::Base
+        def initialize
+          super
+          @routes = []
+        end
+
+        def section(routes)
+          @routes.concat(routes)
+        end
+
+        def result
+          @routes
+        end
+      end
+
       setup do
         @set = ActionDispatch::Routing::RouteSet.new
       end
@@ -335,6 +350,140 @@ module ActionDispatch
                       "          PATCH  /posts/:id(.:format)      posts#update",
                       "          PUT    /posts/:id(.:format)      posts#update",
                       "          DELETE /posts/:id(.:format)      posts#destroy"], output
+      end
+
+      def test_search_matches_literal_route_metadata_without_recognising_paths
+        routes = collect(search: "/photos/:id(.:format)") do
+          resources :photos
+        end
+
+        assert_equal %w[show update update destroy], routes.map { |route| route[:reqs].split("#").last }
+
+        routes = collect(search: "/photos/7") do
+          resources :photos
+        end
+
+        assert_empty routes
+      end
+
+      def test_search_treats_regular_expression_metacharacters_literally
+        routes = collect(search: "[") do
+          get "/photos", to: "photos#index"
+        end
+
+        assert_empty routes
+      end
+
+      def test_search_matches_constraints_and_source_locations
+        ActionDispatch::Routing::Mapper.route_source_locations = true
+
+        routes = collect(search: "A-Z") do
+          get "/photos/:id", to: "photos#show", id: /[A-Z]\d{5}/
+        end
+        assert_equal [{ id: /[A-Z]\d{5}/ }], routes.map { |route| route[:constraints] }
+
+        routes = collect(search: "inspector_test.rb") do
+          get "/photos/:id", to: "photos#show"
+        end
+        assert_equal ["photos#show"], routes.map { |route| route[:reqs] }
+      ensure
+        ActionDispatch::Routing::Mapper.route_source_locations = false
+      end
+
+      def test_field_selectors_are_anded
+        routes = collect(controller: "Admin::AuditsController", verb: "POST", action: "create") do
+          get "/admin/audits", to: "admin/audits#index"
+          post "/admin/audits", to: "admin/audits#create"
+          post "/admin/events", to: "admin/events#create"
+        end
+
+        assert_equal ["admin/audits#create"], routes.map { |route| route[:reqs] }
+      end
+
+      def test_field_selectors_support_regular_expression_and_exact_matching
+        routes = collect(name: "audit_export", exact: true) do
+          get "/audit_exports", to: "audit_exports#index", as: :audit_export
+          get "/audit_exports/preview", to: "audit_exports#preview", as: :audit_export_preview
+        end
+        assert_equal ["audit_export"], routes.map { |route| route[:name] }
+
+        routes = collect(action: "^creat", regex: true) do
+          get "/audits", to: "audits#index"
+          post "/audits", to: "audits#create"
+        end
+        assert_equal ["audits#create"], routes.map { |route| route[:reqs] }
+      end
+
+      def test_controller_selector_canonicalises_literals_and_preserves_raw_regular_expressions
+        routes = collect(controller: "Admin::AuditsController") do
+          get "/admin/audits", to: "admin/audits#index"
+        end
+        assert_equal ["admin/audits#index"], routes.map { |route| route[:reqs] }
+
+        routes = collect(controller: "admin/.*") do
+          get "/admin/audits", to: "admin/audits#index"
+        end
+        assert_empty routes
+
+        routes = collect(controller: "^admin/.*$", regex: true) do
+          get "/admin/audits", to: "admin/audits#index"
+        end
+        assert_equal ["admin/audits#index"], routes.map { |route| route[:reqs] }
+      end
+
+      def test_exact_verb_matches_the_complete_verb_field
+        routes = collect(verb: "PUT", exact: true) do
+          match "/articles/:id", to: "articles#update", via: [:put, :patch]
+        end
+        assert_empty routes
+
+        routes = collect(verb: "PUT|PATCH", exact: true) do
+          match "/articles/:id", to: "articles#update", via: [:put, :patch]
+        end
+        assert_equal ["PUT|PATCH"], routes.map { |route| route[:verb] }
+      end
+
+      def test_recognition_is_independent_and_combines_with_field_selectors
+        routes = collect(recognize: "/photos/7", verb: "GET") do
+          resources :photos
+          get "*path", to: "fallback#show"
+        end
+
+        assert_equal ["photos#show", "fallback#show"], routes.map { |route| route[:reqs] }
+
+        routes = collect(recognize: "/photos/7", verb: "POST") do
+          resources :photos
+          get "*path", to: "fallback#show"
+        end
+
+        assert_empty routes
+      end
+
+      def test_legacy_grep_unions_metadata_search_and_path_recognition
+        routes = collect(grep: "posts") do
+          get "/posts", to: "posts#index"
+          get "/articles/:id", to: "articles#show"
+          get "/events", to: "events#index"
+        end
+        assert_equal ["posts#index"], routes.map { |route| route[:reqs] }
+
+        routes = collect(grep: "/articles/7") do
+          get "/posts", to: "posts#index"
+          get "/articles/:id", to: "articles#show"
+          get "/events", to: "events#index"
+        end
+        assert_equal ["articles#show"], routes.map { |route| route[:reqs] }
+      end
+
+      def test_new_selectors_have_a_generic_no_routes_message
+        output = draw(name: "missing") do
+          get "/photos", to: "photos#index"
+        end
+
+        assert_equal [
+          "No routes matched the supplied selectors.",
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
+        ], output
       end
 
       def test_routes_when_expanded
@@ -686,6 +835,12 @@ module ActionDispatch
       end
 
       private
+        def collect(**options, &block)
+          @set.draw(&block)
+          inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)
+          inspector.format(RouteCollector.new, options)
+        end
+
         def draw(formatter: ActionDispatch::Routing::ConsoleFormatter::Sheet.new, **options, &block)
           @set.draw(&block)
           inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)
