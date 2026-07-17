@@ -1,3 +1,9 @@
+*   Add composable metadata selectors and structured output formatters to the route inspector.
+
+    Route metadata can now be selected independently from request-path recognition. JSON and TSV formatters expose separate route fields, including controller, action, endpoint, constraints, source location, and engine provenance.
+
+    *Ben Moskovitz*
+
 *   Apply `config.action_dispatch.cookies_same_site_protection` to every session
     store.
 

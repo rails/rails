@@ -864,9 +864,7 @@ Inspecting an Application
 
 ### `bin/rails routes`
 
-The `bin/rails routes` command lists all defined routes in your application,
-including the URI Pattern and HTTP verb, as well as the Controller Action it
-maps to.
+The `bin/rails routes` command lists all defined routes in your application, including the URI Pattern and HTTP verb, as well as the Controller Action it maps to.
 
 ```bash
 $ bin/rails routes
@@ -877,25 +875,42 @@ $ bin/rails routes
   ...
 ```
 
-This can be useful for tracking down a routing issue, or simply getting an
-overview of the resources and routes that are part of a Rails application. You
-can also narrow down the output of the `routes` command with options like
-`--controller(-c)` or `--grep(-g)`:
+This can be useful for tracking down a routing issue, or simply getting an overview of the resources and routes that are part of a Rails application. Use `--search` (`-s`) to find literal text across the route's name, verb, path, controller, action, constraints, or source location, or use `--name`, `--verb`, `--path`, `--controller`, and `--action` to select a particular field:
 
 ```bash
-# Only show routes where the controller name contains "users"
-$ bin/rails routes --controller users
+# Search names, verbs, paths, controllers, actions, constraints, and source locations
+$ bin/rails routes --search users
 
-# Show routes handled by namespace Admin::UsersController
-$ bin/rails routes -c admin/users
+# Select POST routes handled by Admin::UsersController
+$ bin/rails routes --controller Admin::UsersController --verb POST
 
-# Search by name, path, or controller/action with -g (or --grep)
-$ bin/rails routes -g users
+# Select one complete route name
+$ bin/rails routes --exact --name admin_users
 ```
 
-There is also an option, `bin/rails routes --expanded`, that displays even more
-information about each route, including the line number in your
-`config/routes.rb` where that route is defined:
+Within `--search`, the metadata fields are combined with OR semantics. Different selectors are combined with AND semantics, so each additional selector narrows the result.
+
+Search and field-selector values are literal, case-sensitive substrings by default. `--regex` interprets them as regular expressions. `--exact` instead compares the complete value of each field selector; it doesn't change `--search` or `--recognize`. `--regex` and `--exact` can't be combined.
+
+In literal and exact modes, controller class names are converted to the form stored by the router. For example, `Admin::PostsController` becomes `admin/posts`. In regular-expression mode, the expression is applied directly to that stored form, such as `--regex --controller '^admin/(posts|users)$'`.
+
+Request-path recognition is explicit and can be combined with metadata selectors:
+
+```bash
+$ bin/rails routes --recognize /photos/7
+$ bin/rails routes --recognize /photos/7 --verb GET
+```
+
+The default table can also be rendered as expanded blocks, JSON, or TSV:
+
+```bash
+$ bin/rails routes --format table
+$ bin/rails routes --format expanded
+$ bin/rails routes --format json
+$ bin/rails routes --format tsv
+```
+
+The existing `--expanded` (`-E`) option is an alias for `--format expanded`. Expanded output displays more information about each route, including the line number in your `config/routes.rb` where that route is defined:
 
 ```bash
 $ bin/rails routes --expanded
@@ -919,8 +934,16 @@ Controller#Action | posts#index
 Source Location   | /Users/bhumi/Code/try_markdown/config/routes.rb:4
 ```
 
-TIP: In development mode, you can also access the same routes info by going to
-`http://localhost:3000/rails/info/routes`
+JSON and TSV use separate `name`, `verb`, `path`, `controller`, `action`, `endpoint`, `constraints`, `source_location`, and `engine` fields. This makes their output suitable for tools such as `jq` without parsing the human-readable table.
+
+```bash
+$ bin/rails routes --format json | jq '.[] | select(.controller == "admin/posts")'
+$ bin/rails routes --format tsv --verb POST
+```
+
+The existing `--grep` (`-g`) option remains available with its existing behaviour: it treats its value as a regular expression across its legacy metadata fields and also attempts to recognize it as a request path.
+
+TIP: In development mode, you can also access the same routes info by going to `http://localhost:3000/rails/info/routes`
 
 ### `bin/rails about`
 
