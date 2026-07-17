@@ -354,6 +354,12 @@ module ActiveRecord
     #   Person.exists?(false)
     #   Person.exists?
     #   Person.where(name: 'Spartacus', rating: 4).exists?
+    #
+    # Checking existence by a composite primary key id is not supported, because
+    # an Array of key values can't be told apart from +where+-style conditions.
+    # Use #where instead:
+    #
+    #   TravelRoute.where(origin: "Ottawa", destination: "London").exists?
     def exists?(conditions = :none)
       return false if @none
 
@@ -441,12 +447,36 @@ module ActiveRecord
 
         case conditions
         when Array, Hash
+          if conditions.is_a?(Array) && composite_primary_key_id?(conditions)
+            raise ArgumentError, <<-MSG.squish
+              Composite primary key values aren't supported by `exists?`.
+              Use `where(...).exists?` to check for existence by a composite primary key.
+            MSG
+          end
           relation.where!(conditions) unless conditions.empty?
         else
           relation.where!(primary_key => conditions) unless conditions == :none
         end
 
         relation
+      end
+
+      # Detects whether an Array passed to #exists? is a composite primary key
+      # id (a single tuple like <tt>[1, 2]</tt>, the wrapped form
+      # <tt>[[1, 2]]</tt>, or several tuples). #exists? cannot disambiguate
+      # these from +where+-style conditions, so they are rejected with a clear
+      # error rather than guessed at. A +where+-style Array leads with the SQL
+      # String (e.g. <tt>["name = ?", "David"]</tt>) and is left untouched.
+      def composite_primary_key_id?(values)
+        return false unless model.composite_primary_key?
+
+        key = model.primary_key_definition
+
+        if key.expects_multiple_ids?(values)
+          values.present?
+        else
+          values.length == key.length && !values.first.is_a?(String)
+        end
       end
 
       def apply_join_dependency(eager_loading: group_values.empty?)

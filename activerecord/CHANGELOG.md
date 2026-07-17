@@ -1,3 +1,23 @@
+*   Raise a helpful error when a composite primary key id is passed to
+    `ActiveRecord::FinderMethods#exists?`.
+
+    An `Array` of composite key values can't be distinguished from
+    `where`-style conditions, so `exists?` now raises a clear `ArgumentError`
+    pointing to `where(...).exists?` instead of the previous cryptic
+    `ArgumentError: Unsupported argument type`.
+
+    ```ruby
+    # Cpk::Book has a composite primary key of [:author_id, :id]
+    Cpk::Book.exists?([1, 2])
+    # => ArgumentError: Composite primary key values aren't supported by
+    #    `exists?`. Use `where(...).exists?` to check for existence by a
+    #    composite primary key.
+    ```
+
+    Fixes #51295.
+
+    *Saleh Alhaddad*
+
 *   Add query predicate hooks for Active Model types.
 
     Types can override `transforms_query_predicates?`, `query_attribute`, and

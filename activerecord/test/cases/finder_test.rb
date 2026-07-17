@@ -2128,6 +2128,30 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  test "#exists? raises a helpful error when passed a composite primary key id" do
+    book = cpk_books(:cpk_great_author_first_book)
+
+    error = assert_raises(ArgumentError) { Cpk::Book.exists?(book.id) }
+    assert_match(/where/, error.message)
+  end
+
+  test "#exists? raises a helpful error when passed a composite primary key id wrapped in an array" do
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_raises(ArgumentError) { Cpk::Book.exists?([book.id]) }
+  end
+
+  test "#exists? raises a helpful error when passed multiple composite primary key ids" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+
+    assert_raises(ArgumentError) { Cpk::Book.exists?(books.map(&:id)) }
+  end
+
+  test "#exists? still supports where-style array conditions on a composite primary key model" do
+    assert_equal true, Cpk::Book.exists?(["title = ?", "The first book"])
+    assert_equal false, Cpk::Book.exists?(["title = ?", "Nonexistent title"])
+  end
+
   private
     def table_with_custom_primary_key
       yield(Class.new(Toy) do
