@@ -1502,9 +1502,8 @@ module ActiveRecord
             raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
 
-          sql = +"INSERT INTO #{quote_table_name(schema_migrations_table)} (version) VALUES "
-          sql << versions_to_insert.map { |v| "(#{quote(v)})" }.join(",")
-          execute sql
+          versions_to_insert.map!(&:to_s)
+          migration_context.schema_migration.create_versions(versions_to_insert)
         end
       end
 

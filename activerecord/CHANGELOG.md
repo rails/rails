@@ -1,3 +1,27 @@
+*   Support dumping `schema_migrations` in `db/schema.rb`.
+
+    When the new `ActiveRecord.dump_schema_migrations` flag is true, `:ruby`
+    schema dumps include the versions recorded in the `schema_migrations` table,
+    and the `ActiveRecord::Schema.define` call is made with no arguments.
+
+    Rails applications have `config.active_record.dump_schema_migrations` too,
+    which can be overridden per database, using the new `dump_schema_migrations`
+    database configuration option.
+
+    The versions are listed in lexicographic order by default, but this can be
+    changed to reduce the likelihood of merge conflicts by passing a proc to another configuration option. For example:
+
+    ```ruby
+    require "digest/md5"
+
+    config.active_record.dump_schema_migrations_sort_by = \
+      ->(version) { Digest::MD5.hexdigest(version) }
+    ```
+
+    `ActiveRecord.dump_schema_migrations` is false by default.
+
+    *Xavier Noria*
+
 *   Only use multi statement for `SET TRANSACTION ISOLATION LEVEL; BEGIN` if
     MySQL connection is configured to use multi statement.
 

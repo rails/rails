@@ -47,6 +47,71 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{ActiveRecord::Schema\[#{ActiveRecord::Migration.current_version}\]\.define}, output
   end
 
+  def test_schema_dump_includes_applied_migrations_when_configured
+    original_migrations_paths = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = File.expand_path("../migrations/valid", __dir__)
+
+    versions = ActiveRecord::Base.connection_pool.migration_context.migrations.first(2).map(&:version)
+    version_without_file = 4
+
+    @schema_migration.delete_all_versions
+    @schema_migration.create_versions((versions + [version_without_file]).map(&:to_s))
+
+    output = ActiveRecord.stub(:dump_schema_migrations, true) do
+      dump_all_table_schema
+    end
+
+    expected_versions = versions.map(&:to_s).sort
+    expected = [
+      "ActiveRecord::Schema.load_schema_migrations(__FILE__)",
+      "__END__",
+      *expected_versions
+    ].join("\n")
+
+    assert_match %r{ActiveRecord::Schema\[.+\]\.define do}, output
+    assert_includes output, expected
+    assert_no_match(/^#{version_without_file}$/, output)
+  ensure
+    @schema_migration.delete_all_versions
+    ActiveRecord::Migrator.migrations_paths = original_migrations_paths
+  end
+
+  def test_schema_dump_sorts_applied_migrations_with_configured_procs
+    original_migrations_paths = ActiveRecord::Migrator.migrations_paths
+    original_dump_schema_migrations = ActiveRecord.dump_schema_migrations
+    original_dump_schema_migrations_sort_by = ActiveRecord.dump_schema_migrations_sort_by
+    ActiveRecord::Migrator.migrations_paths = File.expand_path("../migrations/valid", __dir__)
+
+    versions = ActiveRecord::Base.connection_pool.migration_context.migrations.map(&:version)
+    versions_seen_by_sorter = []
+    sort_by_reversed_string = ->(version) {
+      versions_seen_by_sorter << version
+      version.reverse
+    }
+
+    @schema_migration.delete_all_versions
+    @schema_migration.create_versions(versions.map(&:to_s))
+
+    ActiveRecord.dump_schema_migrations = true
+    ActiveRecord.dump_schema_migrations_sort_by = sort_by_reversed_string
+    output = dump_all_table_schema
+
+    expected_versions = versions.map(&:to_s).sort_by(&:reverse)
+    expected = [
+      "ActiveRecord::Schema.load_schema_migrations(__FILE__)",
+      "__END__",
+      *expected_versions
+    ].join("\n")
+
+    assert_equal versions.map(&:to_s), versions_seen_by_sorter
+    assert_includes output, expected
+  ensure
+    @schema_migration.delete_all_versions
+    ActiveRecord::Migrator.migrations_paths = original_migrations_paths
+    ActiveRecord.dump_schema_migrations = original_dump_schema_migrations
+    ActiveRecord.dump_schema_migrations_sort_by = original_dump_schema_migrations_sort_by
+  end
+
   def test_schema_dump
     output = standard_dump
     assert_match %r{create_table "accounts"}, output
