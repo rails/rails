@@ -106,155 +106,6 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     assert_nothing_raised { @connection.select_all "SELECT * FROM fruits" }
   end
 
-  def test_schema_load_schema_migrations
-    file = Tempfile.new("schema.rb")
-    file.write <<~RUBY
-      ActiveRecord::Schema.define {}
-      ActiveRecord::Schema.load_schema_migrations(__FILE__)
-      __END__
-
-      1
-
-      2
-
-    RUBY
-    file.close
-
-    ActiveRecord::Schema.load_schema_migrations(file.path)
-
-    assert_equal ["1", "2"], @schema_migration.versions
-  ensure
-    file.unlink
-  end
-
-  def test_schema_load_schema_migrations_with_crlf_line_endings
-    file = Tempfile.new("schema.rb")
-    file.write "ActiveRecord::Schema.define {}\r\nActiveRecord::Schema.load_schema_migrations(__FILE__)\r\n__END__\r\n1\r\n2\r\n"
-    file.close
-
-    ActiveRecord::Schema.load_schema_migrations(file.path)
-
-    assert_equal ["1", "2"], @schema_migration.versions
-  ensure
-    file.unlink
-  end
-
-  def test_schema_load_schema_migrations_with_the_marker_at_the_end_of_file
-    file = Tempfile.new("schema.rb")
-    file.write "ActiveRecord::Schema.define {}\nActiveRecord::Schema.load_schema_migrations(__FILE__)\n__END__"
-    file.close
-
-    ActiveRecord::Schema.load_schema_migrations(file.path)
-
-    assert_empty @schema_migration.versions
-  ensure
-    file.unlink
-  end
-
-  def test_schema_load_schema_migrations_skips_versions_already_in_database
-    @schema_migration.create_version("1")
-
-    file = Tempfile.new("schema.rb")
-    file.write <<~RUBY
-      ActiveRecord::Schema.define {}
-      ActiveRecord::Schema.load_schema_migrations(__FILE__)
-      __END__
-      1
-      2
-    RUBY
-    file.close
-
-    ActiveRecord::Schema.load_schema_migrations(file.path)
-
-    assert_equal ["1", "2"], @schema_migration.versions
-  ensure
-    file.unlink
-  end
-
-  def test_schema_load_schema_migrations_rejects_duplicate_versions
-    file = Tempfile.new("schema.rb")
-    file.write <<~RUBY
-      ActiveRecord::Schema.define {}
-      ActiveRecord::Schema.load_schema_migrations(__FILE__)
-      __END__
-      1
-      2
-      1
-    RUBY
-    file.close
-
-    error = assert_raises(ActiveRecord::ActiveRecordError) do
-      ActiveRecord::Schema.load_schema_migrations(file.path)
-    end
-
-    assert_equal "Duplicate migration version \"1\" found after __END__", error.message
-    assert_empty @schema_migration.versions
-  ensure
-    file.unlink
-  end
-
-  def test_schema_load_schema_migrations_rejects_non_numeric_versions
-    file = Tempfile.new("schema.rb")
-    file.write <<~RUBY
-      ActiveRecord::Schema.define {}
-      ActiveRecord::Schema.load_schema_migrations(__FILE__)
-      __END__
-      1
-      invalid
-    RUBY
-    file.close
-
-    error = assert_raises(ActiveRecord::ActiveRecordError) do
-      ActiveRecord::Schema.load_schema_migrations(file.path)
-    end
-
-    assert_equal "Invalid migration version \"invalid\" found after __END__", error.message
-    assert_empty @schema_migration.versions
-  ensure
-    file.unlink
-  end
-
-  def test_schema_load_schema_migrations_rejects_non_ascii_digits
-    version = "\u0967" # Devanagari decimal digit
-    assert_match(/\p{Nd}/, version) # Nd is a Unicode category for decimal digits.
-
-    file = Tempfile.new("schema.rb")
-    file.write <<~RUBY
-      ActiveRecord::Schema.define {}
-      ActiveRecord::Schema.load_schema_migrations(__FILE__)
-      __END__
-      #{version}
-    RUBY
-    file.close
-
-    error = assert_raises(ActiveRecord::ActiveRecordError) do
-      ActiveRecord::Schema.load_schema_migrations(file.path)
-    end
-
-    assert_equal "Invalid migration version #{version.inspect} found after __END__", error.message
-    assert_empty @schema_migration.versions
-  ensure
-    file.unlink
-  end
-
-  def test_schema_load_schema_migrations_requires_END_marker
-    file = Tempfile.new("schema.rb")
-    file.write <<~RUBY
-      ActiveRecord::Schema.define {}
-      ActiveRecord::Schema.load_schema_migrations(__FILE__)
-    RUBY
-    file.close
-
-    error = assert_raises(ActiveRecord::ActiveRecordError) do
-      ActiveRecord::Schema.load_schema_migrations(file.path)
-    end
-
-    assert_equal "No __END__ found in #{file.path}", error.message
-    assert_empty @schema_migration.versions
-  ensure
-    file.unlink
-  end
-
   def test_normalize_version
     assert_equal "118", @schema_migration.normalize_migration_number("0000118")
     assert_equal "002", @schema_migration.normalize_migration_number("2")
@@ -356,5 +207,151 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
 
     assert @connection.column_exists?(:has_timestamps, :created_at, precision: 6, null: false)
     assert @connection.column_exists?(:has_timestamps, :updated_at, precision: 6, null: false)
+  end
+end
+
+class ActiveRecordSchemaTest::LoadSchemaMigrationsTest < ActiveRecord::TestCase
+  def with_schema_rb(versions_str, nl: "\n", marker: "__END__#{nl}")
+    file = Tempfile.new("schema.rb")
+
+    file.write "ActiveRecord::Schema.define {}#{nl}"
+    file.write "ActiveRecord::Schema.load_schema_migrations(__FILE__)#{nl}"
+    if marker
+      file.write marker
+      if versions_str
+        file.write versions_str
+      end
+    end
+    file.close
+
+    yield file.path
+  ensure
+    file.unlink
+  end
+
+  def assert_versions(expected)
+    assert_equal expected, @schema_migration.versions.sort
+  end
+
+  setup do
+    @original_verbose = ActiveRecord::Migration.verbose
+    ActiveRecord::Migration.verbose = false
+    @pool = ActiveRecord::Base.connection_pool
+    @schema_migration = @pool.schema_migration
+    @schema_migration.delete_all_versions
+  end
+
+  teardown do
+    ActiveRecord::Migration.verbose = @original_verbose
+  end
+
+  # Regular usage -------------------------------------------------------------
+
+  test "happy path (1)" do
+    with_schema_rb("1") do |path|
+      ActiveRecord::Schema.load_schema_migrations(path)
+      assert_versions ["1"]
+    end
+  end
+
+  test "happy path (2)" do
+    with_schema_rb("1\n") do |path|
+      ActiveRecord::Schema.load_schema_migrations(path)
+      assert_versions ["1"]
+    end
+  end
+
+  test "happy path (3)" do
+    versions_str = "1\n2\n3\n"
+    with_schema_rb(versions_str) do |path|
+      ActiveRecord::Schema.load_schema_migrations(path)
+      assert_versions ["1", "2", "3"]
+    end
+  end
+
+  test "it is robust to whitespace" do
+    versions_str = "\n\r\n  \n1\t\n2\n\n"
+
+    with_schema_rb(versions_str) do |path|
+      ActiveRecord::Schema.load_schema_migrations(path)
+      assert_versions ["1", "2"]
+    end
+  end
+
+  test "supports CRLF line endings" do
+    crlf = "\r\n"
+    versions_str = "1#{crlf}2#{crlf}"
+    with_schema_rb(versions_str, nl: crlf) do |path|
+      ActiveRecord::Schema.load_schema_migrations(path)
+      assert_versions ["1", "2"]
+    end
+  end
+
+  test "supports a rogue trailing marker without a newline and without versions" do
+    with_schema_rb(nil, marker: "__END__") do |path|
+      ActiveRecord::Schema.load_schema_migrations(path)
+      assert_versions []
+    end
+  end
+
+  test "skips versions already in the database" do
+    @schema_migration.create_version("1")
+    versions_str = "1\n2\n"
+    with_schema_rb(versions_str) do |path|
+      ActiveRecord::Schema.load_schema_migrations(path)
+      assert_versions ["1", "2"]
+    end
+  end
+
+  # Error conditions ----------------------------------------------------------
+
+  test "rejects duplicate versions" do
+    versions_str = "1\n2\n1\n"
+    with_schema_rb(versions_str) do |path|
+      error = assert_raises(ActiveRecord::ActiveRecordError) do
+        ActiveRecord::Schema.load_schema_migrations(path)
+      end
+
+      assert_equal 'Duplicate migration version "1" found after __END__', error.message
+      assert_versions []
+    end
+  end
+
+  test "rejects invalid versions" do
+    versions_str = "1\ninvalid\n"
+    with_schema_rb(versions_str) do |path|
+      error = assert_raises(ActiveRecord::ActiveRecordError) do
+        ActiveRecord::Schema.load_schema_migrations(path)
+      end
+
+      assert_equal 'Invalid migration version "invalid" found after __END__', error.message
+      assert_versions []
+    end
+  end
+
+  test "rejects non ASCII digits" do
+    non_ASCII_digit = "\u0967" # Devanagari decimal digit
+    assert_match(/\p{Nd}/, non_ASCII_digit) # Nd is a Unicode category for decimal digits.
+
+    versions_str = "1\n#{non_ASCII_digit}\n"
+    with_schema_rb(versions_str) do |path|
+      error = assert_raises(ActiveRecord::ActiveRecordError) do
+        ActiveRecord::Schema.load_schema_migrations(path)
+      end
+
+      assert_equal "Invalid migration version #{non_ASCII_digit.inspect} found after __END__", error.message
+      assert_versions []
+    end
+  end
+
+  test "requires an __END__ marker" do
+    with_schema_rb(nil, marker: nil) do |path|
+      error = assert_raises(ActiveRecord::ActiveRecordError) do
+        ActiveRecord::Schema.load_schema_migrations(path)
+      end
+
+      assert_equal "No __END__ found in #{path}", error.message
+      assert_versions []
+    end
   end
 end
