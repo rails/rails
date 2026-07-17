@@ -142,6 +142,8 @@ class ControllerClassTests < ActiveSupport::TestCase
 end
 
 class ControllerInstanceTests < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   def setup
     @empty = EmptyController.new
     @empty.set_request!(ActionDispatch::Request.empty)
@@ -166,6 +168,16 @@ class ControllerInstanceTests < ActiveSupport::TestCase
     assert_includes ActionController::Base.instance_methods, :status
     assert_equal Set.new(["status", "hello"]), SimpleController.action_methods
     assert_equal Set.new(["status", "hello"]), ChildController.action_methods
+  end
+
+  def test_action_methods_is_ractor_safe_by_default
+    SimpleController.action_methods
+
+    value = on_ractor do
+      SimpleController.action_methods
+    end
+
+    assert_equal Set.new(["status", "hello"]), value
   end
 
   def test_temporary_anonymous_controllers
