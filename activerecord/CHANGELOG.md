@@ -1,3 +1,22 @@
+*   Evaluate the `accepts_nested_attributes_for` `:reject_if` proc in the
+    context of the owner record. This matches how `Symbol` reject_if
+    callbacks and other proc options such as validation `:if`/`:unless`
+    conditions already behave.
+
+    ```ruby
+    class Member < ActiveRecord::Base
+      has_many :posts
+      accepts_nested_attributes_for :posts,
+        reject_if: proc { |attributes| attributes["author_id"] != id }
+    end
+    ```
+
+    The attributes hash is still passed to the proc as its argument, so procs
+    that only use their argument are unaffected. Procs that relied on `self`
+    pointing at the definition context need to be updated.
+
+    *Oliver Garcia*
+
 *   Remove unused `rest` parameter from merge and merge!
 
     *Aaron Patterson*
