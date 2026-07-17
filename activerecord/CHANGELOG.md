@@ -1,3 +1,12 @@
+*   Fix SQLite3 schema dump for multiline virtual table, generated column, and
+    collation definitions.
+
+    SQLite stores multiline DDL with newlines, which the single-line schema
+    regexes failed to match. Dumping a virtual table raised `NoMethodError`, and
+    multiline generated columns and collations were silently dropped.
+
+    *Tim Burgan*
+
 *   Only use multi statement for `SET TRANSACTION ISOLATION LEVEL; BEGIN` if
     MySQL connection is configured to use multi statement.
 

@@ -61,4 +61,21 @@ class SQLite3CollationTest < ActiveRecord::SQLite3TestCase
     assert_match %r{t\.string\s+"string_nocase",\s+collation: "NOCASE"$}, output
     assert_match %r{t\.text\s+"text_rtrim",\s+collation: "RTRIM"$}, output
   end
+
+  test "collation survives multiline DDL" do
+    @connection.execute(<<~SQL)
+      CREATE TABLE multiline_collation (
+        "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+        "a" varchar COLLATE "NOCASE",
+        "b" varchar COLLATE "RTRIM"
+      )
+    SQL
+
+    columns = @connection.columns(:multiline_collation).index_by(&:name)
+
+    assert_equal "NOCASE", columns["a"].collation
+    assert_equal "RTRIM",  columns["b"].collation
+  ensure
+    @connection.drop_table :multiline_collation, if_exists: true
+  end
 end

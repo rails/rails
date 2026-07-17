@@ -354,8 +354,8 @@ module ActiveRecord
         SQL
 
         query_rows(query).each_with_object({}) do |(table_name, sql), memo|
-          _, module_name, arguments = sql.match(VIRTUAL_TABLE_REGEX).to_a
-          memo[table_name] = [module_name, arguments]
+          _, module_name, arguments = sql.squish.match(VIRTUAL_TABLE_REGEX).to_a
+          memo[table_name] = [module_name, arguments&.strip]
         end.to_a
       end
 
@@ -792,11 +792,12 @@ module ActiveRecord
 
           if column_strings.any?
             column_strings.each do |column_string|
+              column_string = column_string.squish
               # This regex will match the column name and collation type and will save
               # the value in $1 and $2 respectively.
               collation_hash[$1] = $2 if COLLATE_REGEX =~ column_string
               auto_increments[$1] = true if PRIMARY_KEY_AUTOINCREMENT_REGEX =~ column_string
-              generated_columns[$1] = $2 if GENERATED_ALWAYS_AS_REGEX =~ column_string
+              generated_columns[$1] = $2.strip if GENERATED_ALWAYS_AS_REGEX =~ column_string
             end
 
             basic_structure.map do |column|
@@ -853,7 +854,7 @@ module ActiveRecord
                 .sub(FINAL_CLOSE_PARENS_REGEX, "")
                 # column definitions can have a comma in them, so split on commas followed
                 # by a space and a column name in quotes or followed by the keyword CONSTRAINT
-                .split(/,(?=\s(?:CONSTRAINT|"(?:#{Regexp.union(column_names).source})"))/i)
+                .split(/,(?=\s+(?:CONSTRAINT|"(?:#{Regexp.union(column_names).source})"))/i)
                 .map(&:strip)
         end
 
