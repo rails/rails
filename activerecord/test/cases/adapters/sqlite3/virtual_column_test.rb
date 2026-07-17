@@ -134,5 +134,45 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
     ensure
       @connection.drop_table :regular_columns, if_exists: true
     end
+
+    def test_generated_column_expression_survives_multiline_ddl
+      @connection.execute(<<~SQL)
+        CREATE TABLE multiline_generated (
+          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+          "price" integer,
+          "qty" integer,
+          "total" integer GENERATED ALWAYS AS (
+            "price" * "qty"
+          ) STORED
+        )
+      SQL
+
+      column = @connection.columns("multiline_generated").find { |c| c.name == "total" }
+
+      assert_predicate column, :virtual?
+      assert_equal %{"price" * "qty"}, column.default_function
+    ensure
+      @connection.drop_table :multiline_generated, if_exists: true
+    end
+
+    def test_schema_dump_with_multiline_generated_column
+      @connection.execute(<<~SQL)
+        CREATE TABLE multiline_gadgets (
+          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+          "price" integer,
+          "qty" integer,
+          "total" integer GENERATED ALWAYS AS (
+            "price" * "qty"
+          ) STORED
+        )
+      SQL
+
+      output = dump_table_schema("multiline_gadgets")
+
+      assert_no_match(/as: nil/, output)
+      assert_match(/as: ".*price.*qty.*"/, output)
+    ensure
+      @connection.drop_table :multiline_gadgets, if_exists: true
+    end
   end
 end

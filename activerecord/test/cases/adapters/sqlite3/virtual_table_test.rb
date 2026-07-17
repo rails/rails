@@ -48,4 +48,31 @@ class SQLite3VirtualTableTest < ActiveRecord::SQLite3TestCase
     assert_equal "bar", match[1]
     assert_equal "", match[2]
   end
+
+  def test_schema_dump_with_multiline_virtual_table_definition
+    @connection.drop_table :multiline_search, if_exists: true
+    @connection.execute(<<~SQL)
+      CREATE VIRTUAL TABLE multiline_search USING fts5(
+        title,
+        body,
+        tokenize='porter unicode61'
+      )
+    SQL
+
+    output = dump_all_table_schema
+
+    assert_includes output, 'create_virtual_table "multiline_search", "fts5", ["title", "body", "tokenize=\'porter unicode61\'"]'
+  ensure
+    @connection.drop_table :multiline_search, if_exists: true
+  end
+
+  def test_virtual_table_regex_matches_squished_multiline_definitions
+    regex = ActiveRecord::ConnectionAdapters::SQLite3Adapter::VIRTUAL_TABLE_REGEX
+
+    sql = "CREATE VIRTUAL TABLE foo USING fts5(\n  title,\n  body,\n  tokenize='porter unicode61'\n)"
+    match = sql.squish.match(regex)
+    assert_not_nil match
+    assert_equal "fts5", match[1]
+    assert_equal "title, body, tokenize='porter unicode61'", match[2].strip
+  end
 end
