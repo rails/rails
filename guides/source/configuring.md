@@ -1315,10 +1315,11 @@ versions are listed in lexicographical order by default, but this option allows
 you to change that to reduce the likelihood of merge conflicts:
 
 ```ruby
-require "digest/md5"
-
 config.active_record.dump_schema_migrations_sort_by = \
-  ->(version) { Digest::MD5.hexdigest(version) }
+  ->(version) { version.reverse }
+
+# Same, via to_proc.
+config.active_record.dump_schema_migrations_sort_by = :reverse
 ```
 
 The proc is called with a string as argument.

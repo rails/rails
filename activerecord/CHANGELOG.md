@@ -9,13 +9,14 @@
     database configuration option.
 
     The versions are listed in lexicographic order by default, but this can be
-    changed to reduce the likelihood of merge conflicts by passing a proc to another configuration option. For example:
+    changed to reduce the likelihood of merge conflicts:
 
     ```ruby
-    require "digest/md5"
-
     config.active_record.dump_schema_migrations_sort_by = \
-      ->(version) { Digest::MD5.hexdigest(version) }
+      ->(version) { version.reverse }
+
+    # Same, via to_proc.
+    config.active_record.dump_schema_migrations_sort_by = :reverse
     ```
 
     `ActiveRecord.dump_schema_migrations` is false by default.
