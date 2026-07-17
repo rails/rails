@@ -22,6 +22,11 @@
 
     *Xavier Noria*
 
+*   Only use multi statement for `SET TRANSACTION ISOLATION LEVEL; BEGIN` if
+    MySQL connection is configured to use multi statement.
+
+    *Eliseu Daroit*, *Hartley McGuire*, *Matthew Draper*
+
 *   `connected_to_all_shards` now raises `ArgumentError` when called on a model
     that is not connected to any shards, rather than silently doing nothing.
 

@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "active_support/logger"
+require "active_support/testing/ractors_assertions"
 require "controller/fake_models"
 
 # Provide some controller to run the tests on.
@@ -11,6 +12,9 @@ module Submodule
 end
 
 class EmptyController < ActionController::Base
+end
+
+class CatController < ActionController::Base
 end
 
 class SimpleController < ActionController::Base
@@ -96,11 +100,21 @@ class WithoutRouterTest < ActionController::TestCase
 end
 
 class ControllerClassTests < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   def test_controller_path
     assert_equal "empty", EmptyController.controller_path
     assert_equal EmptyController.controller_path, EmptyController.new.controller_path
     assert_equal "submodule/contained_empty", Submodule::ContainedEmptyController.controller_path
     assert_equal Submodule::ContainedEmptyController.controller_path, Submodule::ContainedEmptyController.new.controller_path
+  end
+
+  def test_controller_path_is_eagerly_set_and_accessible_from_a_ractor
+    value = on_ractor do
+      CatController.controller_path
+    end
+
+    assert_equal("cat", value)
   end
 
   def test_controller_name
