@@ -88,7 +88,7 @@ module ActiveRecord
         line.strip!
         next if line.empty?
 
-        if !line.match?(/\A[0-9]+\z/)
+        if !line.match?(/\A\d+\z/)
           raise ActiveRecordError, "Invalid migration version #{line.inspect} found after __END__"
         end
 

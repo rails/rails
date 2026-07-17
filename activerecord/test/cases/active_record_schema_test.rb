@@ -214,6 +214,29 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     file.unlink
   end
 
+  def test_schema_load_schema_migrations_rejects_non_ascii_digits
+    version = "\u0967" # Devanagari decimal digit
+    assert_match(/\p{Nd}/, version) # Nd is a Unicode category for decimal digits.
+
+    file = Tempfile.new("schema.rb")
+    file.write <<~RUBY
+      ActiveRecord::Schema.define {}
+      ActiveRecord::Schema.load_schema_migrations(__FILE__)
+      __END__
+      #{version}
+    RUBY
+    file.close
+
+    error = assert_raises(ActiveRecord::ActiveRecordError) do
+      ActiveRecord::Schema.load_schema_migrations(file.path)
+    end
+
+    assert_equal "Invalid migration version #{version.inspect} found after __END__", error.message
+    assert_empty @schema_migration.versions
+  ensure
+    file.unlink
+  end
+
   def test_schema_load_schema_migrations_requires_END_marker
     file = Tempfile.new("schema.rb")
     file.write <<~RUBY
