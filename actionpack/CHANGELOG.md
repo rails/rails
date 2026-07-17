@@ -1,6 +1,6 @@
 *   Add composable metadata selectors and structured output formatters to the route inspector.
 
-    Route metadata can now be selected independently from request-path recognition. JSON and TSV formatters expose separate route fields, including controller, action, endpoint, constraints, source location, and engine provenance.
+    Route metadata can now be selected independently from request-path recognition. JSON and TSV formatters expose separate route fields, including controller, action, endpoint, constraints, source location, and engine provenance. Filtered output omits application and engine sections without matching routes, and Rack application endpoints with default inspection use their class name instead of runtime state.
 
     *Ben Moskovitz*
 

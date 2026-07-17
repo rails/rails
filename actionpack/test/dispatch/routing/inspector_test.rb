@@ -10,6 +10,11 @@ class MountedRackApp
   end
 end
 
+class StatefulRackApp
+  def call(env)
+  end
+end
+
 class Rails::DummyController
 end
 
@@ -267,6 +272,17 @@ module ActionDispatch
         assert_equal [
           "          Prefix Verb URI Pattern Controller#Action",
           "mounted_rack_app      /foo        MountedRackApp"
+        ], output
+      end
+
+      def test_rails_routes_shows_class_name_for_rack_app_with_default_inspect
+        output = draw do
+          mount StatefulRackApp.new => "/cable", as: :cable
+        end
+
+        assert_equal [
+          "Prefix Verb URI Pattern Controller#Action",
+          " cable      /cable      StatefulRackApp"
         ], output
       end
 
@@ -765,10 +781,6 @@ module ActionDispatch
         end
 
         assert_equal [
-          "Routes for application:",
-          "No routes were found for this grep pattern.",
-          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.",
-          "",
           "Routes for Blog::Engine:",
           "Prefix Verb URI Pattern     Controller#Action",
           "  cart GET  /cart(.:format) cart#show"
@@ -794,9 +806,31 @@ module ActionDispatch
           "Routes for application:",
           "No routes were found for this grep pattern.",
           "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.",
-          "",
-          "Routes for Blog::Engine:",
-          "No routes were found for this grep pattern.",
+        ], output
+      end
+
+      def test_expanded_routes_omit_engine_sections_without_matches
+        engine = Class.new(Rails::Engine) do
+          def self.inspect
+            "Blog::Engine"
+          end
+        end
+        engine.routes.draw do
+          get "/cart", to: "cart#show"
+        end
+
+        output = draw(name: "custom_assets", formatter: ConsoleFormatter::Expanded.new(width: 23)) do
+          get "/custom/assets", to: "custom_assets#show"
+          mount engine => "/blog", as: :blog
+        end
+
+        assert_equal [
+          "[ Routes for application ]",
+          "--[ Route 1 ]----------",
+          "Prefix            | custom_assets",
+          "Verb              | GET",
+          "URI               | /custom/assets(.:format)",
+          "Controller#Action | custom_assets#show"
         ], output
       end
 

@@ -19,6 +19,8 @@ module ActionDispatch
           "#{controller}##{action}"
         when rack_app.is_a?(Proc)
           "Inline handler (Proc/Lambda)"
+        when rack_app.method(:inspect).owner == Kernel
+          rack_app.class.name || "Anonymous Rack application"
         else
           rack_app.inspect
         end
@@ -122,18 +124,25 @@ module ActionDispatch
       def format(formatter, filter = {})
         selectors = normalize_filter(filter)
         all_routes = { nil => @routes }.merge(@engines)
+        sections = all_routes.map do |engine_name, routes|
+          routes = filter_routes(routes, selectors).map { |route| route.to_h.merge(engine: engine_name) }
+          [engine_name, routes]
+        end
 
-        all_routes.each do |engine_name, routes|
-          format_routes(formatter, selectors, filter, engine_name, routes)
+        if selectors.any?
+          sections.select! { |_, routes| routes.any? }
+          sections = [[nil, []]] if sections.empty?
+        end
+
+        sections.each do |engine_name, routes|
+          format_routes(formatter, filter, engine_name, routes)
         end
 
         formatter.result
       end
 
       private
-        def format_routes(formatter, selectors, filter, engine_name, routes)
-          routes = filter_routes(routes, selectors).map { |route| route.to_h.merge(engine: engine_name) }
-
+        def format_routes(formatter, filter, engine_name, routes)
           formatter.section_title "Routes for #{engine_name || "application"}" if @engines.any?
           if routes.any?
             formatter.header routes
