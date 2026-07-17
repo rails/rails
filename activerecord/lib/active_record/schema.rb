@@ -81,16 +81,23 @@ module ActiveRecord
 
       raise ActiveRecordError, "No __END__ found in #{file}" if marker.empty?
 
-      versions = data.lines
-      versions.each(&:strip!)
-      versions.reject!(&:empty?)
+      seen = Set.new
+      versions = []
 
-      if invalid_version = versions.find { |version| !/\A[0-9]+\z/.match?(version) }
-        raise ActiveRecordError, "Invalid migration version #{invalid_version.inspect} found after __END__"
-      end
+      data.each_line do |line|
+        line.strip!
+        next if line.empty?
 
-      if duplicate_version = versions.tally.find { |_version, count| count > 1 }&.first
-        raise ActiveRecordError, "Duplicate migration version #{duplicate_version.inspect} found after __END__"
+        if !line.match?(/\A[0-9]+\z/)
+          raise ActiveRecordError, "Invalid migration version #{line.inspect} found after __END__"
+        end
+
+        if seen.include?(line)
+          raise ActiveRecordError, "Duplicate migration version #{line.inspect} found after __END__"
+        end
+
+        seen << line
+        versions << line
       end
 
       versions -= connection_pool.schema_migration.versions
