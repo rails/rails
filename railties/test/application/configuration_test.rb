@@ -632,6 +632,31 @@ module ApplicationTests
       assert_equal [:password, :foo, "bar"], Rails.application.env_config["action_dispatch.parameter_filter"]
     end
 
+    test "config.action_dispatch.default_headers can be set in an initializer and is applied to responses" do
+      app_file "config/initializers/default_headers.rb", <<-RUBY
+        Rails.application.config.action_dispatch.default_headers = { "X-Custom-Header" => "custom" }
+      RUBY
+
+      app_file "app/controllers/pages_controller.rb", <<-RUBY
+        class PagesController < ApplicationController
+          def index
+            render plain: "OK"
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          get "/pages", to: "pages#index"
+        end
+      RUBY
+
+      app "development"
+
+      get "/pages"
+      assert_equal "custom", last_response.headers["X-Custom-Header"]
+    end
+
     test "filter_parameters is precompiled when config.precompile_filter_parameters is true" do
       filters = [/foo/, :bar, "baz.qux"]
 
