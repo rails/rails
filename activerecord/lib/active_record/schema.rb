@@ -89,6 +89,10 @@ module ActiveRecord
         raise ActiveRecordError, "Invalid migration version #{invalid_version.inspect} found after __END__"
       end
 
+      if duplicate_version = versions.tally.find { |_version, count| count > 1 }&.first
+        raise ActiveRecordError, "Duplicate migration version #{duplicate_version.inspect} found after __END__"
+      end
+
       versions -= connection_pool.schema_migration.versions
       connection_pool.schema_migration.create_versions(versions)
     end

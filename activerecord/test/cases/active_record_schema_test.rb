@@ -171,6 +171,28 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     file.unlink
   end
 
+  def test_schema_load_schema_migrations_rejects_duplicate_versions
+    file = Tempfile.new("schema.rb")
+    file.write <<~RUBY
+      ActiveRecord::Schema.define {}
+      ActiveRecord::Schema.load_schema_migrations(__FILE__)
+      __END__
+      1
+      2
+      1
+    RUBY
+    file.close
+
+    error = assert_raises(ActiveRecord::ActiveRecordError) do
+      ActiveRecord::Schema.load_schema_migrations(file.path)
+    end
+
+    assert_equal "Duplicate migration version \"1\" found after __END__", error.message
+    assert_empty @schema_migration.versions
+  ensure
+    file.unlink
+  end
+
   def test_schema_load_schema_migrations_rejects_non_numeric_versions
     file = Tempfile.new("schema.rb")
     file.write <<~RUBY
