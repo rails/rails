@@ -68,7 +68,9 @@ module Rails
         end
 
         def routes_filter
-          options.symbolize_keys.slice(:controller, :grep)
+          filter = options.symbolize_keys.slice(:controller, :grep)
+          filter.delete(:grep) if filter.key?(:controller)
+          filter
         end
     end
   end

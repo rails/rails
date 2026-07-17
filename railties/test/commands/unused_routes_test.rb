@@ -131,6 +131,22 @@ class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
     OUTPUT
   end
 
+  test "controller filter takes precedence over grep" do
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get "/one", to: "posts#one"
+        get "/two", to: "users#two"
+      end
+    RUBY
+
+    assert_includes run_unused_routes_command(["-c", "posts", "-g", "users"], allow_failure: true), <<~OUTPUT
+      Found 1 unused route:
+
+      Prefix Verb URI Pattern    Controller#Action
+         one GET  /one(.:format) posts#one
+    OUTPUT
+  end
+
   test "filter by controller no results" do
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
