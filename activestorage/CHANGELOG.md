@@ -1,3 +1,15 @@
+*   Reject file-reading ImageMagick pseudo-formats (`text:`, `label:`, `caption:`,
+    `pango:`, `msl:`, `ephemeral:`) in Active Storage variant arguments.
+
+    The `unsupported_image_processing_arguments` denylist blocked dangerous
+    command-line options (`-write`, `-set`, etc.) but not input pseudo-formats
+    that read a file's contents into the output image, for example
+    `blob.variant(composite: "text:/etc/passwd")`. These pseudo-formats are now
+    part of the default denylist as a defense-in-depth measure. Passing
+    untrusted arguments to `variant` remains unsafe.
+
+    *Gengyskan*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
