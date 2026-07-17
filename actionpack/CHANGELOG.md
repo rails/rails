@@ -1,3 +1,9 @@
+*   Add composable metadata selectors and structured output formatters to the route inspector.
+
+    Route metadata can now be selected independently from request-path recognition. JSON and TSV formatters expose separate route fields, including controller, action, endpoint, constraints, source location, and engine provenance.
+
+    *Ben Moskovitz*
+
 *   Fix `ActionController::Live` streams hanging on client disconnect.
 
     `ActionController::Live::Buffer#abort` cleared the streaming queue but never

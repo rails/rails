@@ -1,3 +1,11 @@
+*   Add composable selectors and output formats to `bin/rails routes`.
+
+    Use `--search` for literal metadata search, `--recognize` for request-path recognition, or `--name`, `--path`, `--controller`, `--action`, and `--verb` to select individual fields. Selectors compose with AND semantics and support explicit `--regex` and `--exact` matching. `--format` now supports table, expanded, JSON, and TSV output.
+
+    Existing `--grep`, `--controller`, and `--expanded` commands remain supported.
+
+    *Ben Moskovitz*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"
