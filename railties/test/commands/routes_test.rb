@@ -492,7 +492,7 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
       end
     RUBY
 
-    routes = JSON.parse(run_routes_command([ "--format", "json", "--exact", "--name", "photo" ]))
+    routes = JSON.parse(run_routes_command([ "-f", "json", "--exact", "--name", "photo" ]))
     assert_equal 1, routes.size
     assert_equal "photos#show", routes.first["endpoint"]
     assert_equal({ "id" => "/[A-Z]\\d{5}/" }, routes.first["constraints"])

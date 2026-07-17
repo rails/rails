@@ -1446,6 +1446,8 @@ Different selectors are combined with AND semantics, while `--search` uses OR se
 $ bin/rails routes --controller Admin::UsersController --verb POST
 ```
 
+When selectors are supplied, table and expanded output omit application and engine sections without matching routes.
+
 Search and field-selector values are literal substrings by default, so characters such as `.`, `*`, and `[` have no special meaning. `--regex` enables regular-expression matching for `--search` and the field selectors:
 
 ```bash
@@ -1473,7 +1475,7 @@ The existing `--grep` (`-g`) option remains available with its existing behaviou
 
 ### Formatting Routes
 
-The default output format is `table`. You can also render routes as expanded blocks, JSON, or TSV:
+The default output format is `table`. You can also render routes as expanded blocks, JSON, or TSV with `--format` (`-f`):
 
 ```bash
 $ bin/rails routes --format table
@@ -1500,7 +1502,7 @@ Each machine-readable route has these fields:
 | `source_location` | object or null | Route declaration file and line |
 | `engine` | string or null | Containing engine name, or null for application routes |
 
-For a controller route, `endpoint` is the familiar `photos#show` destination. It also preserves the destination of routes without a controller, such as `Blog::Engine` for a mounted engine, `Inline handler (Proc/Lambda)` for an inline handler, or `redirect(301, /articles)` for a redirect.
+For a controller route, `endpoint` is the familiar `photos#show` destination. It also preserves the destination of routes without a controller, such as `Blog::Engine` for a mounted engine, `Inline handler (Proc/Lambda)` for an inline handler, or `redirect(301, /articles)` for a redirect. Rack application instances with default inspection use their class name, such as `ActionCable::Server::Base`, rather than including runtime state.
 
 A source location is represented as an object:
 
