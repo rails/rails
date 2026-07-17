@@ -4,6 +4,7 @@
 
 require "delegate"
 require "io/console/size"
+require "json"
 
 module ActionDispatch
   module Routing
@@ -92,6 +93,10 @@ module ActionDispatch
         { name: name,
           verb: verb,
           path: path,
+          controller: controller,
+          action: action,
+          endpoint: endpoint,
+          constraints: constraints,
           reqs: reqs,
           source_location: source_location,
           action_source_location: action_source_location,
@@ -127,7 +132,7 @@ module ActionDispatch
 
       private
         def format_routes(formatter, selectors, filter, engine_name, routes)
-          routes = filter_routes(routes, selectors).map(&:to_h)
+          routes = filter_routes(routes, selectors).map { |route| route.to_h.merge(engine: engine_name) }
 
           formatter.section_title "Routes for #{engine_name || "application"}" if @engines.any?
           if routes.any?
@@ -365,6 +370,97 @@ module ActionDispatch
 
           def route_header(index:)
             "--[ Route #{index} ]".ljust(@width, "-")
+          end
+      end
+
+      class Structured < Base # :nodoc:
+        FIELDS = %i(name verb path controller action endpoint constraints source_location engine).freeze
+
+        def initialize
+          super
+          @routes = []
+        end
+
+        def section(routes)
+          @routes.concat(routes.map { |route| structured_route(route) })
+        end
+
+        def no_routes(*)
+        end
+
+        private
+          def structured_route(route)
+            FIELDS.to_h do |field|
+              value = route[field]
+              value = normalize_constraints(value) if field == :constraints
+              value = normalize_source_location(value) if field == :source_location
+              [field, value]
+            end
+          end
+
+          def normalize_constraints(value)
+            case value
+            when Hash
+              value.to_h { |key, constraint| [key.to_s, normalize_constraints(constraint)] }
+            when Array
+              value.map { |constraint| normalize_constraints(constraint) }
+            when Symbol
+              value.to_s
+            when Regexp
+              value.inspect
+            when NilClass, String, Numeric, TrueClass, FalseClass
+              value
+            else
+              stable_constraint_name(value)
+            end
+          end
+
+          def stable_constraint_name(value)
+            inspected = value.inspect
+            return inspected unless inspected.match?(/#<.+:0x[0-9a-f]+/i)
+
+            value.class.name || value.class.superclass&.name || "anonymous"
+          end
+
+          def normalize_source_location(value)
+            return unless value
+
+            file, separator, line = value.rpartition(":")
+            return { file: value, line: nil } if separator.empty? || !/\A\d+\z/.match?(line)
+
+            { file: file, line: line.to_i }
+          end
+      end
+
+      class JSON < Structured
+        def result
+          ::JSON.generate(@routes)
+        end
+      end
+
+      class TSV < Structured
+        def result
+          rows = [FIELDS]
+          rows.concat(@routes.map { |route| FIELDS.map { |field| tsv_value(field, route[field]) } })
+          rows.map { |row| row.map { |value| escape_tsv(value) }.join("\t") }.join("\n") << "\n"
+        end
+
+        private
+          def tsv_value(field, value)
+            if field == :constraints
+              ::JSON.generate(value)
+            elsif field == :source_location
+              [value&.dig(:file), value&.dig(:line)].compact.join(":")
+            else
+              value
+            end
+          end
+
+          def escape_tsv(value)
+            value = value.to_s
+            return value unless /["\t\r\n]/.match?(value)
+
+            "\"#{value.gsub('"', '""')}\""
           end
       end
 

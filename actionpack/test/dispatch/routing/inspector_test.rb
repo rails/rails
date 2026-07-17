@@ -486,6 +486,97 @@ module ActionDispatch
         ], output
       end
 
+      def test_json_formatter_outputs_structured_route_data
+        ActionDispatch::Routing::Mapper.route_source_locations = true
+
+        output = render(ConsoleFormatter::JSON.new) do
+          get "/photos/:id", to: "photos#show", as: :photo, id: /[A-Z]\d{5}/
+          get "/health", to: proc { [200, {}, ["OK"]] }
+          get "/old", to: redirect("/new")
+        end
+        routes = ::JSON.parse(output)
+
+        assert_equal %w[name verb path controller action endpoint constraints source_location engine], routes.first.keys
+
+        photo = routes.find { |route| route["name"] == "photo" }
+        assert_equal "GET", photo["verb"]
+        assert_equal "/photos/:id(.:format)", photo["path"]
+        assert_equal "photos", photo["controller"]
+        assert_equal "show", photo["action"]
+        assert_equal "photos#show", photo["endpoint"]
+        assert_equal({ "id" => "/[A-Z]\\d{5}/" }, photo["constraints"])
+        assert_match(/inspector_test\.rb/, photo.dig("source_location", "file"))
+        assert_kind_of Integer, photo.dig("source_location", "line")
+        assert_nil photo["engine"]
+
+        health = routes.find { |route| route["name"] == "health" }
+        assert_nil health["controller"]
+        assert_nil health["action"]
+        assert_equal "Inline handler (Proc/Lambda)", health["endpoint"]
+
+        old = routes.find { |route| route["name"] == "old" }
+        assert_equal "redirect(301, /new)", old["endpoint"]
+      ensure
+        ActionDispatch::Routing::Mapper.route_source_locations = false
+      end
+
+      def test_json_formatter_flattens_engine_routes_with_engine_provenance
+        engine = Class.new(Rails::Engine) do
+          def self.inspect
+            "Blog::Engine"
+          end
+        end
+        engine.routes.draw do
+          get "/cart", to: "cart#show"
+        end
+
+        output = render(ConsoleFormatter::JSON.new) do
+          mount engine => "/blog", as: :blog
+        end
+        routes = ::JSON.parse(output)
+
+        mount = routes.find { |route| route["name"] == "blog" }
+        assert_equal "Blog::Engine", mount["endpoint"]
+        assert_nil mount["engine"]
+
+        cart = routes.find { |route| route["name"] == "cart" }
+        assert_equal "cart#show", cart["endpoint"]
+        assert_equal "Blog::Engine", cart["engine"]
+      end
+
+      def test_json_formatter_outputs_an_empty_array_without_human_messages
+        assert_equal "[]", render(ConsoleFormatter::JSON.new) { }
+        output = render(ConsoleFormatter::JSON.new, name: "missing") do
+          get "/photos", to: "photos#index"
+        end
+        assert_equal "[]", output
+      end
+
+      def test_tsv_formatter_uses_the_json_schema_and_encodes_structured_fields
+        ActionDispatch::Routing::Mapper.route_source_locations = true
+
+        output = render(ConsoleFormatter::TSV.new) do
+          get "/photos/:id", to: "photos#show", as: :photo, id: /[A-Z]\d{5}/
+        end
+        rows = output.lines.map { |line| line.chomp.split("\t", -1) }
+        headers = rows.first
+        route = headers.zip(rows.second.map { |value| unescape_tsv(value) }).to_h
+
+        assert_equal ConsoleFormatter::Structured::FIELDS.map(&:to_s), headers
+        assert_equal "photo", route["name"]
+        assert_equal "photos#show", route["endpoint"]
+        assert_equal({ "id" => "/[A-Z]\\d{5}/" }, ::JSON.parse(route["constraints"]))
+        assert_match %r{\A.+inspector_test\.rb:\d+\z}, route["source_location"]
+      ensure
+        ActionDispatch::Routing::Mapper.route_source_locations = false
+      end
+
+      def test_tsv_formatter_outputs_only_the_header_without_routes
+        output = render(ConsoleFormatter::TSV.new) { }
+
+        assert_equal "name\tverb\tpath\tcontroller\taction\tendpoint\tconstraints\tsource_location\tengine\n", output
+      end
+
       def test_routes_when_expanded
         ActionDispatch::Routing::Mapper.route_source_locations = true
         engine = Class.new(Rails::Engine) do
@@ -797,6 +888,11 @@ module ActionDispatch
 
         assert hash.key?(:action_source_line)
         assert_kind_of Integer, hash[:action_source_line]
+
+        assert_equal "inspector_test_app/posts", hash[:controller]
+        assert_equal "index", hash[:action]
+        assert_equal "inspector_test_app/posts#index", hash[:endpoint]
+        assert_equal({}, hash[:constraints])
       end
 
       def test_action_source_file_and_line_returns_tuple
@@ -835,6 +931,20 @@ module ActionDispatch
       end
 
       private
+        def unescape_tsv(value)
+          if value.start_with?('"') && value.end_with?('"')
+            value[1...-1].gsub('""', '"')
+          else
+            value
+          end
+        end
+
+        def render(formatter, **options, &block)
+          @set.draw(&block)
+          inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)
+          inspector.format(formatter, options)
+        end
+
         def collect(**options, &block)
           @set.draw(&block)
           inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)
