@@ -75,7 +75,9 @@ module ActiveRecord
     end
 
     def self.load_schema_migrations(file) # :nodoc:
-      _schema, marker, data = File.read(file).rpartition("__END__\n")
+      # The marker is matched the way Ruby recognizes it, so files with CRLF
+      # line endings or without a trailing newline load too.
+      _schema, marker, data = File.read(file).rpartition(/^__END__\r?$/)
 
       raise ActiveRecordError, "No __END__ found in #{file}" if marker.empty?
 
@@ -85,6 +87,10 @@ module ActiveRecord
 
       if invalid_version = versions.find { |version| !/\A[0-9]+\z/.match?(version) }
         raise ActiveRecordError, "Invalid migration version #{invalid_version.inspect} found after __END__"
+      end
+
+      if duplicate_version = versions.tally.find { |_version, count| count > 1 }&.first
+        raise ActiveRecordError, "Duplicate migration version #{duplicate_version.inspect} found after __END__"
       end
 
       versions -= connection_pool.schema_migration.versions
