@@ -317,6 +317,7 @@ module ActiveRecord
         def change_column(table_name, column_name, type, **options)
           if connection.adapter_name == "PostgreSQL"
             super(table_name, column_name, type, **options.except(:default, :null, :comment))
+            table_name = proper_table_name(table_name, table_name_options) unless connection.respond_to?(:revert)
             connection.change_column_default(table_name, column_name, options[:default]) if options.key?(:default)
             connection.change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
             connection.change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
