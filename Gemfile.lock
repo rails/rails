@@ -731,7 +731,7 @@ DEPENDENCIES
   importmap-rails (>= 1.2.3)
   jbuilder
   jsbundling-rails
-  json (>= 2.0.0, != 2.7.0)
+  json (>= 2.0.0, < 2.20, != 2.7.0)
   kamal (>= 2.1.0)
   launchy
   libxml-ruby
