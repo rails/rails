@@ -574,6 +574,7 @@ module ActiveRecord
     autoload :JoinTable, "active_record/migration/join_table"
     autoload :ExecutionStrategy, "active_record/migration/execution_strategy"
     autoload :DefaultStrategy, "active_record/migration/default_strategy"
+    autoload :CompatibilityBehavior, "active_record/migration/compatibility_behavior"
 
     # This must be defined before the inherited hook, below
     class Current < Migration # :nodoc:
@@ -609,10 +610,18 @@ module ActiveRecord
         end
       end
 
-      # Ancestors are walked oldest-version-first, so the newest version's
-      # module ends up first in method lookup — the same order the per-class
-      # overrides produced.
+      # Behavior modules are prepended before the framework modules and so
+      # resolve after them: the framework adjusts options first and behaviors
+      # run closest to execution, matching migration-level dispatch. Within
+      # the framework the newest version's module resolves first; within
+      # behaviors the oldest version's resolves first, its `super` reaching
+      # the newer ones as in the behavior classes' own inheritance.
+      # `t` is a TableDefinition for create_table and a Table for change_table.
       def compatible_table_definition(t)
+        compatibility_behavior.class.ancestors.reverse_each do |behavior_class|
+          next unless behavior_class <= CompatibilityBehavior && behavior_class.const_defined?(:TableDefinition, false)
+          t.singleton_class.prepend(behavior_class.const_get(:TableDefinition, false))
+        end
         (self.class.ancestors & Compatibility.version_classes).each do |version_class|
           next unless version_class.const_defined?(:TableDefinition, false)
           t.singleton_class.prepend(version_class.const_get(:TableDefinition, false))
@@ -838,6 +847,14 @@ module ActiveRecord
       @execution_strategy ||= (connection.migration_strategy || ActiveRecord.migration_strategy).new(self)
     end
 
+    def compatibility_behavior # :nodoc:
+      @compatibility_behavior ||= connection.compatibility_behavior_for(self.class).new(self)
+    end
+
+    def execute_operation(method, ...) # :nodoc:
+      execution_strategy.send(method, ...)
+    end
+
     self.verbose = true
     # instantiate the delegate object after initialize is defined
     self.delegate = new
@@ -1026,6 +1043,7 @@ module ActiveRecord
     ensure
       @connection = nil
       @execution_strategy = nil
+      @compatibility_behavior = nil
     end
 
     def write(text = "")
@@ -1083,7 +1101,9 @@ module ActiveRecord
           end
         end
         return super unless execution_strategy.respond_to?(method)
-        execution_strategy.send(method, *arguments, &block)
+        # A behavior method's `super` lands in the behavior base, which
+        # forwards to execute_operation.
+        compatibility_behavior.public_send(method, *arguments, &block)
       end
     end
     ruby2_keywords(:method_missing)
