@@ -1,3 +1,12 @@
+*   Fix `change_column` follow-up statements to honor `table_name_prefix` and
+    `table_name_suffix` for migrations declaring version 5.1 or earlier on
+    PostgreSQL.
+
+    The `:default`, `:null`, and `:comment` follow-ups targeted the unprefixed
+    table name while the main `ALTER TABLE` targeted the prefixed one.
+
+    *Yasuo Honda*
+
 *   Active Record schema caches can now be dumped in JSON format.
 
     Enabled by configuring `schema_cache_path` with a path ending in `.json`,
