@@ -755,6 +755,16 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal({ "active" => 2, "trial" => 2, "suspended" => 1 }, counts)
   end
 
+  def test_should_cast_group_by_keys_from_the_result_set_for_a_column_of_a_table_unknown_to_the_schema
+    counts = Account
+      .joins("JOIN (SELECT tsrange(timestamp '2020-01-01', timestamp '2020-01-02', '[)') AS period) periods ON TRUE")
+      .group("periods.period")
+      .count
+
+    assert_equal [Account.count], counts.values
+    assert_equal [Time.utc(2020, 1, 1)...Time.utc(2020, 1, 2)], counts.keys
+  end if current_adapter?(:PostgreSQLAdapter)
+
   def test_should_count_field_of_root_table_with_conflicting_group_by_column
     expected = { 1 => 2, 2 => 1, 4 => 5, 5 => 3, 7 => 1 }
     assert_equal expected, Post.joins(:comments).group(:post_id).count
