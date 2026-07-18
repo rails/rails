@@ -168,7 +168,7 @@ module ActionController # :nodoc:
       #     be added at the position of the protect_from_forgery call in your
       #     application. This means any callbacks added before are run first. This is
       #     useful when you want your forgery protection to depend on other callbacks,
-      #     like authentication methods (Oauth vs Cookie auth).
+      #     like authentication methods (OAuth vs Cookie auth).
       #
       #     If you need to add verification to the beginning of the callback chain,
       #     use `prepend: true`.
@@ -200,7 +200,7 @@ module ActionController # :nodoc:
       #       end
       #
       #       def handle_unverified_request
-      #         # Custom behavior for unverfied request
+      #         # Custom behavior for unverified request
       #       end
       #     end
       #

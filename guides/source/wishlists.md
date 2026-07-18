@@ -4,7 +4,7 @@ Wishlists
 =========
 
 This guide covers adding Wishlists to the e-commerce application you created in the
-[Getting Started Guide](getting_started.html)). We will use the code from the
+[Getting Started Guide](getting_started.html). We will use the code from the
 [Sign up and Settings Guide](sign_up_and_settings.html) as a starting place.
 
 After reading this guide, you will know how to:
