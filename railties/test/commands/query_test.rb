@@ -260,6 +260,70 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
     assert_equal 2, data["rows"].length
   end
 
+  test "detects an explicit LIMIT that follows a string containing a comment start" do
+    rails "runner", '3.times { |i| Post.create!(title: "Post #{i}") }'
+
+    data = query_json("--sql", "SELECT * FROM posts WHERE title <> 'a--b' ORDER BY id LIMIT 2")
+
+    assert_equal 2, data["rows"].length
+  end
+
+  test "detects an explicit LIMIT directly adjacent to a string literal" do
+    rails "runner", '3.times { |i| Post.create!(title: "Post #{i}") }'
+
+    data = query_json("--sql", "SELECT * FROM posts WHERE title <> 'a'LIMIT 2")
+
+    assert_equal 2, data["rows"].length
+  end
+
+  test "paginates when a string literal mentions limit" do
+    rails "runner", '4.times { |i| Post.create!(title: "Post #{i}") }'
+
+    sql = "SELECT * FROM posts WHERE title <> 'no limit' ORDER BY id"
+    page1 = query_json("--sql", sql, "--per", "2", "--page", "1")
+    page2 = query_json("--sql", sql, "--per", "2", "--page", "2")
+
+    assert_not_equal page1["rows"], page2["rows"]
+  end
+
+  test "appends LIMIT after a statement ending in a string literal" do
+    rails "runner", '4.times { |i| Post.create!(title: "Post #{i}") }'
+
+    data = query_json("--sql", "SELECT * FROM posts WHERE title <> 'no limit'", "--per", "2")
+
+    assert_equal 2, data["rows"].length
+  end
+
+  test "paginates when a quoted identifier mentions limit" do
+    rails "runner", '4.times { |i| Post.create!(title: "Post #{i}") }'
+
+    sql = %(SELECT title AS "the ""limit""" FROM posts ORDER BY id)
+    page1 = query_json("--sql", sql, "--per", "2", "--page", "1")
+    page2 = query_json("--sql", sql, "--per", "2", "--page", "2")
+
+    assert_not_equal page1["rows"], page2["rows"]
+  end
+
+  test "paginates past a trailing SQL comment" do
+    rails "runner", '4.times { |i| Post.create!(title: "Post #{i}") }'
+
+    sql = "SELECT * FROM posts ORDER BY id -- newest first"
+    page1 = query_json("--sql", sql, "--per", "2", "--page", "1")
+    page2 = query_json("--sql", sql, "--per", "2", "--page", "2")
+
+    assert_not_equal page1["rows"], page2["rows"]
+  end
+
+  test "paginates past a trailing semicolon followed by a comment" do
+    rails "runner", '4.times { |i| Post.create!(title: "Post #{i}") }'
+
+    sql = "SELECT * FROM posts ORDER BY id; -- all posts"
+    page1 = query_json("--sql", sql, "--per", "2", "--page", "1")
+    page2 = query_json("--sql", sql, "--per", "2", "--page", "2")
+
+    assert_not_equal page1["rows"], page2["rows"]
+  end
+
   test "explain shows query plan" do
     data = query_json("explain", "Post.where(status: 0)")
 

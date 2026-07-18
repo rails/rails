@@ -150,9 +150,12 @@ module Rails
         end
 
         def execute_sql(connection:, sql:, page:, per:)
-          unless sql.gsub(/--[^\n]*|\/\*.*?\*\//m, "").match?(/\bLIMIT\b/i)
+          masked = mask_strings_and_comments(sql)
+
+          unless masked.match?(/\bLIMIT\b/i)
             offset = (page - 1) * per
-            sql = "#{sql.rstrip.chomp(';')} LIMIT #{per + 1}"
+            statement_end = masked.rstrip.chomp(";").rstrip.length
+            sql = "#{sql[0, statement_end]} LIMIT #{per + 1}"
             sql += " OFFSET #{offset}" if offset > 0
           end
 
@@ -160,6 +163,20 @@ module Rails
           rows = active_record_result.rows
 
           tabular_result(columns: active_record_result.columns, rows: rows.first(per), sql: sql, truncated: rows.length > per)
+        end
+
+        # String literals, quoted identifiers, and comments are masked out
+        # character for character, so a LIMIT inside them does not count as a
+        # LIMIT clause and cannot hide one, and positions in the masked string
+        # locate the end of the statement in the original. Comments become
+        # spaces so a trailing comment is stripped along with surrounding
+        # whitespace; strings and identifiers become a non-space, non-word
+        # filler so a statement ending in one keeps its length and a LIMIT
+        # keyword directly adjacent to one keeps its word boundary.
+        def mask_strings_and_comments(sql)
+          sql.gsub(/'(?:[^']|'')*'|"(?:[^"]|"")*"|`(?:[^`]|``)*`|--[^\n]*|\/\*.*?\*\//m) do |match|
+            (match.start_with?("--", "/*") ? " " : ".") * match.length
+          end
         end
 
         def execute_expression(expression:, page:, per:)
