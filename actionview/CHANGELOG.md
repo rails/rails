@@ -1,3 +1,21 @@
+*   Make CSRF meta tags translation-safe by adding translation-disabling attributes.
+
+    The AI page translator translates page content and SEO-related meta tags, but it is also
+    unintentionally attempting to translate the CSRF meta tags. This causes two issues:
+
+    * It translates the `csrf-param` meta tag value into the target language, which breaks form
+      submissions because the application expects the original parameter name.
+    * It also attempts to translate the `csrf-token` value. Although the token itself cannot be
+      translated, the translator still processes it, unnecessarily consuming translation words/tokens
+      without making any changes.
+
+    The CSRF-related meta tags should be excluded from translation to prevent form submission issues
+    and avoid wasting translation quota. The `csrf_meta_tags` helper now adds `class: "notranslate"`,
+    `translate: "no"`, and `data: { wg_notranslate: true }` attributes to prevent browser translation
+    tools from mangling CSRF tokens.
+
+    *Muhammad Asim*
+
 *   Extract `current_page?`, `button_to`, and `link_to` methods to
     `ActionView::Helpers::NavigationHelper`
 
