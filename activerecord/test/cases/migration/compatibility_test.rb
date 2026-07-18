@@ -30,8 +30,77 @@ module ActiveRecord
 
       teardown do
         connection.drop_table :testings rescue nil
+        connection.drop_table :behavior_tabledef rescue nil
         ActiveRecord::Migration.verbose = @verbose_was
         @schema_migration.delete_all_versions rescue nil
+      end
+
+      def test_behavior_table_definition_module_is_prepended_generically
+        behavior_class = Class.new(ActiveRecord::Migration::CompatibilityBehavior) do
+          const_set(:TableDefinition, Module.new do
+            def column(name, type, **options)
+              super
+              super(:"#{name}_shadow", type, **options) unless name.to_s.end_with?("_shadow")
+            end
+          end)
+        end
+        namespace = Module.new do
+          const_set(:V7_0, behavior_class)
+          extend ActiveRecord::Migration::CompatibilityBehavior::Resolver
+        end
+
+        connection.stub(:compatibility_behavior_for, ->(klass) { namespace.for(klass) }) do
+          migration = Class.new(ActiveRecord::Migration[7.0]) {
+            def migrate(x)
+              create_table(:behavior_tabledef, force: true) { |t| t.string :name }
+            end
+          }.new
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        end
+
+        cols = connection.columns(:behavior_tabledef).map(&:name)
+        assert_includes cols, "name"
+        assert_includes cols, "name_shadow"
+      end
+
+      def test_behavior_table_definition_runs_after_framework_compatibility
+        captured = nil
+        table_definition = Module.new do
+          define_method(:column) do |name, type, **options|
+            captured = options.dup
+            super(name, type, **options)
+          end
+        end
+        behavior_class = Class.new(ActiveRecord::Migration::CompatibilityBehavior)
+        behavior_class.const_set(:TableDefinition, table_definition)
+        namespace = Module.new do
+          const_set(:V7_0, behavior_class)
+          extend ActiveRecord::Migration::CompatibilityBehavior::Resolver
+        end
+
+        connection.stub(:compatibility_behavior_for, ->(klass) { namespace.for(klass) }) do
+          migration = Class.new(ActiveRecord::Migration[7.0]) {
+            def migrate(x)
+              create_table(:behavior_tabledef, force: true) { |t| t.string :name }
+            end
+          }.new
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        end
+
+        assert captured[:_skip_validate_options]
+      end
+
+      def test_third_party_resolver_derives_version_mapping
+        namespace = Module.new do
+          const_set(:V7_0, Class.new(ActiveRecord::Migration::CompatibilityBehavior))
+          const_set(:V6_1, Class.new(const_get(:V7_0)))
+          extend ActiveRecord::Migration::CompatibilityBehavior::Resolver
+        end
+
+        assert_same namespace::V7_0, namespace.for(ActiveRecord::Migration[7.0])
+        assert_same namespace::V6_1, namespace.for(ActiveRecord::Migration[6.1])
+        assert_same namespace::V6_1, namespace.for(ActiveRecord::Migration[5.2])
+        assert_same ActiveRecord::Migration::CompatibilityBehavior, namespace.for(ActiveRecord::Migration[7.1])
       end
 
       def test_migration_doesnt_remove_named_index
