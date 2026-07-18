@@ -103,6 +103,78 @@ module ActiveRecord
             Post.where(id: Arel.array_bind(Set.new(ids))).order(:id).to_a
           )
         end
+
+        def test_not_in_drops_values_that_serialize_to_nil
+          # An arbitrary object is serializable? for integer columns but
+          # serializes to nil. Regular HomogeneousIn drops it via casted_values;
+          # array binds must do the same so <> ALL does not see a NULL element
+          # (which would filter out every row).
+          unserializable = Object.new
+          ids = [posts(:welcome).id, unserializable]
+
+          assert_equal(
+            Post.where.not(id: ids).order(:id).to_a,
+            Post.where.not(id: Arel.array_bind(ids)).order(:id).to_a
+          )
+        end
+
+        def test_in_drops_values_that_serialize_to_nil
+          unserializable = Object.new
+          ids = [posts(:welcome).id, unserializable]
+
+          assert_equal(
+            Post.where(id: ids).order(:id).to_a,
+            Post.where(id: Arel.array_bind(ids)).order(:id).to_a
+          )
+        end
+
+        def test_remains_preparable_with_a_single_bind
+          connection = Post.lease_connection
+          skip "requires prepared statements" unless connection.prepared_statements
+
+          arel = Post.where(id: Arel.array_bind([1, 2, 3])).arel
+          _sql, binds, preparable = connection.send(:to_sql_and_binds, arel)
+
+          assert preparable, "array-bind queries have a fixed single placeholder and should be preparable"
+          assert_equal 1, binds.length
+        end
+
+        def test_statement_cache_keeps_array_bind_under_unprepared_statements
+          ids = Post.limit(3).pluck(:id)
+          large_ids = (1..500).to_a
+
+          Post.lease_connection.unprepared_statement do
+            cache = ActiveRecord::StatementCache.create(Post.lease_connection) do |_params|
+              Post.where(id: Arel.array_bind(ids))
+            end
+
+            result = cache.execute([], Post.lease_connection)
+            assert_equal Post.where(id: ids).order(:id).to_a, result.sort_by(&:id)
+
+            # Rebuild a cache for a large list and assert the partial SQL keeps
+            # a single placeholder rather than expanding the array into text.
+            large_cache = ActiveRecord::StatementCache.create(Post.lease_connection) do |_params|
+              Post.where(id: Arel.array_bind(large_ids))
+            end
+
+            query_builder = large_cache.instance_variable_get(:@query_builder)
+            bind_map = large_cache.instance_variable_get(:@bind_map)
+            bind_values = bind_map.bind([])
+            sql = query_builder.sql_for(bind_values, Post.lease_connection)
+
+            assert_includes sql, "= ANY($1)"
+            assert_not_includes sql, large_ids.first(5).join(", ")
+            assert_equal 1, bind_values.length
+          end
+        end
+
+        def test_invert_preserves_array_bind_node
+          relation = Post.where(id: Arel.array_bind([1, 2, 3]))
+          inverted = relation.invert_where
+
+          assert_includes inverted.to_sql, "<> ALL($1)"
+          assert_not_includes inverted.to_sql, "NOT IN"
+        end
       end
     end
   end

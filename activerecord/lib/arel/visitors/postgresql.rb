@@ -150,18 +150,17 @@ module Arel # :nodoc: all
         # statements are disabled (see
         # Arel::Collectors::SubstituteBinds#add_bind_param).
         #
-        # Only wire nodes take this path; ordinary +where(col: array)+ queries
-        # fall back to the default +IN (...)+ expansion. A wire +HomogeneousIn+
-        # never carries +nil+ values or fewer than two elements
+        # Ordinary +where(col: array)+ queries use +HomogeneousIn+ and fall back
+        # to the default +IN (...)+ expansion. A +HomogeneousArrayBind+ never
+        # carries +nil+ values or fewer than two elements
         # (PredicateBuilder::ArrayBindHandler splits those off beforehand), so
         # the +ANY+/+ALL+ NULL-handling caveats do not apply here.
-        def visit_Arel_Nodes_HomogeneousIn(o, collector)
-          return super unless o.wire?
-
+        #
+        # Unlike expanded +IN ($1, $2, ..., $N)+, this form always has one
+        # placeholder, so it remains preparable for plan-cache reuse.
+        def visit_Arel_Nodes_HomogeneousArrayBind(o, collector)
           bind = @connection.build_homogeneous_in_bind(o.attribute, o.values)
-          return super if bind.nil?
-
-          collector.preparable = false
+          return visit_Arel_Nodes_HomogeneousIn(o, collector) if bind.nil?
 
           visit o.left, collector
 

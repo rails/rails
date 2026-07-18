@@ -4,7 +4,7 @@ module Arel # :nodoc: all
   module Nodes
     # Marker wrapping an array of values passed to a query method (created via
     # Arel.array_bind). ActiveRecord::PredicateBuilder turns it into a
-    # HomogeneousIn node flagged for single array-bind delivery.
+    # HomogeneousArrayBind node for single array-bind delivery.
     class ArrayBind < Node
       attr_reader :values
 

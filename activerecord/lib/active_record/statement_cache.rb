@@ -30,6 +30,17 @@ module ActiveRecord
   class StatementCache # :nodoc:
     class Substitute; end # :nodoc:
 
+    # Marks a bind that must stay as a real query parameter when rebuilding
+    # partial (unprepared) SQL, instead of being quoted into the statement
+    # text. Used by +Arel.array_bind+ via collectors' +add_bind_param+.
+    class RetainedBind # :nodoc:
+      attr_reader :placeholder
+
+      def initialize(placeholder)
+        @placeholder = placeholder
+      end
+    end
+
     class Query # :nodoc:
       attr_reader :retryable
 
@@ -46,21 +57,31 @@ module ActiveRecord
     class PartialQuery < Query # :nodoc:
       def initialize(values, retryable:)
         @values = values
-        @indexes = values.each_with_index.find_all { |thing, i|
-          Substitute === thing
-        }.map(&:last)
         @retryable = retryable
       end
 
       def sql_for(binds, connection)
         val = @values.dup
-        @indexes.each do |i|
-          value = binds.shift
-          if ActiveModel::Attribute === value
-            value = value.value_for_database
+        remaining = []
+        bind_offset = 0
+
+        val.each_with_index do |part, i|
+          case part
+          when Substitute
+            value = binds[bind_offset]
+            bind_offset += 1
+            if ActiveModel::Attribute === value
+              value = value.value_for_database
+            end
+            val[i] = connection.quote(value)
+          when RetainedBind
+            remaining << binds[bind_offset]
+            bind_offset += 1
+            val[i] = part.placeholder
           end
-          val[i] = connection.quote(value)
         end
+
+        binds.replace(remaining)
         val.join
       end
     end
@@ -71,6 +92,7 @@ module ActiveRecord
       def initialize
         @parts = []
         @binds = []
+        @bind_index = 1
       end
 
       def <<(str)
@@ -83,7 +105,16 @@ module ActiveRecord
         @parts << Substitute.new
         self
       end
-      alias_method :add_bind_param, :add_bind
+
+      # Keeps +obj+ as a real parameter with a SQL placeholder, matching
+      # +Arel::Collectors::SubstituteBinds#add_bind_param+. Unlike +add_bind+,
+      # the value is not quoted into the SQL when the partial query is rebuilt.
+      def add_bind_param(obj, &block)
+        @binds << obj
+        @parts << RetainedBind.new(block.call(@bind_index))
+        @bind_index += 1
+        self
+      end
 
       def add_binds(binds, proc_for_binds = nil, &)
         @binds.concat proc_for_binds ? binds.map(&proc_for_binds) : binds

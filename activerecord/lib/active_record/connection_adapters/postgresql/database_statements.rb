@@ -97,11 +97,14 @@ module ActiveRecord
           subtype = attribute.type_caster
           return if subtype.nil? || subtype.is_a?(OID::Array)
 
-          # Mirror Arel::Nodes::HomogeneousIn#casted_values: values the element
-          # type can't serialize (e.g. an out-of-range integer) are dropped so
-          # they don't match. Falling back to the default expansion when nothing
-          # remains preserves the existing `IN (NULL)` behavior.
-          values = values.select { |value| subtype.serializable?(value) }
+          # Mirror Arel::Nodes::HomogeneousIn#casted_values: drop values the
+          # element type can't serialize, and values that serialize to +nil+.
+          # +serializable?+ alone is not enough — e.g. an arbitrary object is
+          # serializable for an integer column but serializes to +nil+, and a
+          # NULL inside +<> ALL(...)+ would filter out every row.
+          values = values.select do |value|
+            subtype.serializable?(value) && !subtype.serialize(value).nil?
+          end
           return if values.empty?
 
           name = attribute.name if attribute.respond_to?(:name)
