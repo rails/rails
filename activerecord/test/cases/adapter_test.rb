@@ -659,7 +659,7 @@ module ActiveRecord
 
         # It can't be reused on the "verified" flag or the recently-used shortcut, so both
         # are cleared and the connection is re-verified before its next use.
-        assert_not_predicate @connection, :verified?
+        assert_not @connection.instance_variable_get(:@verified)
         assert_nil @connection.instance_variable_get(:@last_activity)
       end
 
