@@ -2,93 +2,113 @@
 
 # :markup: markdown
 
+require "monitor"
 require "action_controller"
+require "action_dispatch/system_testing/test_adapter"
+require "action_dispatch/system_testing/test_adapters"
 require "action_dispatch/system_testing/test_session"
 require "action_dispatch/system_testing/url_helpers_proxy"
 
 module ActionDispatch
   # # Server System Testing
   #
-  # `ActionDispatch::ServerSystemTestCase` boots your Rails application as a
-  # real server for system testing. It does not depend on Capybara.
+  # System tests run your application as a real server so you can interact with
+  # it in the browser. `ActionDispatch::ServerSystemTestCase` lets you do that
+  # with any browser automation tool -- Playwright, Ferrum, or your own --
+  # instead of Capybara.
   #
-  # It is responsible only for the part of system testing that genuinely belongs
-  # to Rails: booting the application as a real Rack server, binding it to a
-  # host/port, waiting until it is actually serving requests, exposing the base
-  # URL it is reachable on, and tearing it down at the end of the run. URL
-  # helpers (`root_url`, `users_path`, ...) are generated against that running
-  # server, so the host they produce points at the live application.
+  # It boots your application on a real port, waits until it is serving
+  # requests, and gives you the URL it is running on through `base_url`. URL
+  # helpers (`root_url`, `users_path`, ...) point at that running server.
+  # Interacting with the page is up to the adapter you select.
   #
-  # Everything above that -- driving a browser, filling in forms, asserting on
-  # the page, taking screenshots -- is left to the test author or to a browser
-  # automation tool of their choice (Capybara, Playwright, Ferrum, ...).
-  # `ActionDispatch::SystemTestCase` provides the familiar Capybara-based
-  # experience separately, while sharing the same URL helper behavior.
-  #
-  # Configure how the application is served, and wire up the browser automation
-  # tool of your choice, in your `ApplicationSystemTestCase`, so that individual
-  # tests stay focused on the interaction being tested. `served_by` is optional --
-  # by default the server binds to an available port on `0.0.0.0`. For example,
-  # with Playwright:
+  # Extend your `ApplicationSystemTestCase` from it and pick an adapter with
+  # `testing_with`. `served_by` is optional -- by default the server binds to an
+  # available port on `0.0.0.0`:
   #
   #     require "test_helper"
-  #     require "playwright"
   #
   #     class ApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
-  #       # Launch Playwright and the browser once for the whole run; a fresh
-  #       # browser context per test is enough to isolate one test from the next.
-  #       def self.browser
-  #         @browser ||= begin
-  #           execution = Playwright.create(playwright_cli_executable_path: "./node_modules/.bin/playwright")
-  #           at_exit { execution.stop }
-  #           execution.playwright.chromium.launch(headless: true)
-  #         end
-  #       end
-  #
-  #       setup do
-  #         @context = ApplicationSystemTestCase.browser.new_context(baseURL: base_url)
-  #         @page = @context.new_page
-  #       end
-  #
-  #       teardown { @context&.close }
+  #       testing_with :playwright
   #     end
   #
-  # Individual tests then only drive the page. URL helpers (`root_url`,
-  # `new_user_url`, ...) are generated against the running server, so they point
-  # at the live application:
+  # Your tests then interact with the page. URL helpers point at the running
+  # server, so they reach the live application:
   #
   #     require "application_system_test_case"
   #
   #     class UsersTest < ApplicationSystemTestCase
   #       test "creating a user" do
-  #         @page.goto new_user_url # => http://127.0.0.1:<port>/users/new
+  #         page.goto new_user_url # => http://127.0.0.1:<port>/users/new
   #
-  #         @page.fill "input[name='user[name]']", "Arya"
-  #         @page.click "text=Create User"
+  #         page.get_by_label("Name").fill("Arya")
+  #         page.get_by_role("button", name: "Create User").click
   #
-  #         assert_includes @page.content, "Arya"
+  #         assert page.get_by_text("Arya").visible?
   #       end
   #     end
   #
-  # Any browser automation tool works the same way; only the
-  # `ApplicationSystemTestCase` wiring changes.
+  # A browser library can ship its own adapter, so you interact with the page
+  # through its native API instead of a shared driver API.
   #
-  # Because the running server is reachable over plain HTTP, a test does not even
-  # need a browser. `base_url` (aliased as `app_host`) points at the live
-  # application, so an HTTP client such as Faraday can drive it directly:
+  # You don't even need a browser. `base_url` (aliased as `app_host`) points at
+  # the running application, so an HTTP client such as Faraday can interact with
+  # it directly:
   #
   #     class ApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
   #       setup { @client = Faraday.new(url: base_url) }
   #     end
   #
-  # and using `@client` in tests (`@client.get("/up")`, ...).
+  # You then use `@client` in your tests (`@client.get("/up")`, ...).
   #
-  # The application server is booted before each system test starts. The first
-  # test in the process starts the shared test session; later tests reuse it.
+  # The server boots before each system test. The first test in the process
+  # starts the shared session; later tests reuse it.
   class ServerSystemTestCase < ActiveSupport::TestCase
     include SystemTesting::UrlHelpersProxy
 
+    # Keep adapter selection isolated between system test base classes, so a
+    # test suite can define multiple subclasses that use different adapters.
+    class_attribute :test_adapter, instance_accessor: false
+
+    class TestAdapterInstances # :nodoc:
+      def initialize
+        @adapters = []
+        @monitor = Monitor.new
+      end
+
+      def <<(adapter)
+        @monitor.synchronize { @adapters << adapter }
+        adapter
+      end
+
+      def shutdown_all
+        adapters = @monitor.synchronize do
+          pending = @adapters.reverse
+          @adapters.clear
+          pending
+        end
+        first_error = nil
+
+        adapters.each do |adapter|
+          adapter.shutdown
+        rescue => error
+          first_error ||= error
+        end
+
+        raise first_error if first_error
+      end
+    end
+
+    TEST_ADAPTER_INSTANCES = TestAdapterInstances.new
+
     class << self
+      # Shuts down every adapter installed by testing_with, running the teardown
+      # callbacks registered by their global helpers. Runs at the end of the
+      # test run.
+      def shutdown_all_test_adapters # :nodoc:
+        TEST_ADAPTER_INSTANCES.shutdown_all
+      end
+
       # Configures how the Rails application is served. By default it binds to
       # an available port on `0.0.0.0`, so most suites never need to call this.
       #
@@ -99,6 +119,21 @@ module ActionDispatch
       #     served_by app_host: "http://rails-app:4000", port: 4000
       def served_by(host: "0.0.0.0", port: 0, app_host: nil)
         SystemTesting.test_session.configure(host: host, port: port, app_host: app_host)
+      end
+
+      # Selects the adapter that provides browser objects to system tests.
+      #
+      #     testing_with :playwright
+      #
+      # Adapter options are forwarded to the adapter:
+      #
+      #     testing_with :playwright, browser_type: :firefox, headless: false
+      def testing_with(adapter_name, **options)
+        adapter_class = SystemTesting::TestAdapters.lookup(adapter_name)
+        adapter = adapter_class.new(**options)
+        TEST_ADAPTER_INSTANCES << adapter
+        adapter.install(self)
+        self.test_adapter = adapter
       end
     end
 
@@ -111,11 +146,16 @@ module ActionDispatch
     def before_setup
       test_session.start
       test_session.clear_server_errors
+      self.class.test_adapter&.before_setup
       super
     end
 
     def after_teardown
-      test_session.raise_server_errors
+      begin
+        self.class.test_adapter&.after_teardown
+      ensure
+        test_session.raise_server_errors
+      end
     ensure
       super
     end
@@ -141,7 +181,15 @@ module ActionDispatch
   end
 end
 
-# Stop every server booted during the run once the suite is finished.
 Minitest.after_run do
+  ActionDispatch::ServerSystemTestCase.shutdown_all_test_adapters
+ensure
+  ActionDispatch::SystemTesting.test_session.shutdown
+end
+
+# Parallel test workers do not run Minitest's after_run hooks.
+ActiveSupport::Testing::Parallelization.run_cleanup_hook do
+  ActionDispatch::ServerSystemTestCase.shutdown_all_test_adapters
+ensure
   ActionDispatch::SystemTesting.test_session.shutdown
 end
