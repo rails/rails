@@ -68,11 +68,9 @@ When you first [generate system tests](#generating-system-tests), a `system`
 directory and an `application_system_test_case.rb` file will be created.
 
 The `system` directory holds [system tests](#system-testing), which are
-used for full browser testing of your application. System tests allow you to
-test your application the way your users experience it and help you test your
-JavaScript as well. System tests inherit from
-[Capybara](https://github.com/teamcapybara/capybara) and perform in-browser
-tests for your application.
+used for full browser testing of your application. System tests let you
+test your application the way your users experience it, including its
+JavaScript, by interacting with it in a real browser.
 
 The `application_system_test_case.rb` file holds the default configuration for your
 system tests.
@@ -1785,11 +1783,7 @@ default, so you usually don't need to configure it.
 Adapters for browser tools such as Playwright and Ferrum are provided as
 separate libraries, each registered under a name you pass to `testing_with`.
 
-#### Playwright
-
-The Playwright adapter is distributed as a separate library and requires the
-`playwright-ruby-client` gem and the Playwright npm package. Once it is loaded,
-select it with `testing_with`:
+For example, with a Playwright adapter:
 
 ```ruby
 require "test_helper"
@@ -1800,7 +1794,7 @@ end
 ```
 
 The adapter starts one browser for the test run and provides a new
-`browser_context` and `page` for each test. Tests use Playwright's native API:
+`browser_context` and `page` for each test. Tests use the tool's native API:
 
 ```ruby
 require "application_system_test_case"
@@ -1818,90 +1812,32 @@ class ArticlesTest < ApplicationSystemTestCase
 end
 ```
 
-The context uses the running server's `base_url`, so relative paths resolve
-against the Rails application. URL helpers (`articles_url`, `new_article_path`,
-...) also point at the running server.
-
-The adapter uses Chromium in headless mode and
-`./node_modules/.bin/playwright` by default. Options can select another browser
-or configure browser launch and context creation:
-
-```ruby
-class ApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
-  testing_with :playwright,
-    browser_type: :firefox,
-    headless: false,
-    browser_context_options: { locale: "ja-JP" }
-end
-```
-
-Set `PLAYWRIGHT_CLI_EXECUTABLE_PATH` to use another Playwright executable. To
-connect to a Playwright browser server, set `PLAYWRIGHT_WS_ENDPOINT` or pass
-`browser_server_endpoint_url` to `testing_with`.
-
-#### Ferrum
-
-The Ferrum adapter is distributed as a separate library and requires the
-`ferrum` gem and Chrome or Chromium. Once it is loaded, select it with
-`testing_with`:
-
-```ruby
-require "test_helper"
-
-class ApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
-  testing_with :ferrum
-end
-```
-
-The adapter starts one browser for the test run and provides a new isolated
-`browser_context` and `page` for each test. It sets Ferrum's `base_url` to the
-running Rails server, so both relative paths and URL helpers can be used:
-
-```ruby
-class ArticlesTest < ApplicationSystemTestCase
-  test "viewing an article" do
-    page.go_to article_path(articles(:welcome))
-
-    assert_equal "Welcome", page.at_css("h1").text
-  end
-end
-```
-
-Options in `browser_options` are passed to `Ferrum::Browser.new`, while
-`browser_context_options` are passed when creating each browser context:
-
-```ruby
-class ApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
-  testing_with :ferrum,
-    browser_options: {
-      headless: false,
-      browser_path: "/path/to/chrome",
-      timeout: 10
-    }
-end
-```
-
-Ferrum also reads `BROWSER_PATH`. To connect to a running Chrome instance,
-pass its remote debugging URL with `browser_options: { url: "http://chrome:9222" }`.
+For the options each adapter accepts and its setup, see the adapter library's
+own documentation.
 
 When the browser needs to reach the application at a different URL than the bind
 address (for example when the test runs in a separate Docker container), set
 `app_host` with `served_by`:
 
 ```ruby
-class ApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
-  served_by app_host: "http://rails-app:4000", port: 4000
-  testing_with :playwright
+class DockerizedApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
+  served_by port: 3000, app_host: "http://rails:3000"
+  testing_with :playwright,
+    browser_type: :chromium,
+    browser_server_endpoint_url: "ws://playwright:8080/ws"
 end
 ```
 
-#### System Test Adapters
+#### Using Other Browser Tools with a Custom Adapter
 
-A browser library can provide an adapter without implementing a Capybara driver
-or translating its browser API. Adapters inherit from
-`ActionDispatch::SystemTesting::TestAdapter`. A `global_helper` lives for the
-test run, while a `helper` lives for one test. Required keyword parameters make
-dependencies explicit:
+Any browser automation tool can be used by writing an adapter: subclass
+`ActionDispatch::SystemTesting::TestAdapter`, register it under a name, and select
+it with `testing_with`.
+
+Inside an adapter, declare resources as helpers. `global_helper` builds a resource
+once and shares it across the whole run, while `helper` builds one fresh for each
+test. Dependencies are declared as keyword arguments, and `on_teardown` registers
+cleanup:
 
 ```ruby
 class MyBrowserAdapter < ActionDispatch::SystemTesting::TestAdapter
@@ -1927,11 +1863,8 @@ end
 ActionDispatch::SystemTesting::TestAdapters.register(:my_browser, MyBrowserAdapter)
 ```
 
-Applications can then select it with `testing_with :my_browser`. Helpers are
-initialized when first used. Use `on_teardown` to clean each resource up; the
-callback runs after each test for a `helper` and after the test run for a
-`global_helper`. A test helper can depend on a global helper, but a global
-helper cannot depend on a test helper.
+Registered this way, `testing_with :my_browser` makes the adapter's helpers
+(`page`, and so on) available in every test.
 
 Test Helpers
 ------------
