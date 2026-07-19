@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_record/connection_adapters/postgresql/compatibility_behavior"
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -1093,6 +1095,10 @@ module ActiveRecord
 
         def update_table_definition(table_name, base) # :nodoc:
           PostgreSQL::Table.new(table_name, base)
+        end
+
+        def compatibility_behavior_for(migration_class) # :nodoc:
+          PostgreSQL::CompatibilityBehavior.for(migration_class)
         end
 
         def create_schema_dumper(options) # :nodoc:

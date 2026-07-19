@@ -31,6 +31,12 @@ module ActiveRecord
         @migration = migration
       end
 
+      # Consumed by adapter behaviors; the connection does not know this key.
+      def create_table(*args, **options)
+        options.delete(:_compat_injected_default)
+        super
+      end
+
       private
         attr_reader :migration
 

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_record/connection_adapters/sqlite3/compatibility_behavior"
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLite3
@@ -120,6 +122,10 @@ module ActiveRecord
 
         def schema_creation # :nodoc
           SQLite3::SchemaCreation.new(self)
+        end
+
+        def compatibility_behavior_for(migration_class)
+          SQLite3::CompatibilityBehavior.for(migration_class)
         end
 
         private
