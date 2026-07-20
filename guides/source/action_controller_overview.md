@@ -218,7 +218,7 @@ redirect_to photos_url
 
 This will send a `302` HTTP response to the browser with `photos_url` in the `Location` header. The browser will then make a new `GET` request to the `photos_url`.
 
-```
+```http
 HTTP/1.1 302 Found
 referrer-policy: strict-origin-when-cross-origin
 location: http://localhost:3000/photos
