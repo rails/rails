@@ -370,7 +370,6 @@ $ bin/rails generate scaffold User name:string
       invoke    resource_route
       invoke    test_unit
       create      test/controllers/users_controller_test.rb
-      create      test/system/users_test.rb
       invoke    helper
       create      app/helpers/users_helper.rb
       invoke      test_unit
@@ -517,7 +516,6 @@ $ bin/rails generate scaffold Comment body:text
       invoke    resource_route
       invoke    my_test_unit
       create      test/controllers/comments_controller_test.rb
-      create      test/system/comments_test.rb
       invoke    helper
       create      app/helpers/comments_helper.rb
       invoke      my_test_unit
