@@ -199,8 +199,13 @@
       name: Working with JavaScript in Rails
       url: working_with_javascript_in_rails.html
       description: >
-        This guide explains how to use import maps or jsbundling-rails to include
-        JavaScript in Rails applications, and covers the basics of working with Turbo in Rails.
+        This guide explains the techniques to deliver and optionally compile JavaScript
+        in Rails, along with the JavaScript libraries included in Rails.
+    -
+      name: Using Hotwire with Rails
+      url: using_hotwire_with_rails.html
+      description: >
+        This guide covers Rails' integration with Turbo and Stimulus.
     -
       name: Internationalization (I18n)
       url: i18n.html
