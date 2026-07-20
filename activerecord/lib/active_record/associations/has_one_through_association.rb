@@ -11,7 +11,9 @@ module ActiveRecord
       #
       # The optimization conservatively disables itself for scoped and
       # polymorphic-source associations, where walking the chain could
-      # return a record the scoped/typed query would have excluded.
+      # return a record the scoped/typed query would have excluded, and
+      # for stale through associations, where the loaded chain no longer
+      # reflects the owner's foreign key.
       def reader
         if !loaded? && through_chain_loaded?
           self.target = resolve_target_from_through_chain
@@ -28,6 +30,10 @@ module ActiveRecord
 
           through_assoc = through_association
           return false unless through_assoc.loaded?
+          # A loaded but stale through association (e.g. the owner's foreign
+          # key changed after preloading) must fall back to querying, which
+          # resolves against the current foreign key.
+          return false if through_assoc.stale_target?
 
           through_target = through_assoc.target
           return true unless through_target

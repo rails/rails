@@ -257,6 +257,24 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_one_through_queries_when_through_foreign_key_mutated_after_preload
+    minivan = Minivan.includes(speedometer: :dashboard).find(minivans(:cool_first).minivan_id)
+
+    assert minivan.association(:speedometer).loaded?, "through association should be loaded"
+    assert minivan.speedometer.association(:dashboard).loaded?, "source association should be loaded"
+
+    # Mutating the foreign key to the through record makes the preloaded
+    # chain stale — the association must fall back to querying so it
+    # resolves against the new foreign key, as it does without preloading.
+    other_speedometer = speedometers(:second)
+    other_dashboard = dashboards(:second)
+    minivan.speedometer_id = other_speedometer.speedometer_id
+
+    assert_queries_count(1) do
+      assert_equal other_dashboard, minivan.dashboard
+    end
+  end
+
   def test_has_one_through_preloaded_returns_same_object_as_manual_chain
     members = Member.includes(member_detail: :organization).where(name: "Groucho Marx").to_a
     member = members.first
