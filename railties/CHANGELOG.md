@@ -1,3 +1,12 @@
+*   Disable the Content-Security-Policy header on the built-in health check (`/up`).
+
+    Since the response body is fixed and controlled by the framework, applying
+    the app's configured `style-src` policy to it could cause browsers to
+    reject its inline `style` attribute and log a CSP violation when a human
+    visits `/up` directly.
+
+    *madogiwa0124*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"
