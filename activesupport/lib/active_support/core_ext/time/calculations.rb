@@ -6,6 +6,7 @@ require "active_support/time_with_zone"
 require "active_support/core_ext/time/zones"
 require "active_support/core_ext/date_and_time/calculations"
 require "active_support/core_ext/date/calculations"
+require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/module/remove_method"
 
 class Time
@@ -58,6 +59,8 @@ class Time
     ruby2_keywords :at_with_coercion
     alias_method :at_without_coercion, :at
     alias_method :at, :at_with_coercion
+
+    silence_redefinition_of_method :rfc3339
 
     # Creates a +Time+ instance from an RFC 3339 string.
     #
