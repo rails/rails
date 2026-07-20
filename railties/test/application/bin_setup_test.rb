@@ -60,6 +60,8 @@ module ApplicationTests
 
           == Restarting application server ==
         OUTPUT
+      ensure
+        rails "db:drop", allow_failure: true
       end
     end
   end
