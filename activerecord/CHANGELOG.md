@@ -8,16 +8,9 @@
     which can be overridden per database, using the new `dump_schema_migrations`
     database configuration option.
 
-    The versions are listed in lexicographic order by default, but this can be
-    changed to reduce the likelihood of merge conflicts:
-
-    ```ruby
-    config.active_record.dump_schema_migrations_sort_by = \
-      ->(version) { version.reverse }
-
-    # Same, via to_proc.
-    config.active_record.dump_schema_migrations_sort_by = :reverse
-    ```
+    Versions are ordered by their reversed strings by default, to help avoid
+    merge conflicts, but `dump_schema_migrations_sort_by` gives you a way to
+    customize this.
 
     `ActiveRecord.dump_schema_migrations` is false by default.
 
