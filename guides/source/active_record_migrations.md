@@ -1503,18 +1503,23 @@ The dump includes only versions with an existing migration file, so projects
 that prune old migrations keep the table in sync automatically just by
 regenerating the schema with `bin/rails db:schema:dump`.
 
-By default, versions are ordered lexicographically. You can customize this to
-reduce the likelihood of merge conflicts:
+By default, versions are ordered by their reversed strings to help avoid merge
+conflicts, but this can be customized:
 
 ```ruby
-config.active_record.dump_schema_migrations_sort_by = \
-  ->(version) { version.reverse }
+# Linear order.
+config.active_record.dump_schema_migrations_sort_by = :itself
 
-# Same, via to_proc.
-config.active_record.dump_schema_migrations_sort_by = :reverse
+# Hash-based ordering.
+require "digest/md5"
+
+config.active_record.dump_schema_migrations_sort_by = ->(version) {
+  Digest::MD5.hexdigest(version)
+}
 ```
 
-The proc is called with a string as argument.
+The value has to be a proc (or respond to `to_proc`) which is called with a
+string as argument.
 
 Please note that the order of the versions does not matter for Active Record,
 the `schema_migrations` table acts as a set.

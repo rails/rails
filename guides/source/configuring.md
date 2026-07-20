@@ -1311,18 +1311,23 @@ the `schema_migrations` table. This can be overridden per database by setting
 #### `config.active_record.dump_schema_migrations_sort_by`
 
 When `config.active_record.dump_schema_migrations` is enabled, migration
-versions are listed in lexicographical order by default, but this option allows
-you to change that to reduce the likelihood of merge conflicts:
+versions are ordered by their reversed strings by default, to help avoid merge
+conflicts. This option provides a way to configure that:
 
 ```ruby
-config.active_record.dump_schema_migrations_sort_by = \
-  ->(version) { version.reverse }
+# Linear order.
+config.active_record.dump_schema_migrations_sort_by = :itself
 
-# Same, via to_proc.
-config.active_record.dump_schema_migrations_sort_by = :reverse
+# Hash-based order.
+require "digest/md5"
+
+config.active_record.dump_schema_migrations_sort_by = ->(version) {
+  Digest::MD5.hexdigest(version)
+}
 ```
 
-The proc is called with a string as argument.
+The value has to be a proc (or respond to `to_proc`) which is called with a
+string as argument.
 
 Please note that the order of the versions does not matter for Active Record,
 the `schema_migrations` table acts as a set.
