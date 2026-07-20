@@ -42,6 +42,14 @@ class ActiveRecord::Encryption::EnvelopeEncryptionKeyProviderTest < ActiveRecord
     assert_encryptor_works_with @key_provider
   end
 
+  test "decryption_keys raises Decryption error when message has no encrypted_data_key header" do
+    message_without_data_key = ActiveRecord::Encryption::Message.new(payload: "some encrypted data")
+
+    assert_raises ActiveRecord::Encryption::Errors::Decryption do
+      @key_provider.decryption_keys(message_without_data_key)
+    end
+  end
+
   private
     def assert_multiple_primary_keys
       assert Rails.app.credentials.dig(:active_record_encryption, :primary_key).length > 1
