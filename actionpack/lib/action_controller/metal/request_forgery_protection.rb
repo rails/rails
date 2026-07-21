@@ -604,11 +604,6 @@ module ActionController # :nodoc:
 
       AUTHENTICITY_TOKEN_LENGTH = 32
 
-      # Safe values for Sec-Fetch-Site header that indicate the request
-      # originated from the same site.
-      SAFE_FETCH_SITES = %w[ same-origin same-site ].freeze
-      private_constant :SAFE_FETCH_SITES
-
       # Returns true or false if a request is verified. The verification method
       # depends on the configured `forgery_protection_verification_strategy`:
       #
