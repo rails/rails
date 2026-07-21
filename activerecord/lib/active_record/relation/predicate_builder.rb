@@ -3,6 +3,7 @@
 module ActiveRecord
   class PredicateBuilder # :nodoc:
     require "active_record/relation/predicate_builder/array_handler"
+    require "active_record/relation/predicate_builder/array_bind_handler"
     require "active_record/relation/predicate_builder/basic_object_handler"
     require "active_record/relation/predicate_builder/range_handler"
     require "active_record/relation/predicate_builder/relation_handler"
@@ -18,6 +19,7 @@ module ActiveRecord
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
       register_handler(Set, ArrayHandler.new(self))
+      register_handler(Arel::Nodes::ArrayBind, ArrayBindHandler.new(self))
     end
 
     def build_from_hash(attributes, &block)

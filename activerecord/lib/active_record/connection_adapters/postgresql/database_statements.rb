@@ -82,6 +82,35 @@ module ActiveRecord
           HIGH_PRECISION_CURRENT_TIMESTAMP
         end
 
+        # Builds a single bind parameter that carries an entire array of values
+        # for a homogeneous IN/NOT IN predicate, so it can be sent over the wire
+        # as +col = ANY($1)+ instead of being expanded into +IN (1, 2, ..., N)+.
+        #
+        # Returns +nil+ when the attribute can't be mapped to an array bind
+        # (e.g. no element type, an array-typed column, or no value is
+        # serializable), in which case the visitor falls back to the default
+        # +IN (...)+ expansion.
+        def build_homogeneous_in_bind(attribute, values) # :nodoc:
+          return if values.empty?
+          return unless attribute.respond_to?(:type_caster)
+
+          subtype = attribute.type_caster
+          return if subtype.nil? || subtype.is_a?(OID::Array)
+
+          # Mirror Arel::Nodes::HomogeneousIn#casted_values: drop values the
+          # element type can't serialize, and values that serialize to +nil+.
+          # +serializable?+ alone is not enough — e.g. an arbitrary object is
+          # serializable for an integer column but serializes to +nil+, and a
+          # NULL inside +<> ALL(...)+ would filter out every row.
+          values = values.select do |value|
+            subtype.serializable?(value) && !subtype.serialize(value).nil?
+          end
+          return if values.empty?
+
+          name = attribute.name if attribute.respond_to?(:name)
+          ActiveModel::Attribute.with_cast_value(name, values, OID::Array.new(subtype))
+        end
+
         def build_explain_clause(options = [])
           return "EXPLAIN" if options.empty?
 

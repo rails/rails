@@ -41,6 +41,7 @@ module ActiveRecord
             preparable = collector.preparable
           else
             sql = visitor.compile(arel_or_sql_string, collector)
+            binds = collector.binds if collector.respond_to?(:binds)
           end
           allow_retry = collector.retryable
           [sql.freeze, binds, preparable, allow_retry]
