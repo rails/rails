@@ -3,41 +3,149 @@
 Rails on Rack
 =============
 
-This guide covers Rails integration with Rack and interfacing with other Rack components.
+This guide covers Rails' integration with [Rack](https://en.wikipedia.org/wiki/Rack_(web_server_interface)). After reading this guide, you will know:
 
-After reading this guide, you will know:
-
-* How to use Rack Middlewares in your Rails applications.
-* Action Pack's internal Middleware stack.
-* How to define a custom Middleware stack.
+* What Rack is and why Rails uses it.
+* How Rails uses Rack middleware to build an application stack.
+* Action Pack's internal middleware stack.
+* How to configure and change the middleware stack.
+* The underlying Rack API exposed by Rails controllers.
 
 --------------------------------------------------------------------------------
-
-WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, URL maps, and `Rack::Builder`.
 
 Introduction to Rack
 --------------------
 
-Rack provides a minimal, modular, and adaptable interface for developing web applications in Ruby. By wrapping HTTP requests and responses in the simplest way possible, it unifies and distills the API for web servers, web frameworks, and software in between (the so-called middleware) into a single method call.
+Rack provides a modular interface for developing web applications in Ruby. By wrapping HTTP requests and responses using a conventional structure, it unifies the API for web servers, web frameworks, and software in between (known as middleware) into a single method call.
 
-Explaining how Rack works is not really in the scope of this guide. In case you
-are not familiar with Rack's basics, you should check out the [Resources](#resources)
-section below.
+This allows Rack compliant web servers like [Puma](https://puma.io) or [Falcon](https://socketry.github.io/falcon/) to be interchangeably used with any Rack based web framework such as Rails.
+
+Before diving into how Rails integrates with Rack, let's look at Rack itself.
+
+### A Basic Rack Application
+
+A Rack app is an object which implements a `call` method. It is passed an [`env`](https://github.com/rack/rack/blob/main/SPEC.rdoc#the-request-environment) hash, known as the Rack environment.
+
+Here's an example of a barebones Rack app:
+
+```ruby
+class App
+  def call(env)
+    [200, { "content-type" => "text/plain" }, ["Hello World"]]
+  end
+end
+
+run App.new
+```
+
+When an HTTP request is made, the Rack-compliant web server parses it to create the `env` hash, and calls the application with `env`. The `call` method must return an array with exactly three elements, representing the HTTP response:
+
+1. The HTTP response code (`200` in the above example).
+2. A hash containing any HTTP response headers we wish to send.
+3. An enumerable object that yields strings, representing the response body.
+
+Rack applications are generally run using the web server's command line program, with the entry point for the application being stored in a `config.ru` file:
+
+```bash
+$ cat > config.ru << APP
+rack_app = lambda do |env|
+  [200, { "content-type" => "text/plain" }, ["Hello World"]]
+end
+run rack_app
+APP
+$ gem install puma
+$ puma
+```
+
+Your app should be available at <http://localhost:9292>.
+
+```bash
+$ curl localhost:9292
+Hello World
+```
+
+### Rack Middleware
+
+Rack applications can be wrapped using _middleware_ which may operate upon a request before it reaches the main application, and again after the application has returned a response to the request. Middleware is usually used for tasks like logging, caching, authentication, and measuring performance.
+
+A Rack middleware must have a `new` method that accepts the Rack app and any arguments used to configure the middleware. The `new` method must return a Rack application that responds to `call`. Typically, Rack middleware are classes, and each instance of the middleware wraps access to the related application:
+
+```ruby
+class MyMiddleware
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    # Operations before the request hits the main application
+    # -------------------------------------------------------
+
+    # Propagate the request down the middleware stack
+    status, headers, body = @app.call(env)
+
+    # ---------------------------------------
+    # Operations after the request comes back
+
+    # Propagate the response up the middleware stack
+    [status, headers, body]
+  end
+end
+```
+
+Middleware can short-circuit the stack by skipping `@app.call` completely and returning a response by itself. This means the request never hits the main application or the remaining middleware in the stack. A middleware to authenticate a request might use this technique.
+
+```ruby
+class AuthenticateRequest
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    if authenticated?(env["HTTP_AUTHORIZATION"])
+      @app.call(env)
+    else
+      [401, { "content-type" => "text/plain" }, ["Authentication failed"]]
+    end
+  end
+
+  def authenticated?(token)
+    # ...
+  end
+end
+```
+
+Middleware is added to a Rack app with `use`:
+
+```ruby
+class AuthenticateRequest
+  # ...
+end
+
+class App
+  def call(env)
+    [200, { "content-type" => "text/plain" }, ["Hello World"]]
+  end
+end
+
+use AuthenticateRequest
+run App.new
+```
+
+This DSL to construct Rack applications is provided by [`Rack::Builder`][]. For further information about Rack, consult the [Rack specification](https://rack.github.io/rack/main/SPEC_rdoc.html) and [Rack Website](https://rack.github.io/rack/).
+
+[`Rack::Builder`]: https://rack.github.io/rack/3.2/Rack/Builder.html
 
 Rails on Rack
 -------------
 
-### Rails Application's Rack Object
+### The Primary Rack Object
 
-`Rails.application` is the primary Rack application object of a Rails
-application. Any Rack compliant web server should be using
-`Rails.application` object to serve a Rails application.
+`Rails.application` is the *primary Rack application object* of a Rails
+application. A Rack compliant web server should use the `Rails.application` object to serve a Rails application.
 
-### `bin/rails server`
+### Starting the Rails Server
 
-`bin/rails server` does the basic job of creating a `Rack::Server` object and starting the web server.
-
-Here's how `bin/rails server` creates an instance of `Rack::Server`
+Rails subclasses `Rackup::Server` to create `Rails::Server`. `bin/rails server` instantiates a `Rails::Server` object and starts the web server.
 
 ```ruby
 Rails::Server.new.tap do |server|
@@ -47,43 +155,31 @@ Rails::Server.new.tap do |server|
 end
 ```
 
-The `Rails::Server` inherits from `Rack::Server` and calls the `Rack::Server#start` method this way:
+See the [initialization guide](initialization.html#rails-server-start) for further information on how the server starts up.
 
-```ruby
-class Server < ::Rack::Server
-  def start
-    # ...
-    super
-  end
-end
-```
 
-### Development and Auto-reloading
+Action Dispatch Middleware Stack
+--------------------------------
 
-Middlewares are loaded once and are not monitored for changes. You will have to restart the server for changes to be reflected in the running application.
+`ActionDispatch::MiddlewareStack` is Rails' equivalent of [`Rack::Builder`][]. It's built with more flexibility and features to meet Rails' requirements.
 
-Action Dispatcher Middleware Stack
-----------------------------------
+`Rails::Application` uses `ActionDispatch::MiddlewareStack` to combine internal and external middleware to build the stack which forms a complete Rack application using Rails.
 
-Many of Action Dispatcher's internal components are implemented as Rack middlewares. `Rails::Application` uses `ActionDispatch::MiddlewareStack` to combine various internal and external middlewares to form a complete Rails Rack application.
+### Inspecting the Middleware Stack
 
-NOTE: `ActionDispatch::MiddlewareStack` is Rails' equivalent of `Rack::Builder`,
-but is built for better flexibility and more features to meet Rails' requirements.
-
-### Inspecting Middleware Stack
-
-Rails has a handy command for inspecting the middleware stack in use:
+View the middleware stack by running:
 
 ```bash
 $ bin/rails middleware
 ```
 
-For a freshly generated Rails application, this might produce something like:
+Here's an example from a freshly generated Rails app:
 
 ```ruby
 use ActionDispatch::HostAuthorization
 use Rack::Sendfile
 use ActionDispatch::Static
+use Propshaft::Server
 use ActionDispatch::Executor
 use ActionDispatch::ServerTiming
 use ActiveSupport::Cache::Strategy::LocalCache::Middleware
@@ -91,7 +187,7 @@ use Rack::Runtime
 use Rack::MethodOverride
 use ActionDispatch::RequestId
 use ActionDispatch::RemoteIp
-use Sprockets::Rails::QuietAssets
+use Propshaft::QuietAssets
 use Rails::Rack::Logger
 use ActionDispatch::ShowExceptions
 use WebConsole::Middleware
@@ -111,49 +207,51 @@ use Rack::TempfileReaper
 run MyApp::Application.routes
 ```
 
-The default middlewares shown here (and some others) are each summarized in the [Internal Middlewares](#internal-middleware-stack) section, below.
+The [Internal Middleware Stack](#internal-middleware-stack) section below summarizes the default middleware components depicted above.
 
-### Configuring Middleware Stack
+### Configuring the Middleware Stack
 
-Rails provides a simple configuration interface [`config.middleware`][] for adding, removing, and modifying the middlewares in the middleware stack via `application.rb` or the environment specific configuration file `environments/<environment>.rb`.
+Rails provides a configuration interface [`config.middleware`](https://api.rubyonrails.org/classes/Rails/Configuration/MiddlewareStackProxy.html) for adding, removing, and modifying the middleware stack via `application.rb` or the environment specific configuration file `environments/<environment>.rb`.
 
 [`config.middleware`]: configuring.html#config-middleware
 
-#### Adding a Middleware
+#### Adding Middleware
 
-You can add a new middleware to the middleware stack using any of the following methods:
+There are three methods to add new middleware to the stack.
 
-* `config.middleware.use(new_middleware, args)` - Adds the new middleware at the bottom of the middleware stack.
+* `config.middleware.use(new_middleware, args)`: Adds the new middleware at the bottom of the middleware stack.
 
-* `config.middleware.insert_before(existing_middleware, new_middleware, args)` - Adds the new middleware before the specified existing middleware in the middleware stack.
+* `config.middleware.insert_before(existing_middleware, new_middleware, args)`: Adds the new middleware before the specified existing middleware in the middleware stack.
 
-* `config.middleware.insert_after(existing_middleware, new_middleware, args)` - Adds the new middleware after the specified existing middleware in the middleware stack.
+* `config.middleware.insert_after(existing_middleware, new_middleware, args)`: Adds the new middleware after the specified existing middleware in the middleware stack.
+
+Example usage:
 
 ```ruby
 # config/application.rb
 
-# Push Rack::BounceFavicon at the bottom
+# Push `Rack::BounceFavicon` at the bottom
 config.middleware.use Rack::BounceFavicon
 
-# Add Lifo::Cache after ActionDispatch::Executor.
+# Add `Lifo::Cache` after `ActionDispatch::Executor`.
 # Pass { page_cache: false } argument to Lifo::Cache.
 config.middleware.insert_after ActionDispatch::Executor, Lifo::Cache, page_cache: false
 ```
 
-#### Swapping a Middleware
+#### Swapping Middleware
 
-You can swap an existing middleware in the middleware stack using `config.middleware.swap`.
+Swap middleware using `config.middleware.swap`.
 
 ```ruby
 # config/application.rb
 
-# Replace ActionDispatch::ShowExceptions with Lifo::ShowExceptions
+# Replace `ActionDispatch::ShowExceptions` with `Lifo::ShowExceptions`
 config.middleware.swap ActionDispatch::ShowExceptions, Lifo::ShowExceptions
 ```
 
-#### Moving a Middleware
+#### Moving Middleware
 
-You can move an existing middleware in the middleware stack using `config.middleware.move_before` and `config.middleware.move_after`.
+Move existing middleware components in the stack using `config.middleware.move_before` or `config.middleware.move_after`.
 
 ```ruby
 # config/application.rb
@@ -169,178 +267,316 @@ config.middleware.move_before Lifo::ShowExceptions, ActionDispatch::ShowExceptio
 config.middleware.move_after Lifo::ShowExceptions, ActionDispatch::ShowExceptions
 ```
 
-#### Deleting a Middleware
+#### Deleting Middleware
 
-Add the following lines to your application configuration:
+Delete middleware using `config.middleware.delete`.
 
 ```ruby
 # config/application.rb
 config.middleware.delete Rack::Runtime
 ```
 
-And now if you inspect the middleware stack, you'll find that `Rack::Runtime` is
-not a part of it.
-
-```bash
-$ bin/rails middleware
-(in /Users/lifo/Rails/blog)
-use ActionDispatch::Static
-use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8>
-...
-run Rails.application.routes
-```
-
-If you want to remove session related middleware, do the following:
+Using `delete!` will raise an error if the middleware component doesn't exist.
 
 ```ruby
 # config/application.rb
-config.middleware.delete ActionDispatch::Cookies
-config.middleware.delete ActionDispatch::Session::CookieStore
-config.middleware.delete ActionDispatch::Flash
+
+config.middleware.delete! Some::NonExistentMiddleware
 ```
 
-And to remove browser related middleware,
+### Reloading the Middleware Stack
 
-```ruby
-# config/application.rb
-config.middleware.delete Rack::MethodOverride
-```
-
-If you want an error to be raised when you try to delete a non-existent item, use `delete!` instead.
-
-```ruby
-# config/application.rb
-config.middleware.delete! ActionDispatch::Executor
-```
+The middleware stack is loaded once and isn't monitored for changes. Restart your server after making changes to your middleware stack.
 
 ### Internal Middleware Stack
 
-Much of Action Controller's functionality is implemented as Middlewares. The following list explains the purpose of each of them:
+Much of Action Controller's functionality is implemented as middleware. The following list explains the purpose of each of them:
 
-**`ActionDispatch::HostAuthorization`**
+#### `ActionDispatch::ActionableExceptions`
 
-* Guards from DNS rebinding attacks by explicitly permitting the hosts a request can be sent to. See the [configuration guide](configuring.html#actiondispatch-hostauthorization) for configuration instructions.
+[`ActionDispatch::ActionableExceptions`][] provides a way to dispatch actions from Rails' error pages if the request is local.
 
-**`Rack::Sendfile`**
+[`ActionDispatch::ActionableExceptions`]: https://api.rubyonrails.org/files/actionpack/lib/action_dispatch/middleware/actionable_exceptions_rb.html
 
-* Sets server specific X-Sendfile header. Configure this via [`config.action_dispatch.x_sendfile_header`][] option.
+#### `ActionDispatch::Callbacks`
+
+[`ActionDispatch::Callbacks`][] provides callbacks to be executed before and after dispatching the request.
+
+[`ActionDispatch::Callbacks`]: https://api.rubyonrails.org/classes/ActionDispatch/Callbacks.html
+
+#### `ActionDispatch::ContentSecurityPolicy::Middleware`
+
+[`ActionDispatch::ContentSecurityPolicy::Middleware`][] provides a DSL to configure a `Content-Security-Policy` header. See [Securing Rails Applications](security.html#content-security-policy-header) for further information.
+
+[`ActionDispatch::ContentSecurityPolicy::Middleware`]: https://api.rubyonrails.org/classes/ActionDispatch/ContentSecurityPolicy/Middleware.html
+
+#### `ActionDispatch::Cookies`
+
+[`ActionDispatch::Cookies`][] reads cookie data from the request and writes cookie data on the response.
+
+[`ActionDispatch::Cookies`]: https://api.rubyonrails.org/classes/ActionDispatch/Cookies.html
+
+#### `ActionDispatch::DebugExceptions`
+
+[`ActionDispatch::DebugExceptions`][] is responsible for logging exceptions and showing a debugging page if the request is local.
+
+[`ActionDispatch::DebugExceptions`]: https://api.rubyonrails.org/classes/ActionDispatch/DebugExceptions.html
+
+#### `ActionDispatch::Executor`
+
+[`ActionDispatch::Executor`][] ensures thread safe code reloading during development.
+
+[`ActionDispatch::Executor`]: https://api.rubyonrails.org/classes/ActionDispatch/Executor.html
+
+#### `ActionDispatch::Flash`
+
+[`ActionDispatch::Flash`][] sets up the flash keys. Only available if [`config.session_store`][] is set to a value.
+
+[`ActionDispatch::Flash`]: https://api.rubyonrails.org/classes/ActionDispatch/Flash.html
+[`config.session_store`]: configuring.html#config-session-store
+
+#### `ActionDispatch::HostAuthorization`
+
+[`ActionDispatch::HostAuthorization`][] prevents DNS rebinding attacks by restricting the hosts to which a request can be sent. See the [configuration guide](configuring.html#actiondispatch-hostauthorization) for configuration instructions.
+
+[`ActionDispatch::HostAuthorization`]: https://api.rubyonrails.org/classes/ActionDispatch/HostAuthorization.html
+
+#### `ActionDispatch::Reloader`
+
+[`ActionDispatch::Reloader`][] provides prepare and cleanup callbacks, intended to assist with code reloading during development.
+
+[`ActionDispatch::Reloader`]: https://api.rubyonrails.org/classes/ActionDispatch/Reloader.html
+
+#### `ActionDispatch::RemoteIp`
+
+[`ActionDispatch::RemoteIp`][] checks for IP spoofing attacks.
+
+[`ActionDispatch::RemoteIp`]: https://api.rubyonrails.org/classes/ActionDispatch/RemoteIp.html
+
+#### `ActionDispatch::RequestId`
+
+[`ActionDispatch::RequestId`][] makes a unique `X-Request-Id` header available to the request and enables the `ActionDispatch::Request#request_id` method.
+
+The unique request id can be used to trace a request end-to-end and would typically end up being part of log files from multiple pieces of the stack.
+
+[`ActionDispatch::RequestId`]: https://api.rubyonrails.org/classes/ActionDispatch/RequestId.html
+
+#### `ActionDispatch::ServerTiming`
+
+[`ActionDispatch::ServerTiming`][] sets a [`Server-Timing`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing) header containing performance metrics for the request.
+
+[`ActionDispatch::ServerTiming`]: https://api.rubyonrails.org/classes/ActionDispatch/ServerTiming.html
+
+#### `ActionDispatch::Session::CookieStore`
+
+[`ActionDispatch::Session::CookieStore`][] is responsible for storing the session in cookies.
+
+[`ActionDispatch::Session::CookieStore`]: https://api.rubyonrails.org/classes/ActionDispatch/Session/CookieStore.html
+
+#### `ActionDispatch::ShowExceptions`
+
+[`ActionDispatch::ShowExceptions`][] rescues any exception returned by the application and calls an exceptions app that will wrap it in a format for the end user.
+
+[`ActionDispatch::ShowExceptions`]: https://api.rubyonrails.org/classes/ActionDispatch/ShowExceptions.html
+
+#### `ActionDispatch::Static`
+
+[`ActionDispatch::Static`][] serves static files from the `public` folder. Disabled when [`config.public_file_server.enabled`][] is `false`.
+
+[`ActionDispatch::Static`]: https://api.rubyonrails.org/classes/ActionDispatch/Static.html
+[`config.public_file_server.enabled`]: configuring.html#config-public-file-server-enabled
+
+#### `ActiveRecord::Migration::CheckPending`
+
+[`ActiveRecord::Migration::CheckPending`][] checks pending migrations and raises `ActiveRecord::PendingMigrationError` if any migrations are pending if [`config.action_dispatch.x_sendfile_header`][] is set to `:page_load`.
 
 [`config.action_dispatch.x_sendfile_header`]: configuring.html#config-action-dispatch-x-sendfile-header
 
-**`ActionDispatch::Static`**
+[`ActiveRecord::Migration::CheckPending`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration/CheckPending.html
 
-* Used to serve static files from the public directory. Disabled if [`config.public_file_server.enabled`][] is `false`.
+#### `ActiveSupport::Cache::Strategy::LocalCache::Middleware`
 
-[`config.public_file_server.enabled`]: configuring.html#config-public-file-server-enabled
+[`ActiveSupport::Cache::Strategy::LocalCache::Middleware`][] is the middleware for the in-memory local cache. This cache is not thread safe and is intended only for serving as a temporary memory cache for a single thread.
 
-**`Rack::Lock`**
+[`ActiveSupport::Cache::Strategy::LocalCache::Middleware`]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Strategy/LocalCache.html
 
-* Sets `env["rack.multithread"]` flag to `false` and wraps the application within a Mutex.
+#### `Propshaft::QuietAssets`
 
-**`ActionDispatch::Executor`**
+[`Propshaft::QuietAssets`][] suppresses logger output for asset requests.
 
-* Used for thread safe code reloading during development.
+[`Propshaft::QuietAssets`]: https://github.com/rails/propshaft/blob/main/lib/propshaft/quiet_assets.rb
 
-**`ActionDispatch::ServerTiming`**
+#### `Rack::ConditionalGet`
 
-* Sets a [`Server-Timing`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing) header containing performance metrics for the request.
+[`Rack::ConditionalGet`][] enables "Conditional `GET`" requests using if-none-match and if-modified-since. If the requested page wasn't changed returns a 304 Not Modified and an empty body.
 
-**`ActiveSupport::Cache::Strategy::LocalCache::Middleware`**
+[`Rack::ConditionalGet`]: https://rack.github.io/rack/3.2/Rack/ConditionalGet.html
 
-* Used for memory caching. This cache is not thread safe.
+#### `Rack::ETag`
 
-**`Rack::Runtime`**
+[`Rack::ETag`][] adds an `ETag` header on all String bodies. ETags are used to validate the cache to facilitate "Conditional `GET`" requests as described above. See the [Caching with Rails](caching_with_rails.html#conditional-gets) for further information.
 
-* Sets an X-Runtime header, containing the time (in seconds) taken to execute the request.
+[`Rack::ETag`]: https://rack.github.io/rack/3.2/Rack/ETag.html
 
-**`Rack::MethodOverride`**
+#### `Rack::Head`
 
-* Allows the method to be overridden if `params[:_method]` is set. This is the middleware which supports the PUT and DELETE HTTP method types.
+[`Rack::Head`][] returns an empty body for all `HEAD` requests. It leaves all other requests unchanged.
 
-**`ActionDispatch::RequestId`**
+[`Rack::Head`]: https://rack.github.io/rack/3.2/Rack/Head.html
 
-* Makes a unique `X-Request-Id` header available to the response and enables the `ActionDispatch::Request#request_id` method.
+#### `Rack::Lock`
 
-**`ActionDispatch::RemoteIp`**
+[`Rack::Lock`][] locks every request inside a mutex, so that every request will effectively be executed synchronously.
 
-* Checks for IP spoofing attacks.
+[`Rack::Lock`]: https://rack.github.io/rack/3.2/Rack/Lock.html
 
-**`Sprockets::Rails::QuietAssets`**
+#### `Rack::MethodOverride`
 
-* Suppresses logger output for asset requests.
+[`Rack::MethodOverride`][] allows the method to be overridden if `params[:_method]` is set. This is how Rails supports `PUT`, `PATCH`, and `DELETE` HTTP methods since they are not browser native.
 
-**`Rails::Rack::Logger`**
+[`Rack::MethodOverride`]: https://rack.github.io/rack/3.2/Rack/MethodOverride.html
 
-* Notifies the logs that the request has begun. After the request is complete, flushes all the logs.
+#### `Rack::Runtime`
 
-**`ActionDispatch::ShowExceptions`**
+[`Rack::Runtime`][] sets an `X-Runtime` header, containing the time (in seconds) taken to execute the request.
 
-* Rescues any exception returned by the application and calls an exceptions app that will wrap it in a format for the end user.
+[`Rack::Runtime`]: https://rack.github.io/rack/3.2/Rack/Runtime.html
 
-**`ActionDispatch::DebugExceptions`**
+#### `Rack::Sendfile`
 
-* Responsible for logging exceptions and showing a debugging page in case the request is local.
+[`Rack::Sendfile`] sets a server specific `X-Sendfile` header. This is useful for accelerated file sending if you use a reverse proxy server like Apache or Nginx. For example it can be set to 'X-Sendfile' for Apache. Configure this via [`config.action_dispatch.x_sendfile_header`][] option.
 
-**`ActionDispatch::ActionableExceptions`**
+[`Rack::Sendfile`]: https://rack.github.io/rack/3.2/Rack/Sendfile.html
+[`config.action_dispatch.x_sendfile_header`]: configuring.html#config-action-dispatch-x-sendfile-header
 
-* Provides a way to dispatch actions from Rails' error pages.
+#### `Rack::TempfileReaper`
 
-**`ActionDispatch::Reloader`**
+[`Rack::TempfileReaper`][] cleans up tempfiles used to buffer multipart requests.
 
-* Provides prepare and cleanup callbacks, intended to assist with code reloading during development.
+[`Rack::TempfileReaper`]: https://rack.github.io/rack/3.2/Rack/TempfileReaper.html
 
-**`ActionDispatch::Callbacks`**
+#### `Rails::Rack::Logger`
 
-* Provides callbacks to be executed before and after dispatching the request.
+[`Rails::Rack::Logger`][] notifies the logs that the request has begun. After the request is complete, flushes all the logs.
 
-**`ActiveRecord::Migration::CheckPending`**
+[`Rails::Rack::Logger`]: https://api.rubyonrails.org/classes/Rails/Rack/Logger.html
 
-* Checks pending migrations and raises `ActiveRecord::PendingMigrationError` if any migrations are pending.
+TIP: You can use any of the above middleware in a custom Rack stack.
 
-**`ActionDispatch::Cookies`**
+Custom Middleware
+-----------------
 
-* Sets cookies for the request.
+You can create your own middleware and include it in your Rails app.
 
-**`ActionDispatch::Session::CookieStore`**
+### Creating Middleware
 
-* Responsible for storing the session in cookies.
+Custom middleware files should be placed in the `lib/` folder and `require`d manually since middleware is not auto-reloaded.
 
-**`ActionDispatch::Flash`**
+The below example reads the `locale` value from the URL params and stores it in the Rack `env`. It then deletes it from the query parameters so it isn't included in the `params` hash keeping it decluttered when the request hits the controller.
 
-* Sets up the flash keys. Only available if [`config.session_store`][] is set to a value.
+```ruby
+# lib/middleware/extract_locale.rb
 
-[`config.session_store`]: configuring.html#config-session-store
+module RackMiddleware
+  class ExtractLocale
+    def initialize(app)
+      @app = app
+    end
 
-**`ActionDispatch::ContentSecurityPolicy::Middleware`**
+    def call(env)
+      request = ActionDispatch::Request.new(env)
+      if request.params["locale"].present?
+        env["myapp.locale"] = env["action_dispatch.request.query_parameters"]["locale"]
 
-* Provides a DSL to configure a Content-Security-Policy header.
+        env["action_dispatch.request.query_parameters"].delete("locale")
+        env["action_dispatch.request.parameters"].delete("locale")
+      end
 
-**`Rack::Head`**
+      @app.call(env)
+    end
+  end
+end
+```
 
-* Returns an empty body for all HEAD requests. It leaves all other requests unchanged.
+Rails doesn't create the `lib/middleware/` folder by default, so you'll need to create it yourself. Excluding it from the autoload path is recommended to prevent auto-loading issues.
 
-**`Rack::ConditionalGet`**
+```ruby#7
+# config/application.rb
 
-* Adds support for "Conditional `GET`" so that server responds with nothing if the page wasn't changed.
+module MyApp
+  class Application < Rails::Application
+    # ...
 
-**`Rack::ETag`**
+    config.autoload_lib(ignore: %w[assets tasks middleware])
 
-* Adds ETag header on all String bodies. ETags are used to validate cache.
+    # ...
+  end
+end
+```
 
-**`Rack::TempfileReaper`**
+### Adding Custom Middleware to the Stack
 
-* Cleans up tempfiles used to buffer multipart requests.
+Custom middleware can be added in `application.rb`
 
-TIP: It's possible to use any of the above middlewares in your custom Rack stack.
+```ruby
+# config/application.rb
 
-Resources
----------
+# ...
 
-### Learning Rack
+require_relative "../lib/middleware/extract_locale"
 
-* [Official Rack Website](https://rack.github.io)
-* [Introducing Rack](http://chneukirchen.org/blog/archive/2007/02/introducing-rack.html)
+module MyApp
+  class Application < Rails::Application
+    # ...
 
-### Understanding Middlewares
+    config.middleware.use RackMiddleware::ExtractLocale
 
-* [Railscast on Rack Middlewares](http://railscasts.com/episodes/151-rack-middleware)
+    # ...
+  end
+end
+```
+
+or within a standalone initializer.
+
+```ruby
+# config/initializers/extract_locale.rb
+
+require "#{Rails.root.join("lib", "middleware", "extract_locale")}"
+
+Rails.application.config.middleware.use RackMiddleware::ExtractLocale
+```
+
+Accessing Rack Internals in Rails
+---------------------------------
+
+The underlying Rack API can be used within Rails controllers.
+
+### Accessing the Rack `env`
+
+The Rack `env` hash is available in Rails controllers using `request.env`.
+
+```ruby
+class HomeController
+  def index
+    user_agent = request.env["HTTP_USER_AGENT"]
+
+    # ...
+  end
+end
+```
+
+### Writing a Rack Response
+
+A Rack response can be written in a Rails controller as:
+
+```ruby
+class HomeController
+  def index
+    self.response = Rack::Response[200, {}, ["I'm Home!"]]
+  end
+end
+```
+
+### Routing to a Rack App
+
+You can route requests to a Rack App in your `config/routes.rb`. See the [routing guide](routing.html#routing-to-rack-applications) for further details.

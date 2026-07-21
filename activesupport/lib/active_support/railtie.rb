@@ -51,7 +51,7 @@ module ActiveSupport
     initializer "active_support.reset_execution_context" do |app|
       app.reloader.before_class_unload do
         ActiveSupport::CurrentAttributes.clear_all
-        ActiveSupport::ExecutionContext.clear
+        ActiveSupport::ExecutionContext.flush
         ActiveSupport.event_reporter.clear_context
       end
 
@@ -176,6 +176,12 @@ module ActiveSupport
       config.after_initialize do
         ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata =
           app.config.active_support.use_message_serializer_for_metadata
+      end
+    end
+
+    initializer "active_support.freeze_inflections" do
+      config.after_initialize do
+        ActiveSupport::Inflector::Inflections.all_instances.each(&:freeze)
       end
     end
   end

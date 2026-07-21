@@ -185,7 +185,7 @@ class I18nValidationTest < ActiveModel::TestCase
     [ "given if condition",                { if: lambda { true } },       {}],
     [ "given unless condition",            { unless: lambda { false } },  {}],
     [ "given option that is not reserved", { format: "jpg" },             { format: "jpg" }]
-  ]
+  ].freeze
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
     test "validates_confirmation_of on generated message #{name}" do

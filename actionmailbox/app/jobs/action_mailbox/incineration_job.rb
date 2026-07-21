@@ -12,7 +12,7 @@ module ActionMailbox
   class IncinerationJob < ActiveJob::Base
     queue_as { ActionMailbox.queues[:incineration] }
 
-    discard_on ActiveRecord::RecordNotFound
+    discard_on ActiveRecord::RecordNotFound, ActiveJob::DeserializationError::RecordNotFound
 
     def self.schedule(inbound_email)
       set(wait: ActionMailbox.incinerate_after).perform_later(inbound_email)

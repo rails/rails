@@ -19,6 +19,7 @@ module ActiveSupport
 
       def digit_count(number)
         return 1 if number.zero?
+        return 1 unless number.respond_to?(:finite?) && number.finite?
         (Math.log10(number.abs) + 1).floor
       end
 
@@ -35,7 +36,7 @@ module ActiveSupport
         end
 
         def absolute_precision(number)
-          if options[:significant] && options[:precision] > 0
+          if options[:significant] && options[:precision] && options[:precision] > 0
             options[:precision] - digit_count(convert_to_decimal(number))
           else
             options[:precision]

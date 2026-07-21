@@ -9,8 +9,12 @@ require "models/car"
 module ActiveRecord
   class CountDeletedRowsWithLockTest < ActiveRecord::AbstractMysqlTestCase
     test "delete and create in different threads synchronize correctly" do
+      expected_count = 13
+
       Bulb.unscoped.delete_all
-      Bulb.create!(name: "Jimmy", color: "blue")
+      expected_count.times do |i|
+        Bulb.create!(name: "Jimmy #{i}", color: "blue")
+      end
 
       delete_thread = Thread.new do
         Bulb.unscoped.delete_all
@@ -23,7 +27,7 @@ module ActiveRecord
       delete_thread.join
       create_thread.join
 
-      assert_equal 1, delete_thread.value
+      assert_equal expected_count, delete_thread.value
     end
   end
 end

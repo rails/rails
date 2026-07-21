@@ -170,7 +170,7 @@ module ActionDispatch
           path = options[:script_name].to_s.chomp("/")
           path << options[:path] if options.key?(:path)
 
-          path = "/" if options[:trailing_slash] && path.blank?
+          path = +"/" if options[:trailing_slash] && path.blank?
 
           add_params(path, options[:params]) if options.key?(:params)
           add_anchor(path, options[:anchor]) if options.key?(:anchor)
@@ -181,7 +181,7 @@ module ActionDispatch
         private
           def add_params(path, params)
             params = { params: params } unless params.is_a?(Hash)
-            params.reject! { |_, v| v.to_param.nil? }
+            params = params.reject { |_, v| v.to_param.nil? }
             query = params.to_query
             path << "?#{query}" unless query.empty?
           end

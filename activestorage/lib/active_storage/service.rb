@@ -4,6 +4,7 @@ require "active_storage/log_subscriber"
 require "active_storage/structured_event_subscriber"
 require "action_dispatch"
 require "action_dispatch/http/content_disposition"
+require "active_support/core_ext/string/filters"
 
 module ActiveStorage
   # = Active Storage \Service
@@ -72,9 +73,10 @@ module ActiveStorage
     end
 
     # Update metadata for the file identified by +key+ in the service.
-    # Override in subclasses only if the service needs to store specific
-    # metadata that has to be updated upon identification.
     def update_metadata(key, **metadata)
+      instrument :update_metadata, key: key, **metadata do
+        update_metadata_for key, **metadata
+      end
     end
 
     # Return the content of the file at the +key+.
@@ -187,6 +189,11 @@ module ActiveStorage
 
       def custom_metadata_headers(metadata)
         raise NotImplementedError
+      end
+
+      # Override in subclasses only if the service needs to store specific
+      # metadata that has to be updated upon identification.
+      def update_metadata_for(key, **metadata)
       end
 
       def instrument(operation, payload = {}, &block)

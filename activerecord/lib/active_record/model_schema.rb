@@ -178,8 +178,6 @@ module ActiveRecord
         alias_method :inheritance_column=, :real_inheritance_column=
       end
 
-      self.protected_environments = ["production"]
-
       self.ignored_columns = [].freeze
       self.only_columns = [].freeze
 
@@ -276,12 +274,12 @@ module ActiveRecord
         if defined?(@table_name)
           return if value == @table_name
           reset_column_information if connected?
+          @predicate_builder = nil
         end
 
         @table_name        = value
-        @arel_table        = nil
+        @arel_table        = Arel::Table.new(klass: self)
         @sequence_name     = nil unless @explicit_sequence_name
-        @predicate_builder = nil
       end
 
       # Returns a quoted version of the table name.
@@ -313,7 +311,14 @@ module ActiveRecord
       # The array of names of environments where destructive actions should be prohibited. By default,
       # the value is <tt>["production"]</tt>.
       def protected_environments
-        if defined?(@protected_environments)
+        ActiveRecord.deprecator.warn <<~MSG
+          ActiveRecord::Base.protected_environments is deprecated in favor of
+          ActiveRecord.protected_environments and will be removed in Rails 9.0.
+        MSG
+
+        if self == ActiveRecord::Base
+          ActiveRecord.protected_environments
+        elsif defined?(@protected_environments)
           @protected_environments
         else
           superclass.protected_environments
@@ -322,7 +327,16 @@ module ActiveRecord
 
       # Sets an array of names of environments where destructive actions should be prohibited.
       def protected_environments=(environments)
-        @protected_environments = environments.map(&:to_s)
+        ActiveRecord.deprecator.warn <<~MSG
+          ActiveRecord::Base.protected_environments= is deprecated in favor of
+          ActiveRecord.protected_environments= and will be removed in Rails 9.0.
+        MSG
+
+        if self == ActiveRecord::Base
+          ActiveRecord.protected_environments = environments
+        else
+          @protected_environments = environments.map(&:to_s)
+        end
       end
 
       def real_inheritance_column=(value) # :nodoc:
@@ -434,10 +448,8 @@ module ActiveRecord
       end
 
       def attributes_builder # :nodoc:
-        @attributes_builder ||= begin
-          defaults = _default_attributes.except(*(column_names - [primary_key]))
-          ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
-        end
+        defaults = _default_attributes.except(*(column_names - Array(primary_key)))
+        ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
       end
 
       def columns_hash # :nodoc:
@@ -456,6 +468,12 @@ module ActiveRecord
           end
 
           auto_populated_columns.empty? ? Array(primary_key) : auto_populated_columns
+        end
+      end
+
+      def _returning_columns_for_update(connection)
+        @_returning_columns_for_update ||= columns.filter_map do |c|
+          c.name if connection.return_value_after_update?(c)
         end
       end
 
@@ -488,7 +506,7 @@ module ActiveRecord
 
       # Returns an array of column names as strings.
       def column_names
-        @column_names ||= columns.map(&:name).freeze
+        columns.map(&:name).freeze
       end
 
       def symbol_column_to_string(name_symbol) # :nodoc:
@@ -500,7 +518,7 @@ module ActiveRecord
       # and columns used for single table inheritance have been removed.
       def content_columns
         @content_columns ||= columns.reject do |c|
-          c.name == primary_key ||
+          Array(primary_key).include?(c.name) ||
           c.name == inheritance_column ||
           c.name.end_with?("_id", "_count")
         end.freeze
@@ -564,12 +582,11 @@ module ActiveRecord
 
         def reload_schema_from_cache(recursive = true)
           @_returning_columns_for_insert = nil
-          @arel_table = nil
-          @column_names = nil
+          @_returning_columns_for_update = nil
+          @arel_table = Arel::Table.new(klass: self)
           @symbol_column_to_string_name_hash = nil
           @content_columns = nil
           @column_defaults = nil
-          @attributes_builder = nil
           @columns = nil
           @columns_hash = nil
           @schema_loaded = false

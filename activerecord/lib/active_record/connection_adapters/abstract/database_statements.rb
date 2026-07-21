@@ -259,6 +259,17 @@ module ActiveRecord
         intent.affected_rows
       end
 
+      # Executes the update statement and returns an ActiveRecord::Result
+      # Some adapters support the `returning` keyword argument
+      def update_with_result(arel, name = nil, binds = [], returning:) # :nodoc:
+        arel.returning(returning.map { |column| Arel.sql(quote_column_name(column)) })
+
+        intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
+
+        intent.execute!
+        intent.cast_result
+      end
+
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel, name = nil, binds = [])
         intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
@@ -618,9 +629,21 @@ module ActiveRecord
           intent.notification_payload = notification_payload
           with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: false) do |conn|
             should_dirty = intent.materialize_transactions
-            result = perform_query(conn, intent)
-            intent.raw_result = result
-            handle_warnings(result, intent.processed_sql)
+            begin
+              result = perform_query(conn, intent)
+              intent.raw_result = result
+
+              query_completed = true
+            ensure
+              begin
+                handle_warnings(result, intent.processed_sql)
+              rescue
+                raise if query_completed
+
+                # The query failed, so we need to swallow this exception
+                # from handle_warnings to avoid masking the original.
+              end
+            end
           end
         end
       ensure
@@ -698,7 +721,7 @@ module ActiveRecord
             end
           end
 
-          table = Arel::Table.new(table_name)
+          table = Arel::Table.new(name: table_name)
           manager = Arel::InsertManager.new(table)
 
           if values_list.size == 1
@@ -785,7 +808,7 @@ module ActiveRecord
         end
 
         def extract_table_ref_from_insert_sql(sql)
-          if sql =~ /into\s("[A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im
+          if sql =~ /into\s("[-A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im
             $1.delete('"').strip
           end
         end

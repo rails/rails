@@ -1,3 +1,733 @@
+*   Support dumping `schema_migrations` in `db/schema.rb`.
+
+    When the new `ActiveRecord.dump_schema_migrations` flag is true, `:ruby`
+    schema dumps include the versions recorded in the `schema_migrations` table,
+    and the `ActiveRecord::Schema.define` call is made with no arguments.
+
+    Rails applications have `config.active_record.dump_schema_migrations` too,
+    which can be overridden per database, using the new `dump_schema_migrations`
+    database configuration option.
+
+    Versions are ordered by their reversed strings by default, to help avoid
+    merge conflicts, but `dump_schema_migrations_sort_by` gives you a way to
+    customize this.
+
+    `ActiveRecord.dump_schema_migrations` is false by default.
+
+    *Xavier Noria*
+
+*   Only use multi statement for `SET TRANSACTION ISOLATION LEVEL; BEGIN` if
+    MySQL connection is configured to use multi statement.
+
+    *Eliseu Daroit*, *Hartley McGuire*, *Matthew Draper*
+
+*   `connected_to_all_shards` now raises `ArgumentError` when called on a model
+    that is not connected to any shards, rather than silently doing nothing.
+
+    *Eileen M. Alayce*
+
+*   Honor foreign key names on SQLite3.
+
+    SQLite3 did not read foreign key names, so `remove_foreign_key(name:)`
+    removed an arbitrary foreign key rather than the named one, and custom
+    names were lost when a later schema change rebuilt the table or the
+    schema was dumped. Names are now honored, matching the other adapters.
+
+    *Kenta Ishizaki*
+
+*   Honor `if_not_exists:` in SQLite3 `add_check_constraint` and `add_foreign_key`.
+
+    *Kenta Ishizaki*
+
+*   Fix MySQL `POINT` and `MULTIPOINT` columns being misreported as integer columns.
+
+    Both type names contain the substring "int", so they matched the generic
+    `%r(int)i` rule in the abstract adapter's type map and came back with
+    `type: :integer`, instead of being treated as an unknown type like the
+    other spatial types (`GEOMETRY`, `POLYGON`, `LINESTRING`, ...).
+
+    *Ryosuke Okazuka*
+
+*   Report PostgreSQL default timestamp and time precision as 6.
+
+    Bare PostgreSQL `timestamp` and `time` columns now use their effective
+    microsecond precision in Active Record type metadata, matching the
+    database's persisted precision.
+
+    *Adrianna Chang*
+
+*   Fix inverse association matching for `has_many` and `has_one` associations
+    with association-specific composite primary keys.
+
+    *Hugo Vacher*
+
+*   Support polymorphic associations with custom primary keys through `:inverse_of`.
+
+    When using polymorphic associations with `:inverse_of`, ActiveRecord now respects
+    custom `:primary_key` options defined on the inverse association. This allows
+    different associated models to use different primary key columns.
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      has_many :comments, as: :commentable, primary_key: :uuid
+    end
+
+    class Article < ActiveRecord::Base
+      has_many :comments, as: :commentable, primary_key: :slug
+    end
+
+    class Comment < ActiveRecord::Base
+      belongs_to :commentable, polymorphic: true, inverse_of: :comments
+    end
+
+    post = Post.create!(uuid: "post-uuid-123")
+    comment = Comment.new(content: "Great post!")
+    comment.commentable = post  # This now correctly uses :uuid as the foreign key
+    comment.save!
+    comment.commentable_id # => "post-uuid-123" (not the post.id)
+
+    article = Article.create!(slug: "article-slug-456")
+    comment = Comment.new(content: "Nice article!")
+    comment.commentable = article  # This now correctly uses :slug as the foreign key
+    comment.save!
+    comment.commentable_id # => "article-slug-456" (not the article.id)
+    ```
+
+    *Ryuta Kamizono*
+
+*   Make `ActiveRecord::Base.primary_key` inheritable.
+
+    Previously setting `primary_key` on a model wouldn't impact child
+    classes. Now the property is inherited by subclasses as well.
+
+    ``` ruby
+    class AbstractShardedModel < ApplicationRecord
+        self.abstract_class = true
+        self.primary_key = ["tenant_id", "id"]
+    end
+
+    class Invoice < AbstractShardedModel
+    end
+
+    Invoice.primary_key # => ["tenant_id", "id"]
+    ```
+
+    *Iliana Hadzhiatanasova*
+
+*   Fix `has_many` and `has_one` associations on a new record returning an empty
+    result when the owner has a composite primary key, even when every primary
+    key column is populated.
+
+    *Jean-Samuel Aubry-Guzzi*
+
+*   Fix `increment!` / `decrement!` on models with query constraints to include
+    every query constraint column in the counter update.
+
+    *Jean-Samuel Aubry-Guzzi*
+
+*   Fix bug with reloading models with all-queries default scopes. The previous
+    implementation allowed non-all-queries on the current scope to leak into
+    the scope used for reloading.
+
+    *Andrew Novoselac* and *Matthew Draper*
+
+*   `insert!` now accepts the `:unique_by` option, consistent with `insert`.
+
+    *Kenta Ishizaki*
+
+*   Fix reading a `store_accessor` on a `NULL` structured column (`json`, `jsonb`,
+    or `hstore`) marking the record as changed and overwriting the `NULL` with an
+    empty hash on the next save.
+
+    *Kenta Ishizaki*
+
+*   Fix `update_all` corrupting the optimistic locking column when it is set
+    through an `alias_attribute`.
+
+    *Kenta Ishizaki*
+
+*   Fix `serialize` with `coder: ActiveRecord::Coders::JSON` silently double-encoding
+    a native `json`/`jsonb` column.
+
+    *Kenta Ishizaki*
+
+*   Fix `update_all` / `delete_all` ignoring `group` and `having`, updating or
+    deleting every row in the table instead of only the rows that satisfy the
+    `HAVING` clause.
+
+    *Kenta Ishizaki*
+
+*   Fix `ActiveRecord::Relation#cache_key` / `cache_version` for a loaded collection
+    containing a record without a timestamp.
+
+    *Kenta Ishizaki*
+
+*   Fix `ActiveRecord::MessagePack` serialization raising `NoMethodError`
+    for any record with a populated `time` column, which made such records
+    uncacheable through the MessagePack cache serializer.
+
+    *Kenta Ishizaki*
+
+*   Fix replacing or clearing a polymorphic `has_one` leaving a stale type column
+    on the removed record.
+
+    *Kenta Ishizaki*
+
+*   Add `sql_notifications` connection configuration option to disable SQL
+    notifications for specific database connections.
+
+    Libraries like Solid Cache and Solid Queue that use separate database
+    connections via `connects_to` can suppress internal SQL notification
+    overhead by setting `sql_notifications: false` in `database.yml`:
+
+    ```yaml
+    cache:
+      adapter: postgresql
+      database: myapp_cache
+      sql_notifications: false
+    ```
+
+    *Rosa Gutierrez*
+
+*   Allow query log tags to be configured per connection pool.
+
+    Several query log tag settings can be overridden per pool with a `query_log_tags`
+    key in a `database.yml` entry. Its `format` and `prepend_comment` options override
+    the global `config.active_record.query_log_tags_format` and
+    `config.active_record.query_log_tags_prepend_comment`, so different databases can
+    emit `:legacy` or `:sqlcommenter` comments and prepend or append them. Setting
+    `query_log_tags` to `false` instead opts a pool out of tagging entirely, even when
+    tags are enabled globally.
+
+    ```yaml
+    production:
+      primary:
+        database: primary
+      analytics:
+        database: analytics
+        query_log_tags:
+          format: sqlcommenter
+          prepend_comment: false
+      replica:
+        database: replica
+        replica: true
+        query_log_tags: false
+    ```
+
+    *Hartley McGuire*
+
+*   Fix `update_attribute`/`update_attribute!` to raise for a readonly attribute referenced by an alias.
+
+    *Kenta Ishizaki*
+
+*   Fix `reset_column_sequences!` for tables in quoted schemas.
+
+    *Kenta Ishizaki*
+
+*   Fix `accepts_nested_attributes_for` `:limit` miscounting a single-record hash.
+
+    *Kenta Ishizaki*
+
+*   Fix `rename_index` to preserve a partial index's `WHERE` for SQLite and older MySQL/MariaDB versions.
+
+    *Kenta Ishizaki*
+
+*   Fix PostgreSQL `foreign_keys` returning a corrupted `to_table` for a foreign key
+    that references a table in a quoted schema.
+
+    *Kenta Ishizaki*
+
+*   Fix grouped calculations (e.g. `count`) grouped by a `belongs_to` association
+    that points to a composite primary key model.
+
+    `Book.group(:order).count`, where `Book belongs_to :order` and `Order` has a
+    composite primary key, raised `ArgumentError: Expected corresponding value
+    for ["shop_id", "id"] to be an Array`. The grouped result is now keyed by the
+    associated records as it already is for single-column keys.
+
+    *Kenta Ishizaki*
+
+*   Fix `has_many`/`has_one :through` associations with `disable_joins: true`
+    silently returning an empty result when the source points to a composite
+    primary key model.
+
+    *Kenta Ishizaki*
+
+*   Fix collection association `ids=` writers (e.g. `author.book_ids=`) raising
+    `ActiveRecord::RecordNotFound` for existing records when a composite primary
+    key model is assigned string ids (the shape ids take from request params).
+
+    Each id component is now cast against its own column type, instead of casting
+    the whole tuple against an array of column names, which `type_for_attribute`
+    can't resolve to a real type (so the cast was a no-op and the string ids
+    never matched the loaded records).
+
+    *Kenta Ishizaki*
+
+*   Fix `find` with multiple composite primary key ids passed as strings
+    silently returning `[]`.
+
+    `Model.find([["1", "10"], ["1", "20"]])` (the shape ids take when they come
+    from request parameters) returned an empty array instead of the records and
+    without raising `RecordNotFound`. The ids were cast against the array of key
+    column names as a whole — which is a no-op — so the string tuples never
+    compared equal to the records' integer ids when ordering the result. Each
+    component is now cast against its own column type, matching the documented
+    coercion already performed for single-column keys.
+
+    *Kenta Ishizaki*
+
+*   Fix PostgreSQL `daterange` / `tsrange` / `tstzrange` schema dump producing
+    invalid Ruby.
+
+    The schema dumper used to render range defaults via `Range#inspect`, which
+    falls back to `Date#inspect` / `Time#inspect` for the bounds. The resulting
+    `schema.rb` literal (for example `default: Mon, 01 Jan 2024..Wed, 01 Jan 2025`)
+    raised a `SyntaxError` on `db:schema:load`. The bounds are now rendered via
+    the subtype's `type_cast_for_schema`, so date and timestamp range defaults
+    round-trip through `schema.rb` like any other column.
+
+    *Kenta Ishizaki*
+
+*   Respect `schema_search_path` on `rails dbconsole` for PostgreSQL.
+
+    *Gabriel Sobrinho*
+
+*   Preserve IPv6 prefix when dumping PostgreSQL `cidr` / `inet` defaults to `schema.rb`.
+
+    The schema dumper used to omit the prefix whenever it equaled `/32`, which
+    is the full mask for IPv4 but not for IPv6. As a result, an IPv6 default
+    such as `"::/32"` was written as `"::"` in `schema.rb` and reloaded as
+    `::/128`, silently dropping the subnet information. The prefix is now only
+    omitted when it covers the full address (`/32` for IPv4, `/128` for IPv6).
+
+    *Kenta Ishizaki*
+
+*   Fix deadlock when pool-less connection materializes while fetching database
+    server version.
+
+    *Hartley McGuire*
+
+*   Add `#default_order` query method and association option which can be used to order records when no other order is specified.
+
+    This extends the functionality offered by `#implicit_order_column` to scopes and associations.
+
+    Usage:
+
+    ```ruby
+    class Post < ApplicationRecord
+      has_many :comments, default_order: :likes
+      # .. or ..
+      has_many :comments, -> { default_order(:likes) }
+    end
+
+    post = Post.first
+
+    post.comments # comments ordered by `likes`
+    post.comments.order(:created_at) # comments ordered by `created_at`
+    ```
+
+    *Dan Ungureanu*
+
+*   Raise `ActiveRecord::MultiparameterAssignmentErrors` instead of `NoMethodError`
+    when assigning a malformed multiparameter attribute name.
+
+    A key routed to the multiparameter code path but missing a closing parenthesis
+    (e.g. `"written_on("`) used to crash with `NoMethodError: undefined method
+    'first' for nil` inside `find_parameter_position`. It now raises the same
+    `MultiparameterAssignmentErrors` already used for other invalid multiparameter
+    input, so callers can rescue a single documented error class.
+
+    *Kenta Ishizaki*
+
+*   Include the list of valid values in the `ArgumentError` raised when assigning
+    an invalid value to an enum attribute.
+
+    ```ruby
+    Book.new(status: "bogus")
+    # ArgumentError: 'bogus' is not a valid status. Valid values are: "proposed", "written", "published"
+    ```
+
+    *Hammad Khan*
+
+*   Include the mismatched keys in the error raised by `insert_all` / `upsert_all`
+    when the inserted objects have inconsistent attributes.
+
+    ```ruby
+    Book.insert_all [{ name: "Rework", author_id: 1 }, { name: "Remote", author_id: 1, isbn: "x" }]
+    # ArgumentError: All objects being inserted must have the same keys (extra: [:isbn])
+    ```
+
+    *Hammad Khan*
+
+*   Allow `create_join_table` to accept a primary key.
+
+    This is useful for databases like PostgreSQL where logical replication requires primary
+    keys on all tables.
+
+    ```ruby
+    create_join_table :assemblies, :parts, primary_key: [:assembly_id, :part_id]
+    ```
+
+    This generates a join table with a composite primary key on both foreign key columns.
+
+    *Genadi Samokovarov*
+
+*   Fix Active Record Pool Reaper thread leak after `Parallelization#shutdown`.
+
+    After parallelized test runs, the parent process leaked the Active Record Pool
+    Reaper thread, holding open connection pools and file descriptors for up to
+    `reaping_frequency` seconds (or indefinitely if never reaped).
+
+    Three fixes: `Parallelization#shutdown` now calls `run_cleanup_hooks`;
+    Active Record registers a cleanup hook that discards all connection pools; and
+    `ConnectionPool#discard!` now calls `Reaper.discard_pool`, which immediately
+    kills and joins the reaper thread when no pools remain at that frequency.
+
+    *Ruy Rocha*
+
+*   Reset `lock_version` after a nested savepoint rollback.
+
+    When a record was saved inside a `transaction(requires_new: true)` block
+    that later rolled back, the in-memory `lock_version` was left at the
+    incremented value while the database row was reverted by the savepoint.
+    Saving the same instance again raised `ActiveRecord::StaleObjectError`
+    because the WHERE clause used the bumped value that no longer existed in
+    the database.
+
+    Restore the locking column from the snapshot on savepoint rollback in
+    addition to the outermost transaction rollback handled in #57363.
+
+    *Kenta Ishizaki*
+
+*   Fix duplicate `WHERE` conditions in `create_or_find_by`.
+
+    When `create_or_find_by` catches a `RecordNotUnique` error and retries the query, it now uses `rewhere` and `take!` to prevent duplicating existing scope conditions.
+
+    *Yavor Dashev*
+
+*   Allow to pass array values to `in_order_of`
+
+    Passing arrays allows to group records and order those groups with another query:
+
+    ```rb
+    Posts
+      .in_order_of(:state, [[:published, :canceled], :archived])
+      .order(created_at: :desc)
+    # =>
+    # SELECT "posts".* FROM "posts" WHERE "posts"."state" IN (1, 2, 3)
+    # ORDER BY CASE
+    #   WHEN "posts"."state" IN (1, 2) THEN 1
+    #   WHEN "posts"."state" = 3 THEN 2
+    #  END ASC, "posts"."created_at" DESC
+    ```
+
+    *Markus Doits*
+
+*   On PostgreSQL 18.4+, `disable_referential_integrity` uses `NOT ENFORCED`/`ENFORCED`
+    instead of `DISABLE TRIGGER ALL`/`ENABLE TRIGGER ALL`, requiring only table ownership
+    rather than superuser privileges. Only currently `ENFORCED` foreign keys are toggled;
+    intentionally `NOT ENFORCED` foreign keys are left unchanged.
+
+    Unlike `ENABLE TRIGGER ALL`, restoring `ENFORCED` checks existing rows against the
+    constraint, so FK violations raise `ActiveRecord::InvalidForeignKey` rather than
+    `RuntimeError`. The toggle and restore run in a single transaction so a restoration
+    failure rolls back the initial `NOT ENFORCED` toggle too — preventing originally-
+    `ENFORCED` constraints from being left in a `NOT ENFORCED` state indistinguishable
+    from intentional ones.
+
+    Fixtures sharing FK relationships must be passed together to
+    `FixtureSet.create_fixtures` to ensure all referenced rows are present when
+    enforcement is restored.
+
+    `check_all_foreign_keys_valid!` revalidates foreign keys with the same
+    `NOT ENFORCED`/`ENFORCED` toggle on PostgreSQL 18.4+, likewise requiring only
+    table ownership rather than superuser privileges. Intentionally `NOT ENFORCED`
+    constraints are left unchecked.
+
+    Unlike `SET CONSTRAINTS ALL DEFERRED` (the approach attempted in rails/rails#27636
+    and reverted), `NOT ENFORCED` also suppresses referential actions such as
+    `ON DELETE CASCADE`, `SET NULL`, and `SET DEFAULT`.
+
+    *Yasuo Honda*
+
+*   Add `exclusion_constraint_exists?` and `unique_constraint_exists?` helpers
+
+    *fatkodima*
+
+*   Add `enforced:` option to `add_foreign_key` and `change_foreign_key` for PostgreSQL 18.4+.
+
+    `NOT ENFORCED` foreign keys are available since PostgreSQL 18.0, but `DEFERRABLE`
+    was lost on them until 18.4 ("Fix loss of deferrability of foreign-key triggers",
+    https://www.postgresql.org/docs/release/18.4/). Rails therefore requires PostgreSQL
+    18.4 or later for this feature.
+
+    When `enforced: false` is passed to `add_foreign_key`, the constraint is created as `NOT ENFORCED`,
+    meaning PostgreSQL skips referential integrity checks during DML.
+    PostgreSQL marks `NOT ENFORCED` constraints as `NOT VALID` internally (and `VALIDATE CONSTRAINT`
+    does not apply to them), so the schema dumper outputs both
+    `enforced: false` and `validate: false`.
+
+    `change_foreign_key` toggles the enforced status of an existing foreign key. Without
+    this method, users would need to issue raw `ALTER TABLE ... ALTER CONSTRAINT` SQL
+    to disable enforcement temporarily (e.g., for bulk DML that loads the referenced
+    and referencing tables in arbitrary order) and then re-enable it.
+
+    ```ruby
+    add_foreign_key :articles, :authors, enforced: false
+    # => ALTER TABLE "articles" ADD CONSTRAINT ... FOREIGN KEY ("author_id") REFERENCES "authors" ("id") NOT ENFORCED
+
+    change_foreign_key :articles, :authors, enforced: true
+    # => ALTER TABLE "articles" ALTER CONSTRAINT "fk_rails_..." ENFORCED
+
+    change_foreign_key :articles, :authors, enforced: false
+    # => ALTER TABLE "articles" ALTER CONSTRAINT "fk_rails_..." NOT ENFORCED
+    ```
+
+    *Yasuo Honda*
+
+*   Expose `cursor`, `order` and `use_ranges` attributes for `BatchEnumerator`
+
+    *fatkodima*
+
+*   Fix `ActiveRecord::QueryMethods#in_order_of` when passing an out-of-range Integer
+
+    To match the behavior of the `Enumerable` version, `in_order_of` now ignores an out-of-range Integer.
+
+    *tejanium*
+
+*   Revert alphabetical sorting of table columns inside `schema.rb`.
+
+    Alphabetical sorting of table columns inside the schema creates improper production tables when using `db:prepare`.
+
+    *Bert McCutchen*
+
+*   Deprecated `ActiveRecord::ConnectionAdapters::Column#auto_populated?` in favor of
+    `auto_populated_on_insert?`
+
+    *Rafael Mendonça França*
+
+*   Reload virtual columns on update in PostgreSQL
+
+    Automatically reload virtual columns on `update` when using PostgreSQL. This is done by issuing a single
+    UPDATE query that includes a RETURNING clause.
+
+    Given a `Post` model represented by the following schema:
+
+    ```ruby
+    create_table :posts do |t|
+      t.integer :upvotes_count
+      t.integer :downvotes_count
+      t.virtual :total_votes_count, type: :integer, as: "upvotes_count + downvotes_count", stored: true
+    end
+    ```
+
+    `total_votes_count` will reflect the sum of upvotes and downvotes after `update` is successfully called.
+    Prior to this change calling `reload` would have been necessary to obtain the new value calculated by
+    the database.
+
+    ```ruby
+    post = Post.find(1)
+    post.update(upvotes_count: 2, downvotes_count: 2)
+    # Calling `post.reload` no longer necessary
+    post.total_votes => 4
+    ```
+
+    *Alex Baldwin*
+
+*   Reset the optimistic locking column when a transaction is rolled back.
+
+    Previously, when a record with optimistic locking was successfully saved
+    inside a transaction that later rolled back, the in-memory `lock_version`
+    was left at the incremented value while the database row was reverted to
+    the previous one. Saving the same instance again then raised
+    `ActiveRecord::StaleObjectError` because the WHERE clause used the
+    incremented value that no longer existed in the database.
+
+    The locking column is now restored from the snapshot taken at the start
+    of the transaction, so retrying a save on the same record after a
+    rollback works without an explicit `reload`.
+
+    *Kenta Ishizaki*
+
+*   Fix handling of expressions in array syntax for `add_index`.
+
+    This change allows passing expressions in array syntax for `add_index` method.
+    For example, `add_index :users, [ "lower(email)" ]` now works the same as
+    `add_index :users, "lower(email)"`.
+
+    ```ruby
+    # This now works properly:
+    add_index :users, [ "lower(email)" ]
+
+    # As does this:
+    add_index :users, [ "lower(email)", :status ]
+    ```
+
+    *Alexandre Camillo*
+
+*   Fix `strict_loading` violations ignored when using `pluck`
+
+    *Johnson Chan*
+
+*   Move the defaulting of `prevent_writes` to `true` when using the `reading` role into the parameters
+    of the role switching methods, and raise an `ArgumentError` if `prevent_writes: false` is provided
+    with the `reading` role.
+
+    *Joshua Young*
+
+*   Fix incorrect callback execution order when `config.active_record.run_after_transaction_callbacks_in_order_defined = true`
+    and using `after_commit` and `after_rollback` callbacks with `prepend: true`.
+
+    *Joshua Young*
+
+*   Accept encryption credentials as ENV
+
+    Taking advantage of Rails.apps.creds (#56455), the `primary_key`, `deterministic_key` and
+    `key_derivation_salt` required by ActiveRecord::Encryption can now also be provided through
+    environment variables named `ACTIVE_RECORD_ENCRYPTION__PRIMARY_KEY`,
+    `ACTIVE_RECORD_ENCRYPTION__DETERMINISTIC_KEY`, `ACTIVE_RECORD_ENCRYPTION__KEY_DERIVATION_SALT`.
+
+    *Claudio Baccigalupo*
+
+*   Treat `nil` values as `""` during multi-parameter attribute assignment
+
+    ```ruby
+    topic = Topic.where.not(last_read: nil).first
+    topic.attributes = { "last_read(1i)" => nil, "last_read(2i)" => nil, "last_read(3i)" => nil }
+    topic.last_read # => nil
+    ```
+
+    *Sean Doyle*
+
+*   Include record ID in error when uniqueness validation fails
+
+    When a uniqueness validation fails, the `errors.details` hash for the attribute
+    now includes an `:existing_id` key, holding the ID of the record that caused
+    the conflict.
+
+    ```ruby
+    # Before
+    errors.details[:name]
+    # => [{error: :taken, value: "John Doe"}]
+
+    # After
+    errors.details[:name]
+    # => [{error: :taken, value: "John Doe", existing_id: 123}]
+    ```
+
+    *Bruno Vicenzo*
+
+*   Bump the minimum PostgreSQL version to 10.0.
+
+    As part of this change, `supports_pgcrypto_uuid?` is deprecated because
+    `pgcrypto` provides `gen_random_uuid()` since PostgreSQL 9.4, which is
+    below the new 10.0 minimum.
+
+    *Yasuo Honda*
+
+*   Let `add_column` raise `ArgumentError` if `:null` is set to a true value
+    when defining a primary key.
+
+    Primary keys get a `NOT NULL` constraint unconditionally. In particular,
+    `null: true` was being ignored, thus not doing what the user specified.
+    We should rather raise to let the user know the call is invalid.
+
+    *Xavier Noria*
+
+*   Deprecate the `schema_order` option in PostgreSQL database configurations.
+
+    Use `schema_search_path` instead. The `schema_order` alias will be
+    removed in Rails 8.3.
+
+    *Eileen M. Alayce*
+
+*   Deprecate the `strict` option in MySQL database configurations.
+
+    The `strict` option for MySQL will be removed in Rails 8.3 because it is the default behavior.
+
+    To change the default behavior of `strict`, use `variables: { sql_mode: "..." }` to configure `sql_mode` directly.
+
+
+    `strict: false` can be replaced with `variables: { sql_mode: "" }`, and `strict: :default` can be replaced with `variables: { sql_mode: :default }`.
+
+    *Eileen M. Alayce*
+
+*   Allow configuring `SET` queriers for the PostgreSQL and MySQL adapters.
+
+    Individual settings can be skipped by setting them to `false` in
+    `database.yml`, which is useful when connecting through a load balancer or
+    proxy that handles configuration:
+
+    PostgreSQL example:
+
+    ```yaml
+    production:
+      adapter: postgresql
+      standard_conforming_strings: false
+      intervalstyle: false
+      min_messages: false
+      schema_search_path: false
+    ```
+
+    MySQL example:
+
+    ```yaml
+    production:
+      adapter: mysql2
+      wait_timeout: false
+      variables:
+        sql_mode: false
+    ```
+
+    Also deprecates `set_standard_conforming_strings` — it is now handled
+    automatically through the consolidated settings hash.
+
+    *Eileen M. Alayce*, *Matthew Draper*
+
+*   MySQL error 1046 (`ER_NO_DB_ERROR: No database selected`) is now retryable as a `ConnectionFailed` exception
+
+    *Clay Harmon*
+
+*   Batch SQL statements when creating tables to improve performance.
+
+    *Andrew Novoselac*
+
+*   Support PostgreSQL `RESET` on readonly queries.
+
+    ```ruby
+    ActiveRecord::Base.connected_to(role: :reading, prevent_writes: true) do
+      ActiveRecord::Base.with_connection do |c|
+        c.execute("SET statement_timeout = '7s'")
+        # some queries
+        c.execute("RESET statement_timeout")
+        # => no longer raises ActiveRecord::ReadOnlyError
+      end
+    end
+    ```
+
+    *Francesco Rodriguez*
+
+*   Add MySQL `lock:` option for `add_index`, `remove_index`, and ALTER TABLE
+    column operations (`add_column`, `remove_column`, `change_column`, `rename_column`).
+
+    Also extend `algorithm:` option support to ALTER TABLE column operations on MySQL.
+
+    MySQL supports `ALGORITHM = {DEFAULT|COPY|INPLACE|INSTANT}` and
+    `LOCK = {DEFAULT|NONE|SHARED|EXCLUSIVE}` to control how DDL operations
+    are performed, enabling online schema changes without blocking reads or writes.
+
+    ```ruby
+    add_index :users, :email, algorithm: :inplace, lock: :none
+    remove_index :users, :email, algorithm: :inplace, lock: :none
+    add_column :users, :name, :string, algorithm: :instant, lock: :none
+    change_column :users, :name, :string, null: false, algorithm: :inplace, lock: :none
+    remove_column :users, :name, algorithm: :inplace, lock: :none
+    rename_column :users, :name, :full_name, algorithm: :inplace, lock: :none
+    ```
+
+    *Dominik Darnel*
+
 *   Avoid issuing a `ROLLBACK` statement following `TransactionRollbackError` during `COMMIT`.
 
     This prevents the unnecessary "WARNING: there is no transaction in progress" log spilled to stderr directly from libpq.

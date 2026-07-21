@@ -569,7 +569,7 @@ end
 ### Creating a Join Table
 
 The migration method [`create_join_table`][] creates an [HABTM (has and belongs
-to many)](association_basics.html#the-has-and-belongs-to-many-association) join
+to many)](association_basics.html#has-and-belongs-to-many) join
 table. A typical use would be:
 
 ```ruby
@@ -721,6 +721,24 @@ They need to be added separately using `add_index`.
 
 Some adapters may support additional options; see the adapter specific API docs
 for further information.
+
+For example, MySQL supports `algorithm` and `lock` options on column operations
+(`add_column`, `remove_column`, `change_column`, `rename_column`) and index
+operations (`add_index`, `remove_index`) to control how DDL statements are
+executed. This enables online schema changes without blocking reads or writes:
+
+```ruby
+add_column :users, :name, :string, algorithm: :instant, lock: :none
+add_index :users, :email, algorithm: :inplace, lock: :none
+```
+
+The MySQL `algorithm` option accepts `:default`, `:copy`, `:inplace`, or `:instant`.
+The `lock` option accepts `:default`, `:none`, `:shared`, or `:exclusive`.
+See the [MySQL documentation on Online DDL](https://dev.mysql.com/doc/refman/en/innodb-online-ddl-operations.html)
+for details on which algorithms and lock modes are supported for each operation.
+
+NOTE: PostgreSQL also supports the `algorithm` option on `add_index` and
+`remove_index` (e.g., `algorithm: :concurrently`), but does not support `lock`.
 
 NOTE: `default` cannot be specified via command line when generating migrations.
 
@@ -1465,6 +1483,47 @@ applied to the database. Rails uses this information to determine which
 migrations need to be run when you run rails db:migrate or rails db:migrate:up
 commands.
 
+#### Recording Migration Versions in Schema Dumps
+
+By default, Ruby schema dumps record only the current schema version. That is
+simple and may be enough in some projects, but it does not fully capture the
+state in some edge cases, and it is a source of merge conflicts in busy repos.
+
+You can alternatively dump the `schema_migrations` table into `db/schema.rb` by
+setting:
+
+```ruby
+config.active_record.dump_schema_migrations = true
+```
+
+The `:dump_schema_migrations` database configuration key allows you to override
+the global flag per database.
+
+The dump includes only versions with an existing migration file, so projects
+that prune old migrations keep the table in sync automatically just by
+regenerating the schema with `bin/rails db:schema:dump`.
+
+By default, versions are ordered by their reversed strings to help avoid merge
+conflicts, but this can be customized:
+
+```ruby
+# Linear order.
+config.active_record.dump_schema_migrations_sort_by = :itself
+
+# Hash-based ordering.
+require "digest/md5"
+
+config.active_record.dump_schema_migrations_sort_by = ->(version) {
+  Digest::MD5.hexdigest(version)
+}
+```
+
+The value has to be a proc (or respond to `to_proc`) which is called with a
+string as argument.
+
+Please note that the order of the versions does not matter for Active Record,
+the `schema_migrations` table acts as a set.
+
 Changing Existing Migrations
 ----------------------------
 
@@ -1811,11 +1870,17 @@ files. Here’s why:
 - **Performance**: Data migrations can take a long time to run and may lock your
   tables, affecting application performance and availability.
 
-Instead, consider using the
-[`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks) gem. This
-gem provides a framework for creating and managing data migrations and other
-maintenance tasks in a way that is safe and easy to manage without interfering
-with schema migrations.
+Instead consider using the built-in `script/` directory or a dedicated gem
+such as [`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks).
+
+Scripts can be generated using the `rails generate script my_script` syntax. These are placed
+within the `script/` folder and can be run with `rails runner script/my_script.rb`. This offers a
+dedicated location for one-off scripts and data migrations.
+
+If you require more functionality, then the
+[`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks) gem provides a framework for
+creating and managing data migrations and other maintenance tasks in a way that is safe and easy to
+manage without interfering with schema migrations.
 
 Customizing Migration Behavior with Swappable Strategies
 --------------------------------------------------------

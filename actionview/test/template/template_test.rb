@@ -338,6 +338,16 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
   end
 
+  def test_strict_locals_with_non_ascii_default_values
+    # \xC3\xA9 = U+00E9 (e with acute), \xC3\xBC = U+00FC (u with diaeresis)
+    source = "<%# locals: (label: \"caf\xC3\xA9\") -%>\n<p><%= label %> \xC3\xBC</p>"
+    assert_equal Encoding::ASCII_8BIT, source.encoding
+
+    @template = new_template(source)
+    assert_equal Encoding::UTF_8, render.encoding
+    assert_equal "<p>caf\u{E9} \u{FC}</p>", render
+  end
+
   def test_error_when_template_isnt_valid_utf8
     e = assert_raises ActionView::Template::Error do
       @template = new_template("hello \xFCmlat", virtual_path: nil)

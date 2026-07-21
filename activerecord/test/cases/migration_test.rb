@@ -4,6 +4,7 @@ require "cases/helper"
 require "cases/migration/helper"
 require "bigdecimal/util"
 require "concurrent/atomic/count_down_latch"
+require "active_support/core_ext/object/with"
 
 require "models/person"
 require "models/topic"
@@ -189,7 +190,12 @@ class MigrationTest < ActiveRecord::TestCase
     connection = Person.lease_connection
     name_limit = connection.table_name_length
     long_name = "a" * (name_limit + 1)
-    short_name = "a" * name_limit
+    short_name =
+      if current_adapter?(:PostgreSQLAdapter)
+        "public." + "a" * name_limit
+      else
+        "a" * name_limit
+      end
 
     error = assert_raises(ArgumentError) do
       connection.create_table(long_name)
@@ -1141,6 +1147,46 @@ class MigrationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_migration_say_basic
+    output, = capture_io do
+      ActiveRecord::Migration.with(verbose: true) do
+        ActiveRecord::Migration.say("Foo")
+      end
+    end
+
+    assert_equal "-- Foo\n", output
+  end
+
+  def test_migration_say_for_subitem
+    output, = capture_io do
+      ActiveRecord::Migration.with(verbose: true) do
+        ActiveRecord::Migration.say("Foo", true)
+      end
+    end
+
+    assert_equal "   -> Foo\n", output
+  end
+
+  def test_migration_say_with_time_with_integer_returning_in_block
+    output, = capture_io do
+      ActiveRecord::Migration.with(verbose: true) do
+        ActiveRecord::Migration.say_with_time("Bar") { 123 }
+      end
+    end
+
+    assert_match(/\A-- Bar\n   -> \d+\.\d{4}s\n   -> 123 rows\n\z/, output)
+  end
+
+  def test_migration_say_with_time_with_non_integer_returning_in_block
+    output, = capture_io do
+      ActiveRecord::Migration.with(verbose: true) do
+        ActiveRecord::Migration.say_with_time("Bar") { "ignored" }
+      end
+    end
+
+    assert_match(/\A-- Bar\n   -> \d+\.\d{4}s\n\z/, output)
+  end
+
   private
     # This is needed to isolate class_attribute assignments like `table_name_prefix`
     # for each test case.
@@ -1451,8 +1497,8 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
 
       classname = ActiveRecord::Base.lease_connection.class.name[/[^:]*$/]
       expected_query_count = {
-        "Mysql2Adapter"     => 7, # four queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
-        "TrilogyAdapter"    => 7, # four queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
+        "Mysql2Adapter"     => 6, # three queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
+        "TrilogyAdapter"    => 6, # three queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
         "PostgreSQLAdapter" => 5, # two queries for columns, one for bulk change, one for UPDATE, one for NOT NULL
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"

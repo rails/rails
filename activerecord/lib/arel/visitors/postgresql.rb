@@ -30,6 +30,13 @@ module Arel # :nodoc: all
           collect_nodes_for o.orders, collector, " ORDER BY "
           maybe_visit o.limit, collector
           maybe_visit o.comment, collector
+
+          if o.returning.empty?
+            collector
+          else
+            collector << " RETURNING "
+            visit o.returning, collector
+          end
         end
 
         # In the simple case, PostgreSQL allows us to place FROM or JOINs directly into the UPDATE
@@ -133,7 +140,7 @@ module Arel # :nodoc: all
           visit o.right, collector
         end
 
-        BIND_BLOCK = proc { |i| "$#{i}" }
+        BIND_BLOCK = ActiveSupport::Ractors.shareable_proc { |i| "$#{i}" }
         private_constant :BIND_BLOCK
 
         def bind_block; BIND_BLOCK; end
