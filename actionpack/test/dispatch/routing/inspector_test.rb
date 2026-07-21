@@ -10,6 +10,11 @@ class MountedRackApp
   end
 end
 
+class StatefulRackApp
+  def call(env)
+  end
+end
+
 class Rails::DummyController
 end
 
@@ -33,6 +38,21 @@ end
 module ActionDispatch
   module Routing
     class RoutesInspectorTest < ActiveSupport::TestCase
+      class RouteCollector < ConsoleFormatter::Base
+        def initialize
+          super
+          @routes = []
+        end
+
+        def section(routes)
+          @routes.concat(routes)
+        end
+
+        def result
+          @routes
+        end
+      end
+
       setup do
         @set = ActionDispatch::Routing::RouteSet.new
       end
@@ -255,6 +275,17 @@ module ActionDispatch
         ], output
       end
 
+      def test_rails_routes_shows_class_name_for_rack_app_with_default_inspect
+        output = draw do
+          mount StatefulRackApp.new => "/cable", as: :cable
+        end
+
+        assert_equal [
+          "Prefix Verb URI Pattern Controller#Action",
+          " cable      /cable      StatefulRackApp"
+        ], output
+      end
+
       def test_rails_routes_shows_overridden_named_route_with_mounted_rack_app_with_name
         output = draw do
           mount MountedRackApp => "/foo", as: "blog"
@@ -335,6 +366,231 @@ module ActionDispatch
                       "          PATCH  /posts/:id(.:format)      posts#update",
                       "          PUT    /posts/:id(.:format)      posts#update",
                       "          DELETE /posts/:id(.:format)      posts#destroy"], output
+      end
+
+      def test_search_matches_literal_route_metadata_without_recognising_paths
+        routes = collect(search: "/photos/:id(.:format)") do
+          resources :photos
+        end
+
+        assert_equal %w[show update update destroy], routes.map { |route| route[:reqs].split("#").last }
+
+        routes = collect(search: "/photos/7") do
+          resources :photos
+        end
+
+        assert_empty routes
+      end
+
+      def test_search_treats_regular_expression_metacharacters_literally
+        routes = collect(search: "[") do
+          get "/photos", to: "photos#index"
+        end
+
+        assert_empty routes
+      end
+
+      def test_search_matches_constraints_and_source_locations
+        ActionDispatch::Routing::Mapper.route_source_locations = true
+
+        routes = collect(search: "A-Z") do
+          get "/photos/:id", to: "photos#show", id: /[A-Z]\d{5}/
+        end
+        assert_equal [{ id: /[A-Z]\d{5}/ }], routes.map { |route| route[:constraints] }
+
+        routes = collect(search: "inspector_test.rb") do
+          get "/photos/:id", to: "photos#show"
+        end
+        assert_equal ["photos#show"], routes.map { |route| route[:reqs] }
+      ensure
+        ActionDispatch::Routing::Mapper.route_source_locations = false
+      end
+
+      def test_field_selectors_are_anded
+        routes = collect(controller: "Admin::AuditsController", verb: "POST", action: "create") do
+          get "/admin/audits", to: "admin/audits#index"
+          post "/admin/audits", to: "admin/audits#create"
+          post "/admin/events", to: "admin/events#create"
+        end
+
+        assert_equal ["admin/audits#create"], routes.map { |route| route[:reqs] }
+      end
+
+      def test_field_selectors_support_regular_expression_and_exact_matching
+        routes = collect(name: "audit_export", exact: true) do
+          get "/audit_exports", to: "audit_exports#index", as: :audit_export
+          get "/audit_exports/preview", to: "audit_exports#preview", as: :audit_export_preview
+        end
+        assert_equal ["audit_export"], routes.map { |route| route[:name] }
+
+        routes = collect(action: "^creat", regex: true) do
+          get "/audits", to: "audits#index"
+          post "/audits", to: "audits#create"
+        end
+        assert_equal ["audits#create"], routes.map { |route| route[:reqs] }
+      end
+
+      def test_controller_selector_canonicalises_literals_and_preserves_raw_regular_expressions
+        routes = collect(controller: "Admin::AuditsController") do
+          get "/admin/audits", to: "admin/audits#index"
+        end
+        assert_equal ["admin/audits#index"], routes.map { |route| route[:reqs] }
+
+        routes = collect(controller: "admin/.*") do
+          get "/admin/audits", to: "admin/audits#index"
+        end
+        assert_empty routes
+
+        routes = collect(controller: "^admin/.*$", regex: true) do
+          get "/admin/audits", to: "admin/audits#index"
+        end
+        assert_equal ["admin/audits#index"], routes.map { |route| route[:reqs] }
+      end
+
+      def test_exact_verb_matches_the_complete_verb_field
+        routes = collect(verb: "PUT", exact: true) do
+          match "/articles/:id", to: "articles#update", via: [:put, :patch]
+        end
+        assert_empty routes
+
+        routes = collect(verb: "PUT|PATCH", exact: true) do
+          match "/articles/:id", to: "articles#update", via: [:put, :patch]
+        end
+        assert_equal ["PUT|PATCH"], routes.map { |route| route[:verb] }
+      end
+
+      def test_recognition_is_independent_and_combines_with_field_selectors
+        routes = collect(recognize: "/photos/7", verb: "GET") do
+          resources :photos
+          get "*path", to: "fallback#show"
+        end
+
+        assert_equal ["photos#show", "fallback#show"], routes.map { |route| route[:reqs] }
+
+        routes = collect(recognize: "/photos/7", verb: "POST") do
+          resources :photos
+          get "*path", to: "fallback#show"
+        end
+
+        assert_empty routes
+      end
+
+      def test_legacy_grep_unions_metadata_search_and_path_recognition
+        routes = collect(grep: "posts") do
+          get "/posts", to: "posts#index"
+          get "/articles/:id", to: "articles#show"
+          get "/events", to: "events#index"
+        end
+        assert_equal ["posts#index"], routes.map { |route| route[:reqs] }
+
+        routes = collect(grep: "/articles/7") do
+          get "/posts", to: "posts#index"
+          get "/articles/:id", to: "articles#show"
+          get "/events", to: "events#index"
+        end
+        assert_equal ["articles#show"], routes.map { |route| route[:reqs] }
+      end
+
+      def test_new_selectors_have_a_generic_no_routes_message
+        output = draw(name: "missing") do
+          get "/photos", to: "photos#index"
+        end
+
+        assert_equal [
+          "No routes matched the supplied selectors.",
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
+        ], output
+      end
+
+      def test_json_formatter_outputs_structured_route_data
+        ActionDispatch::Routing::Mapper.route_source_locations = true
+
+        output = render(ConsoleFormatter::JSON.new) do
+          get "/photos/:id", to: "photos#show", as: :photo, id: /[A-Z]\d{5}/
+          get "/health", to: proc { [200, {}, ["OK"]] }
+          get "/old", to: redirect("/new")
+        end
+        routes = ::JSON.parse(output)
+
+        assert_equal %w[name verb path controller action endpoint constraints source_location engine], routes.first.keys
+
+        photo = routes.find { |route| route["name"] == "photo" }
+        assert_equal "GET", photo["verb"]
+        assert_equal "/photos/:id(.:format)", photo["path"]
+        assert_equal "photos", photo["controller"]
+        assert_equal "show", photo["action"]
+        assert_equal "photos#show", photo["endpoint"]
+        assert_equal({ "id" => "/[A-Z]\\d{5}/" }, photo["constraints"])
+        assert_match(/inspector_test\.rb/, photo.dig("source_location", "file"))
+        assert_kind_of Integer, photo.dig("source_location", "line")
+        assert_nil photo["engine"]
+
+        health = routes.find { |route| route["name"] == "health" }
+        assert_nil health["controller"]
+        assert_nil health["action"]
+        assert_equal "Inline handler (Proc/Lambda)", health["endpoint"]
+
+        old = routes.find { |route| route["name"] == "old" }
+        assert_equal "redirect(301, /new)", old["endpoint"]
+      ensure
+        ActionDispatch::Routing::Mapper.route_source_locations = false
+      end
+
+      def test_json_formatter_flattens_engine_routes_with_engine_provenance
+        engine = Class.new(Rails::Engine) do
+          def self.inspect
+            "Blog::Engine"
+          end
+        end
+        engine.routes.draw do
+          get "/cart", to: "cart#show"
+        end
+
+        output = render(ConsoleFormatter::JSON.new) do
+          mount engine => "/blog", as: :blog
+        end
+        routes = ::JSON.parse(output)
+
+        mount = routes.find { |route| route["name"] == "blog" }
+        assert_equal "Blog::Engine", mount["endpoint"]
+        assert_nil mount["engine"]
+
+        cart = routes.find { |route| route["name"] == "cart" }
+        assert_equal "cart#show", cart["endpoint"]
+        assert_equal "Blog::Engine", cart["engine"]
+      end
+
+      def test_json_formatter_outputs_an_empty_array_without_human_messages
+        assert_equal "[]", render(ConsoleFormatter::JSON.new) { }
+        output = render(ConsoleFormatter::JSON.new, name: "missing") do
+          get "/photos", to: "photos#index"
+        end
+        assert_equal "[]", output
+      end
+
+      def test_tsv_formatter_uses_the_json_schema_and_encodes_structured_fields
+        ActionDispatch::Routing::Mapper.route_source_locations = true
+
+        output = render(ConsoleFormatter::TSV.new) do
+          get "/photos/:id", to: "photos#show", as: :photo, id: /[A-Z]\d{5}/
+        end
+        rows = output.lines.map { |line| line.chomp.split("\t", -1) }
+        headers = rows.first
+        route = headers.zip(rows.second.map { |value| unescape_tsv(value) }).to_h
+
+        assert_equal ConsoleFormatter::Structured::FIELDS.map(&:to_s), headers
+        assert_equal "photo", route["name"]
+        assert_equal "photos#show", route["endpoint"]
+        assert_equal({ "id" => "/[A-Z]\\d{5}/" }, ::JSON.parse(route["constraints"]))
+        assert_match %r{\A.+inspector_test\.rb:\d+\z}, route["source_location"]
+      ensure
+        ActionDispatch::Routing::Mapper.route_source_locations = false
+      end
+
+      def test_tsv_formatter_outputs_only_the_header_without_routes
+        output = render(ConsoleFormatter::TSV.new) { }
+
+        assert_equal "name\tverb\tpath\tcontroller\taction\tendpoint\tconstraints\tsource_location\tengine\n", output
       end
 
       def test_routes_when_expanded
@@ -525,10 +781,6 @@ module ActionDispatch
         end
 
         assert_equal [
-          "Routes for application:",
-          "No routes were found for this grep pattern.",
-          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.",
-          "",
           "Routes for Blog::Engine:",
           "Prefix Verb URI Pattern     Controller#Action",
           "  cart GET  /cart(.:format) cart#show"
@@ -554,9 +806,31 @@ module ActionDispatch
           "Routes for application:",
           "No routes were found for this grep pattern.",
           "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.",
-          "",
-          "Routes for Blog::Engine:",
-          "No routes were found for this grep pattern.",
+        ], output
+      end
+
+      def test_expanded_routes_omit_engine_sections_without_matches
+        engine = Class.new(Rails::Engine) do
+          def self.inspect
+            "Blog::Engine"
+          end
+        end
+        engine.routes.draw do
+          get "/cart", to: "cart#show"
+        end
+
+        output = draw(name: "custom_assets", formatter: ConsoleFormatter::Expanded.new(width: 23)) do
+          get "/custom/assets", to: "custom_assets#show"
+          mount engine => "/blog", as: :blog
+        end
+
+        assert_equal [
+          "[ Routes for application ]",
+          "--[ Route 1 ]----------",
+          "Prefix            | custom_assets",
+          "Verb              | GET",
+          "URI               | /custom/assets(.:format)",
+          "Controller#Action | custom_assets#show"
         ], output
       end
 
@@ -648,6 +922,11 @@ module ActionDispatch
 
         assert hash.key?(:action_source_line)
         assert_kind_of Integer, hash[:action_source_line]
+
+        assert_equal "inspector_test_app/posts", hash[:controller]
+        assert_equal "index", hash[:action]
+        assert_equal "inspector_test_app/posts#index", hash[:endpoint]
+        assert_equal({}, hash[:constraints])
       end
 
       def test_action_source_file_and_line_returns_tuple
@@ -686,6 +965,26 @@ module ActionDispatch
       end
 
       private
+        def unescape_tsv(value)
+          if value.start_with?('"') && value.end_with?('"')
+            value[1...-1].gsub('""', '"')
+          else
+            value
+          end
+        end
+
+        def render(formatter, **options, &block)
+          @set.draw(&block)
+          inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)
+          inspector.format(formatter, options)
+        end
+
+        def collect(**options, &block)
+          @set.draw(&block)
+          inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)
+          inspector.format(RouteCollector.new, options)
+        end
+
         def draw(formatter: ActionDispatch::Routing::ConsoleFormatter::Sheet.new, **options, &block)
           @set.draw(&block)
           inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)

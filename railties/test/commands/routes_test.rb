@@ -3,6 +3,7 @@
 require "isolation/abstract_unit"
 require "rails/command"
 require "io/console/size"
+require "json"
 
 class Rails::Command::RoutesTest < ActiveSupport::TestCase
   setup :build_app
@@ -419,6 +420,132 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
     MESSAGE
   end
 
+  test "rails routes separates metadata search from request recognition" do
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        resources :photos
+        get "*path", to: "fallback#show"
+      end
+    RUBY
+
+    output = run_routes_command([ "-s", "/photos/7" ])
+    assert_includes output, "No routes matched the supplied selectors."
+    assert_not_includes output, "photos#show"
+    assert_not_includes output, "fallback#show"
+
+    output = run_routes_command([ "--recognize", "/photos/7" ])
+    assert_includes output, "photos#show"
+    assert_includes output, "fallback#show"
+  end
+
+  test "rails routes combines field selectors" do
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get "/admin/audits", to: "admin/audits#index"
+        post "/admin/audits", to: "admin/audits#create"
+        post "/admin/events", to: "admin/events#create"
+      end
+    RUBY
+
+    output = run_routes_command([ "--controller", "Admin::AuditsController", "--verb", "POST" ])
+    assert_includes output, "admin/audits#create"
+    assert_not_includes output, "admin/audits#index"
+    assert_not_includes output, "admin/events#create"
+
+    output = run_routes_command([ "--exact", "--name", "admin_audits" ])
+    assert_includes output, "admin/audits#index"
+    assert_not_includes output, "admin/audits#create"
+  end
+
+  test "rails routes makes controller regular expressions explicit" do
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get "/admin/audits", to: "admin/audits#index"
+      end
+    RUBY
+
+    output = run_routes_command([ "--controller", "admin/.*" ])
+    assert_includes output, "No routes were found for this controller."
+    assert_not_includes output, "admin/audits#index"
+
+    output = run_routes_command([ "--regex", "--controller", "^admin/.*$" ])
+    assert_includes output, "admin/audits#index"
+  end
+
+  test "rails routes preserves controller precedence over grep" do
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get "/cart", to: "cart#show"
+        get "/users", to: "users#index"
+      end
+    RUBY
+
+    output = run_routes_command([ "--controller", "cart", "--grep", "users" ])
+    assert_includes output, "cart#show"
+    assert_not_includes output, "users#index"
+  end
+
+  test "rails routes supports structured output formats" do
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get "/photos/:id", to: "photos#show", as: :photo, id: /[A-Z]\\d{5}/
+      end
+    RUBY
+
+    routes = JSON.parse(run_routes_command([ "-f", "json", "--exact", "--name", "photo" ]))
+    assert_equal 1, routes.size
+    assert_equal "photos#show", routes.first["endpoint"]
+    assert_equal({ "id" => "/[A-Z]\\d{5}/" }, routes.first["constraints"])
+    assert_match(/config\/routes\.rb/, routes.first.dig("source_location", "file"))
+
+    output = run_routes_command([ "--format", "tsv", "--exact", "--name", "photo" ])
+    assert_equal "name\tverb\tpath\tcontroller\taction\tendpoint\tconstraints\tsource_location\tengine", output.lines.first.chomp
+    assert_includes output, "photos#show"
+    assert_match(/config\/routes\.rb:\d+\z/, output.lines.second.chomp.split("\t", -1)[7])
+
+    assert_equal [], JSON.parse(run_routes_command([ "--format", "json", "--exact", "--name", "missing" ]))
+  end
+
+  test "rails routes supports the expanded format name" do
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get "/cart", to: "cart#show"
+      end
+    RUBY
+
+    output = IO.stub(:console_size, [0, 27]) do
+      run_routes_command([ "--format", "expanded", "--exact", "--name", "cart" ])
+    end
+
+    assert_includes output, "--[ Route 1 ]"
+    assert_includes output, "Controller#Action | cart#show"
+  end
+
+  test "rails routes rejects invalid selector and formatter options" do
+    output = run_routes_command([ "--regex", "--exact", "--search", "posts" ], allow_failure: true)
+    assert_equal 1, $?.exitstatus
+    assert_includes output, "exclusive options"
+
+    output = run_routes_command([ "--format", "json", "--expanded" ], allow_failure: true)
+    assert_equal 1, $?.exitstatus
+    assert_includes output, "exclusive options"
+
+    output = run_routes_command([ "--format", "invalid" ], allow_failure: true)
+    assert_equal 1, $?.exitstatus
+    assert_includes output, "to be one of table, expanded, json, tsv"
+
+    output = run_routes_command([ "--regex", "--search", "[" ], allow_failure: true)
+    assert_equal 1, $?.exitstatus
+    assert_includes output, "premature end of char-class"
+  end
+
+  test "rails routes rejects new selectors and formatters with unused routes" do
+    output = run_routes_command([ "--unused", "--recognize", "/posts" ], allow_failure: true)
+
+    assert_equal 1, $?.exitstatus
+    assert_includes output, "The --unused option cannot be combined with --recognize."
+  end
+
   test "rails routes with unused option" do
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
@@ -431,7 +558,7 @@ rails_conductor_inbound_email_incinerate POST /rails/conductor/action_mailbox/:i
   end
 
   private
-    def run_routes_command(args = [])
-      rails "routes", args
+    def run_routes_command(args = [], allow_failure: false)
+      rails "routes", args, allow_failure: allow_failure
     end
 end

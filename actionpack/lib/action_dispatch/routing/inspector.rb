@@ -4,14 +4,13 @@
 
 require "delegate"
 require "io/console/size"
+require "json"
 
 module ActionDispatch
   module Routing
     class RouteWrapper < SimpleDelegator # :nodoc:
-      def matches_filter?(filter, value)
-        return __getobj__.path.match(value) if filter == :exact_path_match
-
-        value.match?(public_send(filter))
+      def matches_path?(path)
+        __getobj__.path.match(path)
       end
 
       def endpoint
@@ -20,6 +19,8 @@ module ActionDispatch
           "#{controller}##{action}"
         when rack_app.is_a?(Proc)
           "Inline handler (Proc/Lambda)"
+        when rack_app.method(:inspect).owner == Kernel
+          rack_app.class.name || "Anonymous Rack application"
         else
           rack_app.inspect
         end
@@ -94,6 +95,10 @@ module ActionDispatch
         { name: name,
           verb: verb,
           path: path,
+          controller: controller,
+          action: action,
+          endpoint: endpoint,
+          constraints: constraints,
           reqs: reqs,
           source_location: source_location,
           action_source_location: action_source_location,
@@ -107,15 +112,29 @@ module ActionDispatch
     # executes `bin/rails routes` or looks at the RoutingError page. People should
     # not use this class.
     class RoutesInspector # :nodoc:
+      FIELD_FILTERS = %i(name path controller action verb).freeze
+      LEGACY_SEARCH_FIELDS = %i(controller action verb name path).freeze
+      SEARCH_FIELDS = %i(name verb path controller action constraints source_location).freeze
+
       def initialize(routes)
         @routes = wrap_routes(routes)
         @engines = load_engines_routes
       end
 
       def format(formatter, filter = {})
+        selectors = normalize_filter(filter)
         all_routes = { nil => @routes }.merge(@engines)
+        sections = all_routes.map do |engine_name, routes|
+          routes = filter_routes(routes, selectors).map { |route| route.to_h.merge(engine: engine_name) }
+          [engine_name, routes]
+        end
 
-        all_routes.each do |engine_name, routes|
+        if selectors.any?
+          sections.select! { |_, routes| routes.any? }
+          sections = [[nil, []]] if sections.empty?
+        end
+
+        sections.each do |engine_name, routes|
           format_routes(formatter, filter, engine_name, routes)
         end
 
@@ -124,8 +143,6 @@ module ActionDispatch
 
       private
         def format_routes(formatter, filter, engine_name, routes)
-          routes = filter_routes(routes, normalize_filter(filter)).map(&:to_h)
-
           formatter.section_title "Routes for #{engine_name || "application"}" if @engines.any?
           if routes.any?
             formatter.header routes
@@ -154,31 +171,86 @@ module ActionDispatch
         end
 
         def normalize_filter(filter)
-          if filter[:controller]
-            { controller: /#{filter[:controller].underscore.sub(/_?controller\z/, "")}/ }
-          elsif filter[:grep]
-            grep_pattern = Regexp.new(filter[:grep])
-            path = URI::RFC2396_PARSER.escape(filter[:grep])
-            normalized_path = ("/" + path).squeeze("/")
+          selectors = []
+          regex = filter[:regex]
+          exact = filter[:exact]
 
-            {
-              controller: grep_pattern,
-              action: grep_pattern,
-              verb: grep_pattern,
-              name: grep_pattern,
-              path: grep_pattern,
-              exact_path_match: normalized_path,
-            }
+          if filter[:search]
+            selectors << search_selector(filter[:search], regex: regex)
+          end
+
+          FIELD_FILTERS.each do |field|
+            next unless filter[field]
+
+            value = if field == :controller && !regex
+              normalize_controller(filter[field])
+            else
+              filter[field]
+            end
+
+            selectors << field_selector(field, value, regex: regex, exact: exact)
+          end
+
+          if filter[:recognize]
+            selectors << recognition_selector(filter[:recognize])
+          end
+
+          if filter[:grep]
+            selectors << legacy_grep_selector(filter[:grep])
+          end
+
+          selectors
+        end
+
+        def search_selector(value, regex: false)
+          matcher = field_matcher(value, regex: regex)
+          -> route { SEARCH_FIELDS.any? { |field| matcher.call(route.public_send(field)) } }
+        end
+
+        def field_selector(field, value, regex: false, exact: false)
+          matcher = field_matcher(value, regex: regex, exact: exact)
+          -> route { matcher.call(route.public_send(field)) }
+        end
+
+        def recognition_selector(value)
+          path = normalize_path(value)
+          -> route { route.matches_path?(path) }
+        end
+
+        def legacy_grep_selector(value)
+          pattern = Regexp.new(value)
+          path = normalize_path(value)
+
+          lambda do |route|
+            LEGACY_SEARCH_FIELDS.any? { |field| pattern.match?(route.public_send(field)) } || route.matches_path?(path)
           end
         end
 
-        def filter_routes(routes, filter)
-          if filter
-            routes.select do |route|
-              filter.any? { |filter_type, value| route.matches_filter?(filter_type, value) }
-            end
+        def field_matcher(value, regex: false, exact: false)
+          if regex
+            pattern = Regexp.new(value)
+            -> field_value { pattern.match?(field_value.to_s) }
+          elsif exact
+            -> field_value { field_value.to_s == value }
           else
-            routes
+            -> field_value { field_value.to_s.include?(value) }
+          end
+        end
+
+        def normalize_controller(controller)
+          controller.underscore.sub(/_?controller\z/, "")
+        end
+
+        def normalize_path(path)
+          path = URI::RFC2396_PARSER.escape(path)
+          ("/" + path).squeeze("/")
+        end
+
+        def filter_routes(routes, selectors)
+          return routes if selectors.empty?
+
+          routes.select do |route|
+            selectors.all? { |selector| selector.call(route) }
           end
         end
     end
@@ -211,6 +283,8 @@ module ActionDispatch
               "No routes were found for this controller."
             elsif filter.key?(:grep)
               "No routes were found for this grep pattern."
+            elsif filter.any?
+              "No routes matched the supplied selectors."
             elsif routes.none?
               if engine
                 "No routes defined."
@@ -305,6 +379,97 @@ module ActionDispatch
 
           def route_header(index:)
             "--[ Route #{index} ]".ljust(@width, "-")
+          end
+      end
+
+      class Structured < Base # :nodoc:
+        FIELDS = %i(name verb path controller action endpoint constraints source_location engine).freeze
+
+        def initialize
+          super
+          @routes = []
+        end
+
+        def section(routes)
+          @routes.concat(routes.map { |route| structured_route(route) })
+        end
+
+        def no_routes(*)
+        end
+
+        private
+          def structured_route(route)
+            FIELDS.to_h do |field|
+              value = route[field]
+              value = normalize_constraints(value) if field == :constraints
+              value = normalize_source_location(value) if field == :source_location
+              [field, value]
+            end
+          end
+
+          def normalize_constraints(value)
+            case value
+            when Hash
+              value.to_h { |key, constraint| [key.to_s, normalize_constraints(constraint)] }
+            when Array
+              value.map { |constraint| normalize_constraints(constraint) }
+            when Symbol
+              value.to_s
+            when Regexp
+              value.inspect
+            when NilClass, String, Numeric, TrueClass, FalseClass
+              value
+            else
+              stable_constraint_name(value)
+            end
+          end
+
+          def stable_constraint_name(value)
+            inspected = value.inspect
+            return inspected unless inspected.match?(/#<.+:0x[0-9a-f]+/i)
+
+            value.class.name || value.class.superclass&.name || "anonymous"
+          end
+
+          def normalize_source_location(value)
+            return unless value
+
+            file, separator, line = value.rpartition(":")
+            return { file: value, line: nil } if separator.empty? || !/\A\d+\z/.match?(line)
+
+            { file: file, line: line.to_i }
+          end
+      end
+
+      class JSON < Structured
+        def result
+          ::JSON.generate(@routes)
+        end
+      end
+
+      class TSV < Structured
+        def result
+          rows = [FIELDS]
+          rows.concat(@routes.map { |route| FIELDS.map { |field| tsv_value(field, route[field]) } })
+          rows.map { |row| row.map { |value| escape_tsv(value) }.join("\t") }.join("\n") << "\n"
+        end
+
+        private
+          def tsv_value(field, value)
+            if field == :constraints
+              ::JSON.generate(value)
+            elsif field == :source_location
+              [value&.dig(:file), value&.dig(:line)].compact.join(":")
+            else
+              value
+            end
+          end
+
+          def escape_tsv(value)
+            value = value.to_s
+            return value unless /["\t\r\n]/.match?(value)
+
+            "\"#{value.gsub('"', '""')}\""
           end
       end
 

@@ -1424,21 +1424,101 @@ Controller#Action | users#edit
 
 ### Searching Routes
 
-You can search through your routes with the grep option: `-g`. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
+Use `--search` (`-s`) to search route metadata. It performs a literal, case-sensitive substring search across the name, verb, declared path, controller, action, constraints, and route source location:
 
 ```bash
-$ bin/rails routes -g new_comment
-$ bin/rails routes -g POST
-$ bin/rails routes -g admin
+$ bin/rails routes --search users
 ```
 
-If you only want to see the routes that map to a specific controller, there's the controller option: `-c`.
+Use a field selector when you know which part of the route you want to match:
 
 ```bash
-$ bin/rails routes -c users
-$ bin/rails routes -c admin/users
-$ bin/rails routes -c Comments
-$ bin/rails routes -c Articles::CommentsController
+$ bin/rails routes --name admin_users
+$ bin/rails routes --verb POST
+$ bin/rails routes --path /admin/users
+$ bin/rails routes --controller Admin::UsersController
+$ bin/rails routes --action create
+```
+
+Different selectors are combined with AND semantics, while `--search` uses OR semantics across its metadata fields. For example, this finds only POST routes handled by `Admin::UsersController`:
+
+```bash
+$ bin/rails routes --controller Admin::UsersController --verb POST
+```
+
+When selectors are supplied, table and expanded output omit application and engine sections without matching routes.
+
+Search and field-selector values are literal substrings by default, so characters such as `.`, `*`, and `[` have no special meaning. `--regex` enables regular-expression matching for `--search` and the field selectors:
+
+```bash
+$ bin/rails routes --regex --controller '^admin/(users|accounts)$'
+```
+
+`--exact` makes field selectors compare the complete stored value. It doesn't affect `--search` or `--recognize`:
+
+```bash
+$ bin/rails routes --exact --name admin_users
+```
+
+`--regex` and `--exact` can't be combined.
+
+In literal and exact modes, controller class names are canonicalised before matching. For example, `CartController` becomes `cart`, and `Admin::PostsController` becomes `admin/posts`. Regular-expression controller values aren't canonicalised; they match the routing-form controller directly.
+
+Use `--recognize` (`-r`) to test which declared routes recognize a request path. Unlike `--search`, recognition matches dynamic segments:
+
+```bash
+$ bin/rails routes --recognize /photos/7
+$ bin/rails routes --recognize /photos/7 --verb GET
+```
+
+The existing `--grep` (`-g`) option remains available with its existing behaviour. It treats its value as a regular expression across the route's controller, action, verb, name, and path, and also attempts to recognize the value as a request path.
+
+### Formatting Routes
+
+The default output format is `table`. You can also render routes as expanded blocks, JSON, or TSV with `--format` (`-f`):
+
+```bash
+$ bin/rails routes --format table
+$ bin/rails routes --format expanded
+$ bin/rails routes --format json
+$ bin/rails routes --format tsv
+```
+
+`--expanded` and `-E` are aliases for `--format expanded`.
+
+JSON and TSV contain the same selected application and engine routes in inspector order, without section headings or a human-readable no-match message. JSON produces a compact array, or `[]` when there are no matches. TSV produces a header followed by one route per row, or only the header when there are no matches.
+
+Each machine-readable route has these fields:
+
+| Field | JSON type | Meaning |
+| --- | --- | --- |
+| `name` | string | Route name, or an empty string for an unnamed route |
+| `verb` | string | Complete displayed verb field, or an empty string for all verbs |
+| `path` | string | Declared URI pattern |
+| `controller` | string or null | Routing-form controller for controller routes |
+| `action` | string or null | Action for controller routes |
+| `endpoint` | string | Destination handler shown by the inspector |
+| `constraints` | object | JSON-safe route constraints |
+| `source_location` | object or null | Route declaration file and line |
+| `engine` | string or null | Containing engine name, or null for application routes |
+
+For a controller route, `endpoint` is the familiar `photos#show` destination. It also preserves the destination of routes without a controller, such as `Blog::Engine` for a mounted engine, `Inline handler (Proc/Lambda)` for an inline handler, or `redirect(301, /articles)` for a redirect. Rack application instances with default inspection use their class name, such as `ActionCable::Server::Base`, rather than including runtime state.
+
+A source location is represented as an object:
+
+```json
+{
+  "file": "/app/config/routes.rb",
+  "line": 42
+}
+```
+
+Constraints are converted recursively to deterministic JSON values. Symbols become strings, regular expressions use their inspected form, hash keys become strings, and custom constraint objects use a stable class or type name. In TSV, the `constraints` cell contains compact JSON, while `source_location` uses `path/to/file.rb:line` format. Tabs, quotes, and newlines in cells are quoted.
+
+For example, JSON output can be passed directly to `jq`:
+
+```bash
+$ bin/rails routes --format json | jq '.[] | select(.controller == "admin/users")'
 ```
 
 TIP: The output from `bin/rails routes` is easier to read if you widen your terminal window until the output lines don't wrap or use the `--expanded` option.
@@ -1461,6 +1541,8 @@ edit_person GET    /people/:id/edit(.:format) people#edit
             PUT    /people/:id(.:format)      people#update
             DELETE /people/:id(.:format)      people#destroy
 ```
+
+Unused-route reporting continues to support `--controller` and `--grep`. It can't be combined with the other selectors or with `--format` and `--expanded`.
 
 ### Routes in Rails Console
 
