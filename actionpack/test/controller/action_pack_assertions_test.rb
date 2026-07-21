@@ -322,7 +322,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_equal "turkey", session["xmas"]
   end
 
-  def session_does_not_exist
+  def test_session_does_not_exist
     process :nothing
     assert_empty session
   end

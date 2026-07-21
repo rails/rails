@@ -1151,7 +1151,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  def first_with_at_least_query_constraints
+  def test_first_with_at_least_query_constraints
     ordered_edge = Class.new(Edge) do
       query_constraints "source_id"
     end
