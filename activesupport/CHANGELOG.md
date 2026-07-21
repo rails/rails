@@ -1,3 +1,10 @@
+*   Deprecate `ActiveSupport::Cache::RedisCacheStore::DEFAULT_REDIS_OPTIONS`.
+
+    The `redis-client` implementation no longer reads this constant. Pass
+    timeout options to `RedisCacheStore` or a configured `RedisClient` instead.
+
+    *Nikita Vasilevsky*
+
 *   Add `#this_quarter?` to Date/Time.
 
     It returns true if the date/time falls within the current quarter.
