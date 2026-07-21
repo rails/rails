@@ -39,7 +39,7 @@ module ActionView
         value = value.present? ? Array(value) : default_locale
         return if value == @locale
         @locale = value
-        @digest_cache = nil
+        @ranks = @digest_cache = nil
       end
 
       def formats
@@ -63,7 +63,7 @@ module ActionView
         values = values.presence || default_formats
         return if values == @formats
         @formats = values
-        @digest_cache = nil
+        @ranks = @digest_cache = nil
       end
 
       def variants
@@ -74,7 +74,7 @@ module ActionView
         value = value.present? ? Array(value) : default_variants
         return if value == @variants
         @variants = value
-        @digest_cache = nil
+        @ranks = @digest_cache = nil
       end
 
       def handlers
@@ -85,7 +85,7 @@ module ActionView
         value = value.present? ? Array(value) : default_handlers
         return if value == @handlers
         @handlers = value
-        @digest_cache = nil
+        @ranks = @digest_cache = nil
       end
 
       def default_locale
@@ -123,11 +123,12 @@ module ActionView
       end
 
       def template_rank(template)
+        format_idx, locale_idx, variant_idx, handler_idx = ranks
         d = template.details
-        format  = rank(formats, d.format)     or return
-        locale  = rank(self.locale, d.locale) or return
-        variant = variant_rank(d.variant)     or return
-        handler = rank(handlers, d.handler)   or return
+        format  = format_idx[d.format]   or return
+        locale  = locale_idx[d.locale]   or return
+        variant = variant_idx[d.variant] or return
+        handler = handler_idx[d.handler] or return
         [format, locale, variant, handler]
       end
 
@@ -141,20 +142,26 @@ module ActionView
           super
         end
 
-        def rank(requested, value)
-          if requested
-            requested.index(value) || (requested.size if value.nil?)
-          elsif value.nil?
-            0
+        ANY_HASH = Hash.new(1).merge!(nil => 0).freeze
+
+        def ranks
+          @ranks ||= self.class.intern_ranks(formats, locale, variants, handlers)
+        end
+
+        def self.intern_ranks(formats, locale, variants, handlers)
+          cache = ActiveSupport::Ractors.store_if_absent(:action_view_details_ranks) { Concurrent::Map.new }
+          cache.compute_if_absent([formats, locale, variants, handlers].freeze) do
+            [
+              build_idx(formats),
+              build_idx(locale),
+              variants == :any ? ANY_HASH : build_idx(variants),
+              build_idx(handlers),
+            ].freeze
           end
         end
 
-        def variant_rank(value)
-          if variants == :any
-            value.nil? ? 0 : 1
-          else
-            rank(variants, value)
-          end
+        def self.build_idx(requested)
+          [*requested, nil].each_with_index.to_h.freeze
         end
 
         def to_cache_key
