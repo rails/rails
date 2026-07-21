@@ -94,6 +94,12 @@ class CookiesMiddlewareTest < ActiveSupport::TestCase
 
     assert_equal "foo=bar; path=/", headers["set-cookie"]
   end
+
+  def test_http_header_constant_is_deprecated
+    assert_deprecated(/ActionDispatch::Cookies::HTTP_HEADER is deprecated/, ActionDispatch.deprecator) do
+      assert_equal Rack::SET_COOKIE, ActionDispatch::Cookies::HTTP_HEADER
+    end
+  end
 end
 
 class CookiesTest < ActionController::TestCase

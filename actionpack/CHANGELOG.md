@@ -1,3 +1,9 @@
+*   Deprecate `ActionDispatch::Cookies::HTTP_HEADER`.
+
+    Use `Rack::SET_COOKIE` instead.
+
+    *Nikita Vasilevsky*
+
 *   Fix `ActionController::Live` streams hanging on client disconnect.
 
     `ActionController::Live::Buffer#abort` cleared the streaming queue but never
