@@ -1,3 +1,23 @@
+*   Support composite primary keys in `ActiveRecord::FinderMethods#exists?`.
+
+    `exists?` now accepts a composite primary key id passed as an array of
+    values, mirroring `find`. Previously it raised `ArgumentError` because the
+    array was always interpreted as `where`-style conditions.
+
+    ```ruby
+    # Cpk::Book has a composite primary key of [:author_id, :id]
+    Cpk::Book.exists?([1, 2])            # => true or false
+    Cpk::Book.exists?([[1, 2], [3, 4]]) # => true if any of the ids exist
+    ```
+
+    An array whose first element is a String is still treated as
+    `where`-style conditions, so a composite id made of strings must be passed
+    in the wrapped form, e.g. `Cpk::Book.exists?([["1", "2"]])`.
+
+    Fixes #51295.
+
+    *Saleh Alhaddad*
+
 *   Support dumping `schema_migrations` in `db/schema.rb`.
 
     When the new `ActiveRecord.dump_schema_migrations` flag is true, `:ruby`

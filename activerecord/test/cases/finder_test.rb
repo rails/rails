@@ -2128,6 +2128,39 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  test "#exists? with a single composite primary key" do
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_equal true, Cpk::Book.exists?(book.id)
+  end
+
+  test "#exists? with a single composite primary key that does not exist" do
+    assert_equal false, Cpk::Book.exists?([0, 0])
+  end
+
+  test "#exists? with a single composite primary key wrapped in an array" do
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_equal true, Cpk::Book.exists?([book.id])
+  end
+
+  test "#exists? with a single composite primary key wrapped in an array given as strings" do
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_equal true, Cpk::Book.exists?([book.id.map(&:to_s)])
+  end
+
+  test "#exists? with multiple sets of composite primary key" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+
+    assert_equal true, Cpk::Book.exists?(books.map(&:id))
+  end
+
+  test "#exists? still supports where-style array conditions on a composite primary key model" do
+    assert_equal true, Cpk::Book.exists?(["title = ?", "The first book"])
+    assert_equal false, Cpk::Book.exists?(["title = ?", "Nonexistent title"])
+  end
+
   private
     def table_with_custom_primary_key
       yield(Class.new(Toy) do

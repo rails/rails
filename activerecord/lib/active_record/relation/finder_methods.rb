@@ -354,6 +354,18 @@ module ActiveRecord
     #   Person.exists?(false)
     #   Person.exists?
     #   Person.where(name: 'Spartacus', rating: 4).exists?
+    #
+    # For a model with a composite primary key, pass the id as an array of
+    # values, mirroring #find:
+    #
+    #   TravelRoute.exists?(["Ottawa", "London"])   # a single composite id
+    #   TravelRoute.exists?([["Ottawa", "London"]]) # the same id wrapped in an array
+    #   TravelRoute.exists?([["Ottawa", "London"], ["New York", "Las Vegas"]]) # any of these ids
+    #
+    # Note that an Array whose first element is a String keeps its meaning as
+    # +where+-style conditions (see above), so a composite id made of strings
+    # must be passed in the wrapped form, e.g.
+    # <tt>TravelRoute.exists?([["Ottawa", "London"]])</tt>.
     def exists?(conditions = :none)
       return false if @none
 
@@ -441,12 +453,28 @@ module ActiveRecord
 
         case conditions
         when Array, Hash
-          relation.where!(conditions) unless conditions.empty?
+          if conditions.is_a?(Array) && (ids = composite_primary_key_ids_for_exists(conditions))
+            relation.where!(primary_key => ids)
+          else
+            relation.where!(conditions) unless conditions.empty?
+          end
         else
           relation.where!(primary_key => conditions) unless conditions == :none
         end
 
         relation
+      end
+
+      def composite_primary_key_ids_for_exists(values)
+        return unless model.composite_primary_key?
+
+        key = model.primary_key_definition
+
+        if key.expects_multiple_ids?(values)
+          values.presence
+        elsif values.length == key.length && !values.first.is_a?(String)
+          [values]
+        end
       end
 
       def apply_join_dependency(eager_loading: group_values.empty?)
