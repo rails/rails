@@ -2825,7 +2825,7 @@ module ApplicationTests
           key: foo:
       RUBY
 
-      error = assert_raises RuntimeError do
+      error = assert_raises ActiveSupport::ConfigurationFile::FormatError do
         app "development"
       end
       assert_match "YAML syntax error occurred while parsing", error.message
