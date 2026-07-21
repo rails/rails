@@ -29,6 +29,23 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_nothing_raised { @user.avatar.download }
   end
 
+  test "creating a record with a Tempfile as attachable attribute" do
+    Tempfile.open("active-storage-test") do |tempfile|
+      @user = User.create!(name: "Dorian", avatar: tempfile)
+
+      assert @user.avatar.filename.to_s.start_with?("active-storage-test")
+      assert_not_nil @user.avatar_attachment
+      assert_not_nil @user.avatar_blob
+    end
+  end
+
+  test "uploads the tempfile when passing a Tempfile as attachable attribute" do
+    Tempfile.open("active-storage-test") do |tempfile|
+      @user = User.create!(name: "Dorian", avatar: tempfile)
+      assert_nothing_raised { @user.avatar.download }
+    end
+  end
+
   test "creating a record with a Pathname as attachable attribute" do
     @user = User.create!(name: "Dorian", avatar: file_fixture("image.gif"))
 
@@ -66,6 +83,18 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "attaching a new blob from a Hash to an existing record" do
     @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg"
     assert_equal "town.jpg", @user.avatar.filename.to_s
+  end
+
+  test "attaching a new blob from a Hash with a path traversal key raises on Disk service" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      @user.avatar.attach key: "../../etc/passwd", io: StringIO.new("malicious"), filename: "exploit.txt", content_type: "text/plain"
+    end
+  ensure
+    # The orphaned blob record must be removed before teardown, which calls
+    # Blob#delete on all blobs (and that would re-raise InvalidKeyError via
+    # path_for). Use delete_all to bypass the service layer.
+    ActiveStorage::Attachment.where(blob: ActiveStorage::Blob.where(key: "../../etc/passwd")).delete_all
+    ActiveStorage::Blob.where(key: "../../etc/passwd").delete_all
   end
 
   test "attaching a new blob from a Hash to an existing record passes record" do
@@ -114,6 +143,15 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
     return_value = @user.avatar.attach create_blob(filename: "funky.jpg")
     assert_nil return_value
+  end
+
+  test "raises error when calling attach! to attach a blob to a persisted, unchanged, and invalid record" do
+    @user.update_attribute(:name, nil)
+    assert_not @user.valid?
+
+    assert_raises(ActiveRecord::RecordNotSaved) do
+      @user.avatar.attach! create_blob(filename: "funky.jpg")
+    end
   end
 
   test "attaching a blob to a changed record, returns the attachment" do
@@ -606,6 +644,16 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_nil user.attachment_changes["avatar"]
   end
 
+  test "purge attached blob now when the record is destroyed" do
+    @user.icon.attach create_blob(filename: "funky.jpg")
+    icon_key = @user.icon.key
+
+    @user.reload.destroy
+
+    assert_nil ActiveStorage::Blob.find_by(key: icon_key)
+    assert_not ActiveStorage::Blob.service.exist?(icon_key)
+  end
+
   test "purging later" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob
@@ -856,5 +904,26 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
 
     assert_match(/Cannot find variant :unknown for User#avatar_with_variants/, error.message)
+  end
+
+  test "as_json returns nil when no attachment is present" do
+    assert_nil @user.avatar.as_json
+  end
+
+  test "as_json returns the attachment record when attached" do
+    @user.avatar.attach(create_blob(filename: "funky.jpg"))
+    assert_equal @user.avatar_attachment.as_json, @user.avatar.as_json
+  end
+
+  test "to_json on the record does not stack overflow when an attribute shadows the attached name" do
+    @user.avatar.attach(create_blob(filename: "funky.jpg"))
+    user = User.select("name AS avatar").find(@user.id)
+    assert_nothing_raised { user.to_json }
+  end
+
+  test "preserves attachment changes when using STI" do
+    user = User.new(name: "John", avatar: create_blob(filename: "funky.jpg"))
+    special_user = user.becomes(SpecialUser)
+    assert_predicate special_user.avatar, :attached?
   end
 end

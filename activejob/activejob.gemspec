@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Job framework with pluggable queues."
   s.description = "Declare job classes that can be run by a variety of queuing backends."
 
-  s.required_ruby_version = ">= 3.3.0"
+  s.required_ruby_version = ">= 3.3.1"
 
   s.license = "MIT"
 
@@ -33,5 +33,5 @@ Gem::Specification.new do |s|
   # https://edgeguides.rubyonrails.org/security.html#dependency-management-and-cves
 
   s.add_dependency "activesupport", version
-  s.add_dependency "globalid", ">= 0.3.6"
+  s.add_dependency "globalid", ">= 1.4.0"
 end

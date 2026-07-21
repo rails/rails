@@ -5,6 +5,7 @@ require "models/account"
 require "models/company"
 require "models/toy"
 require "models/matey"
+require "models/cpk"
 
 class SignedIdTest < ActiveRecord::TestCase
   class GetSignedIDInCallback < ActiveRecord::Base
@@ -18,7 +19,7 @@ class SignedIdTest < ActiveRecord::TestCase
       end
   end
 
-  fixtures :accounts, :toys, :companies
+  fixtures :accounts, :toys, :companies, :cpk_orders
 
   setup do
     @original_message_verifiers = ActiveRecord.message_verifiers
@@ -26,6 +27,7 @@ class SignedIdTest < ActiveRecord::TestCase
 
     @account = Account.first
     @toy = Toy.first
+    @cpk_order = Cpk::Order.first
   end
 
   teardown do
@@ -44,6 +46,16 @@ class SignedIdTest < ActiveRecord::TestCase
 
   test "find signed record with custom primary key" do
     assert_equal @toy, Toy.find_signed(@toy.signed_id)
+  end
+
+  test "find signed record with composite primary key" do
+    assert_equal @cpk_order, Cpk::Order.find_signed(@cpk_order.signed_id)
+  end
+
+  test "find signed record on relation with composite primary key" do
+    assert_equal @cpk_order, Cpk::Order.where("1=1").find_signed(@cpk_order.signed_id)
+
+    assert_nil Cpk::Order.where("1=0").find_signed(@cpk_order.signed_id)
   end
 
   test "find signed record for single table inheritance (STI Models)" do
@@ -71,6 +83,10 @@ class SignedIdTest < ActiveRecord::TestCase
 
   test "find signed record with a bang with custom primary key" do
     assert_equal @toy, Toy.find_signed!(@toy.signed_id)
+  end
+
+  test "find signed record with a bang with composite primary key" do
+    assert_equal @cpk_order, Cpk::Order.find_signed!(@cpk_order.signed_id)
   end
 
   test "find signed record with a bang for single table inheritance (STI Models)" do

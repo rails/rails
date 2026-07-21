@@ -4,7 +4,7 @@ Wishlists
 =========
 
 This guide covers adding Wishlists to the e-commerce application you created in the
-[Getting Started Guide](getting_started.html)). We will use the code from the
+[Getting Started Guide](getting_started.html). We will use the code from the
 [Sign up and Settings Guide](sign_up_and_settings.html) as a starting place.
 
 After reading this guide, you will know how to:
@@ -1646,13 +1646,6 @@ $ bin/kamal deploy
 Your e-commerce store now has Wishlists and an improved admin area with
 filtering of Wishlists and Subscribers.
 
-Here are a few ideas to build on to this:
-
-- Add product reviews
-- Write more tests
-- Finish translating the app into another language
-- Add a carousel for product images
-- Improve the design with CSS
-- Add payments to buy products
+Next, follow the [Product Reviews tutorial](product_reviews.html) to continue learning.
 
 [Return to all tutorials](https://rubyonrails.org/docs/tutorials)

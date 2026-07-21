@@ -10,7 +10,7 @@ module ActiveRecord
     # * A cipher, the encryption algorithm
     # * A message serializer
     class Context
-      PROPERTIES = %i[ key_provider key_generator cipher message_serializer encryptor frozen_encryption ]
+      PROPERTIES = %i[ key_provider key_generator cipher message_serializer encryptor frozen_encryption ].freeze
 
       attr_accessor(*PROPERTIES)
 

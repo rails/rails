@@ -3,6 +3,7 @@
 # :markup: markdown
 
 require "active_support/core_ext/hash/keys"
+require "active_support/core_ext/integer/time"
 require "active_support/key_generator"
 require "active_support/message_verifier"
 require "active_support/json"

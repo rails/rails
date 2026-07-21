@@ -36,6 +36,13 @@ module Arel # :nodoc: all
           collect_nodes_for o.orders, collector, " ORDER BY "
           maybe_visit o.limit, collector
           maybe_visit o.comment, collector
+
+          if o.returning.empty?
+            collector
+          else
+            collector << " RETURNING "
+            visit o.returning, collector
+          end
         end
 
         def visit_Arel_Nodes_UpdateStatement(o, collector)
@@ -50,6 +57,13 @@ module Arel # :nodoc: all
           collect_nodes_for o.orders, collector, " ORDER BY "
           maybe_visit o.limit, collector
           maybe_visit o.comment, collector
+
+          if o.returning.empty?
+            collector
+          else
+            collector << " RETURNING "
+            visit o.returning, collector
+          end
         end
 
         def visit_Arel_Nodes_InsertStatement(o, collector)
@@ -70,8 +84,13 @@ module Arel # :nodoc: all
             maybe_visit o.values, collector
           elsif o.select
             maybe_visit o.select, collector
-          else
+          end
+
+          if o.returning.empty?
             collector
+          else
+            collector << " RETURNING "
+            visit o.returning, collector
           end
         end
 
@@ -746,7 +765,7 @@ module Arel # :nodoc: all
           collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
         end
 
-        BIND_BLOCK = proc { "?" }
+        BIND_BLOCK = ActiveSupport::Ractors.shareable_proc { "?" }
         private_constant :BIND_BLOCK
 
         def bind_block; BIND_BLOCK; end
@@ -920,7 +939,7 @@ module Arel # :nodoc: all
         # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
         # an UPDATE statement, so in the MySQL visitor we redefine this to do that.
         def prepare_update_statement(o)
-          if o.key && (has_limit_or_offset_or_orders?(o) || has_join_sources?(o))
+          if o.key && (has_limit_or_offset_or_orders?(o) || has_join_sources?(o) || has_group_by_and_having?(o))
             stmt = o.clone
             stmt.limit = nil
             stmt.offset = nil

@@ -120,10 +120,36 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated(/:bomb:/, @deprecator) { deprecated_object.to_s }
   end
 
+  test "DeprecatedObjectProxy can set the target afterwards" do
+    list = []
+    deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(list, ":bomb:", @deprecator)
+
+    list = [1]
+    assert_deprecated(/:bomb:/, @deprecator) do
+      assert_not_includes(deprecated_object, 1)
+    end
+
+    deprecated_object.target = list
+
+    assert_deprecated(/:bomb:/, @deprecator) do
+      assert_includes(deprecated_object, 1)
+    end
+  end
+
   test "DeprecatedObjectProxy requires a deprecator" do
     assert_raises(ArgumentError) do
       ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ":bomb:")
     end
+  end
+
+  test "DeprecatedObjectProxy forwards keyword arguments" do
+    object = Object.new
+    def object.kw(a:)
+      a
+    end
+    deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(object, ":bomb:", @deprecator)
+    result = assert_deprecated(/:bomb:/, @deprecator) { deprecated_object.kw(a: 42) }
+    assert_equal 42, result
   end
 
   test "nil behavior is ignored" do
@@ -306,6 +332,20 @@ class DeprecationTest < ActiveSupport::TestCase
 
     fubar_s = assert_deprecated("@fubar.to_s", @deprecator) { instance.fubar.to_s }
     assert_equal instance.foo_bar.to_s, fubar_s
+  end
+
+  test "DeprecatedInstanceVariableProxy forwards keyword arguments" do
+    instance = Deprecatee.new
+    instance.fubar = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(instance, :foo_bar, "@fubar", deprecator: @deprecator)
+    instance.foo_bar = Object.new
+    def (instance.foo_bar).kw(a:)
+      a
+    end
+
+    result = assert_deprecated(/@fubar\.kw\. Args: #{Regexp.escape([{ a: 42 }].inspect)}/, @deprecator) do
+      instance.fubar.kw(a: 42)
+    end
+    assert_equal 42, result
   end
 
   test "DeprecatedInstanceVariableProxy does not warn on inspect" do

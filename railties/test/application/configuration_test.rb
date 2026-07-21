@@ -529,6 +529,19 @@ module ApplicationTests
       assert_includes Rails.application.config.eager_load_namespaces, AppTemplate::Application
     end
 
+    test "load_defaults 8.1 registers RubyTracker for erb under eager_load" do
+      add_to_config <<~RUBY
+        config.enable_reloading = false
+        config.eager_load = true
+      RUBY
+
+      app "production"
+
+      erb_handler = ActionView::Template.handler_for_extension("erb")
+      trackers = ActionView::DependencyTracker.instance_variable_get(:@trackers)
+      assert_equal ActionView::DependencyTracker::RubyTracker, trackers[erb_handler]
+    end
+
     test "the application can be eager loaded even when there are no frameworks" do
       FileUtils.rm_rf("#{app_path}/app/jobs/application_job.rb")
       FileUtils.rm_rf("#{app_path}/app/models/application_record.rb")
@@ -608,6 +621,31 @@ module ApplicationTests
       app "development"
 
       assert_equal [:password, :foo, "bar"], Rails.application.env_config["action_dispatch.parameter_filter"]
+    end
+
+    test "config.action_dispatch.default_headers can be set in an initializer and is applied to responses" do
+      app_file "config/initializers/default_headers.rb", <<-RUBY
+        Rails.application.config.action_dispatch.default_headers = { "X-Custom-Header" => "custom" }
+      RUBY
+
+      app_file "app/controllers/pages_controller.rb", <<-RUBY
+        class PagesController < ApplicationController
+          def index
+            render plain: "OK"
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          get "/pages", to: "pages#index"
+        end
+      RUBY
+
+      app "development"
+
+      get "/pages"
+      assert_equal "custom", last_response.headers["X-Custom-Header"]
     end
 
     test "filter_parameters is precompiled when config.precompile_filter_parameters is true" do
@@ -2030,6 +2068,26 @@ module ApplicationTests
       assert_includes(Rails.logger.broadcasts, logger)
     end
 
+    if RUBY_VERSION >= "4.0"
+      test "config.logger can be a tagged shareable logger" do
+        add_to_config <<~RUBY
+          config.logger = ActiveSupport::TaggedLogging.ractor_logger(Rails.root.join("log/ractor.log"))
+        RUBY
+
+        app "development"
+
+        ractor_logger = Rails.logger.broadcasts.first
+        assert_instance_of ActiveSupport::Ractors::Logger, ractor_logger
+        assert_kind_of ::Logger, ractor_logger
+        assert_equal Rails.logger, Rails.application.config.action_controller.logger
+
+        Rails.logger.tagged("request-id") { Rails.logger.info("hello") }
+        Rails.logger.flush
+
+        assert_includes File.read(app_path("log/ractor.log")), "[request-id] hello"
+      end
+    end
+
     test "respond_to? accepts include_private" do
       make_basic_app
 
@@ -2048,6 +2106,32 @@ module ApplicationTests
       app "development"
 
       assert ActiveRecord.dump_schema_after_migration
+    end
+
+    test "config.active_record.dump_schema_migrations is false by default" do
+      app "development"
+
+      assert_not ActiveRecord.dump_schema_migrations
+    end
+
+    test "config.active_record.dump_schema_migrations can be configured" do
+      add_to_config "config.active_record.dump_schema_migrations = true"
+      app "development"
+
+      assert ActiveRecord.dump_schema_migrations
+    end
+
+    test "config.active_record.dump_schema_migrations_sort_by is :reverse by default" do
+      app "development"
+
+      assert_equal :reverse, ActiveRecord.dump_schema_migrations_sort_by
+    end
+
+    test "config.active_record.dump_schema_migrations_sort_by can be configured" do
+      add_to_config "config.active_record.dump_schema_migrations_sort_by = :itself"
+      app "development"
+
+      assert_equal :itself, ActiveRecord.dump_schema_migrations_sort_by
     end
 
     test "config.active_record.verbose_query_logs is false by default in development" do
@@ -2515,6 +2599,26 @@ module ApplicationTests
       assert_equal "db/two", ar_config["development"]["two"]["migrations_path"]
     end
 
+    test "loads 3-tier database.yml when a connection is absent from the shared subsections" do
+      app_file "config/database.yml", <<-YAML
+        shared:
+          one:
+            migrations_path: "db/one"
+
+        development:
+          one:
+            adapter: sqlite3
+          two:
+            adapter: sqlite3
+      YAML
+
+      app "development"
+
+      ar_config = Rails.configuration.database_configuration
+      assert_equal "db/one",  ar_config["development"]["one"]["migrations_path"]
+      assert_equal "sqlite3", ar_config["development"]["two"]["adapter"]
+    end
+
     test "config.action_mailer.show_previews defaults to true in development" do
       app "development"
 
@@ -2753,7 +2857,7 @@ module ApplicationTests
       end
     end
 
-    test "config_for returns a ActiveSupport::OrderedOptions" do
+    test "config_for returns an ActiveSupport::OrderedOptions" do
       app_file "config/custom.yml", <<~YAML
         shared:
           some_key: default
@@ -3469,20 +3573,20 @@ module ApplicationTests
       assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag is true by default" do
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag is true by default" do
       app "development"
-      assert_equal true, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+      assert_equal true, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag is false by default for upgraded apps" do
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag is false by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "6.1"'
       app "development"
 
-      assert_equal false, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+      assert_equal false, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag can be configured via config.action_view.button_to_generates_button_tag" do
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag can be configured via config.action_view.button_to_generates_button_tag" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
@@ -3491,7 +3595,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal true, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+      assert_equal true, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
     end
 
     test "ActionView::Helpers::AssetTagHelper.image_loading is nil by default" do

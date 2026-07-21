@@ -66,13 +66,18 @@ module ActiveModel
 
     NAME_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?=]?\z/
     CALL_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?]?\z/
+    EMPTY_HASH = Hash.new([].freeze).freeze # :nodoc:
 
     included do
-      class_attribute :attribute_aliases, instance_writer: false, default: {}
-      class_attribute :attribute_method_patterns, instance_writer: false, default: [ ClassMethods::AttributeMethodPattern.new ]
+      @attribute_method_patterns_cache = Concurrent::Map.new(initial_capacity: 4)
+      class_attribute :attribute_aliases, instance_writer: false, default: {}.freeze
+      @aliases_by_attribute_name = EMPTY_HASH
+      class_attribute :attribute_method_patterns, instance_writer: false, default: [ ClassMethods::AttributeMethodPattern.new ].freeze
     end
 
     module ClassMethods
+      attr_reader :aliases_by_attribute_name # :nodoc:
+
       # Declares a method available for all attributes with the given prefix.
       # Uses +method_missing+ and <tt>respond_to?</tt> to rewrite the method.
       #
@@ -104,7 +109,8 @@ module ActiveModel
       #   person.clear_name
       #   person.name          # => nil
       def attribute_method_prefix(*prefixes, parameters: nil)
-        self.attribute_method_patterns += prefixes.map! { |prefix| AttributeMethodPattern.new(prefix: prefix, parameters: parameters) }
+        prefixes.map! { |prefix| AttributeMethodPattern.new(prefix: prefix, parameters: parameters) }
+        self.attribute_method_patterns = (attribute_method_patterns + prefixes).freeze
         undefine_attribute_methods
       end
 
@@ -138,7 +144,8 @@ module ActiveModel
       #   person.name          # => "Bob"
       #   person.name_short?   # => true
       def attribute_method_suffix(*suffixes, parameters: nil)
-        self.attribute_method_patterns += suffixes.map! { |suffix| AttributeMethodPattern.new(suffix: suffix, parameters: parameters) }
+        suffixes.map! { |suffix| AttributeMethodPattern.new(suffix: suffix, parameters: parameters) }
+        self.attribute_method_patterns = (attribute_method_patterns + suffixes).freeze
         undefine_attribute_methods
       end
 
@@ -173,7 +180,8 @@ module ActiveModel
       #   person.reset_name_to_default!
       #   person.name                         # => 'Default Name'
       def attribute_method_affix(*affixes)
-        self.attribute_method_patterns += affixes.map! { |affix| AttributeMethodPattern.new(**affix) }
+        affixes.map! { |affix| AttributeMethodPattern.new(**affix) }
+        self.attribute_method_patterns = (attribute_method_patterns + affixes).freeze
         undefine_attribute_methods
       end
 
@@ -201,10 +209,10 @@ module ActiveModel
       #   person.name_short?     # => true
       #   person.nickname_short? # => true
       def alias_attribute(new_name, old_name)
-        old_name = old_name.to_s
-        new_name = new_name.to_s
-        self.attribute_aliases = attribute_aliases.merge(new_name => old_name)
-        aliases_by_attribute_name[old_name] << new_name
+        old_name = -old_name.to_s
+        new_name = -new_name.to_s
+        self.attribute_aliases = attribute_aliases.merge(new_name => old_name).freeze
+        record_alias_by_attribute_name(old_name, new_name)
         eagerly_generate_alias_attribute_methods(new_name, old_name)
       end
 
@@ -219,7 +227,7 @@ module ActiveModel
           attribute_method_patterns.each do |pattern|
             alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
           end
-          attribute_method_patterns_cache.clear
+          @attribute_method_patterns_cache.clear
         end
       end
 
@@ -313,7 +321,7 @@ module ActiveModel
           attribute_method_patterns.each do |pattern|
             define_attribute_method_pattern(pattern, attr_name, owner: owner, as: as)
           end
-          attribute_method_patterns_cache.clear
+          @attribute_method_patterns_cache.clear
         end
       end
 
@@ -376,19 +384,15 @@ module ActiveModel
         @generated_attribute_methods&.module_eval do
           undef_method(*instance_methods)
         end
-        attribute_method_patterns_cache.clear
-      end
-
-      def aliases_by_attribute_name # :nodoc:
-        @aliases_by_attribute_name ||= Hash.new { |h, k| h[k] = [] }
+        @attribute_method_patterns_cache.clear
       end
 
       private
         def inherited(base) # :nodoc:
           super
           base.class_eval do
-            @attribute_method_patterns_cache = nil
-            @aliases_by_attribute_name = nil
+            @attribute_method_patterns_cache = Concurrent::Map.new(initial_capacity: 4)
+            @aliases_by_attribute_name = EMPTY_HASH
             @generated_attribute_methods = nil
           end
         end
@@ -405,21 +409,8 @@ module ActiveModel
           @generated_attribute_methods&.method_defined?(method_name)
         end
 
-        # The methods +method_missing+ and +respond_to?+ of this module are
-        # invoked often in a typical rails, both of which invoke the method
-        # +matched_attribute_method+. The latter method iterates through an
-        # array doing regular expression matches, which results in a lot of
-        # object creations. Most of the time it returns a +nil+ match. As the
-        # match result is always the same given a +method_name+, this cache is
-        # used to alleviate the GC, which ultimately also speeds up the app
-        # significantly (in our case our test suite finishes 10% faster with
-        # this cache).
-        def attribute_method_patterns_cache
-          @attribute_method_patterns_cache ||= Concurrent::Map.new(initial_capacity: 4)
-        end
-
         def attribute_method_patterns_matching(method_name)
-          attribute_method_patterns_cache.compute_if_absent(method_name) do
+          @attribute_method_patterns_cache.compute_if_absent(method_name) do
             attribute_method_patterns.filter_map { |pattern| pattern.match(method_name) }
           end
         end
@@ -468,18 +459,25 @@ module ActiveModel
           end
         end
 
+        def record_alias_by_attribute_name(old_name, new_name)
+          @aliases_by_attribute_name = ActiveSupport::Ractors.make_shareable(aliases_by_attribute_name.merge(
+            old_name => (aliases_by_attribute_name[old_name] | [new_name])
+          ))
+        end
+
         class AttributeMethodPattern # :nodoc:
           attr_reader :prefix, :suffix, :proxy_target, :parameters
 
           AttributeMethod = Struct.new(:proxy_target, :attr_name)
 
           def initialize(prefix: "", suffix: "", parameters: nil)
-            @prefix = prefix
-            @suffix = suffix
-            @parameters = parameters.nil? ? "..." : parameters
+            @prefix = -prefix
+            @suffix = -suffix
+            @parameters = parameters.nil? ? "..." : (parameters.is_a?(String) ? -parameters : parameters)
             @regex = /\A(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})\z/
-            @proxy_target = "#{@prefix}attribute#{@suffix}"
-            @method_name = "#{prefix}%s#{suffix}"
+            @proxy_target = "#{@prefix}attribute#{@suffix}".freeze
+            @method_name = "#{prefix}%s#{suffix}".freeze
+            freeze
           end
 
           def match(method_name)

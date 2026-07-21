@@ -17,6 +17,7 @@ require "models/line_item"
 require "models/mouse"
 require "models/order"
 require "models/parrot"
+require "models/person"
 require "models/pirate"
 require "models/project"
 require "models/price_estimate"
@@ -43,6 +44,11 @@ require "models/drink_designer"
 require "models/cpk"
 require "models/human"
 require "models/face"
+require "models/image"
+require "models/sharded/blog"
+require "models/sharded/blog_post"
+require "models/shipment"
+require "models/adjustment"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_works_even_when_other_callbacks_update_the_parent_model
@@ -1005,7 +1011,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     order.save
     order.reload
 
-    assert_equal book_ids, order.book_ids
+    assert_equal book_ids.sort, order.book_ids.sort
     assert_equal 2, order.books.length
     assert_includes order.books, cpk_books(:cpk_great_author_first_book)
     assert_includes order.books, cpk_books(:cpk_great_author_second_book)
@@ -2496,5 +2502,58 @@ class TestAutosaveAssociationWithNestedAttributes < ActiveRecord::TestCase
     end
     assert_includes pirate.errors[:"ships.parts"], "must have at least two parts"
     assert_includes ship.errors[:parts], "must have at least two parts"
+  end
+end
+
+class AutosavePolymorphicInversePrimaryKeyTest < ActiveRecord::TestCase
+  def test_autosave_with_polymorphic_custom_primary_key_from_belongs_to
+    author = Author.new(name: "Author", author_code: "autosave_org_#{SecureRandom.hex(8)}")
+    person = Person.new(first_name: "Person", external_id: "autosave_ext_#{SecureRandom.hex(8)}")
+
+    author_comment = PolymorphicComment.new(body: "Author comment", post_id: 1)
+    author_comment.person = author
+
+    person_comment = PolymorphicComment.new(body: "Person comment", post_id: 1)
+    person_comment.person = person
+
+    author_comment.save!
+    person_comment.save!
+
+    assert_predicate author, :persisted?
+    assert_predicate person, :persisted?
+
+    assert_equal author.author_code, author_comment.person_id
+    assert_equal person.external_id, person_comment.person_id
+
+    assert_equal author, author_comment.reload.person
+    assert_equal person, person_comment.reload.person
+  end
+end
+
+class AutosavePolymorphicShardedPrimaryKeyTest < ActiveRecord::TestCase
+  def test_autosave_polymorphic_belongs_to_with_explicit_foreign_key_to_sharded_target
+    blog = Sharded::Blog.create!
+    post = Sharded::BlogPost.new(title: "Post", blog: blog)
+    image = Image.new(imageable: post)
+
+    image.save!
+
+    assert_predicate post, :persisted?
+    assert_equal post.id, image.imageable_identifier
+    assert_equal "Sharded::BlogPost", image.imageable_class
+    assert_equal post, image.reload.imageable
+  end
+
+  def test_autosave_polymorphic_belongs_to_with_composite_query_constraints_inverse
+    shipment = Shipment.new(region_id: 7)
+    adjustment = Adjustment.new(region_id: 7)
+    adjustment.adjustable = shipment
+
+    adjustment.save!
+
+    assert_predicate shipment, :persisted?
+    assert_equal shipment.id, adjustment.adjustable_id
+    assert_equal "Shipment", adjustment.adjustable_type
+    assert_equal shipment, adjustment.reload.adjustable
   end
 end

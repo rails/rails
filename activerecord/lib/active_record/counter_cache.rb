@@ -6,8 +6,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_counter_cache_columns, instance_accessor: false, default: []
-      class_attribute :counter_cached_association_names, instance_writer: false, default: []
+      class_attribute :_counter_cache_columns, instance_accessor: false, default: [].freeze
+      class_attribute :counter_cached_association_names, instance_writer: false, default: [].freeze
     end
 
     module ClassMethods
@@ -35,15 +35,9 @@ module ActiveRecord
       #   # attributes.
       #   Post.reset_counters(1, :comments, touch: true)
       def reset_counters(id, *counters, touch: nil)
-        ids = if composite_primary_key?
-          if id.first.is_a?(Array)
-            id
-          else
-            [id]
-          end
-        else
-          Array(id)
-        end
+        pk = primary_key_definition
+        ids = pk.expects_multiple_ids?(id) ? id : [id]
+        ids = ids.map { |id_value| pk.cast(id_value, self) }
 
         updates = Hash.new { |h, k| h[k] = {} }
 
@@ -61,9 +55,9 @@ module ActiveRecord
           end
 
           counter_association = counter_association.to_sym
-          foreign_key  = has_many_association.foreign_key.to_s
+          foreign_key  = has_many_association.foreign_key
           child_class  = has_many_association.klass
-          reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
+          reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
 
           counts =
@@ -138,7 +132,8 @@ module ActiveRecord
       #   #    `updated_at` = '2016-10-13T09:59:23-05:00'
       #   #  WHERE id IN (10, 15)
       def update_counters(id, counters)
-        id = [id] if composite_primary_key? && id.is_a?(Array) && !id[0].is_a?(Array)
+        pk = primary_key_definition
+        id = [id] if pk.composite? && id.is_a?(Array) && !pk.expects_multiple_ids?(id)
         unscoped.where!(primary_key => id).update_counters(counters)
       end
 
@@ -194,7 +189,7 @@ module ActiveRecord
       #   DiscussionBoard.decrement_counter(:posts_count, 5)
       #
       #   # Decrement the posts_count column for the record with an id of 5
-      #   by a specific amount.
+      #   # by a specific amount.
       #   DiscussionBoard.decrement_counter(:posts_count, 5, by: 3)
       #
       #   # Decrement the posts_count column for the record with an id of 5
@@ -217,7 +212,7 @@ module ActiveRecord
           name.to_sym
         end
 
-        self.counter_cached_association_names |= association_names
+        self.counter_cached_association_names = (counter_cached_association_names | association_names).freeze
       end
     end
 
@@ -239,17 +234,13 @@ module ActiveRecord
           counter_cached_association_names.each do |association_name|
             association = association(association_name)
 
-            unless destroyed_by_association && _foreign_keys_equal?(destroyed_by_association.foreign_key, association.reflection.foreign_key)
+            unless destroyed_by_association && destroyed_by_association.foreign_key == association.reflection.foreign_key
               association.decrement_counters
             end
           end
         end
 
         affected_rows
-      end
-
-      def _foreign_keys_equal?(fkey1, fkey2)
-        fkey1 == fkey2 || Array(fkey1).map(&:to_sym) == Array(fkey2).map(&:to_sym)
       end
   end
 end

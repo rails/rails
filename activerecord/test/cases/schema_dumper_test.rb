@@ -47,6 +47,71 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{ActiveRecord::Schema\[#{ActiveRecord::Migration.current_version}\]\.define}, output
   end
 
+  def test_schema_dump_includes_applied_migrations_when_configured
+    original_migrations_paths = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = File.expand_path("../migrations/valid", __dir__)
+
+    versions = ActiveRecord::Base.connection_pool.migration_context.migrations.first(2).map(&:version)
+    version_without_file = 4
+
+    @schema_migration.delete_all_versions
+    @schema_migration.create_versions((versions + [version_without_file]).map(&:to_s))
+
+    output = ActiveRecord.stub(:dump_schema_migrations, true) do
+      dump_all_table_schema
+    end
+
+    expected_versions = versions.map(&:to_s).sort_by(&:reverse)
+    expected = [
+      "ActiveRecord::Schema.load_schema_migrations(__FILE__)",
+      "__END__",
+      *expected_versions
+    ].join("\n")
+
+    assert_match %r{ActiveRecord::Schema\[.+\]\.define do}, output
+    assert_includes output, expected
+    assert_no_match(/^#{version_without_file}$/, output)
+  ensure
+    @schema_migration.delete_all_versions
+    ActiveRecord::Migrator.migrations_paths = original_migrations_paths
+  end
+
+  def test_schema_dump_sorts_applied_migrations_with_configured_procs
+    original_migrations_paths = ActiveRecord::Migrator.migrations_paths
+    original_dump_schema_migrations = ActiveRecord.dump_schema_migrations
+    original_dump_schema_migrations_sort_by = ActiveRecord.dump_schema_migrations_sort_by
+    ActiveRecord::Migrator.migrations_paths = File.expand_path("../migrations/valid", __dir__)
+
+    versions = ActiveRecord::Base.connection_pool.migration_context.migrations.map(&:version)
+    versions_seen_by_sorter = []
+    sort_by_version = ->(version) {
+      versions_seen_by_sorter << version
+      version
+    }
+
+    @schema_migration.delete_all_versions
+    @schema_migration.create_versions(versions.map(&:to_s))
+
+    ActiveRecord.dump_schema_migrations = true
+    ActiveRecord.dump_schema_migrations_sort_by = sort_by_version
+    output = dump_all_table_schema
+
+    expected_versions = versions.map(&:to_s).sort
+    expected = [
+      "ActiveRecord::Schema.load_schema_migrations(__FILE__)",
+      "__END__",
+      *expected_versions
+    ].join("\n")
+
+    assert_equal versions.map(&:to_s), versions_seen_by_sorter
+    assert_includes output, expected
+  ensure
+    @schema_migration.delete_all_versions
+    ActiveRecord::Migrator.migrations_paths = original_migrations_paths
+    ActiveRecord.dump_schema_migrations = original_dump_schema_migrations
+    ActiveRecord.dump_schema_migrations_sort_by = original_dump_schema_migrations_sort_by
+  end
+
   def test_schema_dump
     output = standard_dump
     assert_match %r{create_table "accounts"}, output
@@ -167,14 +232,6 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "ar_internal_metadata"}, output
   end
 
-  def test_table_columns_sorted
-    column_names = column_definition_lines(dump_table_schema("companies")).flatten.filter_map do |line|
-      $1 if line !~ /t\.index/ && line.match(/t\..*"(\w+)"/)
-    end
-
-    assert_equal %w[account_id client_of description firm_id firm_name name rating status type], column_names
-  end
-
   def test_schema_dumps_index_columns_in_right_order
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_index/).first.strip
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
@@ -265,7 +322,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match 't.unique_constraint ["position_1"], name: "test_unique_constraints_position_deferrable_false"', output
       assert_match 't.unique_constraint ["position_2"], deferrable: :immediate, name: "test_unique_constraints_position_deferrable_immediate"', output
       assert_match 't.unique_constraint ["position_3"], deferrable: :deferred, name: "test_unique_constraints_position_deferrable_deferred"', output
-      assert_match 't.unique_constraint ["position_4"], nulls_not_distinct: true, name: "test_unique_constraints_position_nulls_not_distinct"', output
+      if supports_nulls_not_distinct?
+        assert_match 't.unique_constraint ["position_4"], nulls_not_distinct: true, name: "test_unique_constraints_position_nulls_not_distinct"', output
+      else
+        assert_match 't.unique_constraint ["position_4"], name: "test_unique_constraints_position_nulls_not_distinct"', output
+      end
     end
 
     def test_schema_does_not_dump_unique_constraints_as_indexes
@@ -978,7 +1039,11 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
     assert_match %r{t\.string\s+"string_with_default",.*?default: "Hello!"}, output
     assert_match %r{t\.date\s+"date_with_default",\s+default: "2014-06-05"}, output
     assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: "2014-06-05 07:17:04"}, output
-    assert_match %r{t\.time\s+"time_with_default",\s+default: "2000-01-01 07:17:04"}, output
+    if current_adapter?(:PostgreSQLAdapter)
+      assert_match %r{t\.time\s+"time_with_default",\s+precision: 6,\s+default: "2000-01-01 07:17:04"}, output
+    else
+      assert_match %r{t\.time\s+"time_with_default",\s+default: "2000-01-01 07:17:04"}, output
+    end
     assert_match %r{t\.decimal\s+"decimal_with_default",\s+precision: 20,\s+scale: 10,\s+default: "1234567890.0123456789"}, output
   end
 

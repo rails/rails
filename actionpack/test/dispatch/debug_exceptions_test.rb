@@ -128,6 +128,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         rescue Exception
           raise ActionView::Template::Error.new(template)
         end
+      when "/xss_error"
+        raise "x</script><script>alert(1)</script>"
       else
         raise "puke!"
       end
@@ -624,7 +626,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal 3, log.lines.count
   end
 
-  test "doesn't log the framework backtrace when error type is a invalid mime type" do
+  test "doesn't log the framework backtrace when error type is an invalid mime type" do
     @app = ProductionApp
 
     output = StringIO.new
@@ -978,6 +980,16 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_select "#container code", /undefined local variable or method ['`]string”'/
   end
 
+  test "exception message is escaped in copy-to-clipboard script tag" do
+    @app = DevelopmentApp
+
+    get "/xss_error", headers: { "action_dispatch.show_exceptions" => :all }
+    assert_response 500
+
+    assert_no_match "<script>alert(1)</script>", body
+    assert_match "&lt;script&gt;alert(1)&lt;/script&gt;", body
+  end
+
   test "includes copy button in error pages" do
     @app = DevelopmentApp
 
@@ -985,7 +997,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_response 500
 
     assert_match %r{<button onclick="copyAsText\.bind\(this\)\(\)">Copy as text</button>}, body
-    assert_match %r{<script type="text/plain" id="exception-message-for-copy">.*RuntimeError \(puke}m, body
+    assert_match %r{<textarea hidden id="exception-message-for-copy">.*RuntimeError \(puke}m, body
   end
 
   test "copy button not shown for XHR requests" do
@@ -998,7 +1010,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_no_match %r{<button}, body
-    assert_no_match %r{<script}, body
+    assert_no_match %r{<textarea}, body
   end
 
   test "exception message includes causes for nested exceptions" do
@@ -1006,35 +1018,29 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/nested_exceptions", headers: { "action_dispatch.show_exceptions" => :all }
 
-    script_content = body[%r{<script type="text/plain" id="exception-message-for-copy">(.*?)</script>}m, 1]
-    assert_match %r{Third error}, script_content
-    assert_match %r{Caused by:.*Second error}m, script_content
+    content = body[%r{<textarea hidden id="exception-message-for-copy">(.*?)</textarea>}m, 1]
+    assert_match %r{Third error}, content
+    assert_match %r{Caused by:.*Second error}m, content
   end
 
   test "translate_path_for_editor returns original path when RAILS_HOST_APP_PATH is not set" do
     debug_view = ActionDispatch::DebugView.new({})
     path = "/workspaces/rails/app/models/user.rb"
 
-    original_env = ENV["RAILS_HOST_APP_PATH"]
-    ENV.delete("RAILS_HOST_APP_PATH")
-
-    result = debug_view.send(:translate_path_for_editor, path)
-    assert_equal path, result
-  ensure
-    ENV["RAILS_HOST_APP_PATH"] = original_env
+    stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, nil) do
+      result = debug_view.send(:translate_path_for_editor, path)
+      assert_equal path, result
+    end
   end
 
   test "translate_path_for_editor returns original path when RAILS_HOST_APP_PATH is empty string" do
     debug_view = ActionDispatch::DebugView.new({})
     path = "/workspaces/rails/app/models/user.rb"
 
-    original_env = ENV["RAILS_HOST_APP_PATH"]
-    ENV["RAILS_HOST_APP_PATH"] = ""
-
-    result = debug_view.send(:translate_path_for_editor, path)
-    assert_equal path, result
-  ensure
-    ENV["RAILS_HOST_APP_PATH"] = original_env
+    stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "") do
+      result = debug_view.send(:translate_path_for_editor, path)
+      assert_equal path, result
+    end
   end
 
   test "translate_path_for_editor translates paths within Rails.root when RAILS_HOST_APP_PATH is set" do
@@ -1043,13 +1049,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     Rails.stub :root, Pathname.new("/workspaces/rails") do
       path = "/workspaces/rails/app/models/user.rb"
 
-      original_env = ENV["RAILS_HOST_APP_PATH"]
-      ENV["RAILS_HOST_APP_PATH"] = "/host/myapp"
-
-      result = debug_view.send(:translate_path_for_editor, path)
-      assert_equal "/host/myapp/app/models/user.rb", result
-    ensure
-      ENV["RAILS_HOST_APP_PATH"] = original_env
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal "/host/myapp/app/models/user.rb", result
+      end
     end
   end
 
@@ -1059,13 +1062,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     Rails.stub :root, Pathname.new("/workspaces/rails/") do
       path = "/workspaces/rails/app/controllers/application_controller.rb"
 
-      original_env = ENV["RAILS_HOST_APP_PATH"]
-      ENV["RAILS_HOST_APP_PATH"] = "/host/myapp"
-
-      result = debug_view.send(:translate_path_for_editor, path)
-      assert_equal "/host/myapp/app/controllers/application_controller.rb", result
-    ensure
-      ENV["RAILS_HOST_APP_PATH"] = original_env
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal "/host/myapp/app/controllers/application_controller.rb", result
+      end
     end
   end
 
@@ -1075,13 +1075,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     Rails.stub :root, Pathname.new("/workspaces/rails") do
       path = "/usr/lib/ruby/some_gem.rb"
 
-      original_env = ENV["RAILS_HOST_APP_PATH"]
-      ENV["RAILS_HOST_APP_PATH"] = "/host/myapp"
-
-      result = debug_view.send(:translate_path_for_editor, path)
-      assert_equal path, result
-    ensure
-      ENV["RAILS_HOST_APP_PATH"] = original_env
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal path, result
+      end
     end
   end
 
@@ -1092,13 +1089,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       # Path starts with Rails.root but isn't actually a child
       path = "/workspaces/app2/models/user.rb"
 
-      original_env = ENV["RAILS_HOST_APP_PATH"]
-      ENV["RAILS_HOST_APP_PATH"] = "/host/myapp"
-
-      result = debug_view.send(:translate_path_for_editor, path)
-      assert_equal path, result
-    ensure
-      ENV["RAILS_HOST_APP_PATH"] = original_env
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal path, result
+      end
     end
   end
 
@@ -1108,13 +1102,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     Rails.stub :root, Pathname.new("/workspaces/rails") do
       path = "/workspaces/rails/app/views/layouts/application.html.erb"
 
-      original_env = ENV["RAILS_HOST_APP_PATH"]
-      ENV["RAILS_HOST_APP_PATH"] = "/Users/developer/projects/myapp"
-
-      result = debug_view.send(:translate_path_for_editor, path)
-      assert_equal "/Users/developer/projects/myapp/app/views/layouts/application.html.erb", result
-    ensure
-      ENV["RAILS_HOST_APP_PATH"] = original_env
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/Users/developer/projects/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal "/Users/developer/projects/myapp/app/views/layouts/application.html.erb", result
+      end
     end
   end
 
@@ -1126,14 +1117,12 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     rails_backup = Rails
     Object.send(:remove_const, :Rails)
 
-    original_env = ENV["RAILS_HOST_APP_PATH"]
-    ENV["RAILS_HOST_APP_PATH"] = "/host/myapp"
-
-    result = debug_view.send(:translate_path_for_editor, path)
-    assert_equal path, result
+    stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+      result = debug_view.send(:translate_path_for_editor, path)
+      assert_equal path, result
+    end
   ensure
-    Object.const_set(:Rails, rails_backup)
-    ENV["RAILS_HOST_APP_PATH"] = original_env
+    ::Rails = rails_backup
   end
 
   test "translate_path_for_editor returns original path when Rails.root is nil" do
@@ -1141,13 +1130,10 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     path = "/workspaces/rails/app/models/user.rb"
 
     Rails.stub :root, nil do
-      original_env = ENV["RAILS_HOST_APP_PATH"]
-      ENV["RAILS_HOST_APP_PATH"] = "/host/myapp"
-
-      result = debug_view.send(:translate_path_for_editor, path)
-      assert_equal path, result
-    ensure
-      ENV["RAILS_HOST_APP_PATH"] = original_env
+      stub_const(ActionDispatch::DebugView, :HOST_APP_PATH, "/host/myapp") do
+        result = debug_view.send(:translate_path_for_editor, path)
+        assert_equal path, result
+      end
     end
   end
 end

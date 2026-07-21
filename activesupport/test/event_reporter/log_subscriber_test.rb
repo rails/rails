@@ -2,8 +2,10 @@
 
 require_relative "../abstract_unit"
 require "active_support/log_subscriber/test_helper"
+require "active_support/testing/ractors_assertions"
 
 class ActiveSupport::EventReporter::LogSubscriberTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
   class MyLogSubscriber < ActiveSupport::EventReporter::LogSubscriber
     self.namespace = "test"
 
@@ -93,6 +95,10 @@ class ActiveSupport::EventReporter::LogSubscriberTest < ActiveSupport::TestCase
       ActiveSupport.event_reporter.notify("no_namespace_info_only")
       assert_equal [], @logger.logged(:info)
     end
+  end
+
+  test "MyLogSubscriber.event_log_level is ractor safe" do
+    assert_ractor_shareable MyLogSubscriber.log_levels
   end
 
   private

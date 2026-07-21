@@ -66,14 +66,21 @@ module ActiveSupport
         "#<#{self.class} (#{total_patterns} patterns)>"
       end
 
-      def subscribe(pattern = nil, callable = nil, monotonic: false, &block)
+      def subscribe(pattern = nil, callable = nil, monotonic: false, prepend: false, &block)
         subscriber = Subscribers.new(pattern, callable || block, monotonic)
         @mutex.synchronize do
           case pattern
           when String
-            @string_subscribers[pattern] << subscriber
+            if prepend
+              @string_subscribers[pattern].unshift(subscriber)
+            else
+              @string_subscribers[pattern] << subscriber
+            end
             clear_cache(pattern)
           when NilClass, Regexp
+            if prepend
+              raise ArgumentError, "Cannot prepend Regex subscribers"
+            end
             @other_subscribers << subscriber
             clear_cache
           else

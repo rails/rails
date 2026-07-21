@@ -31,7 +31,7 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "normalizes details on initialization" do
-    assert_equal Mime::SET.to_a, @lookup_context.formats
+    assert_equal Mime.symbols, @lookup_context.formats
     assert_equal :en, @lookup_context.locale
   end
 
@@ -52,12 +52,12 @@ class LookupContextTest < ActiveSupport::TestCase
 
   test "handles */* formats" do
     @lookup_context.formats = ["*/*"]
-    assert_equal Mime::SET.to_a, @lookup_context.formats
+    assert_equal Mime.symbols, @lookup_context.formats
   end
 
   test "handles explicitly defined */* formats fallback to :js" do
     @lookup_context.formats = [:js, Mime::ALL]
-    assert_equal [:js, *Mime::SET.symbols].uniq, @lookup_context.formats
+    assert_equal [:js, *Mime.symbols].uniq, @lookup_context.formats
   end
 
   test "adds :html fallback to :js formats" do
@@ -199,6 +199,22 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 end
 
+if RUBY_VERSION >= "4.0"
+  class LookupContextRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+
+    test "view_context_class is Ractor-shareable" do
+      @original_experimental_warning = Warning[:experimental]
+      Warning[:experimental] = false
+      ActionView::LookupContext.view_context_class # needs to be eager-loaded to be ractor-shareable
+      assert_same ActionView::LookupContext.view_context_class,
+        Ractor.new { ActionView::LookupContext.view_context_class }.value
+    ensure
+      Warning[:experimental] = @original_experimental_warning
+    end
+  end
+end
+
 class TestMissingTemplate < ActiveSupport::TestCase
   def setup
     @lookup_context = ActionView::LookupContext.new("/Path/to/views", {})
@@ -206,14 +222,14 @@ class TestMissingTemplate < ActiveSupport::TestCase
 
   test "if no template was found we get a helpful error message including the inheritance chain" do
     e = assert_raise ActionView::MissingTemplate do
-      @lookup_context.find("foo", %w(parent child))
+      @lookup_context.find!("foo", %w(parent child))
     end
     assert_match %r{Missing template parent/foo, child/foo with .*\n\nSearched in:\n  \* "/Path/to/views"\n}, e.message
   end
 
   test "if no partial was found we get a helpful error message including the inheritance chain" do
     e = assert_raise ActionView::MissingTemplate do
-      @lookup_context.find("foo", %w(parent child), true)
+      @lookup_context.find!("foo", %w(parent child), true)
     end
     assert_match %r{Missing partial parent/_foo, child/_foo with .*\n\nSearched in:\n  \* "/Path/to/views"\n}, e.message
   end
@@ -221,7 +237,7 @@ class TestMissingTemplate < ActiveSupport::TestCase
   test "if a single prefix is passed as a string and the lookup fails, MissingTemplate accepts it" do
     e = assert_raise ActionView::MissingTemplate do
       details = { handlers: [], formats: [], variants: [], locale: [] }
-      @lookup_context.view_paths.find("foo", "parent", true, details, nil, [])
+      @lookup_context.view_paths.find!("foo", "parent", true, details, nil, [])
     end
     assert_match %r{Missing partial parent/_foo with .*\n\nSearched in:\n  \* "/Path/to/views"\n}, e.message
   end
