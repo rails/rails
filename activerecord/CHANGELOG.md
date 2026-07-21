@@ -1,3 +1,8 @@
+*   Fix duplicated record creation when using nested attributes with `create_with`
+    on an association.
+
+    *Jerome Dalbert*
+
 *   Support dumping `schema_migrations` in `db/schema.rb`.
 
     When the new `ActiveRecord.dump_schema_migrations` flag is true, `:ruby`
