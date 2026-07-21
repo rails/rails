@@ -1,3 +1,13 @@
+*   Fix route recognition still matching routes that were removed by redrawing
+    a route set as empty.
+
+    `Journey::Routes#clear` did not invalidate the memoized recognition data
+    (`ast` / `simulator`); only `add_route` did. After `RouteSet#draw` cleared
+    the set, a draw block that added no routes left the stale recognition data
+    in place, so previously drawn routes were still recognized.
+
+    *Kenta Ishizaki*
+
 *   Deprecate `ActionDispatch::Cookies::HTTP_HEADER`.
 
     Use `Rack::SET_COOKIE` instead.
