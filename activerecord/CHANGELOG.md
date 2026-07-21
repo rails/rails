@@ -1,3 +1,23 @@
+*   Allow connection adapters to define their own migration version compatibility.
+
+    A connection adapter resolves a migration's declared version
+    (e.g. `Migration[6.1]`) to one of the new subclasses of
+    `ActiveRecord::Migration::CompatibilityBehavior` through its
+    `compatibility_behavior_for(migration_class)` hook; a behavior covers
+    migrations declaring its own version and older, and adjusts schema
+    operations to how that version ran them. The bundled adapters now
+    express their compatibility this way, and a third-party adapter can
+    define its own behaviors, or inherit a bundled adapter's, instead of
+    patching `ActiveRecord::Migration::Compatibility`; adapters that
+    define none get a no-op default and behave as before.
+
+    Subclasses of bundled adapters now inherit the parent's behaviors,
+    which the previous exact-string `adapter_name` checks never applied
+    to subclasses. Review the inherited adjustments and override
+    `compatibility_behavior_for` where they do not fit your database.
+
+    *Yasuo Honda*
+
 *   Support dumping `schema_migrations` in `db/schema.rb`.
 
     When the new `ActiveRecord.dump_schema_migrations` flag is true, `:ruby`

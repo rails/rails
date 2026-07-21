@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_record/connection_adapters/mysql/compatibility_behavior"
+
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
@@ -123,6 +125,10 @@ module ActiveRecord
 
         def update_table_definition(table_name, base)
           MySQL::Table.new(table_name, base)
+        end
+
+        def compatibility_behavior_for(migration_class)
+          MySQL::CompatibilityBehavior.for(migration_class)
         end
 
         def create_schema_dumper(options)

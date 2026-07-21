@@ -574,6 +574,7 @@ module ActiveRecord
     autoload :JoinTable, "active_record/migration/join_table"
     autoload :ExecutionStrategy, "active_record/migration/execution_strategy"
     autoload :DefaultStrategy, "active_record/migration/default_strategy"
+    autoload :CompatibilityBehavior, "active_record/migration/compatibility_behavior"
 
     # This must be defined before the inherited hook, below
     class Current < Migration # :nodoc:
@@ -609,7 +610,22 @@ module ActiveRecord
         end
       end
 
+      # Behavior modules are prepended before the framework modules and so
+      # resolve after them: the framework adjusts options first and behaviors
+      # run closest to execution, matching migration-level dispatch. Within
+      # the framework the newest version's module resolves first; within
+      # behaviors the oldest version's resolves first, its `super` reaching
+      # the newer ones as in the behavior classes' own inheritance.
+      # `t` is a TableDefinition for create_table and a Table for change_table.
       def compatible_table_definition(t)
+        compatibility_behavior.class.ancestors.reverse_each do |behavior_class|
+          next unless behavior_class <= CompatibilityBehavior && behavior_class.const_defined?(:TableDefinition, false)
+          t.singleton_class.prepend(behavior_class.const_get(:TableDefinition, false))
+        end
+        (self.class.ancestors & Compatibility.version_classes).each do |version_class|
+          next unless version_class.const_defined?(:TableDefinition, false)
+          t.singleton_class.prepend(version_class.const_get(:TableDefinition, false))
+        end
         t
       end
     end
@@ -831,6 +847,22 @@ module ActiveRecord
       @execution_strategy ||= (connection.migration_strategy || ActiveRecord.migration_strategy).new(self)
     end
 
+    def compatibility_behavior # :nodoc:
+      @compatibility_behavior ||= connection.compatibility_behavior_for(self.class).new(self)
+    end
+
+    def execute_operation(method, *arguments, &block) # :nodoc:
+      # Logging sits at the execution point so compatibility adjustments
+      # show in the verbose output; table names display as written in the
+      # migration, not as the proper_table_name the operation receives.
+      display_arguments = arguments.dup
+      @written_table_names&.each { |index, name| display_arguments[index] = name }
+      say_with_time("#{method}(#{format_arguments(display_arguments)})") do
+        execution_strategy.send(method, *arguments, &block)
+      end
+    end
+    ruby2_keywords(:execute_operation)
+
     self.verbose = true
     # instantiate the delegate object after initialize is defined
     self.delegate = new
@@ -1019,6 +1051,7 @@ module ActiveRecord
     ensure
       @connection = nil
       @execution_strategy = nil
+      @compatibility_behavior = nil
     end
 
     def write(text = "")
@@ -1065,19 +1098,23 @@ module ActiveRecord
     end
 
     def method_missing(method, *arguments, &block)
-      say_with_time "#{method}(#{format_arguments(arguments)})" do
-        unless connection.respond_to? :revert
-          unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
-            arguments[0] = proper_table_name(arguments.first, table_name_options)
-            if method == :rename_table ||
-              (method == :remove_foreign_key && !arguments.second.is_a?(Hash))
-              arguments[1] = proper_table_name(arguments.second, table_name_options)
-            end
+      unless connection.respond_to? :revert
+        unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
+          @written_table_names = { 0 => arguments.first }
+          arguments[0] = proper_table_name(arguments.first, table_name_options)
+          if method == :rename_table ||
+            (method == :remove_foreign_key && !arguments.second.is_a?(Hash))
+            @written_table_names[1] = arguments.second
+            arguments[1] = proper_table_name(arguments.second, table_name_options)
           end
         end
-        return super unless execution_strategy.respond_to?(method)
-        execution_strategy.send(method, *arguments, &block)
       end
+      return super unless execution_strategy.respond_to?(method)
+      # A behavior method's `super` lands in the behavior base, which
+      # forwards to execute_operation.
+      compatibility_behavior.public_send(method, *arguments, &block)
+    ensure
+      @written_table_names = nil
     end
     ruby2_keywords(:method_missing)
 
