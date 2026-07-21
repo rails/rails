@@ -64,9 +64,6 @@ module TestHelpers
       end
     end
 
-    def framework_path
-      RAILS_FRAMEWORK_ROOT
-    end
 
     def rails_root
       app_path
