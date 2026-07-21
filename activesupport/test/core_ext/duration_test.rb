@@ -76,6 +76,11 @@ class DurationTest < ActiveSupport::TestCase
     assert_in_delta 12.0, 1.year.in_months
   end
 
+  def test_in_quarters
+    assert_in_delta 1.0, 3.months.in_quarters
+    assert_in_delta 4.0, 1.year.in_quarters
+  end
+
   def test_in_years
     assert_in_delta 0.082, 30.days.in_years
     assert_in_delta 1.0, 365.days.in_years
