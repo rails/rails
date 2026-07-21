@@ -541,12 +541,6 @@ module ActionController # :nodoc:
         protection_strategy.handle_unverified_request
       end
 
-      def cross_origin_request?
-        !valid_request_origin? ||
-          sec_fetch_site_value == "cross-site" ||
-          using_header_only_for_forgery_protection?
-      end
-
       def unverified_request_warning_message
         if !valid_request_origin?
           "HTTP Origin header (#{request.origin}) didn't match request.base_url (#{request.base_url})"
