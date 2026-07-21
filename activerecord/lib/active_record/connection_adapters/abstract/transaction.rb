@@ -9,12 +9,23 @@ module ActiveRecord
       def initialize(state = nil)
         @state = state
         @children = nil
+        @parent = nil
       end
 
       def add_child(state)
+        state.parent = self
         @children ||= []
         @children << state
       end
+
+      def root
+        @parent ? @parent.root : self
+      end
+
+      protected
+        attr_writer :parent
+
+      public
 
       def finalized?
         @state

@@ -5,6 +5,7 @@ module ActiveRecord
   module Transactions
     extend ActiveSupport::Concern
     ACTIONS = [:create, :destroy, :update].freeze # :nodoc:
+    TransactionChangeFrame = Struct.new(:owner_state, :root_state, :attributes, :persisted) # :nodoc:
 
     included do
       define_callbacks :commit, :rollback,
@@ -419,8 +420,8 @@ module ActiveRecord
       end
     ensure
       @_full_rollback = false
-      restore_transaction_record_state(force_restore_state)
-      clear_transaction_record_state
+      transaction_state_count = restore_transaction_record_state(force_restore_state)
+      clear_transaction_record_state(transaction_state_count)
       @_trigger_update_callback = @_trigger_destroy_callback = false if force_restore_state
     end
 
@@ -438,7 +439,7 @@ module ActiveRecord
 
           implicit_persistence_transaction(connection) do
             add_to_transaction(ensure_finalize || has_transactional_callbacks?)
-            remember_transaction_record_state
+            remember_transaction_record_state(connection.current_transaction.state)
 
             status = yield
             refresh_transaction_record_state if status
@@ -467,19 +468,29 @@ module ActiveRecord
       end
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
-      def remember_transaction_record_state
+      def remember_transaction_record_state(owner_state = nil)
+        # Zero-argument compatibility remains until bulk persistence callers migrate to the staged session API.
+        owner_state ||= self.class.with_connection { |connection| connection.current_transaction.state }
+        # The next rollout stage uses root identity to prevent one bulk session from mixing transactions.
+        root_state = owner_state&.root
+
         @_start_transaction_state ||= {
           id: id,
           new_record: @new_record,
           previously_new_record: @previously_new_record,
           destroyed: @destroyed,
           attributes: @attributes,
-          attributes_stack: [],
+          transaction_frames: [],
           frozen?: frozen?,
           level: 0
         }
         @_start_transaction_state[:level] += 1
-        @_start_transaction_state[:attributes_stack] << @attributes.deep_dup
+        @_start_transaction_state[:transaction_frames] << TransactionChangeFrame.new(
+          owner_state,
+          root_state,
+          @attributes.deep_dup,
+          false,
+        )
 
         if _committed_already_called
           @_new_record_before_last_commit = false
@@ -488,14 +499,14 @@ module ActiveRecord
         end
       end
 
-      # After a successful save, update the top of the attributes stack to
-      # capture the actual persisted state (including values set by callbacks
-      # like timestamps). This keeps the stack accurate for computing
-      # transaction_changes without modifying @attributes on rollback.
+      # After a successful save, update the top transaction frame to capture the actual persisted state.
       def refresh_transaction_record_state
         return unless @_start_transaction_state
-        stack = @_start_transaction_state[:attributes_stack]
-        stack[-1] = @attributes.deep_dup if stack && stack.any?
+        frame = @_start_transaction_state[:transaction_frames]&.last
+        return unless frame
+
+        frame.attributes = @attributes.deep_dup
+        frame.persisted = true
       end
 
       # Compute cumulative changes by comparing the initial transaction
@@ -531,15 +542,13 @@ module ActiveRecord
 
       # Cache the transaction diff for +transaction_changes+ / +after_commit+.
       #
-      # Uses the attributes stack (last committed snapshot) rather than
-      # live +@attributes+ so that changes from rolled-back savepoints are
-      # correctly excluded. By commit time +refresh_transaction_record_state+
-      # has already updated the stack with post-save attributes.
+      # Uses the last persisted transaction frame rather than live +@attributes+ so rolled-back changes are excluded.
       def _compute_committed_changes
         return if @_full_rollback
         return unless @_start_transaction_state
 
-        committed = @_start_transaction_state[:attributes_stack]&.last || @attributes
+        committed_frame = @_start_transaction_state[:transaction_frames]&.reverse_each&.find(&:persisted)
+        committed = committed_frame&.attributes || @attributes
         @_committed_changes = _changes_between(@_start_transaction_state[:attributes], committed)
       end
 
@@ -573,72 +582,84 @@ module ActiveRecord
       end
 
       # Clear the new record state and id of a record.
-      def clear_transaction_record_state
+      def clear_transaction_record_state(transaction_state_count = 1)
         return unless @_start_transaction_state
-        @_start_transaction_state[:level] -= 1
+        @_start_transaction_state[:level] -= transaction_state_count
         @_start_transaction_state = nil if @_start_transaction_state[:level] < 1
       end
 
       # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
       def restore_transaction_record_state(force_restore_state = false)
-        if restore_state = @_start_transaction_state
-          if force_restore_state || restore_state[:level] <= 1
-            @new_record = restore_state[:new_record]
-            @previously_new_record = restore_state[:previously_new_record]
-            @destroyed = restore_state[:destroyed]
-            locking_column = self.class.locking_column if self.class.locking_enabled?
-            @attributes = restore_state[:attributes].map do |attr|
-              if attr.name == locking_column
-                # The locking column is bumped by `_update_row` itself, not the caller, and
-                # `_update_row` writes the new value into the same `@attributes` object that
-                # the snapshot is holding a reference to (because the snapshot wraps the
-                # `AttributeSet` rather than deep-duping it). After a successful save,
-                # `forget_attribute_assignments` reassigns `@attributes`, so subsequent
-                # operations see a clean attribute, but the snapshot retains the dirty one.
-                # Forcibly rebuild the locking column attribute from its (still-correct)
-                # original value so the next save uses the pristine value in the WHERE
-                # clause and doesn't raise `StaleObjectError` after a rollback.
-                next attr.with_value_from_database(attr.original_value)
-              end
-              value = @attributes.fetch_value(attr.name)
-              attr = attr.with_value_from_user(value) if attr.value != value
-              attr
+        return 0 unless restore_state = @_start_transaction_state
+
+        frames = restore_state[:transaction_frames]
+        restore_entire_state = force_restore_state || frames.none? { |frame| transaction_frame_survived?(frame) }
+
+        if restore_entire_state
+          @new_record = restore_state[:new_record]
+          @previously_new_record = restore_state[:previously_new_record]
+          @destroyed = restore_state[:destroyed]
+          locking_column = self.class.locking_column if self.class.locking_enabled?
+          @attributes = restore_state[:attributes].map do |attr|
+            if attr.name == locking_column
+              # The locking column is bumped by `_update_row` itself, not the caller, and
+              # `_update_row` writes the new value into the same `@attributes` object that
+              # the snapshot is holding a reference to (because the snapshot wraps the
+              # `AttributeSet` rather than deep-duping it). After a successful save,
+              # `forget_attribute_assignments` reassigns `@attributes`, so subsequent
+              # operations see a clean attribute, but the snapshot retains the dirty one.
+              # Forcibly rebuild the locking column attribute from its (still-correct)
+              # original value so the next save uses the pristine value in the WHERE
+              # clause and doesn't raise `StaleObjectError` after a rollback.
+              next attr.with_value_from_database(attr.original_value)
             end
-            @mutations_from_database = nil
-            @mutations_before_last_save = nil
-            @_committed_changes = nil
-            @_start_transaction_state = nil
-            columns = self.class.primary_key_definition.columns
-            restored_id = Array(restore_state[:id])
-            if columns.map { |col| @attributes.fetch_value(col) } != restored_id
-              columns.zip(restored_id).each do |col, val|
-                @attributes.write_from_user(col, val)
-              end
-            end
-            freeze if restore_state[:frozen?]
-          else
-            restore_savepoint_attributes(restore_state)
-            if self.class.locking_enabled?
-              # Nested savepoint rollback. The full restore above only runs at the
-              # outermost level, but the same `_update_row` mutation that bumps the
-              # in-memory locking column happens for saves performed inside the
-              # savepoint too. Leaving the bumped value in memory after the
-              # savepoint reverts those rows raises `StaleObjectError` on the next
-              # save in the surrounding transaction. Reset just the locking column
-              # so subsequent saves can match the row that the savepoint restored.
-              locking_column = self.class.locking_column
-              attr = restore_state[:attributes][locking_column]
-              if attr
-                @attributes.write_from_database(locking_column, attr.original_value)
-              end
+            value = @attributes.fetch_value(attr.name)
+            attr = attr.with_value_from_user(value) if attr.value != value
+            attr
+          end
+          @mutations_from_database = nil
+          @mutations_before_last_save = nil
+          @_committed_changes = nil
+          @_start_transaction_state = nil
+          columns = self.class.primary_key_definition.columns
+          restored_id = Array(restore_state[:id])
+          if columns.map { |col| @attributes.fetch_value(col) } != restored_id
+            columns.zip(restored_id).each do |col, val|
+              @attributes.write_from_user(col, val)
             end
           end
+          freeze if restore_state[:frozen?]
+          0
+        else
+          removed_frames = restore_savepoint_attributes(restore_state)
+          if self.class.locking_enabled?
+            # Nested savepoint rollback. The full restore above only runs at the
+            # outermost level, but the same `_update_row` mutation that bumps the
+            # in-memory locking column happens for saves performed inside the
+            # savepoint too. Leaving the bumped value in memory after the
+            # savepoint reverts those rows raises `StaleObjectError` on the next
+            # save in the surrounding transaction. Reset just the locking column
+            # so subsequent saves can match the row that the savepoint restored.
+            locking_column = self.class.locking_column
+            attr = restore_state[:attributes][locking_column]
+            if attr
+              @attributes.write_from_database(locking_column, attr.original_value)
+            end
+          end
+          removed_frames
         end
       end
 
       def restore_savepoint_attributes(restore_state)
-        stack = restore_state[:attributes_stack]
-        stack.pop if stack && stack.size > 0
+        frames = restore_state[:transaction_frames]
+        original_size = frames.size
+        frames.reject! { |frame| !transaction_frame_survived?(frame) }
+        original_size - frames.size
+      end
+
+      def transaction_frame_survived?(frame)
+        state = frame.owner_state
+        !state || !(state.rolledback? || state.invalidated?)
       end
 
       # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.

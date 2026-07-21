@@ -1350,6 +1350,43 @@ class TransactionChangesInAfterCommitCallbacksTest < ActiveRecord::TestCase
     assert_nil topic.transaction_changes_log["author_name"]
   end
 
+  def test_transaction_changes_excludes_multiple_saves_from_rolled_back_savepoint
+    topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+
+    TopicWithTransactionChanges.transaction do
+      topic.update!(title: "Outer")
+
+      TopicWithTransactionChanges.transaction(requires_new: true) do
+        topic.update!(author_name: "Rolled back once")
+        topic.update!(author_name: "Rolled back twice")
+        raise ActiveRecord::Rollback
+      end
+    end
+
+    assert_equal "Alice", TopicWithTransactionChanges.where(id: topic.id).pick(:author_name)
+    assert_nil topic.transaction_changes_log["author_name"]
+  end
+
+  def test_transaction_changes_preserves_committed_savepoint_before_rolled_back_sibling
+    topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+
+    TopicWithTransactionChanges.transaction do
+      topic.update!(title: "Outer")
+
+      TopicWithTransactionChanges.transaction(requires_new: true) do
+        topic.update!(author_name: "Committed child")
+      end
+
+      TopicWithTransactionChanges.transaction(requires_new: true) do
+        topic.update!(author_name: "Rolled back once")
+        topic.update!(author_name: "Rolled back twice")
+        raise ActiveRecord::Rollback
+      end
+    end
+
+    assert_equal "Committed child", TopicWithTransactionChanges.where(id: topic.id).pick(:author_name)
+    assert_equal ["Alice", "Committed child"], topic.transaction_changes_log["author_name"]
+  end
 
   def test_transaction_changes_is_empty_inside_after_rollback_callback
     transaction_changes_in_rollback = nil
