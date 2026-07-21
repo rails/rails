@@ -440,12 +440,6 @@ module ActiveSupport
           end
         end
 
-        def serialize_entries(entries, **options)
-          entries.transform_values do |entry|
-            serialize_entry(entry, **options)
-          end
-        end
-
         def change_counter(key, amount, options)
           redis.node_for(key).with do |c|
             expires_in = options[:expires_in]
