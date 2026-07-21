@@ -137,13 +137,7 @@ class TestCaseTest < ActionController::TestCase
       send_file(__FILE__)
     end
 
-    def redirect_to_same_controller
-      redirect_to controller: "test", action: "test_uri", id: 5
-    end
 
-    def redirect_to_different_controller
-      redirect_to controller: "fail", id: 5
-    end
 
     def create
       head :created, location: "/resource"

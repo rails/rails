@@ -240,10 +240,6 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
-    def set_cookie_with_domain_all_as_string
-      cookies[:user_name] = { value: "rizwanreza", domain: "all" }
-      head :ok
-    end
 
     def set_cookie_with_domain_proc
       cookies[:user_name] = { value: "braindeaf", domain: proc { ".sub.www.nextangle.com" } }
@@ -260,10 +256,6 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
-    def delete_cookie_with_domain_all_as_string
-      cookies.delete(:user_name, domain: "all")
-      head :ok
-    end
 
     def set_cookie_with_domain_and_tld
       cookies[:user_name] = { value: "rizwanreza", domain: :all, tld_length: 2 }

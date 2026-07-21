@@ -63,9 +63,6 @@ class ActionPackAssertionsController < ActionController::Base
     render plain: "Mr. #{params[:name]}"
   end
 
-  def render_url
-    render html: "<div>#{url_for(action: 'flash_me', only_path: true)}</div>"
-  end
 
   def render_text_with_custom_content_type
     render body: "Hello!", content_type: Mime[:rss]
