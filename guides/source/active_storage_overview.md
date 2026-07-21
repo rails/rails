@@ -530,7 +530,11 @@ helpers generate the same permanent Rails URL but allow you to specify the file
 [Content-Disposition Header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Disposition).
 
 ```ruby
+# Derive the filename
 rails_blob_path(user.profile_photo, disposition: "attachment")
+
+# Specify the filename
+rails_blob_path(user.profile_photo, disposition: { disposition: "attachment", filename: "profile_photo.png" })
 ```
 
 WARNING: To prevent XSS attacks, Active Storage forces the Content-Disposition
