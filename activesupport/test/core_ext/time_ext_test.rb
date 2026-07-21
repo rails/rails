@@ -1326,19 +1326,25 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 0, time.sec
     assert_equal 125000, time.usec
     assert_equal(-18000, time.utc_offset)
+  end
 
+  def test_rfc3339_parse_with_missing_time
     exception = assert_raises(ArgumentError) do
       Time.rfc3339("1999-12-31")
     end
 
     assert_equal "invalid date", exception.message
+  end
 
+  def test_rfc3339_parse_with_missing_offset
     exception = assert_raises(ArgumentError) do
       Time.rfc3339("1999-12-31T19:00:00")
     end
 
     assert_equal "invalid date", exception.message
+  end
 
+  def test_rfc3339_parse_with_invalid_string
     exception = assert_raises(ArgumentError) do
       Time.rfc3339("foobar")
     end
