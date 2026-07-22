@@ -1145,14 +1145,6 @@ module ActiveRecord
         end
       end
 
-      def source_options
-        source_reflection.options
-      end
-
-      def through_options
-        through_reflection.options
-      end
-
       def check_validity!
         return if @validated
 
