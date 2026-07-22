@@ -262,12 +262,24 @@ module ActiveRecord
       def begin_isolated_db_transaction(isolation) # :nodoc:
         # From MySQL manual: The [SET TRANSACTION] statement applies only to the next single transaction performed within the session.
         # So we don't need to implement #reset_isolation_level
-        execute_batch(
-          ["SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "BEGIN"],
-          "TRANSACTION",
-          allow_retry: true,
-          materialize_transactions: false,
-        )
+        if multi_statements_enabled?
+          execute_batch(
+            ["SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "BEGIN"],
+            "TRANSACTION",
+            allow_retry: true,
+            materialize_transactions: false,
+          )
+        else
+          with_raw_connection(allow_retry: true, materialize_transactions: false) do
+            query_command(
+              "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}",
+              "TRANSACTION",
+              allow_retry: false,
+              materialize_transactions: false,
+            )
+            query_command("BEGIN", "TRANSACTION", allow_retry: false, materialize_transactions: false)
+          end
+        end
       end
 
       def commit_db_transaction # :nodoc:
@@ -845,6 +857,10 @@ module ActiveRecord
 
             m.alias_type %r(year)i, "integer"
             m.alias_type %r(bit)i,  "binary"
+
+            # AbstractAdapter's generic type map matches POINT and MULTIPOINT against
+            # %r(int)i and misreports them as integers, so override them here.
+            m.register_type %r(^(?:point|multipoint))i, Type::Value.new
           end
 
           def register_integer_type(mapping, key, limit:)

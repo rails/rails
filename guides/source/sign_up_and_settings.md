@@ -716,7 +716,7 @@ following:
 <%= button_to "Delete my account", settings_user_path, method: :delete, data: { turbo_confirm: "Are you sure? This cannot be undone." } %>
 ```
 
-And finally, we'll add a link to Account in the setting layout's sidebar.
+And finally, we'll add a link to Account in the settings layout's sidebar.
 
 ```erb#7
 <%= content_for :content do %>
@@ -1888,7 +1888,7 @@ class SettingsTest < ActionDispatch::IntegrationTest
     sign_in_as users(:one)
     get settings_profile_path
     assert_dom "h4", "Account Settings"
-    assert_not_dom "a", "Store Settings"
+    assert_not_dom "h4", "Store Settings"
   end
 
   test "admin settings nav" do

@@ -16,7 +16,7 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           assert_equal "fk_test_has_pk", fk.to_table
           assert_equal "fk_id", fk.column
           assert_equal "pk_id", fk.primary_key
-          assert_equal "fk_name", fk.name unless current_adapter?(:SQLite3Adapter)
+          assert_equal "fk_name", fk.name
         end
       end
 
@@ -203,7 +203,7 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           assert_equal "fk_test_has_pk", fk.to_table
           assert_equal "fk_id", fk.column
           assert_equal "pk_id", fk.primary_key
-          assert_equal "fk_name", fk.name unless current_adapter?(:SQLite3Adapter)
+          assert_equal "fk_name", fk.name
         end
 
         def test_add_foreign_key_inferes_column
@@ -217,7 +217,7 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           assert_equal "rockets", fk.to_table
           assert_equal "rocket_id", fk.column
           assert_equal "id", fk.primary_key
-          assert_equal "fk_rails_78146ddd2e", fk.name unless current_adapter?(:SQLite3Adapter)
+          assert_equal "fk_rails_78146ddd2e", fk.name
         end
 
         def test_add_foreign_key_with_column
@@ -231,7 +231,7 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           assert_equal "rockets", fk.to_table
           assert_equal "rocket_id", fk.column
           assert_equal "id", fk.primary_key
-          assert_equal "fk_rails_78146ddd2e", fk.name unless current_adapter?(:SQLite3Adapter)
+          assert_equal "fk_rails_78146ddd2e", fk.name
         end
 
         def test_add_foreign_key_with_if_not_exists_to_already_referenced_table
@@ -390,8 +390,6 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
         end
 
         def test_foreign_key_exists_by_name
-          skip if current_adapter?(:SQLite3Adapter)
-
           @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "fancy_named_fk"
 
           assert @connection.foreign_key_exists?(:astronauts, name: "fancy_named_fk")
@@ -404,11 +402,8 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
 
             assert t.foreign_key_exists?(column: "rocket_id")
             assert_not t.foreign_key_exists?(column: "star_id")
-
-            unless current_adapter?(:SQLite3Adapter)
-              assert t.foreign_key_exists?(name: "fancy_named_fk")
-              assert_not t.foreign_key_exists?(name: "other_fancy_named_fk")
-            end
+            assert t.foreign_key_exists?(name: "fancy_named_fk")
+            assert_not t.foreign_key_exists?(name: "other_fancy_named_fk")
           end
         end
 
@@ -466,8 +461,6 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
         end
 
         def test_remove_foreign_key_if_exists_with_non_matching_name
-          skip if current_adapter?(:SQLite3Adapter)
-
           @connection.add_foreign_key :astronauts, :rockets
           assert_equal 1, @connection.foreign_keys("astronauts").size
 
@@ -485,6 +478,21 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
             @connection.remove_foreign_key :astronauts, to_table: :moons, if_exists: true
           end
           assert_equal 1, @connection.foreign_keys("astronauts").size
+        end
+
+        def test_remove_foreign_key_by_name_removes_only_the_named_key
+          @connection.add_column :astronauts, :backup_rocket_id, :bigint
+
+          @connection.add_foreign_key :astronauts, :rockets, column: :rocket_id, name: "fk_rocket"
+          @connection.add_foreign_key :astronauts, :rockets, column: :backup_rocket_id, name: "fk_backup_rocket"
+
+          assert_equal 2, @connection.foreign_keys("astronauts").size
+
+          @connection.remove_foreign_key :astronauts, name: "fk_rocket"
+
+          remaining = @connection.foreign_keys(:astronauts)
+          assert_equal ["fk_backup_rocket"], remaining.map(&:name)
+          assert_equal ["backup_rocket_id"], remaining.map(&:column)
         end
 
         def test_remove_foreign_non_existing_foreign_key_raises
@@ -931,11 +939,7 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
 
         def test_schema_dumping_with_options
           output = dump_table_schema "fk_test_has_fk"
-          if current_adapter?(:SQLite3Adapter)
-            assert_match %r{\s+add_foreign_key "fk_test_has_fk", "fk_test_has_pk", column: "fk_id", primary_key: "pk_id"$}, output
-          else
-            assert_match %r{\s+add_foreign_key "fk_test_has_fk", "fk_test_has_pk", column: "fk_id", primary_key: "pk_id", name: "fk_name"$}, output
-          end
+          assert_match %r{\s+add_foreign_key "fk_test_has_fk", "fk_test_has_pk", column: "fk_id", primary_key: "pk_id", name: "fk_name"$}, output
         end
 
         def test_schema_dumping_with_custom_fk_ignore_pattern
@@ -1122,6 +1126,8 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           assert_nothing_raised do
             @connection.add_foreign_key :astronauts, :rockets, if_not_exists: true
           end
+
+          assert_equal 1, @connection.foreign_keys("astronauts").size
         end
 
         def test_add_foreign_key_preserves_existing_column_types

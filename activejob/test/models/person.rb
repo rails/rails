@@ -7,9 +7,19 @@ class Person
 
   attr_reader :id
 
-  def self.find(id)
-    raise RecordNotFound.new("Cannot find person with ID=404") if id.to_i == 404
-    new(id)
+  class << self
+    def find(id)
+      raise RecordNotFound.new("Cannot find person with ID=404") if id.to_i == 404
+      raise "Connection error" if id.to_i == 500
+
+      new(id)
+    end
+
+    def where(id:)
+      ids = Array(id)
+      raise "Connection error" if ids.any? { |value| value.to_i == 500 }
+      ids.filter_map { |value| new(value) unless value.to_i == 404 }
+    end
   end
 
   def initialize(id)

@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "date"
@@ -13,22 +14,22 @@ class Date
   class << self
     attr_accessor :beginning_of_week_default
 
-    # Returns the week start (e.g. +:monday+) for the current request, if this has been set (via Date.beginning_of_week=).
-    # If <tt>Date.beginning_of_week</tt> has not been set for the current request, returns the week start specified in <tt>config.beginning_of_week</tt>.
-    # If no +config.beginning_of_week+ was specified, returns +:monday+.
+    # Returns the week start (e.g. `:monday`) for the current request, if this has been set (via Date.beginning_of_week=).
+    # If `Date.beginning_of_week` has not been set for the current request, returns the week start specified in `config.beginning_of_week`.
+    # If no `config.beginning_of_week` was specified, returns `:monday`.
     def beginning_of_week
       ::ActiveSupport::IsolatedExecutionState[:beginning_of_week] || beginning_of_week_default || :monday
     end
 
-    # Sets <tt>Date.beginning_of_week</tt> to a week start (e.g. +:monday+) for current request/thread.
+    # Sets `Date.beginning_of_week` to a week start (e.g. `:monday`) for current request/thread.
     #
     # This method accepts any of the following day symbols:
-    # +:monday+, +:tuesday+, +:wednesday+, +:thursday+, +:friday+, +:saturday+, +:sunday+
+    # `:monday`, `:tuesday`, `:wednesday`, `:thursday`, `:friday`, `:saturday`, `:sunday`
     def beginning_of_week=(week_start)
       ::ActiveSupport::IsolatedExecutionState[:beginning_of_week] = find_beginning_of_week!(week_start)
     end
 
-    # Returns week start day symbol (e.g. +:monday+), or raises an +ArgumentError+ for invalid day symbol.
+    # Returns week start day symbol (e.g. `:monday`), or raises an `ArgumentError` for invalid day symbol.
     def find_beginning_of_week!(week_start)
       raise ArgumentError, "Invalid beginning of week: #{week_start}" unless ::Date::DAYS_INTO_WEEK.key?(week_start)
       week_start
@@ -44,7 +45,7 @@ class Date
       ::Date.current.tomorrow
     end
 
-    # Returns <tt>Time.zone.today</tt> when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns Date.today.
+    # Returns `Time.zone.today` when `Time.zone` or `config.time_zone` are set, otherwise just returns Date.today.
     def current
       ::Time.zone ? ::Time.zone.today : ::Date.today
     end
@@ -107,22 +108,26 @@ class Date
   alias_method :minus_without_duration, :-
   alias_method :-, :minus_with_duration
 
-  # Provides precise Date calculations for years, months, and days. The +options+ parameter takes a hash with
-  # any of these keys: <tt>:years</tt>, <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>.
+  # Provides precise Date calculations for years, months, and days. The `options` parameter takes a hash with
+  # any of these keys: `:years`, `:months`, `:weeks`, `:days`.
   #
   # The increments are applied in order of time units from largest to smallest.
-  # In other words, the date is incremented first by +:years+, then by
-  # +:months+, then by +:weeks+, then by +:days+. This order can affect the
+  # In other words, the date is incremented first by `:years`, then by
+  # `:months`, then by `:weeks`, then by `:days`. This order can affect the
   # result around the end of a month. For example, incrementing first by months
   # then by days:
   #
-  #   Date.new(2004, 9, 30).advance(months: 1, days: 1)
-  #   # => Sun, 31 Oct 2004
+  # ```
+  # Date.new(2004, 9, 30).advance(months: 1, days: 1)
+  # # => Sun, 31 Oct 2004
+  # ```
   #
   # Whereas incrementing first by days then by months yields a different result:
   #
-  #   Date.new(2004, 9, 30).advance(days: 1).advance(months: 1)
-  #   # => Mon, 01 Nov 2004
+  # ```
+  # Date.new(2004, 9, 30).advance(days: 1).advance(months: 1)
+  # # => Mon, 01 Nov 2004
+  # ```
   #
   def advance(options)
     d = self
@@ -135,11 +140,13 @@ class Date
     d
   end
 
-  # Returns a new Date where one or more of the elements have been changed according to the +options+ parameter.
-  # The +options+ parameter is a hash with a combination of these keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>.
+  # Returns a new Date where one or more of the elements have been changed according to the `options` parameter.
+  # The `options` parameter is a hash with a combination of these keys: `:year`, `:month`, `:day`.
   #
-  #   Date.new(2007, 5, 12).change(day: 1)               # => Date.new(2007, 5, 1)
-  #   Date.new(2007, 5, 12).change(year: 2005, month: 1) # => Date.new(2005, 1, 12)
+  # ```
+  # Date.new(2007, 5, 12).change(day: 1)               # => Date.new(2007, 5, 1)
+  # Date.new(2007, 5, 12).change(year: 2005, month: 1) # => Date.new(2005, 1, 12)
+  # ```
   def change(options)
     ::Date.new(
       options.fetch(:year, year),

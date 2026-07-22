@@ -623,6 +623,31 @@ module ApplicationTests
       assert_equal [:password, :foo, "bar"], Rails.application.env_config["action_dispatch.parameter_filter"]
     end
 
+    test "config.action_dispatch.default_headers can be set in an initializer and is applied to responses" do
+      app_file "config/initializers/default_headers.rb", <<-RUBY
+        Rails.application.config.action_dispatch.default_headers = { "X-Custom-Header" => "custom" }
+      RUBY
+
+      app_file "app/controllers/pages_controller.rb", <<-RUBY
+        class PagesController < ApplicationController
+          def index
+            render plain: "OK"
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          get "/pages", to: "pages#index"
+        end
+      RUBY
+
+      app "development"
+
+      get "/pages"
+      assert_equal "custom", last_response.headers["X-Custom-Header"]
+    end
+
     test "filter_parameters is precompiled when config.precompile_filter_parameters is true" do
       filters = [/foo/, :bar, "baz.qux"]
 
@@ -2083,6 +2108,32 @@ module ApplicationTests
       assert ActiveRecord.dump_schema_after_migration
     end
 
+    test "config.active_record.dump_schema_migrations is false by default" do
+      app "development"
+
+      assert_not ActiveRecord.dump_schema_migrations
+    end
+
+    test "config.active_record.dump_schema_migrations can be configured" do
+      add_to_config "config.active_record.dump_schema_migrations = true"
+      app "development"
+
+      assert ActiveRecord.dump_schema_migrations
+    end
+
+    test "config.active_record.dump_schema_migrations_sort_by is :reverse by default" do
+      app "development"
+
+      assert_equal :reverse, ActiveRecord.dump_schema_migrations_sort_by
+    end
+
+    test "config.active_record.dump_schema_migrations_sort_by can be configured" do
+      add_to_config "config.active_record.dump_schema_migrations_sort_by = :itself"
+      app "development"
+
+      assert_equal :itself, ActiveRecord.dump_schema_migrations_sort_by
+    end
+
     test "config.active_record.verbose_query_logs is false by default in development" do
       app "development"
 
@@ -3522,20 +3573,20 @@ module ApplicationTests
       assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag is true by default" do
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag is true by default" do
       app "development"
-      assert_equal true, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+      assert_equal true, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag is false by default for upgraded apps" do
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag is false by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "6.1"'
       app "development"
 
-      assert_equal false, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+      assert_equal false, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag can be configured via config.action_view.button_to_generates_button_tag" do
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag can be configured via config.action_view.button_to_generates_button_tag" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
@@ -3544,7 +3595,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal true, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+      assert_equal true, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
     end
 
     test "ActionView::Helpers::AssetTagHelper.image_loading is nil by default" do

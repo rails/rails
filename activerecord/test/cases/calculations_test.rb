@@ -838,30 +838,49 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_no_queries_for_empty_relation_on_count
     assert_queries_count(0) do
       assert_equal 0, Post.where(id: []).count
+      assert_async_equal 0, Post.where(id: []).async_count
     end
   end
 
   def test_no_queries_for_empty_relation_on_sum
     assert_queries_count(0) do
       assert_equal 0, Post.where(id: []).sum(:tags_count)
+      assert_async_equal 0, Post.where(id: []).async_sum(:tags_count)
     end
   end
 
   def test_no_queries_for_empty_relation_on_average
     assert_queries_count(0) do
       assert_nil Post.where(id: []).average(:tags_count)
+      assert_async_equal nil, Post.where(id: []).async_average(:tags_count)
     end
   end
 
   def test_no_queries_for_empty_relation_on_minimum
     assert_queries_count(0) do
       assert_nil Account.where(id: []).minimum(:id)
+      assert_async_equal nil, Account.where(id: []).async_minimum(:id)
     end
   end
 
   def test_no_queries_for_empty_relation_on_maximum
     assert_queries_count(0) do
       assert_nil Account.where(id: []).maximum(:id)
+      assert_async_equal nil, Account.where(id: []).async_maximum(:id)
+    end
+  end
+
+  def test_no_queries_for_empty_relation_on_grouped_count
+    assert_no_queries do
+      assert_equal({}, Post.where(id: []).group(:author_id).count)
+      assert_async_equal({}, Post.where(id: []).group(:author_id).async_count)
+    end
+  end
+
+  def test_no_queries_for_empty_relation_on_grouped_sum
+    assert_no_queries do
+      assert_equal({}, Post.where(id: []).group(:author_id).sum(:tags_count))
+      assert_async_equal({}, Post.where(id: []).group(:author_id).async_sum(:tags_count))
     end
   end
 
@@ -919,14 +938,16 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_async_pluck_none_relation
-    assert_async_equal [], Topic.none.async_pluck(:id)
+    assert_no_queries do
+      assert_async_equal [], Topic.none.async_pluck(:id)
+    end
   end
 
   def test_pluck_with_empty_in
     assert_queries_count(0) do
       assert_equal [], Topic.where(id: []).pluck(:id)
+      assert_async_equal [], Topic.where(id: []).async_pluck(:id)
     end
-    assert_async_equal [], Topic.where(id: []).async_pluck(:id)
   end
 
   def test_pluck_without_column_names
@@ -1137,8 +1158,8 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_predicate company_ids, :empty?
     assert_queries_count(0) do
       assert_equal company_ids, Company.where(id: empty_scope_ids).ids
+      assert_async_equal company_ids, Company.where(id: empty_scope_ids).async_ids
     end
-    assert_async_equal company_ids, Company.where(id: empty_scope_ids).async_ids
   end
 
   def test_ids_with_join
@@ -1424,6 +1445,8 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_nil Topic.none.pick(:heading)
       assert_nil Topic.where(id: 9999999999999999999).pick(:heading)
+      assert_async_equal nil, Topic.none.async_pick(:heading)
+      assert_async_equal nil, Topic.where(id: 9999999999999999999).async_pick(:heading)
     end
 
     assert_async_equal "The First Topic", Topic.order(:id).async_pick(:heading)
@@ -1450,6 +1473,8 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal "37signals", companies.pick(:name)
     end
+
+    assert_async_equal "37signals", companies.async_pick(:name)
   end
 
   def test_pick_loaded_relation_multiple_columns

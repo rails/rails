@@ -396,8 +396,7 @@ module ActiveRecord
 
     # Returns true if there are any records.
     #
-    #
-    # When an argument is given, returns true if at least one records matches
+    # When an argument is given, returns true if at least one record matches
     # the argument via the case-equality operator (<tt>===</tt>).
     #
     #    posts.any?(Post)    # => true if at least one record
@@ -411,11 +410,11 @@ module ActiveRecord
 
     # Returns true if there is exactly one record.
     #
-    # When an argument is given, returns true if exactly one records matches the
+    # When an argument is given, returns true if exactly one record matches the
     # argument via the case-equality operator (<tt>===</tt>).
     #
-    #    posts.one?(Post) # => true if exactly one record
-    #    posts.any?(Comment) # => false
+    #    posts.one?(Post)    # => true if exactly one record
+    #    posts.one?(Comment) # => false
     def one?(*args)
       return false if @none
 
@@ -951,7 +950,7 @@ module ActiveRecord
     #
     # * +counter+ - A Hash containing the names of the fields to update as keys and the amount to update as values.
     # * <tt>:touch</tt> option - Touch the timestamp columns when updating.
-    # * If attributes names are passed, they are updated along with update_at/on attributes.
+    # * If attributes names are passed, they are updated along with updated_at/on attributes.
     #
     # ==== Examples
     #

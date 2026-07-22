@@ -105,14 +105,14 @@ module ActiveJob
       # ==== Example
       #
       #  class SearchIndexingJob < ActiveJob::Base
-      #    discard_on ActiveJob::DeserializationError
+      #    discard_on ActiveJob::DeserializationError::RecordNotFound
       #    discard_on CustomAppException, report: true
       #    discard_on(AnotherCustomAppException) do |job, error|
       #      CustomErrorHandlingCode.handle(job, error)
       #    end
       #
       #    def perform(record)
-      #      # Will raise ActiveJob::DeserializationError if the record can't be deserialized
+      #      # Will raise ActiveJob::DeserializationError::RecordNotFound if the record can't be found
       #      # Might raise CustomAppException for something domain specific
       #    end
       #  end

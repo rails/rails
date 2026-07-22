@@ -1,3 +1,9 @@
+*   Deprecate `ActionDispatch::Cookies::HTTP_HEADER`.
+
+    Use `Rack::SET_COOKIE` instead.
+
+    *Nikita Vasilevsky*
+
 *   Fix `ActionController::Live` streams hanging on client disconnect.
 
     `ActionController::Live::Buffer#abort` cleared the streaming queue but never
@@ -353,7 +359,7 @@
 
     By default, all keys are shared.
 
-    *Eileen M. Uchitelle*
+    *Eileen M. Alayce*
 
 *   Add controller action source location to routes inspector.
 

@@ -534,6 +534,10 @@ module ActiveRecord
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) # :nodoc:
+        if where_clause.contradiction?
+          return @async ? Promise::Complete.new({}) : {}
+        end
+
         group_fields = group_values
 
         if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)

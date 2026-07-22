@@ -1485,22 +1485,25 @@ module ActiveRecord
 
       def assume_migrated_upto_version(version)
         version = version.to_i
-        sm_table = quote_table_name(pool.schema_migration.table_name)
-
         migration_context = pool.migration_context
-        migrated = migration_context.get_all_versions
-        versions = migration_context.migrations.map(&:version)
 
-        unless migrated.include?(version)
-          execute "INSERT INTO #{sm_table} (version) VALUES (#{quote(version)})"
+        schema_migrations_table       = migration_context.schema_migration.table_name
+        versions_in_schema_migrations = migration_context.get_all_versions
+        versions_in_db_migrate        = migration_context.migrations.map(&:version)
+
+        unless versions_in_schema_migrations.include?(version)
+          execute "INSERT INTO #{quote_table_name(schema_migrations_table)} (version) VALUES (#{quote(version)})"
         end
 
-        inserting = (versions - migrated).select { |v| v < version }
-        if inserting.any?
-          if (duplicate = inserting.detect { |v| inserting.count(v) > 1 })
+        versions_to_insert = (versions_in_db_migrate - versions_in_schema_migrations).select { |v| v < version }
+
+        if versions_to_insert.any?
+          if (duplicate = versions_to_insert.detect { |v| versions_to_insert.count(v) > 1 })
             raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
-          execute insert_versions_sql(inserting)
+
+          versions_to_insert.map!(&:to_s)
+          migration_context.schema_migration.create_versions(versions_to_insert)
         end
       end
 

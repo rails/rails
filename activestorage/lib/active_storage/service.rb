@@ -4,6 +4,7 @@ require "active_storage/log_subscriber"
 require "active_storage/structured_event_subscriber"
 require "action_dispatch"
 require "action_dispatch/http/content_disposition"
+require "active_support/core_ext/string/filters"
 
 module ActiveStorage
   # = Active Storage \Service

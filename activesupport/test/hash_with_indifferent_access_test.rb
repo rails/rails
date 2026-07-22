@@ -513,6 +513,16 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal(["x", "b"], hash.keys) # asserting that order of keys is unchanged
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
 
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).transform_keys({ a: :x, y: :z })
+
+    assert_nil(hash["a"])
+    assert_equal(1, hash["x"])
+    assert_equal(2, hash["b"])
+    assert_nil(hash["y"])
+    assert_nil(hash["z"])
+    assert_equal(["x", "b"], hash.keys) # asserting that order of keys is unchanged
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+
     hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).transform_keys({ "a" => "A", "q" => "Q" }) { |k| k * 3 }
 
     assert_nil(hash["a"])
@@ -579,6 +589,17 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
 
     hash = ActiveSupport::HashWithIndifferentAccess.new(@strings)
     hash.transform_keys!({ "a" => "x", "y" => "z" })
+
+    assert_nil(hash["a"])
+    assert_equal(1, hash["x"])
+    assert_equal(2, hash["b"])
+    assert_nil(hash["y"])
+    assert_nil(hash["z"])
+    assert_equal(["x", "b"], hash.keys) # asserting that order of keys is unchanged
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    hash.transform_keys!({ a: :x, y: :z })
 
     assert_nil(hash["a"])
     assert_equal(1, hash["x"])

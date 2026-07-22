@@ -927,6 +927,7 @@ module ActiveRecord
       #
       # See {connection.add_check_constraint}[rdoc-ref:SchemaStatements#add_check_constraint]
       def check_constraint(*args, **options)
+        raise_on_if_exist_options(options)
         @base.add_check_constraint(name, *args, **options)
       end
 
@@ -936,6 +937,7 @@ module ActiveRecord
       #
       # See {connection.remove_check_constraint}[rdoc-ref:SchemaStatements#remove_check_constraint]
       def remove_check_constraint(*args, **options)
+        raise_on_if_exist_options(options)
         @base.remove_check_constraint(name, *args, **options)
       end
 

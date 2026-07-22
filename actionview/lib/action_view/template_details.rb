@@ -3,17 +3,11 @@
 module ActionView
   class TemplateDetails # :nodoc:
     class Requested
-      attr_reader :locale, :handlers, :formats, :variants
       attr_reader :locale_idx, :handlers_idx, :formats_idx, :variants_idx
 
       ANY_HASH = Hash.new(1).merge(nil => 0).freeze
 
       def initialize(locale:, handlers:, formats:, variants:)
-        @locale = locale
-        @handlers = handlers
-        @formats = formats
-        @variants = variants
-
         @locale_idx   = build_idx_hash(locale)
         @handlers_idx = build_idx_hash(handlers)
         @formats_idx  = build_idx_hash(formats)
