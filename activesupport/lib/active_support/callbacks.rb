@@ -240,7 +240,7 @@ module ActiveSupport
           new chain.name, filter, kind, options, chain.config
         end
 
-        attr_accessor :kind, :name
+        attr_reader :kind, :name
         attr_reader :chain_config, :filter
 
         def initialize(name, filter, kind, options, chain_config)
