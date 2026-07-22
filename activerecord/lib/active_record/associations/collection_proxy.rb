@@ -476,12 +476,12 @@ module ActiveRecord
       end
 
       # Deletes the records of the collection directly from the database
-      # ignoring the +:dependent+ option. Records are instantiated and it
+      # ignoring the +:dependent+ option on the relationship. Records are instantiated and it
       # invokes +before_remove+, +after_remove+, +before_destroy+, and
       # +after_destroy+ callbacks.
       #
       #   class Person < ActiveRecord::Base
-      #     has_many :pets
+      #     has_many :pets, dependent: :nullify
       #   end
       #
       #   person.pets.size # => 3
@@ -492,7 +492,7 @@ module ActiveRecord
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
       #
-      #   person.pets.destroy_all
+      #   person.pets.destroy_all # ignores the `dependent: :nullify` specified above
       #
       #   person.pets.size # => 0
       #   person.pets      # => []
