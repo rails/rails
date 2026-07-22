@@ -313,7 +313,14 @@ class Time
   # are coerced into values that Time#- will recognize
   def minus_with_coercion(other)
     other = other.comparable_time if other.respond_to?(:comparable_time)
-    other.is_a?(DateTime) ? to_f - other.to_f : minus_without_coercion(other)
+    if other.is_a?(DateTime)
+      # Prefer an exact rational difference: Float (to_f) cannot represent every
+      # microsecond, so sub-second DateTime values lost precision (same class of
+      # issue as Time.at with DateTime).
+      to_r - other.to_i - other.sec_fraction
+    else
+      minus_without_coercion(other)
+    end
   end
   alias_method :minus_without_coercion, :-
   alias_method :-, :minus_with_coercion # rubocop:disable Lint/DuplicateMethods
