@@ -1,3 +1,16 @@
+*   Avoid raising when uniqueness validation scopes on an invalid enum value.
+
+    With `enum ..., validate: true`, assigning an unknown label no longer raises
+    on assignment. Uniqueness checks that scoped on that attribute still built a
+    query with the invalid label, which raised `StatementInvalid` on PostgreSQL
+    native enums. Values outside the enum mapping are now treated as unboundable
+    (same idea as integer out-of-range), so validation reports the inclusion
+    error instead of blowing up.
+
+    Fixes #52279.
+
+    *Rafael Pissardo*
+
 *   Support dumping `schema_migrations` in `db/schema.rb`.
 
     When the new `ActiveRecord.dump_schema_migrations` flag is true, `:ruby`

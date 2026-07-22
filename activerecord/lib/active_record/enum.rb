@@ -196,7 +196,30 @@ module ActiveRecord
       end
 
       def serializable?(value, &block)
-        subtype.serializable?(mapping.fetch(value, value), &block)
+        # Blank values are serialized as NULL.
+        return true if value.blank?
+
+        if mapping.has_key?(value)
+          return subtype.serializable?(mapping[value], &block)
+        end
+
+        if mapping.has_value?(value)
+          return subtype.serializable?(value, &block)
+        end
+
+        # Accept subtype-castable forms of declared DB values (e.g. status: "2"
+        # for an integer-backed enum). Values that cast to something outside the
+        # mapping are unboundable — important for PostgreSQL native enums, which
+        # raise on invalid labels instead of coercing them.
+        if subtype.serializable?(value)
+          casted = subtype.serialize(value)
+          return true if mapping.has_value?(casted)
+        end
+
+        # QueryAttribute#unboundable? requires a Numeric from the block
+        # (String#<=> Integer is nil and would look boundable).
+        yield 1 if block_given?
+        false
       end
 
       def assert_valid_value(value)
