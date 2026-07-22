@@ -1,3 +1,28 @@
+*   Add `validates_column_limit_of` (`column_limit: true`).
+
+    Validates that an attribute fits within the limit its backing database
+    column declares. Depending on the adapter an over-limit value would
+    otherwise raise a `RangeError`, be truncated, or be stored oversized on
+    save.
+
+    ```ruby
+    class Ledger < ActiveRecord::Base
+      validates_column_limit_of :account_id
+    end
+    ```
+
+    Integer columns must hold a value inside the range their byte size and
+    signedness allow, decimal columns a value within the magnitude their
+    precision and scale allow, string columns a value within the character
+    limit, and text and binary columns a value within the byte limit. The
+    check only fires when the adapter reports a limit (or precision) it can
+    interpret for the column, so its coverage varies across the SQLite,
+    PostgreSQL, MySQL, and Trilogy adapters. MySQL `bit` columns are skipped
+    because their limit counts bits, and array columns because the validator
+    does not recurse into their elements.
+
+    *Eliseu Daroit*
+
 *   Support dumping `schema_migrations` in `db/schema.rb`.
 
     When the new `ActiveRecord.dump_schema_migrations` flag is true, `:ruby`
