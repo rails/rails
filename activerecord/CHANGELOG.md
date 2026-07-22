@@ -1,3 +1,7 @@
+*   Remove unused `rest` parameter from merge and merge!
+
+    *Aaron Patterson*
+
 *   Support dumping `schema_migrations` in `db/schema.rb`.
 
     When the new `ActiveRecord.dump_schema_migrations` flag is true, `:ruby`
