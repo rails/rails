@@ -1,8 +1,8 @@
 *   Validate transformation methods against a libvips-specific allowlist when
     using the Vips variant transformer.
 
-    The `Vips` transformer previously did not validate transformation methods 
-    at all, allowing arbitrary methods to be dispatched to the image processing
+    The `Vips` transformer previously did not validate transformation methods at 
+    all, allowing arbitrary methods to be dispatched to the image processing
     pipeline (CVE-2025-24293 only covered the `ImageMagick` transformer).
     Transformations processed by libvips are now validated against a new
     allowlist of safe libvips operations, which can be extended with
