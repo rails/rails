@@ -307,6 +307,19 @@ function getWebSocketURL() {
 }
 ```
 
+#### Headers
+
+You can pass custom headers to the WebSocket connection by providing them as the second argument to `createConsumer`:
+
+```js
+const headers = { 
+  'X-API-KEY': 'secret-key',
+  'Content-Type': 'application/json'
+}
+
+createConsumer(url, headers)
+```
+
 #### Subscriber
 
 A consumer becomes a subscriber by creating a subscription to a given channel:
