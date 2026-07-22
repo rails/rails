@@ -10,10 +10,6 @@ module ActiveRecord
         @name = name
       end
 
-      def merge(other)
-        self
-      end
-
       def empty?
         value.nil?
       end
