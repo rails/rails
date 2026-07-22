@@ -731,6 +731,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_config_ci_does_not_leave_a_blank_line_at_the_end_of_the_checks_group_when_skip_test_is_given
+    run_generator [destination_root, "--skip-test"]
+
+    assert_file "config/ci.rb" do |content|
+      assert_no_match(/\n[ ]*\n[ ]*end\b/, content)
+    end
+  end
+
   def test_config_ci_does_not_include_seed_step_when_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
 
